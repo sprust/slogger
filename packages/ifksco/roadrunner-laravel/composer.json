@@ -1,0 +1,38 @@
+{
+    "name": "ifksco/roadrunner-laravel",
+    "description": "RoadRunner for laravel",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Pavel",
+            "email": "sppetrovich@mail.ru"
+        }
+    ],
+    "require": {
+        "laravel/framework": "^10.0",
+        "spiral/roadrunner-cli": "^2.6",
+        "spiral/roadrunner-http": "^3.3",
+        "laminas/laminas-diactoros": "^3.3",
+        "nyholm/psr7": "^1.8",
+        "symfony/psr-http-message-bridge": "^2.3",
+        "spiral/roadrunner-jobs": "^4.3.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "RoadRunner\\": "src/"
+        }
+    },
+    "bin": [
+        "bin/rr-http-worker.php",
+        "bin/rr-jobs-worker.php"
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [
+                "RoadRunner\\RrServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

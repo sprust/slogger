@@ -1,0 +1,78 @@
+version: '3.5'
+
+services:
+  php:
+    container_name: sl-php
+    build:
+      context: ./docker/php
+      args:
+        - GROUP_ID=${DOCKER_GROUP_ID}
+        - USER_ID=${DOCKER_USER_ID}
+    depends_on:
+      - mysql
+      - redis
+      - mongo
+    volumes:
+      - ./:/app
+      - ./docker/php/conf/php.ini:/usr/local/etc/php/conf.d/docker.ini
+      - ./docker/supervisor/conf/supervisor.conf:/etc/supervisor/conf.d/supervisord.conf
+    environment:
+      XDEBUG_CONFIG: "remote_host=${XDEBUG_REMOTE_HOST:-php} client_host=${XDEBUG_CLIENT_HOST:-host.docker.internal} remote_enable=1"
+      PHP_IDE_CONFIG: "serverName=${PHP_IDE_CONFIG_SERVER_NAME}"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    command: supervisord -n
+    ports:
+      - ${RR_HTTP_DOCKER_PORT:-10021}:${RR_HTTP_PORT:-9020}
+      - ${RR_STATUS_DOCKER_PORT:-12112}:${RR_STATUS_PORT:-2112}
+      - ${RR_METRICS_DOCKER_PORT:-12114}:${RR_METRICS_PORT:-2114}
+
+  mysql:
+    image: mysql:8.0
+    container_name: sl-mysql
+    ports:
+      - ${DB_DOCKER_PORT:-3308}:${DB_PORT:-3306}
+    environment:
+      MYSQL_HOST: ${DB_HOST}
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      SERVICE_NAME: mysql
+    volumes:
+      - mysql:/var/lib/mysql
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-p${DB_PASSWORD}" ]
+      retries: 3
+      timeout: 5s
+
+  redis:
+    image: redis:alpine
+    container_name: sl-redis
+    ports:
+      - ${REDIS_DOCKER_PORT:-6379}:${REDIS_PORT:-6379}
+    volumes:
+      - redis:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      retries: 3
+      timeout: 5s
+
+  mongo:
+    image: mongo:6.0.5
+    container_name: sl-mongo
+    environment:
+      MONGO_ADMIN_USERNAME: ${MONGO_ADMIN_USERNAME}
+      MONGO_ADMIN_PASSWORD: ${MONGO_ADMIN_PASSWORD}
+    ports:
+      - ${MONGO_DOCKER_PORT}:${MONGO_PORT}
+    volumes:
+      - ./docker/mongo/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+      - mongo:/data/db
+
+volumes:
+  mysql:
+    driver: local
+  redis:
+    driver: local
+  mongo:
+    driver: local

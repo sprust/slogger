@@ -93,6 +93,16 @@ return [
             // 'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'false'),
         ],
 
+        'mongodb' => [
+            'driver'   => 'mongodb',
+            'host'     => env('MONGO_HOST'),
+            'port'     => env('MONGO_PORT'),
+            'user'     => env('MONGO_ADMIN_USERNAME'),
+            'password' => env('MONGO_ADMIN_PASSWORD'),
+            'options'  => [
+                'authSource' => env('MONGO_DATABASE_ADMIN', 'admin'),
+            ],
+        ]
     ],
 
     /*
