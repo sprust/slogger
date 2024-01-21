@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Modules\Users;
+namespace App\Modules\Users\Repository;
 
 use App\Models\Users\User;
-use App\Modules\Users\Parameters\UsersCreateParameters;
+use App\Modules\Users\Repository\Parameters\UsersCreateParameters;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
