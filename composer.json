@@ -10,6 +10,7 @@
         "ifksco/roadrunner-laravel": "dev-master",
         "laravel/framework": "^10.10",
         "laravel/tinker": "^2.8",
+        "mongodb/laravel-mongodb": "^4.1",
         "mongodb/mongodb": "^1.17"
     },
     "require-dev": {

@@ -97,12 +97,15 @@ return [
             'driver'   => 'mongodb',
             'host'     => env('MONGO_HOST'),
             'port'     => env('MONGO_PORT'),
-            'user'     => env('MONGO_ADMIN_USERNAME'),
+            'username' => env('MONGO_ADMIN_USERNAME'),
             'password' => env('MONGO_ADMIN_PASSWORD'),
+            'database' => env('DB_DATABASE'), // TODO
             'options'  => [
+                'appname'    => env('APP_NAME'),
                 'authSource' => env('MONGO_DATABASE_ADMIN', 'admin'),
             ],
-        ]
+        ],
+
     ],
 
     /*
