@@ -21,3 +21,5 @@ yarn-error.log
 rr
 .rr.yaml
 .pid
+
+app/Console/Commands/Local

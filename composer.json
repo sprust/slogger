@@ -9,7 +9,6 @@
         "guzzlehttp/guzzle": "^7.2",
         "ifksco/roadrunner-laravel": "dev-master",
         "laravel/framework": "^10.10",
-        "laravel/sanctum": "^3.3",
         "laravel/tinker": "^2.8",
         "mongodb/mongodb": "^1.17"
     },
