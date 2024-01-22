@@ -30,6 +30,7 @@ class ProjectLogsRawMigration
                             'type',
                             'tags',
                             'data',
+                            'loggedAt',
                         ],
                         'properties' => [
                             'service'       => [
@@ -49,6 +50,9 @@ class ProjectLogsRawMigration
                             ],
                             'data'          => [
                                 'bsonType' => 'array',
+                            ],
+                            'loggedAt'          => [
+                                'bsonType' => 'date',
                             ],
                         ],
                     ],
