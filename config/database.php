@@ -94,15 +94,21 @@ return [
         ],
 
         'mongodb' => [
-            'driver'   => 'mongodb',
-            'host'     => env('MONGO_HOST'),
-            'port'     => env('MONGO_PORT'),
-            'username' => env('MONGO_ADMIN_USERNAME'),
-            'password' => env('MONGO_ADMIN_PASSWORD'),
-            'database' => env('DB_DATABASE'), // TODO
-            'options'  => [
-                'appname'    => env('APP_NAME'),
-                'authSource' => env('MONGO_DATABASE_ADMIN', 'admin'),
+            /**
+             * connector will be redefined
+             * @see \App\Models\AbstractProjectModel
+             */
+            'projects' => [
+                'driver'   => 'mongodb',
+                'host'     => env('MONGO_HOST'),
+                'port'     => env('MONGO_PORT'),
+                'username' => env('MONGO_ADMIN_USERNAME'),
+                'password' => env('MONGO_ADMIN_PASSWORD'),
+                'connector' => \App\Services\Mongo\ProjectsMongoConnector::class,
+                'options'  => [
+                    'appname'    => env('APP_NAME'),
+                    'authSource' => env('MONGO_DATABASE_ADMIN', 'admin'),
+                ],
             ],
         ],
 

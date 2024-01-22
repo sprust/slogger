@@ -10,6 +10,7 @@ use Illuminate\Support\Carbon;
  * @property int    $id
  * @property int    $user_id
  * @property string $name
+ * @property string $database_name
  * @property Carbon $created_at
  * @property Carbon $updated_at
  */
