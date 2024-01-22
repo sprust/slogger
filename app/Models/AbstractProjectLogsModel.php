@@ -4,7 +4,7 @@ namespace App\Models;
 
 use App\Modules\Projects\ProjectDatabaseContainer;
 
-abstract class AbstractProjectModel extends AbstractMongoModel
+abstract class AbstractProjectLogsModel extends AbstractMongoModel
 {
     protected $connection = 'mongodb.projects';
 

@@ -2,19 +2,32 @@
 
 namespace App\Modules\Projects;
 
+use App\Modules\ProjectLogs\ProjectLoggingExecutor;
+use App\Modules\ProjectLogs\ProjectLogsRepository;
 use Illuminate\Support\Str;
 
-class ProjectDatabaseCreator
+readonly class ProjectDatabaseCreator
 {
+    public function __construct(private ProjectLogsRepository $logsRepository)
+    {
+    }
+
     public function makeDatabaseName(int $userId, string $projectName): string
     {
-        $projectNameSlug = Str::slug($projectName);
+        // not dots!!!
+
+        $projectNameSlug = Str::slug($projectName, '-');
 
         return "projects-$userId-$projectNameSlug";
     }
 
     public function create(string $databaseName): void
     {
-        // TODO
+        ProjectLoggingExecutor::exec(
+            $databaseName,
+            function () {
+                $this->logsRepository->create();
+            }
+        );
     }
 }

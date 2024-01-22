@@ -2,22 +2,16 @@
 
 namespace App\Modules\Projects;
 
-use LogicException;
-
 class ProjectDatabaseContainer
 {
-    private string $databaseName;
+    private ?string $databaseName = null;
 
-    public function getDatabaseName(): string
+    public function getDatabaseName(): ?string
     {
-        if (!isset($this->databaseName)) {
-            throw new LogicException("Project database name hasn't injected!");
-        }
-
         return $this->databaseName;
     }
 
-    public function setDatabaseName(string $databaseName): void
+    public function setDatabaseName(?string $databaseName): void
     {
         $this->databaseName = $databaseName;
     }

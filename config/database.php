@@ -96,7 +96,7 @@ return [
         'mongodb' => [
             /**
              * connector will be redefined
-             * @see \App\Models\AbstractProjectModel
+             * @see \App\Models\AbstractProjectLogsModel
              */
             'projects' => [
                 'driver'   => 'mongodb',
