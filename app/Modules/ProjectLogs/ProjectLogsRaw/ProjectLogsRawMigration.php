@@ -54,6 +54,9 @@ class ProjectLogsRawMigration
                             'loggedAt'          => [
                                 'bsonType' => 'date',
                             ],
+                            'createdAt'          => [
+                                'bsonType' => 'date',
+                            ],
                         ],
                     ],
                 ],

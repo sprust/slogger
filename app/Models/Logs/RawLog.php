@@ -18,13 +18,22 @@ use Carbon\Carbon;
  * @property array       $tags
  * @property array       $data
  * @property Carbon      $loggedAt
+ * @property Carbon      $createdAt
  */
 class RawLog extends AbstractProjectLogsModel
 {
+    public const CREATED_AT = 'createdAt';
+    public const UPDATED_AT = null;
+
     protected $casts = [
         'type'     => LogTypeEnum::class,
-        'actionAt' => 'timestamp',
+        'loggedAt' => 'datetime',
     ];
+
+    public function __construct(array $attributes = [])
+    {
+        parent::__construct($attributes);
+    }
 
     static protected function getCollectionName(): string
     {
