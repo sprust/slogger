@@ -19,4 +19,12 @@ readonly class ProjectLogsRepository
     {
         $this->logsRawMigration->up();
     }
+
+    /**
+     * @throws Throwable
+     */
+    public function delete(): void
+    {
+        $this->logsRawMigration->down();
+    }
 }

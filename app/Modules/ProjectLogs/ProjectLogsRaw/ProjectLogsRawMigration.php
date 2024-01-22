@@ -65,4 +65,10 @@ class ProjectLogsRawMigration
             ]
         );
     }
+
+    public function down(): void
+    {
+        RawLog::collection()->dropIndexes();
+        RawLog::collection()->drop();
+    }
 }

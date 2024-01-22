@@ -13,7 +13,7 @@ class ProjectLoggingExecutor
      *
      * @throws Throwable
      */
-    public static function exec(string $databaseName, Closure $closure): mixed
+    public static function usingDatabase(string $databaseName, Closure $closure): mixed
     {
         /** @var ProjectDatabaseContainer $databaseContainer */
         $databaseContainer = app(ProjectDatabaseContainer::class);

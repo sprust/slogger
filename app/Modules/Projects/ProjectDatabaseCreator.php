@@ -23,7 +23,7 @@ readonly class ProjectDatabaseCreator
 
     public function create(string $databaseName): void
     {
-        ProjectLoggingExecutor::exec(
+        ProjectLoggingExecutor::usingDatabase(
             $databaseName,
             function () {
                 $this->logsRepository->create();
