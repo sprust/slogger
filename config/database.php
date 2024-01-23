@@ -100,14 +100,14 @@ return [
              */
             'projects' => [
                 'driver'   => 'mongodb',
-                'host'     => env('MONGO_HOST'),
-                'port'     => env('MONGO_PORT'),
-                'username' => env('MONGO_ADMIN_USERNAME'),
-                'password' => env('MONGO_ADMIN_PASSWORD'),
+                'host'     => env('MONGO_PROJECT_LOGS_HOST'),
+                'port'     => env('MONGO_PROJECT_LOGS_PORT'),
+                'username' => env('MONGO_PROJECT_LOGS_ADMIN_USERNAME'),
+                'password' => env('MONGO_PROJECT_LOGS_ADMIN_PASSWORD'),
                 'connector' => \App\Services\Mongo\ProjectsMongoConnector::class,
                 'options'  => [
                     'appname'    => env('APP_NAME'),
-                    'authSource' => env('MONGO_DATABASE_ADMIN', 'admin'),
+                    'authSource' => env('MONGO_PROJECT_LOGS_DATABASE_ADMIN', 'admin'),
                 ],
             ],
         ],
