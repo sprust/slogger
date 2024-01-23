@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Modules\ProjectLogs\ProjectLogsRaw;
+namespace App\Modules\ProjectLogs\RawLogs;
 
-use App\Models\Logs\RawLog;
+use App\Models\ProjectLogs\ProjectRawLog;
 use Illuminate\Support\Facades\DB;
 use MongoDB\Laravel\Connection;
 use Throwable;
 
-class ProjectLogsRawMigration
+class ProjectRawLogsMigration
 {
     /**
      * @throws Throwable
@@ -18,7 +18,7 @@ class ProjectLogsRawMigration
         $connection = DB::connection('mongodb.projects');
 
         $connection->createCollection(
-            app(RawLog::class)->getTable(),
+            app(ProjectRawLog::class)->getTable(),
             [
                 'validator' => [
                     '$jsonSchema' => [
@@ -63,7 +63,7 @@ class ProjectLogsRawMigration
             ]
         );
 
-        RawLog::collection()->createIndex(
+        ProjectRawLog::collection()->createIndex(
             [
                 'trackId' => 1,
             ],
@@ -75,7 +75,7 @@ class ProjectLogsRawMigration
 
     public function down(): void
     {
-        RawLog::collection()->dropIndexes();
-        RawLog::collection()->drop();
+        ProjectRawLog::collection()->dropIndexes();
+        ProjectRawLog::collection()->drop();
     }
 }

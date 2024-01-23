@@ -2,7 +2,8 @@
 
 namespace App\Modules\ProjectLogs;
 
-enum LogTypeEnum: string
+enum ProjectLogTypeEnum: string
 {
     case Log = 'log';
+    case Request = 'request';
 }

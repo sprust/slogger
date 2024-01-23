@@ -3,12 +3,12 @@
 namespace App\Modules\Projects;
 
 use App\Modules\ProjectLogs\ProjectLoggingExecutor;
-use App\Modules\ProjectLogs\ProjectLogsRepository;
+use App\Modules\ProjectLogs\ProjectLogsMigration;
 use Illuminate\Support\Str;
 
 readonly class ProjectDatabaseCreator
 {
-    public function __construct(private ProjectLogsRepository $logsRepository)
+    public function __construct(private ProjectLogsMigration $logsRepository)
     {
     }
 

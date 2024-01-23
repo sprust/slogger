@@ -2,13 +2,13 @@
 
 namespace App\Modules\ProjectLogs;
 
-use App\Modules\ProjectLogs\ProjectLogsRaw\ProjectLogsRawMigration;
+use App\Modules\ProjectLogs\RawLogs\ProjectRawLogsMigration;
 use Throwable;
 
-readonly class ProjectLogsRepository
+readonly class ProjectLogsMigration
 {
     public function __construct(
-        private ProjectLogsRawMigration $logsRawMigration
+        private ProjectRawLogsMigration $rawLogsMigration
     ) {
     }
 
@@ -17,7 +17,7 @@ readonly class ProjectLogsRepository
      */
     public function create(): void
     {
-        $this->logsRawMigration->up();
+        $this->rawLogsMigration->up();
     }
 
     /**
@@ -25,6 +25,6 @@ readonly class ProjectLogsRepository
      */
     public function delete(): void
     {
-        $this->logsRawMigration->down();
+        $this->rawLogsMigration->down();
     }
 }
