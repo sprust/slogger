@@ -95,7 +95,7 @@ return [
 
         'mongodb' => [
             /**
-             * connector will be redefined
+             * connector will be injected
              * @see \App\Models\AbstractProjectLogsModel
              */
             'projects' => [
