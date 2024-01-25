@@ -1,17 +1,17 @@
 <?php
 
-namespace App\Modules\ProjectLogs\RawLogs\Parameters;
+namespace App\Modules\Traces\Raw\Parameters;
 
-use App\Modules\ProjectLogs\ProjectLogTypeEnum;
+use App\Modules\Traces\TraceTypeEnum;
 use Illuminate\Support\Carbon;
 
-class ProjectRawLogCreateParameters
+class TraceCreateParameters
 {
     public function __construct(
         public string $service,
         public string $trackId,
         public ?string $parentTrackId,
-        public ProjectLogTypeEnum $type,
+        public TraceTypeEnum $type,
         public array $tags,
         public array $data,
         public Carbon $loggedAt

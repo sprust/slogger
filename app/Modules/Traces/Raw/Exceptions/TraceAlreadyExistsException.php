@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Modules\ProjectLogs\RawLogs\Exceptions;
+namespace App\Modules\Traces\Raw\Exceptions;
 
 use Exception;
 
-class ProjectRawLogsAlreadyExistsException extends Exception
+class TraceAlreadyExistsException extends Exception
 {
     /**
      * @param string[] $trackIds

@@ -3,8 +3,6 @@
 namespace App\Console\Commands;
 
 use App\Models\Users\User;
-use App\Modules\Projects\Repository\Parameters\ProjectsCreateParameters;
-use App\Modules\Projects\Repository\ProjectsRepository;
 use App\Modules\Users\Repository\Parameters\UsersCreateParameters;
 use App\Modules\Users\Repository\UsersRepository;
 use Illuminate\Console\Command;
@@ -29,10 +27,8 @@ class CreateUserCommand extends Command
     /**
      * Execute the console command.
      */
-    public function handle(
-        UsersRepository $usersRepository,
-        ProjectsRepository $projectsRepository
-    ) {
+    public function handle(UsersRepository $usersRepository)
+    {
         if (($firstName = $this->askAndCheck('First name *', true)) === false) {
             return;
         }
@@ -64,23 +60,6 @@ class CreateUserCommand extends Command
                 lastName: $lastName,
                 email: $email,
                 password: $password
-            )
-        );
-
-        $projectName = $this->askAndCheck('Project name [2-20] *', true, [
-            'string',
-            'min:2',
-            'max:20',
-        ]);
-
-        if ($projectName === false) {
-            return;
-        }
-
-        $projectsRepository->create(
-            new ProjectsCreateParameters(
-                userId: $newUser->id,
-                name: $projectName
             )
         );
 

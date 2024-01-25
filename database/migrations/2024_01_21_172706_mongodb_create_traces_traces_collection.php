@@ -1,24 +1,23 @@
 <?php
 
-namespace App\Modules\ProjectLogs\RawLogs;
-
-use App\Models\ProjectLogs\ProjectRawLog;
+use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 use MongoDB\Laravel\Connection;
-use Throwable;
 
-class ProjectRawLogsMigration
-{
+return new class extends Migration {
+    protected $connection = 'mongodb.traces';
+    protected string $collectionName = 'traces';
+
     /**
-     * @throws Throwable
+     * Run the migrations.
      */
     public function up(): void
     {
         /** @var Connection $connection */
-        $connection = DB::connection('mongodb.projects');
+        $connection = DB::connection($this->connection);
 
         $connection->createCollection(
-            app(ProjectRawLog::class)->getTable(),
+            $this->collectionName,
             [
                 'validator' => [
                     '$jsonSchema' => [
@@ -31,6 +30,8 @@ class ProjectRawLogsMigration
                             'tags',
                             'data',
                             'loggedAt',
+                            'createdAt',
+                            'updatedAt',
                         ],
                         'properties' => [
                             'service'       => [
@@ -51,10 +52,13 @@ class ProjectRawLogsMigration
                             'data'          => [
                                 'bsonType' => 'array',
                             ],
-                            'loggedAt'          => [
+                            'loggedAt'      => [
                                 'bsonType' => 'date',
                             ],
-                            'createdAt'          => [
+                            'createdAt'     => [
+                                'bsonType' => 'date',
+                            ],
+                            'updatedAt'     => [
                                 'bsonType' => 'date',
                             ],
                         ],
@@ -63,19 +67,28 @@ class ProjectRawLogsMigration
             ]
         );
 
-        ProjectRawLog::collection()->createIndex(
-            [
-                'trackId' => 1,
-            ],
-            [
-                'unique' => true,
-            ]
-        );
+        $connection->selectCollection($this->collectionName)
+            ->createIndex(
+                [
+                    'trackId' => 1,
+                ],
+                [
+                    'unique' => true,
+                ]
+            );
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
-        ProjectRawLog::collection()->dropIndexes();
-        ProjectRawLog::collection()->drop();
+        /** @var Connection $connection */
+        $connection = DB::connection($this->connection);
+
+        $collection = $connection->selectCollection($this->collectionName);
+
+        $collection->dropIndexes();
+        $collection->drop();
     }
-}
+};

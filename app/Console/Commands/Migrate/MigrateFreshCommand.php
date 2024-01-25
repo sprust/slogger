@@ -2,10 +2,9 @@
 
 namespace App\Console\Commands\Migrate;
 
-use App\Models\Projects\Project;
-use App\Modules\ProjectLogs\ProjectLoggingExecutor;
-use App\Modules\ProjectLogs\ProjectLogsMigration;
 use Illuminate\Database\Console\Migrations\FreshCommand;
+use Illuminate\Support\Facades\DB;
+use MongoDB\Laravel\Connection;
 
 class MigrateFreshCommand extends FreshCommand
 {
@@ -15,24 +14,31 @@ class MigrateFreshCommand extends FreshCommand
             return 1;
         }
 
-        $this->components->info('Dropping all project tables');
+        $this->components->info('Dropping all mongodb tables');
 
-        $logsMigration = app(ProjectLogsMigration::class);
+        foreach (config('database.connections.mongodb') as $connectionName => $databaseConfig) {
+            $databaseName = $databaseConfig['database'];
 
-        foreach (Project::query()->pluck('database_name') as $databaseName) {
-            $this->components->task(
-                "Drop $databaseName",
-                function () use ($databaseName, $logsMigration) {
-                    ProjectLoggingExecutor::usingDatabase(
-                        $databaseName,
-                        function () use ($logsMigration) {
-                            $logsMigration->delete();
-                        }
-                    );
+            /** @var Connection $connection */
+            $connection = DB::connection("mongodb.$connectionName");
 
-                    return true;
-                }
-            );
+            $collectionNames = iterator_to_array($connection->listCollectionNames());
+
+            for ($index = 0; $index < count($collectionNames); $index++) {
+                $collectionName = $collectionNames[$index];
+
+                $collection = $connection->selectCollection($collectionName);
+
+                $this->components->task(
+                    "Drop $databaseName.$collectionName",
+                    function () use ($collection) {
+                        $collection->dropIndexes();
+                        $collection->drop();
+
+                        return true;
+                    }
+                );
+            }
         }
 
         return parent::handle();

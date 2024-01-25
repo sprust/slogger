@@ -94,20 +94,16 @@ return [
         ],
 
         'mongodb' => [
-            /**
-             * connector will be injected
-             * @see \App\Models\AbstractProjectLogsModel
-             */
-            'projects' => [
+            'traces' => [
                 'driver'   => 'mongodb',
-                'host'     => env('MONGO_PROJECT_LOGS_HOST'),
-                'port'     => env('MONGO_PROJECT_LOGS_PORT'),
-                'username' => env('MONGO_PROJECT_LOGS_ADMIN_USERNAME'),
-                'password' => env('MONGO_PROJECT_LOGS_ADMIN_PASSWORD'),
-                'connector' => \App\Services\Mongo\ProjectsMongoConnector::class,
+                'host'     => env('MONGO_HOST'),
+                'port'     => env('MONGO_PORT'),
+                'username' => env('MONGO_ADMIN_USERNAME'),
+                'password' => env('MONGO_ADMIN_PASSWORD'),
+                'database' => env('MONGO_DATABASE_TRACES',  'traces'),
                 'options'  => [
                     'appname'    => env('APP_NAME'),
-                    'authSource' => env('MONGO_PROJECT_LOGS_DATABASE_ADMIN', 'admin'),
+                    'authSource' => env('MONGO_DATABASE_ADMIN', 'admin'),
                 ],
             ],
         ],

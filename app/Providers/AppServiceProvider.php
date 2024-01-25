@@ -2,8 +2,6 @@
 
 namespace App\Providers;
 
-use App\Modules\Projects\ProjectDatabaseContainer;
-use App\Services\Mongo\MongoConnectorService;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -13,9 +11,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        MongoConnectorService::register($this->app);
-
-        $this->app->singleton(ProjectDatabaseContainer::class);
+        //
     }
 
     /**
