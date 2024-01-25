@@ -5,10 +5,11 @@ namespace App\Models\Traces;
 use App\Models\AbstractTraceModel;
 use App\Modules\Traces\TraceTypeEnum;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 /**
  * @property string        $_id
- * @property string        $service
+ * @property string        $serviceId
  * @property string        $traceId
  * @property string|null   $parentTraceId
  * @property TraceTypeEnum $type
@@ -20,6 +21,8 @@ use Carbon\Carbon;
  */
 class Trace extends AbstractTraceModel
 {
+    use HasFactory;
+
     public const CREATED_AT = 'createdAt';
     public const UPDATED_AT = 'updatedAt';
 

@@ -23,7 +23,7 @@ return new class extends Migration {
                     '$jsonSchema' => [
                         'bsonType'   => 'object',
                         'required'   => [
-                            'service',
+                            'serviceId',
                             'traceId',
                             'parentTraceId',
                             'type',
@@ -34,8 +34,8 @@ return new class extends Migration {
                             'updatedAt',
                         ],
                         'properties' => [
-                            'service'       => [
-                                'bsonType' => 'string',
+                            'serviceId'       => [
+                                'bsonType' => 'number',
                             ],
                             'traceId'       => [
                                 'bsonType' => 'string',

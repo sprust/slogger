@@ -45,7 +45,7 @@ class TracesRepository
 
         $documents = array_map(
             fn(TraceCreateParameters $parameters) => [
-                'service'       => $parameters->service,
+                'serviceId'     => $parameters->serviceId,
                 'traceId'       => $parameters->traceId,
                 'parentTraceId' => $parameters->parentTraceId,
                 'type'          => $parameters->type->value,
