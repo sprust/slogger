@@ -2,7 +2,7 @@
 
 namespace App\Modules\Traces\Repository\Parameters;
 
-use App\Modules\Traces\TraceTypeEnum;
+use App\Modules\Traces\Enums\TraceTypeEnum;
 use Illuminate\Support\Carbon;
 
 class TraceCreateParameters
@@ -13,7 +13,7 @@ class TraceCreateParameters
         public ?string $parentTraceId,
         public TraceTypeEnum $type,
         public array $tags,
-        public array $data,
+        public string $data,
         public Carbon $loggedAt
     ) {
     }

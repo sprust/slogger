@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\Traces;
+namespace App\Modules\Traces\Enums;
 
 enum TraceTypeEnum: string
 {

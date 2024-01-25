@@ -3,7 +3,7 @@
 namespace App\Models\Traces;
 
 use App\Models\AbstractTraceModel;
-use App\Modules\Traces\TraceTypeEnum;
+use App\Modules\Traces\Enums\TraceTypeEnum;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 

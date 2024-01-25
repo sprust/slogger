@@ -33,4 +33,9 @@ class ServicesRepository
 
         return $newService;
     }
+
+    public function findByToken(string $token): ?Service
+    {
+        return Service::query()->where('api_token', $token)->first();
+    }
 }

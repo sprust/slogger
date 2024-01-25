@@ -50,7 +50,7 @@ class TracesRepository
                 'parentTraceId' => $parameters->parentTraceId,
                 'type'          => $parameters->type->value,
                 'tags'          => $parameters->tags,
-                'data'          => $parameters->data,
+                'data'          => json_decode($parameters->data, true),
                 'loggedAt'      => new UTCDateTime($parameters->loggedAt),
                 'createdAt'     => $createdAt,
                 'updatedAt'     => $createdAt,

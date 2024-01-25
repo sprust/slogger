@@ -4,7 +4,7 @@ namespace Database\Factories\Traces;
 
 use App\Models\Services\Service;
 use App\Models\Traces\Trace;
-use App\Modules\Traces\TraceTypeEnum;
+use App\Modules\Traces\Enums\TraceTypeEnum;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Carbon;
 
