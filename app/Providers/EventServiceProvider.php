@@ -2,9 +2,7 @@
 
 namespace App\Providers;
 
-use App\Listeners\RrJobsWorkerErrorListener;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
-use RoadRunner\Servers\Jobs\Events\RrJobsPayloadHandlingErrorEvent;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -14,9 +12,7 @@ class EventServiceProvider extends ServiceProvider
      * @var array<class-string, array<int, class-string>>
      */
     protected $listen = [
-        RrJobsPayloadHandlingErrorEvent::class => [
-            RrJobsWorkerErrorListener::class,
-        ],
+        //
     ];
 
     /**

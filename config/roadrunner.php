@@ -1,5 +1,6 @@
 <?php
 
+use App\Listeners\RrJobsWorkerErrorListener;
 use RoadRunner\Servers\Http\Events\RrHttpPsrRequestHandlingErrorEvent;
 use RoadRunner\Servers\Http\Events\RrHttpRequestHandledEvent;
 use RoadRunner\Servers\Http\Events\RrHttpRequestHandlingErrorEvent;
@@ -39,7 +40,9 @@ return [
     'jobs' => [
         'listen' => [
             RrJobsPayloadHandledEvent::class       => [],
-            RrJobsPayloadHandlingErrorEvent::class => [],
+            RrJobsPayloadHandlingErrorEvent::class => [
+                RrJobsWorkerErrorListener::class,
+            ],
             RrJobsPayloadReceivedEvent::class      => [],
             RrJobsServerErrorEvent::class          => [],
             RrJobsWorkerErrorEvent::class          => [],
