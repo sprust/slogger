@@ -3,7 +3,7 @@
 namespace App\Modules\Services\Http\Middlewares;
 
 use App\Modules\Services\Http\RequestServiceContainer;
-use App\Modules\Services\Repository\ServicesRepository;
+use App\Modules\Services\Services\ServicesService;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -11,7 +11,7 @@ use Symfony\Component\HttpFoundation\Response;
 readonly class AuthServiceMiddleware
 {
     public function __construct(
-        private ServicesRepository $servicesRepository,
+        private ServicesService $servicesService,
         private RequestServiceContainer $requestServiceContainer
     ) {
     }
@@ -23,15 +23,13 @@ readonly class AuthServiceMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $token   = $request->bearerToken();
+        $token = $request->bearerToken();
 
         if (!$token) {
             abort(401);
         }
 
-        $service = $this->servicesRepository->findByToken(
-            $token
-        );
+        $service = $this->servicesService->findByToken($token);
 
         if (!$service) {
             abort(401);

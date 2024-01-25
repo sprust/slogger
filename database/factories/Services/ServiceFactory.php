@@ -15,6 +15,7 @@ class ServiceFactory extends Factory
     {
         return [
             'name'       => uniqid(),
+            'unique_key' => uniqid(),
             'api_token'  => Str::random(50),
             'created_at' => Carbon::now(),
             'updated_at' => Carbon::now(),

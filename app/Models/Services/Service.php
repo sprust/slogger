@@ -9,6 +9,7 @@ use Illuminate\Support\Carbon;
 /**
  * @property int    $id
  * @property string $name
+ * @property string $unique_key
  * @property string $api_token
  * @property Carbon $created_at
  * @property Carbon $updated_at
