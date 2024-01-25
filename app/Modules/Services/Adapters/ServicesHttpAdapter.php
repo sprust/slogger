@@ -5,7 +5,7 @@ namespace App\Modules\Services\Adapters;
 use App\Models\Services\Service;
 use App\Modules\Services\Http\Middlewares\AuthServiceMiddleware;
 use App\Modules\Services\Http\RequestServiceContainer;
-use Illuminate\Foundation\Application;
+use Illuminate\Contracts\Foundation\Application;
 
 readonly class ServicesHttpAdapter
 {
