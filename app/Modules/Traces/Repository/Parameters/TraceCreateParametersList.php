@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\Traces\Raw\Parameters;
+namespace App\Modules\Traces\Repository\Parameters;
 
 class TraceCreateParametersList
 {

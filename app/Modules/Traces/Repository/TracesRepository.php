@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Modules\Traces\Raw;
+namespace App\Modules\Traces\Repository;
 
 use App\Models\Traces\Trace;
-use App\Modules\Traces\Raw\Exceptions\TraceAlreadyExistsException;
-use App\Modules\Traces\Raw\Parameters\TraceCreateParameters;
-use App\Modules\Traces\Raw\Parameters\TraceCreateParametersList;
+use App\Modules\Traces\Repository\Exceptions\TraceAlreadyExistsException;
+use App\Modules\Traces\Repository\Parameters\TraceCreateParameters;
+use App\Modules\Traces\Repository\Parameters\TraceCreateParametersList;
 use Illuminate\Database\Eloquent\Builder;
 use MongoDB\BSON\UTCDateTime;
 

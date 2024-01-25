@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\Traces\Raw\Exceptions;
+namespace App\Modules\Traces\Repository\Exceptions;
 
 use Exception;
 
@@ -13,6 +13,6 @@ class TraceAlreadyExistsException extends Exception
     {
         $traceIdsString = implode(',', $traceIds);
 
-        parent::__construct("Raw logs with trace ids [$traceIdsString] already exists");
+        parent::__construct("Traces [$traceIdsString] already exists");
     }
 }
