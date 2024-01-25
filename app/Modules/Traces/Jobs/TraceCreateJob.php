@@ -2,8 +2,8 @@
 
 namespace App\Modules\Traces\Jobs;
 
-use App\Modules\Traces\Repository\Parameters\TraceCreateParametersList;
-use App\Modules\Traces\Repository\TracesRepository;
+use App\Modules\Traces\Dto\Parameters\TraceCreateParametersList;
+use App\Modules\Traces\Services\TracesService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -25,8 +25,8 @@ class TraceCreateJob implements ShouldQueue
     /**
      * Execute the job.
      */
-    public function handle(TracesRepository $tracesRepository): void
+    public function handle(TracesService $tracesService): void
     {
-        $tracesRepository->createMany($this->parametersList);
+        $tracesService->createMany($this->parametersList);
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\Traces\Repository\Parameters;
+namespace App\Modules\Traces\Dto\Parameters;
 
 use App\Modules\Traces\Enums\TraceTypeEnum;
 use Illuminate\Support\Carbon;

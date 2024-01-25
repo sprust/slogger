@@ -3,21 +3,22 @@
 namespace App\Modules\Traces\Http\Controllers;
 
 use App\Modules\Services\Adapters\ServicesHttpAdapter;
+use App\Modules\Traces\Dto\Parameters\TraceCreateParameters;
+use App\Modules\Traces\Dto\Parameters\TraceCreateParametersList;
 use App\Modules\Traces\Enums\TraceTypeEnum;
 use App\Modules\Traces\Http\Requests\TraceCreateRequest;
-use App\Modules\Traces\Jobs\TraceCreateJob;
-use App\Modules\Traces\Repository\Parameters\TraceCreateParameters;
-use App\Modules\Traces\Repository\Parameters\TraceCreateParametersList;
-use App\Modules\Traces\Repository\TracesRepository;
+use App\Modules\Traces\Services\TracesServiceQueueDispatcher;
 use Illuminate\Support\Carbon;
 
-readonly class TraceController
+readonly class TraceCreateController
 {
-    public function __construct(private ServicesHttpAdapter $servicesHttpAdapter)
-    {
+    public function __construct(
+        private ServicesHttpAdapter $servicesHttpAdapter,
+        private TracesServiceQueueDispatcher $tracesServiceQueueDispatcher
+    ) {
     }
 
-    public function create(TraceCreateRequest $request): void
+    public function __invoke(TraceCreateRequest $request): void
     {
         $validated = $request->validated();
 
@@ -37,6 +38,6 @@ readonly class TraceController
             );
         }
 
-        dispatch(new TraceCreateJob($parametersList));
+        $this->tracesServiceQueueDispatcher->createMany($parametersList);
     }
 }

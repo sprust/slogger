@@ -34,7 +34,7 @@ return new class extends Migration {
                             'updatedAt',
                         ],
                         'properties' => [
-                            'serviceId'       => [
+                            'serviceId'     => [
                                 'bsonType' => 'number',
                             ],
                             'traceId'       => [
@@ -71,9 +71,12 @@ return new class extends Migration {
             ->createIndex(
                 [
                     'traceId' => 1,
-                ],
+                ]
+            );
+        $connection->selectCollection($this->collectionName)
+            ->createIndex(
                 [
-                    'unique' => true,
+                    'parentTraceId' => 1,
                 ]
             );
     }
