@@ -1,0 +1,63 @@
+version: '3'
+
+# https://roadrunner.dev/docs/http-http/current/en
+
+server:
+  command: 'vendor/bin/rr-http-worker.php'
+  env:
+    - XDEBUG_SESSION: 0
+
+rpc:
+  listen: "tcp://0.0.0.0:9010" # not all rr commands can use dotenv
+
+http:
+  address: "${RR_HTTP_HOST:-0.0.0.0}:${RR_HTTP_PORT:-9020}"
+  middleware:
+    - gzip
+    - static
+    - http_metrics
+  static:
+    dir: public
+    forbid:
+      - .php
+  pool:
+    num_workers: 3
+    allocate_timeout: 60s
+    destroy_timeout: 60s
+    debug: false
+
+jobs:
+  timeout: 60
+
+  pool:
+    command: 'vendor/bin/rr-jobs-worker.php'
+    num_workers: 3
+    allocate_timeout: 60s
+    destroy_timeout: 60s
+    debug: false
+
+  consume: [ "traces-creating" ]
+  pipelines:
+    traces-creating:
+      driver: memory
+      config:
+        priority: 10
+        prefetch: 3
+
+# /health?plugin=http
+status:
+  address: "${RR_STATUS_HOST:-0.0.0.0}:${RR_STATUS_PORT:-2112}"
+
+# /metrics
+metrics:
+  address: "${RR_METRICS_HOST:-0.0.0.0}:${RR_METRICS_PORT:-2114}"
+
+logs:
+  mode: development
+  level: debug
+  file_logger_options:
+    log_output: "storage/logs/rr/rr-log.log"
+    max_size: 10
+    max_age: 10
+    max_backups: 10
+    compress: true
