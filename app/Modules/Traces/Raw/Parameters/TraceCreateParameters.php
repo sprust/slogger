@@ -9,8 +9,8 @@ class TraceCreateParameters
 {
     public function __construct(
         public string $service,
-        public string $trackId,
-        public ?string $parentTrackId,
+        public string $traceId,
+        public ?string $parentTraceId,
         public TraceTypeEnum $type,
         public array $tags,
         public array $data,

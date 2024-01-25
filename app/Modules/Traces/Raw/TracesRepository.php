@@ -28,17 +28,17 @@ class TracesRepository
     {
         $parametersListItems = $parametersList->getItems();
 
-        $trackIds = array_map(
-            fn(TraceCreateParameters $parameters) => $parameters->trackId,
+        $traceIds = array_map(
+            fn(TraceCreateParameters $parameters) => $parameters->traceId,
             $parametersListItems
         );
 
-        $existTrackIds = $this->makeBuilder(trackIds: $trackIds)
-            ->pluck('trackId')
+        $existTraceIds = $this->makeBuilder(traceIds: $traceIds)
+            ->pluck('traceId')
             ->toArray();
 
-        if ($existTrackIds) {
-            throw new TraceAlreadyExistsException($existTrackIds);
+        if ($existTraceIds) {
+            throw new TraceAlreadyExistsException($existTraceIds);
         }
 
         $createdAt = new UTCDateTime(now());
@@ -46,8 +46,8 @@ class TracesRepository
         $documents = array_map(
             fn(TraceCreateParameters $parameters) => [
                 'service'       => $parameters->service,
-                'trackId'       => $parameters->trackId,
-                'parentTrackId' => $parameters->parentTrackId,
+                'traceId'       => $parameters->traceId,
+                'parentTraceId' => $parameters->parentTraceId,
                 'type'          => $parameters->type->value,
                 'tags'          => $parameters->tags,
                 'data'          => $parameters->data,
@@ -62,12 +62,12 @@ class TracesRepository
     }
 
     /**
-     * @param array $trackIds
+     * @param array $traceIds
      *
      * @return Builder|Trace
      */
-    private function makeBuilder(array $trackIds): Builder
+    private function makeBuilder(array $traceIds): Builder
     {
-        return Trace::query()->whereIn('trackId', $trackIds);
+        return Trace::query()->whereIn('traceId', $traceIds);
     }
 }

@@ -15,8 +15,8 @@ class TraceFactory extends Factory
     {
         return [
             'service'       => $this->faker->word(),
-            'trackId'       => $this->faker->uuid(),
-            'parentTrackId' => null,
+            'traceId'       => $this->faker->uuid(),
+            'parentTraceId' => null,
             'type'          => $this->faker->randomElement(TraceTypeEnum::cases()),
             'tags'          => [],
             'data'          => [],

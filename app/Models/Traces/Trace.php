@@ -9,8 +9,8 @@ use Carbon\Carbon;
 /**
  * @property string        $_id
  * @property string        $service
- * @property string        $trackId
- * @property string|null   $parentTrackId
+ * @property string        $traceId
+ * @property string|null   $parentTraceId
  * @property TraceTypeEnum $type
  * @property array         $tags
  * @property array         $data

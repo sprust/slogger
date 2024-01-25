@@ -7,12 +7,12 @@ use Exception;
 class TraceAlreadyExistsException extends Exception
 {
     /**
-     * @param string[] $trackIds
+     * @param string[] $traceIds
      */
-    public function __construct(array $trackIds)
+    public function __construct(array $traceIds)
     {
-        $trackIdsString = implode(',', $trackIds);
+        $traceIdsString = implode(',', $traceIds);
 
-        parent::__construct("Raw logs with track ids [$trackIdsString] already exists");
+        parent::__construct("Raw logs with trace ids [$traceIdsString] already exists");
     }
 }

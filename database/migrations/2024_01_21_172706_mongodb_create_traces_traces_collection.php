@@ -24,8 +24,8 @@ return new class extends Migration {
                         'bsonType'   => 'object',
                         'required'   => [
                             'service',
-                            'trackId',
-                            'parentTrackId',
+                            'traceId',
+                            'parentTraceId',
                             'type',
                             'tags',
                             'data',
@@ -37,10 +37,10 @@ return new class extends Migration {
                             'service'       => [
                                 'bsonType' => 'string',
                             ],
-                            'trackId'       => [
+                            'traceId'       => [
                                 'bsonType' => 'string',
                             ],
-                            'parentTrackId' => [
+                            'parentTraceId' => [
                                 'bsonType' => ['string', 'null'],
                             ],
                             'type'          => [
@@ -70,7 +70,7 @@ return new class extends Migration {
         $connection->selectCollection($this->collectionName)
             ->createIndex(
                 [
-                    'trackId' => 1,
+                    'traceId' => 1,
                 ],
                 [
                     'unique' => true,
