@@ -4,7 +4,6 @@ namespace SLoggerLaravel\Dispatcher;
 
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Arr;
-use SLoggerLaravel\Enums\SLoggerTraceTypeEnum;
 
 /**
  * @example
@@ -25,6 +24,10 @@ class SLoggerTraceLogDispatcher implements TraceDispatcherInterface
 
     public function stop(): void
     {
+        if (!$this->trace) {
+            return;
+        }
+
         $trace = Arr::sort(
             $this->trace,
             function (TraceDispatcherParameters $parameters) {

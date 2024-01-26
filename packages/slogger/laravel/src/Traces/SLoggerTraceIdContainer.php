@@ -4,7 +4,7 @@ namespace SLoggerLaravel\Traces;
 
 class SLoggerTraceIdContainer
 {
-    private ?string $parentTraceId;
+    private ?string $parentTraceId = null;
 
     public function getParentTraceId(): ?string
     {
