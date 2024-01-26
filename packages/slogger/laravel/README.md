@@ -12,5 +12,6 @@ php artisan vendor:publish --tag=slogger-laravel
 
 .env:
 ```dotenv
-SLOGGER_LOG_REQUESTS_ENABLED=false
+SLOGGER_LOG_REQUESTS_ENABLED=true
+SLOGGER_LOG_COMMANDS_ENABLED=true
 ```

@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response as IlluminateResponse;
 use Illuminate\View\View;
 use SLoggerLaravel\Enums\SLoggerTraceTypeEnum;
+use SLoggerLaravel\Helpers\TraceIdHelper;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -26,9 +27,6 @@ class RequestSLoggerWatcher extends AbstractSLoggerWatcher
 
         $requestStartedAt = $this->app[Kernel::class]->requestStartedAt();
 
-        $startAt     = $requestStartedAt->clone()->setTimezone('UTC');
-        $currentTime = now()->setTimezone('UTC');
-
         $request  = $event->request;
         $response = $event->response;
 
@@ -42,7 +40,7 @@ class RequestSLoggerWatcher extends AbstractSLoggerWatcher
             'payload'         => $this->preparePayload($request, $this->getInput($request)),
             'response_status' => $response->getStatusCode(),
             'response'        => $this->prepareResponse($request, $response),
-            'duration'        => $startAt->diffInMicroseconds($currentTime) * 0.000001,
+            'duration'        => TraceIdHelper::calcDuration($requestStartedAt),
             'memory'          => round(memory_get_peak_usage(true) / 1024 / 1024, 1),
             ...$this->getAdditionalData(),
         ];

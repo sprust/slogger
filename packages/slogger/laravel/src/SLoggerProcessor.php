@@ -27,7 +27,7 @@ class SLoggerProcessor
     /**
      * @throws TraceProcessingAlreadyStartedException
      */
-    public function start(?string $parentTraceId): void
+    public function start(string $name, ?string $parentTraceId): void
     {
         if ($this->isActive()) {
             throw new TraceProcessingAlreadyStartedException();
@@ -40,7 +40,7 @@ class SLoggerProcessor
                 traceId: $traceId,
                 parentTraceId: $parentTraceId,
                 type: SLoggerTraceTypeEnum::Start,
-                tags: [],
+                tags: [$name],
                 data: [],
                 loggedAt: now()
             )

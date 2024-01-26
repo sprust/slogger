@@ -25,7 +25,7 @@ readonly class SLoggerMiddleware implements TerminableInterface
         $parentTraceId = $request->header('x-parent-trace-id');
 
         try {
-            $this->processor->start($parentTraceId);
+            $this->processor->start('request', $parentTraceId);
         } catch (Throwable $exception) {
             // TODO: fire an event
             report($exception);
