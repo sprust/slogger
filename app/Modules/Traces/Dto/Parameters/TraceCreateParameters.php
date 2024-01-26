@@ -2,7 +2,6 @@
 
 namespace App\Modules\Traces\Dto\Parameters;
 
-use App\Modules\Traces\Enums\TraceTypeEnum;
 use Illuminate\Support\Carbon;
 
 class TraceCreateParameters
@@ -11,7 +10,7 @@ class TraceCreateParameters
         public int $serviceId,
         public string $traceId,
         public ?string $parentTraceId,
-        public TraceTypeEnum $type,
+        public string $type,
         public array $tags,
         public string $data,
         public Carbon $loggedAt

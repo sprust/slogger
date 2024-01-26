@@ -4,7 +4,6 @@ namespace Database\Factories\Traces;
 
 use App\Models\Services\Service;
 use App\Models\Traces\Trace;
-use App\Modules\Traces\Enums\TraceTypeEnum;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Carbon;
 
@@ -18,7 +17,7 @@ class TraceFactory extends Factory
             'serviceId'     => Service::factory(),
             'traceId'       => $this->faker->uuid(),
             'parentTraceId' => null,
-            'type'          => $this->faker->randomElement(TraceTypeEnum::cases()),
+            'type'          => 'fake',
             'tags'          => [],
             'data'          => [],
             'loggedAt'      => Carbon::now(),

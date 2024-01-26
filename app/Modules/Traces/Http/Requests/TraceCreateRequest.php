@@ -2,16 +2,14 @@
 
 namespace App\Modules\Traces\Http\Requests;
 
-use App\Modules\Traces\Enums\TraceTypeEnum;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rules\Enum;
 
 class TraceCreateRequest extends FormRequest
 {
     public function rules(): array
     {
         return [
-            'traces'                 => [
+            'traces'                   => [
                 'required',
                 'array',
                 'min:1',
@@ -28,7 +26,9 @@ class TraceCreateRequest extends FormRequest
             ],
             'traces.*.type'            => [
                 'required',
-                new Enum(TraceTypeEnum::class),
+                'string',
+                'min:1',
+                'max:40',
             ],
             'traces.*.tags'            => [
                 'sometimes',

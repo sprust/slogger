@@ -18,7 +18,7 @@ class TracesRepository implements TracesRepositoryInterface
                 'serviceId'     => $parameters->serviceId,
                 'traceId'       => $parameters->traceId,
                 'parentTraceId' => $parameters->parentTraceId,
-                'type'          => $parameters->type->value,
+                'type'          => $parameters->type,
                 'tags'          => $parameters->tags,
                 'data'          => json_decode($parameters->data, true),
                 'loggedAt'      => new UTCDateTime($parameters->loggedAt),

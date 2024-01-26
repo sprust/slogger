@@ -5,7 +5,6 @@ namespace App\Modules\Traces\Http\Controllers;
 use App\Modules\Services\Adapters\ServicesHttpAdapter;
 use App\Modules\Traces\Dto\Parameters\TraceCreateParameters;
 use App\Modules\Traces\Dto\Parameters\TraceCreateParametersList;
-use App\Modules\Traces\Enums\TraceTypeEnum;
 use App\Modules\Traces\Http\Requests\TraceCreateRequest;
 use App\Modules\Traces\Services\TracesServiceQueueDispatcher;
 use Illuminate\Support\Carbon;
@@ -30,7 +29,7 @@ readonly class TraceCreateController
                     serviceId: $this->servicesHttpAdapter->getService()->id,
                     traceId: $item['trace_id'],
                     parentTraceId: $item['parent_trace_id'] ?? null,
-                    type: TraceTypeEnum::from($item['type']),
+                    type: $item['type'],
                     tags: $item['tags'] ?? [],
                     data: $item['data'],
                     loggedAt: new Carbon($item['logged_at']),
