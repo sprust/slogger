@@ -8,6 +8,7 @@ use App\Modules\Traces\Repository\TracesRepository;
 use App\Modules\Traces\Repository\TracesRepositoryInterface;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
+use SLoggerLaravel\Injectors\SLoggerMiddleware;
 
 class TracesServiceProvider extends ServiceProvider
 {
@@ -26,9 +27,12 @@ class TracesServiceProvider extends ServiceProvider
     {
         $servicesHttpAdapter = $this->app->make(ServicesHttpAdapter::class);
 
-        Route::middleware($servicesHttpAdapter->getRequestMiddleware())
-            ->prefix('traces-api')
+        Route::prefix('traces-api')
             ->as('traces-api.')
+            ->middleware([
+                $servicesHttpAdapter->getRequestMiddleware(),
+                SLoggerMiddleware::class,
+            ])
             ->group(function () {
                 Route::post('', TraceCreateController::class);
             });

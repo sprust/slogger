@@ -6,14 +6,15 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "ext-mongodb": "*",
+        "ext-pdo": "*",
         "guzzlehttp/guzzle": "^7.2",
         "ifksco/roadrunner-laravel": "dev-master",
         "laravel/framework": "^10.10",
         "laravel/tinker": "^2.8",
         "mongodb/laravel-mongodb": "^4.1",
         "mongodb/mongodb": "^1.17",
-        "ext-mongodb": "*",
-        "ext-pdo": "*"
+        "slogger/laravel": "dev-master"
     },
     "require-dev": {
         "fakerphp/faker": "^1.9.1",
@@ -28,6 +29,13 @@
         {
             "type": "path",
             "url": "packages/ifksco/roadrunner-laravel",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "packages/slogger/laravel",
             "options": {
                 "symlink": true
             }
