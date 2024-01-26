@@ -3,6 +3,7 @@
 use SLoggerLaravel\Dispatcher\SLoggerTraceLogDispatcher;
 use SLoggerLaravel\Watchers\CommandSLoggerWatcher;
 use SLoggerLaravel\Watchers\DatabaseSLoggerWatcher;
+use SLoggerLaravel\Watchers\LogSLoggerWatcher;
 use SLoggerLaravel\Watchers\RequestSLoggerWatcher;
 
 return [
@@ -10,6 +11,7 @@ return [
         ...(env('SLOGGER_LOG_REQUESTS_ENABLED', false) ? [RequestSLoggerWatcher::class] : []),
         ...(env('SLOGGER_LOG_COMMANDS_ENABLED', false) ? [CommandSLoggerWatcher::class] : []),
         ...(env('SLOGGER_LOG_DATABASE_ENABLED', false) ? [DatabaseSLoggerWatcher::class] : []),
+        ...(env('SLOGGER_LOG_LOG_ENABLED', false) ? [LogSLoggerWatcher::class] : []),
     ]),
     // example
     'dispatcher' => SLoggerTraceLogDispatcher::class,
