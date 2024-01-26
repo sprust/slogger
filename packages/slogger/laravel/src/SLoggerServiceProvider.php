@@ -32,15 +32,18 @@ class SLoggerServiceProvider extends ServiceProvider
 
     private function registerWatchers(): void
     {
-        /** @var class-string<AbstractSLoggerWatcher>[] $watcherClasses */
-        $watcherClasses = $this->app['config']['slogger.watchers'];
+        /** @var array[] $watcherConfigs */
+        $watcherConfigs = $this->app['config']['slogger.watchers'];
 
-        foreach ($watcherClasses as $watcherClass) {
+        foreach ($watcherConfigs as $watcherConfig) {
+            if (!$watcherConfig['enabled']) {
+                continue;
+            }
+
             /** @var AbstractSLoggerWatcher $watcher */
-            $watcher = $this->app->make($watcherClass);
+            $watcher = $this->app->make($watcherConfig['class']);
 
             $watcher->register();
         }
-
     }
 }
