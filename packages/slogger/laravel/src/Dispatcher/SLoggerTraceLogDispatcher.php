@@ -3,12 +3,15 @@
 namespace SLoggerLaravel\Dispatcher;
 
 use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Support\Arr;
+use SLoggerLaravel\Enums\SLoggerTraceTypeEnum;
 
 /**
  * @example
  */
 class SLoggerTraceLogDispatcher implements TraceDispatcherInterface
 {
+    /** @var TraceDispatcherParameters[] */
     private array $trace = [];
 
     public function __construct(private readonly Application $app)
@@ -22,7 +25,14 @@ class SLoggerTraceLogDispatcher implements TraceDispatcherInterface
 
     public function stop(): void
     {
-        $this->app['log']->debug(json_encode($this->trace, JSON_PRETTY_PRINT));
+        $trace = Arr::sort(
+            $this->trace,
+            function (TraceDispatcherParameters $parameters) {
+                return $parameters->loggedAt->getTimestampMs();
+            }
+        );
+
+        $this->app['log']->debug(json_encode(array_values($trace), JSON_PRETTY_PRINT));
 
         $this->trace = [];
     }

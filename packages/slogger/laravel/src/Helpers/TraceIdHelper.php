@@ -14,10 +14,14 @@ class TraceIdHelper
 
     public static function calcDuration(Carbon $startedAt): float
     {
-        return round(
-            num: $startedAt->clone()->setTimezone('UTC')
-                ->diffInMicroseconds(now()->clone()->setTimezone('UTC')) * 0.000001,
-            precision: 6
+        return self::roundDuration(
+            $startedAt->clone()->setTimezone('UTC')
+                ->diffInMicroseconds(now()->clone()->setTimezone('UTC')) * 0.000001
         );
+    }
+
+    public static function roundDuration(float $duration): float
+    {
+        return round($duration, 6);
     }
 }

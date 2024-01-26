@@ -2,6 +2,7 @@
 
 namespace SLoggerLaravel;
 
+use Illuminate\Support\Carbon;
 use SLoggerLaravel\Dispatcher\TraceDispatcherInterface;
 use SLoggerLaravel\Dispatcher\TraceDispatcherParameters;
 use SLoggerLaravel\Enums\SLoggerTraceTypeEnum;
@@ -27,7 +28,7 @@ class SLoggerProcessor
     /**
      * @throws TraceProcessingAlreadyStartedException
      */
-    public function start(string $name, ?string $parentTraceId): void
+    public function start(string $name, ?string $parentTraceId, ?Carbon $loggedAt = null): void
     {
         if ($this->isActive()) {
             throw new TraceProcessingAlreadyStartedException();
@@ -42,7 +43,7 @@ class SLoggerProcessor
                 type: SLoggerTraceTypeEnum::Start,
                 tags: [$name],
                 data: [],
-                loggedAt: now()
+                loggedAt: $loggedAt ?: now()
             )
         );
 
