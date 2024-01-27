@@ -1,6 +1,6 @@
 <?php
 
-namespace SLoggerLaravel\Watchers;
+namespace SLoggerLaravel\Watchers\EntryPoints;
 
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Foundation\Http\Events\RequestHandled;
@@ -9,6 +9,7 @@ use Illuminate\Http\Response as IlluminateResponse;
 use Illuminate\View\View;
 use SLoggerLaravel\Enums\SLoggerTraceTypeEnum;
 use SLoggerLaravel\Helpers\TraceIdHelper;
+use SLoggerLaravel\Watchers\AbstractSLoggerWatcher;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
 

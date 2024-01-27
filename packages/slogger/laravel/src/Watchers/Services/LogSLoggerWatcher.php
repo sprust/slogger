@@ -1,10 +1,11 @@
 <?php
 
-namespace SLoggerLaravel\Watchers;
+namespace SLoggerLaravel\Watchers\Services;
 
 use Illuminate\Log\Events\MessageLogged;
 use Illuminate\Support\Arr;
 use SLoggerLaravel\Enums\SLoggerTraceTypeEnum;
+use SLoggerLaravel\Watchers\AbstractSLoggerWatcher;
 use Throwable;
 
 class LogSLoggerWatcher extends AbstractSLoggerWatcher

@@ -1,11 +1,12 @@
 <?php
 
-namespace SLoggerLaravel\Watchers;
+namespace SLoggerLaravel\Watchers\Services;
 
 use Illuminate\Database\Events\QueryExecuted;
 use SLoggerLaravel\Enums\SLoggerTraceTypeEnum;
 use SLoggerLaravel\Helpers\FetchesStackTraceTrait;
 use SLoggerLaravel\Helpers\TraceIdHelper;
+use SLoggerLaravel\Watchers\AbstractSLoggerWatcher;
 use Throwable;
 
 class DatabaseSLoggerWatcher extends AbstractSLoggerWatcher

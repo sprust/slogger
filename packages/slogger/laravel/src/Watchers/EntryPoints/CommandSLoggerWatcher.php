@@ -1,13 +1,13 @@
 <?php
 
-namespace SLoggerLaravel\Watchers;
+namespace SLoggerLaravel\Watchers\EntryPoints;
 
-use Illuminate\Console\Events\ArtisanStarting;
 use Illuminate\Console\Events\CommandFinished;
 use Illuminate\Console\Events\CommandStarting;
 use Illuminate\Support\Carbon;
 use SLoggerLaravel\Enums\SLoggerTraceTypeEnum;
 use SLoggerLaravel\Helpers\TraceIdHelper;
+use SLoggerLaravel\Watchers\AbstractSLoggerWatcher;
 use Symfony\Component\Console\Input\InputInterface;
 
 class CommandSLoggerWatcher extends AbstractSLoggerWatcher
@@ -16,13 +16,8 @@ class CommandSLoggerWatcher extends AbstractSLoggerWatcher
 
     public function register(): void
     {
-        $this->app['events']->listen(ArtisanStarting::class, [$this, 'handleArtisanStarting']);
         $this->app['events']->listen(CommandStarting::class, [$this, 'handleCommandStarting']);
         $this->app['events']->listen(CommandFinished::class, [$this, 'handleCommandFinished']);
-    }
-
-    public function handleArtisanStarting(ArtisanStarting $event): void
-    {
     }
 
     public function handleCommandStarting(CommandStarting $event): void

@@ -1,11 +1,11 @@
 <?php
 
 use SLoggerLaravel\Dispatcher\SLoggerTraceLogDispatcher;
-use SLoggerLaravel\Watchers\CommandSLoggerWatcher;
-use SLoggerLaravel\Watchers\DatabaseSLoggerWatcher;
-use SLoggerLaravel\Watchers\LogSLoggerWatcher;
-use SLoggerLaravel\Watchers\RequestSLoggerWatcher;
-use SLoggerLaravel\Watchers\ScheduleSLoggerWatcher;
+use SLoggerLaravel\Watchers\EntryPoints\CommandSLoggerWatcher;
+use SLoggerLaravel\Watchers\EntryPoints\RequestSLoggerWatcher;
+use SLoggerLaravel\Watchers\Services\DatabaseSLoggerWatcher;
+use SLoggerLaravel\Watchers\Services\LogSLoggerWatcher;
+use SLoggerLaravel\Watchers\Services\ScheduleSLoggerWatcher;
 
 return [
     // example

@@ -1,6 +1,6 @@
 <?php
 
-namespace SLoggerLaravel\Watchers;
+namespace SLoggerLaravel\Watchers\Services;
 
 use Illuminate\Console\Events\ScheduledTaskFailed;
 use Illuminate\Console\Events\ScheduledTaskFinished;
@@ -9,6 +9,8 @@ use Illuminate\Console\Events\ScheduledTaskStarting;
 use Illuminate\Console\Scheduling\CallbackEvent;
 use Illuminate\Console\Scheduling\Event;
 use SLoggerLaravel\Enums\SLoggerTraceTypeEnum;
+use SLoggerLaravel\Watchers\AbstractSLoggerWatcher;
+use SLoggerLaravel\Watchers\EntryPoints\CommandSLoggerWatcher;
 
 /**
  * Dependency
