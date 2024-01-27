@@ -7,12 +7,11 @@ use Illuminate\Console\Events\CommandFinished;
 use Illuminate\Console\Events\CommandStarting;
 use Illuminate\Support\Carbon;
 use SLoggerLaravel\Enums\SLoggerTraceTypeEnum;
-use SLoggerLaravel\Exceptions\TraceProcessingAlreadyStartedException;
 use SLoggerLaravel\Helpers\TraceIdHelper;
+use Symfony\Component\Console\Input\InputInterface;
 
 class CommandSLoggerWatcher extends AbstractSLoggerWatcher
 {
-    private bool $localProcessor = false;
     private array $commands = [];
 
     public function register(): void
@@ -24,23 +23,11 @@ class CommandSLoggerWatcher extends AbstractSLoggerWatcher
 
     public function handleArtisanStarting(ArtisanStarting $event): void
     {
-        if (!$this->processor->isActive()) {
-            try {
-                $this->processor->start('artisan', null);
-
-                $this->localProcessor = true;
-            } catch (TraceProcessingAlreadyStartedException $exception) {
-                // TODO: fire an event
-                report($exception);
-            }
-        }
     }
 
     public function handleCommandStarting(CommandStarting $event): void
     {
-        if (!$this->processor->isActive()) {
-            return;
-        }
+        $this->processor->start('command: ' . $this->makeCommandView($event->command, $event->input),);
 
         $this->commands[] = [
             'started_at' => now(),
@@ -59,7 +46,7 @@ class CommandSLoggerWatcher extends AbstractSLoggerWatcher
         $startedAt = $commandData['started_at'];
 
         $data = [
-            'command'   => $event->command ?? $event->input->getArguments()['command'] ?? 'default',
+            'command'   => $this->makeCommandView($event->command, $event->input),
             'exit_code' => $event->exitCode,
             'arguments' => $event->input->getArguments(),
             'options'   => $event->input->getOptions(),
@@ -73,8 +60,11 @@ class CommandSLoggerWatcher extends AbstractSLoggerWatcher
             loggedAt: $startedAt
         );
 
-        if ($this->localProcessor && count($this->commands) <= 0) {
-            $this->processor->stop();
-        }
+        $this->processor->stop();
+    }
+
+    private function makeCommandView(?string $command, InputInterface $input): string
+    {
+        return $command ?? $input->getArguments()['command'] ?? 'default';
     }
 }

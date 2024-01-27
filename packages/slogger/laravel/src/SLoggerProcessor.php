@@ -6,13 +6,15 @@ use Illuminate\Support\Carbon;
 use SLoggerLaravel\Dispatcher\TraceDispatcherInterface;
 use SLoggerLaravel\Dispatcher\TraceDispatcherParameters;
 use SLoggerLaravel\Enums\SLoggerTraceTypeEnum;
-use SLoggerLaravel\Exceptions\TraceProcessingAlreadyStartedException;
+use SLoggerLaravel\Exceptions\TraceProcessingNotActiveException;
 use SLoggerLaravel\Helpers\TraceIdHelper;
 use SLoggerLaravel\Traces\SLoggerTraceIdContainer;
 
 class SLoggerProcessor
 {
     private bool $started = false;
+
+    private array $preParentIdsStack = [];
 
     public function __construct(
         private readonly TraceDispatcherInterface $traceDispatcher,
@@ -25,16 +27,11 @@ class SLoggerProcessor
         return $this->started;
     }
 
-    /**
-     * @throws TraceProcessingAlreadyStartedException
-     */
-    public function start(string $name, ?string $parentTraceId, ?Carbon $loggedAt = null): void
+    public function start(string $name, ?Carbon $loggedAt = null): void
     {
-        if ($this->isActive()) {
-            throw new TraceProcessingAlreadyStartedException();
-        }
-
         $traceId = TraceIdHelper::make();
+
+        $parentTraceId = $this->traceIdContainer->getParentTraceId();
 
         $this->traceDispatcher->put(
             new TraceDispatcherParameters(
@@ -43,9 +40,11 @@ class SLoggerProcessor
                 type: SLoggerTraceTypeEnum::Start,
                 tags: [$name],
                 data: [],
-                loggedAt: $loggedAt ?: now()
+                loggedAt: ($loggedAt ?: now())->clone()->setTimezone('UTC')
             )
         );
+
+        $this->preParentIdsStack[] = $parentTraceId;
 
         $this->traceIdContainer->setParentTraceId($traceId);
 
@@ -54,8 +53,25 @@ class SLoggerProcessor
 
     public function stop(): void
     {
-        $this->traceDispatcher->stop();
+        if (!$this->isActive()) {
+            // TODO: fire an event
+            report(new TraceProcessingNotActiveException());
 
-        $this->started = false;
+            return;
+        }
+
+        $preParentTraceId = array_pop($this->preParentIdsStack);
+
+        $this->traceIdContainer->setParentTraceId(
+            $preParentTraceId
+        );
+
+        if (count($this->preParentIdsStack) == 0) {
+            $this->started = false;
+
+            $this->traceIdContainer->setParentTraceId(null);
+
+            $this->traceDispatcher->stop();
+        }
     }
 }

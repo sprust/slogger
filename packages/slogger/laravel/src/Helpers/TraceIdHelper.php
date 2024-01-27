@@ -16,7 +16,7 @@ class TraceIdHelper
     {
         return self::roundDuration(
             $startedAt->clone()->setTimezone('UTC')
-                ->diffInMicroseconds(now()->clone()->setTimezone('UTC')) * 0.000001
+                ->diffInMicroseconds(now()->setTimezone('UTC')) * 0.000001
         );
     }
 
