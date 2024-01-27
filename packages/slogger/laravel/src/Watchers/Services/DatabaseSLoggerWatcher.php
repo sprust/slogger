@@ -15,7 +15,7 @@ class DatabaseSLoggerWatcher extends AbstractSLoggerWatcher
 
     public function register(): void
     {
-        $this->app['events']->listen(QueryExecuted::class, [$this, 'handle']);
+        $this->listenEvent(QueryExecuted::class, [$this, 'handle']);
     }
 
     public function handle(QueryExecuted $event): void

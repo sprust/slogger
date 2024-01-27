@@ -17,7 +17,7 @@ class RequestSLoggerWatcher extends AbstractSLoggerWatcher
 {
     public function register(): void
     {
-        $this->app['events']->listen(RequestHandled::class, [$this, 'handle']);
+        $this->listenEvent(RequestHandled::class, [$this, 'handle']);
     }
 
     public function handle(RequestHandled $event): void

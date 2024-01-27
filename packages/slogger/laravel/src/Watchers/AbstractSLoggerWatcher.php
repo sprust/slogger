@@ -40,4 +40,9 @@ abstract class AbstractSLoggerWatcher
             )
         );
     }
+
+    protected function listenEvent(string $eventClass, array $function): void
+    {
+        $this->app['events']->listen($eventClass, $function);
+    }
 }

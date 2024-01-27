@@ -20,10 +20,10 @@ class ScheduleSLoggerWatcher extends AbstractSLoggerWatcher
 {
     public function register(): void
     {
-        $this->app['events']->listen(ScheduledTaskSkipped::class, [$this, 'handleScheduledTaskSkipped']);
-        $this->app['events']->listen(ScheduledTaskStarting::class, [$this, 'handleScheduledTaskStarting']);
-        $this->app['events']->listen(ScheduledTaskFailed::class, [$this, 'handleScheduledTaskFailed']);
-        $this->app['events']->listen(ScheduledTaskFinished::class, [$this, 'handleScheduledTaskFinished']);
+        $this->listenEvent(ScheduledTaskSkipped::class, [$this, 'handleScheduledTaskSkipped']);
+        $this->listenEvent(ScheduledTaskStarting::class, [$this, 'handleScheduledTaskStarting']);
+        $this->listenEvent(ScheduledTaskFailed::class, [$this, 'handleScheduledTaskFailed']);
+        $this->listenEvent(ScheduledTaskFinished::class, [$this, 'handleScheduledTaskFinished']);
     }
 
     public function handleScheduledTaskSkipped(ScheduledTaskSkipped $event): void

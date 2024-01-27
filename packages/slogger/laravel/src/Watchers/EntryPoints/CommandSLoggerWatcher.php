@@ -16,8 +16,8 @@ class CommandSLoggerWatcher extends AbstractSLoggerWatcher
 
     public function register(): void
     {
-        $this->app['events']->listen(CommandStarting::class, [$this, 'handleCommandStarting']);
-        $this->app['events']->listen(CommandFinished::class, [$this, 'handleCommandFinished']);
+        $this->listenEvent(CommandStarting::class, [$this, 'handleCommandStarting']);
+        $this->listenEvent(CommandFinished::class, [$this, 'handleCommandFinished']);
     }
 
     public function handleCommandStarting(CommandStarting $event): void

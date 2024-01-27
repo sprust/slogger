@@ -12,7 +12,7 @@ class LogSLoggerWatcher extends AbstractSLoggerWatcher
 {
     public function register(): void
     {
-        $this->app['events']->listen(MessageLogged::class, [$this, 'handle']);
+        $this->listenEvent(MessageLogged::class, [$this, 'handle']);
     }
 
     public function handle(MessageLogged $event): void
