@@ -6,6 +6,7 @@ use SLoggerLaravel\Watchers\EntryPoints\RequestSLoggerWatcher;
 use SLoggerLaravel\Watchers\Services\DatabaseSLoggerWatcher;
 use SLoggerLaravel\Watchers\Services\LogSLoggerWatcher;
 use SLoggerLaravel\Watchers\Services\ScheduleSLoggerWatcher;
+use SLoggerLaravel\Watchers\EntryPoints\JobSLoggerWatcher;
 
 return [
     // example
@@ -30,6 +31,10 @@ return [
         [
             'class'   => ScheduleSLoggerWatcher::class,
             'enabled' => env('SLOGGER_LOG_LOG_ENABLED', false),
+        ],
+        [
+            'class'   => JobSLoggerWatcher::class,
+            'enabled' => env('SLOGGER_LOG_JOBS_ENABLED', false),
         ],
     ],
 ];
