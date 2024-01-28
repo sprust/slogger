@@ -42,11 +42,9 @@ class DatabaseSLoggerWatcher extends AbstractSLoggerWatcher
             'hash'       => md5($event->sql),
         ];
 
-        $this->dispatchTrace(
+        $this->processor->push(
             type: SLoggerTraceTypeEnum::Database,
-            tags: [],
-            data: $data,
-            loggedAt: now()
+            data: $data
         );
     }
 

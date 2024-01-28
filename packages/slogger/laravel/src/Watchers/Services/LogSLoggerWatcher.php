@@ -41,11 +41,9 @@ class LogSLoggerWatcher extends AbstractSLoggerWatcher
             'context' => $event->context,
         ];
 
-        $this->dispatchTrace(
+        $this->processor->push(
             type: SLoggerTraceTypeEnum::Log,
-            tags: [],
-            data: $data,
-            loggedAt: now()
+            data: $data
         );
     }
 }

@@ -5,7 +5,7 @@ namespace SLoggerLaravel\Watchers;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Carbon;
 use SLoggerLaravel\Dispatcher\TraceDispatcherInterface;
-use SLoggerLaravel\Dispatcher\TraceDispatcherParameters;
+use SLoggerLaravel\Dispatcher\TracePushDispatcherParameters;
 use SLoggerLaravel\Enums\SLoggerTraceTypeEnum;
 use SLoggerLaravel\Helpers\TraceIdHelper;
 use SLoggerLaravel\SLoggerProcessor;
@@ -29,8 +29,8 @@ abstract class AbstractSLoggerWatcher
         array $data,
         Carbon $loggedAt
     ): void {
-        $this->traceDispatcher->put(
-            new TraceDispatcherParameters(
+        $this->traceDispatcher->push(
+            new TracePushDispatcherParameters(
                 traceId: TraceIdHelper::make(),
                 parentTraceId: $this->traceIdContainer->getParentTraceId(),
                 type: $type,

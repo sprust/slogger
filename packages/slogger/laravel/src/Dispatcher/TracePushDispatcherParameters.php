@@ -5,7 +5,7 @@ namespace SLoggerLaravel\Dispatcher;
 use Illuminate\Support\Carbon;
 use SLoggerLaravel\Enums\SLoggerTraceTypeEnum;
 
-class TraceDispatcherParameters
+class TracePushDispatcherParameters
 {
     public function __construct(
         public string $traceId,

@@ -5,6 +5,7 @@ namespace SLoggerLaravel\Watchers\EntryPoints;
 use Illuminate\Console\Events\CommandFinished;
 use Illuminate\Console\Events\CommandStarting;
 use Illuminate\Support\Carbon;
+use SLoggerLaravel\Dispatcher\TraceStopDispatcherParameters;
 use SLoggerLaravel\Enums\SLoggerTraceTypeEnum;
 use SLoggerLaravel\Helpers\TraceIdHelper;
 use SLoggerLaravel\Watchers\AbstractSLoggerWatcher;
@@ -22,20 +23,25 @@ class CommandSLoggerWatcher extends AbstractSLoggerWatcher
 
     public function handleCommandStarting(CommandStarting $event): void
     {
-        $this->processor->start('command: ' . $this->makeCommandView($event->command, $event->input),);
+        $traceId = $this->processor->startAndGetTraceId(
+            type: SLoggerTraceTypeEnum::Command
+        );
 
         $this->commands[] = [
+            'trace_id'   => $traceId,
             'started_at' => now(),
         ];
     }
 
     public function handleCommandFinished(CommandFinished $event): void
     {
-        if (!$this->processor->isActive()) {
+        $commandData = array_pop($this->commands);
+
+        if (!$commandData) {
             return;
         }
 
-        $commandData = array_pop($this->commands);
+        $traceId = $commandData['trace_id'];
 
         /** @var Carbon $startedAt */
         $startedAt = $commandData['started_at'];
@@ -48,14 +54,13 @@ class CommandSLoggerWatcher extends AbstractSLoggerWatcher
             'duration'  => TraceIdHelper::calcDuration($startedAt),
         ];
 
-        $this->dispatchTrace(
-            type: SLoggerTraceTypeEnum::Command,
-            tags: [],
-            data: $data,
-            loggedAt: $startedAt
+        $this->processor->stop(
+            new TraceStopDispatcherParameters(
+                traceId: $traceId,
+                tags: [],
+                data: $data,
+            )
         );
-
-        $this->processor->stop();
     }
 
     private function makeCommandView(?string $command, InputInterface $input): string

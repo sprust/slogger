@@ -14,6 +14,7 @@ use SLoggerLaravel\Watchers\EntryPoints\CommandSLoggerWatcher;
 
 /**
  * Dependency
+ *
  * @see CommandSLoggerWatcher
  */
 class ScheduleSLoggerWatcher extends AbstractSLoggerWatcher
@@ -70,11 +71,10 @@ class ScheduleSLoggerWatcher extends AbstractSLoggerWatcher
             'output'      => $this->getEventOutput($task),
         ];
 
-        $this->dispatchTrace(
+        $this->processor->push(
             type: SLoggerTraceTypeEnum::Schedule,
             tags: [$tag],
-            data: $data,
-            loggedAt: now()
+            data: $data
         );
     }
 }

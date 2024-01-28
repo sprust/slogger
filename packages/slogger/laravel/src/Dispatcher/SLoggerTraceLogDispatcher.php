@@ -10,33 +10,63 @@ use Illuminate\Support\Arr;
  */
 class SLoggerTraceLogDispatcher implements TraceDispatcherInterface
 {
-    /** @var TraceDispatcherParameters[] */
-    private array $trace = [];
+    /** @var TracePushDispatcherParameters[] */
+    private array $traces = [];
 
     public function __construct(private readonly Application $app)
     {
     }
 
-    public function put(TraceDispatcherParameters $parameters): void
+    public function push(TracePushDispatcherParameters $parameters): void
     {
-        $this->trace[] = $parameters;
+        $this->traces[] = $parameters;
     }
 
-    public function stop(): void
+    public function stop(TraceStopDispatcherParameters $parameters): void
     {
-        if (!$this->trace) {
+        if (!$this->traces) {
             return;
         }
 
-        $trace = Arr::sort(
-            $this->trace,
-            function (TraceDispatcherParameters $parameters) {
-                return $parameters->loggedAt->getTimestampMs();
-            }
+        $filtered = array_filter(
+            $this->traces,
+            fn(TracePushDispatcherParameters $traceItem) => $traceItem->parentTraceId === $parameters->traceId
+                || $traceItem->traceId === $parameters->traceId
         );
 
-        $this->app['log']->debug(json_encode(array_values($trace), JSON_PRETTY_PRINT));
+        $traces = Arr::sort(
+            $filtered,
+            fn(TracePushDispatcherParameters $traceItem) => $traceItem->loggedAt->getTimestampMs()
+        );
 
-        $this->trace = [];
+        /** @var TracePushDispatcherParameters $parentTrace */
+        $parentTrace = Arr::first(
+            $traces,
+            fn(TracePushDispatcherParameters $traceItem) => $traceItem->traceId === $parameters->traceId
+        );
+
+        if (!is_null($parameters->data)) {
+            $parentTrace->data = $parameters->data;
+        }
+
+
+        if (!is_null($parameters->tags)) {
+            $parentTrace->tags = $parameters->tags;
+        }
+
+        $storage = $this->app['filesystem']->build([
+            'driver' => 'local',
+            'root'   => storage_path('logs/slogger-traces'),
+        ]);
+
+        $storage->put(
+            $parentTrace->loggedAt->toDateTimeString('microsecond') . '-' . $parentTrace->type->value . '.json',
+            json_encode(array_values($traces), JSON_PRETTY_PRINT)
+        );
+
+        $this->traces = array_filter(
+            $this->traces,
+            fn(TracePushDispatcherParameters $traceItem) => $traceItem->parentTraceId !== $parameters
+        );
     }
 }

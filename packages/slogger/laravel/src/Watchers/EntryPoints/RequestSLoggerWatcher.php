@@ -7,24 +7,51 @@ use Illuminate\Foundation\Http\Events\RequestHandled;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as IlluminateResponse;
 use Illuminate\View\View;
+use SLoggerLaravel\Dispatcher\TraceStopDispatcherParameters;
 use SLoggerLaravel\Enums\SLoggerTraceTypeEnum;
+use SLoggerLaravel\Events\RequestHandling;
 use SLoggerLaravel\Helpers\TraceIdHelper;
+use SLoggerLaravel\Injectors\SLoggerMiddleware;
 use SLoggerLaravel\Watchers\AbstractSLoggerWatcher;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
 
+/**
+ * Required a middleware
+ *
+ * @see SLoggerMiddleware
+ */
 class RequestSLoggerWatcher extends AbstractSLoggerWatcher
 {
+    private array $requests = [];
+
     public function register(): void
     {
-        $this->listenEvent(RequestHandled::class, [$this, 'handle']);
+        $this->listenEvent(RequestHandling::class, [$this, 'handleRequestHandling']);
+        $this->listenEvent(RequestHandled::class, [$this, 'handleRequestHandled']);
     }
 
-    public function handle(RequestHandled $event): void
+    public function handleRequestHandling(RequestHandling $event): void
     {
-        if (!$this->processor->isActive()) {
+        $traceId = $this->processor->startAndGetTraceId(
+            type: SLoggerTraceTypeEnum::Request,
+            tags: [$this->getRequestView($event->request)]
+        );
+
+        $this->requests[] = [
+            'trace_id' => $traceId,
+        ];
+    }
+
+    public function handleRequestHandled(RequestHandled $event): void
+    {
+        $requestData = array_pop($this->requests);
+
+        if (!$requestData) {
             return;
         }
+
+        $traceId = $requestData['trace_id'];
 
         $requestStartedAt = $this->app[Kernel::class]->requestStartedAt();
 
@@ -46,12 +73,17 @@ class RequestSLoggerWatcher extends AbstractSLoggerWatcher
             ...$this->getAdditionalData(),
         ];
 
-        $this->dispatchTrace(
-            type: SLoggerTraceTypeEnum::Request,
-            tags: [],
-            data: $data,
-            loggedAt: $requestStartedAt
+        $this->processor->stop(
+            new TraceStopDispatcherParameters(
+                traceId: $traceId,
+                data: $data,
+            )
         );
+    }
+
+    protected function getRequestView(Request $request): string
+    {
+        return $request->getPathInfo();
     }
 
     protected function getAdditionalData(): array
