@@ -5,7 +5,7 @@ use SLoggerLaravel\Watchers\EntryPoints\SLoggerCommandWatcher;
 use SLoggerLaravel\Watchers\EntryPoints\SLoggerJobWatcher;
 use SLoggerLaravel\Watchers\EntryPoints\SLoggerRequestWatcher;
 use SLoggerLaravel\Watchers\Services\SLoggerEventWatcher;
-use SLoggerLaravel\Watchers\Services\ScheduleSLoggerWatcher;
+use SLoggerLaravel\Watchers\Services\SLoggerScheduleWatcher;
 use SLoggerLaravel\Watchers\Services\SLoggerDatabaseWatcher;
 use SLoggerLaravel\Watchers\Services\SLoggerGateWatcher;
 use SLoggerLaravel\Watchers\Services\SLoggerLogWatcher;
@@ -33,7 +33,7 @@ return [
             'enabled' => env('SLOGGER_LOG_LOG_ENABLED', false),
         ],
         [
-            'class'   => ScheduleSLoggerWatcher::class,
+            'class'   => SLoggerScheduleWatcher::class,
             'enabled' => env('SLOGGER_LOG_LOG_ENABLED', false),
         ],
         [
