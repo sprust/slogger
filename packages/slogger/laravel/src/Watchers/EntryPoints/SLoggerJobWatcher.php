@@ -6,7 +6,6 @@ use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Queue\Queue;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use SLoggerLaravel\Dispatcher\SLoggerTraceStopDispatcherParameters;
@@ -123,22 +122,12 @@ class SLoggerJobWatcher extends AbstractSLoggerWatcher
         /** @var Carbon $startedAt */
         $startedAt = $jobData['started_at'];
 
-        $exception = $event->exception;
-
         $data = [
             'connectionName' => $event->connectionName,
             'payload'        => $event->job->payload(),
             'duration'       => SLoggerTraceHelper::calcDuration($startedAt),
             'status'         => 'failed',
-            'exception'      => [
-                'message'   => $exception->getMessage(),
-                'exception' => get_class($exception),
-                'file'      => $exception->getFile(),
-                'line'      => $exception->getLine(),
-                'trace'     => collect($exception->getTrace())->map(
-                    fn($trace) => Arr::except($trace, ['args'])
-                )->all(),
-            ],
+            'exception'      => $this->prepareException($event->exception),
         ];
 
         $this->processor->stop(

@@ -3,13 +3,11 @@
 namespace SLoggerLaravel\Watchers;
 
 use Illuminate\Contracts\Foundation\Application;
-use Illuminate\Support\Carbon;
+use Illuminate\Support\Arr;
 use SLoggerLaravel\Dispatcher\SLoggerTraceDispatcherInterface;
-use SLoggerLaravel\Dispatcher\SLoggerTracePushDispatcherParameters;
-use SLoggerLaravel\Enums\SLoggerTraceTypeEnum;
-use SLoggerLaravel\Helpers\SLoggerTraceHelper;
 use SLoggerLaravel\SLoggerProcessor;
 use SLoggerLaravel\Traces\SLoggerTraceIdContainer;
+use Throwable;
 
 abstract class AbstractSLoggerWatcher
 {
@@ -23,26 +21,22 @@ abstract class AbstractSLoggerWatcher
     ) {
     }
 
-    protected function dispatchTrace(
-        SLoggerTraceTypeEnum $type,
-        array $tags,
-        array $data,
-        Carbon $loggedAt
-    ): void {
-        $this->traceDispatcher->push(
-            new SLoggerTracePushDispatcherParameters(
-                traceId: SLoggerTraceHelper::make(),
-                parentTraceId: $this->traceIdContainer->getParentTraceId(),
-                type: $type,
-                tags: $tags,
-                data: $data,
-                loggedAt: $loggedAt->clone()->setTimezone('UTC')
-            )
-        );
-    }
-
     protected function listenEvent(string $eventClass, array $function): void
     {
         $this->app['events']->listen($eventClass, $function);
+    }
+
+    protected function prepareException(Throwable $exception): array
+    {
+        return [
+            'message'   => $exception->getMessage(),
+            'exception' => get_class($exception),
+            'file'      => $exception->getFile(),
+            'line'      => $exception->getLine(),
+            'trace'     => array_map(
+                fn(array $item) => Arr::only($item, ['file', 'line']),
+                $exception->getTrace()
+            ),
+        ];
     }
 }

@@ -3,7 +3,6 @@
 namespace SLoggerLaravel\Watchers\Services;
 
 use Illuminate\Log\Events\MessageLogged;
-use Illuminate\Support\Arr;
 use SLoggerLaravel\Enums\SLoggerTraceTypeEnum;
 use SLoggerLaravel\Watchers\AbstractSLoggerWatcher;
 use Throwable;
@@ -24,15 +23,7 @@ class SLoggerLogWatcher extends AbstractSLoggerWatcher
         $exception = $event->context['exception'] ?? null;
 
         if ($exception instanceof Throwable) {
-            $event->context['exception'] = [
-                'message'   => $exception->getMessage(),
-                'exception' => get_class($exception),
-                'file'      => $exception->getFile(),
-                'line'      => $exception->getLine(),
-                'trace'     => collect($exception->getTrace())->map(
-                    fn($trace) => Arr::except($trace, ['args'])
-                )->all(),
-            ];
+            $event->context['exception'] = $this->prepareException($exception);
         }
 
         $data = [

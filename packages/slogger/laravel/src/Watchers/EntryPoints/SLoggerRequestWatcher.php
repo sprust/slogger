@@ -17,9 +17,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Required a middleware
- *
- * @see SLoggerMiddleware
+ * @see SLoggerMiddleware - required for a tracing of requests
  */
 class SLoggerRequestWatcher extends AbstractSLoggerWatcher
 {
@@ -59,14 +57,14 @@ class SLoggerRequestWatcher extends AbstractSLoggerWatcher
         $response = $event->response;
 
         $data = [
-            'ip_address'      => $request->ip(),
+            'ipAddress'      => $request->ip(),
             'uri'             => str_replace($request->root(), '', $request->fullUrl()) ?: '/',
             'method'          => $request->method(),
             'action'          => optional($request->route())->getActionName(),
             'middlewares'     => array_values(optional($request->route())->gatherMiddleware() ?? []),
             'headers'         => $this->prepareHeaders($request, $request->headers->all()),
             'payload'         => $this->preparePayload($request, $this->getInput($request)),
-            'response_status' => $response->getStatusCode(),
+            'responseStatus' => $response->getStatusCode(),
             'response'        => $this->prepareResponse($request, $response),
             'duration'        => SLoggerTraceHelper::calcDuration($requestStartedAt),
             'memory'          => round(memory_get_peak_usage(true) / 1024 / 1024, 1),
