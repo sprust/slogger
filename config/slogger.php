@@ -4,6 +4,7 @@ use SLoggerLaravel\Dispatcher\SLoggerTraceLogDispatcher;
 use SLoggerLaravel\Watchers\EntryPoints\SLoggerCommandWatcher;
 use SLoggerLaravel\Watchers\EntryPoints\SLoggerJobWatcher;
 use SLoggerLaravel\Watchers\EntryPoints\SLoggerRequestWatcher;
+use SLoggerLaravel\Watchers\Services\SLoggerEventWatcher;
 use SLoggerLaravel\Watchers\Services\ScheduleSLoggerWatcher;
 use SLoggerLaravel\Watchers\Services\SLoggerDatabaseWatcher;
 use SLoggerLaravel\Watchers\Services\SLoggerGateWatcher;
@@ -45,6 +46,10 @@ return [
         [
             'class'   => SLoggerGateWatcher::class,
             'enabled' => env('SLOGGER_LOG_GATE_ENABLED', false),
+        ],
+        [
+            'class'   => SLoggerEventWatcher::class,
+            'enabled' => env('SLOGGER_LOG_EVENT_ENABLED', false),
         ],
     ],
 ];
