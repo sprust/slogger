@@ -1,6 +1,6 @@
 <?php
 
-use SLoggerLaravel\Dispatcher\SLoggerTraceLogDispatcher;
+use SLoggerLaravel\Dispatcher\SLoggerTraceDispatcher;
 use SLoggerLaravel\Watchers\EntryPoints\SLoggerCommandWatcher;
 use SLoggerLaravel\Watchers\EntryPoints\SLoggerJobWatcher;
 use SLoggerLaravel\Watchers\EntryPoints\SLoggerRequestWatcher;
@@ -13,7 +13,7 @@ use SLoggerLaravel\Watchers\Services\SLoggerModelWatcher;
 
 return [
     // example
-    'dispatcher' => SLoggerTraceLogDispatcher::class,
+    'dispatcher' => SLoggerTraceDispatcher::class,
     'watchers'   => [
         [
             'class'   => SLoggerRequestWatcher::class,

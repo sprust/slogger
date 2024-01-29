@@ -5,10 +5,7 @@ namespace SLoggerLaravel\Dispatcher;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Arr;
 
-/**
- * @example
- */
-class SLoggerTraceLogDispatcher implements SLoggerTraceDispatcherInterface
+class SLoggerTraceDispatcher implements SLoggerTraceDispatcherInterface
 {
     /** @var SLoggerTracePushDispatcherParameters[] */
     private array $traces = [];
@@ -54,6 +51,16 @@ class SLoggerTraceLogDispatcher implements SLoggerTraceDispatcherInterface
             $parentTrace->tags = $parameters->tags;
         }
 
+        $this->sendTraces($parentTrace, $traces);
+
+        $this->traces = array_filter(
+            $this->traces,
+            fn(SLoggerTracePushDispatcherParameters $traceItem) => $traceItem->parentTraceId !== $parameters
+        );
+    }
+
+    protected function sendTraces(SLoggerTracePushDispatcherParameters $parentTrace, array $traces): void
+    {
         $storage = $this->app['filesystem']->build([
             'driver' => 'local',
             'root'   => storage_path('logs/slogger-traces'),
@@ -62,11 +69,6 @@ class SLoggerTraceLogDispatcher implements SLoggerTraceDispatcherInterface
         $storage->put(
             $parentTrace->loggedAt->toDateTimeString('microsecond') . '-' . $parentTrace->type->value . '.json',
             json_encode(array_values($traces), JSON_PRETTY_PRINT)
-        );
-
-        $this->traces = array_filter(
-            $this->traces,
-            fn(SLoggerTracePushDispatcherParameters $traceItem) => $traceItem->parentTraceId !== $parameters
         );
     }
 }
