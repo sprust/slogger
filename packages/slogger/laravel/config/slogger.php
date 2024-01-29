@@ -4,6 +4,7 @@ use SLoggerLaravel\Dispatcher\SLoggerTraceDispatcher;
 use SLoggerLaravel\Watchers\EntryPoints\SLoggerCommandWatcher;
 use SLoggerLaravel\Watchers\EntryPoints\SLoggerJobWatcher;
 use SLoggerLaravel\Watchers\EntryPoints\SLoggerRequestWatcher;
+use SLoggerLaravel\Watchers\Services\SLoggerCacheWatcher;
 use SLoggerLaravel\Watchers\Services\SLoggerEventWatcher;
 use SLoggerLaravel\Watchers\Services\SLoggerNotificationWatcher;
 use SLoggerLaravel\Watchers\Services\SLoggerScheduleWatcher;
@@ -60,6 +61,10 @@ return [
         [
             'class'   => SLoggerNotificationWatcher::class,
             'enabled' => env('SLOGGER_LOG_NOTIFICATION_ENABLED', false),
+        ],
+        [
+            'class'   => SLoggerCacheWatcher::class,
+            'enabled' => env('SLOGGER_LOG_CACHE_ENABLED', false),
         ],
     ],
 ];
