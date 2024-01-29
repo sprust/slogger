@@ -11,6 +11,9 @@ use Illuminate\Console\Scheduling\Event;
 use SLoggerLaravel\Enums\SLoggerTraceTypeEnum;
 use SLoggerLaravel\Watchers\AbstractSLoggerWatcher;
 
+/**
+ * Not tested
+ */
 class SLoggerScheduleWatcher extends AbstractSLoggerWatcher
 {
     public function register(): void
@@ -23,30 +26,30 @@ class SLoggerScheduleWatcher extends AbstractSLoggerWatcher
 
     public function handleScheduledTaskSkipped(ScheduledTaskSkipped $event): void
     {
-        $this->dispatchTask($event->task, 'skipped');
+        $this->pushTask($event->task, 'skipped');
     }
 
     public function handleScheduledTaskStarting(ScheduledTaskStarting $event): void
     {
-        $this->dispatchTask($event->task, 'starting');
+        $this->pushTask($event->task, 'starting');
     }
 
     public function handleScheduledTaskFailed(ScheduledTaskFailed $event): void
     {
-        $this->dispatchTask($event->task, 'failed');
+        $this->pushTask($event->task, 'failed');
     }
 
     public function handleScheduledTaskFinished(ScheduledTaskFinished $event): void
     {
-        $this->dispatchTask($event->task, 'finished');
+        $this->pushTask($event->task, 'finished');
     }
 
-    protected function dispatchTask(Event $task, string $tag): void
+    protected function pushTask(Event $task, string $tag): void
     {
-        $this->safeHandleWatching(fn() => $this->onDispatchTask($task, $tag));
+        $this->safeHandleWatching(fn() => $this->onPushTask($task, $tag));
     }
 
-    protected function onDispatchTask(Event $task, string $tag): void
+    protected function onPushTask(Event $task, string $tag): void
     {
         $data = [
             'command'     => $task instanceof CallbackEvent ? 'Closure' : $task->command,
