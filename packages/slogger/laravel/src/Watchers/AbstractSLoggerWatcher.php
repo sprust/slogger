@@ -4,6 +4,7 @@ namespace SLoggerLaravel\Watchers;
 
 use Closure;
 use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 use SLoggerLaravel\Dispatcher\SLoggerTraceDispatcherInterface;
 use SLoggerLaravel\Events\SLoggerWatcherErrorEvent;
@@ -40,6 +41,11 @@ abstract class AbstractSLoggerWatcher
                 $exception->getTrace()
             ),
         ];
+    }
+
+    protected function prepareModel(Model $model): string
+    {
+        return $model::class . ':' . $model->getKey();
     }
 
     protected function safeHandleWatching(Closure $callback): void

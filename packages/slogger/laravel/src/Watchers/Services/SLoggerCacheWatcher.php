@@ -120,7 +120,7 @@ class SLoggerCacheWatcher extends AbstractSLoggerWatcher
         }
 
         if ($value instanceof Model) {
-            return $value::class . ':' . $value->getKey();
+            return $this->prepareModel($value);
         }
 
         if (is_object($value)) {

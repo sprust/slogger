@@ -56,7 +56,7 @@ class SLoggerGateWatcher extends AbstractSLoggerWatcher
         return collect($arguments)
             ->map(function ($argument) {
                 return $argument instanceof Model
-                    ? $argument::class . ':' . $argument->getKey()
+                    ? $this->prepareModel($argument)
                     : $argument;
             })
             ->toArray();

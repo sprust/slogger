@@ -43,7 +43,7 @@ class SLoggerNotificationWatcher extends AbstractSLoggerWatcher
     protected function formatNotifiable($notifiable): string
     {
         if ($notifiable instanceof Model) {
-            return $notifiable::class . ':' . $notifiable->getKey();
+            return $this->prepareModel($notifiable);
         } elseif ($notifiable instanceof AnonymousNotifiable) {
             $routes = array_map(
                 fn($route) => is_array($route) ? implode(',', $route) : $route,
