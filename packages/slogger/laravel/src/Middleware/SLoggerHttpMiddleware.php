@@ -1,6 +1,6 @@
 <?php
 
-namespace SLoggerLaravel\Injectors;
+namespace SLoggerLaravel\Middleware;
 
 use Closure;
 use Illuminate\Contracts\Foundation\Application;
@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use SLoggerLaravel\Events\SLoggerRequestHandling;
 use Symfony\Component\HttpFoundation\Response;
 
-readonly class SLoggerMiddleware
+readonly class SLoggerHttpMiddleware
 {
     public function __construct(private Application $app)
     {

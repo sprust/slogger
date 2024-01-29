@@ -11,13 +11,13 @@ use SLoggerLaravel\Dispatcher\SLoggerTraceStopDispatcherParameters;
 use SLoggerLaravel\Enums\SLoggerTraceTypeEnum;
 use SLoggerLaravel\Events\SLoggerRequestHandling;
 use SLoggerLaravel\Helpers\SLoggerTraceHelper;
-use SLoggerLaravel\Injectors\SLoggerMiddleware;
+use SLoggerLaravel\Middleware\SLoggerHttpMiddleware;
 use SLoggerLaravel\Watchers\AbstractSLoggerWatcher;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * @see SLoggerMiddleware - required for a tracing of requests
+ * @see SLoggerHttpMiddleware - required for a tracing of requests
  */
 class SLoggerRequestWatcher extends AbstractSLoggerWatcher
 {
