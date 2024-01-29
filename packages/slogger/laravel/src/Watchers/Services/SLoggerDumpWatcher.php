@@ -1,0 +1,34 @@
+<?php
+
+namespace SLoggerLaravel\Watchers\Services;
+
+use SLoggerLaravel\Enums\SLoggerTraceTypeEnum;
+use SLoggerLaravel\Watchers\AbstractSLoggerWatcher;
+use Symfony\Component\VarDumper\VarDumper;
+
+class SLoggerDumpWatcher extends AbstractSLoggerWatcher
+{
+    public function register(): void
+    {
+        VarDumper::setHandler(function (mixed $dump) {
+            $this->handleDump($dump);
+        });
+    }
+
+    public function handleDump(mixed $dump): void
+    {
+        $this->safeHandleWatching(fn() => $this->onHandleDump($dump));
+    }
+
+    protected function onHandleDump(mixed $dump): void
+    {
+        $data = [
+            'dump' => $dump,
+        ];
+
+        $this->processor->push(
+            type: SLoggerTraceTypeEnum::Dump,
+            data: $data
+        );
+    }
+}
