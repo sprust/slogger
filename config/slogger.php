@@ -9,6 +9,7 @@ use SLoggerLaravel\Watchers\Services\ScheduleSLoggerWatcher;
 use SLoggerLaravel\Watchers\Services\SLoggerDatabaseWatcher;
 use SLoggerLaravel\Watchers\Services\SLoggerGateWatcher;
 use SLoggerLaravel\Watchers\Services\SLoggerLogWatcher;
+use SLoggerLaravel\Watchers\Services\SLoggerMailWatcher;
 use SLoggerLaravel\Watchers\Services\SLoggerModelWatcher;
 
 return [
@@ -50,6 +51,10 @@ return [
         [
             'class'   => SLoggerEventWatcher::class,
             'enabled' => env('SLOGGER_LOG_EVENT_ENABLED', false),
+        ],
+        [
+            'class'   => SLoggerMailWatcher::class,
+            'enabled' => env('SLOGGER_LOG_MAIL_ENABLED', false),
         ],
     ],
 ];
