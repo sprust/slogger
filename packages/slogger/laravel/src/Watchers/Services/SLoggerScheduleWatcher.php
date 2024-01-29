@@ -10,14 +10,8 @@ use Illuminate\Console\Scheduling\CallbackEvent;
 use Illuminate\Console\Scheduling\Event;
 use SLoggerLaravel\Enums\SLoggerTraceTypeEnum;
 use SLoggerLaravel\Watchers\AbstractSLoggerWatcher;
-use SLoggerLaravel\Watchers\EntryPoints\SLoggerCommandWatcher;
 
-/**
- * Dependency
- *
- * @see SLoggerCommandWatcher
- */
-class ScheduleSLoggerWatcher extends AbstractSLoggerWatcher
+class SLoggerScheduleWatcher extends AbstractSLoggerWatcher
 {
     public function register(): void
     {
