@@ -2,6 +2,8 @@
 
 namespace SLoggerLaravel\Dispatcher;
 
+use Illuminate\Contracts\Container\BindingResolutionException;
+use Illuminate\Contracts\Container\CircularDependencyException;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Arr;
 
@@ -59,6 +61,12 @@ class SLoggerTraceDispatcher implements SLoggerTraceDispatcherInterface
         );
     }
 
+    /**
+     * @param SLoggerTracePushDispatcherParameters[] $traces
+     *
+     * @throws BindingResolutionException
+     * @throws CircularDependencyException
+     */
     protected function sendTraces(SLoggerTracePushDispatcherParameters $parentTrace, array $traces): void
     {
         $storage = $this->app['filesystem']->build([
