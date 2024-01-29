@@ -25,9 +25,9 @@ class SLoggerTraceHelper
         return round($duration, 6);
     }
 
-    public static function getCallerFromStackTrace(): array
+    public static function getCallerFromStackTrace(array $keys = [0]): array
     {
-        $trace = collect(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS))->forget(0);
+        $trace = collect(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS))->forget($keys);
 
         return $trace->first(
             function ($frame) {

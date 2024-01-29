@@ -2,11 +2,12 @@
 
 use SLoggerLaravel\Dispatcher\SLoggerTraceLogDispatcher;
 use SLoggerLaravel\Watchers\EntryPoints\SLoggerCommandWatcher;
-use SLoggerLaravel\Watchers\EntryPoints\SLoggerRequestWatcher;
-use SLoggerLaravel\Watchers\Services\SLoggerDatabaseWatcher;
-use SLoggerLaravel\Watchers\Services\SLoggerLogWatcher;
-use SLoggerLaravel\Watchers\Services\ScheduleSLoggerWatcher;
 use SLoggerLaravel\Watchers\EntryPoints\SLoggerJobWatcher;
+use SLoggerLaravel\Watchers\EntryPoints\SLoggerRequestWatcher;
+use SLoggerLaravel\Watchers\Services\ScheduleSLoggerWatcher;
+use SLoggerLaravel\Watchers\Services\SLoggerDatabaseWatcher;
+use SLoggerLaravel\Watchers\Services\SLoggerGateWatcher;
+use SLoggerLaravel\Watchers\Services\SLoggerLogWatcher;
 use SLoggerLaravel\Watchers\Services\SLoggerModelWatcher;
 
 return [
@@ -40,6 +41,10 @@ return [
         [
             'class'   => SLoggerModelWatcher::class,
             'enabled' => env('SLOGGER_LOG_MODEL_ENABLED', false),
+        ],
+        [
+            'class'   => SLoggerGateWatcher::class,
+            'enabled' => env('SLOGGER_LOG_GATE_ENABLED', false),
         ],
     ],
 ];
