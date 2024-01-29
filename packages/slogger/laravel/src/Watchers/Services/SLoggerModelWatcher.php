@@ -25,12 +25,11 @@ class SLoggerModelWatcher extends AbstractSLoggerWatcher
 
         $modelClass = $modelInstance::class;
 
-        $changes = $modelInstance->getChanges();
-
         $data = [
             'action'  => $this->getAction($eventName),
             'model'   => $modelClass,
-            'changes' => $changes ?: null,
+            'key'     => $modelInstance->getKey(),
+            'changes' => $this->prepareChanges($modelInstance),
         ];
 
         $this->processor->push(
@@ -39,20 +38,26 @@ class SLoggerModelWatcher extends AbstractSLoggerWatcher
         );
     }
 
-    private function getAction(string $event): string
+    protected function getAction(string $event): string
     {
         preg_match('/\.(.*):/', $event, $matches);
 
         return $matches[1];
     }
 
-    private function shouldRecord(string $eventName): bool
+    protected function shouldRecord(string $eventName): bool
     {
         return Str::is([
             '*created*',
             '*updated*',
             '*restored*',
             '*deleted*',
+            //'*retrieved*', // list
         ], $eventName);
+    }
+
+    protected function prepareChanges(Model $modelInstance): ?array
+    {
+        return $modelInstance->getChanges() ?: null;
     }
 }
