@@ -2,7 +2,7 @@
 
 namespace SLoggerLaravel\Dispatcher;
 
-class TraceStopDispatcherParameters
+class SLoggerTraceStopDispatcherParameters
 {
     public function __construct(
         public string $traceId,

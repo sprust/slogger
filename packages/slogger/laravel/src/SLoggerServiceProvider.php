@@ -3,7 +3,7 @@
 namespace SLoggerLaravel;
 
 use Illuminate\Support\ServiceProvider;
-use SLoggerLaravel\Dispatcher\TraceDispatcherInterface;
+use SLoggerLaravel\Dispatcher\SLoggerTraceDispatcherInterface;
 use SLoggerLaravel\Traces\SLoggerTraceIdContainer;
 use SLoggerLaravel\Watchers\AbstractSLoggerWatcher;
 
@@ -14,7 +14,7 @@ class SLoggerServiceProvider extends ServiceProvider
         $this->app->singleton(SLoggerProcessor::class);
         $this->app->singleton(SLoggerTraceIdContainer::class);
         $this->app->singleton(
-            TraceDispatcherInterface::class,
+            SLoggerTraceDispatcherInterface::class,
             $this->app['config']['slogger.dispatcher']
         );
 

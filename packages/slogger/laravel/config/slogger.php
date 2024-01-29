@@ -1,31 +1,31 @@
 <?php
 
 use SLoggerLaravel\Dispatcher\SLoggerTraceLogDispatcher;
-use SLoggerLaravel\Watchers\EntryPoints\CommandSLoggerWatcher;
-use SLoggerLaravel\Watchers\EntryPoints\RequestSLoggerWatcher;
-use SLoggerLaravel\Watchers\Services\DatabaseSLoggerWatcher;
-use SLoggerLaravel\Watchers\Services\LogSLoggerWatcher;
+use SLoggerLaravel\Watchers\EntryPoints\SLoggerCommandWatcher;
+use SLoggerLaravel\Watchers\EntryPoints\SLoggerRequestWatcher;
+use SLoggerLaravel\Watchers\Services\SLoggerDatabaseWatcher;
+use SLoggerLaravel\Watchers\Services\SLoggerLogWatcher;
 use SLoggerLaravel\Watchers\Services\ScheduleSLoggerWatcher;
-use SLoggerLaravel\Watchers\EntryPoints\JobSLoggerWatcher;
+use SLoggerLaravel\Watchers\EntryPoints\SLoggerJobWatcher;
 
 return [
     // example
     'dispatcher' => SLoggerTraceLogDispatcher::class,
     'watchers'   => [
         [
-            'class'   => RequestSLoggerWatcher::class,
+            'class'   => SLoggerRequestWatcher::class,
             'enabled' => env('SLOGGER_LOG_REQUESTS_ENABLED', false),
         ],
         [
-            'class'   => CommandSLoggerWatcher::class,
+            'class'   => SLoggerCommandWatcher::class,
             'enabled' => env('SLOGGER_LOG_COMMANDS_ENABLED', false),
         ],
         [
-            'class'   => DatabaseSLoggerWatcher::class,
+            'class'   => SLoggerDatabaseWatcher::class,
             'enabled' => env('SLOGGER_LOG_DATABASE_ENABLED', false),
         ],
         [
-            'class'   => LogSLoggerWatcher::class,
+            'class'   => SLoggerLogWatcher::class,
             'enabled' => env('SLOGGER_LOG_LOG_ENABLED', false),
         ],
         [
@@ -33,7 +33,7 @@ return [
             'enabled' => env('SLOGGER_LOG_LOG_ENABLED', false),
         ],
         [
-            'class'   => JobSLoggerWatcher::class,
+            'class'   => SLoggerJobWatcher::class,
             'enabled' => env('SLOGGER_LOG_JOBS_ENABLED', false),
         ],
     ],

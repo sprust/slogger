@@ -4,15 +4,12 @@ namespace SLoggerLaravel\Watchers\Services;
 
 use Illuminate\Database\Events\QueryExecuted;
 use SLoggerLaravel\Enums\SLoggerTraceTypeEnum;
-use SLoggerLaravel\Helpers\FetchesStackTraceTrait;
-use SLoggerLaravel\Helpers\TraceIdHelper;
+use SLoggerLaravel\Helpers\SLoggerTraceHelper;
 use SLoggerLaravel\Watchers\AbstractSLoggerWatcher;
 use Throwable;
 
-class DatabaseSLoggerWatcher extends AbstractSLoggerWatcher
+class SLoggerDatabaseWatcher extends AbstractSLoggerWatcher
 {
-    use FetchesStackTraceTrait;
-
     public function register(): void
     {
         $this->listenEvent(QueryExecuted::class, [$this, 'handle']);
@@ -24,7 +21,7 @@ class DatabaseSLoggerWatcher extends AbstractSLoggerWatcher
             return;
         }
 
-        $caller = $this->getCallerFromStackTrace();
+        $caller = SLoggerTraceHelper::getCallerFromStackTrace();
 
         try {
             $sql = $this->replaceSqlBindings($event);
@@ -36,7 +33,7 @@ class DatabaseSLoggerWatcher extends AbstractSLoggerWatcher
             'connection' => $event->connectionName,
             'bindings'   => [],
             'sql'        => $sql,
-            'duration'   => TraceIdHelper::roundDuration($event->time / 1000),
+            'duration'   => SLoggerTraceHelper::roundDuration($event->time / 1000),
             'file'       => $caller['file'] ?? '?',
             'line'       => $caller['line'] ?? '?',
             'hash'       => md5($event->sql),

@@ -4,7 +4,7 @@ namespace SLoggerLaravel\Events;
 
 use Illuminate\Http\Request;
 
-class RequestHandling
+class SLoggerRequestHandling
 {
     public function __construct(public Request $request, ?string $parentTraceId)
     {

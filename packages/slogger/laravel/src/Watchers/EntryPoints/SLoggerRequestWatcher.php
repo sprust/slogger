@@ -7,10 +7,10 @@ use Illuminate\Foundation\Http\Events\RequestHandled;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as IlluminateResponse;
 use Illuminate\View\View;
-use SLoggerLaravel\Dispatcher\TraceStopDispatcherParameters;
+use SLoggerLaravel\Dispatcher\SLoggerTraceStopDispatcherParameters;
 use SLoggerLaravel\Enums\SLoggerTraceTypeEnum;
-use SLoggerLaravel\Events\RequestHandling;
-use SLoggerLaravel\Helpers\TraceIdHelper;
+use SLoggerLaravel\Events\SLoggerRequestHandling;
+use SLoggerLaravel\Helpers\SLoggerTraceHelper;
 use SLoggerLaravel\Injectors\SLoggerMiddleware;
 use SLoggerLaravel\Watchers\AbstractSLoggerWatcher;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -21,17 +21,17 @@ use Symfony\Component\HttpFoundation\Response;
  *
  * @see SLoggerMiddleware
  */
-class RequestSLoggerWatcher extends AbstractSLoggerWatcher
+class SLoggerRequestWatcher extends AbstractSLoggerWatcher
 {
     private array $requests = [];
 
     public function register(): void
     {
-        $this->listenEvent(RequestHandling::class, [$this, 'handleRequestHandling']);
+        $this->listenEvent(SLoggerRequestHandling::class, [$this, 'handleRequestHandling']);
         $this->listenEvent(RequestHandled::class, [$this, 'handleRequestHandled']);
     }
 
-    public function handleRequestHandling(RequestHandling $event): void
+    public function handleRequestHandling(SLoggerRequestHandling $event): void
     {
         $traceId = $this->processor->startAndGetTraceId(
             type: SLoggerTraceTypeEnum::Request,
@@ -68,13 +68,13 @@ class RequestSLoggerWatcher extends AbstractSLoggerWatcher
             'payload'         => $this->preparePayload($request, $this->getInput($request)),
             'response_status' => $response->getStatusCode(),
             'response'        => $this->prepareResponse($request, $response),
-            'duration'        => TraceIdHelper::calcDuration($requestStartedAt),
+            'duration'        => SLoggerTraceHelper::calcDuration($requestStartedAt),
             'memory'          => round(memory_get_peak_usage(true) / 1024 / 1024, 1),
             ...$this->getAdditionalData(),
         ];
 
         $this->processor->stop(
-            new TraceStopDispatcherParameters(
+            new SLoggerTraceStopDispatcherParameters(
                 traceId: $traceId,
                 data: $data,
             )

@@ -10,12 +10,12 @@ use Illuminate\Console\Scheduling\CallbackEvent;
 use Illuminate\Console\Scheduling\Event;
 use SLoggerLaravel\Enums\SLoggerTraceTypeEnum;
 use SLoggerLaravel\Watchers\AbstractSLoggerWatcher;
-use SLoggerLaravel\Watchers\EntryPoints\CommandSLoggerWatcher;
+use SLoggerLaravel\Watchers\EntryPoints\SLoggerCommandWatcher;
 
 /**
  * Dependency
  *
- * @see CommandSLoggerWatcher
+ * @see SLoggerCommandWatcher
  */
 class ScheduleSLoggerWatcher extends AbstractSLoggerWatcher
 {

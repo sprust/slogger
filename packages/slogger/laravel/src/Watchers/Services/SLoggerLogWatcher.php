@@ -8,7 +8,7 @@ use SLoggerLaravel\Enums\SLoggerTraceTypeEnum;
 use SLoggerLaravel\Watchers\AbstractSLoggerWatcher;
 use Throwable;
 
-class LogSLoggerWatcher extends AbstractSLoggerWatcher
+class SLoggerLogWatcher extends AbstractSLoggerWatcher
 {
     public function register(): void
     {

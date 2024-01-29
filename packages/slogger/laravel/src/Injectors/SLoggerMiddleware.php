@@ -5,7 +5,7 @@ namespace SLoggerLaravel\Injectors;
 use Closure;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Http\Request;
-use SLoggerLaravel\Events\RequestHandling;
+use SLoggerLaravel\Events\SLoggerRequestHandling;
 use Symfony\Component\HttpFoundation\Response;
 
 readonly class SLoggerMiddleware
@@ -24,7 +24,7 @@ readonly class SLoggerMiddleware
         $parentTraceId = $request->header('x-parent-trace-id');
 
         $this->app['events']->dispatch(
-            new RequestHandling($request, $parentTraceId)
+            new SLoggerRequestHandling($request, $parentTraceId)
         );
 
         return $next($request);

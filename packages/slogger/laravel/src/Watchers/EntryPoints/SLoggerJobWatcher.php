@@ -9,12 +9,12 @@ use Illuminate\Queue\Queue;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
-use SLoggerLaravel\Dispatcher\TraceStopDispatcherParameters;
+use SLoggerLaravel\Dispatcher\SLoggerTraceStopDispatcherParameters;
 use SLoggerLaravel\Enums\SLoggerTraceTypeEnum;
-use SLoggerLaravel\Helpers\TraceIdHelper;
+use SLoggerLaravel\Helpers\SLoggerTraceHelper;
 use SLoggerLaravel\Watchers\AbstractSLoggerWatcher;
 
-class JobSLoggerWatcher extends AbstractSLoggerWatcher
+class SLoggerJobWatcher extends AbstractSLoggerWatcher
 {
     private array $jobs = [];
 
@@ -87,12 +87,12 @@ class JobSLoggerWatcher extends AbstractSLoggerWatcher
         $data = [
             'connectionName' => $event->connectionName,
             'payload'        => $event->job->payload(),
-            'duration'       => TraceIdHelper::calcDuration($startedAt),
+            'duration'       => SLoggerTraceHelper::calcDuration($startedAt),
             'status'         => 'processed',
         ];
 
         $this->processor->stop(
-            new TraceStopDispatcherParameters(
+            new SLoggerTraceStopDispatcherParameters(
                 traceId: $traceId,
                 tags: [],
                 data: $data,
@@ -128,7 +128,7 @@ class JobSLoggerWatcher extends AbstractSLoggerWatcher
         $data = [
             'connectionName' => $event->connectionName,
             'payload'        => $event->job->payload(),
-            'duration'       => TraceIdHelper::calcDuration($startedAt),
+            'duration'       => SLoggerTraceHelper::calcDuration($startedAt),
             'status'         => 'failed',
             'exception'      => [
                 'message'   => $exception->getMessage(),
@@ -142,7 +142,7 @@ class JobSLoggerWatcher extends AbstractSLoggerWatcher
         ];
 
         $this->processor->stop(
-            new TraceStopDispatcherParameters(
+            new SLoggerTraceStopDispatcherParameters(
                 traceId: $traceId,
                 tags: [],
                 data: $data,

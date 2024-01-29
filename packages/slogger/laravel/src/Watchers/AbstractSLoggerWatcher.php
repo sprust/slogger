@@ -4,10 +4,10 @@ namespace SLoggerLaravel\Watchers;
 
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Carbon;
-use SLoggerLaravel\Dispatcher\TraceDispatcherInterface;
-use SLoggerLaravel\Dispatcher\TracePushDispatcherParameters;
+use SLoggerLaravel\Dispatcher\SLoggerTraceDispatcherInterface;
+use SLoggerLaravel\Dispatcher\SLoggerTracePushDispatcherParameters;
 use SLoggerLaravel\Enums\SLoggerTraceTypeEnum;
-use SLoggerLaravel\Helpers\TraceIdHelper;
+use SLoggerLaravel\Helpers\SLoggerTraceHelper;
 use SLoggerLaravel\SLoggerProcessor;
 use SLoggerLaravel\Traces\SLoggerTraceIdContainer;
 
@@ -17,7 +17,7 @@ abstract class AbstractSLoggerWatcher
 
     public function __construct(
         protected readonly Application $app,
-        protected readonly TraceDispatcherInterface $traceDispatcher,
+        protected readonly SLoggerTraceDispatcherInterface $traceDispatcher,
         protected readonly SLoggerProcessor $processor,
         protected readonly SLoggerTraceIdContainer $traceIdContainer
     ) {
@@ -30,8 +30,8 @@ abstract class AbstractSLoggerWatcher
         Carbon $loggedAt
     ): void {
         $this->traceDispatcher->push(
-            new TracePushDispatcherParameters(
-                traceId: TraceIdHelper::make(),
+            new SLoggerTracePushDispatcherParameters(
+                traceId: SLoggerTraceHelper::make(),
                 parentTraceId: $this->traceIdContainer->getParentTraceId(),
                 type: $type,
                 tags: $tags,

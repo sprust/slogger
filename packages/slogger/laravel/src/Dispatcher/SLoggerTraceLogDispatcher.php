@@ -8,21 +8,21 @@ use Illuminate\Support\Arr;
 /**
  * @example
  */
-class SLoggerTraceLogDispatcher implements TraceDispatcherInterface
+class SLoggerTraceLogDispatcher implements SLoggerTraceDispatcherInterface
 {
-    /** @var TracePushDispatcherParameters[] */
+    /** @var SLoggerTracePushDispatcherParameters[] */
     private array $traces = [];
 
     public function __construct(private readonly Application $app)
     {
     }
 
-    public function push(TracePushDispatcherParameters $parameters): void
+    public function push(SLoggerTracePushDispatcherParameters $parameters): void
     {
         $this->traces[] = $parameters;
     }
 
-    public function stop(TraceStopDispatcherParameters $parameters): void
+    public function stop(SLoggerTraceStopDispatcherParameters $parameters): void
     {
         if (!$this->traces) {
             return;
@@ -30,19 +30,19 @@ class SLoggerTraceLogDispatcher implements TraceDispatcherInterface
 
         $filtered = array_filter(
             $this->traces,
-            fn(TracePushDispatcherParameters $traceItem) => $traceItem->parentTraceId === $parameters->traceId
+            fn(SLoggerTracePushDispatcherParameters $traceItem) => $traceItem->parentTraceId === $parameters->traceId
                 || $traceItem->traceId === $parameters->traceId
         );
 
         $traces = Arr::sort(
             $filtered,
-            fn(TracePushDispatcherParameters $traceItem) => $traceItem->loggedAt->getTimestampMs()
+            fn(SLoggerTracePushDispatcherParameters $traceItem) => $traceItem->loggedAt->getTimestampMs()
         );
 
-        /** @var TracePushDispatcherParameters $parentTrace */
+        /** @var SLoggerTracePushDispatcherParameters $parentTrace */
         $parentTrace = Arr::first(
             $traces,
-            fn(TracePushDispatcherParameters $traceItem) => $traceItem->traceId === $parameters->traceId
+            fn(SLoggerTracePushDispatcherParameters $traceItem) => $traceItem->traceId === $parameters->traceId
         );
 
         if (!is_null($parameters->data)) {
@@ -66,7 +66,7 @@ class SLoggerTraceLogDispatcher implements TraceDispatcherInterface
 
         $this->traces = array_filter(
             $this->traces,
-            fn(TracePushDispatcherParameters $traceItem) => $traceItem->parentTraceId !== $parameters
+            fn(SLoggerTracePushDispatcherParameters $traceItem) => $traceItem->parentTraceId !== $parameters
         );
     }
 }
