@@ -7,7 +7,7 @@ use Illuminate\Support\Str;
 use SLoggerLaravel\Enums\SLoggerTraceTypeEnum;
 use SLoggerLaravel\Watchers\AbstractSLoggerWatcher;
 
-class ModelSLoggerWatcher extends AbstractSLoggerWatcher
+class SLoggerModelWatcher extends AbstractSLoggerWatcher
 {
     public function register(): void
     {
