@@ -4,7 +4,6 @@ namespace SLoggerLaravel\Enums;
 
 enum SLoggerTraceTypeEnum: string
 {
-    case Start = 'start';
     case Cache = 'cache';
     case Command = 'command';
     case Database = 'database';
