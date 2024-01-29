@@ -22,6 +22,11 @@ class SLoggerEventWatcher extends AbstractSLoggerWatcher
 
     public function handleEvent(string $eventName, array $payload): void
     {
+        $this->safeHandleWatching(fn() => $this->onHandleEvent($eventName, $payload));
+    }
+
+    protected function onHandleEvent(string $eventName, array $payload): void
+    {
         if ($this->shouldIgnore($eventName)) {
             return;
         }

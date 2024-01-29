@@ -41,7 +41,30 @@ class SLoggerScheduleWatcher extends AbstractSLoggerWatcher
         $this->dispatchTask($event->task, 'finished');
     }
 
-    protected function getEventOutput(Event $event): string
+    protected function dispatchTask(Event $task, string $tag): void
+    {
+        $this->safeHandleWatching(fn() => $this->onDispatchTask($task, $tag));
+    }
+
+    protected function onDispatchTask(Event $task, string $tag): void
+    {
+        $data = [
+            'command'     => $task instanceof CallbackEvent ? 'Closure' : $task->command,
+            'description' => $task->description,
+            'expression'  => $task->expression,
+            'timezone'    => $task->timezone,
+            'user'        => $task->user,
+            'output'      => $this->getTaskOutput($task),
+        ];
+
+        $this->processor->push(
+            type: SLoggerTraceTypeEnum::Schedule,
+            tags: [$tag],
+            data: $data
+        );
+    }
+
+    protected function getTaskOutput(Event $event): string
     {
         if (!$event->output
             || $event->output === $event->getDefaultOutput()
@@ -52,23 +75,5 @@ class SLoggerScheduleWatcher extends AbstractSLoggerWatcher
         }
 
         return trim(file_get_contents($event->output));
-    }
-
-    private function dispatchTask(Event $task, string $tag): void
-    {
-        $data = [
-            'command'     => $task instanceof CallbackEvent ? 'Closure' : $task->command,
-            'description' => $task->description,
-            'expression'  => $task->expression,
-            'timezone'    => $task->timezone,
-            'user'        => $task->user,
-            'output'      => $this->getEventOutput($task),
-        ];
-
-        $this->processor->push(
-            type: SLoggerTraceTypeEnum::Schedule,
-            tags: [$tag],
-            data: $data
-        );
     }
 }

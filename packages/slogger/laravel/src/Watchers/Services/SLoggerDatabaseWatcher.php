@@ -12,15 +12,16 @@ class SLoggerDatabaseWatcher extends AbstractSLoggerWatcher
 {
     public function register(): void
     {
-        $this->listenEvent(QueryExecuted::class, [$this, 'handle']);
+        $this->listenEvent(QueryExecuted::class, [$this, 'handleQueryExecuted']);
     }
 
-    public function handle(QueryExecuted $event): void
+    public function handleQueryExecuted(QueryExecuted $event): void
     {
-        if (!$this->processor->isActive()) {
-            return;
-        }
+        $this->safeHandleWatching(fn() => $this->onHandleQueryExecuted($event));
+    }
 
+    protected function onHandleQueryExecuted(QueryExecuted $event): void
+    {
         $caller = SLoggerTraceHelper::getCallerFromStackTrace();
 
         try {

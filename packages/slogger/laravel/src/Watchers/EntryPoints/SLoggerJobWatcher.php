@@ -15,7 +15,7 @@ use SLoggerLaravel\Watchers\AbstractSLoggerWatcher;
 
 class SLoggerJobWatcher extends AbstractSLoggerWatcher
 {
-    private array $jobs = [];
+    protected array $jobs = [];
 
     public function register(): void
     {
@@ -32,6 +32,11 @@ class SLoggerJobWatcher extends AbstractSLoggerWatcher
     }
 
     public function handleJobProcessing(JobProcessing $event): void
+    {
+        $this->safeHandleWatching(fn() => $this->onHandleJobProcessing($event));
+    }
+
+    protected function onHandleJobProcessing(JobProcessing $event): void
     {
         $payload = $event->job->payload();
 
@@ -63,6 +68,11 @@ class SLoggerJobWatcher extends AbstractSLoggerWatcher
     }
 
     public function handleJobProcessed(JobProcessed $event): void
+    {
+        $this->safeHandleWatching(fn() => $this->onHandleJobProcessed($event));
+    }
+
+    protected function onHandleJobProcessed(JobProcessed $event): void
     {
         $payload = $event->job->payload();
 
@@ -102,6 +112,11 @@ class SLoggerJobWatcher extends AbstractSLoggerWatcher
     }
 
     public function handleJobFailed(JobFailed $event): void
+    {
+        $this->safeHandleWatching(fn() => $this->onHandleJobFailed($event));
+    }
+
+    protected function onHandleJobFailed(JobFailed $event): void
     {
         $payload = $event->job->payload();
 

@@ -13,7 +13,7 @@ use Symfony\Component\Console\Input\InputInterface;
 
 class SLoggerCommandWatcher extends AbstractSLoggerWatcher
 {
-    private array $commands = [];
+    protected array $commands = [];
 
     public function register(): void
     {
@@ -22,6 +22,11 @@ class SLoggerCommandWatcher extends AbstractSLoggerWatcher
     }
 
     public function handleCommandStarting(CommandStarting $event): void
+    {
+        $this->safeHandleWatching(fn() => $this->onHandleCommandStarting($event));
+    }
+
+    protected function onHandleCommandStarting(CommandStarting $event): void
     {
         $traceId = $this->processor->startAndGetTraceId(
             type: SLoggerTraceTypeEnum::Command
@@ -34,6 +39,11 @@ class SLoggerCommandWatcher extends AbstractSLoggerWatcher
     }
 
     public function handleCommandFinished(CommandFinished $event): void
+    {
+        $this->safeHandleWatching(fn() => $this->onHandleCommandFinished($event));
+    }
+
+    protected function onHandleCommandFinished(CommandFinished $event): void
     {
         $commandData = array_pop($this->commands);
 
@@ -63,7 +73,7 @@ class SLoggerCommandWatcher extends AbstractSLoggerWatcher
         );
     }
 
-    private function makeCommandView(?string $command, InputInterface $input): string
+    protected function makeCommandView(?string $command, InputInterface $input): string
     {
         return $command ?? $input->getArguments()['command'] ?? 'default';
     }

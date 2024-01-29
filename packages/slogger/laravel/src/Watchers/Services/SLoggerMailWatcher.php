@@ -14,10 +14,15 @@ class SLoggerMailWatcher extends AbstractSLoggerWatcher
 {
     public function register(): void
     {
-        $this->listenEvent(MessageSent::class, [$this, 'handleMail']);
+        $this->listenEvent(MessageSent::class, [$this, 'handleMessageSent']);
     }
 
-    public function handleMail(MessageSent $event): void
+    public function handleMessageSent(MessageSent $event): void
+    {
+        $this->safeHandleWatching(fn() => $this->onHandleMessageSent($event));
+    }
+
+    protected function onHandleMessageSent(MessageSent $event): void
     {
         $data = [
             'mailable' => $this->getMailable($event),

@@ -21,7 +21,7 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class SLoggerRequestWatcher extends AbstractSLoggerWatcher
 {
-    private array $requests = [];
+    protected array $requests = [];
 
     public function register(): void
     {
@@ -30,6 +30,11 @@ class SLoggerRequestWatcher extends AbstractSLoggerWatcher
     }
 
     public function handleRequestHandling(SLoggerRequestHandling $event): void
+    {
+        $this->safeHandleWatching(fn() => $this->onHandleRequestHandling($event));
+    }
+
+    protected function onHandleRequestHandling(SLoggerRequestHandling $event): void
     {
         $traceId = $this->processor->startAndGetTraceId(
             type: SLoggerTraceTypeEnum::Request,
@@ -42,6 +47,11 @@ class SLoggerRequestWatcher extends AbstractSLoggerWatcher
     }
 
     public function handleRequestHandled(RequestHandled $event): void
+    {
+        $this->safeHandleWatching(fn() => $this->onHandleRequestHandled($event));
+    }
+
+    protected function onHandleRequestHandled(RequestHandled $event): void
     {
         $requestData = array_pop($this->requests);
 

@@ -11,10 +11,15 @@ class SLoggerModelWatcher extends AbstractSLoggerWatcher
 {
     public function register(): void
     {
-        $this->listenEvent('eloquent.*', [$this, 'handleAction']);
+        $this->listenEvent('eloquent.*', [$this, 'handleEvent']);
     }
 
-    public function handleAction(string $eventName, array $eventData): void
+    public function handleEvent(string $eventName, array $eventData): void
+    {
+        $this->safeHandleWatching(fn() => $this->onHandleEvent($eventName, $eventData));
+    }
+
+    protected function onHandleEvent(string $eventName, array $eventData): void
     {
         if (!$this->shouldRecord($eventName)) {
             return;

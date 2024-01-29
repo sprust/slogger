@@ -2,9 +2,11 @@
 
 namespace SLoggerLaravel\Watchers;
 
+use Closure;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Arr;
 use SLoggerLaravel\Dispatcher\SLoggerTraceDispatcherInterface;
+use SLoggerLaravel\Events\SLoggerWatcherErrorEvent;
 use SLoggerLaravel\SLoggerProcessor;
 use SLoggerLaravel\Traces\SLoggerTraceIdContainer;
 use Throwable;
@@ -38,5 +40,14 @@ abstract class AbstractSLoggerWatcher
                 $exception->getTrace()
             ),
         ];
+    }
+
+    protected function safeHandleWatching(Closure $callback): void
+    {
+        try {
+            $callback();
+        } catch (Throwable $exception) {
+            $this->app['events']->dispatch(new SLoggerWatcherErrorEvent($exception));
+        }
     }
 }

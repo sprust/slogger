@@ -21,6 +21,11 @@ class SLoggerNotificationWatcher extends AbstractSLoggerWatcher
 
     public function handleNotification(NotificationSent $event): void
     {
+        $this->safeHandleWatching(fn() => $this->onHandleNotification($event));
+    }
+
+    protected function onHandleNotification(NotificationSent $event): void
+    {
         $data = [
             'notification' => get_class($event->notification),
             'queued'       => in_array(ShouldQueue::class, class_implements($event->notification)),

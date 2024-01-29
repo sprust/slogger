@@ -11,10 +11,15 @@ class SLoggerLogWatcher extends AbstractSLoggerWatcher
 {
     public function register(): void
     {
-        $this->listenEvent(MessageLogged::class, [$this, 'handle']);
+        $this->listenEvent(MessageLogged::class, [$this, 'handleMessageLogged']);
     }
 
-    public function handle(MessageLogged $event): void
+    public function handleMessageLogged(MessageLogged $event): void
+    {
+        $this->safeHandleWatching(fn() => $this->onHandleMessageLogged($event));
+    }
+
+    protected function onHandleMessageLogged(MessageLogged $event): void
     {
         if (!$this->processor->isActive()) {
             return;

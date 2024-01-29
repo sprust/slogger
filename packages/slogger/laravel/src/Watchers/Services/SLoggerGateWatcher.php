@@ -21,6 +21,11 @@ class SLoggerGateWatcher extends AbstractSLoggerWatcher
 
     public function handleGateEvaluated(GateEvaluated $event): void
     {
+        $this->safeHandleWatching(fn() => $this->onHandleGateEvaluated($event));
+    }
+
+    protected function onHandleGateEvaluated(GateEvaluated $event): void
+    {
         $caller = SLoggerTraceHelper::getCallerFromStackTrace([0, 1]);
 
         $data = [
