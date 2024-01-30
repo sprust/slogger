@@ -21,10 +21,6 @@ class SLoggerLogWatcher extends AbstractSLoggerWatcher
 
     protected function onHandleMessageLogged(MessageLogged $event): void
     {
-        if (!$this->processor->isActive()) {
-            return;
-        }
-
         $exception = $event->context['exception'] ?? null;
 
         if ($exception instanceof Throwable) {
