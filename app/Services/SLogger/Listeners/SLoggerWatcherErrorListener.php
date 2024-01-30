@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\SLogger;
+namespace App\Services\SLogger\Listeners;
 
 use SLoggerLaravel\Events\SLoggerWatcherErrorEvent;
 

@@ -2,7 +2,7 @@
 
 namespace App\Providers;
 
-use App\Services\SLogger\SLoggerWatcherErrorListener;
+use App\Services\SLogger\Listeners\SLoggerWatcherErrorListener;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 use SLoggerLaravel\Events\SLoggerWatcherErrorEvent;
 

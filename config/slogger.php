@@ -1,19 +1,19 @@
 <?php
 
-use SLoggerLaravel\Dispatcher\SLoggerTraceDispatcher;
 use SLoggerLaravel\Watchers\EntryPoints\SLoggerCommandWatcher;
 use SLoggerLaravel\Watchers\EntryPoints\SLoggerJobWatcher;
 use SLoggerLaravel\Watchers\EntryPoints\SLoggerRequestWatcher;
 use SLoggerLaravel\Watchers\Services\SLoggerCacheWatcher;
+use SLoggerLaravel\Watchers\Services\SLoggerDatabaseWatcher;
 use SLoggerLaravel\Watchers\Services\SLoggerDumpWatcher;
 use SLoggerLaravel\Watchers\Services\SLoggerEventWatcher;
-use SLoggerLaravel\Watchers\Services\SLoggerNotificationWatcher;
-use SLoggerLaravel\Watchers\Services\SLoggerScheduleWatcher;
-use SLoggerLaravel\Watchers\Services\SLoggerDatabaseWatcher;
 use SLoggerLaravel\Watchers\Services\SLoggerGateWatcher;
 use SLoggerLaravel\Watchers\Services\SLoggerLogWatcher;
 use SLoggerLaravel\Watchers\Services\SLoggerMailWatcher;
 use SLoggerLaravel\Watchers\Services\SLoggerModelWatcher;
+use SLoggerLaravel\Watchers\Services\SLoggerNotificationWatcher;
+use SLoggerLaravel\Watchers\Services\SLoggerScheduleWatcher;
+use App\Services\SLogger\Pushing\SLoggerTraceQueueDispatcher;
 
 return [
     'enabled'     => env('SLOGGER_ENABLED', false),
@@ -25,7 +25,7 @@ return [
         'token' => env('SLOGGER_HTTP_CLIENT_TOKEN'),
     ],
     // example
-    'dispatcher'  => SLoggerTraceDispatcher::class,
+    'dispatcher'  => SLoggerTraceQueueDispatcher::class,
     'watchers'    => [
         [
             'class'   => SLoggerRequestWatcher::class,
