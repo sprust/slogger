@@ -16,6 +16,9 @@ use SLoggerLaravel\Watchers\Services\SLoggerMailWatcher;
 use SLoggerLaravel\Watchers\Services\SLoggerModelWatcher;
 
 return [
+    'requests'   => [
+        'header_parent_trace_id_key' => env('SLOGGER_REQUESTS_HEADER_PARENT_TRACE_ID_KEY', 'x-parent-trace-id'),
+    ],
     // example
     'dispatcher' => SLoggerTraceDispatcher::class,
     'watchers'   => [

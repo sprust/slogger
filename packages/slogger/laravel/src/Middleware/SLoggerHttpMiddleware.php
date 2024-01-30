@@ -21,7 +21,9 @@ readonly class SLoggerHttpMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $parentTraceId = $request->header('x-parent-trace-id');
+        $parentTraceId = $request->header(
+            config('slogger.requests.header_parent_trace_id_key')
+        );
 
         $this->app['events']->dispatch(
             new SLoggerRequestHandling($request, $parentTraceId)
