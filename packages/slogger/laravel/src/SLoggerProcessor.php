@@ -12,7 +12,6 @@ use SLoggerLaravel\Helpers\SLoggerTraceHelper;
 use SLoggerLaravel\Objects\SLoggerTraceObject;
 use SLoggerLaravel\Objects\SLoggerTraceStopObject;
 use SLoggerLaravel\Traces\SLoggerTraceIdContainer;
-use SLoggerLaravel\Watchers\AbstractSLoggerWatcher;
 use Throwable;
 
 class SLoggerProcessor
@@ -20,6 +19,8 @@ class SLoggerProcessor
     private bool $started = false;
 
     private array $preParentIdsStack = [];
+
+    private bool $paused = false;
 
     public function __construct(
         private readonly SLoggerTraceDispatcherInterface $traceDispatcher,
@@ -32,13 +33,17 @@ class SLoggerProcessor
         return $this->started;
     }
 
+    public function isPaused(): bool
+    {
+        return $this->paused;
+    }
 
     /**
      * @throws Throwable
      */
-    public function muteHandle(Closure $callback): mixed
+    public function handleWithoutTracing(Closure $callback): mixed
     {
-        AbstractSLoggerWatcher::toMute();
+        $this->paused = true;
 
         $exception = null;
 
@@ -48,7 +53,7 @@ class SLoggerProcessor
             $result = null;
         }
 
-        AbstractSLoggerWatcher::unMute();
+        $this->paused = false;
 
         if ($exception) {
             throw $exception;
@@ -60,7 +65,7 @@ class SLoggerProcessor
     /**
      * @throws Throwable
      */
-    public function handleCallback(
+    public function handleSeparateTracing(
         Closure $callback,
         string $type,
         array $tags = [],

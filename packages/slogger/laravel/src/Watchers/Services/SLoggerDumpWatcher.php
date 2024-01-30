@@ -17,6 +17,16 @@ class SLoggerDumpWatcher extends AbstractSLoggerWatcher
 
     public function handleDump(mixed $dump): void
     {
+        if ($this->processor->isPaused()) {
+            VarDumper::setHandler(null);
+
+            VarDumper::dump($dump);
+
+            $this->register();
+
+            return;
+        }
+
         $this->safeHandleWatching(fn() => $this->onHandleDump($dump));
     }
 
