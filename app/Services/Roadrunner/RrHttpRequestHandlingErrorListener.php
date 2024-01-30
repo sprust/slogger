@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Listeners;
+namespace App\Services\Roadrunner;
 
 use RoadRunner\Servers\Http\Events\RrHttpRequestHandlingErrorEvent;
 

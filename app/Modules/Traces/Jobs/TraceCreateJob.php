@@ -18,8 +18,8 @@ class TraceCreateJob implements ShouldQueue
      */
     public function __construct(private readonly TraceCreateParametersList $parametersList)
     {
-        $this->onConnection(config('queue.queues.connection'))
-            ->onQueue(config('queue.queues.name'));
+        $this->onConnection(config('queue.queues.creating.connection'))
+            ->onQueue(config('queue.queues.creating.name'));
     }
 
     /**

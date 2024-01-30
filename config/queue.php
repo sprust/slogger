@@ -111,7 +111,13 @@ return [
     ],
 
     'queues' => [
-        'connection' => env('QUEUE_TRACES_CREATING_CONNECTION', 'roadrunner'),
-        'name'       => env('QUEUE_TRACES_CREATING_NAME', 'traces-creating'),
+        'creating' => [
+            'connection' => env('QUEUE_TRACES_CREATING_CONNECTION', 'roadrunner'),
+            'name'       => env('QUEUE_TRACES_CREATING_NAME', 'traces-creating'),
+        ],
+        'pushing'  => [
+            'connection' => env('QUEUE_TRACES_PUSHING_CONNECTION', 'roadrunner'),
+            'name'       => env('QUEUE_TRACES_PUSHING_NAME', 'traces-pushing'),
+        ],
     ],
 ];

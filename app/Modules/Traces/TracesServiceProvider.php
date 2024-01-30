@@ -26,9 +26,11 @@ class TracesServiceProvider extends ServiceProvider
     {
         $servicesHttpAdapter = $this->app->make(ServicesHttpAdapter::class);
 
-        Route::middleware($servicesHttpAdapter->getRequestMiddleware())
-            ->prefix('traces-api')
+        Route::prefix('traces-api')
             ->as('traces-api.')
+            ->middleware([
+                $servicesHttpAdapter->getRequestMiddleware(),
+            ])
             ->group(function () {
                 Route::post('', TraceCreateController::class);
             });

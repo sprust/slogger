@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "fb6fb6b4cafbdae7d2a44571236223e0",
+    "content-hash": "1001f8b8ec7d7592a582eb002e5344a3",
     "packages": [
         {
             "name": "brick/math",
@@ -3745,6 +3745,45 @@
                 }
             ],
             "time": "2023-10-11T13:36:31+00:00"
+        },
+        {
+            "name": "slogger/laravel",
+            "version": "dev-master",
+            "dist": {
+                "type": "path",
+                "url": "packages/slogger/laravel",
+                "reference": "90b63691e5ab32a430e5e172b6fa1efc7d12a7f6"
+            },
+            "require": {
+                "laravel/framework": "^9.0 | ^10.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "SLoggerLaravel\\SLoggerServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "SLoggerLaravel\\": "src/"
+                }
+            },
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Pavel",
+                    "email": "sppetrovich@mail.ru"
+                }
+            ],
+            "description": "SLogger for laravel",
+            "transport-options": {
+                "symlink": true,
+                "relative": true
+            }
         },
         {
             "name": "spiral/core",
@@ -9700,12 +9739,15 @@
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
-        "ifksco/roadrunner-laravel": 20
+        "ifksco/roadrunner-laravel": 20,
+        "slogger/laravel": 20
     },
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
-        "php": "^8.2"
+        "php": "^8.2",
+        "ext-mongodb": "*",
+        "ext-pdo": "*"
     },
     "platform-dev": [],
     "plugin-api-version": "2.6.0"
