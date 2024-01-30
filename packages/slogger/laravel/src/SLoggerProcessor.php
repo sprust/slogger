@@ -2,13 +2,17 @@
 
 namespace SLoggerLaravel;
 
+use Closure;
 use Illuminate\Support\Carbon;
 use LogicException;
 use SLoggerLaravel\Dispatcher\SLoggerTraceDispatcherInterface;
 use SLoggerLaravel\Dispatcher\SLoggerTracePushDispatcherParameters;
 use SLoggerLaravel\Dispatcher\SLoggerTraceStopDispatcherParameters;
+use SLoggerLaravel\Enums\SLoggerTraceTypeEnum;
+use SLoggerLaravel\Helpers\SLoggerDataFormatter;
 use SLoggerLaravel\Helpers\SLoggerTraceHelper;
 use SLoggerLaravel\Traces\SLoggerTraceIdContainer;
+use Throwable;
 
 class SLoggerProcessor
 {
@@ -25,6 +29,41 @@ class SLoggerProcessor
     public function isActive(): bool
     {
         return $this->started;
+    }
+
+    public function handleCallback(
+        Closure $callback,
+        string $type,
+        array $tags = [],
+        array $data = [],
+        ?Carbon $loggedAt = null,
+        ?string $customParentTraceId = null,
+    ): void {
+        $traceId = $this->startAndGetTraceId(
+            type: $type,
+            tags: $tags,
+            data: $data,
+            loggedAt: $loggedAt,
+            customParentTraceId: $customParentTraceId,
+        );
+
+        try {
+            $callback();
+        } catch (Throwable $exception) {
+            $this->push(
+                type: SLoggerTraceTypeEnum::Exception->value,
+                data: [
+                    'exception' => SLoggerDataFormatter::exception($exception),
+                ]
+            );
+        }
+
+        $this->stop(
+            new SLoggerTraceStopDispatcherParameters(
+                traceId: $traceId,
+                data: $data
+            )
+        );
     }
 
     public function startAndGetTraceId(

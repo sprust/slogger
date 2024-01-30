@@ -4,8 +4,6 @@ namespace SLoggerLaravel\Watchers;
 
 use Closure;
 use Illuminate\Contracts\Foundation\Application;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Arr;
 use SLoggerLaravel\Dispatcher\SLoggerTraceDispatcherInterface;
 use SLoggerLaravel\Events\SLoggerWatcherErrorEvent;
 use SLoggerLaravel\Helpers\SLoggerTraceHelper;
@@ -30,25 +28,6 @@ abstract class AbstractSLoggerWatcher
     protected function listenEvent(string $eventClass, array $function): void
     {
         $this->app['events']->listen($eventClass, $function);
-    }
-
-    protected function prepareException(Throwable $exception): array
-    {
-        return [
-            'message'   => $exception->getMessage(),
-            'exception' => get_class($exception),
-            'file'      => $exception->getFile(),
-            'line'      => $exception->getLine(),
-            'trace'     => array_map(
-                fn(array $item) => Arr::only($item, ['file', 'line']),
-                $exception->getTrace()
-            ),
-        ];
-    }
-
-    protected function prepareModel(Model $model): string
-    {
-        return $model::class . ':' . $model->getKey();
     }
 
     protected function safeHandleWatching(Closure $callback): void

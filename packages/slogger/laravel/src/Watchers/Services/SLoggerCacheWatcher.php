@@ -9,6 +9,7 @@ use Illuminate\Cache\Events\KeyWritten;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 use SLoggerLaravel\Enums\SLoggerTraceTypeEnum;
+use SLoggerLaravel\Helpers\SLoggerDataFormatter;
 use SLoggerLaravel\Watchers\AbstractSLoggerWatcher;
 
 class SLoggerCacheWatcher extends AbstractSLoggerWatcher
@@ -120,7 +121,7 @@ class SLoggerCacheWatcher extends AbstractSLoggerWatcher
         }
 
         if ($value instanceof Model) {
-            return $this->prepareModel($value);
+            return SLoggerDataFormatter::model($value);
         }
 
         if (is_object($value)) {

@@ -6,6 +6,7 @@ use Illuminate\Auth\Access\Events\GateEvaluated;
 use Illuminate\Auth\Access\Response;
 use Illuminate\Database\Eloquent\Model;
 use SLoggerLaravel\Enums\SLoggerTraceTypeEnum;
+use SLoggerLaravel\Helpers\SLoggerDataFormatter;
 use SLoggerLaravel\Helpers\SLoggerTraceHelper;
 use SLoggerLaravel\Watchers\AbstractSLoggerWatcher;
 
@@ -56,7 +57,7 @@ class SLoggerGateWatcher extends AbstractSLoggerWatcher
         return collect($arguments)
             ->map(function ($argument) {
                 return $argument instanceof Model
-                    ? $this->prepareModel($argument)
+                    ? SLoggerDataFormatter::model($argument)
                     : $argument;
             })
             ->toArray();

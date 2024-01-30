@@ -10,6 +10,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use SLoggerLaravel\Dispatcher\SLoggerTraceStopDispatcherParameters;
 use SLoggerLaravel\Enums\SLoggerTraceTypeEnum;
+use SLoggerLaravel\Helpers\SLoggerDataFormatter;
 use SLoggerLaravel\Helpers\SLoggerTraceHelper;
 use SLoggerLaravel\Watchers\AbstractSLoggerWatcher;
 
@@ -142,7 +143,7 @@ class SLoggerJobWatcher extends AbstractSLoggerWatcher
             'payload'        => $event->job->payload(),
             'duration'       => SLoggerTraceHelper::calcDuration($startedAt),
             'status'         => 'failed',
-            'exception'      => $this->prepareException($event->exception),
+            'exception'      => SLoggerDataFormatter::exception($event->exception),
         ];
 
         $this->processor->stop(

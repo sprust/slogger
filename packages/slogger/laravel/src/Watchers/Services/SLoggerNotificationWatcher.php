@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Notifications\Events\NotificationSent;
 use SLoggerLaravel\Enums\SLoggerTraceTypeEnum;
+use SLoggerLaravel\Helpers\SLoggerDataFormatter;
 use SLoggerLaravel\Watchers\AbstractSLoggerWatcher;
 
 /**
@@ -43,7 +44,7 @@ class SLoggerNotificationWatcher extends AbstractSLoggerWatcher
     protected function formatNotifiable($notifiable): string
     {
         if ($notifiable instanceof Model) {
-            return $this->prepareModel($notifiable);
+            return SLoggerDataFormatter::model($notifiable);
         } elseif ($notifiable instanceof AnonymousNotifiable) {
             $routes = array_map(
                 fn($route) => is_array($route) ? implode(',', $route) : $route,
