@@ -1,10 +1,10 @@
 <?php
 
-namespace SLoggerLaravel\Dispatcher;
+namespace SLoggerLaravel\Objects;
 
 use Illuminate\Support\Carbon;
 
-class SLoggerTracePushDispatcherParameters
+class SLoggerTraceObject
 {
     public function __construct(
         public string $traceId,

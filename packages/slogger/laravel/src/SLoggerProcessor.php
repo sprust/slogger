@@ -6,11 +6,11 @@ use Closure;
 use Illuminate\Support\Carbon;
 use LogicException;
 use SLoggerLaravel\Dispatcher\SLoggerTraceDispatcherInterface;
-use SLoggerLaravel\Dispatcher\SLoggerTracePushDispatcherParameters;
-use SLoggerLaravel\Dispatcher\SLoggerTraceStopDispatcherParameters;
 use SLoggerLaravel\Enums\SLoggerTraceTypeEnum;
 use SLoggerLaravel\Helpers\SLoggerDataFormatter;
 use SLoggerLaravel\Helpers\SLoggerTraceHelper;
+use SLoggerLaravel\Objects\SLoggerTraceObject;
+use SLoggerLaravel\Objects\SLoggerTraceStopObject;
 use SLoggerLaravel\Traces\SLoggerTraceIdContainer;
 use Throwable;
 
@@ -66,7 +66,7 @@ class SLoggerProcessor
         }
 
         $this->stop(
-            new SLoggerTraceStopDispatcherParameters(
+            new SLoggerTraceStopObject(
                 traceId: $traceId,
                 data: $data
             )
@@ -91,7 +91,7 @@ class SLoggerProcessor
         $parentTraceId = $this->traceIdContainer->getParentTraceId();
 
         $this->traceDispatcher->push(
-            new SLoggerTracePushDispatcherParameters(
+            new SLoggerTraceObject(
                 traceId: $traceId,
                 parentTraceId: $customParentTraceId ?? $parentTraceId,
                 type: $type,
@@ -129,7 +129,7 @@ class SLoggerProcessor
         }
 
         $this->traceDispatcher->push(
-            new SLoggerTracePushDispatcherParameters(
+            new SLoggerTraceObject(
                 traceId: $traceId,
                 parentTraceId: $parentTraceId,
                 type: $type,
@@ -140,7 +140,7 @@ class SLoggerProcessor
         );
     }
 
-    public function stop(SLoggerTraceStopDispatcherParameters $parameters): void
+    public function stop(SLoggerTraceStopObject $parameters): void
     {
         if (!$this->isActive()) {
             throw new LogicException('Tracing process isn\'t active.');

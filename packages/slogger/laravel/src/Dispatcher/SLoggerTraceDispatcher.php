@@ -2,26 +2,31 @@
 
 namespace SLoggerLaravel\Dispatcher;
 
-use Illuminate\Contracts\Container\BindingResolutionException;
-use Illuminate\Contracts\Container\CircularDependencyException;
+use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Arr;
+use SLoggerLaravel\HttpClient\SLoggerHttpClient;
+use SLoggerLaravel\Objects\SLoggerTraceObject;
+use SLoggerLaravel\Objects\SLoggerTraceObjects;
+use SLoggerLaravel\Objects\SLoggerTraceStopObject;
 
 class SLoggerTraceDispatcher implements SLoggerTraceDispatcherInterface
 {
-    /** @var SLoggerTracePushDispatcherParameters[] */
+    /** @var SLoggerTraceObject[] */
     private array $traces = [];
 
-    public function __construct(private readonly Application $app)
-    {
+    public function __construct(
+        protected readonly Application $app,
+        protected readonly SLoggerHttpClient $httpClient,
+    ) {
     }
 
-    public function push(SLoggerTracePushDispatcherParameters $parameters): void
+    public function push(SLoggerTraceObject $parameters): void
     {
         $this->traces[] = $parameters;
     }
 
-    public function stop(SLoggerTraceStopDispatcherParameters $parameters): void
+    public function stop(SLoggerTraceStopObject $parameters): void
     {
         if (!$this->traces) {
             return;
@@ -29,19 +34,19 @@ class SLoggerTraceDispatcher implements SLoggerTraceDispatcherInterface
 
         $filtered = array_filter(
             $this->traces,
-            fn(SLoggerTracePushDispatcherParameters $traceItem) => $traceItem->parentTraceId === $parameters->traceId
+            fn(SLoggerTraceObject $traceItem) => $traceItem->parentTraceId === $parameters->traceId
                 || $traceItem->traceId === $parameters->traceId
         );
 
         $traces = Arr::sort(
             $filtered,
-            fn(SLoggerTracePushDispatcherParameters $traceItem) => $traceItem->loggedAt->getTimestampMs()
+            fn(SLoggerTraceObject $traceItem) => $traceItem->loggedAt->getTimestampMs()
         );
 
-        /** @var SLoggerTracePushDispatcherParameters $parentTrace */
+        /** @var SLoggerTraceObject $parentTrace */
         $parentTrace = Arr::first(
             $traces,
-            fn(SLoggerTracePushDispatcherParameters $traceItem) => $traceItem->traceId === $parameters->traceId
+            fn(SLoggerTraceObject $traceItem) => $traceItem->traceId === $parameters->traceId
         );
 
         if (!is_null($parameters->data)) {
@@ -57,26 +62,23 @@ class SLoggerTraceDispatcher implements SLoggerTraceDispatcherInterface
 
         $this->traces = array_filter(
             $this->traces,
-            fn(SLoggerTracePushDispatcherParameters $traceItem) => $traceItem->parentTraceId !== $parameters
+            fn(SLoggerTraceObject $traceItem) => $traceItem->parentTraceId !== $parameters
         );
     }
 
     /**
-     * @param SLoggerTracePushDispatcherParameters[] $traces
+     * @param SLoggerTraceObject[] $traces
      *
-     * @throws BindingResolutionException
-     * @throws CircularDependencyException
+     * @throws GuzzleException
      */
-    protected function sendTraces(SLoggerTracePushDispatcherParameters $parentTrace, array $traces): void
+    protected function sendTraces(SLoggerTraceObject $parentTrace, array $traces): void
     {
-        $storage = $this->app['filesystem']->build([
-            'driver' => 'local',
-            'root'   => storage_path('logs/slogger-traces'),
-        ]);
+        $traceObjects = new SLoggerTraceObjects();
 
-        $storage->put(
-            $parentTrace->loggedAt->toDateTimeString('microsecond') . '-' . $parentTrace->type . '.json',
-            json_encode(array_values($traces), JSON_PRETTY_PRINT)
-        );
+        foreach ($traces as $trace) {
+            $traceObjects->add($trace);
+        }
+
+        $this->httpClient->sendTraces($traceObjects);
     }
 }

@@ -7,11 +7,11 @@ use Illuminate\Foundation\Http\Events\RequestHandled;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as IlluminateResponse;
 use Illuminate\View\View;
-use SLoggerLaravel\Dispatcher\SLoggerTraceStopDispatcherParameters;
 use SLoggerLaravel\Enums\SLoggerTraceTypeEnum;
 use SLoggerLaravel\Events\SLoggerRequestHandling;
 use SLoggerLaravel\Helpers\SLoggerTraceHelper;
 use SLoggerLaravel\Middleware\SLoggerHttpMiddleware;
+use SLoggerLaravel\Objects\SLoggerTraceStopObject;
 use SLoggerLaravel\Watchers\AbstractSLoggerWatcher;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -82,7 +82,7 @@ class SLoggerRequestWatcher extends AbstractSLoggerWatcher
         ];
 
         $this->processor->stop(
-            new SLoggerTraceStopDispatcherParameters(
+            new SLoggerTraceStopObject(
                 traceId: $traceId,
                 data: $data,
             )

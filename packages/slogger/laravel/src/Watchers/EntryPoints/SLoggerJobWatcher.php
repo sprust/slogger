@@ -8,10 +8,10 @@ use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Queue\Queue;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
-use SLoggerLaravel\Dispatcher\SLoggerTraceStopDispatcherParameters;
 use SLoggerLaravel\Enums\SLoggerTraceTypeEnum;
 use SLoggerLaravel\Helpers\SLoggerDataFormatter;
 use SLoggerLaravel\Helpers\SLoggerTraceHelper;
+use SLoggerLaravel\Objects\SLoggerTraceStopObject;
 use SLoggerLaravel\Watchers\AbstractSLoggerWatcher;
 
 class SLoggerJobWatcher extends AbstractSLoggerWatcher
@@ -102,7 +102,7 @@ class SLoggerJobWatcher extends AbstractSLoggerWatcher
         ];
 
         $this->processor->stop(
-            new SLoggerTraceStopDispatcherParameters(
+            new SLoggerTraceStopObject(
                 traceId: $traceId,
                 tags: [],
                 data: $data,
@@ -147,7 +147,7 @@ class SLoggerJobWatcher extends AbstractSLoggerWatcher
         ];
 
         $this->processor->stop(
-            new SLoggerTraceStopDispatcherParameters(
+            new SLoggerTraceStopObject(
                 traceId: $traceId,
                 tags: [],
                 data: $data,

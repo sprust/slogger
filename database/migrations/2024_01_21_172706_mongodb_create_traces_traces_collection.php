@@ -50,7 +50,7 @@ return new class extends Migration {
                                 'bsonType' => 'array',
                             ],
                             'data'          => [
-                                'bsonType' => 'array',
+                                'bsonType' => ['object', 'array'],
                             ],
                             'loggedAt'      => [
                                 'bsonType' => 'date',

@@ -1,8 +1,8 @@
 <?php
 
-namespace SLoggerLaravel\Dispatcher;
+namespace SLoggerLaravel\Objects;
 
-class SLoggerTraceStopDispatcherParameters
+class SLoggerTraceStopObject
 {
     public function __construct(
         public string $traceId,

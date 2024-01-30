@@ -16,12 +16,16 @@ use SLoggerLaravel\Watchers\Services\SLoggerMailWatcher;
 use SLoggerLaravel\Watchers\Services\SLoggerModelWatcher;
 
 return [
-    'requests'   => [
+    'requests'    => [
         'header_parent_trace_id_key' => env('SLOGGER_REQUESTS_HEADER_PARENT_TRACE_ID_KEY', 'x-parent-trace-id'),
     ],
+    'http_client' => [
+        'url'   => env('SLOGGER_HTTP_CLIENT_URL'),
+        'token' => env('SLOGGER_HTTP_CLIENT_TOKEN'),
+    ],
     // example
-    'dispatcher' => SLoggerTraceDispatcher::class,
-    'watchers'   => [
+    'dispatcher'  => SLoggerTraceDispatcher::class,
+    'watchers'    => [
         [
             'class'   => SLoggerRequestWatcher::class,
             'enabled' => env('SLOGGER_LOG_REQUESTS_ENABLED', false),

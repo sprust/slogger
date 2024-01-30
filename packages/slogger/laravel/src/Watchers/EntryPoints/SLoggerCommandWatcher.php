@@ -5,9 +5,9 @@ namespace SLoggerLaravel\Watchers\EntryPoints;
 use Illuminate\Console\Events\CommandFinished;
 use Illuminate\Console\Events\CommandStarting;
 use Illuminate\Support\Carbon;
-use SLoggerLaravel\Dispatcher\SLoggerTraceStopDispatcherParameters;
 use SLoggerLaravel\Enums\SLoggerTraceTypeEnum;
 use SLoggerLaravel\Helpers\SLoggerTraceHelper;
+use SLoggerLaravel\Objects\SLoggerTraceStopObject;
 use SLoggerLaravel\Watchers\AbstractSLoggerWatcher;
 use Symfony\Component\Console\Input\InputInterface;
 
@@ -65,7 +65,7 @@ class SLoggerCommandWatcher extends AbstractSLoggerWatcher
         ];
 
         $this->processor->stop(
-            new SLoggerTraceStopDispatcherParameters(
+            new SLoggerTraceStopObject(
                 traceId: $traceId,
                 tags: [],
                 data: $data,
