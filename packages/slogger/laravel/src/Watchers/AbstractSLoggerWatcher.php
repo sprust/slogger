@@ -8,12 +8,15 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 use SLoggerLaravel\Dispatcher\SLoggerTraceDispatcherInterface;
 use SLoggerLaravel\Events\SLoggerWatcherErrorEvent;
+use SLoggerLaravel\Helpers\SLoggerTraceHelper;
 use SLoggerLaravel\SLoggerProcessor;
 use SLoggerLaravel\Traces\SLoggerTraceIdContainer;
 use Throwable;
 
 abstract class AbstractSLoggerWatcher
 {
+    private static bool $mute = false;
+
     abstract public function register(): void;
 
     public function __construct(
@@ -50,10 +53,31 @@ abstract class AbstractSLoggerWatcher
 
     protected function safeHandleWatching(Closure $callback): void
     {
+        if (self::isMute()) {
+            return;
+        }
+
         try {
             $callback();
         } catch (Throwable $exception) {
-            $this->app['events']->dispatch(new SLoggerWatcherErrorEvent($exception));
+            SLoggerTraceHelper::muteHandle(function () use ($exception) {
+                $this->app['events']->dispatch(new SLoggerWatcherErrorEvent($exception));
+            });
         }
+    }
+
+    public static function isMute(): bool
+    {
+        return self::$mute;
+    }
+
+    public static function toMute(): void
+    {
+        self::$mute = true;
+    }
+
+    public static function unMute(): void
+    {
+        self::$mute = false;
     }
 }

@@ -2,8 +2,11 @@
 
 namespace SLoggerLaravel\Helpers;
 
+use Closure;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
+use SLoggerLaravel\Watchers\AbstractSLoggerWatcher;
+use Throwable;
 
 class SLoggerTraceHelper
 {
@@ -38,5 +41,29 @@ class SLoggerTraceHelper
                 return !Str::contains($frame['file'], base_path('vendor' . DIRECTORY_SEPARATOR));
             }
         ) ?? [];
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public static function muteHandle(Closure $callback): mixed
+    {
+        AbstractSLoggerWatcher::toMute();
+
+        $exception = null;
+
+        try {
+            $result = $callback();
+        } catch (Throwable $exception) {
+            $result = null;
+        }
+
+        AbstractSLoggerWatcher::unMute();
+
+        if ($exception) {
+            throw $exception;
+        }
+
+        return $result;
     }
 }

@@ -7,7 +7,6 @@ use LogicException;
 use SLoggerLaravel\Dispatcher\SLoggerTraceDispatcherInterface;
 use SLoggerLaravel\Dispatcher\SLoggerTracePushDispatcherParameters;
 use SLoggerLaravel\Dispatcher\SLoggerTraceStopDispatcherParameters;
-use SLoggerLaravel\Enums\SLoggerTraceTypeEnum;
 use SLoggerLaravel\Helpers\SLoggerTraceHelper;
 use SLoggerLaravel\Traces\SLoggerTraceIdContainer;
 
