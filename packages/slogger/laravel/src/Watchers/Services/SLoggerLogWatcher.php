@@ -38,7 +38,7 @@ class SLoggerLogWatcher extends AbstractSLoggerWatcher
         ];
 
         $this->processor->push(
-            type: SLoggerTraceTypeEnum::Log,
+            type: SLoggerTraceTypeEnum::Log->value->value,
             data: $data
         );
     }

@@ -29,7 +29,7 @@ class SLoggerProcessor
     }
 
     public function startAndGetTraceId(
-        SLoggerTraceTypeEnum $type,
+        string $type,
         array $tags = [],
         array $data = [],
         ?Carbon $loggedAt = null,
@@ -60,7 +60,7 @@ class SLoggerProcessor
     }
 
     public function push(
-        SLoggerTraceTypeEnum $type,
+        string $type,
         array $tags = [],
         array $data = [],
         ?Carbon $loggedAt = null
@@ -74,7 +74,7 @@ class SLoggerProcessor
         $parentTraceId = $this->traceIdContainer->getParentTraceId();
 
         if (!$parentTraceId) {
-            throw new LogicException("Parent trace id has not found for $type->value.");
+            throw new LogicException("Parent trace id has not found for $type.");
         }
 
         $this->traceDispatcher->push(

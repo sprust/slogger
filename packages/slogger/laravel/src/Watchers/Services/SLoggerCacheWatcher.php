@@ -40,7 +40,7 @@ class SLoggerCacheWatcher extends AbstractSLoggerWatcher
         ];
 
         $this->processor->push(
-            type: SLoggerTraceTypeEnum::Cache,
+            type: SLoggerTraceTypeEnum::Cache->value,
             data: $data
         );
     }
@@ -62,7 +62,7 @@ class SLoggerCacheWatcher extends AbstractSLoggerWatcher
         ];
 
         $this->processor->push(
-            type: SLoggerTraceTypeEnum::Cache,
+            type: SLoggerTraceTypeEnum::Cache->value,
             data: $data
         );
     }
@@ -86,7 +86,7 @@ class SLoggerCacheWatcher extends AbstractSLoggerWatcher
         ];
 
         $this->processor->push(
-            type: SLoggerTraceTypeEnum::Cache,
+            type: SLoggerTraceTypeEnum::Cache->value,
             data: $data
         );
     }
@@ -108,7 +108,7 @@ class SLoggerCacheWatcher extends AbstractSLoggerWatcher
         ];
 
         $this->processor->push(
-            type: SLoggerTraceTypeEnum::Cache,
+            type: SLoggerTraceTypeEnum::Cache->value,
             data: $data
         );
     }

@@ -75,7 +75,7 @@ class SLoggerTraceDispatcher implements SLoggerTraceDispatcherInterface
         ]);
 
         $storage->put(
-            $parentTrace->loggedAt->toDateTimeString('microsecond') . '-' . $parentTrace->type->value . '.json',
+            $parentTrace->loggedAt->toDateTimeString('microsecond') . '-' . $parentTrace->type . '.json',
             json_encode(array_values($traces), JSON_PRETTY_PRINT)
         );
     }

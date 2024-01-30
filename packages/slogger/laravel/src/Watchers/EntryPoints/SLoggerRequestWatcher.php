@@ -37,7 +37,7 @@ class SLoggerRequestWatcher extends AbstractSLoggerWatcher
     protected function onHandleRequestHandling(SLoggerRequestHandling $event): void
     {
         $traceId = $this->processor->startAndGetTraceId(
-            type: SLoggerTraceTypeEnum::Request,
+            type: SLoggerTraceTypeEnum::Request->value,
             tags: [$this->getRequestView($event->request)]
         );
 

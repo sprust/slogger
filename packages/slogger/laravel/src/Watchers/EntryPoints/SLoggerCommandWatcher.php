@@ -29,7 +29,7 @@ class SLoggerCommandWatcher extends AbstractSLoggerWatcher
     protected function onHandleCommandStarting(CommandStarting $event): void
     {
         $traceId = $this->processor->startAndGetTraceId(
-            type: SLoggerTraceTypeEnum::Command
+            type: SLoggerTraceTypeEnum::Command->value
         );
 
         $this->commands[] = [

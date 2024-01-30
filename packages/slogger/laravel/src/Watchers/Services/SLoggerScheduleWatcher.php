@@ -61,7 +61,7 @@ class SLoggerScheduleWatcher extends AbstractSLoggerWatcher
         ];
 
         $this->processor->push(
-            type: SLoggerTraceTypeEnum::Schedule,
+            type: SLoggerTraceTypeEnum::Schedule->value,
             tags: [$tag],
             data: $data
         );

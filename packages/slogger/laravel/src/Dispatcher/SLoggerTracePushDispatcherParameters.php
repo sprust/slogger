@@ -3,14 +3,13 @@
 namespace SLoggerLaravel\Dispatcher;
 
 use Illuminate\Support\Carbon;
-use SLoggerLaravel\Enums\SLoggerTraceTypeEnum;
 
 class SLoggerTracePushDispatcherParameters
 {
     public function __construct(
         public string $traceId,
         public ?string $parentTraceId,
-        public SLoggerTraceTypeEnum $type,
+        public string $type,
         public array $tags,
         public array $data,
         public Carbon $loggedAt

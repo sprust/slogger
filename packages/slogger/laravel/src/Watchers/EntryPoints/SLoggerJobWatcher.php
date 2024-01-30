@@ -57,7 +57,7 @@ class SLoggerJobWatcher extends AbstractSLoggerWatcher
         }
 
         $traceId = $this->processor->startAndGetTraceId(
-            type: SLoggerTraceTypeEnum::Job,
+            type: SLoggerTraceTypeEnum::Job->value,
             customParentTraceId: $parentTraceId
         );
 
