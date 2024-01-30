@@ -31,6 +31,9 @@ class SLoggerProcessor
         return $this->started;
     }
 
+    /**
+     * @throws Throwable
+     */
     public function handleCallback(
         Closure $callback,
         string $type,
@@ -38,7 +41,7 @@ class SLoggerProcessor
         array $data = [],
         ?Carbon $loggedAt = null,
         ?string $customParentTraceId = null,
-    ): void {
+    ): mixed {
         $traceId = $this->startAndGetTraceId(
             type: $type,
             tags: $tags,
@@ -47,9 +50,13 @@ class SLoggerProcessor
             customParentTraceId: $customParentTraceId,
         );
 
+        $exception = null;
+
         try {
-            $callback();
+            $result = $callback();
         } catch (Throwable $exception) {
+            $result = null;
+
             $this->push(
                 type: SLoggerTraceTypeEnum::Exception->value,
                 data: [
@@ -64,6 +71,12 @@ class SLoggerProcessor
                 data: $data
             )
         );
+
+        if ($exception) {
+            throw $exception;
+        }
+
+        return $result;
     }
 
     public function startAndGetTraceId(
