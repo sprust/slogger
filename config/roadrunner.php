@@ -1,5 +1,7 @@
 <?php
 
+use App\Services\Roadrunner\RrHttpRequestHandlingErrorListener;
+use App\Services\Roadrunner\RrJobsWorkerErrorListener;
 use RoadRunner\Servers\Http\Events\RrHttpPsrRequestHandlingErrorEvent;
 use RoadRunner\Servers\Http\Events\RrHttpRequestHandledEvent;
 use RoadRunner\Servers\Http\Events\RrHttpRequestHandlingErrorEvent;
@@ -16,8 +18,6 @@ use RoadRunner\Servers\Jobs\Events\RrJobsServerErrorEvent;
 use RoadRunner\Servers\Jobs\Events\RrJobsWorkerErrorEvent;
 use RoadRunner\Servers\Jobs\Events\RrJobsWorkerStartingEvent;
 use RoadRunner\Servers\Jobs\Events\RrJobsWorkerStoppingEvent;
-use App\Listeners\RrHttpRequestHandlingErrorListener;
-use App\Listeners\RrJobsWorkerErrorListener;
 
 return [
     'rpc'  => [
