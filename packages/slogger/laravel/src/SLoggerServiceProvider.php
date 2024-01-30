@@ -53,6 +53,10 @@ class SLoggerServiceProvider extends ServiceProvider
 
     private function registerWatchers(): void
     {
+        if (!$this->app['config']['slogger.enabled']) {
+            return;
+        }
+
         /** @var array[] $watcherConfigs */
         $watcherConfigs = $this->app['config']['slogger.watchers'];
 

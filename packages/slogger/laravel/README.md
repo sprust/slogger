@@ -13,6 +13,7 @@ php artisan vendor:publish --tag=slogger-laravel
 .env:
 ```dotenv
 # slogger
+SLOGGER_ENABLED=true
 SLOGGER_REQUESTS_HEADER_PARENT_TRACE_ID_KEY=x-parent-trace-id
 SLOGGER_HTTP_CLIENT_URL=
 SLOGGER_HTTP_CLIENT_TOKEN=
