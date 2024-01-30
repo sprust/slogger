@@ -2,10 +2,10 @@
 
 namespace SLoggerLaravel\Dispatcher;
 
-use GuzzleHttp\Exception\GuzzleException;
+use Illuminate\Contracts\Container\BindingResolutionException;
+use Illuminate\Contracts\Container\CircularDependencyException;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Arr;
-use SLoggerLaravel\HttpClient\SLoggerHttpClient;
 use SLoggerLaravel\Objects\SLoggerTraceObject;
 use SLoggerLaravel\Objects\SLoggerTraceObjects;
 use SLoggerLaravel\Objects\SLoggerTraceStopObject;
@@ -15,10 +15,8 @@ class SLoggerTraceDispatcher implements SLoggerTraceDispatcherInterface
     /** @var SLoggerTraceObject[] */
     private array $traces = [];
 
-    public function __construct(
-        protected readonly Application $app,
-        protected readonly SLoggerHttpClient $httpClient,
-    ) {
+    public function __construct(protected readonly Application $app)
+    {
     }
 
     public function push(SLoggerTraceObject $parameters): void
@@ -69,16 +67,25 @@ class SLoggerTraceDispatcher implements SLoggerTraceDispatcherInterface
     /**
      * @param SLoggerTraceObject[] $traces
      *
-     * @throws GuzzleException
+     * @throws BindingResolutionException
+     * @throws CircularDependencyException
      */
     protected function sendTraces(SLoggerTraceObject $parentTrace, array $traces): void
     {
+        $storage = $this->app['filesystem']->build([
+            'driver' => 'local',
+            'root'   => storage_path('logs/slogger-traces'),
+        ]);
+
         $traceObjects = new SLoggerTraceObjects();
 
         foreach ($traces as $trace) {
             $traceObjects->add($trace);
         }
 
-        $this->httpClient->sendTraces($traceObjects);
+        $storage->put(
+            $parentTrace->loggedAt->toDateTimeString('microsecond') . '-' . $parentTrace->type . '.json',
+            json_encode(array_values($traces), JSON_PRETTY_PRINT)
+        );
     }
 }
