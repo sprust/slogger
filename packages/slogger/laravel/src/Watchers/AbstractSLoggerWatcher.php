@@ -6,7 +6,6 @@ use Closure;
 use Illuminate\Contracts\Foundation\Application;
 use SLoggerLaravel\Dispatcher\SLoggerTraceDispatcherInterface;
 use SLoggerLaravel\Events\SLoggerWatcherErrorEvent;
-use SLoggerLaravel\Helpers\SLoggerTraceHelper;
 use SLoggerLaravel\SLoggerProcessor;
 use SLoggerLaravel\Traces\SLoggerTraceIdContainer;
 use Throwable;
@@ -39,7 +38,7 @@ abstract class AbstractSLoggerWatcher
         try {
             $callback();
         } catch (Throwable $exception) {
-            SLoggerTraceHelper::muteHandle(function () use ($exception) {
+            $this->processor->muteHandle(function () use ($exception) {
                 $this->app['events']->dispatch(new SLoggerWatcherErrorEvent($exception));
             });
         }

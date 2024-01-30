@@ -12,6 +12,7 @@ use SLoggerLaravel\Helpers\SLoggerTraceHelper;
 use SLoggerLaravel\Objects\SLoggerTraceObject;
 use SLoggerLaravel\Objects\SLoggerTraceStopObject;
 use SLoggerLaravel\Traces\SLoggerTraceIdContainer;
+use SLoggerLaravel\Watchers\AbstractSLoggerWatcher;
 use Throwable;
 
 class SLoggerProcessor
@@ -29,6 +30,31 @@ class SLoggerProcessor
     public function isActive(): bool
     {
         return $this->started;
+    }
+
+
+    /**
+     * @throws Throwable
+     */
+    public function muteHandle(Closure $callback): mixed
+    {
+        AbstractSLoggerWatcher::toMute();
+
+        $exception = null;
+
+        try {
+            $result = $callback();
+        } catch (Throwable $exception) {
+            $result = null;
+        }
+
+        AbstractSLoggerWatcher::unMute();
+
+        if ($exception) {
+            throw $exception;
+        }
+
+        return $result;
     }
 
     /**
