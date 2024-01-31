@@ -8,7 +8,7 @@ use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Arr;
 use SLoggerLaravel\Objects\SLoggerTraceObject;
 use SLoggerLaravel\Objects\SLoggerTraceObjects;
-use SLoggerLaravel\Objects\SLoggerTraceStopObject;
+use SLoggerLaravel\Objects\SLoggerTraceUpdateObject;
 
 class SLoggerTraceDispatcher implements SLoggerTraceDispatcherInterface
 {
@@ -24,7 +24,7 @@ class SLoggerTraceDispatcher implements SLoggerTraceDispatcherInterface
         $this->traces[] = $parameters;
     }
 
-    public function stop(SLoggerTraceStopObject $parameters): void
+    public function stop(SLoggerTraceUpdateObject $parameters): void
     {
         if (!$this->traces) {
             return;

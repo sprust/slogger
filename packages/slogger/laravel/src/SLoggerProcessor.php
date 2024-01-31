@@ -10,7 +10,7 @@ use SLoggerLaravel\Enums\SLoggerTraceTypeEnum;
 use SLoggerLaravel\Helpers\SLoggerDataFormatter;
 use SLoggerLaravel\Helpers\SLoggerTraceHelper;
 use SLoggerLaravel\Objects\SLoggerTraceObject;
-use SLoggerLaravel\Objects\SLoggerTraceStopObject;
+use SLoggerLaravel\Objects\SLoggerTraceUpdateObject;
 use SLoggerLaravel\Traces\SLoggerTraceIdContainer;
 use Throwable;
 
@@ -97,7 +97,7 @@ class SLoggerProcessor
         }
 
         $this->stop(
-            new SLoggerTraceStopObject(
+            new SLoggerTraceUpdateObject(
                 traceId: $traceId,
                 data: $data
             )
@@ -171,7 +171,7 @@ class SLoggerProcessor
         );
     }
 
-    public function stop(SLoggerTraceStopObject $parameters): void
+    public function stop(SLoggerTraceUpdateObject $parameters): void
     {
         if (!$this->isActive()) {
             throw new LogicException('Tracing process isn\'t active.');

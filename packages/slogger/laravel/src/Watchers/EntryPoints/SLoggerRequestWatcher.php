@@ -11,7 +11,7 @@ use SLoggerLaravel\Enums\SLoggerTraceTypeEnum;
 use SLoggerLaravel\Events\SLoggerRequestHandling;
 use SLoggerLaravel\Helpers\SLoggerTraceHelper;
 use SLoggerLaravel\Middleware\SLoggerHttpMiddleware;
-use SLoggerLaravel\Objects\SLoggerTraceStopObject;
+use SLoggerLaravel\Objects\SLoggerTraceUpdateObject;
 use SLoggerLaravel\Watchers\AbstractSLoggerWatcher;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -82,7 +82,7 @@ class SLoggerRequestWatcher extends AbstractSLoggerWatcher
         ];
 
         $this->processor->stop(
-            new SLoggerTraceStopObject(
+            new SLoggerTraceUpdateObject(
                 traceId: $traceId,
                 data: $data,
             )

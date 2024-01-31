@@ -7,7 +7,7 @@ use Illuminate\Console\Events\CommandStarting;
 use Illuminate\Support\Carbon;
 use SLoggerLaravel\Enums\SLoggerTraceTypeEnum;
 use SLoggerLaravel\Helpers\SLoggerTraceHelper;
-use SLoggerLaravel\Objects\SLoggerTraceStopObject;
+use SLoggerLaravel\Objects\SLoggerTraceUpdateObject;
 use SLoggerLaravel\Watchers\AbstractSLoggerWatcher;
 use Symfony\Component\Console\Input\InputInterface;
 
@@ -29,7 +29,10 @@ class SLoggerCommandWatcher extends AbstractSLoggerWatcher
     protected function onHandleCommandStarting(CommandStarting $event): void
     {
         $traceId = $this->processor->startAndGetTraceId(
-            type: SLoggerTraceTypeEnum::Command->value
+            type: SLoggerTraceTypeEnum::Command->value,
+            tags: [
+                $this->makeCommandView($event->command, $event->input)
+            ]
         );
 
         $this->commands[] = [
@@ -65,9 +68,8 @@ class SLoggerCommandWatcher extends AbstractSLoggerWatcher
         ];
 
         $this->processor->stop(
-            new SLoggerTraceStopObject(
+            new SLoggerTraceUpdateObject(
                 traceId: $traceId,
-                tags: [],
                 data: $data,
             )
         );

@@ -11,7 +11,7 @@ use Illuminate\Support\Str;
 use SLoggerLaravel\Enums\SLoggerTraceTypeEnum;
 use SLoggerLaravel\Helpers\SLoggerDataFormatter;
 use SLoggerLaravel\Helpers\SLoggerTraceHelper;
-use SLoggerLaravel\Objects\SLoggerTraceStopObject;
+use SLoggerLaravel\Objects\SLoggerTraceUpdateObject;
 use SLoggerLaravel\Watchers\AbstractSLoggerWatcher;
 
 class SLoggerJobWatcher extends AbstractSLoggerWatcher
@@ -102,7 +102,7 @@ class SLoggerJobWatcher extends AbstractSLoggerWatcher
         ];
 
         $this->processor->stop(
-            new SLoggerTraceStopObject(
+            new SLoggerTraceUpdateObject(
                 traceId: $traceId,
                 tags: [],
                 data: $data,
@@ -147,7 +147,7 @@ class SLoggerJobWatcher extends AbstractSLoggerWatcher
         ];
 
         $this->processor->stop(
-            new SLoggerTraceStopObject(
+            new SLoggerTraceUpdateObject(
                 traceId: $traceId,
                 tags: [],
                 data: $data,

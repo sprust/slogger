@@ -2,7 +2,7 @@
 
 namespace SLoggerLaravel\Objects;
 
-class SLoggerTraceStopObject
+class SLoggerTraceUpdateObject
 {
     public function __construct(
         public string $traceId,

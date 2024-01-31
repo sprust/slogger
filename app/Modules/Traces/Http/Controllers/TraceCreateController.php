@@ -21,12 +21,14 @@ readonly class TraceCreateController
     {
         $validated = $request->validated();
 
+        $serviceId = $this->servicesHttpAdapter->getService()->id;
+
         $parametersList = new TraceCreateParametersList();
 
         foreach ($validated['traces'] as $item) {
             $parametersList->add(
                 new TraceCreateParameters(
-                    serviceId: $this->servicesHttpAdapter->getService()->id,
+                    serviceId: $serviceId,
                     traceId: $item['trace_id'],
                     parentTraceId: $item['parent_trace_id'] ?? null,
                     type: $item['type'],

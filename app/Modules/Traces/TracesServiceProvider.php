@@ -4,6 +4,7 @@ namespace App\Modules\Traces;
 
 use App\Modules\Services\Adapters\ServicesHttpAdapter;
 use App\Modules\Traces\Http\Controllers\TraceCreateController;
+use App\Modules\Traces\Http\Controllers\TraceUpdateController;
 use App\Modules\Traces\Repository\TracesRepository;
 use App\Modules\Traces\Repository\TracesRepositoryInterface;
 use Illuminate\Support\Facades\Route;
@@ -33,6 +34,7 @@ class TracesServiceProvider extends ServiceProvider
             ])
             ->group(function () {
                 Route::post('', TraceCreateController::class);
+                Route::patch('', TraceUpdateController::class);
             });
     }
 }
