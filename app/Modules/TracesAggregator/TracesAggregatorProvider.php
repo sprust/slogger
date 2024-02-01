@@ -2,8 +2,8 @@
 
 namespace App\Modules\TracesAggregator;
 
-use App\Modules\TracesAggregator\Repository\TracesAggregatorRepository;
-use App\Modules\TracesAggregator\Repository\TracesAggregatorRepositoryInterface;
+use App\Modules\TracesAggregator\Parents\Repository\TracesAggregatorRepository;
+use App\Modules\TracesAggregator\Parents\Repository\TracesAggregatorRepositoryInterface;
 use Illuminate\Support\ServiceProvider;
 
 class TracesAggregatorProvider extends ServiceProvider
