@@ -1,8 +1,6 @@
 <?php
 
-namespace App\Modules\TracesAggregator\Parents\Dto\Objects\Parents;
-
-use App\Modules\TracesAggregator\Parents\Dto\Objects\TraceObject;
+namespace App\Modules\TracesAggregator\Parents\Dto\Objects;
 
 readonly class TraceParentObject
 {

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\TracesAggregator\Parents\Dto\Objects\Parents;
+namespace App\Modules\TracesAggregator\Parents\Dto\Objects;
 
 use App\Services\Dto\PaginationInfoObject;
 

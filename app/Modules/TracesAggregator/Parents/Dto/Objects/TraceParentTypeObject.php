@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\TracesAggregator\Parents\Dto\Objects\Parents;
+namespace App\Modules\TracesAggregator\Parents\Dto\Objects;
 
 readonly class TraceParentTypeObject
 {

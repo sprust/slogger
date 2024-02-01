@@ -3,11 +3,11 @@
 namespace App\Modules\TracesAggregator\Parents\Repository;
 
 use App\Models\Traces\Trace;
-use App\Modules\TracesAggregator\Parents\Dto\Objects\Parents\TraceParentObject;
-use App\Modules\TracesAggregator\Parents\Dto\Objects\Parents\TraceParentObjects;
-use App\Modules\TracesAggregator\Parents\Dto\Objects\Parents\TraceParentTypeObject;
-use App\Modules\TracesAggregator\Parents\Dto\Objects\Parents\TraceParentTypeObjects;
 use App\Modules\TracesAggregator\Parents\Dto\Objects\TraceObject;
+use App\Modules\TracesAggregator\Parents\Dto\Objects\TraceParentObject;
+use App\Modules\TracesAggregator\Parents\Dto\Objects\TraceParentObjects;
+use App\Modules\TracesAggregator\Parents\Dto\Objects\TraceParentTypeObject;
+use App\Modules\TracesAggregator\Parents\Dto\Objects\TraceParentTypeObjects;
 use App\Modules\TracesAggregator\Parents\Dto\Parameters\TraceParentsFindParameters;
 use App\Modules\TracesAggregator\Parents\Dto\Parameters\TraceParentTypesParameters;
 use App\Modules\TracesAggregator\Parents\Enums\TraceParentsSortFieldEnum;
