@@ -2,7 +2,7 @@
 
 namespace App\Modules\TracesAggregator\Parents\Dto\Objects\Parents;
 
-readonly class TracesAggregatorParentTypeObject
+readonly class TraceParentTypeObject
 {
     public function __construct(
         public string $type,

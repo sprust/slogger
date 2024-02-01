@@ -2,10 +2,10 @@
 
 namespace App\Modules\TracesAggregator\Parents\Dto\Parameters;
 
-readonly class TracesAggregatorParentsParameters
+readonly class TraceParentsFindParameters
 {
     /**
-     * @param TracesAggregatorParentsSortParameters[] $sort
+     * @param TraceParentsSortParameters[] $sort
      */
     public function __construct(
         public int $page = 1,

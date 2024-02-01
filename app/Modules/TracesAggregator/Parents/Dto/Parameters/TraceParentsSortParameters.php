@@ -2,13 +2,13 @@
 
 namespace App\Modules\TracesAggregator\Parents\Dto\Parameters;
 
-use App\Modules\TracesAggregator\Parents\Enums\TracesAggregatorParentsSortFieldEnum;
+use App\Modules\TracesAggregator\Parents\Enums\TraceParentsSortFieldEnum;
 use App\Services\Enums\SortDirectionEnum;
 
-readonly class TracesAggregatorParentsSortParameters
+readonly class TraceParentsSortParameters
 {
     public function __construct(
-        public TracesAggregatorParentsSortFieldEnum $fieldEnum,
+        public TraceParentsSortFieldEnum $fieldEnum,
         public SortDirectionEnum $directionEnum
     ) {
     }

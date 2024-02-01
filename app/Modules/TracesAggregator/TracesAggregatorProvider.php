@@ -2,8 +2,8 @@
 
 namespace App\Modules\TracesAggregator;
 
-use App\Modules\TracesAggregator\Parents\Repository\TracesAggregatorRepository;
-use App\Modules\TracesAggregator\Parents\Repository\TracesAggregatorRepositoryInterface;
+use App\Modules\TracesAggregator\Parents\Repository\TraceParentsRepository;
+use App\Modules\TracesAggregator\Parents\Repository\TraceParentsRepositoryInterface;
 use Illuminate\Support\ServiceProvider;
 
 class TracesAggregatorProvider extends ServiceProvider
@@ -16,7 +16,7 @@ class TracesAggregatorProvider extends ServiceProvider
 
     private function registerRepository(): void
     {
-        $this->app->singleton(TracesAggregatorRepositoryInterface::class, TracesAggregatorRepository::class);
+        $this->app->singleton(TraceParentsRepositoryInterface::class, TraceParentsRepository::class);
     }
 
     private function registerRoutes(): void

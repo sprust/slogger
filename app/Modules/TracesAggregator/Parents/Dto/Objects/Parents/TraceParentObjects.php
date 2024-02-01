@@ -4,10 +4,10 @@ namespace App\Modules\TracesAggregator\Parents\Dto\Objects\Parents;
 
 use App\Services\Dto\PaginationInfoObject;
 
-readonly class TracesAggregatorParentTypeObjects
+readonly class TraceParentObjects
 {
     /**
-     * @param TracesAggregatorParentTypeObject[] $items
+     * @param TraceParentObject[] $items
      */
     public function __construct(
         public array $items,

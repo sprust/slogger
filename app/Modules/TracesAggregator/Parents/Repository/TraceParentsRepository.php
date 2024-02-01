@@ -3,25 +3,24 @@
 namespace App\Modules\TracesAggregator\Parents\Repository;
 
 use App\Models\Traces\Trace;
-use App\Modules\TracesAggregator\Parents\Dto\Objects\Parents\TracesAggregatorParentObject;
-use App\Modules\TracesAggregator\Parents\Dto\Objects\Parents\TracesAggregatorParentObjects;
-use App\Modules\TracesAggregator\Parents\Dto\Objects\Parents\TracesAggregatorParentTypeObject;
-use App\Modules\TracesAggregator\Parents\Dto\Objects\Parents\TracesAggregatorParentTypeObjects;
+use App\Modules\TracesAggregator\Parents\Dto\Objects\Parents\TraceParentObject;
+use App\Modules\TracesAggregator\Parents\Dto\Objects\Parents\TraceParentObjects;
+use App\Modules\TracesAggregator\Parents\Dto\Objects\Parents\TraceParentTypeObject;
+use App\Modules\TracesAggregator\Parents\Dto\Objects\Parents\TraceParentTypeObjects;
 use App\Modules\TracesAggregator\Parents\Dto\Objects\TraceObject;
-use App\Modules\TracesAggregator\Parents\Dto\Parameters\TracesAggregatorParentsParameters;
-use App\Modules\TracesAggregator\Parents\Dto\Parameters\TracesAggregatorParentTypesParameters;
-use App\Modules\TracesAggregator\Parents\Enums\TracesAggregatorParentsSortFieldEnum;
+use App\Modules\TracesAggregator\Parents\Dto\Parameters\TraceParentsFindParameters;
+use App\Modules\TracesAggregator\Parents\Dto\Parameters\TraceParentTypesParameters;
+use App\Modules\TracesAggregator\Parents\Enums\TraceParentsSortFieldEnum;
 use App\Services\Dto\PaginationInfoObject;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 
-class TracesAggregatorRepository implements TracesAggregatorRepositoryInterface
+class TraceParentsRepository implements TraceParentsRepositoryInterface
 {
     private int $maxPerPage = 20;
 
-    public function findParentTypes(
-        TracesAggregatorParentTypesParameters $parameters
-    ): TracesAggregatorParentTypeObjects {
+    public function findParentTypes(TraceParentTypesParameters $parameters): TraceParentTypeObjects
+    {
         $pipeline = [];
 
         $pipeline[] = [
@@ -81,13 +80,13 @@ class TracesAggregatorRepository implements TracesAggregatorRepositoryInterface
         $resultItems = [];
 
         foreach ($typesAggregation[0]->result as $item) {
-            $resultItems[] = new TracesAggregatorParentTypeObject(
+            $resultItems[] = new TraceParentTypeObject(
                 type: $item->_id->type,
                 count: $item->count,
             );
         }
 
-        return new TracesAggregatorParentTypeObjects(
+        return new TraceParentTypeObjects(
             items: $resultItems,
             paginationInfo: new PaginationInfoObject(
                 total: $typesAggregation[0]->count[0]->count,
@@ -97,7 +96,7 @@ class TracesAggregatorRepository implements TracesAggregatorRepositoryInterface
         );
     }
 
-    public function findParents(TracesAggregatorParentsParameters $parameters): TracesAggregatorParentObjects
+    public function findParents(TraceParentsFindParameters $parameters): TraceParentObjects
     {
         $perPage = min($parameters->perPage ?: $this->maxPerPage, $this->maxPerPage);
 
@@ -112,7 +111,7 @@ class TracesAggregatorRepository implements TracesAggregatorRepositoryInterface
                 function (Builder $query) use ($parameters) {
                     foreach ($parameters->sort as $sortItem) {
                         $field = match ($sortItem->fieldEnum) {
-                            TracesAggregatorParentsSortFieldEnum::CreatedAt => 'createdAt'
+                            TraceParentsSortFieldEnum::LoggedAt => 'loggedAt'
                         };
 
                         $query->orderBy($field, $sortItem->directionEnum->value);
@@ -173,20 +172,20 @@ class TracesAggregatorRepository implements TracesAggregatorRepositoryInterface
         foreach ($parents as $parent) {
             $types = $typesAggregation->get($parent->traceId)
                 ?->map(function (object $item) {
-                    return new TracesAggregatorParentTypeObject(
+                    return new TraceParentTypeObject(
                         type: $item->_id->type,
                         count: $item->count,
                     );
                 })->toArray()
                 ?? [];
 
-            $resultItems[] = new TracesAggregatorParentObject(
+            $resultItems[] = new TraceParentObject(
                 parent: TraceObject::fromModel($parent),
                 types: $types
             );
         }
 
-        return new TracesAggregatorParentObjects(
+        return new TraceParentObjects(
             items: $resultItems,
             paginationInfo: new PaginationInfoObject(
                 total: $parentsPaginator->total(),

@@ -4,10 +4,10 @@ namespace App\Modules\TracesAggregator\Parents\Dto\Objects\Parents;
 
 use App\Modules\TracesAggregator\Parents\Dto\Objects\TraceObject;
 
-readonly class TracesAggregatorParentObject
+readonly class TraceParentObject
 {
     /**
-     * @param TracesAggregatorParentTypeObject[] $types
+     * @param TraceParentTypeObject[] $types
      */
     public function __construct(
         public TraceObject $parent,
