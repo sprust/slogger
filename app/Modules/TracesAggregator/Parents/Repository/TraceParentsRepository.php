@@ -14,6 +14,7 @@ use App\Modules\TracesAggregator\Parents\Enums\TraceParentsSortFieldEnum;
 use App\Services\Dto\PaginationInfoObject;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use MongoDB\BSON\UTCDateTime;
 
 class TraceParentsRepository implements TraceParentsRepositoryInterface
 {
@@ -23,10 +24,22 @@ class TraceParentsRepository implements TraceParentsRepositoryInterface
     {
         $pipeline = [];
 
+        $match = [
+            'parentTraceId' => null,
+        ];
+
+        $loggedAtFrom = $parameters->loggingPeriod?->from;
+        $loggedAtTo   = $parameters->loggingPeriod?->to;
+
+        if ($loggedAtFrom || $loggedAtTo) {
+            $match['loggedAt'] = [
+                ...($loggedAtFrom ? ['$gte' => new UTCDateTime($loggedAtFrom)] : []),
+                ...($loggedAtTo ? ['$lte' => new UTCDateTime($loggedAtTo)] : []),
+            ];
+        }
+
         $pipeline[] = [
-            '$match' => [
-                'parentTraceId' => null,
-            ],
+            '$match' => $match,
         ];
 
         $pipeline[] = [
@@ -100,12 +113,17 @@ class TraceParentsRepository implements TraceParentsRepositoryInterface
     {
         $perPage = min($parameters->perPage ?: $this->maxPerPage, $this->maxPerPage);
 
+        $loggedAtFrom = $parameters->loggingPeriod?->from;
+        $loggedAtTo   = $parameters->loggingPeriod?->to;
+
         $parentsPaginator = Trace::query()
             ->whereNull('parentTraceId')
             ->when(
                 !is_null($parameters->type),
                 fn(Builder $query) => $query->where('type', $parameters->type)
             )
+            ->when($loggedAtFrom, fn(Builder $query) => $query->where('loggedAt', '>=', $loggedAtFrom))
+            ->when($loggedAtTo, fn(Builder $query) => $query->where('loggedAt', '<=', $loggedAtTo))
             ->when(
                 count($parameters->sort),
                 function (Builder $query) use ($parameters) {

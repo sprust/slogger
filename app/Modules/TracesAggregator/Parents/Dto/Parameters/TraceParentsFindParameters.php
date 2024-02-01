@@ -2,6 +2,8 @@
 
 namespace App\Modules\TracesAggregator\Parents\Dto\Parameters;
 
+use App\Modules\TracesAggregator\Dto\PeriodParameters;
+
 readonly class TraceParentsFindParameters
 {
     /**
@@ -11,6 +13,7 @@ readonly class TraceParentsFindParameters
         public int $page = 1,
         public ?int $perPage = null,
         public ?string $type = null,
+        public ?PeriodParameters $loggingPeriod = null,
         public array $sort = []
     ) {
     }
