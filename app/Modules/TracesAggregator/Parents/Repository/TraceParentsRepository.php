@@ -102,7 +102,7 @@ class TraceParentsRepository implements TraceParentsRepositoryInterface
         return new TraceParentTypeObjects(
             items: $resultItems,
             paginationInfo: new PaginationInfoObject(
-                total: $typesAggregation[0]->count[0]->count,
+                total: $typesAggregation[0]->count[0]?->count ?? 0,
                 perPage: $limit,
                 currentPage: $parameters->page,
             ),
