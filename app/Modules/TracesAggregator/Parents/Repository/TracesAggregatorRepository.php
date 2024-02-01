@@ -3,12 +3,12 @@
 namespace App\Modules\TracesAggregator\Parents\Repository;
 
 use App\Models\Traces\Trace;
-use App\Modules\TracesAggregator\Enums\TracesAggregatorSortFieldEnum;
 use App\Modules\TracesAggregator\Parents\Dto\Objects\Parents\TracesAggregatorParentObject;
 use App\Modules\TracesAggregator\Parents\Dto\Objects\Parents\TracesAggregatorParentObjects;
 use App\Modules\TracesAggregator\Parents\Dto\Objects\Parents\TracesAggregatorParentTypeObject;
 use App\Modules\TracesAggregator\Parents\Dto\Objects\TraceObject;
 use App\Modules\TracesAggregator\Parents\Dto\Parameters\TracesAggregatorParentsParameters;
+use App\Modules\TracesAggregator\Parents\Enums\TracesAggregatorParentsSortFieldEnum;
 use App\Services\Dto\PaginationInfoObject;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -34,7 +34,7 @@ class TracesAggregatorRepository implements TracesAggregatorRepositoryInterface
                 function (Builder $query) use ($parameters) {
                     foreach ($parameters->sort as $sortItem) {
                         $field = match ($sortItem->fieldEnum) {
-                            TracesAggregatorSortFieldEnum::CreatedAt => 'createdAt'
+                            TracesAggregatorParentsSortFieldEnum::CreatedAt => 'createdAt'
                         };
 
                         $query->orderBy($field, $sortItem->directionEnum->value);
