@@ -3,7 +3,7 @@
 namespace App\Modules\TracesAggregator\Parents\Repository;
 
 use App\Models\Traces\Trace;
-use App\Modules\TracesAggregator\Parents\Dto\Objects\TraceObject;
+use App\Modules\TracesAggregator\Dto\TraceObject;
 use App\Modules\TracesAggregator\Parents\Dto\Objects\TraceParentObject;
 use App\Modules\TracesAggregator\Parents\Dto\Objects\TraceParentObjects;
 use App\Modules\TracesAggregator\Parents\Dto\Objects\TraceParentTypeObject;

@@ -2,6 +2,8 @@
 
 namespace App\Modules\TracesAggregator\Parents\Dto\Objects;
 
+use App\Modules\TracesAggregator\Dto\TraceObject;
+
 readonly class TraceParentObject
 {
     /**
