@@ -119,8 +119,8 @@ class TraceParentsRepository implements TraceParentsRepositoryInterface
         $parentsPaginator = Trace::query()
             ->whereNull('parentTraceId')
             ->when(
-                !is_null($parameters->type),
-                fn(Builder $query) => $query->where('type', $parameters->type)
+                $parameters->types,
+                fn(Builder $query) => $query->whereIn('type', $parameters->types)
             )
             ->when($loggedAtFrom, fn(Builder $query) => $query->where('loggedAt', '>=', $loggedAtFrom))
             ->when($loggedAtTo, fn(Builder $query) => $query->where('loggedAt', '<=', $loggedAtTo))
