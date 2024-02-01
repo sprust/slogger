@@ -67,14 +67,14 @@ class TraceParentsRepository implements TraceParentsRepositoryInterface
             ],
         ];
 
-        $perPage = min($parameters->perPage ?: $this->maxPerPage, $this->maxPerPage);
-        $skip    = ($parameters->page - 1) * $perPage;
+        $limit = min($parameters->perPage ?: $this->maxPerPage, $this->maxPerPage);
+        $skip  = ($parameters->page - 1) * $limit;
 
         $pipeline[] = [
             '$facet' => [
                 'result' => [
                     [
-                        '$limit' => $perPage,
+                        '$limit' => $limit,
                     ],
                     [
                         '$skip' => $skip,
@@ -103,7 +103,7 @@ class TraceParentsRepository implements TraceParentsRepositoryInterface
             items: $resultItems,
             paginationInfo: new PaginationInfoObject(
                 total: $typesAggregation[0]->count[0]->count,
-                perPage: $perPage,
+                perPage: $limit,
                 currentPage: $parameters->page,
             ),
         );
