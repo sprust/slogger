@@ -7,6 +7,7 @@ use App\Modules\TracesAggregator\Dto\PeriodParameters;
 readonly class TraceParentsFindParameters
 {
     /**
+     * @param string[] $types
      * @param TraceParentsSortParameters[] $sort
      */
     public function __construct(
