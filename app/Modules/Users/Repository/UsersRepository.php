@@ -28,4 +28,9 @@ class UsersRepository
     {
         return User::query()->where('email', $email)->exists();
     }
+
+    public function findByEmail(string $email): User
+    {
+        return User::query()->where('email', $email)->first();
+    }
 }

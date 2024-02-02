@@ -2,6 +2,7 @@
 
 namespace App\Modules;
 
+use App\Modules\Auth\AuthServiceProvider;
 use App\Modules\Services\ServicesServiceProvider;
 use App\Modules\Traces\TracesServiceProvider;
 use App\Modules\TracesAggregator\TracesAggregatorProvider;
@@ -14,6 +15,7 @@ class ModulesConfig
             ServicesServiceProvider::class,
             TracesServiceProvider::class,
             TracesAggregatorProvider::class,
+            AuthServiceProvider::class,
         ];
     }
 }
