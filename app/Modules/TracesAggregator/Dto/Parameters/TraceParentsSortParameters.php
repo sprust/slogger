@@ -12,4 +12,19 @@ readonly class TraceParentsSortParameters
         public SortDirectionEnum $directionEnum
     ) {
     }
+
+    public static function fromStringValues(?string $field, ?string $direction): ?static
+    {
+        $fieldEnum     = $field ? TraceParentsSortFieldEnum::from($field) : null;
+        $directionEnum = $direction ? SortDirectionEnum::from($direction) : null;
+
+        if (!$fieldEnum) {
+            return null;
+        }
+
+        return new static(
+            fieldEnum: $fieldEnum,
+            directionEnum: $directionEnum ?: SortDirectionEnum::Desc
+        );
+    }
 }

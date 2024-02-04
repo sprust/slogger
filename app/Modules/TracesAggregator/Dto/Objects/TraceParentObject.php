@@ -10,7 +10,7 @@ readonly class TraceParentObject
      * @param TraceParentTypeObject[] $types
      */
     public function __construct(
-        public TraceObject $parent,
+        public TraceObject $trace,
         public array $types
     ) {
     }

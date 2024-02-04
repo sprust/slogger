@@ -11,4 +11,18 @@ class PeriodParameters
         public ?Carbon $to = null
     ) {
     }
+
+    public static function fromStringValues(?string $from, ?string $to): ?static
+    {
+        $period = new static(
+            from: $from,
+            to: $to
+        );
+
+        if (!$period->from && !$period->to) {
+            return null;
+        }
+
+        return $period;
+    }
 }
