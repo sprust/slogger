@@ -3,6 +3,7 @@
 namespace App\Modules\TracesAggregator\Repositories;
 
 use App\Models\Traces\Trace;
+use App\Modules\TracesAggregator\Dto\Objects\TraceChildObject;
 use App\Modules\TracesAggregator\Enums\TraceChildrenSortFieldEnum;
 use App\Modules\TracesAggregator\Dto\Objects\TraceChildObjects;
 use App\Modules\TracesAggregator\Dto\Parameters\TraceChildrenFindParameters;
@@ -48,7 +49,9 @@ class TraceChildrenRepository implements TraceChildrenRepositoryInterface
 
         return new TraceChildObjects(
             items: array_map(
-                fn(Trace $trace) => TraceObject::fromModel($trace),
+                fn(Trace $trace) => new TraceChildObject(
+                    trace: TraceObject::fromModel($trace)
+                ),
                 $parentsPaginator->items()
             ),
             paginationInfo: new PaginationInfoObject(

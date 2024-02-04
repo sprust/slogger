@@ -3,6 +3,7 @@
 namespace App\Modules\TracesAggregator;
 
 use App\Modules\TracesAggregator\Adapters\TracesAggregatorAuthAdapter;
+use App\Modules\TracesAggregator\Http\Controllers\TraceAggregatorChildrenController;
 use App\Modules\TracesAggregator\Http\Controllers\TraceAggregatorParentsController;
 use App\Modules\TracesAggregator\Repositories\TraceChildrenRepository;
 use App\Modules\TracesAggregator\Repositories\TraceChildrenRepositoryInterface;
@@ -39,7 +40,18 @@ class TracesAggregatorProvider extends ServiceProvider
                 Route::prefix('/trace-aggregator')
                     ->as('trace-aggregator.')
                     ->group(function () {
-                        Route::post('/parents', [TraceAggregatorParentsController::class, 'index']);
+                        Route::prefix('parents')
+                            ->as('parents.')
+                            ->group(function () {
+                                Route::post(
+                                    '',
+                                    [TraceAggregatorParentsController::class, 'index']
+                                )->name('index');
+                                Route::post(
+                                    '/{parentTraceId}/children',
+                                    [TraceAggregatorChildrenController::class, 'index']
+                                )->name('children');
+                            });
                     });
             });
     }
