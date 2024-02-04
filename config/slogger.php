@@ -38,6 +38,9 @@ return [
         'url'   => env('SLOGGER_HTTP_CLIENT_URL'),
         'token' => env('SLOGGER_HTTP_CLIENT_TOKEN'),
     ],
+    'profiling'   => [
+        'enabled' => env('SLOGGER_PROFILING_ENABLED', false),
+    ],
     // example
     'dispatcher'  => SLoggerTraceQueueDispatcher::class,
     'watchers'    => [

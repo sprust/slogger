@@ -6,6 +6,7 @@ use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\GuzzleException;
 use SLoggerLaravel\Objects\SLoggerTraceObjects;
 use SLoggerLaravel\Objects\SLoggerTraceUpdateObjects;
+use SLoggerLaravel\Profiling\Dto\SLoggerProfilingObjects;
 
 class SLoggerHttpClient
 {
@@ -49,8 +50,15 @@ class SLoggerHttpClient
         foreach ($traceObjects->get() as $traceObject) {
             $traces[] = [
                 'trace_id' => $traceObject->traceId,
-                ...(is_null($traceObject->tags) ? [] : ['tags' => $traceObject->tags]),
-                ...(is_null($traceObject->data) ? [] : ['data' => json_encode($traceObject->data)]),
+                ...(is_null($traceObject->profiling)
+                    ? []
+                    : ['profiling' => $this->prepareProfiling($traceObject->profiling)]),
+                ...(is_null($traceObject->tags)
+                    ? []
+                    : ['tags' => $traceObject->tags]),
+                ...(is_null($traceObject->data)
+                    ? []
+                    : ['data' => json_encode($traceObject->data)]),
             ];
         }
 
@@ -59,5 +67,25 @@ class SLoggerHttpClient
                 'traces' => $traces,
             ],
         ]);
+    }
+
+    private function prepareProfiling(SLoggerProfilingObjects $profiling): array
+    {
+        $result = [];
+
+        foreach ($profiling->getItems() as $item) {
+            $result[] = [
+                'method' => $item->method,
+                'data'   => [
+                    'number_of_calls'         => $item->data->numberOfCalls,
+                    'wait_time_in_ms'         => $item->data->waitTimeInMs,
+                    'cpu_time'                => $item->data->cpuTime,
+                    'memory_usage_in_bytes'   => $item->data->memoryUsageInBytes,
+                    'peak_memory_usage_in_mb' => $item->data->peakMemoryUsageInMb,
+                ],
+            ];
+        }
+
+        return $result;
     }
 }
