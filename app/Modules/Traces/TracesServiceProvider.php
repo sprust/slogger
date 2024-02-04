@@ -2,7 +2,7 @@
 
 namespace App\Modules\Traces;
 
-use App\Modules\Services\Adapters\ServicesHttpAdapter;
+use App\Modules\Traces\Adapters\TraceServicesHttpAdapter;
 use App\Modules\Traces\Http\Controllers\TraceCreateController;
 use App\Modules\Traces\Http\Controllers\TraceUpdateController;
 use App\Modules\Traces\Repository\TracesRepository;
@@ -25,7 +25,7 @@ class TracesServiceProvider extends ServiceProvider
 
     private function registerRoutes(): void
     {
-        $servicesHttpAdapter = $this->app->make(ServicesHttpAdapter::class);
+        $servicesHttpAdapter = $this->app->make(TraceServicesHttpAdapter::class);
 
         Route::prefix('traces-api')
             ->as('traces-api.')

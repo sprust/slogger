@@ -172,7 +172,7 @@ return [
         /*
          * Modules
          */
-        ...\App\Modules\ModulesConfig::providers(),
+        ...\App\Modules\ModulesConfig::getProviders(),
     ])->toArray(),
 
     /*

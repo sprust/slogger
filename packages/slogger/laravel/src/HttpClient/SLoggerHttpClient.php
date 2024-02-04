@@ -49,8 +49,8 @@ class SLoggerHttpClient
         foreach ($traceObjects->get() as $traceObject) {
             $traces[] = [
                 'trace_id' => $traceObject->traceId,
-                'tags'     => $traceObject->tags,
-                'data'     => json_encode($traceObject->data),
+                ...(is_null($traceObject->tags) ? [] : ['tags' => $traceObject->tags]),
+                ...(is_null($traceObject->data) ? [] : ['data' => json_encode($traceObject->data)]),
             ];
         }
 

@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Modules\Services\Adapters;
+namespace App\Modules\Traces\Adapters;
 
 use App\Models\Services\Service;
 use App\Modules\Services\Http\Middlewares\AuthServiceMiddleware;
 use App\Modules\Services\Http\RequestServiceContainer;
 use Illuminate\Contracts\Foundation\Application;
 
-readonly class ServicesHttpAdapter
+readonly class TraceServicesHttpAdapter
 {
     public function __construct(private Application $app)
     {
