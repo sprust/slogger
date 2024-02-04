@@ -8,7 +8,7 @@ use Carbon\Carbon;
 readonly class TraceObject
 {
     public function __construct(
-        public string $serviceId,
+        public int $serviceId,
         public string $traceId,
         public ?string $parentTraceId,
         public string $type,
