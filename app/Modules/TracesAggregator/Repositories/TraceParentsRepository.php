@@ -1,16 +1,16 @@
 <?php
 
-namespace App\Modules\TracesAggregator\Parents\Repository;
+namespace App\Modules\TracesAggregator\Repositories;
 
 use App\Models\Traces\Trace;
+use App\Modules\TracesAggregator\Dto\Objects\TraceParentObject;
+use App\Modules\TracesAggregator\Dto\Objects\TraceParentObjects;
+use App\Modules\TracesAggregator\Dto\Objects\TraceParentTypeObject;
+use App\Modules\TracesAggregator\Dto\Objects\TraceParentTypeObjects;
+use App\Modules\TracesAggregator\Dto\Parameters\TraceParentsFindParameters;
+use App\Modules\TracesAggregator\Dto\Parameters\TraceParentTypesParameters;
 use App\Modules\TracesAggregator\Dto\TraceObject;
-use App\Modules\TracesAggregator\Parents\Dto\Objects\TraceParentObject;
-use App\Modules\TracesAggregator\Parents\Dto\Objects\TraceParentObjects;
-use App\Modules\TracesAggregator\Parents\Dto\Objects\TraceParentTypeObject;
-use App\Modules\TracesAggregator\Parents\Dto\Objects\TraceParentTypeObjects;
-use App\Modules\TracesAggregator\Parents\Dto\Parameters\TraceParentsFindParameters;
-use App\Modules\TracesAggregator\Parents\Dto\Parameters\TraceParentTypesParameters;
-use App\Modules\TracesAggregator\Parents\Enums\TraceParentsSortFieldEnum;
+use App\Modules\TracesAggregator\Enums\TraceParentsSortFieldEnum;
 use App\Services\Dto\PaginationInfoObject;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;

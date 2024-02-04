@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Modules\TracesAggregator\Parents\Dto\Parameters;
+namespace App\Modules\TracesAggregator\Dto\Parameters;
 
-use App\Modules\TracesAggregator\Parents\Enums\TraceParentsSortFieldEnum;
+use App\Modules\TracesAggregator\Enums\TraceParentsSortFieldEnum;
 use App\Services\Enums\SortDirectionEnum;
 
 readonly class TraceParentsSortParameters

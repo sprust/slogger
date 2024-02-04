@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Modules\TracesAggregator\Children\Repository;
+namespace App\Modules\TracesAggregator\Repositories;
 
 use App\Models\Traces\Trace;
-use App\Modules\TracesAggregator\Children\Dto\Objects\TraceChildObjects;
-use App\Modules\TracesAggregator\Children\Dto\Parameters\TraceChildrenFindParameters;
 use App\Modules\TracesAggregator\Children\Enums\TraceChildrenSortFieldEnum;
+use App\Modules\TracesAggregator\Dto\Objects\TraceChildObjects;
+use App\Modules\TracesAggregator\Dto\Parameters\TraceChildrenFindParameters;
 use App\Modules\TracesAggregator\Dto\TraceObject;
 use App\Services\Dto\PaginationInfoObject;
 use Illuminate\Database\Eloquent\Builder;

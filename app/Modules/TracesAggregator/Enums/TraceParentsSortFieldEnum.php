@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\TracesAggregator\Parents\Enums;
+namespace App\Modules\TracesAggregator\Enums;
 
 enum TraceParentsSortFieldEnum: string
 {

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\TracesAggregator\Parents\Dto\Parameters;
+namespace App\Modules\TracesAggregator\Dto\Parameters;
 
 use App\Modules\TracesAggregator\Dto\PeriodParameters;
 
