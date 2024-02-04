@@ -45,7 +45,7 @@ class TracesRepository implements TracesRepositoryInterface
         Trace::collection()->bulkWrite($operations);
     }
 
-    public function updateMany(TraceUpdateParametersList $parametersList): void
+    public function updateMany(TraceUpdateParametersList $parametersList): int
     {
         $timestamp = new UTCDateTime(now());
 
@@ -77,6 +77,6 @@ class TracesRepository implements TracesRepositoryInterface
             ];
         }
 
-        Trace::collection()->bulkWrite($operations);
+        return Trace::collection()->bulkWrite($operations)->getModifiedCount();
     }
 }

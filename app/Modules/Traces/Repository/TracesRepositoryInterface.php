@@ -9,5 +9,5 @@ interface TracesRepositoryInterface
 {
     public function createMany(TraceCreateParametersList $parametersList): void;
 
-    public function updateMany(TraceUpdateParametersList $parametersList): void;
+    public function updateMany(TraceUpdateParametersList $parametersList): int;
 }

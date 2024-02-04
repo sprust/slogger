@@ -13,6 +13,8 @@ class TraceUpdateJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable;
 
+    public int $tries = 10;
+
     /**
      * Create a new job instance.
      */
@@ -27,6 +29,10 @@ class TraceUpdateJob implements ShouldQueue
      */
     public function handle(TracesService $tracesService): void
     {
-        $tracesService->updateMany($this->parametersList);
+        if ($tracesService->updateMany($this->parametersList) === $this->parametersList->count()) {
+            return;
+        }
+
+        $this->release(5);
     }
 }

@@ -17,8 +17,8 @@ readonly class TracesService
         $this->tracesRepository->createMany($parametersList);
     }
 
-    public function updateMany(TraceUpdateParametersList $parametersList): void
+    public function updateMany(TraceUpdateParametersList $parametersList): int
     {
-        $this->tracesRepository->updateMany($parametersList);
+        return $this->tracesRepository->updateMany($parametersList);
     }
 }
