@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "1001f8b8ec7d7592a582eb002e5344a3",
+    "content-hash": "d6125dc21e2601c33e4f8009bf590d7c",
     "packages": [
         {
             "name": "brick/math",
@@ -1169,6 +1169,49 @@
                 }
             ],
             "time": "2023-12-03T19:50:20+00:00"
+        },
+        {
+            "name": "ifksco/openapi-generator",
+            "version": "dev-master",
+            "dist": {
+                "type": "path",
+                "url": "packages/ifksco/openapi-generator",
+                "reference": "da150ad3daa0e678e69212556a48b6bb35d891af"
+            },
+            "require": {
+                "laravel/framework": "^10.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Ifksco\\OpenApiGenerator\\OaServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Ifksco\\OpenApiGenerator\\": "src/"
+                }
+            },
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Pavel",
+                    "email": ""
+                },
+                {
+                    "name": "Ildar K",
+                    "email": "ildarkot685@gmail.com"
+                }
+            ],
+            "description": "Open Api Generator base on requests & resources",
+            "transport-options": {
+                "symlink": true,
+                "relative": true
+            }
         },
         {
             "name": "ifksco/roadrunner-laravel",
@@ -9739,6 +9782,7 @@
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
+        "ifksco/openapi-generator": 20,
         "ifksco/roadrunner-laravel": 20,
         "slogger/laravel": 20
     },
