@@ -1,0 +1,442 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "zb-hoteliers-api-scheme",
+        "version": "0.1"
+    },
+    "components": {
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "JWT"
+            }
+        }
+    },
+    "paths": {
+        "/admin-api/trace-aggregator/parents": {
+            "post": {
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "page": {
+                                        "type": "integer",
+                                        "minimum": 1
+                                    },
+                                    "types": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "logging_from": {
+                                        "type": "string",
+                                        "format": "date"
+                                    },
+                                    "logging_to": {
+                                        "type": "string",
+                                        "format": "date"
+                                    },
+                                    "sort": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "field": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "logged_at"
+                                                    ]
+                                                },
+                                                "direction": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "asc",
+                                                        "desc"
+                                                    ]
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                "required": [
+                                    "page"
+                                ],
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "items": {
+                                                    "type": "array",
+                                                    "nullable": false,
+                                                    "items": {
+                                                        "properties": {
+                                                            "trace": {
+                                                                "properties": {
+                                                                    "service_id": {
+                                                                        "type": "integer",
+                                                                        "nullable": false
+                                                                    },
+                                                                    "trace_id": {
+                                                                        "type": "string",
+                                                                        "nullable": false
+                                                                    },
+                                                                    "parent_trace_id": {
+                                                                        "type": "string",
+                                                                        "nullable": true
+                                                                    },
+                                                                    "type": {
+                                                                        "type": "string",
+                                                                        "nullable": false
+                                                                    },
+                                                                    "tags": {
+                                                                        "type": "array",
+                                                                        "nullable": false,
+                                                                        "items": {
+                                                                            "type": "string"
+                                                                        }
+                                                                    },
+                                                                    "data": {
+                                                                        "type": "string",
+                                                                        "nullable": false
+                                                                    },
+                                                                    "logged_at": {
+                                                                        "type": "string",
+                                                                        "nullable": false
+                                                                    },
+                                                                    "created_at": {
+                                                                        "type": "string",
+                                                                        "nullable": false
+                                                                    },
+                                                                    "updated_at": {
+                                                                        "type": "string",
+                                                                        "nullable": false
+                                                                    }
+                                                                },
+                                                                "required": [
+                                                                    "service_id",
+                                                                    "trace_id",
+                                                                    "type",
+                                                                    "tags",
+                                                                    "data",
+                                                                    "logged_at",
+                                                                    "created_at",
+                                                                    "updated_at"
+                                                                ]
+                                                            },
+                                                            "types": {
+                                                                "type": "array",
+                                                                "nullable": false,
+                                                                "items": {
+                                                                    "properties": {
+                                                                        "type": {
+                                                                            "type": "string",
+                                                                            "nullable": false
+                                                                        },
+                                                                        "count": {
+                                                                            "type": "integer",
+                                                                            "nullable": false
+                                                                        }
+                                                                    },
+                                                                    "required": [
+                                                                        "type",
+                                                                        "count"
+                                                                    ]
+                                                                }
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "trace",
+                                                            "types"
+                                                        ]
+                                                    }
+                                                },
+                                                "paginator": {
+                                                    "properties": {
+                                                        "total": {
+                                                            "type": "integer",
+                                                            "nullable": false
+                                                        },
+                                                        "per_page": {
+                                                            "type": "integer",
+                                                            "nullable": false
+                                                        },
+                                                        "current_page": {
+                                                            "type": "integer",
+                                                            "nullable": false
+                                                        },
+                                                        "total_pages": {
+                                                            "type": "integer",
+                                                            "nullable": false
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "total",
+                                                        "per_page",
+                                                        "current_page",
+                                                        "total_pages"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "items",
+                                                "paginator"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/admin-api/trace-aggregator/parents/{parentTraceId}/children": {
+            "post": {
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "page": {
+                                        "type": "integer",
+                                        "minimum": 1
+                                    },
+                                    "types": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "logging_from": {
+                                        "type": "string",
+                                        "format": "date"
+                                    },
+                                    "logging_to": {
+                                        "type": "string",
+                                        "format": "date"
+                                    },
+                                    "sort": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "field": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "logged_at"
+                                                    ]
+                                                },
+                                                "direction": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "asc",
+                                                        "desc"
+                                                    ]
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                "required": [
+                                    "page"
+                                ],
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "parentTraceId",
+                        "required": true,
+                        "in": "path",
+                        "schema": {}
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "items": {
+                                                    "type": "array",
+                                                    "nullable": false,
+                                                    "items": {
+                                                        "properties": {
+                                                            "trace": {
+                                                                "properties": {
+                                                                    "service_id": {
+                                                                        "type": "integer",
+                                                                        "nullable": false
+                                                                    },
+                                                                    "trace_id": {
+                                                                        "type": "string",
+                                                                        "nullable": false
+                                                                    },
+                                                                    "parent_trace_id": {
+                                                                        "type": "string",
+                                                                        "nullable": true
+                                                                    },
+                                                                    "type": {
+                                                                        "type": "string",
+                                                                        "nullable": false
+                                                                    },
+                                                                    "tags": {
+                                                                        "type": "array",
+                                                                        "nullable": false,
+                                                                        "items": {
+                                                                            "type": "string"
+                                                                        }
+                                                                    },
+                                                                    "data": {
+                                                                        "type": "string",
+                                                                        "nullable": false
+                                                                    },
+                                                                    "logged_at": {
+                                                                        "type": "string",
+                                                                        "nullable": false
+                                                                    },
+                                                                    "created_at": {
+                                                                        "type": "string",
+                                                                        "nullable": false
+                                                                    },
+                                                                    "updated_at": {
+                                                                        "type": "string",
+                                                                        "nullable": false
+                                                                    }
+                                                                },
+                                                                "required": [
+                                                                    "service_id",
+                                                                    "trace_id",
+                                                                    "type",
+                                                                    "tags",
+                                                                    "data",
+                                                                    "logged_at",
+                                                                    "created_at",
+                                                                    "updated_at"
+                                                                ]
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "trace"
+                                                        ]
+                                                    }
+                                                },
+                                                "paginator": {
+                                                    "properties": {
+                                                        "total": {
+                                                            "type": "integer",
+                                                            "nullable": false
+                                                        },
+                                                        "per_page": {
+                                                            "type": "integer",
+                                                            "nullable": false
+                                                        },
+                                                        "current_page": {
+                                                            "type": "integer",
+                                                            "nullable": false
+                                                        },
+                                                        "total_pages": {
+                                                            "type": "integer",
+                                                            "nullable": false
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "total",
+                                                        "per_page",
+                                                        "current_page",
+                                                        "total_pages"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "items",
+                                                "paginator"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/admin-api/auth/login": {
+            "post": {
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "maxLength": 50,
+                                        "minLength": 5
+                                    }
+                                },
+                                "required": [
+                                    "email",
+                                    "password"
+                                ],
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "description",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

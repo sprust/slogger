@@ -3,26 +3,21 @@
 namespace App\Http\Resources;
 
 use App\Services\Dto\PaginationInfoObject;
-use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
 
-class PaginatorInfoResource extends JsonResource
+class PaginatorInfoResource extends AbstractApiResource
 {
-    public function __construct(PaginationInfoObject $resource)
-    {
-        parent::__construct($resource);
-    }
+    private int $total;
+    private int $per_page;
+    private int $current_page;
+    private int $total_pages;
 
-    public function toArray(Request $request): array
+    public function __construct(PaginationInfoObject $paginatorInfo)
     {
-        /** @var PaginationInfoObject $paginatorInfo */
-        $paginatorInfo = $this->resource;
+        parent::__construct($paginatorInfo);
 
-        return [
-            'total'        => $paginatorInfo->total,
-            'per_page'     => $paginatorInfo->perPage,
-            'current_page' => $paginatorInfo->currentPage,
-            'total_pages'  => $paginatorInfo->totalPages,
-        ];
+        $this->total        = $paginatorInfo->total;
+        $this->per_page     = $paginatorInfo->perPage;
+        $this->current_page = $paginatorInfo->currentPage;
+        $this->total_pages  = $paginatorInfo->totalPages;
     }
 }

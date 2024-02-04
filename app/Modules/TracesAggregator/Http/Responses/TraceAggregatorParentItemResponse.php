@@ -2,25 +2,21 @@
 
 namespace App\Modules\TracesAggregator\Http\Responses;
 
+use App\Http\Resources\AbstractApiResource;
 use App\Modules\TracesAggregator\Dto\Objects\TraceParentObject;
-use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
+use Ifksco\OpenApiGenerator\Attributes\OaListItemTypeAttribute;
 
-class TraceAggregatorParentItemResponse extends JsonResource
+class TraceAggregatorParentItemResponse extends AbstractApiResource
 {
-    public function __construct(TraceParentObject $resource)
-    {
-        parent::__construct($resource);
-    }
+    private TraceAggregatorTraceResponse $trace;
+    #[OaListItemTypeAttribute(TraceAggregatorParentItemTypeResponse::class)]
+    private array $types;
 
-    public function toArray(Request $request): array
+    public function __construct(TraceParentObject $parentItem)
     {
-        /** @var TraceParentObject $parentItem */
-        $parentItem = $this->resource;
+        parent::__construct($parentItem);
 
-        return [
-            'trace' => new TraceAggregatorTraceResponse($parentItem->trace),
-            'types' => TraceAggregatorParentItemTypeResponse::collection($parentItem->types),
-        ];
+        $this->trace = new TraceAggregatorTraceResponse($parentItem->trace);
+        $this->types = TraceAggregatorParentItemTypeResponse::mapIntoMe($parentItem->types);
     }
 }

@@ -1,26 +1,28 @@
 <?php
 
 use Ifksco\OpenApiGenerator\Converters\Request\Rules\OaRuleAsStringConverter;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\ProhibitedIf;
 use Illuminate\Validation\Rules\RequiredIf;
+use App\Http\Resources\AbstractApiResource;
 
 return [
     'routes'               => [
         // name => ['routes-prefix']
-        'common' => [
-            'api',
+        'admin-api' => [
+            'admin-api',
         ],
     ],
     'security_middlewares' => [
-        'auth:api',
+        \App\Modules\Auth\Http\Middlewares\AuthMiddleware::class,
     ],
     'disks'                => [
-        'public'  => 'local',
-        'private' => 'local',
+        'public'  => 'api-json-schemes-public',
+        'private' => 'api-json-schemes',
     ],
     'classes'              => [
-        'request_parent_class'   => '',
-        'resources_parent_class' => '',
+        'request_parent_class'   => FormRequest::class,
+        'resources_parent_class' => AbstractApiResource::class,
     ],
     'custom'               => [
         'responses' => [

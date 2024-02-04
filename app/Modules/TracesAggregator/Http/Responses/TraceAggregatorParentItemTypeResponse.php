@@ -2,25 +2,19 @@
 
 namespace App\Modules\TracesAggregator\Http\Responses;
 
+use App\Http\Resources\AbstractApiResource;
 use App\Modules\TracesAggregator\Dto\Objects\TraceParentTypeObject;
-use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
 
-class TraceAggregatorParentItemTypeResponse extends JsonResource
+class TraceAggregatorParentItemTypeResponse extends AbstractApiResource
 {
-    public function __construct(TraceParentTypeObject $resource)
-    {
-        parent::__construct($resource);
-    }
+    private string $type;
+    private int $count;
 
-    public function toArray(Request $request): array
+    public function __construct(TraceParentTypeObject $type)
     {
-        /** @var TraceParentTypeObject $type */
-        $type = $this->resource;
+        parent::__construct($type);
 
-        return [
-            'type'  => $type->type,
-            'count' => $type->count,
-        ];
+        $this->type = $type->type;
+        $this->count = $type->count;
     }
 }

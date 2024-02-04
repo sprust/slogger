@@ -56,6 +56,16 @@ return [
             'throw' => false,
         ],
 
+        'api-json-schemes' => [
+            'driver' => 'local',
+            'root'   => storage_path('api/json-schemes'),
+        ],
+
+        'api-json-schemes-public' => [
+            'driver' => 'local',
+            'root'   => storage_path('app/public/api/json-schemes'),
+        ],
+
     ],
 
     /*
