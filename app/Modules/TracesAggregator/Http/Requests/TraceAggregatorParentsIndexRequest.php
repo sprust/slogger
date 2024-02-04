@@ -38,6 +38,7 @@ class TraceAggregatorParentsIndexRequest extends FormRequest
             ],
             'sort.*.field'     => [
                 'sometimes',
+                'string',
                 'in:' . implode(
                     ',',
                     array_map(
@@ -48,6 +49,7 @@ class TraceAggregatorParentsIndexRequest extends FormRequest
             ],
             'sort.*.direction' => [
                 'sometimes',
+                'string',
                 'in:' . implode(
                     ',',
                     array_map(

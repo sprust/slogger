@@ -41,6 +41,10 @@ class SLoggerJobWatcher extends AbstractSLoggerWatcher
     {
         $payload = $event->job->payload();
 
+        if (in_array($payload['job'] ?? null, $this->getExceptedJobs())) {
+            return;
+        }
+
         $uuid = $payload['slogger_uuid'] ?? null;
 
         if (!$uuid) {
@@ -155,5 +159,10 @@ class SLoggerJobWatcher extends AbstractSLoggerWatcher
         );
 
         unset($this->jobs[$uuid]);
+    }
+
+    protected function getExceptedJobs(): array
+    {
+        return $this->app['config']['slogger.jobs.excepted'];
     }
 }

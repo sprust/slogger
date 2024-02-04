@@ -2,32 +2,35 @@
 
 namespace App\Modules\TracesAggregator\Http\Responses;
 
+use App\Http\Resources\AbstractApiResource;
 use App\Modules\TracesAggregator\Dto\TraceObject;
-use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
+use Ifksco\OpenApiGenerator\Attributes\OaListItemTypeAttribute;
 
-class TraceAggregatorTraceResponse extends JsonResource
+class TraceAggregatorTraceResponse extends AbstractApiResource
 {
-    public function __construct(TraceObject $resource)
-    {
-        parent::__construct($resource);
-    }
+    private int $service_id;
+    private string $trace_id;
+    private ?string $parent_trace_id;
+    private string $type;
+    #[OaListItemTypeAttribute('string')]
+    private array $tags;
+    private string $data;
+    private string $logged_at;
+    private string $created_at;
+    private string $updated_at;
 
-    public function toArray(Request $request): array
+    public function __construct(TraceObject $trace)
     {
-        /** @var TraceObject $trace */
-        $trace = $this->resource;
+        parent::__construct($trace);
 
-        return [
-            'service_id'      => $trace->serviceId,
-            'trace_id'        => $trace->traceId,
-            'parent_trace_id' => $trace->parentTraceId,
-            'type'            => $trace->type,
-            'tags'            => $trace->tags,
-            'data'            => $trace->data,
-            'logged_at'       => $trace->loggedAt->toDateTimeString('microsecond'),
-            'created_at'      => $trace->createdAt->toDateTimeString('microsecond'),
-            'updated_at'      => $trace->updatedAt->toDateTimeString('microsecond'),
-        ];
+        $this->service_id      = $trace->serviceId;
+        $this->trace_id        = $trace->traceId;
+        $this->parent_trace_id = $trace->parentTraceId;
+        $this->type            = $trace->type;
+        $this->tags            = $trace->tags;
+        $this->data            = json_encode($trace->data, JSON_PRETTY_PRINT) ?: '';
+        $this->logged_at       = $trace->loggedAt->toDateTimeString('microsecond');
+        $this->created_at      = $trace->createdAt->toDateTimeString('microsecond');
+        $this->updated_at      = $trace->updatedAt->toDateTimeString('microsecond');
     }
 }

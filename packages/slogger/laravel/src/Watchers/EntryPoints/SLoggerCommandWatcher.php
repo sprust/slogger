@@ -28,10 +28,14 @@ class SLoggerCommandWatcher extends AbstractSLoggerWatcher
 
     protected function onHandleCommandStarting(CommandStarting $event): void
     {
+        if (in_array($event->command, $this->getExceptedCommands())) {
+            return;
+        }
+
         $traceId = $this->processor->startAndGetTraceId(
             type: SLoggerTraceTypeEnum::Command->value,
             tags: [
-                $this->makeCommandView($event->command, $event->input)
+                $this->makeCommandView($event->command, $event->input),
             ]
         );
 
@@ -78,5 +82,10 @@ class SLoggerCommandWatcher extends AbstractSLoggerWatcher
     protected function makeCommandView(?string $command, InputInterface $input): string
     {
         return $command ?? $input->getArguments()['command'] ?? 'default';
+    }
+
+    protected function getExceptedCommands(): array
+    {
+        return $this->app['config']['slogger.commands.excepted'];
     }
 }

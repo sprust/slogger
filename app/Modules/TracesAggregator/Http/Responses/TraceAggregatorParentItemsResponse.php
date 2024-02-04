@@ -2,26 +2,22 @@
 
 namespace App\Modules\TracesAggregator\Http\Responses;
 
+use App\Http\Resources\AbstractApiResource;
 use App\Http\Resources\PaginatorInfoResource;
 use App\Modules\TracesAggregator\Dto\Objects\TraceParentObjects;
-use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
+use Ifksco\OpenApiGenerator\Attributes\OaListItemTypeAttribute;
 
-class TraceAggregatorParentItemsResponse extends JsonResource
+class TraceAggregatorParentItemsResponse extends AbstractApiResource
 {
-    public function __construct(TraceParentObjects $resource)
-    {
-        parent::__construct($resource);
-    }
+    #[OaListItemTypeAttribute(TraceAggregatorParentItemResponse::class)]
+    private array $items;
+    private PaginatorInfoResource $paginator;
 
-    public function toArray(Request $request): array
+    public function __construct(TraceParentObjects $parents)
     {
-        /** @var TraceParentObjects $parents */
-        $parents = $this->resource;
+        parent::__construct($parents);
 
-        return [
-            'items'     => TraceAggregatorParentItemResponse::collection($parents->items),
-            'paginator' => new PaginatorInfoResource($parents->paginationInfo),
-        ];
+        $this->items     = TraceAggregatorParentItemResponse::mapIntoMe($parents->items);
+        $this->paginator = new PaginatorInfoResource($parents->paginationInfo);
     }
 }
