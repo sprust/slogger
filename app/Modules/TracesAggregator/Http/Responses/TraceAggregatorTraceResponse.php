@@ -6,7 +6,7 @@ use App\Modules\TracesAggregator\Dto\TraceObject;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class TraceAggregatorParentItemTraceResponse extends JsonResource
+class TraceAggregatorTraceResponse extends JsonResource
 {
     public function __construct(TraceObject $resource)
     {

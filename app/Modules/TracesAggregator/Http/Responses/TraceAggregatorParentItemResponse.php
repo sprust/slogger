@@ -19,7 +19,7 @@ class TraceAggregatorParentItemResponse extends JsonResource
         $parentItem = $this->resource;
 
         return [
-            'trace' => new TraceAggregatorParentItemTraceResponse($parentItem->trace),
+            'trace' => new TraceAggregatorTraceResponse($parentItem->trace),
             'types' => TraceAggregatorParentItemTypeResponse::collection($parentItem->types),
         ];
     }

@@ -11,6 +11,11 @@ class TraceAggregatorParentsIndexRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'page'             => [
+                'required',
+                'int',
+                'min:1',
+            ],
             'types'            => [
                 'sometimes',
                 'array',
