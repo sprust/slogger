@@ -2,8 +2,10 @@
 
 namespace App\Services\SLogger\Pushing;
 
+use Exception;
 use Illuminate\Contracts\Foundation\Application;
 use SLoggerLaravel\Dispatcher\SLoggerTraceDispatcherInterface;
+use SLoggerLaravel\Helpers\SLoggerDataFormatter;
 use SLoggerLaravel\Objects\SLoggerTraceObject;
 use SLoggerLaravel\Objects\SLoggerTraceObjects;
 use SLoggerLaravel\Objects\SLoggerTraceUpdateObject;
@@ -36,6 +38,10 @@ class SLoggerTraceQueueDispatcher implements SLoggerTraceDispatcherInterface
         if (count($this->traces)) {
             $this->sendAndClearTraces();
         }
+
+        $parameters->data['stack_trace'] = SLoggerDataFormatter::stackTrace(
+            (new Exception())->getTrace()
+        );
 
         $traceObjects = (new SLoggerTraceUpdateObjects())
             ->add($parameters);
