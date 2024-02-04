@@ -3,7 +3,7 @@
 namespace App\Modules\TracesAggregator\Repositories;
 
 use App\Models\Traces\Trace;
-use App\Modules\TracesAggregator\Children\Enums\TraceChildrenSortFieldEnum;
+use App\Modules\TracesAggregator\Enums\TraceChildrenSortFieldEnum;
 use App\Modules\TracesAggregator\Dto\Objects\TraceChildObjects;
 use App\Modules\TracesAggregator\Dto\Parameters\TraceChildrenFindParameters;
 use App\Modules\TracesAggregator\Dto\TraceObject;

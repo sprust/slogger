@@ -34,6 +34,7 @@ class TraceAggregatorParentsIndexRequest extends FormRequest
             'sort.*.field'     => [
                 'sometimes',
                 'in:' . implode(
+                    ',',
                     array_map(
                         fn(TraceParentsSortFieldEnum $enum) => $enum->value,
                         TraceParentsSortFieldEnum::cases()
@@ -43,6 +44,7 @@ class TraceAggregatorParentsIndexRequest extends FormRequest
             'sort.*.direction' => [
                 'sometimes',
                 'in:' . implode(
+                    ',',
                     array_map(
                         fn(SortDirectionEnum $enum) => $enum->value,
                         SortDirectionEnum::cases()

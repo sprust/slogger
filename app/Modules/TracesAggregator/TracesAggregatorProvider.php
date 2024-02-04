@@ -39,7 +39,7 @@ class TracesAggregatorProvider extends ServiceProvider
                 Route::prefix('/trace-aggregator')
                     ->as('trace-aggregator.')
                     ->group(function () {
-                        Route::get('/parents', [TraceAggregatorParentsController::class, 'index']);
+                        Route::post('/parents', [TraceAggregatorParentsController::class, 'index']);
                     });
             });
     }
