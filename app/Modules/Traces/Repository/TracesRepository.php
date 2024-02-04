@@ -60,6 +60,11 @@ class TracesRepository implements TracesRepositoryInterface
                     ],
                     [
                         '$set' => [
+                            ...(is_null($parameters->profiling)
+                                ? []
+                                : [
+                                    'profiling' => $parameters->profiling->getItems(),
+                                ]),
                             ...(is_null($parameters->tags)
                                 ? []
                                 : [

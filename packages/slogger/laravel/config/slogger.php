@@ -34,7 +34,10 @@ return [
         'token' => env('SLOGGER_HTTP_CLIENT_TOKEN'),
     ],
     'profiling'   => [
-        'enabled' => env('SLOGGER_PROFILING_ENABLED', false),
+        'enabled'    => env('SLOGGER_PROFILING_ENABLED', false),
+        'namespaces' => [
+            'App\*',
+        ],
     ],
     // example
     'dispatcher'  => SLoggerTraceDispatcher::class,

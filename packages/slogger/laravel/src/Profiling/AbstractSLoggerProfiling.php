@@ -3,12 +3,16 @@
 namespace SLoggerLaravel\Profiling;
 
 use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Support\Str;
+use SLoggerLaravel\Profiling\Dto\SLoggerProfilingObject;
 use SLoggerLaravel\Profiling\Dto\SLoggerProfilingObjects;
 
 abstract class AbstractSLoggerProfiling
 {
-    private ?bool $profilingEnabled = null;
+    private bool $profilingEnabled;
     private bool $profilingStarted = false;
+
+    private array $namespaces;
 
     abstract protected function onStart(): bool;
 
@@ -16,11 +20,13 @@ abstract class AbstractSLoggerProfiling
 
     public function __construct(private readonly Application $app)
     {
+        $this->profilingEnabled = $this->app['config']['slogger.profiling.enabled'];
+        $this->namespaces       = $this->app['config']['slogger.profiling.namespaces'];
     }
 
     public function start(): void
     {
-        if (!$this->profilingEnabled()) {
+        if (!$this->profilingEnabled) {
             return;
         }
 
@@ -29,23 +35,29 @@ abstract class AbstractSLoggerProfiling
 
     public function stop(): ?SLoggerProfilingObjects
     {
-        if (!$this->profilingStarted || !$this->profilingEnabled()) {
+        if (!$this->profilingStarted || !$this->profilingEnabled) {
             return null;
         }
 
-        $result = $this->onStop();
+        $profilingObjects = $this->onStop();
+
+        $filteredProfilingObjects = new SLoggerProfilingObjects();
+
+        foreach ($profilingObjects->getItems() as $profilingObject) {
+            if (!$this->needProfiling($profilingObject->method)) {
+                continue;
+            }
+
+            $filteredProfilingObjects->add($profilingObject);
+        }
 
         $this->profilingStarted = false;
 
-        return $result;
+        return $filteredProfilingObjects;
     }
 
-    private function profilingEnabled(): bool
+    protected function needProfiling(string $method): bool
     {
-        if (is_null($this->profilingEnabled)) {
-            $this->profilingEnabled = $this->app['config']['slogger.profiling.enabled'];
-        }
-
-        return $this->profilingEnabled;
+        return Str::is($this->namespaces, $method);
     }
 }
