@@ -1,5 +1,7 @@
 <?php
 
+use App\Modules\Traces\Jobs\TraceCreateJob;
+use App\Modules\Traces\Jobs\TraceUpdateJob;
 use SLoggerLaravel\Watchers\EntryPoints\SLoggerCommandWatcher;
 use SLoggerLaravel\Watchers\EntryPoints\SLoggerJobWatcher;
 use SLoggerLaravel\Watchers\EntryPoints\SLoggerRequestWatcher;
@@ -19,6 +21,18 @@ return [
     'enabled'     => env('SLOGGER_ENABLED', false),
     'requests'    => [
         'header_parent_trace_id_key' => env('SLOGGER_REQUESTS_HEADER_PARENT_TRACE_ID_KEY', 'x-parent-trace-id'),
+    ],
+    'commands'    => [
+        'excepted' => [
+            'queue:work',
+            'queue:listen',
+        ],
+    ],
+    'jobs'        => [
+        'excepted' => [
+            TraceCreateJob::class,
+            TraceUpdateJob::class,
+        ],
     ],
     'http_client' => [
         'url'   => env('SLOGGER_HTTP_CLIENT_URL'),

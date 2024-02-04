@@ -20,6 +20,15 @@ return [
     'requests'    => [
         'header_parent_trace_id_key' => env('SLOGGER_REQUESTS_HEADER_PARENT_TRACE_ID_KEY', 'x-parent-trace-id'),
     ],
+    'commands'    => [
+        'excepted' => [
+            'queue:work',
+            'queue:listen',
+        ],
+    ],
+    'jobs'        => [
+        'excepted' => [],
+    ],
     'http_client' => [
         'url'   => env('SLOGGER_HTTP_CLIENT_URL'),
         'token' => env('SLOGGER_HTTP_CLIENT_TOKEN'),
