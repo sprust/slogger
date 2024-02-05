@@ -24,7 +24,8 @@ RUN pecl install \
         imagick \
         mongodb \
         zstd \
-        zip
+        zip \
+        xhprof
 
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg
 

@@ -15,7 +15,8 @@
         "laravel/tinker": "^2.8",
         "mongodb/laravel-mongodb": "^4.1",
         "mongodb/mongodb": "^1.17",
-        "slogger/laravel": "dev-master"
+        "slogger/laravel": "dev-master",
+        "ext-xhprof": "*"
     },
     "require-dev": {
         "fakerphp/faker": "^1.9.1",

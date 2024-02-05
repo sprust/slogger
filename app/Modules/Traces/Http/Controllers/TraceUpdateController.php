@@ -5,6 +5,9 @@ namespace App\Modules\Traces\Http\Controllers;
 use App\Modules\Traces\Adapters\TraceServicesHttpAdapter;
 use App\Modules\Traces\Dto\Parameters\TraceUpdateParameters;
 use App\Modules\Traces\Dto\Parameters\TraceUpdateParametersList;
+use App\Modules\Traces\Dto\Parameters\TraceUpdateProfilingDataObject;
+use App\Modules\Traces\Dto\Parameters\TraceUpdateProfilingObject;
+use App\Modules\Traces\Dto\Parameters\TraceUpdateProfilingObjects;
 use App\Modules\Traces\Http\Requests\TraceUpdateRequest;
 use App\Modules\Traces\Services\TracesServiceQueueDispatcher;
 
@@ -25,14 +28,39 @@ readonly class TraceUpdateController
         $parametersList = new TraceUpdateParametersList();
 
         foreach ($validated['traces'] as $item) {
+            $profiling = new TraceUpdateProfilingObjects();
+
+            foreach ($item['profiling'] ?? [] as $profilingItem) {
+                $profilingData = $profilingItem['data'];
+
+                $profiling->add(
+                    new TraceUpdateProfilingObject(
+                        raw: $profilingItem['raw'],
+                        calling: $profilingItem['calling'],
+                        callable: $profilingItem['callable'],
+                        data: new TraceUpdateProfilingDataObject(
+                            numberOfCalls: $profilingData['number_of_calls'],
+                            waitTimeInMs: $profilingData['wait_time_in_ms'],
+                            cpuTime: $profilingData['cpu_time'],
+                            memoryUsageInBytes: $profilingData['memory_usage_in_bytes'],
+                            peakMemoryUsageInMb: $profilingData['peak_memory_usage_in_mb'],
+                        )
+                    )
+                );
+            }
+
             $parameters = new TraceUpdateParameters(
                 serviceId: $serviceId,
                 traceId: $item['trace_id'],
+                profiling: $profiling,
                 tags: $item['tags'] ?? null,
                 data: $item['data'] ?? null
             );
 
-            if (!$parameters->tags && !$parameters->data) {
+            if (!$parameters->tags
+                && !$parameters->data
+                && !count($profiling->getItems())
+            ) {
                 continue;
             }
 

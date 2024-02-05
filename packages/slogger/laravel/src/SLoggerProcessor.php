@@ -11,6 +11,7 @@ use SLoggerLaravel\Helpers\SLoggerDataFormatter;
 use SLoggerLaravel\Helpers\SLoggerTraceHelper;
 use SLoggerLaravel\Objects\SLoggerTraceObject;
 use SLoggerLaravel\Objects\SLoggerTraceUpdateObject;
+use SLoggerLaravel\Profiling\AbstractSLoggerProfiling;
 use SLoggerLaravel\Traces\SLoggerTraceIdContainer;
 use Throwable;
 
@@ -24,7 +25,8 @@ class SLoggerProcessor
 
     public function __construct(
         private readonly SLoggerTraceDispatcherInterface $traceDispatcher,
-        private readonly SLoggerTraceIdContainer $traceIdContainer
+        private readonly SLoggerTraceIdContainer $traceIdContainer,
+        private readonly AbstractSLoggerProfiling $profiling
     ) {
     }
 
@@ -73,6 +75,8 @@ class SLoggerProcessor
         ?Carbon $loggedAt = null,
         ?string $customParentTraceId = null,
     ): mixed {
+        $this->profiling->start();
+
         $traceId = $this->startAndGetTraceId(
             type: $type,
             tags: $tags,
@@ -96,9 +100,12 @@ class SLoggerProcessor
             );
         }
 
+        $profiling = $this->profiling->stop();
+
         $this->stop(
             new SLoggerTraceUpdateObject(
                 traceId: $traceId,
+                profiling: $profiling,
                 data: $data
             )
         );
@@ -117,6 +124,8 @@ class SLoggerProcessor
         ?Carbon $loggedAt = null,
         ?string $customParentTraceId = null
     ): string {
+        $this->profiling->start();
+
         $traceId = SLoggerTraceHelper::make();
 
         $parentTraceId = $this->traceIdContainer->getParentTraceId();
@@ -191,12 +200,14 @@ class SLoggerProcessor
             $preParentTraceId
         );
 
-        $this->traceDispatcher->stop($parameters);
-
         if (count($this->preParentIdsStack) == 0) {
             $this->started = false;
 
             $this->traceIdContainer->setParentTraceId(null);
         }
+
+        $parameters->profiling = $this->profiling->stop();
+
+        $this->traceDispatcher->stop($parameters);
     }
 }
