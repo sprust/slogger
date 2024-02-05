@@ -23,6 +23,10 @@ class TraceUpdateRequest extends FormRequest
                 'sometimes',
                 'array',
             ],
+            'traces.*.profiling.*.raw'                          => [
+                'required',
+                'string',
+            ],
             'traces.*.profiling.*.calling'                      => [
                 'required',
                 'string',

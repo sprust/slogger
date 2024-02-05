@@ -34,8 +34,9 @@ class SLoggerXHProfProfiler extends AbstractSLoggerProfiling
 
             $profilingItems->add(
                 new SLoggerProfilingObject(
+                    raw: $method,
                     calling: $methodData[0],
-                    callable: $methodData[1] ?? '',
+                    callable: $methodData[1] ?? 'empty',
                     data: new SLoggerProfilingDataObject(
                         numberOfCalls: $data['ct'],
                         waitTimeInMs: $data['wt'],

@@ -75,6 +75,7 @@ class SLoggerHttpClient
 
         foreach ($profiling->getItems() as $item) {
             $result[] = [
+                'raw'      => $item->raw,
                 'calling'  => $item->calling,
                 'callable' => $item->callable,
                 'data'     => [

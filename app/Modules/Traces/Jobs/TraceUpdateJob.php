@@ -35,6 +35,6 @@ class TraceUpdateJob implements ShouldQueue
             return;
         }
 
-        $this->release(5);
+        $this->release(2);
     }
 }

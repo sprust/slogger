@@ -35,6 +35,7 @@ readonly class TraceUpdateController
 
                 $profiling->add(
                     new TraceUpdateProfilingObject(
+                        raw: $profilingItem['raw'],
                         calling: $profilingItem['calling'],
                         callable: $profilingItem['callable'],
                         data: new TraceUpdateProfilingDataObject(
