@@ -35,7 +35,8 @@ readonly class TraceUpdateController
 
                 $profiling->add(
                     new TraceUpdateProfilingObject(
-                        method: $profilingItem['method'],
+                        calling: $profilingItem['calling'],
+                        callable: $profilingItem['callable'],
                         data: new TraceUpdateProfilingDataObject(
                             numberOfCalls: $profilingData['number_of_calls'],
                             waitTimeInMs: $profilingData['wait_time_in_ms'],

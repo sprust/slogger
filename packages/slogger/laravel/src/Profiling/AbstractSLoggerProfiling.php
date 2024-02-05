@@ -44,7 +44,9 @@ abstract class AbstractSLoggerProfiling
         $filteredProfilingObjects = new SLoggerProfilingObjects();
 
         foreach ($profilingObjects->getItems() as $profilingObject) {
-            if (!$this->needProfiling($profilingObject->method)) {
+            if (!$this->needProfiling($profilingObject->calling)
+                && !$this->needProfiling($profilingObject->callable)
+            ) {
                 continue;
             }
 
