@@ -26,7 +26,7 @@ class SLoggerProcessor
     public function __construct(
         private readonly SLoggerTraceDispatcherInterface $traceDispatcher,
         private readonly SLoggerTraceIdContainer $traceIdContainer,
-        protected readonly AbstractSLoggerProfiling $profiling
+        private readonly AbstractSLoggerProfiling $profiling
     ) {
     }
 
