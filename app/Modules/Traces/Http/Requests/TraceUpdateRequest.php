@@ -9,25 +9,25 @@ class TraceUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'traces'                                              => [
+            'traces'                                            => [
                 'required',
                 'array',
                 'min:1',
             ],
-            'traces.*.trace_id'                                   => [
+            'traces.*.trace_id'                                 => [
                 'required',
                 'string',
                 'min:20',
             ],
-            'traces.*.profiling'                                  => [
+            'traces.*.profiling'                                => [
                 'sometimes',
                 'array',
             ],
-            'traces.*.profiling.*.method'                         => [
+            'traces.*.profiling.*.method'                       => [
                 'required',
                 'string',
             ],
-            'traces.*.profiling.*.data'                           => [
+            'traces.*.profiling.*.data'                         => [
                 'required',
                 'array',
             ],
@@ -51,15 +51,15 @@ class TraceUpdateRequest extends FormRequest
                 'required',
                 'numeric',
             ],
-            'traces.*.tags'                                       => [
+            'traces.*.tags'                                     => [
                 'sometimes',
                 'array',
             ],
-            'traces.*.tags.*'                                     => [
+            'traces.*.tags.*'                                   => [
                 'required',
                 'string',
             ],
-            'traces.*.data'                                       => [
+            'traces.*.data'                                     => [
                 'sometimes',
                 'json',
             ],
