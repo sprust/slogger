@@ -399,6 +399,62 @@
                 ]
             }
         },
+        "/admin-api/auth/me": {
+            "get": {
+                "responses": {
+                    "200": {
+                        "description": "description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "nullable": false
+                                                },
+                                                "first_name": {
+                                                    "type": "string",
+                                                    "nullable": false
+                                                },
+                                                "last_name": {
+                                                    "type": "string",
+                                                    "nullable": true
+                                                },
+                                                "email": {
+                                                    "type": "string",
+                                                    "nullable": false
+                                                },
+                                                "api_token": {
+                                                    "type": "string",
+                                                    "nullable": false
+                                                }
+                                            },
+                                            "required": [
+                                                "id",
+                                                "first_name",
+                                                "email",
+                                                "api_token"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/admin-api/auth/login": {
             "post": {
                 "requestBody": {
@@ -431,7 +487,44 @@
                         "description": "description",
                         "content": {
                             "application/json": {
-                                "schema": {}
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "nullable": false
+                                                },
+                                                "first_name": {
+                                                    "type": "string",
+                                                    "nullable": false
+                                                },
+                                                "last_name": {
+                                                    "type": "string",
+                                                    "nullable": true
+                                                },
+                                                "email": {
+                                                    "type": "string",
+                                                    "nullable": false
+                                                },
+                                                "api_token": {
+                                                    "type": "string",
+                                                    "nullable": false
+                                                }
+                                            },
+                                            "required": [
+                                                "id",
+                                                "first_name",
+                                                "email",
+                                                "api_token"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
                             }
                         }
                     }

@@ -2,28 +2,25 @@
 
 namespace App\Modules\Auth\Http\Resources;
 
+use App\Http\Resources\AbstractApiResource;
 use App\Models\Users\User;
-use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
 
-class AuthUserResource extends JsonResource
+class AuthUserResource extends AbstractApiResource
 {
-    public function __construct(User $resource)
-    {
-        parent::__construct($resource);
-    }
+    private int $id;
+    private string $first_name;
+    private ?string $last_name;
+    private string $email;
+    private string $api_token;
 
-    public function toArray(Request $request): array
+    public function __construct(User $user)
     {
-        /** @var User $user */
-        $user = $this->resource;
+        parent::__construct($user);
 
-        return [
-            'id'                => $user->id,
-            'first_name'        => $user->first_name,
-            'last_name'         => $user->last_name,
-            'email'             => $user->email,
-            'api_token'         => $user->api_token,
-        ];
+        $this->id         = $user->id;
+        $this->first_name = $user->first_name;
+        $this->last_name  = $user->last_name;
+        $this->email      = $user->email;
+        $this->api_token  = $user->api_token;
     }
 }
