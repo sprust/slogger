@@ -26,6 +26,10 @@
                                         "type": "integer",
                                         "minimum": 1
                                     },
+                                    "per_page": {
+                                        "type": "integer",
+                                        "minimum": 1
+                                    },
                                     "types": {
                                         "type": "array",
                                         "items": {

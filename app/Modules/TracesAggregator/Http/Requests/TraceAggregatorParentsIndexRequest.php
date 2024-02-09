@@ -16,6 +16,11 @@ class TraceAggregatorParentsIndexRequest extends FormRequest
                 'int',
                 'min:1',
             ],
+            'per_page'         => [
+                'sometimes',
+                'int',
+                'min:1',
+            ],
             'types'            => [
                 'sometimes',
                 'array',

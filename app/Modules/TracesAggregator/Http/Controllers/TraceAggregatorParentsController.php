@@ -22,7 +22,8 @@ readonly class TraceAggregatorParentsController
 
         $parents = $this->repository->findParents(
             new TraceParentsFindParameters(
-                page: $request->page ?? 1,
+                page: $validated['page'] ?? 1,
+                perPage: $validated['per_page'] ?? null,
                 types: $validated['types'] ?? [],
                 loggingPeriod: PeriodParameters::fromStringValues(
                     from: $validated['logging_from'] ?? null,
