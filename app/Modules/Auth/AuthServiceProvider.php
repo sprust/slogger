@@ -7,7 +7,6 @@ use App\Modules\Auth\Http\Controllers\AuthMeController;
 use App\Modules\Auth\Http\Middlewares\AuthMiddleware;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
-use SLoggerLaravel\Middleware\SLoggerHttpMiddleware;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -20,9 +19,6 @@ class AuthServiceProvider extends ServiceProvider
     {
         Route::prefix('admin-api')
             ->as('admin-api.')
-            ->middleware([
-                SLoggerHttpMiddleware::class,
-            ])
             ->group(function () {
                 Route::prefix('/auth')
                     ->as('auth.')
