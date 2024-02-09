@@ -36,6 +36,12 @@
                                             "type": "string"
                                         }
                                     },
+                                    "tags": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
                                     "logging_from": {
                                         "type": "string",
                                         "format": "date"

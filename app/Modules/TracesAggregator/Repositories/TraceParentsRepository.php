@@ -122,6 +122,10 @@ class TraceParentsRepository implements TraceParentsRepositoryInterface
                 $parameters->types,
                 fn(Builder $query) => $query->whereIn('type', $parameters->types)
             )
+            ->when(
+                $parameters->tags,
+                fn(Builder $query) => $query->where('tags', 'all', $parameters->tags)
+            )
             ->when($loggedAtFrom, fn(Builder $query) => $query->where('loggedAt', '>=', $loggedAtFrom))
             ->when($loggedAtTo, fn(Builder $query) => $query->where('loggedAt', '<=', $loggedAtTo))
             ->when(

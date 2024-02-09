@@ -29,6 +29,14 @@ class TraceAggregatorParentsIndexRequest extends FormRequest
                 'required',
                 'string',
             ],
+            'tags'             => [
+                'sometimes',
+                'array',
+            ],
+            'tags.*'           => [
+                'required',
+                'string',
+            ],
             'logging_from'     => [
                 'sometimes',
                 'date',
