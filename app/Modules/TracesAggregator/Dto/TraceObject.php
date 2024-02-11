@@ -3,6 +3,8 @@
 namespace App\Modules\TracesAggregator\Dto;
 
 use App\Models\Traces\Trace;
+use App\Modules\TracesAggregator\Dto\Objects\TraceDataNodeObject;
+use App\Modules\TracesAggregator\Services\TraceDataConverter;
 use Carbon\Carbon;
 
 readonly class TraceObject
@@ -13,7 +15,7 @@ readonly class TraceObject
         public ?string $parentTraceId,
         public string $type,
         public array $tags,
-        public array $data,
+        public TraceDataNodeObject $data,
         public Carbon $loggedAt,
         public Carbon $createdAt,
         public Carbon $updatedAt
@@ -28,7 +30,7 @@ readonly class TraceObject
             parentTraceId: $trace->parentTraceId,
             type: $trace->type,
             tags: $trace->tags,
-            data: $trace->data,
+            data: (new TraceDataConverter($trace->data))->convert(),
             loggedAt: $trace->loggedAt,
             createdAt: $trace->createdAt,
             updatedAt: $trace->updatedAt
