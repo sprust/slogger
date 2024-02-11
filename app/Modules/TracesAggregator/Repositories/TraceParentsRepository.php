@@ -202,7 +202,7 @@ class TraceParentsRepository implements TraceParentsRepositoryInterface
                 ?? [];
 
             $resultItems[] = new TraceParentObject(
-                trace: TraceObject::fromModel($parent),
+                trace: TraceObject::fromModel($parent, $parameters->customFields),
                 types: $types
             );
         }

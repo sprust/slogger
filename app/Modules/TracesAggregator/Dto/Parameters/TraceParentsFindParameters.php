@@ -15,6 +15,7 @@ readonly class TraceParentsFindParameters
         public ?int $perPage = null,
         public array $types = [],
         public array $tags = [],
+        public array $customFields = [],
         public ?PeriodParameters $loggingPeriod = null,
         public array $sort = []
     ) {

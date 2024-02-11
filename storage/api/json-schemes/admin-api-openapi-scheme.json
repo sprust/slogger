@@ -50,6 +50,12 @@
                                         "type": "string",
                                         "format": "date"
                                     },
+                                    "custom_fields": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
                                     "sort": {
                                         "type": "array",
                                         "items": {
@@ -244,6 +250,29 @@
                                                                             "value"
                                                                         ]
                                                                     },
+                                                                    "custom_fields": {
+                                                                        "type": "array",
+                                                                        "nullable": false,
+                                                                        "items": {
+                                                                            "properties": {
+                                                                                "key": {
+                                                                                    "type": "string",
+                                                                                    "nullable": false
+                                                                                },
+                                                                                "values": {
+                                                                                    "type": "array",
+                                                                                    "nullable": false,
+                                                                                    "items": {
+                                                                                        "type": "string"
+                                                                                    }
+                                                                                }
+                                                                            },
+                                                                            "required": [
+                                                                                "key",
+                                                                                "values"
+                                                                            ]
+                                                                        }
+                                                                    },
                                                                     "logged_at": {
                                                                         "type": "string",
                                                                         "nullable": false
@@ -263,6 +292,7 @@
                                                                     "type",
                                                                     "tags",
                                                                     "data",
+                                                                    "custom_fields",
                                                                     "logged_at",
                                                                     "created_at",
                                                                     "updated_at"
@@ -571,6 +601,29 @@
                                                                             "value"
                                                                         ]
                                                                     },
+                                                                    "custom_fields": {
+                                                                        "type": "array",
+                                                                        "nullable": false,
+                                                                        "items": {
+                                                                            "properties": {
+                                                                                "key": {
+                                                                                    "type": "string",
+                                                                                    "nullable": false
+                                                                                },
+                                                                                "values": {
+                                                                                    "type": "array",
+                                                                                    "nullable": false,
+                                                                                    "items": {
+                                                                                        "type": "string"
+                                                                                    }
+                                                                                }
+                                                                            },
+                                                                            "required": [
+                                                                                "key",
+                                                                                "values"
+                                                                            ]
+                                                                        }
+                                                                    },
                                                                     "logged_at": {
                                                                         "type": "string",
                                                                         "nullable": false
@@ -590,6 +643,7 @@
                                                                     "type",
                                                                     "tags",
                                                                     "data",
+                                                                    "custom_fields",
                                                                     "logged_at",
                                                                     "created_at",
                                                                     "updated_at"

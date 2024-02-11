@@ -45,6 +45,14 @@ class TraceAggregatorParentsIndexRequest extends FormRequest
                 'sometimes',
                 'date',
             ],
+            'custom_fields'       => [
+                'sometimes',
+                'array',
+            ],
+            'custom_fields.*'       => [
+                'required',
+                'string',
+            ],
             'sort'             => [
                 'sometimes',
                 'array',

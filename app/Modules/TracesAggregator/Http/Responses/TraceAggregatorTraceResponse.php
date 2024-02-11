@@ -15,6 +15,8 @@ class TraceAggregatorTraceResponse extends AbstractApiResource
     #[OaListItemTypeAttribute('string')]
     private array $tags;
     private TraceAggregatorTraceDataNodeResponse $data;
+    #[OaListItemTypeAttribute(TraceAggregatorTraceDataCustomFieldResponse::class)]
+    private array $custom_fields;
     private string $logged_at;
     private string $created_at;
     private string $updated_at;
@@ -29,8 +31,10 @@ class TraceAggregatorTraceResponse extends AbstractApiResource
         $this->type            = $trace->type;
         $this->tags            = $trace->tags;
         $this->data            = new TraceAggregatorTraceDataNodeResponse($trace->data);
-        $this->logged_at       = $trace->loggedAt->toDateTimeString('microsecond');
-        $this->created_at      = $trace->createdAt->toDateTimeString('microsecond');
-        $this->updated_at      = $trace->updatedAt->toDateTimeString('microsecond');
+        $this->custom_fields    = TraceAggregatorTraceDataCustomFieldResponse::mapIntoMe($trace->customFields);
+
+        $this->logged_at  = $trace->loggedAt->toDateTimeString('microsecond');
+        $this->created_at = $trace->createdAt->toDateTimeString('microsecond');
+        $this->updated_at = $trace->updatedAt->toDateTimeString('microsecond');
     }
 }
