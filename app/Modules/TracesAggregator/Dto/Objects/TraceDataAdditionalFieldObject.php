@@ -2,7 +2,7 @@
 
 namespace App\Modules\TracesAggregator\Dto\Objects;
 
-class TraceDataCustomFieldObject
+class TraceDataAdditionalFieldObject
 {
     public function __construct(
         public string $key,

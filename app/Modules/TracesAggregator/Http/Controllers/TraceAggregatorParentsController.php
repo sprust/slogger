@@ -26,7 +26,7 @@ readonly class TraceAggregatorParentsController
                 perPage: $validated['per_page'] ?? null,
                 types: $validated['types'] ?? [],
                 tags: $validated['tags'] ?? [],
-                customFields: $validated['custom_fields'] ?? [],
+                additionalFields: $validated['additional_fields'] ?? [],
                 loggingPeriod: PeriodParameters::fromStringValues(
                     from: $validated['logging_from'] ?? null,
                     to: $validated['logging_to'] ?? null,

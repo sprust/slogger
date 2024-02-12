@@ -10,57 +10,57 @@ class TraceAggregatorParentsIndexRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'page'             => [
+            'page'                => [
                 'required',
                 'int',
                 'min:1',
             ],
-            'per_page'         => [
+            'per_page'            => [
                 'sometimes',
                 'int',
                 'min:1',
             ],
-            'types'            => [
+            'types'               => [
                 'sometimes',
                 'array',
             ],
-            'types.*'          => [
+            'types.*'             => [
                 'required',
                 'string',
             ],
-            'tags'             => [
+            'tags'                => [
                 'sometimes',
                 'array',
             ],
-            'tags.*'           => [
+            'tags.*'              => [
                 'required',
                 'string',
             ],
-            'logging_from'     => [
+            'logging_from'        => [
                 'sometimes',
                 'date',
             ],
-            'logging_to'       => [
+            'logging_to'          => [
                 'sometimes',
                 'date',
             ],
-            'custom_fields'       => [
+            'additional_fields'   => [
                 'sometimes',
                 'array',
             ],
-            'custom_fields.*'       => [
+            'additional_fields.*' => [
                 'required',
                 'string',
             ],
-            'sort'             => [
+            'sort'                => [
                 'sometimes',
                 'array',
             ],
-            'sort.*.field'     => [
+            'sort.*.field'        => [
                 'required',
                 'string',
             ],
-            'sort.*.direction' => [
+            'sort.*.direction'    => [
                 'required',
                 'string',
                 'in:' . implode(

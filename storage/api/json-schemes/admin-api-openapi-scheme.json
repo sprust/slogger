@@ -50,7 +50,7 @@
                                         "type": "string",
                                         "format": "date"
                                     },
-                                    "custom_fields": {
+                                    "additional_fields": {
                                         "type": "array",
                                         "items": {
                                             "type": "string"
@@ -247,7 +247,7 @@
                                                                             "value"
                                                                         ]
                                                                     },
-                                                                    "custom_fields": {
+                                                                    "additional_fields": {
                                                                         "type": "array",
                                                                         "nullable": false,
                                                                         "items": {
@@ -289,7 +289,7 @@
                                                                     "type",
                                                                     "tags",
                                                                     "data",
-                                                                    "custom_fields",
+                                                                    "additional_fields",
                                                                     "logged_at",
                                                                     "created_at",
                                                                     "updated_at"
@@ -598,7 +598,7 @@
                                                                             "value"
                                                                         ]
                                                                     },
-                                                                    "custom_fields": {
+                                                                    "additional_fields": {
                                                                         "type": "array",
                                                                         "nullable": false,
                                                                         "items": {
@@ -640,7 +640,7 @@
                                                                     "type",
                                                                     "tags",
                                                                     "data",
-                                                                    "custom_fields",
+                                                                    "additional_fields",
                                                                     "logged_at",
                                                                     "created_at",
                                                                     "updated_at"
