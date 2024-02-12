@@ -62,10 +62,7 @@
                                             "type": "object",
                                             "properties": {
                                                 "field": {
-                                                    "type": "string",
-                                                    "enum": [
-                                                        "logged_at"
-                                                    ]
+                                                    "type": "string"
                                                 },
                                                 "direction": {
                                                     "type": "string",

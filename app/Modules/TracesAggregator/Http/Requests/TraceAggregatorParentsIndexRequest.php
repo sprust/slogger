@@ -2,7 +2,6 @@
 
 namespace App\Modules\TracesAggregator\Http\Requests;
 
-use App\Modules\TracesAggregator\Enums\TraceParentsSortFieldEnum;
 use App\Services\Enums\SortDirectionEnum;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -58,18 +57,11 @@ class TraceAggregatorParentsIndexRequest extends FormRequest
                 'array',
             ],
             'sort.*.field'     => [
-                'sometimes',
+                'required',
                 'string',
-                'in:' . implode(
-                    ',',
-                    array_map(
-                        fn(TraceParentsSortFieldEnum $enum) => $enum->value,
-                        TraceParentsSortFieldEnum::cases()
-                    )
-                ),
             ],
             'sort.*.direction' => [
-                'sometimes',
+                'required',
                 'string',
                 'in:' . implode(
                     ',',

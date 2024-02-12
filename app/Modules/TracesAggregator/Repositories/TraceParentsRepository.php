@@ -10,7 +10,6 @@ use App\Modules\TracesAggregator\Dto\Objects\TraceParentTypeObjects;
 use App\Modules\TracesAggregator\Dto\Parameters\TraceParentsFindParameters;
 use App\Modules\TracesAggregator\Dto\Parameters\TraceParentTypesParameters;
 use App\Modules\TracesAggregator\Dto\TraceObject;
-use App\Modules\TracesAggregator\Enums\TraceParentsSortFieldEnum;
 use App\Services\Dto\PaginationInfoObject;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -132,11 +131,7 @@ class TraceParentsRepository implements TraceParentsRepositoryInterface
                 count($parameters->sort),
                 function (Builder $query) use ($parameters) {
                     foreach ($parameters->sort as $sortItem) {
-                        $field = match ($sortItem->fieldEnum) {
-                            TraceParentsSortFieldEnum::LoggedAt => 'loggedAt'
-                        };
-
-                        $query->orderBy($field, $sortItem->directionEnum->value);
+                        $query->orderBy($sortItem->field, $sortItem->directionEnum->value);
                     }
                 }
             )
