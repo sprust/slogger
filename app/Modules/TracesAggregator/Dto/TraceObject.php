@@ -46,6 +46,10 @@ readonly class TraceObject
 
                 $preValue = Arr::get($trace->data, $preKey);
 
+                if (is_null($preValue)) {
+                    continue;
+                }
+
                 if (Arr::isAssoc($preValue)) {
                     $values = [Arr::get($trace->data, $additionalField)];
                 } else {
