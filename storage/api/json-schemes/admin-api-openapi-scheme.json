@@ -50,10 +50,76 @@
                                         "type": "string",
                                         "format": "date"
                                     },
-                                    "additional_fields": {
-                                        "type": "array",
-                                        "items": {
-                                            "type": "string"
+                                    "data": {
+                                        "type": "object",
+                                        "properties": {
+                                            "filter": {
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "field": {
+                                                            "type": "string"
+                                                        },
+                                                        "null": {
+                                                            "type": "boolean",
+                                                            "nullable": true
+                                                        },
+                                                        "numeric": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "value": {
+                                                                    "type": "number",
+                                                                    "format": "float"
+                                                                },
+                                                                "comp": {
+                                                                    "type": "string",
+                                                                    "enum": [
+                                                                        "=",
+                                                                        "!=",
+                                                                        ">",
+                                                                        ">=",
+                                                                        "<",
+                                                                        "<="
+                                                                    ]
+                                                                }
+                                                            }
+                                                        },
+                                                        "string": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "value": {
+                                                                    "type": "string"
+                                                                },
+                                                                "comp": {
+                                                                    "type": "string",
+                                                                    "enum": [
+                                                                        "equals",
+                                                                        "contains",
+                                                                        "starts",
+                                                                        "ends"
+                                                                    ]
+                                                                }
+                                                            }
+                                                        },
+                                                        "boolean": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "value": {
+                                                                    "type": "boolean",
+                                                                    "nullable": true
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            "fields": {
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "string"
+                                                }
+                                            }
                                         }
                                     },
                                     "sort": {

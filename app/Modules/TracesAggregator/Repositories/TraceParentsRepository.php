@@ -7,9 +7,11 @@ use App\Modules\TracesAggregator\Dto\Objects\TraceParentObject;
 use App\Modules\TracesAggregator\Dto\Objects\TraceParentObjects;
 use App\Modules\TracesAggregator\Dto\Objects\TraceParentTypeObject;
 use App\Modules\TracesAggregator\Dto\Objects\TraceParentTypeObjects;
+use App\Modules\TracesAggregator\Dto\Parameters\DataFilter\TraceDataFilterItemParameters;
 use App\Modules\TracesAggregator\Dto\Parameters\TraceParentsFindParameters;
 use App\Modules\TracesAggregator\Dto\Parameters\TraceParentTypesParameters;
 use App\Modules\TracesAggregator\Dto\TraceObject;
+use App\Modules\TracesAggregator\Enums\TraceDataFilterCompStringTypeEnum;
 use App\Services\Dto\PaginationInfoObject;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -115,8 +117,11 @@ class TraceParentsRepository implements TraceParentsRepositoryInterface
         $loggedAtFrom = $parameters->loggingPeriod?->from;
         $loggedAtTo   = $parameters->loggingPeriod?->to;
 
-        $parentsPaginator = Trace::query()
-            ->whereNull('parentTraceId')
+        $data = $parameters->data;
+
+        $builder = Trace::query()
+            ->when($loggedAtFrom, fn(Builder $query) => $query->where('loggedAt', '>=', $loggedAtFrom))
+            ->when($loggedAtTo, fn(Builder $query) => $query->where('loggedAt', '<=', $loggedAtTo))
             ->when(
                 $parameters->types,
                 fn(Builder $query) => $query->whereIn('type', $parameters->types)
@@ -125,8 +130,13 @@ class TraceParentsRepository implements TraceParentsRepositoryInterface
                 $parameters->tags,
                 fn(Builder $query) => $query->where('tags', 'all', $parameters->tags)
             )
-            ->when($loggedAtFrom, fn(Builder $query) => $query->where('loggedAt', '>=', $loggedAtFrom))
-            ->when($loggedAtTo, fn(Builder $query) => $query->where('loggedAt', '<=', $loggedAtTo))
+            ->when(!is_null($data), function (Builder $query) use ($data) {
+                foreach ($data->filter as $filterItem) {
+                    $query->where(
+                        $filterItem->field,
+                    );
+                }
+            })
             ->when(
                 count($parameters->sort),
                 function (Builder $query) use ($parameters) {
@@ -134,7 +144,9 @@ class TraceParentsRepository implements TraceParentsRepositoryInterface
                         $query->orderBy($sortItem->field, $sortItem->directionEnum->value);
                     }
                 }
-            )
+            );
+
+        $parentsPaginator = $this->applyDataFilter($builder, $parameters->data->filter)
             ->paginate(
                 perPage: $perPage,
                 page: $parameters->page
@@ -197,7 +209,7 @@ class TraceParentsRepository implements TraceParentsRepositoryInterface
                 ?? [];
 
             $resultItems[] = new TraceParentObject(
-                trace: TraceObject::fromModel($parent, $parameters->additionalFields),
+                trace: TraceObject::fromModel($parent, $data?->fields ?? []),
                 types: $types
             );
         }
@@ -210,5 +222,68 @@ class TraceParentsRepository implements TraceParentsRepositoryInterface
                 currentPage: $parameters->page,
             ),
         );
+    }
+
+    /**
+     * @param TraceDataFilterItemParameters[] $filter
+     */
+    private function applyDataFilter(Builder $builder, array $filter): Builder
+    {
+        foreach ($filter as $filterItem) {
+            $field = "data.$filterItem->field";
+
+            if (!is_null($filterItem->null)) {
+                $filterItem->null
+                    ? $builder->whereNull($field)
+                    : $builder->whereNotNull($field);
+
+                continue;
+            }
+
+            if (!is_null($filterItem->numeric)) {
+                $builder->where(
+                    column: $field,
+                    operator: $filterItem->numeric->comp->value,
+                    value: $filterItem->numeric->value
+                );
+
+                continue;
+            }
+
+            if (!is_null($filterItem->string)) {
+                switch ($filterItem->string->comp) {
+                    case TraceDataFilterCompStringTypeEnum::Con:
+                        $pre  = '%';
+                        $post = '%';
+                        break;
+                    case TraceDataFilterCompStringTypeEnum::Starts:
+                        $pre  = '';
+                        $post = '%';
+                        break;
+                    case TraceDataFilterCompStringTypeEnum::Ends:
+                        $pre  = '%';
+                        $post = '';
+                        break;
+                    default:
+                        $pre  = '';
+                        $post = '';
+                        break;
+                }
+
+                $builder->where(
+                    column: $field,
+                    operator: 'like',
+                    value: "$pre{$filterItem->string->value}$post"
+                );
+
+                continue;
+            }
+
+            if (!is_null($filterItem->boolean)) {
+                $builder->where($field, $filterItem->boolean);
+            }
+        }
+
+        return $builder;
     }
 }
