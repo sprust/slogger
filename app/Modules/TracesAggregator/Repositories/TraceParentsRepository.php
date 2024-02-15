@@ -130,13 +130,6 @@ class TraceParentsRepository implements TraceParentsRepositoryInterface
                 $parameters->tags,
                 fn(Builder $query) => $query->where('tags', 'all', $parameters->tags)
             )
-            ->when(!is_null($data), function (Builder $query) use ($data) {
-                foreach ($data->filter as $filterItem) {
-                    $query->where(
-                        $filterItem->field,
-                    );
-                }
-            })
             ->when(
                 count($parameters->sort),
                 function (Builder $query) use ($parameters) {
@@ -230,7 +223,7 @@ class TraceParentsRepository implements TraceParentsRepositoryInterface
     private function applyDataFilter(Builder $builder, array $filter): Builder
     {
         foreach ($filter as $filterItem) {
-            $field = "data.$filterItem->field";
+            $field = $filterItem->field;
 
             if (!is_null($filterItem->null)) {
                 $filterItem->null

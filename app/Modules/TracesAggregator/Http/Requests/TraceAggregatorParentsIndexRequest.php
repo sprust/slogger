@@ -60,7 +60,6 @@ class TraceAggregatorParentsIndexRequest extends FormRequest
             ],
             'data.filter.*.null'          => [
                 'sometimes',
-                'nullable',
                 'bool',
             ],
             'data.filter.*.numeric'       => [
@@ -68,11 +67,11 @@ class TraceAggregatorParentsIndexRequest extends FormRequest
                 'array',
             ],
             'data.filter.*.numeric.value' => [
-                'required',
+                'sometimes',
                 'numeric',
             ],
             'data.filter.*.numeric.comp'  => [
-                'required',
+                'sometimes',
                 'string',
                 'in:' . implode(
                     ',',
@@ -87,11 +86,11 @@ class TraceAggregatorParentsIndexRequest extends FormRequest
                 'array',
             ],
             'data.filter.*.string.value'  => [
-                'required',
+                'sometimes',
                 'string',
             ],
             'data.filter.*.string.comp'   => [
-                'required',
+                'sometimes',
                 'string',
                 'in:' . implode(
                     ',',
@@ -106,8 +105,7 @@ class TraceAggregatorParentsIndexRequest extends FormRequest
                 'array',
             ],
             'data.filter.*.boolean.value' => [
-                'required',
-                'nullable',
+                'sometimes',
                 'bool',
             ],
             'data.fields'                 => [

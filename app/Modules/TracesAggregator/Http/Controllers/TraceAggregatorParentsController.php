@@ -10,7 +10,6 @@ use App\Modules\TracesAggregator\Dto\Parameters\DataFilter\TraceDataFilterString
 use App\Modules\TracesAggregator\Dto\Parameters\TraceParentsFindParameters;
 use App\Modules\TracesAggregator\Dto\Parameters\TraceParentsSortParameters;
 use App\Modules\TracesAggregator\Dto\PeriodParameters;
-use App\Modules\TracesAggregator\Enums\TraceAggregatorFilterCompTypeEnum;
 use App\Modules\TracesAggregator\Enums\TraceDataFilterCompNumericTypeEnum;
 use App\Modules\TracesAggregator\Enums\TraceDataFilterCompStringTypeEnum;
 use App\Modules\TracesAggregator\Http\Requests\TraceAggregatorParentsIndexRequest;
@@ -47,19 +46,19 @@ readonly class TraceAggregatorParentsController
                                 : null,
                             numeric: array_key_exists('numeric', $filterItem)
                                 ? new TraceDataFilterNumericParameters(
-                                    value: $filterItem['value'],
-                                    comp: TraceDataFilterCompNumericTypeEnum::from($filterItem['comp']),
+                                    value: $filterItem['numeric']['value'],
+                                    comp: TraceDataFilterCompNumericTypeEnum::from($filterItem['numeric']['comp']),
                                 )
                                 : null,
                             string: array_key_exists('string', $filterItem)
                                 ? new TraceDataFilterStringParameters(
-                                    value: $filterItem['value'],
-                                    comp: TraceDataFilterCompStringTypeEnum::from($filterItem['comp']),
+                                    value: $filterItem['string']['value'],
+                                    comp: TraceDataFilterCompStringTypeEnum::from($filterItem['string']['comp']),
                                 )
                                 : null,
                             boolean: array_key_exists('boolean', $filterItem)
                                 ? new TraceDataFilterBooleanParameters(
-                                    value: $filterItem['value']
+                                    value: $filterItem['boolean']['value']
                                 )
                                 : null
                         ),
