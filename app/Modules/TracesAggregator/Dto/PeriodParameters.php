@@ -15,8 +15,8 @@ class PeriodParameters
     public static function fromStringValues(?string $from, ?string $to): ?static
     {
         $period = new static(
-            from: $from,
-            to: $to
+            from: $from ? (new Carbon($from))->setTimezone('UTC') : null,
+            to: $to ? (new Carbon($to))->setTimezone('UTC') : null,
         );
 
         if (!$period->from && !$period->to) {
