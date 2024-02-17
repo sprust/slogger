@@ -62,8 +62,7 @@
                                                             "type": "string"
                                                         },
                                                         "null": {
-                                                            "type": "boolean",
-                                                            "nullable": true
+                                                            "type": "boolean"
                                                         },
                                                         "numeric": {
                                                             "type": "object",
@@ -106,8 +105,7 @@
                                                             "type": "object",
                                                             "properties": {
                                                                 "value": {
-                                                                    "type": "boolean",
-                                                                    "nullable": true
+                                                                    "type": "boolean"
                                                                 }
                                                             }
                                                         }
@@ -419,6 +417,264 @@
                                                 "items",
                                                 "paginator"
                                             ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/admin-api/trace-aggregator/parents/types": {
+            "post": {
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "text": {
+                                        "type": "string",
+                                        "nullable": true,
+                                        "minLength": 1
+                                    },
+                                    "logging_from": {
+                                        "type": "string",
+                                        "format": "date"
+                                    },
+                                    "logging_to": {
+                                        "type": "string",
+                                        "format": "date"
+                                    },
+                                    "data": {
+                                        "type": "object",
+                                        "properties": {
+                                            "filter": {
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "field": {
+                                                            "type": "string"
+                                                        },
+                                                        "null": {
+                                                            "type": "boolean"
+                                                        },
+                                                        "numeric": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "value": {
+                                                                    "type": "number",
+                                                                    "format": "float"
+                                                                },
+                                                                "comp": {
+                                                                    "type": "string",
+                                                                    "enum": [
+                                                                        "=",
+                                                                        "!=",
+                                                                        ">",
+                                                                        ">=",
+                                                                        "<",
+                                                                        "<="
+                                                                    ]
+                                                                }
+                                                            }
+                                                        },
+                                                        "string": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "value": {
+                                                                    "type": "string"
+                                                                },
+                                                                "comp": {
+                                                                    "type": "string",
+                                                                    "enum": [
+                                                                        "equals",
+                                                                        "contains",
+                                                                        "starts",
+                                                                        "ends"
+                                                                    ]
+                                                                }
+                                                            }
+                                                        },
+                                                        "boolean": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "value": {
+                                                                    "type": "boolean"
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "value": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    }
+                                                },
+                                                "required": [
+                                                    "value"
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/admin-api/trace-aggregator/parents/tags": {
+            "post": {
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "text": {
+                                        "type": "string",
+                                        "nullable": true,
+                                        "minLength": 1
+                                    },
+                                    "logging_from": {
+                                        "type": "string",
+                                        "format": "date"
+                                    },
+                                    "logging_to": {
+                                        "type": "string",
+                                        "format": "date"
+                                    },
+                                    "data": {
+                                        "type": "object",
+                                        "properties": {
+                                            "filter": {
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "field": {
+                                                            "type": "string"
+                                                        },
+                                                        "null": {
+                                                            "type": "boolean"
+                                                        },
+                                                        "numeric": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "value": {
+                                                                    "type": "number",
+                                                                    "format": "float"
+                                                                },
+                                                                "comp": {
+                                                                    "type": "string",
+                                                                    "enum": [
+                                                                        "=",
+                                                                        "!=",
+                                                                        ">",
+                                                                        ">=",
+                                                                        "<",
+                                                                        "<="
+                                                                    ]
+                                                                }
+                                                            }
+                                                        },
+                                                        "string": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "value": {
+                                                                    "type": "string"
+                                                                },
+                                                                "comp": {
+                                                                    "type": "string",
+                                                                    "enum": [
+                                                                        "equals",
+                                                                        "contains",
+                                                                        "starts",
+                                                                        "ends"
+                                                                    ]
+                                                                }
+                                                            }
+                                                        },
+                                                        "boolean": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "value": {
+                                                                    "type": "boolean"
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "value": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    }
+                                                },
+                                                "required": [
+                                                    "value"
+                                                ]
+                                            }
                                         }
                                     },
                                     "required": [

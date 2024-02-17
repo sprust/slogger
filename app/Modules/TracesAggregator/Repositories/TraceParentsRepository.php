@@ -6,130 +6,33 @@ use App\Models\Traces\Trace;
 use App\Modules\TracesAggregator\Dto\Objects\TraceParentObject;
 use App\Modules\TracesAggregator\Dto\Objects\TraceParentObjects;
 use App\Modules\TracesAggregator\Dto\Objects\TraceParentTypeObject;
-use App\Modules\TracesAggregator\Dto\Objects\TraceParentTypeObjects;
 use App\Modules\TracesAggregator\Dto\Parameters\DataFilter\TraceDataFilterItemParameters;
+use App\Modules\TracesAggregator\Dto\Parameters\DataFilter\TraceDataFilterParameters;
+use App\Modules\TracesAggregator\Dto\Parameters\TraceParentsFindByTextParameters;
 use App\Modules\TracesAggregator\Dto\Parameters\TraceParentsFindParameters;
-use App\Modules\TracesAggregator\Dto\Parameters\TraceParentTypesParameters;
+use App\Modules\TracesAggregator\Dto\PeriodParameters;
 use App\Modules\TracesAggregator\Dto\TraceObject;
 use App\Modules\TracesAggregator\Enums\TraceDataFilterCompStringTypeEnum;
 use App\Services\Dto\PaginationInfoObject;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
-use MongoDB\BSON\UTCDateTime;
 
 class TraceParentsRepository implements TraceParentsRepositoryInterface
 {
     private int $maxPerPage = 20;
 
-    public function findParentTypes(TraceParentTypesParameters $parameters): TraceParentTypeObjects
-    {
-        $pipeline = [];
-
-        $match = [
-            'parentTraceId' => null,
-        ];
-
-        $loggedAtFrom = $parameters->loggingPeriod?->from;
-        $loggedAtTo   = $parameters->loggingPeriod?->to;
-
-        if ($loggedAtFrom || $loggedAtTo) {
-            $match['loggedAt'] = [
-                ...($loggedAtFrom ? ['$gte' => new UTCDateTime($loggedAtFrom)] : []),
-                ...($loggedAtTo ? ['$lte' => new UTCDateTime($loggedAtTo)] : []),
-            ];
-        }
-
-        $pipeline[] = [
-            '$match' => $match,
-        ];
-
-        $pipeline[] = [
-            '$group' => [
-                '_id'   => [
-                    'type' => '$type',
-                ],
-                'count' => [
-                    '$sum' => 1,
-                ],
-            ],
-        ];
-
-        $pipeline[] = [
-            '$project' => [
-                '_id'   => 1,
-                'count' => 1,
-            ],
-        ];
-
-        $pipeline[] = [
-            '$sort' => [
-                'count'    => -1,
-                '_id.type' => 1,
-            ],
-        ];
-
-        $limit = min($parameters->perPage ?: $this->maxPerPage, $this->maxPerPage);
-        $skip  = ($parameters->page - 1) * $limit;
-
-        $pipeline[] = [
-            '$facet' => [
-                'result' => [
-                    [
-                        '$limit' => $limit,
-                    ],
-                    [
-                        '$skip' => $skip,
-                    ],
-                ],
-                'count'  => [
-                    [
-                        '$count' => 'count',
-                    ],
-                ],
-            ],
-        ];
-
-        $typesAggregation = collect(Trace::collection()->aggregate($pipeline));
-
-        $resultItems = [];
-
-        foreach ($typesAggregation[0]->result as $item) {
-            $resultItems[] = new TraceParentTypeObject(
-                type: $item->_id->type,
-                count: $item->count,
-            );
-        }
-
-        return new TraceParentTypeObjects(
-            items: $resultItems,
-            paginationInfo: new PaginationInfoObject(
-                total: $typesAggregation[0]->count[0]?->count ?? 0,
-                perPage: $limit,
-                currentPage: $parameters->page,
-            ),
-        );
-    }
-
     public function findParents(TraceParentsFindParameters $parameters): TraceParentObjects
     {
         $perPage = min($parameters->perPage ?: $this->maxPerPage, $this->maxPerPage);
 
-        $loggedAtFrom = $parameters->loggingPeriod?->from;
-        $loggedAtTo   = $parameters->loggingPeriod?->to;
+        $builder = $this->makeBuilder(
+            loggingPeriod: $parameters->loggingPeriod,
+            types: $parameters->types,
+            tags: $parameters->tags,
+            data: $parameters->data,
+        );
 
-        $data = $parameters->data;
-
-        $builder = Trace::query()
-            ->when($loggedAtFrom, fn(Builder $query) => $query->where('loggedAt', '>=', $loggedAtFrom))
-            ->when($loggedAtTo, fn(Builder $query) => $query->where('loggedAt', '<=', $loggedAtTo))
-            ->when(
-                $parameters->types,
-                fn(Builder $query) => $query->whereIn('type', $parameters->types)
-            )
-            ->when(
-                $parameters->tags,
-                fn(Builder $query) => $query->where('tags', 'all', $parameters->tags)
-            )
+        $parentsPaginator = $builder
             ->when(
                 count($parameters->sort),
                 function (Builder $query) use ($parameters) {
@@ -137,9 +40,7 @@ class TraceParentsRepository implements TraceParentsRepositoryInterface
                         $query->orderBy($sortItem->field, $sortItem->directionEnum->value);
                     }
                 }
-            );
-
-        $parentsPaginator = $this->applyDataFilter($builder, $parameters->data->filter)
+            )
             ->paginate(
                 perPage: $perPage,
                 page: $parameters->page
@@ -202,7 +103,7 @@ class TraceParentsRepository implements TraceParentsRepositoryInterface
                 ?? [];
 
             $resultItems[] = new TraceParentObject(
-                trace: TraceObject::fromModel($parent, $data?->fields ?? []),
+                trace: TraceObject::fromModel($parent, $parameters->data?->fields ?? []),
                 types: $types
             );
         }
@@ -215,6 +116,100 @@ class TraceParentsRepository implements TraceParentsRepositoryInterface
                 currentPage: $parameters->page,
             ),
         );
+    }
+
+    public function findTypes(TraceParentsFindByTextParameters $parameters): array
+    {
+        return $this
+            ->makeBuilder(
+                loggingPeriod: $parameters->loggingPeriod,
+                data: $parameters->data,
+            )
+            ->when(
+                $parameters->text,
+                fn(Builder $query) => $query->where('type', 'like', "%$parameters->text%")
+            )
+            ->groupBy('type')
+            ->pluck('type')
+            ->sort()
+            ->toArray();
+    }
+
+    public function findTags(TraceParentsFindByTextParameters $parameters): array
+    {
+        $mql = $this
+            ->makeBuilder(
+                loggingPeriod: $parameters->loggingPeriod,
+                data: $parameters->data,
+            )
+            ->toMql();
+
+        $match = [];
+
+        foreach ($mql['find'][0] ?? [] as $key => $value) {
+            $match[$key] = $value;
+        }
+
+        $pipeline = [];
+
+        if ($match) {
+            $pipeline[] = [
+                '$match' => $match,
+            ];
+        }
+
+        $pipeline[] = [
+            '$unwind' => [
+                'path' => '$tags',
+            ],
+        ];
+
+        $pipeline[] = [
+            '$group' => [
+                '_id' => '$tags',
+            ],
+        ];
+
+        if ($parameters->text) {
+            $pipeline[] = [
+                '$match' => [
+                    '_id' => [
+                        '$regex' => "^.*$parameters->text.*$",
+                    ],
+                ],
+            ];
+        }
+
+        $iterator = Trace::collection()->aggregate($pipeline);
+
+        return collect($iterator)->pluck('_id')->sort()->toArray();
+    }
+
+    /**
+     * @return Builder|Trace
+     */
+    private function makeBuilder(
+        ?PeriodParameters $loggingPeriod = null,
+        array $types = [],
+        array $tags = [],
+        ?TraceDataFilterParameters $data = null,
+    ): Builder {
+        $loggedAtFrom = $loggingPeriod?->from;
+        $loggedAtTo   = $loggingPeriod?->to;
+
+        $builder = Trace::query()
+            ->when($loggedAtFrom, fn(Builder $query) => $query->where('loggedAt', '>=', $loggedAtFrom))
+            ->when($loggedAtTo, fn(Builder $query) => $query->where('loggedAt', '<=', $loggedAtTo))
+            ->when(
+                $types,
+                fn(Builder $query) => $query->whereIn('type', $types)
+            )
+            ->when(
+                $tags,
+                fn(Builder $query) => $query->where('tags', 'all', $tags)
+            );
+
+        return $this->applyDataFilter($builder, $data?->filter ?? []);
     }
 
     /**
