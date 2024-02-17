@@ -83,6 +83,7 @@ readonly class TraceAggregatorParentsController
                         from: $validated['logging_from'] ?? null,
                         to: $validated['logging_to'] ?? null,
                     ),
+                    types: $validated['types'] ?? [],
                     data: $this->makeDataFilterParameter($validated),
                 )
             )

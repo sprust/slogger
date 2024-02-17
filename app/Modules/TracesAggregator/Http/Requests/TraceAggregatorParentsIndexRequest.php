@@ -22,6 +22,14 @@ class TraceAggregatorParentsIndexRequest extends FormRequest
                 'int',
                 'min:1',
             ],
+            'logging_from'                => [
+                'sometimes',
+                'date',
+            ],
+            'logging_to'                  => [
+                'sometimes',
+                'date',
+            ],
             'types'                       => [
                 'sometimes',
                 'array',
@@ -37,14 +45,6 @@ class TraceAggregatorParentsIndexRequest extends FormRequest
             'tags.*'                      => [
                 'required',
                 'string',
-            ],
-            'logging_from'                => [
-                'sometimes',
-                'date',
-            ],
-            'logging_to'                  => [
-                'sometimes',
-                'date',
             ],
             'data'                        => [
                 'sometimes',

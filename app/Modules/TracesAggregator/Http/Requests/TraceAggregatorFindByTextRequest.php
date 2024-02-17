@@ -17,6 +17,14 @@ class TraceAggregatorFindByTextRequest extends FormRequest
                 'nullable',
                 'min:1',
             ],
+            'types'                       => [
+                'sometimes',
+                'array',
+            ],
+            'types.*'                     => [
+                'required',
+                'string',
+            ],
             'logging_from'                => [
                 'sometimes',
                 'date',

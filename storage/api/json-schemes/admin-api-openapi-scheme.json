@@ -30,6 +30,14 @@
                                         "type": "integer",
                                         "minimum": 1
                                     },
+                                    "logging_from": {
+                                        "type": "string",
+                                        "format": "date"
+                                    },
+                                    "logging_to": {
+                                        "type": "string",
+                                        "format": "date"
+                                    },
                                     "types": {
                                         "type": "array",
                                         "items": {
@@ -41,14 +49,6 @@
                                         "items": {
                                             "type": "string"
                                         }
-                                    },
-                                    "logging_from": {
-                                        "type": "string",
-                                        "format": "date"
-                                    },
-                                    "logging_to": {
-                                        "type": "string",
-                                        "format": "date"
                                     },
                                     "data": {
                                         "type": "object",
@@ -447,6 +447,12 @@
                                         "nullable": true,
                                         "minLength": 1
                                     },
+                                    "types": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
                                     "logging_from": {
                                         "type": "string",
                                         "format": "date"
@@ -575,6 +581,12 @@
                                         "type": "string",
                                         "nullable": true,
                                         "minLength": 1
+                                    },
+                                    "types": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
                                     },
                                     "logging_from": {
                                         "type": "string",

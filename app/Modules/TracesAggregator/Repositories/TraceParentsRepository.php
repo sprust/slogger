@@ -140,6 +140,7 @@ class TraceParentsRepository implements TraceParentsRepositoryInterface
         $mql = $this
             ->makeBuilder(
                 loggingPeriod: $parameters->loggingPeriod,
+                types: $parameters->types,
                 data: $parameters->data,
             )
             ->toMql();
