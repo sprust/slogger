@@ -164,9 +164,21 @@
                                                         "properties": {
                                                             "trace": {
                                                                 "properties": {
-                                                                    "service_id": {
-                                                                        "type": "integer",
-                                                                        "nullable": false
+                                                                    "service": {
+                                                                        "properties": {
+                                                                            "id": {
+                                                                                "type": "integer",
+                                                                                "nullable": false
+                                                                            },
+                                                                            "name": {
+                                                                                "type": "string",
+                                                                                "nullable": false
+                                                                            }
+                                                                        },
+                                                                        "required": [
+                                                                            "id",
+                                                                            "name"
+                                                                        ]
                                                                     },
                                                                     "trace_id": {
                                                                         "type": "string",
@@ -348,7 +360,6 @@
                                                                     }
                                                                 },
                                                                 "required": [
-                                                                    "service_id",
                                                                     "trace_id",
                                                                     "type",
                                                                     "tags",
@@ -785,9 +796,21 @@
                                                         "properties": {
                                                             "trace": {
                                                                 "properties": {
-                                                                    "service_id": {
-                                                                        "type": "integer",
-                                                                        "nullable": false
+                                                                    "service": {
+                                                                        "properties": {
+                                                                            "id": {
+                                                                                "type": "integer",
+                                                                                "nullable": false
+                                                                            },
+                                                                            "name": {
+                                                                                "type": "string",
+                                                                                "nullable": false
+                                                                            }
+                                                                        },
+                                                                        "required": [
+                                                                            "id",
+                                                                            "name"
+                                                                        ]
                                                                     },
                                                                     "trace_id": {
                                                                         "type": "string",
@@ -969,7 +992,6 @@
                                                                     }
                                                                 },
                                                                 "required": [
-                                                                    "service_id",
                                                                     "trace_id",
                                                                     "type",
                                                                     "tags",

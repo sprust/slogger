@@ -8,7 +8,7 @@ use Ifksco\OpenApiGenerator\Attributes\OaListItemTypeAttribute;
 
 class TraceAggregatorTraceResponse extends AbstractApiResource
 {
-    private int $service_id;
+    private ?TraceAggregatorTraceServiceResponse $service;
     private string $trace_id;
     private ?string $parent_trace_id;
     private string $type;
@@ -25,7 +25,7 @@ class TraceAggregatorTraceResponse extends AbstractApiResource
     {
         parent::__construct($trace);
 
-        $this->service_id      = $trace->serviceId;
+        $this->service         = TraceAggregatorTraceServiceResponse::makeIfNotNull($trace->service);
         $this->trace_id        = $trace->traceId;
         $this->parent_trace_id = $trace->parentTraceId;
         $this->type            = $trace->type;

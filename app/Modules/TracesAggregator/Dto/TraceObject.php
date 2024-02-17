@@ -16,7 +16,7 @@ readonly class TraceObject
      * @param TraceDataAdditionalFieldObject[] $additionalFields
      */
     public function __construct(
-        public int $serviceId,
+        public ?TraceServiceObject $service,
         public string $traceId,
         public ?string $parentTraceId,
         public string $type,
@@ -71,7 +71,12 @@ readonly class TraceObject
         }
 
         return new static(
-            serviceId: $trace->serviceId,
+            service: $trace->service
+                ? new TraceServiceObject(
+                    id: $trace->service->id,
+                    name: $trace->service->name,
+                )
+                : null,
             traceId: $trace->traceId,
             parentTraceId: $trace->parentTraceId,
             type: $trace->type,

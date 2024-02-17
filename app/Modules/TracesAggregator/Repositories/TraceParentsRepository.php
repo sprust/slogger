@@ -33,6 +33,9 @@ class TraceParentsRepository implements TraceParentsRepositoryInterface
         );
 
         $parentsPaginator = $builder
+            ->with([
+                'service',
+            ])
             ->when(
                 count($parameters->sort),
                 function (Builder $query) use ($parameters) {
