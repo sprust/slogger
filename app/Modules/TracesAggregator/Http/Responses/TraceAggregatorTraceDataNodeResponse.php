@@ -20,6 +20,7 @@ class TraceAggregatorTraceDataNodeResponse extends AbstractApiResource
         $this->key      = $nodeObject->key;
         $this->value    = $nodeObject->value;
         $this->children = $nodeObject->children
-            ?? TraceAggregatorTraceDataNodeResponse::mapIntoMe($nodeObject->children);
+            ? TraceAggregatorTraceDataNodeResponse::mapIntoMe($nodeObject->children)
+            : null;
     }
 }
