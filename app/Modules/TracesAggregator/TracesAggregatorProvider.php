@@ -48,6 +48,14 @@ class TracesAggregatorProvider extends ServiceProvider
                                     [TraceAggregatorParentsController::class, 'index']
                                 )->name('index');
                                 Route::post(
+                                    'types',
+                                    [TraceAggregatorParentsController::class, 'types']
+                                )->name('types');
+                                Route::post(
+                                    'tags',
+                                    [TraceAggregatorParentsController::class, 'tags']
+                                )->name('tags');
+                                Route::post(
                                     '/{parentTraceId}/children',
                                     [TraceAggregatorChildrenController::class, 'index']
                                 )->name('children');
