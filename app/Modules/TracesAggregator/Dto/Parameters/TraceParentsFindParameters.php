@@ -15,6 +15,8 @@ readonly class TraceParentsFindParameters
     public function __construct(
         public int $page = 1,
         public ?int $perPage = null,
+        public ?string $parentTraceId = null,
+        public ?string $traceId = null,
         public ?PeriodParameters $loggingPeriod = null,
         public array $types = [],
         public array $tags = [],

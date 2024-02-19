@@ -10,7 +10,7 @@ use App\Modules\TracesAggregator\Http\Requests\TraceAggregatorFindByTextRequest;
 use App\Modules\TracesAggregator\Http\Requests\TraceAggregatorParentsIndexRequest;
 use App\Modules\TracesAggregator\Http\Responses\TraceAggregatorParentItemsResponse;
 use App\Modules\TracesAggregator\Http\Responses\TraceAggregatorStringValueResponse;
-use App\Modules\TracesAggregator\Repositories\TraceParentsRepository;
+use App\Modules\TracesAggregator\Repositories\TraceParentsRepositoryInterface;
 use Ifksco\OpenApiGenerator\Attributes\OaListItemTypeAttribute;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
@@ -19,7 +19,7 @@ readonly class TraceAggregatorParentsController
     use TraceAggregatorParentsControllerTrait;
 
     public function __construct(
-        private TraceParentsRepository $repository
+        private TraceParentsRepositoryInterface $repository
     ) {
     }
 
@@ -31,6 +31,8 @@ readonly class TraceAggregatorParentsController
             new TraceParentsFindParameters(
                 page: $validated['page'] ?? 1,
                 perPage: $validated['per_page'] ?? null,
+                parentTraceId: $validated['parent_trace_id'] ?? null,
+                traceId: $validated['trace_id'] ?? null,
                 loggingPeriod: PeriodParameters::fromStringValues(
                     from: $validated['logging_from'] ?? null,
                     to: $validated['logging_to'] ?? null,
