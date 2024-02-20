@@ -4,6 +4,9 @@ namespace App\Modules\TracesAggregator;
 
 use App\Modules\TracesAggregator\Adapters\TracesAggregatorAuthAdapter;
 use App\Modules\TracesAggregator\Http\Controllers\TraceAggregatorParentsController;
+use App\Modules\TracesAggregator\Http\Controllers\TraceAggregatorTreeController;
+use App\Modules\TracesAggregator\Repositories\TraceTreeRepository;
+use App\Modules\TracesAggregator\Repositories\TraceTreeRepositoryInterface;
 use App\Modules\TracesAggregator\Repositories\TraceParentsRepository;
 use App\Modules\TracesAggregator\Repositories\TraceParentsRepositoryInterface;
 use Illuminate\Support\Facades\Route;
@@ -20,6 +23,7 @@ class TracesAggregatorProvider extends ServiceProvider
     private function registerRepositories(): void
     {
         $this->app->singleton(TraceParentsRepositoryInterface::class, TraceParentsRepository::class);
+        $this->app->singleton(TraceTreeRepositoryInterface::class, TraceTreeRepository::class);
     }
 
     private function registerRoutes(): void
@@ -52,6 +56,10 @@ class TracesAggregatorProvider extends ServiceProvider
                                     [TraceAggregatorParentsController::class, 'tags']
                                 )->name('tags');
                             });
+                        Route::get(
+                            '{traceId}',
+                            [TraceAggregatorTreeController::class, 'tree']
+                        )->name('tree');
                     });
             });
     }

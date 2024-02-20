@@ -30,6 +30,12 @@
                                         "type": "integer",
                                         "minimum": 1
                                     },
+                                    "parent_trace_id": {
+                                        "type": "string"
+                                    },
+                                    "trace_id": {
+                                        "type": "string"
+                                    },
                                     "logging_from": {
                                         "type": "string",
                                         "format": "date"
@@ -698,6 +704,326 @@
                                                     "value"
                                                 ]
                                             }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/admin-api/trace-aggregator/{traceId}": {
+            "get": {
+                "parameters": [
+                    {
+                        "name": "traceId",
+                        "required": true,
+                        "in": "path",
+                        "schema": {}
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "items": {
+                                                    "type": "array",
+                                                    "nullable": false,
+                                                    "items": {
+                                                        "properties": {
+                                                            "traceId": {
+                                                                "type": "string",
+                                                                "nullable": false
+                                                            },
+                                                            "parentTraceId": {
+                                                                "type": "string",
+                                                                "nullable": true
+                                                            },
+                                                            "type": {
+                                                                "type": "string",
+                                                                "nullable": false
+                                                            },
+                                                            "tags": {
+                                                                "type": "array",
+                                                                "nullable": false,
+                                                                "items": {
+                                                                    "type": "string"
+                                                                }
+                                                            },
+                                                            "serviceObject": {
+                                                                "properties": {
+                                                                    "id": {
+                                                                        "type": "integer",
+                                                                        "nullable": false
+                                                                    },
+                                                                    "name": {
+                                                                        "type": "string",
+                                                                        "nullable": false
+                                                                    }
+                                                                },
+                                                                "required": [
+                                                                    "id",
+                                                                    "name"
+                                                                ]
+                                                            },
+                                                            "loggedAt": {
+                                                                "type": "string",
+                                                                "nullable": false
+                                                            },
+                                                            "children": {
+                                                                "type": "array",
+                                                                "nullable": false,
+                                                                "items": {
+                                                                    "properties": {
+                                                                        "traceId": {
+                                                                            "type": "string",
+                                                                            "nullable": false
+                                                                        },
+                                                                        "parentTraceId": {
+                                                                            "type": "string",
+                                                                            "nullable": true
+                                                                        },
+                                                                        "type": {
+                                                                            "type": "string",
+                                                                            "nullable": false
+                                                                        },
+                                                                        "tags": {
+                                                                            "type": "array",
+                                                                            "nullable": false,
+                                                                            "items": {
+                                                                                "type": "string"
+                                                                            }
+                                                                        },
+                                                                        "serviceObject": {
+                                                                            "properties": {
+                                                                                "id": {
+                                                                                    "type": "integer",
+                                                                                    "nullable": false
+                                                                                },
+                                                                                "name": {
+                                                                                    "type": "string",
+                                                                                    "nullable": false
+                                                                                }
+                                                                            },
+                                                                            "required": [
+                                                                                "id",
+                                                                                "name"
+                                                                            ]
+                                                                        },
+                                                                        "loggedAt": {
+                                                                            "type": "string",
+                                                                            "nullable": false
+                                                                        },
+                                                                        "children": {
+                                                                            "type": "array",
+                                                                            "nullable": false,
+                                                                            "items": {
+                                                                                "properties": {
+                                                                                    "traceId": {
+                                                                                        "type": "string",
+                                                                                        "nullable": false
+                                                                                    },
+                                                                                    "parentTraceId": {
+                                                                                        "type": "string",
+                                                                                        "nullable": true
+                                                                                    },
+                                                                                    "type": {
+                                                                                        "type": "string",
+                                                                                        "nullable": false
+                                                                                    },
+                                                                                    "tags": {
+                                                                                        "type": "array",
+                                                                                        "nullable": false,
+                                                                                        "items": {
+                                                                                            "type": "string"
+                                                                                        }
+                                                                                    },
+                                                                                    "serviceObject": {
+                                                                                        "properties": {
+                                                                                            "id": {
+                                                                                                "type": "integer",
+                                                                                                "nullable": false
+                                                                                            },
+                                                                                            "name": {
+                                                                                                "type": "string",
+                                                                                                "nullable": false
+                                                                                            }
+                                                                                        },
+                                                                                        "required": [
+                                                                                            "id",
+                                                                                            "name"
+                                                                                        ]
+                                                                                    },
+                                                                                    "loggedAt": {
+                                                                                        "type": "string",
+                                                                                        "nullable": false
+                                                                                    },
+                                                                                    "children": {
+                                                                                        "type": "array",
+                                                                                        "nullable": false,
+                                                                                        "items": {
+                                                                                            "properties": {
+                                                                                                "traceId": {
+                                                                                                    "type": "string",
+                                                                                                    "nullable": false
+                                                                                                },
+                                                                                                "parentTraceId": {
+                                                                                                    "type": "string",
+                                                                                                    "nullable": true
+                                                                                                },
+                                                                                                "type": {
+                                                                                                    "type": "string",
+                                                                                                    "nullable": false
+                                                                                                },
+                                                                                                "tags": {
+                                                                                                    "type": "array",
+                                                                                                    "nullable": false,
+                                                                                                    "items": {
+                                                                                                        "type": "string"
+                                                                                                    }
+                                                                                                },
+                                                                                                "serviceObject": {
+                                                                                                    "properties": {
+                                                                                                        "id": {
+                                                                                                            "type": "integer",
+                                                                                                            "nullable": false
+                                                                                                        },
+                                                                                                        "name": {
+                                                                                                            "type": "string",
+                                                                                                            "nullable": false
+                                                                                                        }
+                                                                                                    },
+                                                                                                    "required": [
+                                                                                                        "id",
+                                                                                                        "name"
+                                                                                                    ]
+                                                                                                },
+                                                                                                "loggedAt": {
+                                                                                                    "type": "string",
+                                                                                                    "nullable": false
+                                                                                                },
+                                                                                                "children": {
+                                                                                                    "type": "array",
+                                                                                                    "nullable": false,
+                                                                                                    "items": {
+                                                                                                        "properties": {
+                                                                                                            "traceId": {
+                                                                                                                "type": "string",
+                                                                                                                "nullable": false
+                                                                                                            },
+                                                                                                            "parentTraceId": {
+                                                                                                                "type": "string",
+                                                                                                                "nullable": true
+                                                                                                            },
+                                                                                                            "type": {
+                                                                                                                "type": "string",
+                                                                                                                "nullable": false
+                                                                                                            },
+                                                                                                            "tags": {
+                                                                                                                "type": "array",
+                                                                                                                "nullable": false,
+                                                                                                                "maxItems": 0,
+                                                                                                                "items": {
+                                                                                                                    "type": "string"
+                                                                                                                }
+                                                                                                            },
+                                                                                                            "serviceObject": {
+                                                                                                                "properties": {
+                                                                                                                    "id": {
+                                                                                                                        "type": "integer",
+                                                                                                                        "nullable": false
+                                                                                                                    },
+                                                                                                                    "name": {
+                                                                                                                        "type": "string",
+                                                                                                                        "nullable": false
+                                                                                                                    }
+                                                                                                                },
+                                                                                                                "required": [
+                                                                                                                    "id",
+                                                                                                                    "name"
+                                                                                                                ]
+                                                                                                            },
+                                                                                                            "loggedAt": {
+                                                                                                                "type": "string",
+                                                                                                                "nullable": false
+                                                                                                            },
+                                                                                                            "children": {
+                                                                                                                "type": "array",
+                                                                                                                "nullable": false,
+                                                                                                                "maxItems": 0,
+                                                                                                                "items": {
+                                                                                                                    "type": "string"
+                                                                                                                }
+                                                                                                            }
+                                                                                                        },
+                                                                                                        "required": [
+                                                                                                            "traceId",
+                                                                                                            "type",
+                                                                                                            "tags",
+                                                                                                            "loggedAt",
+                                                                                                            "children"
+                                                                                                        ]
+                                                                                                    }
+                                                                                                }
+                                                                                            },
+                                                                                            "required": [
+                                                                                                "traceId",
+                                                                                                "type",
+                                                                                                "tags",
+                                                                                                "loggedAt",
+                                                                                                "children"
+                                                                                            ]
+                                                                                        }
+                                                                                    }
+                                                                                },
+                                                                                "required": [
+                                                                                    "traceId",
+                                                                                    "type",
+                                                                                    "tags",
+                                                                                    "loggedAt",
+                                                                                    "children"
+                                                                                ]
+                                                                            }
+                                                                        }
+                                                                    },
+                                                                    "required": [
+                                                                        "traceId",
+                                                                        "type",
+                                                                        "tags",
+                                                                        "loggedAt",
+                                                                        "children"
+                                                                    ]
+                                                                }
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "traceId",
+                                                            "type",
+                                                            "tags",
+                                                            "loggedAt",
+                                                            "children"
+                                                        ]
+                                                    }
+                                                }
+                                            },
+                                            "required": [
+                                                "items"
+                                            ]
                                         }
                                     },
                                     "required": [
