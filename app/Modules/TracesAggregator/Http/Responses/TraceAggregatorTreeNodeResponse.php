@@ -17,6 +17,7 @@ class TraceAggregatorTreeNodeResponse extends AbstractApiResource
     private string $loggedAt;
     #[OaListItemTypeAttribute(TraceAggregatorTreeNodeResponse::class, isRecursive: true)]
     private array $children;
+    private int $depth;
 
     public function __construct(TraceTreeNodeObject $traceTreeNodeObject)
     {
@@ -33,5 +34,6 @@ class TraceAggregatorTreeNodeResponse extends AbstractApiResource
             : null;
         $this->loggedAt      = $traceTreeNodeObject->loggedAt->toDateTimeString('microsecond');
         $this->children      = $traceTreeNodeObject->children;
+        $this->depth         = $traceTreeNodeObject->depth;
     }
 }

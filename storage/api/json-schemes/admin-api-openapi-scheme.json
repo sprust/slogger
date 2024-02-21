@@ -969,6 +969,10 @@
                                                                                                                 "items": {
                                                                                                                     "type": "string"
                                                                                                                 }
+                                                                                                            },
+                                                                                                            "depth": {
+                                                                                                                "type": "integer",
+                                                                                                                "nullable": false
                                                                                                             }
                                                                                                         },
                                                                                                         "required": [
@@ -976,9 +980,14 @@
                                                                                                             "type",
                                                                                                             "tags",
                                                                                                             "loggedAt",
-                                                                                                            "children"
+                                                                                                            "children",
+                                                                                                            "depth"
                                                                                                         ]
                                                                                                     }
+                                                                                                },
+                                                                                                "depth": {
+                                                                                                    "type": "integer",
+                                                                                                    "nullable": false
                                                                                                 }
                                                                                             },
                                                                                             "required": [
@@ -986,9 +995,14 @@
                                                                                                 "type",
                                                                                                 "tags",
                                                                                                 "loggedAt",
-                                                                                                "children"
+                                                                                                "children",
+                                                                                                "depth"
                                                                                             ]
                                                                                         }
+                                                                                    },
+                                                                                    "depth": {
+                                                                                        "type": "integer",
+                                                                                        "nullable": false
                                                                                     }
                                                                                 },
                                                                                 "required": [
@@ -996,9 +1010,14 @@
                                                                                     "type",
                                                                                     "tags",
                                                                                     "loggedAt",
-                                                                                    "children"
+                                                                                    "children",
+                                                                                    "depth"
                                                                                 ]
                                                                             }
+                                                                        },
+                                                                        "depth": {
+                                                                            "type": "integer",
+                                                                            "nullable": false
                                                                         }
                                                                     },
                                                                     "required": [
@@ -1006,9 +1025,14 @@
                                                                         "type",
                                                                         "tags",
                                                                         "loggedAt",
-                                                                        "children"
+                                                                        "children",
+                                                                        "depth"
                                                                     ]
                                                                 }
+                                                            },
+                                                            "depth": {
+                                                                "type": "integer",
+                                                                "nullable": false
                                                             }
                                                         },
                                                         "required": [
@@ -1016,7 +1040,8 @@
                                                             "type",
                                                             "tags",
                                                             "loggedAt",
-                                                            "children"
+                                                            "children",
+                                                            "depth"
                                                         ]
                                                     }
                                                 }

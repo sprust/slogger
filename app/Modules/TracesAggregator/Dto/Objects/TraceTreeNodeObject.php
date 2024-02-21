@@ -19,6 +19,7 @@ class TraceTreeNodeObject
         public ?TraceServiceObject $serviceObject,
         public Carbon $loggedAt,
         public array $children,
+        public int $depth,
     ) {
     }
 }

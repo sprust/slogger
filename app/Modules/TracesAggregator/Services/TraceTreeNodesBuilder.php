@@ -41,15 +41,18 @@ class TraceTreeNodesBuilder
                 )
                 : null,
             loggedAt: $this->parentTrace->loggedAt,
-            children: $this->collectRecursive($this->parentTrace)
+            children: $this->collectRecursive($this->parentTrace, 0),
+            depth: 0
         );
     }
 
     /**
      * @return TraceTreeNodeObject[]
      */
-    private function collectRecursive(Trace $parentTrace): array
+    private function collectRecursive(Trace $parentTrace, int $depth): array
     {
+        ++$depth;
+
         return $this->childrenMap
             ->filter(
                 fn(Trace $childTrace) => $childTrace->parentTraceId === $parentTrace->traceId
@@ -67,7 +70,8 @@ class TraceTreeNodesBuilder
                         )
                         : null,
                     loggedAt: $childTrace->loggedAt,
-                    children: $this->collectRecursive($childTrace)
+                    children: $this->collectRecursive($childTrace, $depth),
+                    depth: $depth
                 )
             )
             ->sortBy(
