@@ -12,11 +12,14 @@ class TraceTreeNodeObject
      * @param TraceTreeNodeObject[] $children
      */
     public function __construct(
+        public ?TraceServiceObject $serviceObject,
         public string $traceId,
         public ?string $parentTraceId,
         public string $type,
         public array $tags,
-        public ?TraceServiceObject $serviceObject,
+        public ?float $duration,
+        public ?float $memory,
+        public ?float $cpu,
         public Carbon $loggedAt,
         public array $children,
         public int $depth,

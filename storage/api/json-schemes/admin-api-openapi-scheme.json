@@ -863,6 +863,22 @@
                                                     "nullable": false,
                                                     "items": {
                                                         "properties": {
+                                                            "service": {
+                                                                "properties": {
+                                                                    "id": {
+                                                                        "type": "integer",
+                                                                        "nullable": false
+                                                                    },
+                                                                    "name": {
+                                                                        "type": "string",
+                                                                        "nullable": false
+                                                                    }
+                                                                },
+                                                                "required": [
+                                                                    "id",
+                                                                    "name"
+                                                                ]
+                                                            },
                                                             "traceId": {
                                                                 "type": "string",
                                                                 "nullable": false
@@ -882,21 +898,17 @@
                                                                     "type": "string"
                                                                 }
                                                             },
-                                                            "serviceObject": {
-                                                                "properties": {
-                                                                    "id": {
-                                                                        "type": "integer",
-                                                                        "nullable": false
-                                                                    },
-                                                                    "name": {
-                                                                        "type": "string",
-                                                                        "nullable": false
-                                                                    }
-                                                                },
-                                                                "required": [
-                                                                    "id",
-                                                                    "name"
-                                                                ]
+                                                            "duration": {
+                                                                "type": "number",
+                                                                "nullable": true
+                                                            },
+                                                            "memory": {
+                                                                "type": "number",
+                                                                "nullable": true
+                                                            },
+                                                            "cpu": {
+                                                                "type": "number",
+                                                                "nullable": true
                                                             },
                                                             "loggedAt": {
                                                                 "type": "string",
@@ -907,6 +919,22 @@
                                                                 "nullable": false,
                                                                 "items": {
                                                                     "properties": {
+                                                                        "service": {
+                                                                            "properties": {
+                                                                                "id": {
+                                                                                    "type": "integer",
+                                                                                    "nullable": false
+                                                                                },
+                                                                                "name": {
+                                                                                    "type": "string",
+                                                                                    "nullable": false
+                                                                                }
+                                                                            },
+                                                                            "required": [
+                                                                                "id",
+                                                                                "name"
+                                                                            ]
+                                                                        },
                                                                         "traceId": {
                                                                             "type": "string",
                                                                             "nullable": false
@@ -926,21 +954,17 @@
                                                                                 "type": "string"
                                                                             }
                                                                         },
-                                                                        "serviceObject": {
-                                                                            "properties": {
-                                                                                "id": {
-                                                                                    "type": "integer",
-                                                                                    "nullable": false
-                                                                                },
-                                                                                "name": {
-                                                                                    "type": "string",
-                                                                                    "nullable": false
-                                                                                }
-                                                                            },
-                                                                            "required": [
-                                                                                "id",
-                                                                                "name"
-                                                                            ]
+                                                                        "duration": {
+                                                                            "type": "number",
+                                                                            "nullable": true
+                                                                        },
+                                                                        "memory": {
+                                                                            "type": "number",
+                                                                            "nullable": true
+                                                                        },
+                                                                        "cpu": {
+                                                                            "type": "number",
+                                                                            "nullable": true
                                                                         },
                                                                         "loggedAt": {
                                                                             "type": "string",
@@ -951,6 +975,22 @@
                                                                             "nullable": false,
                                                                             "items": {
                                                                                 "properties": {
+                                                                                    "service": {
+                                                                                        "properties": {
+                                                                                            "id": {
+                                                                                                "type": "integer",
+                                                                                                "nullable": false
+                                                                                            },
+                                                                                            "name": {
+                                                                                                "type": "string",
+                                                                                                "nullable": false
+                                                                                            }
+                                                                                        },
+                                                                                        "required": [
+                                                                                            "id",
+                                                                                            "name"
+                                                                                        ]
+                                                                                    },
                                                                                     "traceId": {
                                                                                         "type": "string",
                                                                                         "nullable": false
@@ -970,21 +1010,17 @@
                                                                                             "type": "string"
                                                                                         }
                                                                                     },
-                                                                                    "serviceObject": {
-                                                                                        "properties": {
-                                                                                            "id": {
-                                                                                                "type": "integer",
-                                                                                                "nullable": false
-                                                                                            },
-                                                                                            "name": {
-                                                                                                "type": "string",
-                                                                                                "nullable": false
-                                                                                            }
-                                                                                        },
-                                                                                        "required": [
-                                                                                            "id",
-                                                                                            "name"
-                                                                                        ]
+                                                                                    "duration": {
+                                                                                        "type": "number",
+                                                                                        "nullable": true
+                                                                                    },
+                                                                                    "memory": {
+                                                                                        "type": "number",
+                                                                                        "nullable": true
+                                                                                    },
+                                                                                    "cpu": {
+                                                                                        "type": "number",
+                                                                                        "nullable": true
                                                                                     },
                                                                                     "loggedAt": {
                                                                                         "type": "string",
@@ -995,6 +1031,22 @@
                                                                                         "nullable": false,
                                                                                         "items": {
                                                                                             "properties": {
+                                                                                                "service": {
+                                                                                                    "properties": {
+                                                                                                        "id": {
+                                                                                                            "type": "integer",
+                                                                                                            "nullable": false
+                                                                                                        },
+                                                                                                        "name": {
+                                                                                                            "type": "string",
+                                                                                                            "nullable": false
+                                                                                                        }
+                                                                                                    },
+                                                                                                    "required": [
+                                                                                                        "id",
+                                                                                                        "name"
+                                                                                                    ]
+                                                                                                },
                                                                                                 "traceId": {
                                                                                                     "type": "string",
                                                                                                     "nullable": false
@@ -1014,21 +1066,17 @@
                                                                                                         "type": "string"
                                                                                                     }
                                                                                                 },
-                                                                                                "serviceObject": {
-                                                                                                    "properties": {
-                                                                                                        "id": {
-                                                                                                            "type": "integer",
-                                                                                                            "nullable": false
-                                                                                                        },
-                                                                                                        "name": {
-                                                                                                            "type": "string",
-                                                                                                            "nullable": false
-                                                                                                        }
-                                                                                                    },
-                                                                                                    "required": [
-                                                                                                        "id",
-                                                                                                        "name"
-                                                                                                    ]
+                                                                                                "duration": {
+                                                                                                    "type": "number",
+                                                                                                    "nullable": true
+                                                                                                },
+                                                                                                "memory": {
+                                                                                                    "type": "number",
+                                                                                                    "nullable": true
+                                                                                                },
+                                                                                                "cpu": {
+                                                                                                    "type": "number",
+                                                                                                    "nullable": true
                                                                                                 },
                                                                                                 "loggedAt": {
                                                                                                     "type": "string",
@@ -1039,6 +1087,22 @@
                                                                                                     "nullable": false,
                                                                                                     "items": {
                                                                                                         "properties": {
+                                                                                                            "service": {
+                                                                                                                "properties": {
+                                                                                                                    "id": {
+                                                                                                                        "type": "integer",
+                                                                                                                        "nullable": false
+                                                                                                                    },
+                                                                                                                    "name": {
+                                                                                                                        "type": "string",
+                                                                                                                        "nullable": false
+                                                                                                                    }
+                                                                                                                },
+                                                                                                                "required": [
+                                                                                                                    "id",
+                                                                                                                    "name"
+                                                                                                                ]
+                                                                                                            },
                                                                                                             "traceId": {
                                                                                                                 "type": "string",
                                                                                                                 "nullable": false
@@ -1059,21 +1123,17 @@
                                                                                                                     "type": "string"
                                                                                                                 }
                                                                                                             },
-                                                                                                            "serviceObject": {
-                                                                                                                "properties": {
-                                                                                                                    "id": {
-                                                                                                                        "type": "integer",
-                                                                                                                        "nullable": false
-                                                                                                                    },
-                                                                                                                    "name": {
-                                                                                                                        "type": "string",
-                                                                                                                        "nullable": false
-                                                                                                                    }
-                                                                                                                },
-                                                                                                                "required": [
-                                                                                                                    "id",
-                                                                                                                    "name"
-                                                                                                                ]
+                                                                                                            "duration": {
+                                                                                                                "type": "number",
+                                                                                                                "nullable": true
+                                                                                                            },
+                                                                                                            "memory": {
+                                                                                                                "type": "number",
+                                                                                                                "nullable": true
+                                                                                                            },
+                                                                                                            "cpu": {
+                                                                                                                "type": "number",
+                                                                                                                "nullable": true
                                                                                                             },
                                                                                                             "loggedAt": {
                                                                                                                 "type": "string",

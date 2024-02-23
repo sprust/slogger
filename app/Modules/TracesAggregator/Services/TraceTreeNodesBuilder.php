@@ -30,16 +30,19 @@ class TraceTreeNodesBuilder
         );
 
         return new TraceTreeNodeObject(
-            traceId: $this->parentTrace->traceId,
-            parentTraceId: $this->parentTrace->parentTraceId,
-            type: $this->parentTrace->type,
-            tags: $this->parentTrace->tags,
             serviceObject: $this->parentTrace->service
                 ? new TraceServiceObject(
                     id: $this->parentTrace->service->id,
                     name: $this->parentTrace->service->name,
                 )
                 : null,
+            traceId: $this->parentTrace->traceId,
+            parentTraceId: $this->parentTrace->parentTraceId,
+            type: $this->parentTrace->type,
+            tags: $this->parentTrace->tags,
+            duration: $this->parentTrace->duration,
+            memory: $this->parentTrace->memory,
+            cpu: $this->parentTrace->cpu,
             loggedAt: $this->parentTrace->loggedAt,
             children: $this->collectRecursive($this->parentTrace, 0),
             depth: 0
@@ -59,16 +62,19 @@ class TraceTreeNodesBuilder
             )
             ->map(
                 fn(Trace $childTrace) => new TraceTreeNodeObject(
-                    traceId: $childTrace->traceId,
-                    parentTraceId: $childTrace->parentTraceId,
-                    type: $childTrace->type,
-                    tags: $childTrace->tags,
                     serviceObject: $childTrace->service
                         ? new TraceServiceObject(
                             id: $childTrace->service->id,
                             name: $childTrace->service->name,
                         )
                         : null,
+                    traceId: $childTrace->traceId,
+                    parentTraceId: $childTrace->parentTraceId,
+                    type: $childTrace->type,
+                    tags: $childTrace->tags,
+                    duration: $childTrace->duration,
+                    memory: $childTrace->memory,
+                    cpu: $childTrace->cpu,
                     loggedAt: $childTrace->loggedAt,
                     children: $this->collectRecursive($childTrace, $depth),
                     depth: $depth

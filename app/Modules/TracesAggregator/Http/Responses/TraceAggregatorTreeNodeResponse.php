@@ -8,12 +8,15 @@ use Ifksco\OpenApiGenerator\Attributes\OaListItemTypeAttribute;
 
 class TraceAggregatorTreeNodeResponse extends AbstractApiResource
 {
+    private ?TraceAggregatorTraceServiceResponse $service;
     private string $traceId;
     private ?string $parentTraceId;
     private string $type;
     #[OaListItemTypeAttribute('string')]
     private array $tags;
-    private ?TraceAggregatorTraceServiceResponse $serviceObject;
+    private ?float $duration;
+    private ?float $memory;
+    private ?float $cpu;
     private string $loggedAt;
     #[OaListItemTypeAttribute(TraceAggregatorTreeNodeResponse::class, isRecursive: true)]
     private array $children;
@@ -23,17 +26,20 @@ class TraceAggregatorTreeNodeResponse extends AbstractApiResource
     {
         parent::__construct($traceTreeNodeObject);
 
-        $this->traceId       = $traceTreeNodeObject->traceId;
-        $this->parentTraceId = $traceTreeNodeObject->parentTraceId;
-        $this->type          = $traceTreeNodeObject->type;
-        $this->tags          = $traceTreeNodeObject->tags;
-        $this->serviceObject = $traceTreeNodeObject->serviceObject
+        $this->service       = $traceTreeNodeObject->serviceObject
             ? new TraceAggregatorTraceServiceResponse(
                 $traceTreeNodeObject->serviceObject
             )
             : null;
+        $this->traceId       = $traceTreeNodeObject->traceId;
+        $this->parentTraceId = $traceTreeNodeObject->parentTraceId;
+        $this->type          = $traceTreeNodeObject->type;
+        $this->tags          = $traceTreeNodeObject->tags;
+        $this->duration      = $traceTreeNodeObject->duration;
+        $this->memory        = $traceTreeNodeObject->memory;
+        $this->cpu           = $traceTreeNodeObject->cpu;
         $this->loggedAt      = $traceTreeNodeObject->loggedAt->toDateTimeString('microsecond');
-        $this->children      = $traceTreeNodeObject->children;
+        $this->children      = TraceAggregatorTreeNodeResponse::mapIntoMe($traceTreeNodeObject->children);
         $this->depth         = $traceTreeNodeObject->depth;
     }
 }
