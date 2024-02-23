@@ -733,7 +733,289 @@
                 ]
             }
         },
-        "/admin-api/trace-aggregator/{traceId}": {
+        "/admin-api/trace-aggregator/parents/{traceId}": {
+            "get": {
+                "parameters": [
+                    {
+                        "name": "traceId",
+                        "required": true,
+                        "in": "path",
+                        "schema": {}
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "trace": {
+                                                    "properties": {
+                                                        "service": {
+                                                            "properties": {
+                                                                "id": {
+                                                                    "type": "integer",
+                                                                    "nullable": false
+                                                                },
+                                                                "name": {
+                                                                    "type": "string",
+                                                                    "nullable": false
+                                                                }
+                                                            },
+                                                            "required": [
+                                                                "id",
+                                                                "name"
+                                                            ]
+                                                        },
+                                                        "trace_id": {
+                                                            "type": "string",
+                                                            "nullable": false
+                                                        },
+                                                        "parent_trace_id": {
+                                                            "type": "string",
+                                                            "nullable": true
+                                                        },
+                                                        "type": {
+                                                            "type": "string",
+                                                            "nullable": false
+                                                        },
+                                                        "tags": {
+                                                            "type": "array",
+                                                            "nullable": false,
+                                                            "items": {
+                                                                "type": "string"
+                                                            }
+                                                        },
+                                                        "data": {
+                                                            "properties": {
+                                                                "key": {
+                                                                    "type": "string",
+                                                                    "nullable": false
+                                                                },
+                                                                "value": {
+                                                                    "type": "string",
+                                                                    "nullable": false
+                                                                },
+                                                                "children": {
+                                                                    "type": "array",
+                                                                    "nullable": true,
+                                                                    "items": {
+                                                                        "properties": {
+                                                                            "key": {
+                                                                                "type": "string",
+                                                                                "nullable": false
+                                                                            },
+                                                                            "value": {
+                                                                                "type": "string",
+                                                                                "nullable": false
+                                                                            },
+                                                                            "children": {
+                                                                                "type": "array",
+                                                                                "nullable": true,
+                                                                                "items": {
+                                                                                    "properties": {
+                                                                                        "key": {
+                                                                                            "type": "string",
+                                                                                            "nullable": false
+                                                                                        },
+                                                                                        "value": {
+                                                                                            "type": "string",
+                                                                                            "nullable": false
+                                                                                        },
+                                                                                        "children": {
+                                                                                            "type": "array",
+                                                                                            "nullable": true,
+                                                                                            "items": {
+                                                                                                "properties": {
+                                                                                                    "key": {
+                                                                                                        "type": "string",
+                                                                                                        "nullable": false
+                                                                                                    },
+                                                                                                    "value": {
+                                                                                                        "type": "string",
+                                                                                                        "nullable": false
+                                                                                                    },
+                                                                                                    "children": {
+                                                                                                        "type": "array",
+                                                                                                        "nullable": true,
+                                                                                                        "items": {
+                                                                                                            "properties": {
+                                                                                                                "key": {
+                                                                                                                    "type": "string",
+                                                                                                                    "nullable": false
+                                                                                                                },
+                                                                                                                "value": {
+                                                                                                                    "type": "string",
+                                                                                                                    "nullable": false
+                                                                                                                },
+                                                                                                                "children": {
+                                                                                                                    "type": "array",
+                                                                                                                    "nullable": true,
+                                                                                                                    "items": {
+                                                                                                                        "properties": {
+                                                                                                                            "key": {
+                                                                                                                                "type": "string",
+                                                                                                                                "nullable": false
+                                                                                                                            },
+                                                                                                                            "value": {
+                                                                                                                                "type": "string",
+                                                                                                                                "nullable": false
+                                                                                                                            },
+                                                                                                                            "children": {
+                                                                                                                                "type": "array",
+                                                                                                                                "nullable": true,
+                                                                                                                                "maxItems": 0,
+                                                                                                                                "items": {
+                                                                                                                                    "type": "string"
+                                                                                                                                }
+                                                                                                                            }
+                                                                                                                        },
+                                                                                                                        "required": [
+                                                                                                                            "key",
+                                                                                                                            "value"
+                                                                                                                        ]
+                                                                                                                    }
+                                                                                                                }
+                                                                                                            },
+                                                                                                            "required": [
+                                                                                                                "key",
+                                                                                                                "value"
+                                                                                                            ]
+                                                                                                        }
+                                                                                                    }
+                                                                                                },
+                                                                                                "required": [
+                                                                                                    "key",
+                                                                                                    "value"
+                                                                                                ]
+                                                                                            }
+                                                                                        }
+                                                                                    },
+                                                                                    "required": [
+                                                                                        "key",
+                                                                                        "value"
+                                                                                    ]
+                                                                                }
+                                                                            }
+                                                                        },
+                                                                        "required": [
+                                                                            "key",
+                                                                            "value"
+                                                                        ]
+                                                                    }
+                                                                }
+                                                            },
+                                                            "required": [
+                                                                "key",
+                                                                "value"
+                                                            ]
+                                                        },
+                                                        "duration": {
+                                                            "type": "number",
+                                                            "nullable": true
+                                                        },
+                                                        "memory": {
+                                                            "type": "number",
+                                                            "nullable": true
+                                                        },
+                                                        "cpu": {
+                                                            "type": "number",
+                                                            "nullable": true
+                                                        },
+                                                        "additional_fields": {
+                                                            "type": "array",
+                                                            "nullable": false,
+                                                            "items": {
+                                                                "properties": {
+                                                                    "key": {
+                                                                        "type": "string",
+                                                                        "nullable": false
+                                                                    },
+                                                                    "values": {
+                                                                        "type": "array",
+                                                                        "nullable": false,
+                                                                        "items": {
+                                                                            "type": "string"
+                                                                        }
+                                                                    }
+                                                                },
+                                                                "required": [
+                                                                    "key",
+                                                                    "values"
+                                                                ]
+                                                            }
+                                                        },
+                                                        "logged_at": {
+                                                            "type": "string",
+                                                            "nullable": false
+                                                        },
+                                                        "created_at": {
+                                                            "type": "string",
+                                                            "nullable": false
+                                                        },
+                                                        "updated_at": {
+                                                            "type": "string",
+                                                            "nullable": false
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "trace_id",
+                                                        "type",
+                                                        "tags",
+                                                        "data",
+                                                        "additional_fields",
+                                                        "logged_at",
+                                                        "created_at",
+                                                        "updated_at"
+                                                    ]
+                                                },
+                                                "types": {
+                                                    "type": "array",
+                                                    "nullable": false,
+                                                    "items": {
+                                                        "properties": {
+                                                            "type": {
+                                                                "type": "string",
+                                                                "nullable": false
+                                                            },
+                                                            "count": {
+                                                                "type": "integer",
+                                                                "nullable": false
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "type",
+                                                            "count"
+                                                        ]
+                                                    }
+                                                }
+                                            },
+                                            "required": [
+                                                "trace",
+                                                "types"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/admin-api/trace-aggregator/tree/{traceId}": {
             "get": {
                 "parameters": [
                     {

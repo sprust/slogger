@@ -21,11 +21,26 @@ class TraceParentsRepository implements TraceParentsRepositoryInterface
 {
     private int $maxPerPage = 20;
 
+    public function findByTraceId(string $traceId): ?TraceParentObject
+    {
+        return $this
+            ->findParents(
+                new TraceParentsFindParameters(
+                    page: 1,
+                    perPage: 1,
+                    traceId: $traceId,
+                )
+            )
+            ->items[0] ?? null;
+    }
+
     public function findParents(TraceParentsFindParameters $parameters): TraceParentObjects
     {
         $perPage = min($parameters->perPage ?: $this->maxPerPage, $this->maxPerPage);
 
         $builder = $this->makeBuilder(
+            parentTraceId: $parameters->parentTraceId,
+            traceId: $parameters->traceId,
             loggingPeriod: $parameters->loggingPeriod,
             types: $parameters->types,
             tags: $parameters->tags,
@@ -193,6 +208,8 @@ class TraceParentsRepository implements TraceParentsRepositoryInterface
      * @return Builder|Trace
      */
     private function makeBuilder(
+        ?string $parentTraceId = null,
+        ?string $traceId = null,
         ?PeriodParameters $loggingPeriod = null,
         array $types = [],
         array $tags = [],
@@ -202,6 +219,8 @@ class TraceParentsRepository implements TraceParentsRepositoryInterface
         $loggedAtTo   = $loggingPeriod?->to;
 
         $builder = Trace::query()
+            ->when($parentTraceId, fn(Builder $query) => $query->where('parentTraceId', $parentTraceId))
+            ->when($traceId, fn(Builder $query) => $query->where('traceId', $traceId))
             ->when($loggedAtFrom, fn(Builder $query) => $query->where('loggedAt', '>=', $loggedAtFrom))
             ->when($loggedAtTo, fn(Builder $query) => $query->where('loggedAt', '<=', $loggedAtTo))
             ->when(
