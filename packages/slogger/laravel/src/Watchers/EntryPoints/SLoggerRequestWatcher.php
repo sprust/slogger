@@ -66,15 +66,15 @@ class SLoggerRequestWatcher extends AbstractSLoggerWatcher
         $response = $event->response;
 
         $data = [
-            'ipAddress'      => $request->ip(),
-            'uri'            => str_replace($request->root(), '', $request->fullUrl()) ?: '/',
-            'method'         => $request->method(),
-            'action'         => optional($request->route())->getActionName(),
-            'middlewares'    => array_values(optional($request->route())->gatherMiddleware() ?? []),
-            'headers'        => $this->prepareHeaders($request, $request->headers->all()),
-            'payload'        => $this->preparePayload($request, $this->getInput($request)),
-            'responseStatus' => $response->getStatusCode(),
-            'response'       => $this->prepareResponse($request, $response),
+            'ipAddress'       => $request->ip(),
+            'uri'             => str_replace($request->root(), '', $request->fullUrl()) ?: '/',
+            'method'          => $request->method(),
+            'action'          => optional($request->route())->getActionName(),
+            'middlewares'     => array_values(optional($request->route())->gatherMiddleware() ?? []),
+            'headers'         => $this->prepareHeaders($request, $request->headers->all()),
+            'payload'         => $this->preparePayload($request, $this->getInput($request)),
+            'response_status' => $response->getStatusCode(),
+            'response'        => $this->prepareResponse($request, $response),
             ...$this->getAdditionalData(),
         ];
 
