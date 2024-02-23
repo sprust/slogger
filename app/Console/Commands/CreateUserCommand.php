@@ -27,10 +27,10 @@ class CreateUserCommand extends Command
     /**
      * Execute the console command.
      */
-    public function handle(UsersRepository $usersRepository)
+    public function handle(UsersRepository $usersRepository): int
     {
         if (($firstName = $this->askAndCheck('First name *', true)) === false) {
-            return;
+            return self::FAILURE;
         }
 
         $lastName = $this->askAndCheck('Last name', false);
@@ -41,7 +41,7 @@ class CreateUserCommand extends Command
         ]);
 
         if ($email === false) {
-            return;
+            return self::FAILURE;
         }
 
         $password = $this->askAndCheck('Password [8-10] *', true, [
@@ -51,7 +51,7 @@ class CreateUserCommand extends Command
         ]);
 
         if ($password === false) {
-            return;
+            return self::FAILURE;
         }
 
         $newUser = $usersRepository->create(
@@ -69,9 +69,14 @@ class CreateUserCommand extends Command
                 'token',
             ],
             [
-                [$newUser->id, $newUser->api_token],
+                [
+                    $newUser->id,
+                    $newUser->api_token,
+                ],
             ]
         );
+
+        return self::SUCCESS;
     }
 
     private function askAndCheck(string $title, bool $required, array $rules = []): bool|string|null
