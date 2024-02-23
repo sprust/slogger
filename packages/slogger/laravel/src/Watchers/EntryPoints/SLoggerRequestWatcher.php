@@ -66,7 +66,7 @@ class SLoggerRequestWatcher extends AbstractSLoggerWatcher
         $response = $event->response;
 
         $data = [
-            'ipAddress'       => $request->ip(),
+            'ip_address'      => $request->ip(),
             'uri'             => str_replace($request->root(), '', $request->fullUrl()) ?: '/',
             'method'          => $request->method(),
             'action'          => optional($request->route())->getActionName(),
