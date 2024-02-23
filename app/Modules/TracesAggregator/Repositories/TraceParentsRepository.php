@@ -11,6 +11,7 @@ use App\Modules\TracesAggregator\Dto\Parameters\DataFilter\TraceDataFilterParame
 use App\Modules\TracesAggregator\Dto\Parameters\TraceParentsFindByTextParameters;
 use App\Modules\TracesAggregator\Dto\Parameters\TraceParentsFindParameters;
 use App\Modules\TracesAggregator\Dto\PeriodParameters;
+use App\Modules\TracesAggregator\Dto\TraceDetailObject;
 use App\Modules\TracesAggregator\Dto\TraceObject;
 use App\Modules\TracesAggregator\Enums\TraceDataFilterCompStringTypeEnum;
 use App\Services\Dto\PaginationInfoObject;
@@ -21,17 +22,16 @@ class TraceParentsRepository implements TraceParentsRepositoryInterface
 {
     private int $maxPerPage = 20;
 
-    public function findByTraceId(string $traceId): ?TraceParentObject
+    public function findByTraceId(string $traceId): ?TraceDetailObject
     {
-        return $this
-            ->findParents(
-                new TraceParentsFindParameters(
-                    page: 1,
-                    perPage: 1,
-                    traceId: $traceId,
-                )
-            )
-            ->items[0] ?? null;
+        /** @var Trace|null $trace */
+        $trace = Trace::query()->where('traceId', $traceId)->first();
+
+        if (!$trace) {
+            return null;
+        }
+
+        return TraceDetailObject::fromModel($trace);
     }
 
     public function findParents(TraceParentsFindParameters $parameters): TraceParentObjects

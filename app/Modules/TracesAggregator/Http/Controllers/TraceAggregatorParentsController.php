@@ -8,9 +8,9 @@ use App\Modules\TracesAggregator\Dto\Parameters\TraceParentsSortParameters;
 use App\Modules\TracesAggregator\Dto\PeriodParameters;
 use App\Modules\TracesAggregator\Http\Requests\TraceAggregatorFindByTextRequest;
 use App\Modules\TracesAggregator\Http\Requests\TraceAggregatorParentsIndexRequest;
-use App\Modules\TracesAggregator\Http\Responses\TraceAggregatorParentItemResponse;
 use App\Modules\TracesAggregator\Http\Responses\TraceAggregatorParentItemsResponse;
 use App\Modules\TracesAggregator\Http\Responses\TraceAggregatorStringValueResponse;
+use App\Modules\TracesAggregator\Http\Responses\TraceAggregatorTraceDetailResponse;
 use App\Modules\TracesAggregator\Repositories\TraceParentsRepositoryInterface;
 use Ifksco\OpenApiGenerator\Attributes\OaListItemTypeAttribute;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -55,13 +55,13 @@ readonly class TraceAggregatorParentsController
         return new TraceAggregatorParentItemsResponse($parents);
     }
 
-    public function show(string $traceId): TraceAggregatorParentItemResponse
+    public function show(string $traceId): TraceAggregatorTraceDetailResponse
     {
         $traceObject = $this->repository->findByTraceId($traceId);
 
         abort_if(!$traceObject, Response::HTTP_NOT_FOUND);
 
-        return new TraceAggregatorParentItemResponse($traceObject);
+        return new TraceAggregatorTraceDetailResponse($traceObject);
     }
 
     #[OaListItemTypeAttribute(TraceAggregatorStringValueResponse::class)]

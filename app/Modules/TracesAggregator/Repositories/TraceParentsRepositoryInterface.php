@@ -2,14 +2,14 @@
 
 namespace App\Modules\TracesAggregator\Repositories;
 
-use App\Modules\TracesAggregator\Dto\Objects\TraceParentObject;
 use App\Modules\TracesAggregator\Dto\Objects\TraceParentObjects;
 use App\Modules\TracesAggregator\Dto\Parameters\TraceParentsFindByTextParameters;
 use App\Modules\TracesAggregator\Dto\Parameters\TraceParentsFindParameters;
+use App\Modules\TracesAggregator\Dto\TraceDetailObject;
 
 interface TraceParentsRepositoryInterface
 {
-    public function findByTraceId(string $traceId): ?TraceParentObject;
+    public function findByTraceId(string $traceId): ?TraceDetailObject;
 
     public function findParents(TraceParentsFindParameters $parameters): TraceParentObjects;
 

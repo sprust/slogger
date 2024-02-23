@@ -3,10 +3,10 @@
 namespace App\Modules\TracesAggregator\Http\Responses;
 
 use App\Http\Resources\AbstractApiResource;
-use App\Modules\TracesAggregator\Dto\TraceObject;
+use App\Modules\TracesAggregator\Dto\TraceDetailObject;
 use Ifksco\OpenApiGenerator\Attributes\OaListItemTypeAttribute;
 
-class TraceAggregatorTraceResponse extends AbstractApiResource
+class TraceAggregatorTraceDetailResponse extends AbstractApiResource
 {
     private ?TraceAggregatorTraceServiceResponse $service;
     private string $trace_id;
@@ -14,16 +14,16 @@ class TraceAggregatorTraceResponse extends AbstractApiResource
     private string $type;
     #[OaListItemTypeAttribute('string')]
     private array $tags;
+    private TraceAggregatorTraceDataNodeResponse $data;
     private ?float $duration;
     private ?float $memory;
     private ?float $cpu;
     #[OaListItemTypeAttribute(TraceAggregatorTraceDataAdditionalFieldResponse::class)]
-    private array $additional_fields;
     private string $logged_at;
     private string $created_at;
     private string $updated_at;
 
-    public function __construct(TraceObject $trace)
+    public function __construct(TraceDetailObject $trace)
     {
         parent::__construct($trace);
 
@@ -32,13 +32,11 @@ class TraceAggregatorTraceResponse extends AbstractApiResource
         $this->parent_trace_id = $trace->parentTraceId;
         $this->type            = $trace->type;
         $this->tags            = $trace->tags;
+        $this->data            = new TraceAggregatorTraceDataNodeResponse($trace->data);
+
         $this->duration        = $trace->duration;
         $this->memory          = $trace->memory;
         $this->cpu             = $trace->cpu;
-
-        $this->additional_fields = TraceAggregatorTraceDataAdditionalFieldResponse::mapIntoMe(
-            $trace->additionalFields
-        );
 
         $this->logged_at  = $trace->loggedAt->toDateTimeString('microsecond');
         $this->created_at = $trace->createdAt->toDateTimeString('microsecond');
