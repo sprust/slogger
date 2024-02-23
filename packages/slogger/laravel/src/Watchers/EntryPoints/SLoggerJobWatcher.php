@@ -40,7 +40,9 @@ class SLoggerJobWatcher extends AbstractSLoggerWatcher
     {
         $payload = $event->job->payload();
 
-        if (in_array($payload['job'] ?? null, $this->getExceptedJobs())) {
+        $jobClass = $payload['job'] ?? null;
+
+        if (in_array($jobClass, $this->getExceptedJobs())) {
             return;
         }
 
@@ -62,7 +64,10 @@ class SLoggerJobWatcher extends AbstractSLoggerWatcher
 
         $traceId = $this->processor->startAndGetTraceId(
             type: SLoggerTraceTypeEnum::Job->value,
-            customParentTraceId: $parentTraceId
+            tags: [
+                $jobClass,
+            ],
+            customParentTraceId: $parentTraceId,
         );
 
         $this->jobs[$uuid] = [
