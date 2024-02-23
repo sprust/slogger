@@ -329,6 +329,18 @@
                                                                             "value"
                                                                         ]
                                                                     },
+                                                                    "duration": {
+                                                                        "type": "number",
+                                                                        "nullable": true
+                                                                    },
+                                                                    "memory": {
+                                                                        "type": "number",
+                                                                        "nullable": true
+                                                                    },
+                                                                    "cpu": {
+                                                                        "type": "number",
+                                                                        "nullable": true
+                                                                    },
                                                                     "additional_fields": {
                                                                         "type": "array",
                                                                         "nullable": false,

@@ -13,6 +13,9 @@ class TraceCreateParameters
         public string $type,
         public array $tags,
         public string $data,
+        public ?float $duration,
+        public ?float $memory,
+        public ?float $cpu,
         public Carbon $loggedAt
     ) {
     }

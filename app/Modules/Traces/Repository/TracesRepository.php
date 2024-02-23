@@ -28,6 +28,9 @@ class TracesRepository implements TracesRepositoryInterface
                             'type'          => $parameters->type,
                             'tags'          => $parameters->tags,
                             'data'          => json_decode($parameters->data, true),
+                            'duration'      => $parameters->duration,
+                            'memory'        => $parameters->memory,
+                            'cpu'           => $parameters->cpu,
                             'loggedAt'      => new UTCDateTime($parameters->loggedAt),
                             'updatedAt'     => $timestamp,
                         ],
@@ -74,6 +77,21 @@ class TracesRepository implements TracesRepositoryInterface
                                 ? []
                                 : [
                                     'data' => json_decode($parameters->data, true),
+                                ]),
+                            ...(is_null($parameters->duration)
+                                ? []
+                                : [
+                                    'duration' => $parameters->duration,
+                                ]),
+                            ...(is_null($parameters->memory)
+                                ? []
+                                : [
+                                    'memory' => $parameters->memory,
+                                ]),
+                            ...(is_null($parameters->cpu)
+                                ? []
+                                : [
+                                    'cpu' => $parameters->cpu,
                                 ]),
                             'updatedAt' => $timestamp,
                         ],

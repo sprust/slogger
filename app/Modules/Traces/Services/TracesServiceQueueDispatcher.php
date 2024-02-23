@@ -16,6 +16,7 @@ readonly class TracesServiceQueueDispatcher
 
     public function updateMany(TraceUpdateParametersList $parametersList): void
     {
-        dispatch(new TraceUpdateJob($parametersList));
+        // TODO: delay cause laravel-roadrunner queue can't do releasing
+        dispatch(new TraceUpdateJob($parametersList))->delay(5);
     }
 }

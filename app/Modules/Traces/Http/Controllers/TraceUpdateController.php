@@ -54,7 +54,10 @@ readonly class TraceUpdateController
                 traceId: $item['trace_id'],
                 profiling: $profiling,
                 tags: $item['tags'] ?? null,
-                data: $item['data'] ?? null
+                data: $item['data'] ?? null,
+                duration: $item['duration'],
+                memory: $item['memory'] ?? null,
+                cpu: $item['cpu'] ?? null
             );
 
             if (!$parameters->tags

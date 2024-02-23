@@ -34,6 +34,9 @@ readonly class TraceCreateController
                     type: $item['type'],
                     tags: $item['tags'] ?? [],
                     data: $item['data'],
+                    duration: $item['duration'],
+                    memory: $item['memory'] ?? null,
+                    cpu: $item['cpu'] ?? null,
                     loggedAt: new Carbon($item['logged_at']),
                 )
             );
