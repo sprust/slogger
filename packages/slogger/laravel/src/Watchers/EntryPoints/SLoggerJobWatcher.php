@@ -11,7 +11,6 @@ use Illuminate\Support\Str;
 use SLoggerLaravel\Enums\SLoggerTraceTypeEnum;
 use SLoggerLaravel\Helpers\SLoggerDataFormatter;
 use SLoggerLaravel\Helpers\SLoggerTraceHelper;
-use SLoggerLaravel\Objects\SLoggerTraceUpdateObject;
 use SLoggerLaravel\Watchers\AbstractSLoggerWatcher;
 
 class SLoggerJobWatcher extends AbstractSLoggerWatcher
@@ -101,16 +100,13 @@ class SLoggerJobWatcher extends AbstractSLoggerWatcher
         $data = [
             'connectionName' => $event->connectionName,
             'payload'        => $event->job->payload(),
-            'duration'       => SLoggerTraceHelper::calcDuration($startedAt),
             'status'         => 'processed',
         ];
 
         $this->processor->stop(
-            new SLoggerTraceUpdateObject(
-                traceId: $traceId,
-                tags: [],
-                data: $data,
-            )
+            traceId: $traceId,
+            data: $data,
+            duration: SLoggerTraceHelper::calcDuration($startedAt)
         );
 
         unset($this->jobs[$uuid]);
@@ -145,17 +141,14 @@ class SLoggerJobWatcher extends AbstractSLoggerWatcher
         $data = [
             'connectionName' => $event->connectionName,
             'payload'        => $event->job->payload(),
-            'duration'       => SLoggerTraceHelper::calcDuration($startedAt),
             'status'         => 'failed',
             'exception'      => SLoggerDataFormatter::exception($event->exception),
         ];
 
         $this->processor->stop(
-            new SLoggerTraceUpdateObject(
-                traceId: $traceId,
-                tags: [],
-                data: $data,
-            )
+            traceId: $traceId,
+            data: $data,
+            duration: SLoggerTraceHelper::calcDuration($startedAt)
         );
 
         unset($this->jobs[$uuid]);

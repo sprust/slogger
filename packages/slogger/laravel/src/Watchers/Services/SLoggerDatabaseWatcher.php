@@ -34,7 +34,6 @@ class SLoggerDatabaseWatcher extends AbstractSLoggerWatcher
             'connection' => $event->connectionName,
             'bindings'   => [],
             'sql'        => $sql,
-            'duration'   => SLoggerTraceHelper::roundDuration($event->time / 1000),
             'file'       => $caller['file'] ?? '?',
             'line'       => $caller['line'] ?? '?',
             'hash'       => md5($event->sql),
@@ -42,7 +41,8 @@ class SLoggerDatabaseWatcher extends AbstractSLoggerWatcher
 
         $this->processor->push(
             type: SLoggerTraceTypeEnum::Database->value,
-            data: $data
+            data: $data,
+            duration: SLoggerTraceHelper::roundDuration($event->time / 1000)
         );
     }
 
