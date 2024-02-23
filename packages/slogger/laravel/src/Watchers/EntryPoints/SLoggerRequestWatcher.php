@@ -87,7 +87,7 @@ class SLoggerRequestWatcher extends AbstractSLoggerWatcher
 
     protected function getRequestView(Request $request): string
     {
-        return $request->getPathInfo();
+        return $request->route()->uri();
     }
 
     protected function getAdditionalData(): array

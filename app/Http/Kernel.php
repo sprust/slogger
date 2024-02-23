@@ -64,4 +64,9 @@ class Kernel extends HttpKernel
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
     ];
+
+    protected $middlewarePriority = [
+        \SLoggerLaravel\Middleware\SLoggerHttpMiddleware::class,
+        \App\Modules\Auth\Http\Middlewares\AuthMiddleware::class,
+    ];
 }

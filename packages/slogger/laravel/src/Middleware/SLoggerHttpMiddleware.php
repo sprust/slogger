@@ -12,7 +12,7 @@ use Symfony\Component\HttpKernel\TerminableInterface;
 
 class SLoggerHttpMiddleware implements TerminableInterface
 {
-    private ?string $traceId;
+    private ?string $traceId = null;
     private readonly ?string $headerParentTraceIdKey;
 
     public function __construct(
