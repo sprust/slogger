@@ -22,13 +22,14 @@ class TraceAggregatorParentsIndexRequest extends FormRequest
                 'int',
                 'min:1',
             ],
-            'parent_trace_id'             => [
-                'sometimes',
-                'string',
-            ],
             'trace_id'                    => [
                 'sometimes',
+                'nullable',
                 'string',
+            ],
+            'all_traces_in_tree'          => [
+                'sometimes',
+                'boolean',
             ],
             'logging_from'                => [
                 'sometimes',

@@ -33,8 +33,8 @@ readonly class TraceAggregatorParentsController
             new TraceParentsFindParameters(
                 page: $validated['page'] ?? 1,
                 perPage: $validated['per_page'] ?? null,
-                parentTraceId: $validated['parent_trace_id'] ?? null,
                 traceId: $validated['trace_id'] ?? null,
+                allTracesInTree: $validated['all_traces_in_tree'] ?? false,
                 loggingPeriod: PeriodParameters::fromStringValues(
                     from: $validated['logging_from'] ?? null,
                     to: $validated['logging_to'] ?? null,

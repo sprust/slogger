@@ -30,11 +30,12 @@
                                         "type": "integer",
                                         "minimum": 1
                                     },
-                                    "parent_trace_id": {
-                                        "type": "string"
-                                    },
                                     "trace_id": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "all_traces_in_tree": {
+                                        "type": "boolean"
                                     },
                                     "logging_from": {
                                         "type": "string",

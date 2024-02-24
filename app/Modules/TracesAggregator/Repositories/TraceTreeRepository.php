@@ -26,6 +26,32 @@ class TraceTreeRepository implements TraceTreeRepositoryInterface
 
         $parentTrace = $this->findParentTrace($trace);
 
+        $childrenIds = $this->findTraceIdsInTreeByParentTraceId($parentTrace);
+
+        $children = Trace::query()
+            ->with([
+                'service',
+            ])
+            ->whereIn('traceId', $childrenIds)
+            ->get();
+
+        $treeNodesBuilder = new TraceTreeNodesBuilder(
+            parentTrace: $parentTrace,
+            children: $children->collect()
+        );
+
+        return new TraceTreeNodeObjects(
+            items: [
+                $treeNodesBuilder->collect(),
+            ]
+        );
+    }
+
+    /**
+     * @return string[]
+     */
+    public function findTraceIdsInTreeByParentTraceId(Trace $parentTrace): array
+    {
         $childrenAggregation = Trace::collection()
             ->aggregate(
                 [
@@ -77,28 +103,12 @@ class TraceTreeRepository implements TraceTreeRepositoryInterface
                 ]
             );
 
-        $childrenIds = collect($childrenAggregation)->map(fn(BSONDocument $item) => $item['childIds']);
-
-        $children = Trace::query()
-            ->with([
-                'service',
-            ])
-            ->whereIn('traceId', $childrenIds)
-            ->get();
-
-        $treeNodesBuilder = new TraceTreeNodesBuilder(
-            parentTrace: $parentTrace,
-            children: $children->collect()
-        );
-
-        return new TraceTreeNodeObjects(
-            items: [
-                $treeNodesBuilder->collect(),
-            ]
-        );
+        return collect($childrenAggregation)
+            ->map(fn(BSONDocument $item) => $item['childIds'])
+            ->toArray();
     }
 
-    private function findParentTrace(Trace $trace): Trace
+    public function findParentTrace(Trace $trace): Trace
     {
         $parentTrace = $trace;
 
