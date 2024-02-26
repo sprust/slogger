@@ -6,11 +6,13 @@ use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
+use SLoggerLaravel\SLoggerState;
 use SLoggerLaravel\Watchers\Services\SLoggerHttpClientWatcher;
 
 readonly class SLoggerGuzzleHandlerFactory
 {
     public function __construct(
+        private SLoggerState $loggerState,
         private SLoggerHttpClientWatcher $httpClientWatcher
     ) {
     }
@@ -19,8 +21,10 @@ readonly class SLoggerGuzzleHandlerFactory
     {
         $handlersStack = $handlerStack ?: HandlerStack::create();
 
-        $handlersStack->push($this->request());
-        $handlersStack->push($this->response());
+        if ($this->loggerState->isWatcherEnabled(SLoggerHttpClientWatcher::class)) {
+            $handlersStack->push($this->request());
+            $handlersStack->push($this->response());
+        }
 
         return $handlersStack;
     }

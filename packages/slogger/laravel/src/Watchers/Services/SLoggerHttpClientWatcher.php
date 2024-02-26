@@ -18,19 +18,9 @@ class SLoggerHttpClientWatcher extends AbstractSLoggerWatcher
             return;
         }
 
-        $headerKey = $this->app['config']['slogger.requests.header_parent_trace_id_key'];
-
-        if (!$headerKey) {
-            return;
-        }
-
         Http::globalRequestMiddleware(
-            function (RequestInterface $request) use ($headerKey) {
-                if ($this->isSubscribeRequest($request)) {
-                    $request->withHeader($headerKey, $this->traceIdContainer->getParentTraceId());
-
-                    $this->handleRequest($request);
-                }
+            function (RequestInterface $request) {
+                $this->handleRequest($request);
 
                 return $request;
             }
@@ -38,9 +28,7 @@ class SLoggerHttpClientWatcher extends AbstractSLoggerWatcher
 
         Http::globalResponseMiddleware(
             function (ResponseInterface $response) {
-                if ($this->isSubscribeResponse($response)) {
-                    $this->handleResponse($response);
-                }
+                $this->handleResponse($response);
 
                 return $response;
             }
@@ -49,6 +37,16 @@ class SLoggerHttpClientWatcher extends AbstractSLoggerWatcher
 
     public function handleRequest(RequestInterface $request): void
     {
+        if (!$this->isSubscribeRequest($request)) {
+            return;
+        }
+
+        $headerKey = $this->app['config']['slogger.requests.header_parent_trace_id_key'];
+
+        if ($headerKey) {
+            $request->withHeader($headerKey, $this->traceIdContainer->getParentTraceId());
+        }
+
         $uri = (string) $request->getUri();
 
         $this->processor->push(
@@ -67,6 +65,10 @@ class SLoggerHttpClientWatcher extends AbstractSLoggerWatcher
 
     public function handleResponse(ResponseInterface $response): void
     {
+        if (!$this->isSubscribeResponse($response)) {
+            return;
+        }
+
         $url = $this->getResponseUrl($response);
 
         $this->processor->push(
