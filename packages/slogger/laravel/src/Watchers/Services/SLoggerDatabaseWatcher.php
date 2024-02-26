@@ -22,7 +22,6 @@ class SLoggerDatabaseWatcher extends AbstractSLoggerWatcher
 
     protected function onHandleQueryExecuted(QueryExecuted $event): void
     {
-
         $data = [
             'connection' => $event->connectionName,
             'bindings'   => $event->bindings,
