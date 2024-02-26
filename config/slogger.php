@@ -9,6 +9,7 @@ use SLoggerLaravel\Watchers\Services\SLoggerCacheWatcher;
 use SLoggerLaravel\Watchers\Services\SLoggerDatabaseWatcher;
 use SLoggerLaravel\Watchers\Services\SLoggerDumpWatcher;
 use SLoggerLaravel\Watchers\Services\SLoggerEventWatcher;
+use SLoggerLaravel\Watchers\Services\SLoggerHttpClientWatcher;
 use SLoggerLaravel\Watchers\Services\SLoggerGateWatcher;
 use SLoggerLaravel\Watchers\Services\SLoggerLogWatcher;
 use SLoggerLaravel\Watchers\Services\SLoggerMailWatcher;
@@ -97,6 +98,10 @@ return [
         ],
         [
             'class'   => SLoggerDumpWatcher::class,
+            'enabled' => env('SLOGGER_LOG_DUMP_ENABLED', false),
+        ],
+        [
+            'class'   => SLoggerHttpClientWatcher::class,
             'enabled' => env('SLOGGER_LOG_DUMP_ENABLED', false),
         ],
     ],
