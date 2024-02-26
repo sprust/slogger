@@ -12,6 +12,12 @@ class SLoggerHttpClientWatcher extends AbstractSLoggerWatcher
 {
     public function register(): void
     {
+        if ((float) $this->app->version() < 10) {
+            /** @see SLoggerGuzzleHandlerFactory */
+
+            return;
+        }
+
         $headerKey = $this->app['config']['slogger.requests.header_parent_trace_id_key'];
 
         if (!$headerKey) {
@@ -41,7 +47,7 @@ class SLoggerHttpClientWatcher extends AbstractSLoggerWatcher
         );
     }
 
-    protected function handleRequest(RequestInterface $request): void
+    public function handleRequest(RequestInterface $request): void
     {
         $uri = (string) $request->getUri();
 
@@ -59,7 +65,7 @@ class SLoggerHttpClientWatcher extends AbstractSLoggerWatcher
         );
     }
 
-    protected function handleResponse(ResponseInterface $response): void
+    public function handleResponse(ResponseInterface $response): void
     {
         $url = $this->getResponseUrl($response);
 
