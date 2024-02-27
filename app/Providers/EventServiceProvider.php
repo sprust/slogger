@@ -2,9 +2,7 @@
 
 namespace App\Providers;
 
-use App\Services\SLogger\Listeners\SLoggerWatcherErrorListener;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
-use SLoggerLaravel\Events\SLoggerWatcherErrorEvent;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -14,9 +12,6 @@ class EventServiceProvider extends ServiceProvider
      * @var array<class-string, array<int, class-string>>
      */
     protected $listen = [
-        SLoggerWatcherErrorEvent::class => [
-            SLoggerWatcherErrorListener::class,
-        ],
     ];
 
     /**
