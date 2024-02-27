@@ -109,11 +109,4 @@ return [
         'database' => env('DB_CONNECTION', 'mysql'),
         'table'    => 'failed_jobs',
     ],
-
-    'queues' => [
-        'creating' => [
-            'connection' => env('QUEUE_TRACES_CREATING_CONNECTION', 'roadrunner'),
-            'name'       => env('QUEUE_TRACES_CREATING_NAME', 'traces-creating'),
-        ],
-    ],
 ];
