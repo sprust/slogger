@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Services\SLogger\Pushing;
+namespace SLoggerLaravel\Dispatcher;
 
 use Exception;
-use Illuminate\Contracts\Foundation\Application;
-use SLoggerLaravel\Dispatcher\SLoggerTraceDispatcherInterface;
 use SLoggerLaravel\Helpers\SLoggerDataFormatter;
+use SLoggerLaravel\Jobs\SLoggerTraceCreateJob;
+use SLoggerLaravel\Jobs\SLoggerTraceUpdateJob;
 use SLoggerLaravel\Objects\SLoggerTraceObject;
 use SLoggerLaravel\Objects\SLoggerTraceObjects;
 use SLoggerLaravel\Objects\SLoggerTraceUpdateObject;
@@ -17,10 +17,6 @@ class SLoggerTraceQueueDispatcher implements SLoggerTraceDispatcherInterface
     private array $traces = [];
 
     private int $maxBatchSize = 5;
-
-    public function __construct(protected readonly Application $app)
-    {
-    }
 
     public function push(SLoggerTraceObject $parameters): void
     {
@@ -57,7 +53,7 @@ class SLoggerTraceQueueDispatcher implements SLoggerTraceDispatcherInterface
             $traceObjects->add($trace);
         }
 
-        dispatch(new SLoggerTracePushingJob($traceObjects));
+        dispatch(new SLoggerTraceCreateJob($traceObjects));
 
         $this->traces = [];
     }

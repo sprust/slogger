@@ -10,7 +10,7 @@ use SLoggerLaravel\Objects\SLoggerTraceObject;
 use SLoggerLaravel\Objects\SLoggerTraceObjects;
 use SLoggerLaravel\Objects\SLoggerTraceUpdateObject;
 
-class SLoggerTraceDispatcher implements SLoggerTraceDispatcherInterface
+class SLoggerTraceFileDispatcher implements SLoggerTraceDispatcherInterface
 {
     /** @var SLoggerTraceObject[] */
     private array $traces = [];
