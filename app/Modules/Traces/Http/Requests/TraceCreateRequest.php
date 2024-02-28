@@ -42,6 +42,19 @@ class TraceCreateRequest extends FormRequest
                 'required',
                 'json',
             ],
+            'traces.*.duration'        => [
+                'present',
+                'nullable',
+                'numeric',
+            ],
+            'traces.*.memory'          => [
+                'sometimes',
+                'numeric',
+            ],
+            'traces.*.cpu'             => [
+                'sometimes',
+                'numeric',
+            ],
             'traces.*.logged_at'       => [
                 'required',
                 'numeric',

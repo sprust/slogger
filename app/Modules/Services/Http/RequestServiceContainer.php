@@ -6,14 +6,14 @@ use App\Models\Services\Service;
 
 class RequestServiceContainer
 {
-    private Service $service;
+    private ?Service $service = null;
 
-    public function getService(): Service
+    public function getService(): ?Service
     {
         return $this->service;
     }
 
-    public function setService(Service $service): void
+    public function setService(?Service $service): void
     {
         $this->service = $service;
     }

@@ -11,6 +11,7 @@ use App\Modules\TracesAggregator\Dto\Parameters\DataFilter\TraceDataFilterParame
 use App\Modules\TracesAggregator\Dto\Parameters\TraceParentsFindByTextParameters;
 use App\Modules\TracesAggregator\Dto\Parameters\TraceParentsFindParameters;
 use App\Modules\TracesAggregator\Dto\PeriodParameters;
+use App\Modules\TracesAggregator\Dto\TraceDetailObject;
 use App\Modules\TracesAggregator\Dto\TraceObject;
 use App\Modules\TracesAggregator\Enums\TraceDataFilterCompStringTypeEnum;
 use App\Services\Dto\PaginationInfoObject;
@@ -21,11 +22,57 @@ class TraceParentsRepository implements TraceParentsRepositoryInterface
 {
     private int $maxPerPage = 20;
 
+    public function __construct(
+        // TODO
+        private readonly TraceTreeRepositoryInterface $traceTreeRepository
+    ) {
+    }
+
+    public function findByTraceId(string $traceId): ?TraceDetailObject
+    {
+        /** @var Trace|null $trace */
+        $trace = Trace::query()->where('traceId', $traceId)->first();
+
+        if (!$trace) {
+            return null;
+        }
+
+        return TraceDetailObject::fromModel($trace);
+    }
+
     public function findParents(TraceParentsFindParameters $parameters): TraceParentObjects
     {
         $perPage = min($parameters->perPage ?: $this->maxPerPage, $this->maxPerPage);
 
+        $traceIds = null;
+
+        if ($parameters->traceId) {
+            /** @var Trace|null $trace */
+            $trace = Trace::query()->where('traceId', $parameters->traceId)->first();
+
+            if (!$trace) {
+                return new TraceParentObjects(
+                    items: [],
+                    paginationInfo: new PaginationInfoObject(
+                        total: 0,
+                        perPage: $perPage,
+                        currentPage: 1,
+                    )
+                );
+            }
+
+            if (!$parameters->allTracesInTree) {
+                $traceIds = [$parameters->traceId];
+            } else {
+                $parentTrace = $this->traceTreeRepository->findParentTrace($trace);
+
+                $traceIds   = $this->traceTreeRepository->findTraceIdsInTreeByParentTraceId($parentTrace);
+                $traceIds[] = $parentTrace->traceId;
+            }
+        }
+
         $builder = $this->makeBuilder(
+            traceIds: $traceIds,
             loggingPeriod: $parameters->loggingPeriod,
             types: $parameters->types,
             tags: $parameters->tags,
@@ -184,6 +231,10 @@ class TraceParentsRepository implements TraceParentsRepositoryInterface
             ];
         }
 
+        $pipeline[] = [
+            '$limit' => 50,
+        ];
+
         $iterator = Trace::collection()->aggregate($pipeline);
 
         return collect($iterator)->pluck('_id')->sort()->toArray();
@@ -193,6 +244,7 @@ class TraceParentsRepository implements TraceParentsRepositoryInterface
      * @return Builder|Trace
      */
     private function makeBuilder(
+        ?array $traceIds = null,
         ?PeriodParameters $loggingPeriod = null,
         array $types = [],
         array $tags = [],
@@ -202,6 +254,7 @@ class TraceParentsRepository implements TraceParentsRepositoryInterface
         $loggedAtTo   = $loggingPeriod?->to;
 
         $builder = Trace::query()
+            ->when($traceIds, fn(Builder $query) => $query->whereIn('traceId', $traceIds))
             ->when($loggedAtFrom, fn(Builder $query) => $query->where('loggedAt', '>=', $loggedAtFrom))
             ->when($loggedAtTo, fn(Builder $query) => $query->where('loggedAt', '<=', $loggedAtTo))
             ->when(

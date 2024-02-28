@@ -8,6 +8,7 @@ use LogicException;
 use SLoggerLaravel\Dispatcher\SLoggerTraceDispatcherInterface;
 use SLoggerLaravel\Enums\SLoggerTraceTypeEnum;
 use SLoggerLaravel\Helpers\SLoggerDataFormatter;
+use SLoggerLaravel\Helpers\SLoggerMetricsHelper;
 use SLoggerLaravel\Helpers\SLoggerTraceHelper;
 use SLoggerLaravel\Objects\SLoggerTraceObject;
 use SLoggerLaravel\Objects\SLoggerTraceUpdateObject;
@@ -85,6 +86,8 @@ class SLoggerProcessor
             customParentTraceId: $customParentTraceId,
         );
 
+        $startedAt = now();
+
         $exception = null;
 
         try {
@@ -100,14 +103,10 @@ class SLoggerProcessor
             );
         }
 
-        $profiling = $this->profiling->stop();
-
         $this->stop(
-            new SLoggerTraceUpdateObject(
-                traceId: $traceId,
-                profiling: $profiling,
-                data: $data
-            )
+            traceId: $traceId,
+            data: $data,
+            duration: SLoggerTraceHelper::calcDuration($startedAt)
         );
 
         if ($exception) {
@@ -126,9 +125,11 @@ class SLoggerProcessor
     ): string {
         $this->profiling->start();
 
-        $traceId = SLoggerTraceHelper::make();
+        $traceId = SLoggerTraceHelper::makeTraceId();
 
         $parentTraceId = $this->traceIdContainer->getParentTraceId();
+
+        SLoggerTraceHelper::injectCallerToData($data);
 
         $this->traceDispatcher->push(
             new SLoggerTraceObject(
@@ -137,6 +138,9 @@ class SLoggerProcessor
                 type: $type,
                 tags: $tags,
                 data: $data,
+                duration: null,
+                memory: SLoggerMetricsHelper::getMemoryUsagePercent(),
+                cpu: SLoggerMetricsHelper::getCpuAvgPercent(),
                 loggedAt: ($loggedAt ?: now())->clone()->setTimezone('UTC')
             )
         );
@@ -154,19 +158,22 @@ class SLoggerProcessor
         string $type,
         array $tags = [],
         array $data = [],
+        ?float $duration = null,
         ?Carbon $loggedAt = null
     ): void {
         if (!$this->isActive()) {
             return;
         }
 
-        $traceId = SLoggerTraceHelper::make();
+        $traceId = SLoggerTraceHelper::makeTraceId();
 
         $parentTraceId = $this->traceIdContainer->getParentTraceId();
 
         if (!$parentTraceId) {
             throw new LogicException("Parent trace id has not found for $type.");
         }
+
+        SLoggerTraceHelper::injectCallerToData($data);
 
         $this->traceDispatcher->push(
             new SLoggerTraceObject(
@@ -175,22 +182,29 @@ class SLoggerProcessor
                 type: $type,
                 tags: $tags,
                 data: $data,
+                duration: $duration,
+                memory: SLoggerMetricsHelper::getMemoryUsagePercent(),
+                cpu: SLoggerMetricsHelper::getCpuAvgPercent(),
                 loggedAt: ($loggedAt ?: now())->clone()->setTimezone('UTC')
             )
         );
     }
 
-    public function stop(SLoggerTraceUpdateObject $parameters): void
-    {
+    public function stop(
+        string $traceId,
+        ?array $tags = null,
+        ?array $data = null,
+        ?float $duration = null,
+    ): void {
         if (!$this->isActive()) {
             throw new LogicException('Tracing process isn\'t active.');
         }
 
         $currentParentTraceId = $this->traceIdContainer->getParentTraceId();
 
-        if ($parameters->traceId !== $currentParentTraceId) {
+        if ($traceId !== $currentParentTraceId) {
             throw new LogicException(
-                "Current parent trace id [$currentParentTraceId] isn't same that stopping [$parameters->traceId]."
+                "Current parent trace id [$currentParentTraceId] isn't same that stopping [$traceId]."
             );
         }
 
@@ -206,7 +220,15 @@ class SLoggerProcessor
             $this->traceIdContainer->setParentTraceId(null);
         }
 
-        $parameters->profiling = $this->profiling->stop();
+        $parameters = new SLoggerTraceUpdateObject(
+            traceId: $traceId,
+            profiling: $this->profiling->stop(),
+            tags: $tags,
+            data: $data,
+            duration: $duration,
+            memory: SLoggerMetricsHelper::getMemoryUsagePercent(),
+            cpu: SLoggerMetricsHelper::getCpuAvgPercent()
+        );
 
         $this->traceDispatcher->stop($parameters);
     }

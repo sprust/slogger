@@ -7,7 +7,6 @@ use Illuminate\Console\Events\CommandStarting;
 use Illuminate\Support\Carbon;
 use SLoggerLaravel\Enums\SLoggerTraceTypeEnum;
 use SLoggerLaravel\Helpers\SLoggerTraceHelper;
-use SLoggerLaravel\Objects\SLoggerTraceUpdateObject;
 use SLoggerLaravel\Watchers\AbstractSLoggerWatcher;
 use Symfony\Component\Console\Input\InputInterface;
 
@@ -65,17 +64,15 @@ class SLoggerCommandWatcher extends AbstractSLoggerWatcher
 
         $data = [
             'command'   => $this->makeCommandView($event->command, $event->input),
-            'exitCode'  => $event->exitCode,
+            'exit_code' => $event->exitCode,
             'arguments' => $event->input->getArguments(),
             'options'   => $event->input->getOptions(),
-            'duration'  => SLoggerTraceHelper::calcDuration($startedAt),
         ];
 
         $this->processor->stop(
-            new SLoggerTraceUpdateObject(
-                traceId: $traceId,
-                data: $data,
-            )
+            traceId: $traceId,
+            data: $data,
+            duration: SLoggerTraceHelper::calcDuration($startedAt)
         );
     }
 

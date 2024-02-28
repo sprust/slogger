@@ -34,14 +34,21 @@ class SLoggerCacheWatcher extends AbstractSLoggerWatcher
             return;
         }
 
+        $type = 'hit';
+
         $data = [
-            'type'  => 'hit',
+            'type'  => $type,
             'key'   => $event->key,
             'value' => $this->prepareValue($event->key, $event->value),
+            'tags'  => $event->tags,
         ];
 
         $this->processor->push(
             type: SLoggerTraceTypeEnum::Cache->value,
+            tags: [
+                $type,
+                $event->key,
+            ],
             data: $data
         );
     }
@@ -57,13 +64,20 @@ class SLoggerCacheWatcher extends AbstractSLoggerWatcher
             return;
         }
 
+        $type = 'missed';
+
         $data = [
-            'type' => 'missed',
+            'type' => $type,
             'key'  => $event->key,
+            'tags' => $event->tags,
         ];
 
         $this->processor->push(
             type: SLoggerTraceTypeEnum::Cache->value,
+            tags: [
+                $type,
+                $event->key,
+            ],
             data: $data
         );
     }
@@ -79,15 +93,22 @@ class SLoggerCacheWatcher extends AbstractSLoggerWatcher
             return;
         }
 
+        $type = 'set';
+
         $data = [
-            'type'       => 'set',
+            'type'       => $type,
             'key'        => $event->key,
             'value'      => $this->prepareValue($event->key, $event->value),
+            'tags'       => $event->tags,
             'expiration' => $event->seconds,
         ];
 
         $this->processor->push(
             type: SLoggerTraceTypeEnum::Cache->value,
+            tags: [
+                $type,
+                $event->key,
+            ],
             data: $data
         );
     }
@@ -103,13 +124,19 @@ class SLoggerCacheWatcher extends AbstractSLoggerWatcher
             return;
         }
 
+        $type = 'forget';
+
         $data = [
-            'type' => 'forget',
+            'type' => $type,
             'key'  => $event->key,
         ];
 
         $this->processor->push(
             type: SLoggerTraceTypeEnum::Cache->value,
+            tags: [
+                $type,
+                $event->key,
+            ],
             data: $data
         );
     }

@@ -9,7 +9,10 @@ class TraceUpdateParameters
         public string $traceId,
         public ?TraceUpdateProfilingObjects $profiling,
         public ?array $tags,
-        public ?string $data
+        public ?string $data,
+        public ?float $duration,
+        public ?float $memory,
+        public ?float $cpu
     ) {
     }
 }

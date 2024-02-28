@@ -52,6 +52,15 @@ return new class extends Migration {
                             'data'          => [
                                 'bsonType' => ['object', 'array'],
                             ],
+                            'duration'      => [
+                                'bsonType' => ['number', 'null'],
+                            ],
+                            'memory'        => [
+                                'bsonType' => ['number', 'null'],
+                            ],
+                            'cpu'           => [
+                                'bsonType' => ['number', 'null'],
+                            ],
                             'loggedAt'      => [
                                 'bsonType' => 'date',
                             ],

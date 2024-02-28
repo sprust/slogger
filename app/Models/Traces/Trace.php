@@ -16,6 +16,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string       $type
  * @property array        $tags
  * @property array        $data
+ * @property float|null   $duration
+ * @property float|null   $memory
+ * @property float|null   $cpu
  * @property Carbon       $loggedAt
  * @property Carbon       $createdAt
  * @property Carbon       $updatedAt
@@ -34,7 +37,7 @@ class Trace extends AbstractTraceModel
         'loggedAt' => 'datetime',
     ];
 
-    public function service(): BelongsTo|\MongoDB\Laravel\Relations\BelongsTo
+    public function service(): BelongsTo
     {
         return $this->belongsTo(Service::class, 'serviceId', 'id');
     }

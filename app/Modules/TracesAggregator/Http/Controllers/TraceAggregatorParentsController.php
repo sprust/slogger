@@ -10,9 +10,11 @@ use App\Modules\TracesAggregator\Http\Requests\TraceAggregatorFindByTextRequest;
 use App\Modules\TracesAggregator\Http\Requests\TraceAggregatorParentsIndexRequest;
 use App\Modules\TracesAggregator\Http\Responses\TraceAggregatorParentItemsResponse;
 use App\Modules\TracesAggregator\Http\Responses\TraceAggregatorStringValueResponse;
+use App\Modules\TracesAggregator\Http\Responses\TraceAggregatorTraceDetailResponse;
 use App\Modules\TracesAggregator\Repositories\TraceParentsRepositoryInterface;
 use Ifksco\OpenApiGenerator\Attributes\OaListItemTypeAttribute;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Symfony\Component\HttpFoundation\Response;
 
 readonly class TraceAggregatorParentsController
 {
@@ -31,8 +33,8 @@ readonly class TraceAggregatorParentsController
             new TraceParentsFindParameters(
                 page: $validated['page'] ?? 1,
                 perPage: $validated['per_page'] ?? null,
-                parentTraceId: $validated['parent_trace_id'] ?? null,
                 traceId: $validated['trace_id'] ?? null,
+                allTracesInTree: $validated['all_traces_in_tree'] ?? false,
                 loggingPeriod: PeriodParameters::fromStringValues(
                     from: $validated['logging_from'] ?? null,
                     to: $validated['logging_to'] ?? null,
@@ -51,6 +53,15 @@ readonly class TraceAggregatorParentsController
         );
 
         return new TraceAggregatorParentItemsResponse($parents);
+    }
+
+    public function show(string $traceId): TraceAggregatorTraceDetailResponse
+    {
+        $traceObject = $this->repository->findByTraceId($traceId);
+
+        abort_if(!$traceObject, Response::HTTP_NOT_FOUND);
+
+        return new TraceAggregatorTraceDetailResponse($traceObject);
     }
 
     #[OaListItemTypeAttribute(TraceAggregatorStringValueResponse::class)]

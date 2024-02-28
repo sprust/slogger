@@ -4,8 +4,6 @@ namespace App\Modules\TracesAggregator\Dto;
 
 use App\Models\Traces\Trace;
 use App\Modules\TracesAggregator\Dto\Objects\TraceDataAdditionalFieldObject;
-use App\Modules\TracesAggregator\Dto\Objects\TraceDataNodeObject;
-use App\Modules\TracesAggregator\Services\TraceDataConverter;
 use Carbon\Carbon;
 use Illuminate\Support\Arr;
 
@@ -21,7 +19,9 @@ readonly class TraceObject
         public ?string $parentTraceId,
         public string $type,
         public array $tags,
-        public TraceDataNodeObject $data,
+        public ?float $duration,
+        public ?float $memory,
+        public ?float $cpu,
         public array $additionalFields,
         public Carbon $loggedAt,
         public Carbon $createdAt,
@@ -81,7 +81,9 @@ readonly class TraceObject
             parentTraceId: $trace->parentTraceId,
             type: $trace->type,
             tags: $trace->tags,
-            data: (new TraceDataConverter($trace->data))->convert(),
+            duration: $trace->duration,
+            memory: $trace->memory,
+            cpu: $trace->cpu,
             additionalFields: $additionalFieldValues,
             loggedAt: $trace->loggedAt,
             createdAt: $trace->createdAt,
