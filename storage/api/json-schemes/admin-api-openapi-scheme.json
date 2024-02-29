@@ -199,6 +199,10 @@
                                                                         "type": "string",
                                                                         "nullable": false
                                                                     },
+                                                                    "status": {
+                                                                        "type": "string",
+                                                                        "nullable": false
+                                                                    },
                                                                     "tags": {
                                                                         "type": "array",
                                                                         "nullable": false,
@@ -257,6 +261,7 @@
                                                                 "required": [
                                                                     "trace_id",
                                                                     "type",
+                                                                    "status",
                                                                     "tags",
                                                                     "additional_fields",
                                                                     "logged_at",
@@ -657,6 +662,10 @@
                                                     "type": "string",
                                                     "nullable": false
                                                 },
+                                                "status": {
+                                                    "type": "string",
+                                                    "nullable": false
+                                                },
                                                 "tags": {
                                                     "type": "array",
                                                     "nullable": false,
@@ -816,6 +825,7 @@
                                             "required": [
                                                 "trace_id",
                                                 "type",
+                                                "status",
                                                 "tags",
                                                 "data",
                                                 "logged_at",
@@ -880,15 +890,19 @@
                                                                     "name"
                                                                 ]
                                                             },
-                                                            "traceId": {
+                                                            "trace_id": {
                                                                 "type": "string",
                                                                 "nullable": false
                                                             },
-                                                            "parentTraceId": {
+                                                            "parent_trace_id": {
                                                                 "type": "string",
                                                                 "nullable": true
                                                             },
                                                             "type": {
+                                                                "type": "string",
+                                                                "nullable": false
+                                                            },
+                                                            "status": {
                                                                 "type": "string",
                                                                 "nullable": false
                                                             },
@@ -911,7 +925,7 @@
                                                                 "type": "number",
                                                                 "nullable": true
                                                             },
-                                                            "loggedAt": {
+                                                            "logged_at": {
                                                                 "type": "string",
                                                                 "nullable": false
                                                             },
@@ -936,15 +950,19 @@
                                                                                 "name"
                                                                             ]
                                                                         },
-                                                                        "traceId": {
+                                                                        "trace_id": {
                                                                             "type": "string",
                                                                             "nullable": false
                                                                         },
-                                                                        "parentTraceId": {
+                                                                        "parent_trace_id": {
                                                                             "type": "string",
                                                                             "nullable": true
                                                                         },
                                                                         "type": {
+                                                                            "type": "string",
+                                                                            "nullable": false
+                                                                        },
+                                                                        "status": {
                                                                             "type": "string",
                                                                             "nullable": false
                                                                         },
@@ -967,7 +985,7 @@
                                                                             "type": "number",
                                                                             "nullable": true
                                                                         },
-                                                                        "loggedAt": {
+                                                                        "logged_at": {
                                                                             "type": "string",
                                                                             "nullable": false
                                                                         },
@@ -992,15 +1010,19 @@
                                                                                             "name"
                                                                                         ]
                                                                                     },
-                                                                                    "traceId": {
+                                                                                    "trace_id": {
                                                                                         "type": "string",
                                                                                         "nullable": false
                                                                                     },
-                                                                                    "parentTraceId": {
+                                                                                    "parent_trace_id": {
                                                                                         "type": "string",
                                                                                         "nullable": true
                                                                                     },
                                                                                     "type": {
+                                                                                        "type": "string",
+                                                                                        "nullable": false
+                                                                                    },
+                                                                                    "status": {
                                                                                         "type": "string",
                                                                                         "nullable": false
                                                                                     },
@@ -1023,7 +1045,7 @@
                                                                                         "type": "number",
                                                                                         "nullable": true
                                                                                     },
-                                                                                    "loggedAt": {
+                                                                                    "logged_at": {
                                                                                         "type": "string",
                                                                                         "nullable": false
                                                                                     },
@@ -1048,15 +1070,19 @@
                                                                                                         "name"
                                                                                                     ]
                                                                                                 },
-                                                                                                "traceId": {
+                                                                                                "trace_id": {
                                                                                                     "type": "string",
                                                                                                     "nullable": false
                                                                                                 },
-                                                                                                "parentTraceId": {
+                                                                                                "parent_trace_id": {
                                                                                                     "type": "string",
                                                                                                     "nullable": true
                                                                                                 },
                                                                                                 "type": {
+                                                                                                    "type": "string",
+                                                                                                    "nullable": false
+                                                                                                },
+                                                                                                "status": {
                                                                                                     "type": "string",
                                                                                                     "nullable": false
                                                                                                 },
@@ -1079,7 +1105,7 @@
                                                                                                     "type": "number",
                                                                                                     "nullable": true
                                                                                                 },
-                                                                                                "loggedAt": {
+                                                                                                "logged_at": {
                                                                                                     "type": "string",
                                                                                                     "nullable": false
                                                                                                 },
@@ -1104,15 +1130,19 @@
                                                                                                                     "name"
                                                                                                                 ]
                                                                                                             },
-                                                                                                            "traceId": {
+                                                                                                            "trace_id": {
                                                                                                                 "type": "string",
                                                                                                                 "nullable": false
                                                                                                             },
-                                                                                                            "parentTraceId": {
+                                                                                                            "parent_trace_id": {
                                                                                                                 "type": "string",
                                                                                                                 "nullable": true
                                                                                                             },
                                                                                                             "type": {
+                                                                                                                "type": "string",
+                                                                                                                "nullable": false
+                                                                                                            },
+                                                                                                            "status": {
                                                                                                                 "type": "string",
                                                                                                                 "nullable": false
                                                                                                             },
@@ -1136,7 +1166,7 @@
                                                                                                                 "type": "number",
                                                                                                                 "nullable": true
                                                                                                             },
-                                                                                                            "loggedAt": {
+                                                                                                            "logged_at": {
                                                                                                                 "type": "string",
                                                                                                                 "nullable": false
                                                                                                             },
@@ -1154,10 +1184,11 @@
                                                                                                             }
                                                                                                         },
                                                                                                         "required": [
-                                                                                                            "traceId",
+                                                                                                            "trace_id",
                                                                                                             "type",
+                                                                                                            "status",
                                                                                                             "tags",
-                                                                                                            "loggedAt",
+                                                                                                            "logged_at",
                                                                                                             "children",
                                                                                                             "depth"
                                                                                                         ]
@@ -1169,10 +1200,11 @@
                                                                                                 }
                                                                                             },
                                                                                             "required": [
-                                                                                                "traceId",
+                                                                                                "trace_id",
                                                                                                 "type",
+                                                                                                "status",
                                                                                                 "tags",
-                                                                                                "loggedAt",
+                                                                                                "logged_at",
                                                                                                 "children",
                                                                                                 "depth"
                                                                                             ]
@@ -1184,10 +1216,11 @@
                                                                                     }
                                                                                 },
                                                                                 "required": [
-                                                                                    "traceId",
+                                                                                    "trace_id",
                                                                                     "type",
+                                                                                    "status",
                                                                                     "tags",
-                                                                                    "loggedAt",
+                                                                                    "logged_at",
                                                                                     "children",
                                                                                     "depth"
                                                                                 ]
@@ -1199,10 +1232,11 @@
                                                                         }
                                                                     },
                                                                     "required": [
-                                                                        "traceId",
+                                                                        "trace_id",
                                                                         "type",
+                                                                        "status",
                                                                         "tags",
-                                                                        "loggedAt",
+                                                                        "logged_at",
                                                                         "children",
                                                                         "depth"
                                                                     ]
@@ -1214,10 +1248,11 @@
                                                             }
                                                         },
                                                         "required": [
-                                                            "traceId",
+                                                            "trace_id",
                                                             "type",
+                                                            "status",
                                                             "tags",
-                                                            "loggedAt",
+                                                            "logged_at",
                                                             "children",
                                                             "depth"
                                                         ]

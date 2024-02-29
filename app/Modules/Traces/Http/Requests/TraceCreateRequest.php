@@ -30,6 +30,12 @@ class TraceCreateRequest extends FormRequest
                 'min:1',
                 'max:40',
             ],
+            'traces.*.status'          => [
+                'required',
+                'string',
+                'min:1',
+                'max:40',
+            ],
             'traces.*.tags'            => [
                 'sometimes',
                 'array',

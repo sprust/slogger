@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string       $traceId
  * @property string|null  $parentTraceId
  * @property string       $type
+ * @property string       $status
  * @property array        $tags
  * @property array        $data
  * @property float|null   $duration

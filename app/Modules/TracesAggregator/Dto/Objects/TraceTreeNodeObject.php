@@ -16,6 +16,7 @@ class TraceTreeNodeObject
         public string $traceId,
         public ?string $parentTraceId,
         public string $type,
+        public string $status,
         public array $tags,
         public ?float $duration,
         public ?float $memory,

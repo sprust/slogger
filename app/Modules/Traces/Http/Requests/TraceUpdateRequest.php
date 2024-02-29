@@ -19,6 +19,12 @@ class TraceUpdateRequest extends FormRequest
                 'string',
                 'min:20',
             ],
+            'traces.*.status'                                   => [
+                'required',
+                'string',
+                'min:1',
+                'max:40',
+            ],
             'traces.*.profiling'                                => [
                 'sometimes',
                 'array',

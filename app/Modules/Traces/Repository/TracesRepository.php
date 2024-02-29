@@ -26,6 +26,7 @@ class TracesRepository implements TracesRepositoryInterface
                         '$set'         => [
                             'parentTraceId' => $parameters->parentTraceId,
                             'type'          => $parameters->type,
+                            'status'        => $parameters->status,
                             'tags'          => $parameters->tags,
                             'data'          => json_decode($parameters->data, true),
                             'duration'      => $parameters->duration,
@@ -63,6 +64,7 @@ class TracesRepository implements TracesRepositoryInterface
                     ],
                     [
                         '$set' => [
+                            'status'    => $parameters->status,
                             ...(is_null($parameters->profiling)
                                 ? []
                                 : [

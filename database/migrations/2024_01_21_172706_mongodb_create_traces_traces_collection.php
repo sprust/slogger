@@ -46,6 +46,9 @@ return new class extends Migration {
                             'type'          => [
                                 'bsonType' => 'string',
                             ],
+                            'status'        => [
+                                'bsonType' => 'string',
+                            ],
                             'tags'          => [
                                 'bsonType' => 'array',
                             ],

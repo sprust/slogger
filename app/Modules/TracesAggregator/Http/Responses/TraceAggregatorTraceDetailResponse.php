@@ -12,6 +12,7 @@ class TraceAggregatorTraceDetailResponse extends AbstractApiResource
     private string $trace_id;
     private ?string $parent_trace_id;
     private string $type;
+    private string $status;
     #[OaListItemTypeAttribute('string')]
     private array $tags;
     private TraceAggregatorTraceDataNodeResponse $data;
@@ -31,12 +32,13 @@ class TraceAggregatorTraceDetailResponse extends AbstractApiResource
         $this->trace_id        = $trace->traceId;
         $this->parent_trace_id = $trace->parentTraceId;
         $this->type            = $trace->type;
+        $this->status          = $trace->status;
         $this->tags            = $trace->tags;
         $this->data            = new TraceAggregatorTraceDataNodeResponse($trace->data);
 
-        $this->duration        = $trace->duration;
-        $this->memory          = $trace->memory;
-        $this->cpu             = $trace->cpu;
+        $this->duration = $trace->duration;
+        $this->memory   = $trace->memory;
+        $this->cpu      = $trace->cpu;
 
         $this->logged_at  = $trace->loggedAt->toDateTimeString('microsecond');
         $this->created_at = $trace->createdAt->toDateTimeString('microsecond');

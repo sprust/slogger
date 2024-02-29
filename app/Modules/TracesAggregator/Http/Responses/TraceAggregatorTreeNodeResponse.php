@@ -9,15 +9,16 @@ use Ifksco\OpenApiGenerator\Attributes\OaListItemTypeAttribute;
 class TraceAggregatorTreeNodeResponse extends AbstractApiResource
 {
     private ?TraceAggregatorTraceServiceResponse $service;
-    private string $traceId;
-    private ?string $parentTraceId;
+    private string $trace_id;
+    private ?string $parent_trace_id;
     private string $type;
+    private string $status;
     #[OaListItemTypeAttribute('string')]
     private array $tags;
     private ?float $duration;
     private ?float $memory;
     private ?float $cpu;
-    private string $loggedAt;
+    private string $logged_at;
     #[OaListItemTypeAttribute(TraceAggregatorTreeNodeResponse::class, isRecursive: true)]
     private array $children;
     private int $depth;
@@ -26,20 +27,21 @@ class TraceAggregatorTreeNodeResponse extends AbstractApiResource
     {
         parent::__construct($traceTreeNodeObject);
 
-        $this->service       = $traceTreeNodeObject->serviceObject
+        $this->service         = $traceTreeNodeObject->serviceObject
             ? new TraceAggregatorTraceServiceResponse(
                 $traceTreeNodeObject->serviceObject
             )
             : null;
-        $this->traceId       = $traceTreeNodeObject->traceId;
-        $this->parentTraceId = $traceTreeNodeObject->parentTraceId;
-        $this->type          = $traceTreeNodeObject->type;
-        $this->tags          = $traceTreeNodeObject->tags;
-        $this->duration      = $traceTreeNodeObject->duration;
-        $this->memory        = $traceTreeNodeObject->memory;
-        $this->cpu           = $traceTreeNodeObject->cpu;
-        $this->loggedAt      = $traceTreeNodeObject->loggedAt->toDateTimeString('microsecond');
-        $this->children      = TraceAggregatorTreeNodeResponse::mapIntoMe($traceTreeNodeObject->children);
-        $this->depth         = $traceTreeNodeObject->depth;
+        $this->trace_id        = $traceTreeNodeObject->traceId;
+        $this->parent_trace_id = $traceTreeNodeObject->parentTraceId;
+        $this->type            = $traceTreeNodeObject->type;
+        $this->status          = $traceTreeNodeObject->status;
+        $this->tags            = $traceTreeNodeObject->tags;
+        $this->duration        = $traceTreeNodeObject->duration;
+        $this->memory          = $traceTreeNodeObject->memory;
+        $this->cpu             = $traceTreeNodeObject->cpu;
+        $this->logged_at       = $traceTreeNodeObject->loggedAt->toDateTimeString('microsecond');
+        $this->children        = TraceAggregatorTreeNodeResponse::mapIntoMe($traceTreeNodeObject->children);
+        $this->depth           = $traceTreeNodeObject->depth;
     }
 }

@@ -52,6 +52,7 @@ readonly class TraceUpdateController
             $parameters = new TraceUpdateParameters(
                 serviceId: $serviceId,
                 traceId: $item['trace_id'],
+                status: $item['status'],
                 profiling: $profiling,
                 tags: $item['tags'] ?? null,
                 data: $item['data'] ?? null,
@@ -59,13 +60,6 @@ readonly class TraceUpdateController
                 memory: $item['memory'] ?? null,
                 cpu: $item['cpu'] ?? null
             );
-
-            if (!$parameters->tags
-                && !$parameters->data
-                && !count($profiling->getItems())
-            ) {
-                continue;
-            }
 
             $parametersList->add($parameters);
         }

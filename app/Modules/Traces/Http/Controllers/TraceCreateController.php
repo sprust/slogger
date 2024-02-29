@@ -32,6 +32,7 @@ readonly class TraceCreateController
                     traceId: $item['trace_id'],
                     parentTraceId: $item['parent_trace_id'] ?? null,
                     type: $item['type'],
+                    status: $item['status'],
                     tags: $item['tags'] ?? [],
                     data: $item['data'],
                     duration: $item['duration'],

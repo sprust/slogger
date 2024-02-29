@@ -11,6 +11,7 @@ class TraceCreateParameters
         public string $traceId,
         public ?string $parentTraceId,
         public string $type,
+        public string $status,
         public array $tags,
         public string $data,
         public ?float $duration,
