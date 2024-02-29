@@ -4,40 +4,18 @@ namespace App\Modules\TracesAggregator\Http\Requests;
 
 use App\Modules\TracesAggregator\Enums\TraceDataFilterCompNumericTypeEnum;
 use App\Modules\TracesAggregator\Enums\TraceDataFilterCompStringTypeEnum;
-use App\Services\Enums\SortDirectionEnum;
 use Illuminate\Foundation\Http\FormRequest;
 
-class TraceAggregatorParentsIndexRequest extends FormRequest
+class TraceAggregatorFindStatusesRequest extends FormRequest
 {
     public function rules(): array
     {
         return [
-            'page'                        => [
-                'required',
-                'int',
-                'min:1',
-            ],
-            'per_page'                    => [
+            'text'                        => [
                 'sometimes',
-                'int',
-                'min:1',
-            ],
-            'trace_id'                    => [
-                'sometimes',
-                'nullable',
                 'string',
-            ],
-            'all_traces_in_tree'          => [
-                'sometimes',
-                'boolean',
-            ],
-            'logging_from'                => [
-                'sometimes',
-                'date',
-            ],
-            'logging_to'                  => [
-                'sometimes',
-                'date',
+                'nullable',
+                'min:1',
             ],
             'types'                       => [
                 'sometimes',
@@ -55,13 +33,13 @@ class TraceAggregatorParentsIndexRequest extends FormRequest
                 'required',
                 'string',
             ],
-            'statuses'                    => [
+            'logging_from'                => [
                 'sometimes',
-                'array',
+                'date',
             ],
-            'statuses.*'                  => [
-                'required',
-                'string',
+            'logging_to'                  => [
+                'sometimes',
+                'date',
             ],
             'data'                        => [
                 'sometimes',
@@ -124,33 +102,6 @@ class TraceAggregatorParentsIndexRequest extends FormRequest
             'data.filter.*.boolean.value' => [
                 'sometimes',
                 'bool',
-            ],
-            'data.fields'                 => [
-                'sometimes',
-                'array',
-            ],
-            'data.fields.*'               => [
-                'required',
-                'string',
-            ],
-            'sort'                        => [
-                'sometimes',
-                'array',
-            ],
-            'sort.*.field'                => [
-                'required',
-                'string',
-            ],
-            'sort.*.direction'            => [
-                'required',
-                'string',
-                'in:' . implode(
-                    ',',
-                    array_map(
-                        fn(SortDirectionEnum $enum) => $enum->value,
-                        SortDirectionEnum::cases()
-                    )
-                ),
             ],
         ];
     }

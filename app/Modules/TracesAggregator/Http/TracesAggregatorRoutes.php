@@ -47,6 +47,7 @@ readonly class TracesAggregatorRoutes
         Route::post('', [TraceAggregatorParentsController::class, 'index'])->name('index');
         Route::post('types', [TraceAggregatorParentsController::class, 'types'])->name('types');
         Route::post('tags', [TraceAggregatorParentsController::class, 'tags'])->name('tags');
+        Route::post('statuses', [TraceAggregatorParentsController::class, 'statuses'])->name('statuses');
         Route::get('{traceId}', [TraceAggregatorParentsController::class, 'show'])->name('show');
     }
 

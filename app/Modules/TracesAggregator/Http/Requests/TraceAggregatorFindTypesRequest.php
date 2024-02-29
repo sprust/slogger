@@ -6,7 +6,7 @@ use App\Modules\TracesAggregator\Enums\TraceDataFilterCompNumericTypeEnum;
 use App\Modules\TracesAggregator\Enums\TraceDataFilterCompStringTypeEnum;
 use Illuminate\Foundation\Http\FormRequest;
 
-class TraceAggregatorFindByTextRequest extends FormRequest
+class TraceAggregatorFindTypesRequest extends FormRequest
 {
     public function rules(): array
     {
@@ -16,14 +16,6 @@ class TraceAggregatorFindByTextRequest extends FormRequest
                 'string',
                 'nullable',
                 'min:1',
-            ],
-            'types'                       => [
-                'sometimes',
-                'array',
-            ],
-            'types.*'                     => [
-                'required',
-                'string',
             ],
             'logging_from'                => [
                 'sometimes',

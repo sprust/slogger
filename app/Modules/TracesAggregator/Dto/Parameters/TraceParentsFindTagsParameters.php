@@ -5,7 +5,7 @@ namespace App\Modules\TracesAggregator\Dto\Parameters;
 use App\Modules\TracesAggregator\Dto\Parameters\DataFilter\TraceDataFilterParameters;
 use App\Modules\TracesAggregator\Dto\PeriodParameters;
 
-readonly class TraceParentsFindByTextParameters
+readonly class TraceParentsFindTagsParameters
 {
     /**
      * @param string[] $types

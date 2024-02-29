@@ -8,8 +8,10 @@ use App\Modules\TracesAggregator\Dto\Objects\TraceParentObjects;
 use App\Modules\TracesAggregator\Dto\Objects\TraceParentTypeObject;
 use App\Modules\TracesAggregator\Dto\Parameters\DataFilter\TraceDataFilterItemParameters;
 use App\Modules\TracesAggregator\Dto\Parameters\DataFilter\TraceDataFilterParameters;
-use App\Modules\TracesAggregator\Dto\Parameters\TraceParentsFindByTextParameters;
+use App\Modules\TracesAggregator\Dto\Parameters\TraceParentsFindStatusesParameters;
+use App\Modules\TracesAggregator\Dto\Parameters\TraceParentsFindTypesParameters;
 use App\Modules\TracesAggregator\Dto\Parameters\TraceParentsFindParameters;
+use App\Modules\TracesAggregator\Dto\Parameters\TraceParentsFindTagsParameters;
 use App\Modules\TracesAggregator\Dto\PeriodParameters;
 use App\Modules\TracesAggregator\Dto\TraceDetailObject;
 use App\Modules\TracesAggregator\Dto\TraceObject;
@@ -76,6 +78,7 @@ class TraceParentsRepository implements TraceParentsRepositoryInterface
             loggingPeriod: $parameters->loggingPeriod,
             types: $parameters->types,
             tags: $parameters->tags,
+            statuses: $parameters->statuses,
             data: $parameters->data,
         );
 
@@ -168,7 +171,7 @@ class TraceParentsRepository implements TraceParentsRepositoryInterface
         );
     }
 
-    public function findTypes(TraceParentsFindByTextParameters $parameters): array
+    public function findTypes(TraceParentsFindTypesParameters $parameters): array
     {
         return $this
             ->makeBuilder(
@@ -185,7 +188,7 @@ class TraceParentsRepository implements TraceParentsRepositoryInterface
             ->toArray();
     }
 
-    public function findTags(TraceParentsFindByTextParameters $parameters): array
+    public function findTags(TraceParentsFindTagsParameters $parameters): array
     {
         $mql = $this
             ->makeBuilder(
@@ -240,6 +243,25 @@ class TraceParentsRepository implements TraceParentsRepositoryInterface
         return collect($iterator)->pluck('_id')->sort()->toArray();
     }
 
+    public function findStatuses(TraceParentsFindStatusesParameters $parameters): array
+    {
+        return $this
+            ->makeBuilder(
+                loggingPeriod: $parameters->loggingPeriod,
+                types: $parameters->types,
+                tags: $parameters->tags,
+                data: $parameters->data,
+            )
+            ->when(
+                $parameters->text,
+                fn(Builder $query) => $query->where('status', 'like', "%$parameters->text%")
+            )
+            ->groupBy('status')
+            ->pluck('status')
+            ->sort()
+            ->toArray();
+    }
+
     /**
      * @return Builder|Trace
      */
@@ -248,6 +270,7 @@ class TraceParentsRepository implements TraceParentsRepositoryInterface
         ?PeriodParameters $loggingPeriod = null,
         array $types = [],
         array $tags = [],
+        array $statuses = [],
         ?TraceDataFilterParameters $data = null,
     ): Builder {
         $loggedAtFrom = $loggingPeriod?->from;
@@ -257,14 +280,9 @@ class TraceParentsRepository implements TraceParentsRepositoryInterface
             ->when($traceIds, fn(Builder $query) => $query->whereIn('traceId', $traceIds))
             ->when($loggedAtFrom, fn(Builder $query) => $query->where('loggedAt', '>=', $loggedAtFrom))
             ->when($loggedAtTo, fn(Builder $query) => $query->where('loggedAt', '<=', $loggedAtTo))
-            ->when(
-                $types,
-                fn(Builder $query) => $query->whereIn('type', $types)
-            )
-            ->when(
-                $tags,
-                fn(Builder $query) => $query->where('tags', 'all', $tags)
-            );
+            ->when($types, fn(Builder $query) => $query->whereIn('type', $types))
+            ->when($tags, fn(Builder $query) => $query->where('tags', 'all', $tags))
+            ->when($statuses, fn(Builder $query) => $query->whereIn('status', $statuses));
 
         return $this->applyDataFilter($builder, $data?->filter ?? []);
     }

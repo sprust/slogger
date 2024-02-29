@@ -2,11 +2,15 @@
 
 namespace App\Modules\TracesAggregator\Http\Controllers;
 
-use App\Modules\TracesAggregator\Dto\Parameters\TraceParentsFindByTextParameters;
+use App\Modules\TracesAggregator\Dto\Parameters\TraceParentsFindStatusesParameters;
+use App\Modules\TracesAggregator\Dto\Parameters\TraceParentsFindTagsParameters;
+use App\Modules\TracesAggregator\Dto\Parameters\TraceParentsFindTypesParameters;
 use App\Modules\TracesAggregator\Dto\Parameters\TraceParentsFindParameters;
 use App\Modules\TracesAggregator\Dto\Parameters\TraceParentsSortParameters;
 use App\Modules\TracesAggregator\Dto\PeriodParameters;
-use App\Modules\TracesAggregator\Http\Requests\TraceAggregatorFindByTextRequest;
+use App\Modules\TracesAggregator\Http\Requests\TraceAggregatorFindStatusesRequest;
+use App\Modules\TracesAggregator\Http\Requests\TraceAggregatorFindTagsRequest;
+use App\Modules\TracesAggregator\Http\Requests\TraceAggregatorFindTypesRequest;
 use App\Modules\TracesAggregator\Http\Requests\TraceAggregatorParentsIndexRequest;
 use App\Modules\TracesAggregator\Http\Responses\TraceAggregatorParentItemsResponse;
 use App\Modules\TracesAggregator\Http\Responses\TraceAggregatorStringValueResponse;
@@ -41,6 +45,7 @@ readonly class TraceAggregatorParentsController
                 ),
                 types: $validated['types'] ?? [],
                 tags: $validated['tags'] ?? [],
+                statuses: $validated['statuses'] ?? [],
                 data: $this->makeDataFilterParameter($validated),
                 sort: array_map(
                     fn(array $sortItem) => TraceParentsSortParameters::fromStringValues(
@@ -65,13 +70,13 @@ readonly class TraceAggregatorParentsController
     }
 
     #[OaListItemTypeAttribute(TraceAggregatorStringValueResponse::class)]
-    public function types(TraceAggregatorFindByTextRequest $request): AnonymousResourceCollection
+    public function types(TraceAggregatorFindTypesRequest $request): AnonymousResourceCollection
     {
         $validated = $request->validated();
 
         return TraceAggregatorStringValueResponse::collection(
             $this->repository->findTypes(
-                new TraceParentsFindByTextParameters(
+                new TraceParentsFindTypesParameters(
                     text: $validated['text'] ?? null,
                     loggingPeriod: PeriodParameters::fromStringValues(
                         from: $validated['logging_from'] ?? null,
@@ -84,19 +89,40 @@ readonly class TraceAggregatorParentsController
     }
 
     #[OaListItemTypeAttribute(TraceAggregatorStringValueResponse::class)]
-    public function tags(TraceAggregatorFindByTextRequest $request): AnonymousResourceCollection
+    public function tags(TraceAggregatorFindTagsRequest $request): AnonymousResourceCollection
     {
         $validated = $request->validated();
 
         return TraceAggregatorStringValueResponse::collection(
             $this->repository->findTags(
-                new TraceParentsFindByTextParameters(
+                new TraceParentsFindTagsParameters(
                     text: $validated['text'] ?? null,
                     loggingPeriod: PeriodParameters::fromStringValues(
                         from: $validated['logging_from'] ?? null,
                         to: $validated['logging_to'] ?? null,
                     ),
                     types: $validated['types'] ?? [],
+                    data: $this->makeDataFilterParameter($validated),
+                )
+            )
+        );
+    }
+
+    #[OaListItemTypeAttribute(TraceAggregatorStringValueResponse::class)]
+    public function statuses(TraceAggregatorFindStatusesRequest $request): AnonymousResourceCollection
+    {
+        $validated = $request->validated();
+
+        return TraceAggregatorStringValueResponse::collection(
+            $this->repository->findStatuses(
+                new TraceParentsFindStatusesParameters(
+                    text: $validated['text'] ?? null,
+                    loggingPeriod: PeriodParameters::fromStringValues(
+                        from: $validated['logging_from'] ?? null,
+                        to: $validated['logging_to'] ?? null,
+                    ),
+                    types: $validated['types'] ?? [],
+                    tags: $validated['tags'] ?? [],
                     data: $this->makeDataFilterParameter($validated),
                 )
             )
