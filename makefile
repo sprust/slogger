@@ -33,6 +33,10 @@ art:
 composer:
 	@docker-compose exec -e XDEBUG_MODE=off $(PHP_SERVICE) composer ${c}
 
+queues-restart:
+	@make art c='queue:restart'
+	@make rr-stop
+
 rr-init:
 	make rr-get-binary
 	make rr-default-config
