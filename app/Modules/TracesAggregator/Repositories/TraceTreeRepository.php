@@ -3,15 +3,49 @@
 namespace App\Modules\TracesAggregator\Repositories;
 
 use App\Models\Traces\Trace;
+use App\Models\Traces\TraceTree;
 use App\Modules\TracesAggregator\Dto\Objects\TraceTreeNodeObjects;
 use App\Modules\TracesAggregator\Dto\Parameters\TraceMapFindParameters;
 use App\Modules\TracesAggregator\Services\TraceTreeNodesBuilder;
 use MongoDB\BSON\ObjectId;
+use MongoDB\BSON\UTCDateTime;
 use MongoDB\Model\BSONDocument;
 
 class TraceTreeRepository implements TraceTreeRepositoryInterface
 {
     private int $maxDepthForFindParent = 100;
+
+    public function insertMany(array $parametersList): void
+    {
+        $operations = [];
+
+        $timestamp = new UTCDateTime(now());
+
+        foreach ($parametersList as $parameters) {
+            $operations[] = [
+                'updateOne' => [
+                    [
+                        'traceId'       => $parameters->traceId,
+                        'parentTraceId' => $parameters->parentTraceId,
+                    ],
+                    [
+                        '$set'         => [
+                            'traceId'       => $parameters->traceId,
+                            'parentTraceId' => $parameters->parentTraceId,
+                        ],
+                        '$setOnInsert' => [
+                            'createdAt' => $timestamp,
+                        ],
+                    ],
+                    [
+                        'upsert' => true,
+                    ],
+                ],
+            ];
+        }
+
+        TraceTree::collection()->bulkWrite($operations);
+    }
 
     public function findTraces(TraceMapFindParameters $parameters): TraceTreeNodeObjects
     {
