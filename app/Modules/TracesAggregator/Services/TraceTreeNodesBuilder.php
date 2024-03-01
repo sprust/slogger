@@ -83,7 +83,8 @@ class TraceTreeNodesBuilder
                 )
             )
             ->sortBy(
-                fn(TraceTreeNodeObject $traceTreeNodeObject) => $traceTreeNodeObject->loggedAt->microsecond
+                fn(TraceTreeNodeObject $traceTreeNodeObject) => $traceTreeNodeObject->loggedAt
+                    ->toDateTimeString('microsecond')
             )
             ->values()
             ->toArray();
