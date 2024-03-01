@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\Traces\Http\Requests;
+namespace App\Modules\TracesCollector\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 

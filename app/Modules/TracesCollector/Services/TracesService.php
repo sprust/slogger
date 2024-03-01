@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Modules\Traces\Services;
+namespace App\Modules\TracesCollector\Services;
 
-use App\Modules\Traces\Adapters\TraceTreeAdapter;
-use App\Modules\Traces\Dto\Parameters\TraceCreateParameters;
-use App\Modules\Traces\Dto\Parameters\TraceCreateParametersList;
-use App\Modules\Traces\Dto\Parameters\TraceTreeCreateParameters;
-use App\Modules\Traces\Dto\Parameters\TraceUpdateParametersList;
-use App\Modules\Traces\Repository\TracesRepositoryInterface;
+use App\Modules\TracesCollector\Adapters\TraceTreeAdapter;
+use App\Modules\TracesCollector\Dto\Parameters\TraceCreateParameters;
+use App\Modules\TracesCollector\Dto\Parameters\TraceCreateParametersList;
+use App\Modules\TracesCollector\Dto\Parameters\TraceTreeCreateParameters;
+use App\Modules\TracesCollector\Dto\Parameters\TraceUpdateParametersList;
+use App\Modules\TracesCollector\Repository\TracesRepositoryInterface;
 
 readonly class TracesService
 {

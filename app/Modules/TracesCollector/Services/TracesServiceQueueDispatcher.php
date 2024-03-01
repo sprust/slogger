@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Modules\Traces\Services;
+namespace App\Modules\TracesCollector\Services;
 
-use App\Modules\Traces\Dto\Parameters\TraceCreateParametersList;
-use App\Modules\Traces\Dto\Parameters\TraceUpdateParametersList;
-use App\Modules\Traces\Jobs\TraceCreateJob;
-use App\Modules\Traces\Jobs\TraceUpdateJob;
+use App\Modules\TracesCollector\Dto\Parameters\TraceCreateParametersList;
+use App\Modules\TracesCollector\Dto\Parameters\TraceUpdateParametersList;
+use App\Modules\TracesCollector\Jobs\TraceCreateJob;
+use App\Modules\TracesCollector\Jobs\TraceUpdateJob;
 
 readonly class TracesServiceQueueDispatcher
 {

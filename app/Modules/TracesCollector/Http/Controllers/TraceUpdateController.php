@@ -1,15 +1,15 @@
 <?php
 
-namespace App\Modules\Traces\Http\Controllers;
+namespace App\Modules\TracesCollector\Http\Controllers;
 
-use App\Modules\Traces\Adapters\TraceServicesHttpAdapter;
-use App\Modules\Traces\Dto\Parameters\TraceUpdateParameters;
-use App\Modules\Traces\Dto\Parameters\TraceUpdateParametersList;
-use App\Modules\Traces\Dto\Parameters\TraceUpdateProfilingDataObject;
-use App\Modules\Traces\Dto\Parameters\TraceUpdateProfilingObject;
-use App\Modules\Traces\Dto\Parameters\TraceUpdateProfilingObjects;
-use App\Modules\Traces\Http\Requests\TraceUpdateRequest;
-use App\Modules\Traces\Services\TracesServiceQueueDispatcher;
+use App\Modules\TracesCollector\Adapters\TraceServicesHttpAdapter;
+use App\Modules\TracesCollector\Dto\Parameters\TraceUpdateParameters;
+use App\Modules\TracesCollector\Dto\Parameters\TraceUpdateParametersList;
+use App\Modules\TracesCollector\Dto\Parameters\TraceUpdateProfilingDataObject;
+use App\Modules\TracesCollector\Dto\Parameters\TraceUpdateProfilingObject;
+use App\Modules\TracesCollector\Dto\Parameters\TraceUpdateProfilingObjects;
+use App\Modules\TracesCollector\Http\Requests\TraceUpdateRequest;
+use App\Modules\TracesCollector\Services\TracesServiceQueueDispatcher;
 
 readonly class TraceUpdateController
 {

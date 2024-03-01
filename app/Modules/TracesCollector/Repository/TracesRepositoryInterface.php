@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Modules\Traces\Repository;
+namespace App\Modules\TracesCollector\Repository;
 
-use App\Modules\Traces\Dto\Parameters\TraceCreateParametersList;
-use App\Modules\Traces\Dto\Parameters\TraceUpdateParametersList;
+use App\Modules\TracesCollector\Dto\Parameters\TraceCreateParametersList;
+use App\Modules\TracesCollector\Dto\Parameters\TraceUpdateParametersList;
 
 interface TracesRepositoryInterface
 {

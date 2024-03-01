@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Modules\Traces;
+namespace App\Modules\TracesCollector;
 
-use App\Modules\Traces\Adapters\TraceServicesHttpAdapter;
-use App\Modules\Traces\Http\Controllers\TraceCreateController;
-use App\Modules\Traces\Http\Controllers\TraceUpdateController;
-use App\Modules\Traces\Repository\TracesRepository;
-use App\Modules\Traces\Repository\TracesRepositoryInterface;
+use App\Modules\TracesCollector\Adapters\TraceServicesHttpAdapter;
+use App\Modules\TracesCollector\Http\Controllers\TraceCreateController;
+use App\Modules\TracesCollector\Http\Controllers\TraceUpdateController;
+use App\Modules\TracesCollector\Repository\TracesRepository;
+use App\Modules\TracesCollector\Repository\TracesRepositoryInterface;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 

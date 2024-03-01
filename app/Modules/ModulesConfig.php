@@ -4,7 +4,7 @@ namespace App\Modules;
 
 use App\Modules\Auth\AuthServiceProvider;
 use App\Modules\Services\ServicesServiceProvider;
-use App\Modules\Traces\TracesServiceProvider;
+use App\Modules\TracesCollector\TracesServiceProvider;
 use App\Modules\TracesAggregator\TracesAggregatorProvider;
 
 class ModulesConfig

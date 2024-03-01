@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\Traces\Adapters;
+namespace App\Modules\TracesCollector\Adapters;
 
 use App\Models\Services\Service;
 use App\Modules\Services\Http\Middlewares\AuthServiceMiddleware;

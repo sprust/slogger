@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\Traces\Dto\Parameters;
+namespace App\Modules\TracesCollector\Dto\Parameters;
 
 class TraceCreateParametersList
 {

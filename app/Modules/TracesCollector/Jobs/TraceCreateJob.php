@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Modules\Traces\Jobs;
+namespace App\Modules\TracesCollector\Jobs;
 
-use App\Modules\Traces\Dto\Parameters\TraceCreateParametersList;
-use App\Modules\Traces\Services\TracesService;
+use App\Modules\TracesCollector\Dto\Parameters\TraceCreateParametersList;
+use App\Modules\TracesCollector\Services\TracesService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;

@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Modules\Traces\Adapters;
+namespace App\Modules\TracesCollector\Adapters;
 
-use App\Modules\Traces\Dto\Parameters\TraceTreeCreateParameters;
+use App\Modules\TracesCollector\Dto\Parameters\TraceTreeCreateParameters;
 use App\Modules\TracesAggregator\Dto\Parameters\TraceTreeInsertParameters;
 use App\Modules\TracesAggregator\Repositories\TraceTreeRepositoryInterface;
 

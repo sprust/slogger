@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Modules\Traces\Http\Controllers;
+namespace App\Modules\TracesCollector\Http\Controllers;
 
-use App\Modules\Traces\Adapters\TraceServicesHttpAdapter;
-use App\Modules\Traces\Dto\Parameters\TraceCreateParameters;
-use App\Modules\Traces\Dto\Parameters\TraceCreateParametersList;
-use App\Modules\Traces\Http\Requests\TraceCreateRequest;
-use App\Modules\Traces\Services\TracesServiceQueueDispatcher;
+use App\Modules\TracesCollector\Adapters\TraceServicesHttpAdapter;
+use App\Modules\TracesCollector\Dto\Parameters\TraceCreateParameters;
+use App\Modules\TracesCollector\Dto\Parameters\TraceCreateParametersList;
+use App\Modules\TracesCollector\Http\Requests\TraceCreateRequest;
+use App\Modules\TracesCollector\Services\TracesServiceQueueDispatcher;
 use Illuminate\Support\Carbon;
 
 readonly class TraceCreateController
