@@ -25,6 +25,7 @@ return new class extends Migration {
                         'required'   => [
                             'traceId',
                             'parentTraceId',
+                            'loggedAt',
                             'createdAt',
                         ],
                         'properties' => [
@@ -33,6 +34,9 @@ return new class extends Migration {
                             ],
                             'parentTraceId' => [
                                 'bsonType' => ['string', 'null'],
+                            ],
+                            'loggedAt'      => [
+                                'bsonType' => 'date',
                             ],
                             'createdAt'     => [
                                 'bsonType' => 'date',

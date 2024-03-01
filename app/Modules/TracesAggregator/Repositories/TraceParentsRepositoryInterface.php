@@ -4,7 +4,7 @@ namespace App\Modules\TracesAggregator\Repositories;
 
 use App\Modules\TracesAggregator\Dto\Objects\TraceParentObjects;
 use App\Modules\TracesAggregator\Dto\Objects\TraceTreeObject;
-use App\Modules\TracesAggregator\Dto\Parameters\TraceFindTreeParameters;
+use App\Modules\TracesAggregator\Dto\Parameters\TraceTreeFindParameters;
 use App\Modules\TracesAggregator\Dto\Parameters\TraceParentsFindStatusesParameters;
 use App\Modules\TracesAggregator\Dto\Parameters\TraceParentsFindTypesParameters;
 use App\Modules\TracesAggregator\Dto\Parameters\TraceParentsFindParameters;
@@ -31,4 +31,9 @@ interface TraceParentsRepositoryInterface
      * @return string[]
      */
     public function findStatuses(TraceParentsFindStatusesParameters $parameters): array;
+
+    /**
+     * @return TraceTreeObject[]
+     */
+    public function findTree(TraceTreeFindParameters $parameters): array;
 }

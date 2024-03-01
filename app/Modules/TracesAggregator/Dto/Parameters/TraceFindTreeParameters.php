@@ -2,7 +2,7 @@
 
 namespace App\Modules\TracesAggregator\Dto\Parameters;
 
-readonly class TraceMapFindParameters
+readonly class TraceFindTreeParameters
 {
     public function __construct(
         public string $traceId

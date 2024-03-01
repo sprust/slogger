@@ -5,7 +5,8 @@ namespace App\Modules\TracesAggregator\Repositories;
 use App\Models\Traces\Trace;
 use App\Models\Traces\TraceTree;
 use App\Modules\TracesAggregator\Dto\Objects\TraceTreeNodeObjects;
-use App\Modules\TracesAggregator\Dto\Parameters\TraceMapFindParameters;
+use App\Modules\TracesAggregator\Dto\Parameters\TraceFindTreeParameters;
+use App\Modules\TracesAggregator\Dto\Parameters\TraceTreeDeleteManyParameters;
 use App\Modules\TracesAggregator\Services\TraceTreeNodesBuilder;
 use MongoDB\BSON\ObjectId;
 use MongoDB\BSON\UTCDateTime;
@@ -19,7 +20,7 @@ class TraceTreeRepository implements TraceTreeRepositoryInterface
     {
         $operations = [];
 
-        $timestamp = new UTCDateTime(now());
+        $createdAt = new UTCDateTime(now());
 
         foreach ($parametersList as $parameters) {
             $operations[] = [
@@ -32,9 +33,10 @@ class TraceTreeRepository implements TraceTreeRepositoryInterface
                         '$set'         => [
                             'traceId'       => $parameters->traceId,
                             'parentTraceId' => $parameters->parentTraceId,
+                            'loggedAt'      => new UTCDateTime($parameters->loggedAt),
                         ],
                         '$setOnInsert' => [
-                            'createdAt' => $timestamp,
+                            'createdAt' => $createdAt,
                         ],
                     ],
                     [
@@ -47,7 +49,7 @@ class TraceTreeRepository implements TraceTreeRepositoryInterface
         TraceTree::collection()->bulkWrite($operations);
     }
 
-    public function findTraces(TraceMapFindParameters $parameters): TraceTreeNodeObjects
+    public function findTraces(TraceFindTreeParameters $parameters): TraceTreeNodeObjects
     {
         /** @var Trace|null $trace */
         $trace = Trace::query()->where('traceId', $parameters->traceId)->first();
@@ -168,5 +170,10 @@ class TraceTreeRepository implements TraceTreeRepositoryInterface
         }
 
         return $parentTrace;
+    }
+
+    public function deleteMany(TraceTreeDeleteManyParameters $parameters): void
+    {
+        TraceTree::query()->where('loggedAt', '<=', $parameters->to)->delete();
     }
 }

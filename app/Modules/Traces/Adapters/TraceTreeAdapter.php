@@ -22,6 +22,7 @@ readonly class TraceTreeAdapter
                 fn(TraceTreeCreateParameters $parameters) => new TraceTreeInsertParameters(
                     traceId: $parameters->traceId,
                     parentTraceId: $parameters->parentTraceId,
+                    loggedAt: $parameters->loggedAt
                 ),
                 $parametersList
             )

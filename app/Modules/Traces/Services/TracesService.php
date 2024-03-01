@@ -25,7 +25,8 @@ readonly class TracesService
             array_map(
                 fn(TraceCreateParameters $traceCreateParameters) => new TraceTreeCreateParameters(
                     traceId: $traceCreateParameters->traceId,
-                    parentTraceId: $traceCreateParameters->parentTraceId
+                    parentTraceId: $traceCreateParameters->parentTraceId,
+                    loggedAt: $traceCreateParameters->loggedAt
                 ),
                 $parametersList->getItems()
             )

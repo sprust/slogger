@@ -2,6 +2,7 @@
 
 namespace App\Modules\TracesAggregator;
 
+use App\Modules\TracesAggregator\Commands\RefreshTraceTreesCommand;
 use App\Modules\TracesAggregator\Http\TracesAggregatorRoutes;
 use App\Modules\TracesAggregator\Repositories\TraceParentsRepository;
 use App\Modules\TracesAggregator\Repositories\TraceParentsRepositoryInterface;
@@ -15,6 +16,9 @@ class TracesAggregatorProvider extends ServiceProvider
     {
         $this->registerRepositories();
         $this->registerRoutes();
+        $this->commands([
+            RefreshTraceTreesCommand::class,
+        ]);
     }
 
     private function registerRepositories(): void

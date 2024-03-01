@@ -6,8 +6,10 @@ use App\Models\Traces\Trace;
 use App\Modules\TracesAggregator\Dto\Objects\TraceParentObject;
 use App\Modules\TracesAggregator\Dto\Objects\TraceParentObjects;
 use App\Modules\TracesAggregator\Dto\Objects\TraceParentTypeObject;
+use App\Modules\TracesAggregator\Dto\Objects\TraceTreeObject;
 use App\Modules\TracesAggregator\Dto\Parameters\DataFilter\TraceDataFilterItemParameters;
 use App\Modules\TracesAggregator\Dto\Parameters\DataFilter\TraceDataFilterParameters;
+use App\Modules\TracesAggregator\Dto\Parameters\TraceTreeFindParameters;
 use App\Modules\TracesAggregator\Dto\Parameters\TraceParentsFindStatusesParameters;
 use App\Modules\TracesAggregator\Dto\Parameters\TraceParentsFindTypesParameters;
 use App\Modules\TracesAggregator\Dto\Parameters\TraceParentsFindParameters;
@@ -19,6 +21,7 @@ use App\Modules\TracesAggregator\Enums\TraceDataFilterCompStringTypeEnum;
 use App\Services\Dto\PaginationInfoObject;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use MongoDB\BSON\UTCDateTime;
 
 class TraceParentsRepository implements TraceParentsRepositoryInterface
 {
@@ -259,6 +262,33 @@ class TraceParentsRepository implements TraceParentsRepositoryInterface
             ->groupBy('status')
             ->pluck('status')
             ->sort()
+            ->toArray();
+    }
+
+    public function findTree(TraceTreeFindParameters $parameters): array
+    {
+        return Trace::query()
+            ->select([
+                'traceId',
+                'parentTraceId',
+                'loggedAt',
+            ])
+            ->when(
+                $parameters->to,
+                fn(Builder $query) => $query->where('loggedAt', '<=', new UTCDateTime($parameters->to))
+            )
+            ->forPage(
+                page: $parameters->page,
+                perPage: $parameters->perPage
+            )
+            ->get()
+            ->map(
+                fn(Trace $trace) => new TraceTreeObject(
+                    traceId: $trace->traceId,
+                    parentTraceId: $trace->parentTraceId,
+                    loggedAt: $trace->loggedAt
+                )
+            )
             ->toArray();
     }
 

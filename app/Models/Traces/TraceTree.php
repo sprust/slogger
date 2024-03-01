@@ -6,10 +6,11 @@ use App\Models\AbstractTraceModel;
 use Carbon\Carbon;
 
 /**
- * @property string       $_id
- * @property string       $traceId
- * @property string|null  $parentTraceId
- * @property Carbon       $createdAt
+ * @property string      $_id
+ * @property string      $traceId
+ * @property string|null $parentTraceId
+ * @property Carbon      $loggedAt
+ * @property Carbon      $createdAt
  */
 class TraceTree extends AbstractTraceModel
 {
@@ -17,4 +18,8 @@ class TraceTree extends AbstractTraceModel
     public const UPDATED_AT = null;
 
     protected $collection = 'traceTrees';
+
+    protected $casts = [
+        'loggedAt' => 'datetime',
+    ];
 }

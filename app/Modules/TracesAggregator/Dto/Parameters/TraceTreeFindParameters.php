@@ -4,12 +4,12 @@ namespace App\Modules\TracesAggregator\Dto\Parameters;
 
 use Illuminate\Support\Carbon;
 
-readonly class TraceTreeInsertParameters
+readonly class TraceTreeFindParameters
 {
     public function __construct(
-        public string $traceId,
-        public ?string $parentTraceId,
-        public Carbon $loggedAt
+        public int $page = 1,
+        public int $perPage = 15,
+        public ?Carbon $to = null,
     ) {
     }
 }
