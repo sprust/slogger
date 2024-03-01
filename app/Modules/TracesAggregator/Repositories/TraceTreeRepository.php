@@ -93,7 +93,7 @@ class TraceTreeRepository implements TraceTreeRepositoryInterface
                 [
                     [
                         '$graphLookup' => [
-                            'from'             => 'traces',
+                            'from'             => 'traceTrees',
                             'startWith'        => '$traceId',
                             'connectFromField' => 'traceId',
                             'connectToField'   => 'parentTraceId',
