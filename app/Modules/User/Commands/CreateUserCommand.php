@@ -4,7 +4,7 @@ namespace App\Modules\User\Commands;
 
 use App\Models\Users\User;
 use App\Modules\User\Repository\Parameters\UserCreateParameters;
-use App\Modules\User\Repository\UserRepositoryInterface;
+use App\Modules\User\Services\UserService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Validator;
 
@@ -27,7 +27,7 @@ class CreateUserCommand extends Command
     /**
      * Execute the console command.
      */
-    public function handle(UserRepositoryInterface $userRepository): int
+    public function handle(UserService $userService): int
     {
         if (($firstName = $this->askAndCheck('First name *', true)) === false) {
             return self::FAILURE;
@@ -54,7 +54,7 @@ class CreateUserCommand extends Command
             return self::FAILURE;
         }
 
-        $newUser = $userRepository->create(
+        $newUser = $userService->create(
             new UserCreateParameters(
                 firstName: $firstName,
                 lastName: $lastName,
