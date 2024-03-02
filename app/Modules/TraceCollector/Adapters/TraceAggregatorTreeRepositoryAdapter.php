@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Modules\TracesCollector\Adapters;
+namespace App\Modules\TraceCollector\Adapters;
 
-use App\Modules\TracesCollector\Dto\Parameters\TraceTreeCreateParameters;
-use App\Modules\TracesAggregator\Dto\Parameters\TraceTreeInsertParameters;
-use App\Modules\TracesAggregator\Repositories\TraceTreeRepositoryInterface;
+use App\Modules\TraceCollector\Dto\Parameters\TraceTreeCreateParameters;
+use App\Modules\TraceAggregator\Dto\Parameters\TraceTreeInsertParameters;
+use App\Modules\TraceAggregator\Repositories\TraceTreeRepositoryInterface;
 
-readonly class TraceTreeAdapter
+readonly class TraceAggregatorTreeRepositoryAdapter
 {
     public function __construct(private TraceTreeRepositoryInterface $traceTreeRepository)
     {

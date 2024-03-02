@@ -1,19 +1,19 @@
 <?php
 
-namespace App\Modules\TracesCollector\Adapters;
+namespace App\Modules\TraceCollector\Adapters;
 
 use App\Models\Services\Service;
 use App\Modules\Services\Http\Middlewares\AuthServiceMiddleware;
 use App\Modules\Services\Http\RequestServiceContainer;
 use Illuminate\Contracts\Foundation\Application;
 
-readonly class TraceServicesHttpAdapter
+readonly class ServiceAdapter
 {
     public function __construct(private Application $app)
     {
     }
 
-    public function getRequestMiddleware(): string
+    public function getAuthMiddleware(): string
     {
         return AuthServiceMiddleware::class;
     }

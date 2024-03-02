@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Modules\TracesCollector\Jobs;
+namespace App\Modules\TraceCollector\Jobs;
 
-use App\Modules\TracesCollector\Dto\Parameters\TraceUpdateParametersList;
-use App\Modules\TracesCollector\Services\TracesService;
+use App\Modules\TraceCollector\Dto\Parameters\TraceUpdateParametersList;
+use App\Modules\TraceCollector\Services\TraceService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -27,9 +27,9 @@ class TraceUpdateJob implements ShouldQueue
     /**
      * Execute the job.
      */
-    public function handle(TracesService $tracesService): void
+    public function handle(TraceService $tracesCollectorService): void
     {
-        if ($tracesService->updateMany($this->parametersList) === $this->parametersList->count()) {
+        if ($tracesCollectorService->updateMany($this->parametersList) === $this->parametersList->count()) {
             $this->delete();
 
             return;

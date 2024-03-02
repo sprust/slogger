@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Modules\TracesCollector\Repository;
+namespace App\Modules\TraceCollector\Repository;
 
 use App\Models\Traces\Trace;
-use App\Modules\TracesCollector\Dto\Parameters\TraceCreateParametersList;
-use App\Modules\TracesCollector\Dto\Parameters\TraceUpdateParametersList;
+use App\Modules\TraceCollector\Dto\Parameters\TraceCreateParametersList;
+use App\Modules\TraceCollector\Dto\Parameters\TraceUpdateParametersList;
 use MongoDB\BSON\UTCDateTime;
 
-class TracesRepository implements TracesRepositoryInterface
+class TraceRepository implements TraceRepositoryInterface
 {
     public function createMany(TraceCreateParametersList $parametersList): void
     {

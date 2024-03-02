@@ -1,19 +1,19 @@
 <?php
 
-namespace App\Modules\TracesCollector\Http\Controllers;
+namespace App\Modules\TraceCollector\Http\Controllers;
 
-use App\Modules\TracesCollector\Adapters\TraceServicesHttpAdapter;
-use App\Modules\TracesCollector\Dto\Parameters\TraceCreateParameters;
-use App\Modules\TracesCollector\Dto\Parameters\TraceCreateParametersList;
-use App\Modules\TracesCollector\Http\Requests\TraceCreateRequest;
-use App\Modules\TracesCollector\Services\TracesServiceQueueDispatcher;
+use App\Modules\TraceCollector\Adapters\ServiceAdapter;
+use App\Modules\TraceCollector\Dto\Parameters\TraceCreateParameters;
+use App\Modules\TraceCollector\Dto\Parameters\TraceCreateParametersList;
+use App\Modules\TraceCollector\Http\Requests\TraceCreateRequest;
+use App\Modules\TraceCollector\Services\QueueDispatcher;
 use Illuminate\Support\Carbon;
 
 readonly class TraceCreateController
 {
     public function __construct(
-        private TraceServicesHttpAdapter $servicesHttpAdapter,
-        private TracesServiceQueueDispatcher $tracesServiceQueueDispatcher
+        private ServiceAdapter $serviceAdapter,
+        private QueueDispatcher $tracesServiceQueueDispatcher
     ) {
     }
 
@@ -21,7 +21,7 @@ readonly class TraceCreateController
     {
         $validated = $request->validated();
 
-        $serviceId = $this->servicesHttpAdapter->getService()->id;
+        $serviceId = $this->serviceAdapter->getService()->id;
 
         $parametersList = new TraceCreateParametersList();
 

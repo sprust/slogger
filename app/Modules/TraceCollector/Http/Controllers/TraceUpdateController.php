@@ -1,21 +1,21 @@
 <?php
 
-namespace App\Modules\TracesCollector\Http\Controllers;
+namespace App\Modules\TraceCollector\Http\Controllers;
 
-use App\Modules\TracesCollector\Adapters\TraceServicesHttpAdapter;
-use App\Modules\TracesCollector\Dto\Parameters\TraceUpdateParameters;
-use App\Modules\TracesCollector\Dto\Parameters\TraceUpdateParametersList;
-use App\Modules\TracesCollector\Dto\Parameters\TraceUpdateProfilingDataObject;
-use App\Modules\TracesCollector\Dto\Parameters\TraceUpdateProfilingObject;
-use App\Modules\TracesCollector\Dto\Parameters\TraceUpdateProfilingObjects;
-use App\Modules\TracesCollector\Http\Requests\TraceUpdateRequest;
-use App\Modules\TracesCollector\Services\TracesServiceQueueDispatcher;
+use App\Modules\TraceCollector\Adapters\ServiceAdapter;
+use App\Modules\TraceCollector\Dto\Parameters\TraceUpdateParameters;
+use App\Modules\TraceCollector\Dto\Parameters\TraceUpdateParametersList;
+use App\Modules\TraceCollector\Dto\Parameters\TraceUpdateProfilingDataObject;
+use App\Modules\TraceCollector\Dto\Parameters\TraceUpdateProfilingObject;
+use App\Modules\TraceCollector\Dto\Parameters\TraceUpdateProfilingObjects;
+use App\Modules\TraceCollector\Http\Requests\TraceUpdateRequest;
+use App\Modules\TraceCollector\Services\QueueDispatcher;
 
 readonly class TraceUpdateController
 {
     public function __construct(
-        private TraceServicesHttpAdapter $servicesHttpAdapter,
-        private TracesServiceQueueDispatcher $tracesServiceQueueDispatcher
+        private ServiceAdapter $servicesHttpAdapter,
+        private QueueDispatcher $traceCollectorQueueDispatcher
     ) {
     }
 
@@ -64,8 +64,6 @@ readonly class TraceUpdateController
             $parametersList->add($parameters);
         }
 
-        if ($parametersList->count()) {
-            $this->tracesServiceQueueDispatcher->updateMany($parametersList);
-        }
+        $this->traceCollectorQueueDispatcher->updateMany($parametersList);
     }
 }

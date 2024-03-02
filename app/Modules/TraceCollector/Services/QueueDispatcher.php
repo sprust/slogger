@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Modules\TracesCollector\Services;
+namespace App\Modules\TraceCollector\Services;
 
-use App\Modules\TracesCollector\Dto\Parameters\TraceCreateParametersList;
-use App\Modules\TracesCollector\Dto\Parameters\TraceUpdateParametersList;
-use App\Modules\TracesCollector\Jobs\TraceCreateJob;
-use App\Modules\TracesCollector\Jobs\TraceUpdateJob;
+use App\Modules\TraceCollector\Dto\Parameters\TraceCreateParametersList;
+use App\Modules\TraceCollector\Dto\Parameters\TraceUpdateParametersList;
+use App\Modules\TraceCollector\Jobs\TraceCreateJob;
+use App\Modules\TraceCollector\Jobs\TraceUpdateJob;
 
-readonly class TracesServiceQueueDispatcher
+readonly class QueueDispatcher
 {
     public function createMany(TraceCreateParametersList $parametersList): void
     {

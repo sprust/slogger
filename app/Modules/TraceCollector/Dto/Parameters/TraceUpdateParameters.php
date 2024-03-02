@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\TracesCollector\Dto\Parameters;
+namespace App\Modules\TraceCollector\Dto\Parameters;
 
 class TraceUpdateParameters
 {
