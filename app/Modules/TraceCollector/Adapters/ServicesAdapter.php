@@ -3,8 +3,8 @@
 namespace App\Modules\TraceCollector\Adapters;
 
 use App\Models\Services\Service;
-use App\Modules\Services\Http\Middlewares\AuthServiceMiddleware;
-use App\Modules\Services\Http\RequestServiceContainer;
+use App\Modules\Service\Http\Middlewares\AuthServiceMiddleware;
+use App\Modules\Service\Http\ServiceContainer;
 use Illuminate\Contracts\Foundation\Application;
 
 readonly class ServicesAdapter
@@ -20,6 +20,6 @@ readonly class ServicesAdapter
 
     public function getService(): ?Service
     {
-        return $this->app->make(RequestServiceContainer::class)->getService();
+        return $this->app->make(ServiceContainer::class)->getService();
     }
 }

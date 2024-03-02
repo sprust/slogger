@@ -3,19 +3,21 @@
 namespace App\Modules;
 
 use App\Modules\Auth\AuthServiceProvider;
-use App\Modules\Services\ServicesServiceProvider;
+use App\Modules\Service\ServiceServiceProvider;
 use App\Modules\TraceCollector\TraceCollectorServiceProvider;
 use App\Modules\TraceAggregator\TraceAggregatorProvider;
+use App\Modules\User\UserServiceProvider;
 
 class ModulesConfig
 {
     public static function getProviders(): array
     {
         return [
-            ServicesServiceProvider::class,
+            ServiceServiceProvider::class,
             TraceCollectorServiceProvider::class,
             TraceAggregatorProvider::class,
             AuthServiceProvider::class,
+            UserServiceProvider::class,
         ];
     }
 }
