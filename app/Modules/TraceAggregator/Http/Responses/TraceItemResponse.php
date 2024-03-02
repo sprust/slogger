@@ -12,11 +12,11 @@ class TraceItemResponse extends AbstractApiResource
     #[OaListItemTypeAttribute(TraceItemTypeResponse::class)]
     private array $types;
 
-    public function __construct(TraceItemObject $parentItem)
+    public function __construct(TraceItemObject $object)
     {
-        parent::__construct($parentItem);
+        parent::__construct($object);
 
-        $this->trace = new TraceItemTraceResponse($parentItem->trace);
-        $this->types = TraceItemTypeResponse::mapIntoMe($parentItem->types);
+        $this->trace = new TraceItemTraceResponse($object->trace);
+        $this->types = TraceItemTypeResponse::mapIntoMe($object->types);
     }
 }

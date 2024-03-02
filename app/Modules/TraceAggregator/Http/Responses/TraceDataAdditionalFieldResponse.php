@@ -12,11 +12,11 @@ class TraceDataAdditionalFieldResponse extends AbstractApiResource
     #[OaListItemTypeAttribute('string')]
     private array $values;
 
-    public function __construct(TraceDataAdditionalFieldObject $additionalFieldObject)
+    public function __construct(TraceDataAdditionalFieldObject $additionalField)
     {
-        parent::__construct($additionalFieldObject);
+        parent::__construct($additionalField);
 
-        $this->key    = $additionalFieldObject->key;
-        $this->values = $additionalFieldObject->values;
+        $this->key    = $additionalField->key;
+        $this->values = $additionalField->values;
     }
 }

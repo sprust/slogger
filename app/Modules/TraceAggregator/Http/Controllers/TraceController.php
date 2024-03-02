@@ -38,7 +38,7 @@ readonly class TraceController
     {
         $validated = $request->validated();
 
-        $parents = $this->repository->findParents(
+        $traces = $this->repository->find(
             new TraceFindParameters(
                 page: $validated['page'] ?? 1,
                 perPage: $validated['per_page'] ?? null,
@@ -62,12 +62,12 @@ readonly class TraceController
             )
         );
 
-        return new TraceItemsResponse($parents);
+        return new TraceItemsResponse($traces);
     }
 
     public function show(string $traceId): TraceDetailResponse
     {
-        $traceObject = $this->repository->findByTraceId($traceId);
+        $traceObject = $this->repository->findOneByTraceId($traceId);
 
         abort_if(!$traceObject, Response::HTTP_NOT_FOUND);
 

@@ -15,7 +15,7 @@ class TraceDetailResponse extends AbstractApiResource
     private string $status;
     #[OaListItemTypeAttribute('string')]
     private array $tags;
-    private TraceDataNodeResponse $data;
+    private TraceDataResponse $data;
     private ?float $duration;
     private ?float $memory;
     private ?float $cpu;
@@ -34,7 +34,7 @@ class TraceDetailResponse extends AbstractApiResource
         $this->type            = $trace->type;
         $this->status          = $trace->status;
         $this->tags            = $trace->tags;
-        $this->data            = new TraceDataNodeResponse($trace->data);
+        $this->data            = new TraceDataResponse($trace->data);
 
         $this->duration = $trace->duration;
         $this->memory   = $trace->memory;

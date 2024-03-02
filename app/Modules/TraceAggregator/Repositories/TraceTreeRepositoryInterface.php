@@ -15,7 +15,7 @@ interface TraceTreeRepositoryInterface
      */
     public function insertMany(array $parametersList): void;
 
-    public function findTraces(TraceFindTreeParameters $parameters): TraceTreeObjects;
+    public function find(TraceFindTreeParameters $parameters): TraceTreeObjects;
 
     public function findTraceIdsInTreeByParentTraceId(Trace $parentTrace): array;
 

@@ -12,7 +12,7 @@ class RefreshTraceTreesCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'traces-aggregator:fresh-trees';
+    protected $signature = 'trace-aggregator:fresh-trees';
 
     /**
      * The console command description.
@@ -24,9 +24,9 @@ class RefreshTraceTreesCommand extends Command
     /**
      * Execute the console command.
      */
-    public function handle(TraceTreeService $traceAggregatorTreesService): int
+    public function handle(TraceTreeService $traceTreeService): int
     {
-        $traceAggregatorTreesService->fresh();
+        $traceTreeService->fresh();
 
         return self::SUCCESS;
     }

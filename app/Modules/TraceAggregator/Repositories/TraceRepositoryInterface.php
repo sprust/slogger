@@ -13,9 +13,9 @@ use App\Modules\TraceAggregator\Dto\Parameters\TraceTreeFindParameters;
 
 interface TraceRepositoryInterface
 {
-    public function findByTraceId(string $traceId): ?TraceDetailObject;
+    public function findOneByTraceId(string $traceId): ?TraceDetailObject;
 
-    public function findParents(TraceFindParameters $parameters): TraceItemObjects;
+    public function find(TraceFindParameters $parameters): TraceItemObjects;
 
     /**
      * @return string[]

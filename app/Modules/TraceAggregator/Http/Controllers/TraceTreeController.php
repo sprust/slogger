@@ -9,13 +9,13 @@ use App\Modules\TraceAggregator\Repositories\TraceTreeRepository;
 readonly class TraceTreeController
 {
     public function __construct(
-        private TraceTreeRepository $traceTreeRepository,
+        private TraceTreeRepository $repository,
     ) {
     }
 
     public function tree(string $traceId): TraceTreesResponse
     {
-        $traceTreeNodeObjects = $this->traceTreeRepository->findTraces(
+        $traceTreeNodeObjects = $this->repository->find(
             new TraceFindTreeParameters(
                 traceId: $traceId
             )

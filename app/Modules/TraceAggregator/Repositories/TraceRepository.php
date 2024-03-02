@@ -33,7 +33,7 @@ class TraceRepository implements TraceRepositoryInterface
     ) {
     }
 
-    public function findByTraceId(string $traceId): ?TraceDetailObject
+    public function findOneByTraceId(string $traceId): ?TraceDetailObject
     {
         /** @var Trace|null $trace */
         $trace = Trace::query()->where('traceId', $traceId)->first();
@@ -45,7 +45,7 @@ class TraceRepository implements TraceRepositoryInterface
         return TraceDetailObject::fromModel($trace);
     }
 
-    public function findParents(TraceFindParameters $parameters): TraceItemObjects
+    public function find(TraceFindParameters $parameters): TraceItemObjects
     {
         $perPage = min($parameters->perPage ?: $this->maxPerPage, $this->maxPerPage);
 

@@ -13,11 +13,11 @@ class TraceItemsResponse extends AbstractApiResource
     private array $items;
     private PaginatorInfoResource $paginator;
 
-    public function __construct(TraceItemObjects $parents)
+    public function __construct(TraceItemObjects $objects)
     {
-        parent::__construct($parents);
+        parent::__construct($objects);
 
-        $this->items     = TraceItemResponse::mapIntoMe($parents->items);
-        $this->paginator = new PaginatorInfoResource($parents->paginationInfo);
+        $this->items     = TraceItemResponse::mapIntoMe($objects->items);
+        $this->paginator = new PaginatorInfoResource($objects->paginationInfo);
     }
 }

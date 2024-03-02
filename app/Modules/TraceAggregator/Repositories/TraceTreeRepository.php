@@ -49,7 +49,7 @@ class TraceTreeRepository implements TraceTreeRepositoryInterface
         TraceTree::collection()->bulkWrite($operations);
     }
 
-    public function findTraces(TraceFindTreeParameters $parameters): TraceTreeObjects
+    public function find(TraceFindTreeParameters $parameters): TraceTreeObjects
     {
         /** @var Trace|null $trace */
         $trace = Trace::query()->where('traceId', $parameters->traceId)->first();

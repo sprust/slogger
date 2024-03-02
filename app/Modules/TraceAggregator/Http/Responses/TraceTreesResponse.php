@@ -11,10 +11,10 @@ class TraceTreesResponse extends AbstractApiResource
     #[OaListItemTypeAttribute(TraceTreeResponse::class, isRecursive: true)]
     private array $items;
 
-    public function __construct(TraceTreeObjects $traceTreeNodeObjects)
+    public function __construct(TraceTreeObjects $trees)
     {
-        parent::__construct($traceTreeNodeObjects);
+        parent::__construct($trees);
 
-        $this->items = TraceTreeResponse::mapIntoMe($traceTreeNodeObjects->items);
+        $this->items = TraceTreeResponse::mapIntoMe($trees->items);
     }
 }

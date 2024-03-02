@@ -23,25 +23,25 @@ class TraceTreeResponse extends AbstractApiResource
     private array $children;
     private int $depth;
 
-    public function __construct(TraceTreeObject $traceTreeNodeObject)
+    public function __construct(TraceTreeObject $tree)
     {
-        parent::__construct($traceTreeNodeObject);
+        parent::__construct($tree);
 
-        $this->service         = $traceTreeNodeObject->serviceObject
+        $this->service         = $tree->serviceObject
             ? new TraceServiceResponse(
-                $traceTreeNodeObject->serviceObject
+                $tree->serviceObject
             )
             : null;
-        $this->trace_id        = $traceTreeNodeObject->traceId;
-        $this->parent_trace_id = $traceTreeNodeObject->parentTraceId;
-        $this->type            = $traceTreeNodeObject->type;
-        $this->status          = $traceTreeNodeObject->status;
-        $this->tags            = $traceTreeNodeObject->tags;
-        $this->duration        = $traceTreeNodeObject->duration;
-        $this->memory          = $traceTreeNodeObject->memory;
-        $this->cpu             = $traceTreeNodeObject->cpu;
-        $this->logged_at       = $traceTreeNodeObject->loggedAt->toDateTimeString('microsecond');
-        $this->children        = TraceTreeResponse::mapIntoMe($traceTreeNodeObject->children);
-        $this->depth           = $traceTreeNodeObject->depth;
+        $this->trace_id        = $tree->traceId;
+        $this->parent_trace_id = $tree->parentTraceId;
+        $this->type            = $tree->type;
+        $this->status          = $tree->status;
+        $this->tags            = $tree->tags;
+        $this->duration        = $tree->duration;
+        $this->memory          = $tree->memory;
+        $this->cpu             = $tree->cpu;
+        $this->logged_at       = $tree->loggedAt->toDateTimeString('microsecond');
+        $this->children        = TraceTreeResponse::mapIntoMe($tree->children);
+        $this->depth           = $tree->depth;
     }
 }
