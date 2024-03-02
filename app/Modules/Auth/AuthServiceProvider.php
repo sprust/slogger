@@ -2,8 +2,8 @@
 
 namespace App\Modules\Auth;
 
-use App\Modules\Auth\Http\Controllers\AuthLoginController;
-use App\Modules\Auth\Http\Controllers\AuthMeController;
+use App\Modules\Auth\Http\Controllers\LoginController;
+use App\Modules\Auth\Http\Controllers\MeController;
 use App\Modules\Auth\Http\Middlewares\AuthMiddleware;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -23,8 +23,8 @@ class AuthServiceProvider extends ServiceProvider
                 Route::prefix('/auth')
                     ->as('auth.')
                     ->group(function () {
-                        Route::get('/me', AuthMeController::class)->middleware(AuthMiddleware::class);
-                        Route::post('/login', AuthLoginController::class);
+                        Route::get('/me', MeController::class)->middleware(AuthMiddleware::class);
+                        Route::post('/login', LoginController::class);
                     });
             });
     }

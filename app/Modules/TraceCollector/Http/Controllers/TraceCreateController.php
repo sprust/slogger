@@ -1,0 +1,48 @@
+<?php
+
+namespace App\Modules\TraceCollector\Http\Controllers;
+
+use App\Modules\TraceCollector\Adapters\ServicesAdapter;
+use App\Modules\TraceCollector\Dto\Parameters\TraceCreateParameters;
+use App\Modules\TraceCollector\Dto\Parameters\TraceCreateParametersList;
+use App\Modules\TraceCollector\Http\Requests\TraceCreateRequest;
+use App\Modules\TraceCollector\Services\QueueDispatcher;
+use Illuminate\Support\Carbon;
+
+readonly class TraceCreateController
+{
+    public function __construct(
+        private ServicesAdapter $serviceAdapter,
+        private QueueDispatcher $tracesServiceQueueDispatcher
+    ) {
+    }
+
+    public function __invoke(TraceCreateRequest $request): void
+    {
+        $validated = $request->validated();
+
+        $serviceId = $this->serviceAdapter->getService()->id;
+
+        $parametersList = new TraceCreateParametersList();
+
+        foreach ($validated['traces'] as $item) {
+            $parametersList->add(
+                new TraceCreateParameters(
+                    serviceId: $serviceId,
+                    traceId: $item['trace_id'],
+                    parentTraceId: $item['parent_trace_id'] ?? null,
+                    type: $item['type'],
+                    status: $item['status'],
+                    tags: $item['tags'] ?? [],
+                    data: $item['data'],
+                    duration: $item['duration'],
+                    memory: $item['memory'] ?? null,
+                    cpu: $item['cpu'] ?? null,
+                    loggedAt: new Carbon($item['logged_at']),
+                )
+            );
+        }
+
+        $this->tracesServiceQueueDispatcher->createMany($parametersList);
+    }
+}
