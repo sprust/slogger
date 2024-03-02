@@ -25,8 +25,8 @@ class TraceCreateJob implements ShouldQueue
     /**
      * Execute the job.
      */
-    public function handle(TraceService $tracesCollectorService): void
+    public function handle(TraceService $traceService): void
     {
-        $tracesCollectorService->createMany($this->parametersList);
+        $traceService->createMany($this->parametersList);
     }
 }

@@ -2,7 +2,7 @@
 
 namespace App\Modules\TraceCollector\Http\Controllers;
 
-use App\Modules\TraceCollector\Adapters\ServiceAdapter;
+use App\Modules\TraceCollector\Adapters\ServicesAdapter;
 use App\Modules\TraceCollector\Dto\Parameters\TraceCreateParameters;
 use App\Modules\TraceCollector\Dto\Parameters\TraceCreateParametersList;
 use App\Modules\TraceCollector\Http\Requests\TraceCreateRequest;
@@ -12,7 +12,7 @@ use Illuminate\Support\Carbon;
 readonly class TraceCreateController
 {
     public function __construct(
-        private ServiceAdapter $serviceAdapter,
+        private ServicesAdapter $serviceAdapter,
         private QueueDispatcher $tracesServiceQueueDispatcher
     ) {
     }

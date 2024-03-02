@@ -7,7 +7,7 @@ use App\Modules\Services\Http\Middlewares\AuthServiceMiddleware;
 use App\Modules\Services\Http\RequestServiceContainer;
 use Illuminate\Contracts\Foundation\Application;
 
-readonly class ServiceAdapter
+readonly class ServicesAdapter
 {
     public function __construct(private Application $app)
     {

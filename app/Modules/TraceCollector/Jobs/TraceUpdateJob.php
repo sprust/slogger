@@ -27,9 +27,9 @@ class TraceUpdateJob implements ShouldQueue
     /**
      * Execute the job.
      */
-    public function handle(TraceService $tracesCollectorService): void
+    public function handle(TraceService $traceService): void
     {
-        if ($tracesCollectorService->updateMany($this->parametersList) === $this->parametersList->count()) {
+        if ($traceService->updateMany($this->parametersList) === $this->parametersList->count()) {
             $this->delete();
 
             return;

@@ -2,7 +2,7 @@
 
 namespace App\Modules\TraceCollector\Http\Controllers;
 
-use App\Modules\TraceCollector\Adapters\ServiceAdapter;
+use App\Modules\TraceCollector\Adapters\ServicesAdapter;
 use App\Modules\TraceCollector\Dto\Parameters\TraceUpdateParameters;
 use App\Modules\TraceCollector\Dto\Parameters\TraceUpdateParametersList;
 use App\Modules\TraceCollector\Dto\Parameters\TraceUpdateProfilingDataObject;
@@ -14,8 +14,8 @@ use App\Modules\TraceCollector\Services\QueueDispatcher;
 readonly class TraceUpdateController
 {
     public function __construct(
-        private ServiceAdapter $servicesHttpAdapter,
-        private QueueDispatcher $traceCollectorQueueDispatcher
+        private ServicesAdapter $serviceAdapter,
+        private QueueDispatcher $queueDispatcher
     ) {
     }
 
@@ -23,7 +23,7 @@ readonly class TraceUpdateController
     {
         $validated = $request->validated();
 
-        $serviceId = $this->servicesHttpAdapter->getService()->id;
+        $serviceId = $this->serviceAdapter->getService()->id;
 
         $parametersList = new TraceUpdateParametersList();
 
@@ -64,6 +64,6 @@ readonly class TraceUpdateController
             $parametersList->add($parameters);
         }
 
-        $this->traceCollectorQueueDispatcher->updateMany($parametersList);
+        $this->queueDispatcher->updateMany($parametersList);
     }
 }
