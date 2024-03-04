@@ -27,16 +27,22 @@ class SLoggerRequestWatcher extends AbstractSLoggerWatcher
     protected array $requests = [];
 
     protected array $exceptedPaths = [];
-    protected array $pathsWithCleaningOfResponse = [];
     protected array $maskRequestHeaderFields = [];
+    protected array $maskRequestFields = [];
+
+    protected array $pathsWithCleaningOfResponse = [];
     protected array $maskResponseHeaderFields = [];
+    protected array $maskResponseFields = [];
 
     protected function init(): void
     {
-        $this->exceptedPaths               = $this->loggerConfig->requestsExceptedPaths();
+        $this->exceptedPaths           = $this->loggerConfig->requestsExceptedPaths();
+        $this->maskRequestHeaderFields = $this->loggerConfig->requestsMaskRequestHeaderFields();
+        $this->maskRequestFields       = $this->loggerConfig->requestsMaskRequestFields();
+
         $this->pathsWithCleaningOfResponse = $this->loggerConfig->requestsPathsWithCleaningOfResponse();
-        $this->maskRequestHeaderFields     = $this->loggerConfig->requestsMaskRequestHeaderFields();
         $this->maskResponseHeaderFields    = $this->loggerConfig->requestsMaskResponseHeaderFields();
+        $this->maskResponseFields          = $this->loggerConfig->requestsMaskResponseFields();
     }
 
     public function register(): void
@@ -100,18 +106,24 @@ class SLoggerRequestWatcher extends AbstractSLoggerWatcher
             'middlewares' => array_values(optional($request->route())->gatherMiddleware() ?? []),
             'request'     => [
                 'headers' => $this->prepareHeaders(
-                    $request->headers->all(),
-                    $this->maskRequestHeaderFields
+                    headers: $request->headers->all(),
+                    maskHeaderFields: $this->maskRequestHeaderFields
                 ),
-                'payload' => $this->preparePayload($request, $this->getInput($request)),
+                'payload' => $this->prepareRequestPayload(
+                    request: $request,
+                    payload: $this->getInput($request)
+                ),
             ],
             'response'    => [
                 'status'  => $response->getStatusCode(),
                 'headers' => $this->prepareHeaders(
-                    $response->headers->all(),
-                    $this->maskResponseHeaderFields
+                    headers: $response->headers->all(),
+                    maskHeaderFields: $this->maskResponseHeaderFields
                 ),
-                'data'    => $this->prepareResponseData($request, $response),
+                'data'    => $this->prepareResponseData(
+                    request: $request,
+                    response: $response
+                ),
             ],
             ...$this->getAdditionalData(),
         ];
@@ -154,9 +166,12 @@ class SLoggerRequestWatcher extends AbstractSLoggerWatcher
             ->all();
     }
 
-    protected function preparePayload(Request $request, array $payload): array
+    protected function prepareRequestPayload(Request $request, array $payload): array
     {
-        return $payload;
+        return $this->maskArrayByPatterns(
+            data: $payload,
+            patterns: $this->maskRequestFields
+        );
     }
 
     protected function getInput(Request $request): array
@@ -194,7 +209,10 @@ class SLoggerRequestWatcher extends AbstractSLoggerWatcher
         }
 
         if ($request->acceptsJson()) {
-            return json_decode($response->getContent(), true) ?: [];
+            return $this->maskArrayByPatterns(
+                data: json_decode($response->getContent(), true) ?: [],
+                patterns: $this->maskResponseFields
+            );
         }
 
         return [];
@@ -224,10 +242,9 @@ class SLoggerRequestWatcher extends AbstractSLoggerWatcher
                 continue;
             }
 
-            $value   = $headers[$fieldName];
-            $isArray = is_array($value);
+            $value = $headers[$fieldName];
 
-            if (!$isArray) {
+            if (!is_array($value)) {
                 $len = Str::length($value);
 
                 Arr::set($headers, $fieldName, "<cleaned:len-$len>");
@@ -243,4 +260,28 @@ class SLoggerRequestWatcher extends AbstractSLoggerWatcher
         return $headers;
     }
 
+    protected function maskArrayByPatterns(array $data, array $patterns): array
+    {
+        $result = [];
+
+        $data = Arr::dot($data);
+
+        foreach ($data as $key => $value) {
+            if (Str::is($patterns, $key)) {
+                if (!is_string($value) && !is_numeric($value)) {
+                    $value = '********';
+                } else {
+                    $value = Str::mask(
+                        string: (string) $value,
+                        character: '*',
+                        index: ceil(Str::length($value) / 4)
+                    );
+                }
+            }
+
+            Arr::set($result, $key, $value);
+        }
+
+        return $result;
+    }
 }

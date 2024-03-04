@@ -61,7 +61,7 @@ return [
             ],
 
             'paths_with_cleaning_of_response' => [
-                'admin-api/auth/*',
+                //
             ],
 
             'mask_request_header_fields' => [
@@ -70,8 +70,18 @@ return [
                 'x-xsrf-token',
             ],
 
+            'mask_request_fields' => [
+                '*token*',
+                '*password*',
+            ],
+
             'mask_response_header_fields' => [
                 'set-cookie',
+            ],
+
+            'mask_response_fields' => [
+                '*token*',
+                '*password*',
             ],
         ],
 

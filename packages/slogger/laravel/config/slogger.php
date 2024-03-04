@@ -70,8 +70,18 @@ return [
                 'x-xsrf-token',
             ],
 
+            'mask_request_fields' => [
+                '*token*',
+                '*password*',
+            ],
+
             'mask_response_header_fields' => [
                 'set-cookie',
+            ],
+
+            'mask_response_fields' => [
+                '*token*',
+                '*password*',
             ],
         ],
 

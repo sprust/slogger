@@ -108,13 +108,13 @@ class SLoggerHttpClientWatcher extends AbstractSLoggerWatcher
                 'method'   => $request->getMethod(),
                 'uri'      => $uri,
                 'request'  => [
-                    'headers' => $this->getRequestHeaders($request),
-                    'payload' => $this->getRequestPayload($request),
+                    'headers' => $this->prepareRequestHeaders($request),
+                    'payload' => $this->prepareRequestPayload($request),
                 ],
                 'response' => [
                     'status_code' => $statusCode,
-                    'headers'     => $this->getResponseHeaders($response),
-                    'body'        => $this->getResponseBody($response),
+                    'headers'     => $this->prepareResponseHeaders($response),
+                    'body'        => $this->prepareResponseBody($response),
                 ],
             ],
             duration: SLoggerTraceHelper::calcDuration($startedAt)
@@ -157,8 +157,8 @@ class SLoggerHttpClientWatcher extends AbstractSLoggerWatcher
                 'method'    => $request->getMethod(),
                 'uri'       => $uri,
                 'request'   => [
-                    'headers' => $this->getRequestHeaders($request),
-                    'payload' => $this->getRequestPayload($request),
+                    'headers' => $this->prepareRequestHeaders($request),
+                    'payload' => $this->prepareRequestPayload($request),
                 ],
                 'exception' => SLoggerDataFormatter::exception($exception),
             ],
@@ -171,12 +171,12 @@ class SLoggerHttpClientWatcher extends AbstractSLoggerWatcher
         return true;
     }
 
-    protected function getRequestHeaders(RequestInterface $request): array
+    protected function prepareRequestHeaders(RequestInterface $request): array
     {
         return $request->getHeaders();
     }
 
-    protected function getRequestPayload(RequestInterface $request): array
+    protected function prepareRequestPayload(RequestInterface $request): array
     {
         $body = $request->getBody();
 
@@ -187,13 +187,29 @@ class SLoggerHttpClientWatcher extends AbstractSLoggerWatcher
         return $content;
     }
 
-    protected function getResponseHeaders(ResponseInterface $response): array
+    protected function prepareResponseHeaders(ResponseInterface $response): array
     {
         return $response->getHeaders();
     }
 
-    protected function getResponseBody(ResponseInterface $response): array
+    protected function prepareResponseBody(ResponseInterface $response): array
     {
-        return SLoggerDataFormatter::responseBody($response->getBody());
+        $body = $response->getBody();
+
+        $size = $body->getSize();
+
+        if ($size >= 1000000) { // 1mb
+            return [
+                'body' => "<cleaned:big-size-$size>",
+            ];
+        }
+
+        $body->rewind();
+
+        $result = json_decode($body->getContents(), true) ?: [];
+
+        $body->rewind();
+
+        return $result;
     }
 }

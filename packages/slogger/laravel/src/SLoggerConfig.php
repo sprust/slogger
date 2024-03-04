@@ -35,6 +35,16 @@ readonly class SLoggerConfig
         return $this->config['slogger.watchers_customizing.requests.paths_with_cleaning_of_response'] ?? [];
     }
 
+    public function requestsMaskRequestFields(): array
+    {
+        return $this->config['slogger.watchers_customizing.requests.mask_request_fields'] ?? [];
+    }
+
+    public function requestsMaskResponseFields(): array
+    {
+        return $this->config['slogger.watchers_customizing.requests.mask_response_fields'] ?? [];
+    }
+
     public function requestsMaskRequestHeaderFields(): array
     {
         return $this->config['slogger.watchers_customizing.requests.mask_request_header_fields'] ?? [];
