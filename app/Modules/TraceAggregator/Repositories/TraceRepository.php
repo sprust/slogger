@@ -9,28 +9,23 @@ use App\Modules\TraceAggregator\Dto\Objects\TraceItemObjects;
 use App\Modules\TraceAggregator\Dto\Objects\TraceItemTraceObject;
 use App\Modules\TraceAggregator\Dto\Objects\TraceItemTypeObject;
 use App\Modules\TraceAggregator\Dto\Objects\TraceTreeShortObject;
-use App\Modules\TraceAggregator\Dto\Parameters\DataFilter\TraceDataFilterItemParameters;
-use App\Modules\TraceAggregator\Dto\Parameters\DataFilter\TraceDataFilterParameters;
-use App\Modules\TraceAggregator\Dto\Parameters\PeriodParameters;
 use App\Modules\TraceAggregator\Dto\Parameters\TraceFindParameters;
-use App\Modules\TraceAggregator\Dto\Parameters\TraceFindStatusesParameters;
-use App\Modules\TraceAggregator\Dto\Parameters\TraceFindTagsParameters;
-use App\Modules\TraceAggregator\Dto\Parameters\TraceFindTypesParameters;
 use App\Modules\TraceAggregator\Dto\Parameters\TraceTreeFindParameters;
-use App\Modules\TraceAggregator\Enums\TraceDataFilterCompStringTypeEnum;
+use App\Modules\TraceAggregator\Services\TraceQueryBuilder;
 use App\Services\Dto\PaginationInfoObject;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use MongoDB\BSON\UTCDateTime;
 
-class TraceRepository implements TraceRepositoryInterface
+readonly class TraceRepository implements TraceRepositoryInterface
 {
-    private int $maxPerPage = 20;
+    private int $maxPerPage;
 
     public function __construct(
-        // TODO
-        private readonly TraceTreeRepositoryInterface $traceTreeRepository
+        private TraceTreeRepositoryInterface $traceTreeRepository,
+        private TraceQueryBuilder $traceQueryBuilder
     ) {
+        $this->maxPerPage = 20;
     }
 
     public function findOneByTraceId(string $traceId): ?TraceDetailObject
@@ -76,7 +71,7 @@ class TraceRepository implements TraceRepositoryInterface
             }
         }
 
-        $builder = $this->makeBuilder(
+        $builder = $this->traceQueryBuilder->make(
             traceIds: $traceIds,
             loggingPeriod: $parameters->loggingPeriod,
             types: $parameters->types,
@@ -174,97 +169,6 @@ class TraceRepository implements TraceRepositoryInterface
         );
     }
 
-    public function findTypes(TraceFindTypesParameters $parameters): array
-    {
-        return $this
-            ->makeBuilder(
-                loggingPeriod: $parameters->loggingPeriod,
-                data: $parameters->data,
-            )
-            ->when(
-                $parameters->text,
-                fn(Builder $query) => $query->where('type', 'like', "%$parameters->text%")
-            )
-            ->groupBy('type')
-            ->pluck('type')
-            ->sort()
-            ->toArray();
-    }
-
-    public function findTags(TraceFindTagsParameters $parameters): array
-    {
-        $mql = $this
-            ->makeBuilder(
-                loggingPeriod: $parameters->loggingPeriod,
-                types: $parameters->types,
-                data: $parameters->data,
-            )
-            ->toMql();
-
-        $match = [];
-
-        foreach ($mql['find'][0] ?? [] as $key => $value) {
-            $match[$key] = $value;
-        }
-
-        $pipeline = [];
-
-        if ($match) {
-            $pipeline[] = [
-                '$match' => $match,
-            ];
-        }
-
-        $pipeline[] = [
-            '$unwind' => [
-                'path' => '$tags',
-            ],
-        ];
-
-        $pipeline[] = [
-            '$group' => [
-                '_id' => '$tags',
-            ],
-        ];
-
-        if ($parameters->text) {
-            $pipeline[] = [
-                '$match' => [
-                    '_id' => [
-                        '$regex' => "^.*$parameters->text.*$",
-                    ],
-                ],
-            ];
-        }
-
-        $pipeline[] = [
-            '$limit' => 50,
-        ];
-
-        $iterator = Trace::collection()->aggregate($pipeline);
-
-        return collect($iterator)->pluck('_id')->sort()->toArray();
-    }
-
-    public function findStatuses(TraceFindStatusesParameters $parameters): array
-    {
-        return $this
-            ->makeBuilder(
-                loggingPeriod: $parameters->loggingPeriod,
-                types: $parameters->types,
-                tags: $parameters->tags,
-                data: $parameters->data,
-            )
-            ->when(
-                $parameters->text,
-                fn(Builder $query) => $query->where('status', 'like', "%$parameters->text%")
-            )
-            ->groupBy('status')
-            ->pluck('status')
-            ->sort()
-            ->toArray();
-    }
-
     public function findTree(TraceTreeFindParameters $parameters): array
     {
         return Trace::query()
@@ -290,93 +194,5 @@ class TraceRepository implements TraceRepositoryInterface
                 )
             )
             ->toArray();
-    }
-
-    /**
-     * @return Builder|Trace
-     */
-    private function makeBuilder(
-        ?array $traceIds = null,
-        ?PeriodParameters $loggingPeriod = null,
-        array $types = [],
-        array $tags = [],
-        array $statuses = [],
-        ?TraceDataFilterParameters $data = null,
-    ): Builder {
-        $loggedAtFrom = $loggingPeriod?->from;
-        $loggedAtTo   = $loggingPeriod?->to;
-
-        $builder = Trace::query()
-            ->when($traceIds, fn(Builder $query) => $query->whereIn('traceId', $traceIds))
-            ->when($loggedAtFrom, fn(Builder $query) => $query->where('loggedAt', '>=', $loggedAtFrom))
-            ->when($loggedAtTo, fn(Builder $query) => $query->where('loggedAt', '<=', $loggedAtTo))
-            ->when($types, fn(Builder $query) => $query->whereIn('type', $types))
-            ->when($tags, fn(Builder $query) => $query->where('tags', 'all', $tags))
-            ->when($statuses, fn(Builder $query) => $query->whereIn('status', $statuses));
-
-        return $this->applyDataFilter($builder, $data?->filter ?? []);
-    }
-
-    /**
-     * @param TraceDataFilterItemParameters[] $filter
-     */
-    private function applyDataFilter(Builder $builder, array $filter): Builder
-    {
-        foreach ($filter as $filterItem) {
-            $field = $filterItem->field;
-
-            if (!is_null($filterItem->null)) {
-                $filterItem->null
-                    ? $builder->whereNull($field)
-                    : $builder->whereNotNull($field);
-
-                continue;
-            }
-
-            if (!is_null($filterItem->numeric)) {
-                $builder->where(
-                    column: $field,
-                    operator: $filterItem->numeric->comp->value,
-                    value: $filterItem->numeric->value
-                );
-
-                continue;
-            }
-
-            if (!is_null($filterItem->string)) {
-                switch ($filterItem->string->comp) {
-                    case TraceDataFilterCompStringTypeEnum::Con:
-                        $pre  = '%';
-                        $post = '%';
-                        break;
-                    case TraceDataFilterCompStringTypeEnum::Starts:
-                        $pre  = '';
-                        $post = '%';
-                        break;
-                    case TraceDataFilterCompStringTypeEnum::Ends:
-                        $pre  = '%';
-                        $post = '';
-                        break;
-                    default:
-                        $pre  = '';
-                        $post = '';
-                        break;
-                }
-
-                $builder->where(
-                    column: $field,
-                    operator: 'like',
-                    value: "$pre{$filterItem->string->value}$post"
-                );
-
-                continue;
-            }
-
-            if (!is_null($filterItem->boolean)) {
-                $builder->where($field, $filterItem->boolean);
-            }
-        }
-
-        return $builder;
     }
 }

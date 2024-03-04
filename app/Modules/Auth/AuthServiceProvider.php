@@ -23,8 +23,8 @@ class AuthServiceProvider extends ServiceProvider
                 Route::prefix('/auth')
                     ->as('auth.')
                     ->group(function () {
-                        Route::get('/me', MeController::class)->middleware(AuthMiddleware::class);
-                        Route::post('/login', LoginController::class);
+                        Route::get('/me', MeController::class)->middleware(AuthMiddleware::class)->name('me');
+                        Route::post('/login', LoginController::class)->name('login');
                     });
             });
     }

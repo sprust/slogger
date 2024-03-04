@@ -100,7 +100,7 @@ class JsonFileGenerator
         $this->jsonData = [
             'openapi'    => '3.0.0',
             'info'       => [
-                'title'   => 'zb-hoteliers-api-scheme',
+                'title'   => config('app.name') . '-api-scheme',
                 'version' => '0.1',
             ],
             'components' => [

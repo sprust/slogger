@@ -37,6 +37,9 @@ queues-restart:
 	@make art c='queue:restart'
 	@make rr-stop
 
+oa-generate:
+	@make art c='oa:generate'
+
 rr-init:
 	make rr-get-binary
 	make rr-default-config

@@ -13,7 +13,7 @@ readonly class TraceTreeController
     ) {
     }
 
-    public function tree(string $traceId): TraceTreesResponse
+    public function index(string $traceId): TraceTreesResponse
     {
         $traceTreeNodeObjects = $this->repository->find(
             new TraceFindTreeParameters(
