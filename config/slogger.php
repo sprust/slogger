@@ -54,34 +54,56 @@ return [
 
     'watchers_customizing' => [
         'requests' => [
-            'header_parent_trace_id_key' => env('SLOGGER_REQUESTS_HEADER_PARENT_TRACE_ID_KEY', 'x-parent-trace-id'),
+            'header_parent_trace_id_key'      => env(
+                'SLOGGER_REQUESTS_HEADER_PARENT_TRACE_ID_KEY',
+                'x-parent-trace-id'
+            ),
 
-            'excepted_paths' => [
+            /** url_patterns */
+            'excepted_paths'                  => [
                 //
             ],
 
+            /** url_patterns */
+            'paths_with_cleaning_of_request'  => [
+                'admin-api/auth/login',
+            ],
+
+            /** url_pattern => key */
+            'mask_request_header_fields'      => [
+                '*' => [
+                    'authorization',
+                    'cookie',
+                    'x-xsrf-token',
+                ],
+            ],
+
+            /** url_pattern => key_pattern */
+            'mask_request_parameters'         => [
+                '*' => [
+                    '*token*',
+                    '*password*',
+                ],
+            ],
+
+            /** url_patterns */
             'paths_with_cleaning_of_response' => [
-                //
+                'admin-api/auth/*',
             ],
 
-            'mask_request_header_fields' => [
-                'authorization',
-                'cookie',
-                'x-xsrf-token',
+            /** url_pattern => key */
+            'mask_response_header_fields'     => [
+                '*' => [
+                    'set-cookie',
+                ],
             ],
 
-            'mask_request_fields' => [
-                '*token*',
-                '*password*',
-            ],
-
-            'mask_response_header_fields' => [
-                'set-cookie',
-            ],
-
-            'mask_response_fields' => [
-                '*token*',
-                '*password*',
+            /** url_pattern => key_pattern */
+            'mask_response_fields'            => [
+                '*' => [
+                    '*token*',
+                    '*password*',
+                ],
             ],
         ],
 

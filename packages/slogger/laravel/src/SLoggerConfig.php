@@ -30,14 +30,19 @@ readonly class SLoggerConfig
         return $this->config['slogger.watchers_customizing.requests.excepted_paths'] ?? [];
     }
 
+    public function requestsPathsWithCleaningOfRequest(): array
+    {
+        return $this->config['slogger.watchers_customizing.requests.paths_with_cleaning_of_request'] ?? [];
+    }
+
     public function requestsPathsWithCleaningOfResponse(): array
     {
         return $this->config['slogger.watchers_customizing.requests.paths_with_cleaning_of_response'] ?? [];
     }
 
-    public function requestsMaskRequestFields(): array
+    public function requestsMaskRequestParameters(): array
     {
-        return $this->config['slogger.watchers_customizing.requests.mask_request_fields'] ?? [];
+        return $this->config['slogger.watchers_customizing.requests.mask_request_parameters'] ?? [];
     }
 
     public function requestsMaskResponseFields(): array
