@@ -12,6 +12,12 @@ use Illuminate\Database\Eloquent\Builder;
 class TraceQueryBuilder
 {
     /**
+     * @param int[]         $serviceIds
+     * @param string[]|null $traceIds
+     * @param string[]      $types
+     * @param string[]      $tags
+     * @param string[]      $statuses
+     *
      * @return Builder|Trace
      */
     public function make(
@@ -27,7 +33,7 @@ class TraceQueryBuilder
         $loggedAtTo   = $loggingPeriod?->to;
 
         $builder = Trace::query()
-            ->when($serviceIds, fn(Builder $query) => $query->whereIn('serviceId', array_map('intval', $serviceIds)))
+            ->when($serviceIds, fn(Builder $query) => $query->whereIn('serviceId', $serviceIds))
             ->when($traceIds, fn(Builder $query) => $query->whereIn('traceId', $traceIds))
             ->when($loggedAtFrom, fn(Builder $query) => $query->where('loggedAt', '>=', $loggedAtFrom))
             ->when($loggedAtTo, fn(Builder $query) => $query->where('loggedAt', '<=', $loggedAtTo))
