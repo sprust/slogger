@@ -3,7 +3,7 @@
 namespace App\Models\Traces;
 
 use App\Models\AbstractTraceModel;
-use Carbon\Carbon;
+use Illuminate\Support\Carbon;
 
 /**
  * @property string      $_id

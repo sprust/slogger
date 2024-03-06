@@ -2,7 +2,7 @@
 
 namespace App\Modules\TraceAggregator\Dto\Objects;
 
-use Carbon\Carbon;
+use Illuminate\Support\Carbon;
 
 readonly class TraceTreeObject
 {

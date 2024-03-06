@@ -2,9 +2,7 @@
 
 namespace App\Modules\TraceAggregator\Dto\Objects;
 
-use App\Models\Traces\Trace;
-use App\Modules\TraceAggregator\Services\TraceDataToObjectConverter;
-use Carbon\Carbon;
+use Illuminate\Support\Carbon;
 
 readonly class TraceDetailObject
 {
@@ -26,29 +24,5 @@ readonly class TraceDetailObject
         public Carbon $createdAt,
         public Carbon $updatedAt
     ) {
-    }
-
-    public static function fromModel(Trace $trace): static
-    {
-        return new static(
-            service: $trace->service
-                ? new TraceServiceObject(
-                    id: $trace->service->id,
-                    name: $trace->service->name,
-                )
-                : null,
-            traceId: $trace->traceId,
-            parentTraceId: $trace->parentTraceId,
-            type: $trace->type,
-            status: $trace->status,
-            tags: $trace->tags,
-            data: (new TraceDataToObjectConverter($trace->data))->convert(),
-            duration: $trace->duration,
-            memory: $trace->memory,
-            cpu: $trace->cpu,
-            loggedAt: $trace->loggedAt,
-            createdAt: $trace->createdAt,
-            updatedAt: $trace->updatedAt
-        );
     }
 }

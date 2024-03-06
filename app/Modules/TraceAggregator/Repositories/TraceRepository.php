@@ -3,18 +3,22 @@
 namespace App\Modules\TraceAggregator\Repositories;
 
 use App\Models\Traces\Trace;
+use App\Modules\TraceAggregator\Dto\Objects\TraceDataAdditionalFieldObject;
 use App\Modules\TraceAggregator\Dto\Objects\TraceDetailObject;
 use App\Modules\TraceAggregator\Dto\Objects\TraceItemObject;
 use App\Modules\TraceAggregator\Dto\Objects\TraceItemObjects;
 use App\Modules\TraceAggregator\Dto\Objects\TraceItemTraceObject;
 use App\Modules\TraceAggregator\Dto\Objects\TraceItemTypeObject;
+use App\Modules\TraceAggregator\Dto\Objects\TraceServiceObject;
 use App\Modules\TraceAggregator\Dto\Objects\TraceTreeShortObject;
 use App\Modules\TraceAggregator\Dto\Parameters\TraceFindParameters;
 use App\Modules\TraceAggregator\Dto\Parameters\TraceTreeFindParameters;
+use App\Modules\TraceAggregator\Services\TraceDataToObjectConverter;
 use App\Modules\TraceAggregator\Services\TraceQueryBuilder;
 use App\Services\Dto\PaginationInfoObject;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Arr;
 use MongoDB\BSON\UTCDateTime;
 
 readonly class TraceRepository implements TraceRepositoryInterface
@@ -37,7 +41,26 @@ readonly class TraceRepository implements TraceRepositoryInterface
             return null;
         }
 
-        return TraceDetailObject::fromModel($trace);
+        return new TraceDetailObject(
+            service: $trace->service
+                ? new TraceServiceObject(
+                    id: $trace->service->id,
+                    name: $trace->service->name,
+                )
+                : null,
+            traceId: $trace->traceId,
+            parentTraceId: $trace->parentTraceId,
+            type: $trace->type,
+            status: $trace->status,
+            tags: $trace->tags,
+            data: (new TraceDataToObjectConverter($trace->data))->convert(),
+            duration: $trace->duration,
+            memory: $trace->memory,
+            cpu: $trace->cpu,
+            loggedAt: $trace->loggedAt,
+            createdAt: $trace->createdAt,
+            updatedAt: $trace->updatedAt
+        );
     }
 
     public function find(TraceFindParameters $parameters): TraceItemObjects
@@ -154,7 +177,29 @@ readonly class TraceRepository implements TraceRepositoryInterface
                 ?? [];
 
             $resultItems[] = new TraceItemObject(
-                trace: TraceItemTraceObject::fromModel($parent, $parameters->data?->fields ?? []),
+                trace: new TraceItemTraceObject(
+                    service: $parent->service
+                        ? new TraceServiceObject(
+                            id: $parent->service->id,
+                            name: $parent->service->name,
+                        )
+                        : null,
+                    traceId: $parent->traceId,
+                    parentTraceId: $parent->parentTraceId,
+                    type: $parent->type,
+                    status: $parent->status,
+                    tags: $parent->tags,
+                    duration: $parent->duration,
+                    memory: $parent->memory,
+                    cpu: $parent->cpu,
+                    additionalFields: $this->makeTraceAdditionalFields(
+                        data: $parent->data,
+                        additionalFields: $parameters->data?->fields ?? []
+                    ),
+                    loggedAt: $parent->loggedAt,
+                    createdAt: $parent->createdAt,
+                    updatedAt: $parent->updatedAt
+                ),
                 types: $types
             );
         }
@@ -194,5 +239,49 @@ readonly class TraceRepository implements TraceRepositoryInterface
                 )
             )
             ->toArray();
+    }
+
+    /**
+     * @return TraceDataAdditionalFieldObject[]
+     */
+    private function makeTraceAdditionalFields(array $data, array $additionalFields): array
+    {
+        $additionalFieldValues = [];
+
+        foreach ($additionalFields as $additionalField) {
+            $additionalFieldData = explode('.', $additionalField);
+
+            if (count($additionalFieldData) === 1) {
+                $values = [Arr::get($data, $additionalField)];
+            } else {
+                $preKey = implode('.', array_slice($additionalFieldData, 0, -1));
+
+                $preValue = Arr::get($data, $preKey);
+
+                if (is_null($preValue)) {
+                    continue;
+                }
+
+                if (Arr::isAssoc($preValue)) {
+                    $values = [Arr::get($data, $additionalField)];
+                } else {
+                    $key = $additionalFieldData[count($additionalFieldData) - 1];
+
+                    $values = array_filter(
+                        array_map(
+                            fn(array $item) => $item[$key] ?? null,
+                            $preValue
+                        )
+                    );
+                }
+            }
+
+            $additionalFieldValues[] = new TraceDataAdditionalFieldObject(
+                key: $additionalField,
+                values: $values
+            );
+        }
+
+        return $additionalFieldValues;
     }
 }
