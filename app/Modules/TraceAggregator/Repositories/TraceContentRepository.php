@@ -3,14 +3,11 @@
 namespace App\Modules\TraceAggregator\Repositories;
 
 use App\Models\Traces\Trace;
-use App\Modules\TraceAggregator\Dto\Objects\TraceTreeShortObject;
 use App\Modules\TraceAggregator\Dto\Parameters\TraceFindStatusesParameters;
 use App\Modules\TraceAggregator\Dto\Parameters\TraceFindTagsParameters;
 use App\Modules\TraceAggregator\Dto\Parameters\TraceFindTypesParameters;
-use App\Modules\TraceAggregator\Dto\Parameters\TraceTreeFindParameters;
 use App\Modules\TraceAggregator\Services\TraceQueryBuilder;
 use Illuminate\Database\Eloquent\Builder;
-use MongoDB\BSON\UTCDateTime;
 
 readonly class TraceContentRepository implements TraceContentRepositoryInterface
 {
@@ -110,33 +107,6 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
             ->groupBy('status')
             ->pluck('status')
             ->sort()
-            ->toArray();
-    }
-
-    public function findTree(TraceTreeFindParameters $parameters): array
-    {
-        return Trace::query()
-            ->select([
-                'traceId',
-                'parentTraceId',
-                'loggedAt',
-            ])
-            ->when(
-                $parameters->to,
-                fn(Builder $query) => $query->where('loggedAt', '<=', new UTCDateTime($parameters->to))
-            )
-            ->forPage(
-                page: $parameters->page,
-                perPage: $parameters->perPage
-            )
-            ->get()
-            ->map(
-                fn(Trace $trace) => new TraceTreeShortObject(
-                    traceId: $trace->traceId,
-                    parentTraceId: $trace->parentTraceId,
-                    loggedAt: $trace->loggedAt
-                )
-            )
             ->toArray();
     }
 }
