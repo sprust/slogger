@@ -2,12 +2,12 @@
 
 namespace App\Modules\Service;
 
+use App\Modules\Service\Adapters\AuthAdapter;
 use App\Modules\Service\Commands\CreateServiceCommand;
 use App\Modules\Service\Http\Controllers\ServiceController;
 use App\Modules\Service\Http\ServiceContainer;
 use App\Modules\Service\Repository\ServiceRepository;
 use App\Modules\Service\Repository\ServiceRepositoryInterface;
-use App\Modules\TraceAggregator\Adapters\AuthAdapter;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 
