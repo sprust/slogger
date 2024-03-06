@@ -3,6 +3,7 @@ PHP_CLI="docker-compose exec $(PHP_SERVICE) "
 
 RR_DOTENV=--dotenv /app/.env
 RR_YAML=-c /app/.rr.yaml
+RR_COLLECTOR_YAML=-c /app/.rr.collector.yaml
 
 setup:
 	@docker-compose stop
@@ -35,7 +36,7 @@ composer:
 
 queues-restart:
 	@make art c='queue:restart'
-	@make rr-stop
+	@make rr-reset
 
 oa-generate:
 	@make art c='oa:generate'
@@ -50,18 +51,17 @@ rr-get-binary:
 
 rr-default-config:
 	cp -i packages/ifksco/roadrunner-laravel/config/.rr.yaml.example .rr.yaml
-
-rr-start:
-	@"$(PHP_CLI)"./rr serve $(RR_DOTENV) $(RR_YAML)
-
-rr-start-php:
-	@"$(PHP_CLI)"./rr serve $(RR_DOTENV) $(RR_YAML)
+	cp -i .rr.collector.yaml.example .rr.collector.yaml
 
 rr-reset:
 	@"$(PHP_CLI)"./rr reset $(RR_YAML)
+	@"$(PHP_CLI)"./rr reset $(RR_COLLECTOR_YAML)
 
 rr-stop:
 	@"$(PHP_CLI)"./rr stop $(RR_YAML)
 
 rr-workers:
 	@"$(PHP_CLI)"./rr workers -i $(RR_YAML)
+
+rr-collector-workers:
+	@"$(PHP_CLI)"./rr workers -i $(RR_COLLECTOR_YAML)
