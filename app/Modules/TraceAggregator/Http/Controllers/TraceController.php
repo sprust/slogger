@@ -29,6 +29,7 @@ readonly class TraceController
             new TraceFindParameters(
                 page: $validated['page'] ?? 1,
                 perPage: $validated['per_page'] ?? null,
+                serviceIds: $validated['service_ids'] ?? [],
                 traceId: $validated['trace_id'] ?? null,
                 allTracesInTree: $validated['all_traces_in_tree'] ?? false,
                 loggingPeriod: PeriodParameters::fromStringValues(

@@ -95,6 +95,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
         }
 
         $builder = $this->traceQueryBuilder->make(
+            serviceIds: $parameters->serviceIds,
             traceIds: $traceIds,
             loggingPeriod: $parameters->loggingPeriod,
             types: $parameters->types,

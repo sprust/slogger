@@ -23,6 +23,7 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
     {
         return $this->traceQueryBuilder
             ->make(
+                serviceIds: $parameters->serviceIds,
                 loggingPeriod: $parameters->loggingPeriod,
                 data: $parameters->data,
             )
@@ -40,6 +41,7 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
     {
         $mql = $this->traceQueryBuilder
             ->make(
+                serviceIds: $parameters->serviceIds,
                 loggingPeriod: $parameters->loggingPeriod,
                 types: $parameters->types,
                 data: $parameters->data,
@@ -95,6 +97,7 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
     {
         return $this->traceQueryBuilder
             ->make(
+                serviceIds: $parameters->serviceIds,
                 loggingPeriod: $parameters->loggingPeriod,
                 types: $parameters->types,
                 tags: $parameters->tags,

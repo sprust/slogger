@@ -15,6 +15,7 @@ class TraceQueryBuilder
      * @return Builder|Trace
      */
     public function make(
+        array $serviceIds = [],
         ?array $traceIds = null,
         ?PeriodParameters $loggingPeriod = null,
         array $types = [],
@@ -26,6 +27,7 @@ class TraceQueryBuilder
         $loggedAtTo   = $loggingPeriod?->to;
 
         $builder = Trace::query()
+            ->when($serviceIds, fn(Builder $query) => $query->whereIn('serviceId', array_map('intval', $serviceIds)))
             ->when($traceIds, fn(Builder $query) => $query->whereIn('traceId', $traceIds))
             ->when($loggedAtFrom, fn(Builder $query) => $query->where('loggedAt', '>=', $loggedAtFrom))
             ->when($loggedAtTo, fn(Builder $query) => $query->where('loggedAt', '<=', $loggedAtTo))

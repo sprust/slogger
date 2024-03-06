@@ -32,6 +32,7 @@ readonly class TraceContentController
         return StringValueResponse::collection(
             $this->repository->findTypes(
                 new TraceFindTypesParameters(
+                    serviceIds: $validated['service_ids'] ?? [],
                     text: $validated['text'] ?? null,
                     loggingPeriod: PeriodParameters::fromStringValues(
                         from: $validated['logging_from'] ?? null,
@@ -51,6 +52,7 @@ readonly class TraceContentController
         return StringValueResponse::collection(
             $this->repository->findTags(
                 new TraceFindTagsParameters(
+                    serviceIds: $validated['service_ids'] ?? [],
                     text: $validated['text'] ?? null,
                     loggingPeriod: PeriodParameters::fromStringValues(
                         from: $validated['logging_from'] ?? null,
@@ -71,6 +73,7 @@ readonly class TraceContentController
         return StringValueResponse::collection(
             $this->repository->findStatuses(
                 new TraceFindStatusesParameters(
+                    serviceIds: $validated['service_ids'] ?? [],
                     text: $validated['text'] ?? null,
                     loggingPeriod: PeriodParameters::fromStringValues(
                         from: $validated['logging_from'] ?? null,

@@ -2,6 +2,7 @@
 
 namespace App\Modules\TraceAggregator\Http\Requests;
 
+use App\Models\Services\Service;
 use App\Modules\TraceAggregator\Enums\TraceDataFilterCompNumericTypeEnum;
 use App\Modules\TraceAggregator\Enums\TraceDataFilterCompStringTypeEnum;
 use App\Services\Enums\SortDirectionEnum;
@@ -21,6 +22,15 @@ class TraceIndexRequest extends FormRequest
                 'sometimes',
                 'int',
                 'min:1',
+            ],
+            'service_ids'                 => [
+                'sometimes',
+                'array',
+                'exists:' . Service::class . ',id',
+            ],
+            'service_ids.*'               => [
+                'required',
+                'integer',
             ],
             'trace_id'                    => [
                 'sometimes',

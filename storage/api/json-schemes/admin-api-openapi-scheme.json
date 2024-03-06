@@ -130,6 +130,12 @@
                                         "type": "integer",
                                         "minimum": 1
                                     },
+                                    "service_ids": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer"
+                                        }
+                                    },
                                     "trace_id": {
                                         "type": "string",
                                         "nullable": true
@@ -1123,6 +1129,12 @@
                         "application/json": {
                             "schema": {
                                 "properties": {
+                                    "service_ids": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer"
+                                        }
+                                    },
                                     "text": {
                                         "type": "string",
                                         "nullable": true,
@@ -1252,6 +1264,12 @@
                         "application/json": {
                             "schema": {
                                 "properties": {
+                                    "service_ids": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer"
+                                        }
+                                    },
                                     "text": {
                                         "type": "string",
                                         "nullable": true,
@@ -1387,6 +1405,12 @@
                         "application/json": {
                             "schema": {
                                 "properties": {
+                                    "service_ids": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer"
+                                        }
+                                    },
                                     "text": {
                                         "type": "string",
                                         "nullable": true,

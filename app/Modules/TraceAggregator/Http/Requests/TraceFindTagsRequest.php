@@ -2,6 +2,7 @@
 
 namespace App\Modules\TraceAggregator\Http\Requests;
 
+use App\Models\Services\Service;
 use App\Modules\TraceAggregator\Enums\TraceDataFilterCompNumericTypeEnum;
 use App\Modules\TraceAggregator\Enums\TraceDataFilterCompStringTypeEnum;
 use Illuminate\Foundation\Http\FormRequest;
@@ -11,6 +12,15 @@ class TraceFindTagsRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'service_ids'                 => [
+                'sometimes',
+                'array',
+                'exists:' . Service::class . ',id',
+            ],
+            'service_ids.*'               => [
+                'required',
+                'integer',
+            ],
             'text'                        => [
                 'sometimes',
                 'string',

@@ -7,10 +7,12 @@ use App\Modules\TraceAggregator\Dto\Parameters\DataFilter\TraceDataFilterParamet
 readonly class TraceFindStatusesParameters
 {
     /**
+     * @param int[]    $serviceIds
      * @param string[] $types
      * @param string[] $tags
      */
     public function __construct(
+        public array $serviceIds = [],
         public ?string $text = null,
         public ?PeriodParameters $loggingPeriod = null,
         public array $types = [],
