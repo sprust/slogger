@@ -2,13 +2,14 @@
 
 namespace App\Modules\Dashboard\Repositories;
 
-use App\Modules\Dashboard\Dto\Objects\Database\CollectionIndexObject;
-use App\Modules\Dashboard\Dto\Objects\Database\CollectionObject;
+use App\Modules\Dashboard\Dto\Objects\Database\DatabaseCollectionIndexObject;
+use App\Modules\Dashboard\Dto\Objects\Database\DatabaseCollectionObject;
 use App\Modules\Dashboard\Dto\Objects\Database\DatabaseObject;
 use App\Modules\Dashboard\Dto\Objects\Database\DatabaseObjects;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\DB;
 use MongoDB\Laravel\Connection;
+use MongoDB\Model\BSONDocument;
 use MongoDB\Model\DatabaseInfo;
 
 readonly class DatabaseRepository implements DatabaseRepositoryInterface
@@ -17,7 +18,7 @@ readonly class DatabaseRepository implements DatabaseRepositoryInterface
     {
     }
 
-    public function index(): DatabaseObjects
+    public function find(): DatabaseObjects
     {
         $databaseSizes = null;
 
@@ -36,10 +37,10 @@ readonly class DatabaseRepository implements DatabaseRepositoryInterface
 
             $databaseName = $connection->getDatabaseName();
 
-            $databaseSizeInMb = $databaseSizes[$databaseName] ?? null;
+            $databaseSize = $databaseSizes[$databaseName] ?? null;
 
-            if ($databaseSizeInMb) {
-                $databaseSizeInMb = $this->bitesToMb($databaseSizeInMb);
+            if ($databaseSize) {
+                $databaseSize = $this->bitesToMb($databaseSize);
             }
 
             $collections = [];
@@ -49,7 +50,7 @@ readonly class DatabaseRepository implements DatabaseRepositoryInterface
 
                 $collection = $connection->selectCollection($collectionName);
 
-                $stats = collect(
+                $collStats = collect(
                     $collection->aggregate([
                         [
                             '$collStats' => [
@@ -59,20 +60,30 @@ readonly class DatabaseRepository implements DatabaseRepositoryInterface
                     ])
                 )[0];
 
-                $storageStats = $stats['storageStats'];
+                $indexStats =
+                    collect($collection->aggregate([
+                        [
+                            '$indexStats' => (object) [],
+                        ],
+                    ]))
+                        ->keyBy(fn(BSONDocument $indexStat) => $indexStat->name)
+                        ->toArray();
 
-                $collections[] = new CollectionObject(
+                $storageStats = $collStats['storageStats'];
+
+                $collections[] = new DatabaseCollectionObject(
                     name: $collectionName,
-                    sizeInMb: $this->bitesToMb($storageStats['size']),
-                    indexesSizeInMb: $this->bitesToMb($storageStats['totalIndexSize']),
-                    totalSizeInMb: $this->bitesToMb($storageStats['totalSize']),
+                    size: $this->bitesToMb($storageStats['size']),
+                    indexesSize: $this->bitesToMb($storageStats['totalIndexSize']),
+                    totalSize: $this->bitesToMb($storageStats['totalSize']),
                     count: $storageStats['count'],
-                    avgObjSizeInMb: $this->bitesToMb($storageStats['avgObjSize']),
+                    avgObjSize: $this->bitesToMb($storageStats['avgObjSize']),
                     indexes: collect($storageStats['indexSizes'])
                         ->map(
-                            fn(int $indexSize, string $indexName) => new CollectionIndexObject(
+                            fn(int $indexSize, string $indexName) => new DatabaseCollectionIndexObject(
                                 name: $indexName,
-                                sizeInMb: $this->bitesToMb($storageStats['indexSizes'][$indexName])
+                                size: $this->bitesToMb($indexSize),
+                                usage: $indexStats[$indexName]['accesses']['ops']
                             )
                         )
                         ->values()
@@ -83,7 +94,7 @@ readonly class DatabaseRepository implements DatabaseRepositoryInterface
             $databaseObjects->add(
                 new DatabaseObject(
                     name: $databaseName,
-                    sizeInMb: $databaseSizeInMb,
+                    size: $databaseSize,
                     collections: $collections
                 )
             );

@@ -2,11 +2,12 @@
 
 namespace App\Modules\Dashboard\Dto\Objects\Database;
 
-class CollectionIndexObject
+class DatabaseCollectionIndexObject
 {
     public function __construct(
         public string $name,
-        public float $sizeInMb
+        public float $size,
+        public int $usage
     ) {
     }
 }

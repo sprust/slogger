@@ -1675,6 +1675,118 @@
                     }
                 }
             }
+        },
+        "/admin-api/dashboard/database": {
+            "get": {
+                "responses": {
+                    "200": {
+                        "description": "description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "name": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "size": {
+                                                        "type": "number",
+                                                        "nullable": false
+                                                    },
+                                                    "collections": {
+                                                        "type": "array",
+                                                        "nullable": false,
+                                                        "items": {
+                                                            "properties": {
+                                                                "name": {
+                                                                    "type": "string",
+                                                                    "nullable": false
+                                                                },
+                                                                "size": {
+                                                                    "type": "number",
+                                                                    "nullable": false
+                                                                },
+                                                                "indexes_size": {
+                                                                    "type": "number",
+                                                                    "nullable": false
+                                                                },
+                                                                "total_size": {
+                                                                    "type": "number",
+                                                                    "nullable": false
+                                                                },
+                                                                "count": {
+                                                                    "type": "integer",
+                                                                    "nullable": false
+                                                                },
+                                                                "avg_obj_size": {
+                                                                    "type": "number",
+                                                                    "nullable": false
+                                                                },
+                                                                "indexes": {
+                                                                    "type": "array",
+                                                                    "nullable": false,
+                                                                    "items": {
+                                                                        "properties": {
+                                                                            "name": {
+                                                                                "type": "string",
+                                                                                "nullable": false
+                                                                            },
+                                                                            "size": {
+                                                                                "type": "number",
+                                                                                "nullable": false
+                                                                            },
+                                                                            "usage": {
+                                                                                "type": "integer",
+                                                                                "nullable": false
+                                                                            }
+                                                                        },
+                                                                        "required": [
+                                                                            "name",
+                                                                            "size",
+                                                                            "usage"
+                                                                        ]
+                                                                    }
+                                                                }
+                                                            },
+                                                            "required": [
+                                                                "name",
+                                                                "size",
+                                                                "indexes_size",
+                                                                "total_size",
+                                                                "count",
+                                                                "avg_obj_size",
+                                                                "indexes"
+                                                            ]
+                                                        }
+                                                    }
+                                                },
+                                                "required": [
+                                                    "name",
+                                                    "size",
+                                                    "collections"
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
         }
     }
 }
