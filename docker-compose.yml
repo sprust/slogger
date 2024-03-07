@@ -19,6 +19,9 @@ services:
     environment:
       XDEBUG_CONFIG: "remote_host=${XDEBUG_REMOTE_HOST:-php} client_host=${XDEBUG_CLIENT_HOST:-host.docker.internal} remote_enable=1"
       PHP_IDE_CONFIG: "serverName=${PHP_IDE_CONFIG_SERVER_NAME}"
+      QUEUE_TRACES_CREATING_CONNECTION: ${QUEUE_TRACES_CREATING_CONNECTION:-redis}
+      QUEUE_TRACES_CREATING_NAME: ${QUEUE_TRACES_CREATING_NAME:-slogger-tracing}
+      QUEUE_TRACES_CREATING_NAME_QUANTITY: ${QUEUE_TRACES_CREATING_NAME_QUANTITY:-5}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     command: supervisord -n
