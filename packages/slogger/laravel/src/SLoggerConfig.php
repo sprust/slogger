@@ -69,4 +69,9 @@ readonly class SLoggerConfig
     {
         return $this->config['slogger.watchers_customizing.jobs.excepted'] ?? [];
     }
+
+    public function modelsMasks(): array
+    {
+        return $this->config['slogger.watchers_customizing.models.masks'] ?? [];
+    }
 }

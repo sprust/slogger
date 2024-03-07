@@ -20,6 +20,7 @@ use SLoggerLaravel\Watchers\Services\SLoggerMailWatcher;
 use SLoggerLaravel\Watchers\Services\SLoggerModelWatcher;
 use SLoggerLaravel\Watchers\Services\SLoggerNotificationWatcher;
 use SLoggerLaravel\Watchers\Services\SLoggerScheduleWatcher;
+use App\Models\Users\User;
 
 return [
     'enabled' => env('SLOGGER_ENABLED', false),
@@ -118,6 +119,20 @@ return [
             'excepted' => [
                 SLoggerTraceCreateJob::class,
                 SLoggerTraceUpdateJob::class,
+            ],
+        ],
+
+        'models' => [
+            /** model_class => field_patterns */
+            'masks' => [
+                '*'         => [
+                    '*token*',
+                    '*password*',
+                ],
+                User::class => [
+                    '*name*',
+                    '*email*',
+                ],
             ],
         ],
     ],

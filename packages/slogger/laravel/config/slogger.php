@@ -69,7 +69,7 @@ return [
                 'admin-api/auth/login',
             ],
 
-            /** url_pattern => key */
+            /** url_pattern => keys */
             'mask_request_header_fields'      => [
                 '*' => [
                     'authorization',
@@ -78,7 +78,7 @@ return [
                 ],
             ],
 
-            /** url_pattern => key_pattern */
+            /** url_pattern => key_patterns */
             'mask_request_parameters'         => [
                 '*' => [
                     '*token*',
@@ -91,14 +91,14 @@ return [
                 'admin-api/auth/*',
             ],
 
-            /** url_pattern => key */
+            /** url_pattern => keys */
             'mask_response_header_fields'     => [
                 '*' => [
                     'set-cookie',
                 ],
             ],
 
-            /** url_pattern => key_pattern */
+            /** url_pattern => key_patterns */
             'mask_response_fields'            => [
                 '*' => [
                     '*token*',
@@ -118,6 +118,16 @@ return [
             'excepted' => [
                 SLoggerTraceCreateJob::class,
                 SLoggerTraceUpdateJob::class,
+            ],
+        ],
+
+        'models' => [
+            /** model_class => field_patterns */
+            'masks' => [
+                '*' => [
+                    '*token*',
+                    '*password*',
+                ],
             ],
         ],
     ],
