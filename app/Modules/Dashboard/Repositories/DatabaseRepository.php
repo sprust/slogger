@@ -77,7 +77,7 @@ readonly class DatabaseRepository implements DatabaseRepositoryInterface
                     indexesSize: $this->bitesToMb($storageStats['totalIndexSize']),
                     totalSize: $this->bitesToMb($storageStats['totalSize']),
                     count: $storageStats['count'],
-                    avgObjSize: $this->bitesToMb($storageStats['avgObjSize']),
+                    avgObjSize: $this->bitesToMb($storageStats['avgObjSize'] ?? 0),
                     indexes: collect($storageStats['indexSizes'])
                         ->map(
                             fn(int $indexSize, string $indexName) => new DatabaseCollectionIndexObject(
