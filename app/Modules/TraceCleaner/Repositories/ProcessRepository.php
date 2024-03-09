@@ -10,6 +10,29 @@ use Illuminate\Support\Carbon;
 
 class ProcessRepository implements ProcessRepositoryInterface
 {
+    private int $perPage = 20;
+
+    public function find(int $page, ?int $settingId = null): array
+    {
+        return TraceClearingProcess::query()
+            ->when($settingId, fn(Builder $query) => $query->where('setting_id', $settingId))
+            ->orderByDesc('created_at')
+            ->forPage(
+                page: $page,
+                perPage: $this->perPage
+            )
+            ->get()
+            ->map(fn(TraceClearingProcess $process) => new ProcessDto(
+                id: $process->id,
+                settingId: $process->setting_id,
+                clearedCount: $process->cleared_count,
+                clearedAt: $process->cleared_at,
+                createdAt: $process->created_at,
+                updatedAt: $process->updated_at
+            ))
+            ->toArray();
+    }
+
     public function findFirstBySettingId(int $settingId, bool $clearedAtIsNotNull): ?ProcessDto
     {
         /** @var TraceClearingProcess|null $process */

@@ -1945,6 +1945,78 @@
                     }
                 ]
             }
+        },
+        "/admin-api/trace-cleaner/settings/{settingId}/processes": {
+            "get": {
+                "parameters": [
+                    {
+                        "name": "settingId",
+                        "required": true,
+                        "in": "path",
+                        "schema": {}
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "nullable": false
+                                                    },
+                                                    "setting_id": {
+                                                        "type": "integer",
+                                                        "nullable": false
+                                                    },
+                                                    "cleared_count": {
+                                                        "type": "integer",
+                                                        "nullable": false
+                                                    },
+                                                    "cleared_at": {
+                                                        "type": "string",
+                                                        "nullable": true
+                                                    },
+                                                    "created_at": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "updated_at": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    }
+                                                },
+                                                "required": [
+                                                    "id",
+                                                    "setting_id",
+                                                    "cleared_count",
+                                                    "created_at",
+                                                    "updated_at"
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
         }
     }
 }

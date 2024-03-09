@@ -174,6 +174,6 @@ class TraceTreeRepository implements TraceTreeRepositoryInterface
 
     public function deleteMany(TraceTreeDeleteManyParameters $parameters): void
     {
-        TraceTree::query()->where('loggedAt', '<=', $parameters->to)->delete();
+        TraceTree::query()->where('loggedAt', '<=', new UTCDateTime($parameters->to))->delete();
     }
 }

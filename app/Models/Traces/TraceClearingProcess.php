@@ -15,4 +15,7 @@ use Illuminate\Support\Carbon;
  */
 class TraceClearingProcess extends AbstractModel
 {
+    protected $casts = [
+        'cleared_at' => 'datetime',
+    ];
 }

@@ -7,6 +7,11 @@ use Illuminate\Support\Carbon;
 
 interface ProcessRepositoryInterface
 {
+    /**
+     * @return ProcessDto[]
+     */
+    public function find(int $page, ?int $settingId = null): array;
+
     public function findFirstBySettingId(int $settingId, bool $clearedAtIsNotNull): ?ProcessDto;
 
     public function create(int $settingId, int $clearedCount, ?Carbon $clearedAt): ProcessDto;

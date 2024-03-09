@@ -8,6 +8,7 @@ use App\Modules\TraceAggregator\Dto\Parameters\DataFilter\TraceDataFilterParamet
 use App\Modules\TraceAggregator\Dto\Parameters\PeriodParameters;
 use App\Modules\TraceAggregator\Enums\TraceDataFilterCompStringTypeEnum;
 use Illuminate\Database\Eloquent\Builder;
+use MongoDB\BSON\UTCDateTime;
 
 class TraceQueryBuilder
 {
@@ -35,8 +36,8 @@ class TraceQueryBuilder
         $builder = Trace::query()
             ->when($serviceIds, fn(Builder $query) => $query->whereIn('serviceId', $serviceIds))
             ->when($traceIds, fn(Builder $query) => $query->whereIn('traceId', $traceIds))
-            ->when($loggedAtFrom, fn(Builder $query) => $query->where('loggedAt', '>=', $loggedAtFrom))
-            ->when($loggedAtTo, fn(Builder $query) => $query->where('loggedAt', '<=', $loggedAtTo))
+            ->when($loggedAtFrom, fn(Builder $query) => $query->where('loggedAt', '>=', new UTCDateTime($loggedAtFrom)))
+            ->when($loggedAtTo, fn(Builder $query) => $query->where('loggedAt', '<=', new UTCDateTime($loggedAtTo)))
             ->when($types, fn(Builder $query) => $query->whereIn('type', $types))
             ->when($tags, fn(Builder $query) => $query->where('tags', 'all', $tags))
             ->when($statuses, fn(Builder $query) => $query->whereIn('status', $statuses));

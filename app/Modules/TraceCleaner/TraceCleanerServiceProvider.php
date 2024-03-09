@@ -4,6 +4,7 @@ namespace App\Modules\TraceCleaner;
 
 use App\Modules\TraceCleaner\Adapters\AuthAdapter;
 use App\Modules\TraceCleaner\Commands\ClearTracesCommand;
+use App\Modules\TraceCleaner\Http\Controllers\ProcessController;
 use App\Modules\TraceCleaner\Http\Controllers\SettingController;
 use App\Modules\TraceCleaner\Repositories\Contracts\ProcessRepositoryInterface;
 use App\Modules\TraceCleaner\Repositories\Contracts\SettingRepositoryInterface;
@@ -77,6 +78,8 @@ class TraceCleanerServiceProvider extends ServiceProvider
                                     ->name('store-or-update');
                                 Route::delete('/{settingId}', [SettingController::class, 'destroy'])
                                     ->name('destroy');
+                                Route::get('/{settingId}/processes', [ProcessController::class, 'index'])
+                                    ->name('processes');
                             });
                     });
             });
