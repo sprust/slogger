@@ -74,8 +74,10 @@ class TraceCleanerServiceProvider extends ServiceProvider
                             ->group(function () {
                                 Route::get('/', [SettingController::class, 'index'])
                                     ->name('index');
-                                Route::post('/', [SettingController::class, 'storeOrUpdate'])
-                                    ->name('store-or-update');
+                                Route::post('/', [SettingController::class, 'store'])
+                                    ->name('store');
+                                Route::patch('/{settingId}', [SettingController::class, 'update'])
+                                    ->name('update');
                                 Route::delete('/{settingId}', [SettingController::class, 'destroy'])
                                     ->name('destroy');
                                 Route::get('/{settingId}/processes', [ProcessController::class, 'index'])

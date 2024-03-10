@@ -22,6 +22,7 @@ class SettingRepository implements SettingRepositoryInterface
                     ? $query->whereNotNull('type')
                     : $query->whereNull('type')
             )
+            ->orderByDesc('created_at')
             ->get()
             ->map(
                 fn(TraceClearingSetting $setting) => new SettingDto(

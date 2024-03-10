@@ -2,7 +2,10 @@
 
 namespace App\Modules\TraceCleaner\Http\Controllers;
 
+use App\Modules\TraceCleaner\Exceptions\SettingAlreadyExistsException;
+use App\Modules\TraceCleaner\Exceptions\SettingNotFoundException;
 use App\Modules\TraceCleaner\Http\Requests\CreateSettingRequest;
+use App\Modules\TraceCleaner\Http\Requests\UpdateSettingRequest;
 use App\Modules\TraceCleaner\Http\Resources\SettingResource;
 use App\Modules\TraceCleaner\Services\SettingService;
 use Ifksco\OpenApiGenerator\Attributes\OaListItemTypeAttribute;
@@ -24,14 +27,35 @@ readonly class SettingController
         );
     }
 
-    public function storeOrUpdate(CreateSettingRequest $request): SettingResource
+    public function store(CreateSettingRequest $request): SettingResource
     {
         $validated = $request->validated();
 
-        $setting = $this->settingService->createOrUpdate(
-            daysLifetime: $validated['days_life_time'],
-            type: $validated['type'],
-        );
+        try {
+            $setting = $this->settingService->create(
+                daysLifetime: $validated['days_life_time'],
+                type: $validated['type'],
+            );
+        } catch (SettingAlreadyExistsException $exception) {
+            abort(Response::HTTP_BAD_REQUEST, $exception->getMessage());
+        }
+
+        return new SettingResource($setting);
+    }
+
+    public function update(int $settingId, UpdateSettingRequest $request): SettingResource
+    {
+        $validated = $request->validated();
+
+        try {
+            $setting = $this->settingService->update(
+                settingId: $settingId,
+                daysLifetime: $validated['days_life_time'],
+                type: $validated['type'],
+            );
+        } catch (SettingNotFoundException $exception) {
+            abort(Response::HTTP_BAD_REQUEST, $exception->getMessage());
+        }
 
         return new SettingResource($setting);
     }

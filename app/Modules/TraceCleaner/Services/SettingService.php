@@ -2,6 +2,8 @@
 
 namespace App\Modules\TraceCleaner\Services;
 
+use App\Modules\TraceCleaner\Exceptions\SettingAlreadyExistsException;
+use App\Modules\TraceCleaner\Exceptions\SettingNotFoundException;
 use App\Modules\TraceCleaner\Repositories\Contracts\SettingRepositoryInterface;
 use App\Modules\TraceCleaner\Repositories\Dto\SettingDto;
 use App\Modules\TraceCleaner\Services\Objects\SettingObject;
@@ -49,39 +51,44 @@ readonly class SettingService
         );
     }
 
-    public function createOrUpdate(int $daysLifetime, ?string $type): SettingObject
+    /**
+     * @throws SettingAlreadyExistsException
+     */
+    public function create(int $daysLifetime, ?string $type): SettingObject
     {
         $existSettings = $this->settingRepository->find(
             type: $type,
             typeIsNotNull: !is_null($type)
         );
 
-        if (empty($existSettings)) {
-            $settingId = $this->settingRepository->create(
-                daysLifetime: $daysLifetime,
-                type: $type
-            );
-        } else {
-            $existsSettingDto = $existSettings[0];
-
-            $this->settingRepository->update(
-                id: $existsSettingDto->id,
-                daysLifetime: $daysLifetime,
-                type: $type
-            );
-
-            $settingId = $existsSettingDto->id;
+        if ($existSettings) {
+            throw new SettingAlreadyExistsException($type);
         }
 
-        $settingDto = $this->settingRepository->findOneById($settingId);
-
-        return new SettingObject(
-            id: $settingDto->id,
-            daysLifetime: $settingDto->daysLifetime,
-            type: $settingDto->type,
-            createdAt: $settingDto->createdAt,
-            updatedAt: $settingDto->updatedAt
+        $settingId = $this->settingRepository->create(
+            daysLifetime: $daysLifetime,
+            type: $type
         );
+
+        return $this->findOneById($settingId);
+    }
+
+    /**
+     * @throws SettingNotFoundException
+     */
+    public function update(int $settingId, int $daysLifetime, ?string $type): SettingObject
+    {
+        if (!$this->settingRepository->findOneById($settingId)) {
+            throw new SettingNotFoundException($type);
+        }
+
+        $this->settingRepository->update(
+            id: $settingId,
+            daysLifetime: $daysLifetime,
+            type: $type
+        );
+
+        return $this->findOneById($settingId);
     }
 
     public function delete(int $settingId): void
