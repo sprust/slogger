@@ -36,6 +36,7 @@ composer:
 
 queues-restart:
 	@make art c='queue:restart'
+	@make art c='cron:restart'
 	@make rr-reset
 
 oa-generate:
