@@ -2,6 +2,8 @@ FROM php:8.2-cli
 
 WORKDIR /app
 
+ARG APP_ENV
+
 RUN apt-get update \
     && apt-get install -y \
         zsh \
@@ -20,7 +22,6 @@ RUN apt-get update \
 
 RUN pecl install \
         redis \
-        xdebug \
         imagick \
         mongodb \
         zstd \
@@ -39,7 +40,6 @@ RUN docker-php-ext-install \
 
 RUN docker-php-ext-enable \
         redis \
-        xdebug \
         imagick \
         zstd \
         bcmath \
@@ -48,8 +48,9 @@ RUN docker-php-ext-enable \
         mongodb \
         zip
 
-# Install workdir rules
-RUN chown -R www-data:www-data /var/www/
+RUN if [ "$APP_ENV" = "local" ] ; then \
+    pecl install xdebug && docker-php-ext-enable xdebug \
+; fi
 
 # Install composer
 RUN curl -sS https://getcomposer.org/installer  \
