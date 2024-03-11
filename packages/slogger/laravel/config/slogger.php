@@ -113,6 +113,7 @@ return [
             'excepted' => [
                 'queue:work',
                 'queue:listen',
+                'schedule:run',
             ],
         ],
 
