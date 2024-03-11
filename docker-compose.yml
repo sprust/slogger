@@ -76,6 +76,16 @@ services:
       - ./docker/mongo/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
       - mongo:/data/db
 
+  frontend:
+    image: node:18-alpine
+    working_dir: /app
+    container_name: sl-frontend
+    ports:
+      - ${FRONTEND_DOCKER_PORT}:3000
+    volumes:
+      - ./frontend:/app
+    command: [ "sh", "-c", "${FRONTEND_DOCKER_COMMAND}" ]
+
 volumes:
   mysql:
     driver: local
