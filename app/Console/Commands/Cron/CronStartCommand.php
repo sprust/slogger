@@ -50,7 +50,7 @@ class CronStartCommand extends BaseCronCommand
         return self::SUCCESS;
     }
 
-    public function getCurrentMinute(): int
+    private function getCurrentMinute(): int
     {
         return date('i');
     }
