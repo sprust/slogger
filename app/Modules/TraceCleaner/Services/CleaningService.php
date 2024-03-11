@@ -13,6 +13,7 @@ use Illuminate\Support\Arr;
 
 readonly class CleaningService
 {
+    private int $daysLifetimeOfProcessData;
     private int $countInDeletionBatch;
 
     public function __construct(
@@ -22,8 +23,8 @@ readonly class CleaningService
         private TraceRepositoryInterface $traceRepository,
         private TraceTreeRepositoryInterface $traceTreeRepository
     ) {
-        // TODO: need to test
-        $this->countInDeletionBatch = 10000;
+        $this->countInDeletionBatch = 1000;
+        $this->daysLifetimeOfProcessData = 5;
     }
 
     public function clear(): void
@@ -100,10 +101,19 @@ readonly class CleaningService
                 clearedAt: now()
             );
         }
+
+        $this->deleteOldProcesses();
     }
 
     private function event(object $event): void
     {
         $this->app['events']->dispatch($event);
+    }
+
+    private function deleteOldProcesses(): void
+    {
+        $this->processRepository->delete(
+            to: now()->subDays($this->daysLifetimeOfProcessData)
+        );
     }
 }

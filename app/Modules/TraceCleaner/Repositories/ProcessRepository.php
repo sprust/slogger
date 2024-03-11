@@ -89,4 +89,9 @@ class ProcessRepository implements ProcessRepositoryInterface
                 'cleared_at'    => $clearedAt,
             ]);
     }
+
+    public function delete(Carbon $to): void
+    {
+        TraceClearingProcess::query()->where('created_at', '<=', $to)->delete();
+    }
 }
