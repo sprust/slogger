@@ -1,0 +1,29 @@
+{
+  "name": "slogger.frontend.local",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "dev-expose": "vite --host=0.0.0.0 --port=3000",
+    "build": "vue-tsc && vite build",
+    "preview": "vite preview",
+    "preview-expose": "vite preview --host=0.0.0.0 --port=3000",
+    "generate": "npx swagger-typescript-api -p ../storage/api/json-schemes/admin-api-openapi-scheme.json -o ./src/api-schema -n admin-api-schema.ts --route-types --responses --enum-names-as-values --union-enums"
+  },
+  "dependencies": {
+    "element-plus": "^2.5.5",
+    "swagger-typescript-api": "^12.0.3",
+    "vue": "^3.3.11",
+    "vue-router": "^4.2.5",
+    "vuex": "^4.1.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^4.5.2",
+    "typescript": "^5.2.2",
+    "unplugin-auto-import": "^0.17.5",
+    "unplugin-vue-components": "^0.26.0",
+    "vite": "^5.0.8",
+    "vue-tsc": "^1.8.25"
+  }
+}
