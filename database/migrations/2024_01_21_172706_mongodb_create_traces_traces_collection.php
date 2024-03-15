@@ -91,6 +91,12 @@ return new class extends Migration {
                     'parentTraceId' => 1,
                 ]
             );
+        $connection->selectCollection($this->collectionName)
+            ->createIndex(
+                [
+                    'loggedAt' => 1,
+                ]
+            );
     }
 
     /**
