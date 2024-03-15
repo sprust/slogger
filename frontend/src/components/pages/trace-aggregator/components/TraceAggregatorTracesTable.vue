@@ -1,27 +1,27 @@
 <template>
   <el-table
-      :data="items"
-      table-layout="auto"
-      @expandChange="dataExpandChange"
-      border
+    :data="items"
+    table-layout="auto"
+    @expandChange="dataExpandChange"
+    border
   >
     <el-table-column type="expand">
       <template #default="props">
         <el-progress
-            v-if="!isTraceDataLoaded(props.row.trace.trace_id)"
-            status="success"
-            :text-inside="true"
-            :percentage="100"
-            :indeterminate="true"
-            :duration="1"
+          v-if="!isTraceDataLoaded(props.row.trace.trace_id)"
+          status="success"
+          :text-inside="true"
+          :percentage="100"
+          :indeterminate="true"
+          :duration="1"
         />
-        <el-scrollbar v-else style="max-width: 100vw; max-height: 70vh">
+        <div v-else>
           <TraceAggregatorTraceDataNode
-              :data="dataStore.state.dataItems[props.row.trace.trace_id].data"
-              :showFilterButton="true"
-              @onCustomFieldClick="onCustomFieldClick"
+            :data="dataStore.state.dataItems[props.row.trace.trace_id].data"
+            :showFilterButton="true"
+            @onCustomFieldClick="onCustomFieldClick"
           />
-        </el-scrollbar>
+        </div>
       </template>
     </el-table-column>
 
@@ -38,20 +38,20 @@
         </el-row>
         <el-row>
           <TraceId
-              title="id"
-              :traceId="props.row.trace.trace_id"
-              @onClickTraceIdTree="onClickTraceIdTree"
-              @onClickTraceIdParam="onClickTraceIdParam"
-              :style="isTraceInPayload(props.row.trace.trace_id) ? {'color': 'green'} : {}"
+            title="id"
+            :traceId="props.row.trace.trace_id"
+            @onClickTraceIdTree="onClickTraceIdTree"
+            @onClickTraceIdParam="onClickTraceIdParam"
+            :style="isTraceInPayload(props.row.trace.trace_id) ? {'color': 'green'} : {}"
           />
         </el-row>
         <el-row v-if="props.row.trace.parent_trace_id">
           <TraceId
-              title="parent id"
-              :trace-id="props.row.trace.parent_trace_id"
-              @onClickTraceIdTree="onClickTraceIdTree"
-              @onClickTraceIdParam="onClickTraceIdParam"
-              :style="isTraceInPayload(props.row.trace.parent_trace_id) ? {'color': 'green'} : {}"
+            title="parent id"
+            :trace-id="props.row.trace.parent_trace_id"
+            @onClickTraceIdTree="onClickTraceIdTree"
+            @onClickTraceIdParam="onClickTraceIdParam"
+            :style="isTraceInPayload(props.row.trace.parent_trace_id) ? {'color': 'green'} : {}"
           />
         </el-row>
       </template>
@@ -60,9 +60,9 @@
     <el-table-column prop="trace.type" label="Type">
       <template #default="scope">
         <el-check-tag
-            type="success"
-            :checked="payload.types && payload.types?.indexOf(scope.row.trace.type) !== -1"
-            @click="$emit('onTraceTypeClick', scope.row.trace.type)"
+          type="success"
+          :checked="payload.types && payload.types?.indexOf(scope.row.trace.type) !== -1"
+          @click="$emit('onTraceTypeClick', scope.row.trace.type)"
         >
           {{ scope.row.trace.type }}
         </el-check-tag>
@@ -72,10 +72,10 @@
     <el-table-column label="Tags">
       <template #default="scope">
         <el-check-tag
-            v-for="tag in scope.row.trace.tags"
-            type="warning"
-            :checked="payload.tags && payload.tags?.indexOf(tag) !== -1"
-            @click="$emit('onTraceTagClick', tag)"
+          v-for="tag in scope.row.trace.tags"
+          type="warning"
+          :checked="payload.tags && payload.tags?.indexOf(tag) !== -1"
+          @click="$emit('onTraceTagClick', tag)"
         >
           {{ tag.slice(0, 40) }}
         </el-check-tag>
@@ -85,10 +85,10 @@
     <el-table-column label="Children types">
       <template #default="scope">
         <el-tag
-            v-for="type in scope.row.types"
-            :key="type.type"
-            type="info"
-            effect="plain"
+          v-for="type in scope.row.types"
+          :key="type.type"
+          type="info"
+          effect="plain"
         >
           {{ type.type }} ({{ type.count }})
         </el-tag>
@@ -98,9 +98,9 @@
     <el-table-column label="Status">
       <template #default="scope">
         <el-check-tag
-            type="primary"
-            :checked="payload.statuses && payload.statuses?.indexOf(scope.row.trace.status) !== -1"
-            @click="$emit('onTraceStatusClick', scope.row.trace.status)"
+          type="primary"
+          :checked="payload.statuses && payload.statuses?.indexOf(scope.row.trace.status) !== -1"
+          @click="$emit('onTraceStatusClick', scope.row.trace.status)"
         >
           {{ scope.row.trace.status }}
         </el-check-tag>
@@ -110,25 +110,25 @@
     <el-table-column prop="trace.type" label="Metrics">
       <template #default="scope">
         <TraceMetrics
-            :duration="scope.row.trace.duration"
-            :memory="scope.row.trace.memory"
-            :cpu="scope.row.trace.cpu"
+          :duration="scope.row.trace.duration"
+          :memory="scope.row.trace.memory"
+          :cpu="scope.row.trace.cpu"
         />
       </template>
     </el-table-column>
 
     <el-table-column
-        v-if="payload.data?.fields?.length"
-        v-for="customField in payload.data?.fields"
-        :key="customField"
-        :label="customField"
+      v-if="payload.data?.fields?.length"
+      v-for="customField in payload.data?.fields"
+      :key="customField"
+      :label="customField"
     >
       <template #default="scope">
         <div
-            v-for="customFieldItem in scope.row.trace.additional_fields.filter(
+          v-for="customFieldItem in scope.row.trace.additional_fields.filter(
                 (valueItem: TraceAggregatorAdditionalField) => valueItem.key === customField
             )"
-            :key="customFieldItem.key"
+          :key="customFieldItem.key"
         >
           <div v-for="value in customFieldItem.values">
             {{ value }}
