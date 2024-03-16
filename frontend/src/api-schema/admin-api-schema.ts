@@ -37,35 +37,6 @@ export namespace AdminApi {
     };
   } /**
  * No description
- * @name ServicesDetail
- * @request GET:/admin-api/services/{serviceId}
- * @secure
- * @response `200` `{
-    data: {
-    id: number,
-    name: string,
-    api_token: string,
-
-},
-
-}` description
-*/
-  export namespace ServicesDetail {
-    export type RequestParams = {
-      serviceId: any;
-    };
-    export type RequestQuery = {};
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = {
-      data: {
-        id: number;
-        name: string;
-        api_token: string;
-      };
-    };
-  } /**
- * No description
  * @name TraceAggregatorTracesCreate
  * @request POST:/admin-api/trace-aggregator/traces
  * @secure
@@ -1177,40 +1148,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         any
       >({
         path: `/admin-api/services`,
-        method: "GET",
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-
-    /**
- * No description
- *
- * @name ServicesDetail
- * @request GET:/admin-api/services/{serviceId}
- * @secure
- * @response `200` `{
-    data: {
-    id: number,
-    name: string,
-    api_token: string,
-
-},
-
-}` description
- */
-    servicesDetail: (serviceId: any, params: RequestParams = {}) =>
-      this.request<
-        {
-          data: {
-            id: number;
-            name: string;
-            api_token: string;
-          };
-        },
-        any
-      >({
-        path: `/admin-api/services/${serviceId}`,
         method: "GET",
         secure: true,
         format: "json",
