@@ -2,9 +2,10 @@
 
 namespace App\Modules\User\Services;
 
-use App\Models\Users\User;
+use App\Modules\User\Repository\Dto\UserFullDto;
 use App\Modules\User\Repository\Parameters\UserCreateParameters;
 use App\Modules\User\Repository\UserRepositoryInterface;
+use App\Modules\User\Services\Objects\UserFullObject;
 
 readonly class UserService
 {
@@ -13,18 +14,38 @@ readonly class UserService
     ) {
     }
 
-    public function create(UserCreateParameters $parameters): User
+    public function create(UserCreateParameters $parameters): UserFullObject
     {
-        return $this->userRepository->create($parameters);
+        return $this->makeObjectByDtoOrNull(
+            $this->userRepository->create($parameters)
+        );
     }
 
-    public function findByEmail(string $email): ?User
+    public function findByEmail(string $email): ?UserFullObject
     {
-        return $this->userRepository->findByEmail($email);
+        return $this->makeObjectByDtoOrNull(
+            $this->userRepository->findByEmail($email)
+        );
     }
 
-    public function findByToken(string $token): ?User
+    public function findByToken(string $token): ?UserFullObject
     {
-        return $this->userRepository->findByToken($token);
+        return $this->makeObjectByDtoOrNull(
+            $this->userRepository->findByToken($token)
+        );
+    }
+
+    private function makeObjectByDtoOrNull(UserFullDto $dto): ?UserFullObject
+    {
+        return new UserFullObject(
+            id: $dto->id,
+            firstName: $dto->firstName,
+            lastName: $dto->lastName,
+            email: $dto->email,
+            password: $dto->password,
+            apiToken: $dto->apiToken,
+            createdAt: $dto->createdAt,
+            updatedAt: $dto->updatedAt
+        );
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Modules\User;
 
+use App\Modules\User\Api\UserApi;
 use App\Modules\User\Commands\CreateUserCommand;
 use App\Modules\User\Repository\UserRepository;
 use App\Modules\User\Repository\UserRepositoryInterface;
@@ -14,6 +15,7 @@ class UserServiceProvider extends ServiceProvider
     {
         $this->app->singleton(UserRepositoryInterface::class, UserRepository::class);
         $this->app->singleton(UserService::class);
+        $this->app->singleton(UserApi::class);
 
         $this->commands([
             CreateUserCommand::class,

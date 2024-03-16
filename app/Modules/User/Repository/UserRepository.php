@@ -3,13 +3,14 @@
 namespace App\Modules\User\Repository;
 
 use App\Models\Users\User;
+use App\Modules\User\Repository\Dto\UserFullDto;
 use App\Modules\User\Repository\Parameters\UserCreateParameters;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 class UserRepository implements UserRepositoryInterface
 {
-    public function create(UserCreateParameters $parameters): User
+    public function create(UserCreateParameters $parameters): UserFullDto
     {
         $newUser = new User();
 
@@ -21,16 +22,39 @@ class UserRepository implements UserRepositoryInterface
 
         $newUser->saveOrFail();
 
-        return $newUser;
+        return $this->makeUserFullDtoByUserOrNull($newUser);
     }
 
-    public function findByEmail(string $email): ?User
+    public function findByEmail(string $email): ?UserFullDto
     {
-        return User::query()->where('email', $email)->first();
+        return $this->makeUserFullDtoByUserOrNull(
+            User::query()->where('email', $email)->first()
+        );
     }
 
-    public function findByToken(string $token): ?User
+    public function findByToken(string $token): ?UserFullDto
     {
-        return User::query()->where('api_token', $token)->first();
+        return $this->makeUserFullDtoByUserOrNull(
+            User::query()->where('api_token', $token)->first()
+        );
+    }
+
+
+    private function makeUserFullDtoByUserOrNull(?User $user): ?UserFullDto
+    {
+        if (!$user) {
+            return null;
+        }
+
+        return new UserFullDto(
+            id: $user->id,
+            firstName: $user->first_name,
+            lastName: $user->last_name,
+            email: $user->email,
+            password: $user->password,
+            apiToken: $user->api_token,
+            createdAt: $user->created_at,
+            updatedAt: $user->updated_at,
+        );
     }
 }

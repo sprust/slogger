@@ -2,32 +2,32 @@
 
 namespace App\Modules\Auth\Adapters\User;
 
-use App\Models\Users\User;
 use App\Modules\Auth\Adapters\User\Dto\UserFullDto;
-use App\Modules\User\Services\UserService;
+use App\Modules\User\Api\UserApi;
+use App\Modules\User\Services\Objects\UserFullObject;
 
 readonly class UserAdapter
 {
     public function __construct(
-        private UserService $userService
+        private UserApi $userApi
     ) {
     }
 
     public function findUserByEmail(string $email): ?UserFullDto
     {
-        return $this->makeUserFullDtoByUserOrNull(
-            $this->userService->findByEmail($email)
+        return $this->makeObjectToDtoOrNull(
+            $this->userApi->findByEmail($email)
         );
     }
 
     public function findUserByToken(string $email): ?UserFullDto
     {
-        return $this->makeUserFullDtoByUserOrNull(
-            $this->userService->findByToken($email)
+        return $this->makeObjectToDtoOrNull(
+            $this->userApi->findByToken($email)
         );
     }
 
-    private function makeUserFullDtoByUserOrNull(?User $user): ?UserFullDto
+    private function makeObjectToDtoOrNull(?UserFullObject $user): ?UserFullDto
     {
         if (!$user) {
             return null;
@@ -35,13 +35,13 @@ readonly class UserAdapter
 
         return new UserFullDto(
             id: $user->id,
-            firstName: $user->first_name,
-            lastName: $user->last_name,
+            firstName: $user->firstName,
+            lastName: $user->lastName,
             email: $user->email,
             password: $user->password,
-            apiToken: $user->api_token,
-            createdAt: $user->created_at,
-            updatedAt: $user->updated_at,
+            apiToken: $user->apiToken,
+            createdAt: $user->createdAt,
+            updatedAt: $user->updatedAt,
         );
     }
 }

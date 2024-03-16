@@ -2,7 +2,6 @@
 
 namespace App\Modules\User\Commands;
 
-use App\Models\Users\User;
 use App\Modules\User\Repository\Parameters\UserCreateParameters;
 use App\Modules\User\Services\UserService;
 use Illuminate\Console\Command;
@@ -37,7 +36,7 @@ class CreateUserCommand extends Command
 
         $email = $this->askAndCheck('Email *', true, [
             'email',
-            'unique:' . User::class . ',email',
+            'unique:users,email',
         ]);
 
         if ($email === false) {
@@ -71,7 +70,7 @@ class CreateUserCommand extends Command
             [
                 [
                     $newUser->id,
-                    $newUser->api_token,
+                    $newUser->apiToken,
                 ],
             ]
         );
