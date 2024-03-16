@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Modules\Service\Dto\Objects;
+namespace App\Modules\TraceCollector\Adapters\Service\Dto;
 
-readonly class ServiceObject
+class ServiceDto
 {
     public function __construct(
         public int $id,

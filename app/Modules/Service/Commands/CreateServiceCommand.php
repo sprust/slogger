@@ -2,8 +2,8 @@
 
 namespace App\Modules\Service\Commands;
 
-use App\Modules\Service\Dto\Parameters\ServiceCreateParameters;
 use App\Modules\Service\Exceptions\ServiceAlreadyExistsException;
+use App\Modules\Service\Services\Parameters\ServiceCreateParameters;
 use App\Modules\Service\Services\ServiceService;
 use Illuminate\Console\Command;
 
@@ -50,7 +50,7 @@ class CreateServiceCommand extends Command
             [
                 [
                     $service->id,
-                    $service->api_token,
+                    $service->apiToken,
                 ],
             ]
         );

@@ -2,18 +2,18 @@
 
 namespace App\Modules\Service\Http;
 
-use App\Models\Services\Service;
+use App\Modules\Service\Services\Objects\ServiceObject;
 
 class ServiceContainer
 {
-    private ?Service $service = null;
+    private ?ServiceObject $service = null;
 
-    public function getService(): ?Service
+    public function getService(): ?ServiceObject
     {
         return $this->service;
     }
 
-    public function setService(?Service $service): void
+    public function setService(?ServiceObject $service): void
     {
         $this->service = $service;
     }

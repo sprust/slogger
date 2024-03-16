@@ -2,7 +2,7 @@
 
 namespace App\Modules\TraceCollector;
 
-use App\Modules\TraceCollector\Adapters\ServicesAdapter;
+use App\Modules\TraceCollector\Adapters\Service\ServiceAdapter;
 use App\Modules\TraceCollector\Http\Controllers\TraceCreateController;
 use App\Modules\TraceCollector\Http\Controllers\TraceUpdateController;
 use App\Modules\TraceCollector\Repository\TraceRepository;
@@ -14,6 +14,8 @@ class TraceCollectorServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {
+        $this->app->singleton(ServiceAdapter::class);
+
         $this->registerRepository();
         $this->registerRoutes();
     }
@@ -25,7 +27,7 @@ class TraceCollectorServiceProvider extends ServiceProvider
 
     private function registerRoutes(): void
     {
-        $serviceAdapter = $this->app->make(ServicesAdapter::class);
+        $serviceAdapter = $this->app->make(ServiceAdapter::class);
 
         Route::prefix('traces-api')
             ->as('traces-api.')

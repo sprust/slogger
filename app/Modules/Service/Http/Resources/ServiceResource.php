@@ -3,7 +3,7 @@
 namespace App\Modules\Service\Http\Resources;
 
 use App\Http\Resources\AbstractApiResource;
-use App\Modules\Service\Dto\Objects\ServiceObject;
+use App\Modules\Service\Services\Objects\ServiceObject;
 
 class ServiceResource extends AbstractApiResource
 {

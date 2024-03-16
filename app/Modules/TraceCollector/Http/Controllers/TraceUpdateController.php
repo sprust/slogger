@@ -2,7 +2,7 @@
 
 namespace App\Modules\TraceCollector\Http\Controllers;
 
-use App\Modules\TraceCollector\Adapters\ServicesAdapter;
+use App\Modules\TraceCollector\Adapters\Service\ServiceAdapter;
 use App\Modules\TraceCollector\Dto\Parameters\TraceUpdateParameters;
 use App\Modules\TraceCollector\Dto\Parameters\TraceUpdateParametersList;
 use App\Modules\TraceCollector\Dto\Parameters\TraceUpdateProfilingDataObject;
@@ -14,7 +14,7 @@ use App\Modules\TraceCollector\Services\QueueDispatcher;
 readonly class TraceUpdateController
 {
     public function __construct(
-        private ServicesAdapter $serviceAdapter,
+        private ServiceAdapter $serviceAdapter,
         private QueueDispatcher $queueDispatcher
     ) {
     }

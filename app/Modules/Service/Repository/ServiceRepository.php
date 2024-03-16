@@ -3,9 +3,8 @@
 namespace App\Modules\Service\Repository;
 
 use App\Models\Services\Service;
-use App\Modules\Service\Dto\Objects\ServiceDetailObject;
-use App\Modules\Service\Dto\Objects\ServiceObject;
-use App\Modules\Service\Dto\Parameters\ServiceCreateParameters;
+use App\Modules\Service\Repository\Dto\ServiceDto;
+use App\Modules\Service\Services\Parameters\ServiceCreateParameters;
 use Illuminate\Support\Str;
 
 class ServiceRepository implements ServiceRepositoryInterface
@@ -16,34 +15,16 @@ class ServiceRepository implements ServiceRepositoryInterface
             ->select([
                 'id',
                 'name',
+                'api_token',
             ])
             ->get()
             ->map(
-                fn(Service $service) => new ServiceObject(
-                    id: $service->id,
-                    name: $service->name,
-                )
+                fn(Service $service) => $this->makeDtoByModel($service)
             )
             ->toArray();
     }
 
-    public function findById(int $id): ?ServiceDetailObject
-    {
-        /** @var Service|null $service */
-        $service = Service::query()->find($id);
-
-        if (!$service) {
-            return null;
-        }
-
-        return new ServiceDetailObject(
-            id: $service->id,
-            name: $service->name,
-            apiToken: $service->api_token,
-        );
-    }
-
-    public function create(ServiceCreateParameters $parameters): Service
+    public function create(ServiceCreateParameters $parameters): ServiceDto
     {
         $newService = new Service();
 
@@ -53,16 +34,32 @@ class ServiceRepository implements ServiceRepositoryInterface
 
         $newService->saveOrFail();
 
-        return $newService;
+        return $this->makeDtoByModel($newService);
     }
 
-    public function findByToken(string $token): ?Service
+    public function findByToken(string $token): ?ServiceDto
     {
-        return Service::query()->where('api_token', $token)->first();
+        /** @var Service|null $service */
+        $service = Service::query()->where('api_token', $token)->first();
+
+        if (!$service) {
+            return null;
+        }
+
+        return $this->makeDtoByModel($service);
     }
 
     public function isExistByUniqueKey(string $uniqueKey): bool
     {
         return Service::query()->where('unique_key', $uniqueKey)->exists();
+    }
+
+    private function makeDtoByModel(Service $service): ServiceDto
+    {
+        return new ServiceDto(
+            id: $service->id,
+            name: $service->name,
+            apiToken: $service->api_token
+        );
     }
 }
