@@ -1,5 +1,7 @@
 PHP_SERVICE="php"
+NODE_SERVICE="frontend"
 PHP_CLI="docker-compose exec $(PHP_SERVICE) "
+NODE_CLI="docker-compose exec $(NODE_SERVICE) "
 
 RR_DOTENV=--dotenv /app/.env
 RR_YAML=-c /app/.rr.yaml
@@ -41,6 +43,12 @@ queues-restart:
 
 oa-generate:
 	@make art c='oa:generate'
+
+npm:
+	@"$(NODE_CLI)"npm --prefix ./frontend/ ${c}
+
+npm-oa-generate:
+	@make npm c='run generate'
 
 rr-init:
 	make rr-get-binary
