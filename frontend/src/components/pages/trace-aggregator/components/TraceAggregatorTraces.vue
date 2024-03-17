@@ -2,8 +2,8 @@
   <el-row>
     <el-space>
       <el-form>
-        <el-form-item style="width: 500px">
-          <el-col :span="11">
+        <el-form-item label="Logged at">
+          <el-space>
             <el-date-picker
                 v-model="store.state.payload.logging_from"
                 type="datetime"
@@ -13,11 +13,6 @@
                 time-format="HH:mm:ss"
                 :shortcuts="dateTimeShortcuts"
             />
-          </el-col>
-          <el-col :span="1" class="text-center">
-            <span class="text-gray-500">to</span>
-          </el-col>
-          <el-col :span="11">
             <el-date-picker
                 v-model="store.state.payload.logging_to"
                 type="datetime"
@@ -27,7 +22,7 @@
                 time-format="HH:mm:ss"
                 :shortcuts="dateTimeShortcuts"
             />
-          </el-col>
+          </el-space>
         </el-form-item>
       </el-form>
       <el-form>
