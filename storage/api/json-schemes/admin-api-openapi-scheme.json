@@ -114,6 +114,16 @@
                                             "type": "string"
                                         }
                                     },
+                                    "duration_from": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "nullable": true
+                                    },
+                                    "duration_to": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "nullable": true
+                                    },
                                     "data": {
                                         "type": "object",
                                         "properties": {

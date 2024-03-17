@@ -28,6 +28,8 @@ class TraceQueryBuilder
         array $types = [],
         array $tags = [],
         array $statuses = [],
+        ?float $durationFrom = null,
+        ?float $durationTo = null,
         ?TraceDataFilterParameters $data = null,
     ): Builder {
         $loggedAtFrom = $loggingPeriod?->from;
@@ -40,7 +42,9 @@ class TraceQueryBuilder
             ->when($loggedAtTo, fn(Builder $query) => $query->where('loggedAt', '<=', new UTCDateTime($loggedAtTo)))
             ->when($types, fn(Builder $query) => $query->whereIn('type', $types))
             ->when($tags, fn(Builder $query) => $query->where('tags', 'all', $tags))
-            ->when($statuses, fn(Builder $query) => $query->whereIn('status', $statuses));
+            ->when($statuses, fn(Builder $query) => $query->whereIn('status', $statuses))
+            ->when(!is_null($durationFrom), fn(Builder $query) => $query->where('duration', '>=', $durationFrom))
+            ->when(!is_null($durationTo), fn(Builder $query) => $query->where('duration', '<=', $durationTo));
 
         return $this->applyDataFilter($builder, $data?->filter ?? []);
     }

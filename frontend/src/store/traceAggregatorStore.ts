@@ -67,6 +67,8 @@ export const traceAggregatorStore = createStore<State>({
             types: [],
             tags: [],
             statuses: [],
+            duration_from: null,
+            duration_to: null,
             logging_from: '',
             logging_to: '',
             trace_id: null,
@@ -95,6 +97,8 @@ export const traceAggregatorStore = createStore<State>({
                 types: [],
                 tags: [],
                 statuses: [],
+                duration_from: null,
+                duration_to: null,
                 logging_from: '',
                 logging_to: '',
                 trace_id: null,
@@ -247,7 +251,11 @@ export const traceAggregatorStore = createStore<State>({
                     }
                 }
             });
-        }
+        },
+        clearDurationFilter(state: State) {
+            state.payload.duration_from = null
+            state.payload.duration_to = null
+        },
     },
     actions: {
         fillTraceAggregator({commit, state}: { commit: any, state: any }) {
@@ -311,6 +319,9 @@ export const traceAggregatorStore = createStore<State>({
         prepareCommonPayloadData({commit}: { commit: any }) {
             commit('prepareCommonPayloadData')
         },
+        clearDurationFilter({commit}: { commit: any }) {
+            commit('clearDurationFilter')
+        }
     },
 })
 

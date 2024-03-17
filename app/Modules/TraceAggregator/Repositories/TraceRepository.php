@@ -101,6 +101,8 @@ readonly class TraceRepository implements TraceRepositoryInterface
             types: $parameters->types,
             tags: $parameters->tags,
             statuses: $parameters->statuses,
+            durationFrom: $parameters->durationFrom,
+            durationTo: $parameters->durationTo,
             data: $parameters->data,
         );
 

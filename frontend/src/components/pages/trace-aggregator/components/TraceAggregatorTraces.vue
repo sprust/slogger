@@ -31,6 +31,15 @@
         </el-form-item>
       </el-form>
       <el-form>
+        <el-form-item label="Services">
+          <TraceAggregatorServices/>
+        </el-form-item>
+      </el-form>
+    </el-space>
+  </el-row>
+  <el-row>
+    <el-space>
+      <el-form>
         <el-form-item label="Trace id">
           <el-input v-model="store.state.payload.trace_id" style="width: 500px" clearable>
             <template #append>
@@ -44,8 +53,25 @@
         </el-form-item>
       </el-form>
       <el-form>
-        <el-form-item label="Services">
-          <TraceAggregatorServices/>
+        <el-form-item label="Duration">
+          <el-space>
+            <el-input-number
+                v-model="store.state.payload.duration_from"
+                :precision="6"
+                :step="0.5"
+                :min="0"
+                :max="10"
+            />
+            <el-input-number
+                v-model="store.state.payload.duration_to"
+                :precision="6"
+                :step="0.5"
+                :min="0"
+                :max="10"
+            />
+            <el-button :icon="CloseBold" @click="onClearDuration">
+            </el-button>
+          </el-space>
         </el-form-item>
       </el-form>
     </el-space>
@@ -118,13 +144,9 @@ import TraceAggregatorTracesCustomFields from "./TraceAggregatorTracesCustomFiel
 import TraceAggregatorServices from "./TraceAggregatorServices.vue";
 import FilterTags from "../widgets/FilterTags.vue";
 import {state} from "vue-tsc/out/shared";
+import {CloseBold} from '@element-plus/icons-vue'
 
 export default defineComponent({
-  computed: {
-    state() {
-      return state
-    }
-  },
   components: {
     TraceAggregatorTracesTable,
     FilterTags,
@@ -159,6 +181,14 @@ export default defineComponent({
       ]
     }
   },
+  computed: {
+    state() {
+      return state
+    },
+    CloseBold() {
+      return CloseBold
+    }
+  },
   methods: {
     onButtonSearchClick() {
       this.store.dispatch('setPage', 1)
@@ -187,6 +217,9 @@ export default defineComponent({
     onCustomFieldClick(parameters: TracesAddCustomFieldParameter) {
       this.store.commit('addOrDeleteCustomField', parameters)
     },
+    onClearDuration() {
+      this.store.commit('clearDurationFilter')
+    }
   },
   mounted() {
     if (!this.store.state.loading) {

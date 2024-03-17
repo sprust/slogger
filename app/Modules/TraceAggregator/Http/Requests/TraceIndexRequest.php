@@ -73,6 +73,16 @@ class TraceIndexRequest extends FormRequest
                 'required',
                 'string',
             ],
+            'duration_from'       => [
+                'sometimes',
+                'numeric',
+                'nullable',
+            ],
+            'duration_to'         => [
+                'sometimes',
+                'numeric',
+                'nullable',
+            ],
             'data'                        => [
                 'sometimes',
                 'array',

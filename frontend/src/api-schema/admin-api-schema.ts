@@ -104,6 +104,10 @@ export namespace AdminApi {
       types?: string[];
       tags?: string[];
       statuses?: string[];
+      /** @format float */
+      duration_from?: number | null;
+      /** @format float */
+      duration_to?: number | null;
       data?: {
         filter?: {
           field?: string;
@@ -1222,6 +1226,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         types?: string[];
         tags?: string[];
         statuses?: string[];
+        /** @format float */
+        duration_from?: number | null;
+        /** @format float */
+        duration_to?: number | null;
         data?: {
           filter?: {
             field?: string;

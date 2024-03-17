@@ -22,6 +22,8 @@ readonly class TraceFindParameters
         public array $types = [],
         public array $tags = [],
         public array $statuses = [],
+        public ?float $durationFrom = null,
+        public ?float $durationTo = null,
         public ?TraceDataFilterParameters $data = null,
         public array $sort = []
     ) {

@@ -39,6 +39,8 @@ readonly class TraceController
                 types: $validated['types'] ?? [],
                 tags: $validated['tags'] ?? [],
                 statuses: $validated['statuses'] ?? [],
+                durationFrom: $validated['duration_from'] ?? null,
+                durationTo: $validated['duration_to'] ?? null,
                 data: $this->makeDataFilterParameter($validated),
                 sort: array_map(
                     fn(array $sortItem) => TraceSortParameters::fromStringValues(
