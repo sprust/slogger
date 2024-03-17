@@ -21,6 +21,8 @@ use SLoggerLaravel\Watchers\Services\SLoggerMailWatcher;
 use SLoggerLaravel\Watchers\Services\SLoggerModelWatcher;
 use SLoggerLaravel\Watchers\Services\SLoggerNotificationWatcher;
 use SLoggerLaravel\Watchers\Services\SLoggerScheduleWatcher;
+use App\Modules\TraceCollector\Jobs\TraceCreateJob;
+use App\Modules\TraceCollector\Jobs\TraceUpdateJob;
 
 return [
     'enabled' => env('SLOGGER_ENABLED', false),
@@ -120,6 +122,8 @@ return [
 
         'jobs' => [
             'excepted' => [
+                TraceCreateJob::class,
+                TraceUpdateJob::class,
                 SLoggerTraceCreateJob::class,
                 SLoggerTraceUpdateJob::class,
             ],
