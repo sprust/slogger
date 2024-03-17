@@ -33,6 +33,7 @@
                 class="tree-row"
                 :style="makeTreeNodeStyle(data)"
                 @click="onClickOnRow(treeNodeViewsMap[data.key])"
+                style="display: contents;"
             >
               <el-space spacer=":">
                 <TraceService :name="treeNodeViewsMap[data.key].service?.name"/>
