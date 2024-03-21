@@ -20,7 +20,7 @@
       </el-space>
     </el-row>
     <el-row style="width: 100%">
-      <el-col :span="12" class="row-col" style="padding: 10px">
+      <el-col :span="leftSpan" class="row-col" style="padding: 10px">
         <el-tree
             :data="tree"
             :props="treeProps"
@@ -49,7 +49,7 @@
                 </div>
               </el-space>
               <div class="flex-grow"/>
-              <el-space spacer="|">
+              <el-space v-if="!showData" spacer="|">
                 <div>
                   {{ treeNodeViewsMap[data.key].duration }}
                 </div>
@@ -64,19 +64,17 @@
           </template>
         </el-tree>
       </el-col>
-      <el-col :span="12" class="row-col">
-        <div v-if="store.state.selectedTrace.trace_id || store.state.dataLoading">
-          <el-progress
-              v-if="store.state.dataLoading"
-              status="success"
-              :text-inside="true"
-              :percentage="100"
-              :indeterminate="true"
-              :duration="5"
-              striped
-          />
-          <TraceDetail v-else :trace="store.state.selectedTrace"/>
-        </div>
+      <el-col v-if="showData" :span="12" class="row-col">
+        <el-progress
+            v-if="store.state.dataLoading"
+            status="success"
+            :text-inside="true"
+            :percentage="100"
+            :indeterminate="true"
+            :duration="5"
+            striped
+        />
+        <TraceDetail v-else :trace="store.state.selectedTrace"/>
       </el-col>
     </el-row>
   </el-row>
@@ -121,6 +119,12 @@ export default defineComponent({
     tree(): Array<TreeNodeView> {
       return this.treeNodesToViews(this.store.state.treeNodes)
     },
+    showData() {
+      return this.store.state.selectedTrace.trace_id || this.store.state.dataLoading
+    },
+    leftSpan() {
+      return this.showData ? 12 : 24
+    }
   },
   methods: {
     convertDateStringToLocal,

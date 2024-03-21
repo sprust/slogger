@@ -15,7 +15,7 @@ export class TypesHelper {
 }
 
 export async function copyToClipboard(value: string) {
-  await navigator.clipboard.writeText(value)
+  await window.navigator['clipboard'].writeText(value)
 }
 
 export function handleApiError(error: any) {

@@ -23,6 +23,12 @@
         {{ tag }}
       </el-tag>
     </el-form-item>
+    <el-form-item label="Status">
+      {{ trace.status }}
+    </el-form-item>
+    <el-form-item v-if="trace.duration !== null" label="Duration">
+      {{ trace.duration }}
+    </el-form-item>
   </el-form>
   <TraceAggregatorTraceDataNode :data="trace.data"/>
 </template>
