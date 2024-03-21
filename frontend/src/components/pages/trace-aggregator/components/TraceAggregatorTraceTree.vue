@@ -74,7 +74,14 @@
             :duration="5"
             striped
         />
-        <TraceDetail v-else :trace="store.state.selectedTrace"/>
+        <div v-else style="padding: 10px">
+          <el-row>
+            <el-button @click="onClickCloseData">
+              Close
+            </el-button>
+          </el-row>
+          <TraceDetail :trace="store.state.selectedTrace"/>
+        </div>
       </el-col>
     </el-row>
   </el-row>
@@ -136,6 +143,9 @@ export default defineComponent({
     },
     onClickOnRow(treeNode: TraceAggregatorTreeNode) {
       this.store.dispatch('findData', treeNode.trace_id)
+    },
+    onClickCloseData() {
+      this.store.dispatch('resetData')
     },
     treeNodesToViews(treeNodes: Array<TraceAggregatorTreeNode>): Array<TreeNodeView> {
       return treeNodes.map((treeNode: TraceAggregatorTreeNode) => {

@@ -95,6 +95,9 @@ export const traceAggregatorTreeStore = createStore<State>({
                 .finally(() => {
                     state.dataLoading = false
                 })
+        },
+        resetData({commit}: { commit: any }) {
+            commit('resetData')
         }
     },
 })

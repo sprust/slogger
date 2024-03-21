@@ -1,7 +1,6 @@
 <template>
   <el-form
       label-width="80px"
-      style="padding: 10px"
       label-position="left"
   >
     <el-form-item label="Logged at">
