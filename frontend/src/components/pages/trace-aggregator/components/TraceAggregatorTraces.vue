@@ -221,6 +221,8 @@ export default defineComponent({
       return
     }
 
+    this.store.dispatch('readFiltersFromUrl')
+
     this.store.dispatch('resetFilters')
 
     this.update()

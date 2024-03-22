@@ -4,6 +4,7 @@ import {createStore, Store, useStore as baseUseStore} from 'vuex'
 import {ApiContainer} from "../utils/apiContainer.ts";
 import {handleApiError, TypesHelper} from "../utils/helpers.ts";
 import {AdminApi} from "../api-schema/admin-api-schema.ts";
+import {GetParametersService} from "../utils/getParametersService.ts";
 
 type TraceAggregatorRequest = AdminApi.TraceAggregatorTracesCreate.RequestBody;
 type TraceAggregatorResponse = AdminApi.TraceAggregatorTracesCreate.ResponseBody['data'];
@@ -115,6 +116,18 @@ export const traceAggregatorStore = createStore<State>({
                 ]
             }
             state.customFields = []
+        },
+        saveFiltersToUrl(state: State) {
+            GetParametersService.set<TraceAggregatorPayload>(
+                'traceAggregator',
+                state.payload
+            )
+        },
+        readFiltersFromUrl(state: State) {
+            state.payload = GetParametersService.restoreFromUrl<TraceAggregatorPayload>(
+                'traceAggregator',
+                state.payload
+            )
         },
         setPage(state: State, page: number) {
             state.payload!.page = page
@@ -290,6 +303,8 @@ export const traceAggregatorStore = createStore<State>({
             return ApiContainer.get().traceAggregatorTracesCreate(state.payload)
                 .then((response) => {
                     commit('setData', response.data.data)
+
+                    commit('saveFiltersToUrl')
                 })
                 .catch((error) => {
                     handleApiError(error)
@@ -300,6 +315,9 @@ export const traceAggregatorStore = createStore<State>({
         },
         resetFilters({commit}: { commit: any }) {
             commit('resetFilters')
+        },
+        readFiltersFromUrl({commit}: { commit: any }) {
+            commit('readFiltersFromUrl')
         },
         setPage({commit}: { commit: any }, page: number) {
             commit('setPage', page)
