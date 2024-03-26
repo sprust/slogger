@@ -69,6 +69,14 @@ readonly class ServiceStatRepository implements ServiceStatRepositoryInterface
                 ],
             ];
 
+            $pipeline[] = [
+                '$sort' => [
+                    '_id.serviceId' => 1,
+                    '_id.type'      => 1,
+                    '_id.status'    => 1,
+                ],
+            ];
+
             $documents = Trace::collection()->aggregate($pipeline)->toArray();
 
             foreach ($documents as $document) {
