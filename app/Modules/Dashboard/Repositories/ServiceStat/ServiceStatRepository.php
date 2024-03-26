@@ -69,20 +69,18 @@ readonly class ServiceStatRepository implements ServiceStatRepositoryInterface
                 ],
             ];
 
-            $document = Trace::collection()->aggregate($pipeline)->toArray()[0] ?? null;
+            $documents = Trace::collection()->aggregate($pipeline)->toArray();
 
-            if (!$document) {
-                continue;
+            foreach ($documents as $document) {
+                $stats[] = new ServiceStatDto(
+                    from: $from,
+                    to: $to,
+                    serviceId: $document->_id->serviceId,
+                    type: $document->_id->type,
+                    status: $document->_id->status,
+                    count: $document->count
+                );
             }
-
-            $stats[] = new ServiceStatDto(
-                from: $from,
-                to: $to,
-                serviceId: $document->_id->serviceId,
-                type: $document->_id->type,
-                status: $document->_id->status,
-                count: $document->count
-            );
         }
 
         return $stats;
