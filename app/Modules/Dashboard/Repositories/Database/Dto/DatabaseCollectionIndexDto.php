@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Modules\Dashboard\Dto\Objects\Database;
+namespace App\Modules\Dashboard\Repositories\Database\Dto;
 
-class DatabaseCollectionIndexObject
+class DatabaseCollectionIndexDto
 {
     public function __construct(
         public string $name,

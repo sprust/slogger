@@ -4,7 +4,7 @@ namespace App\Modules\Dashboard\Services\ServiceStat;
 
 use App\Modules\Dashboard\Adapters\Dto\ServiceDto as AdapterServiceDto;
 use App\Modules\Dashboard\Adapters\ServiceAdapter;
-use App\Modules\Dashboard\Repositories\ServiceStatRepositoryInterface;
+use App\Modules\Dashboard\Repositories\ServiceStat\ServiceStatRepositoryInterface;
 use App\Modules\Dashboard\Services\ServiceStat\Objects\ServiceStatObject;
 use App\Modules\Dashboard\Services\ServiceStat\Objects\ServiceStatServiceObject;
 use Illuminate\Support\Collection;

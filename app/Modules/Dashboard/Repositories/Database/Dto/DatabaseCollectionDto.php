@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Modules\Dashboard\Dto\Objects\Database;
+namespace App\Modules\Dashboard\Repositories\Database\Dto;
 
-class DatabaseCollectionObject
+class DatabaseCollectionDto
 {
     /**
-     * @param DatabaseCollectionIndexObject[] $indexes
+     * @param DatabaseCollectionIndexDto[] $indexes
      */
     public function __construct(
         public string $name,

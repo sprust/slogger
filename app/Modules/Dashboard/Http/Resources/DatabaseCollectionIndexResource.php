@@ -3,7 +3,7 @@
 namespace App\Modules\Dashboard\Http\Resources;
 
 use App\Http\Resources\AbstractApiResource;
-use App\Modules\Dashboard\Dto\Objects\Database\DatabaseCollectionIndexObject;
+use App\Modules\Dashboard\Repositories\Database\Dto\DatabaseCollectionIndexDto;
 
 class DatabaseCollectionIndexResource extends AbstractApiResource
 {
@@ -11,7 +11,7 @@ class DatabaseCollectionIndexResource extends AbstractApiResource
     private float $size;
     private int $usage;
 
-    public function __construct(DatabaseCollectionIndexObject $collection)
+    public function __construct(DatabaseCollectionIndexDto $collection)
     {
         parent::__construct($collection);
 

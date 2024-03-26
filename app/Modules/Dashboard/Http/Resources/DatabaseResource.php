@@ -3,7 +3,7 @@
 namespace App\Modules\Dashboard\Http\Resources;
 
 use App\Http\Resources\AbstractApiResource;
-use App\Modules\Dashboard\Dto\Objects\Database\DatabaseObject;
+use App\Modules\Dashboard\Repositories\Database\Dto\DatabaseDto;
 use Ifksco\OpenApiGenerator\Attributes\OaListItemTypeAttribute;
 
 class DatabaseResource extends AbstractApiResource
@@ -13,7 +13,7 @@ class DatabaseResource extends AbstractApiResource
     #[OaListItemTypeAttribute(DatabaseCollectionResource::class)]
     private array $collections;
 
-    public function __construct(DatabaseObject $database)
+    public function __construct(DatabaseDto $database)
     {
         parent::__construct($database);
 

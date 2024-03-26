@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Modules\Dashboard\Dto\Objects\Database;
+namespace App\Modules\Dashboard\Repositories\Database\Dto;
 
-class DatabaseObjects
+class DatabasesDto
 {
-    /** @var DatabaseObject[] */
+    /** @var DatabaseDto[] */
     private array $items = [];
 
-    public function add(DatabaseObject $database): static
+    public function add(DatabaseDto $database): static
     {
         $this->items[] = $database;
 
@@ -15,7 +15,7 @@ class DatabaseObjects
     }
 
     /**
-     * @return DatabaseObject[]
+     * @return DatabaseDto[]
      */
     public function getItems(): array
     {

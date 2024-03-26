@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\Dashboard\Dto\Objects\ServiceStat;
+namespace App\Modules\Dashboard\Repositories\ServiceStat\Dto;
 
 use Illuminate\Support\Carbon;
 

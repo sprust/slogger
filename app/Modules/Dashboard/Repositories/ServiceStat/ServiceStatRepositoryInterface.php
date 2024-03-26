@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Modules\Dashboard\Repositories;
+namespace App\Modules\Dashboard\Repositories\ServiceStat;
 
-use App\Modules\Dashboard\Dto\Objects\ServiceStat\ServiceStatDto;
+use App\Modules\Dashboard\Repositories\ServiceStat\Dto\ServiceStatDto;
 
 interface ServiceStatRepositoryInterface
 {

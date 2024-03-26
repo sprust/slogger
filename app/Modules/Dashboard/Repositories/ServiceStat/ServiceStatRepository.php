@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Modules\Dashboard\Repositories;
+namespace App\Modules\Dashboard\Repositories\ServiceStat;
 
 use App\Models\Traces\Trace;
-use App\Modules\Dashboard\Dto\Objects\ServiceStat\ServiceStatDto;
+use App\Modules\Dashboard\Repositories\ServiceStat\Dto\ServiceStatDto;
 use MongoDB\BSON\UTCDateTime;
 
 readonly class ServiceStatRepository implements ServiceStatRepositoryInterface

@@ -3,7 +3,7 @@
 namespace App\Modules\Dashboard\Http\Controllers;
 
 use App\Modules\Dashboard\Http\Resources\DatabaseResource;
-use App\Modules\Dashboard\Repositories\DatabaseRepositoryInterface;
+use App\Modules\Dashboard\Repositories\Database\DatabaseRepositoryInterface;
 use Ifksco\OpenApiGenerator\Attributes\OaListItemTypeAttribute;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 

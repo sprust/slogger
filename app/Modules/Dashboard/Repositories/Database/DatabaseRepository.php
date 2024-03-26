@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Modules\Dashboard\Repositories;
+namespace App\Modules\Dashboard\Repositories\Database;
 
-use App\Modules\Dashboard\Dto\Objects\Database\DatabaseCollectionIndexObject;
-use App\Modules\Dashboard\Dto\Objects\Database\DatabaseCollectionObject;
-use App\Modules\Dashboard\Dto\Objects\Database\DatabaseObject;
-use App\Modules\Dashboard\Dto\Objects\Database\DatabaseObjects;
+use App\Modules\Dashboard\Repositories\Database\Dto\DatabaseCollectionDto;
+use App\Modules\Dashboard\Repositories\Database\Dto\DatabaseCollectionIndexDto;
+use App\Modules\Dashboard\Repositories\Database\Dto\DatabaseDto;
+use App\Modules\Dashboard\Repositories\Database\Dto\DatabasesDto;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\DB;
 use MongoDB\Laravel\Connection;
@@ -18,11 +18,11 @@ readonly class DatabaseRepository implements DatabaseRepositoryInterface
     {
     }
 
-    public function find(): DatabaseObjects
+    public function find(): DatabasesDto
     {
         $databaseSizes = null;
 
-        $databaseObjects = new DatabaseObjects();
+        $databasesDto = new DatabasesDto();
 
         foreach (array_keys($this->app['config']['database.connections.mongodb']) as $connectionName) {
             /** @var Connection $connection */
@@ -71,7 +71,7 @@ readonly class DatabaseRepository implements DatabaseRepositoryInterface
 
                 $storageStats = $collStats['storageStats'];
 
-                $collections[] = new DatabaseCollectionObject(
+                $collections[] = new DatabaseCollectionDto(
                     name: $collectionName,
                     size: $this->bitesToMb($storageStats['size']),
                     indexesSize: $this->bitesToMb($storageStats['totalIndexSize']),
@@ -80,7 +80,7 @@ readonly class DatabaseRepository implements DatabaseRepositoryInterface
                     avgObjSize: $this->bitesToMb($storageStats['avgObjSize'] ?? 0),
                     indexes: collect($storageStats['indexSizes'])
                         ->map(
-                            fn(int $indexSize, string $indexName) => new DatabaseCollectionIndexObject(
+                            fn(int $indexSize, string $indexName) => new DatabaseCollectionIndexDto(
                                 name: $indexName,
                                 size: $this->bitesToMb($indexSize),
                                 usage: $indexStats[$indexName]['accesses']['ops']
@@ -91,8 +91,8 @@ readonly class DatabaseRepository implements DatabaseRepositoryInterface
                 );
             }
 
-            $databaseObjects->add(
-                new DatabaseObject(
+            $databasesDto->add(
+                new DatabaseDto(
                     name: $databaseName,
                     size: $databaseSize,
                     collections: $collections
@@ -100,7 +100,7 @@ readonly class DatabaseRepository implements DatabaseRepositoryInterface
             );
         }
 
-        return $databaseObjects;
+        return $databasesDto;
     }
 
     private function bitesToMb(int $bites): float
