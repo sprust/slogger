@@ -5,6 +5,7 @@ namespace App\Modules\Dashboard;
 use App\Modules\Dashboard\Adapters\AuthAdapter;
 use App\Modules\Dashboard\Adapters\ServiceAdapter;
 use App\Modules\Dashboard\Http\Controllers\DatabaseController;
+use App\Modules\Dashboard\Http\Controllers\ServiceStatController;
 use App\Modules\Dashboard\Repositories\Database\DatabaseRepository;
 use App\Modules\Dashboard\Repositories\Database\DatabaseRepositoryInterface;
 use App\Modules\Dashboard\Repositories\ServiceStat\ServiceStatRepository;
@@ -41,6 +42,7 @@ class DashboardProvider extends ServiceProvider
                     ->as('dashboard.')
                     ->group(function () {
                         Route::get('/database', [DatabaseController::class, 'index'])->name('index');
+                        Route::get('/service-stat', [ServiceStatController::class, 'index'])->name('index');
                     });
             });
     }
