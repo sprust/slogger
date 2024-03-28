@@ -63,7 +63,7 @@ export function handleApiError(error: any) {
 
 const zeroPad = (num: number, places: number): string => String(num).padStart(places, '0')
 
-export function convertDateStringToLocal(dateString: string): string {
+export function convertDateStringToLocal(dateString: string, withMicroseconds: boolean = true): string {
     const date = new Date(dateString)
 
     const newDate = new Date(date.getTime() + date.getTimezoneOffset() * 60 * 1000);
@@ -72,7 +72,7 @@ export function convertDateStringToLocal(dateString: string): string {
 
     newDate.setHours(date.getHours() - offset);
 
-    const year = newDate.getFullYear()
+    const year = newDate.getFullYear().toString()
     const month = zeroPad(newDate.getMonth() + 1, 2)
     const day = zeroPad(newDate.getDate(), 2)
     const hours = zeroPad(newDate.getHours(), 2)
@@ -80,5 +80,27 @@ export function convertDateStringToLocal(dateString: string): string {
     const seconds = zeroPad(newDate.getSeconds(), 2)
     const microseconds = newDate.getMilliseconds()
 
-    return [year, month, day].join('-') + ' ' + [hours, minutes, seconds.toLocaleString()].join(':') + '.' + microseconds;
+    const currentDate = new Date()
+
+    let ymd: Array<string> = []
+
+    if (currentDate.getFullYear() !== newDate.getFullYear()) {
+        ymd = [year, month, day]
+    } else {
+        if (currentDate.getMonth() !== newDate.getMonth()) {
+            ymd = [month, day]
+        } else {
+            if (currentDate.getDate() !== newDate.getDate()) {
+                ymd = [month, day]
+            }
+        }
+    }
+
+    let dateResult = ymd.join('-') + ' ' + [hours, minutes, seconds.toLocaleString()].join(':')
+
+    if (withMicroseconds) {
+        dateResult += ('.' + microseconds)
+    }
+
+    return dateResult
 }

@@ -20,24 +20,55 @@ readonly class ServiceStatRepository implements ServiceStatRepositoryInterface
             24 * 2,
             24 * 3,
             24 * 4,
-            24 * 5,
-            24 * 6,
         ];
 
-        $periods = [];
+        $periods = [
+            [
+                now('UTC'),
+                now('UTC')->startOfHour(),
+            ],
+            [
+                now('UTC')->subHour()->endOfHour(),
+                now('UTC')->subHour()->startOfHour(),
+            ],
+            [
+                now('UTC')->subHours(2)->endOfHour(),
+                now('UTC')->subHours(2)->startOfHour(),
+            ],
+            [
+                now('UTC')->subHours(3)->endOfHour(),
+                now('UTC')->subHours(3)->startOfHour(),
+            ],
+            [
+                now('UTC')->subHours(4)->endOfHour(),
+                now('UTC')->subHours(4)->startOfHour(),
+            ],
+            [
+                now('UTC')->subHours(5)->endOfHour(),
+                now('UTC')->subHours(5)->startOfHour()->subDay(),
+            ],
+            [
+                now('UTC')->subHours(6)->endOfHour()->subDay(),
+                now('UTC')->subHours(6)->startOfHour()->subDays(2),
+            ],
+            [
+                now('UTC')->subHours(7)->endOfHour()->subDays(4),
+                now('UTC')->subHours(7)->startOfHour()->subDays(4)->subDays(7),
+            ],
+        ];
 
-        $now = now()->endOfHour();
-
-        $preHour = 0;
-
-        foreach ($hours as $hour) {
-            $periods[] = [
-                $now->clone()->subHours($preHour),
-                $now->clone()->subHours($hour - 1)->startOfHour(),
-            ];
-
-            $preHour = $hour;
-        }
+        //$preHour = 0;
+        //
+        //$now = now()->subHour()->endOfHour();
+        //
+        //foreach ($hours as $hour) {
+        //    $periods[] = [
+        //        $now->clone()->subHours($preHour),
+        //        $now->clone()->subHours($hour - 1)->startOfHour(),
+        //    ];
+        //
+        //    $preHour = $hour;
+        //}
 
         $stats = [];
 

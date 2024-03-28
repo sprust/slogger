@@ -1,9 +1,9 @@
 <template>
   <el-container class="dashboard">
-    <DashboardServiceStat/>
+    <DashboardDatabase/>
   </el-container>
   <el-container class="dashboard">
-    <DashboardDatabase/>
+    <DashboardServiceStat/>
   </el-container>
 </template>
 

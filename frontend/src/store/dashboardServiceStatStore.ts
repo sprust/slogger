@@ -3,7 +3,7 @@ import type {InjectionKey} from "vue";
 import {createStore, Store, useStore as baseUseStore} from 'vuex'
 import {ApiContainer} from "../utils/apiContainer.ts";
 import {AdminApi} from "../api-schema/admin-api-schema.ts";
-import {handleApiError} from "../utils/helpers.ts";
+import {convertDateStringToLocal, handleApiError} from "../utils/helpers.ts";
 
 type DashboardServiceStatItem = AdminApi.DashboardServiceStatList.ResponseBody['data'][number];
 
@@ -49,7 +49,10 @@ export const dashboardServiceStatStore = createStore<State>({
             state.services = []
 
             items.map((item: DashboardServiceStatItem) => {
-                const periodKey = item.from + ' - ' + item.to;
+                const periodKey =
+                    convertDateStringToLocal(item.to, false)
+                    + ' - '
+                    + convertDateStringToLocal(item.from, false)
 
                 if (state.periods.indexOf(periodKey) === -1) {
                     state.periods.push(periodKey)

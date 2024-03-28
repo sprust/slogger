@@ -15,20 +15,40 @@
     </el-row>
     <el-divider></el-divider>
     <el-table :data="store.state.services" :border="true">
+      <el-table-column type="expand">
+        <template #default="props">
+          <el-table :data="[props.row]" :border="true">
+            <el-table-column label="Service">
+              <template #default="props">
+                {{ props.row.name }}
+              </template>
+            </el-table-column>
+            <template v-for="period in store.state.periods" :key="period">
+              <el-table-column :prop="period" :label="period">
+                <template #default="props">
+                  <div v-for="type in getTypes(props.row, period)" :key="type.name">
+                    {{ type.name }}:
+                    <div v-for="status in type.statuses" :key="status.name">
+                      {{ '- ' + status.name + ': ' + status.count }}
+                    </div>
+                  </div>
+                </template>
+              </el-table-column>
+            </template>
+          </el-table>
+        </template>
+      </el-table-column>
+
       <el-table-column label="Service">
         <template #default="props">
           {{ props.row.name }}
         </template>
       </el-table-column>
+
       <template v-for="period in store.state.periods" :key="period">
-        <el-table-column :prop="{period}" :label="period">
+        <el-table-column :prop="period" :label="period">
           <template #default="props">
-            <div v-for="type in getTypes(props.row, period)" :key="type.name">
-              {{ type.name }}:
-              <div v-for="status in type.statuses" :key="status.name">
-                {{ '- ' + status.name + ': ' + status.count }}
-              </div>
-            </div>
+            {{ getTracesCountByPeriod(props.row, period) }}
           </template>
         </el-table-column>
       </template>
@@ -59,9 +79,20 @@ export default defineComponent({
     update() {
       this.store.dispatch('findDashboardServiceStat')
     },
+    getTracesCountByPeriod(service: Service, period: string): number {
+      let count = 0
+
+      service.periods[period]?.types.forEach(type => {
+        type.statuses.map(status => {
+          count += status.count
+        })
+      })
+
+      return count
+    },
     getTypes(service: Service, period: string): Array<Type> {
       return service.periods[period]?.types ?? []
-    }
+    },
   },
   mounted() {
     if (!this.store.state.loading) {
