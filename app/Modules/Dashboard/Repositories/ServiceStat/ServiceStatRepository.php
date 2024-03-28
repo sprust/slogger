@@ -10,18 +10,6 @@ readonly class ServiceStatRepository implements ServiceStatRepositoryInterface
 {
     public function find(): array
     {
-        $hours = [
-            1,
-            3,
-            4,
-            8,
-            8,
-            24,
-            24 * 2,
-            24 * 3,
-            24 * 4,
-        ];
-
         $periods = [
             [
                 now('UTC'),
@@ -56,19 +44,6 @@ readonly class ServiceStatRepository implements ServiceStatRepositoryInterface
                 now('UTC')->subHours(7)->startOfHour()->subDays(4)->subDays(7),
             ],
         ];
-
-        //$preHour = 0;
-        //
-        //$now = now()->subHour()->endOfHour();
-        //
-        //foreach ($hours as $hour) {
-        //    $periods[] = [
-        //        $now->clone()->subHours($preHour),
-        //        $now->clone()->subHours($hour - 1)->startOfHour(),
-        //    ];
-        //
-        //    $preHour = $hour;
-        //}
 
         $stats = [];
 
