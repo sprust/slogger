@@ -2,7 +2,7 @@
 
 namespace App\Http\Resources;
 
-use App\Services\Dto\PaginationInfoObject;
+use App\Modules\Common\Pagination\PaginationInfoObject;
 
 class PaginatorInfoResource extends AbstractApiResource
 {

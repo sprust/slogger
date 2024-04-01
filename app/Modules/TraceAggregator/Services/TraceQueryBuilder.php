@@ -10,6 +10,7 @@ use App\Modules\TraceAggregator\Enums\TraceDataFilterCompStringTypeEnum;
 use Illuminate\Database\Eloquent\Builder;
 use MongoDB\BSON\UTCDateTime;
 
+// TODO: to pipeline
 class TraceQueryBuilder
 {
     /**
@@ -19,7 +20,7 @@ class TraceQueryBuilder
      * @param string[]      $tags
      * @param string[]      $statuses
      *
-     * @return Builder|Trace
+     * @return Builder|\MongoDB\Laravel\Query\Builder|Trace
      */
     public function make(
         array $serviceIds = [],

@@ -4,10 +4,10 @@ namespace App\Modules\TraceAggregator\Dto\Objects;
 
 use App\Modules\Common\Pagination\PaginationInfoObject;
 
-readonly class TraceItemObjects
+readonly class ServiceStatsPaginationObject
 {
     /**
-     * @param TraceItemObject[] $items
+     * @param ServiceStatObject[] $items
      */
     public function __construct(
         public array $items,

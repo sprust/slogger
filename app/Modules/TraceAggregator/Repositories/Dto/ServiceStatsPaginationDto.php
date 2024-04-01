@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Modules\TraceAggregator\Dto\Objects;
+namespace App\Modules\TraceAggregator\Repositories\Dto;
 
 use App\Modules\Common\Pagination\PaginationInfoObject;
 
-readonly class TraceItemObjects
+readonly class ServiceStatsPaginationDto
 {
     /**
-     * @param TraceItemObject[] $items
+     * @param ServiceStatDto[] $items
      */
     public function __construct(
         public array $items,

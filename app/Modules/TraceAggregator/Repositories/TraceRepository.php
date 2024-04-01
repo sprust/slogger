@@ -3,6 +3,7 @@
 namespace App\Modules\TraceAggregator\Repositories;
 
 use App\Models\Traces\Trace;
+use App\Modules\Common\Pagination\PaginationInfoObject;
 use App\Modules\TraceAggregator\Dto\Objects\TraceDataAdditionalFieldObject;
 use App\Modules\TraceAggregator\Dto\Objects\TraceDetailObject;
 use App\Modules\TraceAggregator\Dto\Objects\TraceItemObject;
@@ -13,9 +14,10 @@ use App\Modules\TraceAggregator\Dto\Objects\TraceServiceObject;
 use App\Modules\TraceAggregator\Dto\Objects\TraceTreeShortObject;
 use App\Modules\TraceAggregator\Dto\Parameters\TraceFindParameters;
 use App\Modules\TraceAggregator\Dto\Parameters\TraceTreeFindParameters;
+use App\Modules\TraceAggregator\Repositories\Dto\ServiceStatDto;
+use App\Modules\TraceAggregator\Repositories\Dto\ServiceStatsPaginationDto;
 use App\Modules\TraceAggregator\Services\TraceDataToObjectConverter;
 use App\Modules\TraceAggregator\Services\TraceQueryBuilder;
-use App\Services\Dto\PaginationInfoObject;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Arr;
@@ -65,48 +67,22 @@ readonly class TraceRepository implements TraceRepositoryInterface
 
     public function find(TraceFindParameters $parameters): TraceItemObjects
     {
-        $perPage = min($parameters->perPage ?: $this->maxPerPage, $this->maxPerPage);
+        $perPage = $this->getPerPage($parameters->perPage);
 
-        $traceIds = null;
+        $builder = $this->makeBuilder($parameters);
 
-        if ($parameters->traceId) {
-            /** @var Trace|null $trace */
-            $trace = Trace::query()->where('traceId', $parameters->traceId)->first();
-
-            if (!$trace) {
-                return new TraceItemObjects(
-                    items: [],
-                    paginationInfo: new PaginationInfoObject(
-                        total: 0,
-                        perPage: $perPage,
-                        currentPage: 1,
-                    )
-                );
-            }
-
-            if (!$parameters->allTracesInTree) {
-                $traceIds = [$parameters->traceId];
-            } else {
-                $parentTrace = $this->traceTreeRepository->findParentTrace($trace);
-
-                $traceIds   = $this->traceTreeRepository->findTraceIdsInTreeByParentTraceId($parentTrace);
-                $traceIds[] = $parentTrace->traceId;
-            }
+        if (!$builder) {
+            return new TraceItemObjects(
+                items: [],
+                paginationInfo: new PaginationInfoObject(
+                    total: 0,
+                    perPage: $perPage,
+                    currentPage: 1,
+                )
+            );
         }
 
-        $builder = $this->traceQueryBuilder->make(
-            serviceIds: $parameters->serviceIds,
-            traceIds: $traceIds,
-            loggingPeriod: $parameters->loggingPeriod,
-            types: $parameters->types,
-            tags: $parameters->tags,
-            statuses: $parameters->statuses,
-            durationFrom: $parameters->durationFrom,
-            durationTo: $parameters->durationTo,
-            data: $parameters->data,
-        );
-
-        $parentsPaginator = $builder
+        $paginator = $builder
             ->with([
                 'service',
             ])
@@ -124,7 +100,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
             );
 
         /** @var Collection|Trace[] $parents */
-        $parents = $parentsPaginator->items();
+        $parents = $paginator->items();
 
         $pipeline = [];
 
@@ -210,7 +186,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
         return new TraceItemObjects(
             items: $resultItems,
             paginationInfo: new PaginationInfoObject(
-                total: $parentsPaginator->total(),
+                total: $paginator->total(),
                 perPage: $perPage,
                 currentPage: $parameters->page,
             ),
@@ -242,6 +218,174 @@ readonly class TraceRepository implements TraceRepositoryInterface
                 )
             )
             ->toArray();
+    }
+
+    public function findServiceStat(TraceFindParameters $parameters): ServiceStatsPaginationDto
+    {
+        $perPage = $this->getPerPage($parameters->perPage);
+
+        $builder = $this->makeBuilder($parameters);
+
+        if (!$builder) {
+            return new ServiceStatsPaginationDto(
+                items: [],
+                paginationInfo: new PaginationInfoObject(
+                    total: 0,
+                    perPage: $perPage,
+                    currentPage: 1,
+                )
+            );
+        }
+
+        $mql = $builder->toMql();
+
+        $match = [];
+
+        foreach ($mql['find'][0] ?? [] as $key => $value) {
+            $match[$key] = $value;
+        }
+
+        $dataPipeline       = [];
+        $paginationPipeline = [];
+
+        if ($match) {
+            $dataPipeline[] = [
+                '$match' => $match,
+            ];
+            $paginationPipeline[] = [
+                '$match' => $match,
+            ];
+        }
+
+        $dataPipeline[] = [
+            '$unwind' => [
+                'path' => '$tags',
+            ],
+        ];
+
+        $dataPipeline[] = [
+            '$group' => [
+                '_id'   => [
+                    'serviceId' => '$serviceId',
+                    'type'      => '$type',
+                    'status'    => '$status',
+                    'tag'       => '$tags',
+                ],
+                'count' => [
+                    '$sum' => 1,
+                ],
+            ],
+        ];
+
+        $dataPipeline[] = [
+            '$sort' => [
+                'count' => -1,
+            ],
+        ];
+
+        $dataPipeline[] = [
+            '$skip' => $perPage * ($parameters->page - 1),
+        ];
+
+        $dataPipeline[] = [
+            '$limit' => $perPage,
+        ];
+
+        $paginationPipeline[] = [
+            '$group' => [
+                '_id'   => null,
+                'count' => [
+                    '$sum' => 1,
+                ],
+            ],
+        ];
+
+        $stats = [];
+
+        $documents = Trace::collection()
+            ->aggregate([
+                [
+                    '$facet' => [
+                        'data'       => $dataPipeline,
+                        'pagination' => $paginationPipeline,
+                    ],
+                ],
+            ])
+            ->toArray()[0]
+            ?? null;
+
+        if (is_null($documents)) {
+            return new ServiceStatsPaginationDto(
+                items: [],
+                paginationInfo: new PaginationInfoObject(
+                    total: 0,
+                    perPage: $perPage,
+                    currentPage: 1,
+                )
+            );
+        }
+
+        foreach ($documents->data as $document) {
+            $stats[] = new ServiceStatDto(
+                serviceId: $document->_id->serviceId,
+                type: $document->_id->type,
+                tag: $document->_id->tag,
+                status: $document->_id->status,
+                count: $document->count
+            );
+        }
+
+        return new ServiceStatsPaginationDto(
+            items: $stats,
+            paginationInfo: new PaginationInfoObject(
+                total: $documents->pagination[0]->count,
+                perPage: $perPage,
+                currentPage: $parameters->page,
+            )
+        );
+    }
+
+    private function getPerPage(?int $perPage): int
+    {
+        return min($perPage ?: $this->maxPerPage, $this->maxPerPage);
+    }
+
+    /**
+     * @return Builder|\MongoDB\Laravel\Query\Builder|Trace|null
+     */
+    private function makeBuilder(TraceFindParameters $parameters): ?Builder
+    {
+        $traceIds = null;
+
+        if ($parameters->traceId) {
+            /** @var Trace|null $trace */
+            $trace = Trace::query()->where('traceId', $parameters->traceId)->first();
+
+            if (!$trace) {
+                return null;
+            }
+
+            if (!$parameters->allTracesInTree) {
+                $traceIds = [$parameters->traceId];
+            } else {
+                $parentTrace = $this->traceTreeRepository->findParentTrace($trace);
+
+                $traceIds   = $this->traceTreeRepository->findTraceIdsInTreeByParentTraceId($parentTrace);
+                $traceIds[] = $parentTrace->traceId;
+            }
+        }
+
+        return $this->traceQueryBuilder->make(
+            serviceIds: $parameters->serviceIds,
+            traceIds: $traceIds,
+            loggingPeriod: $parameters->loggingPeriod,
+            types: $parameters->types,
+            tags: $parameters->tags,
+            statuses: $parameters->statuses,
+            durationFrom: $parameters->durationFrom,
+            durationTo: $parameters->durationTo,
+            data: $parameters->data,
+        );
     }
 
     /**
