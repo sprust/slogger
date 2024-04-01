@@ -79,24 +79,29 @@ return new class extends Migration {
             ]
         );
 
-        $connection->selectCollection($this->collectionName)
-            ->createIndex(
-                [
-                    'traceId' => 1,
-                ]
-            );
-        $connection->selectCollection($this->collectionName)
-            ->createIndex(
-                [
-                    'parentTraceId' => 1,
-                ]
-            );
-        $connection->selectCollection($this->collectionName)
-            ->createIndex(
-                [
-                    'loggedAt' => 1,
-                ]
-            );
+        $collection = $connection->selectCollection($this->collectionName);
+
+        $collection->createIndex([
+            'serviceId' => 1,
+        ]);
+        $collection->createIndex([
+            'traceId' => 1,
+        ]);
+        $collection->createIndex([
+            'parentTraceId' => 1,
+        ]);
+        $collection->createIndex([
+            'type' => 1,
+        ]);
+        $collection->createIndex([
+            'status' => 1,
+        ]);
+        $collection->createIndex([
+            'tags' => 1,
+        ]);
+        $collection->createIndex([
+            'loggedAt' => 1,
+        ]);
     }
 
     /**
