@@ -1,6 +1,9 @@
 <?php
 
 use App\Services\Roadrunner\RrHttpRequestHandlingErrorListener;
+use App\Services\Roadrunner\RrHttpServerErrorListener;
+use App\Services\Roadrunner\RrHttpWorkerErrorListener;
+use App\Services\Roadrunner\RrHttpPsrRequestHandlingErrorListener;
 use App\Services\Roadrunner\RrJobsWorkerErrorListener;
 use RoadRunner\Servers\Http\Events\RrHttpPsrRequestHandlingErrorEvent;
 use RoadRunner\Servers\Http\Events\RrHttpRequestHandledEvent;
@@ -27,17 +30,23 @@ return [
     'http' => [
         'max_requests_count' => env('RR_HTTP_MAX_REQUESTS_COUNT', 250),
         'listen'             => [
-            RrHttpServerErrorEvent::class             => [],
+            RrHttpServerErrorEvent::class             => [
+                RrHttpServerErrorListener::class,
+            ],
             RrHttpWorkerStartingEvent::class          => [],
             RrHttpWorkerStoppingEvent::class          => [],
-            RrHttpWorkerErrorEvent::class             => [],
+            RrHttpWorkerErrorEvent::class             => [
+                RrHttpWorkerErrorListener::class,
+            ],
             RrHttpRequestReceivedEvent::class         => [],
             RrHttpRequestHandlingErrorEvent::class    => [
                 RrHttpRequestHandlingErrorListener::class,
             ],
             RrHttpRequestTerminatedEvent::class       => [],
             RrHttpRequestHandledEvent::class          => [],
-            RrHttpPsrRequestHandlingErrorEvent::class => [],
+            RrHttpPsrRequestHandlingErrorEvent::class => [
+                RrHttpPsrRequestHandlingErrorListener::class,
+            ],
         ],
     ],
     'jobs' => [
