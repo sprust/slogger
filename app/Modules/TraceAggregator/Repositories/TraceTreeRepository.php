@@ -70,7 +70,10 @@ class TraceTreeRepository implements TraceTreeRepositoryInterface
         $tracesCount = count($childrenIds) + 1;
 
         if ($tracesCount > 3000) {
-            throw new TreeTooLongException(3000);
+            throw new TreeTooLongException(
+                limit: 3000,
+                current: $tracesCount
+            );
         }
 
         $children = collect();
