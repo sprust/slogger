@@ -666,6 +666,10 @@
                                     "properties": {
                                         "data": {
                                             "properties": {
+                                                "tracesCount": {
+                                                    "type": "integer",
+                                                    "nullable": false
+                                                },
                                                 "items": {
                                                     "type": "array",
                                                     "nullable": false,
@@ -1057,6 +1061,7 @@
                                                 }
                                             },
                                             "required": [
+                                                "tracesCount",
                                                 "items"
                                             ]
                                         }

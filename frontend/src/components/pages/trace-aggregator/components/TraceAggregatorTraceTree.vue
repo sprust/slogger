@@ -15,7 +15,7 @@
           Update
         </el-button>
         <div>
-          {{ store.state.parameters.traceId }}
+          {{ store.state.parameters.traceId }} ({{ store.state.tracesCount }})
         </div>
       </el-space>
     </el-row>

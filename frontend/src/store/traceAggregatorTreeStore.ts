@@ -7,11 +7,13 @@ import {TraceAggregatorDetail} from "./traceAggregatorDataStore.ts";
 import {handleApiError} from "../utils/helpers.ts";
 
 type TraceAggregatorTreeNodeParameters = AdminApi.TraceAggregatorTracesTreeDetail.RequestParams
+export type TraceAggregatorTree = AdminApi.TraceAggregatorTracesTreeDetail.ResponseBody['data']
 export type TraceAggregatorTreeNode = AdminApi.TraceAggregatorTracesTreeDetail.ResponseBody['data']['items'][number]
 
 interface State {
     loading: boolean,
     parameters: TraceAggregatorTreeNodeParameters,
+    tracesCount: number,
     treeNodes: Array<TraceAggregatorTreeNode>,
     dataLoading: boolean,
     selectedTrace: TraceAggregatorDetail
@@ -21,13 +23,15 @@ export const traceAggregatorTreeStore = createStore<State>({
     state: {
         loading: false,
         parameters: {} as TraceAggregatorTreeNodeParameters,
+        tracesCount: 0,
         treeNodes: new Array<TraceAggregatorTreeNode>,
         dataLoading: false,
         selectedTrace: {} as TraceAggregatorDetail
     } as State,
     mutations: {
-        setTreeNodes(state: State, treeNodes: Array<TraceAggregatorTreeNode>) {
-            state.treeNodes = treeNodes
+        setTreeNodes(state: State, tree: TraceAggregatorTree) {
+            state.tracesCount = tree.tracesCount
+            state.treeNodes = tree.items
         },
         setData(state: State, trace: TraceAggregatorDetail) {
             state.selectedTrace = trace
@@ -52,7 +56,7 @@ export const traceAggregatorTreeStore = createStore<State>({
             try {
                 const response = await ApiContainer.get().traceAggregatorTracesTreeDetail(parameters.traceId)
 
-                commit('setTreeNodes', response.data.data.items)
+                commit('setTreeNodes', response.data.data)
             } catch (error) {
                 handleApiError(error)
             } finally {

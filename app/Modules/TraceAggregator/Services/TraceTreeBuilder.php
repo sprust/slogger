@@ -7,23 +7,19 @@ use App\Modules\TraceAggregator\Dto\Objects\TraceServiceObject;
 use App\Modules\TraceAggregator\Dto\Objects\TraceTreeObject;
 use Illuminate\Support\Collection;
 
-class TraceTreeBuilder
+readonly class TraceTreeBuilder
 {
-    private array $collectedTraceIds = [];
-
     /**
      * @param Collection<Trace> $children
      */
     public function __construct(
-        private readonly Trace $parentTrace,
-        private readonly Collection $children
+        private Trace $parentTrace,
+        private Collection $children
     ) {
     }
 
     public function collect(): TraceTreeObject
     {
-        $this->collectedTraceIds = [];
-
         return new TraceTreeObject(
             serviceObject: $this->parentTrace->service
                 ? new TraceServiceObject(
@@ -50,12 +46,6 @@ class TraceTreeBuilder
      */
     private function collectRecursive(Trace $parentTrace, int $depth): array
     {
-        if (in_array($parentTrace->traceId, $this->collectedTraceIds)) {
-            return [];
-        }
-
-        $this->collectedTraceIds[] = $this->parentTrace->traceId;
-
         ++$depth;
 
         return $this->children

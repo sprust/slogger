@@ -7,6 +7,7 @@ use App\Models\Traces\TraceTree;
 use App\Modules\TraceAggregator\Dto\Objects\TraceTreeObjects;
 use App\Modules\TraceAggregator\Dto\Parameters\TraceFindTreeParameters;
 use App\Modules\TraceAggregator\Dto\Parameters\TraceTreeDeleteManyParameters;
+use App\Modules\TraceAggregator\Exceptions\TreeTooLongException;
 use App\Modules\TraceAggregator\Services\TraceTreeBuilder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use MongoDB\BSON\ObjectId;
@@ -57,6 +58,7 @@ class TraceTreeRepository implements TraceTreeRepositoryInterface
 
         if (!$trace) {
             return new TraceTreeObjects(
+                tracesCount: 0,
                 items: []
             );
         }
@@ -64,6 +66,12 @@ class TraceTreeRepository implements TraceTreeRepositoryInterface
         $parentTrace = $this->findParentTrace($trace);
 
         $childrenIds = $this->findTraceIdsInTreeByParentTraceId($parentTrace);
+
+        $tracesCount = count($childrenIds) + 1;
+
+        if ($tracesCount > 3000) {
+            throw new TreeTooLongException(3000);
+        }
 
         $children = collect();
 
@@ -104,6 +112,7 @@ class TraceTreeRepository implements TraceTreeRepositoryInterface
         unset($children);
 
         return new TraceTreeObjects(
+            tracesCount: $tracesCount,
             items: [
                 $treeNodesBuilder->collect(),
             ]

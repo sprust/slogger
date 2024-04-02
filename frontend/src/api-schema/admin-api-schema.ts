@@ -289,6 +289,7 @@ export namespace AdminApi {
  * @secure
  * @response `200` `{
     data: {
+    tracesCount: number,
     items: ({
     service?: {
     id: number,
@@ -396,6 +397,7 @@ export namespace AdminApi {
     export type RequestHeaders = {};
     export type ResponseBody = {
       data: {
+        tracesCount: number;
         items: {
           service?: {
             id: number;
@@ -1470,6 +1472,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
  * @secure
  * @response `200` `{
     data: {
+    tracesCount: number,
     items: ({
     service?: {
     id: number,
@@ -1572,6 +1575,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       this.request<
         {
           data: {
+            tracesCount: number;
             items: {
               service?: {
                 id: number;

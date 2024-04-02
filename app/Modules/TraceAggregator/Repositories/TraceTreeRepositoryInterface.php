@@ -7,6 +7,7 @@ use App\Modules\TraceAggregator\Dto\Objects\TraceTreeObjects;
 use App\Modules\TraceAggregator\Dto\Parameters\TraceFindTreeParameters;
 use App\Modules\TraceAggregator\Dto\Parameters\TraceTreeDeleteManyParameters;
 use App\Modules\TraceAggregator\Dto\Parameters\TraceTreeInsertParameters;
+use App\Modules\TraceAggregator\Exceptions\TreeTooLongException;
 
 interface TraceTreeRepositoryInterface
 {
@@ -15,6 +16,9 @@ interface TraceTreeRepositoryInterface
      */
     public function insertMany(array $parametersList): void;
 
+    /**
+     * @throws TreeTooLongException
+     */
     public function find(TraceFindTreeParameters $parameters): TraceTreeObjects;
 
     public function findTraceIdsInTreeByParentTraceId(Trace $parentTrace): array;

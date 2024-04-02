@@ -8,6 +8,7 @@ use Ifksco\OpenApiGenerator\Attributes\OaListItemTypeAttribute;
 
 class TraceTreesResponse extends AbstractApiResource
 {
+    private int $tracesCount;
     #[OaListItemTypeAttribute(TraceTreeResponse::class, isRecursive: true)]
     private array $items;
 
@@ -15,6 +16,7 @@ class TraceTreesResponse extends AbstractApiResource
     {
         parent::__construct($trees);
 
-        $this->items = TraceTreeResponse::mapIntoMe($trees->items);
+        $this->tracesCount = $trees->tracesCount;
+        $this->items       = TraceTreeResponse::mapIntoMe($trees->items);
     }
 }
