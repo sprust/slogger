@@ -9,10 +9,7 @@ use Illuminate\Support\Collection;
 
 class TraceTreeBuilder
 {
-    /**
-     * @var Collection<string, Trace>
-     */
-    private Collection $childrenMap;
+    private array $collectedTraceIds = [];
 
     /**
      * @param Collection<Trace> $children
@@ -25,9 +22,7 @@ class TraceTreeBuilder
 
     public function collect(): TraceTreeObject
     {
-        $this->childrenMap = $this->children->keyBy(
-            fn(Trace $trace) => $trace->traceId
-        );
+        $this->collectedTraceIds = [];
 
         return new TraceTreeObject(
             serviceObject: $this->parentTrace->service
@@ -55,9 +50,15 @@ class TraceTreeBuilder
      */
     private function collectRecursive(Trace $parentTrace, int $depth): array
     {
+        if (in_array($parentTrace->traceId, $this->collectedTraceIds)) {
+            return [];
+        }
+
+        $this->collectedTraceIds[] = $this->parentTrace->traceId;
+
         ++$depth;
 
-        return $this->childrenMap
+        return $this->children
             ->filter(
                 fn(Trace $childTrace) => $childTrace->parentTraceId === $parentTrace->traceId
             )

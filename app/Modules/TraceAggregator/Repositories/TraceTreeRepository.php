@@ -8,6 +8,7 @@ use App\Modules\TraceAggregator\Dto\Objects\TraceTreeObjects;
 use App\Modules\TraceAggregator\Dto\Parameters\TraceFindTreeParameters;
 use App\Modules\TraceAggregator\Dto\Parameters\TraceTreeDeleteManyParameters;
 use App\Modules\TraceAggregator\Services\TraceTreeBuilder;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use MongoDB\BSON\ObjectId;
 use MongoDB\BSON\UTCDateTime;
 use MongoDB\Model\BSONDocument;
@@ -64,17 +65,43 @@ class TraceTreeRepository implements TraceTreeRepositoryInterface
 
         $childrenIds = $this->findTraceIdsInTreeByParentTraceId($parentTrace);
 
-        $children = Trace::query()
-            ->with([
-                'service',
-            ])
-            ->whereIn('traceId', $childrenIds)
-            ->get();
+        $children = collect();
+
+        foreach (collect($childrenIds)->chunk(300) as $childrenIdsChunk) {
+            Trace::query()
+                ->select([
+                    '_id',
+                    'serviceId',
+                    'traceId',
+                    'parentTraceId',
+                    'type',
+                    'status',
+                    'tags',
+                    'duration',
+                    'memory',
+                    'cpu',
+                    'loggedAt',
+                    'createdAt',
+                    'updatedAt',
+                ])
+                ->with([
+                    'service' => fn(BelongsTo $relation) => $relation->select([
+                        'id',
+                        'name',
+                    ]),
+                ])
+                ->whereIn('traceId', $childrenIdsChunk)
+                ->each(function (Trace $trace) use ($children) {
+                    $children->add($trace);
+                });
+        }
 
         $treeNodesBuilder = new TraceTreeBuilder(
             parentTrace: $parentTrace,
-            children: $children->collect()
+            children: $children
         );
+
+        unset($children);
 
         return new TraceTreeObjects(
             items: [
