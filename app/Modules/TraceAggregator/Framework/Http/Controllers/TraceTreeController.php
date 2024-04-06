@@ -11,14 +11,14 @@ use Symfony\Component\HttpFoundation\Response;
 readonly class TraceTreeController
 {
     public function __construct(
-        private FindTraceTreeAction $traceTreeAction
+        private FindTraceTreeAction $findTraceTreeAction
     ) {
     }
 
     public function index(string $traceId): TraceTreesResponse
     {
         try {
-            $traceTreeNodeObjects = $this->traceTreeAction->handle(
+            $traceTreeNodeObjects = $this->findTraceTreeAction->handle(
                 new TraceFindTreeParameters(
                     traceId: $traceId
                 )
