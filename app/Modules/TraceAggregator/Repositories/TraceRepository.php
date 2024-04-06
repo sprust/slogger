@@ -13,6 +13,8 @@ use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceServiceObject;
 use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceTreeShortObject;
 use App\Modules\TraceAggregator\Domain\Entities\Parameters\TraceFindParameters;
 use App\Modules\TraceAggregator\Domain\Entities\Parameters\TraceTreeFindParameters;
+use App\Modules\TraceAggregator\Repositories\Interfaces\TraceRepositoryInterface;
+use App\Modules\TraceAggregator\Repositories\Interfaces\TraceTreeRepositoryInterface;
 use App\Modules\TraceAggregator\Services\TraceDataToObjectConverter;
 use App\Modules\TraceAggregator\Services\TraceQueryBuilder;
 use App\Services\Dto\PaginationInfoObject;

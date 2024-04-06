@@ -4,12 +4,12 @@ namespace App\Modules\TraceAggregator;
 
 use App\Modules\TraceAggregator\Adapters\AuthAdapter;
 use App\Modules\TraceAggregator\Framework\Commands\RefreshTraceTreesCommand;
+use App\Modules\TraceAggregator\Repositories\Interfaces\TraceContentRepositoryInterface;
+use App\Modules\TraceAggregator\Repositories\Interfaces\TraceRepositoryInterface;
+use App\Modules\TraceAggregator\Repositories\Interfaces\TraceTreeRepositoryInterface;
 use App\Modules\TraceAggregator\Repositories\TraceContentRepository;
-use App\Modules\TraceAggregator\Repositories\TraceContentRepositoryInterface;
 use App\Modules\TraceAggregator\Repositories\TraceRepository;
-use App\Modules\TraceAggregator\Repositories\TraceRepositoryInterface;
 use App\Modules\TraceAggregator\Repositories\TraceTreeRepository;
-use App\Modules\TraceAggregator\Repositories\TraceTreeRepositoryInterface;
 use App\Modules\TraceAggregator\Services\TraceQueryBuilder;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;

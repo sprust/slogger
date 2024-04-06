@@ -3,7 +3,7 @@
 namespace App\Modules\TraceCollector\Adapters;
 
 use App\Modules\TraceAggregator\Domain\Entities\Parameters\TraceTreeInsertParameters;
-use App\Modules\TraceAggregator\Repositories\TraceTreeRepositoryInterface;
+use App\Modules\TraceAggregator\Repositories\Interfaces\TraceTreeRepositoryInterface;
 use App\Modules\TraceCollector\Dto\Parameters\TraceTreeCreateParameters;
 
 readonly class TraceAggregatorTreeRepositoryAdapter

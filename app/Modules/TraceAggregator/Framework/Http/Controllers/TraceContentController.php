@@ -11,7 +11,7 @@ use App\Modules\TraceAggregator\Framework\Http\Requests\TraceFindStatusesRequest
 use App\Modules\TraceAggregator\Framework\Http\Requests\TraceFindTagsRequest;
 use App\Modules\TraceAggregator\Framework\Http\Requests\TraceFindTypesRequest;
 use App\Modules\TraceAggregator\Framework\Http\Responses\StringValueResponse;
-use App\Modules\TraceAggregator\Repositories\TraceContentRepositoryInterface;
+use App\Modules\TraceAggregator\Repositories\Interfaces\TraceContentRepositoryInterface;
 use Ifksco\OpenApiGenerator\Attributes\OaListItemTypeAttribute;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 

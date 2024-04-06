@@ -6,6 +6,7 @@ use App\Models\Traces\Trace;
 use App\Modules\TraceAggregator\Domain\Entities\Parameters\TraceFindStatusesParameters;
 use App\Modules\TraceAggregator\Domain\Entities\Parameters\TraceFindTagsParameters;
 use App\Modules\TraceAggregator\Domain\Entities\Parameters\TraceFindTypesParameters;
+use App\Modules\TraceAggregator\Repositories\Interfaces\TraceContentRepositoryInterface;
 use App\Modules\TraceAggregator\Services\TraceQueryBuilder;
 use Illuminate\Database\Eloquent\Builder;
 

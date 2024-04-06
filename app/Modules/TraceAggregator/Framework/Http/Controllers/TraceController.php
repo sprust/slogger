@@ -9,7 +9,7 @@ use App\Modules\TraceAggregator\Framework\Http\Controllers\Traits\MakeDataFilter
 use App\Modules\TraceAggregator\Framework\Http\Requests\TraceIndexRequest;
 use App\Modules\TraceAggregator\Framework\Http\Responses\TraceDetailResponse;
 use App\Modules\TraceAggregator\Framework\Http\Responses\TraceItemsResponse;
-use App\Modules\TraceAggregator\Repositories\TraceRepositoryInterface;
+use App\Modules\TraceAggregator\Repositories\Interfaces\TraceRepositoryInterface;
 use Symfony\Component\HttpFoundation\Response;
 
 readonly class TraceController

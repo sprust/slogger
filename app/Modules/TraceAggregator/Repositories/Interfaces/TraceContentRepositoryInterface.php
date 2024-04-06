@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\TraceAggregator\Repositories;
+namespace App\Modules\TraceAggregator\Repositories\Interfaces;
 
 use App\Modules\TraceAggregator\Domain\Entities\Parameters\TraceFindStatusesParameters;
 use App\Modules\TraceAggregator\Domain\Entities\Parameters\TraceFindTagsParameters;
