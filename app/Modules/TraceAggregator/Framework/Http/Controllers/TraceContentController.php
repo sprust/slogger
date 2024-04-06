@@ -2,6 +2,9 @@
 
 namespace App\Modules\TraceAggregator\Framework\Http\Controllers;
 
+use App\Modules\TraceAggregator\Domain\Actions\FindStatusesAction;
+use App\Modules\TraceAggregator\Domain\Actions\FindTagsAction;
+use App\Modules\TraceAggregator\Domain\Actions\FindTypesAction;
 use App\Modules\TraceAggregator\Domain\Entities\Parameters\PeriodParameters;
 use App\Modules\TraceAggregator\Domain\Entities\Parameters\TraceFindStatusesParameters;
 use App\Modules\TraceAggregator\Domain\Entities\Parameters\TraceFindTagsParameters;
@@ -11,7 +14,6 @@ use App\Modules\TraceAggregator\Framework\Http\Requests\TraceFindStatusesRequest
 use App\Modules\TraceAggregator\Framework\Http\Requests\TraceFindTagsRequest;
 use App\Modules\TraceAggregator\Framework\Http\Requests\TraceFindTypesRequest;
 use App\Modules\TraceAggregator\Framework\Http\Responses\StringValueResponse;
-use App\Modules\TraceAggregator\Repositories\Interfaces\TraceContentRepositoryInterface;
 use Ifksco\OpenApiGenerator\Attributes\OaListItemTypeAttribute;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
@@ -20,7 +22,9 @@ readonly class TraceContentController
     use MakeDataFilterParameterTrait;
 
     public function __construct(
-        private TraceContentRepositoryInterface $repository
+        private FindTypesAction $findTypesAction,
+        private FindTagsAction $findTagsAction,
+        private FindStatusesAction $findStatusesAction,
     ) {
     }
 
@@ -30,7 +34,7 @@ readonly class TraceContentController
         $validated = $request->validated();
 
         return StringValueResponse::collection(
-            $this->repository->findTypes(
+            $this->findTypesAction->handle(
                 new TraceFindTypesParameters(
                     serviceIds: array_map('intval', $validated['service_ids'] ?? []),
                     text: $validated['text'] ?? null,
@@ -50,7 +54,7 @@ readonly class TraceContentController
         $validated = $request->validated();
 
         return StringValueResponse::collection(
-            $this->repository->findTags(
+            $this->findTagsAction->handle(
                 new TraceFindTagsParameters(
                     serviceIds: array_map('intval', $validated['service_ids'] ?? []),
                     text: $validated['text'] ?? null,
@@ -71,7 +75,7 @@ readonly class TraceContentController
         $validated = $request->validated();
 
         return StringValueResponse::collection(
-            $this->repository->findStatuses(
+            $this->findStatusesAction->handle(
                 new TraceFindStatusesParameters(
                     serviceIds: array_map('intval', $validated['service_ids'] ?? []),
                     text: $validated['text'] ?? null,
