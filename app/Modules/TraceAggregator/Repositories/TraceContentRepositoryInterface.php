@@ -2,9 +2,9 @@
 
 namespace App\Modules\TraceAggregator\Repositories;
 
-use App\Modules\TraceAggregator\Dto\Parameters\TraceFindStatusesParameters;
-use App\Modules\TraceAggregator\Dto\Parameters\TraceFindTagsParameters;
-use App\Modules\TraceAggregator\Dto\Parameters\TraceFindTypesParameters;
+use App\Modules\TraceAggregator\Domain\Entities\Parameters\TraceFindStatusesParameters;
+use App\Modules\TraceAggregator\Domain\Entities\Parameters\TraceFindTagsParameters;
+use App\Modules\TraceAggregator\Domain\Entities\Parameters\TraceFindTypesParameters;
 
 interface TraceContentRepositoryInterface
 {

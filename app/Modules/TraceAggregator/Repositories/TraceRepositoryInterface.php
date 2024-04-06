@@ -2,11 +2,11 @@
 
 namespace App\Modules\TraceAggregator\Repositories;
 
-use App\Modules\TraceAggregator\Dto\Objects\TraceDetailObject;
-use App\Modules\TraceAggregator\Dto\Objects\TraceItemObjects;
-use App\Modules\TraceAggregator\Dto\Objects\TraceTreeShortObject;
-use App\Modules\TraceAggregator\Dto\Parameters\TraceFindParameters;
-use App\Modules\TraceAggregator\Dto\Parameters\TraceTreeFindParameters;
+use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceDetailObject;
+use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceItemObjects;
+use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceTreeShortObject;
+use App\Modules\TraceAggregator\Domain\Entities\Parameters\TraceFindParameters;
+use App\Modules\TraceAggregator\Domain\Entities\Parameters\TraceTreeFindParameters;
 
 interface TraceRepositoryInterface
 {

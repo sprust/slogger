@@ -3,7 +3,7 @@
 namespace App\Modules\TraceAggregator;
 
 use App\Modules\TraceAggregator\Adapters\AuthAdapter;
-use App\Modules\TraceAggregator\Commands\RefreshTraceTreesCommand;
+use App\Modules\TraceAggregator\Framework\Commands\RefreshTraceTreesCommand;
 use App\Modules\TraceAggregator\Repositories\TraceContentRepository;
 use App\Modules\TraceAggregator\Repositories\TraceContentRepositoryInterface;
 use App\Modules\TraceAggregator\Repositories\TraceRepository;
@@ -49,7 +49,7 @@ class TraceAggregatorProvider extends ServiceProvider
                 Route::prefix('/trace-aggregator')
                     ->as('trace-aggregator.')
                     ->group(function () {
-                        include 'Http/Routes/routes.php';
+                        include 'Framework/Http/Routes/routes.php';
                     });
             });
     }

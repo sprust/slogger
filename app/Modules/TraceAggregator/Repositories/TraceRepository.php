@@ -3,16 +3,16 @@
 namespace App\Modules\TraceAggregator\Repositories;
 
 use App\Models\Traces\Trace;
-use App\Modules\TraceAggregator\Dto\Objects\TraceDataAdditionalFieldObject;
-use App\Modules\TraceAggregator\Dto\Objects\TraceDetailObject;
-use App\Modules\TraceAggregator\Dto\Objects\TraceItemObject;
-use App\Modules\TraceAggregator\Dto\Objects\TraceItemObjects;
-use App\Modules\TraceAggregator\Dto\Objects\TraceItemTraceObject;
-use App\Modules\TraceAggregator\Dto\Objects\TraceItemTypeObject;
-use App\Modules\TraceAggregator\Dto\Objects\TraceServiceObject;
-use App\Modules\TraceAggregator\Dto\Objects\TraceTreeShortObject;
-use App\Modules\TraceAggregator\Dto\Parameters\TraceFindParameters;
-use App\Modules\TraceAggregator\Dto\Parameters\TraceTreeFindParameters;
+use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceDataAdditionalFieldObject;
+use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceDetailObject;
+use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceItemObject;
+use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceItemObjects;
+use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceItemTraceObject;
+use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceItemTypeObject;
+use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceServiceObject;
+use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceTreeShortObject;
+use App\Modules\TraceAggregator\Domain\Entities\Parameters\TraceFindParameters;
+use App\Modules\TraceAggregator\Domain\Entities\Parameters\TraceTreeFindParameters;
 use App\Modules\TraceAggregator\Services\TraceDataToObjectConverter;
 use App\Modules\TraceAggregator\Services\TraceQueryBuilder;
 use App\Services\Dto\PaginationInfoObject;

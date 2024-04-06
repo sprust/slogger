@@ -4,10 +4,10 @@ namespace App\Modules\TraceAggregator\Repositories;
 
 use App\Models\Traces\Trace;
 use App\Models\Traces\TraceTree;
-use App\Modules\TraceAggregator\Dto\Objects\TraceTreeObjects;
-use App\Modules\TraceAggregator\Dto\Parameters\TraceFindTreeParameters;
-use App\Modules\TraceAggregator\Dto\Parameters\TraceTreeDeleteManyParameters;
-use App\Modules\TraceAggregator\Exceptions\TreeTooLongException;
+use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceTreeObjects;
+use App\Modules\TraceAggregator\Domain\Entities\Parameters\TraceFindTreeParameters;
+use App\Modules\TraceAggregator\Domain\Entities\Parameters\TraceTreeDeleteManyParameters;
+use App\Modules\TraceAggregator\Domain\Exceptions\TreeTooLongException;
 use App\Modules\TraceAggregator\Services\TraceTreeBuilder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use MongoDB\BSON\ObjectId;

@@ -3,10 +3,10 @@
 namespace App\Modules\TraceAggregator\Services;
 
 use App\Models\Traces\Trace;
-use App\Modules\TraceAggregator\Dto\Parameters\DataFilter\TraceDataFilterItemParameters;
-use App\Modules\TraceAggregator\Dto\Parameters\DataFilter\TraceDataFilterParameters;
-use App\Modules\TraceAggregator\Dto\Parameters\PeriodParameters;
-use App\Modules\TraceAggregator\Enums\TraceDataFilterCompStringTypeEnum;
+use App\Modules\TraceAggregator\Domain\Entities\Parameters\DataFilter\TraceDataFilterItemParameters;
+use App\Modules\TraceAggregator\Domain\Entities\Parameters\DataFilter\TraceDataFilterParameters;
+use App\Modules\TraceAggregator\Domain\Entities\Parameters\PeriodParameters;
+use App\Modules\TraceAggregator\Domain\Enums\TraceDataFilterCompStringTypeEnum;
 use Illuminate\Database\Eloquent\Builder;
 use MongoDB\BSON\UTCDateTime;
 

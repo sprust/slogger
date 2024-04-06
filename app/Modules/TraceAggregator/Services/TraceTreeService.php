@@ -2,10 +2,10 @@
 
 namespace App\Modules\TraceAggregator\Services;
 
-use App\Modules\TraceAggregator\Dto\Objects\TraceTreeShortObject;
-use App\Modules\TraceAggregator\Dto\Parameters\TraceTreeDeleteManyParameters;
-use App\Modules\TraceAggregator\Dto\Parameters\TraceTreeFindParameters;
-use App\Modules\TraceAggregator\Dto\Parameters\TraceTreeInsertParameters;
+use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceTreeShortObject;
+use App\Modules\TraceAggregator\Domain\Entities\Parameters\TraceTreeDeleteManyParameters;
+use App\Modules\TraceAggregator\Domain\Entities\Parameters\TraceTreeFindParameters;
+use App\Modules\TraceAggregator\Domain\Entities\Parameters\TraceTreeInsertParameters;
 use App\Modules\TraceAggregator\Repositories\TraceRepositoryInterface;
 use App\Modules\TraceAggregator\Repositories\TraceTreeRepositoryInterface;
 

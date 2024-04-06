@@ -3,8 +3,8 @@
 namespace App\Modules\TraceAggregator\Services;
 
 use App\Models\Traces\Trace;
-use App\Modules\TraceAggregator\Dto\Objects\TraceServiceObject;
-use App\Modules\TraceAggregator\Dto\Objects\TraceTreeObject;
+use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceServiceObject;
+use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceTreeObject;
 use Illuminate\Support\Collection;
 
 readonly class TraceTreeBuilder
