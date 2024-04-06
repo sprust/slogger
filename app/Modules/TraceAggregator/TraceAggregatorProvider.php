@@ -3,7 +3,7 @@
 namespace App\Modules\TraceAggregator;
 
 use App\Modules\TraceAggregator\Adapters\AuthAdapter;
-use App\Modules\TraceAggregator\Framework\Commands\RefreshTraceTreesCommand;
+use App\Modules\TraceAggregator\Framework\Commands\FreshTraceTreesCommand;
 use App\Modules\TraceAggregator\Repositories\Interfaces\TraceContentRepositoryInterface;
 use App\Modules\TraceAggregator\Repositories\Interfaces\TraceRepositoryInterface;
 use App\Modules\TraceAggregator\Repositories\Interfaces\TraceTreeRepositoryInterface;
@@ -24,7 +24,7 @@ class TraceAggregatorProvider extends ServiceProvider
         $this->app->singleton(TraceQueryBuilder::class);
 
         $this->commands([
-            RefreshTraceTreesCommand::class,
+            FreshTraceTreesCommand::class,
         ]);
     }
 

@@ -2,10 +2,10 @@
 
 namespace App\Modules\TraceAggregator\Framework\Commands;
 
-use App\Modules\TraceAggregator\Services\TraceTreeService;
+use App\Modules\TraceAggregator\Domain\Actions\FreshTraceTreeAction;
 use Illuminate\Console\Command;
 
-class RefreshTraceTreesCommand extends Command
+class FreshTraceTreesCommand extends Command
 {
     /**
      * The name and signature of the console command.
@@ -24,9 +24,9 @@ class RefreshTraceTreesCommand extends Command
     /**
      * Execute the console command.
      */
-    public function handle(TraceTreeService $traceTreeService): int
+    public function handle(FreshTraceTreeAction $action): int
     {
-        $traceTreeService->fresh();
+        $action->handle();
 
         return self::SUCCESS;
     }

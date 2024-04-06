@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\TraceAggregator\Services;
+namespace App\Modules\TraceAggregator\Domain\Actions;
 
 use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceTreeShortObject;
 use App\Modules\TraceAggregator\Domain\Entities\Parameters\TraceTreeDeleteManyParameters;
@@ -9,7 +9,7 @@ use App\Modules\TraceAggregator\Domain\Entities\Parameters\TraceTreeInsertParame
 use App\Modules\TraceAggregator\Repositories\Interfaces\TraceRepositoryInterface;
 use App\Modules\TraceAggregator\Repositories\Interfaces\TraceTreeRepositoryInterface;
 
-readonly class TraceTreeService
+readonly class FreshTraceTreeAction
 {
     public function __construct(
         private TraceRepositoryInterface $traceRepository,
@@ -17,7 +17,7 @@ readonly class TraceTreeService
     ) {
     }
 
-    public function fresh(): void
+    public function handle(): void
     {
         $to = now();
 
