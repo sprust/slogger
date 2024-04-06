@@ -2,6 +2,8 @@
 
 namespace App\Modules\TraceAggregator\Framework\Http\Controllers;
 
+use App\Modules\TraceAggregator\Domain\Actions\FindTraceDetailAction;
+use App\Modules\TraceAggregator\Domain\Actions\FindTracesAction;
 use App\Modules\TraceAggregator\Domain\Entities\Parameters\PeriodParameters;
 use App\Modules\TraceAggregator\Domain\Entities\Parameters\TraceFindParameters;
 use App\Modules\TraceAggregator\Domain\Entities\Parameters\TraceSortParameters;
@@ -9,7 +11,6 @@ use App\Modules\TraceAggregator\Framework\Http\Controllers\Traits\MakeDataFilter
 use App\Modules\TraceAggregator\Framework\Http\Requests\TraceIndexRequest;
 use App\Modules\TraceAggregator\Framework\Http\Responses\TraceDetailResponse;
 use App\Modules\TraceAggregator\Framework\Http\Responses\TraceItemsResponse;
-use App\Modules\TraceAggregator\Repositories\Interfaces\TraceRepositoryInterface;
 use Symfony\Component\HttpFoundation\Response;
 
 readonly class TraceController
@@ -17,7 +18,8 @@ readonly class TraceController
     use MakeDataFilterParameterTrait;
 
     public function __construct(
-        private TraceRepositoryInterface $repository
+        private FindTracesAction $findTracesAction,
+        private FindTraceDetailAction $findTraceDetailAction
     ) {
     }
 
@@ -25,7 +27,7 @@ readonly class TraceController
     {
         $validated = $request->validated();
 
-        $traces = $this->repository->find(
+        $traces = $this->findTracesAction->handle(
             new TraceFindParameters(
                 page: $validated['page'] ?? 1,
                 perPage: $validated['per_page'] ?? null,
@@ -57,7 +59,7 @@ readonly class TraceController
 
     public function show(string $traceId): TraceDetailResponse
     {
-        $traceObject = $this->repository->findOneByTraceId($traceId);
+        $traceObject = $this->findTraceDetailAction->handle($traceId);
 
         abort_if(!$traceObject, Response::HTTP_NOT_FOUND);
 
