@@ -7,7 +7,7 @@ use App\Modules\TraceAggregator\Domain\Entities\Parameters\TraceFindStatusesPara
 use App\Modules\TraceAggregator\Domain\Entities\Parameters\TraceFindTagsParameters;
 use App\Modules\TraceAggregator\Domain\Entities\Parameters\TraceFindTypesParameters;
 use App\Modules\TraceAggregator\Repositories\Interfaces\TraceContentRepositoryInterface;
-use App\Modules\TraceAggregator\Services\TraceQueryBuilder;
+use App\Modules\TraceAggregator\Repositories\Services\TraceQueryBuilder;
 use Illuminate\Database\Eloquent\Builder;
 
 readonly class TraceContentRepository implements TraceContentRepositoryInterface

@@ -7,10 +7,10 @@ use App\Modules\TraceAggregator\Framework\Commands\FreshTraceTreesCommand;
 use App\Modules\TraceAggregator\Repositories\Interfaces\TraceContentRepositoryInterface;
 use App\Modules\TraceAggregator\Repositories\Interfaces\TraceRepositoryInterface;
 use App\Modules\TraceAggregator\Repositories\Interfaces\TraceTreeRepositoryInterface;
+use App\Modules\TraceAggregator\Repositories\Services\TraceQueryBuilder;
 use App\Modules\TraceAggregator\Repositories\TraceContentRepository;
 use App\Modules\TraceAggregator\Repositories\TraceRepository;
 use App\Modules\TraceAggregator\Repositories\TraceTreeRepository;
-use App\Modules\TraceAggregator\Services\TraceQueryBuilder;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 
@@ -18,10 +18,10 @@ class TraceAggregatorProvider extends ServiceProvider
 {
     public function boot(): void
     {
+        $this->app->singleton(TraceQueryBuilder::class);
+
         $this->registerRepositories();
         $this->registerRoutes();
-
-        $this->app->singleton(TraceQueryBuilder::class);
 
         $this->commands([
             FreshTraceTreesCommand::class,

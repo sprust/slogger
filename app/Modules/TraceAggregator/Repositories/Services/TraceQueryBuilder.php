@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\TraceAggregator\Services;
+namespace App\Modules\TraceAggregator\Repositories\Services;
 
 use App\Models\Traces\Trace;
 use App\Modules\TraceAggregator\Domain\Entities\Parameters\DataFilter\TraceDataFilterItemParameters;
