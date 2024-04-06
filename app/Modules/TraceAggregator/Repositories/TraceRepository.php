@@ -70,9 +70,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
         array $statuses = [],
         ?float $durationFrom = null,
         ?float $durationTo = null,
-        // TODO
         ?array $sort = null,
-        // TODO
         ?TraceDataFilterParameters $data = null,
     ): TraceItemsPaginationDto {
         $builder = $this->traceQueryBuilder->make(

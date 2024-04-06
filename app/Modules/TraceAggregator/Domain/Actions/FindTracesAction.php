@@ -74,9 +74,7 @@ readonly class FindTracesAction
             statuses: $parameters->statuses,
             durationFrom: $parameters->durationFrom,
             durationTo: $parameters->durationTo,
-            // TODO
             sort: $parameters->sort,
-            // TODO
             data: $parameters->data,
         );
 
