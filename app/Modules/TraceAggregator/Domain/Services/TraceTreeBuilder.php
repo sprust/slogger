@@ -1,19 +1,19 @@
 <?php
 
-namespace App\Modules\TraceAggregator\Services;
+namespace App\Modules\TraceAggregator\Domain\Services;
 
-use App\Models\Traces\Trace;
 use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceServiceObject;
 use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceTreeObject;
+use App\Modules\TraceAggregator\Repositories\Dto\TraceDto;
 use Illuminate\Support\Collection;
 
 readonly class TraceTreeBuilder
 {
     /**
-     * @param Collection<Trace> $children
+     * @param Collection<TraceDto> $children
      */
     public function __construct(
-        private Trace $parentTrace,
+        private TraceDto $parentTrace,
         private Collection $children
     ) {
     }
@@ -44,16 +44,16 @@ readonly class TraceTreeBuilder
     /**
      * @return TraceTreeObject[]
      */
-    private function collectRecursive(Trace $parentTrace, int $depth): array
+    private function collectRecursive(TraceDto $parentTrace, int $depth): array
     {
         ++$depth;
 
         return $this->children
             ->filter(
-                fn(Trace $childTrace) => $childTrace->parentTraceId === $parentTrace->traceId
+                fn(TraceDto $childTrace) => $childTrace->parentTraceId === $parentTrace->traceId
             )
             ->map(
-                fn(Trace $childTrace) => new TraceTreeObject(
+                fn(TraceDto $childTrace) => new TraceTreeObject(
                     serviceObject: $childTrace->service
                         ? new TraceServiceObject(
                             id: $childTrace->service->id,

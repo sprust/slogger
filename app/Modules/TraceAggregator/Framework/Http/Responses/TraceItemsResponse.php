@@ -2,8 +2,8 @@
 
 namespace App\Modules\TraceAggregator\Framework\Http\Responses;
 
-use App\Http\Resources\AbstractApiResource;
-use App\Http\Resources\PaginatorInfoResource;
+use App\Modules\Common\Http\Resources\AbstractApiResource;
+use App\Modules\Common\Http\Resources\PaginatorInfoResource;
 use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceItemObjects;
 use Ifksco\OpenApiGenerator\Attributes\OaListItemTypeAttribute;
 

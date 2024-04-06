@@ -2,7 +2,7 @@
 
 namespace App\Modules\TraceCleaner\Http\Resources;
 
-use App\Http\Resources\AbstractApiResource;
+use App\Modules\Common\Http\Resources\AbstractApiResource;
 use App\Modules\TraceCleaner\Services\Objects\SettingObject;
 
 class SettingResource extends AbstractApiResource

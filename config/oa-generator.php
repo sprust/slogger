@@ -1,10 +1,10 @@
 <?php
 
+use App\Modules\Common\Http\Resources\AbstractApiResource;
 use Ifksco\OpenApiGenerator\Converters\Request\Rules\OaRuleAsStringConverter;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\ProhibitedIf;
 use Illuminate\Validation\Rules\RequiredIf;
-use App\Http\Resources\AbstractApiResource;
 
 return [
     'routes'               => [

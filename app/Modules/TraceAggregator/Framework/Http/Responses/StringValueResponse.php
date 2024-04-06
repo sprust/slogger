@@ -2,7 +2,7 @@
 
 namespace App\Modules\TraceAggregator\Framework\Http\Responses;
 
-use App\Http\Resources\AbstractApiResource;
+use App\Modules\Common\Http\Resources\AbstractApiResource;
 
 class StringValueResponse extends AbstractApiResource
 {

@@ -1,10 +1,11 @@
 <?php
 
-namespace App\Modules\TraceAggregator\Domain\Entities\Objects;
+namespace App\Modules\TraceAggregator\Repositories\Dto;
 
-readonly class TraceItemTypeObject
+class TraceTypeDto
 {
     public function __construct(
+        public string $traceId,
         public string $type,
         public int $count
     ) {

@@ -2,8 +2,8 @@
 
 namespace App\Modules\Auth\Http\Resources;
 
-use App\Http\Resources\AbstractApiResource;
 use App\Modules\Auth\Dto\Objects\LoggedUserObject;
+use App\Modules\Common\Http\Resources\AbstractApiResource;
 
 class LoggedUserResource extends AbstractApiResource
 {

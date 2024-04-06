@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Http\Resources;
+namespace App\Modules\Common\Http\Resources;
 
-use App\Services\Dto\PaginationInfoObject;
+use App\Modules\Common\Entities\PaginationInfoObject;
 
 class PaginatorInfoResource extends AbstractApiResource
 {

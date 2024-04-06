@@ -5,9 +5,9 @@ namespace App\Modules\TraceAggregator\Repositories\Services;
 use App\Models\Traces\Trace;
 use App\Modules\TraceAggregator\Domain\Entities\Parameters\DataFilter\TraceDataFilterItemParameters;
 use App\Modules\TraceAggregator\Domain\Entities\Parameters\DataFilter\TraceDataFilterParameters;
-use App\Modules\TraceAggregator\Domain\Entities\Parameters\PeriodParameters;
 use App\Modules\TraceAggregator\Domain\Enums\TraceDataFilterCompStringTypeEnum;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Carbon;
 use MongoDB\BSON\UTCDateTime;
 
 class TraceQueryBuilder
@@ -24,7 +24,8 @@ class TraceQueryBuilder
     public function make(
         array $serviceIds = [],
         ?array $traceIds = null,
-        ?PeriodParameters $loggingPeriod = null,
+        ?Carbon $loggedAtFrom = null,
+        ?Carbon $loggedAtTo = null,
         array $types = [],
         array $tags = [],
         array $statuses = [],
@@ -32,9 +33,6 @@ class TraceQueryBuilder
         ?float $durationTo = null,
         ?TraceDataFilterParameters $data = null,
     ): Builder {
-        $loggedAtFrom = $loggingPeriod?->from;
-        $loggedAtTo   = $loggingPeriod?->to;
-
         $builder = Trace::query()
             ->when($serviceIds, fn(Builder $query) => $query->whereIn('serviceId', $serviceIds))
             ->when($traceIds, fn(Builder $query) => $query->whereIn('traceId', $traceIds))

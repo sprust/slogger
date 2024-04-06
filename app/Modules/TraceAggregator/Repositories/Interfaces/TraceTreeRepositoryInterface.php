@@ -2,12 +2,8 @@
 
 namespace App\Modules\TraceAggregator\Repositories\Interfaces;
 
-use App\Models\Traces\Trace;
-use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceTreeObjects;
-use App\Modules\TraceAggregator\Domain\Entities\Parameters\TraceFindTreeParameters;
 use App\Modules\TraceAggregator\Domain\Entities\Parameters\TraceTreeDeleteManyParameters;
 use App\Modules\TraceAggregator\Domain\Entities\Parameters\TraceTreeInsertParameters;
-use App\Modules\TraceAggregator\Domain\Exceptions\TreeTooLongException;
 
 interface TraceTreeRepositoryInterface
 {
@@ -16,12 +12,12 @@ interface TraceTreeRepositoryInterface
      */
     public function insertMany(array $parametersList): void;
 
-    /**
-     * @throws TreeTooLongException
-     */
-    public function find(TraceFindTreeParameters $parameters): TraceTreeObjects;
+    public function findParentTraceId(string $traceId): ?string;
 
-    public function findTraceIdsInTreeByParentTraceId(Trace $parentTrace): array;
+    /**
+     * @return string[]
+     */
+    public function findTraceIdsInTreeByParentTraceId(string $traceId): array;
 
     public function deleteMany(TraceTreeDeleteManyParameters $parameters): void;
 }

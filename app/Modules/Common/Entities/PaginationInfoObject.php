@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Dto;
+namespace App\Modules\Common\Entities;
 
 class PaginationInfoObject
 {

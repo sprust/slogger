@@ -2,7 +2,7 @@
 
 namespace App\Modules\Dashboard\Http\Resources;
 
-use App\Http\Resources\AbstractApiResource;
+use App\Modules\Common\Http\Resources\AbstractApiResource;
 use App\Modules\Dashboard\Repositories\Database\Dto\DatabaseCollectionDto;
 use Ifksco\OpenApiGenerator\Attributes\OaListItemTypeAttribute;
 
