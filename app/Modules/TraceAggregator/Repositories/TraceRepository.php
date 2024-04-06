@@ -4,7 +4,6 @@ namespace App\Modules\TraceAggregator\Repositories;
 
 use App\Models\Traces\Trace;
 use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceDataAdditionalFieldObject;
-use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceDetailObject;
 use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceItemObject;
 use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceItemObjects;
 use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceItemTraceObject;
@@ -13,10 +12,11 @@ use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceServiceObject;
 use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceTreeShortObject;
 use App\Modules\TraceAggregator\Domain\Entities\Parameters\TraceFindParameters;
 use App\Modules\TraceAggregator\Domain\Entities\Parameters\TraceTreeFindParameters;
+use App\Modules\TraceAggregator\Repositories\Dto\TraceDetailDto;
+use App\Modules\TraceAggregator\Repositories\Dto\TraceServiceDto;
 use App\Modules\TraceAggregator\Repositories\Interfaces\TraceRepositoryInterface;
 use App\Modules\TraceAggregator\Repositories\Interfaces\TraceTreeRepositoryInterface;
 use App\Modules\TraceAggregator\Repositories\Services\TraceQueryBuilder;
-use App\Modules\TraceAggregator\Services\TraceDataToObjectConverter;
 use App\Services\Dto\PaginationInfoObject;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -34,7 +34,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
         $this->maxPerPage = 20;
     }
 
-    public function findOneByTraceId(string $traceId): ?TraceDetailObject
+    public function findOneByTraceId(string $traceId): ?TraceDetailDto
     {
         /** @var Trace|null $trace */
         $trace = Trace::query()->where('traceId', $traceId)->first();
@@ -43,9 +43,9 @@ readonly class TraceRepository implements TraceRepositoryInterface
             return null;
         }
 
-        return new TraceDetailObject(
+        return new TraceDetailDto(
             service: $trace->service
-                ? new TraceServiceObject(
+                ? new TraceServiceDto(
                     id: $trace->service->id,
                     name: $trace->service->name,
                 )
@@ -55,7 +55,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
             type: $trace->type,
             status: $trace->status,
             tags: $trace->tags,
-            data: (new TraceDataToObjectConverter($trace->data))->convert(),
+            data: $trace->data,
             duration: $trace->duration,
             memory: $trace->memory,
             cpu: $trace->cpu,

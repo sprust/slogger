@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\TraceAggregator\Services;
+namespace App\Modules\TraceAggregator\Domain\Services;
 
 use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceDataObject;
 use Illuminate\Support\Arr;
