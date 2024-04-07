@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Modules\Service\Repository;
+namespace App\Modules\Service\Repositories;
 
-use App\Modules\Service\Repository\Dto\ServiceDto;
-use App\Modules\Service\Services\Parameters\ServiceCreateParameters;
+use App\Modules\Service\Domain\Entities\Parameters\ServiceCreateParameters;
+use App\Modules\Service\Repositories\Dto\ServiceDto;
 
 interface ServiceRepositoryInterface
 {

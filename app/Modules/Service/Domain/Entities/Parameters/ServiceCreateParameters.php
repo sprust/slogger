@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\Service\Services\Parameters;
+namespace App\Modules\Service\Domain\Entities\Parameters;
 
 use Illuminate\Support\Str;
 

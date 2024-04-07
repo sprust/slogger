@@ -4,7 +4,7 @@ namespace App\Modules;
 
 use App\Modules\Auth\Framework\AuthServiceProvider;
 use App\Modules\Dashboard\DashboardProvider;
-use App\Modules\Service\ServiceServiceProvider;
+use App\Modules\Service\Framework\ServiceServiceProvider;
 use App\Modules\TraceAggregator\TraceAggregatorProvider;
 use App\Modules\TraceCleaner\Framework\TraceCleanerServiceProvider;
 use App\Modules\TraceCollector\Framework\TraceCollectorServiceProvider;

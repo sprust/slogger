@@ -2,13 +2,13 @@
 
 namespace App\Modules\TraceCollector\Adapters\Service;
 
-use App\Modules\Service\Api\ServiceApi;
-use App\Modules\Service\Http\Middlewares\AuthServiceMiddleware;
+use App\Modules\Service\Domain\Actions\GetCurrentServiceAction;
+use App\Modules\Service\Framework\Http\Middlewares\AuthServiceMiddleware;
 use App\Modules\TraceCollector\Domain\Entities\Objects\ServiceObject;
 
 readonly class ServiceAdapter
 {
-    public function __construct(private ServiceApi $serviceApi)
+    public function __construct(private GetCurrentServiceAction $getCurrentServiceAction)
     {
     }
 
@@ -19,7 +19,7 @@ readonly class ServiceAdapter
 
     public function getService(): ?ServiceObject
     {
-        $service = $this->serviceApi->getCurrentService();
+        $service = $this->getCurrentServiceAction->handle();
 
         if (!$service) {
             return null;

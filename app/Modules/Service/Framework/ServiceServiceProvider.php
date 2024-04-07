@@ -1,15 +1,14 @@
 <?php
 
-namespace App\Modules\Service;
+namespace App\Modules\Service\Framework;
 
 use App\Modules\Service\Adapters\Auth\AuthAdapter;
-use App\Modules\Service\Api\ServiceApi;
-use App\Modules\Service\Commands\CreateServiceCommand;
-use App\Modules\Service\Http\Controllers\ServiceController;
-use App\Modules\Service\Http\ServiceContainer;
-use App\Modules\Service\Repository\ServiceRepository;
-use App\Modules\Service\Repository\ServiceRepositoryInterface;
-use App\Modules\Service\Services\ServiceService;
+use App\Modules\Service\Domain\Actions\FindServiceByTokenAction;
+use App\Modules\Service\Framework\Commands\CreateServiceCommand;
+use App\Modules\Service\Framework\Http\Controllers\ServiceController;
+use App\Modules\Service\Framework\Http\ServiceContainer;
+use App\Modules\Service\Repositories\ServiceRepository;
+use App\Modules\Service\Repositories\ServiceRepositoryInterface;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 
@@ -18,9 +17,8 @@ class ServiceServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->app->singleton(ServiceRepositoryInterface::class, ServiceRepository::class);
-        $this->app->singleton(ServiceService::class);
+        $this->app->singleton(FindServiceByTokenAction::class);
         $this->app->singleton(ServiceContainer::class);
-        $this->app->singleton(ServiceApi::class);
 
         $this->commands([
             CreateServiceCommand::class,

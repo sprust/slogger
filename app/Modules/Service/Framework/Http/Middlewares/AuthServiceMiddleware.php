@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Modules\Service\Http\Middlewares;
+namespace App\Modules\Service\Framework\Http\Middlewares;
 
-use App\Modules\Service\Http\ServiceContainer;
-use App\Modules\Service\Services\ServiceService;
+use App\Modules\Service\Domain\Actions\FindServiceByTokenAction;
+use App\Modules\Service\Framework\Http\ServiceContainer;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -12,7 +12,7 @@ use Symfony\Component\HttpKernel\TerminableInterface;
 readonly class AuthServiceMiddleware implements TerminableInterface
 {
     public function __construct(
-        private ServiceService $serviceService,
+        private FindServiceByTokenAction $findServiceByTokenAction,
         private ServiceContainer $serviceContainer
     ) {
     }
@@ -30,7 +30,7 @@ readonly class AuthServiceMiddleware implements TerminableInterface
             abort(401);
         }
 
-        $service = $this->serviceService->findByToken($token);
+        $service = $this->findServiceByTokenAction->handle($token);
 
         if (!$service) {
             abort(401);

@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Modules\Service\Services\Objects;
+namespace App\Modules\Service\Repositories\Dto;
 
-readonly class ServiceObject
+readonly class ServiceDto
 {
     public function __construct(
         public int $id,

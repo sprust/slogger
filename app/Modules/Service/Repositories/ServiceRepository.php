@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Modules\Service\Repository;
+namespace App\Modules\Service\Repositories;
 
 use App\Models\Services\Service;
-use App\Modules\Service\Repository\Dto\ServiceDto;
-use App\Modules\Service\Services\Parameters\ServiceCreateParameters;
+use App\Modules\Service\Domain\Entities\Parameters\ServiceCreateParameters;
+use App\Modules\Service\Repositories\Dto\ServiceDto;
 use Illuminate\Support\Str;
 
 class ServiceRepository implements ServiceRepositoryInterface

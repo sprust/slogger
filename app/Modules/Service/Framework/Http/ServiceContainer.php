@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Modules\Service\Http;
+namespace App\Modules\Service\Framework\Http;
 
-use App\Modules\Service\Services\Objects\ServiceObject;
+use App\Modules\Service\Domain\Entities\Objects\ServiceObject;
 
 class ServiceContainer
 {

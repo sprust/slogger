@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Modules\Service\Commands;
+namespace App\Modules\Service\Framework\Commands;
 
-use App\Modules\Service\Exceptions\ServiceAlreadyExistsException;
-use App\Modules\Service\Services\Parameters\ServiceCreateParameters;
-use App\Modules\Service\Services\ServiceService;
+use App\Modules\Service\Domain\Actions\CreateServiceAction;
+use App\Modules\Service\Domain\Entities\Parameters\ServiceCreateParameters;
+use App\Modules\Service\Domain\Exceptions\ServiceAlreadyExistsException;
 use Illuminate\Console\Command;
 
 class CreateServiceCommand extends Command
@@ -25,10 +25,8 @@ class CreateServiceCommand extends Command
 
     /**
      * Execute the console command.
-     *
-     * @throws ServiceAlreadyExistsException
      */
-    public function handle(ServiceService $serviceService): int
+    public function handle(CreateServiceAction $createServiceAction): int
     {
         $serviceName = $this->ask('Name *');
 
@@ -36,11 +34,17 @@ class CreateServiceCommand extends Command
             return self::FAILURE;
         }
 
-        $service = $serviceService->create(
-            new ServiceCreateParameters(
-                name: $serviceName
-            )
-        );
+        try {
+            $service = $createServiceAction->handle(
+                new ServiceCreateParameters(
+                    name: $serviceName
+                )
+            );
+        } catch (ServiceAlreadyExistsException $exception) {
+            $this->error($exception->getMessage());
+
+            return self::FAILURE;
+        }
 
         $this->table(
             [

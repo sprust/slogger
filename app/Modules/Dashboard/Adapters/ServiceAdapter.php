@@ -3,7 +3,7 @@
 namespace App\Modules\Dashboard\Adapters;
 
 use App\Modules\Dashboard\Adapters\Dto\ServiceDto;
-use App\Modules\Service\Repository\ServiceRepositoryInterface;
+use App\Modules\Service\Repositories\ServiceRepositoryInterface;
 
 readonly class ServiceAdapter
 {
@@ -19,7 +19,7 @@ readonly class ServiceAdapter
     public function find(): array
     {
         return array_map(
-            fn(\App\Modules\Service\Repository\Dto\ServiceDto $dto) => new ServiceDto(
+            fn(\App\Modules\Service\Repositories\Dto\ServiceDto $dto) => new ServiceDto(
                 id: $dto->id,
                 name: $dto->name,
             ),
