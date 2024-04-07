@@ -7,7 +7,7 @@ use App\Modules\Dashboard\DashboardProvider;
 use App\Modules\Service\ServiceServiceProvider;
 use App\Modules\TraceAggregator\TraceAggregatorProvider;
 use App\Modules\TraceCleaner\Framework\TraceCleanerServiceProvider;
-use App\Modules\TraceCollector\TraceCollectorServiceProvider;
+use App\Modules\TraceCollector\Framework\TraceCollectorServiceProvider;
 use App\Modules\User\Framework\UserServiceProvider;
 
 class ModulesConfig

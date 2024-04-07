@@ -2,10 +2,8 @@
 
 namespace App\Modules\TraceAggregator\Repositories\Interfaces;
 
-use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceTreeShortObject;
 use App\Modules\TraceAggregator\Domain\Entities\Parameters\DataFilter\TraceDataFilterParameters;
 use App\Modules\TraceAggregator\Domain\Entities\Parameters\TraceSortParameters;
-use App\Modules\TraceAggregator\Domain\Entities\Parameters\TraceTreeFindParameters;
 use App\Modules\TraceAggregator\Repositories\Dto\TraceDetailDto;
 use App\Modules\TraceAggregator\Repositories\Dto\TraceDto;
 use App\Modules\TraceAggregator\Repositories\Dto\TraceItemsPaginationDto;
@@ -51,7 +49,4 @@ interface TraceRepositoryInterface
      * @return TraceTypeDto[]
      */
     public function findTypeCounts(array $traceIds): array;
-
-    /** @return TraceTreeShortObject[] */
-    public function findTree(TraceTreeFindParameters $parameters): array;
 }

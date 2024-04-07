@@ -3,48 +3,12 @@
 namespace App\Modules\TraceAggregator\Repositories;
 
 use App\Models\Traces\Trace;
-use App\Models\Traces\TraceTree;
-use App\Modules\TraceAggregator\Domain\Entities\Parameters\TraceTreeDeleteManyParameters;
 use App\Modules\TraceAggregator\Repositories\Interfaces\TraceTreeRepositoryInterface;
-use MongoDB\BSON\UTCDateTime;
 use MongoDB\Model\BSONDocument;
 
 class TraceTreeRepository implements TraceTreeRepositoryInterface
 {
     private int $maxDepthForFindParent = 100;
-
-    public function insertMany(array $parametersList): void
-    {
-        $operations = [];
-
-        $createdAt = new UTCDateTime(now());
-
-        foreach ($parametersList as $parameters) {
-            $operations[] = [
-                'updateOne' => [
-                    [
-                        'traceId'       => $parameters->traceId,
-                        'parentTraceId' => $parameters->parentTraceId,
-                    ],
-                    [
-                        '$set'         => [
-                            'traceId'       => $parameters->traceId,
-                            'parentTraceId' => $parameters->parentTraceId,
-                            'loggedAt'      => new UTCDateTime($parameters->loggedAt),
-                        ],
-                        '$setOnInsert' => [
-                            'createdAt' => $createdAt,
-                        ],
-                    ],
-                    [
-                        'upsert' => true,
-                    ],
-                ],
-            ];
-        }
-
-        TraceTree::collection()->bulkWrite($operations);
-    }
 
     public function findTraceIdsInTreeByParentTraceId(string $traceId): array
     {
@@ -150,10 +114,5 @@ class TraceTreeRepository implements TraceTreeRepositoryInterface
         }
 
         return $parentTrace['traceId'];
-    }
-
-    public function deleteMany(TraceTreeDeleteManyParameters $parameters): void
-    {
-        TraceTree::query()->where('loggedAt', '<=', new UTCDateTime($parameters->to))->delete();
     }
 }

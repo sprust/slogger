@@ -4,9 +4,7 @@ namespace App\Modules\TraceAggregator\Repositories;
 
 use App\Models\Traces\Trace;
 use App\Modules\Common\Entities\PaginationInfoObject;
-use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceTreeShortObject;
 use App\Modules\TraceAggregator\Domain\Entities\Parameters\DataFilter\TraceDataFilterParameters;
-use App\Modules\TraceAggregator\Domain\Entities\Parameters\TraceTreeFindParameters;
 use App\Modules\TraceAggregator\Repositories\Dto\TraceDetailDto;
 use App\Modules\TraceAggregator\Repositories\Dto\TraceDto;
 use App\Modules\TraceAggregator\Repositories\Dto\TraceItemsPaginationDto;
@@ -17,7 +15,6 @@ use App\Modules\TraceAggregator\Repositories\Services\TraceQueryBuilder;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
-use MongoDB\BSON\UTCDateTime;
 
 readonly class TraceRepository implements TraceRepositoryInterface
 {
@@ -246,32 +243,5 @@ readonly class TraceRepository implements TraceRepositoryInterface
         }
 
         return $types;
-    }
-
-    public function findTree(TraceTreeFindParameters $parameters): array
-    {
-        return Trace::query()
-            ->select([
-                'traceId',
-                'parentTraceId',
-                'loggedAt',
-            ])
-            ->when(
-                $parameters->to,
-                fn(Builder $query) => $query->where('loggedAt', '<=', new UTCDateTime($parameters->to))
-            )
-            ->forPage(
-                page: $parameters->page,
-                perPage: $parameters->perPage
-            )
-            ->get()
-            ->map(
-                fn(Trace $trace) => new TraceTreeShortObject(
-                    traceId: $trace->traceId,
-                    parentTraceId: $trace->parentTraceId,
-                    loggedAt: $trace->loggedAt
-                )
-            )
-            ->toArray();
     }
 }
