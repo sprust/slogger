@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\TraceAggregator;
+namespace App\Modules\TraceAggregator\Framework;
 
 use App\Modules\TraceAggregator\Adapters\AuthAdapter;
 use App\Modules\TraceAggregator\Repositories\Interfaces\TraceContentRepositoryInterface;
