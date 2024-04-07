@@ -27,11 +27,12 @@ class TraceTreeResponse extends AbstractApiResource
     {
         parent::__construct($tree);
 
-        $this->service         = $tree->serviceObject
+        $this->service = $tree->service
             ? new TraceServiceResponse(
-                $tree->serviceObject
+                $tree->service
             )
             : null;
+
         $this->trace_id        = $tree->traceId;
         $this->parent_trace_id = $tree->parentTraceId;
         $this->type            = $tree->type;

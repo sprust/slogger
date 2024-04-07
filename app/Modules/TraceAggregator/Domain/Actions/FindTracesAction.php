@@ -8,8 +8,8 @@ use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceItemObject;
 use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceItemObjects;
 use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceItemTraceObject;
 use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceServiceObject;
-use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceTypeObject;
 use App\Modules\TraceAggregator\Domain\Entities\Parameters\TraceFindParameters;
+use App\Modules\TraceAggregator\Domain\Transports\TraceTypeTransport;
 use App\Modules\TraceAggregator\Repositories\Dto\TraceDetailDto;
 use App\Modules\TraceAggregator\Repositories\Dto\TraceTypeDto;
 use App\Modules\TraceAggregator\Repositories\Interfaces\TraceRepositoryInterface;
@@ -96,10 +96,7 @@ readonly class FindTracesAction
 
         foreach ($traceItemsPagination->items as $trace) {
             $types = array_map(
-                fn(TraceTypeDto $item) => new TraceTypeObject(
-                    type: $item->type,
-                    count: $item->count,
-                ),
+                fn(TraceTypeDto $item) => TraceTypeTransport::toObject($item),
                 $groupedTypeCounts[$trace->traceId] ?? []
             );
 

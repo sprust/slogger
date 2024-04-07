@@ -6,6 +6,8 @@ use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceTreeObjects;
 use App\Modules\TraceAggregator\Domain\Entities\Parameters\TraceFindTreeParameters;
 use App\Modules\TraceAggregator\Domain\Exceptions\TreeTooLongException;
 use App\Modules\TraceAggregator\Domain\Services\TraceTreeBuilder;
+use App\Modules\TraceAggregator\Domain\Transports\TraceDetailTransport;
+use App\Modules\TraceAggregator\Domain\Transports\TraceTransport;
 use App\Modules\TraceAggregator\Repositories\Dto\TraceDto;
 use App\Modules\TraceAggregator\Repositories\Dto\TraceServiceDto;
 use App\Modules\TraceAggregator\Repositories\Interfaces\TraceRepositoryInterface;
@@ -57,27 +59,13 @@ readonly class FindTraceTreeAction
         );
 
         $treeNodesBuilder = new TraceTreeBuilder(
-            parentTrace: new TraceDto(
-                id: $parentTrace->id,
-                service: $parentTrace->service
-                    ? new TraceServiceDto(
-                        id: $parentTrace->service->id,
-                        name: $parentTrace->service->name,
-                    )
-                    : null,
-                traceId: $parentTrace->traceId,
-                parentTraceId: $parentTrace->parentTraceId,
-                type: $parentTrace->type,
-                status: $parentTrace->status,
-                tags: $parentTrace->tags,
-                duration: $parentTrace->duration,
-                memory: $parentTrace->memory,
-                cpu: $parentTrace->cpu,
-                loggedAt: $parentTrace->loggedAt,
-                createdAt: $parentTrace->createdAt,
-                updatedAt: $parentTrace->updatedAt
-            ),
-            children: collect($children)
+            parentTrace: TraceDetailTransport::toObject($parentTrace),
+            children: collect(
+                array_map(
+                    fn(TraceDto $dto) => TraceTransport::toObject($dto),
+                    $children
+                )
+            )
         );
 
         return new TraceTreeObjects(

@@ -11,7 +11,7 @@ readonly class TraceTreeObject
      * @param TraceTreeObject[] $children
      */
     public function __construct(
-        public ?TraceServiceObject $serviceObject,
+        public ?TraceServiceObject $service,
         public string $traceId,
         public ?string $parentTraceId,
         public string $type,

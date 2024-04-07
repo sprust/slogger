@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Modules\TraceAggregator\Repositories\Dto;
+namespace App\Modules\TraceAggregator\Domain\Entities\Objects;
 
 use Illuminate\Support\Carbon;
 
-readonly class TraceDto
+readonly class TraceObject
 {
     public function __construct(
-        public string $id,
-        public ?TraceServiceDto $service,
+        string $id,
+        public ?TraceServiceObject $service,
         public string $traceId,
         public ?string $parentTraceId,
         public string $type,
