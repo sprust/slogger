@@ -3,7 +3,7 @@
 namespace App\Modules\TraceCleaner\Repositories;
 
 use App\Models\Traces\TraceClearingProcess;
-use App\Modules\TraceCleaner\Repositories\Contracts\ProcessRepositoryInterface;
+use App\Modules\TraceCleaner\Repositories\Interfaces\ProcessRepositoryInterface;
 use App\Modules\TraceCleaner\Repositories\Dto\ProcessDto;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
