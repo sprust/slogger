@@ -2,13 +2,13 @@
 
 namespace App\Modules;
 
-use App\Modules\Auth\AuthServiceProvider;
-use App\Modules\Service\ServiceServiceProvider;
-use App\Modules\Dashboard\DashboardProvider;
-use App\Modules\TraceCleaner\TraceCleanerServiceProvider;
-use App\Modules\TraceCollector\TraceCollectorServiceProvider;
-use App\Modules\TraceAggregator\TraceAggregatorProvider;
-use App\Modules\User\UserServiceProvider;
+use App\Modules\Auth\Framework\AuthServiceProvider;
+use App\Modules\Dashboard\Framework\DashboardProvider;
+use App\Modules\Service\Framework\ServiceServiceProvider;
+use App\Modules\TraceAggregator\Framework\TraceAggregatorProvider;
+use App\Modules\TraceCleaner\Framework\TraceCleanerServiceProvider;
+use App\Modules\TraceCollector\Framework\TraceCollectorServiceProvider;
+use App\Modules\User\Framework\UserServiceProvider;
 
 class ModulesConfig
 {

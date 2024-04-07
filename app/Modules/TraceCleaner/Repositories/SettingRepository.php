@@ -3,7 +3,7 @@
 namespace App\Modules\TraceCleaner\Repositories;
 
 use App\Models\Traces\TraceClearingSetting;
-use App\Modules\TraceCleaner\Repositories\Contracts\SettingRepositoryInterface;
+use App\Modules\TraceCleaner\Repositories\Interfaces\SettingRepositoryInterface;
 use App\Modules\TraceCleaner\Repositories\Dto\SettingDto;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -76,8 +76,8 @@ class SettingRepository implements SettingRepositoryInterface
             ]);
     }
 
-    public function delete(int $id): void
+    public function delete(int $id): bool
     {
-        TraceClearingSetting::query()->where('id', $id)->delete();
+        return (bool) TraceClearingSetting::query()->where('id', $id)->delete();
     }
 }

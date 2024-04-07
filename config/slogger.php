@@ -1,6 +1,8 @@
 <?php
 
 use App\Models\Users\User;
+use App\Modules\TraceCollector\Framework\Jobs\TraceCreateJob;
+use App\Modules\TraceCollector\Framework\Jobs\TraceUpdateJob;
 use SLoggerLaravel\Dispatcher\SLoggerTraceDispatcherInterface;
 use SLoggerLaravel\Dispatcher\SLoggerTraceQueueDispatcher;
 use SLoggerLaravel\Events\SLoggerWatcherErrorEvent;
@@ -21,8 +23,6 @@ use SLoggerLaravel\Watchers\Services\SLoggerMailWatcher;
 use SLoggerLaravel\Watchers\Services\SLoggerModelWatcher;
 use SLoggerLaravel\Watchers\Services\SLoggerNotificationWatcher;
 use SLoggerLaravel\Watchers\Services\SLoggerScheduleWatcher;
-use App\Modules\TraceCollector\Jobs\TraceCreateJob;
-use App\Modules\TraceCollector\Jobs\TraceUpdateJob;
 
 return [
     'enabled' => env('SLOGGER_ENABLED', false),

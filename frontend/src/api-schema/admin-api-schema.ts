@@ -12,6 +12,168 @@
 export namespace AdminApi {
   /**
  * No description
+ * @name AuthMeList
+ * @request GET:/admin-api/auth/me
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    first_name: string,
+    last_name?: string | null,
+    email: string,
+    api_token: string,
+
+},
+
+}` description
+*/
+  export namespace AuthMeList {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        id: number;
+        first_name: string;
+        last_name?: string | null;
+        email: string;
+        api_token: string;
+      };
+    };
+  } /**
+ * No description
+ * @name AuthLoginCreate
+ * @request POST:/admin-api/auth/login
+ * @response `200` `{
+    data: {
+    id: number,
+    first_name: string,
+    last_name?: string | null,
+    email: string,
+    api_token: string,
+
+},
+
+}` description
+*/
+  export namespace AuthLoginCreate {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = {
+      /** @format email */
+      email: string;
+      /**
+       * @minLength 5
+       * @maxLength 50
+       */
+      password: string;
+    };
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        id: number;
+        first_name: string;
+        last_name?: string | null;
+        email: string;
+        api_token: string;
+      };
+    };
+  } /**
+ * No description
+ * @name DashboardDatabaseList
+ * @request GET:/admin-api/dashboard/database
+ * @secure
+ * @response `200` `{
+    data: ({
+    name: string,
+    size: number,
+    collections: ({
+    name: string,
+    size: number,
+    indexes_size: number,
+    total_size: number,
+    count: number,
+    avg_obj_size: number,
+    indexes: ({
+    name: string,
+    size: number,
+    usage: number,
+
+})[],
+
+})[],
+
+})[],
+
+}` description
+*/
+  export namespace DashboardDatabaseList {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        name: string;
+        size: number;
+        collections: {
+          name: string;
+          size: number;
+          indexes_size: number;
+          total_size: number;
+          count: number;
+          avg_obj_size: number;
+          indexes: {
+            name: string;
+            size: number;
+            usage: number;
+          }[];
+        }[];
+      }[];
+    };
+  } /**
+ * No description
+ * @name DashboardServiceStatList
+ * @request GET:/admin-api/dashboard/service-stat
+ * @secure
+ * @response `200` `{
+    data: ({
+    service: {
+    id: number,
+    name: string,
+
+},
+    from: string,
+    to: string,
+    type: string,
+    status: string,
+    count: number,
+
+})[],
+
+}` description
+*/
+  export namespace DashboardServiceStatList {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        service: {
+          id: number;
+          name: string;
+        };
+        from: string;
+        to: string;
+        type: string;
+        status: string;
+        count: number;
+      }[];
+    };
+  } /**
+ * No description
  * @name ServicesList
  * @request GET:/admin-api/services
  * @secure
@@ -635,168 +797,6 @@ export namespace AdminApi {
     };
   } /**
  * No description
- * @name AuthMeList
- * @request GET:/admin-api/auth/me
- * @secure
- * @response `200` `{
-    data: {
-    id: number,
-    first_name: string,
-    last_name?: string | null,
-    email: string,
-    api_token: string,
-
-},
-
-}` description
-*/
-  export namespace AuthMeList {
-    export type RequestParams = {};
-    export type RequestQuery = {};
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = {
-      data: {
-        id: number;
-        first_name: string;
-        last_name?: string | null;
-        email: string;
-        api_token: string;
-      };
-    };
-  } /**
- * No description
- * @name AuthLoginCreate
- * @request POST:/admin-api/auth/login
- * @response `200` `{
-    data: {
-    id: number,
-    first_name: string,
-    last_name?: string | null,
-    email: string,
-    api_token: string,
-
-},
-
-}` description
-*/
-  export namespace AuthLoginCreate {
-    export type RequestParams = {};
-    export type RequestQuery = {};
-    export type RequestBody = {
-      /** @format email */
-      email: string;
-      /**
-       * @minLength 5
-       * @maxLength 50
-       */
-      password: string;
-    };
-    export type RequestHeaders = {};
-    export type ResponseBody = {
-      data: {
-        id: number;
-        first_name: string;
-        last_name?: string | null;
-        email: string;
-        api_token: string;
-      };
-    };
-  } /**
- * No description
- * @name DashboardDatabaseList
- * @request GET:/admin-api/dashboard/database
- * @secure
- * @response `200` `{
-    data: ({
-    name: string,
-    size: number,
-    collections: ({
-    name: string,
-    size: number,
-    indexes_size: number,
-    total_size: number,
-    count: number,
-    avg_obj_size: number,
-    indexes: ({
-    name: string,
-    size: number,
-    usage: number,
-
-})[],
-
-})[],
-
-})[],
-
-}` description
-*/
-  export namespace DashboardDatabaseList {
-    export type RequestParams = {};
-    export type RequestQuery = {};
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = {
-      data: {
-        name: string;
-        size: number;
-        collections: {
-          name: string;
-          size: number;
-          indexes_size: number;
-          total_size: number;
-          count: number;
-          avg_obj_size: number;
-          indexes: {
-            name: string;
-            size: number;
-            usage: number;
-          }[];
-        }[];
-      }[];
-    };
-  } /**
- * No description
- * @name DashboardServiceStatList
- * @request GET:/admin-api/dashboard/service-stat
- * @secure
- * @response `200` `{
-    data: ({
-    service: {
-    id: number,
-    name: string,
-
-},
-    from: string,
-    to: string,
-    type: string,
-    status: string,
-    count: number,
-
-})[],
-
-}` description
-*/
-  export namespace DashboardServiceStatList {
-    export type RequestParams = {};
-    export type RequestQuery = {};
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = {
-      data: {
-        service: {
-          id: number;
-          name: string;
-        };
-        from: string;
-        to: string;
-        type: string;
-        status: string;
-        count: number;
-      }[];
-    };
-  } /**
- * No description
  * @name TraceCleanerSettingsList
  * @request GET:/admin-api/trace-cleaner/settings
  * @secure
@@ -1168,6 +1168,200 @@ export class HttpClient<SecurityDataType = unknown> {
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
   adminApi = {
+    /**
+ * No description
+ *
+ * @name AuthMeList
+ * @request GET:/admin-api/auth/me
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    first_name: string,
+    last_name?: string | null,
+    email: string,
+    api_token: string,
+
+},
+
+}` description
+ */
+    authMeList: (params: RequestParams = {}) =>
+      this.request<
+        {
+          data: {
+            id: number;
+            first_name: string;
+            last_name?: string | null;
+            email: string;
+            api_token: string;
+          };
+        },
+        any
+      >({
+        path: `/admin-api/auth/me`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name AuthLoginCreate
+ * @request POST:/admin-api/auth/login
+ * @response `200` `{
+    data: {
+    id: number,
+    first_name: string,
+    last_name?: string | null,
+    email: string,
+    api_token: string,
+
+},
+
+}` description
+ */
+    authLoginCreate: (
+      data: {
+        /** @format email */
+        email: string;
+        /**
+         * @minLength 5
+         * @maxLength 50
+         */
+        password: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          data: {
+            id: number;
+            first_name: string;
+            last_name?: string | null;
+            email: string;
+            api_token: string;
+          };
+        },
+        any
+      >({
+        path: `/admin-api/auth/login`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name DashboardDatabaseList
+ * @request GET:/admin-api/dashboard/database
+ * @secure
+ * @response `200` `{
+    data: ({
+    name: string,
+    size: number,
+    collections: ({
+    name: string,
+    size: number,
+    indexes_size: number,
+    total_size: number,
+    count: number,
+    avg_obj_size: number,
+    indexes: ({
+    name: string,
+    size: number,
+    usage: number,
+
+})[],
+
+})[],
+
+})[],
+
+}` description
+ */
+    dashboardDatabaseList: (params: RequestParams = {}) =>
+      this.request<
+        {
+          data: {
+            name: string;
+            size: number;
+            collections: {
+              name: string;
+              size: number;
+              indexes_size: number;
+              total_size: number;
+              count: number;
+              avg_obj_size: number;
+              indexes: {
+                name: string;
+                size: number;
+                usage: number;
+              }[];
+            }[];
+          }[];
+        },
+        any
+      >({
+        path: `/admin-api/dashboard/database`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name DashboardServiceStatList
+ * @request GET:/admin-api/dashboard/service-stat
+ * @secure
+ * @response `200` `{
+    data: ({
+    service: {
+    id: number,
+    name: string,
+
+},
+    from: string,
+    to: string,
+    type: string,
+    status: string,
+    count: number,
+
+})[],
+
+}` description
+ */
+    dashboardServiceStatList: (params: RequestParams = {}) =>
+      this.request<
+        {
+          data: {
+            service: {
+              id: number;
+              name: string;
+            };
+            from: string;
+            to: string;
+            type: string;
+            status: string;
+            count: number;
+          }[];
+        },
+        any
+      >({
+        path: `/admin-api/dashboard/service-stat`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
     /**
  * No description
  *
@@ -1852,200 +2046,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         body: data,
         secure: true,
         type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
- * No description
- *
- * @name AuthMeList
- * @request GET:/admin-api/auth/me
- * @secure
- * @response `200` `{
-    data: {
-    id: number,
-    first_name: string,
-    last_name?: string | null,
-    email: string,
-    api_token: string,
-
-},
-
-}` description
- */
-    authMeList: (params: RequestParams = {}) =>
-      this.request<
-        {
-          data: {
-            id: number;
-            first_name: string;
-            last_name?: string | null;
-            email: string;
-            api_token: string;
-          };
-        },
-        any
-      >({
-        path: `/admin-api/auth/me`,
-        method: "GET",
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-
-    /**
- * No description
- *
- * @name AuthLoginCreate
- * @request POST:/admin-api/auth/login
- * @response `200` `{
-    data: {
-    id: number,
-    first_name: string,
-    last_name?: string | null,
-    email: string,
-    api_token: string,
-
-},
-
-}` description
- */
-    authLoginCreate: (
-      data: {
-        /** @format email */
-        email: string;
-        /**
-         * @minLength 5
-         * @maxLength 50
-         */
-        password: string;
-      },
-      params: RequestParams = {},
-    ) =>
-      this.request<
-        {
-          data: {
-            id: number;
-            first_name: string;
-            last_name?: string | null;
-            email: string;
-            api_token: string;
-          };
-        },
-        any
-      >({
-        path: `/admin-api/auth/login`,
-        method: "POST",
-        body: data,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
- * No description
- *
- * @name DashboardDatabaseList
- * @request GET:/admin-api/dashboard/database
- * @secure
- * @response `200` `{
-    data: ({
-    name: string,
-    size: number,
-    collections: ({
-    name: string,
-    size: number,
-    indexes_size: number,
-    total_size: number,
-    count: number,
-    avg_obj_size: number,
-    indexes: ({
-    name: string,
-    size: number,
-    usage: number,
-
-})[],
-
-})[],
-
-})[],
-
-}` description
- */
-    dashboardDatabaseList: (params: RequestParams = {}) =>
-      this.request<
-        {
-          data: {
-            name: string;
-            size: number;
-            collections: {
-              name: string;
-              size: number;
-              indexes_size: number;
-              total_size: number;
-              count: number;
-              avg_obj_size: number;
-              indexes: {
-                name: string;
-                size: number;
-                usage: number;
-              }[];
-            }[];
-          }[];
-        },
-        any
-      >({
-        path: `/admin-api/dashboard/database`,
-        method: "GET",
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-
-    /**
- * No description
- *
- * @name DashboardServiceStatList
- * @request GET:/admin-api/dashboard/service-stat
- * @secure
- * @response `200` `{
-    data: ({
-    service: {
-    id: number,
-    name: string,
-
-},
-    from: string,
-    to: string,
-    type: string,
-    status: string,
-    count: number,
-
-})[],
-
-}` description
- */
-    dashboardServiceStatList: (params: RequestParams = {}) =>
-      this.request<
-        {
-          data: {
-            service: {
-              id: number;
-              name: string;
-            };
-            from: string;
-            to: string;
-            type: string;
-            status: string;
-            count: number;
-          }[];
-        },
-        any
-      >({
-        path: `/admin-api/dashboard/service-stat`,
-        method: "GET",
-        secure: true,
         format: "json",
         ...params,
       }),

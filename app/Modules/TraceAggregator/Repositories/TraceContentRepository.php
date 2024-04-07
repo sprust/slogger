@@ -3,10 +3,11 @@
 namespace App\Modules\TraceAggregator\Repositories;
 
 use App\Models\Traces\Trace;
-use App\Modules\TraceAggregator\Dto\Parameters\TraceFindStatusesParameters;
-use App\Modules\TraceAggregator\Dto\Parameters\TraceFindTagsParameters;
-use App\Modules\TraceAggregator\Dto\Parameters\TraceFindTypesParameters;
-use App\Modules\TraceAggregator\Services\TraceQueryBuilder;
+use App\Modules\TraceAggregator\Domain\Entities\Parameters\TraceFindStatusesParameters;
+use App\Modules\TraceAggregator\Domain\Entities\Parameters\TraceFindTagsParameters;
+use App\Modules\TraceAggregator\Domain\Entities\Parameters\TraceFindTypesParameters;
+use App\Modules\TraceAggregator\Repositories\Interfaces\TraceContentRepositoryInterface;
+use App\Modules\TraceAggregator\Repositories\Services\TraceQueryBuilder;
 use Illuminate\Database\Eloquent\Builder;
 
 readonly class TraceContentRepository implements TraceContentRepositoryInterface
@@ -21,7 +22,8 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
         return $this->traceQueryBuilder
             ->make(
                 serviceIds: $parameters->serviceIds,
-                loggingPeriod: $parameters->loggingPeriod,
+                loggedAtFrom: $parameters->loggingPeriod?->from,
+                loggedAtTo: $parameters->loggingPeriod?->to,
                 data: $parameters->data,
             )
             ->when(
@@ -39,7 +41,8 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
         $mql = $this->traceQueryBuilder
             ->make(
                 serviceIds: $parameters->serviceIds,
-                loggingPeriod: $parameters->loggingPeriod,
+                loggedAtFrom: $parameters->loggingPeriod?->from,
+                loggedAtTo: $parameters->loggingPeriod?->to,
                 types: $parameters->types,
                 data: $parameters->data,
             )
@@ -95,7 +98,8 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
         return $this->traceQueryBuilder
             ->make(
                 serviceIds: $parameters->serviceIds,
-                loggingPeriod: $parameters->loggingPeriod,
+                loggedAtFrom: $parameters->loggingPeriod?->from,
+                loggedAtTo: $parameters->loggingPeriod?->to,
                 types: $parameters->types,
                 tags: $parameters->tags,
                 data: $parameters->data,

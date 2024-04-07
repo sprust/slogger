@@ -3,21 +3,25 @@
 namespace App\Modules\User\Repository;
 
 use App\Models\Users\User;
-use App\Modules\User\Repository\Dto\UserFullDto;
-use App\Modules\User\Repository\Parameters\UserCreateParameters;
+use App\Modules\User\Domain\Entities\Parameters\UserCreateParameters;
+use App\Modules\User\Repository\Dto\UserDetailDto;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 class UserRepository implements UserRepositoryInterface
 {
-    public function create(UserCreateParameters $parameters): UserFullDto
-    {
+    public function create(
+        string $firstName,
+        ?string $lastName,
+        string $email,
+        string $password
+    ): UserDetailDto {
         $newUser = new User();
 
-        $newUser->first_name = $parameters->firstName;
-        $newUser->last_name  = $parameters->lastName;
-        $newUser->email      = $parameters->email;
-        $newUser->password   = Hash::make($parameters->password);
+        $newUser->first_name = $firstName;
+        $newUser->last_name  = $lastName;
+        $newUser->email      = $email;
+        $newUser->password   = Hash::make($password);
         $newUser->api_token  = Str::random(50);
 
         $newUser->saveOrFail();
@@ -25,14 +29,14 @@ class UserRepository implements UserRepositoryInterface
         return $this->makeUserFullDtoByUserOrNull($newUser);
     }
 
-    public function findByEmail(string $email): ?UserFullDto
+    public function findByEmail(string $email): ?UserDetailDto
     {
         return $this->makeUserFullDtoByUserOrNull(
             User::query()->where('email', $email)->first()
         );
     }
 
-    public function findByToken(string $token): ?UserFullDto
+    public function findByToken(string $token): ?UserDetailDto
     {
         return $this->makeUserFullDtoByUserOrNull(
             User::query()->where('api_token', $token)->first()
@@ -40,13 +44,13 @@ class UserRepository implements UserRepositoryInterface
     }
 
 
-    private function makeUserFullDtoByUserOrNull(?User $user): ?UserFullDto
+    private function makeUserFullDtoByUserOrNull(?User $user): ?UserDetailDto
     {
         if (!$user) {
             return null;
         }
 
-        return new UserFullDto(
+        return new UserDetailDto(
             id: $user->id,
             firstName: $user->first_name,
             lastName: $user->last_name,

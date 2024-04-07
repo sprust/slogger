@@ -3,7 +3,7 @@
 namespace App\Modules\TraceCleaner\Repositories;
 
 use App\Models\Traces\TraceTree;
-use App\Modules\TraceCleaner\Repositories\Contracts\TraceTreeRepositoryInterface;
+use App\Modules\TraceCleaner\Repositories\Interfaces\TraceTreeRepositoryInterface;
 
 class TraceTreeRepository implements TraceTreeRepositoryInterface
 {

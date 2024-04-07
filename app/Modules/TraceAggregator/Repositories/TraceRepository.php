@@ -3,36 +3,27 @@
 namespace App\Modules\TraceAggregator\Repositories;
 
 use App\Models\Traces\Trace;
-use App\Modules\TraceAggregator\Dto\Objects\TraceDataAdditionalFieldObject;
-use App\Modules\TraceAggregator\Dto\Objects\TraceDetailObject;
-use App\Modules\TraceAggregator\Dto\Objects\TraceItemObject;
-use App\Modules\TraceAggregator\Dto\Objects\TraceItemObjects;
-use App\Modules\TraceAggregator\Dto\Objects\TraceItemTraceObject;
-use App\Modules\TraceAggregator\Dto\Objects\TraceItemTypeObject;
-use App\Modules\TraceAggregator\Dto\Objects\TraceServiceObject;
-use App\Modules\TraceAggregator\Dto\Objects\TraceTreeShortObject;
-use App\Modules\TraceAggregator\Dto\Parameters\TraceFindParameters;
-use App\Modules\TraceAggregator\Dto\Parameters\TraceTreeFindParameters;
-use App\Modules\TraceAggregator\Services\TraceDataToObjectConverter;
-use App\Modules\TraceAggregator\Services\TraceQueryBuilder;
-use App\Services\Dto\PaginationInfoObject;
+use App\Modules\Common\Entities\PaginationInfoObject;
+use App\Modules\TraceAggregator\Domain\Entities\Parameters\DataFilter\TraceDataFilterParameters;
+use App\Modules\TraceAggregator\Repositories\Dto\TraceDetailDto;
+use App\Modules\TraceAggregator\Repositories\Dto\TraceDto;
+use App\Modules\TraceAggregator\Repositories\Dto\TraceItemsPaginationDto;
+use App\Modules\TraceAggregator\Repositories\Dto\TraceServiceDto;
+use App\Modules\TraceAggregator\Repositories\Dto\TraceTypeDto;
+use App\Modules\TraceAggregator\Repositories\Interfaces\TraceRepositoryInterface;
+use App\Modules\TraceAggregator\Repositories\Services\TraceQueryBuilder;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Support\Arr;
-use MongoDB\BSON\UTCDateTime;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 readonly class TraceRepository implements TraceRepositoryInterface
 {
-    private int $maxPerPage;
-
     public function __construct(
-        private TraceTreeRepositoryInterface $traceTreeRepository,
         private TraceQueryBuilder $traceQueryBuilder
     ) {
-        $this->maxPerPage = 20;
     }
 
-    public function findOneByTraceId(string $traceId): ?TraceDetailObject
+    public function findOneByTraceId(string $traceId): ?TraceDetailDto
     {
         /** @var Trace|null $trace */
         $trace = Trace::query()->where('traceId', $traceId)->first();
@@ -41,9 +32,10 @@ readonly class TraceRepository implements TraceRepositoryInterface
             return null;
         }
 
-        return new TraceDetailObject(
+        return new TraceDetailDto(
+            id: $trace->_id,
             service: $trace->service
-                ? new TraceServiceObject(
+                ? new TraceServiceDto(
                     id: $trace->service->id,
                     name: $trace->service->name,
                 )
@@ -53,7 +45,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
             type: $trace->type,
             status: $trace->status,
             tags: $trace->tags,
-            data: (new TraceDataToObjectConverter($trace->data))->convert(),
+            data: $trace->data,
             duration: $trace->duration,
             memory: $trace->memory,
             cpu: $trace->cpu,
@@ -63,75 +55,151 @@ readonly class TraceRepository implements TraceRepositoryInterface
         );
     }
 
-    public function find(TraceFindParameters $parameters): TraceItemObjects
-    {
-        $perPage = min($parameters->perPage ?: $this->maxPerPage, $this->maxPerPage);
-
-        $traceIds = null;
-
-        if ($parameters->traceId) {
-            /** @var Trace|null $trace */
-            $trace = Trace::query()->where('traceId', $parameters->traceId)->first();
-
-            if (!$trace) {
-                return new TraceItemObjects(
-                    items: [],
-                    paginationInfo: new PaginationInfoObject(
-                        total: 0,
-                        perPage: $perPage,
-                        currentPage: 1,
-                    )
-                );
-            }
-
-            if (!$parameters->allTracesInTree) {
-                $traceIds = [$parameters->traceId];
-            } else {
-                $parentTrace = $this->traceTreeRepository->findParentTrace($trace);
-
-                $traceIds   = $this->traceTreeRepository->findTraceIdsInTreeByParentTraceId($parentTrace);
-                $traceIds[] = $parentTrace->traceId;
-            }
-        }
-
+    public function find(
+        int $page = 1,
+        int $perPage = 20,
+        ?array $serviceIds = null,
+        ?array $traceIds = null,
+        ?Carbon $loggedAtFrom = null,
+        ?Carbon $loggedAtTo = null,
+        array $types = [],
+        array $tags = [],
+        array $statuses = [],
+        ?float $durationFrom = null,
+        ?float $durationTo = null,
+        ?array $sort = null,
+        ?TraceDataFilterParameters $data = null,
+    ): TraceItemsPaginationDto {
         $builder = $this->traceQueryBuilder->make(
-            serviceIds: $parameters->serviceIds,
+            serviceIds: $serviceIds,
             traceIds: $traceIds,
-            loggingPeriod: $parameters->loggingPeriod,
-            types: $parameters->types,
-            tags: $parameters->tags,
-            statuses: $parameters->statuses,
-            durationFrom: $parameters->durationFrom,
-            durationTo: $parameters->durationTo,
-            data: $parameters->data,
+            loggedAtFrom: $loggedAtFrom,
+            loggedAtTo: $loggedAtTo,
+            types: $types,
+            tags: $tags,
+            statuses: $statuses,
+            durationFrom: $durationFrom,
+            durationTo: $durationTo,
+            data: $data,
         );
 
-        $parentsPaginator = $builder
+        $tracesPaginator = $builder
             ->with([
                 'service',
             ])
             ->when(
-                count($parameters->sort),
-                function (Builder $query) use ($parameters) {
-                    foreach ($parameters->sort as $sortItem) {
+                !is_null($sort),
+                function (Builder $query) use ($sort) {
+                    foreach ($sort as $sortItem) {
                         $query->orderBy($sortItem->field, $sortItem->directionEnum->value);
                     }
                 }
             )
             ->paginate(
                 perPage: $perPage,
-                page: $parameters->page
+                page: $page
             );
 
-        /** @var Collection|Trace[] $parents */
-        $parents = $parentsPaginator->items();
+        /** @var Trace[] $traces */
+        $traces = $tracesPaginator->items();
 
+        return new TraceItemsPaginationDto(
+            items: array_map(
+                fn(Trace $trace) => new TraceDetailDto(
+                    id: $trace->_id,
+                    service: $trace->service
+                        ? new TraceServiceDto(
+                            id: $trace->service->id,
+                            name: $trace->service->name,
+                        )
+                        : null,
+                    traceId: $trace->traceId,
+                    parentTraceId: $trace->parentTraceId,
+                    type: $trace->type,
+                    status: $trace->status,
+                    tags: $trace->tags,
+                    data: $trace->data,
+                    duration: $trace->duration,
+                    memory: $trace->memory,
+                    cpu: $trace->cpu,
+                    loggedAt: $trace->loggedAt,
+                    createdAt: $trace->createdAt,
+                    updatedAt: $trace->updatedAt
+                ),
+                $traces
+            ),
+            paginationInfo: new PaginationInfoObject(
+                total: $tracesPaginator->total(),
+                perPage: $perPage,
+                currentPage: $page,
+            )
+        );
+    }
+
+    public function findByTraceIds(array $traceIds): array
+    {
+        /** @var TraceDto[] $children */
+        $children = [];
+
+        foreach (collect($traceIds)->chunk(1000) as $childrenIdsChunk) {
+            Trace::query()
+                ->select([
+                    '_id',
+                    'serviceId',
+                    'traceId',
+                    'parentTraceId',
+                    'type',
+                    'status',
+                    'tags',
+                    'duration',
+                    'memory',
+                    'cpu',
+                    'loggedAt',
+                    'createdAt',
+                    'updatedAt',
+                ])
+                ->with([
+                    'service' => fn(BelongsTo $relation) => $relation->select([
+                        'id',
+                        'name',
+                    ]),
+                ])
+                ->whereIn('traceId', $childrenIdsChunk)
+                ->each(function (Trace $trace) use (&$children) {
+                    $children[] = new TraceDto(
+                        id: $trace->_id,
+                        service: $trace->service
+                            ? new TraceServiceDto(
+                                id: $trace->service->id,
+                                name: $trace->service->name,
+                            )
+                            : null,
+                        traceId: $trace->traceId,
+                        parentTraceId: $trace->parentTraceId,
+                        type: $trace->type,
+                        status: $trace->status,
+                        tags: $trace->tags,
+                        duration: $trace->duration,
+                        memory: $trace->memory,
+                        cpu: $trace->cpu,
+                        loggedAt: $trace->loggedAt,
+                        createdAt: $trace->createdAt,
+                        updatedAt: $trace->updatedAt
+                    );
+                });
+        }
+
+        return $children;
+    }
+
+    public function findTypeCounts(array $traceIds): array
+    {
         $pipeline = [];
 
         $pipeline[] = [
             '$match' => [
                 'parentTraceId' => [
-                    '$in' => collect($parents)->pluck('traceId')->toArray(),
+                    '$in' => $traceIds,
                 ],
             ],
         ];
@@ -162,129 +230,18 @@ readonly class TraceRepository implements TraceRepositoryInterface
             ],
         ];
 
-        $typesAggregation = collect(Trace::collection()->aggregate($pipeline))
-            ->groupBy(function (object $item) {
-                return $item->_id->parentTraceId;
-            });
+        $typesAggregation = Trace::collection()->aggregate($pipeline);
 
-        $resultItems = [];
+        $types = [];
 
-        foreach ($parents as $parent) {
-            $types = $typesAggregation->get($parent->traceId)
-                ?->map(function (object $item) {
-                    return new TraceItemTypeObject(
-                        type: $item->_id->type,
-                        count: $item->count,
-                    );
-                })->toArray()
-                ?? [];
-
-            $resultItems[] = new TraceItemObject(
-                trace: new TraceItemTraceObject(
-                    service: $parent->service
-                        ? new TraceServiceObject(
-                            id: $parent->service->id,
-                            name: $parent->service->name,
-                        )
-                        : null,
-                    traceId: $parent->traceId,
-                    parentTraceId: $parent->parentTraceId,
-                    type: $parent->type,
-                    status: $parent->status,
-                    tags: $parent->tags,
-                    duration: $parent->duration,
-                    memory: $parent->memory,
-                    cpu: $parent->cpu,
-                    additionalFields: $this->makeTraceAdditionalFields(
-                        data: $parent->data,
-                        additionalFields: $parameters->data?->fields ?? []
-                    ),
-                    loggedAt: $parent->loggedAt,
-                    createdAt: $parent->createdAt,
-                    updatedAt: $parent->updatedAt
-                ),
-                types: $types
+        foreach ($typesAggregation as $item) {
+            $types[] = new TraceTypeDto(
+                traceId: $item->_id->parentTraceId,
+                type: $item->_id->type,
+                count: $item->count,
             );
         }
 
-        return new TraceItemObjects(
-            items: $resultItems,
-            paginationInfo: new PaginationInfoObject(
-                total: $parentsPaginator->total(),
-                perPage: $perPage,
-                currentPage: $parameters->page,
-            ),
-        );
-    }
-
-    public function findTree(TraceTreeFindParameters $parameters): array
-    {
-        return Trace::query()
-            ->select([
-                'traceId',
-                'parentTraceId',
-                'loggedAt',
-            ])
-            ->when(
-                $parameters->to,
-                fn(Builder $query) => $query->where('loggedAt', '<=', new UTCDateTime($parameters->to))
-            )
-            ->forPage(
-                page: $parameters->page,
-                perPage: $parameters->perPage
-            )
-            ->get()
-            ->map(
-                fn(Trace $trace) => new TraceTreeShortObject(
-                    traceId: $trace->traceId,
-                    parentTraceId: $trace->parentTraceId,
-                    loggedAt: $trace->loggedAt
-                )
-            )
-            ->toArray();
-    }
-
-    /**
-     * @return TraceDataAdditionalFieldObject[]
-     */
-    private function makeTraceAdditionalFields(array $data, array $additionalFields): array
-    {
-        $additionalFieldValues = [];
-
-        foreach ($additionalFields as $additionalField) {
-            $additionalFieldData = explode('.', $additionalField);
-
-            if (count($additionalFieldData) === 1) {
-                $values = [Arr::get($data, $additionalField)];
-            } else {
-                $preKey = implode('.', array_slice($additionalFieldData, 0, -1));
-
-                $preValue = Arr::get($data, $preKey);
-
-                if (is_null($preValue)) {
-                    continue;
-                }
-
-                if (Arr::isAssoc($preValue)) {
-                    $values = [Arr::get($data, $additionalField)];
-                } else {
-                    $key = $additionalFieldData[count($additionalFieldData) - 1];
-
-                    $values = array_filter(
-                        array_map(
-                            fn(array $item) => $item[$key] ?? null,
-                            $preValue
-                        )
-                    );
-                }
-            }
-
-            $additionalFieldValues[] = new TraceDataAdditionalFieldObject(
-                key: $additionalField,
-                values: $values
-            );
-        }
-
-        return $additionalFieldValues;
+        return $types;
     }
 }

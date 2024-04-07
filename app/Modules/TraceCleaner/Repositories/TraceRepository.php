@@ -3,7 +3,7 @@
 namespace App\Modules\TraceCleaner\Repositories;
 
 use App\Models\Traces\Trace;
-use App\Modules\TraceCleaner\Repositories\Contracts\TraceRepositoryInterface;
+use App\Modules\TraceCleaner\Repositories\Interfaces\TraceRepositoryInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use MongoDB\BSON\UTCDateTime;

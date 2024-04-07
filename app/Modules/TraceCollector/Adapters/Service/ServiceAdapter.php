@@ -2,30 +2,24 @@
 
 namespace App\Modules\TraceCollector\Adapters\Service;
 
-use App\Modules\Service\Api\ServiceApi;
-use App\Modules\Service\Http\Middlewares\AuthServiceMiddleware;
-use App\Modules\TraceCollector\Adapters\Service\Dto\ServiceDto;
+use App\Modules\Service\Domain\Actions\GetCurrentServiceAction;
+use App\Modules\TraceCollector\Domain\Entities\Objects\ServiceObject;
 
 readonly class ServiceAdapter
 {
-    public function __construct(private ServiceApi $serviceApi)
+    public function __construct(private GetCurrentServiceAction $getCurrentServiceAction)
     {
     }
 
-    public function getAuthMiddleware(): string
+    public function getService(): ?ServiceObject
     {
-        return AuthServiceMiddleware::class;
-    }
-
-    public function getService(): ?ServiceDto
-    {
-        $service = $this->serviceApi->getCurrentService();
+        $service = $this->getCurrentServiceAction->handle();
 
         if (!$service) {
             return null;
         }
 
-        return new ServiceDto(
+        return new ServiceObject(
             id: $service->id,
             name: $service->name
         );

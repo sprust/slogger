@@ -2,7 +2,7 @@
 
 namespace App\Console;
 
-use App\Modules\TraceCleaner\Commands\ClearTracesCommand;
+use App\Modules\TraceCleaner\Framework\Commands\ClearTracesCommand;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 

@@ -14,6 +14,327 @@
         }
     },
     "paths": {
+        "/admin-api/auth/me": {
+            "get": {
+                "responses": {
+                    "200": {
+                        "description": "description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "nullable": false
+                                                },
+                                                "first_name": {
+                                                    "type": "string",
+                                                    "nullable": false
+                                                },
+                                                "last_name": {
+                                                    "type": "string",
+                                                    "nullable": true
+                                                },
+                                                "email": {
+                                                    "type": "string",
+                                                    "nullable": false
+                                                },
+                                                "api_token": {
+                                                    "type": "string",
+                                                    "nullable": false
+                                                }
+                                            },
+                                            "required": [
+                                                "id",
+                                                "first_name",
+                                                "email",
+                                                "api_token"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/admin-api/auth/login": {
+            "post": {
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "maxLength": 50,
+                                        "minLength": 5
+                                    }
+                                },
+                                "required": [
+                                    "email",
+                                    "password"
+                                ],
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "nullable": false
+                                                },
+                                                "first_name": {
+                                                    "type": "string",
+                                                    "nullable": false
+                                                },
+                                                "last_name": {
+                                                    "type": "string",
+                                                    "nullable": true
+                                                },
+                                                "email": {
+                                                    "type": "string",
+                                                    "nullable": false
+                                                },
+                                                "api_token": {
+                                                    "type": "string",
+                                                    "nullable": false
+                                                }
+                                            },
+                                            "required": [
+                                                "id",
+                                                "first_name",
+                                                "email",
+                                                "api_token"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/admin-api/dashboard/database": {
+            "get": {
+                "responses": {
+                    "200": {
+                        "description": "description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "name": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "size": {
+                                                        "type": "number",
+                                                        "nullable": false
+                                                    },
+                                                    "collections": {
+                                                        "type": "array",
+                                                        "nullable": false,
+                                                        "items": {
+                                                            "properties": {
+                                                                "name": {
+                                                                    "type": "string",
+                                                                    "nullable": false
+                                                                },
+                                                                "size": {
+                                                                    "type": "number",
+                                                                    "nullable": false
+                                                                },
+                                                                "indexes_size": {
+                                                                    "type": "number",
+                                                                    "nullable": false
+                                                                },
+                                                                "total_size": {
+                                                                    "type": "number",
+                                                                    "nullable": false
+                                                                },
+                                                                "count": {
+                                                                    "type": "integer",
+                                                                    "nullable": false
+                                                                },
+                                                                "avg_obj_size": {
+                                                                    "type": "number",
+                                                                    "nullable": false
+                                                                },
+                                                                "indexes": {
+                                                                    "type": "array",
+                                                                    "nullable": false,
+                                                                    "items": {
+                                                                        "properties": {
+                                                                            "name": {
+                                                                                "type": "string",
+                                                                                "nullable": false
+                                                                            },
+                                                                            "size": {
+                                                                                "type": "number",
+                                                                                "nullable": false
+                                                                            },
+                                                                            "usage": {
+                                                                                "type": "integer",
+                                                                                "nullable": false
+                                                                            }
+                                                                        },
+                                                                        "required": [
+                                                                            "name",
+                                                                            "size",
+                                                                            "usage"
+                                                                        ]
+                                                                    }
+                                                                }
+                                                            },
+                                                            "required": [
+                                                                "name",
+                                                                "size",
+                                                                "indexes_size",
+                                                                "total_size",
+                                                                "count",
+                                                                "avg_obj_size",
+                                                                "indexes"
+                                                            ]
+                                                        }
+                                                    }
+                                                },
+                                                "required": [
+                                                    "name",
+                                                    "size",
+                                                    "collections"
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/admin-api/dashboard/service-stat": {
+            "get": {
+                "responses": {
+                    "200": {
+                        "description": "description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "service": {
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer",
+                                                                "nullable": false
+                                                            },
+                                                            "name": {
+                                                                "type": "string",
+                                                                "nullable": false
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "id",
+                                                            "name"
+                                                        ]
+                                                    },
+                                                    "from": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "to": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "type": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "status": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "count": {
+                                                        "type": "integer",
+                                                        "nullable": false
+                                                    }
+                                                },
+                                                "required": [
+                                                    "service",
+                                                    "from",
+                                                    "to",
+                                                    "type",
+                                                    "status",
+                                                    "count"
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/admin-api/services": {
             "get": {
                 "responses": {
@@ -1485,327 +1806,6 @@
                                                 },
                                                 "required": [
                                                     "value"
-                                                ]
-                                            }
-                                        }
-                                    },
-                                    "required": [
-                                        "data"
-                                    ]
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/admin-api/auth/me": {
-            "get": {
-                "responses": {
-                    "200": {
-                        "description": "description",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "properties": {
-                                                "id": {
-                                                    "type": "integer",
-                                                    "nullable": false
-                                                },
-                                                "first_name": {
-                                                    "type": "string",
-                                                    "nullable": false
-                                                },
-                                                "last_name": {
-                                                    "type": "string",
-                                                    "nullable": true
-                                                },
-                                                "email": {
-                                                    "type": "string",
-                                                    "nullable": false
-                                                },
-                                                "api_token": {
-                                                    "type": "string",
-                                                    "nullable": false
-                                                }
-                                            },
-                                            "required": [
-                                                "id",
-                                                "first_name",
-                                                "email",
-                                                "api_token"
-                                            ]
-                                        }
-                                    },
-                                    "required": [
-                                        "data"
-                                    ]
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/admin-api/auth/login": {
-            "post": {
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "properties": {
-                                    "email": {
-                                        "type": "string",
-                                        "format": "email"
-                                    },
-                                    "password": {
-                                        "type": "string",
-                                        "maxLength": 50,
-                                        "minLength": 5
-                                    }
-                                },
-                                "required": [
-                                    "email",
-                                    "password"
-                                ],
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "description",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "properties": {
-                                                "id": {
-                                                    "type": "integer",
-                                                    "nullable": false
-                                                },
-                                                "first_name": {
-                                                    "type": "string",
-                                                    "nullable": false
-                                                },
-                                                "last_name": {
-                                                    "type": "string",
-                                                    "nullable": true
-                                                },
-                                                "email": {
-                                                    "type": "string",
-                                                    "nullable": false
-                                                },
-                                                "api_token": {
-                                                    "type": "string",
-                                                    "nullable": false
-                                                }
-                                            },
-                                            "required": [
-                                                "id",
-                                                "first_name",
-                                                "email",
-                                                "api_token"
-                                            ]
-                                        }
-                                    },
-                                    "required": [
-                                        "data"
-                                    ]
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/admin-api/dashboard/database": {
-            "get": {
-                "responses": {
-                    "200": {
-                        "description": "description",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "properties": {
-                                                    "name": {
-                                                        "type": "string",
-                                                        "nullable": false
-                                                    },
-                                                    "size": {
-                                                        "type": "number",
-                                                        "nullable": false
-                                                    },
-                                                    "collections": {
-                                                        "type": "array",
-                                                        "nullable": false,
-                                                        "items": {
-                                                            "properties": {
-                                                                "name": {
-                                                                    "type": "string",
-                                                                    "nullable": false
-                                                                },
-                                                                "size": {
-                                                                    "type": "number",
-                                                                    "nullable": false
-                                                                },
-                                                                "indexes_size": {
-                                                                    "type": "number",
-                                                                    "nullable": false
-                                                                },
-                                                                "total_size": {
-                                                                    "type": "number",
-                                                                    "nullable": false
-                                                                },
-                                                                "count": {
-                                                                    "type": "integer",
-                                                                    "nullable": false
-                                                                },
-                                                                "avg_obj_size": {
-                                                                    "type": "number",
-                                                                    "nullable": false
-                                                                },
-                                                                "indexes": {
-                                                                    "type": "array",
-                                                                    "nullable": false,
-                                                                    "items": {
-                                                                        "properties": {
-                                                                            "name": {
-                                                                                "type": "string",
-                                                                                "nullable": false
-                                                                            },
-                                                                            "size": {
-                                                                                "type": "number",
-                                                                                "nullable": false
-                                                                            },
-                                                                            "usage": {
-                                                                                "type": "integer",
-                                                                                "nullable": false
-                                                                            }
-                                                                        },
-                                                                        "required": [
-                                                                            "name",
-                                                                            "size",
-                                                                            "usage"
-                                                                        ]
-                                                                    }
-                                                                }
-                                                            },
-                                                            "required": [
-                                                                "name",
-                                                                "size",
-                                                                "indexes_size",
-                                                                "total_size",
-                                                                "count",
-                                                                "avg_obj_size",
-                                                                "indexes"
-                                                            ]
-                                                        }
-                                                    }
-                                                },
-                                                "required": [
-                                                    "name",
-                                                    "size",
-                                                    "collections"
-                                                ]
-                                            }
-                                        }
-                                    },
-                                    "required": [
-                                        "data"
-                                    ]
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/admin-api/dashboard/service-stat": {
-            "get": {
-                "responses": {
-                    "200": {
-                        "description": "description",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "properties": {
-                                                    "service": {
-                                                        "properties": {
-                                                            "id": {
-                                                                "type": "integer",
-                                                                "nullable": false
-                                                            },
-                                                            "name": {
-                                                                "type": "string",
-                                                                "nullable": false
-                                                            }
-                                                        },
-                                                        "required": [
-                                                            "id",
-                                                            "name"
-                                                        ]
-                                                    },
-                                                    "from": {
-                                                        "type": "string",
-                                                        "nullable": false
-                                                    },
-                                                    "to": {
-                                                        "type": "string",
-                                                        "nullable": false
-                                                    },
-                                                    "type": {
-                                                        "type": "string",
-                                                        "nullable": false
-                                                    },
-                                                    "status": {
-                                                        "type": "string",
-                                                        "nullable": false
-                                                    },
-                                                    "count": {
-                                                        "type": "integer",
-                                                        "nullable": false
-                                                    }
-                                                },
-                                                "required": [
-                                                    "service",
-                                                    "from",
-                                                    "to",
-                                                    "type",
-                                                    "status",
-                                                    "count"
                                                 ]
                                             }
                                         }
