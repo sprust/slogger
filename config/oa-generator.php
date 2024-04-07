@@ -14,7 +14,7 @@ return [
         ],
     ],
     'security_middlewares' => [
-        \App\Modules\Auth\Http\Middlewares\AuthMiddleware::class,
+        \App\Modules\Auth\Framework\Http\Middlewares\AuthMiddleware::class,
     ],
     'disks'                => [
         'public'  => 'api-json-schemes-public',

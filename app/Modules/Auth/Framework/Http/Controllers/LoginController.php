@@ -1,17 +1,17 @@
 <?php
 
-namespace App\Modules\Auth\Http\Controllers;
+namespace App\Modules\Auth\Framework\Http\Controllers;
 
-use App\Modules\Auth\Dto\Parameters\LoginParameters;
-use App\Modules\Auth\Http\Requests\LoginRequest;
-use App\Modules\Auth\Http\Resources\LoggedUserResource;
-use App\Modules\Auth\Services\AuthService;
+use App\Modules\Auth\Domain\Actions\LoginAction;
+use App\Modules\Auth\Domain\Entities\Parameters\LoginParameters;
+use App\Modules\Auth\Framework\Http\Requests\LoginRequest;
+use App\Modules\Auth\Framework\Http\Resources\LoggedUserResource;
 use Symfony\Component\HttpFoundation\Response as ResponseFoundation;
 
 readonly class LoginController
 {
     public function __construct(
-        private AuthService $authService
+        private LoginAction $loginAction
     ) {
     }
 
@@ -19,7 +19,7 @@ readonly class LoginController
     {
         $validated = $request->validated();
 
-        $loggedUser = $this->authService->login(
+        $loggedUser = $this->loginAction->handle(
             new LoginParameters(
                 email: $validated['email'],
                 password: $validated['password']

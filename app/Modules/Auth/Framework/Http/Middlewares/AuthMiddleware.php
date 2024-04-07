@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\Auth\Http\Middlewares;
+namespace App\Modules\Auth\Framework\Http\Middlewares;
 
 use App\Modules\Auth\Adapters\User\UserAdapter;
 use Closure;

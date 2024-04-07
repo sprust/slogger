@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Modules\Auth\Http\Resources;
+namespace App\Modules\Auth\Framework\Http\Resources;
 
-use App\Modules\Auth\Dto\Objects\LoggedUserObject;
+use App\Modules\Auth\Domain\Entities\Objects\LoggedUserObject;
 use App\Modules\Common\Http\Resources\AbstractApiResource;
 
 class LoggedUserResource extends AbstractApiResource

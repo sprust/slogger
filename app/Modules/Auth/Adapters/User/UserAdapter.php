@@ -2,10 +2,10 @@
 
 namespace App\Modules\Auth\Adapters\User;
 
-use App\Modules\Auth\Adapters\User\Dto\UserFullDto;
+use App\Modules\Auth\Domain\Entities\Objects\LoggedUserObject;
+use App\Modules\Auth\Domain\Entities\Objects\UserDetailObject;
 use App\Modules\User\Domain\Actions\FindUserByEmailAction;
 use App\Modules\User\Domain\Actions\FindUserByTokenAction;
-use App\Modules\User\Domain\Entities\Objects\UserDetailObject;
 
 readonly class UserAdapter
 {
@@ -15,35 +15,36 @@ readonly class UserAdapter
     ) {
     }
 
-    public function findUserByEmail(string $email): ?UserFullDto
+    public function findUserByEmail(string $email): ?UserDetailObject
     {
-        return $this->makeObjectToDtoOrNull(
-            $this->findUserByEmailAction->handle($email)
-        );
+        $user = $this->findUserByEmailAction->handle(email: $email);
+
+        return $user
+            ? new UserDetailObject(
+                id: $user->id,
+                firstName: $user->firstName,
+                lastName: $user->lastName,
+                email: $user->email,
+                password: $user->password,
+                apiToken: $user->apiToken,
+                createdAt: $user->createdAt,
+                updatedAt: $user->updatedAt,
+            )
+            : null;
     }
 
-    public function findUserByToken(string $email): ?UserFullDto
+    public function findUserByToken(string $email): ?LoggedUserObject
     {
-        return $this->makeObjectToDtoOrNull(
-            $this->findUserByTokenAction->handle($email)
-        );
-    }
+        $user = $this->findUserByTokenAction->handle($email);
 
-    private function makeObjectToDtoOrNull(?UserDetailObject $user): ?UserFullDto
-    {
-        if (!$user) {
-            return null;
-        }
-
-        return new UserFullDto(
-            id: $user->id,
-            firstName: $user->firstName,
-            lastName: $user->lastName,
-            email: $user->email,
-            password: $user->password,
-            apiToken: $user->apiToken,
-            createdAt: $user->createdAt,
-            updatedAt: $user->updatedAt,
-        );
+        return $user
+            ? new LoggedUserObject(
+                id: $user->id,
+                firstName: $user->firstName,
+                lastName: $user->lastName,
+                email: $user->email,
+                apiToken: $user->apiToken
+            )
+            : null;
     }
 }

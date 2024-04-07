@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\Auth\Dto\Objects;
+namespace App\Modules\Auth\Domain\Entities\Objects;
 
 readonly class LoggedUserObject
 {

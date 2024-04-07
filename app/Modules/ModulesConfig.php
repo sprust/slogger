@@ -2,7 +2,7 @@
 
 namespace App\Modules;
 
-use App\Modules\Auth\AuthServiceProvider;
+use App\Modules\Auth\Framework\AuthServiceProvider;
 use App\Modules\Dashboard\DashboardProvider;
 use App\Modules\Service\ServiceServiceProvider;
 use App\Modules\TraceAggregator\TraceAggregatorProvider;

@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Modules\Auth;
+namespace App\Modules\Auth\Framework;
 
-use App\Modules\Auth\Http\Controllers\LoginController;
-use App\Modules\Auth\Http\Controllers\MeController;
-use App\Modules\Auth\Http\Middlewares\AuthMiddleware;
+use App\Modules\Auth\Framework\Http\Controllers\LoginController;
+use App\Modules\Auth\Framework\Http\Controllers\MeController;
+use App\Modules\Auth\Framework\Http\Middlewares\AuthMiddleware;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 

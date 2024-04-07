@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\Auth\Dto\Parameters;
+namespace App\Modules\Auth\Domain\Entities\Parameters;
 
 class LoginParameters
 {

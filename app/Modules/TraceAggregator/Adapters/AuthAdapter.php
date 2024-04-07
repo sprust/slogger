@@ -2,7 +2,7 @@
 
 namespace App\Modules\TraceAggregator\Adapters;
 
-use App\Modules\Auth\Http\Middlewares\AuthMiddleware;
+use App\Modules\Auth\Framework\Http\Middlewares\AuthMiddleware;
 
 readonly class AuthAdapter
 {
