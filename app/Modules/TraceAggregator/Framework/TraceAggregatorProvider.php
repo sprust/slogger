@@ -44,7 +44,7 @@ class TraceAggregatorProvider extends ServiceProvider
                 Route::prefix('/trace-aggregator')
                     ->as('trace-aggregator.')
                     ->group(function () {
-                        include 'Framework/Http/Routes/routes.php';
+                        include 'Http/Routes/routes.php';
                     });
             });
     }

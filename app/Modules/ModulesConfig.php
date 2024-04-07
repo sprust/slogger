@@ -3,7 +3,7 @@
 namespace App\Modules;
 
 use App\Modules\Auth\Framework\AuthServiceProvider;
-use App\Modules\Dashboard\DashboardProvider;
+use App\Modules\Dashboard\Framework\DashboardProvider;
 use App\Modules\Service\Framework\ServiceServiceProvider;
 use App\Modules\TraceAggregator\Framework\TraceAggregatorProvider;
 use App\Modules\TraceCleaner\Framework\TraceCleanerServiceProvider;
