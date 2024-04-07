@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Modules\Auth\Framework\Http\Middlewares\AuthMiddleware;
+use App\Modules\Service\Framework\Http\Middlewares\AuthServiceMiddleware;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 use Illuminate\Http\Request;
@@ -35,6 +37,16 @@ class RouteServiceProvider extends ServiceProvider
 
             Route::middleware('web')
                 ->group(base_path('routes/web.php'));
+
+            Route::middleware(AuthMiddleware::class)
+                ->prefix('admin-api')
+                ->as('admin-api.')
+                ->group(base_path('routes/admin-api.php'));
+
+            Route::middleware(AuthServiceMiddleware::class)
+                ->prefix('traces-api')
+                ->as('traces-api.')
+                ->group(base_path('routes/traces-api.php'));
         });
     }
 }
