@@ -71,7 +71,7 @@ readonly class FindTraceTreeAction
         return new TraceTreeObjects(
             tracesCount: $tracesCount,
             items: [
-                $treeNodesBuilder->collect(),
+                $treeNodesBuilder->build(),
             ]
         );
     }

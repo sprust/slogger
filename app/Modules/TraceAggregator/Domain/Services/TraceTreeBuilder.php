@@ -18,7 +18,7 @@ readonly class TraceTreeBuilder
     ) {
     }
 
-    public function collect(): TraceTreeObject
+    public function build(): TraceTreeObject
     {
         return $this->traceToTraceTree($this->parentTrace, 0);
     }
@@ -26,7 +26,7 @@ readonly class TraceTreeBuilder
     /**
      * @return TraceTreeObject[]
      */
-    private function collectRecursive(TraceObject $parentTrace, int $depth): array
+    private function buildRecursive(TraceObject $parentTrace, int $depth): array
     {
         ++$depth;
 
@@ -63,7 +63,7 @@ readonly class TraceTreeBuilder
             memory: $trace->memory,
             cpu: $trace->cpu,
             loggedAt: $trace->loggedAt,
-            children: $this->collectRecursive($trace, $depth),
+            children: $this->buildRecursive($trace, $depth),
             depth: $depth
         );
     }

@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Modules\TraceAggregator\Domain\Services;
+namespace App\Modules\TraceAggregator\Domain\Transports;
 
 use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceDataObject;
 use Illuminate\Support\Arr;
 
-class TraceDataToObjectConverter
+class TraceDataToObjectBuilder
 {
     private string $key;
 
@@ -13,14 +13,14 @@ class TraceDataToObjectConverter
     {
     }
 
-    public function convert(): TraceDataObject
+    public function build(): TraceDataObject
     {
         $this->key = '';
 
-        return $this->convertRecursive($this->data);
+        return $this->buildRecursive($this->data);
     }
 
-    private function convertRecursive(array|string|bool|int|float|null $data): TraceDataObject
+    private function buildRecursive(array|string|bool|int|float|null $data): TraceDataObject
     {
         if (!is_array($data)) {
             return new TraceDataObject(
@@ -41,7 +41,7 @@ class TraceDataToObjectConverter
                     $this->key = "$key$dataKey";
                 }
 
-                $children[] = $this->convertRecursive($dataValue);
+                $children[] = $this->buildRecursive($dataValue);
 
                 $this->key = $currentKey;
             }

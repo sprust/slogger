@@ -5,7 +5,6 @@ namespace App\Modules\TraceAggregator\Domain\Transports;
 use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceDetailObject;
 use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceObject;
 use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceServiceObject;
-use App\Modules\TraceAggregator\Domain\Services\TraceDataToObjectConverter;
 use App\Modules\TraceAggregator\Repositories\Dto\TraceDetailDto;
 
 class TraceDetailTransport
@@ -48,7 +47,7 @@ class TraceDetailTransport
             type: $dto->type,
             status: $dto->status,
             tags: $dto->tags,
-            data: (new TraceDataToObjectConverter($dto->data))->convert(),
+            data: (new TraceDataToObjectBuilder($dto->data))->build(),
             duration: $dto->duration,
             memory: $dto->memory,
             cpu: $dto->cpu,
