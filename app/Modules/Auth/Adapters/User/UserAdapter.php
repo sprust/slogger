@@ -3,31 +3,33 @@
 namespace App\Modules\Auth\Adapters\User;
 
 use App\Modules\Auth\Adapters\User\Dto\UserFullDto;
-use App\Modules\User\Api\UserApi;
-use App\Modules\User\Services\Objects\UserFullObject;
+use App\Modules\User\Domain\Actions\FindUserByEmailAction;
+use App\Modules\User\Domain\Actions\FindUserByTokenAction;
+use App\Modules\User\Domain\Entities\Objects\UserDetailObject;
 
 readonly class UserAdapter
 {
     public function __construct(
-        private UserApi $userApi
+        private FindUserByEmailAction $findUserByEmailAction,
+        private FindUserByTokenAction $findUserByTokenAction
     ) {
     }
 
     public function findUserByEmail(string $email): ?UserFullDto
     {
         return $this->makeObjectToDtoOrNull(
-            $this->userApi->findByEmail($email)
+            $this->findUserByEmailAction->handle($email)
         );
     }
 
     public function findUserByToken(string $email): ?UserFullDto
     {
         return $this->makeObjectToDtoOrNull(
-            $this->userApi->findByToken($email)
+            $this->findUserByTokenAction->handle($email)
         );
     }
 
-    private function makeObjectToDtoOrNull(?UserFullObject $user): ?UserFullDto
+    private function makeObjectToDtoOrNull(?UserDetailObject $user): ?UserFullDto
     {
         if (!$user) {
             return null;

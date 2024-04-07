@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Modules\User\Repository\Dto;
+namespace App\Modules\User\Domain\Entities\Objects;
 
 use Illuminate\Support\Carbon;
 
-readonly class UserFullDto
+readonly class UserDetailObject
 {
     public function __construct(
         public int $id,

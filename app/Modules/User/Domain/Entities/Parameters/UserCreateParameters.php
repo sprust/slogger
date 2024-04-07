@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\User\Repository\Parameters;
+namespace App\Modules\User\Domain\Entities\Parameters;
 
 readonly class UserCreateParameters
 {

@@ -2,7 +2,7 @@
 
 namespace App\Modules\TraceAggregator\Domain\Entities\Parameters;
 
-use App\Services\Enums\SortDirectionEnum;
+use App\Modules\Common\Enums\SortDirectionEnum;
 
 readonly class TraceSortParameters
 {

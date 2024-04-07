@@ -3,9 +3,9 @@
 namespace App\Modules\TraceAggregator\Framework\Http\Requests;
 
 use App\Models\Services\Service;
+use App\Modules\Common\Enums\SortDirectionEnum;
 use App\Modules\TraceAggregator\Domain\Enums\TraceDataFilterCompNumericTypeEnum;
 use App\Modules\TraceAggregator\Domain\Enums\TraceDataFilterCompStringTypeEnum;
-use App\Services\Enums\SortDirectionEnum;
 use Illuminate\Foundation\Http\FormRequest;
 
 class TraceIndexRequest extends FormRequest
