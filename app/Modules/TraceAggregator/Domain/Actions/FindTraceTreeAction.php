@@ -4,12 +4,11 @@ namespace App\Modules\TraceAggregator\Domain\Actions;
 
 use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceTreeObjects;
 use App\Modules\TraceAggregator\Domain\Entities\Parameters\TraceFindTreeParameters;
+use App\Modules\TraceAggregator\Domain\Entities\Transports\TraceDetailTransport;
+use App\Modules\TraceAggregator\Domain\Entities\Transports\TraceTransport;
 use App\Modules\TraceAggregator\Domain\Exceptions\TreeTooLongException;
 use App\Modules\TraceAggregator\Domain\Services\TraceTreeBuilder;
-use App\Modules\TraceAggregator\Domain\Transports\TraceDetailTransport;
-use App\Modules\TraceAggregator\Domain\Transports\TraceTransport;
 use App\Modules\TraceAggregator\Repositories\Dto\TraceDto;
-use App\Modules\TraceAggregator\Repositories\Dto\TraceServiceDto;
 use App\Modules\TraceAggregator\Repositories\Interfaces\TraceRepositoryInterface;
 use App\Modules\TraceAggregator\Repositories\Interfaces\TraceTreeRepositoryInterface;
 

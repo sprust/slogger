@@ -9,7 +9,7 @@ use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceItemObjects;
 use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceItemTraceObject;
 use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceServiceObject;
 use App\Modules\TraceAggregator\Domain\Entities\Parameters\TraceFindParameters;
-use App\Modules\TraceAggregator\Domain\Transports\TraceTypeTransport;
+use App\Modules\TraceAggregator\Domain\Entities\Transports\TraceTypeTransport;
 use App\Modules\TraceAggregator\Repositories\Dto\TraceDetailDto;
 use App\Modules\TraceAggregator\Repositories\Dto\TraceTypeDto;
 use App\Modules\TraceAggregator\Repositories\Interfaces\TraceRepositoryInterface;

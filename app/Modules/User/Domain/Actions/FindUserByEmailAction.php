@@ -3,7 +3,7 @@
 namespace App\Modules\User\Domain\Actions;
 
 use App\Modules\User\Domain\Entities\Objects\UserDetailObject;
-use App\Modules\User\Domain\Transports\UserDetailTransport;
+use App\Modules\User\Domain\Entities\Transports\UserDetailTransport;
 use App\Modules\User\Repository\UserRepositoryInterface;
 
 readonly class FindUserByEmailAction
