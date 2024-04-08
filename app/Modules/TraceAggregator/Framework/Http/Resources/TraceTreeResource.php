@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Modules\TraceAggregator\Framework\Http\Responses;
+namespace App\Modules\TraceAggregator\Framework\Http\Resources;
 
 use App\Modules\Common\Http\Resources\AbstractApiResource;
 use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceTreeObject;
 use Ifksco\OpenApiGenerator\Attributes\OaListItemTypeAttribute;
 
-class TraceTreeResponse extends AbstractApiResource
+class TraceTreeResource extends AbstractApiResource
 {
-    private ?TraceServiceResponse $service;
+    private ?TraceServiceResource $service;
     private string $trace_id;
     private ?string $parent_trace_id;
     private string $type;
@@ -19,7 +19,7 @@ class TraceTreeResponse extends AbstractApiResource
     private ?float $memory;
     private ?float $cpu;
     private string $logged_at;
-    #[OaListItemTypeAttribute(TraceTreeResponse::class, isRecursive: true)]
+    #[OaListItemTypeAttribute(TraceTreeResource::class, isRecursive: true)]
     private array $children;
     private int $depth;
 
@@ -27,7 +27,7 @@ class TraceTreeResponse extends AbstractApiResource
     {
         parent::__construct($tree);
 
-        $this->service         = TraceServiceResponse::makeIfNotNull($tree->service);
+        $this->service         = TraceServiceResource::makeIfNotNull($tree->service);
         $this->trace_id        = $tree->traceId;
         $this->parent_trace_id = $tree->parentTraceId;
         $this->type            = $tree->type;
@@ -37,7 +37,7 @@ class TraceTreeResponse extends AbstractApiResource
         $this->memory          = $tree->memory;
         $this->cpu             = $tree->cpu;
         $this->logged_at       = $tree->loggedAt->toDateTimeString('microsecond');
-        $this->children        = TraceTreeResponse::mapIntoMe($tree->children);
+        $this->children        = TraceTreeResource::mapIntoMe($tree->children);
         $this->depth           = $tree->depth;
     }
 }

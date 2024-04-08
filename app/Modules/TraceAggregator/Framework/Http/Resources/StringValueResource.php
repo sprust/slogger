@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Modules\TraceAggregator\Framework\Http\Responses;
+namespace App\Modules\TraceAggregator\Framework\Http\Resources;
 
 use App\Modules\Common\Http\Resources\AbstractApiResource;
 
-class StringValueResponse extends AbstractApiResource
+class StringValueResource extends AbstractApiResource
 {
     private string $value;
 

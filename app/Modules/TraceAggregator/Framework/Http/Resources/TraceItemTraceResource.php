@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Modules\TraceAggregator\Framework\Http\Responses;
+namespace App\Modules\TraceAggregator\Framework\Http\Resources;
 
 use App\Modules\Common\Http\Resources\AbstractApiResource;
 use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceItemTraceObject;
 use Ifksco\OpenApiGenerator\Attributes\OaListItemTypeAttribute;
 
-class TraceItemTraceResponse extends AbstractApiResource
+class TraceItemTraceResource extends AbstractApiResource
 {
-    private ?TraceServiceResponse $service;
+    private ?TraceServiceResource $service;
     private string $trace_id;
     private ?string $parent_trace_id;
     private string $type;
@@ -18,7 +18,7 @@ class TraceItemTraceResponse extends AbstractApiResource
     private ?float $duration;
     private ?float $memory;
     private ?float $cpu;
-    #[OaListItemTypeAttribute(TraceDataAdditionalFieldResponse::class)]
+    #[OaListItemTypeAttribute(TraceDataAdditionalFieldResource::class)]
     private array $additional_fields;
     private string $logged_at;
     private string $created_at;
@@ -28,7 +28,7 @@ class TraceItemTraceResponse extends AbstractApiResource
     {
         parent::__construct($trace);
 
-        $this->service         = TraceServiceResponse::makeIfNotNull($trace->service);
+        $this->service         = TraceServiceResource::makeIfNotNull($trace->service);
         $this->trace_id        = $trace->traceId;
         $this->parent_trace_id = $trace->parentTraceId;
         $this->type            = $trace->type;
@@ -38,7 +38,7 @@ class TraceItemTraceResponse extends AbstractApiResource
         $this->memory          = $trace->memory;
         $this->cpu             = $trace->cpu;
 
-        $this->additional_fields = TraceDataAdditionalFieldResponse::mapIntoMe(
+        $this->additional_fields = TraceDataAdditionalFieldResource::mapIntoMe(
             $trace->additionalFields
         );
 

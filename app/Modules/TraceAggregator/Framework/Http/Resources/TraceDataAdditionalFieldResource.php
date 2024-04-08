@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Modules\TraceAggregator\Framework\Http\Responses;
+namespace App\Modules\TraceAggregator\Framework\Http\Resources;
 
 use App\Modules\Common\Http\Resources\AbstractApiResource;
 use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceDataAdditionalFieldObject;
 use Ifksco\OpenApiGenerator\Attributes\OaListItemTypeAttribute;
 
-class TraceDataAdditionalFieldResponse extends AbstractApiResource
+class TraceDataAdditionalFieldResource extends AbstractApiResource
 {
     private string $key;
     #[OaListItemTypeAttribute('string')]

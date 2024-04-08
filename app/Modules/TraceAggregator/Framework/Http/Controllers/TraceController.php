@@ -9,8 +9,8 @@ use App\Modules\TraceAggregator\Domain\Entities\Parameters\TraceFindParameters;
 use App\Modules\TraceAggregator\Domain\Entities\Parameters\TraceSortParameters;
 use App\Modules\TraceAggregator\Framework\Http\Controllers\Traits\MakeDataFilterParameterTrait;
 use App\Modules\TraceAggregator\Framework\Http\Requests\TraceIndexRequest;
-use App\Modules\TraceAggregator\Framework\Http\Responses\TraceDetailResponse;
-use App\Modules\TraceAggregator\Framework\Http\Responses\TraceItemsResponse;
+use App\Modules\TraceAggregator\Framework\Http\Resources\TraceDetailResource;
+use App\Modules\TraceAggregator\Framework\Http\Resources\TraceItemsResource;
 use Symfony\Component\HttpFoundation\Response;
 
 readonly class TraceController
@@ -23,7 +23,7 @@ readonly class TraceController
     ) {
     }
 
-    public function index(TraceIndexRequest $request): TraceItemsResponse
+    public function index(TraceIndexRequest $request): TraceItemsResource
     {
         $validated = $request->validated();
 
@@ -54,15 +54,15 @@ readonly class TraceController
             )
         );
 
-        return new TraceItemsResponse($traces);
+        return new TraceItemsResource($traces);
     }
 
-    public function show(string $traceId): TraceDetailResponse
+    public function show(string $traceId): TraceDetailResource
     {
         $traceObject = $this->findTraceDetailAction->handle($traceId);
 
         abort_if(!$traceObject, Response::HTTP_NOT_FOUND);
 
-        return new TraceDetailResponse($traceObject);
+        return new TraceDetailResource($traceObject);
     }
 }

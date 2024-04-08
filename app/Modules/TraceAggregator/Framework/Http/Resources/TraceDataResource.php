@@ -1,16 +1,16 @@
 <?php
 
-namespace App\Modules\TraceAggregator\Framework\Http\Responses;
+namespace App\Modules\TraceAggregator\Framework\Http\Resources;
 
 use App\Modules\Common\Http\Resources\AbstractApiResource;
 use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceDataObject;
 use Ifksco\OpenApiGenerator\Attributes\OaListItemTypeAttribute;
 
-class TraceDataResponse extends AbstractApiResource
+class TraceDataResource extends AbstractApiResource
 {
     private string $key;
     private string|bool|int|float|null $value;
-    #[OaListItemTypeAttribute(TraceDataResponse::class, isRecursive: true)]
+    #[OaListItemTypeAttribute(TraceDataResource::class, isRecursive: true)]
     private ?array $children;
 
     public function __construct(TraceDataObject $data)
@@ -20,7 +20,7 @@ class TraceDataResponse extends AbstractApiResource
         $this->key      = $data->key;
         $this->value    = $data->value;
         $this->children = $data->children
-            ? TraceDataResponse::mapIntoMe($data->children)
+            ? TraceDataResource::mapIntoMe($data->children)
             : null;
     }
 }

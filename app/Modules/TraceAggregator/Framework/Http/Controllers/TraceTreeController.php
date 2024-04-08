@@ -5,7 +5,7 @@ namespace App\Modules\TraceAggregator\Framework\Http\Controllers;
 use App\Modules\TraceAggregator\Domain\Actions\FindTraceTreeAction;
 use App\Modules\TraceAggregator\Domain\Entities\Parameters\TraceFindTreeParameters;
 use App\Modules\TraceAggregator\Domain\Exceptions\TreeTooLongException;
-use App\Modules\TraceAggregator\Framework\Http\Responses\TraceTreesResponse;
+use App\Modules\TraceAggregator\Framework\Http\Resources\TraceTreesResource;
 use Symfony\Component\HttpFoundation\Response;
 
 readonly class TraceTreeController
@@ -15,7 +15,7 @@ readonly class TraceTreeController
     ) {
     }
 
-    public function index(string $traceId): TraceTreesResponse
+    public function index(string $traceId): TraceTreesResource
     {
         try {
             $traceTreeNodeObjects = $this->findTraceTreeAction->handle(
@@ -27,6 +27,6 @@ readonly class TraceTreeController
             abort(Response::HTTP_INTERNAL_SERVER_ERROR, $exception->getMessage());
         }
 
-        return new TraceTreesResponse($traceTreeNodeObjects);
+        return new TraceTreesResource($traceTreeNodeObjects);
     }
 }

@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Modules\TraceAggregator\Framework\Http\Responses;
+namespace App\Modules\TraceAggregator\Framework\Http\Resources;
 
 use App\Modules\Common\Http\Resources\AbstractApiResource;
 use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceTypeObject;
 
-class TraceItemTypeResponse extends AbstractApiResource
+class TraceItemTypeResource extends AbstractApiResource
 {
     private string $type;
     private int $count;

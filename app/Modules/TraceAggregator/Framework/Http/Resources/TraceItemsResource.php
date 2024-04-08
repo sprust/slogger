@@ -1,15 +1,15 @@
 <?php
 
-namespace App\Modules\TraceAggregator\Framework\Http\Responses;
+namespace App\Modules\TraceAggregator\Framework\Http\Resources;
 
 use App\Modules\Common\Http\Resources\AbstractApiResource;
 use App\Modules\Common\Http\Resources\PaginatorInfoResource;
 use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceItemObjects;
 use Ifksco\OpenApiGenerator\Attributes\OaListItemTypeAttribute;
 
-class TraceItemsResponse extends AbstractApiResource
+class TraceItemsResource extends AbstractApiResource
 {
-    #[OaListItemTypeAttribute(TraceItemResponse::class)]
+    #[OaListItemTypeAttribute(TraceItemResource::class)]
     private array $items;
     private PaginatorInfoResource $paginator;
 
@@ -17,7 +17,7 @@ class TraceItemsResponse extends AbstractApiResource
     {
         parent::__construct($objects);
 
-        $this->items     = TraceItemResponse::mapIntoMe($objects->items);
+        $this->items     = TraceItemResource::mapIntoMe($objects->items);
         $this->paginator = new PaginatorInfoResource($objects->paginationInfo);
     }
 }
