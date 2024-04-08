@@ -51,7 +51,7 @@ readonly class SettingController
         return new SettingResource($setting);
     }
 
-    public function update(int $settingId, UpdateSettingRequest $request): SettingResource
+    public function update(UpdateSettingRequest $request, int $settingId): SettingResource
     {
         $validated = $request->validated();
 
@@ -59,7 +59,6 @@ readonly class SettingController
             $setting = $this->updateSettingAction->handle(
                 settingId: $settingId,
                 daysLifetime: $validated['days_life_time'],
-                type: $validated['type'],
             );
         } catch (SettingNotFoundException $exception) {
             abort(Response::HTTP_BAD_REQUEST, $exception->getMessage());

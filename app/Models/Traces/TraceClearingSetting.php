@@ -4,7 +4,6 @@ namespace App\Models\Traces;
 
 use App\Models\AbstractModel;
 use Illuminate\Support\Carbon;
-use MongoDB\Laravel\Eloquent\SoftDeletes;
 
 /**
  * @property int         $id
@@ -12,8 +11,8 @@ use MongoDB\Laravel\Eloquent\SoftDeletes;
  * @property string|null $type
  * @property Carbon      $created_at
  * @property Carbon      $updated_at
+ * @property Carbon|null $deleted_at
  */
 class TraceClearingSetting extends AbstractModel
 {
-    use SoftDeletes;
 }

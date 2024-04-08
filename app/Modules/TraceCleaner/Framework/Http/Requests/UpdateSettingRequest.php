@@ -14,11 +14,6 @@ class UpdateSettingRequest extends FormRequest
                 'integer',
                 'min:1',
             ],
-            'type'           => [
-                'present',
-                'string',
-                'nullable',
-            ],
         ];
     }
 }

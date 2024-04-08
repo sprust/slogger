@@ -8,7 +8,13 @@
       :duration="5"
       striped
   />
-  <el-table v-else :data="store.state.settings" :border="true" @expandChange="tableExpandChange">
+  <el-table
+      v-else
+      :data="store.state.settings"
+      :border="true"
+      @expandChange="tableExpandChange"
+      :row-class-name="settingsRowClassName"
+  >
     <el-table-column type="expand">
       <template #default="props">
         <el-progress
@@ -21,34 +27,63 @@
         />
         <el-table v-else :data="store.state.processes[props.row.id]" :border="true">
           <el-table-column label="Cleared count" prop="cleared_count"/>
-          <el-table-column label="Cleared at" prop="cleared_at"/>
-          <el-table-column label="Created at" prop="created_at"/>
-          <el-table-column label="Updated at" prop="updated_at"/>
+          <el-table-column label="Cleared at" prop="cleared_at">
+            <template #default="scope">
+              {{ convertDateStringToLocal(scope.row.cleared_at, false) }}
+            </template>
+          </el-table-column>
+          <el-table-column label="Created at" prop="created_at">
+            <template #default="scope">
+              {{ convertDateStringToLocal(scope.row.created_at, false) }}
+            </template>
+          </el-table-column>
+          <el-table-column label="Updated at" prop="updated_at">
+            <template #default="scope">
+              {{ convertDateStringToLocal(scope.row.updated_at, false) }}
+            </template>
+          </el-table-column>
         </el-table>
       </template>
     </el-table-column>
     <el-table-column label="Type" prop="type"/>
     <el-table-column label="Days lifetime" prop="days_lifetime"/>
-    <el-table-column label="Created at" prop="created_at"/>
-    <el-table-column label="Updated at" prop="updated_at"/>
+    <el-table-column label="Created at" prop="created_at">
+      <template #default="scope">
+        {{ convertDateStringToLocal(scope.row.created_at, false) }}
+      </template>
+    </el-table-column>
+    <el-table-column label="Updated at" prop="updated_at">
+      <template #default="scope">
+        {{ convertDateStringToLocal(scope.row.updated_at, false) }}
+      </template>
+    </el-table-column>
     <el-table-column label="" width="150" fixed="right">
       <template #header>
-        <el-button
-            type="success"
-            :icon="DocumentAdd"
-            @click="onCreateSetting"
-            circle
-        />
+        <el-space>
+          <el-button
+              type="success"
+              :icon="DocumentAdd"
+              @click="onCreateSetting"
+              circle
+          />
+          <el-button
+              type="warning"
+              :icon="Refresh"
+              @click="onUpdate"
+              circle
+          />
+        </el-space>
       </template>
       <template #default="props">
         <el-space>
           <el-button
-              type="primary"
-              :icon="Edit"
+              :type="props.row.deleted ? 'info' : 'primary'"
+              :icon="props.row.deleted ? RefreshLeft : Edit"
               @click="onEditSetting(props.row)"
               circle
           />
           <el-button
+              v-if="!props.row.deleted"
               type="danger"
               :icon="Delete"
               @click="onDeleteSetting(props.row)"
@@ -65,7 +100,7 @@
       top="10px"
       :append-to-body="true"
   >
-    <el-form>
+    <el-form style="margin-top: 5px">
       <el-form-item label="Type">
         <el-input v-model="editorDialog.type" :disabled="!!editorDialog.id"/>
       </el-form-item>
@@ -75,7 +110,7 @@
     </el-form>
     <template #footer>
       <el-button @click="onEditorSave">
-        {{ editorDialog.id ? 'Update' : 'Create' }}
+        {{ actionButtonTitle }}
       </el-button>
       <el-button @click="editorDialog.visible = false">
         Close
@@ -87,8 +122,9 @@
 <script lang="ts">
 import {defineComponent} from 'vue'
 import {TraceCleanerSettingItem, useTraceCleanerStore} from "../../../store/traceCleanerStore.ts";
-import {DocumentAdd, Edit, Delete} from '@element-plus/icons-vue'
+import {DocumentAdd, Edit, Delete, RefreshLeft, Refresh} from '@element-plus/icons-vue'
 import {ElMessageBox} from "element-plus";
+import {convertDateStringToLocal} from "../../../utils/helpers.ts";
 
 export default defineComponent({
   data() {
@@ -98,11 +134,13 @@ export default defineComponent({
         visible: false,
         id: null as null | number,
         daysLifetime: 30,
-        type: ''
+        type: '',
+        deleted: false,
       },
     }
   },
   methods: {
+    convertDateStringToLocal,
     update() {
       this.store.dispatch('findTraceCleanerSettings')
     },
@@ -116,10 +154,14 @@ export default defineComponent({
     isSettingProcessLoaded(settingId: number): boolean {
       return !!this.store.state.processes[settingId]
     },
+    onUpdate() {
+      this.update()
+    },
     onCreateSetting() {
       this.editorDialog.id = null
       this.editorDialog.daysLifetime = 10
       this.editorDialog.type = ''
+      this.editorDialog.deleted = false
 
       this.editorDialog.visible = true
     },
@@ -127,6 +169,7 @@ export default defineComponent({
       this.editorDialog.id = setting.id
       this.editorDialog.daysLifetime = setting.days_lifetime
       this.editorDialog.type = setting.type ?? ''
+      this.editorDialog.deleted = setting.deleted
 
       this.editorDialog.visible = true
     },
@@ -146,7 +189,6 @@ export default defineComponent({
         this.store.dispatch('updateSetting', {
           settingId: settingId,
           daysLifetime: this.editorDialog.daysLifetime,
-          type: this.editorDialog.type,
           onSuccess: () => {
             this.editorDialog.visible = false
           }
@@ -170,8 +212,22 @@ export default defineComponent({
           .catch(() => {
           })
     },
+    settingsRowClassName({row}: {row: TraceCleanerSettingItem}) {
+      return row.deleted ? 'deleted-setting': ''
+    },
   },
   computed: {
+    actionButtonTitle() {
+      if (!this.editorDialog.id) {
+        return 'Create'
+      }
+
+      if (this.editorDialog.deleted) {
+        return 'Update & restore'
+      }
+
+      return 'Update'
+    },
     DocumentAdd() {
       return DocumentAdd
     },
@@ -180,6 +236,12 @@ export default defineComponent({
     },
     Delete() {
       return Delete
+    },
+    RefreshLeft() {
+      return RefreshLeft
+    },
+    Refresh() {
+      return Refresh
     },
   },
   mounted() {
@@ -192,6 +254,8 @@ export default defineComponent({
 })
 </script>
 
-<style scoped>
-
+<style>
+.deleted-setting {
+  color: grey;
+}
 </style>

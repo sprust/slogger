@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Builder;
 
 class SettingRepository implements SettingRepositoryInterface
 {
-    public function find(?string $type = null, ?bool $typeIsNotNull = null): array
+    public function find(?string $type = null, ?bool $typeIsNotNull = null, ?bool $deleted = null): array
     {
         return TraceClearingSetting::query()
             ->when(
@@ -22,16 +22,16 @@ class SettingRepository implements SettingRepositoryInterface
                     ? $query->whereNotNull('type')
                     : $query->whereNull('type')
             )
+            ->when(
+                !is_null($deleted),
+                fn(Builder $query) => $deleted
+                    ? $query->whereNotNull('deleted_at')
+                    : $query->whereNull('deleted_at')
+            )
             ->orderByDesc('created_at')
             ->get()
             ->map(
-                fn(TraceClearingSetting $setting) => new SettingDto(
-                    id: $setting->id,
-                    daysLifetime: $setting->days_lifetime,
-                    type: $setting->type,
-                    createdAt: $setting->created_at,
-                    updatedAt: $setting->updated_at
-                ),
+                fn(TraceClearingSetting $setting) => $this->modelToDto($setting),
             )
             ->toArray();
     }
@@ -45,13 +45,7 @@ class SettingRepository implements SettingRepositoryInterface
             return null;
         }
 
-        return new SettingDto(
-            id: $setting->id,
-            daysLifetime: $setting->days_lifetime,
-            type: $setting->type,
-            createdAt: $setting->created_at,
-            updatedAt: $setting->updated_at
-        );
+        return $this->modelToDto($setting);
     }
 
     public function create(int $daysLifetime, ?string $type): int
@@ -66,18 +60,34 @@ class SettingRepository implements SettingRepositoryInterface
         return $newSetting->id;
     }
 
-    public function update(int $id, int $daysLifetime, ?string $type): bool
+    public function update(int $id, int $daysLifetime): bool
     {
         return (bool) TraceClearingSetting::query()
             ->where('id', $id)
             ->update([
                 'days_lifetime' => $daysLifetime,
-                'type'          => $type,
+                'deleted_at'    => null,
             ]);
     }
 
     public function delete(int $id): bool
     {
-        return (bool) TraceClearingSetting::query()->where('id', $id)->delete();
+        return (bool) TraceClearingSetting::query()
+            ->where('id', $id)
+            ->update([
+                'deleted_at' => now(),
+            ]);
+    }
+
+    private function modelToDto(TraceClearingSetting $setting): SettingDto
+    {
+        return new SettingDto(
+            id: $setting->id,
+            daysLifetime: $setting->days_lifetime,
+            type: $setting->type,
+            deleted: !is_null($setting->deleted_at),
+            createdAt: $setting->created_at,
+            updatedAt: $setting->updated_at
+        );
     }
 }

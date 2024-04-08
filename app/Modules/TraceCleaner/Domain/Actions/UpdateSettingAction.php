@@ -17,16 +17,15 @@ readonly class UpdateSettingAction
     /**
      * @throws SettingNotFoundException
      */
-    public function handle(int $settingId, int $daysLifetime, ?string $type): SettingObject
+    public function handle(int $settingId, int $daysLifetime): SettingObject
     {
         if (!$this->settingRepository->findOneById($settingId)) {
-            throw new SettingNotFoundException($type);
+            throw new SettingNotFoundException($settingId);
         }
 
         $this->settingRepository->update(
             id: $settingId,
             daysLifetime: $daysLifetime,
-            type: $type
         );
 
         return $this->findSettingByIdAction->handle($settingId);

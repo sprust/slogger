@@ -2,9 +2,17 @@
 
 namespace App\Modules\TraceCleaner\Domain\Entities\Objects;
 
-use App\Modules\TraceCleaner\Repositories\Dto\SettingDto;
+use Illuminate\Support\Carbon;
 
-readonly class SettingObject extends SettingDto
+readonly class SettingObject
 {
-
+    public function __construct(
+        public int $id,
+        public int $daysLifetime,
+        public ?string $type,
+        public bool $deleted,
+        public Carbon $createdAt,
+        public Carbon $updatedAt
+    ) {
+    }
 }

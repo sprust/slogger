@@ -40,8 +40,12 @@ export const traceCleanerStore = createStore<State>({
             })
         },
         deleteSetting(state: State, settingId: number) {
-            state.settings = state.settings.filter((settingItem: TraceCleanerSettingItem) => {
-                return settingItem.id !== settingId
+            state.settings.map((settingItem: TraceCleanerSettingItem) => {
+                if (settingItem.id !== settingId) {
+                    return
+                }
+
+                settingItem.deleted = true
             })
         },
     },
@@ -97,17 +101,15 @@ export const traceCleanerStore = createStore<State>({
         },
         updateSetting(
             {commit}: { commit: any },
-            {settingId, daysLifetime, type, onSuccess}: {
+            {settingId, daysLifetime, onSuccess}: {
                 settingId: number | null,
                 daysLifetime: number,
-                type: string,
                 onSuccess: () => {}
             }
         ) {
             ApiContainer.get()
                 .traceCleanerSettingsPartialUpdate(settingId, {
                     days_life_time: daysLifetime,
-                    type: type
                 })
                 .then((response) => {
                     commit('editSetting', response.data.data)

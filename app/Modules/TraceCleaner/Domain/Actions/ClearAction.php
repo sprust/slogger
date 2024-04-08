@@ -31,7 +31,7 @@ readonly class ClearAction
     {
         /** @var SettingDto[] $settings */
         $settings = Arr::sort(
-            $this->settingRepository->find(),
+            $this->settingRepository->find(deleted: false),
             fn(SettingDto $settingDto) => is_null($settingDto->type) ? 1 : 0
         );
 

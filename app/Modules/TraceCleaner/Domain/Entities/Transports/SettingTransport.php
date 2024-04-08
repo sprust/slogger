@@ -13,6 +13,7 @@ class SettingTransport
             id: $dto->id,
             daysLifetime: $dto->daysLifetime,
             type: $dto->type,
+            deleted: $dto->deleted,
             createdAt: $dto->createdAt,
             updatedAt: $dto->updatedAt
         );

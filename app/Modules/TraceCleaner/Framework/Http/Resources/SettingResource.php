@@ -10,6 +10,7 @@ class SettingResource extends AbstractApiResource
     private int $id;
     private int $days_lifetime;
     private ?string $type;
+    private bool $deleted;
     private string $created_at;
     private string $updated_at;
 
@@ -19,6 +20,7 @@ class SettingResource extends AbstractApiResource
 
         $this->id            = $resource->id;
         $this->days_lifetime = $resource->daysLifetime;
+        $this->deleted       = $resource->deleted;
         $this->type          = $resource->type;
         $this->created_at    = $resource->createdAt->toDateTimeString();
         $this->updated_at    = $resource->updatedAt->toDateTimeString();

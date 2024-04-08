@@ -6,8 +6,8 @@ use Exception;
 
 class SettingNotFoundException extends Exception
 {
-    public function __construct(?string $type)
+    public function __construct(int $settingId)
     {
-        parent::__construct("Setting for type [$type] not found");
+        parent::__construct("Setting by id [$settingId] not found");
     }
 }
