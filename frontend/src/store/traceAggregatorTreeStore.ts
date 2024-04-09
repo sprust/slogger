@@ -73,7 +73,7 @@ export const traceAggregatorTreeStore = createStore<State>({
             try {
                 const response = await ApiContainer.get().traceAggregatorTracesTreeDetail(state.parameters.traceId)
 
-                commit('setTreeNodes', response.data.data.items)
+                commit('setTreeNodes', response.data.data)
             } catch (error) {
                 handleApiError(error)
             } finally {
