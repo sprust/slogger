@@ -2,18 +2,14 @@
 
 namespace App\Modules\Dashboard\Domain\Actions;
 
-use App\Modules\Dashboard\Adapters\Service\ServiceAdapter;
-use App\Modules\Dashboard\Domain\Entities\Objects\ServiceObject;
 use App\Modules\Dashboard\Domain\Entities\Objects\ServiceStatObject;
-use App\Modules\Dashboard\Domain\Entities\Transports\ServiceStatTransport;
-use App\Modules\Dashboard\Repositories\Interfaces\ServiceStatRepositoryInterface;
-use Illuminate\Support\Collection;
+use App\Modules\Dashboard\Domain\Services\ServiceStatCache;
 
 readonly class FindServiceStatAction
 {
     public function __construct(
-        private ServiceStatRepositoryInterface $serviceStatRepository,
-        private ServiceAdapter $serviceAdapter
+        private ServiceStatCache $serviceStatCache,
+        private CacheServiceStatAction $cacheServiceStatAction
     ) {
     }
 
@@ -22,27 +18,10 @@ readonly class FindServiceStatAction
      */
     public function handle(): array
     {
-        $stats = $this->serviceStatRepository->find();
-
-        if (empty($stats)) {
-            return [];
+        if (!$this->serviceStatCache->has()) {
+            $this->cacheServiceStatAction->handle();
         }
 
-        /** @var Collection<int, ServiceObject> $services */
-        $services = collect($this->serviceAdapter->find())
-            ->keyBy(fn(ServiceObject $serviceDto) => $serviceDto->id);
-
-        $result = [];
-
-        foreach ($stats as $stat) {
-            $service = $services->get($stat->serviceId);
-
-            $result[] = ServiceStatTransport::toObject(
-                dto: $stat,
-                service: $service
-            );
-        }
-
-        return $result;
+        return $this->serviceStatCache->get() ?? [];
     }
 }
