@@ -4,10 +4,16 @@ namespace App\Modules\Dashboard\Domain\Services;
 
 use App\Modules\Dashboard\Domain\Entities\Objects\ServiceStatObject;
 use Illuminate\Support\Facades\Cache;
+use Throwable;
 
-class ServiceStatCache
+readonly class ServiceStatCache
 {
-    private string $cacheKey = 'dashboard-service-stat';
+    private string $cacheKey;
+
+    public function __construct()
+    {
+        $this->cacheKey = 'dashboard-service-stat';
+    }
 
     public function flush(): void
     {
@@ -34,7 +40,7 @@ class ServiceStatCache
     {
         try {
             return unserialize(Cache::get($this->cacheKey));
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return null;
         }
     }
