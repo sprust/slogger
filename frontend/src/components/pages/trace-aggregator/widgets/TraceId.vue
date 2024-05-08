@@ -17,11 +17,11 @@
         tree
       </el-button>
       <el-button
-          @click="$emit('onClickTraceIdParam', traceId)"
+          @click="$emit('onClickTraceIdFilter', traceId)"
           type="info"
           link
       >
-        param
+        filter
       </el-button>
     </el-row>
   </el-space>
@@ -31,7 +31,7 @@
 import {defineComponent} from 'vue'
 
 export default defineComponent({
-  emits: ["onClickTraceIdTree", "onClickTraceIdParam"],
+  emits: ["onClickTraceIdTree", "onClickTraceIdFilter"],
   props: {
     title: {
       type: String,

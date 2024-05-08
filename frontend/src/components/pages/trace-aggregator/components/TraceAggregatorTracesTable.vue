@@ -41,7 +41,7 @@
             title="id"
             :traceId="props.row.trace.trace_id"
             @onClickTraceIdTree="onClickTraceIdTree"
-            @onClickTraceIdParam="onClickTraceIdParam"
+            @onClickTraceIdFilter="onClickTraceIdFilter"
             :style="isTraceInPayload(props.row.trace.trace_id) ? {'color': 'green'} : {}"
           />
         </el-row>
@@ -50,7 +50,7 @@
             title="parent id"
             :trace-id="props.row.trace.parent_trace_id"
             @onClickTraceIdTree="onClickTraceIdTree"
-            @onClickTraceIdParam="onClickTraceIdParam"
+            @onClickTraceIdFilter="onClickTraceIdFilter"
             :style="isTraceInPayload(props.row.trace.parent_trace_id) ? {'color': 'green'} : {}"
           />
         </el-row>
@@ -198,7 +198,7 @@ export default defineComponent({
       })
       this.traceAggregatorTabsStore.dispatch('setCurrentTab', traceAggregatorTabs.tree)
     },
-    onClickTraceIdParam(traceId: string) {
+    onClickTraceIdFilter(traceId: string) {
       if (traceId === this.payload.trace_id) {
         this.payload.trace_id = ''
 
