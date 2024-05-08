@@ -117,6 +117,7 @@ return [
                 'queue:work',
                 'queue:listen',
                 'schedule:run',
+                'cron:start',
             ],
         ],
 
