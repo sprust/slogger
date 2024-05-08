@@ -3,7 +3,6 @@
 namespace App\Modules\User\Repository;
 
 use App\Models\Users\User;
-use App\Modules\User\Domain\Entities\Parameters\UserCreateParameters;
 use App\Modules\User\Repository\Dto\UserDetailDto;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
