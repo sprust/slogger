@@ -64,7 +64,7 @@ return [
 
             /** url_patterns */
             'excepted_paths'             => [
-                //
+                '/traces-api*'
             ],
 
             'input' => [

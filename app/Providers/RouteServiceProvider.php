@@ -9,6 +9,7 @@ use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvi
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
+use SLoggerLaravel\Middleware\SLoggerHttpMiddleware;
 
 class RouteServiceProvider extends ServiceProvider
 {
@@ -38,9 +39,12 @@ class RouteServiceProvider extends ServiceProvider
             Route::middleware('web')
                 ->group(base_path('routes/web.php'));
 
-            Route::middleware(AuthMiddleware::class)
-                ->prefix('admin-api')
+            Route::prefix('admin-api')
                 ->as('admin-api.')
+                ->middleware([
+                    AuthMiddleware::class,
+                    SLoggerHttpMiddleware::class
+                ])
                 ->group(base_path('routes/admin-api.php'));
 
             Route::middleware(AuthServiceMiddleware::class)

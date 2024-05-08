@@ -10,16 +10,29 @@ use App\Modules\TraceCollector\Domain\Entities\Parameters\TraceUpdateProfilingOb
 use App\Modules\TraceCollector\Domain\Entities\Parameters\TraceUpdateProfilingObjects;
 use App\Modules\TraceCollector\Framework\Http\Requests\TraceUpdateRequest;
 use App\Modules\TraceCollector\Framework\Http\Services\QueueDispatcher;
+use SLoggerLaravel\SLoggerProcessor;
+use Throwable;
 
 readonly class TraceUpdateController
 {
     public function __construct(
         private ServiceAdapter $serviceAdapter,
-        private QueueDispatcher $queueDispatcher
+        private QueueDispatcher $queueDispatcher,
+        private SLoggerProcessor $loggerProcessor
     ) {
     }
 
+    /**
+     * @throws Throwable
+     */
     public function __invoke(TraceUpdateRequest $request): void
+    {
+        $this->loggerProcessor->handleWithoutTracing(
+            fn() => $this->handle($request)
+        );
+    }
+
+    private function handle(TraceUpdateRequest $request): void
     {
         $validated = $request->validated();
 
