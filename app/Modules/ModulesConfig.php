@@ -8,6 +8,7 @@ use App\Modules\Service\Framework\ServiceServiceProvider;
 use App\Modules\TraceAggregator\Framework\TraceAggregatorProvider;
 use App\Modules\TraceCleaner\Framework\TraceCleanerServiceProvider;
 use App\Modules\TraceCollector\Framework\TraceCollectorServiceProvider;
+use App\Modules\TraceMetric\Framework\TraceMetricServiceProvider;
 use App\Modules\User\Framework\UserServiceProvider;
 
 class ModulesConfig
@@ -22,6 +23,7 @@ class ModulesConfig
             UserServiceProvider::class,
             DashboardProvider::class,
             TraceCleanerServiceProvider::class,
+            TraceMetricServiceProvider::class,
         ];
     }
 }
