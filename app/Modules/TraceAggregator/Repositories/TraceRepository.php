@@ -244,4 +244,12 @@ readonly class TraceRepository implements TraceRepositoryInterface
 
         return $types;
     }
+
+    public function findProfilingByTraceId(string $traceId): ?array
+    {
+        /** @var Trace|null $trace */
+        $trace = Trace::query()->where('traceId', $traceId)->first();
+
+        return $trace?->profiling;
+    }
 }

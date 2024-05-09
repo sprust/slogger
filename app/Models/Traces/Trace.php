@@ -20,6 +20,7 @@ use Illuminate\Support\Carbon;
  * @property float|null   $duration
  * @property float|null   $memory
  * @property float|null   $cpu
+ * @property array        $profiling // TODO: cast or something else
  * @property Carbon       $loggedAt
  * @property Carbon       $createdAt
  * @property Carbon       $updatedAt

@@ -49,4 +49,6 @@ interface TraceRepositoryInterface
      * @return TraceTypeDto[]
      */
     public function findTypeCounts(array $traceIds): array;
+
+    public function findProfilingByTraceId(string $traceId): ?array;
 }
