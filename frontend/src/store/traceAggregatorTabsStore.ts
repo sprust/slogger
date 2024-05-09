@@ -5,6 +5,7 @@ import {createStore, Store, useStore as baseUseStore} from 'vuex'
 export const traceAggregatorTabs = {
     traces: 'traces',
     tree: 'tree',
+    profiling: 'profiling',
 }
 
 interface State {

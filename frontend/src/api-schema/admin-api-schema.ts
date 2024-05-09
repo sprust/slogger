@@ -647,6 +647,130 @@ export namespace AdminApi {
     };
   } /**
  * No description
+ * @name TraceAggregatorTracesProfilingDetail
+ * @request GET:/admin-api/trace-aggregator/traces/{traceId}/profiling
+ * @secure
+ * @response `200` `{
+    data: ({
+    call: string,
+    number_of_calls: number,
+    wait_time_in_ms: number,
+    cpu_time: number,
+    memory_usage_in_bytes: number,
+    peak_memory_usage_in_mb: number,
+    callables: ({
+    call: string,
+    number_of_calls: number,
+    wait_time_in_ms: number,
+    cpu_time: number,
+    memory_usage_in_bytes: number,
+    peak_memory_usage_in_mb: number,
+    callables: ({
+    call: string,
+    number_of_calls: number,
+    wait_time_in_ms: number,
+    cpu_time: number,
+    memory_usage_in_bytes: number,
+    peak_memory_usage_in_mb: number,
+    callables: ({
+    call: string,
+    number_of_calls: number,
+    wait_time_in_ms: number,
+    cpu_time: number,
+    memory_usage_in_bytes: number,
+    peak_memory_usage_in_mb: number,
+    callables: ({
+    call: string,
+    number_of_calls: number,
+    wait_time_in_ms: number,
+    cpu_time: number,
+    memory_usage_in_bytes: number,
+    peak_memory_usage_in_mb: number,
+    callables: ({
+    call: string,
+    number_of_calls: number,
+    wait_time_in_ms: number,
+    cpu_time: number,
+    memory_usage_in_bytes: number,
+    peak_memory_usage_in_mb: number,
+  \** @maxItems 0 *\
+    callables: (string)[],
+
+})[],
+
+})[],
+
+})[],
+
+})[],
+
+})[],
+
+})[],
+
+}` description
+*/
+  export namespace TraceAggregatorTracesProfilingDetail {
+    export type RequestParams = {
+      traceId: any;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        call: string;
+        number_of_calls: number;
+        wait_time_in_ms: number;
+        cpu_time: number;
+        memory_usage_in_bytes: number;
+        peak_memory_usage_in_mb: number;
+        callables: {
+          call: string;
+          number_of_calls: number;
+          wait_time_in_ms: number;
+          cpu_time: number;
+          memory_usage_in_bytes: number;
+          peak_memory_usage_in_mb: number;
+          callables: {
+            call: string;
+            number_of_calls: number;
+            wait_time_in_ms: number;
+            cpu_time: number;
+            memory_usage_in_bytes: number;
+            peak_memory_usage_in_mb: number;
+            callables: {
+              call: string;
+              number_of_calls: number;
+              wait_time_in_ms: number;
+              cpu_time: number;
+              memory_usage_in_bytes: number;
+              peak_memory_usage_in_mb: number;
+              callables: {
+                call: string;
+                number_of_calls: number;
+                wait_time_in_ms: number;
+                cpu_time: number;
+                memory_usage_in_bytes: number;
+                peak_memory_usage_in_mb: number;
+                callables: {
+                  call: string;
+                  number_of_calls: number;
+                  wait_time_in_ms: number;
+                  cpu_time: number;
+                  memory_usage_in_bytes: number;
+                  peak_memory_usage_in_mb: number;
+                  /** @maxItems 0 */
+                  callables: string[];
+                }[];
+              }[];
+            }[];
+          }[];
+        }[];
+      }[];
+    };
+  } /**
+ * No description
  * @name TraceAggregatorTracesContentTypesCreate
  * @request POST:/admin-api/trace-aggregator/traces-content/types
  * @secure
@@ -1863,6 +1987,135 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         any
       >({
         path: `/admin-api/trace-aggregator/traces/${traceId}/tree`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name TraceAggregatorTracesProfilingDetail
+ * @request GET:/admin-api/trace-aggregator/traces/{traceId}/profiling
+ * @secure
+ * @response `200` `{
+    data: ({
+    call: string,
+    number_of_calls: number,
+    wait_time_in_ms: number,
+    cpu_time: number,
+    memory_usage_in_bytes: number,
+    peak_memory_usage_in_mb: number,
+    callables: ({
+    call: string,
+    number_of_calls: number,
+    wait_time_in_ms: number,
+    cpu_time: number,
+    memory_usage_in_bytes: number,
+    peak_memory_usage_in_mb: number,
+    callables: ({
+    call: string,
+    number_of_calls: number,
+    wait_time_in_ms: number,
+    cpu_time: number,
+    memory_usage_in_bytes: number,
+    peak_memory_usage_in_mb: number,
+    callables: ({
+    call: string,
+    number_of_calls: number,
+    wait_time_in_ms: number,
+    cpu_time: number,
+    memory_usage_in_bytes: number,
+    peak_memory_usage_in_mb: number,
+    callables: ({
+    call: string,
+    number_of_calls: number,
+    wait_time_in_ms: number,
+    cpu_time: number,
+    memory_usage_in_bytes: number,
+    peak_memory_usage_in_mb: number,
+    callables: ({
+    call: string,
+    number_of_calls: number,
+    wait_time_in_ms: number,
+    cpu_time: number,
+    memory_usage_in_bytes: number,
+    peak_memory_usage_in_mb: number,
+  \** @maxItems 0 *\
+    callables: (string)[],
+
+})[],
+
+})[],
+
+})[],
+
+})[],
+
+})[],
+
+})[],
+
+}` description
+ */
+    traceAggregatorTracesProfilingDetail: (traceId: any, params: RequestParams = {}) =>
+      this.request<
+        {
+          data: {
+            call: string;
+            number_of_calls: number;
+            wait_time_in_ms: number;
+            cpu_time: number;
+            memory_usage_in_bytes: number;
+            peak_memory_usage_in_mb: number;
+            callables: {
+              call: string;
+              number_of_calls: number;
+              wait_time_in_ms: number;
+              cpu_time: number;
+              memory_usage_in_bytes: number;
+              peak_memory_usage_in_mb: number;
+              callables: {
+                call: string;
+                number_of_calls: number;
+                wait_time_in_ms: number;
+                cpu_time: number;
+                memory_usage_in_bytes: number;
+                peak_memory_usage_in_mb: number;
+                callables: {
+                  call: string;
+                  number_of_calls: number;
+                  wait_time_in_ms: number;
+                  cpu_time: number;
+                  memory_usage_in_bytes: number;
+                  peak_memory_usage_in_mb: number;
+                  callables: {
+                    call: string;
+                    number_of_calls: number;
+                    wait_time_in_ms: number;
+                    cpu_time: number;
+                    memory_usage_in_bytes: number;
+                    peak_memory_usage_in_mb: number;
+                    callables: {
+                      call: string;
+                      number_of_calls: number;
+                      wait_time_in_ms: number;
+                      cpu_time: number;
+                      memory_usage_in_bytes: number;
+                      peak_memory_usage_in_mb: number;
+                      /** @maxItems 0 */
+                      callables: string[];
+                    }[];
+                  }[];
+                }[];
+              }[];
+            }[];
+          }[];
+        },
+        any
+      >({
+        path: `/admin-api/trace-aggregator/traces/${traceId}/profiling`,
         method: "GET",
         secure: true,
         format: "json",

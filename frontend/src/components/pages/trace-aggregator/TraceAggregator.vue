@@ -6,6 +6,9 @@
     <el-tab-pane label="Tree" :name="traceAggregatorTabs.tree">
       <TraceAggregatorTraceTree/>
     </el-tab-pane>
+    <el-tab-pane label="Profiling" :name="traceAggregatorTabs.profiling">
+      <TraceAggregatorProfiling/>
+    </el-tab-pane>
   </el-tabs>
 </template>
 
@@ -13,11 +16,17 @@
 import {defineComponent} from "vue";
 import TraceAggregatorTraces from "./components/TraceAggregatorTraces.vue";
 import TraceAggregatorTraceTree from "./components/TraceAggregatorTraceTree.vue";
+import TraceAggregatorProfiling from "./components/profiling/TraceAggregatorProfiling.vue";
 import FilterTags from "./widgets/FilterTags.vue";
 import {traceAggregatorTabs, useTraceAggregatorTabsStore} from "../../../store/traceAggregatorTabsStore.ts";
 
 export default defineComponent({
-  components: {FilterTags, TraceAggregatorTraces: TraceAggregatorTraces, TraceAggregatorTraceTree},
+  components: {
+    FilterTags,
+    TraceAggregatorTraces,
+    TraceAggregatorTraceTree,
+    TraceAggregatorProfiling
+  },
   data() {
     return {
       tabsStore: useTraceAggregatorTabsStore()
