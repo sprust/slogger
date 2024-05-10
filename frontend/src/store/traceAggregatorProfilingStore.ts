@@ -12,6 +12,8 @@ interface State {
     loading: boolean,
     parameters: Parameters,
     profilingItems: Array<ProfilingItem>,
+    selectedItemId: string,
+    selectedItem: ProfilingItem | null,
 }
 
 export const traceAggregatorProfilingStore = createStore<State>({
@@ -19,10 +21,15 @@ export const traceAggregatorProfilingStore = createStore<State>({
         loading: false,
         parameters: {} as Parameters,
         profilingItems: new Array<ProfilingItem>,
+        selectedItemId: '',
+        selectedItem: null as ProfilingItem | null,
     } as State,
     mutations: {
         setProfilingItems(state: State, profilingItems: Array<ProfilingItem>) {
             state.profilingItems = profilingItems
+        },
+        setSelectedProfilingItem(state: State, item: ProfilingItem | null) {
+            state.selectedItem = item
         },
     },
     actions: {
@@ -51,6 +58,9 @@ export const traceAggregatorProfilingStore = createStore<State>({
         },
         clearProfiling({commit}: { commit: any }) {
             commit('setProfilingItems', [])
+        },
+        setSelectedProfilingItem({commit}: { commit: any }, item: ProfilingItem | null) {
+            commit('setSelectedProfilingItem', item)
         },
     },
 })

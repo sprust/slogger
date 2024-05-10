@@ -10,26 +10,33 @@
         striped
     />
     <div v-else>
-      <el-row>
-        <el-select
-            v-model="selectedCall"
-            placeholder="Select"
-            style="width: 300px"
-            clearable
-            @change="onSelect"
-        >
-          <el-option
-              v-for="item in store.state.profilingItems"
-              :key="item.call"
-              :label="item.call"
-              :value="item.call"
-          />
-        </el-select>
-      </el-row>
-      <el-row :span="20" style="width: 100vw; height: 80vh">
-        <VueFlow v-model:nodes="nodes" v-model:edges="edges">
-          <MiniMap node-color="black" pannable zoomable/>
-        </VueFlow>
+      <el-row style="height: 80vh">
+        <el-col :span="6">
+          <el-row>
+            <el-select
+                v-model="store.state.selectedItemId"
+                placeholder="Select"
+                style="width: 100%; font-size: 12px"
+                clearable
+                @change="onSelect"
+            >
+              <el-option
+                  v-for="item in store.state.profilingItems"
+                  :key="item.call"
+                  :label="item.call"
+                  :value="item.call"
+              />
+            </el-select>
+          </el-row>
+          <el-row>
+            <TraceAggregatorSelectedProfilingItem/>
+          </el-row>
+        </el-col>
+        <el-col :span="18" style="width: 100vw; height: 80vh">
+          <VueFlow v-model:nodes="nodes" v-model:edges="edges">
+            <MiniMap node-color="black" pannable zoomable/>
+          </VueFlow>
+        </el-col>
       </el-row>
     </div>
   </el-container>
@@ -41,9 +48,10 @@ import {defineComponent} from "vue";
 import {ProfilingItem, useTraceAggregatorProfilingStore} from "../../../../../store/traceAggregatorProfilingStore.ts";
 import {FlowBuilder} from "./flowBuilder.ts";
 import {MiniMap} from '@vue-flow/minimap'
+import TraceAggregatorSelectedProfilingItem from './TraceAggregatorSelectedProfilingItem.vue'
 
 export default defineComponent({
-  components: {VueFlow, MiniMap},
+  components: {VueFlow, MiniMap, TraceAggregatorSelectedProfilingItem},
 
   data() {
     const nodes = [
@@ -62,7 +70,6 @@ export default defineComponent({
       nodes,
       edges,
       store: useTraceAggregatorProfilingStore(),
-      selectedCall: ''
     }
   },
 
@@ -71,16 +78,15 @@ export default defineComponent({
       this.freshFlow()
     },
     freshFlow() {
-      if (!this.selectedCall) {
-        this.nodes = []
-        this.edges = []
+      let foundItem = null
 
-        return
+      if (this.store.state.selectedItemId) {
+        foundItem = this.store.state.profilingItems.find((item: ProfilingItem) => {
+          return item.call === this.store.state.selectedItemId
+        })
       }
 
-      const foundItem = this.store.state.profilingItems.find((item: ProfilingItem) => {
-        return item.call === this.selectedCall
-      })
+      this.store.dispatch('setSelectedProfilingItem', foundItem)
 
       if (!foundItem) {
         this.nodes = []
@@ -93,7 +99,6 @@ export default defineComponent({
 
       this.nodes = flow.nodes
       this.edges = flow.edges
-
     },
   },
 
