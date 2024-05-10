@@ -66,7 +66,7 @@ export default defineComponent({
   mounted() {
     // TODO
     this.store.dispatch('findProfiling', {
-      traceId: 'slogger-c586b4a3-390a-47fe-9958-800f88f42300'
+      traceId: 'slogger-16210198-2451-4106-bd1f-46ff328d7664'
     })
   },
 })

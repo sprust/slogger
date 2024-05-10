@@ -7,10 +7,10 @@
     </template>
     <div>
       <el-tag type="primary">calls: {{ item.number_of_calls }}</el-tag>
-      <el-tag type="primary">time: {{ item.wait_time_in_ms }}ms</el-tag>
+      <el-tag type="primary">time: {{ item.wait_time_in_us }}us</el-tag>
       <el-tag type="primary">cpu: {{ item.cpu_time }}</el-tag>
       <el-tag type="primary">mem: {{ item.memory_usage_in_bytes }}b</el-tag>
-      <el-tag type="primary">mem peak: {{ item.peak_memory_usage_in_mb }}b</el-tag>
+      <el-tag type="primary">mem peak: {{ item.peak_memory_usage_in_bytes }}b</el-tag>
     </div>
   </el-card>
 </template>

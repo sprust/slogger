@@ -49,7 +49,7 @@ class TraceUpdateRequest extends FormRequest
                 'required',
                 'int',
             ],
-            'traces.*.profiling.*.data.wait_time_in_ms'         => [
+            'traces.*.profiling.*.data.wait_time_in_us'         => [
                 'required',
                 'numeric',
             ],
@@ -61,7 +61,7 @@ class TraceUpdateRequest extends FormRequest
                 'required',
                 'numeric',
             ],
-            'traces.*.profiling.*.data.peak_memory_usage_in_mb' => [
+            'traces.*.profiling.*.data.peak_memory_usage_in_bytes' => [
                 'required',
                 'numeric',
             ],

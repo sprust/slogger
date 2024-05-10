@@ -53,10 +53,10 @@ readonly class TraceUpdateController
                         callable: $profilingItem['callable'],
                         data: new TraceUpdateProfilingDataObject(
                             numberOfCalls: $profilingData['number_of_calls'],
-                            waitTimeInMs: $profilingData['wait_time_in_ms'],
+                            waitTimeInUs: $profilingData['wait_time_in_us'],
                             cpuTime: $profilingData['cpu_time'],
                             memoryUsageInBytes: $profilingData['memory_usage_in_bytes'],
-                            peakMemoryUsageInMb: $profilingData['peak_memory_usage_in_mb'],
+                            peakMemoryUsageInBytes: $profilingData['peak_memory_usage_in_bytes'],
                         )
                     )
                 );

@@ -11,10 +11,10 @@ class ProfilingItemObject
         public string $id,
         public string $call,
         public int $numberOfCalls,
-        public float $waitTimeInMs,
+        public float $waitTimeInUs,
         public float $cpuTime,
         public float $memoryUsageInBytes,
-        public float $peakMemoryUsageInMb,
+        public float $peakMemoryUsageInBytes,
         public array $callables,
     ) {
     }

@@ -46,10 +46,10 @@ class TraceProfilingBuilder
             id: Str::uuid()->toString(),
             call: $item['callable'],
             numberOfCalls: $itemData['numberOfCalls'],
-            waitTimeInMs: $itemData['waitTimeInMs'],
+            waitTimeInUs: $itemData['waitTimeInUs'],
             cpuTime: $itemData['cpuTime'],
             memoryUsageInBytes: $itemData['memoryUsageInBytes'],
-            peakMemoryUsageInMb: $itemData['peakMemoryUsageInMb'],
+            peakMemoryUsageInBytes: $itemData['peakMemoryUsageInBytes'],
             callables: [],
         );
     }
