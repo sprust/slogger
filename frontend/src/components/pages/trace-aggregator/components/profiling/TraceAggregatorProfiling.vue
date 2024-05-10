@@ -14,23 +14,23 @@
         <el-col :span="6">
           <el-row>
             <el-select
-                v-model="store.state.selectedItemId"
+                v-model="store.state.selectedRootItemId"
                 placeholder="Select"
                 style="width: 100%; font-size: 12px"
                 clearable
-                @change="onSelect"
+                @change="onSelectRootItem"
             >
               <el-option
                   v-for="item in store.state.profilingItems"
-                  :key="item.call"
+                  :key="item.id"
                   :label="item.call"
-                  :value="item.call"
+                  :value="item.id"
               />
             </el-select>
           </el-row>
           <el-row>
             <el-input
-                v-model="store.state.treeFilter"
+                v-model="store.state.profilingTreeFilter"
                 placeholder="Filter"
                 clearable
             />
@@ -52,10 +52,10 @@
 <script lang="ts">
 import {VueFlow} from '@vue-flow/core'
 import {defineComponent} from "vue";
-import {ProfilingItem, useTraceAggregatorProfilingStore} from "../../../../../store/traceAggregatorProfilingStore.ts";
-import {FlowBuilder} from "./flowBuilder.ts";
+import {useTraceAggregatorProfilingStore} from "../../../../../store/traceAggregatorProfilingStore.ts";
 import {MiniMap} from '@vue-flow/minimap'
 import TraceAggregatorSelectedProfilingItem from './TraceAggregatorSelectedProfilingItem.vue'
+import {ProfilingItemFinder} from "./itemFinder.ts";
 
 export default defineComponent({
   components: {VueFlow, MiniMap, TraceAggregatorSelectedProfilingItem},
@@ -67,32 +67,13 @@ export default defineComponent({
   },
 
   methods: {
-    onSelect() {
-      this.freshFlow()
-    },
-    freshFlow() {
-      let foundItem = null
-      this.store.state.treeFilter = ''
-
-      if (this.store.state.selectedItemId) {
-        foundItem = this.store.state.profilingItems.find((item: ProfilingItem) => {
-          return item.call === this.store.state.selectedItemId
-        })
-      }
+    onSelectRootItem() {
+      const foundItem = (new ProfilingItemFinder()).find(
+          this.store.state.selectedRootItemId, this.store.state.profilingItems
+      )
 
       this.store.dispatch('setSelectedProfilingItem', foundItem)
-
-      if (!foundItem) {
-        this.store.state.flowItems.nodes = []
-        this.store.state.flowItems.edges = []
-
-        return
-      }
-
-      const flow = (new FlowBuilder([foundItem])).build()
-
-      this.store.state.flowItems.nodes = flow.nodes
-      this.store.state.flowItems.edges = flow.edges
+      this.store.dispatch('buildProfilingTree', foundItem)
     },
   },
 

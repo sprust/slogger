@@ -3,13 +3,14 @@
     <el-tree
         v-if="!!store.state.selectedItem"
         ref="profilingTreeRef"
-        :data="tree"
+        :data="store.state.profilingTree"
         :props="treeProps"
         node-key="key"
         :expand-on-click-node="false"
         default-expand-all
         :filter-node-method="filterTree"
         style="width: 100vw"
+        @nodeClick="onTreeNodeClick"
     >
       <template #default="{ node }">
         <div style="font-size: 10px">
@@ -22,14 +23,11 @@
 
 <script lang="ts">
 import {defineComponent} from "vue";
-import {ProfilingItem, useTraceAggregatorProfilingStore} from "../../../../../store/traceAggregatorProfilingStore.ts";
-
-type TreeNode = {
-  key: string,
-  label: string,
-  children: null | Array<TreeNode>,
-  disabled: boolean
-}
+import {
+  ProfilingItem,
+  ProfilingTreeNode,
+  useTraceAggregatorProfilingStore
+} from "../../../../../store/traceAggregatorProfilingStore.ts";
 
 export default defineComponent({
   data() {
@@ -44,7 +42,7 @@ export default defineComponent({
   },
 
   computed: {
-    tree(): Array<TreeNode> {
+    tree(): Array<ProfilingTreeNode> {
       if (!this.store.state.selectedItem) {
         return []
       }
@@ -54,7 +52,7 @@ export default defineComponent({
   },
 
   methods: {
-    dataNodeToTree(items: Array<ProfilingItem>): Array<TreeNode> {
+    dataNodeToTree(items: Array<ProfilingItem>): Array<ProfilingTreeNode> {
       return items.map((item: ProfilingItem) => {
         return {
           key: item.id,
@@ -64,12 +62,15 @@ export default defineComponent({
         }
       })
     },
-    filterTree(value: string, data: TreeNode) {
+    filterTree(value: string, data: ProfilingTreeNode) {
       if (!value) {
         return true
       }
 
       return data.label.includes(value)
+    },
+    onTreeNodeClick(node: ProfilingTreeNode) {
+      console.log(node)
     }
   },
 
