@@ -29,7 +29,7 @@
               <TraceAggregatorProfilingNode :node="props" />
             </template>
 
-            <MiniMap node-color="black" pannable zoomable/>
+            <MiniMap node-color="black" mask-color="rgba(128, 128, 128, 0.7)" pannable zoomable/>
 
             <Controls />
           </VueFlow>
