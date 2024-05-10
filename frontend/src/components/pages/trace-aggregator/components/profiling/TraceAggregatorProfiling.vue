@@ -27,7 +27,9 @@
         </el-select>
       </el-row>
       <el-row :span="20" style="width: 100vw; height: 80vh">
-        <VueFlow v-model:nodes="nodes" v-model:edges="edges"></VueFlow>
+        <VueFlow v-model:nodes="nodes" v-model:edges="edges">
+          <MiniMap node-color="black" pannable zoomable/>
+        </VueFlow>
       </el-row>
     </div>
   </el-container>
@@ -38,9 +40,10 @@ import {VueFlow} from '@vue-flow/core'
 import {defineComponent} from "vue";
 import {ProfilingItem, useTraceAggregatorProfilingStore} from "../../../../../store/traceAggregatorProfilingStore.ts";
 import {FlowBuilder} from "./flowBuilder.ts";
+import {MiniMap} from '@vue-flow/minimap'
 
 export default defineComponent({
-  components: {VueFlow},
+  components: {VueFlow, MiniMap},
 
   data() {
     const nodes = [
@@ -109,4 +112,11 @@ export default defineComponent({
 
 /* import the default theme, this is optional but generally recommended */
 @import '@vue-flow/core/dist/theme-default.css';
+
+/* import default minimap styles */
+@import '@vue-flow/minimap/dist/style.css';
+
+.flow-node-class {
+  background-color: black;
+}
 </style>
