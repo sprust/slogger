@@ -52,7 +52,22 @@ export const traceAggregatorProfilingStore = createStore<State>({
     } as State,
     mutations: {
         setProfilingItems(state: State, profilingItems: Array<ProfilingItem>) {
-            state.profilingItems = profilingItems
+            if (profilingItems.length > 1) {
+                state.profilingItems = [
+                    {
+                        id: '-1',
+                        call: 'root',
+                        number_of_calls: 0,
+                        wait_time_in_us: 0,
+                        cpu_time: 0,
+                        memory_usage_in_bytes: 0,
+                        peak_memory_usage_in_bytes: 0,
+                        callables: profilingItems,
+                    }
+                ]
+            } else {
+                state.profilingItems = profilingItems
+            }
 
             state.profilingTree = (new ProfilingTreeBuilder()).build(state.profilingItems)
         },

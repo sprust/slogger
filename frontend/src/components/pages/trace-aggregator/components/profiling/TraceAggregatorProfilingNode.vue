@@ -6,11 +6,36 @@
       </el-tooltip>
     </template>
     <div>
-      <el-tag type="primary">calls: {{ item.number_of_calls }}</el-tag>
-      <el-tag type="primary">time: {{ item.wait_time_in_us }}us</el-tag>
-      <el-tag type="primary">cpu: {{ item.cpu_time }}</el-tag>
-      <el-tag type="primary">mem: {{ item.memory_usage_in_bytes }}b</el-tag>
-      <el-tag type="primary">mem peak: {{ item.peak_memory_usage_in_bytes }}b</el-tag>
+      <el-tag
+          v-if="item.number_of_calls"
+          type="primary"
+      >
+        calls: {{ item.number_of_calls }}
+      </el-tag>
+      <el-tag
+          v-if="item.wait_time_in_us "
+          type="primary"
+      >
+        time: {{ item.wait_time_in_us }}us
+      </el-tag>
+      <el-tag
+          v-if="item.cpu_time"
+          type="primary"
+      >
+        cpu: {{ item.cpu_time }}
+      </el-tag>
+      <el-tag
+          v-if="item.memory_usage_in_bytes"
+          type="primary"
+      >
+        mem: {{ item.memory_usage_in_bytes }}b
+      </el-tag>
+      <el-tag
+          v-if="item.peak_memory_usage_in_bytes"
+          type="primary"
+      >
+        mem peak: {{ item.peak_memory_usage_in_bytes }}b
+      </el-tag>
     </div>
   </el-card>
 </template>
@@ -33,10 +58,6 @@ export default defineComponent({
     return {
       item: this.node.data as ProfilingItem
     }
-  },
-
-  mounted() {
-    console.log(this.node)
   },
 })
 </script>
