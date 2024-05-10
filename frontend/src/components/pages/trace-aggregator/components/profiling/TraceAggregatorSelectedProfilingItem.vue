@@ -2,11 +2,13 @@
   <div style="overflow-y: scroll; width: 100%; height: 75vh">
     <el-tree
         v-if="!!store.state.selectedItem"
+        ref="profilingTreeRef"
         :data="tree"
         :props="treeProps"
         node-key="key"
         :expand-on-click-node="false"
         default-expand-all
+        :filter-node-method="filterTree"
     >
       <template #default="{ node }">
         <div style="font-size: 10px">
@@ -61,6 +63,24 @@ export default defineComponent({
         }
       })
     },
+    filterTree(value: string, data: TreeNode) {
+      if (!value) {
+        return true
+      }
+
+      return data.label.includes(value)
+    }
+  },
+
+  watch: {
+    'store.state.treeFilter'(value: string) {
+      if (!this.$refs!.profilingTreeRef) {
+        return
+      }
+
+      // @ts-ignore: doesnt see 'filter' method
+      this.$refs!.profilingTreeRef!.filter(value)
+    }
   }
 })
 </script>

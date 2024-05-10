@@ -29,6 +29,13 @@
             </el-select>
           </el-row>
           <el-row>
+            <el-input
+                v-model="store.state.treeFilter"
+                placeholder="Filter"
+                clearable
+            />
+          </el-row>
+          <el-row>
             <TraceAggregatorSelectedProfilingItem/>
           </el-row>
         </el-col>
@@ -65,6 +72,7 @@ export default defineComponent({
     },
     freshFlow() {
       let foundItem = null
+      this.store.state.treeFilter = ''
 
       if (this.store.state.selectedItemId) {
         foundItem = this.store.state.profilingItems.find((item: ProfilingItem) => {

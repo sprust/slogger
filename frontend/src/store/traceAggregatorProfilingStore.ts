@@ -21,6 +21,7 @@ interface State {
     loading: boolean,
     parameters: Parameters,
     profilingItems: Array<ProfilingItem>,
+    treeFilter: string,
     selectedItemId: string,
     selectedItem: ProfilingItem | null,
     flowItems: FlowItems
@@ -31,6 +32,7 @@ export const traceAggregatorProfilingStore = createStore<State>({
         loading: false,
         parameters: {} as Parameters,
         profilingItems: new Array<ProfilingItem>,
+        treeFilter: '',
         selectedItemId: '',
         selectedItem: null as ProfilingItem | null,
         flowItems: {
