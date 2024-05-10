@@ -6,7 +6,6 @@
         :props="treeProps"
         node-key="key"
         :expand-on-click-node="false"
-        default-expand-all
         :filter-node-method="filterTree"
         style="width: 100vw"
         @nodeClick="onTreeNodeClick"
