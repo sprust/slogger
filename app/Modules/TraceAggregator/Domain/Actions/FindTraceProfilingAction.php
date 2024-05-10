@@ -3,14 +3,14 @@
 namespace App\Modules\TraceAggregator\Domain\Actions;
 
 use App\Modules\TraceAggregator\Domain\Entities\Objects\ProfilingItemObject;
-use App\Modules\TraceAggregator\Domain\Services\TraceProfileBuilder;
+use App\Modules\TraceAggregator\Domain\Services\TraceProfilingBuilder;
 use App\Modules\TraceAggregator\Repositories\Interfaces\TraceRepositoryInterface;
 
 readonly class FindTraceProfilingAction
 {
     public function __construct(
         private TraceRepositoryInterface $traceRepository,
-        private TraceProfileBuilder $traceProfileBuilder
+        private TraceProfilingBuilder $traceProfilingBuilder
     ) {
     }
 
@@ -25,6 +25,6 @@ readonly class FindTraceProfilingAction
             return [];
         }
 
-        return $this->traceProfileBuilder->build($profiling);
+        return $this->traceProfilingBuilder->build($profiling);
     }
 }

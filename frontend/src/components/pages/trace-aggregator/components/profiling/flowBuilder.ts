@@ -1,24 +1,12 @@
 import {ProfilingItem} from "../../../../../store/traceAggregatorProfilingStore.ts";
-
-interface FlowNode {
-    id: string,
-    label: string,
-    position: {
-        x: number,
-        y: number
-    }
-}
-
-interface FlowEdge {
-    id: string,
-    source: string,
-    target: string,
-    animated: boolean
-}
+// @ts-ignore // todo
+import {Node} from "@vue-flow/core/dist/types/node";
+// @ts-ignore // todo
+import {Edge} from "@vue-flow/core/dist/types/edge";
 
 interface FlowItems {
-    nodes: Array<FlowNode>,
-    edges: Array<FlowEdge>,
+    nodes: Array<Node>,
+    edges: Array<Edge>,
 }
 
 export class FlowBuilder {
@@ -58,23 +46,24 @@ export class FlowBuilder {
 
         items.map((item: ProfilingItem) => {
             this.flowItems.nodes.push({
-                id: item.call,
+                id: item.id,
                 label: item.call.substring(item.call.length - 20),
                 position: {
                     x: this.posX,
                     y: this.posY
-                }
+                },
             })
 
             if (parent) {
                 this.flowItems.edges.push({
-                    id: `${parent.call}-${item.call}`,
-                    source: parent.call,
-                    target: item.call,
+                    id: `${parent.id}-${item.id}`,
+                    source: parent.id,
+                    target: item.id,
                     animated: false
                 })
             }
 
+            // @ts-ignore // todo: recursive oa scheme
             this.buildRecursive(item.callables, item)
 
             this.posX += this.stepX

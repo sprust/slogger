@@ -652,6 +652,7 @@ export namespace AdminApi {
  * @secure
  * @response `200` `{
     data: ({
+    id: string,
     call: string,
     number_of_calls: number,
     wait_time_in_ms: number,
@@ -659,6 +660,7 @@ export namespace AdminApi {
     memory_usage_in_bytes: number,
     peak_memory_usage_in_mb: number,
     callables: ({
+    id: string,
     call: string,
     number_of_calls: number,
     wait_time_in_ms: number,
@@ -666,6 +668,7 @@ export namespace AdminApi {
     memory_usage_in_bytes: number,
     peak_memory_usage_in_mb: number,
     callables: ({
+    id: string,
     call: string,
     number_of_calls: number,
     wait_time_in_ms: number,
@@ -673,6 +676,7 @@ export namespace AdminApi {
     memory_usage_in_bytes: number,
     peak_memory_usage_in_mb: number,
     callables: ({
+    id: string,
     call: string,
     number_of_calls: number,
     wait_time_in_ms: number,
@@ -680,6 +684,7 @@ export namespace AdminApi {
     memory_usage_in_bytes: number,
     peak_memory_usage_in_mb: number,
     callables: ({
+    id: string,
     call: string,
     number_of_calls: number,
     wait_time_in_ms: number,
@@ -687,6 +692,7 @@ export namespace AdminApi {
     memory_usage_in_bytes: number,
     peak_memory_usage_in_mb: number,
     callables: ({
+    id: string,
     call: string,
     number_of_calls: number,
     wait_time_in_ms: number,
@@ -719,6 +725,7 @@ export namespace AdminApi {
     export type RequestHeaders = {};
     export type ResponseBody = {
       data: {
+        id: string;
         call: string;
         number_of_calls: number;
         wait_time_in_ms: number;
@@ -726,6 +733,7 @@ export namespace AdminApi {
         memory_usage_in_bytes: number;
         peak_memory_usage_in_mb: number;
         callables: {
+          id: string;
           call: string;
           number_of_calls: number;
           wait_time_in_ms: number;
@@ -733,6 +741,7 @@ export namespace AdminApi {
           memory_usage_in_bytes: number;
           peak_memory_usage_in_mb: number;
           callables: {
+            id: string;
             call: string;
             number_of_calls: number;
             wait_time_in_ms: number;
@@ -740,6 +749,7 @@ export namespace AdminApi {
             memory_usage_in_bytes: number;
             peak_memory_usage_in_mb: number;
             callables: {
+              id: string;
               call: string;
               number_of_calls: number;
               wait_time_in_ms: number;
@@ -747,6 +757,7 @@ export namespace AdminApi {
               memory_usage_in_bytes: number;
               peak_memory_usage_in_mb: number;
               callables: {
+                id: string;
                 call: string;
                 number_of_calls: number;
                 wait_time_in_ms: number;
@@ -754,6 +765,7 @@ export namespace AdminApi {
                 memory_usage_in_bytes: number;
                 peak_memory_usage_in_mb: number;
                 callables: {
+                  id: string;
                   call: string;
                   number_of_calls: number;
                   wait_time_in_ms: number;
@@ -2001,6 +2013,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
  * @secure
  * @response `200` `{
     data: ({
+    id: string,
     call: string,
     number_of_calls: number,
     wait_time_in_ms: number,
@@ -2008,6 +2021,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     memory_usage_in_bytes: number,
     peak_memory_usage_in_mb: number,
     callables: ({
+    id: string,
     call: string,
     number_of_calls: number,
     wait_time_in_ms: number,
@@ -2015,6 +2029,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     memory_usage_in_bytes: number,
     peak_memory_usage_in_mb: number,
     callables: ({
+    id: string,
     call: string,
     number_of_calls: number,
     wait_time_in_ms: number,
@@ -2022,6 +2037,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     memory_usage_in_bytes: number,
     peak_memory_usage_in_mb: number,
     callables: ({
+    id: string,
     call: string,
     number_of_calls: number,
     wait_time_in_ms: number,
@@ -2029,6 +2045,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     memory_usage_in_bytes: number,
     peak_memory_usage_in_mb: number,
     callables: ({
+    id: string,
     call: string,
     number_of_calls: number,
     wait_time_in_ms: number,
@@ -2036,6 +2053,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     memory_usage_in_bytes: number,
     peak_memory_usage_in_mb: number,
     callables: ({
+    id: string,
     call: string,
     number_of_calls: number,
     wait_time_in_ms: number,
@@ -2063,6 +2081,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       this.request<
         {
           data: {
+            id: string;
             call: string;
             number_of_calls: number;
             wait_time_in_ms: number;
@@ -2070,6 +2089,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
             memory_usage_in_bytes: number;
             peak_memory_usage_in_mb: number;
             callables: {
+              id: string;
               call: string;
               number_of_calls: number;
               wait_time_in_ms: number;
@@ -2077,6 +2097,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
               memory_usage_in_bytes: number;
               peak_memory_usage_in_mb: number;
               callables: {
+                id: string;
                 call: string;
                 number_of_calls: number;
                 wait_time_in_ms: number;
@@ -2084,6 +2105,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
                 memory_usage_in_bytes: number;
                 peak_memory_usage_in_mb: number;
                 callables: {
+                  id: string;
                   call: string;
                   number_of_calls: number;
                   wait_time_in_ms: number;
@@ -2091,6 +2113,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
                   memory_usage_in_bytes: number;
                   peak_memory_usage_in_mb: number;
                   callables: {
+                    id: string;
                     call: string;
                     number_of_calls: number;
                     wait_time_in_ms: number;
@@ -2098,6 +2121,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
                     memory_usage_in_bytes: number;
                     peak_memory_usage_in_mb: number;
                     callables: {
+                      id: string;
                       call: string;
                       number_of_calls: number;
                       wait_time_in_ms: number;

@@ -8,6 +8,7 @@ class ProfilingItemObject
      * @param static[] $callables
      */
     public function __construct(
+        public string $id,
         public string $call,
         public int $numberOfCalls,
         public float $waitTimeInMs,

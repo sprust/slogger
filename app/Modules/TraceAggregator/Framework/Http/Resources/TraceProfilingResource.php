@@ -4,11 +4,11 @@ namespace App\Modules\TraceAggregator\Framework\Http\Resources;
 
 use App\Modules\Common\Http\Resources\AbstractApiResource;
 use App\Modules\TraceAggregator\Domain\Entities\Objects\ProfilingItemObject;
-use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceItemTraceObject;
 use Ifksco\OpenApiGenerator\Attributes\OaListItemTypeAttribute;
 
 class TraceProfilingResource extends AbstractApiResource
 {
+    private string $id;
     private string $call;
     private int $number_of_calls;
     private float $wait_time_in_ms;
@@ -22,6 +22,7 @@ class TraceProfilingResource extends AbstractApiResource
     {
         parent::__construct($resource);
 
+        $this->id                      = $resource->id;
         $this->call                    = $resource->call;
         $this->number_of_calls         = $resource->numberOfCalls;
         $this->wait_time_in_ms         = $resource->waitTimeInMs;

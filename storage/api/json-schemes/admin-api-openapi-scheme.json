@@ -1424,6 +1424,10 @@
                                             "type": "array",
                                             "items": {
                                                 "properties": {
+                                                    "id": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
                                                     "call": {
                                                         "type": "string",
                                                         "nullable": false
@@ -1453,6 +1457,10 @@
                                                         "nullable": false,
                                                         "items": {
                                                             "properties": {
+                                                                "id": {
+                                                                    "type": "string",
+                                                                    "nullable": false
+                                                                },
                                                                 "call": {
                                                                     "type": "string",
                                                                     "nullable": false
@@ -1482,6 +1490,10 @@
                                                                     "nullable": false,
                                                                     "items": {
                                                                         "properties": {
+                                                                            "id": {
+                                                                                "type": "string",
+                                                                                "nullable": false
+                                                                            },
                                                                             "call": {
                                                                                 "type": "string",
                                                                                 "nullable": false
@@ -1511,6 +1523,10 @@
                                                                                 "nullable": false,
                                                                                 "items": {
                                                                                     "properties": {
+                                                                                        "id": {
+                                                                                            "type": "string",
+                                                                                            "nullable": false
+                                                                                        },
                                                                                         "call": {
                                                                                             "type": "string",
                                                                                             "nullable": false
@@ -1540,6 +1556,10 @@
                                                                                             "nullable": false,
                                                                                             "items": {
                                                                                                 "properties": {
+                                                                                                    "id": {
+                                                                                                        "type": "string",
+                                                                                                        "nullable": false
+                                                                                                    },
                                                                                                     "call": {
                                                                                                         "type": "string",
                                                                                                         "nullable": false
@@ -1569,6 +1589,10 @@
                                                                                                         "nullable": false,
                                                                                                         "items": {
                                                                                                             "properties": {
+                                                                                                                "id": {
+                                                                                                                    "type": "string",
+                                                                                                                    "nullable": false
+                                                                                                                },
                                                                                                                 "call": {
                                                                                                                     "type": "string",
                                                                                                                     "nullable": false
@@ -1603,6 +1627,7 @@
                                                                                                                 }
                                                                                                             },
                                                                                                             "required": [
+                                                                                                                "id",
                                                                                                                 "call",
                                                                                                                 "number_of_calls",
                                                                                                                 "wait_time_in_ms",
@@ -1615,6 +1640,7 @@
                                                                                                     }
                                                                                                 },
                                                                                                 "required": [
+                                                                                                    "id",
                                                                                                     "call",
                                                                                                     "number_of_calls",
                                                                                                     "wait_time_in_ms",
@@ -1627,6 +1653,7 @@
                                                                                         }
                                                                                     },
                                                                                     "required": [
+                                                                                        "id",
                                                                                         "call",
                                                                                         "number_of_calls",
                                                                                         "wait_time_in_ms",
@@ -1639,6 +1666,7 @@
                                                                             }
                                                                         },
                                                                         "required": [
+                                                                            "id",
                                                                             "call",
                                                                             "number_of_calls",
                                                                             "wait_time_in_ms",
@@ -1651,6 +1679,7 @@
                                                                 }
                                                             },
                                                             "required": [
+                                                                "id",
                                                                 "call",
                                                                 "number_of_calls",
                                                                 "wait_time_in_ms",
@@ -1663,6 +1692,7 @@
                                                     }
                                                 },
                                                 "required": [
+                                                    "id",
                                                     "call",
                                                     "number_of_calls",
                                                     "wait_time_in_ms",

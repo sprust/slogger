@@ -3,8 +3,9 @@
 namespace App\Modules\TraceAggregator\Domain\Services;
 
 use App\Modules\TraceAggregator\Domain\Entities\Objects\ProfilingItemObject;
+use Illuminate\Support\Str;
 
-class TraceProfileBuilder
+class TraceProfilingBuilder
 {
     private array $profiling;
 
@@ -42,6 +43,7 @@ class TraceProfileBuilder
         $itemData = $item['data'];
 
         return new ProfilingItemObject(
+            id: Str::uuid()->toString(),
             call: $item['callable'],
             numberOfCalls: $itemData['numberOfCalls'],
             waitTimeInMs: $itemData['waitTimeInMs'],
