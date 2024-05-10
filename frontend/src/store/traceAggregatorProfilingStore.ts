@@ -8,8 +8,8 @@ import {handleApiError} from "../utils/helpers.ts";
 import {Node} from "@vue-flow/core/dist/types/node";
 // @ts-ignore // todo
 import {Edge} from "@vue-flow/core/dist/types/edge";
-import {ProfilingTreeBuilder} from "../components/pages/trace-aggregator/components/profiling/treeBuilder.ts";
-import {FlowBuilder} from "../components/pages/trace-aggregator/components/profiling/flowBuilder.ts";
+import {ProfilingTreeBuilder} from "../components/pages/trace-aggregator/components/profiling/utils/treeBuilder.ts";
+import {FlowBuilder} from "../components/pages/trace-aggregator/components/profiling/utils/flowBuilder.ts";
 
 type Parameters = AdminApi.TraceAggregatorTracesProfilingDetail.RequestParams
 export type ProfilingItem = AdminApi.TraceAggregatorTracesProfilingDetail.ResponseBody['data'][number]

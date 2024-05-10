@@ -1,4 +1,4 @@
-import {FlowItems, ProfilingItem} from "../../../../../store/traceAggregatorProfilingStore.ts";
+import {FlowItems, ProfilingItem} from "../../../../../../store/traceAggregatorProfilingStore.ts";
 
 export class FlowBuilder {
     private readonly profilingItems: Array<ProfilingItem>

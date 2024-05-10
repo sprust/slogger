@@ -55,7 +55,7 @@ import {defineComponent} from "vue";
 import {useTraceAggregatorProfilingStore} from "../../../../../store/traceAggregatorProfilingStore.ts";
 import {MiniMap} from '@vue-flow/minimap'
 import TraceAggregatorSelectedProfilingItem from './TraceAggregatorSelectedProfilingItem.vue'
-import {ProfilingItemFinder} from "./itemFinder.ts";
+import {ProfilingItemFinder} from "./utils/itemFinder.ts";
 
 export default defineComponent({
   components: {VueFlow, MiniMap, TraceAggregatorSelectedProfilingItem},

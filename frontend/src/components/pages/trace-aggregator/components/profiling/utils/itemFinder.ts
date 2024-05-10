@@ -1,4 +1,4 @@
-import {ProfilingItem} from "../../../../../store/traceAggregatorProfilingStore.ts";
+import {ProfilingItem} from "../../../../../../store/traceAggregatorProfilingStore.ts";
 
 export class ProfilingItemFinder {
     public find(id: string, items: Array<ProfilingItem>): ProfilingItem | null {

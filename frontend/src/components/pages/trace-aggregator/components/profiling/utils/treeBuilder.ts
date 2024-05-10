@@ -1,4 +1,4 @@
-import {ProfilingItem, ProfilingTreeNode} from "../../../../../store/traceAggregatorProfilingStore.ts";
+import {ProfilingItem, ProfilingTreeNode} from "../../../../../../store/traceAggregatorProfilingStore.ts";
 
 export class ProfilingTreeBuilder {
     public build(items: Array<ProfilingItem>): Array<ProfilingTreeNode> {
