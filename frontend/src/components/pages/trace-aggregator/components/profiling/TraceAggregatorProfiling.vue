@@ -24,7 +24,11 @@
           </el-row>
         </el-col>
         <el-col :span="18" style="width: 100vw; height: 80vh">
-          <VueFlow v-model:nodes="store.state.flowItems.nodes" v-model:edges="store.state.flowItems.edges">
+          <VueFlow
+              v-model:nodes="store.state.flowItems.nodes"
+              v-model:edges="store.state.flowItems.edges"
+              :min-zoom="0.1"
+          >
             <template #node-custom="props">
               <TraceAggregatorProfilingNode :node="props" />
             </template>
