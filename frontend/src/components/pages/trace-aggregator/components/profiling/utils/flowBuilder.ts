@@ -6,8 +6,8 @@ export class FlowBuilder {
     private posX: number = 50
     private posY: number = 50
 
-    private stepX: number = 200
-    private stepY: number = 200
+    private stepX: number = 250
+    private stepY: number = 250
 
     private flowItems: FlowItems = {
         nodes: [],
@@ -38,7 +38,9 @@ export class FlowBuilder {
         items.map((item: ProfilingItem) => {
             this.flowItems.nodes.push({
                 id: item.id,
-                label: item.call.substring(item.call.length - 20),
+                label: item.call,
+                type: 'custom',
+                data: item,
                 position: {
                     x: this.posX,
                     y: this.posY
