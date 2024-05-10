@@ -1,5 +1,5 @@
 <template>
-  <div style="overflow-y: scroll; width: 100%; height: 75vh">
+  <div style="overflow-y: scroll; width: 100vw; height: 75vh">
     <el-tree
         v-if="!!store.state.selectedItem"
         ref="profilingTreeRef"
@@ -9,10 +9,11 @@
         :expand-on-click-node="false"
         default-expand-all
         :filter-node-method="filterTree"
+        style="width: 100vw"
     >
       <template #default="{ node }">
         <div style="font-size: 10px">
-          {{ node.label.substring(node.label.length - 50) }}
+          {{ node.label }}
         </div>
       </template>
     </el-tree>
