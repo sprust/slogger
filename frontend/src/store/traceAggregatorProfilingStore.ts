@@ -29,7 +29,6 @@ interface State {
     flowItems: FlowItems,
 }
 
-
 export type ProfilingTreeNode = {
     key: string,
     label: string,
@@ -52,6 +51,13 @@ export const traceAggregatorProfilingStore = createStore<State>({
     } as State,
     mutations: {
         setProfilingItems(state: State, profilingItems: Array<ProfilingItem>) {
+            state.profilingTreeFilter = ''
+            state.selectedItem = null
+            state.flowItems = {
+                nodes: [],
+                edges: [],
+            }
+
             if (profilingItems.length > 1) {
                 state.profilingItems = [
                     {
@@ -82,6 +88,7 @@ export const traceAggregatorProfilingStore = createStore<State>({
         },
         setSelectedProfilingItem(state: State, item: ProfilingItem | null) {
             if (!item) {
+                state.profilingTreeFilter = ''
                 state.selectedItem = null
                 state.flowItems = {
                     nodes: [],
@@ -123,6 +130,9 @@ export const traceAggregatorProfilingStore = createStore<State>({
         },
         clearProfiling({commit}: { commit: any }) {
             commit('setProfilingItems', [])
+        },
+        setProfilingItems({commit}: { commit: any }, profilingItems: Array<ProfilingItem>) {
+            commit('setProfilingItems', profilingItems)
         },
         setSelectedProfilingItem({commit}: { commit: any }, item: ProfilingItem | null) {
             commit('setSelectedProfilingItem', item)

@@ -8,12 +8,21 @@
         :expand-on-click-node="false"
         :filter-node-method="filterTree"
         style="width: 100vw"
-        @nodeClick="onTreeNodeClick"
     >
       <template #default="{ node }">
-        <div :class="isSelectedNode(node) ? 'selected-node' : ''" style="font-size: 10px">
-          {{ node.label }}
-        </div>
+        <el-row :class="isSelectedNode(node) ? 'selected-node' : ''" style="width: 100%; font-size: 10px">
+          <el-text style="padding-right: 5px" truncated>
+            {{ node.label }}
+          </el-text>
+          <el-space spacer="|">
+            <el-button type="info" @click="onTreeNodeClick(node)" link>
+              flow
+            </el-button>
+            <el-button type="info" @click="onShowTree(node)" link>
+              tree
+            </el-button>
+          </el-space>
+        </el-row>
       </template>
     </el-tree>
   </div>
@@ -22,7 +31,6 @@
 <script lang="ts">
 import {defineComponent} from "vue";
 import {
-  ProfilingItem,
   ProfilingTreeNode,
   useTraceAggregatorProfilingStore
 } from "../../../../../store/traceAggregatorProfilingStore.ts";
@@ -40,27 +48,7 @@ export default defineComponent({
     }
   },
 
-  computed: {
-    tree(): Array<ProfilingTreeNode> {
-      if (!this.store.state.selectedItem) {
-        return []
-      }
-
-      return this.dataNodeToTree([this.store.state.selectedItem])
-    },
-  },
-
   methods: {
-    dataNodeToTree(items: Array<ProfilingItem>): Array<ProfilingTreeNode> {
-      return items.map((item: ProfilingItem) => {
-        return {
-          key: item.id,
-          label: item.call,
-          children: this.dataNodeToTree(item.callables),
-          disabled: false,
-        }
-      })
-    },
     filterTree(value: string, data: ProfilingTreeNode) {
       if (!value) {
         return true
@@ -81,7 +69,14 @@ export default defineComponent({
     },
     isSelectedNode(node: ProfilingTreeNode): boolean {
       return node.key === this.store.state.selectedItem?.id
-    }
+    },
+    onShowTree(node: ProfilingTreeNode) {
+      const foundItem = (new ProfilingItemFinder()).find(
+          node.key, this.store.state.profilingItems
+      )
+
+      this.store.dispatch('setProfilingItems', [foundItem])
+    },
   },
 
   watch: {
