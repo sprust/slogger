@@ -1,13 +1,4 @@
-import {ProfilingItem} from "../../../../../store/traceAggregatorProfilingStore.ts";
-// @ts-ignore // todo
-import {Node} from "@vue-flow/core/dist/types/node";
-// @ts-ignore // todo
-import {Edge} from "@vue-flow/core/dist/types/edge";
-
-interface FlowItems {
-    nodes: Array<Node>,
-    edges: Array<Edge>,
-}
+import {FlowItems, ProfilingItem} from "../../../../../store/traceAggregatorProfilingStore.ts";
 
 export class FlowBuilder {
     private readonly profilingItems: Array<ProfilingItem>

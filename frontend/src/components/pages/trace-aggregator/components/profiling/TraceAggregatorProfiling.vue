@@ -33,7 +33,7 @@
           </el-row>
         </el-col>
         <el-col :span="18" style="width: 100vw; height: 80vh">
-          <VueFlow v-model:nodes="nodes" v-model:edges="edges">
+          <VueFlow v-model:nodes="store.state.flowItems.nodes" v-model:edges="store.state.flowItems.edges">
             <MiniMap node-color="black" pannable zoomable/>
           </VueFlow>
         </el-col>
@@ -54,21 +54,7 @@ export default defineComponent({
   components: {VueFlow, MiniMap, TraceAggregatorSelectedProfilingItem},
 
   data() {
-    const nodes = [
-      {id: '1', type: 'input', label: 'Node 1', position: {x: 250, y: 5}},
-      {id: '2', label: 'Node 2', position: {x: 100, y: 100}},
-      {id: '3', label: 'Node 3', position: {x: 400, y: 100}},
-      {id: '4', label: 'Node 4', position: {x: 400, y: 200}},
-    ]
-
-    const edges = [
-      {id: 'e1-2', source: '1', target: '2', animated: true},
-      {id: 'e1-3', source: '1', target: '3'},
-    ]
-
     return {
-      nodes,
-      edges,
       store: useTraceAggregatorProfilingStore(),
     }
   },
@@ -89,16 +75,16 @@ export default defineComponent({
       this.store.dispatch('setSelectedProfilingItem', foundItem)
 
       if (!foundItem) {
-        this.nodes = []
-        this.edges = []
+        this.store.state.flowItems.nodes = []
+        this.store.state.flowItems.edges = []
 
         return
       }
 
       const flow = (new FlowBuilder([foundItem])).build()
 
-      this.nodes = flow.nodes
-      this.edges = flow.edges
+      this.store.state.flowItems.nodes = flow.nodes
+      this.store.state.flowItems.edges = flow.edges
     },
   },
 

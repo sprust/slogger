@@ -4,9 +4,18 @@ import {createStore, Store, useStore as baseUseStore} from 'vuex'
 import {ApiContainer} from "../utils/apiContainer.ts";
 import {AdminApi} from "../api-schema/admin-api-schema.ts";
 import {handleApiError} from "../utils/helpers.ts";
+// @ts-ignore // todo
+import {Node} from "@vue-flow/core/dist/types/node";
+// @ts-ignore // todo
+import {Edge} from "@vue-flow/core/dist/types/edge";
 
 type Parameters = AdminApi.TraceAggregatorTracesProfilingDetail.RequestParams
 export type ProfilingItem = AdminApi.TraceAggregatorTracesProfilingDetail.ResponseBody['data'][number]
+
+export interface FlowItems {
+    nodes: Array<Node>,
+    edges: Array<Edge>,
+}
 
 interface State {
     loading: boolean,
@@ -14,6 +23,7 @@ interface State {
     profilingItems: Array<ProfilingItem>,
     selectedItemId: string,
     selectedItem: ProfilingItem | null,
+    flowItems: FlowItems
 }
 
 export const traceAggregatorProfilingStore = createStore<State>({
@@ -23,6 +33,10 @@ export const traceAggregatorProfilingStore = createStore<State>({
         profilingItems: new Array<ProfilingItem>,
         selectedItemId: '',
         selectedItem: null as ProfilingItem | null,
+        flowItems: {
+            nodes: [],
+            edges: [],
+        }
     } as State,
     mutations: {
         setProfilingItems(state: State, profilingItems: Array<ProfilingItem>) {
