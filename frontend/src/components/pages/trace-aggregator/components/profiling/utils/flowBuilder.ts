@@ -6,8 +6,8 @@ export class FlowBuilder {
     private posX: number = 50
     private posY: number = 50
 
-    private stepX: number = 250
-    private stepY: number = 250
+    private stepX: number = 400
+    private stepY: number = 400
 
     private flowItems: FlowItems = {
         nodes: [],
