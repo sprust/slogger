@@ -13,22 +13,6 @@
       <el-row style="height: 80vh">
         <el-col :span="6">
           <el-row>
-            <el-select
-                v-model="store.state.selectedRootItemId"
-                placeholder="Select"
-                style="width: 100%; font-size: 12px"
-                clearable
-                @change="onSelectRootItem"
-            >
-              <el-option
-                  v-for="item in store.state.profilingItems"
-                  :key="item.id"
-                  :label="item.call"
-                  :value="item.id"
-              />
-            </el-select>
-          </el-row>
-          <el-row>
             <el-input
                 v-model="store.state.profilingTreeFilter"
                 placeholder="Filter"
@@ -55,7 +39,6 @@ import {defineComponent} from "vue";
 import {useTraceAggregatorProfilingStore} from "../../../../../store/traceAggregatorProfilingStore.ts";
 import {MiniMap} from '@vue-flow/minimap'
 import TraceAggregatorSelectedProfilingItem from './TraceAggregatorSelectedProfilingItem.vue'
-import {ProfilingItemFinder} from "./utils/itemFinder.ts";
 
 export default defineComponent({
   components: {VueFlow, MiniMap, TraceAggregatorSelectedProfilingItem},
@@ -64,17 +47,6 @@ export default defineComponent({
     return {
       store: useTraceAggregatorProfilingStore(),
     }
-  },
-
-  methods: {
-    onSelectRootItem() {
-      const foundItem = (new ProfilingItemFinder()).find(
-          this.store.state.selectedRootItemId, this.store.state.profilingItems
-      )
-
-      this.store.dispatch('setSelectedProfilingItem', foundItem)
-      this.store.dispatch('buildProfilingTree', foundItem)
-    },
   },
 
   mounted() {

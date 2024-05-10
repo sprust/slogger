@@ -1,7 +1,6 @@
 <template>
   <div style="overflow-y: scroll; width: 100vw; height: 75vh">
     <el-tree
-        v-if="!!store.state.selectedItem"
         ref="profilingTreeRef"
         :data="store.state.profilingTree"
         :props="treeProps"
@@ -72,11 +71,7 @@ export default defineComponent({
     },
     onTreeNodeClick(node: ProfilingTreeNode) {
       if (node.key === this.store.state.selectedItem?.id) {
-        const foundRootItem = (new ProfilingItemFinder()).find(
-            this.store.state.selectedRootItemId, this.store.state.profilingItems
-        )
-
-        this.store.dispatch('setSelectedProfilingItem', foundRootItem)
+        this.store.dispatch('setSelectedProfilingItem', null)
       } else {
         const foundItem = (new ProfilingItemFinder()).find(
             node.key, this.store.state.profilingItems
@@ -91,7 +86,7 @@ export default defineComponent({
   },
 
   watch: {
-    'store.state.treeFilter'(value: string) {
+    'store.state.profilingTreeFilter'(value: string) {
       if (!this.$refs!.profilingTreeRef) {
         return
       }

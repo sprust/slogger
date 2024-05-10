@@ -23,7 +23,6 @@ interface State {
     loading: boolean,
     parameters: Parameters,
     profilingItems: Array<ProfilingItem>,
-    selectedRootItemId: string,
     selectedItem: ProfilingItem | null,
     profilingTreeFilter: string,
     profilingTree: Array<ProfilingTreeNode>,
@@ -43,7 +42,6 @@ export const traceAggregatorProfilingStore = createStore<State>({
         loading: false,
         parameters: {} as Parameters,
         profilingItems: new Array<ProfilingItem>,
-        selectedRootItemId: '',
         selectedItem: null as ProfilingItem | null,
         profilingTreeFilter: '',
         profilingTree: [] as Array<ProfilingTreeNode>,
@@ -55,6 +53,8 @@ export const traceAggregatorProfilingStore = createStore<State>({
     mutations: {
         setProfilingItems(state: State, profilingItems: Array<ProfilingItem>) {
             state.profilingItems = profilingItems
+
+            state.profilingTree = (new ProfilingTreeBuilder()).build(state.profilingItems)
         },
         buildProfilingTree(state: State, item: ProfilingItem | null) {
             if (!item) {
@@ -90,8 +90,6 @@ export const traceAggregatorProfilingStore = createStore<State>({
             parameters: Parameters
         ) {
             state.loading = true
-
-            commit('resetData')
 
             state.profilingItems = []
 
