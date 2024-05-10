@@ -13,7 +13,7 @@
         @nodeClick="onTreeNodeClick"
     >
       <template #default="{ node }">
-        <div style="font-size: 10px">
+        <div :class="isSelectedNode(node) ? 'selected-node' : ''" style="font-size: 10px">
           {{ node.label }}
         </div>
       </template>
@@ -28,17 +28,18 @@ import {
   ProfilingTreeNode,
   useTraceAggregatorProfilingStore
 } from "../../../../../store/traceAggregatorProfilingStore.ts";
+import {ProfilingItemFinder} from "./utils/itemFinder.ts";
 
 export default defineComponent({
   data() {
-      return {
-        store: useTraceAggregatorProfilingStore(),
-        treeProps: {
-          children: 'children',
-          label: 'label',
-          disabled: 'disabled',
-        },
-      }
+    return {
+      store: useTraceAggregatorProfilingStore(),
+      treeProps: {
+        children: 'children',
+        label: 'label',
+        disabled: 'disabled',
+      },
+    }
   },
 
   computed: {
@@ -70,7 +71,22 @@ export default defineComponent({
       return data.label.includes(value)
     },
     onTreeNodeClick(node: ProfilingTreeNode) {
-      console.log(node)
+      if (node.key === this.store.state.selectedItem?.id) {
+        const foundRootItem = (new ProfilingItemFinder()).find(
+            this.store.state.selectedRootItemId, this.store.state.profilingItems
+        )
+
+        this.store.dispatch('setSelectedProfilingItem', foundRootItem)
+      } else {
+        const foundItem = (new ProfilingItemFinder()).find(
+            node.key, this.store.state.profilingItems
+        )
+
+        this.store.dispatch('setSelectedProfilingItem', foundItem)
+      }
+    },
+    isSelectedNode(node: ProfilingTreeNode): boolean {
+      return node.key === this.store.state.selectedItem?.id
     }
   },
 
@@ -88,5 +104,7 @@ export default defineComponent({
 </script>
 
 <style scoped>
-
+.selected-node {
+  font-weight: bold;
+}
 </style>

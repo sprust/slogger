@@ -64,12 +64,14 @@ export const traceAggregatorProfilingStore = createStore<State>({
             }
 
             state.profilingTree = (new ProfilingTreeBuilder()).build([item])
-
-            console.log(state.profilingTree)
         },
         setSelectedProfilingItem(state: State, item: ProfilingItem | null) {
             if (!item) {
                 state.selectedItem = null
+                state.flowItems = {
+                    nodes: [],
+                    edges: [],
+                }
 
                 return;
             }
