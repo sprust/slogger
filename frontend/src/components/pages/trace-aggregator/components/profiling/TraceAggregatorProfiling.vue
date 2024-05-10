@@ -115,8 +115,4 @@ export default defineComponent({
 
 /* import default minimap styles */
 @import '@vue-flow/minimap/dist/style.css';
-
-.flow-node-class {
-  background-color: black;
-}
 </style>
