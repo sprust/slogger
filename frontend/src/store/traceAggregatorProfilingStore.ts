@@ -10,6 +10,7 @@ import {Node} from "@vue-flow/core/dist/types/node";
 import {Edge} from "@vue-flow/core/dist/types/edge";
 import {ProfilingTreeBuilder} from "../components/pages/trace-aggregator/components/profiling/utils/treeBuilder.ts";
 import {FlowBuilder} from "../components/pages/trace-aggregator/components/profiling/utils/flowBuilder.ts";
+import {MetricsBuilder} from "../components/pages/trace-aggregator/components/profiling/utils/metricsBuilder.ts";
 
 type Parameters = AdminApi.TraceAggregatorTracesProfilingDetail.RequestParams
 export type ProfilingItem = AdminApi.TraceAggregatorTracesProfilingDetail.ResponseBody['data'][number]
@@ -19,6 +20,16 @@ export interface FlowItems {
     edges: Array<Edge>,
 }
 
+export interface ProfilingMetrics {
+    numberOfCalls: number
+    waitTimeInUs: number
+    cpuTime: number
+    memoryUsageInBytes: number
+    peakMemoryUsageInBytes: number
+    totalCount: number
+    hardestCpuItemIds: Array<string>
+}
+
 interface State {
     loading: boolean,
     parameters: Parameters,
@@ -26,6 +37,7 @@ interface State {
     selectedItem: ProfilingItem | null,
     profilingTreeFilter: string,
     profilingTree: Array<ProfilingTreeNode>,
+    profilingMetrics: ProfilingMetrics,
     flowItems: FlowItems,
 }
 
@@ -44,6 +56,15 @@ export const traceAggregatorProfilingStore = createStore<State>({
         selectedItem: null as ProfilingItem | null,
         profilingTreeFilter: '',
         profilingTree: [] as Array<ProfilingTreeNode>,
+        profilingMetrics: {
+            numberOfCalls: 0,
+            waitTimeInUs: 0,
+            cpuTime: 0,
+            memoryUsageInBytes: 0,
+            peakMemoryUsageInBytes: 0,
+            totalCount: 0,
+            hardestCpuItemIds: []
+        },
         flowItems: {
             nodes: [],
             edges: [],
@@ -104,6 +125,8 @@ export const traceAggregatorProfilingStore = createStore<State>({
 
             state.flowItems.nodes = flow.nodes
             state.flowItems.edges = flow.edges
+
+            state.profilingMetrics = (new MetricsBuilder()).build(state.selectedItem.callables)
         },
     },
     actions: {

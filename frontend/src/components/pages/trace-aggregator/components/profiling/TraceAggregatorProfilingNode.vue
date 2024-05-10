@@ -1,5 +1,5 @@
 <template>
-  <el-card class="node">
+  <el-card :class="'node-flow ' + (isInHardestCpuFlow ? 'node-flow-hardest-flow' : '')">
     <template #header>
       <el-tooltip :content="node.label" placement="top-start">
         {{ node.label.substring(node.label.length - 50) }}
@@ -44,7 +44,7 @@
 import {defineComponent, PropType} from "vue";
 // @ts-ignore // todo
 import {Node} from "@vue-flow/core/dist/types/node";
-import {ProfilingItem} from "../../../../../store/traceAggregatorProfilingStore.ts";
+import {ProfilingItem, useTraceAggregatorProfilingStore} from "../../../../../store/traceAggregatorProfilingStore.ts";
 
 export default defineComponent({
   props: {
@@ -56,16 +56,26 @@ export default defineComponent({
 
   data() {
     return {
-      item: this.node.data as ProfilingItem
+      item: this.node.data as ProfilingItem,
+      store: useTraceAggregatorProfilingStore(),
     }
   },
+
+  computed: {
+    isInHardestCpuFlow() {
+      return this.store.state.profilingMetrics.hardestCpuItemIds.indexOf(this.item.id) !== -1
+    }
+  }
 })
 </script>
 
 <style scoped>
-.node {
+.node-flow {
   width: 200px;
   word-break: break-all;
   height: auto;
+}
+.node-flow-hardest-flow {
+  color: red;
 }
 </style>
