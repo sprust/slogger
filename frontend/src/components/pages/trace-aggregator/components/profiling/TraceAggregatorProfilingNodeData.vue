@@ -7,36 +7,7 @@
       {{ item.call }}
     </template>
     <div>
-      <el-tag
-          v-if="item.number_of_calls"
-          type="primary"
-      >
-        calls: {{ item.number_of_calls }}
-      </el-tag>
-      <el-tag
-          v-if="item.wait_time_in_us "
-          type="primary"
-      >
-        time: {{ item.wait_time_in_us }}us
-      </el-tag>
-      <el-tag
-          v-if="item.cpu_time"
-          type="primary"
-      >
-        cpu: {{ item.cpu_time }}
-      </el-tag>
-      <el-tag
-          v-if="item.memory_usage_in_bytes"
-          type="primary"
-      >
-        mem: {{ item.memory_usage_in_bytes }}b
-      </el-tag>
-      <el-tag
-          v-if="item.peak_memory_usage_in_bytes"
-          type="primary"
-      >
-        mem peak: {{ item.peak_memory_usage_in_bytes }}b
-      </el-tag>
+      <TraceAggregatorProfilingNodeMetrics :item="item"/>
     </div>
   </el-card>
 </template>
@@ -45,13 +16,14 @@
 import {defineComponent, PropType} from "vue";
 // @ts-ignore // todo
 import {ProfilingItem, useTraceAggregatorProfilingStore} from "../../../../../store/traceAggregatorProfilingStore.ts";
+import TraceAggregatorProfilingNodeMetrics from './TraceAggregatorProfilingNodeMetrics.vue'
 
 export default defineComponent({
-  name: "TraceAggregatorProfilingNode",
+  components: {TraceAggregatorProfilingNodeMetrics},
 
   props: {
     item: {
-      type: Object as PropType<ProfilingItem>,
+      type: Object as PropType<ProfilingItem | null>,
       nullable: true,
       required: false,
     },
@@ -64,7 +36,11 @@ export default defineComponent({
   },
 
   computed: {
-    isInHardestCpuFlow() {
+    isInHardestCpuFlow(): boolean {
+      if (!this.item) {
+        return false
+      }
+
       return this.store.state.profilingMetrics.hardestCpuItemIds.indexOf(this.item.id) !== -1
     }
   }

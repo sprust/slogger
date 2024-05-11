@@ -1,5 +1,5 @@
 <template>
-  <div style="overflow-y: scroll; width: 100vw; height: 75vh">
+  <div style="overflow-y: scroll; height: 80vh">
     <el-tree
         ref="profilingTreeRef"
         :data="store.state.profilingTree"
@@ -7,7 +7,7 @@
         node-key="key"
         :expand-on-click-node="false"
         :filter-node-method="filterTree"
-        style="width: 100vw"
+        style="width: 95vw"
     >
       <template #default="{ node }">
         <el-row :class="isSelectedNode(node) ? 'selected-node' : ''" style="width: 100%; font-size: 10px">
@@ -18,20 +18,15 @@
             {{ node.label }}
           </el-text>
           <el-space spacer="|">
-            <el-tooltip placement="top-start">
-              <template #content>
-                <TraceAggregatorProfilingNodeData :item="findItemByNode(node)"/>
-              </template>
-              <el-icon :size="15">
-                <InfoFilled/>
-              </el-icon>
-            </el-tooltip>
             <el-button type="info" @click="onTreeNodeClick(node)" link>
               flow
             </el-button>
             <el-button type="info" @click="onShowTree(node)" link>
               tree
             </el-button>
+            <div>
+              <TraceAggregatorProfilingNodeMetrics :item="findItemByNode(node)"/>
+            </div>
           </el-space>
         </el-row>
       </template>
@@ -49,9 +44,10 @@ import {
 import {ProfilingItemFinder} from "./utils/itemFinder.ts";
 import TraceAggregatorProfilingNodeData from "./TraceAggregatorProfilingNodeData.vue";
 import {InfoFilled} from '@element-plus/icons-vue'
+import TraceAggregatorProfilingNodeMetrics from './TraceAggregatorProfilingNodeMetrics.vue'
 
 export default defineComponent({
-  components: {TraceAggregatorProfilingNodeData, InfoFilled},
+  components: {TraceAggregatorProfilingNodeData, InfoFilled, TraceAggregatorProfilingNodeMetrics},
 
   data() {
     return {
