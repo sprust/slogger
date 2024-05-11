@@ -57,7 +57,7 @@ export type ProfilingTreeNode = {
 
 export const traceAggregatorProfilingStore = createStore<State>({
     state: {
-        loading: false,
+        loading: true,
         parameters: {} as Parameters,
         profilingItems: new Array<ProfilingItem>,
         selectedItem: null as ProfilingItem | null,
