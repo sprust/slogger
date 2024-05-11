@@ -12,7 +12,7 @@
       <template #default="{ node }">
         <el-row :class="isSelectedNode(node) ? 'selected-node' : ''" style="width: 100%; font-size: 10px">
           <el-text
-              :class="isInHardestCpuFlow(node) ? 'node-flow-hardest-flow' : ''" style="padding-right: 5px"
+              :class="isInHardestFlow(node) ? 'node-flow-hardest-flow' : ''" style="padding-right: 5px"
               truncated
           >
             {{ node.label }}
@@ -81,8 +81,8 @@ export default defineComponent({
     isSelectedNode(node: ProfilingTreeNode): boolean {
       return node.key === this.store.state.selectedItem?.id
     },
-    isInHardestCpuFlow(node: ProfilingTreeNode): boolean {
-      return this.store.state.profilingMetrics.hardestCpuItemIds.indexOf(node.key) !== -1
+    isInHardestFlow(node: ProfilingTreeNode): boolean {
+      return this.store.state.profilingMetrics.hardestItemIds.indexOf(node.key) !== -1
     },
     onShowTree(node: ProfilingTreeNode) {
       const foundItem = (new ProfilingItemFinder()).find(

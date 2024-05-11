@@ -9,7 +9,7 @@ export class MetricsBuilder {
             memoryUsageInBytes: 0,
             peakMemoryUsageInBytes: 0,
             totalCount: 0,
-            hardestCpuItemIds: []
+            hardestItemIds: []
         }
 
         this.buildRecursive(profilingItems, profilingMetrics, true)
@@ -20,14 +20,14 @@ export class MetricsBuilder {
     private buildRecursive(
         items: Array<ProfilingItem>,
         profilingMetrics: ProfilingMetrics,
-        isHardestCpu: boolean
+        isHardestFlow: boolean
     ): void {
         if (items.length === 0) {
             return
         }
 
         const itemWithMaxCpuTime = items.reduce((prev, current) => {
-            return (prev.cpu_time > current.cpu_time) ? prev : current
+            return (prev.wait_time_in_us > current.wait_time_in_us) ? prev : current
         })
 
         items.map((item: ProfilingItem) => {
@@ -54,11 +54,11 @@ export class MetricsBuilder {
             ++profilingMetrics.totalCount
 
             // @ts-ignore // todo: recursive oa scheme
-            this.buildRecursive(item.callables, profilingMetrics, isHardestCpu && itemWithMaxCpuTime.id === item.id)
+            this.buildRecursive(item.callables, profilingMetrics, isHardestFlow && itemWithMaxCpuTime.id === item.id)
         })
 
-        if (isHardestCpu) {
-            profilingMetrics.hardestCpuItemIds.push(itemWithMaxCpuTime?.id)
+        if (isHardestFlow) {
+            profilingMetrics.hardestItemIds.push(itemWithMaxCpuTime?.id)
         }
     }
 }

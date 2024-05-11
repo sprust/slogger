@@ -27,7 +27,7 @@ export interface ProfilingMetrics {
     memoryUsageInBytes: number
     peakMemoryUsageInBytes: number
     totalCount: number
-    hardestCpuItemIds: Array<string>
+    hardestItemIds: Array<string>
 }
 
 interface State {
@@ -70,7 +70,7 @@ export const traceAggregatorProfilingStore = createStore<State>({
             memoryUsageInBytes: 0,
             peakMemoryUsageInBytes: 0,
             totalCount: 0,
-            hardestCpuItemIds: []
+            hardestItemIds: []
         },
         profilingMetricsSetting: {
             showNumberOfCalls: true,

@@ -2,7 +2,7 @@
   <div v-if="!item">
     Not found
   </div>
-  <el-card v-else :class="'node-flow ' + (isInHardestCpuFlow ? 'node-flow-hardest-flow' : '')">
+  <el-card v-else :class="'node-flow ' + (isInHardestFlow ? 'node-flow-hardest-flow' : '')">
     <template #header>
       {{ item.call }}
     </template>
@@ -36,12 +36,12 @@ export default defineComponent({
   },
 
   computed: {
-    isInHardestCpuFlow(): boolean {
+    isInHardestFlow(): boolean {
       if (!this.item) {
         return false
       }
 
-      return this.store.state.profilingMetrics.hardestCpuItemIds.indexOf(this.item.id) !== -1
+      return this.store.state.profilingMetrics.hardestItemIds.indexOf(this.item.id) !== -1
     }
   }
 })
