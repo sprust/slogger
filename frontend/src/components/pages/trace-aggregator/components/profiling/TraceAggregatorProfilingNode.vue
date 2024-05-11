@@ -1,43 +1,46 @@
 <template>
-  <el-card :class="'node-flow ' + (isInHardestCpuFlow ? 'node-flow-hardest-flow' : '')">
-    <template #header>
-      <el-tooltip :content="node.label" placement="top-start">
-        {{ node.label.substring(node.label.length - 50) }}
-      </el-tooltip>
+  <el-tooltip placement="top-start">
+    <template #content>
+      <TraceAggregatorProfilingNode :node="node"/>
     </template>
-    <div>
-      <el-tag
-          v-if="item.number_of_calls"
-          type="primary"
-      >
-        calls: {{ item.number_of_calls }}
-      </el-tag>
-      <el-tag
-          v-if="item.wait_time_in_us "
-          type="primary"
-      >
-        time: {{ item.wait_time_in_us }}us
-      </el-tag>
-      <el-tag
-          v-if="item.cpu_time"
-          type="primary"
-      >
-        cpu: {{ item.cpu_time }}
-      </el-tag>
-      <el-tag
-          v-if="item.memory_usage_in_bytes"
-          type="primary"
-      >
-        mem: {{ item.memory_usage_in_bytes }}b
-      </el-tag>
-      <el-tag
-          v-if="item.peak_memory_usage_in_bytes"
-          type="primary"
-      >
-        mem peak: {{ item.peak_memory_usage_in_bytes }}b
-      </el-tag>
-    </div>
-  </el-card>
+    <el-card :class="'node-flow ' + (isInHardestCpuFlow ? 'node-flow-hardest-flow' : '')">
+      <template #header>
+        {{ node.label }}
+      </template>
+      <div>
+        <el-tag
+            v-if="item.number_of_calls"
+            type="primary"
+        >
+          calls: {{ item.number_of_calls }}
+        </el-tag>
+        <el-tag
+            v-if="item.wait_time_in_us "
+            type="primary"
+        >
+          time: {{ item.wait_time_in_us }}us
+        </el-tag>
+        <el-tag
+            v-if="item.cpu_time"
+            type="primary"
+        >
+          cpu: {{ item.cpu_time }}
+        </el-tag>
+        <el-tag
+            v-if="item.memory_usage_in_bytes"
+            type="primary"
+        >
+          mem: {{ item.memory_usage_in_bytes }}b
+        </el-tag>
+        <el-tag
+            v-if="item.peak_memory_usage_in_bytes"
+            type="primary"
+        >
+          mem peak: {{ item.peak_memory_usage_in_bytes }}b
+        </el-tag>
+      </div>
+    </el-card>
+  </el-tooltip>
 </template>
 
 <script lang="ts">
@@ -47,6 +50,8 @@ import {Node} from "@vue-flow/core/dist/types/node";
 import {ProfilingItem, useTraceAggregatorProfilingStore} from "../../../../../store/traceAggregatorProfilingStore.ts";
 
 export default defineComponent({
+  name: "TraceAggregatorProfilingNode",
+
   props: {
     node: {
       type: Object as PropType<Node>,
@@ -75,6 +80,7 @@ export default defineComponent({
   word-break: break-all;
   height: auto;
 }
+
 .node-flow-hardest-flow {
   color: red;
 }
