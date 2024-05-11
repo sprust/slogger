@@ -18,7 +18,7 @@
         <el-col :span="leftSpan">
           <el-row>
             <el-input
-                v-model="profilingTreeFilter"
+                v-model="store.state.profilingTreeFilterPrev"
                 placeholder="Filter"
                 v-on:keyup.enter="onFilterTree"
                 clearable
@@ -78,7 +78,6 @@ export default defineComponent({
 
   data() {
     return {
-      profilingTreeFilter: '',
       store: useTraceAggregatorProfilingStore(),
     }
   },
@@ -97,7 +96,7 @@ export default defineComponent({
 
   methods: {
     onFilterTree() {
-      this.store.dispatch('setProfilingTreeFilter', this.profilingTreeFilter)
+      this.store.dispatch('setProfilingTreeFilter', this.store.state.profilingTreeFilterPrev)
     }
   },
 

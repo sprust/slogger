@@ -35,6 +35,7 @@ interface State {
     parameters: Parameters,
     profilingItems: Array<ProfilingItem>,
     selectedItem: ProfilingItem | null,
+    profilingTreeFilterPrev: string, // crutch
     profilingTreeFilter: string,
     profilingTree: Array<ProfilingTreeNode>,
     profilingMetrics: ProfilingMetrics,
@@ -61,6 +62,7 @@ export const traceAggregatorProfilingStore = createStore<State>({
         parameters: {} as Parameters,
         profilingItems: new Array<ProfilingItem>,
         selectedItem: null as ProfilingItem | null,
+        profilingTreeFilterPrev: '',
         profilingTreeFilter: '',
         profilingTree: [] as Array<ProfilingTreeNode>,
         profilingMetrics: {
