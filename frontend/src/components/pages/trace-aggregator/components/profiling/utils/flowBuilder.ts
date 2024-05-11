@@ -6,8 +6,8 @@ export class FlowBuilder {
     private posX: number = 50
     private posY: number = 50
 
-    private stepX: number = 400
-    private stepY: number = 400
+    private stepX: number = 400 // horizontal
+    private stepY: number = 400 // vertical
 
     private flowItems: FlowItems = {
         nodes: [],
@@ -35,7 +35,15 @@ export class FlowBuilder {
     private buildRecursive(items: Array<ProfilingItem>, parent: null | ProfilingItem): void {
         this.posY += this.stepY
 
+        let isFirstItem = true
+
         items.map((item: ProfilingItem) => {
+            if (!isFirstItem) {
+                this.posX += this.stepX
+            }
+
+            isFirstItem = false
+
             this.flowItems.nodes.push({
                 id: item.id,
                 label: item.call,
@@ -58,8 +66,6 @@ export class FlowBuilder {
 
             // @ts-ignore // todo: recursive oa scheme
             this.buildRecursive(item.callables, item)
-
-            this.posX += this.stepX
         })
 
         this.posY -= this.stepY
