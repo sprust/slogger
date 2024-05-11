@@ -19,7 +19,7 @@
           <el-row>
             <el-input
                 v-model="store.state.profilingTreeFilterPrev"
-                placeholder="Filter"
+                placeholder="Filter ('*' - any symbols, '!' in start - is exclude)"
                 v-on:keyup.enter="onFilterTree"
                 clearable
             >

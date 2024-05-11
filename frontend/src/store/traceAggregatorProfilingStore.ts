@@ -88,6 +88,7 @@ export const traceAggregatorProfilingStore = createStore<State>({
     } as State,
     mutations: {
         setProfilingItems(state: State, profilingItems: Array<ProfilingItem>) {
+            state.profilingTreeFilterPrev = ''
             state.profilingTreeFilter = ''
             state.selectedItem = null
             state.profilingMetrics.hardestItemIds = []
@@ -126,6 +127,7 @@ export const traceAggregatorProfilingStore = createStore<State>({
         },
         setSelectedProfilingItem(state: State, item: ProfilingItem | null) {
             if (!item) {
+                state.profilingTreeFilterPrev = ''
                 state.profilingTreeFilter = ''
                 state.selectedItem = null
                 state.flowItems = {

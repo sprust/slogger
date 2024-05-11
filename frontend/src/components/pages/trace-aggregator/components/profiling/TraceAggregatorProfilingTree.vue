@@ -47,6 +47,7 @@ import {
 import {ProfilingItemFinder} from "./utils/itemFinder.ts";
 import TraceAggregatorProfilingNodeData from "./TraceAggregatorProfilingNodeData.vue";
 import TraceAggregatorProfilingNodeMetrics from './TraceAggregatorProfilingNodeMetrics.vue'
+import {TreeFilter} from "./utils/treeFilter.ts";
 
 export default defineComponent({
   components: {TraceAggregatorProfilingNodeData, TraceAggregatorProfilingNodeMetrics},
@@ -59,16 +60,17 @@ export default defineComponent({
         label: 'label',
         disabled: 'disabled',
       },
+      finder: new TreeFilter()
     }
   },
 
   methods: {
-    filterTree(value: string, data: ProfilingTreeNode) {
-      if (!value) {
+    filterTree(patterns: string, data: ProfilingTreeNode) {
+      if (!patterns) {
         return true
       }
 
-      return data.label.includes(value)
+      return this.finder.includes(patterns, data)
     },
     onShowFlow(node: ProfilingTreeNode) {
       if (node.key === this.store.state.selectedItem?.id) {
