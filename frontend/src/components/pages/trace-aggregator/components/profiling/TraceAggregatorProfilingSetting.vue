@@ -1,5 +1,10 @@
 <template>
   <el-row style="width: 100%">
+    <el-button
+        @click="onReload"
+        :icon="Refresh"
+        style="margin-right: 10px"
+    />
     <el-text style="padding-right: 5px">
       Show:
     </el-text>
@@ -60,7 +65,7 @@
 <script lang="ts">
 import {defineComponent} from "vue";
 import {useTraceAggregatorProfilingStore} from "../../../../../store/traceAggregatorProfilingStore.ts";
-import {Close} from '@element-plus/icons-vue'
+import {Close, Refresh} from '@element-plus/icons-vue'
 
 export default defineComponent({
   components: {Close},
@@ -74,13 +79,19 @@ export default defineComponent({
   computed: {
     Close() {
       return Close
-    }
+    },
+    Refresh() {
+      return Refresh
+    },
   },
 
   methods: {
+    onReload() {
+      this.store.dispatch('findProfiling', this.store.state.parameters)
+    },
     onCloseFlow() {
       this.store.dispatch('setSelectedProfilingItem', null)
-    }
+    },
   }
 })
 </script>

@@ -2,6 +2,7 @@
   <el-container>
     <el-progress
         v-if="store.state.loading"
+        style="width: 100vw"
         status="success"
         :text-inside="true"
         :percentage="100"
@@ -10,7 +11,7 @@
         striped
     />
     <div v-else style="width: 100vw">
-      <el-row style="width: 100%">
+      <el-row style="width: 100%; padding-bottom: 5px">
         <TraceAggregatorProfilingSetting/>
       </el-row>
       <el-row style="width: 100%">
