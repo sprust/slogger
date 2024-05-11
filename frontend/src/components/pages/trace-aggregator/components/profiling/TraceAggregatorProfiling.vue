@@ -9,8 +9,11 @@
         :duration="5"
         striped
     />
-    <div v-else>
-      <el-row style="width: 100vw">
+    <div v-else style="width: 100vw">
+      <el-row style="width: 100%">
+        <TraceAggregatorProfilingSetting/>
+      </el-row>
+      <el-row style="width: 100%">
         <el-col :span="leftSpan">
           <el-row>
             <el-input
@@ -20,10 +23,10 @@
             />
           </el-row>
           <el-row>
-            <TraceAggregatorSelectedProfilingItem/>
+            <TraceAggregatorProfilingTree/>
           </el-row>
         </el-col>
-        <el-col v-if="showFlowSpan" :span="18" style="width: 100vw; height: 80vh">
+        <el-col v-if="showFlowSpan" :span="18" style="width: 100%; height: 70vh">
           <VueFlow
               v-model:nodes="store.state.flowItems.nodes"
               v-model:edges="store.state.flowItems.edges"
@@ -49,16 +52,18 @@ import {defineComponent} from "vue";
 import {useTraceAggregatorProfilingStore} from "../../../../../store/traceAggregatorProfilingStore.ts";
 import {MiniMap} from '@vue-flow/minimap'
 import { Controls } from '@vue-flow/controls'
-import TraceAggregatorSelectedProfilingItem from './TraceAggregatorSelectedProfilingItem.vue'
+import TraceAggregatorProfilingTree from './TraceAggregatorProfilingTree.vue'
 import TraceAggregatorProfilingNode from './TraceAggregatorProfilingNode.vue'
+import TraceAggregatorProfilingSetting from './TraceAggregatorProfilingSetting.vue'
 
 export default defineComponent({
   components: {
     VueFlow,
     MiniMap,
     Controls,
-    TraceAggregatorSelectedProfilingItem,
+    TraceAggregatorProfilingTree,
     TraceAggregatorProfilingNode,
+    TraceAggregatorProfilingSetting,
   },
 
   data() {

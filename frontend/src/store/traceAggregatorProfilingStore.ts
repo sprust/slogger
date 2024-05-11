@@ -38,6 +38,13 @@ interface State {
     profilingTreeFilter: string,
     profilingTree: Array<ProfilingTreeNode>,
     profilingMetrics: ProfilingMetrics,
+    profilingMetricsSetting: {
+        showNumberOfCalls: boolean
+        showWaitTimeInUs: boolean
+        showCpuTime: boolean
+        showMemoryUsageInBytes: boolean
+        showPeakMemoryUsageInBytes: boolean
+    },
     flowItems: FlowItems,
 }
 
@@ -64,6 +71,13 @@ export const traceAggregatorProfilingStore = createStore<State>({
             peakMemoryUsageInBytes: 0,
             totalCount: 0,
             hardestCpuItemIds: []
+        },
+        profilingMetricsSetting: {
+            showNumberOfCalls: true,
+            showWaitTimeInUs: true,
+            showCpuTime: true,
+            showMemoryUsageInBytes: true,
+            showPeakMemoryUsageInBytes: true,
         },
         flowItems: {
             nodes: [],

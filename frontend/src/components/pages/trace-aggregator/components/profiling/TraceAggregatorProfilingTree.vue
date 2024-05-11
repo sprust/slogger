@@ -1,5 +1,5 @@
 <template>
-  <div style="overflow-y: scroll; height: 80vh">
+  <div style="overflow-y: scroll; width: 100%; height: 75vh">
     <el-tree
         ref="profilingTreeRef"
         :data="store.state.profilingTree"
@@ -7,7 +7,7 @@
         node-key="key"
         :expand-on-click-node="false"
         :filter-node-method="filterTree"
-        style="width: 95vw"
+        style="width: 90vw"
     >
       <template #default="{ node }">
         <el-row :class="isSelectedNode(node) ? 'selected-node' : ''" style="width: 100%; font-size: 10px">
@@ -43,11 +43,10 @@ import {
 } from "../../../../../store/traceAggregatorProfilingStore.ts";
 import {ProfilingItemFinder} from "./utils/itemFinder.ts";
 import TraceAggregatorProfilingNodeData from "./TraceAggregatorProfilingNodeData.vue";
-import {InfoFilled} from '@element-plus/icons-vue'
 import TraceAggregatorProfilingNodeMetrics from './TraceAggregatorProfilingNodeMetrics.vue'
 
 export default defineComponent({
-  components: {TraceAggregatorProfilingNodeData, InfoFilled, TraceAggregatorProfilingNodeMetrics},
+  components: {TraceAggregatorProfilingNodeData, TraceAggregatorProfilingNodeMetrics},
 
   data() {
     return {
