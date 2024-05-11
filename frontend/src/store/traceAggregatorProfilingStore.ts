@@ -152,6 +152,9 @@ export const traceAggregatorProfilingStore = createStore<State>({
 
             state.profilingMetrics = (new MetricsBuilder()).build(item.callables)
         },
+        setProfilingTreeFilter(state: State, value: string) {
+            state.profilingTreeFilter = value
+        },
     },
     actions: {
         findProfiling(
@@ -189,6 +192,9 @@ export const traceAggregatorProfilingStore = createStore<State>({
         },
         calculateHardestFlow({commit}: { commit: any }, item: ProfilingItem | null) {
             commit('buildProfilingTree', item)
+        },
+        setProfilingTreeFilter({commit}: { commit: any }, value: string) {
+            commit('setProfilingTreeFilter', value)
         },
     },
 })

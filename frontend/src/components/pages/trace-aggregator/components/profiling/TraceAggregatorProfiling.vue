@@ -18,10 +18,18 @@
         <el-col :span="leftSpan">
           <el-row>
             <el-input
-                v-model="store.state.profilingTreeFilter"
+                v-model="profilingTreeFilter"
                 placeholder="Filter"
+                v-on:keyup.enter="onFilterTree"
                 clearable
-            />
+            >
+              <template #append>
+                <el-button
+                    :icon="Search"
+                    @click="onFilterTree"
+                />
+              </template>
+            </el-input>
           </el-row>
           <el-row>
             <TraceAggregatorProfilingTree/>
@@ -34,12 +42,12 @@
               :min-zoom="0.1"
           >
             <template #node-custom="props">
-              <TraceAggregatorProfilingNode :node="props" />
+              <TraceAggregatorProfilingNode :node="props"/>
             </template>
 
             <MiniMap node-color="black" mask-color="rgba(128, 128, 128, 0.7)" pannable zoomable/>
 
-            <Controls />
+            <Controls/>
           </VueFlow>
         </el-col>
       </el-row>
@@ -52,10 +60,11 @@ import {VueFlow} from '@vue-flow/core'
 import {defineComponent} from "vue";
 import {useTraceAggregatorProfilingStore} from "../../../../../store/traceAggregatorProfilingStore.ts";
 import {MiniMap} from '@vue-flow/minimap'
-import { Controls } from '@vue-flow/controls'
+import {Controls} from '@vue-flow/controls'
 import TraceAggregatorProfilingTree from './TraceAggregatorProfilingTree.vue'
 import TraceAggregatorProfilingNode from './TraceAggregatorProfilingNode.vue'
 import TraceAggregatorProfilingSetting from './TraceAggregatorProfilingSetting.vue'
+import {Search} from '@element-plus/icons-vue'
 
 export default defineComponent({
   components: {
@@ -69,6 +78,7 @@ export default defineComponent({
 
   data() {
     return {
+      profilingTreeFilter: '',
       store: useTraceAggregatorProfilingStore(),
     }
   },
@@ -80,6 +90,15 @@ export default defineComponent({
     showFlowSpan(): boolean {
       return !!this.store.state.selectedItem
     },
+    Search() {
+      return Search
+    }
+  },
+
+  methods: {
+    onFilterTree() {
+      this.store.dispatch('setProfilingTreeFilter', this.profilingTreeFilter)
+    }
   },
 
   mounted() {
