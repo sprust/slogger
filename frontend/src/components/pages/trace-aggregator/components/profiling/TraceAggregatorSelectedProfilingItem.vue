@@ -11,10 +11,21 @@
     >
       <template #default="{ node }">
         <el-row :class="isSelectedNode(node) ? 'selected-node' : ''" style="width: 100%; font-size: 10px">
-          <el-text :class="isInHardestCpuFlow(node) ? 'node-flow-hardest-flow' : ''" style="padding-right: 5px" truncated>
+          <el-text
+              :class="isInHardestCpuFlow(node) ? 'node-flow-hardest-flow' : ''" style="padding-right: 5px"
+              truncated
+          >
             {{ node.label }}
           </el-text>
           <el-space spacer="|">
+            <el-tooltip placement="top-start">
+              <template #content>
+                <TraceAggregatorProfilingNodeData :item="findItemByNode(node)"/>
+              </template>
+              <el-icon :size="15">
+                <InfoFilled/>
+              </el-icon>
+            </el-tooltip>
             <el-button type="info" @click="onTreeNodeClick(node)" link>
               flow
             </el-button>
@@ -31,12 +42,17 @@
 <script lang="ts">
 import {defineComponent} from "vue";
 import {
+  ProfilingItem,
   ProfilingTreeNode,
   useTraceAggregatorProfilingStore
 } from "../../../../../store/traceAggregatorProfilingStore.ts";
 import {ProfilingItemFinder} from "./utils/itemFinder.ts";
+import TraceAggregatorProfilingNodeData from "./TraceAggregatorProfilingNodeData.vue";
+import {InfoFilled} from '@element-plus/icons-vue'
 
 export default defineComponent({
+  components: {TraceAggregatorProfilingNodeData, InfoFilled},
+
   data() {
     return {
       store: useTraceAggregatorProfilingStore(),
@@ -80,6 +96,11 @@ export default defineComponent({
 
       this.store.dispatch('setProfilingItems', [foundItem])
     },
+    findItemByNode(node: ProfilingTreeNode): ProfilingItem | null {
+      return (new ProfilingItemFinder()).find(
+          node.key, this.store.state.profilingItems
+      )
+    },
   },
 
   watch: {
@@ -99,6 +120,7 @@ export default defineComponent({
 .selected-node {
   font-weight: bold;
 }
+
 .node-flow-hardest-flow {
   color: red;
 }
