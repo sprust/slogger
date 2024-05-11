@@ -18,11 +18,14 @@
             {{ node.label }}
           </el-text>
           <el-space spacer="|">
-            <el-button type="info" @click="onTreeNodeClick(node)" link>
+            <el-button type="info" @click="onShowFlow(node)" link>
               flow
             </el-button>
             <el-button type="info" @click="onShowTree(node)" link>
               tree
+            </el-button>
+            <el-button type="info" @click="onCalculateHardestFlow(node)" link>
+              hardest
             </el-button>
             <div>
               <TraceAggregatorProfilingNodeMetrics :item="findItemByNode(node)"/>
@@ -67,7 +70,7 @@ export default defineComponent({
 
       return data.label.includes(value)
     },
-    onTreeNodeClick(node: ProfilingTreeNode) {
+    onShowFlow(node: ProfilingTreeNode) {
       if (node.key === this.store.state.selectedItem?.id) {
         this.store.dispatch('setSelectedProfilingItem', null)
       } else {
@@ -90,6 +93,13 @@ export default defineComponent({
       )
 
       this.store.dispatch('setProfilingItems', [foundItem])
+    },
+    onCalculateHardestFlow(node: ProfilingTreeNode) {
+      const foundItem = (new ProfilingItemFinder()).find(
+          node.key, this.store.state.profilingItems
+      )
+
+      this.store.dispatch('calculateHardestFlow', foundItem)
     },
     findItemByNode(node: ProfilingTreeNode): ProfilingItem | null {
       return (new ProfilingItemFinder()).find(

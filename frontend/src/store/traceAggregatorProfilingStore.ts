@@ -88,6 +88,7 @@ export const traceAggregatorProfilingStore = createStore<State>({
         setProfilingItems(state: State, profilingItems: Array<ProfilingItem>) {
             state.profilingTreeFilter = ''
             state.selectedItem = null
+            state.profilingMetrics.hardestItemIds = []
             state.flowItems = {
                 nodes: [],
                 edges: [],
@@ -119,7 +120,7 @@ export const traceAggregatorProfilingStore = createStore<State>({
                 return
             }
 
-            state.profilingTree = (new ProfilingTreeBuilder()).build([item])
+            state.profilingMetrics = (new MetricsBuilder()).build(item.callables)
         },
         setSelectedProfilingItem(state: State, item: ProfilingItem | null) {
             if (!item) {
@@ -141,6 +142,15 @@ export const traceAggregatorProfilingStore = createStore<State>({
             state.flowItems.edges = flow.edges
 
             state.profilingMetrics = (new MetricsBuilder()).build(state.selectedItem.callables)
+        },
+        calculateHardestFlow(state: State, item: ProfilingItem | null) {
+            if (!item) {
+                state.profilingMetrics.hardestItemIds = []
+
+                return;
+            }
+
+            state.profilingMetrics = (new MetricsBuilder()).build(item.callables)
         },
     },
     actions: {
@@ -175,6 +185,9 @@ export const traceAggregatorProfilingStore = createStore<State>({
             commit('setSelectedProfilingItem', item)
         },
         buildProfilingTree({commit}: { commit: any }, item: ProfilingItem | null) {
+            commit('buildProfilingTree', item)
+        },
+        calculateHardestFlow({commit}: { commit: any }, item: ProfilingItem | null) {
             commit('buildProfilingTree', item)
         },
     },
