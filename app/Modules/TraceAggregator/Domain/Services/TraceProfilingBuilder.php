@@ -2,6 +2,7 @@
 
 namespace App\Modules\TraceAggregator\Domain\Services;
 
+use App\Modules\TraceAggregator\Domain\Entities\Objects\ProfilingItemDataObject;
 use App\Modules\TraceAggregator\Domain\Entities\Objects\ProfilingItemObject;
 use Illuminate\Support\Str;
 
@@ -40,16 +41,16 @@ class TraceProfilingBuilder
 
     private function makeObjectFromItem(array $item): ProfilingItemObject
     {
-        $itemData = $item['data'];
-
         return new ProfilingItemObject(
             id: Str::uuid()->toString(),
             call: $item['callable'],
-            numberOfCalls: $itemData['numberOfCalls'],
-            waitTimeInUs: $itemData['waitTimeInUs'],
-            cpuTime: $itemData['cpuTime'],
-            memoryUsageInBytes: $itemData['memoryUsageInBytes'],
-            peakMemoryUsageInBytes: $itemData['peakMemoryUsageInBytes'],
+            data: array_map(
+                fn(array $itemData) => new ProfilingItemDataObject(
+                    name: $itemData['name'],
+                    value: $itemData['value']
+                ),
+                $item['data']
+            ),
             callables: [],
         );
     }

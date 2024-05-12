@@ -7,7 +7,7 @@
         node-key="key"
         :expand-on-click-node="false"
         :filter-node-method="filterTree"
-        style="width: 90vw"
+        style="width: 95vw"
     >
       <template #default="{ node }">
         <el-row :class="isSelectedNode(node) ? 'selected-node' : ''" style="width: 100%; font-size: 10px">

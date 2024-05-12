@@ -654,51 +654,48 @@ export namespace AdminApi {
     data: ({
     id: string,
     call: string,
-    number_of_calls: number,
-    wait_time_in_us: number,
-    cpu_time: number,
-    memory_usage_in_bytes: number,
-    peak_memory_usage_in_bytes: number,
+    data: ({
+    name: string,
+    value: number,
+
+})[],
     callables: ({
     id: string,
     call: string,
-    number_of_calls: number,
-    wait_time_in_us: number,
-    cpu_time: number,
-    memory_usage_in_bytes: number,
-    peak_memory_usage_in_bytes: number,
+    data: ({
+    name: string,
+    value: number,
+
+})[],
     callables: ({
     id: string,
     call: string,
-    number_of_calls: number,
-    wait_time_in_us: number,
-    cpu_time: number,
-    memory_usage_in_bytes: number,
-    peak_memory_usage_in_bytes: number,
+    data: ({
+    name: string,
+    value: number,
+
+})[],
     callables: ({
     id: string,
     call: string,
-    number_of_calls: number,
-    wait_time_in_us: number,
-    cpu_time: number,
-    memory_usage_in_bytes: number,
-    peak_memory_usage_in_bytes: number,
+    data: ({
+    name: string,
+    value: number,
+
+})[],
     callables: ({
     id: string,
     call: string,
-    number_of_calls: number,
-    wait_time_in_us: number,
-    cpu_time: number,
-    memory_usage_in_bytes: number,
-    peak_memory_usage_in_bytes: number,
+    data: ({
+    name: string,
+    value: number,
+
+})[],
     callables: ({
     id: string,
     call: string,
-    number_of_calls: number,
-    wait_time_in_us: number,
-    cpu_time: number,
-    memory_usage_in_bytes: number,
-    peak_memory_usage_in_bytes: number,
+  \** @maxItems 0 *\
+    data: (string)[],
   \** @maxItems 0 *\
     callables: (string)[],
 
@@ -727,51 +724,43 @@ export namespace AdminApi {
       data: {
         id: string;
         call: string;
-        number_of_calls: number;
-        wait_time_in_us: number;
-        cpu_time: number;
-        memory_usage_in_bytes: number;
-        peak_memory_usage_in_bytes: number;
+        data: {
+          name: string;
+          value: number;
+        }[];
         callables: {
           id: string;
           call: string;
-          number_of_calls: number;
-          wait_time_in_us: number;
-          cpu_time: number;
-          memory_usage_in_bytes: number;
-          peak_memory_usage_in_bytes: number;
+          data: {
+            name: string;
+            value: number;
+          }[];
           callables: {
             id: string;
             call: string;
-            number_of_calls: number;
-            wait_time_in_us: number;
-            cpu_time: number;
-            memory_usage_in_bytes: number;
-            peak_memory_usage_in_bytes: number;
+            data: {
+              name: string;
+              value: number;
+            }[];
             callables: {
               id: string;
               call: string;
-              number_of_calls: number;
-              wait_time_in_us: number;
-              cpu_time: number;
-              memory_usage_in_bytes: number;
-              peak_memory_usage_in_bytes: number;
+              data: {
+                name: string;
+                value: number;
+              }[];
               callables: {
                 id: string;
                 call: string;
-                number_of_calls: number;
-                wait_time_in_us: number;
-                cpu_time: number;
-                memory_usage_in_bytes: number;
-                peak_memory_usage_in_bytes: number;
+                data: {
+                  name: string;
+                  value: number;
+                }[];
                 callables: {
                   id: string;
                   call: string;
-                  number_of_calls: number;
-                  wait_time_in_us: number;
-                  cpu_time: number;
-                  memory_usage_in_bytes: number;
-                  peak_memory_usage_in_bytes: number;
+                  /** @maxItems 0 */
+                  data: string[];
                   /** @maxItems 0 */
                   callables: string[];
                 }[];
@@ -2015,51 +2004,48 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     data: ({
     id: string,
     call: string,
-    number_of_calls: number,
-    wait_time_in_us: number,
-    cpu_time: number,
-    memory_usage_in_bytes: number,
-    peak_memory_usage_in_bytes: number,
+    data: ({
+    name: string,
+    value: number,
+
+})[],
     callables: ({
     id: string,
     call: string,
-    number_of_calls: number,
-    wait_time_in_us: number,
-    cpu_time: number,
-    memory_usage_in_bytes: number,
-    peak_memory_usage_in_bytes: number,
+    data: ({
+    name: string,
+    value: number,
+
+})[],
     callables: ({
     id: string,
     call: string,
-    number_of_calls: number,
-    wait_time_in_us: number,
-    cpu_time: number,
-    memory_usage_in_bytes: number,
-    peak_memory_usage_in_bytes: number,
+    data: ({
+    name: string,
+    value: number,
+
+})[],
     callables: ({
     id: string,
     call: string,
-    number_of_calls: number,
-    wait_time_in_us: number,
-    cpu_time: number,
-    memory_usage_in_bytes: number,
-    peak_memory_usage_in_bytes: number,
+    data: ({
+    name: string,
+    value: number,
+
+})[],
     callables: ({
     id: string,
     call: string,
-    number_of_calls: number,
-    wait_time_in_us: number,
-    cpu_time: number,
-    memory_usage_in_bytes: number,
-    peak_memory_usage_in_bytes: number,
+    data: ({
+    name: string,
+    value: number,
+
+})[],
     callables: ({
     id: string,
     call: string,
-    number_of_calls: number,
-    wait_time_in_us: number,
-    cpu_time: number,
-    memory_usage_in_bytes: number,
-    peak_memory_usage_in_bytes: number,
+  \** @maxItems 0 *\
+    data: (string)[],
   \** @maxItems 0 *\
     callables: (string)[],
 
@@ -2083,51 +2069,43 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
           data: {
             id: string;
             call: string;
-            number_of_calls: number;
-            wait_time_in_us: number;
-            cpu_time: number;
-            memory_usage_in_bytes: number;
-            peak_memory_usage_in_bytes: number;
+            data: {
+              name: string;
+              value: number;
+            }[];
             callables: {
               id: string;
               call: string;
-              number_of_calls: number;
-              wait_time_in_us: number;
-              cpu_time: number;
-              memory_usage_in_bytes: number;
-              peak_memory_usage_in_bytes: number;
+              data: {
+                name: string;
+                value: number;
+              }[];
               callables: {
                 id: string;
                 call: string;
-                number_of_calls: number;
-                wait_time_in_us: number;
-                cpu_time: number;
-                memory_usage_in_bytes: number;
-                peak_memory_usage_in_bytes: number;
+                data: {
+                  name: string;
+                  value: number;
+                }[];
                 callables: {
                   id: string;
                   call: string;
-                  number_of_calls: number;
-                  wait_time_in_us: number;
-                  cpu_time: number;
-                  memory_usage_in_bytes: number;
-                  peak_memory_usage_in_bytes: number;
+                  data: {
+                    name: string;
+                    value: number;
+                  }[];
                   callables: {
                     id: string;
                     call: string;
-                    number_of_calls: number;
-                    wait_time_in_us: number;
-                    cpu_time: number;
-                    memory_usage_in_bytes: number;
-                    peak_memory_usage_in_bytes: number;
+                    data: {
+                      name: string;
+                      value: number;
+                    }[];
                     callables: {
                       id: string;
                       call: string;
-                      number_of_calls: number;
-                      wait_time_in_us: number;
-                      cpu_time: number;
-                      memory_usage_in_bytes: number;
-                      peak_memory_usage_in_bytes: number;
+                      /** @maxItems 0 */
+                      data: string[];
                       /** @maxItems 0 */
                       callables: string[];
                     }[];

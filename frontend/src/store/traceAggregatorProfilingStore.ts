@@ -11,9 +11,13 @@ import {Edge} from "@vue-flow/core/dist/types/edge";
 import {ProfilingTreeBuilder} from "../components/pages/trace-aggregator/components/profiling/utils/treeBuilder.ts";
 import {FlowBuilder} from "../components/pages/trace-aggregator/components/profiling/utils/flowBuilder.ts";
 import {MetricsBuilder} from "../components/pages/trace-aggregator/components/profiling/utils/metricsBuilder.ts";
+import {
+    IndicatorsCollector
+} from "../components/pages/trace-aggregator/components/profiling/utils/indicatorsCollector.ts";
 
 type Parameters = AdminApi.TraceAggregatorTracesProfilingDetail.RequestParams
 export type ProfilingItem = AdminApi.TraceAggregatorTracesProfilingDetail.ResponseBody['data'][number]
+export type ProfilingDataItem = AdminApi.TraceAggregatorTracesProfilingDetail.ResponseBody['data'][number]['data'][number]
 
 export interface FlowItems {
     nodes: Array<Node>,
@@ -21,11 +25,6 @@ export interface FlowItems {
 }
 
 export interface ProfilingMetrics {
-    numberOfCalls: number
-    waitTimeInUs: number
-    cpuTime: number
-    memoryUsageInBytes: number
-    peakMemoryUsageInBytes: number
     totalCount: number
     hardestItemIds: Array<string>
 }
@@ -35,16 +34,14 @@ interface State {
     parameters: Parameters,
     profilingItems: Array<ProfilingItem>,
     selectedItem: ProfilingItem | null,
+    profilingIndicators: Array<string>,
     profilingTreeFilterPrev: string, // crutch
     profilingTreeFilter: string,
     profilingTree: Array<ProfilingTreeNode>,
     profilingMetrics: ProfilingMetrics,
     profilingMetricsSetting: {
-        showNumberOfCalls: boolean
-        showWaitTimeInUs: boolean
-        showCpuTime: boolean
-        showMemoryUsageInBytes: boolean
-        showPeakMemoryUsageInBytes: boolean
+        hardestItemIndicatorName: string,
+        showProfilingIndicators: Array<string>
     },
     flowItems: FlowItems,
 }
@@ -62,24 +59,17 @@ export const traceAggregatorProfilingStore = createStore<State>({
         parameters: {} as Parameters,
         profilingItems: new Array<ProfilingItem>,
         selectedItem: null as ProfilingItem | null,
+        profilingIndicators: [],
         profilingTreeFilterPrev: '',
         profilingTreeFilter: '',
         profilingTree: [] as Array<ProfilingTreeNode>,
         profilingMetrics: {
-            numberOfCalls: 0,
-            waitTimeInUs: 0,
-            cpuTime: 0,
-            memoryUsageInBytes: 0,
-            peakMemoryUsageInBytes: 0,
             totalCount: 0,
             hardestItemIds: []
         },
         profilingMetricsSetting: {
-            showNumberOfCalls: true,
-            showWaitTimeInUs: true,
-            showCpuTime: true,
-            showMemoryUsageInBytes: true,
-            showPeakMemoryUsageInBytes: true,
+            hardestItemIndicatorName: '',
+            showProfilingIndicators: [],
         },
         flowItems: {
             nodes: [],
@@ -88,6 +78,7 @@ export const traceAggregatorProfilingStore = createStore<State>({
     } as State,
     mutations: {
         setProfilingItems(state: State, profilingItems: Array<ProfilingItem>) {
+            state.profilingIndicators = []
             state.profilingTreeFilterPrev = ''
             state.profilingTreeFilter = ''
             state.selectedItem = null
@@ -102,17 +93,25 @@ export const traceAggregatorProfilingStore = createStore<State>({
                     {
                         id: '-1',
                         call: 'root',
-                        number_of_calls: 0,
-                        wait_time_in_us: 0,
-                        cpu_time: 0,
-                        memory_usage_in_bytes: 0,
-                        peak_memory_usage_in_bytes: 0,
+                        data: [],
                         callables: profilingItems,
                     }
                 ]
             } else {
                 state.profilingItems = profilingItems
             }
+
+            state.profilingIndicators = (new IndicatorsCollector()).collect(state.profilingItems)
+
+            if (state.profilingIndicators.length) {
+                state.profilingMetricsSetting.showProfilingIndicators = [state.profilingIndicators[0]]
+                state.profilingMetricsSetting.hardestItemIndicatorName = state.profilingIndicators[0] ?? ''
+            } else {
+                state.profilingMetricsSetting.showProfilingIndicators = []
+                state.profilingMetricsSetting.hardestItemIndicatorName = ''
+            }
+
+            console.log(state.profilingIndicators)
 
             state.profilingTree = (new ProfilingTreeBuilder()).build(state.profilingItems)
         },
@@ -123,7 +122,10 @@ export const traceAggregatorProfilingStore = createStore<State>({
                 return
             }
 
-            state.profilingMetrics = (new MetricsBuilder()).build(item.callables)
+            state.profilingMetrics = (new MetricsBuilder(
+                state.profilingMetricsSetting.hardestItemIndicatorName,
+                item.callables)
+            ).build()
         },
         setSelectedProfilingItem(state: State, item: ProfilingItem | null) {
             if (!item) {
@@ -145,7 +147,10 @@ export const traceAggregatorProfilingStore = createStore<State>({
             state.flowItems.nodes = flow.nodes
             state.flowItems.edges = flow.edges
 
-            state.profilingMetrics = (new MetricsBuilder()).build(state.selectedItem.callables)
+            state.profilingMetrics = (new MetricsBuilder(
+                state.profilingMetricsSetting.hardestItemIndicatorName,
+                state.selectedItem.callables
+            )).build()
         },
         calculateHardestFlow(state: State, item: ProfilingItem | null) {
             if (!item) {
@@ -154,7 +159,10 @@ export const traceAggregatorProfilingStore = createStore<State>({
                 return;
             }
 
-            state.profilingMetrics = (new MetricsBuilder()).build(item.callables)
+            state.profilingMetrics = (new MetricsBuilder(
+                state.profilingMetricsSetting.hardestItemIndicatorName,
+                item.callables
+            )).build()
         },
         setProfilingTreeFilter(state: State, value: string) {
             state.profilingTreeFilter = value

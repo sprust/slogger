@@ -44,19 +44,17 @@ readonly class TraceUpdateController
             $profiling = new TraceUpdateProfilingObjects();
 
             foreach ($item['profiling'] ?? [] as $profilingItem) {
-                $profilingData = $profilingItem['data'];
-
                 $profiling->add(
                     new TraceUpdateProfilingObject(
                         raw: $profilingItem['raw'],
                         calling: $profilingItem['calling'],
                         callable: $profilingItem['callable'],
-                        data: new TraceUpdateProfilingDataObject(
-                            numberOfCalls: $profilingData['number_of_calls'],
-                            waitTimeInUs: $profilingData['wait_time_in_us'],
-                            cpuTime: $profilingData['cpu_time'],
-                            memoryUsageInBytes: $profilingData['memory_usage_in_bytes'],
-                            peakMemoryUsageInBytes: $profilingData['peak_memory_usage_in_bytes'],
+                        data: array_map(
+                            fn(array $profilingItemData) => new TraceUpdateProfilingDataObject(
+                                name: $profilingItemData['name'],
+                                value: $profilingItemData['value']
+                            ),
+                            $profilingItem['data']
                         )
                     )
                 );

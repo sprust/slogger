@@ -19,7 +19,7 @@
           <el-row>
             <el-input
                 v-model="store.state.profilingTreeFilterPrev"
-                placeholder="Filter ('*' - any symbols, '!' in start - is exclude)"
+                placeholder="Filter ('*' - any symbols, '!' in start - is exclude, ';' - separator)"
                 v-on:keyup.enter="onFilterTree"
                 clearable
             >
@@ -107,7 +107,7 @@ export default defineComponent({
 
     // TODO
     this.store.dispatch('findProfiling', {
-      traceId: 'slogger-16210198-2451-4106-bd1f-46ff328d7664'
+      traceId: 'slogger-3c3690ff-e2c3-4dfc-990c-b3b9eb0a3d2f'
     })
   },
 })

@@ -8,48 +8,20 @@
     <el-text style="padding-right: 5px">
       Show:
     </el-text>
-    <el-space spacer="|">
-      <el-switch
-          v-model="store.state.profilingMetricsSetting.showNumberOfCalls"
-          class="ml-2"
-          inline-prompt
-          active-text="calls"
-          inactive-text="calls"
-          active-color="#13ce66"
+    <el-select
+        v-model="store.state.profilingMetricsSetting.showProfilingIndicators"
+        placeholder="Indicators"
+        style="width: auto; min-width: 300px"
+        clearable
+        multiple
+    >
+      <el-option
+          v-for="indicator in store.state.profilingIndicators"
+          :key="indicator"
+          :label="indicator"
+          :value="indicator"
       />
-      <el-switch
-          v-model="store.state.profilingMetricsSetting.showWaitTimeInUs"
-          class="ml-2"
-          inline-prompt
-          active-text="time"
-          inactive-text="time"
-          active-color="#13ce66"
-      />
-      <el-switch
-          v-model="store.state.profilingMetricsSetting.showCpuTime"
-          class="ml-2"
-          inline-prompt
-          active-text="cpu"
-          inactive-text="cpu"
-          active-color="#13ce66"
-      />
-      <el-switch
-          v-model="store.state.profilingMetricsSetting.showMemoryUsageInBytes"
-          class="ml-2"
-          inline-prompt
-          active-text="mem"
-          inactive-text="mem"
-          active-color="#13ce66"
-      />
-      <el-switch
-          v-model="store.state.profilingMetricsSetting.showPeakMemoryUsageInBytes"
-          class="ml-2"
-          inline-prompt
-          active-text="mem peak"
-          inactive-text="mem peak"
-          active-color="#13ce66"
-      />
-    </el-space>
+    </el-select>
     <div class="flex-grow"/>
     <el-button
         @click="onCloseFlow"

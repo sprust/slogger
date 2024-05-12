@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Modules\TraceCollector\Domain\Entities\Parameters;
+namespace App\Modules\TraceAggregator\Domain\Entities\Objects;
 
-readonly class TraceUpdateProfilingDataObject
+readonly class ProfilingItemDataObject
 {
     public function __construct(
         public string $name,

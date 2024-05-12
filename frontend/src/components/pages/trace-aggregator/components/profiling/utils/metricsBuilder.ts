@@ -1,18 +1,23 @@
-import {ProfilingMetrics, ProfilingItem} from "../../../../../../store/traceAggregatorProfilingStore.ts";
+import {ProfilingItem, ProfilingMetrics} from "../../../../../../store/traceAggregatorProfilingStore.ts";
 
 export class MetricsBuilder {
-    public build(profilingItems: Array<ProfilingItem>): ProfilingMetrics {
+    private readonly indicatorName: string
+    private readonly profilingItems: Array<ProfilingItem>
+
+    public constructor(indicatorName: string, profilingItems: Array<ProfilingItem>) {
+        this.indicatorName = indicatorName
+        this.profilingItems = profilingItems
+    }
+
+    public build(): ProfilingMetrics {
         const profilingMetrics: ProfilingMetrics = {
-            numberOfCalls: 0,
-            waitTimeInUs: 0,
-            cpuTime: 0,
-            memoryUsageInBytes: 0,
-            peakMemoryUsageInBytes: 0,
             totalCount: 0,
             hardestItemIds: []
         }
 
-        this.buildRecursive(profilingItems, profilingMetrics, true)
+        if (this.indicatorName) {
+            this.buildRecursive(this.profilingItems, profilingMetrics, true)
+        }
 
         return profilingMetrics
     }
@@ -27,30 +32,13 @@ export class MetricsBuilder {
         }
 
         const itemWithMaxCpuTime = items.reduce((prev, current) => {
-            return (prev.wait_time_in_us > current.wait_time_in_us) ? prev : current
+            const prevValue = this.findIndicatorValue(prev)
+            const currentValue = this.findIndicatorValue(current)
+
+            return (prevValue > currentValue) ? prev : current
         })
 
         items.map((item: ProfilingItem) => {
-            profilingMetrics.numberOfCalls = Math.max(
-                profilingMetrics.numberOfCalls,
-                item.number_of_calls
-            )
-            profilingMetrics.waitTimeInUs = Math.max(
-                profilingMetrics.waitTimeInUs,
-                item.wait_time_in_us
-            )
-            profilingMetrics.cpuTime = Math.max(
-                profilingMetrics.cpuTime,
-                item.cpu_time
-            )
-            profilingMetrics.memoryUsageInBytes = Math.max(
-                profilingMetrics.memoryUsageInBytes,
-                item.memory_usage_in_bytes
-            )
-            profilingMetrics.peakMemoryUsageInBytes = Math.max(
-                profilingMetrics.peakMemoryUsageInBytes,
-                item.peak_memory_usage_in_bytes
-            )
             ++profilingMetrics.totalCount
 
             // @ts-ignore // todo: recursive oa scheme
@@ -60,5 +48,13 @@ export class MetricsBuilder {
         if (isHardestFlow) {
             profilingMetrics.hardestItemIds.push(itemWithMaxCpuTime?.id)
         }
+    }
+
+    private findIndicatorValue(profilingItem: ProfilingItem): number {
+        const found = profilingItem.data.find(itemData => {
+            return itemData.name === this.indicatorName
+        })
+
+        return found?.value ?? 0
     }
 }

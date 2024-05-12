@@ -1432,25 +1432,25 @@
                                                         "type": "string",
                                                         "nullable": false
                                                     },
-                                                    "number_of_calls": {
-                                                        "type": "integer",
-                                                        "nullable": false
-                                                    },
-                                                    "wait_time_in_us": {
-                                                        "type": "number",
-                                                        "nullable": false
-                                                    },
-                                                    "cpu_time": {
-                                                        "type": "number",
-                                                        "nullable": false
-                                                    },
-                                                    "memory_usage_in_bytes": {
-                                                        "type": "number",
-                                                        "nullable": false
-                                                    },
-                                                    "peak_memory_usage_in_bytes": {
-                                                        "type": "number",
-                                                        "nullable": false
+                                                    "data": {
+                                                        "type": "array",
+                                                        "nullable": false,
+                                                        "items": {
+                                                            "properties": {
+                                                                "name": {
+                                                                    "type": "string",
+                                                                    "nullable": false
+                                                                },
+                                                                "value": {
+                                                                    "type": "integer",
+                                                                    "nullable": false
+                                                                }
+                                                            },
+                                                            "required": [
+                                                                "name",
+                                                                "value"
+                                                            ]
+                                                        }
                                                     },
                                                     "callables": {
                                                         "type": "array",
@@ -1465,25 +1465,25 @@
                                                                     "type": "string",
                                                                     "nullable": false
                                                                 },
-                                                                "number_of_calls": {
-                                                                    "type": "integer",
-                                                                    "nullable": false
-                                                                },
-                                                                "wait_time_in_us": {
-                                                                    "type": "number",
-                                                                    "nullable": false
-                                                                },
-                                                                "cpu_time": {
-                                                                    "type": "number",
-                                                                    "nullable": false
-                                                                },
-                                                                "memory_usage_in_bytes": {
-                                                                    "type": "number",
-                                                                    "nullable": false
-                                                                },
-                                                                "peak_memory_usage_in_bytes": {
-                                                                    "type": "number",
-                                                                    "nullable": false
+                                                                "data": {
+                                                                    "type": "array",
+                                                                    "nullable": false,
+                                                                    "items": {
+                                                                        "properties": {
+                                                                            "name": {
+                                                                                "type": "string",
+                                                                                "nullable": false
+                                                                            },
+                                                                            "value": {
+                                                                                "type": "integer",
+                                                                                "nullable": false
+                                                                            }
+                                                                        },
+                                                                        "required": [
+                                                                            "name",
+                                                                            "value"
+                                                                        ]
+                                                                    }
                                                                 },
                                                                 "callables": {
                                                                     "type": "array",
@@ -1498,25 +1498,25 @@
                                                                                 "type": "string",
                                                                                 "nullable": false
                                                                             },
-                                                                            "number_of_calls": {
-                                                                                "type": "integer",
-                                                                                "nullable": false
-                                                                            },
-                                                                            "wait_time_in_us": {
-                                                                                "type": "number",
-                                                                                "nullable": false
-                                                                            },
-                                                                            "cpu_time": {
-                                                                                "type": "number",
-                                                                                "nullable": false
-                                                                            },
-                                                                            "memory_usage_in_bytes": {
-                                                                                "type": "number",
-                                                                                "nullable": false
-                                                                            },
-                                                                            "peak_memory_usage_in_bytes": {
-                                                                                "type": "number",
-                                                                                "nullable": false
+                                                                            "data": {
+                                                                                "type": "array",
+                                                                                "nullable": false,
+                                                                                "items": {
+                                                                                    "properties": {
+                                                                                        "name": {
+                                                                                            "type": "string",
+                                                                                            "nullable": false
+                                                                                        },
+                                                                                        "value": {
+                                                                                            "type": "integer",
+                                                                                            "nullable": false
+                                                                                        }
+                                                                                    },
+                                                                                    "required": [
+                                                                                        "name",
+                                                                                        "value"
+                                                                                    ]
+                                                                                }
                                                                             },
                                                                             "callables": {
                                                                                 "type": "array",
@@ -1531,25 +1531,25 @@
                                                                                             "type": "string",
                                                                                             "nullable": false
                                                                                         },
-                                                                                        "number_of_calls": {
-                                                                                            "type": "integer",
-                                                                                            "nullable": false
-                                                                                        },
-                                                                                        "wait_time_in_us": {
-                                                                                            "type": "number",
-                                                                                            "nullable": false
-                                                                                        },
-                                                                                        "cpu_time": {
-                                                                                            "type": "number",
-                                                                                            "nullable": false
-                                                                                        },
-                                                                                        "memory_usage_in_bytes": {
-                                                                                            "type": "number",
-                                                                                            "nullable": false
-                                                                                        },
-                                                                                        "peak_memory_usage_in_bytes": {
-                                                                                            "type": "number",
-                                                                                            "nullable": false
+                                                                                        "data": {
+                                                                                            "type": "array",
+                                                                                            "nullable": false,
+                                                                                            "items": {
+                                                                                                "properties": {
+                                                                                                    "name": {
+                                                                                                        "type": "string",
+                                                                                                        "nullable": false
+                                                                                                    },
+                                                                                                    "value": {
+                                                                                                        "type": "integer",
+                                                                                                        "nullable": false
+                                                                                                    }
+                                                                                                },
+                                                                                                "required": [
+                                                                                                    "name",
+                                                                                                    "value"
+                                                                                                ]
+                                                                                            }
                                                                                         },
                                                                                         "callables": {
                                                                                             "type": "array",
@@ -1564,25 +1564,25 @@
                                                                                                         "type": "string",
                                                                                                         "nullable": false
                                                                                                     },
-                                                                                                    "number_of_calls": {
-                                                                                                        "type": "integer",
-                                                                                                        "nullable": false
-                                                                                                    },
-                                                                                                    "wait_time_in_us": {
-                                                                                                        "type": "number",
-                                                                                                        "nullable": false
-                                                                                                    },
-                                                                                                    "cpu_time": {
-                                                                                                        "type": "number",
-                                                                                                        "nullable": false
-                                                                                                    },
-                                                                                                    "memory_usage_in_bytes": {
-                                                                                                        "type": "number",
-                                                                                                        "nullable": false
-                                                                                                    },
-                                                                                                    "peak_memory_usage_in_bytes": {
-                                                                                                        "type": "number",
-                                                                                                        "nullable": false
+                                                                                                    "data": {
+                                                                                                        "type": "array",
+                                                                                                        "nullable": false,
+                                                                                                        "items": {
+                                                                                                            "properties": {
+                                                                                                                "name": {
+                                                                                                                    "type": "string",
+                                                                                                                    "nullable": false
+                                                                                                                },
+                                                                                                                "value": {
+                                                                                                                    "type": "integer",
+                                                                                                                    "nullable": false
+                                                                                                                }
+                                                                                                            },
+                                                                                                            "required": [
+                                                                                                                "name",
+                                                                                                                "value"
+                                                                                                            ]
+                                                                                                        }
                                                                                                     },
                                                                                                     "callables": {
                                                                                                         "type": "array",
@@ -1597,25 +1597,13 @@
                                                                                                                     "type": "string",
                                                                                                                     "nullable": false
                                                                                                                 },
-                                                                                                                "number_of_calls": {
-                                                                                                                    "type": "integer",
-                                                                                                                    "nullable": false
-                                                                                                                },
-                                                                                                                "wait_time_in_us": {
-                                                                                                                    "type": "number",
-                                                                                                                    "nullable": false
-                                                                                                                },
-                                                                                                                "cpu_time": {
-                                                                                                                    "type": "number",
-                                                                                                                    "nullable": false
-                                                                                                                },
-                                                                                                                "memory_usage_in_bytes": {
-                                                                                                                    "type": "number",
-                                                                                                                    "nullable": false
-                                                                                                                },
-                                                                                                                "peak_memory_usage_in_bytes": {
-                                                                                                                    "type": "number",
-                                                                                                                    "nullable": false
+                                                                                                                "data": {
+                                                                                                                    "type": "array",
+                                                                                                                    "nullable": false,
+                                                                                                                    "maxItems": 0,
+                                                                                                                    "items": {
+                                                                                                                        "type": "string"
+                                                                                                                    }
                                                                                                                 },
                                                                                                                 "callables": {
                                                                                                                     "type": "array",
@@ -1629,11 +1617,7 @@
                                                                                                             "required": [
                                                                                                                 "id",
                                                                                                                 "call",
-                                                                                                                "number_of_calls",
-                                                                                                                "wait_time_in_us",
-                                                                                                                "cpu_time",
-                                                                                                                "memory_usage_in_bytes",
-                                                                                                                "peak_memory_usage_in_bytes",
+                                                                                                                "data",
                                                                                                                 "callables"
                                                                                                             ]
                                                                                                         }
@@ -1642,11 +1626,7 @@
                                                                                                 "required": [
                                                                                                     "id",
                                                                                                     "call",
-                                                                                                    "number_of_calls",
-                                                                                                    "wait_time_in_us",
-                                                                                                    "cpu_time",
-                                                                                                    "memory_usage_in_bytes",
-                                                                                                    "peak_memory_usage_in_bytes",
+                                                                                                    "data",
                                                                                                     "callables"
                                                                                                 ]
                                                                                             }
@@ -1655,11 +1635,7 @@
                                                                                     "required": [
                                                                                         "id",
                                                                                         "call",
-                                                                                        "number_of_calls",
-                                                                                        "wait_time_in_us",
-                                                                                        "cpu_time",
-                                                                                        "memory_usage_in_bytes",
-                                                                                        "peak_memory_usage_in_bytes",
+                                                                                        "data",
                                                                                         "callables"
                                                                                     ]
                                                                                 }
@@ -1668,11 +1644,7 @@
                                                                         "required": [
                                                                             "id",
                                                                             "call",
-                                                                            "number_of_calls",
-                                                                            "wait_time_in_us",
-                                                                            "cpu_time",
-                                                                            "memory_usage_in_bytes",
-                                                                            "peak_memory_usage_in_bytes",
+                                                                            "data",
                                                                             "callables"
                                                                         ]
                                                                     }
@@ -1681,11 +1653,7 @@
                                                             "required": [
                                                                 "id",
                                                                 "call",
-                                                                "number_of_calls",
-                                                                "wait_time_in_us",
-                                                                "cpu_time",
-                                                                "memory_usage_in_bytes",
-                                                                "peak_memory_usage_in_bytes",
+                                                                "data",
                                                                 "callables"
                                                             ]
                                                         }
@@ -1694,11 +1662,7 @@
                                                 "required": [
                                                     "id",
                                                     "call",
-                                                    "number_of_calls",
-                                                    "wait_time_in_us",
-                                                    "cpu_time",
-                                                    "memory_usage_in_bytes",
-                                                    "peak_memory_usage_in_bytes",
+                                                    "data",
                                                     "callables"
                                                 ]
                                             }
