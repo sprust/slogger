@@ -15,6 +15,7 @@ class TraceProfilingBuilder
     public function build(array $profiling): array
     {
         $this->profiling = $profiling;
+
         $this->map = [];
 
         $result = [];
@@ -38,6 +39,14 @@ class TraceProfilingBuilder
 
             $parentCallables[] = $object;
 
+            if ($callableObjectId = $this->map[$item['callable']] ?? null) {
+                $object->link = $callableObjectId;
+
+                continue;
+            }
+
+            $this->map[$item['callable']] = $object->id;
+
             $this->buildRecursive($object->callables, $item['callable']);
         }
     }
@@ -55,6 +64,7 @@ class TraceProfilingBuilder
                 $item['data']
             ),
             callables: [],
+            link: null
         );
     }
 }

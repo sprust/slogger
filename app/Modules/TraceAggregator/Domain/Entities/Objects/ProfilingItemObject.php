@@ -13,6 +13,7 @@ class ProfilingItemObject
         public string $call,
         public array $data,
         public array $callables,
+        public ?string $link
     ) {
     }
 }

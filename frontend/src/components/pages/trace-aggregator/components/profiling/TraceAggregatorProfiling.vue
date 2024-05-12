@@ -1,7 +1,7 @@
 <template>
   <el-container>
     <el-progress
-        v-if="store.state.loading"
+        v-if="store.state.loading && store.state.parameters.traceId"
         style="width: 100vw"
         status="success"
         :text-inside="true"
@@ -10,7 +10,7 @@
         :duration="5"
         striped
     />
-    <div v-else style="width: 100vw">
+    <div v-else-if="store.state.parameters.traceId" style="width: 100vw">
       <el-row style="width: 100%; padding-bottom: 5px">
         <TraceAggregatorProfilingSetting/>
       </el-row>
