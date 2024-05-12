@@ -60,8 +60,19 @@ export class FlowBuilder {
                     id: `${parent.id}-${item.id}`,
                     source: parent.id,
                     target: item.id,
-                    animated: false
+                    style: { stroke: 'green' },
                 })
+            }
+
+            if (item.link) {
+                this.flowItems.edges.push({
+                    id: `${item.id}-${item.link}`,
+                    source: item.id,
+                    target: item.link,
+                    style: { stroke: 'gray' },
+                })
+
+                return
             }
 
             // @ts-ignore // todo: recursive oa scheme

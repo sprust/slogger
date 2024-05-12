@@ -1617,6 +1617,10 @@
                                                                                                                     "items": {
                                                                                                                         "type": "string"
                                                                                                                     }
+                                                                                                                },
+                                                                                                                "link": {
+                                                                                                                    "type": "string",
+                                                                                                                    "nullable": true
                                                                                                                 }
                                                                                                             },
                                                                                                             "required": [
@@ -1626,6 +1630,10 @@
                                                                                                                 "callables"
                                                                                                             ]
                                                                                                         }
+                                                                                                    },
+                                                                                                    "link": {
+                                                                                                        "type": "string",
+                                                                                                        "nullable": true
                                                                                                     }
                                                                                                 },
                                                                                                 "required": [
@@ -1635,6 +1643,10 @@
                                                                                                     "callables"
                                                                                                 ]
                                                                                             }
+                                                                                        },
+                                                                                        "link": {
+                                                                                            "type": "string",
+                                                                                            "nullable": true
                                                                                         }
                                                                                     },
                                                                                     "required": [
@@ -1644,6 +1656,10 @@
                                                                                         "callables"
                                                                                     ]
                                                                                 }
+                                                                            },
+                                                                            "link": {
+                                                                                "type": "string",
+                                                                                "nullable": true
                                                                             }
                                                                         },
                                                                         "required": [
@@ -1653,6 +1669,10 @@
                                                                             "callables"
                                                                         ]
                                                                     }
+                                                                },
+                                                                "link": {
+                                                                    "type": "string",
+                                                                    "nullable": true
                                                                 }
                                                             },
                                                             "required": [
@@ -1662,6 +1682,10 @@
                                                                 "callables"
                                                             ]
                                                         }
+                                                    },
+                                                    "link": {
+                                                        "type": "string",
+                                                        "nullable": true
                                                     }
                                                 },
                                                 "required": [

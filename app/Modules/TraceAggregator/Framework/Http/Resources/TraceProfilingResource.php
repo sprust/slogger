@@ -14,6 +14,7 @@ class TraceProfilingResource extends AbstractApiResource
     private array $data;
     #[OaListItemTypeAttribute(TraceProfilingResource::class, isRecursive: true)]
     private array $callables;
+    private ?string $link;
 
     public function __construct(ProfilingItemObject $resource)
     {
@@ -23,5 +24,6 @@ class TraceProfilingResource extends AbstractApiResource
         $this->call      = $resource->call;
         $this->data      = TraceProfilingDataResource::mapIntoMe($resource->data);
         $this->callables = TraceProfilingResource::mapIntoMe($resource->callables);
+        $this->link      = $resource->link;
     }
 }

@@ -700,16 +700,22 @@ export namespace AdminApi {
     data: (string)[],
   \** @maxItems 0 *\
     callables: (string)[],
+    link?: string | null,
 
 })[],
+    link?: string | null,
 
 })[],
+    link?: string | null,
 
 })[],
+    link?: string | null,
 
 })[],
+    link?: string | null,
 
 })[],
+    link?: string | null,
 
 })[],
 
@@ -765,11 +771,17 @@ export namespace AdminApi {
                   data: string[];
                   /** @maxItems 0 */
                   callables: string[];
+                  link?: string | null;
                 }[];
+                link?: string | null;
               }[];
+              link?: string | null;
             }[];
+            link?: string | null;
           }[];
+          link?: string | null;
         }[];
+        link?: string | null;
       }[];
     };
   } /**
@@ -2052,16 +2064,22 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     data: (string)[],
   \** @maxItems 0 *\
     callables: (string)[],
+    link?: string | null,
 
 })[],
+    link?: string | null,
 
 })[],
+    link?: string | null,
 
 })[],
+    link?: string | null,
 
 })[],
+    link?: string | null,
 
 })[],
+    link?: string | null,
 
 })[],
 
@@ -2112,11 +2130,17 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
                       data: string[];
                       /** @maxItems 0 */
                       callables: string[];
+                      link?: string | null;
                     }[];
+                    link?: string | null;
                   }[];
+                  link?: string | null;
                 }[];
+                link?: string | null;
               }[];
+              link?: string | null;
             }[];
+            link?: string | null;
           }[];
         },
         any
