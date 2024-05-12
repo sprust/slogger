@@ -116,6 +116,7 @@ readonly class FindTracesAction
                     duration: $trace->duration,
                     memory: $trace->memory,
                     cpu: $trace->cpu,
+                    hasProfiling: $trace->hasProfiling,
                     additionalFields: $this->makeTraceAdditionalFields(
                         data: $trace->data,
                         additionalFields: $parameters->data?->fields ?? []

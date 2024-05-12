@@ -10,9 +10,12 @@ class TraceProfilingBuilder
 {
     private array $profiling;
 
+    private array $map;
+
     public function build(array $profiling): array
     {
         $this->profiling = $profiling;
+        $this->map = [];
 
         $result = [];
 

@@ -111,8 +111,6 @@ export const traceAggregatorProfilingStore = createStore<State>({
                 state.profilingMetricsSetting.hardestItemIndicatorName = ''
             }
 
-            console.log(state.profilingIndicators)
-
             state.profilingTree = (new ProfilingTreeBuilder()).build(state.profilingItems)
         },
         buildProfilingTree(state: State, item: ProfilingItem | null) {

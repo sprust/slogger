@@ -64,6 +64,12 @@ return new class extends Migration {
                             'cpu'           => [
                                 'bsonType' => ['number', 'null'],
                             ],
+                            'hasProfiling'  => [
+                                'bsonType' => ['bool'],
+                            ],
+                            'profiling'     => [
+                                'bsonType' => ['array'],
+                            ],
                             'loggedAt'      => [
                                 'bsonType' => 'date',
                             ],

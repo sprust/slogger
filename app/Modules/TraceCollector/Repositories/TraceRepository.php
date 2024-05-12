@@ -60,6 +60,8 @@ class TraceRepository implements TraceRepositoryInterface
         $operations = [];
 
         foreach ($parametersList->getItems() as $parameters) {
+            $hasProfiling = is_null($parameters->profiling) ? null : !empty($parameters->profiling);
+
             $operations[] = [
                 'updateOne' => [
                     [
@@ -69,6 +71,11 @@ class TraceRepository implements TraceRepositoryInterface
                     [
                         '$set' => [
                             'status'    => $parameters->status,
+                            ...(is_null($hasProfiling)
+                                ? []
+                                : [
+                                    'hasProfiling' => $hasProfiling,
+                                ]),
                             ...(is_null($parameters->profiling)
                                 ? []
                                 : [

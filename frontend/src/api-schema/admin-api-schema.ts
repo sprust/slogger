@@ -219,6 +219,7 @@ export namespace AdminApi {
     duration?: number | null,
     memory?: number | null,
     cpu?: number | null,
+    has_profiling: boolean,
     additional_fields: ({
     key: string,
     values: (string)[],
@@ -311,6 +312,7 @@ export namespace AdminApi {
             duration?: number | null;
             memory?: number | null;
             cpu?: number | null;
+            has_profiling: boolean;
             additional_fields: {
               key: string;
               values: string[];
@@ -1547,6 +1549,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     duration?: number | null,
     memory?: number | null,
     cpu?: number | null,
+    has_profiling: boolean,
     additional_fields: ({
     key: string,
     values: (string)[],
@@ -1639,6 +1642,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
                 duration?: number | null;
                 memory?: number | null;
                 cpu?: number | null;
+                has_profiling: boolean;
                 additional_fields: {
                   key: string;
                   values: string[];

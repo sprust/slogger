@@ -99,17 +99,6 @@ export default defineComponent({
       this.store.dispatch('setProfilingTreeFilter', this.store.state.profilingTreeFilterPrev)
     }
   },
-
-  mounted() {
-    if (!this.store.state.loading) {
-      return
-    }
-
-    // TODO
-    this.store.dispatch('findProfiling', {
-      traceId: 'slogger-3c3690ff-e2c3-4dfc-990c-b3b9eb0a3d2f'
-    })
-  },
 })
 </script>
 
