@@ -140,15 +140,15 @@ export const traceAggregatorProfilingStore = createStore<State>({
 
             state.selectedItem = item
 
-            const flow = (new FlowBuilder([item])).build()
-
-            state.flowItems.nodes = flow.nodes
-            state.flowItems.edges = flow.edges
-
             state.profilingMetrics = (new MetricsBuilder(
                 state.profilingMetricsSetting.hardestItemIndicatorName,
                 state.selectedItem.callables
             )).build()
+
+            const flow = (new FlowBuilder([item], state.profilingMetrics.hardestItemIds)).build()
+
+            state.flowItems.nodes = flow.nodes
+            state.flowItems.edges = flow.edges
         },
         calculateHardestFlow(state: State, item: ProfilingItem | null) {
             if (!item) {

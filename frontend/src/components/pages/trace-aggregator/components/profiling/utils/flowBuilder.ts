@@ -2,6 +2,7 @@ import {FlowItems, ProfilingItem} from "../../../../../../store/traceAggregatorP
 
 export class FlowBuilder {
     private readonly profilingItems: Array<ProfilingItem>
+    private readonly hardestItemIds: Array<string>
 
     private posX: number = 50
     private posY: number = 50
@@ -14,8 +15,9 @@ export class FlowBuilder {
         edges: []
     }
 
-    constructor(profilingItems: Array<ProfilingItem>) {
+    constructor(profilingItems: Array<ProfilingItem>, hardestItemIds: Array<string>) {
         this.profilingItems = profilingItems
+        this.hardestItemIds = hardestItemIds
     }
 
     public build(): FlowItems {
@@ -60,7 +62,7 @@ export class FlowBuilder {
                     id: `${parent.id}-${item.id}`,
                     source: parent.id,
                     target: item.id,
-                    style: { stroke: 'green' },
+                    style: { stroke: this.isHardestItemIds(parent.id, item.id) ? 'red' : 'gray'},
                 })
             }
 
@@ -69,7 +71,7 @@ export class FlowBuilder {
                     id: `${item.id}-${item.link}`,
                     source: item.id,
                     target: item.link,
-                    style: { stroke: 'gray' },
+                    style: { stroke: this.isHardestItemIds(item.id, item.link) ? 'red' : 'gray'},
                 })
 
                 return
@@ -80,5 +82,10 @@ export class FlowBuilder {
         })
 
         this.posY -= this.stepY
+    }
+
+    private isHardestItemIds(sourceId: string, targetId: string): boolean {
+        return this.hardestItemIds.indexOf(sourceId) !== -1
+            && this.hardestItemIds.indexOf(targetId) !== -1
     }
 }
