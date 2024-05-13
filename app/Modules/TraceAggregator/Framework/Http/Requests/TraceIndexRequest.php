@@ -157,6 +157,10 @@ class TraceIndexRequest extends FormRequest
                 'sometimes',
                 'array',
             ],
+            'has_profiling'               => [
+                'sometimes',
+                'boolean',
+            ],
             'sort.*.field'                => [
                 'required',
                 'string',

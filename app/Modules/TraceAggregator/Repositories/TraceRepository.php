@@ -87,8 +87,9 @@ readonly class TraceRepository implements TraceRepositoryInterface
         array $statuses = [],
         ?float $durationFrom = null,
         ?float $durationTo = null,
-        ?array $sort = null,
         ?TraceDataFilterParameters $data = null,
+        ?bool $hasProfiling = null,
+        ?array $sort = null,
     ): TraceItemsPaginationDto {
         $builder = $this->traceQueryBuilder->make(
             serviceIds: $serviceIds,
@@ -101,6 +102,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
             durationFrom: $durationFrom,
             durationTo: $durationTo,
             data: $data,
+            hasProfiling: $hasProfiling,
         );
 
         $tracesPaginator = $builder

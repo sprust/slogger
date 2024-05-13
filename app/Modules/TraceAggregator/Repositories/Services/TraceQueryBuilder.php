@@ -32,6 +32,7 @@ class TraceQueryBuilder
         ?float $durationFrom = null,
         ?float $durationTo = null,
         ?TraceDataFilterParameters $data = null,
+        ?bool $hasProfiling = null,
     ): Builder {
         $builder = Trace::query()
             ->when($serviceIds, fn(Builder $query) => $query->whereIn('serviceId', $serviceIds))
@@ -42,7 +43,8 @@ class TraceQueryBuilder
             ->when($tags, fn(Builder $query) => $query->where('tags', 'all', $tags))
             ->when($statuses, fn(Builder $query) => $query->whereIn('status', $statuses))
             ->when(!is_null($durationFrom), fn(Builder $query) => $query->where('duration', '>=', $durationFrom))
-            ->when(!is_null($durationTo), fn(Builder $query) => $query->where('duration', '<=', $durationTo));
+            ->when(!is_null($durationTo), fn(Builder $query) => $query->where('duration', '<=', $durationTo))
+            ->when(!is_null($hasProfiling), fn(Builder $query) => $query->where('hasProfiling', $hasProfiling));
 
         return $this->applyDataFilter($builder, $data?->filter ?? []);
     }

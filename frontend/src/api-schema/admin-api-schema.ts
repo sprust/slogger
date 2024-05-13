@@ -294,6 +294,7 @@ export namespace AdminApi {
         field?: string;
         direction?: "asc" | "desc";
       }[];
+      has_profiling?: boolean;
     };
     export type RequestHeaders = {};
     export type ResponseBody = {
@@ -826,6 +827,7 @@ export namespace AdminApi {
           };
         }[];
       };
+      has_profiling?: boolean;
     };
     export type RequestHeaders = {};
     export type ResponseBody = {
@@ -876,6 +878,7 @@ export namespace AdminApi {
           };
         }[];
       };
+      has_profiling?: boolean;
     };
     export type RequestHeaders = {};
     export type ResponseBody = {
@@ -927,6 +930,7 @@ export namespace AdminApi {
           };
         }[];
       };
+      has_profiling?: boolean;
     };
     export type RequestHeaders = {};
     export type ResponseBody = {
@@ -1634,6 +1638,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
           field?: string;
           direction?: "asc" | "desc";
         }[];
+        has_profiling?: boolean;
       },
       params: RequestParams = {},
     ) =>
@@ -2193,6 +2198,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
             };
           }[];
         };
+        has_profiling?: boolean;
       },
       params: RequestParams = {},
     ) =>
@@ -2255,6 +2261,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
             };
           }[];
         };
+        has_profiling?: boolean;
       },
       params: RequestParams = {},
     ) =>
@@ -2318,6 +2325,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
             };
           }[];
         };
+        has_profiling?: boolean;
       },
       params: RequestParams = {},
     ) =>

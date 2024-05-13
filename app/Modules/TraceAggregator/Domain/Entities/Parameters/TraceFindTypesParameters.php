@@ -14,6 +14,7 @@ readonly class TraceFindTypesParameters
         public ?string $text = null,
         public ?PeriodParameters $loggingPeriod = null,
         public ?TraceDataFilterParameters $data = null,
+        public ?bool $hasProfiling = null,
     ) {
     }
 }

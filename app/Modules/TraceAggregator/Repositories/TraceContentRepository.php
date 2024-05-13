@@ -25,6 +25,7 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
                 loggedAtFrom: $parameters->loggingPeriod?->from,
                 loggedAtTo: $parameters->loggingPeriod?->to,
                 data: $parameters->data,
+                hasProfiling: $parameters->hasProfiling
             )
             ->when(
                 $parameters->text,
@@ -45,6 +46,7 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
                 loggedAtTo: $parameters->loggingPeriod?->to,
                 types: $parameters->types,
                 data: $parameters->data,
+                hasProfiling: $parameters->hasProfiling
             )
             ->toMql();
 
@@ -103,6 +105,7 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
                 types: $parameters->types,
                 tags: $parameters->tags,
                 data: $parameters->data,
+                hasProfiling: $parameters->hasProfiling
             )
             ->when(
                 $parameters->text,

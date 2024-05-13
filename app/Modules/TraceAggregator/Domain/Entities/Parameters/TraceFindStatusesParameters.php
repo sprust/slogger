@@ -18,6 +18,7 @@ readonly class TraceFindStatusesParameters
         public array $types = [],
         public array $tags = [],
         public ?TraceDataFilterParameters $data = null,
+        public ?bool $hasProfiling = null,
     ) {
     }
 }

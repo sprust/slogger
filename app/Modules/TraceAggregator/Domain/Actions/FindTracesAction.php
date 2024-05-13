@@ -74,8 +74,9 @@ readonly class FindTracesAction
             statuses: $parameters->statuses,
             durationFrom: $parameters->durationFrom,
             durationTo: $parameters->durationTo,
-            sort: $parameters->sort,
             data: $parameters->data,
+            hasProfiling: $parameters->hasProfiling,
+            sort: $parameters->sort,
         );
 
         $traceTypeCounts = empty($traceItemsPagination->items)

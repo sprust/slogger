@@ -532,6 +532,9 @@
                                                 }
                                             }
                                         }
+                                    },
+                                    "has_profiling": {
+                                        "type": "boolean"
                                     }
                                 },
                                 "required": [
@@ -1802,6 +1805,9 @@
                                                 }
                                             }
                                         }
+                                    },
+                                    "has_profiling": {
+                                        "type": "boolean"
                                     }
                                 },
                                 "type": "object"
@@ -1943,6 +1949,9 @@
                                                 }
                                             }
                                         }
+                                    },
+                                    "has_profiling": {
+                                        "type": "boolean"
                                     }
                                 },
                                 "type": "object"
@@ -2090,6 +2099,9 @@
                                                 }
                                             }
                                         }
+                                    },
+                                    "has_profiling": {
+                                        "type": "boolean"
                                     }
                                 },
                                 "type": "object"

@@ -105,6 +105,10 @@ class TraceFindTagsRequest extends FormRequest
                 'sometimes',
                 'bool',
             ],
+            'has_profiling'               => [
+                'sometimes',
+                'boolean',
+            ],
         ];
     }
 }
