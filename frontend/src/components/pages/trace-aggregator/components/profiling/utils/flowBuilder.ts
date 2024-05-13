@@ -62,7 +62,7 @@ export class FlowBuilder {
                     id: `${parent.id}-${item.id}`,
                     source: parent.id,
                     target: item.id,
-                    style: { stroke: this.isHardestItemIds(parent.id, item.id) ? 'red' : 'gray'},
+                    style: { stroke: this.isHardestItemIds(parent.id, item.id) ? 'red' : 'green'},
                 })
             }
 
@@ -85,7 +85,10 @@ export class FlowBuilder {
     }
 
     private isHardestItemIds(sourceId: string, targetId: string): boolean {
-        return this.hardestItemIds.indexOf(sourceId) !== -1
+        return (this.hardestItemIds.indexOf(sourceId) !== -1
             && this.hardestItemIds.indexOf(targetId) !== -1
+        ) || (this.hardestItemIds.indexOf(sourceId) === -1
+            && this.hardestItemIds.indexOf(targetId) !== -1)
+
     }
 }
