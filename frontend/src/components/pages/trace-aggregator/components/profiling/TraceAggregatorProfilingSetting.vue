@@ -59,7 +59,9 @@ export default defineComponent({
 
   methods: {
     onReload() {
-      this.store.dispatch('findProfiling', this.store.state.parameters)
+      this.store.dispatch('findProfiling', {
+        traceId: this.store.state.parameters.traceId
+      })
     },
     onCloseFlow() {
       this.store.dispatch('setSelectedProfilingItem', null)

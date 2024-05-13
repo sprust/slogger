@@ -3,6 +3,7 @@
 namespace App\Modules\TraceAggregator\Domain\Actions;
 
 use App\Modules\TraceAggregator\Domain\Entities\Objects\ProfilingItemObject;
+use App\Modules\TraceAggregator\Domain\Entities\Parameters\TraceFindProfilingParameters;
 use App\Modules\TraceAggregator\Domain\Services\TraceProfilingBuilder;
 use App\Modules\TraceAggregator\Repositories\Interfaces\TraceRepositoryInterface;
 
@@ -17,14 +18,16 @@ readonly class FindTraceProfilingAction
     /**
      * @return ProfilingItemObject[]
      */
-    public function handle(string $traceId): array
+    public function handle(TraceFindProfilingParameters $parameters): array
     {
-        $profiling = $this->traceRepository->findProfilingByTraceId($traceId);
+        $profiling = $this->traceRepository->findProfilingByTraceId(
+            traceId: $parameters->traceId
+        );
 
         if (empty($profiling)) {
             return [];
         }
 
-        return $this->traceProfilingBuilder->build($profiling);
+        return $this->traceProfilingBuilder->build($profiling, $parameters->call);
     }
 }

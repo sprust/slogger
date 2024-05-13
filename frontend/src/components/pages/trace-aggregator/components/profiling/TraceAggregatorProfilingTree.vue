@@ -94,7 +94,10 @@ export default defineComponent({
           node.key, this.store.state.profilingItems
       )
 
-      this.store.dispatch('setProfilingItems', [foundItem])
+      this.store.dispatch('findProfiling', {
+        traceId: this.store.state.parameters.traceId,
+        call: foundItem?.call
+      })
     },
     onCalculateHardestFlow(node: ProfilingTreeNode) {
       const foundItem = (new ProfilingItemFinder()).find(

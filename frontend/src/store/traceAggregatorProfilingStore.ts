@@ -122,8 +122,8 @@ export const traceAggregatorProfilingStore = createStore<State>({
 
             state.profilingMetrics = (new MetricsBuilder(
                 state.profilingMetricsSetting.hardestItemIndicatorName,
-                item.callables)
-            ).build()
+                item.callables
+            )).build()
         },
         setSelectedProfilingItem(state: State, item: ProfilingItem | null) {
             if (!item) {
@@ -169,15 +169,21 @@ export const traceAggregatorProfilingStore = createStore<State>({
     actions: {
         findProfiling(
             {commit, state}: { commit: any, state: State },
-            parameters: Parameters
+            {traceId, call}: { traceId: string, call: string | null }
         ) {
             state.loading = true
 
             state.profilingItems = []
 
-            state.parameters = parameters
+            state.parameters = {
+                traceId: traceId
+            }
 
-            ApiContainer.get().traceAggregatorTracesProfilingDetail(parameters.traceId)
+            ApiContainer.get()
+                .traceAggregatorTracesProfilingDetail(
+                    traceId,
+                    call ? {call: call} : {}
+                )
                 .then(response => {
                     commit('setProfilingItems', response.data.data)
                 })

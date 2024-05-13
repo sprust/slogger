@@ -726,7 +726,9 @@ export namespace AdminApi {
     export type RequestParams = {
       traceId: any;
     };
-    export type RequestQuery = {};
+    export type RequestQuery = {
+      call?: string;
+    };
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody = {
@@ -2090,7 +2092,13 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
 
 }` description
  */
-    traceAggregatorTracesProfilingDetail: (traceId: any, params: RequestParams = {}) =>
+    traceAggregatorTracesProfilingDetail: (
+      traceId: any,
+      query?: {
+        call?: string;
+      },
+      params: RequestParams = {},
+    ) =>
       this.request<
         {
           data: {
@@ -2152,6 +2160,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       >({
         path: `/admin-api/trace-aggregator/traces/${traceId}/profiling`,
         method: "GET",
+        query: query,
         secure: true,
         format: "json",
         ...params,

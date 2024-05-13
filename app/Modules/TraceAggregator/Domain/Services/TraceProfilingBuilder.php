@@ -12,7 +12,7 @@ class TraceProfilingBuilder
 
     private array $map;
 
-    public function build(array $profiling): array
+    public function build(array $profiling, ?string $call): array
     {
         $this->profiling = $profiling;
 
@@ -20,7 +20,7 @@ class TraceProfilingBuilder
 
         $result = [];
 
-        $this->buildRecursive($result, 'main()');
+        $this->buildRecursive($result, $call ?: 'main()');
 
         return $result;
     }

@@ -1418,6 +1418,14 @@
                         "required": true,
                         "in": "path",
                         "schema": {}
+                    },
+                    {
+                        "name": "call",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
                     }
                 ],
                 "responses": {
