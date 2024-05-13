@@ -152,6 +152,9 @@ import FilterTags from "../widgets/FilterTags.vue";
 import {state} from "vue-tsc/out/shared";
 import {CloseBold} from '@element-plus/icons-vue'
 
+const startOfDay = new Date()
+startOfDay.setUTCHours(Math.ceil(startOfDay.getTimezoneOffset() / 60), 0, 0, 0);
+
 export default defineComponent({
   components: {
     TraceAggregatorTracesTable,
@@ -165,24 +168,8 @@ export default defineComponent({
       store: useTraceAggregatorStore(),
       dateTimeShortcuts: [
         {
-          text: 'Now',
-          value: new Date(),
-        },
-        {
-          text: 'Yesterday',
-          value: () => {
-            const date = new Date()
-            date.setTime(date.getTime() - 3600 * 1000 * 24)
-            return date
-          },
-        },
-        {
-          text: 'A week ago',
-          value: () => {
-            const date = new Date()
-            date.setTime(date.getTime() - 3600 * 1000 * 24 * 7)
-            return date
-          },
+          text: 'Start of day',
+          value: startOfDay,
         },
       ]
     }
@@ -233,6 +220,8 @@ export default defineComponent({
     }
 
     this.store.dispatch('resetFilters')
+
+    this.store.state.payload.logging_from = startOfDay.toUTCString()
 
     this.update()
   }
