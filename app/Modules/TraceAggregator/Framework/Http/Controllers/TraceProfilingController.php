@@ -4,10 +4,8 @@ namespace App\Modules\TraceAggregator\Framework\Http\Controllers;
 
 use App\Modules\TraceAggregator\Domain\Actions\FindTraceProfilingAction;
 use App\Modules\TraceAggregator\Domain\Entities\Parameters\TraceFindProfilingParameters;
-use App\Modules\TraceAggregator\Framework\Http\Requests\TraceProfilingIndexRequest;
 use App\Modules\TraceAggregator\Framework\Http\Resources\TraceProfilingResource;
-use Ifksco\OpenApiGenerator\Attributes\OaListItemTypeAttribute;
-use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Symfony\Component\HttpFoundation\Response;
 
 readonly class TraceProfilingController
 {
@@ -16,16 +14,16 @@ readonly class TraceProfilingController
     ) {
     }
 
-    #[OaListItemTypeAttribute(TraceProfilingResource::class, isRecursive: true)]
-    public function index(TraceProfilingIndexRequest $request, string $traceId): AnonymousResourceCollection
+    public function index(string $traceId): TraceProfilingResource
     {
         $profiling = $this->findTraceProfilingAction->handle(
             new TraceFindProfilingParameters(
-                traceId: $traceId,
-                call: $request['call'] ?? null
+                traceId: $traceId
             )
         );
 
-        return TraceProfilingResource::collection($profiling);
+        abort_if(!$profiling, Response::HTTP_NOT_FOUND, 'Profiling not found');
+
+        return new TraceProfilingResource($profiling);
     }
 }

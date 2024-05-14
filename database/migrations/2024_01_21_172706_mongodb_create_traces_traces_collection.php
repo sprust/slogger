@@ -68,7 +68,7 @@ return new class extends Migration {
                                 'bsonType' => ['bool'],
                             ],
                             'profiling'     => [
-                                'bsonType' => ['array'],
+                                'bsonType' => ['object', null],
                             ],
                             'loggedAt'      => [
                                 'bsonType' => 'date',

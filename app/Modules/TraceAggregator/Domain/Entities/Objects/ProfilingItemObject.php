@@ -6,14 +6,12 @@ class ProfilingItemObject
 {
     /**
      * @param ProfilingItemDataObject[] $data
-     * @param static[] $callables
      */
     public function __construct(
         public string $id,
-        public string $call,
-        public array $data,
-        public array $callables,
-        public ?string $link
+        public string $calling,
+        public string $callable,
+        public array $data
     ) {
     }
 }

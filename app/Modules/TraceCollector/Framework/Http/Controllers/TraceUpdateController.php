@@ -36,28 +36,35 @@ readonly class TraceUpdateController
     {
         $validated = $request->validated();
 
+        info(json_encode($request->all(), JSON_PRETTY_PRINT));
+        info(json_encode($validated, JSON_PRETTY_PRINT));
+
         $serviceId = $this->serviceAdapter->getService()->id;
 
         $parametersList = new TraceUpdateParametersList();
 
         foreach ($validated['traces'] as $item) {
-            $profiling = new TraceUpdateProfilingObjects();
+            $profiling = null;
 
-            foreach ($item['profiling'] ?? [] as $profilingItem) {
-                $profiling->add(
-                    new TraceUpdateProfilingObject(
-                        raw: $profilingItem['raw'],
-                        calling: $profilingItem['calling'],
-                        callable: $profilingItem['callable'],
-                        data: array_map(
-                            fn(array $profilingItemData) => new TraceUpdateProfilingDataObject(
-                                name: $profilingItemData['name'],
-                                value: $profilingItemData['value']
-                            ),
-                            $profilingItem['data']
+            if ($profilingData = $item['profiling'] ?? null) {
+                $profiling = new TraceUpdateProfilingObjects($profilingData['main_caller']);
+
+                foreach ($profilingData['items'] ?? [] as $profilingItemData) {
+                    $profiling->add(
+                        new TraceUpdateProfilingObject(
+                            raw: $profilingItemData['raw'],
+                            calling: $profilingItemData['calling'],
+                            callable: $profilingItemData['callable'],
+                            data: array_map(
+                                fn(array $profilingItemData) => new TraceUpdateProfilingDataObject(
+                                    name: $profilingItemData['name'],
+                                    value: $profilingItemData['value']
+                                ),
+                                $profilingItemData['data']
+                            )
                         )
-                    )
-                );
+                    );
+                }
             }
 
             $parameters = new TraceUpdateParameters(

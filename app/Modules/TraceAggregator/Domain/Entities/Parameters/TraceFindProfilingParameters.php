@@ -6,7 +6,6 @@ readonly class TraceFindProfilingParameters
 {
     public function __construct(
         public string $traceId,
-        public ?string $call = null,
     ) {
     }
 }
