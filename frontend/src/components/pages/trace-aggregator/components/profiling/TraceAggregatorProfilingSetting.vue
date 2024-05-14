@@ -26,6 +26,21 @@
           :value="indicator"
       />
     </el-select>
+    <el-text style="padding-left: 5px; padding-right: 5px">
+      Hardest:
+    </el-text>
+    <el-select
+        v-model="store.state.profilingMetricsSetting.hardestItemIndicatorName"
+        placeholder="Indicators"
+        style="width: auto; min-width: 200px"
+    >
+      <el-option
+          v-for="indicator in store.state.profilingIndicators"
+          :key="indicator"
+          :label="indicator"
+          :value="indicator"
+      />
+    </el-select>
     <div class="flex-grow"/>
     <el-button
         @click="onCloseFlow"
