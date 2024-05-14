@@ -15,7 +15,7 @@
               :class="isInHardestFlow(node) ? 'node-flow-hardest-flow' : ''" style="padding-right: 5px"
               truncated
           >
-            {{ node.label }}
+            {{ node.label + (isLink(node) ? ' (-->)' : '') }}
           </el-text>
           <el-space spacer="|">
             <el-button type="info" @click="onShowFlow(node)" link>
@@ -88,6 +88,13 @@ export default defineComponent({
     },
     isInHardestFlow(node: ProfilingTreeNode): boolean {
       return this.store.state.profilingMetrics.hardestItemIds.indexOf(node.key) !== -1
+    },
+    isLink(node: ProfilingTreeNode): boolean {
+      const foundItem = (new ProfilingItemFinder()).find(
+          node.key, this.store.state.profilingItems
+      )
+
+      return !!foundItem?.link
     },
     onShowTree(node: ProfilingTreeNode) {
       const foundItem = (new ProfilingItemFinder()).find(
