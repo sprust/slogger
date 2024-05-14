@@ -29,7 +29,8 @@ export class FlowBuilder {
             edges: []
         }
 
-        this.buildRecursive(this.profilingItems, null)
+        // TODO
+        // this.buildRecursive(this.profilingItems, null)
 
         return this.flowItems
     }

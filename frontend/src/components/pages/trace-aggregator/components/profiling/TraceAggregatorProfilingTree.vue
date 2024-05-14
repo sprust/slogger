@@ -2,12 +2,13 @@
   <div style="overflow-y: scroll; width: 100%; height: 75vh">
     <el-tree
         ref="profilingTreeRef"
-        :data="store.state.profilingTree"
         :props="treeProps"
         node-key="key"
         :expand-on-click-node="false"
         :filter-node-method="filterTree"
         style="width: 95vw"
+        :load="loadNode"
+        lazy
     >
       <template #default="{ node }">
         <el-row :class="isSelectedNode(node) ? 'selected-node' : ''" style="width: 100%; font-size: 10px">
@@ -15,7 +16,7 @@
               :class="isInHardestFlow(node) ? 'node-flow-hardest-flow' : ''" style="padding-right: 5px"
               truncated
           >
-            {{ node.label + (isLink(node) ? ' (-->)' : '') }}
+            {{ node.label }}
           </el-text>
           <el-space spacer="|">
             <el-button type="info" @click="onShowFlow(node)" link>
@@ -24,7 +25,7 @@
             <el-button type="info" @click="onShowTree(node)" link>
               tree
             </el-button>
-            <el-button type="info" @click="onCalculateHardestFlow(node)" link>
+            <el-button type="info" @click="onCalculateMetrics(node)" link>
               hardest
             </el-button>
             <div>
@@ -48,6 +49,8 @@ import {ProfilingItemFinder} from "./utils/itemFinder.ts";
 import TraceAggregatorProfilingNodeData from "./TraceAggregatorProfilingNodeData.vue";
 import TraceAggregatorProfilingNodeMetrics from './TraceAggregatorProfilingNodeMetrics.vue'
 import {TreeFilter} from "./utils/treeFilter.ts";
+import type Node from 'element-plus/es/components/tree/src/model/node'
+import {ProfilingTreeBuilder} from "./utils/treeBuilder.ts";
 
 export default defineComponent({
   components: {TraceAggregatorProfilingNodeData, TraceAggregatorProfilingNodeMetrics},
@@ -59,6 +62,7 @@ export default defineComponent({
         children: 'children',
         label: 'label',
         disabled: 'disabled',
+        isLeaf: 'leaf',
       },
       finder: new TreeFilter()
     }
@@ -72,12 +76,56 @@ export default defineComponent({
 
       return this.finder.includes(patterns, data)
     },
+    loadNode(treeNode: Node, resolve: (data: ProfilingTreeNode[]) => void) {
+      if (treeNode.level === 0) {
+        const foundItem = (new ProfilingItemFinder()).find(
+            this.store.state.profiling.main_caller,
+            this.store.state.profiling.items
+        )
+
+        if (!foundItem) {
+          resolve([])
+
+          return
+        }
+
+        resolve([
+          {
+            key: foundItem.id,
+            label: foundItem.calling,
+            disabled: false,
+            isLeaf: true
+          }
+        ])
+
+        return
+      }
+
+      const foundItem = (new ProfilingItemFinder()).find(
+          treeNode.data.label,
+          this.store.state.profiling.items
+      )
+
+      if (!foundItem) {
+        resolve([])
+
+        return
+      }
+
+      const data = (new ProfilingTreeBuilder()).build(
+          foundItem.calling,
+          this.store.state.profiling.items
+      )
+
+      resolve(data)
+    },
     onShowFlow(node: ProfilingTreeNode) {
       if (node.key === this.store.state.selectedItem?.id) {
         this.store.dispatch('setSelectedProfilingItem', null)
       } else {
         const foundItem = (new ProfilingItemFinder()).find(
-            node.key, this.store.state.profilingItems
+            node.label,
+            this.store.state.profiling.items
         )
 
         this.store.dispatch('setSelectedProfilingItem', foundItem)
@@ -89,33 +137,22 @@ export default defineComponent({
     isInHardestFlow(node: ProfilingTreeNode): boolean {
       return this.store.state.profilingMetrics.hardestItemIds.indexOf(node.key) !== -1
     },
-    isLink(node: ProfilingTreeNode): boolean {
-      const foundItem = (new ProfilingItemFinder()).find(
-          node.key, this.store.state.profilingItems
-      )
-
-      return !!foundItem?.link
-    },
     onShowTree(node: ProfilingTreeNode) {
-      const foundItem = (new ProfilingItemFinder()).find(
-          node.key, this.store.state.profilingItems
-      )
-
-      this.store.dispatch('findProfiling', {
-        traceId: this.store.state.parameters.traceId,
-        call: foundItem?.call
-      })
+      // TODO
+      alert('TODO')
     },
-    onCalculateHardestFlow(node: ProfilingTreeNode) {
+    onCalculateMetrics(node: ProfilingTreeNode) {
       const foundItem = (new ProfilingItemFinder()).find(
-          node.key, this.store.state.profilingItems
+          node.label,
+          this.store.state.profiling.items
       )
 
-      this.store.dispatch('calculateHardestFlow', foundItem)
+      this.store.dispatch('calculateProfilingMetrics', foundItem)
     },
     findItemByNode(node: ProfilingTreeNode): ProfilingItem | null {
       return (new ProfilingItemFinder()).find(
-          node.key, this.store.state.profilingItems
+          node.label,
+          this.store.state.profiling.items
       )
     },
   },

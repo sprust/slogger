@@ -654,71 +654,21 @@ export namespace AdminApi {
  * @request GET:/admin-api/trace-aggregator/traces/{traceId}/profiling
  * @secure
  * @response `200` `{
-    data: ({
+    data: {
+    main_caller: string,
+    items: ({
     id: string,
-    call: string,
-    data: ({
-    name: string,
-    value: number,
-
-})[],
-    callables: ({
-    id: string,
-    call: string,
+    calling: string,
+    callable: string,
     data: ({
     name: string,
     value: number,
 
 })[],
-    callables: ({
-    id: string,
-    call: string,
-    data: ({
-    name: string,
-    value: number,
 
 })[],
-    callables: ({
-    id: string,
-    call: string,
-    data: ({
-    name: string,
-    value: number,
 
-})[],
-    callables: ({
-    id: string,
-    call: string,
-    data: ({
-    name: string,
-    value: number,
-
-})[],
-    callables: ({
-    id: string,
-    call: string,
-  \** @maxItems 0 *\
-    data: (string)[],
-  \** @maxItems 0 *\
-    callables: (string)[],
-    link?: string | null,
-
-})[],
-    link?: string | null,
-
-})[],
-    link?: string | null,
-
-})[],
-    link?: string | null,
-
-})[],
-    link?: string | null,
-
-})[],
-    link?: string | null,
-
-})[],
+},
 
 }` description
 */
@@ -726,66 +676,22 @@ export namespace AdminApi {
     export type RequestParams = {
       traceId: any;
     };
-    export type RequestQuery = {
-      call?: string;
-    };
+    export type RequestQuery = {};
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody = {
       data: {
-        id: string;
-        call: string;
-        data: {
-          name: string;
-          value: number;
-        }[];
-        callables: {
+        main_caller: string;
+        items: {
           id: string;
-          call: string;
+          calling: string;
+          callable: string;
           data: {
             name: string;
             value: number;
           }[];
-          callables: {
-            id: string;
-            call: string;
-            data: {
-              name: string;
-              value: number;
-            }[];
-            callables: {
-              id: string;
-              call: string;
-              data: {
-                name: string;
-                value: number;
-              }[];
-              callables: {
-                id: string;
-                call: string;
-                data: {
-                  name: string;
-                  value: number;
-                }[];
-                callables: {
-                  id: string;
-                  call: string;
-                  /** @maxItems 0 */
-                  data: string[];
-                  /** @maxItems 0 */
-                  callables: string[];
-                  link?: string | null;
-                }[];
-                link?: string | null;
-              }[];
-              link?: string | null;
-            }[];
-            link?: string | null;
-          }[];
-          link?: string | null;
         }[];
-        link?: string | null;
-      }[];
+      };
     };
   } /**
  * No description
@@ -2024,143 +1930,44 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
  * @request GET:/admin-api/trace-aggregator/traces/{traceId}/profiling
  * @secure
  * @response `200` `{
-    data: ({
+    data: {
+    main_caller: string,
+    items: ({
     id: string,
-    call: string,
-    data: ({
-    name: string,
-    value: number,
-
-})[],
-    callables: ({
-    id: string,
-    call: string,
+    calling: string,
+    callable: string,
     data: ({
     name: string,
     value: number,
 
 })[],
-    callables: ({
-    id: string,
-    call: string,
-    data: ({
-    name: string,
-    value: number,
 
 })[],
-    callables: ({
-    id: string,
-    call: string,
-    data: ({
-    name: string,
-    value: number,
 
-})[],
-    callables: ({
-    id: string,
-    call: string,
-    data: ({
-    name: string,
-    value: number,
-
-})[],
-    callables: ({
-    id: string,
-    call: string,
-  \** @maxItems 0 *\
-    data: (string)[],
-  \** @maxItems 0 *\
-    callables: (string)[],
-    link?: string | null,
-
-})[],
-    link?: string | null,
-
-})[],
-    link?: string | null,
-
-})[],
-    link?: string | null,
-
-})[],
-    link?: string | null,
-
-})[],
-    link?: string | null,
-
-})[],
+},
 
 }` description
  */
-    traceAggregatorTracesProfilingDetail: (
-      traceId: any,
-      query?: {
-        call?: string;
-      },
-      params: RequestParams = {},
-    ) =>
+    traceAggregatorTracesProfilingDetail: (traceId: any, params: RequestParams = {}) =>
       this.request<
         {
           data: {
-            id: string;
-            call: string;
-            data: {
-              name: string;
-              value: number;
-            }[];
-            callables: {
+            main_caller: string;
+            items: {
               id: string;
-              call: string;
+              calling: string;
+              callable: string;
               data: {
                 name: string;
                 value: number;
               }[];
-              callables: {
-                id: string;
-                call: string;
-                data: {
-                  name: string;
-                  value: number;
-                }[];
-                callables: {
-                  id: string;
-                  call: string;
-                  data: {
-                    name: string;
-                    value: number;
-                  }[];
-                  callables: {
-                    id: string;
-                    call: string;
-                    data: {
-                      name: string;
-                      value: number;
-                    }[];
-                    callables: {
-                      id: string;
-                      call: string;
-                      /** @maxItems 0 */
-                      data: string[];
-                      /** @maxItems 0 */
-                      callables: string[];
-                      link?: string | null;
-                    }[];
-                    link?: string | null;
-                  }[];
-                  link?: string | null;
-                }[];
-                link?: string | null;
-              }[];
-              link?: string | null;
             }[];
-            link?: string | null;
-          }[];
+          };
         },
         any
       >({
         path: `/admin-api/trace-aggregator/traces/${traceId}/profiling`,
         method: "GET",
-        query: query,
         secure: true,
         format: "json",
         ...params,

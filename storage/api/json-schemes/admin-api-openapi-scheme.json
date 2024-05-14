@@ -1418,14 +1418,6 @@
                         "required": true,
                         "in": "path",
                         "schema": {}
-                    },
-                    {
-                        "name": "call",
-                        "required": false,
-                        "in": "query",
-                        "schema": {
-                            "type": "string"
-                        }
                     }
                 ],
                 "responses": {
@@ -1437,275 +1429,62 @@
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "properties": {
-                                                    "id": {
-                                                        "type": "string",
-                                                        "nullable": false
-                                                    },
-                                                    "call": {
-                                                        "type": "string",
-                                                        "nullable": false
-                                                    },
-                                                    "data": {
-                                                        "type": "array",
-                                                        "nullable": false,
-                                                        "items": {
-                                                            "properties": {
-                                                                "name": {
-                                                                    "type": "string",
-                                                                    "nullable": false
-                                                                },
-                                                                "value": {
-                                                                    "type": "integer",
-                                                                    "nullable": false
-                                                                }
-                                                            },
-                                                            "required": [
-                                                                "name",
-                                                                "value"
-                                                            ]
-                                                        }
-                                                    },
-                                                    "callables": {
-                                                        "type": "array",
-                                                        "nullable": false,
-                                                        "items": {
-                                                            "properties": {
-                                                                "id": {
-                                                                    "type": "string",
-                                                                    "nullable": false
-                                                                },
-                                                                "call": {
-                                                                    "type": "string",
-                                                                    "nullable": false
-                                                                },
-                                                                "data": {
-                                                                    "type": "array",
-                                                                    "nullable": false,
-                                                                    "items": {
-                                                                        "properties": {
-                                                                            "name": {
-                                                                                "type": "string",
-                                                                                "nullable": false
-                                                                            },
-                                                                            "value": {
-                                                                                "type": "integer",
-                                                                                "nullable": false
-                                                                            }
-                                                                        },
-                                                                        "required": [
-                                                                            "name",
-                                                                            "value"
-                                                                        ]
-                                                                    }
-                                                                },
-                                                                "callables": {
-                                                                    "type": "array",
-                                                                    "nullable": false,
-                                                                    "items": {
-                                                                        "properties": {
-                                                                            "id": {
-                                                                                "type": "string",
-                                                                                "nullable": false
-                                                                            },
-                                                                            "call": {
-                                                                                "type": "string",
-                                                                                "nullable": false
-                                                                            },
-                                                                            "data": {
-                                                                                "type": "array",
-                                                                                "nullable": false,
-                                                                                "items": {
-                                                                                    "properties": {
-                                                                                        "name": {
-                                                                                            "type": "string",
-                                                                                            "nullable": false
-                                                                                        },
-                                                                                        "value": {
-                                                                                            "type": "integer",
-                                                                                            "nullable": false
-                                                                                        }
-                                                                                    },
-                                                                                    "required": [
-                                                                                        "name",
-                                                                                        "value"
-                                                                                    ]
-                                                                                }
-                                                                            },
-                                                                            "callables": {
-                                                                                "type": "array",
-                                                                                "nullable": false,
-                                                                                "items": {
-                                                                                    "properties": {
-                                                                                        "id": {
-                                                                                            "type": "string",
-                                                                                            "nullable": false
-                                                                                        },
-                                                                                        "call": {
-                                                                                            "type": "string",
-                                                                                            "nullable": false
-                                                                                        },
-                                                                                        "data": {
-                                                                                            "type": "array",
-                                                                                            "nullable": false,
-                                                                                            "items": {
-                                                                                                "properties": {
-                                                                                                    "name": {
-                                                                                                        "type": "string",
-                                                                                                        "nullable": false
-                                                                                                    },
-                                                                                                    "value": {
-                                                                                                        "type": "integer",
-                                                                                                        "nullable": false
-                                                                                                    }
-                                                                                                },
-                                                                                                "required": [
-                                                                                                    "name",
-                                                                                                    "value"
-                                                                                                ]
-                                                                                            }
-                                                                                        },
-                                                                                        "callables": {
-                                                                                            "type": "array",
-                                                                                            "nullable": false,
-                                                                                            "items": {
-                                                                                                "properties": {
-                                                                                                    "id": {
-                                                                                                        "type": "string",
-                                                                                                        "nullable": false
-                                                                                                    },
-                                                                                                    "call": {
-                                                                                                        "type": "string",
-                                                                                                        "nullable": false
-                                                                                                    },
-                                                                                                    "data": {
-                                                                                                        "type": "array",
-                                                                                                        "nullable": false,
-                                                                                                        "items": {
-                                                                                                            "properties": {
-                                                                                                                "name": {
-                                                                                                                    "type": "string",
-                                                                                                                    "nullable": false
-                                                                                                                },
-                                                                                                                "value": {
-                                                                                                                    "type": "integer",
-                                                                                                                    "nullable": false
-                                                                                                                }
-                                                                                                            },
-                                                                                                            "required": [
-                                                                                                                "name",
-                                                                                                                "value"
-                                                                                                            ]
-                                                                                                        }
-                                                                                                    },
-                                                                                                    "callables": {
-                                                                                                        "type": "array",
-                                                                                                        "nullable": false,
-                                                                                                        "items": {
-                                                                                                            "properties": {
-                                                                                                                "id": {
-                                                                                                                    "type": "string",
-                                                                                                                    "nullable": false
-                                                                                                                },
-                                                                                                                "call": {
-                                                                                                                    "type": "string",
-                                                                                                                    "nullable": false
-                                                                                                                },
-                                                                                                                "data": {
-                                                                                                                    "type": "array",
-                                                                                                                    "nullable": false,
-                                                                                                                    "maxItems": 0,
-                                                                                                                    "items": {
-                                                                                                                        "type": "string"
-                                                                                                                    }
-                                                                                                                },
-                                                                                                                "callables": {
-                                                                                                                    "type": "array",
-                                                                                                                    "nullable": false,
-                                                                                                                    "maxItems": 0,
-                                                                                                                    "items": {
-                                                                                                                        "type": "string"
-                                                                                                                    }
-                                                                                                                },
-                                                                                                                "link": {
-                                                                                                                    "type": "string",
-                                                                                                                    "nullable": true
-                                                                                                                }
-                                                                                                            },
-                                                                                                            "required": [
-                                                                                                                "id",
-                                                                                                                "call",
-                                                                                                                "data",
-                                                                                                                "callables"
-                                                                                                            ]
-                                                                                                        }
-                                                                                                    },
-                                                                                                    "link": {
-                                                                                                        "type": "string",
-                                                                                                        "nullable": true
-                                                                                                    }
-                                                                                                },
-                                                                                                "required": [
-                                                                                                    "id",
-                                                                                                    "call",
-                                                                                                    "data",
-                                                                                                    "callables"
-                                                                                                ]
-                                                                                            }
-                                                                                        },
-                                                                                        "link": {
-                                                                                            "type": "string",
-                                                                                            "nullable": true
-                                                                                        }
-                                                                                    },
-                                                                                    "required": [
-                                                                                        "id",
-                                                                                        "call",
-                                                                                        "data",
-                                                                                        "callables"
-                                                                                    ]
-                                                                                }
-                                                                            },
-                                                                            "link": {
-                                                                                "type": "string",
-                                                                                "nullable": true
-                                                                            }
-                                                                        },
-                                                                        "required": [
-                                                                            "id",
-                                                                            "call",
-                                                                            "data",
-                                                                            "callables"
-                                                                        ]
-                                                                    }
-                                                                },
-                                                                "link": {
-                                                                    "type": "string",
-                                                                    "nullable": true
-                                                                }
-                                                            },
-                                                            "required": [
-                                                                "id",
-                                                                "call",
-                                                                "data",
-                                                                "callables"
-                                                            ]
-                                                        }
-                                                    },
-                                                    "link": {
-                                                        "type": "string",
-                                                        "nullable": true
-                                                    }
+                                            "properties": {
+                                                "main_caller": {
+                                                    "type": "string",
+                                                    "nullable": false
                                                 },
-                                                "required": [
-                                                    "id",
-                                                    "call",
-                                                    "data",
-                                                    "callables"
-                                                ]
-                                            }
+                                                "items": {
+                                                    "type": "array",
+                                                    "nullable": false,
+                                                    "items": {
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "string",
+                                                                "nullable": false
+                                                            },
+                                                            "calling": {
+                                                                "type": "string",
+                                                                "nullable": false
+                                                            },
+                                                            "callable": {
+                                                                "type": "string",
+                                                                "nullable": false
+                                                            },
+                                                            "data": {
+                                                                "type": "array",
+                                                                "nullable": false,
+                                                                "items": {
+                                                                    "properties": {
+                                                                        "name": {
+                                                                            "type": "string",
+                                                                            "nullable": false
+                                                                        },
+                                                                        "value": {
+                                                                            "type": "integer",
+                                                                            "nullable": false
+                                                                        }
+                                                                    },
+                                                                    "required": [
+                                                                        "name",
+                                                                        "value"
+                                                                    ]
+                                                                }
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "id",
+                                                            "calling",
+                                                            "callable",
+                                                            "data"
+                                                        ]
+                                                    }
+                                                }
+                                            },
+                                            "required": [
+                                                "main_caller",
+                                                "items"
+                                            ]
                                         }
                                     },
                                     "required": [

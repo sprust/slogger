@@ -2,10 +2,12 @@ import {ProfilingItem, ProfilingMetrics} from "../../../../../../store/traceAggr
 
 export class MetricsBuilder {
     private readonly indicatorName: string
+    private readonly caller: string
     private readonly profilingItems: Array<ProfilingItem>
 
-    public constructor(indicatorName: string, profilingItems: Array<ProfilingItem>) {
+    public constructor(indicatorName: string, caller: string, profilingItems: Array<ProfilingItem>) {
         this.indicatorName = indicatorName
+        this.caller = caller
         this.profilingItems = profilingItems
     }
 
@@ -15,9 +17,10 @@ export class MetricsBuilder {
             hardestItemIds: []
         }
 
-        if (this.indicatorName) {
-            this.buildRecursive(this.profilingItems, profilingMetrics, true)
-        }
+        // TODO
+        // if (this.indicatorName) {
+        //     this.buildRecursive(this.profilingItems, profilingMetrics, true)
+        // }
 
         return profilingMetrics
     }
