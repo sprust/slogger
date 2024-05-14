@@ -15,7 +15,7 @@
         <TraceAggregatorProfilingSetting/>
       </el-row>
       <el-row style="width: 100%">
-        <el-col :span="leftSpan">
+        <el-col v-show="store.state.showTree" :span="leftSpan">
           <el-row>
             <el-input
                 v-model="store.state.profilingTreeFilterPrev"
@@ -35,7 +35,7 @@
             <TraceAggregatorProfilingTree/>
           </el-row>
         </el-col>
-        <el-col v-if="showFlowSpan" :span="18" style="width: 100%; height: 70vh">
+        <el-col v-if="showFlowSpan" :span="rightSpan" style="width: 100%; height: 75vh">
           <VueFlow
               v-model:nodes="store.state.flowItems.nodes"
               v-model:edges="store.state.flowItems.edges"
@@ -85,6 +85,9 @@ export default defineComponent({
   computed: {
     leftSpan() {
       return this.showFlowSpan ? 6 : 24
+    },
+    rightSpan() {
+      return this.store.state.showTree ? 18 : 24
     },
     showFlowSpan(): boolean {
       return !!this.store.state.selectedItem

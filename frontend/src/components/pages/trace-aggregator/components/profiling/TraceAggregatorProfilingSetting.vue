@@ -3,6 +3,10 @@
     <el-button
         @click="onReload"
         :icon="Refresh"
+    />
+    <el-button
+        @click="onShowTree"
+        :icon="store.state.showTree ? Fold : Expand"
         style="margin-right: 10px"
     />
     <el-text style="padding-right: 5px">
@@ -37,7 +41,7 @@
 <script lang="ts">
 import {defineComponent} from "vue";
 import {useTraceAggregatorProfilingStore} from "../../../../../store/traceAggregatorProfilingStore.ts";
-import {Close, Refresh} from '@element-plus/icons-vue'
+import {Close, Refresh, Fold, Expand} from '@element-plus/icons-vue'
 
 export default defineComponent({
   components: {Close},
@@ -55,6 +59,12 @@ export default defineComponent({
     Refresh() {
       return Refresh
     },
+    Fold() {
+      return Fold
+    },
+    Expand() {
+      return Expand
+    },
   },
 
   methods: {
@@ -62,6 +72,9 @@ export default defineComponent({
       this.store.dispatch('findProfiling', {
         traceId: this.store.state.parameters.traceId
       })
+    },
+    onShowTree() {
+      this.store.dispatch('switchShowTree')
     },
     onCloseFlow() {
       this.store.dispatch('setSelectedProfilingItem', null)

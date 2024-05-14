@@ -33,6 +33,7 @@ interface State {
     loading: boolean,
     parameters: Parameters,
     profilingItems: Array<ProfilingItem>,
+    showTree: boolean,
     selectedItem: ProfilingItem | null,
     profilingIndicators: Array<string>,
     profilingTreeFilterPrev: string, // crutch
@@ -58,6 +59,7 @@ export const traceAggregatorProfilingStore = createStore<State>({
         loading: true,
         parameters: {} as Parameters,
         profilingItems: new Array<ProfilingItem>,
+        showTree: true,
         selectedItem: null as ProfilingItem | null,
         profilingIndicators: [],
         profilingTreeFilterPrev: '',
@@ -165,6 +167,9 @@ export const traceAggregatorProfilingStore = createStore<State>({
         setProfilingTreeFilter(state: State, value: string) {
             state.profilingTreeFilter = value
         },
+        switchShowTree(state: State) {
+            state.showTree = !state.showTree
+        },
     },
     actions: {
         findProfiling(
@@ -211,6 +216,9 @@ export const traceAggregatorProfilingStore = createStore<State>({
         },
         setProfilingTreeFilter({commit}: { commit: any }, value: string) {
             commit('setProfilingTreeFilter', value)
+        },
+        switchShowTree({commit}: { commit: any }) {
+            commit('switchShowTree')
         },
     },
 })
