@@ -9,7 +9,7 @@ import {Node} from "@vue-flow/core/dist/types/node";
 // @ts-ignore // todo
 import {Edge} from "@vue-flow/core/dist/types/edge";
 import {FlowBuilder} from "../components/pages/trace-aggregator/components/profiling/utils/flowBuilder.ts";
-import {MetricsBuilder} from "../components/pages/trace-aggregator/components/profiling/utils/metricsBuilder.ts";
+import {MetricsCollector} from "../components/pages/trace-aggregator/components/profiling/utils/metricsCollector.ts";
 import {
     IndicatorsCollector
 } from "../components/pages/trace-aggregator/components/profiling/utils/indicatorsCollector.ts";
@@ -118,9 +118,9 @@ export const traceAggregatorProfilingStore = createStore<State>({
 
             state.selectedItem = item
 
-            state.profilingMetrics = (new MetricsBuilder(
+            state.profilingMetrics = (new MetricsCollector(
                 state.profilingMetricsSetting.hardestItemIndicatorName,
-                item.callable,
+                item.calling,
                 state.profiling.items
             )).build()
 
@@ -137,9 +137,9 @@ export const traceAggregatorProfilingStore = createStore<State>({
                 return;
             }
 
-            state.profilingMetrics = (new MetricsBuilder(
+            state.profilingMetrics = (new MetricsCollector(
                 state.profilingMetricsSetting.hardestItemIndicatorName,
-                item.callable,
+                item.calling,
                 state.profiling.items
             )).build()
         },
