@@ -1,6 +1,9 @@
 import {ProfilingItem, ProfilingTreeNode} from "../../../../../../store/traceAggregatorProfilingStore.ts";
+import {ProfilingItemFinder} from "./itemFinder.ts";
 
-export class ProfilingTreeBuilder {
+export class ProfilingTreeNodeBuilder {
+    private itemFinder = new ProfilingItemFinder()
+
     public build(caller: string, items: Array<ProfilingItem>): Array<ProfilingTreeNode> {
         return items
             .filter((item: ProfilingItem) => {
@@ -11,14 +14,12 @@ export class ProfilingTreeBuilder {
                     key: item.id,
                     label: item.callable,
                     disabled: false,
-                    isLeaf: this.hasChildren(item.callable, items),
+                    leaf: !this.hasChildren(item.callable, items),
                 }
             })
     }
 
     private hasChildren(caller: string, items: Array<ProfilingItem>): boolean {
-        return items.findIndex((item: ProfilingItem) => {
-            return item.calling === caller
-        }) !== -1
+        return !!this.itemFinder.findByCalling(caller, items)
     }
 }

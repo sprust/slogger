@@ -8,7 +8,6 @@ import {handleApiError} from "../utils/helpers.ts";
 import {Node} from "@vue-flow/core/dist/types/node";
 // @ts-ignore // todo
 import {Edge} from "@vue-flow/core/dist/types/edge";
-import {ProfilingTreeBuilder} from "../components/pages/trace-aggregator/components/profiling/utils/treeBuilder.ts";
 import {FlowBuilder} from "../components/pages/trace-aggregator/components/profiling/utils/flowBuilder.ts";
 import {MetricsBuilder} from "../components/pages/trace-aggregator/components/profiling/utils/metricsBuilder.ts";
 import {
@@ -40,7 +39,6 @@ interface State {
     profilingIndicators: Array<string>,
     profilingTreeFilterPrev: string, // crutch
     profilingTreeFilter: string,
-    profilingTree: Array<ProfilingTreeNode>,
     profilingMetrics: ProfilingMetrics,
     profilingMetricsSetting: {
         hardestItemIndicatorName: string,
@@ -53,7 +51,7 @@ export type ProfilingTreeNode = {
     key: string,
     label: string,
     disabled: boolean,
-    isLeaf: boolean,
+    leaf?: boolean,
 }
 
 export const traceAggregatorProfilingStore = createStore<State>({
@@ -69,7 +67,6 @@ export const traceAggregatorProfilingStore = createStore<State>({
         profilingIndicators: [],
         profilingTreeFilterPrev: '',
         profilingTreeFilter: '',
-        profilingTree: [] as Array<ProfilingTreeNode>,
         profilingMetrics: {
             totalCount: 0,
             hardestItemIds: []
@@ -118,11 +115,6 @@ export const traceAggregatorProfilingStore = createStore<State>({
                 state.profilingMetricsSetting.showProfilingIndicators = []
                 state.profilingMetricsSetting.hardestItemIndicatorName = ''
             }
-
-            state.profilingTree = (new ProfilingTreeBuilder()).build(
-                state.profiling.main_caller,
-                state.profiling.items
-            )
         },
         setSelectedProfilingItem(state: State, item: ProfilingItem | null) {
             if (!item) {

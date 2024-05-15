@@ -50,7 +50,7 @@ import TraceAggregatorProfilingNodeData from "./TraceAggregatorProfilingNodeData
 import TraceAggregatorProfilingNodeMetrics from './TraceAggregatorProfilingNodeMetrics.vue'
 import {TreeFilter} from "./utils/treeFilter.ts";
 import type Node from 'element-plus/es/components/tree/src/model/node'
-import {ProfilingTreeBuilder} from "./utils/treeBuilder.ts";
+import {ProfilingTreeNodeBuilder} from "./utils/treeNodeBuilder.ts";
 
 export default defineComponent({
   components: {TraceAggregatorProfilingNodeData, TraceAggregatorProfilingNodeMetrics},
@@ -78,7 +78,7 @@ export default defineComponent({
     },
     loadNode(treeNode: Node, resolve: (data: ProfilingTreeNode[]) => void) {
       if (treeNode.level === 0) {
-        const foundItem = (new ProfilingItemFinder()).find(
+        const foundItem = (new ProfilingItemFinder()).findByCalling(
             this.store.state.profiling.main_caller,
             this.store.state.profiling.items
         )
@@ -94,14 +94,14 @@ export default defineComponent({
             key: foundItem.id,
             label: foundItem.calling,
             disabled: false,
-            isLeaf: true
+            leaf: false
           }
         ])
 
         return
       }
 
-      const foundItem = (new ProfilingItemFinder()).find(
+      const foundItem = (new ProfilingItemFinder()).findByCalling(
           treeNode.data.label,
           this.store.state.profiling.items
       )
@@ -112,7 +112,7 @@ export default defineComponent({
         return
       }
 
-      const data = (new ProfilingTreeBuilder()).build(
+      const data = (new ProfilingTreeNodeBuilder()).build(
           foundItem.calling,
           this.store.state.profiling.items
       )
@@ -120,10 +120,14 @@ export default defineComponent({
       resolve(data)
     },
     onShowFlow(node: ProfilingTreeNode) {
+      // TODO
+      alert('TODO')
+      return
+
       if (node.key === this.store.state.selectedItem?.id) {
         this.store.dispatch('setSelectedProfilingItem', null)
       } else {
-        const foundItem = (new ProfilingItemFinder()).find(
+        const foundItem = (new ProfilingItemFinder()).findByCalling(
             node.label,
             this.store.state.profiling.items
         )
@@ -142,16 +146,16 @@ export default defineComponent({
       alert('TODO')
     },
     onCalculateMetrics(node: ProfilingTreeNode) {
-      const foundItem = (new ProfilingItemFinder()).find(
-          node.label,
+      const foundItem = (new ProfilingItemFinder()).findById(
+          node.key,
           this.store.state.profiling.items
       )
 
       this.store.dispatch('calculateProfilingMetrics', foundItem)
     },
     findItemByNode(node: ProfilingTreeNode): ProfilingItem | null {
-      return (new ProfilingItemFinder()).find(
-          node.label,
+      return (new ProfilingItemFinder()).findById(
+          node.key,
           this.store.state.profiling.items
       )
     },
