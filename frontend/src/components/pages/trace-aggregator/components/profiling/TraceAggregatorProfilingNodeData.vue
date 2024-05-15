@@ -4,7 +4,7 @@
   </div>
   <el-card v-else :class="'node-flow ' + (isInHardestFlow ? 'node-flow-hardest-flow' : '')">
     <template #header>
-      {{ item.calling }}
+      {{ item.callable }}
     </template>
     <div>
       <TraceAggregatorProfilingNodeMetrics :item="item"/>

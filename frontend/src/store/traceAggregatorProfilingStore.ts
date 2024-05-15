@@ -93,19 +93,6 @@ export const traceAggregatorProfilingStore = createStore<State>({
 
             state.profiling = profiling
 
-            if (state.profiling.items.length > 1) {
-                const newMainCaller = '#root'
-
-                state.profiling.items.push({
-                    id: '#-1',
-                    calling: newMainCaller,
-                    callable: state.profiling.main_caller,
-                    data: []
-                })
-
-                state.profiling.main_caller = newMainCaller
-            }
-
             state.profilingIndicators = (new IndicatorsCollector()).collect(state.profiling.items)
 
             if (state.profilingIndicators.length) {
@@ -137,7 +124,8 @@ export const traceAggregatorProfilingStore = createStore<State>({
                 state.profiling.items
             )).build()
 
-            const flow = (new FlowBuilder([item], state.profilingMetrics.hardestItemIds)).build()
+            const flow = (new FlowBuilder(state.profiling.items, state.profilingMetrics.hardestItemIds))
+                .build(state.selectedItem.calling)
 
             state.flowItems.nodes = flow.nodes
             state.flowItems.edges = flow.edges

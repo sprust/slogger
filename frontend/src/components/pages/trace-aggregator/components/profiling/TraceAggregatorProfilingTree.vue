@@ -120,10 +120,6 @@ export default defineComponent({
       resolve(data)
     },
     onShowFlow(node: ProfilingTreeNode) {
-      // TODO
-      alert('TODO')
-      return
-
       if (node.key === this.store.state.selectedItem?.id) {
         this.store.dispatch('setSelectedProfilingItem', null)
       } else {
