@@ -1,11 +1,9 @@
 <template>
   <div style="overflow-y: scroll; width: 100%; height: 75vh">
     <el-tree
-        ref="profilingTreeRef"
         :props="treeProps"
         node-key="key"
         :expand-on-click-node="false"
-        :filter-node-method="filterTree"
         style="width: 95vw"
         :load="loadNode"
         lazy
@@ -21,9 +19,6 @@
           <el-space spacer="|">
             <el-button type="info" @click="onShowFlow(node)" link>
               flow
-            </el-button>
-            <el-button type="info" @click="onShowTree(node)" link>
-              tree
             </el-button>
             <el-button type="info" @click="onCalculateMetrics(node)" link>
               hardest
@@ -69,13 +64,6 @@ export default defineComponent({
   },
 
   methods: {
-    filterTree(patterns: string, data: ProfilingTreeNode) {
-      if (!patterns) {
-        return true
-      }
-
-      return this.finder.includes(patterns, data)
-    },
     loadNode(treeNode: Node, resolve: (data: ProfilingTreeNode[]) => void) {
       if (treeNode.level === 0) {
         const foundItem = (new ProfilingItemFinder()).findByCalling(
@@ -137,10 +125,6 @@ export default defineComponent({
     isInHardestFlow(node: ProfilingTreeNode): boolean {
       return this.store.state.profilingMetrics.hardestItemIds.indexOf(node.key) !== -1
     },
-    onShowTree(node: ProfilingTreeNode) {
-      // TODO
-      alert('TODO')
-    },
     onCalculateMetrics(node: ProfilingTreeNode) {
       this.store.dispatch('calculateProfilingMetrics', node)
     },
@@ -151,17 +135,6 @@ export default defineComponent({
       )
     },
   },
-
-  watch: {
-    'store.state.profilingTreeFilter'(value: string) {
-      if (!this.$refs!.profilingTreeRef) {
-        return
-      }
-
-      // @ts-ignore: doesnt see 'filter' method
-      this.$refs!.profilingTreeRef!.filter(value)
-    }
-  }
 })
 </script>
 

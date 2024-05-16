@@ -17,21 +17,6 @@
       <el-row style="width: 100%">
         <el-col v-show="store.state.showTree" :span="leftSpan">
           <el-row>
-            <el-input
-                v-model="store.state.profilingTreeFilterPrev"
-                placeholder="Filter ('*' - any symbols, '!' in start - is exclude, ';' - separator)"
-                v-on:keyup.enter="onFilterTree"
-                clearable
-            >
-              <template #append>
-                <el-button
-                    :icon="Search"
-                    @click="onFilterTree"
-                />
-              </template>
-            </el-input>
-          </el-row>
-          <el-row>
             <TraceAggregatorProfilingTree/>
           </el-row>
         </el-col>
@@ -94,12 +79,6 @@ export default defineComponent({
     },
     Search() {
       return Search
-    }
-  },
-
-  methods: {
-    onFilterTree() {
-      this.store.dispatch('setProfilingTreeFilter', this.store.state.profilingTreeFilterPrev)
     }
   },
 })

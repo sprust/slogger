@@ -38,8 +38,6 @@ interface State {
     showTree: boolean,
     selectedItem: ProfilingItem | null,
     profilingIndicators: Array<string>,
-    profilingTreeFilterPrev: string, // crutch
-    profilingTreeFilter: string,
     profilingMetrics: ProfilingMetrics,
     profilingMetricsSetting: {
         hardestItemIndicatorName: string,
@@ -66,8 +64,6 @@ export const traceAggregatorProfilingStore = createStore<State>({
         showTree: true,
         selectedItem: null as ProfilingItem | null,
         profilingIndicators: [],
-        profilingTreeFilterPrev: '',
-        profilingTreeFilter: '',
         profilingMetrics: {
             totalCount: 0,
             hardestItemIds: []
@@ -83,8 +79,6 @@ export const traceAggregatorProfilingStore = createStore<State>({
     } as State,
     mutations: {
         setProfiling(state: State, profiling: Profiling) {
-            state.profilingTreeFilterPrev = ''
-            state.profilingTreeFilter = ''
             state.selectedItem = null
             state.profilingMetrics.hardestItemIds = []
             state.flowItems = {
@@ -106,8 +100,6 @@ export const traceAggregatorProfilingStore = createStore<State>({
         },
         setSelectedProfilingItem(state: State, item: ProfilingItem | null) {
             if (!item) {
-                state.profilingTreeFilterPrev = ''
-                state.profilingTreeFilter = ''
                 state.selectedItem = null
                 state.flowItems = {
                     nodes: [],
@@ -148,9 +140,6 @@ export const traceAggregatorProfilingStore = createStore<State>({
                 treeNode.label === state.profiling.main_caller ? item.calling : item.callable,
                 state.profiling.items
             )).build()
-        },
-        setProfilingTreeFilter(state: State, value: string) {
-            state.profilingTreeFilter = value
         },
         switchShowTree(state: State) {
             state.showTree = !state.showTree
@@ -197,9 +186,6 @@ export const traceAggregatorProfilingStore = createStore<State>({
         },
         calculateProfilingMetrics({commit}: { commit: any }, treeNode: ProfilingTreeNode) {
             commit('calculateProfilingMetrics', treeNode)
-        },
-        setProfilingTreeFilter({commit}: { commit: any }, value: string) {
-            commit('setProfilingTreeFilter', value)
         },
         switchShowTree({commit}: { commit: any }) {
             commit('switchShowTree')
