@@ -1,5 +1,5 @@
 <template>
-  <el-space :spacer="(showTreeButton || showFilterButton) ? '|' : ''">
+  <el-space spacer="|">
     <el-row>
       <div style="font-weight: bold">
         {{ title }}:
@@ -10,7 +10,6 @@
     </el-row>
     <el-row>
       <el-button
-          v-if="showTreeButton"
           @click="$emit('onClickTraceIdTree', traceId)"
           type="info"
           link
@@ -42,11 +41,6 @@ export default defineComponent({
     traceId: {
       type: String,
       required: true,
-    },
-    showTreeButton: {
-      type: Boolean,
-      required: false,
-      default: true,
     },
     showFilterButton: {
       type: Boolean,

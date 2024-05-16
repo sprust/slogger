@@ -15,8 +15,8 @@
         <TraceId
             title="Trace id"
             :trace-id="store.state.parameters.traceId"
-            :show-tree-button="false"
             :show-filter-button="false"
+            @onClickTraceIdTree="onClickTraceIdTree"
         />
       </el-row>
       <el-row style="width: 100%; padding-bottom: 5px">
@@ -59,6 +59,8 @@ import TraceAggregatorProfilingNode from './TraceAggregatorProfilingNode.vue'
 import TraceAggregatorProfilingSetting from './TraceAggregatorProfilingSetting.vue'
 import {Search} from '@element-plus/icons-vue'
 import TraceId from "../../widgets/TraceId.vue";
+import {traceAggregatorTabs, useTraceAggregatorTabsStore} from "../../../../../store/traceAggregatorTabsStore.ts";
+import {useTraceAggregatorTreeStore} from "../../../../../store/traceAggregatorTreeStore.ts";
 
 export default defineComponent({
   components: {
@@ -74,7 +76,18 @@ export default defineComponent({
   data() {
     return {
       store: useTraceAggregatorProfilingStore(),
+      traceAggregatorTabsStore: useTraceAggregatorTabsStore(),
+      traceAggregatorTreeStore: useTraceAggregatorTreeStore(),
     }
+  },
+
+  methods: {
+    onClickTraceIdTree(traceId: string) {
+      this.traceAggregatorTreeStore.dispatch('findTreeNodes', {
+        traceId: traceId
+      })
+      this.traceAggregatorTabsStore.dispatch('setCurrentTab', traceAggregatorTabs.tree)
+    },
   },
 
   computed: {
