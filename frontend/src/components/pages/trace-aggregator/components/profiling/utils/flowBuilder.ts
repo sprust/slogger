@@ -38,7 +38,7 @@ export class FlowBuilder {
         this.flowMap = {}
 
         const root: ProfilingItem = {
-            id: (new Date()).getMilliseconds().toString(),
+            id: (new Date().getTime() / 1000).toString(),
             calling: caller,
             callable: caller,
             data: [],
@@ -90,6 +90,7 @@ export class FlowBuilder {
                     id: `${parent.id}-${item.id}`,
                     source: parent.id,
                     target: item.id,
+                    type: 'custom',
                     style: {stroke: this.isHardestItemIds(parent.id, item.id) ? 'red' : 'green'},
                 })
             }
@@ -101,6 +102,7 @@ export class FlowBuilder {
                     id: `${item.id}-${link.id}`,
                     source: item.id,
                     target: link.id,
+                    type: 'custom',
                     style: {stroke: this.isHardestItemIds(item.id, link.id) ? 'red' : 'gray'},
                 })
 

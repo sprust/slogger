@@ -38,6 +38,10 @@
               <TraceAggregatorProfilingNode :node="props"/>
             </template>
 
+            <template #edge-custom="props">
+              <TraceAggregatorProfilingFlowEdge v-bind="props"/>
+            </template>
+
             <MiniMap node-color="black" mask-color="rgba(128, 128, 128, 0.7)" pannable zoomable/>
 
             <Controls/>
@@ -57,7 +61,7 @@ import {Controls} from '@vue-flow/controls'
 import TraceAggregatorProfilingTree from './TraceAggregatorProfilingTree.vue'
 import TraceAggregatorProfilingNode from './TraceAggregatorProfilingNode.vue'
 import TraceAggregatorProfilingSetting from './TraceAggregatorProfilingSetting.vue'
-import {Search} from '@element-plus/icons-vue'
+import TraceAggregatorProfilingFlowEdge from './TraceAggregatorProfilingFlowEdge.vue'
 import TraceId from "../../widgets/TraceId.vue";
 import {traceAggregatorTabs, useTraceAggregatorTabsStore} from "../../../../../store/traceAggregatorTabsStore.ts";
 import {useTraceAggregatorTreeStore} from "../../../../../store/traceAggregatorTreeStore.ts";
@@ -71,6 +75,7 @@ export default defineComponent({
     TraceAggregatorProfilingTree,
     TraceAggregatorProfilingNode,
     TraceAggregatorProfilingSetting,
+    TraceAggregatorProfilingFlowEdge,
   },
 
   data() {
@@ -100,9 +105,6 @@ export default defineComponent({
     showFlowSpan(): boolean {
       return !!this.store.state.selectedItem
     },
-    Search() {
-      return Search
-    }
   },
 })
 </script>
