@@ -5,6 +5,7 @@
   <el-tag
       v-for="indicator in indicators"
       type="primary"
+      style=" font-size: 12px"
   >
     {{ indicator.name }}: {{ indicator.value }}
   </el-tag>

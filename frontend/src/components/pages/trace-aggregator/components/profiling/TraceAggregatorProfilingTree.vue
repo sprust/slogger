@@ -9,9 +9,9 @@
         lazy
     >
       <template #default="{ node }">
-        <el-row :class="isSelectedNode(node) ? 'selected-node' : ''" style="width: 100%; font-size: 10px">
+        <el-row :class="isSelectedNode(node) ? 'selected-node' : ''" style="width: 100%">
           <el-text
-              :class="isInHardestFlow(node) ? 'node-flow-hardest-flow' : ''" style="padding-right: 5px"
+              :class="isInHardestFlow(node) ? 'node-flow-hardest-flow' : ''" style="padding-right: 5px; font-size: 13px"
               truncated
           >
             {{ node.label }}
