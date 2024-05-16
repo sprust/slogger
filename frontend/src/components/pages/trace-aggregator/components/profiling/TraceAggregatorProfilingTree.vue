@@ -142,12 +142,7 @@ export default defineComponent({
       alert('TODO')
     },
     onCalculateMetrics(node: ProfilingTreeNode) {
-      const foundItem = (new ProfilingItemFinder()).findById(
-          node.key,
-          this.store.state.profiling.items
-      )
-
-      this.store.dispatch('calculateProfilingMetrics', foundItem)
+      this.store.dispatch('calculateProfilingMetrics', node)
     },
     findItemByNode(node: ProfilingTreeNode): ProfilingItem | null {
       return (new ProfilingItemFinder()).findById(

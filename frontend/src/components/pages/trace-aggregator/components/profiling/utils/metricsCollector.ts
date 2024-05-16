@@ -43,6 +43,10 @@ export class MetricsCollector {
             return (prevValue > currentValue) ? prev : current
         })
 
+        if (!itemWithMaxHardest) {
+            return;
+        }
+
         if (this.collectedCallers.indexOf(itemWithMaxHardest.id) !== -1) {
             return;
         }

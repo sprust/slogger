@@ -13,6 +13,7 @@ import {MetricsCollector} from "../components/pages/trace-aggregator/components/
 import {
     IndicatorsCollector
 } from "../components/pages/trace-aggregator/components/profiling/utils/indicatorsCollector.ts";
+import {ProfilingItemFinder} from "../components/pages/trace-aggregator/components/profiling/utils/itemFinder.ts";
 
 type Parameters = AdminApi.TraceAggregatorTracesProfilingDetail.RequestParams
 
@@ -130,7 +131,12 @@ export const traceAggregatorProfilingStore = createStore<State>({
             state.flowItems.nodes = flow.nodes
             state.flowItems.edges = flow.edges
         },
-        calculateProfilingMetrics(state: State, item: ProfilingItem | null) {
+        calculateProfilingMetrics(state: State, treeNode: ProfilingTreeNode) {
+            const item = (new ProfilingItemFinder()).findById(
+                treeNode.key,
+                state.profiling.items
+            )
+
             if (!item) {
                 state.profilingMetrics.hardestItemIds = []
 
@@ -139,7 +145,7 @@ export const traceAggregatorProfilingStore = createStore<State>({
 
             state.profilingMetrics = (new MetricsCollector(
                 state.profilingMetricsSetting.hardestItemIndicatorName,
-                item.calling,
+                treeNode.label === state.profiling.main_caller ? item.calling : item.callable,
                 state.profiling.items
             )).build()
         },
@@ -189,8 +195,8 @@ export const traceAggregatorProfilingStore = createStore<State>({
         setSelectedProfilingItem({commit}: { commit: any }, item: ProfilingItem | null) {
             commit('setSelectedProfilingItem', item)
         },
-        calculateProfilingMetrics({commit}: { commit: any }, item: ProfilingItem | null) {
-            commit('calculateProfilingMetrics', item)
+        calculateProfilingMetrics({commit}: { commit: any }, treeNode: ProfilingTreeNode) {
+            commit('calculateProfilingMetrics', treeNode)
         },
         setProfilingTreeFilter({commit}: { commit: any }, value: string) {
             commit('setProfilingTreeFilter', value)
