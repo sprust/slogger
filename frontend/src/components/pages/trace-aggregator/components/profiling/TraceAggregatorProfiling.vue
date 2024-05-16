@@ -12,6 +12,14 @@
     />
     <div v-else-if="store.state.parameters.traceId" style="width: 100vw">
       <el-row style="width: 100%; padding-bottom: 5px">
+        <TraceId
+            title="Trace id"
+            :trace-id="store.state.parameters.traceId"
+            :show-tree-button="false"
+            :show-filter-button="false"
+        />
+      </el-row>
+      <el-row style="width: 100%; padding-bottom: 5px">
         <TraceAggregatorProfilingSetting/>
       </el-row>
       <el-row style="width: 100%">
@@ -50,9 +58,11 @@ import TraceAggregatorProfilingTree from './TraceAggregatorProfilingTree.vue'
 import TraceAggregatorProfilingNode from './TraceAggregatorProfilingNode.vue'
 import TraceAggregatorProfilingSetting from './TraceAggregatorProfilingSetting.vue'
 import {Search} from '@element-plus/icons-vue'
+import TraceId from "../../widgets/TraceId.vue";
 
 export default defineComponent({
   components: {
+    TraceId,
     VueFlow,
     MiniMap,
     Controls,
