@@ -141,6 +141,17 @@ export const traceAggregatorProfilingStore = createStore<State>({
                 state.profiling.items
             )).build()
         },
+        freshHardestFlow(state: State) {
+            if (!state.selectedItem) {
+                return
+            }
+
+            state.profilingMetrics = (new MetricsCollector(
+                state.profilingMetricsSetting.hardestItemIndicatorName,
+                state.selectedItem.calling,
+                state.profiling.items
+            )).build()
+        },
         switchShowTree(state: State) {
             state.showTree = !state.showTree
         },
@@ -183,6 +194,13 @@ export const traceAggregatorProfilingStore = createStore<State>({
         },
         setSelectedProfilingItem({commit}: { commit: any }, item: ProfilingItem | null) {
             commit('setSelectedProfilingItem', item)
+        },
+        freshHardestFlow({commit, state}: { commit: any, state: State }) {
+            if (!state.selectedItem) {
+                return
+            }
+
+            commit('setSelectedProfilingItem', state.selectedItem)
         },
         calculateProfilingMetrics({commit}: { commit: any }, treeNode: ProfilingTreeNode) {
             commit('calculateProfilingMetrics', treeNode)

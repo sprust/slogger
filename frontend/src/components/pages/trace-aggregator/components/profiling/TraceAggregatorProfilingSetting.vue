@@ -33,6 +33,7 @@
         v-model="store.state.profilingMetricsSetting.hardestItemIndicatorName"
         placeholder="Indicators"
         style="width: auto; min-width: 200px"
+        @change="onHardestFlowIndicatorChange"
     >
       <el-option
           v-for="indicator in store.state.profilingIndicators"
@@ -90,6 +91,9 @@ export default defineComponent({
     },
     onShowTree() {
       this.store.dispatch('switchShowTree')
+    },
+    onHardestFlowIndicatorChange() {
+      this.store.dispatch('freshHardestFlow')
     },
     onCloseFlow() {
       this.store.dispatch('setSelectedProfilingItem', null)
