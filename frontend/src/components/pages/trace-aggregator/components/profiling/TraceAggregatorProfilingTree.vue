@@ -120,7 +120,7 @@ export default defineComponent({
       }
     },
     isSelectedNode(node: ProfilingTreeNode): boolean {
-      return node.key === this.store.state.selectedItem?.id
+      return node.label === this.store.state.selectedItem?.calling
     },
     isInHardestFlow(node: ProfilingTreeNode): boolean {
       return this.store.state.profilingMetrics.hardestItemIds.indexOf(node.key) !== -1
