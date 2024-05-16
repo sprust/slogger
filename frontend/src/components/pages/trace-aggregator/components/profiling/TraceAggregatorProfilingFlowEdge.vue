@@ -78,9 +78,6 @@ const path = computed(() =>
 const debouncedFitBounds = useDebounceFn(fitBounds, 1, {maxWait: 1})
 
 onEdgeClick(({edge}) => {
-  console.log('----')
-  console.log(edge)
-
   if (edge.id !== props.id) {
     return;
   }
