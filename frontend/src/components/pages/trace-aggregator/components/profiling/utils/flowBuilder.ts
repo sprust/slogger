@@ -38,14 +38,14 @@ export class FlowBuilder {
         this.flowMap = {}
 
         const root: ProfilingItem = {
-            id: '#-1',
+            id: (new Date()).getMilliseconds().toString(),
             calling: caller,
             callable: caller,
             data: [],
         }
 
         this.flowItems.nodes.push({
-            id: '#-1',
+            id: root.id,
             label: caller,
             type: 'custom',
             data: root,

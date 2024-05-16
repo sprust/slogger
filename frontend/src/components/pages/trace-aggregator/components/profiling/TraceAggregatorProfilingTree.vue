@@ -108,7 +108,7 @@ export default defineComponent({
       resolve(data)
     },
     onShowFlow(node: ProfilingTreeNode) {
-      if (node.key === this.store.state.selectedItem?.id) {
+      if (node.label === this.store.state.selectedItem?.calling) {
         this.store.dispatch('setSelectedProfilingItem', null)
       } else {
         const foundItem = (new ProfilingItemFinder()).findByCalling(
