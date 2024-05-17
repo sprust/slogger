@@ -20,6 +20,10 @@ import {
 } from "./store/traceAggregatorServicesStore.ts";
 import {traceCleanerStore, traceCleanerStoreInjectionKey} from "./store/traceCleanerStore.ts";
 import {dashboardServiceStatStore, dashboardServiceStatStoreInjectionKey} from "./store/dashboardServiceStatStore.ts";
+import {
+    traceAggregatorProfilingStore,
+    traceAggregatorProfilingStoreInjectionKey
+} from "./store/traceAggregatorProfilingStore.ts";
 
 createApp(App)
     .use(router)
@@ -28,6 +32,7 @@ createApp(App)
     .use(traceAggregatorStore, traceAggregatorStoreInjectionKey)
     .use(traceAggregatorFindTagsStore, traceAggregatorFindTagsStoreInjectionKey)
     .use(traceAggregatorTreeStore, traceAggregatorTreeStoreInjectionKey)
+    .use(traceAggregatorProfilingStore, traceAggregatorProfilingStoreInjectionKey)
     .use(traceAggregatorTabsStore, traceAggregatorTabsStoreInjectionKey)
     .use(traceAggregatorDataStore, traceAggregatorDataStoreInjectionKey)
     .use(dashboardDatabaseStore, dashboardDatabaseStoreInjectionKey)

@@ -15,6 +15,7 @@ interface TraceRepositoryInterface
     public function findOneByTraceId(string $traceId): ?TraceDetailDto;
 
     /**
+     * @param int[]|null                 $serviceIds
      * @param string[]                   $types
      * @param string[]                   $tags
      * @param string[]                   $statuses
@@ -32,8 +33,9 @@ interface TraceRepositoryInterface
         array $statuses = [],
         ?float $durationFrom = null,
         ?float $durationTo = null,
-        ?array $sort = null,
         ?TraceDataFilterParameters $data = null,
+        ?bool $hasProfiling = null,
+        ?array $sort = null,
     ): TraceItemsPaginationDto;
 
     /**
@@ -49,4 +51,6 @@ interface TraceRepositoryInterface
      * @return TraceTypeDto[]
      */
     public function findTypeCounts(array $traceIds): array;
+
+    public function findProfilingByTraceId(string $traceId): ?array;
 }

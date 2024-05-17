@@ -8,6 +8,7 @@ use App\Modules\Dashboard\Framework\Http\Controllers\ServiceStatController;
 use App\Modules\Service\Framework\Http\Controllers\ServiceController;
 use App\Modules\TraceAggregator\Framework\Http\Controllers\TraceContentController;
 use App\Modules\TraceAggregator\Framework\Http\Controllers\TraceController;
+use App\Modules\TraceAggregator\Framework\Http\Controllers\TraceProfilingController;
 use App\Modules\TraceAggregator\Framework\Http\Controllers\TraceTreeController;
 use App\Modules\TraceCleaner\Framework\Http\Controllers\ProcessController;
 use App\Modules\TraceCleaner\Framework\Http\Controllers\SettingController;
@@ -45,6 +46,7 @@ Route::prefix('/trace-aggregator')
                     ->group(function () {
                         Route::get('', [TraceController::class, 'show'])->name('show');
                         Route::get('/tree', [TraceTreeController::class, 'index'])->name('tree');
+                        Route::get('/profiling', [TraceProfilingController::class, 'index'])->name('profiling');
                     });
             });
 

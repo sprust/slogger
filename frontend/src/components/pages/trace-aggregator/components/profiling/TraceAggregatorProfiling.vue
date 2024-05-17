@@ -1,0 +1,124 @@
+<template>
+  <el-container>
+    <el-progress
+        v-if="store.state.loading && store.state.parameters.traceId"
+        style="width: 100vw"
+        status="success"
+        :text-inside="true"
+        :percentage="100"
+        :indeterminate="true"
+        :duration="5"
+        striped
+    />
+    <div v-else-if="store.state.parameters.traceId" style="width: 100vw">
+      <el-row style="width: 100%; padding-bottom: 5px">
+        <TraceId
+            title="Trace id"
+            :trace-id="store.state.parameters.traceId"
+            :show-filter-button="false"
+            @onClickTraceIdTree="onClickTraceIdTree"
+        />
+      </el-row>
+      <el-row style="width: 100%; padding-bottom: 5px">
+        <TraceAggregatorProfilingSetting/>
+      </el-row>
+      <el-row style="width: 100%">
+        <el-col v-show="store.state.showTree" :span="leftSpan">
+          <el-row>
+            <TraceAggregatorProfilingTree/>
+          </el-row>
+        </el-col>
+        <el-col v-if="showFlowSpan" :span="rightSpan" style="width: 100%; height: 75vh">
+          <VueFlow
+              v-model:nodes="store.state.flowItems.nodes"
+              v-model:edges="store.state.flowItems.edges"
+              :min-zoom="0.1"
+          >
+            <template #node-custom="props">
+              <TraceAggregatorProfilingNode :node="props"/>
+            </template>
+
+            <template #edge-custom="props">
+              <TraceAggregatorProfilingFlowEdge v-bind="props"/>
+            </template>
+
+            <MiniMap node-color="black" mask-color="rgba(128, 128, 128, 0.7)" pannable zoomable/>
+
+            <Controls/>
+          </VueFlow>
+        </el-col>
+      </el-row>
+    </div>
+  </el-container>
+</template>
+
+<script lang="ts">
+import {VueFlow} from '@vue-flow/core'
+import {defineComponent} from "vue";
+import {useTraceAggregatorProfilingStore} from "../../../../../store/traceAggregatorProfilingStore.ts";
+import {MiniMap} from '@vue-flow/minimap'
+import {Controls} from '@vue-flow/controls'
+import TraceAggregatorProfilingTree from './TraceAggregatorProfilingTree.vue'
+import TraceAggregatorProfilingNode from './TraceAggregatorProfilingNode.vue'
+import TraceAggregatorProfilingSetting from './TraceAggregatorProfilingSetting.vue'
+import TraceAggregatorProfilingFlowEdge from './TraceAggregatorProfilingFlowEdge.vue'
+import TraceId from "../../widgets/TraceId.vue";
+import {traceAggregatorTabs, useTraceAggregatorTabsStore} from "../../../../../store/traceAggregatorTabsStore.ts";
+import {useTraceAggregatorTreeStore} from "../../../../../store/traceAggregatorTreeStore.ts";
+
+export default defineComponent({
+  components: {
+    TraceId,
+    VueFlow,
+    MiniMap,
+    Controls,
+    TraceAggregatorProfilingTree,
+    TraceAggregatorProfilingNode,
+    TraceAggregatorProfilingSetting,
+    TraceAggregatorProfilingFlowEdge,
+  },
+
+  data() {
+    return {
+      store: useTraceAggregatorProfilingStore(),
+      traceAggregatorTabsStore: useTraceAggregatorTabsStore(),
+      traceAggregatorTreeStore: useTraceAggregatorTreeStore(),
+    }
+  },
+
+  methods: {
+    onClickTraceIdTree(traceId: string) {
+      this.traceAggregatorTreeStore.dispatch('findTreeNodes', {
+        traceId: traceId
+      })
+      this.traceAggregatorTabsStore.dispatch('setCurrentTab', traceAggregatorTabs.tree)
+    },
+  },
+
+  computed: {
+    leftSpan() {
+      return this.showFlowSpan ? 6 : 24
+    },
+    rightSpan() {
+      return this.store.state.showTree ? 18 : 24
+    },
+    showFlowSpan(): boolean {
+      return !!this.store.state.selectedItem
+    },
+  },
+})
+</script>
+
+<style>
+/* import the necessary styles for Vue Flow to work */
+@import '@vue-flow/core/dist/style.css';
+
+/* import the default theme, this is optional but generally recommended */
+@import '@vue-flow/core/dist/theme-default.css';
+
+/* import default minimap styles */
+@import '@vue-flow/minimap/dist/style.css';
+
+/* import default controls styles */
+@import '@vue-flow/controls/dist/style.css';
+</style>

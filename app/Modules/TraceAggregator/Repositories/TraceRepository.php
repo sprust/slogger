@@ -26,7 +26,26 @@ readonly class TraceRepository implements TraceRepositoryInterface
     public function findOneByTraceId(string $traceId): ?TraceDetailDto
     {
         /** @var Trace|null $trace */
-        $trace = Trace::query()->where('traceId', $traceId)->first();
+        $trace = Trace::query()
+            ->select([
+                '_id',
+                'serviceId',
+                'traceId',
+                'parentTraceId',
+                'type',
+                'status',
+                'tags',
+                'data',
+                'duration',
+                'memory',
+                'cpu',
+                'hasProfiling',
+                'loggedAt',
+                'createdAt',
+                'updatedAt',
+            ])
+            ->where('traceId', $traceId)
+            ->first();
 
         if (!$trace) {
             return null;
@@ -49,6 +68,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
             duration: $trace->duration,
             memory: $trace->memory,
             cpu: $trace->cpu,
+            hasProfiling: $trace->hasProfiling ?? false,
             loggedAt: $trace->loggedAt,
             createdAt: $trace->createdAt,
             updatedAt: $trace->updatedAt
@@ -67,8 +87,9 @@ readonly class TraceRepository implements TraceRepositoryInterface
         array $statuses = [],
         ?float $durationFrom = null,
         ?float $durationTo = null,
-        ?array $sort = null,
         ?TraceDataFilterParameters $data = null,
+        ?bool $hasProfiling = null,
+        ?array $sort = null,
     ): TraceItemsPaginationDto {
         $builder = $this->traceQueryBuilder->make(
             serviceIds: $serviceIds,
@@ -81,9 +102,27 @@ readonly class TraceRepository implements TraceRepositoryInterface
             durationFrom: $durationFrom,
             durationTo: $durationTo,
             data: $data,
+            hasProfiling: $hasProfiling,
         );
 
         $tracesPaginator = $builder
+            ->select([
+                '_id',
+                'serviceId',
+                'traceId',
+                'parentTraceId',
+                'type',
+                'status',
+                'tags',
+                'data',
+                'duration',
+                'memory',
+                'cpu',
+                'hasProfiling',
+                'loggedAt',
+                'createdAt',
+                'updatedAt',
+            ])
             ->with([
                 'service',
             ])
@@ -122,6 +161,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
                     duration: $trace->duration,
                     memory: $trace->memory,
                     cpu: $trace->cpu,
+                    hasProfiling: $trace->hasProfiling ?? false,
                     loggedAt: $trace->loggedAt,
                     createdAt: $trace->createdAt,
                     updatedAt: $trace->updatedAt
@@ -243,5 +283,13 @@ readonly class TraceRepository implements TraceRepositoryInterface
         }
 
         return $types;
+    }
+
+    public function findProfilingByTraceId(string $traceId): ?array
+    {
+        /** @var Trace|null $trace */
+        $trace = Trace::query()->where('traceId', $traceId)->first();
+
+        return $trace?->profiling;
     }
 }

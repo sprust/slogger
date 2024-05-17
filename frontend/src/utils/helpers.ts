@@ -53,6 +53,8 @@ export function handleApiError(error: any) {
         message += '</ul>'
     }
 
+    console.log(error)
+
     ElMessage.error({
         dangerouslyUseHTMLString: true,
         message: message,

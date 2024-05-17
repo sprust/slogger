@@ -30,6 +30,17 @@
           <TraceAggregatorServices/>
         </el-form-item>
       </el-form>
+      <el-form>
+        <el-form-item label="Profiling">
+          <el-switch
+              v-model="store.state.payload.has_profiling"
+              size="small"
+              active-text="has"
+              inactive-text="off"
+              active-color="green"
+          />
+        </el-form-item>
+      </el-form>
     </el-space>
   </el-row>
   <el-row>
@@ -150,7 +161,7 @@ export default defineComponent({
     FilterTags,
     TraceAggregatorTraceDataNode,
     TraceAggregatorTracesCustomFields,
-    TraceAggregatorServices
+    TraceAggregatorServices,
   },
   data() {
     return {

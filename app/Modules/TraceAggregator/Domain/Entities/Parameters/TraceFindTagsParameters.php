@@ -16,6 +16,7 @@ readonly class TraceFindTagsParameters
         public ?PeriodParameters $loggingPeriod = null,
         public array $types = [],
         public ?TraceDataFilterParameters $data = null,
+        public ?bool $hasProfiling = null,
     ) {
     }
 }

@@ -219,6 +219,7 @@ export namespace AdminApi {
     duration?: number | null,
     memory?: number | null,
     cpu?: number | null,
+    has_profiling: boolean,
     additional_fields: ({
     key: string,
     values: (string)[],
@@ -293,6 +294,7 @@ export namespace AdminApi {
         field?: string;
         direction?: "asc" | "desc";
       }[];
+      has_profiling?: boolean;
     };
     export type RequestHeaders = {};
     export type ResponseBody = {
@@ -311,6 +313,7 @@ export namespace AdminApi {
             duration?: number | null;
             memory?: number | null;
             cpu?: number | null;
+            has_profiling: boolean;
             additional_fields: {
               key: string;
               values: string[];
@@ -647,6 +650,51 @@ export namespace AdminApi {
     };
   } /**
  * No description
+ * @name TraceAggregatorTracesProfilingDetail
+ * @request GET:/admin-api/trace-aggregator/traces/{traceId}/profiling
+ * @secure
+ * @response `200` `{
+    data: {
+    main_caller: string,
+    items: ({
+    id: string,
+    calling: string,
+    callable: string,
+    data: ({
+    name: string,
+    value: number,
+
+})[],
+
+})[],
+
+},
+
+}` description
+*/
+  export namespace TraceAggregatorTracesProfilingDetail {
+    export type RequestParams = {
+      traceId: any;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        main_caller: string;
+        items: {
+          id: string;
+          calling: string;
+          callable: string;
+          data: {
+            name: string;
+            value: number;
+          }[];
+        }[];
+      };
+    };
+  } /**
+ * No description
  * @name TraceAggregatorTracesContentTypesCreate
  * @request POST:/admin-api/trace-aggregator/traces-content/types
  * @secure
@@ -687,6 +735,7 @@ export namespace AdminApi {
           };
         }[];
       };
+      has_profiling?: boolean;
     };
     export type RequestHeaders = {};
     export type ResponseBody = {
@@ -737,6 +786,7 @@ export namespace AdminApi {
           };
         }[];
       };
+      has_profiling?: boolean;
     };
     export type RequestHeaders = {};
     export type ResponseBody = {
@@ -788,6 +838,7 @@ export namespace AdminApi {
           };
         }[];
       };
+      has_profiling?: boolean;
     };
     export type RequestHeaders = {};
     export type ResponseBody = {
@@ -1422,6 +1473,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     duration?: number | null,
     memory?: number | null,
     cpu?: number | null,
+    has_profiling: boolean,
     additional_fields: ({
     key: string,
     values: (string)[],
@@ -1494,6 +1546,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
           field?: string;
           direction?: "asc" | "desc";
         }[];
+        has_profiling?: boolean;
       },
       params: RequestParams = {},
     ) =>
@@ -1514,6 +1567,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
                 duration?: number | null;
                 memory?: number | null;
                 cpu?: number | null;
+                has_profiling: boolean;
                 additional_fields: {
                   key: string;
                   values: string[];
@@ -1872,6 +1926,56 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     /**
  * No description
  *
+ * @name TraceAggregatorTracesProfilingDetail
+ * @request GET:/admin-api/trace-aggregator/traces/{traceId}/profiling
+ * @secure
+ * @response `200` `{
+    data: {
+    main_caller: string,
+    items: ({
+    id: string,
+    calling: string,
+    callable: string,
+    data: ({
+    name: string,
+    value: number,
+
+})[],
+
+})[],
+
+},
+
+}` description
+ */
+    traceAggregatorTracesProfilingDetail: (traceId: any, params: RequestParams = {}) =>
+      this.request<
+        {
+          data: {
+            main_caller: string;
+            items: {
+              id: string;
+              calling: string;
+              callable: string;
+              data: {
+                name: string;
+                value: number;
+              }[];
+            }[];
+          };
+        },
+        any
+      >({
+        path: `/admin-api/trace-aggregator/traces/${traceId}/profiling`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
  * @name TraceAggregatorTracesContentTypesCreate
  * @request POST:/admin-api/trace-aggregator/traces-content/types
  * @secure
@@ -1910,6 +2014,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
             };
           }[];
         };
+        has_profiling?: boolean;
       },
       params: RequestParams = {},
     ) =>
@@ -1972,6 +2077,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
             };
           }[];
         };
+        has_profiling?: boolean;
       },
       params: RequestParams = {},
     ) =>
@@ -2035,6 +2141,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
             };
           }[];
         };
+        has_profiling?: boolean;
       },
       params: RequestParams = {},
     ) =>

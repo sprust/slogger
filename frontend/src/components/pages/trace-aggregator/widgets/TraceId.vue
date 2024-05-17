@@ -17,6 +17,7 @@
         tree
       </el-button>
       <el-button
+          v-if="showFilterButton"
           @click="$emit('onClickTraceIdFilter', traceId)"
           type="info"
           link
@@ -40,6 +41,11 @@ export default defineComponent({
     traceId: {
       type: String,
       required: true,
+    },
+    showFilterButton: {
+      type: Boolean,
+      required: false,
+      default: true,
     },
   },
 })

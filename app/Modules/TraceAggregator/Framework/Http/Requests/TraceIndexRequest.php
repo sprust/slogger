@@ -73,12 +73,12 @@ class TraceIndexRequest extends FormRequest
                 'required',
                 'string',
             ],
-            'duration_from'       => [
+            'duration_from'               => [
                 'sometimes',
                 'numeric',
                 'nullable',
             ],
-            'duration_to'         => [
+            'duration_to'                 => [
                 'sometimes',
                 'numeric',
                 'nullable',
@@ -156,6 +156,10 @@ class TraceIndexRequest extends FormRequest
             'sort'                        => [
                 'sometimes',
                 'array',
+            ],
+            'has_profiling'               => [
+                'sometimes',
+                'boolean',
             ],
             'sort.*.field'                => [
                 'required',

@@ -112,7 +112,8 @@ export default defineComponent({
         service_ids: this.traceStore.state.payload.service_ids,
         logging_from: this.traceStore.state.payload.logging_from,
         logging_to: this.traceStore.state.payload.logging_to,
-        data: this.traceStore.state.payload.data
+        data: this.traceStore.state.payload.data,
+        has_profiling: this.traceStore.state.payload.has_profiling,
       }
 
       this.tagsStore.state.typesPayload.text = text
@@ -128,7 +129,8 @@ export default defineComponent({
         logging_from: this.traceStore.state.payload.logging_from,
         logging_to: this.traceStore.state.payload.logging_to,
         types: this.traceStore.state.payload.types,
-        data: this.traceStore.state.payload.data
+        data: this.traceStore.state.payload.data,
+        has_profiling: this.traceStore.state.payload.has_profiling,
       }
 
       this.tagsStore.dispatch('findTags')
@@ -143,7 +145,8 @@ export default defineComponent({
         logging_to: this.traceStore.state.payload.logging_to,
         types: this.traceStore.state.payload.types,
         tags: this.traceStore.state.payload.tags,
-        data: this.traceStore.state.payload.data
+        data: this.traceStore.state.payload.data,
+        has_profiling: this.traceStore.state.payload.has_profiling,
       }
 
       this.tagsStore.dispatch('findStatuses')

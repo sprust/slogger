@@ -18,6 +18,7 @@ class TraceItemTraceResource extends AbstractApiResource
     private ?float $duration;
     private ?float $memory;
     private ?float $cpu;
+    private bool $has_profiling;
     #[OaListItemTypeAttribute(TraceDataAdditionalFieldResource::class)]
     private array $additional_fields;
     private string $logged_at;
@@ -37,6 +38,8 @@ class TraceItemTraceResource extends AbstractApiResource
         $this->duration        = $trace->duration;
         $this->memory          = $trace->memory;
         $this->cpu             = $trace->cpu;
+
+        $this->has_profiling = $trace->hasProfiling;
 
         $this->additional_fields = TraceDataAdditionalFieldResource::mapIntoMe(
             $trace->additionalFields

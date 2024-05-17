@@ -532,6 +532,9 @@
                                                 }
                                             }
                                         }
+                                    },
+                                    "has_profiling": {
+                                        "type": "boolean"
                                     }
                                 },
                                 "required": [
@@ -610,6 +613,10 @@
                                                                         "type": "number",
                                                                         "nullable": true
                                                                     },
+                                                                    "has_profiling": {
+                                                                        "type": "boolean",
+                                                                        "nullable": false
+                                                                    },
                                                                     "additional_fields": {
                                                                         "type": "array",
                                                                         "nullable": false,
@@ -651,6 +658,7 @@
                                                                     "type",
                                                                     "status",
                                                                     "tags",
+                                                                    "has_profiling",
                                                                     "additional_fields",
                                                                     "logged_at",
                                                                     "created_at",
@@ -1402,6 +1410,98 @@
                 ]
             }
         },
+        "/admin-api/trace-aggregator/traces/{traceId}/profiling": {
+            "get": {
+                "parameters": [
+                    {
+                        "name": "traceId",
+                        "required": true,
+                        "in": "path",
+                        "schema": {}
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "main_caller": {
+                                                    "type": "string",
+                                                    "nullable": false
+                                                },
+                                                "items": {
+                                                    "type": "array",
+                                                    "nullable": false,
+                                                    "items": {
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "string",
+                                                                "nullable": false
+                                                            },
+                                                            "calling": {
+                                                                "type": "string",
+                                                                "nullable": false
+                                                            },
+                                                            "callable": {
+                                                                "type": "string",
+                                                                "nullable": false
+                                                            },
+                                                            "data": {
+                                                                "type": "array",
+                                                                "nullable": false,
+                                                                "items": {
+                                                                    "properties": {
+                                                                        "name": {
+                                                                            "type": "string",
+                                                                            "nullable": false
+                                                                        },
+                                                                        "value": {
+                                                                            "type": "integer",
+                                                                            "nullable": false
+                                                                        }
+                                                                    },
+                                                                    "required": [
+                                                                        "name",
+                                                                        "value"
+                                                                    ]
+                                                                }
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "id",
+                                                            "calling",
+                                                            "callable",
+                                                            "data"
+                                                        ]
+                                                    }
+                                                }
+                                            },
+                                            "required": [
+                                                "main_caller",
+                                                "items"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/admin-api/trace-aggregator/traces-content/types": {
             "post": {
                 "requestBody": {
@@ -1492,6 +1592,9 @@
                                                 }
                                             }
                                         }
+                                    },
+                                    "has_profiling": {
+                                        "type": "boolean"
                                     }
                                 },
                                 "type": "object"
@@ -1633,6 +1736,9 @@
                                                 }
                                             }
                                         }
+                                    },
+                                    "has_profiling": {
+                                        "type": "boolean"
                                     }
                                 },
                                 "type": "object"
@@ -1780,6 +1886,9 @@
                                                 }
                                             }
                                         }
+                                    },
+                                    "has_profiling": {
+                                        "type": "boolean"
                                     }
                                 },
                                 "type": "object"

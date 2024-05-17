@@ -43,6 +43,7 @@ readonly class TraceContentController
                         to: $validated['logging_to'] ?? null,
                     ),
                     data: $this->makeDataFilterParameter($validated),
+                    hasProfiling: ($validated['has_profiling'] ?? null) ?: null,
                 )
             )
         );
@@ -64,6 +65,7 @@ readonly class TraceContentController
                     ),
                     types: $validated['types'] ?? [],
                     data: $this->makeDataFilterParameter($validated),
+                    hasProfiling: ($validated['has_profiling'] ?? null) ?: null,
                 )
             )
         );
@@ -86,6 +88,7 @@ readonly class TraceContentController
                     types: $validated['types'] ?? [],
                     tags: $validated['tags'] ?? [],
                     data: $this->makeDataFilterParameter($validated),
+                    hasProfiling: ($validated['has_profiling'] ?? null) ?: null,
                 )
             )
         );

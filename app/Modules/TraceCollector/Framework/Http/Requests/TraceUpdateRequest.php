@@ -9,84 +9,76 @@ class TraceUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'traces'                                            => [
+            'traces'                                  => [
                 'required',
                 'array',
                 'min:1',
             ],
-            'traces.*.trace_id'                                 => [
+            'traces.*.trace_id'                       => [
                 'required',
                 'string',
                 'min:20',
             ],
-            'traces.*.status'                                   => [
+            'traces.*.status'                         => [
                 'required',
                 'string',
                 'min:1',
                 'max:40',
             ],
-            'traces.*.profiling'                                => [
+            'traces.*.profiling'                      => [
                 'sometimes',
                 'array',
             ],
-            'traces.*.profiling.*.raw'                          => [
+            'traces.*.profiling.main_caller'          => [
                 'required',
                 'string',
             ],
-            'traces.*.profiling.*.calling'                      => [
+            'traces.*.profiling.items.*.raw'          => [
                 'required',
                 'string',
             ],
-            'traces.*.profiling.*.callable'                     => [
+            'traces.*.profiling.items.*.calling'      => [
                 'required',
                 'string',
             ],
-            'traces.*.profiling.*.data'                         => [
+            'traces.*.profiling.items.*.callable'     => [
+                'required',
+                'string',
+            ],
+            'traces.*.profiling.items.*.data'         => [
                 'required',
                 'array',
             ],
-            'traces.*.profiling.*.data.number_of_calls'         => [
+            'traces.*.profiling.items.*.data.*.name'  => [
                 'required',
-                'int',
+                'string',
             ],
-            'traces.*.profiling.*.data.wait_time_in_ms'         => [
-                'required',
-                'numeric',
-            ],
-            'traces.*.profiling.*.data.cpu_time'                => [
+            'traces.*.profiling.items.*.data.*.value' => [
                 'required',
                 'numeric',
             ],
-            'traces.*.profiling.*.data.memory_usage_in_bytes'   => [
-                'required',
-                'numeric',
-            ],
-            'traces.*.profiling.*.data.peak_memory_usage_in_mb' => [
-                'required',
-                'numeric',
-            ],
-            'traces.*.tags'                                     => [
+            'traces.*.tags'                           => [
                 'sometimes',
                 'array',
             ],
-            'traces.*.tags.*'                                   => [
+            'traces.*.tags.*'                         => [
                 'required',
                 'string',
             ],
-            'traces.*.data'                                     => [
+            'traces.*.data'                           => [
                 'sometimes',
                 'json',
             ],
-            'traces.*.duration'                                 => [
+            'traces.*.duration'                       => [
                 'present',
                 'nullable',
                 'numeric',
             ],
-            'traces.*.memory'                                   => [
+            'traces.*.memory'                         => [
                 'sometimes',
                 'numeric',
             ],
-            'traces.*.cpu'                                      => [
+            'traces.*.cpu'                            => [
                 'sometimes',
                 'numeric',
             ],

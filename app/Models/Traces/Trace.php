@@ -20,6 +20,8 @@ use Illuminate\Support\Carbon;
  * @property float|null   $duration
  * @property float|null   $memory
  * @property float|null   $cpu
+ * @property bool         $hasProfiling
+ * @property array        $profiling // TODO: cast or something else
  * @property Carbon       $loggedAt
  * @property Carbon       $createdAt
  * @property Carbon       $updatedAt
@@ -35,7 +37,8 @@ class Trace extends AbstractTraceModel
     protected $collection = 'traces';
 
     protected $casts = [
-        'loggedAt' => 'datetime',
+        'hasProfiling' => 'boolean',
+        'loggedAt'     => 'datetime',
     ];
 
     public function service(): BelongsTo

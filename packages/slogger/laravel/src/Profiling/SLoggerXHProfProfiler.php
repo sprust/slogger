@@ -27,22 +27,30 @@ class SLoggerXHProfProfiler extends AbstractSLoggerProfiling
             return null;
         }
 
-        $profilingItems = new SLoggerProfilingObjects();
+        $profilingItems = new SLoggerProfilingObjects(
+            mainCaller: 'main()'
+        );
 
         foreach (xhprof_disable() as $method => $data) {
             $methodData = explode('==>', $method);
+
+            $callable = $methodData[1] ?? null;
+
+            if (is_null($callable)) {
+                continue;
+            }
 
             $profilingItems->add(
                 new SLoggerProfilingObject(
                     raw: $method,
                     calling: $methodData[0],
-                    callable: $methodData[1] ?? 'empty',
+                    callable: $callable,
                     data: new SLoggerProfilingDataObject(
                         numberOfCalls: $data['ct'],
-                        waitTimeInMs: $data['wt'],
+                        waitTimeInUs: $data['wt'],
                         cpuTime: $data['cpu'],
                         memoryUsageInBytes: $data['mu'],
-                        peakMemoryUsageInMb: $data['pmu'],
+                        peakMemoryUsageInBytes: $data['pmu'],
                     )
                 )
             );
