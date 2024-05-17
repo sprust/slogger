@@ -17,6 +17,6 @@ class TraceProfilingResource extends AbstractApiResource
         parent::__construct($resource);
 
         $this->main_caller = $resource->mainCaller;
-        $this->items     = TraceProfilingItemResource::mapIntoMe($resource->items);
+        $this->items       = TraceProfilingItemResource::mapIntoMe($resource->items);
     }
 }
