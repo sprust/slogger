@@ -36,9 +36,6 @@ readonly class TraceUpdateController
     {
         $validated = $request->validated();
 
-        info(json_encode($request->all(), JSON_PRETTY_PRINT));
-        info(json_encode($validated, JSON_PRETTY_PRINT));
-
         $serviceId = $this->serviceAdapter->getService()->id;
 
         $parametersList = new TraceUpdateParametersList();
