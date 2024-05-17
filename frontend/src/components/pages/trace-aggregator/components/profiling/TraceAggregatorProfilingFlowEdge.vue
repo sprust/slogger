@@ -107,8 +107,8 @@ onEdgeClick(({edge}) => {
 
   debouncedFitBounds(
       {
-        width: 600,
-        height: 600,
+        width: 800,
+        height: 800,
         x: transform.value.x - 100,
         y: transform.value.y - 100,
       },
@@ -135,8 +135,8 @@ onEdgeClick(({edge}) => {
           transform.value = curve.value.getPointAtLength(next)
 
           debouncedFitBounds({
-            width: 600,
-            height: 600,
+            width: 800,
+            height: 800,
             x: transform.value.x - 100,
             y: transform.value.y - 100,
           })
