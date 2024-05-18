@@ -30,8 +30,13 @@ class TraceUpdateRequest extends FormRequest
                 'array',
             ],
             'traces.*.profiling.main_caller'          => [
-                'required',
+                'required_with:traces.*.profiling',
                 'string',
+            ],
+            'traces.*.profiling.items'                => [
+                'required_with:traces.*.profiling',
+                'array',
+                'min:1',
             ],
             'traces.*.profiling.items.*.raw'          => [
                 'required',
