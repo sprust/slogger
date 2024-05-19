@@ -19,6 +19,13 @@
         </div>
       </el-space>
     </el-row>
+    <el-row style="width: 100%; padding-bottom: 10px">
+      <el-input
+          v-model="filterText"
+          style="width: 400px"
+          placeholder="Filter"
+      />
+    </el-row>
     <el-row style="width: 100%">
       <el-col :span="leftSpan" class="row-col" style="padding: 10px">
         <el-tree
@@ -27,6 +34,7 @@
             node-key="key"
             default-expand-all
             :expand-on-click-node="false"
+            style="width: 100vw"
         >
           <template #default="{ data }">
             <el-row
@@ -48,8 +56,7 @@
                   </el-tag>
                 </div>
               </el-space>
-              <div class="flex-grow"/>
-              <el-space v-if="!showData" spacer="|">
+              <el-space spacer="|">
                 <div>
                   {{ treeNodeViewsMap[data.key].duration }}
                 </div>
@@ -183,10 +190,6 @@ export default defineComponent({
   border-bottom: 1px solid rgba(0, 0, 0, .1);;
   padding: 2px;
   cursor: pointer;
-}
-
-.flex-grow {
-  flex-grow: 1;
 }
 
 .row-col {
