@@ -21,20 +21,23 @@
     </el-row>
     <el-row style="width: 100%; padding-bottom: 10px">
       <el-input
-          v-model="filterText"
+          v-model="filterTreeNodeText"
           style="width: 400px"
           placeholder="Filter"
+          clearable
       />
     </el-row>
     <el-row style="width: 100%">
       <el-col :span="leftSpan" class="row-col" style="padding: 10px">
         <el-tree
+            ref="traceTreeRef"
             :data="tree"
             :props="treeProps"
             node-key="key"
             default-expand-all
             :expand-on-click-node="false"
             style="width: 100vw"
+            :filter-node-method="filterTreeNode"
         >
           <template #default="{ data }">
             <el-row
@@ -126,7 +129,8 @@ export default defineComponent({
         label: 'label',
         disabled: 'disabled',
       },
-      treeNodeViewsMap: {} as TreeNodeViewsMap
+      treeNodeViewsMap: {} as TreeNodeViewsMap,
+      filterTreeNodeText: '',
     }
   },
   computed: {
@@ -179,8 +183,21 @@ export default defineComponent({
       }
 
       return style
+    },
+    filterTreeNode(value: string, data: TreeNodeView) {
+      if (!value) {
+        return true
+      }
+
+      return data.label.includes(value)
     }
-  }
+  },
+  watch: {
+    'filterTreeNodeText'(value: string) {
+      // @ts-ignore
+      this.$refs.traceTreeRef!.filter(value)
+    }
+  },
 })
 </script>
 
@@ -193,7 +210,7 @@ export default defineComponent({
 }
 
 .row-col {
-  height: 85vh;
+  height: 75vh;
   overflow-y: scroll
 }
 
