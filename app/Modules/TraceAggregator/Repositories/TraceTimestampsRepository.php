@@ -3,7 +3,7 @@
 namespace App\Modules\TraceAggregator\Repositories;
 
 use App\Models\Traces\Trace;
-use App\Modules\Common\Entities\TraceTimestampTypeEnum;
+use App\Modules\Common\Enums\TraceTimestampTypeEnum;
 use App\Modules\TraceAggregator\Domain\Entities\Parameters\DataFilter\TraceDataFilterParameters;
 use App\Modules\TraceAggregator\Repositories\Dto\TraceTimestampsDto;
 use App\Modules\TraceAggregator\Repositories\Interfaces\TraceTimestampsRepositoryInterface;
@@ -33,14 +33,18 @@ readonly class TraceTimestampsRepository implements TraceTimestampsRepositoryInt
         ?array $sort = null,
     ): array {
         $timestampField = match ($timestampType) {
-            TraceTimestampTypeEnum::Year => 'y',
-            TraceTimestampTypeEnum::Month => 'm',
-            TraceTimestampTypeEnum::Day => 'd',
-            TraceTimestampTypeEnum::Hour => 'h',
-            TraceTimestampTypeEnum::Minute => 'min',
-            TraceTimestampTypeEnum::Sec30 => 's30',
-            TraceTimestampTypeEnum::Sec10 => 's10',
-            TraceTimestampTypeEnum::Sec5 => 's5',
+            TraceTimestampTypeEnum::M => 'm',
+            TraceTimestampTypeEnum::D => 'd',
+            TraceTimestampTypeEnum::H12 => 'h12',
+            TraceTimestampTypeEnum::H4 => 'h4',
+            TraceTimestampTypeEnum::H => 'h',
+            TraceTimestampTypeEnum::Min30 => 'min30',
+            TraceTimestampTypeEnum::Min10 => 'min10',
+            TraceTimestampTypeEnum::Min5 => 'min5',
+            TraceTimestampTypeEnum::Min => 'min',
+            TraceTimestampTypeEnum::S30 => 's30',
+            TraceTimestampTypeEnum::S10 => 's10',
+            TraceTimestampTypeEnum::S5 => 's5',
         };
 
         $match = [

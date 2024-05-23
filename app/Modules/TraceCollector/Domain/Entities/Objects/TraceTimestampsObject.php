@@ -18,7 +18,7 @@ readonly class TraceTimestampsObject
         public Carbon $min,
         public Carbon $s30,
         public Carbon $s10,
-        public Carbon $s5,
+        public Carbon $s5
     ) {
     }
 }
