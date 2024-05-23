@@ -44,7 +44,9 @@ readonly class TraceTimestampsRepository implements TraceTimestampsRepositoryInt
         };
 
         $match = [
-            "timestamps.$timestampField" => $timestampType,
+            "timestamps.$timestampField" => [
+                '$exists' => true,
+            ],
         ];
 
         $mql = $this->traceQueryBuilder
@@ -97,7 +99,7 @@ readonly class TraceTimestampsRepository implements TraceTimestampsRepositoryInt
 
         foreach ($aggregation as $item) {
             $metrics[] = new TraceTimestampsDto(
-                timestamp: $item->_id->timestamp,
+                timestamp: new Carbon($item->_id->timestamp->toDateTime()),
                 count: $item->count,
             );
         }
