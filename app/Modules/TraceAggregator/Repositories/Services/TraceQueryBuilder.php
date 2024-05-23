@@ -9,6 +9,7 @@ use App\Modules\TraceAggregator\Domain\Enums\TraceDataFilterCompStringTypeEnum;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use MongoDB\BSON\UTCDateTime;
+use MongoDB\Laravel\Query\Builder as MongoDBBuilder;
 
 class TraceQueryBuilder
 {
@@ -19,10 +20,10 @@ class TraceQueryBuilder
      * @param string[]      $tags
      * @param string[]      $statuses
      *
-     * @return Builder|Trace
+     * @return Builder|MongoDBBuilder|Trace
      */
     public function make(
-        array $serviceIds = [],
+        ?array $serviceIds = null,
         ?array $traceIds = null,
         ?Carbon $loggedAtFrom = null,
         ?Carbon $loggedAtTo = null,

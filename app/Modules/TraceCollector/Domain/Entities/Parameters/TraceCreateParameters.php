@@ -2,6 +2,7 @@
 
 namespace App\Modules\TraceCollector\Domain\Entities\Parameters;
 
+use App\Modules\TraceCollector\Domain\Entities\Objects\TraceTimestampsObject;
 use Illuminate\Support\Carbon;
 
 class TraceCreateParameters
@@ -17,6 +18,7 @@ class TraceCreateParameters
         public ?float $duration,
         public ?float $memory,
         public ?float $cpu,
+        public TraceTimestampsObject $timestamps,
         public Carbon $loggedAt
     ) {
     }
