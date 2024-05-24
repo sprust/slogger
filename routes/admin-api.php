@@ -9,6 +9,7 @@ use App\Modules\Service\Framework\Http\Controllers\ServiceController;
 use App\Modules\TraceAggregator\Framework\Http\Controllers\TraceContentController;
 use App\Modules\TraceAggregator\Framework\Http\Controllers\TraceController;
 use App\Modules\TraceAggregator\Framework\Http\Controllers\TraceProfilingController;
+use App\Modules\TraceAggregator\Framework\Http\Controllers\TraceTimestampPeriodsController;
 use App\Modules\TraceAggregator\Framework\Http\Controllers\TraceTimestampsController;
 use App\Modules\TraceAggregator\Framework\Http\Controllers\TraceTreeController;
 use App\Modules\TraceCleaner\Framework\Http\Controllers\ProcessController;
@@ -63,6 +64,12 @@ Route::prefix('/trace-aggregator')
             ->as('trace-metrics.')
             ->group(function () {
                 Route::post('', [TraceTimestampsController::class, 'index'])->name('index');
+            });
+
+        Route::prefix('/trace-timestamp-periods')
+            ->as('trace-timestamp-periods.')
+            ->group(function () {
+                Route::get('', [TraceTimestampPeriodsController::class, 'index'])->name('index');
             });
     });
 

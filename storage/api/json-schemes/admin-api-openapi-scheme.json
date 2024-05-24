@@ -1945,19 +1945,19 @@
                                     "timestamp_period": {
                                         "type": "string",
                                         "enum": [
-                                            "minute5",
-                                            "minute30",
-                                            "hour",
-                                            "hour4",
-                                            "hour12",
-                                            "day",
-                                            "day3",
-                                            "day7",
-                                            "day15",
-                                            "month",
-                                            "month3",
-                                            "month6",
-                                            "year"
+                                            "5 minutes",
+                                            "30 minutes",
+                                            "1 hour",
+                                            "4 hours",
+                                            "12 hours",
+                                            "1 day",
+                                            "3 days",
+                                            "7 days",
+                                            "15 days",
+                                            "1 month",
+                                            "3 months",
+                                            "6 month",
+                                            "1 year"
                                         ]
                                     },
                                     "service_ids": {
@@ -2114,6 +2114,51 @@
                                             "required": [
                                                 "items"
                                             ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/admin-api/trace-aggregator/trace-timestamp-periods": {
+            "get": {
+                "responses": {
+                    "200": {
+                        "description": "description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "name": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "value": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    }
+                                                },
+                                                "required": [
+                                                    "name",
+                                                    "value"
+                                                ]
+                                            }
                                         }
                                     },
                                     "required": [

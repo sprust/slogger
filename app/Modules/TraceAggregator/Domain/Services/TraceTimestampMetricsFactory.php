@@ -5,7 +5,7 @@ namespace App\Modules\TraceAggregator\Domain\Services;
 use App\Modules\Common\Enums\TraceTimestampMetricEnum;
 use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceTimestampMetricsObject;
 use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceTimestampsObject;
-use App\Modules\TraceAggregator\Enums\TimestampPeriodEnum;
+use App\Modules\TraceAggregator\Enums\TraceTimestampPeriodEnum;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
@@ -31,40 +31,40 @@ class TraceTimestampMetricsFactory
         );
     }
 
-    public function calcLoggedAtFrom(TimestampPeriodEnum $timestampPeriod, Carbon $date): Carbon
+    public function calcLoggedAtFrom(TraceTimestampPeriodEnum $timestampPeriod, Carbon $date): Carbon
     {
         return match ($timestampPeriod) {
-            TimestampPeriodEnum::Minute5 => $date->clone()->subMinutes(5),
-            TimestampPeriodEnum::Minute30 => $date->clone()->subMinutes(30),
-            TimestampPeriodEnum::Hour => $date->clone()->subHour(),
-            TimestampPeriodEnum::Hour4 => $date->clone()->subHours(4),
-            TimestampPeriodEnum::Hour12 => $date->clone()->subHours(12),
-            TimestampPeriodEnum::Day => $date->clone()->subDay(),
-            TimestampPeriodEnum::Day3 => $date->clone()->subDays(3),
-            TimestampPeriodEnum::Day7 => $date->clone()->subDays(7),
-            TimestampPeriodEnum::Day15 => $date->clone()->subDays(15),
-            TimestampPeriodEnum::Month => $date->clone()->subMonth(),
-            TimestampPeriodEnum::Month3 => $date->clone()->subMonths(3),
-            TimestampPeriodEnum::Month6 => $date->clone()->subMonths(6),
-            TimestampPeriodEnum::Year => $date->clone()->subYear(),
+            TraceTimestampPeriodEnum::Minute5 => $date->clone()->subMinutes(5),
+            TraceTimestampPeriodEnum::Minute30 => $date->clone()->subMinutes(30),
+            TraceTimestampPeriodEnum::Hour => $date->clone()->subHour(),
+            TraceTimestampPeriodEnum::Hour4 => $date->clone()->subHours(4),
+            TraceTimestampPeriodEnum::Hour12 => $date->clone()->subHours(12),
+            TraceTimestampPeriodEnum::Day => $date->clone()->subDay(),
+            TraceTimestampPeriodEnum::Day3 => $date->clone()->subDays(3),
+            TraceTimestampPeriodEnum::Day7 => $date->clone()->subDays(7),
+            TraceTimestampPeriodEnum::Day15 => $date->clone()->subDays(15),
+            TraceTimestampPeriodEnum::Month => $date->clone()->subMonth(),
+            TraceTimestampPeriodEnum::Month3 => $date->clone()->subMonths(3),
+            TraceTimestampPeriodEnum::Month6 => $date->clone()->subMonths(6),
+            TraceTimestampPeriodEnum::Year => $date->clone()->subYear(),
         };
     }
 
-    public function calcTimestampMetric(TimestampPeriodEnum $timestampPeriod): TraceTimestampMetricEnum
+    public function calcTimestampMetric(TraceTimestampPeriodEnum $timestampPeriod): TraceTimestampMetricEnum
     {
         return match ($timestampPeriod) {
-            TimestampPeriodEnum::Minute5 => TraceTimestampMetricEnum::S5,
-            TimestampPeriodEnum::Minute30 => TraceTimestampMetricEnum::S10,
-            TimestampPeriodEnum::Hour => TraceTimestampMetricEnum::S30,
-            TimestampPeriodEnum::Hour4 => TraceTimestampMetricEnum::Min,
-            TimestampPeriodEnum::Hour12 => TraceTimestampMetricEnum::Min5,
-            TimestampPeriodEnum::Day => TraceTimestampMetricEnum::Min10,
-            TimestampPeriodEnum::Day3 => TraceTimestampMetricEnum::Min30,
-            TimestampPeriodEnum::Day7 => TraceTimestampMetricEnum::H,
-            TimestampPeriodEnum::Day15 => TraceTimestampMetricEnum::H4,
-            TimestampPeriodEnum::Month3, TimestampPeriodEnum::Month => TraceTimestampMetricEnum::H12,
-            TimestampPeriodEnum::Month6 => TraceTimestampMetricEnum::D,
-            TimestampPeriodEnum::Year => TraceTimestampMetricEnum::M,
+            TraceTimestampPeriodEnum::Minute5 => TraceTimestampMetricEnum::S5,
+            TraceTimestampPeriodEnum::Minute30 => TraceTimestampMetricEnum::S10,
+            TraceTimestampPeriodEnum::Hour => TraceTimestampMetricEnum::S30,
+            TraceTimestampPeriodEnum::Hour4 => TraceTimestampMetricEnum::Min,
+            TraceTimestampPeriodEnum::Hour12 => TraceTimestampMetricEnum::Min5,
+            TraceTimestampPeriodEnum::Day => TraceTimestampMetricEnum::Min10,
+            TraceTimestampPeriodEnum::Day3 => TraceTimestampMetricEnum::Min30,
+            TraceTimestampPeriodEnum::Day7 => TraceTimestampMetricEnum::H,
+            TraceTimestampPeriodEnum::Day15 => TraceTimestampMetricEnum::H4,
+            TraceTimestampPeriodEnum::Month3, TraceTimestampPeriodEnum::Month => TraceTimestampMetricEnum::H12,
+            TraceTimestampPeriodEnum::Month6 => TraceTimestampMetricEnum::D,
+            TraceTimestampPeriodEnum::Year => TraceTimestampMetricEnum::M,
         };
     }
 
