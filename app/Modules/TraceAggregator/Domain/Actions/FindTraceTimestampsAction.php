@@ -3,6 +3,7 @@
 namespace App\Modules\TraceAggregator\Domain\Actions;
 
 use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceTimestampsObject;
+use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceTimestampsObjects;
 use App\Modules\TraceAggregator\Domain\Entities\Parameters\FindTraceTimestampsParameters;
 use App\Modules\TraceAggregator\Domain\Services\TraceTimestampMetricsFactory;
 use App\Modules\TraceAggregator\Repositories\Dto\TraceTimestampsDto;
@@ -16,14 +17,15 @@ readonly class FindTraceTimestampsAction
     ) {
     }
 
-    public function handle(FindTraceTimestampsParameters $parameters): array
+    public function handle(FindTraceTimestampsParameters $parameters): TraceTimestampsObjects
     {
         $loggedAtTo = $parameters->loggedAtTo ?? now('UTC');
 
-        $loggedAtFrom    = $this->traceTimestampMetricsFactory->calcLoggedAtFrom(
+        $loggedAtFrom = $this->traceTimestampMetricsFactory->calcLoggedAtFrom(
             timestampPeriod: $parameters->timestampPeriod,
             date: $loggedAtTo
         );
+
         $timestampMetric = $this->traceTimestampMetricsFactory->calcTimestampMetric(
             timestampPeriod: $parameters->timestampPeriod,
         );
@@ -43,7 +45,7 @@ readonly class FindTraceTimestampsAction
             hasProfiling: $parameters->hasProfiling,
         );
 
-        return $this->traceTimestampMetricsFactory->makeTimeLine(
+        $items = $this->traceTimestampMetricsFactory->makeTimeLine(
             dateFrom: $loggedAtFrom,
             dateTo: $loggedAtTo,
             timestampMetric: $timestampMetric,
@@ -54,6 +56,10 @@ readonly class FindTraceTimestampsAction
                 ),
                 $timestampsDtoList
             )
+        );
+
+        return new TraceTimestampsObjects(
+            items: $items
         );
     }
 }
