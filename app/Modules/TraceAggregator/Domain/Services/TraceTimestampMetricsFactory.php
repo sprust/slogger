@@ -18,16 +18,16 @@ class TraceTimestampMetricsFactory
         return new TraceTimestampMetricsObject(
             m: $date->clone()->startOfMonth(),
             d: $date->clone()->startOfDay(),
-            h12: $this->sliceHours($date, 12),
-            h4: $this->sliceHours($date, 4),
-            h: $this->sliceHours($date, 1),
-            min30: $this->sliceMinutes($date, 30),
-            min10: $this->sliceMinutes($date, 10),
-            min5: $this->sliceMinutes($date, 5),
-            min: $this->sliceMinutes($date, 1),
-            s30: $this->sliceSeconds($date, 30),
-            s10: $this->sliceSeconds($date, 10),
-            s5: $this->sliceSeconds($date, 5)
+            h12: $this->sliceHours($date->clone(), 12),
+            h4: $this->sliceHours($date->clone(), 4),
+            h: $this->sliceHours($date->clone(), 1),
+            min30: $this->sliceMinutes($date->clone(), 30),
+            min10: $this->sliceMinutes($date->clone(), 10),
+            min5: $this->sliceMinutes($date->clone(), 5),
+            min: $this->sliceMinutes($date->clone(), 1),
+            s30: $this->sliceSeconds($date->clone(), 30),
+            s10: $this->sliceSeconds($date->clone(), 10),
+            s5: $this->sliceSeconds($date->clone(), 5)
         );
     }
 
@@ -91,18 +91,18 @@ class TraceTimestampMetricsFactory
 
         while (true) {
             $iterator = match ($timestampMetric) {
-                TraceTimestampMetricEnum::M => $iterator->startOfMonth(),
-                TraceTimestampMetricEnum::D => $iterator->startOfDay(),
-                TraceTimestampMetricEnum::H12 => $this->sliceHours($iterator, 12),
-                TraceTimestampMetricEnum::H4 => $this->sliceHours($iterator, 4),
-                TraceTimestampMetricEnum::H => $this->sliceHours($iterator, 1),
-                TraceTimestampMetricEnum::Min30 => $this->sliceMinutes($iterator, 30),
-                TraceTimestampMetricEnum::Min10 => $this->sliceMinutes($iterator, 10),
-                TraceTimestampMetricEnum::Min5 => $this->sliceMinutes($iterator, 5),
-                TraceTimestampMetricEnum::Min => $this->sliceMinutes($iterator, 1),
-                TraceTimestampMetricEnum::S30 => $this->sliceSeconds($iterator, 30),
-                TraceTimestampMetricEnum::S10 => $this->sliceSeconds($iterator, 10),
-                TraceTimestampMetricEnum::S5 => $this->sliceSeconds($iterator, 5),
+                TraceTimestampMetricEnum::M => $iterator->clone()->startOfMonth(),
+                TraceTimestampMetricEnum::D => $iterator->clone()->startOfDay(),
+                TraceTimestampMetricEnum::H12 => $this->sliceHours($iterator->clone(), 12),
+                TraceTimestampMetricEnum::H4 => $this->sliceHours($iterator->clone(), 4),
+                TraceTimestampMetricEnum::H => $this->sliceHours($iterator->clone(), 1),
+                TraceTimestampMetricEnum::Min30 => $this->sliceMinutes($iterator->clone(), 30),
+                TraceTimestampMetricEnum::Min10 => $this->sliceMinutes($iterator->clone(), 10),
+                TraceTimestampMetricEnum::Min5 => $this->sliceMinutes($iterator->clone(), 5),
+                TraceTimestampMetricEnum::Min => $this->sliceMinutes($iterator->clone(), 1),
+                TraceTimestampMetricEnum::S30 => $this->sliceSeconds($iterator->clone(), 30),
+                TraceTimestampMetricEnum::S10 => $this->sliceSeconds($iterator->clone(), 10),
+                TraceTimestampMetricEnum::S5 => $this->sliceSeconds($iterator->clone(), 5),
             };
 
             $timestamps[] = $timestampsKeyByTimestamp[$iterator->toDateTimeString()]
