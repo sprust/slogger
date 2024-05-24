@@ -6,9 +6,11 @@ import {ApiContainer} from "../utils/apiContainer.ts";
 import {convertDateStringToLocal, handleApiError} from "../utils/helpers.ts";
 import {ChartData, ChartOptions} from 'chart.js'
 
-type TraceAggregatorTraceMetricsPayload = AdminApi.TraceAggregatorTraceMetricsCreate.RequestBody;
-type TraceAggregatorTraceMetricResponse = AdminApi.TraceAggregatorTraceMetricsCreate.ResponseBody;
-type TraceAggregatorTraceMetricItem = AdminApi.TraceAggregatorTraceMetricsCreate.ResponseBody['data']['items'][number];
+type TraceAggregatorTraceMetricsPayload = AdminApi.TraceAggregatorTraceMetricsCreate.RequestBody
+type TraceAggregatorTraceMetricResponse = AdminApi.TraceAggregatorTraceMetricsCreate.ResponseBody
+type TraceAggregatorTraceMetricItem = AdminApi.TraceAggregatorTraceMetricsCreate.ResponseBody['data']['items'][number]
+
+type TraceAggregatorTraceTimestampPeriod = AdminApi.TraceAggregatorTraceMetricsCreate.RequestBody['timestamp_period']
 
 interface State {
     showGraph: boolean,
@@ -20,7 +22,8 @@ interface State {
     graphData: ChartData,
     graphOptions: ChartOptions,
 
-    lastTimestamp: string | null,
+    preTimestamp: string | null,
+    preTimestampCounts: number,
 }
 
 export const traceAggregatorGraphStore = createStore<State>({
@@ -38,10 +41,22 @@ export const traceAggregatorGraphStore = createStore<State>({
         graphOptions: {
             responsive: true,
             maintainAspectRatio: false,
-            animation: false
+            animation: false,
+            scales: {
+               x: {
+                   grid: {
+                       color: 'rgba(121,146,248,0.1)'
+                   }
+               },
+               y: {
+                   grid: {
+                       color: 'rgba(121,146,248,0.1)'
+                   }
+               },
+            }
         } as ChartOptions,
 
-        lastTimestamp: null
+        preTimestamp: null
     } as State,
     mutations: {
         setMetrics(state: State, data: TraceAggregatorTraceMetricResponse) {
@@ -58,11 +73,18 @@ export const traceAggregatorGraphStore = createStore<State>({
 
             const timestamp = state.metrics[state.metrics.length - 1].timestamp;
 
-            if (state.lastTimestamp === timestamp) {
+            const totalCount = state.metrics.reduce((a, b) => {
+                return a + b.count;
+            }, 0)
+
+            if (state.preTimestamp === timestamp
+                && totalCount === state.preTimestampCounts
+            ) {
                 return;
             }
 
-            state.lastTimestamp = timestamp
+            state.preTimestamp = timestamp
+            state.preTimestampCounts = totalCount
 
             const labels: Array<string> = []
             const datasetData: Array<number> = []
@@ -81,12 +103,15 @@ export const traceAggregatorGraphStore = createStore<State>({
                 datasets: [
                     {
                         label: 'graph',
-                        backgroundColor: '#99f879',
+                        backgroundColor: 'rgba(163,248,121,0.7)',
                         data: datasetData
                     },
                 ],
             }
         },
+        setTimestampPeriod(state: State, timestampPeriod: TraceAggregatorTraceTimestampPeriod) {
+            state.payload.timestamp_period = timestampPeriod
+        }
     },
     actions: {
         async findMetrics({commit, state}: { commit: any, state: State }) {
@@ -102,6 +127,9 @@ export const traceAggregatorGraphStore = createStore<State>({
                 state.loading = false
             }
         },
+        setTimestampPeriod({commit}: { commit: any }, timestampPeriod: TraceAggregatorTraceTimestampPeriod) {
+            commit('setTimestampPeriod', timestampPeriod)
+        }
     },
 })
 

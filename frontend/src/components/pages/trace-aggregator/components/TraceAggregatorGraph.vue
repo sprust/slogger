@@ -6,15 +6,17 @@
 import {defineComponent} from "vue";
 import {
   Chart as ChartJS,
-  Title,
-  Tooltip,
-  Legend,
-  BarElement,
   CategoryScale,
   LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
 } from 'chart.js'
 import { Bar } from 'vue-chartjs'
+
 import {useTraceAggregatorGraphStore} from "../../../../store/traceAggregatorGraphStore.ts";
+import {useTraceAggregatorTimestampPeriodStore} from "../../../../store/traceAggregatorTimestampPeriodsStore.ts";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
@@ -25,6 +27,7 @@ export default defineComponent({
   data() {
     return {
       store: useTraceAggregatorGraphStore(),
+      storePeriods: useTraceAggregatorTimestampPeriodStore(),
     }
   },
   methods: {
@@ -34,14 +37,12 @@ export default defineComponent({
       if (this.store.state.showGraph) {
         setTimeout(() => {
           this.update()
-        }, 1000)
+        }, 2000)
       }
     }
   },
   mounted() {
-    this.store.state.payload = {
-      timestamp_period: "minute5"
-    }
+    this.store.dispatch('setTimestampPeriod', this.storePeriods.state.timestampPeriods[0].value)
 
     this.update()
   }

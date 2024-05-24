@@ -868,19 +868,19 @@ export namespace AdminApi {
     export type RequestQuery = {};
     export type RequestBody = {
       timestamp_period:
-        | "minute5"
-        | "minute30"
-        | "hour"
-        | "hour4"
-        | "hour12"
-        | "day"
-        | "day3"
-        | "day7"
-        | "day15"
-        | "month"
-        | "month3"
-        | "month6"
-        | "year";
+        | "5 minutes"
+        | "30 minutes"
+        | "1 hour"
+        | "4 hours"
+        | "12 hours"
+        | "1 day"
+        | "3 days"
+        | "7 days"
+        | "15 days"
+        | "1 month"
+        | "3 months"
+        | "6 month"
+        | "1 year";
       service_ids?: number[];
       /** @format date */
       logging_to?: string;
@@ -920,6 +920,31 @@ export namespace AdminApi {
           count: number;
         }[];
       };
+    };
+  } /**
+ * No description
+ * @name TraceAggregatorTraceTimestampPeriodsList
+ * @request GET:/admin-api/trace-aggregator/trace-timestamp-periods
+ * @secure
+ * @response `200` `{
+    data: ({
+    name: string,
+    value: string,
+
+})[],
+
+}` description
+*/
+  export namespace TraceAggregatorTraceTimestampPeriodsList {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        name: string;
+        value: string;
+      }[];
     };
   } /**
  * No description
@@ -2258,19 +2283,19 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     traceAggregatorTraceMetricsCreate: (
       data: {
         timestamp_period:
-          | "minute5"
-          | "minute30"
-          | "hour"
-          | "hour4"
-          | "hour12"
-          | "day"
-          | "day3"
-          | "day7"
-          | "day15"
-          | "month"
-          | "month3"
-          | "month6"
-          | "year";
+          | "5 minutes"
+          | "30 minutes"
+          | "1 hour"
+          | "4 hours"
+          | "12 hours"
+          | "1 day"
+          | "3 days"
+          | "7 days"
+          | "15 days"
+          | "1 month"
+          | "3 months"
+          | "6 month"
+          | "1 year";
         service_ids?: number[];
         /** @format date */
         logging_to?: string;
@@ -2320,6 +2345,38 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         body: data,
         secure: true,
         type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name TraceAggregatorTraceTimestampPeriodsList
+ * @request GET:/admin-api/trace-aggregator/trace-timestamp-periods
+ * @secure
+ * @response `200` `{
+    data: ({
+    name: string,
+    value: string,
+
+})[],
+
+}` description
+ */
+    traceAggregatorTraceTimestampPeriodsList: (params: RequestParams = {}) =>
+      this.request<
+        {
+          data: {
+            name: string;
+            value: string;
+          }[];
+        },
+        any
+      >({
+        path: `/admin-api/trace-aggregator/trace-timestamp-periods`,
+        method: "GET",
+        secure: true,
         format: "json",
         ...params,
       }),

@@ -4,7 +4,11 @@
       <el-form>
         <el-form-item label="Logged at">
           <el-space>
+            <div v-if="storeGraph.state.showGraph" style="width: 220px">
+              <TraceAggregatorTimestampPeriods/>
+            </div>
             <el-date-picker
+                v-else
                 v-model="store.state.payload.logging_from"
                 type="datetime"
                 placeholder="From"
@@ -12,6 +16,7 @@
                 date-format="YYYY-MM-DD"
                 time-format="HH:mm:ss"
                 :shortcuts="dateTimeShortcuts"
+                style="width: 220px"
             />
             <el-date-picker
                 v-model="store.state.payload.logging_to"
@@ -108,7 +113,7 @@
     />
   </el-row>
 
-  <div v-if="storeGraph.state.showGraph">
+  <div v-if="storeGraph.state.showGraph && storeTimestampsPeriods.state.loaded">
     <TraceAggregatorGraph/>
   </div>
 
@@ -170,7 +175,9 @@ import FilterTags from "../widgets/FilterTags.vue";
 import {state} from "vue-tsc/out/shared";
 import {CloseBold} from '@element-plus/icons-vue'
 import TraceAggregatorGraph from "./TraceAggregatorGraph.vue";
+import TraceAggregatorTimestampPeriods from "./TraceAggregatorTimestampPeriods.vue";
 import {useTraceAggregatorGraphStore} from "../../../../store/traceAggregatorGraphStore.ts";
+import {useTraceAggregatorTimestampPeriodStore} from "../../../../store/traceAggregatorTimestampPeriodsStore.ts";
 
 const startOfDay = new Date()
 startOfDay.setUTCHours(Math.ceil(startOfDay.getTimezoneOffset() / 60), 0, 0, 0);
@@ -183,11 +190,13 @@ export default defineComponent({
     TraceAggregatorTraceDataNode,
     TraceAggregatorTracesCustomFields,
     TraceAggregatorServices,
+    TraceAggregatorTimestampPeriods,
   },
   data() {
     return {
       store: useTraceAggregatorStore(),
       storeGraph: useTraceAggregatorGraphStore(),
+      storeTimestampsPeriods: useTraceAggregatorTimestampPeriodStore(),
       dateTimeShortcuts: [
         {
           text: 'Start of day',
