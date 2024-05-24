@@ -102,8 +102,12 @@
   <el-row>
     <FilterTags/>
     <div class="flex-grow"/>
-    <el-button @click="reset" :disabled="store.state.loading">reset</el-button>
-    <el-button @click="onButtonSearchClick" :disabled="store.state.loading">search</el-button>
+    <el-button @click="reset" :disabled="store.state.loading">
+      reset
+    </el-button>
+    <el-button @click="onButtonSearchClick" :disabled="store.state.loading || storeGraph.state.showGraph">
+      search
+    </el-button>
   </el-row>
 
   <el-row v-if="store.state.customFields.length">
