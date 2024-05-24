@@ -14,11 +14,12 @@ import {
   Legend
 } from 'chart.js'
 import { Bar } from 'vue-chartjs'
+import ChartDataLabels from 'chartjs-plugin-datalabels';
 
 import {useTraceAggregatorGraphStore} from "../../../../store/traceAggregatorGraphStore.ts";
 import {useTraceAggregatorTimestampPeriodStore} from "../../../../store/traceAggregatorTimestampPeriodsStore.ts";
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ChartDataLabels)
 
 export default defineComponent({
   components: {
