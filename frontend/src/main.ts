@@ -24,6 +24,7 @@ import {
     traceAggregatorProfilingStore,
     traceAggregatorProfilingStoreInjectionKey
 } from "./store/traceAggregatorProfilingStore.ts";
+import {traceAggregatorGraphStore, traceAggregatorGraphStoreInjectionKey} from "./store/traceAggregatorGraphStore.ts";
 
 createApp(App)
     .use(router)
@@ -35,6 +36,7 @@ createApp(App)
     .use(traceAggregatorProfilingStore, traceAggregatorProfilingStoreInjectionKey)
     .use(traceAggregatorTabsStore, traceAggregatorTabsStoreInjectionKey)
     .use(traceAggregatorDataStore, traceAggregatorDataStoreInjectionKey)
+    .use(traceAggregatorGraphStore, traceAggregatorGraphStoreInjectionKey)
     .use(dashboardDatabaseStore, dashboardDatabaseStoreInjectionKey)
     .use(dashboardServiceStatStore, dashboardServiceStatStoreInjectionKey)
     .use(traceAggregatorServicesStore, traceAggregatorServicesStoreInjectionKey)
