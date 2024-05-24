@@ -3,7 +3,7 @@
 namespace App\Modules\TraceAggregator\Repositories;
 
 use App\Models\Traces\Trace;
-use App\Modules\Common\Enums\TraceTimestampTypeEnum;
+use App\Modules\Common\Enums\TraceTimestampMetricEnum;
 use App\Modules\TraceAggregator\Domain\Entities\Parameters\DataFilter\TraceDataFilterParameters;
 use App\Modules\TraceAggregator\Repositories\Dto\TraceTimestampsDto;
 use App\Modules\TraceAggregator\Repositories\Interfaces\TraceTimestampsRepositoryInterface;
@@ -18,7 +18,7 @@ readonly class TraceTimestampsRepository implements TraceTimestampsRepositoryInt
     }
 
     public function find(
-        TraceTimestampTypeEnum $timestampType,
+        TraceTimestampMetricEnum $timestampMetric,
         ?array $serviceIds = null,
         ?array $traceIds = null,
         ?Carbon $loggedAtFrom = null,
@@ -32,19 +32,19 @@ readonly class TraceTimestampsRepository implements TraceTimestampsRepositoryInt
         ?bool $hasProfiling = null,
         ?array $sort = null,
     ): array {
-        $timestampField = match ($timestampType) {
-            TraceTimestampTypeEnum::M => 'm',
-            TraceTimestampTypeEnum::D => 'd',
-            TraceTimestampTypeEnum::H12 => 'h12',
-            TraceTimestampTypeEnum::H4 => 'h4',
-            TraceTimestampTypeEnum::H => 'h',
-            TraceTimestampTypeEnum::Min30 => 'min30',
-            TraceTimestampTypeEnum::Min10 => 'min10',
-            TraceTimestampTypeEnum::Min5 => 'min5',
-            TraceTimestampTypeEnum::Min => 'min',
-            TraceTimestampTypeEnum::S30 => 's30',
-            TraceTimestampTypeEnum::S10 => 's10',
-            TraceTimestampTypeEnum::S5 => 's5',
+        $timestampField = match ($timestampMetric) {
+            TraceTimestampMetricEnum::M => 'm',
+            TraceTimestampMetricEnum::D => 'd',
+            TraceTimestampMetricEnum::H12 => 'h12',
+            TraceTimestampMetricEnum::H4 => 'h4',
+            TraceTimestampMetricEnum::H => 'h',
+            TraceTimestampMetricEnum::Min30 => 'min30',
+            TraceTimestampMetricEnum::Min10 => 'min10',
+            TraceTimestampMetricEnum::Min5 => 'min5',
+            TraceTimestampMetricEnum::Min => 'min',
+            TraceTimestampMetricEnum::S30 => 's30',
+            TraceTimestampMetricEnum::S10 => 's10',
+            TraceTimestampMetricEnum::S5 => 's5',
         };
 
         $match = [

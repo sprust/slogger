@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Modules\TraceCollector\Domain\Entities\Objects;
+namespace App\Modules\TraceAggregator\Domain\Entities\Objects;
 
 use Illuminate\Support\Carbon;
 
-readonly class TraceTimestampsObject
+readonly class TraceTimestampMetricsObject
 {
     public function __construct(
         public Carbon $m,

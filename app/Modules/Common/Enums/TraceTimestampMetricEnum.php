@@ -2,7 +2,7 @@
 
 namespace App\Modules\Common\Enums;
 
-enum TraceTimestampTypeEnum: string
+enum TraceTimestampMetricEnum: string
 {
     case M = 'm';
     case D = 'd';

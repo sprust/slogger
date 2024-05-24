@@ -2,8 +2,8 @@
 
 namespace App\Modules\TraceCollector\Framework\Http\Controllers;
 
+use App\Modules\TraceAggregator\Domain\Actions\CreateTraceTimestampsAction;
 use App\Modules\TraceCollector\Adapters\Service\ServiceAdapter;
-use App\Modules\TraceCollector\Domain\Actions\CreateTraceTimestampsAction;
 use App\Modules\TraceCollector\Domain\Entities\Parameters\TraceCreateParameters;
 use App\Modules\TraceCollector\Domain\Entities\Parameters\TraceCreateParametersList;
 use App\Modules\TraceCollector\Framework\Http\Requests\TraceCreateRequest;
@@ -17,7 +17,7 @@ readonly class TraceCreateController
     public function __construct(
         private ServiceAdapter $serviceAdapter,
         private QueueDispatcher $tracesServiceQueueDispatcher,
-        private CreateTraceTimestampsAction $createTraceTimestampsAction,
+        private CreateTraceTimestampsAction $createTraceTimestampsAction, // TODO: violation of modularity
         private SLoggerProcessor $loggerProcessor
     ) {
     }
