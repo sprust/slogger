@@ -43,6 +43,10 @@ export default defineComponent({
   },
   methods: {
     update() {
+      if (this.store.state.waiting) {
+        return
+      }
+
       this.store.state.payload.timestamp_period = this.storePeriods.state.selectedTimestampPeriod
       this.store.state.payload.timestamp_step = this.storePeriods.state.selectedTimestampStep
 
@@ -63,7 +67,11 @@ export default defineComponent({
             if (this.store.state.showGraph) {
               this.traceStore.state.payload.logging_from = this.store.state.loggedAtFrom
 
+              this.store.state.waiting = true
+
               setTimeout(() => {
+                this.store.state.waiting = false
+
                 this.update()
               }, 1000)
             }

@@ -13,6 +13,7 @@ type TraceAggregatorTraceMetricItem = AdminApi.TraceAggregatorTraceMetricsCreate
 interface State {
     showGraph: boolean,
     loading: boolean,
+    waiting: boolean,
 
     payload: TraceAggregatorTraceMetricsPayload,
 
