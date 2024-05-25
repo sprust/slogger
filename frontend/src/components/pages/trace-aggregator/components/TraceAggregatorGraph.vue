@@ -1,5 +1,5 @@
 <template>
-  <Bar style="height: 50vh" :data="store.state.graphData" :options="store.state.graphOptions"/>
+  <Bar style="min-height: 60vh; max-height: 60vh" :data="store.state.graphData" :options="store.state.graphOptions"/>
 </template>
 
 <script lang="ts">
@@ -51,12 +51,13 @@ export default defineComponent({
       this.store.state.payload.has_profiling = this.traceStore.state.payload.has_profiling
 
       this.store.dispatch('findMetrics')
-
-      if (this.store.state.showGraph) {
-        setTimeout(() => {
-          this.update()
-        }, 2000)
-      }
+          .finally(() => {
+            if (this.store.state.showGraph) {
+              setTimeout(() => {
+                this.update()
+              }, 2000)
+            }
+          })
     }
   },
   mounted() {
