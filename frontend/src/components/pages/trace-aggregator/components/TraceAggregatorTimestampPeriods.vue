@@ -1,15 +1,31 @@
 <template>
-  <el-select
-      v-model="storeGraph.state.payload.timestamp_period"
-      placeholder="Select"
-  >
-    <el-option
-        v-for="item in store.state.timestampPeriods"
-        :key="item.name"
-        :label="item.value"
-        :value="item.value"
-    />
-  </el-select>
+  <el-row>
+    <el-select
+        v-model="store.state.selectedTimestampPeriod"
+        placeholder="Select"
+        @change="onChangeTimestampPeriod"
+        style="width: 110px"
+    >
+      <el-option
+          v-for="item in store.state.timestampPeriods"
+          :key="item.period.name"
+          :label="item.period.value"
+          :value="item.period.value"
+      />
+    </el-select>
+    <el-select
+        v-model="store.state.selectedTimestampStep"
+        placeholder="Select"
+        style="width: 110px"
+    >
+      <el-option
+          v-for="item in store.state.timestampSteps"
+          :key="item.value"
+          :label="item.title"
+          :value="item.value"
+      />
+    </el-select>
+  </el-row>
 </template>
 
 <script lang="ts">
@@ -24,11 +40,16 @@ export default defineComponent({
       storeGraph: useTraceAggregatorGraphStore(),
     }
   },
+
   methods: {
     update() {
       this.store.dispatch('findTimestampPeriods')
-    }
+    },
+    onChangeTimestampPeriod() {
+      this.store.dispatch('freshTimestampSteps')
+    },
   },
+
   mounted() {
     this.update()
   }

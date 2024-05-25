@@ -10,8 +10,6 @@ type TraceAggregatorTraceMetricsPayload = AdminApi.TraceAggregatorTraceMetricsCr
 type TraceAggregatorTraceMetricResponse = AdminApi.TraceAggregatorTraceMetricsCreate.ResponseBody
 type TraceAggregatorTraceMetricItem = AdminApi.TraceAggregatorTraceMetricsCreate.ResponseBody['data']['items'][number]
 
-type TraceAggregatorTraceTimestampPeriod = AdminApi.TraceAggregatorTraceMetricsCreate.RequestBody['timestamp_period']
-
 interface State {
     showGraph: boolean,
     loading: boolean,
@@ -102,16 +100,13 @@ export const traceAggregatorGraphStore = createStore<State>({
                 labels: labels,
                 datasets: [
                     {
-                        label: 'graph',
+                        label: 'count',
                         backgroundColor: 'rgba(163,248,121,0.7)',
                         data: datasetData
                     },
                 ],
             }
         },
-        setTimestampPeriod(state: State, timestampPeriod: TraceAggregatorTraceTimestampPeriod) {
-            state.payload.timestamp_period = timestampPeriod
-        }
     },
     actions: {
         async findMetrics({commit, state}: { commit: any, state: State }) {
@@ -127,9 +122,6 @@ export const traceAggregatorGraphStore = createStore<State>({
                 state.loading = false
             }
         },
-        setTimestampPeriod({commit}: { commit: any }, timestampPeriod: TraceAggregatorTraceTimestampPeriod) {
-            commit('setTimestampPeriod', timestampPeriod)
-        }
     },
 })
 

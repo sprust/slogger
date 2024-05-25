@@ -58,7 +58,6 @@ readonly class GetTraceTimestampPeriodsAction
                 TraceTimestampEnum::H,
             ],
             TraceTimestampPeriodEnum::Hour12 => [
-                TraceTimestampEnum::Min10,
                 TraceTimestampEnum::Min30,
                 TraceTimestampEnum::H,
                 TraceTimestampEnum::H4,

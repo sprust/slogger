@@ -881,6 +881,7 @@ export namespace AdminApi {
         | "3 months"
         | "6 month"
         | "1 year";
+      timestamp_step: "s5" | "s10" | "s30" | "min" | "min5" | "min10" | "min30" | "h" | "h4" | "h12" | "d" | "m";
       service_ids?: number[];
       /** @format date */
       logging_to?: string;
@@ -928,8 +929,16 @@ export namespace AdminApi {
  * @secure
  * @response `200` `{
     data: ({
+    period: {
     name: string,
     value: string,
+
+},
+    timestamps: ({
+    value: string,
+    title: string,
+
+})[],
 
 })[],
 
@@ -942,8 +951,14 @@ export namespace AdminApi {
     export type RequestHeaders = {};
     export type ResponseBody = {
       data: {
-        name: string;
-        value: string;
+        period: {
+          name: string;
+          value: string;
+        };
+        timestamps: {
+          value: string;
+          title: string;
+        }[];
       }[];
     };
   } /**
@@ -2296,6 +2311,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
           | "3 months"
           | "6 month"
           | "1 year";
+        timestamp_step: "s5" | "s10" | "s30" | "min" | "min5" | "min10" | "min30" | "h" | "h4" | "h12" | "d" | "m";
         service_ids?: number[];
         /** @format date */
         logging_to?: string;
@@ -2357,8 +2373,16 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
  * @secure
  * @response `200` `{
     data: ({
+    period: {
     name: string,
     value: string,
+
+},
+    timestamps: ({
+    value: string,
+    title: string,
+
+})[],
 
 })[],
 
@@ -2368,8 +2392,14 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       this.request<
         {
           data: {
-            name: string;
-            value: string;
+            period: {
+              name: string;
+              value: string;
+            };
+            timestamps: {
+              value: string;
+              title: string;
+            }[];
           }[];
         },
         any

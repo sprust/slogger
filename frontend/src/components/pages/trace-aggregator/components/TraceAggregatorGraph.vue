@@ -35,6 +35,9 @@ export default defineComponent({
   },
   methods: {
     update() {
+      this.store.state.payload.timestamp_period = this.storePeriods.state.selectedTimestampPeriod
+      this.store.state.payload.timestamp_step = this.storePeriods.state.selectedTimestampStep
+
       this.store.state.payload.service_ids = this.traceStore.state.payload.service_ids
       this.store.state.payload.logging_to = this.traceStore.state.payload.logging_to
           ? this.traceStore.state.payload.logging_to
@@ -57,8 +60,6 @@ export default defineComponent({
     }
   },
   mounted() {
-    this.store.dispatch('setTimestampPeriod', this.storePeriods.state.timestampPeriods[0].value)
-
     this.update()
   }
 })

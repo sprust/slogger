@@ -1960,6 +1960,23 @@
                                             "1 year"
                                         ]
                                     },
+                                    "timestamp_step": {
+                                        "type": "string",
+                                        "enum": [
+                                            "s5",
+                                            "s10",
+                                            "s30",
+                                            "min",
+                                            "min5",
+                                            "min10",
+                                            "min30",
+                                            "h",
+                                            "h4",
+                                            "h12",
+                                            "d",
+                                            "m"
+                                        ]
+                                    },
                                     "service_ids": {
                                         "type": "array",
                                         "items": {
@@ -2073,7 +2090,8 @@
                                     }
                                 },
                                 "required": [
-                                    "timestamp_period"
+                                    "timestamp_period",
+                                    "timestamp_step"
                                 ],
                                 "type": "object"
                             }
@@ -2145,18 +2163,46 @@
                                             "type": "array",
                                             "items": {
                                                 "properties": {
-                                                    "name": {
-                                                        "type": "string",
-                                                        "nullable": false
+                                                    "period": {
+                                                        "properties": {
+                                                            "name": {
+                                                                "type": "string",
+                                                                "nullable": false
+                                                            },
+                                                            "value": {
+                                                                "type": "string",
+                                                                "nullable": false
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "name",
+                                                            "value"
+                                                        ]
                                                     },
-                                                    "value": {
-                                                        "type": "string",
-                                                        "nullable": false
+                                                    "timestamps": {
+                                                        "type": "array",
+                                                        "nullable": false,
+                                                        "items": {
+                                                            "properties": {
+                                                                "value": {
+                                                                    "type": "string",
+                                                                    "nullable": false
+                                                                },
+                                                                "title": {
+                                                                    "type": "string",
+                                                                    "nullable": false
+                                                                }
+                                                            },
+                                                            "required": [
+                                                                "value",
+                                                                "title"
+                                                            ]
+                                                        }
                                                     }
                                                 },
                                                 "required": [
-                                                    "name",
-                                                    "value"
+                                                    "period",
+                                                    "timestamps"
                                                 ]
                                             }
                                         }
