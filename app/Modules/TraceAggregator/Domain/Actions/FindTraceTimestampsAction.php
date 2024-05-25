@@ -62,6 +62,7 @@ readonly class FindTraceTimestampsAction
         );
 
         return new TraceTimestampsObjects(
+            loggedAtFrom: $loggedAtFrom,
             items: $items
         );
     }

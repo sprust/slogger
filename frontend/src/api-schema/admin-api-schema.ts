@@ -853,6 +853,7 @@ export namespace AdminApi {
  * @secure
  * @response `200` `{
     data: {
+    loggedAtFrom: string,
     items: ({
     timestamp: string,
     count: number,
@@ -916,6 +917,7 @@ export namespace AdminApi {
     export type RequestHeaders = {};
     export type ResponseBody = {
       data: {
+        loggedAtFrom: string;
         items: {
           timestamp: string;
           count: number;
@@ -2285,6 +2287,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
  * @secure
  * @response `200` `{
     data: {
+    loggedAtFrom: string,
     items: ({
     timestamp: string,
     count: number,
@@ -2348,6 +2351,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       this.request<
         {
           data: {
+            loggedAtFrom: string;
             items: {
               timestamp: string;
               count: number;

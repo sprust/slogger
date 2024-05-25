@@ -8,6 +8,7 @@ use Ifksco\OpenApiGenerator\Attributes\OaListItemTypeAttribute;
 
 class TraceTimestampsResource extends AbstractApiResource
 {
+    private string $loggedAtFrom;
     #[OaListItemTypeAttribute(TraceTimestampResource::class)]
     private array $items;
 
@@ -15,6 +16,7 @@ class TraceTimestampsResource extends AbstractApiResource
     {
         parent::__construct($resource);
 
-        $this->items = TraceTimestampResource::mapIntoMe($resource->items);
+        $this->loggedAtFrom = $resource->loggedAtFrom->toDateTimeString();
+        $this->items        = TraceTimestampResource::mapIntoMe($resource->items);
     }
 }

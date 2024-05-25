@@ -14,8 +14,10 @@ interface State {
     showGraph: boolean,
     loading: boolean,
 
-    metrics: Array<TraceAggregatorTraceMetricItem>,
     payload: TraceAggregatorTraceMetricsPayload,
+
+    loggedAtFrom: string,
+    metrics: Array<TraceAggregatorTraceMetricItem>,
 
     graphData: ChartData,
     graphOptions: ChartOptions,
@@ -29,8 +31,10 @@ export const traceAggregatorGraphStore = createStore<State>({
         showGraph: false,
         loading: false,
 
-        metrics: new Array<TraceAggregatorTraceMetricItem>,
         payload: {} as TraceAggregatorTraceMetricsPayload,
+
+        loggedAtFrom: '',
+        metrics: new Array<TraceAggregatorTraceMetricItem>,
 
         graphData: {
             labels: [],
@@ -41,16 +45,16 @@ export const traceAggregatorGraphStore = createStore<State>({
             maintainAspectRatio: false,
             animation: false,
             scales: {
-               x: {
-                   grid: {
-                       color: 'rgba(121,146,248,0.1)'
-                   }
-               },
-               y: {
-                   grid: {
-                       color: 'rgba(121,146,248,0.1)'
-                   }
-               },
+                x: {
+                    grid: {
+                        color: 'rgba(121,146,248,0.1)'
+                    }
+                },
+                y: {
+                    grid: {
+                        color: 'rgba(121,146,248,0.1)'
+                    }
+                },
             }
         } as ChartOptions,
 
@@ -58,6 +62,7 @@ export const traceAggregatorGraphStore = createStore<State>({
     } as State,
     mutations: {
         setMetrics(state: State, data: TraceAggregatorTraceMetricResponse) {
+            state.loggedAtFrom = data.data.loggedAtFrom
             state.metrics = data.data.items
 
             if (!state.metrics.length) {

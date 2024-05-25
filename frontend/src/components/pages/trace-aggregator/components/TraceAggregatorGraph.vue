@@ -53,10 +53,13 @@ export default defineComponent({
       this.store.dispatch('findMetrics')
           .finally(() => {
             if (this.store.state.showGraph) {
+              this.traceStore.state.payload.logging_from = this.store.state.loggedAtFrom
+
               setTimeout(() => {
                 this.update()
               }, 2000)
             }
+
           })
     }
   },

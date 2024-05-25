@@ -2108,6 +2108,10 @@
                                     "properties": {
                                         "data": {
                                             "properties": {
+                                                "loggedAtFrom": {
+                                                    "type": "string",
+                                                    "nullable": false
+                                                },
                                                 "items": {
                                                     "type": "array",
                                                     "nullable": false,
@@ -2130,6 +2134,7 @@
                                                 }
                                             },
                                             "required": [
+                                                "loggedAtFrom",
                                                 "items"
                                             ]
                                         }
