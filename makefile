@@ -42,6 +42,12 @@ queues-restart:
 oa-generate:
 	@make art c='oa:generate'
 
+deploy:
+	git pull
+	@make composer c=i
+	@make art c='migrate --force'
+	@make restart
+
 rr-init:
 	make rr-get-binary
 	make rr-default-config
