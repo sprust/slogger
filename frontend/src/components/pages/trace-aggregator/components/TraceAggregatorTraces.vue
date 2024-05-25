@@ -62,7 +62,7 @@
   </el-row>
   <el-row>
     <el-space>
-      <el-form>
+      <el-form :disabled="storeGraph.state.showGraph">
         <el-form-item label="Trace id">
           <el-input v-model="store.state.payload.trace_id" style="width: 500px" clearable>
             <template #append>

@@ -112,6 +112,7 @@ export const traceAggregatorGraphStore = createStore<State>({
                         data: datasetCountData
                     },
                     {
+                        hidden: true,
                         label: 'duration',
                         backgroundColor: 'rgba(255,137,0,0.3)',
                         data: datasetDurationPercentData
