@@ -69,11 +69,14 @@ readonly class TraceTimestampsRepository implements TraceTimestampsRepositoryInt
 
         $pipeline[] = [
             '$group' => [
-                '_id'   => [
+                '_id'         => [
                     'timestamp' => "\$timestamps.$timestampField",
                 ],
-                'count' => [
+                'count'       => [
                     '$sum' => 1,
+                ],
+                'durationAvg' => [
+                    '$avg' => '$duration',
                 ],
             ],
         ];
@@ -92,6 +95,7 @@ readonly class TraceTimestampsRepository implements TraceTimestampsRepositoryInt
             $metrics[] = new TraceTimestampsDto(
                 timestamp: new Carbon($item->_id->timestamp->toDateTime()),
                 count: $item->count,
+                durationAvg: $item->durationAvg ?? 0,
             );
         }
 

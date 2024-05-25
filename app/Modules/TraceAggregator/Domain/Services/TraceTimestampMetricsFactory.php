@@ -79,7 +79,8 @@ class TraceTimestampMetricsFactory
             $timestamps[] = $timestampsKeyByTimestamp[$iterator->toDateTimeString()]
                 ?? new TraceTimestampsObject(
                     timestamp: $iterator->clone(),
-                    count: 0
+                    count: 0,
+                    durationPercent: 0
                 );
 
             $iterator = $iterator->subSecond();

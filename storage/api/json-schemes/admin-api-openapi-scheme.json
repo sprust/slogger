@@ -2124,11 +2124,16 @@
                                                             "count": {
                                                                 "type": "integer",
                                                                 "nullable": false
+                                                            },
+                                                            "durationPercent": {
+                                                                "type": "integer",
+                                                                "nullable": false
                                                             }
                                                         },
                                                         "required": [
                                                             "timestamp",
-                                                            "count"
+                                                            "count",
+                                                            "durationPercent"
                                                         ]
                                                     }
                                                 }

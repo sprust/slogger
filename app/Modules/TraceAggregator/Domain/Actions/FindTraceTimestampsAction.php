@@ -48,6 +48,14 @@ readonly class FindTraceTimestampsAction
             hasProfiling: $parameters->hasProfiling,
         );
 
+        $maxCount = collect($timestampsDtoList)->max(
+            fn(TraceTimestampsDto $dto) => $dto->count
+        ) ?? 10;
+
+        $maxDuration = collect($timestampsDtoList)->max(
+            fn(TraceTimestampsDto $dto) => $dto->durationAvg
+        ) ?? 10;
+
         $items = $this->traceTimestampMetricsFactory->makeTimeLine(
             dateFrom: $loggedAtFrom,
             dateTo: $loggedAtTo,
@@ -56,6 +64,7 @@ readonly class FindTraceTimestampsAction
                 fn(TraceTimestampsDto $dto) => new TraceTimestampsObject(
                     timestamp: $dto->timestamp,
                     count: $dto->count,
+                    durationPercent: ceil(($dto->durationAvg / $maxDuration) * $maxCount)
                 ),
                 $timestampsDtoList
             )

@@ -90,15 +90,17 @@ export const traceAggregatorGraphStore = createStore<State>({
             state.preTimestampCounts = totalCount
 
             const labels: Array<string> = []
-            const datasetData: Array<number> = []
+
+            const datasetCountData: Array<number> = []
+            const datasetDurationPercentData: Array<number> = []
 
             state.metrics.forEach((item: TraceAggregatorTraceMetricItem) => {
                 labels.push(
                     convertDateStringToLocal(item.timestamp, false)
                 )
-                datasetData.push(
-                    item.count
-                )
+
+                datasetCountData.push(item.count)
+                datasetDurationPercentData.push(item.durationPercent)
             })
 
             state.graphData = {
@@ -107,7 +109,12 @@ export const traceAggregatorGraphStore = createStore<State>({
                     {
                         label: 'count',
                         backgroundColor: 'rgba(163,248,121,0.7)',
-                        data: datasetData
+                        data: datasetCountData
+                    },
+                    {
+                        label: 'duration (%)',
+                        backgroundColor: 'rgba(248,121,121,0.3)',
+                        data: datasetDurationPercentData
                     },
                 ],
             }

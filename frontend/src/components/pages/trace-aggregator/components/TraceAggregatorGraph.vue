@@ -57,7 +57,7 @@ export default defineComponent({
 
               setTimeout(() => {
                 this.update()
-              }, 2000)
+              }, 1000)
             }
 
           })

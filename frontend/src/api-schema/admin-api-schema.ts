@@ -857,6 +857,7 @@ export namespace AdminApi {
     items: ({
     timestamp: string,
     count: number,
+    durationPercent: number,
 
 })[],
 
@@ -921,6 +922,7 @@ export namespace AdminApi {
         items: {
           timestamp: string;
           count: number;
+          durationPercent: number;
         }[];
       };
     };
@@ -2291,6 +2293,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     items: ({
     timestamp: string,
     count: number,
+    durationPercent: number,
 
 })[],
 
@@ -2355,6 +2358,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
             items: {
               timestamp: string;
               count: number;
+              durationPercent: number;
             }[];
           };
         },
