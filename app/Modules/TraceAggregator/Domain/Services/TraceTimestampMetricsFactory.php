@@ -113,6 +113,71 @@ class TraceTimestampMetricsFactory
         };
     }
 
+    /**
+     * @return TraceTimestampEnum[]
+     */
+    public function getTimestampsByDate(TraceTimestampPeriodEnum $date): array
+    {
+        return match ($date) {
+            TraceTimestampPeriodEnum::Minute5 => [
+                TraceTimestampEnum::S5,
+                TraceTimestampEnum::S10,
+                TraceTimestampEnum::S30,
+                TraceTimestampEnum::Min,
+            ],
+            TraceTimestampPeriodEnum::Minute30 => [
+                TraceTimestampEnum::S30,
+                TraceTimestampEnum::Min,
+                TraceTimestampEnum::Min10,
+            ],
+            TraceTimestampPeriodEnum::Hour => [
+                TraceTimestampEnum::Min,
+                TraceTimestampEnum::Min10,
+                TraceTimestampEnum::Min30,
+            ],
+            TraceTimestampPeriodEnum::Hour4 => [
+                TraceTimestampEnum::Min30,
+                TraceTimestampEnum::H,
+            ],
+            TraceTimestampPeriodEnum::Hour12 => [
+                TraceTimestampEnum::Min30,
+                TraceTimestampEnum::H,
+                TraceTimestampEnum::H4,
+            ],
+            TraceTimestampPeriodEnum::Day => [
+                TraceTimestampEnum::Min30,
+                TraceTimestampEnum::H,
+                TraceTimestampEnum::H4,
+                TraceTimestampEnum::H12,
+            ],
+            TraceTimestampPeriodEnum::Day3 => [
+                TraceTimestampEnum::H,
+                TraceTimestampEnum::H4,
+                TraceTimestampEnum::H12,
+                TraceTimestampEnum::D,
+            ],
+            TraceTimestampPeriodEnum::Day7 => [
+                TraceTimestampEnum::H4,
+                TraceTimestampEnum::H12,
+                TraceTimestampEnum::D,
+            ],
+            TraceTimestampPeriodEnum::Day15, TraceTimestampPeriodEnum::Month => [
+                TraceTimestampEnum::H12,
+                TraceTimestampEnum::D,
+            ],
+            TraceTimestampPeriodEnum::Month3 => [
+                TraceTimestampEnum::D,
+            ],
+            TraceTimestampPeriodEnum::Month6 => [
+                TraceTimestampEnum::D,
+                TraceTimestampEnum::M,
+            ],
+            TraceTimestampPeriodEnum::Year => [
+                TraceTimestampEnum::M,
+            ],
+        };
+    }
+
     private function sliceHours(Carbon $date, int $slice): Carbon
     {
         return $date
