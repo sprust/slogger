@@ -50,11 +50,11 @@ readonly class FindTraceTimestampsAction
 
         $maxCount = collect($timestampsDtoList)->max(
             fn(TraceTimestampsDto $dto) => $dto->count
-        ) ?? 10;
+        ) ?: 10;
 
         $maxDuration = collect($timestampsDtoList)->max(
             fn(TraceTimestampsDto $dto) => $dto->durationAvg
-        ) ?? 10;
+        ) ?: 10;
 
         $items = $this->traceTimestampMetricsFactory->makeTimeLine(
             dateFrom: $loggedAtFrom,
