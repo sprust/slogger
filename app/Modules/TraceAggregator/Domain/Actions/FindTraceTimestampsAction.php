@@ -28,6 +28,11 @@ readonly class FindTraceTimestampsAction
 
         $timestampStep = $parameters->timestampStep;
 
+        $loggedAtFrom = $this->traceTimestampMetricsFactory->prepareDateByTimestamp(
+            date: $loggedAtFrom,
+            timestamp: $timestampStep
+        );
+
         $timestampsDtoList = $this->traceTimestampsRepository->find(
             timestamp: $timestampStep,
             serviceIds: $parameters->serviceIds,

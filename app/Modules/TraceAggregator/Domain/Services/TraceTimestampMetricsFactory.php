@@ -95,7 +95,7 @@ class TraceTimestampMetricsFactory
             ->toArray();
     }
 
-    private function prepareDateByTimestamp(Carbon $date, TraceTimestampEnum $timestamp): Carbon
+    public function prepareDateByTimestamp(Carbon $date, TraceTimestampEnum $timestamp): Carbon
     {
         return match ($timestamp) {
             TraceTimestampEnum::M => $date->clone()->startOfMonth(),
