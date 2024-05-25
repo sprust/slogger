@@ -51,6 +51,10 @@ export default defineComponent({
   },
 
   mounted() {
+    if (this.store.state.loaded) {
+      return
+    }
+
     this.update()
   }
 })

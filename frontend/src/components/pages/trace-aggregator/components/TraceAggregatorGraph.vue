@@ -64,17 +64,19 @@ export default defineComponent({
 
       this.store.dispatch('findMetrics')
           .finally(() => {
-            if (this.store.state.showGraph) {
-              this.traceStore.state.payload.logging_from = this.store.state.loggedAtFrom
-
-              this.store.state.waiting = true
-
-              setTimeout(() => {
-                this.store.state.waiting = false
-
-                this.update()
-              }, 1000)
+            if (!this.store.state.showGraph) {
+              return
             }
+
+            this.traceStore.state.payload.logging_from = this.store.state.loggedAtFrom
+
+            this.store.state.waiting = true
+
+            setTimeout(() => {
+              this.store.state.waiting = false
+
+              this.update()
+            }, 1000)
           })
     },
     onGraphClick(mouseEvent: MouseEvent) {
