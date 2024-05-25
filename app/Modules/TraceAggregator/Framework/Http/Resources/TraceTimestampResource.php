@@ -8,6 +8,7 @@ use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceTimestampsObject;
 class TraceTimestampResource extends AbstractApiResource
 {
     private string $timestamp;
+    private string $timestamp_to;
     private int $count;
     private int $durationPercent;
 
@@ -15,7 +16,8 @@ class TraceTimestampResource extends AbstractApiResource
     {
         parent::__construct($resource);
 
-        $this->timestamp       = $resource->timestamp;
+        $this->timestamp       = $resource->timestamp->toDateTimeString();
+        $this->timestamp_to    = $resource->timestampTo->toDateTimeString();
         $this->count           = $resource->count;
         $this->durationPercent = $resource->durationPercent;
     }

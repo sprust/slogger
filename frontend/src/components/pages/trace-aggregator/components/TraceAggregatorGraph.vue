@@ -1,24 +1,32 @@
 <template>
-  <Bar style="min-height: 60vh; max-height: 60vh" :data="store.state.graphData" :options="store.state.graphOptions"/>
+  <Bar
+      ref="tracesGraphRef"
+      style="min-height: 60vh; max-height: 60vh"
+      :data="store.state.graphData"
+      :options="store.state.graphOptions"
+      @click="onGraphClick"
+  />
 </template>
 
 <script lang="ts">
 import {defineComponent} from "vue";
 import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
   BarElement,
+  CategoryScale,
+  Chart as ChartJS,
+  InteractionItem,
+  Legend,
+  LinearScale,
   Title,
-  Tooltip,
-  Legend
+  Tooltip
 } from 'chart.js'
-import {Bar} from 'vue-chartjs'
+import {Bar, getElementAtEvent} from 'vue-chartjs'
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 
 import {useTraceAggregatorGraphStore} from "../../../../store/traceAggregatorGraphStore.ts";
 import {useTraceAggregatorTimestampPeriodStore} from "../../../../store/traceAggregatorTimestampPeriodsStore.ts";
 import {useTraceAggregatorStore} from "../../../../store/traceAggregatorStore.ts";
+import {convertDateStringToLocalFull} from "../../../../utils/helpers.ts";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ChartDataLabels)
 
@@ -59,8 +67,32 @@ export default defineComponent({
                 this.update()
               }, 1000)
             }
-
           })
+    },
+    onGraphClick(mouseEvent: MouseEvent) {
+      // @ts-ignore TODO
+      const chart = this.$refs.tracesGraphRef?.chart
+
+      if (!chart) {
+        return
+      }
+
+      const elements: InteractionItem[] = getElementAtEvent(chart, mouseEvent)
+
+      if (!elements.length) {
+        return;
+      }
+
+      const {index} = elements[0]
+
+      this.traceStore.state.payload.logging_from = new Date(
+          convertDateStringToLocalFull(this.store.state.metrics[index].timestamp)
+      )
+      this.traceStore.state.payload.logging_to = new Date(
+          convertDateStringToLocalFull(this.store.state.metrics[index].timestamp_to)
+      )
+
+      this.store.state.showGraph = false
     }
   },
   mounted() {

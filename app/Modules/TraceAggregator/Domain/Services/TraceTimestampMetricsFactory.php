@@ -79,6 +79,10 @@ class TraceTimestampMetricsFactory
             $timestamps[] = $timestampsKeyByTimestamp[$iterator->toDateTimeString()]
                 ?? new TraceTimestampsObject(
                     timestamp: $iterator->clone(),
+                    timestampTo: $this->makeNextTimestamp(
+                        date: $iterator->clone(),
+                        timestamp: $timestamp
+                    ),
                     count: 0,
                     durationPercent: 0
                 );
@@ -111,6 +115,24 @@ class TraceTimestampMetricsFactory
             TraceTimestampEnum::S30 => $this->sliceSeconds($date->clone(), 30),
             TraceTimestampEnum::S10 => $this->sliceSeconds($date->clone(), 10),
             TraceTimestampEnum::S5 => $this->sliceSeconds($date->clone(), 5),
+        };
+    }
+
+    public function makeNextTimestamp(Carbon $date, TraceTimestampEnum $timestamp): Carbon
+    {
+        return match ($timestamp) {
+            TraceTimestampEnum::M => $date->clone()->endOfMonth(),
+            TraceTimestampEnum::D => $date->clone()->endOfDay(),
+            TraceTimestampEnum::H12 => $this->sliceHours($date->clone(), 12, true),
+            TraceTimestampEnum::H4 => $this->sliceHours($date->clone(), 4, true),
+            TraceTimestampEnum::H => $date->clone()->endOfHour(),
+            TraceTimestampEnum::Min30 => $this->sliceMinutes($date->clone(), 30, true),
+            TraceTimestampEnum::Min10 => $this->sliceMinutes($date->clone(), 10, true),
+            TraceTimestampEnum::Min5 => $this->sliceMinutes($date->clone(), 5, true),
+            TraceTimestampEnum::Min => $date->clone()->endOfMinute(),
+            TraceTimestampEnum::S30 => $this->sliceSeconds($date->clone(), 30, true),
+            TraceTimestampEnum::S10 => $this->sliceSeconds($date->clone(), 10, true),
+            TraceTimestampEnum::S5 => $this->sliceSeconds($date->clone(), 5, true),
         };
     }
 
@@ -179,35 +201,37 @@ class TraceTimestampMetricsFactory
         };
     }
 
-    private function sliceHours(Carbon $date, int $slice): Carbon
+    private function sliceHours(Carbon $date, int $slice, bool $next = false): Carbon
     {
         return $date
             ->setHours(
-                $this->sliceValue($date->hour, $slice)
+                $this->sliceValue($date->hour, $slice, $next)
             )
             ->startOfHour();
     }
 
-    private function sliceMinutes(Carbon $date, int $slice): Carbon
+    private function sliceMinutes(Carbon $date, int $slice, bool $next = false): Carbon
     {
         return $date
             ->setMinutes(
-                $this->sliceValue($date->minute, $slice)
+                $this->sliceValue($date->minute, $slice, $next)
             )
             ->startOfMinute();
     }
 
-    private function sliceSeconds(Carbon $date, int $slice): Carbon
+    private function sliceSeconds(Carbon $date, int $slice, bool $next = false): Carbon
     {
         return $date
             ->setSeconds(
-                $this->sliceValue($date->second, $slice)
+                $this->sliceValue($date->second, $slice, $next)
             )
             ->startOfSecond();
     }
 
-    private function sliceValue(int $value, int $slice): int
+    private function sliceValue(int $value, int $slice, bool $next = false): int
     {
-        return $value - ($value % $slice);
+        $result = $value - ($value % $slice);
+
+        return $next ? ($result + $slice - 1) : $result;
     }
 }

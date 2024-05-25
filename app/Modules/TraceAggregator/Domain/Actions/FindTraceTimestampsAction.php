@@ -63,6 +63,10 @@ readonly class FindTraceTimestampsAction
             existsTimestamps: array_map(
                 fn(TraceTimestampsDto $dto) => new TraceTimestampsObject(
                     timestamp: $dto->timestamp,
+                    timestampTo: $this->traceTimestampMetricsFactory->makeNextTimestamp(
+                        date: $dto->timestamp,
+                        timestamp: $timestampStep
+                    ),
                     count: $dto->count,
                     durationPercent: ceil(($dto->durationAvg / $maxDuration) * $maxCount)
                 ),

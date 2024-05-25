@@ -38,8 +38,22 @@ class TraceQueryBuilder
         $builder = Trace::query()
             ->when($serviceIds, fn(Builder $query) => $query->whereIn('serviceId', $serviceIds))
             ->when($traceIds, fn(Builder $query) => $query->whereIn('traceId', $traceIds))
-            ->when($loggedAtFrom, fn(Builder $query) => $query->where('loggedAt', '>=', new UTCDateTime($loggedAtFrom)))
-            ->when($loggedAtTo, fn(Builder $query) => $query->where('loggedAt', '<=', new UTCDateTime($loggedAtTo)))
+            ->when(
+                $loggedAtFrom,
+                fn(Builder $query) => $query->where(
+                    'loggedAt',
+                    '>=',
+                    new UTCDateTime($loggedAtFrom->clone()->startOfSecond())
+                )
+            )
+            ->when(
+                $loggedAtTo,
+                fn(Builder $query) => $query->where(
+                    'loggedAt',
+                    '<=',
+                    new UTCDateTime($loggedAtTo->clone()->endOfSecond())
+                )
+            )
             ->when($types, fn(Builder $query) => $query->whereIn('type', $types))
             ->when($tags, fn(Builder $query) => $query->where('tags', 'all', $tags))
             ->when($statuses, fn(Builder $query) => $query->whereIn('status', $statuses))

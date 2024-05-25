@@ -856,6 +856,7 @@ export namespace AdminApi {
     loggedAtFrom: string,
     items: ({
     timestamp: string,
+    timestamp_to: string,
     count: number,
     durationPercent: number,
 
@@ -921,6 +922,7 @@ export namespace AdminApi {
         loggedAtFrom: string;
         items: {
           timestamp: string;
+          timestamp_to: string;
           count: number;
           durationPercent: number;
         }[];
@@ -2292,6 +2294,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     loggedAtFrom: string,
     items: ({
     timestamp: string,
+    timestamp_to: string,
     count: number,
     durationPercent: number,
 
@@ -2357,6 +2360,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
             loggedAtFrom: string;
             items: {
               timestamp: string;
+              timestamp_to: string;
               count: number;
               durationPercent: number;
             }[];

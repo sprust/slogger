@@ -2121,6 +2121,10 @@
                                                                 "type": "string",
                                                                 "nullable": false
                                                             },
+                                                            "timestamp_to": {
+                                                                "type": "string",
+                                                                "nullable": false
+                                                            },
                                                             "count": {
                                                                 "type": "integer",
                                                                 "nullable": false
@@ -2132,6 +2136,7 @@
                                                         },
                                                         "required": [
                                                             "timestamp",
+                                                            "timestamp_to",
                                                             "count",
                                                             "durationPercent"
                                                         ]

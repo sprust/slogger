@@ -8,6 +8,7 @@ class TraceTimestampsObject
 {
     public function __construct(
         public Carbon $timestamp,
+        public Carbon $timestampTo,
         public int $count,
         public int $durationPercent
     ) {
