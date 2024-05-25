@@ -2,7 +2,7 @@
 
 namespace App\Modules\TraceCollector\Repositories\Interfaces;
 
-use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceTimestampMetricsObject;
+use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceTimestampMetricObject;
 use App\Modules\TraceCollector\Domain\Entities\Objects\TraceTreeShortObject;
 use App\Modules\TraceCollector\Domain\Entities\Parameters\TraceCreateParametersList;
 use App\Modules\TraceCollector\Domain\Entities\Parameters\TraceTreeFindParameters;
@@ -16,7 +16,6 @@ interface TraceRepositoryInterface
 
     public function updateMany(TraceUpdateParametersList $parametersList): int;
 
-
     /** @return TraceTreeShortObject[] */
     public function findTree(TraceTreeFindParameters $parameters): array;
 
@@ -25,5 +24,8 @@ interface TraceRepositoryInterface
      */
     public function findLoggedAtList(int $page, int $perPage, Carbon $loggedAtTo): array;
 
-    public function updateTraceTimestamps(string $traceId, TraceTimestampMetricsObject $timestamps): void;
+    /**
+     * @param TraceTimestampMetricObject[] $timestamps
+     */
+    public function updateTraceTimestamps(string $traceId, array $timestamps): void;
 }

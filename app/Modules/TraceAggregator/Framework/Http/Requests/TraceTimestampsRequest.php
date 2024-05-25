@@ -5,6 +5,7 @@ namespace App\Modules\TraceAggregator\Framework\Http\Requests;
 use App\Models\Services\Service;
 use App\Modules\TraceAggregator\Enums\TraceDataFilterCompNumericTypeEnum;
 use App\Modules\TraceAggregator\Enums\TraceDataFilterCompStringTypeEnum;
+use App\Modules\TraceAggregator\Enums\TraceTimestampEnum;
 use App\Modules\TraceAggregator\Enums\TraceTimestampPeriodEnum;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -21,6 +22,17 @@ class TraceTimestampsRequest extends FormRequest
                     array_map(
                         fn(TraceTimestampPeriodEnum $enum) => $enum->value,
                         TraceTimestampPeriodEnum::cases()
+                    )
+                ),
+            ],
+            'timestamp_step'            => [
+                'required',
+                'string',
+                'in:' . implode(
+                    ',',
+                    array_map(
+                        fn(TraceTimestampEnum $enum) => $enum->value,
+                        TraceTimestampEnum::cases()
                     )
                 ),
             ],

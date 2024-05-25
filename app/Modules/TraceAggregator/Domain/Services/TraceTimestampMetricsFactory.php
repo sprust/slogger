@@ -2,32 +2,31 @@
 
 namespace App\Modules\TraceAggregator\Domain\Services;
 
-use App\Modules\Common\Enums\TraceTimestampMetricEnum;
-use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceTimestampMetricsObject;
+use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceTimestampMetricObject;
 use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceTimestampsObject;
+use App\Modules\TraceAggregator\Enums\TraceTimestampEnum;
 use App\Modules\TraceAggregator\Enums\TraceTimestampPeriodEnum;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
 class TraceTimestampMetricsFactory
 {
-    public function createMetricsByDate(Carbon $date): TraceTimestampMetricsObject
+    /**
+     * @return TraceTimestampMetricObject[]
+     */
+    public function createMetricsByDate(Carbon $date): array
     {
         $date = $date->clone()->setMicroseconds(0);
 
-        return new TraceTimestampMetricsObject(
-            m: $date->clone()->startOfMonth(),
-            d: $date->clone()->startOfDay(),
-            h12: $this->sliceHours($date->clone(), 12),
-            h4: $this->sliceHours($date->clone(), 4),
-            h: $this->sliceHours($date->clone(), 1),
-            min30: $this->sliceMinutes($date->clone(), 30),
-            min10: $this->sliceMinutes($date->clone(), 10),
-            min5: $this->sliceMinutes($date->clone(), 5),
-            min: $this->sliceMinutes($date->clone(), 1),
-            s30: $this->sliceSeconds($date->clone(), 30),
-            s10: $this->sliceSeconds($date->clone(), 10),
-            s5: $this->sliceSeconds($date->clone(), 5)
+        return array_map(
+            fn(TraceTimestampEnum $timestamp) => new TraceTimestampMetricObject(
+                key: $timestamp->value,
+                value: $this->prepareDateByTimestamp(
+                    date: $date,
+                    timestamp: $timestamp
+                )
+            ),
+            TraceTimestampEnum::cases()
         );
     }
 
@@ -50,23 +49,6 @@ class TraceTimestampMetricsFactory
         };
     }
 
-    public function calcTimestampMetric(TraceTimestampPeriodEnum $timestampPeriod): TraceTimestampMetricEnum
-    {
-        return match ($timestampPeriod) {
-            TraceTimestampPeriodEnum::Minute5 => TraceTimestampMetricEnum::S5,
-            TraceTimestampPeriodEnum::Minute30 => TraceTimestampMetricEnum::S30,
-            TraceTimestampPeriodEnum::Hour => TraceTimestampMetricEnum::Min,
-            TraceTimestampPeriodEnum::Hour4 => TraceTimestampMetricEnum::Min5,
-            TraceTimestampPeriodEnum::Hour12 => TraceTimestampMetricEnum::Min10,
-            TraceTimestampPeriodEnum::Day => TraceTimestampMetricEnum::Min30,
-            TraceTimestampPeriodEnum::Day3 => TraceTimestampMetricEnum::H,
-            TraceTimestampPeriodEnum::Day7 => TraceTimestampMetricEnum::H4,
-            TraceTimestampPeriodEnum::Day15, TraceTimestampPeriodEnum::Month  => TraceTimestampMetricEnum::H12,
-            TraceTimestampPeriodEnum::Month3 => TraceTimestampMetricEnum::D,
-            TraceTimestampPeriodEnum::Month6, TraceTimestampPeriodEnum::Year => TraceTimestampMetricEnum::M,
-        };
-    }
-
     /**
      * @param TraceTimestampsObject[] $existsTimestamps
      *
@@ -75,7 +57,7 @@ class TraceTimestampMetricsFactory
     public function makeTimeLine(
         Carbon $dateFrom,
         Carbon $dateTo,
-        TraceTimestampMetricEnum $timestampMetric,
+        TraceTimestampEnum $timestamp,
         array $existsTimestamps
     ): array {
         /** @var Collection<string, TraceTimestampsObject> $timestampsKeyByTimestamp */
@@ -89,20 +71,10 @@ class TraceTimestampMetricsFactory
         $iterator = $dateTo->clone();
 
         while (true) {
-            $iterator = match ($timestampMetric) {
-                TraceTimestampMetricEnum::M => $iterator->clone()->startOfMonth(),
-                TraceTimestampMetricEnum::D => $iterator->clone()->startOfDay(),
-                TraceTimestampMetricEnum::H12 => $this->sliceHours($iterator->clone(), 12),
-                TraceTimestampMetricEnum::H4 => $this->sliceHours($iterator->clone(), 4),
-                TraceTimestampMetricEnum::H => $this->sliceHours($iterator->clone(), 1),
-                TraceTimestampMetricEnum::Min30 => $this->sliceMinutes($iterator->clone(), 30),
-                TraceTimestampMetricEnum::Min10 => $this->sliceMinutes($iterator->clone(), 10),
-                TraceTimestampMetricEnum::Min5 => $this->sliceMinutes($iterator->clone(), 5),
-                TraceTimestampMetricEnum::Min => $this->sliceMinutes($iterator->clone(), 1),
-                TraceTimestampMetricEnum::S30 => $this->sliceSeconds($iterator->clone(), 30),
-                TraceTimestampMetricEnum::S10 => $this->sliceSeconds($iterator->clone(), 10),
-                TraceTimestampMetricEnum::S5 => $this->sliceSeconds($iterator->clone(), 5),
-            };
+            $iterator = $this->prepareDateByTimestamp(
+                date: $iterator,
+                timestamp: $timestamp
+            );
 
             $timestamps[] = $timestampsKeyByTimestamp[$iterator->toDateTimeString()]
                 ?? new TraceTimestampsObject(
@@ -121,6 +93,24 @@ class TraceTimestampMetricsFactory
             ->sortBy(fn(TraceTimestampsObject $object) => $object->timestamp->toDateTimeString())
             ->values()
             ->toArray();
+    }
+
+    private function prepareDateByTimestamp(Carbon $date, TraceTimestampEnum $timestamp): Carbon
+    {
+        return match ($timestamp) {
+            TraceTimestampEnum::M => $date->clone()->startOfMonth(),
+            TraceTimestampEnum::D => $date->clone()->startOfDay(),
+            TraceTimestampEnum::H12 => $this->sliceHours($date->clone(), 12),
+            TraceTimestampEnum::H4 => $this->sliceHours($date->clone(), 4),
+            TraceTimestampEnum::H => $this->sliceHours($date->clone(), 1),
+            TraceTimestampEnum::Min30 => $this->sliceMinutes($date->clone(), 30),
+            TraceTimestampEnum::Min10 => $this->sliceMinutes($date->clone(), 10),
+            TraceTimestampEnum::Min5 => $this->sliceMinutes($date->clone(), 5),
+            TraceTimestampEnum::Min => $this->sliceMinutes($date->clone(), 1),
+            TraceTimestampEnum::S30 => $this->sliceSeconds($date->clone(), 30),
+            TraceTimestampEnum::S10 => $this->sliceSeconds($date->clone(), 10),
+            TraceTimestampEnum::S5 => $this->sliceSeconds($date->clone(), 5),
+        };
     }
 
     private function sliceHours(Carbon $date, int $slice): Carbon

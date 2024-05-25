@@ -4,6 +4,7 @@ namespace App\Modules\TraceAggregator\Framework\Http\Controllers;
 
 use App\Modules\TraceAggregator\Domain\Actions\FindTraceTimestampsAction;
 use App\Modules\TraceAggregator\Domain\Entities\Parameters\FindTraceTimestampsParameters;
+use App\Modules\TraceAggregator\Enums\TraceTimestampEnum;
 use App\Modules\TraceAggregator\Enums\TraceTimestampPeriodEnum;
 use App\Modules\TraceAggregator\Framework\Http\Controllers\Traits\MakeDataFilterParameterTrait;
 use App\Modules\TraceAggregator\Framework\Http\Requests\TraceTimestampsRequest;
@@ -27,6 +28,7 @@ readonly class TraceTimestampsController
             $this->findTraceTimestampsAction->handle(
                 new FindTraceTimestampsParameters(
                     timestampPeriod: TraceTimestampPeriodEnum::from($validated['timestamp_period']),
+                    timestampStep: TraceTimestampEnum::from($validated['timestamp_step']),
                     serviceIds: !is_null($validated['service_ids'] ?? null)
                         ? array_map('intval', $validated['service_ids'])
                         : null,

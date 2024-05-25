@@ -2,23 +2,23 @@
 
 namespace App\Modules\TraceAggregator\Repositories\Interfaces;
 
-use App\Modules\Common\Enums\TraceTimestampMetricEnum;
 use App\Modules\TraceAggregator\Domain\Entities\Parameters\DataFilter\TraceDataFilterParameters;
+use App\Modules\TraceAggregator\Enums\TraceTimestampEnum;
 use App\Modules\TraceAggregator\Repositories\Dto\TraceTimestampsDto;
 use Illuminate\Support\Carbon;
 
 interface TraceTimestampsRepositoryInterface
 {
     /**
-     * @param int[]|null                 $serviceIds
-     * @param string[]                   $types
-     * @param string[]                   $tags
-     * @param string[]                   $statuses
+     * @param int[]|null $serviceIds
+     * @param string[]   $types
+     * @param string[]   $tags
+     * @param string[]   $statuses
      *
      * @return TraceTimestampsDto[]
      */
     public function find(
-        TraceTimestampMetricEnum $timestampMetric,
+        TraceTimestampEnum $timestamp,
         ?array $serviceIds = null,
         ?array $traceIds = null,
         ?Carbon $loggedAtFrom = null,

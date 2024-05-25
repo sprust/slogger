@@ -26,12 +26,10 @@ readonly class FindTraceTimestampsAction
             date: $loggedAtTo
         );
 
-        $timestampMetric = $this->traceTimestampMetricsFactory->calcTimestampMetric(
-            timestampPeriod: $parameters->timestampPeriod,
-        );
+        $timestampStep = $parameters->timestampStep;
 
         $timestampsDtoList = $this->traceTimestampsRepository->find(
-            timestampMetric: $timestampMetric,
+            timestamp: $timestampStep,
             serviceIds: $parameters->serviceIds,
             traceIds: $parameters->traceIds,
             loggedAtFrom: $loggedAtFrom,
@@ -48,7 +46,7 @@ readonly class FindTraceTimestampsAction
         $items = $this->traceTimestampMetricsFactory->makeTimeLine(
             dateFrom: $loggedAtFrom,
             dateTo: $loggedAtTo,
-            timestampMetric: $timestampMetric,
+            timestamp: $timestampStep,
             existsTimestamps: array_map(
                 fn(TraceTimestampsDto $dto) => new TraceTimestampsObject(
                     timestamp: $dto->timestamp,

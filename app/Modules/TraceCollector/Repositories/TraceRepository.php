@@ -3,9 +3,8 @@
 namespace App\Modules\TraceCollector\Repositories;
 
 use App\Models\Traces\Trace;
-use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceTimestampMetricsObject;
+use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceTimestampMetricObject;
 use App\Modules\TraceCollector\Domain\Entities\Objects\TraceTreeShortObject;
-use App\Modules\TraceCollector\Domain\Entities\Parameters\TraceCreateParameters;
 use App\Modules\TraceCollector\Domain\Entities\Parameters\TraceCreateParametersList;
 use App\Modules\TraceCollector\Domain\Entities\Parameters\TraceTreeFindParameters;
 use App\Modules\TraceCollector\Domain\Entities\Parameters\TraceUpdateParametersList;
@@ -171,7 +170,7 @@ class TraceRepository implements TraceRepositoryInterface
             ->toArray();
     }
 
-    public function updateTraceTimestamps(string $traceId, TraceTimestampMetricsObject $timestamps): void
+    public function updateTraceTimestamps(string $traceId, array $timestamps): void
     {
         Trace::query()
             ->where('traceId', $traceId)
@@ -180,21 +179,17 @@ class TraceRepository implements TraceRepositoryInterface
             ]);
     }
 
-    private function makeTimestampsData(TraceTimestampMetricsObject $timestampMetrics): array
+    /**
+     * @param TraceTimestampMetricObject[] $timestamps
+     */
+    private function makeTimestampsData(array $timestamps): array
     {
-        return [
-            'm'     => new UTCDateTime($timestampMetrics->m),
-            'd'     => new UTCDateTime($timestampMetrics->d),
-            'h12'   => new UTCDateTime($timestampMetrics->h12),
-            'h4'    => new UTCDateTime($timestampMetrics->h4),
-            'h'     => new UTCDateTime($timestampMetrics->h),
-            'min30' => new UTCDateTime($timestampMetrics->min30),
-            'min10' => new UTCDateTime($timestampMetrics->min10),
-            'min5'  => new UTCDateTime($timestampMetrics->min5),
-            'min'   => new UTCDateTime($timestampMetrics->min),
-            's30'   => new UTCDateTime($timestampMetrics->s30),
-            's10'   => new UTCDateTime($timestampMetrics->s10),
-            's5'    => new UTCDateTime($timestampMetrics->s5),
-        ];
+        $result = [];
+
+        foreach ($timestamps as $timestamp) {
+            $result[$timestamp->key] = new UTCDateTime($timestamp->value);
+        }
+
+        return $result;
     }
 }
