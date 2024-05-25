@@ -3,8 +3,8 @@
 namespace App\Modules\TraceAggregator\Framework\Http\Requests;
 
 use App\Models\Services\Service;
-use App\Modules\TraceAggregator\Domain\Enums\TraceDataFilterCompNumericTypeEnum;
-use App\Modules\TraceAggregator\Domain\Enums\TraceDataFilterCompStringTypeEnum;
+use App\Modules\TraceAggregator\Enums\TraceDataFilterCompNumericTypeEnum;
+use App\Modules\TraceAggregator\Enums\TraceDataFilterCompStringTypeEnum;
 use Illuminate\Foundation\Http\FormRequest;
 
 class TraceFindStatusesRequest extends FormRequest

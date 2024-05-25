@@ -2,7 +2,7 @@
 
 namespace App\Modules\TraceAggregator\Domain\Entities\Parameters\DataFilter;
 
-use App\Modules\TraceAggregator\Domain\Enums\TraceDataFilterCompNumericTypeEnum;
+use App\Modules\TraceAggregator\Enums\TraceDataFilterCompNumericTypeEnum;
 
 readonly class TraceDataFilterNumericParameters
 {

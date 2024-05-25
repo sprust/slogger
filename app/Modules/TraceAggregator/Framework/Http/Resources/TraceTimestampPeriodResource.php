@@ -3,18 +3,20 @@
 namespace App\Modules\TraceAggregator\Framework\Http\Resources;
 
 use App\Modules\Common\Http\Resources\AbstractApiResource;
-use App\Modules\TraceAggregator\Enums\TraceTimestampPeriodEnum;
+use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceTimestampPeriodObject;
+use Ifksco\OpenApiGenerator\Attributes\OaListItemTypeAttribute;
 
 class TraceTimestampPeriodResource extends AbstractApiResource
 {
-    private string $name;
-    private string $value;
+    private TraceTimestampPeriodValueResource $period;
+    #[OaListItemTypeAttribute(TraceTimestampPeriodTimestampResource::class)]
+    private array $timestamps;
 
-    public function __construct(TraceTimestampPeriodEnum $resource)
+    public function __construct(TraceTimestampPeriodObject $resource)
     {
         parent::__construct($resource);
 
-        $this->name  = $resource->name;
-        $this->value = $resource->value;
+        $this->period     = new TraceTimestampPeriodValueResource($resource->period);
+        $this->timestamps = TraceTimestampPeriodTimestampResource::mapIntoMe($resource->timestamps);
     }
 }
