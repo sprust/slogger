@@ -3,6 +3,7 @@
 namespace App\Modules\TraceCollector\Framework;
 
 use App\Modules\TraceCollector\Adapters\Service\ServiceAdapter;
+use App\Modules\TraceCollector\Framework\Commands\FreshTraceTimestampsCommand;
 use App\Modules\TraceCollector\Framework\Commands\FreshTraceTreesCommand;
 use App\Modules\TraceCollector\Repositories\Interfaces\TraceRepositoryInterface;
 use App\Modules\TraceCollector\Repositories\Interfaces\TraceTreeRepositoryInterface;
@@ -20,6 +21,7 @@ class TraceCollectorServiceProvider extends ServiceProvider
 
         $this->commands([
             FreshTraceTreesCommand::class,
+            FreshTraceTimestampsCommand::class,
         ]);
     }
 

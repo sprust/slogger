@@ -3,12 +3,16 @@
 namespace App\Modules\TraceCollector\Repositories;
 
 use App\Models\Traces\Trace;
+use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceTimestampMetricsObject;
 use App\Modules\TraceCollector\Domain\Entities\Objects\TraceTreeShortObject;
+use App\Modules\TraceCollector\Domain\Entities\Parameters\TraceCreateParameters;
 use App\Modules\TraceCollector\Domain\Entities\Parameters\TraceCreateParametersList;
 use App\Modules\TraceCollector\Domain\Entities\Parameters\TraceTreeFindParameters;
 use App\Modules\TraceCollector\Domain\Entities\Parameters\TraceUpdateParametersList;
+use App\Modules\TraceCollector\Repositories\Dto\TraceLoggedAtDto;
 use App\Modules\TraceCollector\Repositories\Interfaces\TraceRepositoryInterface;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Carbon;
 use MongoDB\BSON\UTCDateTime;
 
 class TraceRepository implements TraceRepositoryInterface
@@ -36,20 +40,7 @@ class TraceRepository implements TraceRepositoryInterface
                             'duration'      => $parameters->duration,
                             'memory'        => $parameters->memory,
                             'cpu'           => $parameters->cpu,
-                            'timestamps'    => [
-                                'm'     => new UTCDateTime($parameters->timestamps->m),
-                                'd'     => new UTCDateTime($parameters->timestamps->d),
-                                'h12'   => new UTCDateTime($parameters->timestamps->h12),
-                                'h4'    => new UTCDateTime($parameters->timestamps->h4),
-                                'h'     => new UTCDateTime($parameters->timestamps->h),
-                                'min30' => new UTCDateTime($parameters->timestamps->min30),
-                                'min10' => new UTCDateTime($parameters->timestamps->min10),
-                                'min5'  => new UTCDateTime($parameters->timestamps->min5),
-                                'min'   => new UTCDateTime($parameters->timestamps->min),
-                                's30'   => new UTCDateTime($parameters->timestamps->s30),
-                                's10'   => new UTCDateTime($parameters->timestamps->s10),
-                                's5'    => new UTCDateTime($parameters->timestamps->s5),
-                            ],
+                            'timestamps'    => $this->makeTimestampsData($parameters->timestamps),
                             'loggedAt'      => new UTCDateTime($parameters->loggedAt),
                             'updatedAt'     => $timestamp,
                         ],
@@ -158,5 +149,52 @@ class TraceRepository implements TraceRepositoryInterface
                 )
             )
             ->toArray();
+    }
+
+    public function findLoggedAtList(int $page, int $perPage, Carbon $loggedAtTo): array
+    {
+        return Trace::query()
+            ->select([
+                'traceId',
+                'loggedAt',
+            ])
+            ->where('loggedAt', '<=', $loggedAtTo)
+            ->orderBy('_id')
+            ->forPage(page: $page, perPage: $perPage)
+            ->get()
+            ->map(
+                fn(Trace $trace) => new TraceLoggedAtDto(
+                    traceId: $trace->traceId,
+                    loggedAt: $trace->loggedAt
+                )
+            )
+            ->toArray();
+    }
+
+    public function updateTraceTimestamps(string $traceId, TraceTimestampMetricsObject $timestamps): void
+    {
+        Trace::query()
+            ->where('traceId', $traceId)
+            ->update([
+                'timestamps' => $this->makeTimestampsData($timestamps),
+            ]);
+    }
+
+    private function makeTimestampsData(TraceTimestampMetricsObject $timestampMetrics): array
+    {
+        return [
+            'm'     => new UTCDateTime($timestampMetrics->m),
+            'd'     => new UTCDateTime($timestampMetrics->d),
+            'h12'   => new UTCDateTime($timestampMetrics->h12),
+            'h4'    => new UTCDateTime($timestampMetrics->h4),
+            'h'     => new UTCDateTime($timestampMetrics->h),
+            'min30' => new UTCDateTime($timestampMetrics->min30),
+            'min10' => new UTCDateTime($timestampMetrics->min10),
+            'min5'  => new UTCDateTime($timestampMetrics->min5),
+            'min'   => new UTCDateTime($timestampMetrics->min),
+            's30'   => new UTCDateTime($timestampMetrics->s30),
+            's10'   => new UTCDateTime($timestampMetrics->s10),
+            's5'    => new UTCDateTime($timestampMetrics->s5),
+        ];
     }
 }
