@@ -5,10 +5,11 @@ namespace App\Modules\TraceAggregator\Repositories\Services;
 use App\Models\Traces\Trace;
 use App\Modules\TraceAggregator\Domain\Entities\Parameters\DataFilter\TraceDataFilterItemParameters;
 use App\Modules\TraceAggregator\Domain\Entities\Parameters\DataFilter\TraceDataFilterParameters;
-use App\Modules\TraceAggregator\Domain\Enums\TraceDataFilterCompStringTypeEnum;
+use App\Modules\TraceAggregator\Enums\TraceDataFilterCompStringTypeEnum;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use MongoDB\BSON\UTCDateTime;
+use MongoDB\Laravel\Query\Builder as MongoDBBuilder;
 
 class TraceQueryBuilder
 {
@@ -19,10 +20,10 @@ class TraceQueryBuilder
      * @param string[]      $tags
      * @param string[]      $statuses
      *
-     * @return Builder|Trace
+     * @return Builder|MongoDBBuilder|Trace
      */
     public function make(
-        array $serviceIds = [],
+        ?array $serviceIds = null,
         ?array $traceIds = null,
         ?Carbon $loggedAtFrom = null,
         ?Carbon $loggedAtTo = null,
@@ -37,8 +38,22 @@ class TraceQueryBuilder
         $builder = Trace::query()
             ->when($serviceIds, fn(Builder $query) => $query->whereIn('serviceId', $serviceIds))
             ->when($traceIds, fn(Builder $query) => $query->whereIn('traceId', $traceIds))
-            ->when($loggedAtFrom, fn(Builder $query) => $query->where('loggedAt', '>=', new UTCDateTime($loggedAtFrom)))
-            ->when($loggedAtTo, fn(Builder $query) => $query->where('loggedAt', '<=', new UTCDateTime($loggedAtTo)))
+            ->when(
+                $loggedAtFrom,
+                fn(Builder $query) => $query->where(
+                    'loggedAt',
+                    '>=',
+                    new UTCDateTime($loggedAtFrom->clone()->startOfSecond())
+                )
+            )
+            ->when(
+                $loggedAtTo,
+                fn(Builder $query) => $query->where(
+                    'loggedAt',
+                    '<=',
+                    new UTCDateTime($loggedAtTo->clone()->endOfSecond())
+                )
+            )
             ->when($types, fn(Builder $query) => $query->whereIn('type', $types))
             ->when($tags, fn(Builder $query) => $query->where('tags', 'all', $tags))
             ->when($statuses, fn(Builder $query) => $query->whereIn('status', $statuses))

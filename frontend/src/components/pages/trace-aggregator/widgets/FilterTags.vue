@@ -44,6 +44,7 @@
       top="10px"
       :append-to-body="true"
       @open="onDialogOpen"
+      :style="storeGraph.state.showGraph ? {opacity: .9} : {}"
   >
     <el-row style="min-height: 80vh">
       <el-col :span="8">
@@ -86,6 +87,7 @@ import {Plus as TagAddIcon, Search as SearchIcon} from '@element-plus/icons-vue'
 import {useTraceAggregatorTagsStore} from "../../../../store/traceAggregatorTagsStore.ts";
 import {useTraceAggregatorStore} from "../../../../store/traceAggregatorStore.ts";
 import FilterTagsSection from "./FilterTagsSection.vue";
+import {useTraceAggregatorGraphStore} from "../../../../store/traceAggregatorGraphStore.ts";
 
 export default defineComponent({
   components: {FilterTagsSection},
@@ -96,6 +98,7 @@ export default defineComponent({
       SearchIcon: shallowRef(SearchIcon),
       traceStore: useTraceAggregatorStore(),
       tagsStore: useTraceAggregatorTagsStore(),
+      storeGraph: useTraceAggregatorGraphStore(),
     }
   },
   methods: {

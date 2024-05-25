@@ -65,7 +65,15 @@ export function handleApiError(error: any) {
 
 const zeroPad = (num: number, places: number): string => String(num).padStart(places, '0')
 
-export function convertDateStringToLocal(dateString: string, withMicroseconds: boolean = true): string {
+export function convertDateStringToLocalFull(dateString: string) {
+    return convertDateStringToLocal(dateString, false, false)
+}
+
+export function convertDateStringToLocal(
+    dateString: string,
+    withMicroseconds: boolean = true,
+    collapseForCurrentDate: boolean = true,
+): string {
     const date = new Date(dateString)
 
     const newDate = new Date(date.getTime() + date.getTimezoneOffset() * 60 * 1000);
@@ -86,7 +94,7 @@ export function convertDateStringToLocal(dateString: string, withMicroseconds: b
 
     let ymd: Array<string> = []
 
-    if (currentDate.getFullYear() !== newDate.getFullYear()) {
+    if (!collapseForCurrentDate || currentDate.getFullYear() !== newDate.getFullYear()) {
         ymd = [year, month, day]
     } else {
         if (currentDate.getMonth() !== newDate.getMonth()) {

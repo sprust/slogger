@@ -7,8 +7,8 @@ use App\Modules\TraceAggregator\Domain\Entities\Parameters\DataFilter\TraceDataF
 use App\Modules\TraceAggregator\Domain\Entities\Parameters\DataFilter\TraceDataFilterNumericParameters;
 use App\Modules\TraceAggregator\Domain\Entities\Parameters\DataFilter\TraceDataFilterParameters;
 use App\Modules\TraceAggregator\Domain\Entities\Parameters\DataFilter\TraceDataFilterStringParameters;
-use App\Modules\TraceAggregator\Domain\Enums\TraceDataFilterCompNumericTypeEnum;
-use App\Modules\TraceAggregator\Domain\Enums\TraceDataFilterCompStringTypeEnum;
+use App\Modules\TraceAggregator\Enums\TraceDataFilterCompNumericTypeEnum;
+use App\Modules\TraceAggregator\Enums\TraceDataFilterCompStringTypeEnum;
 
 trait MakeDataFilterParameterTrait
 {

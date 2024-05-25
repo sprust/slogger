@@ -23,6 +23,7 @@ use Illuminate\Support\Carbon;
  * @property bool         $hasProfiling
  * @property array        $profiling // TODO: cast or something else
  * @property Carbon       $loggedAt
+ * @property array        $timestamps
  * @property Carbon       $createdAt
  * @property Carbon       $updatedAt
  * @property-read Service $service

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\TraceAggregator\Domain\Enums;
+namespace App\Modules\TraceAggregator\Enums;
 
 enum TraceDataFilterCompNumericTypeEnum: string
 {

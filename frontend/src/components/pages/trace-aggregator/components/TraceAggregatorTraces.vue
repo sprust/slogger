@@ -4,7 +4,11 @@
       <el-form>
         <el-form-item label="Logged at">
           <el-space>
+            <div v-if="storeGraph.state.showGraph" style="width: 220px">
+              <TraceAggregatorTimestampPeriods/>
+            </div>
             <el-date-picker
+                v-else
                 v-model="store.state.payload.logging_from"
                 type="datetime"
                 placeholder="From"
@@ -12,6 +16,7 @@
                 date-format="YYYY-MM-DD"
                 time-format="HH:mm:ss"
                 :shortcuts="dateTimeShortcuts"
+                style="width: 220px"
             />
             <el-date-picker
                 v-model="store.state.payload.logging_to"
@@ -42,10 +47,22 @@
         </el-form-item>
       </el-form>
     </el-space>
+    <div class="flex-grow"/>
+    <el-form>
+      <el-form-item label="Graph">
+        <el-switch
+            v-model="storeGraph.state.showGraph"
+            size="small"
+            active-text="show"
+            inactive-text="off"
+            active-color="green"
+        />
+      </el-form-item>
+    </el-form>
   </el-row>
   <el-row>
     <el-space>
-      <el-form>
+      <el-form :disabled="storeGraph.state.showGraph">
         <el-form-item label="Trace id">
           <el-input v-model="store.state.payload.trace_id" style="width: 500px" clearable>
             <template #append>
@@ -85,8 +102,12 @@
   <el-row>
     <FilterTags/>
     <div class="flex-grow"/>
-    <el-button @click="reset" :disabled="store.state.loading">reset</el-button>
-    <el-button @click="onButtonSearchClick" :disabled="store.state.loading">search</el-button>
+    <el-button @click="reset" :disabled="store.state.loading">
+      reset
+    </el-button>
+    <el-button @click="onButtonSearchClick" :disabled="store.state.loading || storeGraph.state.showGraph">
+      search
+    </el-button>
   </el-row>
 
   <el-row v-if="store.state.customFields.length">
@@ -96,49 +117,55 @@
     />
   </el-row>
 
-  <el-pagination
-      v-if="store.state.traceAggregator.paginator"
-      small="small"
-      v-model:current-page="store.state.payload.page"
-      v-model:page-size="store.state.traceAggregator.paginator.per_page"
-      layout="sizes, prev, pager, next, jumper"
-      :total="store.state.traceAggregator.paginator.total"
-      :page-sizes="[5, 10, 15, 20]"
-      @current-change="update"
-      @size-change="handlePageSizeChange"
-  />
+  <div v-if="storeGraph.state.showGraph && storeTimestampsPeriods.state.loaded">
+    <TraceAggregatorGraph/>
+  </div>
 
-  <el-progress
-      v-if="store.state.loading"
-      status="success"
-      :text-inside="true"
-      :percentage="100"
-      :indeterminate="true"
-      :duration="5"
-      striped
-  />
+  <div v-show="!storeGraph.state.showGraph">
+    <el-pagination
+        v-if="store.state.traceAggregator.paginator"
+        small="small"
+        v-model:current-page="store.state.payload.page"
+        v-model:page-size="store.state.traceAggregator.paginator.per_page"
+        layout="sizes, prev, pager, next, jumper"
+        :total="store.state.traceAggregator.paginator.total"
+        :page-sizes="[5, 10, 15, 20]"
+        @current-change="update"
+        @size-change="handlePageSizeChange"
+    />
 
-  <TraceAggregatorTracesTable
-      v-else
-      :items="store.state.traceAggregator.items"
-      :payload="store.state.payload"
-      @onTraceTagClick="onTraceTagClick"
-      @onTraceTypeClick="onTraceTypeClick"
-      @onTraceStatusClick="onTraceStatusClick"
-      @onCustomFieldClick="onCustomFieldClick"
-  />
+    <el-progress
+        v-if="store.state.loading"
+        status="success"
+        :text-inside="true"
+        :percentage="100"
+        :indeterminate="true"
+        :duration="5"
+        striped
+    />
 
-  <el-pagination
-      v-if="store.state.traceAggregator.paginator && !store.state.loading"
-      small="small"
-      v-model:current-page="store.state.payload.page"
-      v-model:page-size="store.state.traceAggregator.paginator.per_page"
-      layout="sizes, prev, pager, next, jumper"
-      :total="store.state.traceAggregator.paginator.total"
-      :page-sizes="[5, 10, 15, 20]"
-      @current-change="update"
-      @size-change="handlePageSizeChange"
-  />
+    <TraceAggregatorTracesTable
+        v-else
+        :items="store.state.traceAggregator.items"
+        :payload="store.state.payload"
+        @onTraceTagClick="onTraceTagClick"
+        @onTraceTypeClick="onTraceTypeClick"
+        @onTraceStatusClick="onTraceStatusClick"
+        @onCustomFieldClick="onCustomFieldClick"
+    />
+
+    <el-pagination
+        v-if="store.state.traceAggregator.paginator && !store.state.loading"
+        small="small"
+        v-model:current-page="store.state.payload.page"
+        v-model:page-size="store.state.traceAggregator.paginator.per_page"
+        layout="sizes, prev, pager, next, jumper"
+        :total="store.state.traceAggregator.paginator.total"
+        :page-sizes="[5, 10, 15, 20]"
+        @current-change="update"
+        @size-change="handlePageSizeChange"
+    />
+  </div>
 </template>
 
 <script lang="ts">
@@ -151,21 +178,29 @@ import TraceAggregatorServices from "./TraceAggregatorServices.vue";
 import FilterTags from "../widgets/FilterTags.vue";
 import {state} from "vue-tsc/out/shared";
 import {CloseBold} from '@element-plus/icons-vue'
+import TraceAggregatorGraph from "./TraceAggregatorGraph.vue";
+import TraceAggregatorTimestampPeriods from "./TraceAggregatorTimestampPeriods.vue";
+import {useTraceAggregatorGraphStore} from "../../../../store/traceAggregatorGraphStore.ts";
+import {useTraceAggregatorTimestampPeriodStore} from "../../../../store/traceAggregatorTimestampPeriodsStore.ts";
 
 const startOfDay = new Date()
 startOfDay.setUTCHours(Math.ceil(startOfDay.getTimezoneOffset() / 60), 0, 0, 0);
 
 export default defineComponent({
   components: {
+    TraceAggregatorGraph,
     TraceAggregatorTracesTable,
     FilterTags,
     TraceAggregatorTraceDataNode,
     TraceAggregatorTracesCustomFields,
     TraceAggregatorServices,
+    TraceAggregatorTimestampPeriods,
   },
   data() {
     return {
       store: useTraceAggregatorStore(),
+      storeGraph: useTraceAggregatorGraphStore(),
+      storeTimestampsPeriods: useTraceAggregatorTimestampPeriodStore(),
       dateTimeShortcuts: [
         {
           text: 'Start of day',

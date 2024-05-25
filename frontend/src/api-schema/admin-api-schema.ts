@@ -848,6 +848,127 @@ export namespace AdminApi {
     };
   } /**
  * No description
+ * @name TraceAggregatorTraceMetricsCreate
+ * @request POST:/admin-api/trace-aggregator/trace-metrics
+ * @secure
+ * @response `200` `{
+    data: {
+    loggedAtFrom: string,
+    items: ({
+    timestamp: string,
+    timestamp_to: string,
+    count: number,
+    durationPercent: number,
+
+})[],
+
+},
+
+}` description
+*/
+  export namespace TraceAggregatorTraceMetricsCreate {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = {
+      timestamp_period:
+        | "5 minutes"
+        | "30 minutes"
+        | "1 hour"
+        | "4 hours"
+        | "12 hours"
+        | "1 day"
+        | "3 days"
+        | "7 days"
+        | "15 days"
+        | "1 month"
+        | "3 months"
+        | "6 month"
+        | "1 year";
+      timestamp_step: "s5" | "s10" | "s30" | "min" | "min5" | "min10" | "min30" | "h" | "h4" | "h12" | "d" | "m";
+      service_ids?: number[];
+      /** @format date */
+      logging_to?: string;
+      types?: string[];
+      tags?: string[];
+      statuses?: string[];
+      /** @format float */
+      duration_from?: number | null;
+      /** @format float */
+      duration_to?: number | null;
+      data?: {
+        filter?: {
+          field?: string;
+          null?: boolean;
+          numeric?: {
+            /** @format float */
+            value?: number;
+            comp?: "=" | "!=" | ">" | ">=" | "<" | "<=";
+          };
+          string?: {
+            value?: string;
+            comp?: "equals" | "contains" | "starts" | "ends";
+          };
+          boolean?: {
+            value?: boolean;
+          };
+        }[];
+        fields?: string[];
+      };
+      has_profiling?: boolean;
+    };
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        loggedAtFrom: string;
+        items: {
+          timestamp: string;
+          timestamp_to: string;
+          count: number;
+          durationPercent: number;
+        }[];
+      };
+    };
+  } /**
+ * No description
+ * @name TraceAggregatorTraceTimestampPeriodsList
+ * @request GET:/admin-api/trace-aggregator/trace-timestamp-periods
+ * @secure
+ * @response `200` `{
+    data: ({
+    period: {
+    name: string,
+    value: string,
+
+},
+    timestamps: ({
+    value: string,
+    title: string,
+
+})[],
+
+})[],
+
+}` description
+*/
+  export namespace TraceAggregatorTraceTimestampPeriodsList {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        period: {
+          name: string;
+          value: string;
+        };
+        timestamps: {
+          value: string;
+          title: string;
+        }[];
+      }[];
+    };
+  } /**
+ * No description
  * @name TraceCleanerSettingsList
  * @request GET:/admin-api/trace-cleaner/settings
  * @secure
@@ -2158,6 +2279,146 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         body: data,
         secure: true,
         type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name TraceAggregatorTraceMetricsCreate
+ * @request POST:/admin-api/trace-aggregator/trace-metrics
+ * @secure
+ * @response `200` `{
+    data: {
+    loggedAtFrom: string,
+    items: ({
+    timestamp: string,
+    timestamp_to: string,
+    count: number,
+    durationPercent: number,
+
+})[],
+
+},
+
+}` description
+ */
+    traceAggregatorTraceMetricsCreate: (
+      data: {
+        timestamp_period:
+          | "5 minutes"
+          | "30 minutes"
+          | "1 hour"
+          | "4 hours"
+          | "12 hours"
+          | "1 day"
+          | "3 days"
+          | "7 days"
+          | "15 days"
+          | "1 month"
+          | "3 months"
+          | "6 month"
+          | "1 year";
+        timestamp_step: "s5" | "s10" | "s30" | "min" | "min5" | "min10" | "min30" | "h" | "h4" | "h12" | "d" | "m";
+        service_ids?: number[];
+        /** @format date */
+        logging_to?: string;
+        types?: string[];
+        tags?: string[];
+        statuses?: string[];
+        /** @format float */
+        duration_from?: number | null;
+        /** @format float */
+        duration_to?: number | null;
+        data?: {
+          filter?: {
+            field?: string;
+            null?: boolean;
+            numeric?: {
+              /** @format float */
+              value?: number;
+              comp?: "=" | "!=" | ">" | ">=" | "<" | "<=";
+            };
+            string?: {
+              value?: string;
+              comp?: "equals" | "contains" | "starts" | "ends";
+            };
+            boolean?: {
+              value?: boolean;
+            };
+          }[];
+          fields?: string[];
+        };
+        has_profiling?: boolean;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          data: {
+            loggedAtFrom: string;
+            items: {
+              timestamp: string;
+              timestamp_to: string;
+              count: number;
+              durationPercent: number;
+            }[];
+          };
+        },
+        any
+      >({
+        path: `/admin-api/trace-aggregator/trace-metrics`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name TraceAggregatorTraceTimestampPeriodsList
+ * @request GET:/admin-api/trace-aggregator/trace-timestamp-periods
+ * @secure
+ * @response `200` `{
+    data: ({
+    period: {
+    name: string,
+    value: string,
+
+},
+    timestamps: ({
+    value: string,
+    title: string,
+
+})[],
+
+})[],
+
+}` description
+ */
+    traceAggregatorTraceTimestampPeriodsList: (params: RequestParams = {}) =>
+      this.request<
+        {
+          data: {
+            period: {
+              name: string;
+              value: string;
+            };
+            timestamps: {
+              value: string;
+              title: string;
+            }[];
+          }[];
+        },
+        any
+      >({
+        path: `/admin-api/trace-aggregator/trace-timestamp-periods`,
+        method: "GET",
+        secure: true,
         format: "json",
         ...params,
       }),

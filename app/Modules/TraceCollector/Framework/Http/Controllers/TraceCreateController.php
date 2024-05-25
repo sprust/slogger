@@ -2,6 +2,7 @@
 
 namespace App\Modules\TraceCollector\Framework\Http\Controllers;
 
+use App\Modules\TraceAggregator\Domain\Actions\CreateTraceTimestampsAction;
 use App\Modules\TraceCollector\Adapters\Service\ServiceAdapter;
 use App\Modules\TraceCollector\Domain\Entities\Parameters\TraceCreateParameters;
 use App\Modules\TraceCollector\Domain\Entities\Parameters\TraceCreateParametersList;
@@ -16,6 +17,7 @@ readonly class TraceCreateController
     public function __construct(
         private ServiceAdapter $serviceAdapter,
         private QueueDispatcher $tracesServiceQueueDispatcher,
+        private CreateTraceTimestampsAction $createTraceTimestampsAction, // TODO: violation of modularity
         private SLoggerProcessor $loggerProcessor
     ) {
     }
@@ -39,6 +41,8 @@ readonly class TraceCreateController
         $parametersList = new TraceCreateParametersList();
 
         foreach ($validated['traces'] as $item) {
+            $loggedAt = new Carbon($item['logged_at']);
+
             $parametersList->add(
                 new TraceCreateParameters(
                     serviceId: $serviceId,
@@ -51,7 +55,10 @@ readonly class TraceCreateController
                     duration: $item['duration'],
                     memory: $item['memory'] ?? null,
                     cpu: $item['cpu'] ?? null,
-                    loggedAt: new Carbon($item['logged_at']),
+                    timestamps: $this->createTraceTimestampsAction->handle(
+                        date: $loggedAt
+                    ),
+                    loggedAt: $loggedAt,
                 )
             );
         }

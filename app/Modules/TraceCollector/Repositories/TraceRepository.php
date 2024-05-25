@@ -3,12 +3,15 @@
 namespace App\Modules\TraceCollector\Repositories;
 
 use App\Models\Traces\Trace;
+use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceTimestampMetricObject;
 use App\Modules\TraceCollector\Domain\Entities\Objects\TraceTreeShortObject;
 use App\Modules\TraceCollector\Domain\Entities\Parameters\TraceCreateParametersList;
 use App\Modules\TraceCollector\Domain\Entities\Parameters\TraceTreeFindParameters;
 use App\Modules\TraceCollector\Domain\Entities\Parameters\TraceUpdateParametersList;
+use App\Modules\TraceCollector\Repositories\Dto\TraceLoggedAtDto;
 use App\Modules\TraceCollector\Repositories\Interfaces\TraceRepositoryInterface;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Carbon;
 use MongoDB\BSON\UTCDateTime;
 
 class TraceRepository implements TraceRepositoryInterface
@@ -36,6 +39,7 @@ class TraceRepository implements TraceRepositoryInterface
                             'duration'      => $parameters->duration,
                             'memory'        => $parameters->memory,
                             'cpu'           => $parameters->cpu,
+                            'timestamps'    => $this->makeTimestampsData($parameters->timestamps),
                             'loggedAt'      => new UTCDateTime($parameters->loggedAt),
                             'updatedAt'     => $timestamp,
                         ],
@@ -144,5 +148,48 @@ class TraceRepository implements TraceRepositoryInterface
                 )
             )
             ->toArray();
+    }
+
+    public function findLoggedAtList(int $page, int $perPage, Carbon $loggedAtTo): array
+    {
+        return Trace::query()
+            ->select([
+                'traceId',
+                'loggedAt',
+            ])
+            ->where('loggedAt', '<=', $loggedAtTo)
+            ->orderBy('_id')
+            ->forPage(page: $page, perPage: $perPage)
+            ->get()
+            ->map(
+                fn(Trace $trace) => new TraceLoggedAtDto(
+                    traceId: $trace->traceId,
+                    loggedAt: $trace->loggedAt
+                )
+            )
+            ->toArray();
+    }
+
+    public function updateTraceTimestamps(string $traceId, array $timestamps): void
+    {
+        Trace::query()
+            ->where('traceId', $traceId)
+            ->update([
+                'timestamps' => $this->makeTimestampsData($timestamps),
+            ]);
+    }
+
+    /**
+     * @param TraceTimestampMetricObject[] $timestamps
+     */
+    private function makeTimestampsData(array $timestamps): array
+    {
+        $result = [];
+
+        foreach ($timestamps as $timestamp) {
+            $result[$timestamp->key] = new UTCDateTime($timestamp->value);
+        }
+
+        return $result;
     }
 }

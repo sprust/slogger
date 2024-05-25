@@ -2,10 +2,15 @@
 
 namespace App\Modules\TraceCollector\Domain\Entities\Parameters;
 
+use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceTimestampMetricObject;
 use Illuminate\Support\Carbon;
 
 class TraceCreateParameters
 {
+    /**
+     * @param string[]                     $tags
+     * @param TraceTimestampMetricObject[] $timestamps
+     */
     public function __construct(
         public int $serviceId,
         public string $traceId,
@@ -17,6 +22,7 @@ class TraceCreateParameters
         public ?float $duration,
         public ?float $memory,
         public ?float $cpu,
+        public array $timestamps,
         public Carbon $loggedAt
     ) {
     }

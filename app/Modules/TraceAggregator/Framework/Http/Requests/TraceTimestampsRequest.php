@@ -5,13 +5,37 @@ namespace App\Modules\TraceAggregator\Framework\Http\Requests;
 use App\Models\Services\Service;
 use App\Modules\TraceAggregator\Enums\TraceDataFilterCompNumericTypeEnum;
 use App\Modules\TraceAggregator\Enums\TraceDataFilterCompStringTypeEnum;
+use App\Modules\TraceAggregator\Enums\TraceTimestampEnum;
+use App\Modules\TraceAggregator\Enums\TraceTimestampPeriodEnum;
 use Illuminate\Foundation\Http\FormRequest;
 
-class TraceFindStatusesRequest extends FormRequest
+class TraceTimestampsRequest extends FormRequest
 {
     public function rules(): array
     {
         return [
+            'timestamp_period'            => [
+                'required',
+                'string',
+                'in:' . implode(
+                    ',',
+                    array_map(
+                        fn(TraceTimestampPeriodEnum $enum) => $enum->value,
+                        TraceTimestampPeriodEnum::cases()
+                    )
+                ),
+            ],
+            'timestamp_step'            => [
+                'required',
+                'string',
+                'in:' . implode(
+                    ',',
+                    array_map(
+                        fn(TraceTimestampEnum $enum) => $enum->value,
+                        TraceTimestampEnum::cases()
+                    )
+                ),
+            ],
             'service_ids'                 => [
                 'sometimes',
                 'array',
@@ -21,11 +45,9 @@ class TraceFindStatusesRequest extends FormRequest
                 'required',
                 'integer',
             ],
-            'text'                        => [
+            'logging_to'                  => [
                 'sometimes',
-                'string',
-                'nullable',
-                'min:1',
+                'date',
             ],
             'types'                       => [
                 'sometimes',
@@ -43,13 +65,23 @@ class TraceFindStatusesRequest extends FormRequest
                 'required',
                 'string',
             ],
-            'logging_from'                => [
+            'statuses'                    => [
                 'sometimes',
-                'date',
+                'array',
             ],
-            'logging_to'                  => [
+            'statuses.*'                  => [
+                'required',
+                'string',
+            ],
+            'duration_from'               => [
                 'sometimes',
-                'date',
+                'numeric',
+                'nullable',
+            ],
+            'duration_to'                 => [
+                'sometimes',
+                'numeric',
+                'nullable',
             ],
             'data'                        => [
                 'sometimes',
@@ -112,6 +144,14 @@ class TraceFindStatusesRequest extends FormRequest
             'data.filter.*.boolean.value' => [
                 'sometimes',
                 'bool',
+            ],
+            'data.fields'                 => [
+                'sometimes',
+                'array',
+            ],
+            'data.fields.*'               => [
+                'required',
+                'string',
             ],
             'has_profiling'               => [
                 'sometimes',
