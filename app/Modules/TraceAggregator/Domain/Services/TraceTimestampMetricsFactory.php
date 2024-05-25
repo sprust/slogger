@@ -54,17 +54,16 @@ class TraceTimestampMetricsFactory
     {
         return match ($timestampPeriod) {
             TraceTimestampPeriodEnum::Minute5 => TraceTimestampMetricEnum::S5,
-            TraceTimestampPeriodEnum::Minute30 => TraceTimestampMetricEnum::S10,
-            TraceTimestampPeriodEnum::Hour => TraceTimestampMetricEnum::S30,
-            TraceTimestampPeriodEnum::Hour4 => TraceTimestampMetricEnum::Min,
-            TraceTimestampPeriodEnum::Hour12 => TraceTimestampMetricEnum::Min5,
-            TraceTimestampPeriodEnum::Day => TraceTimestampMetricEnum::Min10,
-            TraceTimestampPeriodEnum::Day3 => TraceTimestampMetricEnum::Min30,
-            TraceTimestampPeriodEnum::Day7 => TraceTimestampMetricEnum::H,
-            TraceTimestampPeriodEnum::Day15 => TraceTimestampMetricEnum::H4,
-            TraceTimestampPeriodEnum::Month3, TraceTimestampPeriodEnum::Month => TraceTimestampMetricEnum::H12,
-            TraceTimestampPeriodEnum::Month6 => TraceTimestampMetricEnum::D,
-            TraceTimestampPeriodEnum::Year => TraceTimestampMetricEnum::M,
+            TraceTimestampPeriodEnum::Minute30 => TraceTimestampMetricEnum::S30,
+            TraceTimestampPeriodEnum::Hour => TraceTimestampMetricEnum::Min,
+            TraceTimestampPeriodEnum::Hour4 => TraceTimestampMetricEnum::Min5,
+            TraceTimestampPeriodEnum::Hour12 => TraceTimestampMetricEnum::Min10,
+            TraceTimestampPeriodEnum::Day => TraceTimestampMetricEnum::Min30,
+            TraceTimestampPeriodEnum::Day3 => TraceTimestampMetricEnum::H,
+            TraceTimestampPeriodEnum::Day7 => TraceTimestampMetricEnum::H4,
+            TraceTimestampPeriodEnum::Day15, TraceTimestampPeriodEnum::Month  => TraceTimestampMetricEnum::H12,
+            TraceTimestampPeriodEnum::Month3 => TraceTimestampMetricEnum::D,
+            TraceTimestampPeriodEnum::Month6, TraceTimestampPeriodEnum::Year => TraceTimestampMetricEnum::M,
         };
     }
 
