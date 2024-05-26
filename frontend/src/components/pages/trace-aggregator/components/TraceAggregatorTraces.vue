@@ -238,6 +238,8 @@ export default defineComponent({
     },
     reset() {
       this.store.dispatch('resetFilters')
+
+      this.store.state.payload.logging_from = startOfDay.toUTCString()
     },
     handlePageSizeChange(perPage: number) {
       this.store.dispatch('setPerPage', perPage)
@@ -265,9 +267,7 @@ export default defineComponent({
       return
     }
 
-    this.store.dispatch('resetFilters')
-
-    this.store.state.payload.logging_from = startOfDay.toUTCString()
+    this.reset()
 
     this.update()
   }
