@@ -1,12 +1,12 @@
 <template>
-  <el-tabs v-model="tabsStore.state.currentTab">
-    <el-tab-pane label="Traces" :name="traceAggregatorTabs.traces">
+  <el-tabs v-model="tabsStore.state.currentTab" class="height-100">
+    <el-tab-pane label="Traces" :name="traceAggregatorTabs.traces" class="height-100">
       <TraceAggregatorTraces/>
     </el-tab-pane>
-    <el-tab-pane label="Tree" :name="traceAggregatorTabs.tree">
-      <TraceAggregatorTraceTree/>
+    <el-tab-pane label="Tree" :name="traceAggregatorTabs.tree" class="height-100">
+      <TraceAggregatorTraceTree class="height-100"/>
     </el-tab-pane>
-    <el-tab-pane label="Profiling" :name="traceAggregatorTabs.profiling">
+    <el-tab-pane label="Profiling" :name="traceAggregatorTabs.profiling" class="height-100">
       <TraceAggregatorProfiling/>
     </el-tab-pane>
   </el-tabs>

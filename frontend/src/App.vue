@@ -1,16 +1,12 @@
 <template>
-  <div class="common-layout">
-    <el-container>
-      <el-header>
-        <Header v-if="authStore.state.user"/>
-      </el-header>
-      <el-container>
-        <el-main>
-          <router-view/>
-        </el-main>
-      </el-container>
-    </el-container>
-  </div>
+  <el-container class="common-layout">
+    <el-header>
+      <Header v-if="authStore.state.user"/>
+    </el-header>
+    <div class="height-100" style="padding: 20px; overflow-y: auto">
+      <router-view/>
+    </div>
+  </el-container>
 </template>
 
 <script lang="ts">
@@ -32,5 +28,8 @@ export default defineComponent({
 </script>
 
 <style scoped>
-
+.common-layout {
+  width: 100%;
+  height: 100%;
+}
 </style>
