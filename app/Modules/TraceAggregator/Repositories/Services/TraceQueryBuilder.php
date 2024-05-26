@@ -65,6 +65,22 @@ class TraceQueryBuilder
     }
 
     /**
+     * @param Builder|MongoDBBuilder $builder
+     *
+     * @return array
+     */
+    public function makeMqlMatchFromBuilder(Builder $builder): array
+    {
+        $match = [];
+
+        foreach ($builder->toMql()['find'][0] ?? [] as $key => $value) {
+            $match[$key] = $value;
+        }
+
+        return $match;
+    }
+
+    /**
      * @param TraceDataFilterItemParameters[] $filter
      */
     private function applyDataFilter(Builder $builder, array $filter): Builder

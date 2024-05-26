@@ -13,12 +13,12 @@
       <el-row>
         <el-check-tag
             v-for="tag in tags"
-            :key="tag"
+            :key="tag.name"
             :type="tagType"
-            :checked="selectedTags.indexOf(tag) !== -1"
-            @click="onTagClick(tag)"
+            :checked="selectedTags.indexOf(tag.name) !== -1"
+            @click="onTagClick(tag.name)"
         >
-          {{ tag }}
+          {{ tag.name }} ({{ tag.count }})
         </el-check-tag>
       </el-row>
     </el-form-item>
@@ -28,6 +28,7 @@
 <script lang="ts">
 import {defineComponent, shallowRef} from "vue";
 import {Plus as TagAddIcon, Search as SearchIcon} from '@element-plus/icons-vue'
+import {TraceTag} from "../../../../store/traceAggregatorTagsStore.ts";
 
 export default defineComponent({
   emits: ['findTags', 'onTagClick'],
@@ -41,7 +42,7 @@ export default defineComponent({
       required: true,
     },
     tags: {
-      type: Array<string>,
+      type: Array<TraceTag>,
       required: true,
     },
     selectedTags: {

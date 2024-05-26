@@ -14,16 +14,21 @@ type TraceAggregatorFindTag = AdminApi.TraceAggregatorTracesContentTagsCreate.Re
 type TraceAggregatorFindStatusesPayload = AdminApi.TraceAggregatorTracesContentStatusesCreate.RequestBody;
 type TraceAggregatorFindStatus = AdminApi.TraceAggregatorTracesContentStatusesCreate.ResponseBody['data'][number];
 
+export interface TraceTag {
+    name: string;
+    count: number;
+}
+
 interface State {
     loading: boolean,
 
-    types: Array<string>,
+    types: Array<TraceTag>,
     typesPayload: TraceAggregatorFindTypesPayload,
 
-    tags: Array<string>,
+    tags: Array<TraceTag>,
     tagsPayload: TraceAggregatorFindTagsPayload,
 
-    statuses: Array<string>,
+    statuses: Array<TraceTag>,
     statusesPayload: TraceAggregatorFindStatusesPayload,
 }
 
@@ -31,24 +36,24 @@ export const traceAggregatorFindTagsStore = createStore<State>({
     state: {
         loading: true,
 
-        types: new Array<string>,
+        types: new Array<TraceTag>,
         typesPayload: {} as TraceAggregatorFindTagsPayload,
 
-        tags: new Array<string>,
+        tags: new Array<TraceTag>,
         tagsPayload: {} as TraceAggregatorFindTagsPayload,
 
-        statuses: new Array<string>,
+        statuses: new Array<TraceTag>,
         statusesPayload: {} as TraceAggregatorFindStatusesPayload,
     } as State,
     mutations: {
         setTypes(state: State, types: Array<TraceAggregatorFindType>) {
-            state.types = types.map((type: TraceAggregatorFindType) => type.value)
+            state.types = types
         },
         setTags(state: State, tags: Array<TraceAggregatorFindTag>) {
-            state.tags = tags.map((tag: TraceAggregatorFindTag) => tag.value)
+            state.tags = tags
         },
         setStatuses(state: State, statuses: Array<TraceAggregatorFindStatus>) {
-            state.statuses = statuses.map((status: TraceAggregatorFindStatus) => status.value)
+            state.statuses = statuses
         },
     },
     actions: {

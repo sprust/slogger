@@ -700,7 +700,8 @@ export namespace AdminApi {
  * @secure
  * @response `200` `{
     data: ({
-    value: string,
+    name: string,
+    count: number,
 
 })[],
 
@@ -740,7 +741,8 @@ export namespace AdminApi {
     export type RequestHeaders = {};
     export type ResponseBody = {
       data: {
-        value: string;
+        name: string;
+        count: number;
       }[];
     };
   } /**
@@ -750,7 +752,8 @@ export namespace AdminApi {
  * @secure
  * @response `200` `{
     data: ({
-    value: string,
+    name: string,
+    count: number,
 
 })[],
 
@@ -791,7 +794,8 @@ export namespace AdminApi {
     export type RequestHeaders = {};
     export type ResponseBody = {
       data: {
-        value: string;
+        name: string;
+        count: number;
       }[];
     };
   } /**
@@ -801,7 +805,8 @@ export namespace AdminApi {
  * @secure
  * @response `200` `{
     data: ({
-    value: string,
+    name: string,
+    count: number,
 
 })[],
 
@@ -843,7 +848,8 @@ export namespace AdminApi {
     export type RequestHeaders = {};
     export type ResponseBody = {
       data: {
-        value: string;
+        name: string;
+        count: number;
       }[];
     };
   } /**
@@ -2102,7 +2108,8 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
  * @secure
  * @response `200` `{
     data: ({
-    value: string,
+    name: string,
+    count: number,
 
 })[],
 
@@ -2142,7 +2149,8 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       this.request<
         {
           data: {
-            value: string;
+            name: string;
+            count: number;
           }[];
         },
         any
@@ -2164,7 +2172,8 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
  * @secure
  * @response `200` `{
     data: ({
-    value: string,
+    name: string,
+    count: number,
 
 })[],
 
@@ -2205,7 +2214,8 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       this.request<
         {
           data: {
-            value: string;
+            name: string;
+            count: number;
           }[];
         },
         any
@@ -2227,7 +2237,8 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
  * @secure
  * @response `200` `{
     data: ({
-    value: string,
+    name: string,
+    count: number,
 
 })[],
 
@@ -2269,7 +2280,8 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       this.request<
         {
           data: {
-            value: string;
+            name: string;
+            count: number;
           }[];
         },
         any

@@ -1614,13 +1614,18 @@
                                             "type": "array",
                                             "items": {
                                                 "properties": {
-                                                    "value": {
+                                                    "name": {
                                                         "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "count": {
+                                                        "type": "integer",
                                                         "nullable": false
                                                     }
                                                 },
                                                 "required": [
-                                                    "value"
+                                                    "name",
+                                                    "count"
                                                 ]
                                             }
                                         }
@@ -1758,13 +1763,18 @@
                                             "type": "array",
                                             "items": {
                                                 "properties": {
-                                                    "value": {
+                                                    "name": {
                                                         "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "count": {
+                                                        "type": "integer",
                                                         "nullable": false
                                                     }
                                                 },
                                                 "required": [
-                                                    "value"
+                                                    "name",
+                                                    "count"
                                                 ]
                                             }
                                         }
@@ -1908,13 +1918,18 @@
                                             "type": "array",
                                             "items": {
                                                 "properties": {
-                                                    "value": {
+                                                    "name": {
                                                         "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "count": {
+                                                        "type": "integer",
                                                         "nullable": false
                                                     }
                                                 },
                                                 "required": [
-                                                    "value"
+                                                    "name",
+                                                    "count"
                                                 ]
                                             }
                                         }

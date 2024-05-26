@@ -13,7 +13,7 @@ use App\Modules\TraceAggregator\Framework\Http\Controllers\Traits\MakeDataFilter
 use App\Modules\TraceAggregator\Framework\Http\Requests\TraceFindStatusesRequest;
 use App\Modules\TraceAggregator\Framework\Http\Requests\TraceFindTagsRequest;
 use App\Modules\TraceAggregator\Framework\Http\Requests\TraceFindTypesRequest;
-use App\Modules\TraceAggregator\Framework\Http\Resources\StringValueResource;
+use App\Modules\TraceAggregator\Framework\Http\Resources\TraceStringFieldResource;
 use Ifksco\OpenApiGenerator\Attributes\OaListItemTypeAttribute;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
@@ -28,12 +28,12 @@ readonly class TraceContentController
     ) {
     }
 
-    #[OaListItemTypeAttribute(StringValueResource::class)]
+    #[OaListItemTypeAttribute(TraceStringFieldResource::class)]
     public function types(TraceFindTypesRequest $request): AnonymousResourceCollection
     {
         $validated = $request->validated();
 
-        return StringValueResource::collection(
+        return TraceStringFieldResource::collection(
             $this->findTypesAction->handle(
                 new TraceFindTypesParameters(
                     serviceIds: array_map('intval', $validated['service_ids'] ?? []),
@@ -49,12 +49,12 @@ readonly class TraceContentController
         );
     }
 
-    #[OaListItemTypeAttribute(StringValueResource::class)]
+    #[OaListItemTypeAttribute(TraceStringFieldResource::class)]
     public function tags(TraceFindTagsRequest $request): AnonymousResourceCollection
     {
         $validated = $request->validated();
 
-        return StringValueResource::collection(
+        return TraceStringFieldResource::collection(
             $this->findTagsAction->handle(
                 new TraceFindTagsParameters(
                     serviceIds: array_map('intval', $validated['service_ids'] ?? []),
@@ -71,12 +71,12 @@ readonly class TraceContentController
         );
     }
 
-    #[OaListItemTypeAttribute(StringValueResource::class)]
+    #[OaListItemTypeAttribute(TraceStringFieldResource::class)]
     public function statuses(TraceFindStatusesRequest $request): AnonymousResourceCollection
     {
         $validated = $request->validated();
 
-        return StringValueResource::collection(
+        return TraceStringFieldResource::collection(
             $this->findStatusesAction->handle(
                 new TraceFindStatusesParameters(
                     serviceIds: array_map('intval', $validated['service_ids'] ?? []),
