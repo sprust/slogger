@@ -56,6 +56,8 @@
             active-text="show"
             inactive-text="off"
             active-color="green"
+            :inactive-icon="Close"
+            :active-icon="storeGraph.state.loading ? Loading : SwitchButton"
         />
       </el-form-item>
     </el-form>
@@ -177,7 +179,7 @@ import TraceAggregatorTracesCustomFields from "./TraceAggregatorTracesCustomFiel
 import TraceAggregatorServices from "./TraceAggregatorServices.vue";
 import FilterTags from "../widgets/FilterTags.vue";
 import {state} from "vue-tsc/out/shared";
-import {CloseBold} from '@element-plus/icons-vue'
+import {CloseBold, SwitchButton, Close, Loading} from '@element-plus/icons-vue'
 import TraceAggregatorGraph from "./TraceAggregatorGraph.vue";
 import TraceAggregatorTimestampPeriods from "./TraceAggregatorTimestampPeriods.vue";
 import {useTraceAggregatorGraphStore} from "../../../../store/traceAggregatorGraphStore.ts";
@@ -215,7 +217,16 @@ export default defineComponent({
     },
     CloseBold() {
       return CloseBold
-    }
+    },
+    SwitchButton() {
+      return SwitchButton
+    },
+    Close() {
+      return Close
+    },
+    Loading() {
+      return Loading
+    },
   },
   methods: {
     onButtonSearchClick() {
