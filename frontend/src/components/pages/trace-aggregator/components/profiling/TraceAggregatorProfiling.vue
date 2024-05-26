@@ -1,5 +1,5 @@
 <template>
-  <el-container>
+  <div class="height-100">
     <el-progress
         v-if="store.state.loading && store.state.parameters.traceId"
         style="width: 100vw"
@@ -10,7 +10,7 @@
         :duration="5"
         striped
     />
-    <div v-else-if="store.state.parameters.traceId" style="width: 100vw">
+    <div v-else-if="store.state.parameters.traceId" class="height-100">
       <el-row style="width: 100%; padding-bottom: 5px">
         <TraceId
             title="Trace id"
@@ -22,13 +22,13 @@
       <el-row style="width: 100%; padding-bottom: 5px">
         <TraceAggregatorProfilingSetting/>
       </el-row>
-      <el-row style="width: 100%">
-        <el-col v-show="store.state.showTree" :span="leftSpan">
-          <el-row>
+      <el-row class="height-100">
+        <el-col v-show="store.state.showTree" :span="leftSpan" class="height-100">
+          <el-row class="height-100">
             <TraceAggregatorProfilingTree/>
           </el-row>
         </el-col>
-        <el-col v-if="showFlowSpan" :span="rightSpan" style="width: 100%; height: 75vh">
+        <el-col v-if="showFlowSpan" :span="rightSpan" class="height-100">
           <VueFlow
               v-model:nodes="store.state.flowItems.nodes"
               v-model:edges="store.state.flowItems.edges"
@@ -49,7 +49,7 @@
         </el-col>
       </el-row>
     </div>
-  </el-container>
+  </div>
 </template>
 
 <script lang="ts">

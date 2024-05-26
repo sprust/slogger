@@ -135,6 +135,7 @@
           :page-sizes="[5, 10, 15, 20]"
           @current-change="update"
           @size-change="handlePageSizeChange"
+          :disabled="store.state.loading"
       />
 
       <el-progress
@@ -147,27 +148,28 @@
           striped
       />
 
-      <TraceAggregatorTracesTable
-          v-else
-          :items="store.state.traceAggregator.items"
-          :payload="store.state.payload"
-          @onTraceTagClick="onTraceTagClick"
-          @onTraceTypeClick="onTraceTypeClick"
-          @onTraceStatusClick="onTraceStatusClick"
-          @onCustomFieldClick="onCustomFieldClick"
-      />
+      <div v-else>
+        <TraceAggregatorTracesTable
+            :items="store.state.traceAggregator.items"
+            :payload="store.state.payload"
+            @onTraceTagClick="onTraceTagClick"
+            @onTraceTypeClick="onTraceTypeClick"
+            @onTraceStatusClick="onTraceStatusClick"
+            @onCustomFieldClick="onCustomFieldClick"
+        />
 
-      <el-pagination
-          v-if="store.state.traceAggregator.paginator"
-          small="small"
-          v-model:current-page="store.state.payload.page"
-          v-model:page-size="store.state.traceAggregator.paginator.per_page"
-          layout="sizes, prev, pager, next, jumper"
-          :total="store.state.traceAggregator.paginator.total"
-          :page-sizes="[5, 10, 15, 20]"
-          @current-change="update"
-          @size-change="handlePageSizeChange"
-      />
+        <el-pagination
+            v-if="store.state.traceAggregator.paginator && store.state.traceAggregator.items.length > 0"
+            small="small"
+            v-model:current-page="store.state.payload.page"
+            v-model:page-size="store.state.traceAggregator.paginator.per_page"
+            layout="sizes, prev, pager, next, jumper"
+            :total="store.state.traceAggregator.paginator.total"
+            :page-sizes="[5, 10, 15, 20]"
+            @current-change="update"
+            @size-change="handlePageSizeChange"
+        />
+      </div>
     </div>
   </el-scrollbar>
 </template>

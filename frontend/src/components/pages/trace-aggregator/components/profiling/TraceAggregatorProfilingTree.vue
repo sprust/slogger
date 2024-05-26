@@ -1,5 +1,5 @@
 <template>
-  <div style="overflow-y: scroll; width: 100%; height: 75vh">
+  <div class="height-100" style="overflow-y: scroll; width: 100%">
     <el-tree
         :props="treeProps"
         node-key="key"

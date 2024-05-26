@@ -3,7 +3,7 @@
     <el-header>
       <Header v-if="authStore.state.user"/>
     </el-header>
-    <div class="height-100" style="padding: 20px; overflow-y: auto">
+    <div class="height-100" style="padding: 0 20px 20px 20px; overflow-y: auto">
       <router-view/>
     </div>
   </el-container>
