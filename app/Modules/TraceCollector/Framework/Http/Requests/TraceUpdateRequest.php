@@ -72,6 +72,7 @@ class TraceUpdateRequest extends FormRequest
             ],
             'traces.*.data'                           => [
                 'sometimes',
+                'string',
                 'json',
             ],
             'traces.*.duration'                       => [

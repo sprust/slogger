@@ -1,0 +1,200 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "slogger-api-scheme",
+        "version": "0.1"
+    },
+    "components": {
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "JWT"
+            }
+        }
+    },
+    "paths": {
+        "/traces-api": {
+            "post": {
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "traces": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "trace_id": {
+                                                    "type": "string",
+                                                    "minLength": 20
+                                                },
+                                                "parent_trace_id": {
+                                                    "type": "string",
+                                                    "nullable": true
+                                                },
+                                                "type": {
+                                                    "type": "string",
+                                                    "maxLength": 40,
+                                                    "minLength": 1
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "maxLength": 40,
+                                                    "minLength": 1
+                                                },
+                                                "tags": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "data": {
+                                                    "type": "string"
+                                                },
+                                                "duration": {
+                                                    "type": "number",
+                                                    "format": "float",
+                                                    "nullable": true
+                                                },
+                                                "memory": {
+                                                    "type": "number",
+                                                    "format": "float"
+                                                },
+                                                "cpu": {
+                                                    "type": "number",
+                                                    "format": "float"
+                                                },
+                                                "logged_at": {
+                                                    "type": "number",
+                                                    "format": "float"
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "description",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "traces": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "trace_id": {
+                                                    "type": "string",
+                                                    "minLength": 20
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "maxLength": 40,
+                                                    "minLength": 1
+                                                },
+                                                "profiling": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "main_caller": {
+                                                            "type": "string"
+                                                        },
+                                                        "items": {
+                                                            "type": "array",
+                                                            "minItems": 1,
+                                                            "items": {
+                                                                "type": "object",
+                                                                "properties": {
+                                                                    "raw": {
+                                                                        "type": "string"
+                                                                    },
+                                                                    "calling": {
+                                                                        "type": "string"
+                                                                    },
+                                                                    "callable": {
+                                                                        "type": "string"
+                                                                    },
+                                                                    "data": {
+                                                                        "type": "array",
+                                                                        "items": {
+                                                                            "type": "object",
+                                                                            "properties": {
+                                                                                "name": {
+                                                                                    "type": "string"
+                                                                                },
+                                                                                "value": {
+                                                                                    "type": "number",
+                                                                                    "format": "float"
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                },
+                                                "tags": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "data": {
+                                                    "type": "string"
+                                                },
+                                                "duration": {
+                                                    "type": "number",
+                                                    "format": "float",
+                                                    "nullable": true
+                                                },
+                                                "memory": {
+                                                    "type": "number",
+                                                    "format": "float"
+                                                },
+                                                "cpu": {
+                                                    "type": "number",
+                                                    "format": "float"
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "description",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

@@ -46,6 +46,7 @@ class TraceCreateRequest extends FormRequest
             ],
             'traces.*.data'            => [
                 'required',
+                'string',
                 'json',
             ],
             'traces.*.duration'        => [

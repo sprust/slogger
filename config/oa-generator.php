@@ -12,6 +12,9 @@ return [
         'admin-api' => [
             'admin-api',
         ],
+        'traces-api' => [
+            'traces-api',
+        ],
     ],
     'security_middlewares' => [
         \App\Modules\Auth\Framework\Http\Middlewares\AuthMiddleware::class,
@@ -37,7 +40,9 @@ return [
                 ProhibitedIf::class,
             ],
             /** @see OaRuleAsStringConverter */
-            'excluded_for_fill_rule_as_strings' => [],
+            'excluded_for_fill_rule_as_strings' => [
+                'json',
+            ],
         ],
     ],
 ];
