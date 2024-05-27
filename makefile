@@ -5,6 +5,11 @@ RR_DOTENV=--dotenv /app/.env
 RR_YAML=-c /app/.rr.yaml
 RR_COLLECTOR_YAML=-c /app/.rr.collector.yaml
 
+env-copy:
+	cp -i .env.example .env
+	@make rr-default-config
+	cp -i frontend/.env.example frontend/.env
+
 setup:
 	@docker-compose stop
 	@docker-compose down
@@ -12,7 +17,8 @@ setup:
 	@make up
 	@make composer c=install
 	@make art c=key:generate
-	@make rr-init
+	@make art c="migrate --force"
+	@make rr-get-binary
 	@make restart
 
 up:
@@ -48,16 +54,11 @@ deploy:
 	@make art c='migrate --force'
 	@make restart
 
-rr-init:
-	make rr-get-binary
-	make rr-default-config
-	@make art c='vendor:publish --tag=ifksco-roadrunner-laravel'
-
 rr-get-binary:
 	@"$(PHP_CLI)"./vendor/bin/rr get-binary
 
 rr-default-config:
-	cp -i packages/ifksco/roadrunner-laravel/config/.rr.yaml.example .rr.yaml
+	cp -i .rr.yaml.example .rr.yaml
 	cp -i .rr.collector.yaml.example .rr.collector.yaml
 
 rr-reset:

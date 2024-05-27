@@ -21,34 +21,10 @@ http:
     forbid:
       - .php
   pool:
-    num_workers: 10
+    num_workers: ${RR_HTTP_WORKERS_QUANTITY:-10}
     allocate_timeout: 60s
     destroy_timeout: 60s
     debug: false
-
-jobs:
-  timeout: 60
-
-  pool:
-    command: 'vendor/bin/rr-jobs-worker.php'
-    num_workers: 10
-    allocate_timeout: 60s
-    destroy_timeout: 60s
-    debug: false
-
-  consume: [ "traces-pushing", "traces-creating"]
-  pipelines:
-    traces-pushing:
-      driver: memory
-      config:
-        priority: 10
-        prefetch: 5
-
-    traces-creating:
-      driver: memory
-      config:
-        priority: 10
-        prefetch: 5
 
 # /health?plugin=http
 status:

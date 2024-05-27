@@ -21,7 +21,7 @@ http:
     forbid:
       - .php
   pool:
-    num_workers: 10
+    num_workers: ${RR_COLLECTOR_HTTP_WORKERS_QUANTITY:-10}
     allocate_timeout: 60s
     destroy_timeout: 60s
     debug: false
