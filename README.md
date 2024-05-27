@@ -44,3 +44,8 @@ make art c=user:create
 ```bash
 make art c=service:create
 ```
+
+## Open-api scheme
+```text
+storage/api/json-schemes/traces-api-openapi-scheme.json
+```
