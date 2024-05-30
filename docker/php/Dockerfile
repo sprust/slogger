@@ -1,8 +1,6 @@
-FROM php:8.2-cli
+FROM php:8.2.6-fpm as php_base
 
 WORKDIR /app
-
-ARG APP_ENV
 
 RUN apt-get update \
     && apt-get install -y \
@@ -17,8 +15,7 @@ RUN apt-get update \
         libmagickwand-dev \
         libcurl4-openssl-dev \
         pkg-config \
-        libssl-dev \
-        supervisor
+        libssl-dev
 
 RUN pecl install \
         redis \
@@ -48,12 +45,15 @@ RUN docker-php-ext-enable \
         mongodb \
         zip
 
+EXPOSE 9000
+
+FROM php_base as php_app
+
+ARG APP_ENV
+
 RUN if [ "$APP_ENV" = "local" ] ; then \
     pecl install xdebug && docker-php-ext-enable xdebug \
 ; fi
-
-# swoole
-RUN pecl install swoole && apt-get install -y procps
 
 # Install composer
 RUN curl -sS https://getcomposer.org/installer  \
@@ -67,6 +67,23 @@ ARG GROUP_ID
 RUN getent group "$GROUP_ID" || addgroup --gid "$GROUP_ID" user
 RUN getent passwd "$USER_ID" || adduser --disabled-password --gecos '' --uid "$USER_ID" --gid "$GROUP_ID" user
 
+USER "$USER_ID"
+
+FROM php_base as php_workers
+
+RUN apt-get install -y supervisor
+
+# swoole
+RUN pecl install swoole && apt-get install -y procps
+
 RUN chmod 777 -R /var/log/supervisor
+
+# Container user & group
+ARG USER_ID
+ARG GROUP_ID
+
+# Check if user and group doesn't exist before creating
+RUN getent group "$GROUP_ID" || addgroup --gid "$GROUP_ID" user
+RUN getent passwd "$USER_ID" || adduser --disabled-password --gecos '' --uid "$USER_ID" --gid "$GROUP_ID" user
 
 USER "$USER_ID"

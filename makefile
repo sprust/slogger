@@ -1,5 +1,8 @@
-PHP_SERVICE="php"
-PHP_CLI="docker-compose exec $(PHP_SERVICE) "
+PHP_FPM_SERVICE="php-fpm"
+PHP_FPM_CLI="docker-compose exec $(PHP_FPM_SERVICE) "
+
+WORKERS_SERVICE="workers"
+WORKERS_CLI="docker-compose exec $(WORKERS_SERVICE) "
 
 env-copy:
 	cp -i .env.example .env
@@ -26,20 +29,23 @@ restart:
 	@make stop
 	@make up
 
-bash-php:
-	@"$(PHP_CLI)"bash
+bash-php-fpm:
+	@"$(PHP_FPM_CLI)"bash
+
+bash-workers:
+	@"$(WORKERS_CLI)"bash
 
 art:
-	@"$(PHP_CLI)"php artisan ${c}
+	@"$(WORKERS_CLI)"php artisan ${c}
 
 composer:
-	@docker-compose exec -e XDEBUG_MODE=off $(PHP_SERVICE) composer ${c}
+	@docker-compose exec -e XDEBUG_MODE=off $(WORKERS_SERVICE) composer ${c}
 
 queues-restart:
 	@make art c='queue:restart'
 	@make art c='cron:restart'
-	@make art c='octane:roadrunner:reload'
-	@make art c='octane:swoole:reload'
+	@make art c='octane:roadrunner:stop'
+	@make art c='octane:swoole:stop'
 
 oa-generate:
 	@make art c='oa:generate'
@@ -51,4 +57,4 @@ deploy:
 	@make restart
 
 rr-get-binary:
-	@"$(PHP_CLI)"./vendor/bin/rr get-binary
+	@"$(WORKERS_CLI)"./vendor/bin/rr get-binary
