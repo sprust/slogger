@@ -1,13 +1,8 @@
 PHP_SERVICE="php"
 PHP_CLI="docker-compose exec $(PHP_SERVICE) "
 
-RR_DOTENV=--dotenv /app/.env
-RR_YAML=-c /app/.rr.yaml
-RR_COLLECTOR_YAML=-c /app/.rr.collector.yaml
-
 env-copy:
 	cp -i .env.example .env
-	@make rr-default-config
 	cp -i frontend/.env.example frontend/.env
 
 setup:
@@ -32,7 +27,7 @@ restart:
 	@make up
 
 bash-php:
-	@docker-compose exec $(PHP_SERVICE) bash
+	@"$(PHP_CLI)"bash
 
 art:
 	@"$(PHP_CLI)"php artisan ${c}
@@ -43,7 +38,8 @@ composer:
 queues-restart:
 	@make art c='queue:restart'
 	@make art c='cron:restart'
-	@make rr-reset
+	@make art c='octane:roadrunner:stop'
+	@make art c='octane:swoole:stop'
 
 oa-generate:
 	@make art c='oa:generate'
@@ -56,20 +52,3 @@ deploy:
 
 rr-get-binary:
 	@"$(PHP_CLI)"./vendor/bin/rr get-binary
-
-rr-default-config:
-	cp -i .rr.yaml.example .rr.yaml
-	cp -i .rr.collector.yaml.example .rr.collector.yaml
-
-rr-reset:
-	@"$(PHP_CLI)"./rr reset $(RR_YAML)
-	@"$(PHP_CLI)"./rr reset $(RR_COLLECTOR_YAML)
-
-rr-stop:
-	@"$(PHP_CLI)"./rr stop $(RR_YAML)
-
-rr-workers:
-	@"$(PHP_CLI)"./rr workers -i $(RR_YAML)
-
-rr-collector-workers:
-	@"$(PHP_CLI)"./rr workers -i $(RR_COLLECTOR_YAML)
