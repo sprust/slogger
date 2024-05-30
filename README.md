@@ -13,8 +13,10 @@ make env-copy
 APP_ENV=production# or local
 APP_DEBUG=false# true for local
 
-DOCKER_USER_ID=1000# see comments in .env
-DOCKER_GROUP_ID=1000# see comments in .env
+# root user is set by default
+# to find user id and group id on linux use commands `id -u` and `id -g`
+DOCKER_USER_ID=1000
+DOCKER_GROUP_ID=1000
 
 FRONTEND_DOCKER_COMMAND=${FRONTEND_DOCKER_SERVER_COMMAND}# or ${FRONTEND_DOCKER_LOCAL_COMMAND}
 FRONTEND_DOCKER_PORT=3075# external port for web panel
