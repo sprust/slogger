@@ -52,6 +52,8 @@ RUN if [ "$APP_ENV" = "local" ] ; then \
     pecl install xdebug && docker-php-ext-enable xdebug \
 ; fi
 
+RUN pecl install swoole openswoole
+
 # Install composer
 RUN curl -sS https://getcomposer.org/installer  \
     | php -- --install-dir=/usr/local/bin --filename=composer
