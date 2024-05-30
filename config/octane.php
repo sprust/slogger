@@ -38,7 +38,7 @@ return [
     |
     */
 
-    'server' => env('OCTANE_SERVER', 'roadrunner'),
+    'server' => env('OCTANE_SERVER'),
 
     /*
     |--------------------------------------------------------------------------
@@ -220,5 +220,30 @@ return [
     */
 
     'max_execution_time' => 30,
+
+    'servers' => [
+        'roadrunner' => [
+            'host'         => env('OCTANE_RR_HOST', '0.0.0.0'),
+            'port'         => env('OCTANE_RR_PORT', 9020),
+            'rpc-host'     => env('OCTANE_RR_RPC_HOST', '0.0.0.0'),
+            'rpc-port'     => env('OCTANE_RR_RPC_PORT', 9010),
+            'workers'      => env('OCTANE_RR_WORKERS', 5),
+            'max-requests' => env('OCTANE_RR_MAX_REQUESTS', 250),
+            'rr-config'    => env('OCTANE_RR_CONFIG'),
+            'watch'        => env('OCTANE_RR_WATCH', false),
+            'poll'         => env('OCTANE_RR_POLL', false),
+            'log-level'    => env('OCTANE_RR_LOG_LEVEL'),
+        ],
+
+        'swoole' => [
+            'host'         => env('OCTANE_SWOOLE_HOST', '0.0.0.0'),
+            'port'         => env('OCTANE_SWOOLE_PORT', 9021),
+            'workers'      => env('OCTANE_SWOOLE_WORKERS', 'auto'),
+            'task-workers' => env('OCTANE_SWOOLE_TASK_WORKERS', 'auto'),
+            'max-requests' => env('OCTANE_SWOOLE_MAX_REQUESTS', 250),
+            'watch'        => env('OCTANE_SWOOLE_WATCH', false),
+            'poll'         => env('OCTANE_SWOOLE_POLL', false),
+        ],
+    ],
 
 ];
