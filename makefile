@@ -38,8 +38,8 @@ composer:
 queues-restart:
 	@make art c='queue:restart'
 	@make art c='cron:restart'
-	@make art c='octane:roadrunner:stop'
-	@make art c='octane:swoole:stop'
+	@make art c='octane:roadrunner:reload'
+	@make art c='octane:swoole:reload'
 
 oa-generate:
 	@make art c='oa:generate'
