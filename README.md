@@ -20,7 +20,7 @@ FRONTEND_DOCKER_COMMAND=${FRONTEND_DOCKER_SERVER_COMMAND}# or ${FRONTEND_DOCKER_
 FRONTEND_DOCKER_PORT=3075# external port for web panel
 
 OCTANE_SWOOLE_PORT=9021# for collector
-~~~~
+
 QUEUE_TRACES_CREATING_QUANTITY=10# for collector jobs
 ```
 frontend/.env

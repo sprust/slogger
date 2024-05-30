@@ -36,10 +36,10 @@ bash-workers:
 	@"$(WORKERS_CLI)"bash
 
 art:
-	@"$(WORKERS_CLI)"php artisan ${c}
+	@"$(PHP_FPM_CLI)"php artisan ${c}
 
 composer:
-	@docker-compose exec -e XDEBUG_MODE=off $(WORKERS_SERVICE) composer ${c}
+	@docker-compose exec -e XDEBUG_MODE=off $(PHP_FPM_SERVICE) composer ${c}
 
 queues-restart:
 	@make art c='queue:restart'
