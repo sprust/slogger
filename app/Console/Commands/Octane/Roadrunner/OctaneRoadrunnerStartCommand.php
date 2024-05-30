@@ -18,7 +18,7 @@ class OctaneRoadrunnerStartCommand extends Command
      *
      * @var string
      */
-    protected $description = 'Start roadrunner via octane';
+    protected $description = 'Start the octane roadrunner server';
 
     /**
      * Execute the console command.

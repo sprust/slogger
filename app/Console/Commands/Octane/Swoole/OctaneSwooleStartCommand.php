@@ -18,7 +18,7 @@ class OctaneSwooleStartCommand extends Command
      *
      * @var string
      */
-    protected $description = 'Start swoole via octane';
+    protected $description = 'Start the octane swoole server';
 
     /**
      * Execute the console command.
