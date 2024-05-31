@@ -38,14 +38,17 @@ bash-workers:
 art:
 	@"$(PHP_FPM_CLI)"php artisan ${c}
 
+art-workers:
+	@"$(WORKERS_CLI)"php artisan ${c}
+
 composer:
 	@docker-compose exec -e XDEBUG_MODE=off $(PHP_FPM_SERVICE) composer ${c}
 
-queues-restart:
-	@make art c='queue:restart'
-	@make art c='cron:restart'
-	@make art c='octane:roadrunner:stop'
-	@make art c='octane:swoole:stop'
+workers-restart:
+	@make art-workers c='queue:restart'
+	@make art-workers c='cron:restart'
+	@make art-workers c='octane:roadrunner:stop'
+	@make art-workers c='octane:swoole:stop'
 
 oa-generate:
 	@make art c='oa:generate'
