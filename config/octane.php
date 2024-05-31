@@ -232,7 +232,7 @@ return [
             'rr-config'    => env('OCTANE_RR_CONFIG'),
             'watch'        => env('OCTANE_RR_WATCH', false),
             'poll'         => env('OCTANE_RR_POLL', false),
-            'log-level'    => env('OCTANE_RR_LOG_LEVEL'),
+            'log-level'    => env('OCTANE_RR_LOG_LEVEL', 'error'),
         ],
 
         'swoole' => [
