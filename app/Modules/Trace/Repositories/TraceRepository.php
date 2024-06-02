@@ -462,20 +462,30 @@ readonly class TraceRepository implements TraceRepositoryInterface
         return $trace?->profiling;
     }
 
-    public function findIds(int $limit, Carbon $loggedAtTo, ?string $type, array $excludedTypes): array
-    {
+    public function findTraceIds(
+        int $limit,
+        ?Carbon $loggedAtTo = null,
+        ?string $type = null,
+        ?array $excludedTypes = null
+    ): array {
         return Trace::query()
-            ->where('loggedAt', '<=', new UTCDateTime($loggedAtTo))
-            ->when($type, fn(Builder $query) => $query->where('type', $type))
-            ->when(is_null($type) && $excludedTypes, fn(Builder $query) => $query->whereNotIn('type', $excludedTypes))
+            ->when(
+                !is_null($loggedAtTo),
+                fn(Builder $query) => $query->where('loggedAt', '<=', new UTCDateTime($loggedAtTo))
+            )
+            ->when(!is_null($type), fn(Builder $query) => $query->where('type', $type))
+            ->when(
+                is_null($type) && !is_null($excludedTypes),
+                fn(Builder $query) => $query->whereNotIn('type', $excludedTypes)
+            )
             ->take($limit)
             ->pluck('traceId')
             ->toArray();
     }
 
-    public function deleteByIds(array $traceIds): int
+    public function deleteByTraceIds(array $ids): int
     {
-        return Trace::query()->whereIn('traceId', $traceIds)->delete();
+        return Trace::query()->whereIn('traceId', $ids)->delete();
     }
 
     /**

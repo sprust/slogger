@@ -81,12 +81,17 @@ interface TraceRepositoryInterface
      *
      * @return string[]
      */
-    public function findIds(int $limit, Carbon $loggedAtTo, string $type, array $excludedTypes): array;
+    public function findTraceIds(
+        int $limit,
+        ?Carbon $loggedAtTo = null,
+        ?string $type = null,
+        ?array $excludedTypes = null
+    ): array;
 
     /**
-     * @param string[] $traceIds
+     * @param string[] $ids
      *
      * @return int - number of deleted records
      */
-    public function deleteByIds(array $traceIds): int;
+    public function deleteByTraceIds(array $ids): int;
 }

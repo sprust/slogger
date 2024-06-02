@@ -152,9 +152,9 @@ class TraceTreeRepository implements TraceTreeRepositoryInterface
         return $parentTrace['traceId'];
     }
 
-    public function deleteByIds(array $traceIds): int
+    public function deleteByTraceIds(array $ids): int
     {
-        return TraceTree::query()->whereIn('traceId', $traceIds)->delete();
+        return TraceTree::query()->whereIn('traceId', $ids)->delete();
     }
 
     public function deleteToLoggedAt(Carbon $to): void

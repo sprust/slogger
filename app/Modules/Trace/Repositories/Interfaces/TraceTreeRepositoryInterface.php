@@ -20,11 +20,11 @@ interface TraceTreeRepositoryInterface
     public function findTraceIdsInTreeByParentTraceId(string $traceId): array;
 
     /**
-     * @param string[] $traceIds
+     * @param string[] $ids
      *
      * @return int - number of deleted records
      */
-    public function deleteByIds(array $traceIds): int;
+    public function deleteByTraceIds(array $ids): int;
 
     public function deleteToLoggedAt(Carbon $to): void;
 }
