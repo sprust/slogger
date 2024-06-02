@@ -64,7 +64,7 @@ return [
 
             /** url_patterns */
             'excepted_paths'             => [
-                '/traces-api*'
+                '/traces-api*',
             ],
 
             'input' => [
@@ -118,6 +118,15 @@ return [
                 'queue:listen',
                 'schedule:run',
                 'cron:start',
+                'octane:start',
+                'octane:reload',
+                'octane:stop',
+                'octane:roadrunner:start',
+                'octane:roadrunner:reload',
+                'octane:roadrunner:stop',
+                'octane:swoole:start',
+                'octane:swoole:reload',
+                'octane:swoole:stop',
             ],
         ],
 

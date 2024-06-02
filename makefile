@@ -1,13 +1,11 @@
-PHP_SERVICE="php"
-PHP_CLI="docker-compose exec $(PHP_SERVICE) "
+PHP_FPM_SERVICE="php-fpm"
+PHP_FPM_CLI="docker-compose exec $(PHP_FPM_SERVICE) "
 
-RR_DOTENV=--dotenv /app/.env
-RR_YAML=-c /app/.rr.yaml
-RR_COLLECTOR_YAML=-c /app/.rr.collector.yaml
+WORKERS_SERVICE="workers"
+WORKERS_CLI="docker-compose exec $(WORKERS_SERVICE) "
 
 env-copy:
 	cp -i .env.example .env
-	@make rr-default-config
 	cp -i frontend/.env.example frontend/.env
 
 setup:
@@ -31,19 +29,26 @@ restart:
 	@make stop
 	@make up
 
-bash-php:
-	@docker-compose exec $(PHP_SERVICE) bash
+bash-php-fpm:
+	@"$(PHP_FPM_CLI)"bash
+
+bash-workers:
+	@"$(WORKERS_CLI)"bash
 
 art:
-	@"$(PHP_CLI)"php artisan ${c}
+	@"$(PHP_FPM_CLI)"php artisan ${c}
+
+art-workers:
+	@"$(WORKERS_CLI)"php artisan ${c}
 
 composer:
-	@docker-compose exec -e XDEBUG_MODE=off $(PHP_SERVICE) composer ${c}
+	@docker-compose exec -e XDEBUG_MODE=off $(PHP_FPM_SERVICE) composer ${c}
 
-queues-restart:
-	@make art c='queue:restart'
-	@make art c='cron:restart'
-	@make rr-reset
+workers-restart:
+	@make art-workers c='queue:restart'
+	@make art-workers c='cron:restart'
+	@make art-workers c='octane:roadrunner:stop'
+	@make art-workers c='octane:swoole:stop'
 
 oa-generate:
 	@make art c='oa:generate'
@@ -55,21 +60,4 @@ deploy:
 	@make restart
 
 rr-get-binary:
-	@"$(PHP_CLI)"./vendor/bin/rr get-binary
-
-rr-default-config:
-	cp -i .rr.yaml.example .rr.yaml
-	cp -i .rr.collector.yaml.example .rr.collector.yaml
-
-rr-reset:
-	@"$(PHP_CLI)"./rr reset $(RR_YAML)
-	@"$(PHP_CLI)"./rr reset $(RR_COLLECTOR_YAML)
-
-rr-stop:
-	@"$(PHP_CLI)"./rr stop $(RR_YAML)
-
-rr-workers:
-	@"$(PHP_CLI)"./rr workers -i $(RR_YAML)
-
-rr-collector-workers:
-	@"$(PHP_CLI)"./rr workers -i $(RR_COLLECTOR_YAML)
+	@"$(WORKERS_CLI)"./vendor/bin/rr get-binary
