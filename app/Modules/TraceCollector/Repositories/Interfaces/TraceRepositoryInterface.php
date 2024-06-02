@@ -3,11 +3,11 @@
 namespace App\Modules\TraceCollector\Repositories\Interfaces;
 
 use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceTimestampMetricObject;
-use App\Modules\TraceCollector\Domain\Entities\Objects\TraceTreeShortObject;
 use App\Modules\TraceCollector\Domain\Entities\Parameters\TraceCreateParametersList;
 use App\Modules\TraceCollector\Domain\Entities\Parameters\TraceTreeFindParameters;
 use App\Modules\TraceCollector\Domain\Entities\Parameters\TraceUpdateParametersList;
 use App\Modules\TraceCollector\Repositories\Dto\TraceLoggedAtDto;
+use App\Modules\TraceCollector\Repositories\Dto\TraceTreeDto;
 use Illuminate\Support\Carbon;
 
 interface TraceRepositoryInterface
@@ -16,7 +16,7 @@ interface TraceRepositoryInterface
 
     public function updateMany(TraceUpdateParametersList $parametersList): int;
 
-    /** @return TraceTreeShortObject[] */
+    /** @return TraceTreeDto[] */
     public function findTree(TraceTreeFindParameters $parameters): array;
 
     /**

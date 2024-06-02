@@ -2,9 +2,7 @@
 
 namespace App\Modules\TraceCollector\Domain\Actions;
 
-use App\Modules\TraceCollector\Domain\Entities\Objects\TraceTreeShortObject;
 use App\Modules\TraceCollector\Domain\Entities\Parameters\TraceTreeFindParameters;
-use App\Modules\TraceCollector\Repositories\Dto\TraceTreeCreateParametersDto;
 use App\Modules\TraceCollector\Repositories\Interfaces\TraceRepositoryInterface;
 use App\Modules\TraceCollector\Repositories\Interfaces\TraceTreeRepositoryInterface;
 
@@ -37,16 +35,7 @@ readonly class FreshTraceTreeAction
                 break;
             }
 
-            $this->traceTreeRepository->insertMany(
-                array_map(
-                    fn(TraceTreeShortObject $traceTreeObject) => new TraceTreeCreateParametersDto(
-                        traceId: $traceTreeObject->traceId,
-                        parentTraceId: $traceTreeObject->parentTraceId,
-                        loggedAt: $traceTreeObject->loggedAt
-                    ),
-                    $trees
-                )
-            );
+            $this->traceTreeRepository->insertMany($trees);
 
             ++$page;
         }

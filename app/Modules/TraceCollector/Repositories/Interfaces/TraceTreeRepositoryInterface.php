@@ -2,13 +2,13 @@
 
 namespace App\Modules\TraceCollector\Repositories\Interfaces;
 
-use App\Modules\TraceCollector\Repositories\Dto\TraceTreeCreateParametersDto;
+use App\Modules\TraceCollector\Repositories\Dto\TraceTreeDto;
 use Illuminate\Support\Carbon;
 
 interface TraceTreeRepositoryInterface
 {
     /**
-     * @param TraceTreeCreateParametersDto[] $parametersList
+     * @param TraceTreeDto[] $parametersList
      */
     public function insertMany(array $parametersList): void;
 

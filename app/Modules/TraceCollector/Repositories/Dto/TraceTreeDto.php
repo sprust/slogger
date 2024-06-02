@@ -4,7 +4,7 @@ namespace App\Modules\TraceCollector\Repositories\Dto;
 
 use Illuminate\Support\Carbon;
 
-class TraceTreeCreateParametersDto
+readonly class TraceTreeDto
 {
     public function __construct(
         public string $traceId,

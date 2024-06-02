@@ -4,11 +4,11 @@ namespace App\Modules\TraceCollector\Repositories;
 
 use App\Models\Traces\Trace;
 use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceTimestampMetricObject;
-use App\Modules\TraceCollector\Domain\Entities\Objects\TraceTreeShortObject;
 use App\Modules\TraceCollector\Domain\Entities\Parameters\TraceCreateParametersList;
 use App\Modules\TraceCollector\Domain\Entities\Parameters\TraceTreeFindParameters;
 use App\Modules\TraceCollector\Domain\Entities\Parameters\TraceUpdateParametersList;
 use App\Modules\TraceCollector\Repositories\Dto\TraceLoggedAtDto;
+use App\Modules\TraceCollector\Repositories\Dto\TraceTreeDto;
 use App\Modules\TraceCollector\Repositories\Interfaces\TraceRepositoryInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
@@ -141,7 +141,7 @@ class TraceRepository implements TraceRepositoryInterface
             )
             ->get()
             ->map(
-                fn(Trace $trace) => new TraceTreeShortObject(
+                fn(Trace $trace) => new TraceTreeDto(
                     traceId: $trace->traceId,
                     parentTraceId: $trace->parentTraceId,
                     loggedAt: $trace->loggedAt
