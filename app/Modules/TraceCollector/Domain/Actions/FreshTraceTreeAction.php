@@ -3,9 +3,8 @@
 namespace App\Modules\TraceCollector\Domain\Actions;
 
 use App\Modules\TraceCollector\Domain\Entities\Objects\TraceTreeShortObject;
-use App\Modules\TraceCollector\Domain\Entities\Parameters\TraceTreeDeleteManyParameters;
 use App\Modules\TraceCollector\Domain\Entities\Parameters\TraceTreeFindParameters;
-use App\Modules\TraceCollector\Domain\Entities\Parameters\TraceTreeInsertParameters;
+use App\Modules\TraceCollector\Repositories\Dto\TraceTreeCreateParametersDto;
 use App\Modules\TraceCollector\Repositories\Interfaces\TraceRepositoryInterface;
 use App\Modules\TraceCollector\Repositories\Interfaces\TraceTreeRepositoryInterface;
 
@@ -21,11 +20,8 @@ readonly class FreshTraceTreeAction
     {
         $to = now();
 
-        $this->traceTreeRepository->deleteMany(
-            new TraceTreeDeleteManyParameters(
-                to: $to
-            )
-        );
+        // TODO: to delete by batch in cycle below
+        $this->traceTreeRepository->deleteMany(to: $to);
 
         $page = 1;
 
@@ -43,7 +39,7 @@ readonly class FreshTraceTreeAction
 
             $this->traceTreeRepository->insertMany(
                 array_map(
-                    fn(TraceTreeShortObject $traceTreeObject) => new TraceTreeInsertParameters(
+                    fn(TraceTreeShortObject $traceTreeObject) => new TraceTreeCreateParametersDto(
                         traceId: $traceTreeObject->traceId,
                         parentTraceId: $traceTreeObject->parentTraceId,
                         loggedAt: $traceTreeObject->loggedAt

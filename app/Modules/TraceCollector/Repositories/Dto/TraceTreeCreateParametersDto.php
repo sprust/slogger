@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Modules\TraceCollector\Domain\Entities\Parameters;
+namespace App\Modules\TraceCollector\Repositories\Dto;
 
 use Illuminate\Support\Carbon;
 
-readonly class TraceTreeInsertParameters
+class TraceTreeCreateParametersDto
 {
     public function __construct(
         public string $traceId,

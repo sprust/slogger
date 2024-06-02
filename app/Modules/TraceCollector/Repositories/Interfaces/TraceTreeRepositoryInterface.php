@@ -2,15 +2,15 @@
 
 namespace App\Modules\TraceCollector\Repositories\Interfaces;
 
-use App\Modules\TraceCollector\Domain\Entities\Parameters\TraceTreeDeleteManyParameters;
-use App\Modules\TraceCollector\Domain\Entities\Parameters\TraceTreeInsertParameters;
+use App\Modules\TraceCollector\Repositories\Dto\TraceTreeCreateParametersDto;
+use Illuminate\Support\Carbon;
 
 interface TraceTreeRepositoryInterface
 {
     /**
-     * @param TraceTreeInsertParameters[] $parametersList
+     * @param TraceTreeCreateParametersDto[] $parametersList
      */
     public function insertMany(array $parametersList): void;
 
-    public function deleteMany(TraceTreeDeleteManyParameters $parameters): void;
+    public function deleteMany(Carbon $to): void;
 }

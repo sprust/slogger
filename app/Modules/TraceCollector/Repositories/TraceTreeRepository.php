@@ -3,8 +3,8 @@
 namespace App\Modules\TraceCollector\Repositories;
 
 use App\Models\Traces\TraceTree;
-use App\Modules\TraceCollector\Domain\Entities\Parameters\TraceTreeDeleteManyParameters;
 use App\Modules\TraceCollector\Repositories\Interfaces\TraceTreeRepositoryInterface;
+use Illuminate\Support\Carbon;
 use MongoDB\BSON\UTCDateTime;
 
 class TraceTreeRepository implements TraceTreeRepositoryInterface
@@ -42,8 +42,8 @@ class TraceTreeRepository implements TraceTreeRepositoryInterface
         TraceTree::collection()->bulkWrite($operations);
     }
 
-    public function deleteMany(TraceTreeDeleteManyParameters $parameters): void
+    public function deleteMany(Carbon $to): void
     {
-        TraceTree::query()->where('loggedAt', '<=', new UTCDateTime($parameters->to))->delete();
+        TraceTree::query()->where('loggedAt', '<=', new UTCDateTime($to))->delete();
     }
 }
