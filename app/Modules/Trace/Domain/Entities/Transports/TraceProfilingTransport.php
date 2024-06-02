@@ -5,31 +5,33 @@ namespace App\Modules\Trace\Domain\Entities\Transports;
 use App\Modules\Trace\Domain\Entities\Objects\Profiling\ProfilingItemDataObject;
 use App\Modules\Trace\Domain\Entities\Objects\Profiling\ProfilingItemObject;
 use App\Modules\Trace\Domain\Entities\Objects\Profiling\ProfilingObject;
+use App\Modules\Trace\Repositories\Dto\TraceProfilingDataDto;
+use App\Modules\Trace\Repositories\Dto\TraceProfilingDto;
 use Illuminate\Support\Str;
 
 class TraceProfilingTransport
 {
-    public static function toObject(array $profiling): ProfilingObject
+    public static function toObject(TraceProfilingDto $profilingDto): ProfilingObject
     {
         $objects = [];
 
-        foreach ($profiling['items'] as $item) {
+        foreach ($profilingDto->items as $item) {
             $objects[] = new ProfilingItemObject(
                 id: Str::uuid()->toString(),
-                calling: $item['calling'],
-                callable: $item['callable'],
+                calling: $item->calling,
+                callable: $item->callable,
                 data: array_map(
-                    fn(array $itemData) => new ProfilingItemDataObject(
-                        name: $itemData['name'],
-                        value: $itemData['value']
+                    fn(TraceProfilingDataDto $itemData) => new ProfilingItemDataObject(
+                        name: $itemData->name,
+                        value: $itemData->value
                     ),
-                    $item['data']
+                    $item->data
                 ),
             );
         }
 
         return new ProfilingObject(
-            mainCaller: $profiling['mainCaller'],
+            mainCaller: $profilingDto->mainCaller,
             items: $objects
         );
     }

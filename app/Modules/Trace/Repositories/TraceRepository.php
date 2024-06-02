@@ -5,11 +5,13 @@ namespace App\Modules\Trace\Repositories;
 use App\Models\Traces\Trace;
 use App\Modules\Common\Repositories\PaginationInfoDto;
 use App\Modules\Trace\Domain\Entities\Parameters\Data\TraceDataFilterParameters;
-use App\Modules\Trace\Domain\Entities\Parameters\TraceUpdateParametersList;
 use App\Modules\Trace\Repositories\Dto\TraceDetailDto;
 use App\Modules\Trace\Repositories\Dto\TraceDto;
 use App\Modules\Trace\Repositories\Dto\TraceItemsPaginationDto;
 use App\Modules\Trace\Repositories\Dto\TraceLoggedAtDto;
+use App\Modules\Trace\Repositories\Dto\TraceProfilingDataDto;
+use App\Modules\Trace\Repositories\Dto\TraceProfilingDto;
+use App\Modules\Trace\Repositories\Dto\TraceProfilingItemDto;
 use App\Modules\Trace\Repositories\Dto\TraceServiceDto;
 use App\Modules\Trace\Repositories\Dto\TraceTimestampMetricDto;
 use App\Modules\Trace\Repositories\Dto\TraceTreeDto;
@@ -34,25 +36,25 @@ readonly class TraceRepository implements TraceRepositoryInterface
 
         $operations = [];
 
-        foreach ($traces as $parameters) {
+        foreach ($traces as $trace) {
             $operations[] = [
                 'updateOne' => [
                     [
-                        'serviceId' => $parameters->serviceId,
-                        'traceId'   => $parameters->traceId,
+                        'serviceId' => $trace->serviceId,
+                        'traceId'   => $trace->traceId,
                     ],
                     [
                         '$set'         => [
-                            'parentTraceId' => $parameters->parentTraceId,
-                            'type'          => $parameters->type,
-                            'status'        => $parameters->status,
-                            'tags'          => $parameters->tags,
-                            'data'          => json_decode($parameters->data, true),
-                            'duration'      => $parameters->duration,
-                            'memory'        => $parameters->memory,
-                            'cpu'           => $parameters->cpu,
-                            'timestamps'    => $this->makeTimestampsData($parameters->timestamps),
-                            'loggedAt'      => new UTCDateTime($parameters->loggedAt),
+                            'parentTraceId' => $trace->parentTraceId,
+                            'type'          => $trace->type,
+                            'status'        => $trace->status,
+                            'tags'          => $trace->tags,
+                            'data'          => json_decode($trace->data, true),
+                            'duration'      => $trace->duration,
+                            'memory'        => $trace->memory,
+                            'cpu'           => $trace->cpu,
+                            'timestamps'    => $this->makeTimestampsData($trace->timestamps),
+                            'loggedAt'      => new UTCDateTime($trace->loggedAt),
                             'updatedAt'     => $timestamp,
                         ],
                         '$setOnInsert' => [
@@ -69,61 +71,61 @@ readonly class TraceRepository implements TraceRepositoryInterface
         Trace::collection()->bulkWrite($operations);
     }
 
-    public function updateMany(TraceUpdateParametersList $parametersList): int
+    public function updateMany(array $traces): int
     {
         $timestamp = new UTCDateTime(now());
 
         $operations = [];
 
-        foreach ($parametersList->getItems() as $parameters) {
-            $hasProfiling = is_null($parameters->profiling) ? null : !empty($parameters->profiling->getItems());
+        foreach ($traces as $trace) {
+            $hasProfiling = is_null($trace->profiling) ? null : !empty($trace->profiling->items);
 
             $operations[] = [
                 'updateOne' => [
                     [
-                        'serviceId' => $parameters->serviceId,
-                        'traceId'   => $parameters->traceId,
+                        'serviceId' => $trace->serviceId,
+                        'traceId'   => $trace->traceId,
                     ],
                     [
                         '$set' => [
-                            'status'    => $parameters->status,
+                            'status'    => $trace->status,
                             ...(is_null($hasProfiling)
                                 ? []
                                 : [
                                     'hasProfiling' => $hasProfiling,
                                 ]),
-                            ...(is_null($parameters->profiling)
+                            ...(is_null($trace->profiling)
                                 ? []
                                 : [
                                     'profiling' => [
-                                        'mainCaller' => $parameters->profiling->getMainCaller(),
-                                        'items'      => $parameters->profiling->getItems(),
+                                        'mainCaller' => $trace->profiling->mainCaller,
+                                        'items'      => $trace->profiling->items,
                                     ],
                                 ]),
-                            ...(is_null($parameters->tags)
+                            ...(is_null($trace->tags)
                                 ? []
                                 : [
-                                    'tags' => $parameters->tags,
+                                    'tags' => $trace->tags,
                                 ]),
-                            ...(is_null($parameters->data)
+                            ...(is_null($trace->data)
                                 ? []
                                 : [
-                                    'data' => json_decode($parameters->data, true),
+                                    'data' => json_decode($trace->data, true),
                                 ]),
-                            ...(is_null($parameters->duration)
+                            ...(is_null($trace->duration)
                                 ? []
                                 : [
-                                    'duration' => $parameters->duration,
+                                    'duration' => $trace->duration,
                                 ]),
-                            ...(is_null($parameters->memory)
+                            ...(is_null($trace->memory)
                                 ? []
                                 : [
-                                    'memory' => $parameters->memory,
+                                    'memory' => $trace->memory,
                                 ]),
-                            ...(is_null($parameters->cpu)
+                            ...(is_null($trace->cpu)
                                 ? []
                                 : [
-                                    'cpu' => $parameters->cpu,
+                                    'cpu' => $trace->cpu,
                                 ]),
                             'updatedAt' => $timestamp,
                         ],
@@ -453,12 +455,35 @@ readonly class TraceRepository implements TraceRepositoryInterface
         return $types;
     }
 
-    public function findProfilingByTraceId(string $traceId): ?array
+    public function findProfilingByTraceId(string $traceId): ?TraceProfilingDto
     {
         /** @var Trace|null $trace */
         $trace = Trace::query()->where('traceId', $traceId)->first();
 
-        return $trace?->profiling;
+        $profilingData = $trace?->profiling;
+
+        if (is_null($profilingData)) {
+            return null;
+        }
+
+        return new TraceProfilingDto(
+            mainCaller: $profilingData['mainCaller'],
+            items: array_map(
+                fn(array $itemData) => new TraceProfilingItemDto(
+                    raw: $itemData['raw'],
+                    calling: $itemData['calling'],
+                    callable: $itemData['callable'],
+                    data: array_map(
+                        fn(array $itemDataItem) => new TraceProfilingDataDto(
+                            name: $itemDataItem['name'],
+                            value: $itemDataItem['value']
+                        ),
+                        $itemData['data']
+                    ),
+                ),
+                $profilingData['items']
+            )
+        );
     }
 
     public function findTraceIds(
