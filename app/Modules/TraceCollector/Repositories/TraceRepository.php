@@ -5,7 +5,6 @@ namespace App\Modules\TraceCollector\Repositories;
 use App\Models\Traces\Trace;
 use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceTimestampMetricObject;
 use App\Modules\TraceCollector\Domain\Entities\Parameters\TraceCreateParametersList;
-use App\Modules\TraceCollector\Domain\Entities\Parameters\TraceTreeFindParameters;
 use App\Modules\TraceCollector\Domain\Entities\Parameters\TraceUpdateParametersList;
 use App\Modules\TraceCollector\Repositories\Dto\TraceLoggedAtDto;
 use App\Modules\TraceCollector\Repositories\Dto\TraceTreeDto;
@@ -123,7 +122,7 @@ class TraceRepository implements TraceRepositoryInterface
         return Trace::collection()->bulkWrite($operations)->getModifiedCount();
     }
 
-    public function findTree(TraceTreeFindParameters $parameters): array
+    public function findTree(int $page = 1, int $perPage = 15, ?Carbon $to = null): array
     {
         return Trace::query()
             ->select([
@@ -132,12 +131,12 @@ class TraceRepository implements TraceRepositoryInterface
                 'loggedAt',
             ])
             ->when(
-                $parameters->to,
-                fn(Builder $query) => $query->where('loggedAt', '<=', new UTCDateTime($parameters->to))
+                $to,
+                fn(Builder $query) => $query->where('loggedAt', '<=', new UTCDateTime($to))
             )
             ->forPage(
-                page: $parameters->page,
-                perPage: $parameters->perPage
+                page: $page,
+                perPage: $perPage
             )
             ->get()
             ->map(

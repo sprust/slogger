@@ -4,7 +4,6 @@ namespace App\Modules\TraceCollector\Repositories\Interfaces;
 
 use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceTimestampMetricObject;
 use App\Modules\TraceCollector\Domain\Entities\Parameters\TraceCreateParametersList;
-use App\Modules\TraceCollector\Domain\Entities\Parameters\TraceTreeFindParameters;
 use App\Modules\TraceCollector\Domain\Entities\Parameters\TraceUpdateParametersList;
 use App\Modules\TraceCollector\Repositories\Dto\TraceLoggedAtDto;
 use App\Modules\TraceCollector\Repositories\Dto\TraceTreeDto;
@@ -17,7 +16,7 @@ interface TraceRepositoryInterface
     public function updateMany(TraceUpdateParametersList $parametersList): int;
 
     /** @return TraceTreeDto[] */
-    public function findTree(TraceTreeFindParameters $parameters): array;
+    public function findTree(int $page = 1, int $perPage = 15, ?Carbon $to = null): array;
 
     /**
      * @return TraceLoggedAtDto[]

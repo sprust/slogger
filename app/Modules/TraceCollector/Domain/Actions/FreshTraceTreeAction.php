@@ -2,7 +2,6 @@
 
 namespace App\Modules\TraceCollector\Domain\Actions;
 
-use App\Modules\TraceCollector\Domain\Entities\Parameters\TraceTreeFindParameters;
 use App\Modules\TraceCollector\Repositories\Interfaces\TraceRepositoryInterface;
 use App\Modules\TraceCollector\Repositories\Interfaces\TraceTreeRepositoryInterface;
 
@@ -25,10 +24,8 @@ readonly class FreshTraceTreeAction
 
         while (true) {
             $trees = $this->traceRepository->findTree(
-                new TraceTreeFindParameters(
-                    page: $page,
-                    to: $to
-                )
+                page: $page,
+                to: $to
             );
 
             if (!count($trees)) {
