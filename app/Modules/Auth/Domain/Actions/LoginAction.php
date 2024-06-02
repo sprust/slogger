@@ -2,21 +2,21 @@
 
 namespace App\Modules\Auth\Domain\Actions;
 
-use App\Modules\Auth\Adapters\User\UserAdapter;
 use App\Modules\Auth\Domain\Entities\Objects\LoggedUserObject;
 use App\Modules\Auth\Domain\Entities\Parameters\LoginParameters;
+use App\Modules\User\Domain\Actions\FindUserByEmailAction;
 use Illuminate\Support\Facades\Hash;
 
 readonly class LoginAction
 {
     public function __construct(
-        private UserAdapter $userAdapter
+        private FindUserByEmailAction $findUserByEmailAction,
     ) {
     }
 
     public function handle(LoginParameters $parameters): ?LoggedUserObject
     {
-        $user = $this->userAdapter->findUserByEmail($parameters->email);
+        $user = $this->findUserByEmailAction->handle($parameters->email);
 
         if (!$user) {
             return null;
@@ -27,11 +27,11 @@ readonly class LoginAction
         }
 
         return new LoggedUserObject(
-        id: $user->id,
-        firstName: $user->firstName,
-        lastName: $user->lastName,
-        email: $user->email,
-        apiToken: $user->apiToken
-    );
+            id: $user->id,
+            firstName: $user->firstName,
+            lastName: $user->lastName,
+            email: $user->email,
+            apiToken: $user->apiToken
+        );
     }
 }

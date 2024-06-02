@@ -2,7 +2,7 @@
 
 namespace App\Modules\Auth\Framework\Http\Middlewares;
 
-use App\Modules\Auth\Adapters\User\UserAdapter;
+use App\Modules\Auth\Domain\Actions\FindUserByTokenAction;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -10,7 +10,7 @@ use Symfony\Component\HttpFoundation\Response;
 readonly class AuthMiddleware
 {
     public function __construct(
-        private UserAdapter $userAdapter
+        private FindUserByTokenAction $findUserByTokenAction
     ) {
     }
 
@@ -27,7 +27,7 @@ readonly class AuthMiddleware
             abort(401);
         }
 
-        $user = $this->userAdapter->findUserByToken($token);
+        $user = $this->findUserByTokenAction->handle($token);
 
         if (!$user) {
             abort(401);
