@@ -2,7 +2,7 @@
 
 namespace App\Modules\Trace\Repositories\Interfaces;
 
-use App\Modules\Trace\Domain\Entities\Parameters\DataFilter\TraceDataFilterParameters;
+use App\Modules\Trace\Domain\Entities\Parameters\Data\TraceDataFilterParameters;
 use App\Modules\Trace\Domain\Entities\Parameters\TraceCreateParametersList;
 use App\Modules\Trace\Domain\Entities\Parameters\TraceSortParameters;
 use App\Modules\Trace\Domain\Entities\Parameters\TraceUpdateParametersList;

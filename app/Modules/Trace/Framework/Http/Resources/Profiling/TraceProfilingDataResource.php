@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\Trace\Framework\Http\Resources;
+namespace App\Modules\Trace\Framework\Http\Resources\Profiling;
 
 use App\Modules\Common\Framework\Http\Resources\AbstractApiResource;
 use App\Modules\Trace\Domain\Entities\Objects\Profiling\ProfilingItemDataObject;

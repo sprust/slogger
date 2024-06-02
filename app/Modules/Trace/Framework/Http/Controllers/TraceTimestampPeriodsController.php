@@ -4,7 +4,7 @@ namespace App\Modules\Trace\Framework\Http\Controllers;
 
 use App\Modules\Trace\Domain\Actions\GetTraceTimestampPeriodsAction;
 use App\Modules\Trace\Framework\Http\Controllers\Traits\MakeDataFilterParameterTrait;
-use App\Modules\Trace\Framework\Http\Resources\TraceTimestampPeriodResource;
+use App\Modules\Trace\Framework\Http\Resources\Timestamp\TraceTimestampPeriodResource;
 use Ifksco\OpenApiGenerator\Attributes\OaListItemTypeAttribute;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 

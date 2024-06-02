@@ -3,8 +3,8 @@
 namespace App\Modules\Trace\Framework\Http\Controllers;
 
 use App\Modules\Trace\Domain\Actions\FindTraceProfilingAction;
-use App\Modules\Trace\Domain\Entities\Parameters\TraceFindProfilingParameters;
-use App\Modules\Trace\Framework\Http\Resources\TraceProfilingResource;
+use App\Modules\Trace\Domain\Entities\Parameters\Profilling\TraceFindProfilingParameters;
+use App\Modules\Trace\Framework\Http\Resources\Profiling\TraceProfilingResource;
 use Symfony\Component\HttpFoundation\Response;
 
 readonly class TraceProfilingController

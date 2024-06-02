@@ -8,7 +8,7 @@ use App\Modules\Trace\Enums\TraceTimestampEnum;
 use App\Modules\Trace\Enums\TraceTimestampPeriodEnum;
 use App\Modules\Trace\Framework\Http\Controllers\Traits\MakeDataFilterParameterTrait;
 use App\Modules\Trace\Framework\Http\Requests\TraceTimestampsRequest;
-use App\Modules\Trace\Framework\Http\Resources\TraceTimestampsResource;
+use App\Modules\Trace\Framework\Http\Resources\Timestamp\TraceTimestampsResource;
 use Illuminate\Support\Carbon;
 
 readonly class TraceTimestampsController

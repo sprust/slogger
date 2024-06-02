@@ -1,9 +1,10 @@
 <?php
 
-namespace App\Modules\Trace\Framework\Http\Resources;
+namespace App\Modules\Trace\Framework\Http\Resources\Tree;
 
 use App\Modules\Common\Framework\Http\Resources\AbstractApiResource;
 use App\Modules\Trace\Domain\Entities\Objects\Tree\TraceTreeObject;
+use App\Modules\Trace\Framework\Http\Resources\TraceServiceResource;
 use Ifksco\OpenApiGenerator\Attributes\OaListItemTypeAttribute;
 
 class TraceTreeResource extends AbstractApiResource

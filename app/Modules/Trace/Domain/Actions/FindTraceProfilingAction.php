@@ -3,7 +3,7 @@
 namespace App\Modules\Trace\Domain\Actions;
 
 use App\Modules\Trace\Domain\Entities\Objects\Profiling\ProfilingObject;
-use App\Modules\Trace\Domain\Entities\Parameters\TraceFindProfilingParameters;
+use App\Modules\Trace\Domain\Entities\Parameters\Profilling\TraceFindProfilingParameters;
 use App\Modules\Trace\Domain\Entities\Transports\TraceProfilingTransport;
 use App\Modules\Trace\Repositories\Interfaces\TraceRepositoryInterface;
 

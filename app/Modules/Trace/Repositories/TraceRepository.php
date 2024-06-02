@@ -4,7 +4,7 @@ namespace App\Modules\Trace\Repositories;
 
 use App\Models\Traces\Trace;
 use App\Modules\Common\Repositories\PaginationInfoDto;
-use App\Modules\Trace\Domain\Entities\Parameters\DataFilter\TraceDataFilterParameters;
+use App\Modules\Trace\Domain\Entities\Parameters\Data\TraceDataFilterParameters;
 use App\Modules\Trace\Domain\Entities\Parameters\TraceCreateParametersList;
 use App\Modules\Trace\Domain\Entities\Parameters\TraceUpdateParametersList;
 use App\Modules\Trace\Repositories\Dto\TraceDetailDto;

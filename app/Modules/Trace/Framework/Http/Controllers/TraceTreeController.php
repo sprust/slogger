@@ -5,7 +5,7 @@ namespace App\Modules\Trace\Framework\Http\Controllers;
 use App\Modules\Trace\Domain\Actions\FindTraceTreeAction;
 use App\Modules\Trace\Domain\Entities\Parameters\TraceFindTreeParameters;
 use App\Modules\Trace\Domain\Exceptions\TreeTooLongException;
-use App\Modules\Trace\Framework\Http\Resources\TraceTreesResource;
+use App\Modules\Trace\Framework\Http\Resources\Tree\TraceTreesResource;
 use Symfony\Component\HttpFoundation\Response;
 
 readonly class TraceTreeController

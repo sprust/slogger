@@ -3,11 +3,11 @@
 namespace App\Modules\Trace\Framework\Http\Controllers;
 
 use App\Modules\Service\Framework\Services\ServiceContainer;
+use App\Modules\Trace\Domain\Entities\Parameters\Profilling\TraceUpdateProfilingDataObject;
+use App\Modules\Trace\Domain\Entities\Parameters\Profilling\TraceUpdateProfilingObject;
+use App\Modules\Trace\Domain\Entities\Parameters\Profilling\TraceUpdateProfilingObjects;
 use App\Modules\Trace\Domain\Entities\Parameters\TraceUpdateParameters;
 use App\Modules\Trace\Domain\Entities\Parameters\TraceUpdateParametersList;
-use App\Modules\Trace\Domain\Entities\Parameters\TraceUpdateProfilingDataObject;
-use App\Modules\Trace\Domain\Entities\Parameters\TraceUpdateProfilingObject;
-use App\Modules\Trace\Domain\Entities\Parameters\TraceUpdateProfilingObjects;
 use App\Modules\Trace\Framework\Http\Requests\TraceUpdateRequest;
 use App\Modules\Trace\Framework\Http\Services\QueueDispatcher;
 use SLoggerLaravel\SLoggerProcessor;

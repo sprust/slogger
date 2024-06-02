@@ -4,6 +4,8 @@ namespace App\Modules\Trace\Framework\Http\Resources;
 
 use App\Modules\Common\Framework\Http\Resources\AbstractApiResource;
 use App\Modules\Trace\Domain\Entities\Objects\TraceDetailObject;
+use App\Modules\Trace\Framework\Http\Resources\Data\TraceDataAdditionalFieldResource;
+use App\Modules\Trace\Framework\Http\Resources\Data\TraceDataResource;
 use Ifksco\OpenApiGenerator\Attributes\OaListItemTypeAttribute;
 
 class TraceDetailResource extends AbstractApiResource

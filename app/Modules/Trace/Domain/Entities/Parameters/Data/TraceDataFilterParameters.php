@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\Trace\Domain\Entities\Parameters\DataFilter;
+namespace App\Modules\Trace\Domain\Entities\Parameters\Data;
 
 readonly class TraceDataFilterParameters
 {

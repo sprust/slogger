@@ -2,6 +2,8 @@
 
 namespace App\Modules\Trace\Domain\Entities\Parameters;
 
+use App\Modules\Trace\Domain\Entities\Parameters\Profilling\TraceUpdateProfilingObjects;
+
 class TraceUpdateParameters
 {
     public function __construct(

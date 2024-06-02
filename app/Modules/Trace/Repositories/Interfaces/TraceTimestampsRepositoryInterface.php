@@ -2,7 +2,7 @@
 
 namespace App\Modules\Trace\Repositories\Interfaces;
 
-use App\Modules\Trace\Domain\Entities\Parameters\DataFilter\TraceDataFilterParameters;
+use App\Modules\Trace\Domain\Entities\Parameters\Data\TraceDataFilterParameters;
 use App\Modules\Trace\Enums\TraceTimestampEnum;
 use App\Modules\Trace\Repositories\Dto\TraceTimestampsDto;
 use Illuminate\Support\Carbon;

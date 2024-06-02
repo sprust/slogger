@@ -2,7 +2,7 @@
 
 namespace App\Modules\Trace\Domain\Entities\Parameters;
 
-use App\Modules\Trace\Domain\Entities\Parameters\DataFilter\TraceDataFilterParameters;
+use App\Modules\Trace\Domain\Entities\Parameters\Data\TraceDataFilterParameters;
 
 readonly class TraceFindTagsParameters
 {

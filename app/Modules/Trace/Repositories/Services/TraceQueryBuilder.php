@@ -3,8 +3,8 @@
 namespace App\Modules\Trace\Repositories\Services;
 
 use App\Models\Traces\Trace;
-use App\Modules\Trace\Domain\Entities\Parameters\DataFilter\TraceDataFilterItemParameters;
-use App\Modules\Trace\Domain\Entities\Parameters\DataFilter\TraceDataFilterParameters;
+use App\Modules\Trace\Domain\Entities\Parameters\Data\TraceDataFilterItemParameters;
+use App\Modules\Trace\Domain\Entities\Parameters\Data\TraceDataFilterParameters;
 use App\Modules\Trace\Enums\TraceDataFilterCompStringTypeEnum;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
