@@ -5,9 +5,9 @@ namespace App\Modules;
 use App\Modules\Auth\Framework\AuthServiceProvider;
 use App\Modules\Dashboard\Framework\DashboardProvider;
 use App\Modules\Service\Framework\ServiceServiceProvider;
-use App\Modules\TraceAggregator\Framework\TraceAggregatorProvider;
-use App\Modules\TraceCleaner\Framework\TraceCleanerServiceProvider;
-use App\Modules\TraceCollector\Framework\TraceCollectorServiceProvider;
+use App\Modules\Trace\Framework\TraceAggregatorProvider;
+use App\Modules\Trace\Framework\TraceCleanerServiceProvider;
+use App\Modules\Trace\Framework\TraceCollectorServiceProvider;
 use App\Modules\User\Framework\UserServiceProvider;
 
 class ModulesConfig

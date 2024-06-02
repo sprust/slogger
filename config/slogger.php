@@ -1,8 +1,8 @@
 <?php
 
 use App\Models\Users\User;
-use App\Modules\TraceCollector\Framework\Jobs\TraceCreateJob;
-use App\Modules\TraceCollector\Framework\Jobs\TraceUpdateJob;
+use App\Modules\Trace\Framework\Jobs\TraceCreateJob;
+use App\Modules\Trace\Framework\Jobs\TraceUpdateJob;
 use SLoggerLaravel\Dispatcher\SLoggerTraceDispatcherInterface;
 use SLoggerLaravel\Dispatcher\SLoggerTraceQueueDispatcher;
 use SLoggerLaravel\Events\SLoggerWatcherErrorEvent;

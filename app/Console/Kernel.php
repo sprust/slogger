@@ -3,7 +3,7 @@
 namespace App\Console;
 
 use App\Modules\Dashboard\Framework\Http\Jobs\CacheServiceStatJob;
-use App\Modules\TraceCleaner\Framework\Commands\ClearTracesCommand;
+use App\Modules\Trace\Framework\Commands\ClearTracesCommand;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
