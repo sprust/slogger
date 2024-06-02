@@ -3,7 +3,7 @@
 namespace App\Modules\TraceAggregator\Repositories;
 
 use App\Models\Traces\Trace;
-use App\Modules\Common\Entities\PaginationInfoObject;
+use App\Modules\Common\Repositories\PaginationInfoDto;
 use App\Modules\TraceAggregator\Domain\Entities\Parameters\DataFilter\TraceDataFilterParameters;
 use App\Modules\TraceAggregator\Repositories\Dto\TraceDetailDto;
 use App\Modules\TraceAggregator\Repositories\Dto\TraceDto;
@@ -168,7 +168,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
                 ),
                 $traces
             ),
-            paginationInfo: new PaginationInfoObject(
+            paginationInfo: new PaginationInfoDto(
                 total: $tracesPaginator->total(),
                 perPage: $perPage,
                 currentPage: $page,

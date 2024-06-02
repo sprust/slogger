@@ -2,7 +2,7 @@
 
 namespace App\Modules\TraceAggregator\Framework\Http\Resources;
 
-use App\Modules\Common\Http\Resources\AbstractApiResource;
+use App\Modules\Common\Framework\Http\Resources\AbstractApiResource;
 use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceDataAdditionalFieldObject;
 use Ifksco\OpenApiGenerator\Attributes\OaListItemTypeAttribute;
 

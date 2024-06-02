@@ -1,6 +1,6 @@
 <?php
 
-use App\Modules\Common\Http\Resources\AbstractApiResource;
+use App\Modules\Common\Framework\Http\Resources\AbstractApiResource;
 use Ifksco\OpenApiGenerator\Converters\Request\Rules\OaRuleAsStringConverter;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\ProhibitedIf;

@@ -2,7 +2,7 @@
 
 namespace App\Modules\TraceAggregator\Domain\Entities\Objects;
 
-use App\Modules\Common\Entities\PaginationInfoObject;
+use App\Modules\Common\Domain\Entities\PaginationInfoObject;
 
 readonly class TraceItemObjects
 {

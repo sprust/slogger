@@ -2,7 +2,8 @@
 
 namespace App\Modules\TraceAggregator\Domain\Actions;
 
-use App\Modules\Common\Entities\PaginationInfoObject;
+use App\Modules\Common\Domain\Entities\PaginationInfoObject;
+use App\Modules\Common\Domain\Transports\PaginationInfoTransport;
 use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceDataAdditionalFieldObject;
 use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceItemObject;
 use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceItemObjects;
@@ -43,6 +44,7 @@ readonly class FindTracesAction
                         total: 0,
                         perPage: $perPage,
                         currentPage: 1,
+                        totalPages: 1
                     )
                 );
             }
@@ -132,7 +134,9 @@ readonly class FindTracesAction
 
         return new TraceItemObjects(
             items: $resultItems,
-            paginationInfo: $traceItemsPagination->paginationInfo,
+            paginationInfo: PaginationInfoTransport::toObject(
+                $traceItemsPagination->paginationInfo
+            ),
         );
     }
 

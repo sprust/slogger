@@ -3,7 +3,7 @@
 namespace App\Modules\Auth\Framework\Http\Resources;
 
 use App\Modules\Auth\Domain\Entities\Objects\LoggedUserObject;
-use App\Modules\Common\Http\Resources\AbstractApiResource;
+use App\Modules\Common\Framework\Http\Resources\AbstractApiResource;
 
 class LoggedUserResource extends AbstractApiResource
 {

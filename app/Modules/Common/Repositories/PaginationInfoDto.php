@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Modules\Common\Entities;
+namespace App\Modules\Common\Repositories;
 
-class PaginationInfoObject
+class PaginationInfoDto
 {
     public int $totalPages;
 

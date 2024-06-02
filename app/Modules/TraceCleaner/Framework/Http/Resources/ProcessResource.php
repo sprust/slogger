@@ -2,7 +2,7 @@
 
 namespace App\Modules\TraceCleaner\Framework\Http\Resources;
 
-use App\Modules\Common\Http\Resources\AbstractApiResource;
+use App\Modules\Common\Framework\Http\Resources\AbstractApiResource;
 use App\Modules\TraceCleaner\Domain\Entities\Objects\ProcessObject;
 
 class ProcessResource extends AbstractApiResource
