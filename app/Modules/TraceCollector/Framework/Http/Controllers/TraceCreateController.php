@@ -2,20 +2,21 @@
 
 namespace App\Modules\TraceCollector\Framework\Http\Controllers;
 
+use App\Modules\Service\Domain\Actions\GetCurrentServiceAction;
 use App\Modules\TraceAggregator\Domain\Actions\CreateTraceTimestampsAction;
-use App\Modules\TraceCollector\Adapters\Service\ServiceAdapter;
 use App\Modules\TraceCollector\Domain\Entities\Parameters\TraceCreateParameters;
 use App\Modules\TraceCollector\Domain\Entities\Parameters\TraceCreateParametersList;
 use App\Modules\TraceCollector\Framework\Http\Requests\TraceCreateRequest;
 use App\Modules\TraceCollector\Framework\Http\Services\QueueDispatcher;
 use Illuminate\Support\Carbon;
 use SLoggerLaravel\SLoggerProcessor;
+use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
 readonly class TraceCreateController
 {
     public function __construct(
-        private ServiceAdapter $serviceAdapter,
+        private GetCurrentServiceAction $getCurrentServiceAction,
         private QueueDispatcher $tracesServiceQueueDispatcher,
         private CreateTraceTimestampsAction $createTraceTimestampsAction, // TODO: violation of modularity
         private SLoggerProcessor $loggerProcessor
@@ -36,7 +37,9 @@ readonly class TraceCreateController
     {
         $validated = $request->validated();
 
-        $serviceId = $this->serviceAdapter->getService()->id;
+        $serviceId = $this->getCurrentServiceAction->handle()?->id;
+
+        abort_if(!$serviceId, Response::HTTP_UNAUTHORIZED);
 
         $parametersList = new TraceCreateParametersList();
 

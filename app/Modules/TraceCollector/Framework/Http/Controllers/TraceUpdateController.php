@@ -2,7 +2,7 @@
 
 namespace App\Modules\TraceCollector\Framework\Http\Controllers;
 
-use App\Modules\TraceCollector\Adapters\Service\ServiceAdapter;
+use App\Modules\Service\Domain\Actions\GetCurrentServiceAction;
 use App\Modules\TraceCollector\Domain\Entities\Parameters\TraceUpdateParameters;
 use App\Modules\TraceCollector\Domain\Entities\Parameters\TraceUpdateParametersList;
 use App\Modules\TraceCollector\Domain\Entities\Parameters\TraceUpdateProfilingDataObject;
@@ -11,12 +11,13 @@ use App\Modules\TraceCollector\Domain\Entities\Parameters\TraceUpdateProfilingOb
 use App\Modules\TraceCollector\Framework\Http\Requests\TraceUpdateRequest;
 use App\Modules\TraceCollector\Framework\Http\Services\QueueDispatcher;
 use SLoggerLaravel\SLoggerProcessor;
+use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
 readonly class TraceUpdateController
 {
     public function __construct(
-        private ServiceAdapter $serviceAdapter,
+        private GetCurrentServiceAction $getCurrentServiceAction,
         private QueueDispatcher $queueDispatcher,
         private SLoggerProcessor $loggerProcessor
     ) {
@@ -36,7 +37,9 @@ readonly class TraceUpdateController
     {
         $validated = $request->validated();
 
-        $serviceId = $this->serviceAdapter->getService()->id;
+        $serviceId = $this->getCurrentServiceAction->handle()?->id;
+
+        abort_if(!$serviceId, Response::HTTP_UNAUTHORIZED);
 
         $parametersList = new TraceUpdateParametersList();
 

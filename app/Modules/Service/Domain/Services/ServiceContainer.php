@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\Service\Framework\Http;
+namespace App\Modules\Service\Domain\Services;
 
 use App\Modules\Service\Domain\Entities\Objects\ServiceObject;
 

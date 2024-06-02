@@ -2,7 +2,6 @@
 
 namespace App\Modules\TraceCollector\Framework;
 
-use App\Modules\TraceCollector\Adapters\Service\ServiceAdapter;
 use App\Modules\TraceCollector\Framework\Commands\FreshTraceTimestampsCommand;
 use App\Modules\TraceCollector\Framework\Commands\FreshTraceTreesCommand;
 use App\Modules\TraceCollector\Repositories\Interfaces\TraceRepositoryInterface;
@@ -15,8 +14,6 @@ class TraceCollectorServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {
-        $this->app->singleton(ServiceAdapter::class);
-
         $this->registerRepository();
 
         $this->commands([

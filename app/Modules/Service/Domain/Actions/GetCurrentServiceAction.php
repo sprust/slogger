@@ -3,7 +3,7 @@
 namespace App\Modules\Service\Domain\Actions;
 
 use App\Modules\Service\Domain\Entities\Objects\ServiceObject;
-use App\Modules\Service\Framework\Http\ServiceContainer;
+use App\Modules\Service\Domain\Services\ServiceContainer;
 
 readonly class GetCurrentServiceAction
 {
