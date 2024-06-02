@@ -3,9 +3,9 @@
 namespace App\Modules\Trace\Repositories\Interfaces;
 
 use App\Modules\Trace\Domain\Entities\Parameters\Data\TraceDataFilterParameters;
-use App\Modules\Trace\Domain\Entities\Parameters\TraceCreateParametersList;
 use App\Modules\Trace\Domain\Entities\Parameters\TraceSortParameters;
 use App\Modules\Trace\Domain\Entities\Parameters\TraceUpdateParametersList;
+use App\Modules\Trace\Repositories\Dto\TraceCreateDto;
 use App\Modules\Trace\Repositories\Dto\TraceDetailDto;
 use App\Modules\Trace\Repositories\Dto\TraceDto;
 use App\Modules\Trace\Repositories\Dto\TraceItemsPaginationDto;
@@ -17,7 +17,12 @@ use Illuminate\Support\Carbon;
 
 interface TraceRepositoryInterface
 {
-    public function createMany(TraceCreateParametersList $parametersList): void;
+    /**
+     * @param TraceCreateDto[] $traces
+     *
+     * @return void
+     */
+    public function createMany(array $traces): void;
 
     public function updateMany(TraceUpdateParametersList $parametersList): int;
 

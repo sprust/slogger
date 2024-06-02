@@ -5,7 +5,6 @@ namespace App\Modules\Trace\Repositories;
 use App\Models\Traces\Trace;
 use App\Modules\Common\Repositories\PaginationInfoDto;
 use App\Modules\Trace\Domain\Entities\Parameters\Data\TraceDataFilterParameters;
-use App\Modules\Trace\Domain\Entities\Parameters\TraceCreateParametersList;
 use App\Modules\Trace\Domain\Entities\Parameters\TraceUpdateParametersList;
 use App\Modules\Trace\Repositories\Dto\TraceDetailDto;
 use App\Modules\Trace\Repositories\Dto\TraceDto;
@@ -29,13 +28,13 @@ readonly class TraceRepository implements TraceRepositoryInterface
     ) {
     }
 
-    public function createMany(TraceCreateParametersList $parametersList): void
+    public function createMany(array $traces): void
     {
         $timestamp = new UTCDateTime(now());
 
         $operations = [];
 
-        foreach ($parametersList->getItems() as $parameters) {
+        foreach ($traces as $parameters) {
             $operations[] = [
                 'updateOne' => [
                     [
