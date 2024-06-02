@@ -4,7 +4,7 @@ namespace App\Modules\TraceAggregator\Domain\Actions;
 
 use App\Modules\Common\Domain\Entities\PaginationInfoObject;
 use App\Modules\Common\Domain\Transports\PaginationInfoTransport;
-use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceDataAdditionalFieldObject;
+use App\Modules\TraceAggregator\Domain\Entities\Objects\Data\TraceDataAdditionalFieldObject;
 use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceItemObject;
 use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceItemObjects;
 use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceItemTraceObject;

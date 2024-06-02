@@ -3,13 +3,15 @@
 namespace App\Modules\TraceCollector\Domain\Actions;
 
 use App\Modules\TraceAggregator\Domain\Actions\CreateTraceTimestampsAction;
+use App\Modules\TraceAggregator\Domain\Entities\Objects\Timestamp\TraceTimestampMetricObject;
+use App\Modules\TraceCollector\Repositories\Dto\TraceTimestampMetricDto;
 use App\Modules\TraceCollector\Repositories\Interfaces\TraceRepositoryInterface;
 
 readonly class FreshTraceTimestampsAction
 {
     public function __construct(
         private TraceRepositoryInterface $traceRepository,
-        private CreateTraceTimestampsAction $createTraceTimestampsAction // TODO: violation of modularity
+        private CreateTraceTimestampsAction $createTraceTimestampsAction
     ) {
     }
 
@@ -35,8 +37,14 @@ readonly class FreshTraceTimestampsAction
             foreach ($traceLoggedAtList as $traceLoggedAt) {
                 $this->traceRepository->updateTraceTimestamps(
                     traceId: $traceLoggedAt->traceId,
-                    timestamps: $this->createTraceTimestampsAction->handle(
-                        date: $traceLoggedAt->loggedAt
+                    timestamps: array_map(
+                        fn(TraceTimestampMetricObject $object) => new TraceTimestampMetricDto(
+                            key: $object->key,
+                            value: $object->value
+                        ),
+                        $this->createTraceTimestampsAction->handle(
+                            date: $traceLoggedAt->loggedAt
+                        )
                     )
                 );
             }

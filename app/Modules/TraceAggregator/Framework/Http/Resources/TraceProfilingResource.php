@@ -3,7 +3,7 @@
 namespace App\Modules\TraceAggregator\Framework\Http\Resources;
 
 use App\Modules\Common\Framework\Http\Resources\AbstractApiResource;
-use App\Modules\TraceAggregator\Domain\Entities\Objects\ProfilingObject;
+use App\Modules\TraceAggregator\Domain\Entities\Objects\Profiling\ProfilingObject;
 use Ifksco\OpenApiGenerator\Attributes\OaListItemTypeAttribute;
 
 class TraceProfilingResource extends AbstractApiResource

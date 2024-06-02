@@ -2,7 +2,7 @@
 
 namespace App\Modules\TraceAggregator\Domain\Actions;
 
-use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceTimestampMetricObject;
+use App\Modules\TraceAggregator\Domain\Entities\Objects\Timestamp\TraceTimestampMetricObject;
 use App\Modules\TraceAggregator\Domain\Services\TraceTimestampMetricsFactory;
 use Illuminate\Support\Carbon;
 

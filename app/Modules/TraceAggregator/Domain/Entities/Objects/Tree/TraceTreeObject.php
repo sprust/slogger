@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Modules\TraceAggregator\Domain\Entities\Objects;
+namespace App\Modules\TraceAggregator\Domain\Entities\Objects\Tree;
 
+use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceServiceObject;
 use Illuminate\Support\Carbon;
 
 readonly class TraceTreeObject

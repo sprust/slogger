@@ -3,7 +3,7 @@
 namespace App\Modules\TraceAggregator\Framework\Http\Resources;
 
 use App\Modules\Common\Framework\Http\Resources\AbstractApiResource;
-use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceTimestampsObjects;
+use App\Modules\TraceAggregator\Domain\Entities\Objects\Timestamp\TraceTimestampsObjects;
 use Ifksco\OpenApiGenerator\Attributes\OaListItemTypeAttribute;
 
 class TraceTimestampsResource extends AbstractApiResource

@@ -4,7 +4,7 @@ namespace App\Modules\TraceAggregator\Domain\Services;
 
 use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceObject;
 use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceServiceObject;
-use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceTreeObject;
+use App\Modules\TraceAggregator\Domain\Entities\Objects\Tree\TraceTreeObject;
 use Illuminate\Support\Collection;
 
 readonly class TraceTreeBuilder

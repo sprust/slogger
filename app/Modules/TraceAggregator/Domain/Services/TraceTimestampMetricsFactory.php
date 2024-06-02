@@ -2,8 +2,8 @@
 
 namespace App\Modules\TraceAggregator\Domain\Services;
 
-use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceTimestampMetricObject;
-use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceTimestampsObject;
+use App\Modules\TraceAggregator\Domain\Entities\Objects\Timestamp\TraceTimestampMetricObject;
+use App\Modules\TraceAggregator\Domain\Entities\Objects\Timestamp\TraceTimestampsObject;
 use App\Modules\TraceAggregator\Enums\TraceTimestampEnum;
 use App\Modules\TraceAggregator\Enums\TraceTimestampPeriodEnum;
 use Illuminate\Support\Carbon;

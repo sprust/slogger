@@ -2,8 +2,8 @@
 
 namespace App\Modules\TraceAggregator\Domain\Actions;
 
-use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceTimestampsObject;
-use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceTimestampsObjects;
+use App\Modules\TraceAggregator\Domain\Entities\Objects\Timestamp\TraceTimestampsObject;
+use App\Modules\TraceAggregator\Domain\Entities\Objects\Timestamp\TraceTimestampsObjects;
 use App\Modules\TraceAggregator\Domain\Entities\Parameters\FindTraceTimestampsParameters;
 use App\Modules\TraceAggregator\Domain\Services\TraceTimestampMetricsFactory;
 use App\Modules\TraceAggregator\Repositories\Dto\TraceTimestampsDto;

@@ -2,9 +2,9 @@
 
 namespace App\Modules\TraceAggregator\Domain\Entities\Transports;
 
-use App\Modules\TraceAggregator\Domain\Entities\Objects\ProfilingItemDataObject;
-use App\Modules\TraceAggregator\Domain\Entities\Objects\ProfilingItemObject;
-use App\Modules\TraceAggregator\Domain\Entities\Objects\ProfilingObject;
+use App\Modules\TraceAggregator\Domain\Entities\Objects\Profiling\ProfilingItemDataObject;
+use App\Modules\TraceAggregator\Domain\Entities\Objects\Profiling\ProfilingItemObject;
+use App\Modules\TraceAggregator\Domain\Entities\Objects\Profiling\ProfilingObject;
 use Illuminate\Support\Str;
 
 class TraceProfilingTransport

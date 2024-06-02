@@ -2,6 +2,7 @@
 
 namespace App\Modules\TraceAggregator\Domain\Entities\Objects;
 
+use App\Modules\TraceAggregator\Domain\Entities\Objects\Data\TraceDataAdditionalFieldObject;
 use Illuminate\Support\Carbon;
 
 readonly class TraceItemTraceObject

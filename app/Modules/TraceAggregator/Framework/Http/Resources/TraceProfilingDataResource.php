@@ -3,7 +3,7 @@
 namespace App\Modules\TraceAggregator\Framework\Http\Resources;
 
 use App\Modules\Common\Framework\Http\Resources\AbstractApiResource;
-use App\Modules\TraceAggregator\Domain\Entities\Objects\ProfilingItemDataObject;
+use App\Modules\TraceAggregator\Domain\Entities\Objects\Profiling\ProfilingItemDataObject;
 
 class TraceProfilingDataResource extends AbstractApiResource
 {

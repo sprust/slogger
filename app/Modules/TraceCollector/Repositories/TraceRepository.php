@@ -3,10 +3,11 @@
 namespace App\Modules\TraceCollector\Repositories;
 
 use App\Models\Traces\Trace;
-use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceTimestampMetricObject;
+use App\Modules\TraceAggregator\Domain\Entities\Objects\Timestamp\TraceTimestampMetricObject;
 use App\Modules\TraceCollector\Domain\Entities\Parameters\TraceCreateParametersList;
 use App\Modules\TraceCollector\Domain\Entities\Parameters\TraceUpdateParametersList;
 use App\Modules\TraceCollector\Repositories\Dto\TraceLoggedAtDto;
+use App\Modules\TraceCollector\Repositories\Dto\TraceTimestampMetricDto;
 use App\Modules\TraceCollector\Repositories\Dto\TraceTreeDto;
 use App\Modules\TraceCollector\Repositories\Interfaces\TraceRepositoryInterface;
 use Illuminate\Database\Eloquent\Builder;
@@ -179,7 +180,7 @@ class TraceRepository implements TraceRepositoryInterface
     }
 
     /**
-     * @param TraceTimestampMetricObject[] $timestamps
+     * @param TraceTimestampMetricDto[] $timestamps
      */
     private function makeTimestampsData(array $timestamps): array
     {

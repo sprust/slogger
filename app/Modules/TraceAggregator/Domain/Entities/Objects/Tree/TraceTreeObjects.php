@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\TraceAggregator\Domain\Entities\Objects;
+namespace App\Modules\TraceAggregator\Domain\Entities\Objects\Tree;
 
 readonly class TraceTreeObjects
 {

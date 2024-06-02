@@ -2,7 +2,7 @@
 
 namespace App\Modules\TraceAggregator\Domain\Entities\Transports;
 
-use App\Modules\TraceAggregator\Domain\Entities\Objects\TraceDataObject;
+use App\Modules\TraceAggregator\Domain\Entities\Objects\Data\TraceDataObject;
 use Illuminate\Support\Arr;
 
 class TraceDataToObjectBuilder

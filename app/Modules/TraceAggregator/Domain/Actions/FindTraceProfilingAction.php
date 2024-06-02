@@ -2,7 +2,7 @@
 
 namespace App\Modules\TraceAggregator\Domain\Actions;
 
-use App\Modules\TraceAggregator\Domain\Entities\Objects\ProfilingObject;
+use App\Modules\TraceAggregator\Domain\Entities\Objects\Profiling\ProfilingObject;
 use App\Modules\TraceAggregator\Domain\Entities\Parameters\TraceFindProfilingParameters;
 use App\Modules\TraceAggregator\Domain\Entities\Transports\TraceProfilingTransport;
 use App\Modules\TraceAggregator\Repositories\Interfaces\TraceRepositoryInterface;
