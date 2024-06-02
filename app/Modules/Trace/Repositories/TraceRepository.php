@@ -5,22 +5,191 @@ namespace App\Modules\Trace\Repositories;
 use App\Models\Traces\Trace;
 use App\Modules\Common\Repositories\PaginationInfoDto;
 use App\Modules\Trace\Domain\Entities\Parameters\DataFilter\TraceDataFilterParameters;
+use App\Modules\Trace\Domain\Entities\Parameters\TraceCreateParametersList;
+use App\Modules\Trace\Domain\Entities\Parameters\TraceUpdateParametersList;
 use App\Modules\Trace\Repositories\Dto\TraceDetailDto;
 use App\Modules\Trace\Repositories\Dto\TraceDto;
 use App\Modules\Trace\Repositories\Dto\TraceItemsPaginationDto;
+use App\Modules\Trace\Repositories\Dto\TraceLoggedAtDto;
 use App\Modules\Trace\Repositories\Dto\TraceServiceDto;
+use App\Modules\Trace\Repositories\Dto\TraceTimestampMetricDto;
+use App\Modules\Trace\Repositories\Dto\TraceTreeDto;
 use App\Modules\Trace\Repositories\Dto\TraceTypeDto;
 use App\Modules\Trace\Repositories\Interfaces\TraceRepositoryInterface;
 use App\Modules\Trace\Repositories\Services\TraceQueryBuilder;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
+use MongoDB\BSON\UTCDateTime;
 
 readonly class TraceRepository implements TraceRepositoryInterface
 {
     public function __construct(
         private TraceQueryBuilder $traceQueryBuilder
     ) {
+    }
+
+    public function createMany(TraceCreateParametersList $parametersList): void
+    {
+        $timestamp = new UTCDateTime(now());
+
+        $operations = [];
+
+        foreach ($parametersList->getItems() as $parameters) {
+            $operations[] = [
+                'updateOne' => [
+                    [
+                        'serviceId' => $parameters->serviceId,
+                        'traceId'   => $parameters->traceId,
+                    ],
+                    [
+                        '$set'         => [
+                            'parentTraceId' => $parameters->parentTraceId,
+                            'type'          => $parameters->type,
+                            'status'        => $parameters->status,
+                            'tags'          => $parameters->tags,
+                            'data'          => json_decode($parameters->data, true),
+                            'duration'      => $parameters->duration,
+                            'memory'        => $parameters->memory,
+                            'cpu'           => $parameters->cpu,
+                            'timestamps'    => $this->makeTimestampsData($parameters->timestamps),
+                            'loggedAt'      => new UTCDateTime($parameters->loggedAt),
+                            'updatedAt'     => $timestamp,
+                        ],
+                        '$setOnInsert' => [
+                            'createdAt' => $timestamp,
+                        ],
+                    ],
+                    [
+                        'upsert' => true,
+                    ],
+                ],
+            ];
+        }
+
+        Trace::collection()->bulkWrite($operations);
+    }
+
+    public function updateMany(TraceUpdateParametersList $parametersList): int
+    {
+        $timestamp = new UTCDateTime(now());
+
+        $operations = [];
+
+        foreach ($parametersList->getItems() as $parameters) {
+            $hasProfiling = is_null($parameters->profiling) ? null : !empty($parameters->profiling->getItems());
+
+            $operations[] = [
+                'updateOne' => [
+                    [
+                        'serviceId' => $parameters->serviceId,
+                        'traceId'   => $parameters->traceId,
+                    ],
+                    [
+                        '$set' => [
+                            'status'    => $parameters->status,
+                            ...(is_null($hasProfiling)
+                                ? []
+                                : [
+                                    'hasProfiling' => $hasProfiling,
+                                ]),
+                            ...(is_null($parameters->profiling)
+                                ? []
+                                : [
+                                    'profiling' => [
+                                        'mainCaller' => $parameters->profiling->getMainCaller(),
+                                        'items'      => $parameters->profiling->getItems(),
+                                    ],
+                                ]),
+                            ...(is_null($parameters->tags)
+                                ? []
+                                : [
+                                    'tags' => $parameters->tags,
+                                ]),
+                            ...(is_null($parameters->data)
+                                ? []
+                                : [
+                                    'data' => json_decode($parameters->data, true),
+                                ]),
+                            ...(is_null($parameters->duration)
+                                ? []
+                                : [
+                                    'duration' => $parameters->duration,
+                                ]),
+                            ...(is_null($parameters->memory)
+                                ? []
+                                : [
+                                    'memory' => $parameters->memory,
+                                ]),
+                            ...(is_null($parameters->cpu)
+                                ? []
+                                : [
+                                    'cpu' => $parameters->cpu,
+                                ]),
+                            'updatedAt' => $timestamp,
+                        ],
+                    ],
+                ],
+            ];
+        }
+
+        return Trace::collection()->bulkWrite($operations)->getModifiedCount();
+    }
+
+    public function findTree(int $page = 1, int $perPage = 15, ?Carbon $to = null): array
+    {
+        return Trace::query()
+            ->select([
+                'traceId',
+                'parentTraceId',
+                'loggedAt',
+            ])
+            ->when(
+                $to,
+                fn(Builder $query) => $query->where('loggedAt', '<=', new UTCDateTime($to))
+            )
+            ->forPage(
+                page: $page,
+                perPage: $perPage
+            )
+            ->get()
+            ->map(
+                fn(Trace $trace) => new TraceTreeDto(
+                    traceId: $trace->traceId,
+                    parentTraceId: $trace->parentTraceId,
+                    loggedAt: $trace->loggedAt
+                )
+            )
+            ->toArray();
+    }
+
+    public function findLoggedAtList(int $page, int $perPage, Carbon $loggedAtTo): array
+    {
+        return Trace::query()
+            ->select([
+                'traceId',
+                'loggedAt',
+            ])
+            ->where('loggedAt', '<=', $loggedAtTo)
+            ->orderBy('_id')
+            ->forPage(page: $page, perPage: $perPage)
+            ->get()
+            ->map(
+                fn(Trace $trace) => new TraceLoggedAtDto(
+                    traceId: $trace->traceId,
+                    loggedAt: $trace->loggedAt
+                )
+            )
+            ->toArray();
+    }
+
+    public function updateTraceTimestamps(string $traceId, array $timestamps): void
+    {
+        Trace::query()
+            ->where('traceId', $traceId)
+            ->update([
+                'timestamps' => $this->makeTimestampsData($timestamps),
+            ]);
     }
 
     public function findOneByTraceId(string $traceId): ?TraceDetailDto
@@ -291,5 +460,35 @@ readonly class TraceRepository implements TraceRepositoryInterface
         $trace = Trace::query()->where('traceId', $traceId)->first();
 
         return $trace?->profiling;
+    }
+
+    public function findIds(int $limit, Carbon $loggedAtTo, ?string $type, array $excludedTypes): array
+    {
+        return Trace::query()
+            ->where('loggedAt', '<=', new UTCDateTime($loggedAtTo))
+            ->when($type, fn(Builder $query) => $query->where('type', $type))
+            ->when(is_null($type) && $excludedTypes, fn(Builder $query) => $query->whereNotIn('type', $excludedTypes))
+            ->take($limit)
+            ->pluck('traceId')
+            ->toArray();
+    }
+
+    public function deleteByIds(array $traceIds): int
+    {
+        return Trace::query()->whereIn('traceId', $traceIds)->delete();
+    }
+
+    /**
+     * @param TraceTimestampMetricDto[] $timestamps
+     */
+    private function makeTimestampsData(array $timestamps): array
+    {
+        $result = [];
+
+        foreach ($timestamps as $timestamp) {
+            $result[$timestamp->key] = new UTCDateTime($timestamp->value);
+        }
+
+        return $result;
     }
 }

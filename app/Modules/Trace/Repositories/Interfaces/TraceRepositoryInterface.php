@@ -3,15 +3,37 @@
 namespace App\Modules\Trace\Repositories\Interfaces;
 
 use App\Modules\Trace\Domain\Entities\Parameters\DataFilter\TraceDataFilterParameters;
+use App\Modules\Trace\Domain\Entities\Parameters\TraceCreateParametersList;
 use App\Modules\Trace\Domain\Entities\Parameters\TraceSortParameters;
+use App\Modules\Trace\Domain\Entities\Parameters\TraceUpdateParametersList;
 use App\Modules\Trace\Repositories\Dto\TraceDetailDto;
 use App\Modules\Trace\Repositories\Dto\TraceDto;
 use App\Modules\Trace\Repositories\Dto\TraceItemsPaginationDto;
+use App\Modules\Trace\Repositories\Dto\TraceLoggedAtDto;
+use App\Modules\Trace\Repositories\Dto\TraceTimestampMetricDto;
+use App\Modules\Trace\Repositories\Dto\TraceTreeDto;
 use App\Modules\Trace\Repositories\Dto\TraceTypeDto;
 use Illuminate\Support\Carbon;
 
 interface TraceRepositoryInterface
 {
+    public function createMany(TraceCreateParametersList $parametersList): void;
+
+    public function updateMany(TraceUpdateParametersList $parametersList): int;
+
+    /** @return TraceTreeDto[] */
+    public function findTree(int $page = 1, int $perPage = 15, ?Carbon $to = null): array;
+
+    /**
+     * @return TraceLoggedAtDto[]
+     */
+    public function findLoggedAtList(int $page, int $perPage, Carbon $loggedAtTo): array;
+
+    /**
+     * @param TraceTimestampMetricDto[] $timestamps
+     */
+    public function updateTraceTimestamps(string $traceId, array $timestamps): void;
+
     public function findOneByTraceId(string $traceId): ?TraceDetailDto;
 
     /**
@@ -53,4 +75,18 @@ interface TraceRepositoryInterface
     public function findTypeCounts(array $traceIds): array;
 
     public function findProfilingByTraceId(string $traceId): ?array;
+
+    /**
+     * @param string[] $excludedTypes
+     *
+     * @return string[]
+     */
+    public function findIds(int $limit, Carbon $loggedAtTo, string $type, array $excludedTypes): array;
+
+    /**
+     * @param string[] $traceIds
+     *
+     * @return int - number of deleted records
+     */
+    public function deleteByIds(array $traceIds): int;
 }

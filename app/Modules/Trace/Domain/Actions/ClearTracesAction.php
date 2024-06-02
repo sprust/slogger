@@ -4,14 +4,14 @@ namespace App\Modules\Trace\Domain\Actions;
 
 use App\Modules\Trace\Domain\Events\ProcessAlreadyActiveEvent;
 use App\Modules\Trace\Repositories\Dto\SettingDto;
-use App\Modules\Trace\Repositories\Interfaces\CleanerTraceRepositoryInterface;
-use App\Modules\Trace\Repositories\Interfaces\CleanerTraceTreeRepositoryInterface;
 use App\Modules\Trace\Repositories\Interfaces\ProcessRepositoryInterface;
 use App\Modules\Trace\Repositories\Interfaces\SettingRepositoryInterface;
+use App\Modules\Trace\Repositories\Interfaces\TraceRepositoryInterface;
+use App\Modules\Trace\Repositories\Interfaces\TraceTreeRepositoryInterface;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Arr;
 
-readonly class ClearAction
+readonly class ClearTracesAction
 {
     private int $daysLifetimeOfProcessData;
     private int $countInDeletionBatch;
@@ -20,8 +20,8 @@ readonly class ClearAction
         private Application $app,
         private SettingRepositoryInterface $settingRepository,
         private ProcessRepositoryInterface $processRepository,
-        private CleanerTraceRepositoryInterface $traceRepository,
-        private CleanerTraceTreeRepositoryInterface $traceTreeRepository
+        private TraceRepositoryInterface $traceRepository,
+        private TraceTreeRepositoryInterface $traceTreeRepository
     ) {
         $this->countInDeletionBatch      = 1000;
         $this->daysLifetimeOfProcessData = 5;
@@ -84,11 +84,11 @@ readonly class ClearAction
                     break;
                 }
 
-                $this->traceRepository->delete(
+                $this->traceRepository->deleteByIds(
                     traceIds: $traceIds
                 );
 
-                $this->traceTreeRepository->delete(
+                $this->traceTreeRepository->deleteByIds(
                     traceIds: $traceIds
                 );
 

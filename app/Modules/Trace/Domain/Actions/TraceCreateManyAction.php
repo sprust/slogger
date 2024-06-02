@@ -5,14 +5,14 @@ namespace App\Modules\Trace\Domain\Actions;
 use App\Modules\Trace\Domain\Entities\Parameters\TraceCreateParameters;
 use App\Modules\Trace\Domain\Entities\Parameters\TraceCreateParametersList;
 use App\Modules\Trace\Repositories\Dto\TraceTreeDto;
-use App\Modules\Trace\Repositories\Interfaces\CollectorTraceRepositoryInterface;
-use App\Modules\Trace\Repositories\Interfaces\CollectorTraceTreeRepositoryInterface;
+use App\Modules\Trace\Repositories\Interfaces\TraceRepositoryInterface;
+use App\Modules\Trace\Repositories\Interfaces\TraceTreeRepositoryInterface;
 
 readonly class TraceCreateManyAction
 {
     public function __construct(
-        private CollectorTraceRepositoryInterface $traceRepository,
-        private CollectorTraceTreeRepositoryInterface      $traceTreeRepository
+        private TraceRepositoryInterface $traceRepository,
+        private TraceTreeRepositoryInterface $traceTreeRepository
     ) {
     }
 

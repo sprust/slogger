@@ -2,14 +2,14 @@
 
 namespace App\Modules\Trace\Domain\Actions;
 
-use App\Modules\Trace\Repositories\Interfaces\CollectorTraceRepositoryInterface;
-use App\Modules\Trace\Repositories\Interfaces\CollectorTraceTreeRepositoryInterface;
+use App\Modules\Trace\Repositories\Interfaces\TraceRepositoryInterface;
+use App\Modules\Trace\Repositories\Interfaces\TraceTreeRepositoryInterface;
 
 readonly class FreshTraceTreeAction
 {
     public function __construct(
-        private CollectorTraceRepositoryInterface $traceRepository,
-        private CollectorTraceTreeRepositoryInterface      $traceTreeRepository
+        private TraceRepositoryInterface $traceRepository,
+        private TraceTreeRepositoryInterface $traceTreeRepository
     ) {
     }
 
@@ -18,7 +18,7 @@ readonly class FreshTraceTreeAction
         $to = now();
 
         // TODO: to delete by batch in cycle below
-        $this->traceTreeRepository->deleteMany(to: $to);
+        $this->traceTreeRepository->deleteToLoggedAt(to: $to);
 
         $page = 1;
 

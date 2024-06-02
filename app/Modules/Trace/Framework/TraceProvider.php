@@ -2,6 +2,8 @@
 
 namespace App\Modules\Trace\Framework;
 
+use App\Modules\Trace\Framework\Commands\FreshTraceTimestampsCommand;
+use App\Modules\Trace\Framework\Commands\FreshTraceTreesCommand;
 use App\Modules\Trace\Repositories\Interfaces\TraceContentRepositoryInterface;
 use App\Modules\Trace\Repositories\Interfaces\TraceRepositoryInterface;
 use App\Modules\Trace\Repositories\Interfaces\TraceTimestampsRepositoryInterface;
@@ -13,13 +15,18 @@ use App\Modules\Trace\Repositories\TraceTimestampsRepository;
 use App\Modules\Trace\Repositories\TraceTreeRepository;
 use Illuminate\Support\ServiceProvider;
 
-class TraceAggregatorProvider extends ServiceProvider
+class TraceProvider extends ServiceProvider
 {
     public function boot(): void
     {
         $this->app->singleton(TraceQueryBuilder::class);
 
         $this->registerRepositories();
+
+        $this->commands([
+            FreshTraceTreesCommand::class,
+            FreshTraceTimestampsCommand::class,
+        ]);
     }
 
     private function registerRepositories(): void

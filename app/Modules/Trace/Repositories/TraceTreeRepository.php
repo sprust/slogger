@@ -3,12 +3,48 @@
 namespace App\Modules\Trace\Repositories;
 
 use App\Models\Traces\Trace;
+use App\Models\Traces\TraceTree;
 use App\Modules\Trace\Repositories\Interfaces\TraceTreeRepositoryInterface;
+use Illuminate\Support\Carbon;
+use MongoDB\BSON\UTCDateTime;
 use MongoDB\Model\BSONDocument;
 
 class TraceTreeRepository implements TraceTreeRepositoryInterface
 {
     private int $maxDepthForFindParent = 100;
+
+    public function insertMany(array $parametersList): void
+    {
+        $operations = [];
+
+        $createdAt = new UTCDateTime(now());
+
+        foreach ($parametersList as $parameters) {
+            $operations[] = [
+                'updateOne' => [
+                    [
+                        'traceId'       => $parameters->traceId,
+                        'parentTraceId' => $parameters->parentTraceId,
+                    ],
+                    [
+                        '$set'         => [
+                            'traceId'       => $parameters->traceId,
+                            'parentTraceId' => $parameters->parentTraceId,
+                            'loggedAt'      => new UTCDateTime($parameters->loggedAt),
+                        ],
+                        '$setOnInsert' => [
+                            'createdAt' => $createdAt,
+                        ],
+                    ],
+                    [
+                        'upsert' => true,
+                    ],
+                ],
+            ];
+        }
+
+        TraceTree::collection()->bulkWrite($operations);
+    }
 
     public function findTraceIdsInTreeByParentTraceId(string $traceId): array
     {
@@ -114,5 +150,15 @@ class TraceTreeRepository implements TraceTreeRepositoryInterface
         }
 
         return $parentTrace['traceId'];
+    }
+
+    public function deleteByIds(array $traceIds): int
+    {
+        return TraceTree::query()->whereIn('traceId', $traceIds)->delete();
+    }
+
+    public function deleteToLoggedAt(Carbon $to): void
+    {
+        TraceTree::query()->where('loggedAt', '<=', new UTCDateTime($to))->delete();
     }
 }

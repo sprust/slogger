@@ -2,12 +2,8 @@
 
 namespace App\Modules\Trace\Framework;
 
-use App\Modules\Trace\Domain\Actions\ClearAction;
+use App\Modules\Trace\Domain\Actions\ClearTracesAction;
 use App\Modules\Trace\Framework\Commands\ClearTracesCommand;
-use App\Modules\Trace\Repositories\CleanerTraceRepository;
-use App\Modules\Trace\Repositories\CleanerTraceTreeRepository;
-use App\Modules\Trace\Repositories\Interfaces\CleanerTraceRepositoryInterface;
-use App\Modules\Trace\Repositories\Interfaces\CleanerTraceTreeRepositoryInterface;
 use App\Modules\Trace\Repositories\Interfaces\ProcessRepositoryInterface;
 use App\Modules\Trace\Repositories\Interfaces\SettingRepositoryInterface;
 use App\Modules\Trace\Repositories\ProcessRepository;
@@ -20,7 +16,7 @@ class TraceCleanerServiceProvider extends ServiceProvider
     {
         $this->registerRepositories();
 
-        $this->app->singleton(ClearAction::class);
+        $this->app->singleton(ClearTracesAction::class);
 
         $this->commands([
             ClearTracesCommand::class,
@@ -36,14 +32,6 @@ class TraceCleanerServiceProvider extends ServiceProvider
         $this->app->singleton(
             SettingRepositoryInterface::class,
             SettingRepository::class
-        );
-        $this->app->singleton(
-            CleanerTraceRepositoryInterface::class,
-            CleanerTraceRepository::class
-        );
-        $this->app->singleton(
-            CleanerTraceTreeRepositoryInterface::class,
-            CleanerTraceTreeRepository::class
         );
     }
 }

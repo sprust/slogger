@@ -5,9 +5,8 @@ namespace App\Modules;
 use App\Modules\Auth\Framework\AuthServiceProvider;
 use App\Modules\Dashboard\Framework\DashboardProvider;
 use App\Modules\Service\Framework\ServiceServiceProvider;
-use App\Modules\Trace\Framework\TraceAggregatorProvider;
+use App\Modules\Trace\Framework\TraceProvider;
 use App\Modules\Trace\Framework\TraceCleanerServiceProvider;
-use App\Modules\Trace\Framework\TraceCollectorServiceProvider;
 use App\Modules\User\Framework\UserServiceProvider;
 
 class ModulesConfig
@@ -16,8 +15,7 @@ class ModulesConfig
     {
         return [
             ServiceServiceProvider::class,
-            TraceCollectorServiceProvider::class,
-            TraceAggregatorProvider::class,
+            TraceProvider::class,
             AuthServiceProvider::class,
             UserServiceProvider::class,
             DashboardProvider::class,
