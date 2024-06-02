@@ -2,7 +2,7 @@
 
 namespace App\Modules\TraceCollector\Framework\Http\Controllers;
 
-use App\Modules\Service\Domain\Actions\GetCurrentServiceAction;
+use App\Modules\Service\Framework\Services\ServiceContainer;
 use App\Modules\TraceCollector\Domain\Entities\Parameters\TraceUpdateParameters;
 use App\Modules\TraceCollector\Domain\Entities\Parameters\TraceUpdateParametersList;
 use App\Modules\TraceCollector\Domain\Entities\Parameters\TraceUpdateProfilingDataObject;
@@ -17,7 +17,7 @@ use Throwable;
 readonly class TraceUpdateController
 {
     public function __construct(
-        private GetCurrentServiceAction $getCurrentServiceAction,
+        private ServiceContainer $serviceContainer,
         private QueueDispatcher $queueDispatcher,
         private SLoggerProcessor $loggerProcessor
     ) {
@@ -37,7 +37,7 @@ readonly class TraceUpdateController
     {
         $validated = $request->validated();
 
-        $serviceId = $this->getCurrentServiceAction->handle()?->id;
+        $serviceId = $this->serviceContainer->getService()?->id;
 
         abort_if(!$serviceId, Response::HTTP_UNAUTHORIZED);
 

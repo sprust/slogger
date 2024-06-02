@@ -2,7 +2,7 @@
 
 namespace App\Modules\TraceCollector\Framework\Http\Controllers;
 
-use App\Modules\Service\Domain\Actions\GetCurrentServiceAction;
+use App\Modules\Service\Framework\Services\ServiceContainer;
 use App\Modules\TraceAggregator\Domain\Actions\CreateTraceTimestampsAction;
 use App\Modules\TraceCollector\Domain\Entities\Parameters\TraceCreateParameters;
 use App\Modules\TraceCollector\Domain\Entities\Parameters\TraceCreateParametersList;
@@ -16,7 +16,7 @@ use Throwable;
 readonly class TraceCreateController
 {
     public function __construct(
-        private GetCurrentServiceAction $getCurrentServiceAction,
+        private ServiceContainer $serviceContainer,
         private QueueDispatcher $tracesServiceQueueDispatcher,
         private CreateTraceTimestampsAction $createTraceTimestampsAction, // TODO: violation of modularity
         private SLoggerProcessor $loggerProcessor
@@ -37,7 +37,7 @@ readonly class TraceCreateController
     {
         $validated = $request->validated();
 
-        $serviceId = $this->getCurrentServiceAction->handle()?->id;
+        $serviceId = $this->serviceContainer->getService()?->id;
 
         abort_if(!$serviceId, Response::HTTP_UNAUTHORIZED);
 
