@@ -2,18 +2,19 @@
 
 namespace App\Modules\Dashboard\Domain\Actions;
 
-use App\Modules\Dashboard\Adapters\Service\ServiceAdapter;
 use App\Modules\Dashboard\Domain\Entities\Objects\ServiceObject;
 use App\Modules\Dashboard\Domain\Entities\Transports\ServiceStatTransport;
 use App\Modules\Dashboard\Domain\Services\ServiceStatCache;
 use App\Modules\Dashboard\Repositories\Interfaces\ServiceStatRepositoryInterface;
+use App\Modules\Service\Domain\Actions\FindServicesAction;
+use App\Modules\Service\Domain\Entities\Objects\ServiceObject as ServiceServiceObject;
 use Illuminate\Support\Collection;
 
 readonly class CacheServiceStatAction
 {
     public function __construct(
         private ServiceStatRepositoryInterface $serviceStatRepository,
-        private ServiceAdapter $serviceAdapter,
+        private FindServicesAction $findServicesAction,
         private ServiceStatCache $serviceStatCache
     ) {
     }
@@ -29,8 +30,12 @@ readonly class CacheServiceStatAction
         }
 
         /** @var Collection<int, ServiceObject> $services */
-        $services = collect($this->serviceAdapter->find())
-            ->keyBy(fn(ServiceObject $serviceDto) => $serviceDto->id);
+        $services = collect($this->findServicesAction->handle())
+            ->map(fn(ServiceServiceObject $dto) => new ServiceObject(
+                id: $dto->id,
+                name: $dto->name
+            ))
+            ->keyBy(fn(ServiceObject $dto) => $dto->id);
 
         $result = [];
 

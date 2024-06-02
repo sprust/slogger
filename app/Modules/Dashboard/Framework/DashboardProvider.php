@@ -2,7 +2,6 @@
 
 namespace App\Modules\Dashboard\Framework;
 
-use App\Modules\Dashboard\Adapters\Service\ServiceAdapter;
 use App\Modules\Dashboard\Domain\Actions\FindServiceStatAction;
 use App\Modules\Dashboard\Repositories\DatabaseStatRepository;
 use App\Modules\Dashboard\Repositories\Interfaces\DatabaseStatRepositoryInterface;
@@ -17,7 +16,6 @@ class DashboardProvider extends ServiceProvider
         $this->app->singleton(DatabaseStatRepositoryInterface::class, DatabaseStatRepository::class);
         $this->app->singleton(ServiceStatRepositoryInterface::class, ServiceStatRepository::class);
 
-        $this->app->singleton(ServiceAdapter::class);
         $this->app->singleton(FindServiceStatAction::class);
     }
 }
