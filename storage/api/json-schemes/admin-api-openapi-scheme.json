@@ -2091,12 +2091,6 @@
                                                         }
                                                     }
                                                 }
-                                            },
-                                            "fields": {
-                                                "type": "array",
-                                                "items": {
-                                                    "type": "string"
-                                                }
                                             }
                                         }
                                     },

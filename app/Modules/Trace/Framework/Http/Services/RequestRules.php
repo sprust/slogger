@@ -1,0 +1,77 @@
+<?php
+
+namespace App\Modules\Trace\Framework\Http\Services;
+
+use App\Modules\Trace\Enums\TraceDataFilterCompNumericTypeEnum;
+use App\Modules\Trace\Enums\TraceDataFilterCompStringTypeEnum;
+
+class RequestRules
+{
+    public static function filterData(): array
+    {
+        return [
+            'data'                        => [
+                'sometimes',
+                'array',
+            ],
+            'data.filter'                 => [
+                'sometimes',
+                'array',
+            ],
+            'data.filter.*.field'         => [
+                'required',
+                'string',
+            ],
+            'data.filter.*.null'          => [
+                'sometimes',
+                'bool',
+            ],
+            'data.filter.*.numeric'       => [
+                'sometimes',
+                'array',
+            ],
+            "data.filter.*.numeric.value" => [
+                'sometimes',
+                'numeric',
+            ],
+            'data.filter.*.numeric.comp'  => [
+                'sometimes',
+                'string',
+                'in:' . implode(
+                    ',',
+                    array_map(
+                        fn(TraceDataFilterCompNumericTypeEnum $enum) => $enum->value,
+                        TraceDataFilterCompNumericTypeEnum::cases()
+                    )
+                ),
+            ],
+            'data.filter.*.string'        => [
+                'sometimes',
+                'array',
+            ],
+            'data.filter.*.string.value'  => [
+                'sometimes',
+                'string',
+            ],
+            'data.filter.*.string.comp'   => [
+                'sometimes',
+                'string',
+                'in:' . implode(
+                    ',',
+                    array_map(
+                        fn(TraceDataFilterCompStringTypeEnum $enum) => $enum->value,
+                        TraceDataFilterCompStringTypeEnum::cases()
+                    )
+                ),
+            ],
+            'data.filter.*.boolean'       => [
+                'sometimes',
+                'array',
+            ],
+            'data.filter.*.boolean.value' => [
+                'sometimes',
+                'bool',
+            ],
+        ];
+    }
+}

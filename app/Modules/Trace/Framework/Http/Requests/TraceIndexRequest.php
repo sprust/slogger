@@ -2,10 +2,8 @@
 
 namespace App\Modules\Trace\Framework\Http\Requests;
 
-use App\Models\Services\Service;
 use App\Modules\Common\Enums\SortDirectionEnum;
-use App\Modules\Trace\Enums\TraceDataFilterCompNumericTypeEnum;
-use App\Modules\Trace\Enums\TraceDataFilterCompStringTypeEnum;
+use App\Modules\Trace\Framework\Http\Services\RequestRules;
 use Illuminate\Foundation\Http\FormRequest;
 
 class TraceIndexRequest extends FormRequest
@@ -13,159 +11,97 @@ class TraceIndexRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'page'                        => [
+            'page'               => [
                 'required',
                 'int',
                 'min:1',
             ],
-            'per_page'                    => [
+            'per_page'           => [
                 'sometimes',
                 'int',
                 'min:1',
             ],
-            'service_ids'                 => [
+            'service_ids'        => [
                 'sometimes',
                 'array',
-                'exists:' . Service::class . ',id',
             ],
-            'service_ids.*'               => [
+            'service_ids.*'      => [
                 'required',
                 'integer',
             ],
-            'trace_id'                    => [
+            'trace_id'           => [
                 'sometimes',
                 'nullable',
                 'string',
             ],
-            'all_traces_in_tree'          => [
+            'all_traces_in_tree' => [
                 'sometimes',
                 'boolean',
             ],
-            'logging_from'                => [
+            'logging_from'       => [
                 'sometimes',
                 'date',
             ],
-            'logging_to'                  => [
+            'logging_to'         => [
                 'sometimes',
                 'date',
             ],
-            'types'                       => [
+            'types'              => [
                 'sometimes',
                 'array',
             ],
-            'types.*'                     => [
+            'types.*'            => [
                 'required',
                 'string',
             ],
-            'tags'                        => [
+            'tags'               => [
                 'sometimes',
                 'array',
             ],
-            'tags.*'                      => [
+            'tags.*'             => [
                 'required',
                 'string',
             ],
-            'statuses'                    => [
+            'statuses'           => [
                 'sometimes',
                 'array',
             ],
-            'statuses.*'                  => [
+            'statuses.*'         => [
                 'required',
                 'string',
             ],
-            'duration_from'               => [
+            'duration_from'      => [
                 'sometimes',
                 'numeric',
                 'nullable',
             ],
-            'duration_to'                 => [
+            'duration_to'        => [
                 'sometimes',
                 'numeric',
                 'nullable',
             ],
-            'data'                        => [
+            ...RequestRules::filterData(),
+            'data.fields'        => [
                 'sometimes',
                 'array',
             ],
-            'data.filter'                 => [
-                'sometimes',
-                'array',
-            ],
-            'data.filter.*.field'         => [
+            'data.fields.*'      => [
                 'required',
                 'string',
             ],
-            'data.filter.*.null'          => [
-                'sometimes',
-                'bool',
-            ],
-            'data.filter.*.numeric'       => [
+            'sort'               => [
                 'sometimes',
                 'array',
             ],
-            'data.filter.*.numeric.value' => [
-                'sometimes',
-                'numeric',
-            ],
-            'data.filter.*.numeric.comp'  => [
-                'sometimes',
-                'string',
-                'in:' . implode(
-                    ',',
-                    array_map(
-                        fn(TraceDataFilterCompNumericTypeEnum $enum) => $enum->value,
-                        TraceDataFilterCompNumericTypeEnum::cases()
-                    )
-                ),
-            ],
-            'data.filter.*.string'        => [
-                'sometimes',
-                'array',
-            ],
-            'data.filter.*.string.value'  => [
-                'sometimes',
-                'string',
-            ],
-            'data.filter.*.string.comp'   => [
-                'sometimes',
-                'string',
-                'in:' . implode(
-                    ',',
-                    array_map(
-                        fn(TraceDataFilterCompStringTypeEnum $enum) => $enum->value,
-                        TraceDataFilterCompStringTypeEnum::cases()
-                    )
-                ),
-            ],
-            'data.filter.*.boolean'       => [
-                'sometimes',
-                'array',
-            ],
-            'data.filter.*.boolean.value' => [
-                'sometimes',
-                'bool',
-            ],
-            'data.fields'                 => [
-                'sometimes',
-                'array',
-            ],
-            'data.fields.*'               => [
-                'required',
-                'string',
-            ],
-            'sort'                        => [
-                'sometimes',
-                'array',
-            ],
-            'has_profiling'               => [
+            'has_profiling'      => [
                 'sometimes',
                 'boolean',
             ],
-            'sort.*.field'                => [
+            'sort.*.field'       => [
                 'required',
                 'string',
             ],
-            'sort.*.direction'            => [
+            'sort.*.direction'   => [
                 'required',
                 'string',
                 'in:' . implode(
