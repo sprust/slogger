@@ -12,7 +12,7 @@ use App\Modules\Trace\Repositories\Dto\TraceProfilingDto;
 use App\Modules\Trace\Repositories\Dto\TraceProfilingItemDto;
 use App\Modules\Trace\Repositories\Interfaces\TraceRepositoryInterface;
 
-readonly class TraceUpdateManyAction
+readonly class UpdateTraceManyAction
 {
     public function __construct(
         private TraceRepositoryInterface $traceRepository

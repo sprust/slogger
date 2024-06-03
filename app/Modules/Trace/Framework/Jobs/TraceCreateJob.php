@@ -2,7 +2,7 @@
 
 namespace App\Modules\Trace\Framework\Jobs;
 
-use App\Modules\Trace\Domain\Actions\TraceCreateManyAction;
+use App\Modules\Trace\Domain\Actions\CreateTraceManyAction;
 use App\Modules\Trace\Domain\Entities\Parameters\TraceCreateParametersList;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -25,8 +25,8 @@ class TraceCreateJob implements ShouldQueue
     /**
      * Execute the job.
      */
-    public function handle(TraceCreateManyAction $traceCreateManyAction): void
+    public function handle(CreateTraceManyAction $createTraceManyAction): void
     {
-        $traceCreateManyAction->handle($this->parametersList);
+        $createTraceManyAction->handle($this->parametersList);
     }
 }

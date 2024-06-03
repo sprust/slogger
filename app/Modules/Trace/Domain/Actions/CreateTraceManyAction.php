@@ -11,7 +11,7 @@ use App\Modules\Trace\Repositories\Dto\TraceTreeDto;
 use App\Modules\Trace\Repositories\Interfaces\TraceRepositoryInterface;
 use App\Modules\Trace\Repositories\Interfaces\TraceTreeRepositoryInterface;
 
-readonly class TraceCreateManyAction
+readonly class CreateTraceManyAction
 {
     public function __construct(
         private TraceRepositoryInterface $traceRepository,

@@ -2,7 +2,7 @@
 
 namespace App\Modules\Trace\Framework\Jobs;
 
-use App\Modules\Trace\Domain\Actions\TraceUpdateManyAction;
+use App\Modules\Trace\Domain\Actions\UpdateTraceManyAction;
 use App\Modules\Trace\Domain\Entities\Parameters\TraceUpdateParametersList;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -27,9 +27,9 @@ class TraceUpdateJob implements ShouldQueue
     /**
      * Execute the job.
      */
-    public function handle(TraceUpdateManyAction $traceUpdateManyAction): void
+    public function handle(UpdateTraceManyAction $updateTraceManyAction): void
     {
-        if ($traceUpdateManyAction->handle($this->parametersList) === $this->parametersList->count()) {
+        if ($updateTraceManyAction->handle($this->parametersList) === $this->parametersList->count()) {
             $this->delete();
 
             return;
