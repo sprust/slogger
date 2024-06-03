@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\Trace\Domain\Actions;
+namespace App\Modules\Trace\Domain\Actions\Queries;
 
 use App\Modules\Trace\Domain\Entities\Parameters\FindTraceIdsParameters;
 use App\Modules\Trace\Repositories\Interfaces\TraceRepositoryInterface;

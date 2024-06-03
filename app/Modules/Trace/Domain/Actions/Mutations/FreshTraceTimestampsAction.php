@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Modules\Trace\Domain\Actions;
+namespace App\Modules\Trace\Domain\Actions\Mutations;
 
+use App\Modules\Trace\Domain\Actions\MakeTraceTimestampsAction;
 use App\Modules\Trace\Domain\Entities\Objects\Timestamp\TraceTimestampMetricObject;
 use App\Modules\Trace\Repositories\Dto\TraceTimestampMetricDto;
 use App\Modules\Trace\Repositories\Interfaces\TraceRepositoryInterface;

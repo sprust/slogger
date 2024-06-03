@@ -2,8 +2,8 @@
 
 namespace App\Modules\Trace\Framework\Http\Controllers;
 
-use App\Modules\Trace\Domain\Actions\FindTraceDetailAction;
-use App\Modules\Trace\Domain\Actions\FindTracesAction;
+use App\Modules\Trace\Domain\Actions\Queries\FindTraceDetailAction;
+use App\Modules\Trace\Domain\Actions\Queries\FindTracesAction;
 use App\Modules\Trace\Domain\Entities\Parameters\PeriodParameters;
 use App\Modules\Trace\Domain\Entities\Parameters\TraceFindParameters;
 use App\Modules\Trace\Domain\Entities\Parameters\TraceSortParameters;

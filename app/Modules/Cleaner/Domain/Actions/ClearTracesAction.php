@@ -7,9 +7,9 @@ use App\Modules\Cleaner\Repositories\Dto\SettingDto;
 use App\Modules\Cleaner\Repositories\Interfaces\ProcessRepositoryInterface;
 use App\Modules\Cleaner\Repositories\Interfaces\SettingRepositoryInterface;
 use App\Modules\Common\EventsDispatcher;
-use App\Modules\Trace\Domain\Actions\DeleteTracesByTraceIdsAction;
-use App\Modules\Trace\Domain\Actions\FindTraceIdsAction;
-use App\Modules\Trace\Domain\Actions\DeleteTraceTreesByTraceIdsAction;
+use App\Modules\Trace\Domain\Actions\Mutations\DeleteTracesByTraceIdsAction;
+use App\Modules\Trace\Domain\Actions\Mutations\DeleteTraceTreesByTraceIdsAction;
+use App\Modules\Trace\Domain\Actions\Queries\FindTraceIdsAction;
 use App\Modules\Trace\Domain\Entities\Parameters\FindTraceIdsParameters;
 use Illuminate\Support\Arr;
 

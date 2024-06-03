@@ -2,7 +2,7 @@
 
 namespace App\Modules\Trace\Framework\Jobs;
 
-use App\Modules\Trace\Domain\Actions\UpdateTraceManyAction;
+use App\Modules\Trace\Domain\Actions\Mutations\UpdateTraceManyAction;
 use App\Modules\Trace\Domain\Entities\Parameters\TraceUpdateParametersList;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;

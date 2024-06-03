@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\Trace\Domain\Actions;
+namespace App\Modules\Trace\Domain\Actions\Queries;
 
 use App\Modules\Common\Domain\Entities\PaginationInfoObject;
 use App\Modules\Common\Domain\Transports\PaginationInfoTransport;

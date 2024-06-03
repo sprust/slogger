@@ -2,7 +2,7 @@
 
 namespace App\Modules\Trace\Framework\Commands;
 
-use App\Modules\Trace\Domain\Actions\FreshTraceTreeAction;
+use App\Modules\Trace\Domain\Actions\Mutations\FreshTraceTreeAction;
 use Illuminate\Console\Command;
 
 class FreshTraceTreesCommand extends Command

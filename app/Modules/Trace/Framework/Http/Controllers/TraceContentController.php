@@ -2,9 +2,9 @@
 
 namespace App\Modules\Trace\Framework\Http\Controllers;
 
-use App\Modules\Trace\Domain\Actions\FindStatusesAction;
-use App\Modules\Trace\Domain\Actions\FindTagsAction;
-use App\Modules\Trace\Domain\Actions\FindTypesAction;
+use App\Modules\Trace\Domain\Actions\Queries\FindStatusesAction;
+use App\Modules\Trace\Domain\Actions\Queries\FindTagsAction;
+use App\Modules\Trace\Domain\Actions\Queries\FindTypesAction;
 use App\Modules\Trace\Domain\Entities\Parameters\PeriodParameters;
 use App\Modules\Trace\Domain\Entities\Parameters\TraceFindStatusesParameters;
 use App\Modules\Trace\Domain\Entities\Parameters\TraceFindTagsParameters;

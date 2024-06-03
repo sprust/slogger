@@ -8,7 +8,7 @@ use App\Modules\Trace\Domain\Services\TraceTimestampMetricsFactory;
 use App\Modules\Trace\Enums\TraceTimestampEnum;
 use App\Modules\Trace\Enums\TraceTimestampPeriodEnum;
 
-readonly class GetTraceTimestampPeriodsAction
+readonly class MakeTraceTimestampPeriodsAction
 {
     public function __construct(
         private TraceTimestampMetricsFactory $traceTimestampMetricsFactory

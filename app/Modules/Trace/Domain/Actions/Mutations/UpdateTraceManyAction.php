@@ -1,15 +1,15 @@
 <?php
 
-namespace App\Modules\Trace\Domain\Actions;
+namespace App\Modules\Trace\Domain\Actions\Mutations;
 
 use App\Modules\Trace\Domain\Entities\Parameters\Profilling\TraceUpdateProfilingDataObject;
 use App\Modules\Trace\Domain\Entities\Parameters\Profilling\TraceUpdateProfilingObject;
 use App\Modules\Trace\Domain\Entities\Parameters\TraceUpdateParameters;
 use App\Modules\Trace\Domain\Entities\Parameters\TraceUpdateParametersList;
-use App\Modules\Trace\Repositories\Dto\TraceUpdateDto;
 use App\Modules\Trace\Repositories\Dto\TraceProfilingDataDto;
 use App\Modules\Trace\Repositories\Dto\TraceProfilingDto;
 use App\Modules\Trace\Repositories\Dto\TraceProfilingItemDto;
+use App\Modules\Trace\Repositories\Dto\TraceUpdateDto;
 use App\Modules\Trace\Repositories\Interfaces\TraceRepositoryInterface;
 
 readonly class UpdateTraceManyAction

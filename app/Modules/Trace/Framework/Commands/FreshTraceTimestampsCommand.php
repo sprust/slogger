@@ -2,7 +2,7 @@
 
 namespace App\Modules\Trace\Framework\Commands;
 
-use App\Modules\Trace\Domain\Actions\FreshTraceTimestampsAction;
+use App\Modules\Trace\Domain\Actions\Mutations\FreshTraceTimestampsAction;
 use Illuminate\Console\Command;
 
 class FreshTraceTimestampsCommand extends Command

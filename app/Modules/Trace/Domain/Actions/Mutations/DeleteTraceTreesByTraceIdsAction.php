@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\Trace\Domain\Actions;
+namespace App\Modules\Trace\Domain\Actions\Mutations;
 
 use App\Modules\Trace\Repositories\Interfaces\TraceTreeRepositoryInterface;
 
