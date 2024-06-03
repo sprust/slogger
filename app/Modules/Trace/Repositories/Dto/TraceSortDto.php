@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Modules\Trace\Domain\Entities\Parameters;
+namespace App\Modules\Trace\Repositories\Dto;
 
 use App\Modules\Common\Enums\SortDirectionEnum;
 
-readonly class TraceSortParameters
+readonly class TraceSortDto
 {
     public function __construct(
         public string $field,

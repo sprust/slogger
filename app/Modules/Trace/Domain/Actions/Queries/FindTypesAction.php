@@ -3,6 +3,7 @@
 namespace App\Modules\Trace\Domain\Actions\Queries;
 
 use App\Modules\Trace\Domain\Entities\Parameters\TraceFindTypesParameters;
+use App\Modules\Trace\Domain\Entities\Transports\TraceDataFilterTransport;
 use App\Modules\Trace\Domain\Entities\Transports\TraceStringFieldTransport;
 use App\Modules\Trace\Framework\Http\Controllers\Traits\MakeDataFilterParameterTrait;
 use App\Modules\Trace\Repositories\Dto\TraceStringFieldDto;
@@ -13,7 +14,7 @@ readonly class FindTypesAction
     use MakeDataFilterParameterTrait;
 
     public function __construct(
-        private TraceContentRepositoryInterface $repository
+        private TraceContentRepositoryInterface $traceContentRepository
     ) {
     }
 
@@ -24,7 +25,14 @@ readonly class FindTypesAction
     {
         return array_map(
             fn(TraceStringFieldDto $dto) => TraceStringFieldTransport::toObject($dto),
-            $this->repository->findTypes($parameters)
+            $this->traceContentRepository->findTypes(
+                serviceIds: $parameters->serviceIds,
+                text: $parameters->text,
+                loggedAtFrom: $parameters->loggingPeriod?->from,
+                loggedAtTo: $parameters->loggingPeriod?->to,
+                data: TraceDataFilterTransport::toDtoIfNotNull($parameters->data),
+                hasProfiling: $parameters->hasProfiling,
+            )
         );
     }
 }

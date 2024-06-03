@@ -3,8 +3,8 @@
 namespace App\Modules\Trace\Repositories;
 
 use App\Models\Traces\Trace;
-use App\Modules\Trace\Domain\Entities\Parameters\Data\TraceDataFilterParameters;
 use App\Modules\Trace\Enums\TraceTimestampEnum;
+use App\Modules\Trace\Repositories\Dto\Data\TraceDataFilterDto;
 use App\Modules\Trace\Repositories\Dto\TraceTimestampsDto;
 use App\Modules\Trace\Repositories\Interfaces\TraceTimestampsRepositoryInterface;
 use App\Modules\Trace\Repositories\Services\TraceQueryBuilder;
@@ -28,7 +28,7 @@ readonly class TraceTimestampsRepository implements TraceTimestampsRepositoryInt
         array $statuses = [],
         ?float $durationFrom = null,
         ?float $durationTo = null,
-        ?TraceDataFilterParameters $data = null,
+        ?TraceDataFilterDto $data = null,
         ?bool $hasProfiling = null,
         ?array $sort = null,
     ): array {

@@ -2,6 +2,7 @@
 
 namespace App\Modules\Trace\Framework\Http\Controllers;
 
+use App\Modules\Common\Enums\SortDirectionEnum;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceDetailAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTracesAction;
 use App\Modules\Trace\Domain\Entities\Parameters\PeriodParameters;
@@ -45,12 +46,26 @@ readonly class TraceController
                 durationTo: $validated['duration_to'] ?? null,
                 data: $this->makeDataFilterParameter($validated),
                 hasProfiling: ($validated['has_profiling'] ?? null) ?: null,
-                sort: array_map(
-                    fn(array $sortItem) => TraceSortParameters::fromStringValues(
-                        $sortItem['field'],
-                        $sortItem['direction']
-                    ),
-                    $validated['sort'] ?? []
+                sort: array_filter(
+                    array_map(
+                        function (array $sortItem) {
+                            $field = $sortItem['field'];
+
+                            if (!$field) {
+                                return null;
+                            }
+
+                            $direction = $sortItem['direction'];
+
+                            $directionEnum = $direction ? SortDirectionEnum::from($direction) : null;
+
+                            return new TraceSortParameters(
+                                field: $field,
+                                directionEnum: $directionEnum ?: SortDirectionEnum::Desc
+                            );
+                        },
+                        $validated['sort'] ?? []
+                    )
                 ),
             )
         );

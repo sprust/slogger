@@ -2,14 +2,14 @@
 
 namespace App\Modules\Trace\Repositories\Interfaces;
 
-use App\Modules\Trace\Domain\Entities\Parameters\Data\TraceDataFilterParameters;
-use App\Modules\Trace\Domain\Entities\Parameters\TraceSortParameters;
+use App\Modules\Trace\Repositories\Dto\Data\TraceDataFilterDto;
 use App\Modules\Trace\Repositories\Dto\TraceCreateDto;
 use App\Modules\Trace\Repositories\Dto\TraceDetailDto;
 use App\Modules\Trace\Repositories\Dto\TraceDto;
 use App\Modules\Trace\Repositories\Dto\TraceItemsPaginationDto;
 use App\Modules\Trace\Repositories\Dto\TraceLoggedAtDto;
 use App\Modules\Trace\Repositories\Dto\TraceProfilingDto;
+use App\Modules\Trace\Repositories\Dto\TraceSortDto;
 use App\Modules\Trace\Repositories\Dto\TraceTimestampMetricDto;
 use App\Modules\Trace\Repositories\Dto\TraceTreeDto;
 use App\Modules\Trace\Repositories\Dto\TraceTypeDto;
@@ -50,7 +50,7 @@ interface TraceRepositoryInterface
      * @param string[]                   $types
      * @param string[]                   $tags
      * @param string[]                   $statuses
-     * @param TraceSortParameters[]|null $sort
+     * @param TraceSortDto[]|null $sort
      */
     public function find(
         int $page = 1,
@@ -64,7 +64,7 @@ interface TraceRepositoryInterface
         array $statuses = [],
         ?float $durationFrom = null,
         ?float $durationTo = null,
-        ?TraceDataFilterParameters $data = null,
+        ?TraceDataFilterDto $data = null,
         ?bool $hasProfiling = null,
         ?array $sort = null,
     ): TraceItemsPaginationDto;

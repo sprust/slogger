@@ -3,13 +3,12 @@
 namespace App\Modules\Trace\Repositories;
 
 use App\Models\Traces\Trace;
-use App\Modules\Trace\Domain\Entities\Parameters\TraceFindStatusesParameters;
-use App\Modules\Trace\Domain\Entities\Parameters\TraceFindTagsParameters;
-use App\Modules\Trace\Domain\Entities\Parameters\TraceFindTypesParameters;
+use App\Modules\Trace\Repositories\Dto\Data\TraceDataFilterDto;
 use App\Modules\Trace\Repositories\Dto\TraceStringFieldDto;
 use App\Modules\Trace\Repositories\Interfaces\TraceContentRepositoryInterface;
 use App\Modules\Trace\Repositories\Services\TraceQueryBuilder;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Carbon;
 use MongoDB\Model\BSONDocument;
 
 readonly class TraceContentRepository implements TraceContentRepositoryInterface
@@ -19,19 +18,25 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
     ) {
     }
 
-    public function findTypes(TraceFindTypesParameters $parameters): array
-    {
+    public function findTypes(
+        array $serviceIds = [],
+        ?string $text = null,
+        ?Carbon $loggedAtFrom = null,
+        ?Carbon $loggedAtTo = null,
+        ?TraceDataFilterDto $data = null,
+        ?bool $hasProfiling = null,
+    ): array {
         $builder = $this->traceQueryBuilder
             ->make(
-                serviceIds: $parameters->serviceIds,
-                loggedAtFrom: $parameters->loggingPeriod?->from,
-                loggedAtTo: $parameters->loggingPeriod?->to,
-                data: $parameters->data,
-                hasProfiling: $parameters->hasProfiling
+                serviceIds: $serviceIds,
+                loggedAtFrom: $loggedAtFrom,
+                loggedAtTo: $loggedAtTo,
+                data: $data,
+                hasProfiling: $hasProfiling
             )
             ->when(
-                $parameters->text,
-                fn(Builder $query) => $query->where('type', 'like', "%$parameters->text%")
+                $text,
+                fn(Builder $query) => $query->where('type', 'like', "%$text%")
             );
 
         $match = $this->traceQueryBuilder->makeMqlMatchFromBuilder(
@@ -48,7 +53,7 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
 
         $pipeline[] = [
             '$group' => [
-                '_id' => '$type',
+                '_id'   => '$type',
                 'count' => [
                     '$sum' => 1,
                 ],
@@ -78,15 +83,23 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
             ->toArray();
     }
 
-    public function findTags(TraceFindTagsParameters $parameters): array
+    public function findTags(
+        array $serviceIds = [],
+        ?string $text = null,
+        ?Carbon $loggedAtFrom = null,
+        ?Carbon $loggedAtTo = null,
+        array $types = [],
+        ?TraceDataFilterDto $data = null,
+        ?bool $hasProfiling = null,
+    ): array
     {
         $builder = $this->traceQueryBuilder->make(
-            serviceIds: $parameters->serviceIds,
-            loggedAtFrom: $parameters->loggingPeriod?->from,
-            loggedAtTo: $parameters->loggingPeriod?->to,
-            types: $parameters->types,
-            data: $parameters->data,
-            hasProfiling: $parameters->hasProfiling
+            serviceIds: $serviceIds,
+            loggedAtFrom: $loggedAtFrom,
+            loggedAtTo: $loggedAtTo,
+            types: $types,
+            data: $data,
+            hasProfiling: $hasProfiling
         );
 
         $match = $this->traceQueryBuilder->makeMqlMatchFromBuilder(
@@ -109,18 +122,18 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
 
         $pipeline[] = [
             '$group' => [
-                '_id' => '$tags',
+                '_id'   => '$tags',
                 'count' => [
                     '$sum' => 1,
                 ],
             ],
         ];
 
-        if ($parameters->text) {
+        if ($text) {
             $pipeline[] = [
                 '$match' => [
                     '_id' => [
-                        '$regex' => "^.*$parameters->text.*$",
+                        '$regex' => "^.*$text.*$",
                     ],
                 ],
             ];
@@ -149,21 +162,30 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
             ->toArray();
     }
 
-    public function findStatuses(TraceFindStatusesParameters $parameters): array
+    public function findStatuses(
+        array $serviceIds = [],
+        ?string $text = null,
+        ?Carbon $loggedAtFrom = null,
+        ?Carbon $loggedAtTo = null,
+        array $types = [],
+        array $tags = [],
+        ?TraceDataFilterDto $data = null,
+        ?bool $hasProfiling = null,
+    ): array
     {
         $builder = $this->traceQueryBuilder
             ->make(
-                serviceIds: $parameters->serviceIds,
-                loggedAtFrom: $parameters->loggingPeriod?->from,
-                loggedAtTo: $parameters->loggingPeriod?->to,
-                types: $parameters->types,
-                tags: $parameters->tags,
-                data: $parameters->data,
-                hasProfiling: $parameters->hasProfiling
+                serviceIds: $serviceIds,
+                loggedAtFrom: $loggedAtFrom,
+                loggedAtTo: $loggedAtTo,
+                types: $types,
+                tags: $tags,
+                data: $data,
+                hasProfiling: $hasProfiling
             )
             ->when(
-                $parameters->text,
-                fn(Builder $query) => $query->where('status', 'like', "%$parameters->text%")
+                $text,
+                fn(Builder $query) => $query->where('status', 'like', "%$text%")
             );
 
         $match = $this->traceQueryBuilder->makeMqlMatchFromBuilder(
@@ -180,7 +202,7 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
 
         $pipeline[] = [
             '$group' => [
-                '_id' => '$status',
+                '_id'   => '$status',
                 'count' => [
                     '$sum' => 1,
                 ],

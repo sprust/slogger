@@ -4,7 +4,7 @@ namespace App\Modules\Trace\Repositories;
 
 use App\Models\Traces\Trace;
 use App\Modules\Common\Repositories\PaginationInfoDto;
-use App\Modules\Trace\Domain\Entities\Parameters\Data\TraceDataFilterParameters;
+use App\Modules\Trace\Repositories\Dto\Data\TraceDataFilterDto;
 use App\Modules\Trace\Repositories\Dto\TraceDetailDto;
 use App\Modules\Trace\Repositories\Dto\TraceDto;
 use App\Modules\Trace\Repositories\Dto\TraceItemsPaginationDto;
@@ -13,6 +13,7 @@ use App\Modules\Trace\Repositories\Dto\TraceProfilingDataDto;
 use App\Modules\Trace\Repositories\Dto\TraceProfilingDto;
 use App\Modules\Trace\Repositories\Dto\TraceProfilingItemDto;
 use App\Modules\Trace\Repositories\Dto\TraceServiceDto;
+use App\Modules\Trace\Repositories\Dto\TraceSortDto;
 use App\Modules\Trace\Repositories\Dto\TraceTimestampMetricDto;
 use App\Modules\Trace\Repositories\Dto\TraceTreeDto;
 use App\Modules\Trace\Repositories\Dto\TraceTypeDto;
@@ -257,7 +258,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
         array $statuses = [],
         ?float $durationFrom = null,
         ?float $durationTo = null,
-        ?TraceDataFilterParameters $data = null,
+        ?TraceDataFilterDto $data = null,
         ?bool $hasProfiling = null,
         ?array $sort = null,
     ): TraceItemsPaginationDto {
@@ -299,6 +300,8 @@ readonly class TraceRepository implements TraceRepositoryInterface
             ->when(
                 !is_null($sort),
                 function (Builder $query) use ($sort) {
+                    /** @var TraceSortDto[] $sort */
+
                     foreach ($sort as $sortItem) {
                         $query->orderBy($sortItem->field, $sortItem->directionEnum->value);
                     }

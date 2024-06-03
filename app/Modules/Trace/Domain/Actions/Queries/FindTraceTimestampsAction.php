@@ -5,6 +5,7 @@ namespace App\Modules\Trace\Domain\Actions\Queries;
 use App\Modules\Trace\Domain\Entities\Objects\Timestamp\TraceTimestampsObject;
 use App\Modules\Trace\Domain\Entities\Objects\Timestamp\TraceTimestampsObjects;
 use App\Modules\Trace\Domain\Entities\Parameters\FindTraceTimestampsParameters;
+use App\Modules\Trace\Domain\Entities\Transports\TraceDataFilterTransport;
 use App\Modules\Trace\Domain\Services\TraceTimestampMetricsFactory;
 use App\Modules\Trace\Repositories\Dto\TraceTimestampsDto;
 use App\Modules\Trace\Repositories\Interfaces\TraceTimestampsRepositoryInterface;
@@ -44,7 +45,7 @@ readonly class FindTraceTimestampsAction
             statuses: $parameters->statuses,
             durationFrom: $parameters->durationFrom,
             durationTo: $parameters->durationTo,
-            data: $parameters->data,
+            data: TraceDataFilterTransport::toDtoIfNotNull($parameters->data),
             hasProfiling: $parameters->hasProfiling,
         );
 

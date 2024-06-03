@@ -10,8 +10,11 @@ use App\Modules\Trace\Domain\Entities\Objects\TraceItemObjects;
 use App\Modules\Trace\Domain\Entities\Objects\TraceItemTraceObject;
 use App\Modules\Trace\Domain\Entities\Objects\TraceServiceObject;
 use App\Modules\Trace\Domain\Entities\Parameters\TraceFindParameters;
+use App\Modules\Trace\Domain\Entities\Parameters\TraceSortParameters;
+use App\Modules\Trace\Domain\Entities\Transports\TraceDataFilterTransport;
 use App\Modules\Trace\Domain\Entities\Transports\TraceTypeTransport;
 use App\Modules\Trace\Repositories\Dto\TraceDetailDto;
+use App\Modules\Trace\Repositories\Dto\TraceSortDto;
 use App\Modules\Trace\Repositories\Dto\TraceTypeDto;
 use App\Modules\Trace\Repositories\Interfaces\TraceRepositoryInterface;
 use App\Modules\Trace\Repositories\Interfaces\TraceTreeRepositoryInterface;
@@ -76,9 +79,15 @@ readonly class FindTracesAction
             statuses: $parameters->statuses,
             durationFrom: $parameters->durationFrom,
             durationTo: $parameters->durationTo,
-            data: $parameters->data,
+            data: TraceDataFilterTransport::toDtoIfNotNull($parameters->data),
             hasProfiling: $parameters->hasProfiling,
-            sort: $parameters->sort,
+            sort: array_map(
+                fn(TraceSortParameters $parameters) => new TraceSortDto(
+                    field: $parameters->field,
+                    directionEnum: $parameters->directionEnum,
+                ),
+                $parameters->sort
+            ),
         );
 
         $traceTypeCounts = empty($traceItemsPagination->items)

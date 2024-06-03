@@ -2,8 +2,8 @@
 
 namespace App\Modules\Trace\Repositories\Interfaces;
 
-use App\Modules\Trace\Domain\Entities\Parameters\Data\TraceDataFilterParameters;
 use App\Modules\Trace\Enums\TraceTimestampEnum;
+use App\Modules\Trace\Repositories\Dto\Data\TraceDataFilterDto;
 use App\Modules\Trace\Repositories\Dto\TraceTimestampsDto;
 use Illuminate\Support\Carbon;
 
@@ -28,7 +28,7 @@ interface TraceTimestampsRepositoryInterface
         array $statuses = [],
         ?float $durationFrom = null,
         ?float $durationTo = null,
-        ?TraceDataFilterParameters $data = null,
+        ?TraceDataFilterDto $data = null,
         ?bool $hasProfiling = null,
     ): array;
 }
