@@ -7,6 +7,7 @@ use App\Modules\Service\Domain\Entities\Parameters\ServiceCreateParameters;
 use App\Modules\Service\Domain\Entities\Transports\ServiceTransport;
 use App\Modules\Service\Domain\Exceptions\ServiceAlreadyExistsException;
 use App\Modules\Service\Repositories\ServiceRepositoryInterface;
+use Illuminate\Support\Str;
 
 readonly class CreateServiceAction
 {
@@ -20,12 +21,17 @@ readonly class CreateServiceAction
      */
     public function handle(ServiceCreateParameters $parameters): ServiceObject
     {
-        if ($this->serviceRepository->isExistByUniqueKey($parameters->uniqueKey)) {
+        $uniqueKey = Str::slug($parameters->name);
+
+        if ($this->serviceRepository->isExistByUniqueKey($uniqueKey)) {
             throw new ServiceAlreadyExistsException($parameters->name);
         }
 
         return ServiceTransport::toObject(
-            $this->serviceRepository->create($parameters)
+            $this->serviceRepository->create(
+                name: $parameters->name,
+                uniqueKey: $uniqueKey,
+            )
         );
     }
 }

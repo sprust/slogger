@@ -3,7 +3,6 @@
 namespace App\Modules\Service\Repositories;
 
 use App\Models\Services\Service;
-use App\Modules\Service\Domain\Entities\Parameters\ServiceCreateParameters;
 use App\Modules\Service\Repositories\Dto\ServiceDto;
 use Illuminate\Support\Str;
 
@@ -24,12 +23,12 @@ class ServiceRepository implements ServiceRepositoryInterface
             ->toArray();
     }
 
-    public function create(ServiceCreateParameters $parameters): ServiceDto
+    public function create(string $name, string $uniqueKey): ServiceDto
     {
         $newService = new Service();
 
-        $newService->name       = $parameters->name;
-        $newService->unique_key = $parameters->uniqueKey;
+        $newService->name       = $name;
+        $newService->unique_key = $uniqueKey;
         $newService->api_token  = Str::random(50);
 
         $newService->saveOrFail();
