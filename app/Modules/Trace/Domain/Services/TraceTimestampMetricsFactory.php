@@ -14,7 +14,7 @@ class TraceTimestampMetricsFactory
     /**
      * @return TraceTimestampMetricObject[]
      */
-    public function createMetricsByDate(Carbon $date): array
+    public function makeMetricsByDate(Carbon $date): array
     {
         $date = $date->clone()->setMicroseconds(0);
 

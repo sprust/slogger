@@ -3,7 +3,7 @@
 namespace App\Modules\Trace\Framework\Http\Controllers;
 
 use App\Modules\Service\Framework\Services\ServiceContainer;
-use App\Modules\Trace\Domain\Actions\CreateTraceTimestampsAction;
+use App\Modules\Trace\Domain\Actions\MakeTraceTimestampsAction;
 use App\Modules\Trace\Domain\Entities\Parameters\TraceCreateParameters;
 use App\Modules\Trace\Domain\Entities\Parameters\TraceCreateParametersList;
 use App\Modules\Trace\Framework\Http\Requests\TraceCreateRequest;
@@ -16,10 +16,10 @@ use Throwable;
 readonly class TraceCreateController
 {
     public function __construct(
-        private ServiceContainer $serviceContainer,
-        private QueueDispatcher $tracesServiceQueueDispatcher,
-        private CreateTraceTimestampsAction $createTraceTimestampsAction,
-        private SLoggerProcessor $loggerProcessor
+        private ServiceContainer          $serviceContainer,
+        private QueueDispatcher           $tracesServiceQueueDispatcher,
+        private MakeTraceTimestampsAction $makeTraceTimestampsAction,
+        private SLoggerProcessor          $loggerProcessor
     ) {
     }
 
@@ -58,7 +58,7 @@ readonly class TraceCreateController
                     duration: $item['duration'],
                     memory: $item['memory'] ?? null,
                     cpu: $item['cpu'] ?? null,
-                    timestamps: $this->createTraceTimestampsAction->handle(
+                    timestamps: $this->makeTraceTimestampsAction->handle(
                         date: $loggedAt
                     ),
                     loggedAt: $loggedAt,

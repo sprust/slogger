@@ -10,7 +10,7 @@ readonly class FreshTraceTimestampsAction
 {
     public function __construct(
         private TraceRepositoryInterface $traceRepository,
-        private CreateTraceTimestampsAction $createTraceTimestampsAction
+        private MakeTraceTimestampsAction $makeTraceTimestampsAction
     ) {
     }
 
@@ -41,7 +41,7 @@ readonly class FreshTraceTimestampsAction
                             key: $object->key,
                             value: $object->value
                         ),
-                        $this->createTraceTimestampsAction->handle(
+                        $this->makeTraceTimestampsAction->handle(
                             date: $traceLoggedAt->loggedAt
                         )
                     )

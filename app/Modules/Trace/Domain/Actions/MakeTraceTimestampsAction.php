@@ -6,7 +6,7 @@ use App\Modules\Trace\Domain\Entities\Objects\Timestamp\TraceTimestampMetricObje
 use App\Modules\Trace\Domain\Services\TraceTimestampMetricsFactory;
 use Illuminate\Support\Carbon;
 
-readonly class CreateTraceTimestampsAction
+readonly class MakeTraceTimestampsAction
 {
     public function __construct(private TraceTimestampMetricsFactory $traceTimestampMetricsFactory)
     {
@@ -17,7 +17,7 @@ readonly class CreateTraceTimestampsAction
      */
     public function handle(Carbon $date): array
     {
-        return $this->traceTimestampMetricsFactory->createMetricsByDate(
+        return $this->traceTimestampMetricsFactory->makeMetricsByDate(
             date: $date->clone()
         );
     }
