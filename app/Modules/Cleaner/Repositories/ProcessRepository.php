@@ -7,6 +7,7 @@ use App\Modules\Cleaner\Repositories\Dto\ProcessDto;
 use App\Modules\Cleaner\Repositories\Interfaces\ProcessRepositoryInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
+use MongoDB\BSON\UTCDateTime;
 
 class ProcessRepository implements ProcessRepositoryInterface
 {
@@ -15,35 +16,35 @@ class ProcessRepository implements ProcessRepositoryInterface
     public function find(int $page, ?int $settingId = null): array
     {
         return TraceClearingProcess::query()
-            ->when($settingId, fn(Builder $query) => $query->where('setting_id', $settingId))
-            ->orderByDesc('created_at')
+            ->when($settingId, fn(Builder $query) => $query->where('settingId', $settingId))
+            ->orderByDesc('createdAt')
             ->forPage(
                 page: $page,
                 perPage: $this->perPage
             )
             ->get()
             ->map(fn(TraceClearingProcess $process) => new ProcessDto(
-                id: $process->id,
-                settingId: $process->setting_id,
-                clearedCount: $process->cleared_count,
-                clearedAt: $process->cleared_at,
-                createdAt: $process->created_at,
-                updatedAt: $process->updated_at
+                id: $process->_id,
+                settingId: $process->settingId,
+                clearedCount: $process->clearedCount,
+                clearedAt: $process->clearedAt,
+                createdAt: $process->createdAt,
+                updatedAt: $process->updatedAt
             ))
             ->toArray();
     }
 
-    public function findFirstBySettingId(int $settingId, bool $clearedAtIsNotNull): ?ProcessDto
+    public function findFirstBySettingId(int $settingId, bool $clearedAtIsNull): ?ProcessDto
     {
         /** @var TraceClearingProcess|null $process */
         $process = TraceClearingProcess::query()
-            ->where('setting_id')
+            ->where('settingId', $settingId)
             ->when(
-                value: $clearedAtIsNotNull,
-                callback: fn(Builder $query) => $query->whereNotNull('cleared_at'),
-                default: fn(Builder $query) => $query->whereNull('cleared_at')
+                value: $clearedAtIsNull,
+                callback: fn(Builder $query) => $query->whereNull('clearedAt'),
+                default: fn(Builder $query) => $query->whereNotNull('clearedAt')
             )
-            ->orderByDesc('created_at')
+            ->orderByDesc('createdAt')
             ->first();
 
         if (!$process) {
@@ -51,12 +52,12 @@ class ProcessRepository implements ProcessRepositoryInterface
         }
 
         return new ProcessDto(
-            id: $process->id,
-            settingId: $process->setting_id,
-            clearedCount: $process->cleared_count,
-            clearedAt: $process->cleared_at,
-            createdAt: $process->created_at,
-            updatedAt: $process->updated_at
+            id: $process->_id,
+            settingId: $process->settingId,
+            clearedCount: $process->clearedCount,
+            clearedAt: $process->clearedAt,
+            createdAt: $process->createdAt,
+            updatedAt: $process->updatedAt
         );
     }
 
@@ -64,34 +65,29 @@ class ProcessRepository implements ProcessRepositoryInterface
     {
         $newProgress = new TraceClearingProcess();
 
-        $newProgress->setting_id = $settingId;
-        $newProgress->cleared_count = $clearedCount;
-        $newProgress->cleared_at = $clearedAt;
+        $newProgress->settingId    = $settingId;
+        $newProgress->clearedCount = $clearedCount;
+        $newProgress->clearedAt    = $clearedAt;
 
-        $newProgress->saveOrFail();
+        $newProgress->save();
 
         return new ProcessDto(
-            id: $newProgress->id,
-            settingId: $newProgress->setting_id,
-            clearedCount: $newProgress->cleared_count,
-            clearedAt: $newProgress->cleared_at,
-            createdAt: $newProgress->created_at,
-            updatedAt: $newProgress->updated_at
+            id: $newProgress->_id,
+            settingId: $newProgress->settingId,
+            clearedCount: $newProgress->clearedCount,
+            clearedAt: $newProgress->clearedAt,
+            createdAt: $newProgress->createdAt,
+            updatedAt: $newProgress->updatedAt
         );
     }
 
-    public function update(int $processId, int $clearedCount, ?Carbon $clearedAt): void
+    public function update(string $processId, int $clearedCount, ?Carbon $clearedAt): void
     {
         TraceClearingProcess::query()
-            ->where('id', $processId)
+            ->where('_id', $processId)
             ->update([
-                'cleared_count' => $clearedCount,
-                'cleared_at'    => $clearedAt,
+                'clearedCount' => $clearedCount,
+                'clearedAt'    => $clearedAt ? new UTCDateTime($clearedAt) : null,
             ]);
-    }
-
-    public function delete(Carbon $to): void
-    {
-        TraceClearingProcess::query()->where('created_at', '<=', $to)->delete();
     }
 }

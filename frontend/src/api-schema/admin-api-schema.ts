@@ -1103,7 +1103,7 @@ export namespace AdminApi {
  * @secure
  * @response `200` `{
     data: ({
-    id: number,
+    id: string,
     setting_id: number,
     cleared_count: number,
     cleared_at?: string | null,
@@ -1123,7 +1123,7 @@ export namespace AdminApi {
     export type RequestHeaders = {};
     export type ResponseBody = {
       data: {
-        id: number;
+        id: string;
         setting_id: number;
         cleared_count: number;
         cleared_at?: string | null;
@@ -2595,7 +2595,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
  * @secure
  * @response `200` `{
     data: ({
-    id: number,
+    id: string,
     setting_id: number,
     cleared_count: number,
     cleared_at?: string | null,
@@ -2610,7 +2610,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       this.request<
         {
           data: {
-            id: number;
+            id: string;
             setting_id: number;
             cleared_count: number;
             cleared_at?: string | null;
