@@ -12,19 +12,9 @@ class TraceFindTypesRequest extends FormRequest
         return [
             ...RequestFilterRules::services(),
             ...RequestFilterRules::text(),
-            'logging_from'  => [
-                'sometimes',
-                'date',
-            ],
-            'logging_to'    => [
-                'sometimes',
-                'date',
-            ],
+            ...RequestFilterRules::loggedFromTo(),
             ...RequestFilterRules::data(),
-            'has_profiling' => [
-                'sometimes',
-                'boolean',
-            ],
+            ...RequestFilterRules::hasProfiling(),
         ];
     }
 }

@@ -31,27 +31,11 @@ class TraceIndexRequest extends FormRequest
                 'sometimes',
                 'boolean',
             ],
-            'logging_from'       => [
-                'sometimes',
-                'date',
-            ],
-            'logging_to'         => [
-                'sometimes',
-                'date',
-            ],
+            ...RequestFilterRules::loggedFromTo(),
             ...RequestFilterRules::types(),
             ...RequestFilterRules::tags(),
             ...RequestFilterRules::statuses(),
-            'duration_from'      => [
-                'sometimes',
-                'numeric',
-                'nullable',
-            ],
-            'duration_to'        => [
-                'sometimes',
-                'numeric',
-                'nullable',
-            ],
+            ...RequestFilterRules::durationFromTo(),
             ...RequestFilterRules::data(),
             'data.fields'        => [
                 'sometimes',
@@ -65,10 +49,7 @@ class TraceIndexRequest extends FormRequest
                 'sometimes',
                 'array',
             ],
-            'has_profiling'      => [
-                'sometimes',
-                'boolean',
-            ],
+            ...RequestFilterRules::hasProfiling(),
             'sort.*.field'       => [
                 'required',
                 'string',

@@ -21,6 +21,27 @@ class RequestFilterRules
         ];
     }
 
+    public static function loggedFromTo(): array
+    {
+        return [
+            'logging_from' => [
+                'sometimes',
+                'date',
+            ],
+            ...static::loggedTo(),
+        ];
+    }
+
+    public static function loggedTo(): array
+    {
+        return [
+            'logging_to' => [
+                'sometimes',
+                'date',
+            ],
+        ];
+    }
+
     public static function text(): array
     {
         return [
@@ -139,6 +160,32 @@ class RequestFilterRules
             'data.filter.*.boolean.value' => [
                 'sometimes',
                 'bool',
+            ],
+        ];
+    }
+
+    public static function hasProfiling(): array
+    {
+        return [
+            'has_profiling' => [
+                'sometimes',
+                'boolean',
+            ],
+        ];
+    }
+
+    public static function durationFromTo(): array
+    {
+        return [
+            'duration_from' => [
+                'sometimes',
+                'numeric',
+                'nullable',
+            ],
+            'duration_to'   => [
+                'sometimes',
+                'numeric',
+                'nullable',
             ],
         ];
     }

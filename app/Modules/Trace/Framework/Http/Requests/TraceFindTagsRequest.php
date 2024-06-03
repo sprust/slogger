@@ -13,19 +13,9 @@ class TraceFindTagsRequest extends FormRequest
             ...RequestFilterRules::services(),
             ...RequestFilterRules::text(),
             ...RequestFilterRules::types(),
-            'logging_from'  => [
-                'sometimes',
-                'date',
-            ],
-            'logging_to'    => [
-                'sometimes',
-                'date',
-            ],
+            ...RequestFilterRules::loggedFromTo(),
             ...RequestFilterRules::data(),
-            'has_profiling' => [
-                'sometimes',
-                'boolean',
-            ],
+            ...RequestFilterRules::hasProfiling(),
         ];
     }
 }

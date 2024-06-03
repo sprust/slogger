@@ -35,49 +35,13 @@ class TraceTimestampsRequest extends FormRequest
                 ),
             ],
             ...RequestFilterRules::services(),
-            'logging_to'       => [
-                'sometimes',
-                'date',
-            ],
-            'types'            => [
-                'sometimes',
-                'array',
-            ],
-            'types.*'          => [
-                'required',
-                'string',
-            ],
-            'tags'             => [
-                'sometimes',
-                'array',
-            ],
-            'tags.*'           => [
-                'required',
-                'string',
-            ],
-            'statuses'         => [
-                'sometimes',
-                'array',
-            ],
-            'statuses.*'       => [
-                'required',
-                'string',
-            ],
-            'duration_from'    => [
-                'sometimes',
-                'numeric',
-                'nullable',
-            ],
-            'duration_to'      => [
-                'sometimes',
-                'numeric',
-                'nullable',
-            ],
+            ...RequestFilterRules::loggedTo(),
+            ...RequestFilterRules::types(),
+            ...RequestFilterRules::tags(),
+            ...RequestFilterRules::statuses(),
+            ...RequestFilterRules::durationFromTo(),
             ...RequestFilterRules::data(),
-            'has_profiling'    => [
-                'sometimes',
-                'boolean',
-            ],
+            ...RequestFilterRules::hasProfiling(),
         ];
     }
 }
