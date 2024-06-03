@@ -2,7 +2,6 @@
 
 namespace App\Modules\Cleaner\Framework;
 
-use App\Modules\Cleaner\Domain\Actions\ClearTracesAction;
 use App\Modules\Cleaner\Framework\Commands\ClearTracesCommand;
 use App\Modules\Cleaner\Repositories\Interfaces\ProcessRepositoryInterface;
 use App\Modules\Cleaner\Repositories\Interfaces\SettingRepositoryInterface;
@@ -15,8 +14,6 @@ class CleanerServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->registerRepositories();
-
-        $this->app->singleton(ClearTracesAction::class);
 
         $this->commands([
             ClearTracesCommand::class,

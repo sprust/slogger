@@ -2,20 +2,25 @@
 
 namespace App\Models\Traces;
 
-use App\Models\AbstractModel;
+use App\Models\AbstractTraceModel;
 use Illuminate\Support\Carbon;
 
 /**
- * @property int         $id
- * @property int         $setting_id
- * @property int         $cleared_count
- * @property Carbon|null $cleared_at
- * @property Carbon      $created_at
- * @property Carbon      $updated_at
+ * @property string      $_id
+ * @property int         $settingId
+ * @property int         $clearedCount
+ * @property Carbon|null $clearedAt
+ * @property Carbon      $createdAt
+ * @property Carbon      $updatedAt
  */
-class TraceClearingProcess extends AbstractModel
+class TraceClearingProcess extends AbstractTraceModel
 {
+    public const CREATED_AT = 'createdAt';
+    public const UPDATED_AT = 'updatedAt';
+
+    protected $collection = 'traceClearingProcesses';
+
     protected $casts = [
-        'cleared_at' => 'datetime',
+        'clearedAt' => 'datetime',
     ];
 }

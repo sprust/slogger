@@ -15,7 +15,6 @@ use Illuminate\Support\Arr;
 
 readonly class ClearTracesAction
 {
-    private int $daysLifetimeOfProcessData;
     private int $countInDeletionBatch;
 
     public function __construct(
@@ -26,8 +25,7 @@ readonly class ClearTracesAction
         private DeleteTracesByTraceIdsAction $deleteTracesByTraceIdsAction,
         private DeleteTraceTreesByTraceIdsAction $deleteTraceTreesByTraceIdsAction
     ) {
-        $this->countInDeletionBatch      = 1000;
-        $this->daysLifetimeOfProcessData = 5;
+        $this->countInDeletionBatch = 1000;
     }
 
     public function handle(): void
@@ -51,14 +49,16 @@ readonly class ClearTracesAction
             )
         );
 
+        $now = now('UTC');
+
         foreach ($settings as $setting) {
-            $loggedAtTo    = now()->subDays($setting->daysLifetime);
+            $loggedAtTo    = $now->clone()->subDays($setting->daysLifetime);
             $type          = $setting->type;
             $excludedTypes = is_null($type) ? $customizedTypes : [];
 
             $activeProcess = $this->processRepository->findFirstBySettingId(
                 settingId: $setting->id,
-                clearedAtIsNotNull: true
+                clearedAtIsNull: true
             );
 
             if ($activeProcess) {
@@ -108,14 +108,5 @@ readonly class ClearTracesAction
                 clearedAt: now()
             );
         }
-
-        $this->deleteOldProcesses();
-    }
-
-    private function deleteOldProcesses(): void
-    {
-        $this->processRepository->delete(
-            to: now()->subDays($this->daysLifetimeOfProcessData)
-        );
     }
 }

@@ -12,11 +12,9 @@ interface ProcessRepositoryInterface
      */
     public function find(int $page, ?int $settingId = null): array;
 
-    public function findFirstBySettingId(int $settingId, bool $clearedAtIsNotNull): ?ProcessDto;
+    public function findFirstBySettingId(int $settingId, bool $clearedAtIsNull): ?ProcessDto;
 
     public function create(int $settingId, int $clearedCount, ?Carbon $clearedAt): ProcessDto;
 
-    public function update(int $processId, int $clearedCount, ?Carbon $clearedAt): void;
-
-    public function delete(Carbon $to): void;
+    public function update(string $processId, int $clearedCount, ?Carbon $clearedAt): void;
 }

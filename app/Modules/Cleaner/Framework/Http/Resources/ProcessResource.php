@@ -7,7 +7,7 @@ use App\Modules\Common\Framework\Http\Resources\AbstractApiResource;
 
 class ProcessResource extends AbstractApiResource
 {
-    private int $id;
+    private string $id;
     private int $setting_id;
     private int $cleared_count;
     private ?string $cleared_at;
