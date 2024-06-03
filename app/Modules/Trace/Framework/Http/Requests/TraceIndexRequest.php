@@ -3,7 +3,7 @@
 namespace App\Modules\Trace\Framework\Http\Requests;
 
 use App\Modules\Common\Enums\SortDirectionEnum;
-use App\Modules\Trace\Framework\Http\Services\RequestRules;
+use App\Modules\Trace\Framework\Http\Services\RequestFilterRules;
 use Illuminate\Foundation\Http\FormRequest;
 
 class TraceIndexRequest extends FormRequest
@@ -21,14 +21,7 @@ class TraceIndexRequest extends FormRequest
                 'int',
                 'min:1',
             ],
-            'service_ids'        => [
-                'sometimes',
-                'array',
-            ],
-            'service_ids.*'      => [
-                'required',
-                'integer',
-            ],
+            ...RequestFilterRules::services(),
             'trace_id'           => [
                 'sometimes',
                 'nullable',
@@ -80,7 +73,7 @@ class TraceIndexRequest extends FormRequest
                 'numeric',
                 'nullable',
             ],
-            ...RequestRules::filterData(),
+            ...RequestFilterRules::data(),
             'data.fields'        => [
                 'sometimes',
                 'array',

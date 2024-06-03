@@ -2,7 +2,7 @@
 
 namespace App\Modules\Trace\Framework\Http\Requests;
 
-use App\Modules\Trace\Framework\Http\Services\RequestRules;
+use App\Modules\Trace\Framework\Http\Services\RequestFilterRules;
 use Illuminate\Foundation\Http\FormRequest;
 
 class TraceFindTypesRequest extends FormRequest
@@ -10,14 +10,7 @@ class TraceFindTypesRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'service_ids'   => [
-                'sometimes',
-                'array',
-            ],
-            'service_ids.*' => [
-                'required',
-                'integer',
-            ],
+            ...RequestFilterRules::services(),
             'text'          => [
                 'sometimes',
                 'string',
@@ -32,7 +25,7 @@ class TraceFindTypesRequest extends FormRequest
                 'sometimes',
                 'date',
             ],
-            ...RequestRules::filterData(),
+            ...RequestFilterRules::data(),
             'has_profiling' => [
                 'sometimes',
                 'boolean',

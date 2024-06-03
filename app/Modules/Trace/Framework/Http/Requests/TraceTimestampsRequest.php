@@ -2,10 +2,9 @@
 
 namespace App\Modules\Trace\Framework\Http\Requests;
 
-use App\Models\Services\Service;
 use App\Modules\Trace\Enums\TraceTimestampEnum;
 use App\Modules\Trace\Enums\TraceTimestampPeriodEnum;
-use App\Modules\Trace\Framework\Http\Services\RequestRules;
+use App\Modules\Trace\Framework\Http\Services\RequestFilterRules;
 use Illuminate\Foundation\Http\FormRequest;
 
 class TraceTimestampsRequest extends FormRequest
@@ -35,15 +34,7 @@ class TraceTimestampsRequest extends FormRequest
                     )
                 ),
             ],
-            'service_ids'      => [
-                'sometimes',
-                'array',
-                'exists:' . Service::class . ',id',
-            ],
-            'service_ids.*'    => [
-                'required',
-                'integer',
-            ],
+            ...RequestFilterRules::services(),
             'logging_to'       => [
                 'sometimes',
                 'date',
@@ -82,7 +73,7 @@ class TraceTimestampsRequest extends FormRequest
                 'numeric',
                 'nullable',
             ],
-            ...RequestRules::filterData(),
+            ...RequestFilterRules::data(),
             'has_profiling'    => [
                 'sometimes',
                 'boolean',

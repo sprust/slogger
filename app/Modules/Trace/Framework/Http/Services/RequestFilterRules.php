@@ -5,9 +5,23 @@ namespace App\Modules\Trace\Framework\Http\Services;
 use App\Modules\Trace\Enums\TraceDataFilterCompNumericTypeEnum;
 use App\Modules\Trace\Enums\TraceDataFilterCompStringTypeEnum;
 
-class RequestRules
+class RequestFilterRules
 {
-    public static function filterData(): array
+    public static function services(): array
+    {
+        return [
+            'service_ids'   => [
+                'sometimes',
+                'array',
+            ],
+            'service_ids.*' => [
+                'required',
+                'integer',
+            ],
+        ];
+    }
+
+    public static function data(): array
     {
         return [
             'data'                        => [
