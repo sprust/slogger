@@ -47,6 +47,20 @@ class RequestFilterRules
         ];
     }
 
+    public static function tags(): array
+    {
+        return [
+            'tags'   => [
+                'sometimes',
+                'array',
+            ],
+            'tags.*' => [
+                'required',
+                'string',
+            ],
+        ];
+    }
+
     public static function data(): array
     {
         return [

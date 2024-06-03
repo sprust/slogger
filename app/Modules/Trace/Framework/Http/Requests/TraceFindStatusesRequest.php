@@ -14,14 +14,7 @@ class TraceFindStatusesRequest extends FormRequest
             ...RequestFilterRules::text(),
             ...RequestFilterRules::types(),
             ...RequestFilterRules::types(),
-            'tags'          => [
-                'sometimes',
-                'array',
-            ],
-            'tags.*'        => [
-                'required',
-                'string',
-            ],
+            ...RequestFilterRules::tags(),
             'logging_from'  => [
                 'sometimes',
                 'date',
