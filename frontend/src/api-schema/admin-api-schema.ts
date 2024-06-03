@@ -918,7 +918,6 @@ export namespace AdminApi {
             value?: boolean;
           };
         }[];
-        fields?: string[];
       };
       has_profiling?: boolean;
     };
@@ -2360,7 +2359,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
               value?: boolean;
             };
           }[];
-          fields?: string[];
         };
         has_profiling?: boolean;
       },

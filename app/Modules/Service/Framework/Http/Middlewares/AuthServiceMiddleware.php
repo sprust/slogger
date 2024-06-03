@@ -3,7 +3,7 @@
 namespace App\Modules\Service\Framework\Http\Middlewares;
 
 use App\Modules\Service\Domain\Actions\FindServiceByTokenAction;
-use App\Modules\Service\Framework\Http\ServiceContainer;
+use App\Modules\Service\Framework\Services\ServiceContainer;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;

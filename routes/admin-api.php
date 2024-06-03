@@ -3,17 +3,17 @@
 use App\Modules\Auth\Framework\Http\Controllers\LoginController;
 use App\Modules\Auth\Framework\Http\Controllers\MeController;
 use App\Modules\Auth\Framework\Http\Middlewares\AuthMiddleware;
+use App\Modules\Cleaner\Framework\Http\Controllers\ProcessController;
+use App\Modules\Cleaner\Framework\Http\Controllers\SettingController;
 use App\Modules\Dashboard\Framework\Http\Controllers\DatabaseStatController;
 use App\Modules\Dashboard\Framework\Http\Controllers\ServiceStatController;
 use App\Modules\Service\Framework\Http\Controllers\ServiceController;
-use App\Modules\TraceAggregator\Framework\Http\Controllers\TraceContentController;
-use App\Modules\TraceAggregator\Framework\Http\Controllers\TraceController;
-use App\Modules\TraceAggregator\Framework\Http\Controllers\TraceProfilingController;
-use App\Modules\TraceAggregator\Framework\Http\Controllers\TraceTimestampPeriodsController;
-use App\Modules\TraceAggregator\Framework\Http\Controllers\TraceTimestampsController;
-use App\Modules\TraceAggregator\Framework\Http\Controllers\TraceTreeController;
-use App\Modules\TraceCleaner\Framework\Http\Controllers\ProcessController;
-use App\Modules\TraceCleaner\Framework\Http\Controllers\SettingController;
+use App\Modules\Trace\Framework\Http\Controllers\TraceContentController;
+use App\Modules\Trace\Framework\Http\Controllers\TraceController;
+use App\Modules\Trace\Framework\Http\Controllers\TraceProfilingController;
+use App\Modules\Trace\Framework\Http\Controllers\TraceTimestampPeriodsController;
+use App\Modules\Trace\Framework\Http\Controllers\TraceTimestampsController;
+use App\Modules\Trace\Framework\Http\Controllers\TraceTreeController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('/auth')

@@ -2,7 +2,7 @@
 
 namespace App\Modules\Service\Framework\Http\Resources;
 
-use App\Modules\Common\Http\Resources\AbstractApiResource;
+use App\Modules\Common\Framework\Http\Resources\AbstractApiResource;
 use App\Modules\Service\Domain\Entities\Objects\ServiceObject;
 
 class ServiceResource extends AbstractApiResource
