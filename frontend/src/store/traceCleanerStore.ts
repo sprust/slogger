@@ -27,6 +27,7 @@ export const traceCleanerStore = createStore<State>({
     mutations: {
         setTraceCleanerSettings(state: State, items: Array<TraceCleanerSettingItem>) {
             state.settings = items
+            state.processes = {}
         },
         setTraceCleanerSettingProcesses(
             state: State,
