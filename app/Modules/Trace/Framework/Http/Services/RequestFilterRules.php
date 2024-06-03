@@ -61,6 +61,20 @@ class RequestFilterRules
         ];
     }
 
+    public static function statuses(): array
+    {
+        return [
+            'statuses'   => [
+                'sometimes',
+                'array',
+            ],
+            'statuses.*' => [
+                'required',
+                'string',
+            ],
+        ];
+    }
+
     public static function data(): array
     {
         return [

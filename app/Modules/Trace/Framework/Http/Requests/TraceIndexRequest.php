@@ -39,30 +39,9 @@ class TraceIndexRequest extends FormRequest
                 'sometimes',
                 'date',
             ],
-            'types'              => [
-                'sometimes',
-                'array',
-            ],
-            'types.*'            => [
-                'required',
-                'string',
-            ],
-            'tags'               => [
-                'sometimes',
-                'array',
-            ],
-            'tags.*'             => [
-                'required',
-                'string',
-            ],
-            'statuses'           => [
-                'sometimes',
-                'array',
-            ],
-            'statuses.*'         => [
-                'required',
-                'string',
-            ],
+            ...RequestFilterRules::types(),
+            ...RequestFilterRules::tags(),
+            ...RequestFilterRules::statuses(),
             'duration_from'      => [
                 'sometimes',
                 'numeric',
