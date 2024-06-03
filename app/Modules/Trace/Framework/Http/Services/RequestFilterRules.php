@@ -21,6 +21,18 @@ class RequestFilterRules
         ];
     }
 
+    public static function text(): array
+    {
+        return [
+            'text' => [
+                'sometimes',
+                'string',
+                'nullable',
+                'min:1',
+            ],
+        ];
+    }
+
     public static function data(): array
     {
         return [

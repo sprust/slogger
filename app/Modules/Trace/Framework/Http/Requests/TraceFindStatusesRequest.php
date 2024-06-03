@@ -11,12 +11,7 @@ class TraceFindStatusesRequest extends FormRequest
     {
         return [
             ...RequestFilterRules::services(),
-            'text'          => [
-                'sometimes',
-                'string',
-                'nullable',
-                'min:1',
-            ],
+            ...RequestFilterRules::text(),
             'types'         => [
                 'sometimes',
                 'array',
