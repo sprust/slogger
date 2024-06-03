@@ -33,6 +33,20 @@ class RequestFilterRules
         ];
     }
 
+    public static function types(): array
+    {
+        return [
+            'types'   => [
+                'sometimes',
+                'array',
+            ],
+            'types.*' => [
+                'required',
+                'string',
+            ],
+        ];
+    }
+
     public static function data(): array
     {
         return [

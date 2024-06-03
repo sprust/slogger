@@ -12,14 +12,7 @@ class TraceFindTagsRequest extends FormRequest
         return [
             ...RequestFilterRules::services(),
             ...RequestFilterRules::text(),
-            'types'         => [
-                'sometimes',
-                'array',
-            ],
-            'types.*'       => [
-                'required',
-                'string',
-            ],
+            ...RequestFilterRules::types(),
             'logging_from'  => [
                 'sometimes',
                 'date',
