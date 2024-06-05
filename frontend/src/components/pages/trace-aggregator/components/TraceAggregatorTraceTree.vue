@@ -211,8 +211,8 @@ export default defineComponent({
 }
 
 .row-col {
-  height: 100%;
-  overflow-y: scroll
+  height: 90%;
+  overflow-y: scroll;
 }
 
 </style>
