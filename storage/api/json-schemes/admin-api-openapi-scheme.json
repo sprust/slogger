@@ -1992,6 +1992,24 @@
                                             "m"
                                         ]
                                     },
+                                    "indicators": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "enum": [
+                                                "count",
+                                                "duration",
+                                                "memory",
+                                                "cpu"
+                                            ]
+                                        }
+                                    },
+                                    "data_field_indicators": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
                                     "service_ids": {
                                         "type": "array",
                                         "items": {
@@ -2134,20 +2152,47 @@
                                                                 "type": "string",
                                                                 "nullable": false
                                                             },
-                                                            "count": {
-                                                                "type": "integer",
-                                                                "nullable": false
-                                                            },
-                                                            "durationPercent": {
-                                                                "type": "integer",
-                                                                "nullable": false
+                                                            "fields": {
+                                                                "type": "array",
+                                                                "nullable": false,
+                                                                "items": {
+                                                                    "properties": {
+                                                                        "field": {
+                                                                            "type": "string",
+                                                                            "nullable": false
+                                                                        },
+                                                                        "indicators": {
+                                                                            "type": "array",
+                                                                            "nullable": false,
+                                                                            "items": {
+                                                                                "properties": {
+                                                                                    "name": {
+                                                                                        "type": "string",
+                                                                                        "nullable": false
+                                                                                    },
+                                                                                    "value": {
+                                                                                        "type": "integer",
+                                                                                        "nullable": false
+                                                                                    }
+                                                                                },
+                                                                                "required": [
+                                                                                    "name",
+                                                                                    "value"
+                                                                                ]
+                                                                            }
+                                                                        }
+                                                                    },
+                                                                    "required": [
+                                                                        "field",
+                                                                        "indicators"
+                                                                    ]
+                                                                }
                                                             }
                                                         },
                                                         "required": [
                                                             "timestamp",
                                                             "timestamp_to",
-                                                            "count",
-                                                            "durationPercent"
+                                                            "fields"
                                                         ]
                                                     }
                                                 }

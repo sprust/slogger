@@ -2,6 +2,7 @@
 
 namespace App\Modules\Trace\Framework\Http\Requests;
 
+use App\Modules\Trace\Enums\TraceMetricIndicatorEnum;
 use App\Modules\Trace\Enums\TraceTimestampEnum;
 use App\Modules\Trace\Enums\TraceTimestampPeriodEnum;
 use App\Modules\Trace\Framework\Http\Services\RequestFilterRules;
@@ -12,7 +13,7 @@ class TraceTimestampsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'timestamp_period' => [
+            'timestamp_period'        => [
                 'required',
                 'string',
                 'in:' . implode(
@@ -23,7 +24,7 @@ class TraceTimestampsRequest extends FormRequest
                     )
                 ),
             ],
-            'timestamp_step'   => [
+            'timestamp_step'          => [
                 'required',
                 'string',
                 'in:' . implode(
@@ -33,6 +34,29 @@ class TraceTimestampsRequest extends FormRequest
                         TraceTimestampEnum::cases()
                     )
                 ),
+            ],
+            'indicators'              => [
+                'sometimes',
+                'array',
+            ],
+            'indicators.*'            => [
+                'required',
+                'string',
+                'in:' . implode(
+                    ',',
+                    array_map(
+                        fn(TraceMetricIndicatorEnum $enum) => $enum->value,
+                        TraceMetricIndicatorEnum::cases()
+                    )
+                ),
+            ],
+            'data_field_indicators'   => [
+                'sometimes',
+                'array',
+            ],
+            'data_field_indicators.*' => [
+                'required',
+                'string',
             ],
             ...RequestFilterRules::services(),
             ...RequestFilterRules::loggedTo(),

@@ -83,8 +83,7 @@ class TraceTimestampMetricsFactory
                         date: $iterator->clone(),
                         timestamp: $timestamp
                     ),
-                    count: 0,
-                    durationPercent: 0
+                    fields: []
                 );
 
             $iterator = $iterator->subSecond();

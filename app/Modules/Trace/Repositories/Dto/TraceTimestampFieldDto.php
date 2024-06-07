@@ -2,15 +2,13 @@
 
 namespace App\Modules\Trace\Repositories\Dto;
 
-use Illuminate\Support\Carbon;
-
-class TraceTimestampsDto
+class TraceTimestampFieldDto
 {
     /**
-     * @param TraceTimestampFieldDto[] $indicators
+     * @param TraceTimestampFieldIndicatorDto[] $indicators
      */
     public function __construct(
-        public Carbon $timestamp,
+        public string $field,
         public array $indicators
     ) {
     }

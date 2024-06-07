@@ -2,11 +2,16 @@
 
 namespace App\Modules\Trace\Domain\Actions\Queries;
 
+use App\Modules\Trace\Domain\Entities\Objects\Timestamp\TraceTimestampFieldIndicatorObject;
+use App\Modules\Trace\Domain\Entities\Objects\Timestamp\TraceTimestampFieldObject;
 use App\Modules\Trace\Domain\Entities\Objects\Timestamp\TraceTimestampsObject;
 use App\Modules\Trace\Domain\Entities\Objects\Timestamp\TraceTimestampsObjects;
 use App\Modules\Trace\Domain\Entities\Parameters\FindTraceTimestampsParameters;
 use App\Modules\Trace\Domain\Entities\Transports\TraceDataFilterTransport;
 use App\Modules\Trace\Domain\Services\TraceTimestampMetricsFactory;
+use App\Modules\Trace\Enums\TraceMetricIndicatorEnum;
+use App\Modules\Trace\Repositories\Dto\TraceTimestampFieldDto;
+use App\Modules\Trace\Repositories\Dto\TraceTimestampFieldIndicatorDto;
 use App\Modules\Trace\Repositories\Dto\TraceTimestampsDto;
 use App\Modules\Trace\Repositories\Interfaces\TraceTimestampsRepositoryInterface;
 
@@ -20,6 +25,14 @@ readonly class FindTraceTimestampsAction
 
     public function handle(FindTraceTimestampsParameters $parameters): TraceTimestampsObjects
     {
+        $indicators = $parameters->indicators;
+
+        if (empty($indicators) && empty($parameters->dataFieldIndicators)) {
+            $indicators = [
+                TraceMetricIndicatorEnum::Count,
+            ];
+        }
+
         $loggedAtTo = $parameters->loggedAtTo ?? now('UTC');
 
         $loggedAtFrom = $this->traceTimestampMetricsFactory->calcLoggedAtFrom(
@@ -36,6 +49,7 @@ readonly class FindTraceTimestampsAction
 
         $timestampsDtoList = $this->traceTimestampsRepository->find(
             timestamp: $timestampStep,
+            indicators: $indicators,
             serviceIds: $parameters->serviceIds,
             traceIds: $parameters->traceIds,
             loggedAtFrom: $loggedAtFrom,
@@ -49,14 +63,6 @@ readonly class FindTraceTimestampsAction
             hasProfiling: $parameters->hasProfiling,
         );
 
-        $maxCount = collect($timestampsDtoList)->max(
-            fn(TraceTimestampsDto $dto) => $dto->count
-        ) ?: 10;
-
-        $maxDuration = collect($timestampsDtoList)->max(
-            fn(TraceTimestampsDto $dto) => $dto->durationAvg
-        ) ?: 10;
-
         $items = $this->traceTimestampMetricsFactory->makeTimeLine(
             dateFrom: $loggedAtFrom,
             dateTo: $loggedAtTo,
@@ -68,8 +74,19 @@ readonly class FindTraceTimestampsAction
                         date: $dto->timestamp,
                         timestamp: $timestampStep
                     ),
-                    count: $dto->count,
-                    durationPercent: ceil(($dto->durationAvg / $maxDuration) * $maxCount)
+                    fields: array_map(
+                        fn(TraceTimestampFieldDto $dto) => new TraceTimestampFieldObject(
+                            field: $dto->field,
+                            indicators: array_map(
+                                fn(TraceTimestampFieldIndicatorDto $dto) => new TraceTimestampFieldIndicatorObject(
+                                    name: $dto->name,
+                                    value: $dto->value
+                                ),
+                                $dto->indicators
+                            ),
+                        ),
+                        $dto->indicators
+                    )
                 ),
                 $timestampsDtoList
             )

@@ -4,6 +4,7 @@ namespace App\Modules\Trace\Framework\Http\Controllers;
 
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceTimestampsAction;
 use App\Modules\Trace\Domain\Entities\Parameters\FindTraceTimestampsParameters;
+use App\Modules\Trace\Enums\TraceMetricIndicatorEnum;
 use App\Modules\Trace\Enums\TraceTimestampEnum;
 use App\Modules\Trace\Enums\TraceTimestampPeriodEnum;
 use App\Modules\Trace\Framework\Http\Controllers\Traits\MakeDataFilterParameterTrait;
@@ -29,6 +30,11 @@ readonly class TraceTimestampsController
                 new FindTraceTimestampsParameters(
                     timestampPeriod: TraceTimestampPeriodEnum::from($validated['timestamp_period']),
                     timestampStep: TraceTimestampEnum::from($validated['timestamp_step']),
+                    indicators: array_map(
+                        fn(string $indicator) => TraceMetricIndicatorEnum::from($indicator),
+                        $validated['indicators'] ?? []
+                    ),
+                    dataFieldIndicators: $validated['data_field_indicators'] ?? [],
                     serviceIds: !is_null($validated['service_ids'] ?? null)
                         ? array_map('intval', $validated['service_ids'])
                         : null,

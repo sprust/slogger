@@ -6,11 +6,13 @@ use Illuminate\Support\Carbon;
 
 class TraceTimestampsObject
 {
+    /**
+     * @param TraceTimestampFieldObject[] $fields
+     */
     public function __construct(
         public Carbon $timestamp,
         public Carbon $timestampTo,
-        public int $count,
-        public int $durationPercent
+        public array $fields
     ) {
     }
 }
