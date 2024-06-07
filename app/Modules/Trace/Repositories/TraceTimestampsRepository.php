@@ -119,10 +119,12 @@ readonly class TraceTimestampsRepository implements TraceTimestampsRepositoryInt
         }
 
         foreach ($dataFields ?? [] as $dataField) {
+            $dataFieldKey = "\$data.$dataField";
+
             $groups[$dataField] = [
-                '$avg' => $dataField,
-                '$min' => $dataField,
-                '$max' => $dataField,
+                '$avg' => $dataFieldKey,
+                '$min' => $dataFieldKey,
+                '$max' => $dataFieldKey,
             ];
         }
 
