@@ -4,11 +4,16 @@ import {createStore, Store, useStore as baseUseStore} from 'vuex'
 import {AdminApi} from "../api-schema/admin-api-schema.ts";
 import {ApiContainer} from "../utils/apiContainer.ts";
 import {convertDateStringToLocal, handleApiError} from "../utils/helpers.ts";
-import {ChartData, ChartOptions} from 'chart.js'
+import {ChartData, ChartDataset, ChartOptions} from 'chart.js'
 
 type TraceAggregatorTraceMetricsPayload = AdminApi.TraceAggregatorTraceMetricsCreate.RequestBody
 type TraceAggregatorTraceMetricResponse = AdminApi.TraceAggregatorTraceMetricsCreate.ResponseBody
 type TraceAggregatorTraceMetricItem = AdminApi.TraceAggregatorTraceMetricsCreate.ResponseBody['data']['items'][number]
+
+interface GraphItem {
+    name: string,
+    data: ChartData
+}
 
 interface State {
     showGraph: boolean,
@@ -20,7 +25,7 @@ interface State {
     loggedAtFrom: string,
     metrics: Array<TraceAggregatorTraceMetricItem>,
 
-    graphData: ChartData,
+    graphs: Array<GraphItem>,
     graphOptions: ChartOptions,
 
     preTimestamp: string | null,
@@ -37,10 +42,7 @@ export const traceAggregatorGraphStore = createStore<State>({
         loggedAtFrom: '',
         metrics: new Array<TraceAggregatorTraceMetricItem>,
 
-        graphData: {
-            labels: [],
-            datasets: []
-        } as ChartData,
+        graphs: new Array<GraphItem>,
         graphOptions: {
             responsive: true,
             maintainAspectRatio: false,
@@ -67,59 +69,70 @@ export const traceAggregatorGraphStore = createStore<State>({
             state.metrics = data.data.items
 
             if (!state.metrics.length) {
-                state.graphData = {
-                    labels: [],
-                    datasets: [],
-                }
+                state.graphs = []
 
                 return
             }
 
-            const timestamp = state.metrics[state.metrics.length - 1].timestamp;
-
-            const totalCount = state.metrics.reduce((a, b) => {
-                return a + b.count;
-            }, 0)
-
-            if (state.preTimestamp === timestamp
-                && totalCount === state.preTimestampCounts
-            ) {
-                return;
-            }
-
-            state.preTimestamp = timestamp
-            state.preTimestampCounts = totalCount
-
             const labels: Array<string> = []
 
-            const datasetCountData: Array<number> = []
-            const datasetDurationPercentData: Array<number> = []
+            const fieldIndicators: {
+                [key: string]: {
+                    [key: string]: Array<number>
+                }
+            } = {}
 
             state.metrics.forEach((item: TraceAggregatorTraceMetricItem) => {
                 labels.push(
                     convertDateStringToLocal(item.timestamp, false)
                 )
 
-                datasetCountData.push(item.count)
-                datasetDurationPercentData.push(item.durationPercent)
+                item.fields.forEach(field => {
+                    if (fieldIndicators[field.field] === undefined) {
+                        fieldIndicators[field.field] = {}
+                    }
+
+                    field.indicators.forEach(indicator => {
+                        if (fieldIndicators[field.field][indicator.name] === undefined) {
+                            fieldIndicators[field.field][indicator.name] = []
+                        }
+
+                        fieldIndicators[field.field][indicator.name].push(indicator.value)
+                    })
+                })
             })
 
-            state.graphData = {
-                labels: labels,
-                datasets: [
-                    {
-                        label: 'count',
-                        backgroundColor: 'rgba(163,248,121)',
-                        data: datasetCountData
-                    },
-                    {
-                        hidden: true,
-                        label: 'duration',
-                        backgroundColor: 'rgba(121,146,248,0.3)',
-                        data: datasetDurationPercentData
-                    },
-                ],
-            }
+            const graphs: Array<GraphItem> = []
+
+            Object.keys(fieldIndicators).map(fieldIndicatorName => {
+                const indicators = fieldIndicators[fieldIndicatorName]
+
+                const datasets: Array<ChartDataset> = []
+
+                let opacity: number = 1
+
+                Object.keys(indicators).map(indicatorName => {
+                    opacity -= .2
+
+                    opacity = opacity === 0 ? .2 : opacity
+
+                    datasets.push({
+                        label: indicatorName,
+                        backgroundColor: `rgba(163,248,121,${opacity})`,
+                        data: fieldIndicators[fieldIndicatorName][indicatorName]
+                    })
+                })
+
+                graphs.push({
+                    name: fieldIndicatorName,
+                    data: {
+                        labels: labels,
+                        datasets: datasets
+                    }
+                })
+            })
+
+            state.graphs = graphs
         },
     },
     actions: {

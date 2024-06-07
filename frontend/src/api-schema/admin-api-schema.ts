@@ -863,8 +863,15 @@ export namespace AdminApi {
     items: ({
     timestamp: string,
     timestamp_to: string,
-    count: number,
-    durationPercent: number,
+    fields: ({
+    field: string,
+    indicators: ({
+    name: string,
+    value: number,
+
+})[],
+
+})[],
 
 })[],
 
@@ -891,6 +898,8 @@ export namespace AdminApi {
         | "6 month"
         | "1 year";
       timestamp_step: "s5" | "s10" | "s30" | "min" | "min5" | "min10" | "min30" | "h" | "h4" | "h12" | "d" | "m";
+      fields?: ("count" | "duration" | "memory" | "cpu")[];
+      data_fields?: string[];
       service_ids?: number[];
       /** @format date */
       logging_to?: string;
@@ -928,10 +937,40 @@ export namespace AdminApi {
         items: {
           timestamp: string;
           timestamp_to: string;
-          count: number;
-          durationPercent: number;
+          fields: {
+            field: string;
+            indicators: {
+              name: string;
+              value: number;
+            }[];
+          }[];
         }[];
       };
+    };
+  } /**
+ * No description
+ * @name TraceAggregatorTraceMetricsFieldsList
+ * @request GET:/admin-api/trace-aggregator/trace-metrics/fields
+ * @secure
+ * @response `200` `{
+    data: ({
+    name: string,
+    value: string,
+
+})[],
+
+}` description
+*/
+  export namespace TraceAggregatorTraceMetricsFieldsList {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        name: string;
+        value: string;
+      }[];
     };
   } /**
  * No description
@@ -2306,8 +2345,15 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     items: ({
     timestamp: string,
     timestamp_to: string,
-    count: number,
-    durationPercent: number,
+    fields: ({
+    field: string,
+    indicators: ({
+    name: string,
+    value: number,
+
+})[],
+
+})[],
 
 })[],
 
@@ -2332,6 +2378,8 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
           | "6 month"
           | "1 year";
         timestamp_step: "s5" | "s10" | "s30" | "min" | "min5" | "min10" | "min30" | "h" | "h4" | "h12" | "d" | "m";
+        fields?: ("count" | "duration" | "memory" | "cpu")[];
+        data_fields?: string[];
         service_ids?: number[];
         /** @format date */
         logging_to?: string;
@@ -2371,8 +2419,13 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
             items: {
               timestamp: string;
               timestamp_to: string;
-              count: number;
-              durationPercent: number;
+              fields: {
+                field: string;
+                indicators: {
+                  name: string;
+                  value: number;
+                }[];
+              }[];
             }[];
           };
         },
@@ -2383,6 +2436,38 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         body: data,
         secure: true,
         type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name TraceAggregatorTraceMetricsFieldsList
+ * @request GET:/admin-api/trace-aggregator/trace-metrics/fields
+ * @secure
+ * @response `200` `{
+    data: ({
+    name: string,
+    value: string,
+
+})[],
+
+}` description
+ */
+    traceAggregatorTraceMetricsFieldsList: (params: RequestParams = {}) =>
+      this.request<
+        {
+          data: {
+            name: string;
+            value: string;
+          }[];
+        },
+        any
+      >({
+        path: `/admin-api/trace-aggregator/trace-metrics/fields`,
+        method: "GET",
+        secure: true,
         format: "json",
         ...params,
       }),

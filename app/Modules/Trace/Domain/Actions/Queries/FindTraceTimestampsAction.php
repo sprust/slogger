@@ -29,38 +29,31 @@ readonly class FindTraceTimestampsAction
         $fields = $parameters->fields;
 
         if (empty($fields) && empty($parameters->dataFields)) {
-            $fieldsFilter = [
-                new TraceMetricFieldsFilterDto(
-                    field: TraceMetricFieldEnum::Count,
-                    aggregations: [
-                        TraceMetricFieldAggregatorEnum::Sum,
-                    ]
-                ),
-            ];
-        } else {
-            $fieldsFilter = [];
+            $fields = TraceMetricFieldEnum::cases();
+        }
 
-            foreach ($fields as $field) {
-                if ($field === TraceMetricFieldEnum::Count) {
-                    $fieldsFilter[] = new TraceMetricFieldsFilterDto(
-                        field: $field,
-                        aggregations: [
-                            TraceMetricFieldAggregatorEnum::Sum,
-                        ]
-                    );
+        $fieldsFilter = [];
 
-                    continue;
-                }
-
+        foreach ($fields as $field) {
+            if ($field === TraceMetricFieldEnum::Count) {
                 $fieldsFilter[] = new TraceMetricFieldsFilterDto(
                     field: $field,
                     aggregations: [
-                        TraceMetricFieldAggregatorEnum::Avg,
-                        TraceMetricFieldAggregatorEnum::Min,
-                        TraceMetricFieldAggregatorEnum::Max,
+                        TraceMetricFieldAggregatorEnum::Sum,
                     ]
                 );
+
+                continue;
             }
+
+            $fieldsFilter[] = new TraceMetricFieldsFilterDto(
+                field: $field,
+                aggregations: [
+                    TraceMetricFieldAggregatorEnum::Avg,
+                    TraceMetricFieldAggregatorEnum::Min,
+                    TraceMetricFieldAggregatorEnum::Max,
+                ]
+            );
         }
 
         /** @var TraceMetricFieldsFilterDto[] $fieldsFilter */

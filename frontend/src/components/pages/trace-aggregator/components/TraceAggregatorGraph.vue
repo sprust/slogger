@@ -1,11 +1,16 @@
 <template>
-  <Bar
-      ref="tracesGraphRef"
-      style="min-height: 60vh; max-height: 60vh"
-      :data="store.state.graphData"
-      :options="store.state.graphOptions"
-      @click="onGraphClick"
-  />
+  <div v-for="graph in store.state.graphs">
+    <el-row>
+      {{ graph.name }}
+    </el-row>
+    <Bar
+        ref="tracesGraphRef"
+        :style="`min-height: ${graphItemHeight}; max-height: ${graphItemHeight}`"
+        :data="graph.data"
+        :options="store.state.graphOptions"
+        @click="onGraphClick"
+    />
+  </div>
 </template>
 
 <script lang="ts">
@@ -21,14 +26,13 @@ import {
   Tooltip
 } from 'chart.js'
 import {Bar, getElementAtEvent} from 'vue-chartjs'
-import ChartDataLabels from 'chartjs-plugin-datalabels';
 
 import {useTraceAggregatorGraphStore} from "../../../../store/traceAggregatorGraphStore.ts";
 import {useTraceAggregatorTimestampPeriodStore} from "../../../../store/traceAggregatorTimestampPeriodsStore.ts";
 import {useTraceAggregatorStore} from "../../../../store/traceAggregatorStore.ts";
 import {convertDateStringToLocalFull} from "../../../../utils/helpers.ts";
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ChartDataLabels)
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
 export default defineComponent({
   components: {
@@ -39,6 +43,15 @@ export default defineComponent({
       store: useTraceAggregatorGraphStore(),
       storePeriods: useTraceAggregatorTimestampPeriodStore(),
       traceStore: useTraceAggregatorStore(),
+    }
+  },
+  computed: {
+    graphItemHeight(): string {
+      if (!this.store.state.graphs.length) {
+        return '60vh'
+      }
+
+      return (80 / this.store.state.graphs.length) + 'vh'
     }
   },
   methods: {
@@ -81,7 +94,7 @@ export default defineComponent({
     },
     onGraphClick(mouseEvent: MouseEvent) {
       // @ts-ignore TODO
-      const chart = this.$refs.tracesGraphRef?.chart
+      const chart = this.$refs.tracesGraphRef[0].chart
 
       if (!chart) {
         return
