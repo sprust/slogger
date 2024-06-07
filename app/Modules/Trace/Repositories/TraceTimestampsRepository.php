@@ -3,7 +3,7 @@
 namespace App\Modules\Trace\Repositories;
 
 use App\Models\Traces\Trace;
-use App\Modules\Trace\Enums\TraceMetricIndicatorEnum;
+use App\Modules\Trace\Enums\TraceMetricFieldEnum;
 use App\Modules\Trace\Enums\TraceTimestampEnum;
 use App\Modules\Trace\Repositories\Dto\Data\TraceDataFilterDto;
 use App\Modules\Trace\Repositories\Dto\TraceTimestampFieldDto;
@@ -24,8 +24,8 @@ readonly class TraceTimestampsRepository implements TraceTimestampsRepositoryInt
 
     public function find(
         TraceTimestampEnum $timestamp,
-        array $indicators,
-        ?array $dataFieldIndicators = null,
+        array $fields,
+        ?array $dataFields = null,
         ?array $serviceIds = null,
         ?array $traceIds = null,
         ?Carbon $loggedAtFrom = null,
@@ -76,8 +76,8 @@ readonly class TraceTimestampsRepository implements TraceTimestampsRepositoryInt
 
         $groups = [];
 
-        foreach ($indicators as $indicator) {
-            if ($indicator === TraceMetricIndicatorEnum::Count) {
+        foreach ($fields as $field) {
+            if ($field === TraceMetricFieldEnum::Count) {
                 $groups['count'] = [
                     '$sum' => 1,
                 ];
@@ -85,7 +85,7 @@ readonly class TraceTimestampsRepository implements TraceTimestampsRepositoryInt
                 continue;
             }
 
-            if ($indicator === TraceMetricIndicatorEnum::Duration) {
+            if ($field === TraceMetricFieldEnum::Duration) {
                 $groups['duration'] = [
                     '$avg' => '$duration',
                     '$min' => '$duration',
@@ -95,7 +95,7 @@ readonly class TraceTimestampsRepository implements TraceTimestampsRepositoryInt
                 continue;
             }
 
-            if ($indicator === TraceMetricIndicatorEnum::Memory) {
+            if ($field === TraceMetricFieldEnum::Memory) {
                 $groups['memory'] = [
                     '$avg' => '$memory',
                     '$min' => '$memory',
@@ -105,7 +105,7 @@ readonly class TraceTimestampsRepository implements TraceTimestampsRepositoryInt
                 continue;
             }
 
-            if ($indicator === TraceMetricIndicatorEnum::Cpu) {
+            if ($field === TraceMetricFieldEnum::Cpu) {
                 $groups['cpu'] = [
                     '$avg' => '$cpu',
                     '$min' => '$cpu',
@@ -115,14 +115,14 @@ readonly class TraceTimestampsRepository implements TraceTimestampsRepositoryInt
                 continue;
             }
 
-            throw new RuntimeException("Unknown indicator [$indicator->value]");
+            throw new RuntimeException("Unknown field [$field->value]");
         }
 
-        foreach ($dataFieldIndicators ?? [] as $dataFieldIndicator) {
-            $groups[$dataFieldIndicator] = [
-                '$avg' => $dataFieldIndicator,
-                '$min' => $dataFieldIndicator,
-                '$max' => $dataFieldIndicator,
+        foreach ($dataFields ?? [] as $dataField) {
+            $groups[$dataField] = [
+                '$avg' => $dataField,
+                '$min' => $dataField,
+                '$max' => $dataField,
             ];
         }
 

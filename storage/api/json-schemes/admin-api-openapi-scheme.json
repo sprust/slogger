@@ -1992,7 +1992,7 @@
                                             "m"
                                         ]
                                     },
-                                    "indicators": {
+                                    "fields": {
                                         "type": "array",
                                         "items": {
                                             "type": "string",
@@ -2004,7 +2004,7 @@
                                             ]
                                         }
                                     },
-                                    "data_field_indicators": {
+                                    "data_fields": {
                                         "type": "array",
                                         "items": {
                                             "type": "string"
@@ -2201,6 +2201,51 @@
                                                 "loggedAtFrom",
                                                 "items"
                                             ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/admin-api/trace-aggregator/trace-metrics/fields": {
+            "get": {
+                "responses": {
+                    "200": {
+                        "description": "description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "name": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "value": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    }
+                                                },
+                                                "required": [
+                                                    "name",
+                                                    "value"
+                                                ]
+                                            }
                                         }
                                     },
                                     "required": [

@@ -64,6 +64,7 @@ Route::prefix('/trace-aggregator')
             ->as('trace-metrics.')
             ->group(function () {
                 Route::post('', [TraceTimestampsController::class, 'index'])->name('index');
+                Route::get('/fields', [TraceTimestampsController::class, 'fields'])->name('fields');
             });
 
         Route::prefix('/trace-timestamp-periods')

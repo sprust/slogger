@@ -2,7 +2,7 @@
 
 namespace App\Modules\Trace\Framework\Http\Requests;
 
-use App\Modules\Trace\Enums\TraceMetricIndicatorEnum;
+use App\Modules\Trace\Enums\TraceMetricFieldEnum;
 use App\Modules\Trace\Enums\TraceTimestampEnum;
 use App\Modules\Trace\Enums\TraceTimestampPeriodEnum;
 use App\Modules\Trace\Framework\Http\Services\RequestFilterRules;
@@ -13,7 +13,7 @@ class TraceTimestampsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'timestamp_period'        => [
+            'timestamp_period' => [
                 'required',
                 'string',
                 'in:' . implode(
@@ -24,7 +24,7 @@ class TraceTimestampsRequest extends FormRequest
                     )
                 ),
             ],
-            'timestamp_step'          => [
+            'timestamp_step'   => [
                 'required',
                 'string',
                 'in:' . implode(
@@ -35,26 +35,26 @@ class TraceTimestampsRequest extends FormRequest
                     )
                 ),
             ],
-            'indicators'              => [
+            'fields'           => [
                 'sometimes',
                 'array',
             ],
-            'indicators.*'            => [
+            'fields.*'         => [
                 'required',
                 'string',
                 'in:' . implode(
                     ',',
                     array_map(
-                        fn(TraceMetricIndicatorEnum $enum) => $enum->value,
-                        TraceMetricIndicatorEnum::cases()
+                        fn(TraceMetricFieldEnum $enum) => $enum->value,
+                        TraceMetricFieldEnum::cases()
                     )
                 ),
             ],
-            'data_field_indicators'   => [
+            'data_fields'      => [
                 'sometimes',
                 'array',
             ],
-            'data_field_indicators.*' => [
+            'data_fields.*'    => [
                 'required',
                 'string',
             ],

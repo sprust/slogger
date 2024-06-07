@@ -2,7 +2,7 @@
 
 namespace App\Modules\Trace\Enums;
 
-enum TraceMetricIndicatorEnum: string
+enum TraceMetricFieldEnum: string
 {
     case Count = 'count';
     case Duration = 'duration';

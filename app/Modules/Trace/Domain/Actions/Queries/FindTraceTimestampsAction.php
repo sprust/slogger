@@ -9,7 +9,7 @@ use App\Modules\Trace\Domain\Entities\Objects\Timestamp\TraceTimestampsObjects;
 use App\Modules\Trace\Domain\Entities\Parameters\FindTraceTimestampsParameters;
 use App\Modules\Trace\Domain\Entities\Transports\TraceDataFilterTransport;
 use App\Modules\Trace\Domain\Services\TraceTimestampMetricsFactory;
-use App\Modules\Trace\Enums\TraceMetricIndicatorEnum;
+use App\Modules\Trace\Enums\TraceMetricFieldEnum;
 use App\Modules\Trace\Repositories\Dto\TraceTimestampFieldDto;
 use App\Modules\Trace\Repositories\Dto\TraceTimestampFieldIndicatorDto;
 use App\Modules\Trace\Repositories\Dto\TraceTimestampsDto;
@@ -25,11 +25,11 @@ readonly class FindTraceTimestampsAction
 
     public function handle(FindTraceTimestampsParameters $parameters): TraceTimestampsObjects
     {
-        $indicators = $parameters->indicators;
+        $fields = $parameters->fields;
 
-        if (empty($indicators) && empty($parameters->dataFieldIndicators)) {
-            $indicators = [
-                TraceMetricIndicatorEnum::Count,
+        if (empty($fields) && empty($parameters->dataFields)) {
+            $fields = [
+                TraceMetricFieldEnum::Count,
             ];
         }
 
@@ -49,7 +49,8 @@ readonly class FindTraceTimestampsAction
 
         $timestampsDtoList = $this->traceTimestampsRepository->find(
             timestamp: $timestampStep,
-            indicators: $indicators,
+            fields: $fields,
+            dataFields: $parameters->dataFields,
             serviceIds: $parameters->serviceIds,
             traceIds: $parameters->traceIds,
             loggedAtFrom: $loggedAtFrom,
