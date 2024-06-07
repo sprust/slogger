@@ -5,8 +5,8 @@ namespace App\Modules\Trace\Domain\Entities\Transports;
 use App\Modules\Trace\Domain\Entities\Objects\Profiling\ProfilingItemDataObject;
 use App\Modules\Trace\Domain\Entities\Objects\Profiling\ProfilingItemObject;
 use App\Modules\Trace\Domain\Entities\Objects\Profiling\ProfilingObject;
-use App\Modules\Trace\Repositories\Dto\TraceProfilingDataDto;
-use App\Modules\Trace\Repositories\Dto\TraceProfilingDto;
+use App\Modules\Trace\Repositories\Dto\Profiling\TraceProfilingDataDto;
+use App\Modules\Trace\Repositories\Dto\Profiling\TraceProfilingDto;
 use Illuminate\Support\Str;
 
 class TraceProfilingTransport

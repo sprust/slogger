@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\Trace\Repositories\Dto;
+namespace App\Modules\Trace\Repositories\Dto\Timestamp;
 
 class TraceTimestampFieldDto
 {

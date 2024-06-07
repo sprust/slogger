@@ -2,6 +2,7 @@
 
 namespace App\Modules\Trace\Repositories\Dto;
 
+use App\Modules\Trace\Repositories\Dto\Timestamp\TraceTimestampMetricDto;
 use Illuminate\Support\Carbon;
 
 class TraceCreateDto

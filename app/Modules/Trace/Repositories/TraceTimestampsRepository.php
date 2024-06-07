@@ -3,12 +3,15 @@
 namespace App\Modules\Trace\Repositories;
 
 use App\Models\Traces\Trace;
+use App\Modules\Trace\Enums\TraceMetricFieldAggregatorEnum;
 use App\Modules\Trace\Enums\TraceMetricFieldEnum;
 use App\Modules\Trace\Enums\TraceTimestampEnum;
 use App\Modules\Trace\Repositories\Dto\Data\TraceDataFilterDto;
-use App\Modules\Trace\Repositories\Dto\TraceTimestampFieldDto;
-use App\Modules\Trace\Repositories\Dto\TraceTimestampFieldIndicatorDto;
-use App\Modules\Trace\Repositories\Dto\TraceTimestampsDto;
+use App\Modules\Trace\Repositories\Dto\Data\TraceMetricFieldsFilterDto;
+use App\Modules\Trace\Repositories\Dto\Timestamp\TraceTimestampFieldDto;
+use App\Modules\Trace\Repositories\Dto\Timestamp\TraceTimestampFieldIndicatorDto;
+use App\Modules\Trace\Repositories\Dto\Timestamp\TraceTimestampsDto;
+use App\Modules\Trace\Repositories\Dto\Timestamp\TraceTimestampsListDto;
 use App\Modules\Trace\Repositories\Interfaces\TraceTimestampsRepositoryInterface;
 use App\Modules\Trace\Repositories\Services\TraceQueryBuilder;
 use Illuminate\Support\Carbon;
@@ -38,7 +41,7 @@ readonly class TraceTimestampsRepository implements TraceTimestampsRepositoryInt
         ?TraceDataFilterDto $data = null,
         ?bool $hasProfiling = null,
         ?array $sort = null,
-    ): array {
+    ): TraceTimestampsListDto {
         $timestampField = $timestamp->value;
 
         $match = [
@@ -77,55 +80,19 @@ readonly class TraceTimestampsRepository implements TraceTimestampsRepositoryInt
         $groups = [];
 
         foreach ($fields as $field) {
-            if ($field === TraceMetricFieldEnum::Count) {
-                $groups['count'] = [
-                    '$sum' => 1,
-                ];
-
-                continue;
-            }
-
-            if ($field === TraceMetricFieldEnum::Duration) {
-                $groups['duration'] = [
-                    '$avg' => '$duration',
-                    '$min' => '$duration',
-                    '$max' => '$duration',
-                ];
-
-                continue;
-            }
-
-            if ($field === TraceMetricFieldEnum::Memory) {
-                $groups['memory'] = [
-                    '$avg' => '$memory',
-                    '$min' => '$memory',
-                    '$max' => '$memory',
-                ];
-
-                continue;
-            }
-
-            if ($field === TraceMetricFieldEnum::Cpu) {
-                $groups['cpu'] = [
-                    '$avg' => '$cpu',
-                    '$min' => '$cpu',
-                    '$max' => '$cpu',
-                ];
-
-                continue;
-            }
-
-            throw new RuntimeException("Unknown field [$field->value]");
+            $this->injectAggregationToGroups($groups, $field);
         }
 
         foreach ($dataFields ?? [] as $dataField) {
-            $dataFieldKey = "\$data.$dataField";
+            $fieldName = "data.$dataField->field";
 
-            $groups[$dataField] = [
-                '$avg' => $dataFieldKey,
-                '$min' => $dataFieldKey,
-                '$max' => $dataFieldKey,
-            ];
+            $groups[$fieldName] = [];
+
+            $this->injectAggregation(
+                aggregations: $groups[$fieldName],
+                fieldName: $fieldName,
+                fieldAggregations: $dataField->aggregations
+            );
         }
 
         $groupsMatch = [];
@@ -133,19 +100,17 @@ readonly class TraceTimestampsRepository implements TraceTimestampsRepositoryInt
         $groupsQuery = [];
 
         foreach ($groups as $fieldName => $aggregations) {
-            $groupIndicators = [];
+            $groupsMatch[$fieldName] = [];
 
             foreach ($aggregations as $operator => $operatorValue) {
-                $operatorTitle = $fieldName . Str::title(Str::slug($operator));
+                $aggregatorKey = Str::uuid()->toString();
 
-                $groupIndicators[] = $operatorTitle;
-
-                $groupsQuery[$operatorTitle] = [
+                $groupsQuery[$aggregatorKey] = [
                     $operator => $operatorValue,
                 ];
-            }
 
-            $groupsMatch[$fieldName] = $groupIndicators;
+                $groupsMatch[$fieldName][$aggregatorKey] = Str::slug($operator);
+            }
         }
 
         $pipeline[] = [
@@ -170,16 +135,19 @@ readonly class TraceTimestampsRepository implements TraceTimestampsRepositoryInt
         foreach ($aggregation as $item) {
             $groupIndicatorsDtoList = [];
 
-            foreach ($groupsMatch as $fieldName => $groupIndicators) {
+            foreach ($groupsMatch as $fieldName => $aggregators) {
+                $indicators = [];
+
+                foreach ($aggregators as $key => $aggregator) {
+                    $indicators[] = new TraceTimestampFieldIndicatorDto(
+                        name: $aggregator,
+                        value: round(is_numeric($item->{$key}) ? $item->{$key} : 0, 6),
+                    );
+                }
+
                 $groupIndicatorsDtoList[] = new TraceTimestampFieldDto(
                     field: $fieldName,
-                    indicators: array_map(
-                        fn(string $operatorTitle) => new TraceTimestampFieldIndicatorDto(
-                            name: Str::headline($operatorTitle),
-                            value: round(is_numeric($item->{$operatorTitle}) ? $item->{$operatorTitle} : 0, 6),
-                        ),
-                        $groupIndicators
-                    )
+                    indicators: $indicators
                 );
             }
 
@@ -189,6 +157,82 @@ readonly class TraceTimestampsRepository implements TraceTimestampsRepositoryInt
             );
         }
 
-        return $metrics;
+        $emptyIndicators = [];
+
+        foreach ($groupsMatch as $fieldName => $aggregators) {
+            $indicators = [];
+
+            foreach ($aggregators as $aggregator) {
+                $indicators[] = new TraceTimestampFieldIndicatorDto(
+                    name: $aggregator,
+                    value: 0,
+                );
+            }
+
+            $emptyIndicators[] = new TraceTimestampFieldDto(
+                field: $fieldName,
+                indicators: $indicators
+            );
+        }
+
+        return new TraceTimestampsListDto(
+            timestamps: $metrics,
+            emptyIndicators: $emptyIndicators
+        );
+    }
+
+    private function injectAggregationToGroups(array &$groups, TraceMetricFieldsFilterDto $field): void
+    {
+        $fieldName = match ($field->field) {
+            TraceMetricFieldEnum::Count => 'count',
+            TraceMetricFieldEnum::Duration => 'duration',
+            TraceMetricFieldEnum::Memory => 'memory',
+            TraceMetricFieldEnum::Cpu => 'cpu',
+            default => throw new RuntimeException("Unknown field [{$field->field->value}]")
+        };
+
+        $aggregations = [];
+
+        $this->injectAggregation(
+            aggregations: $aggregations,
+            fieldName: $fieldName,
+            fieldAggregations: $field->aggregations
+        );
+
+        $groups[$fieldName] = $aggregations;
+    }
+
+    /**
+     * @param TraceMetricFieldAggregatorEnum[] $fieldAggregations
+     */
+    private function injectAggregation(array &$aggregations, string $fieldName, array $fieldAggregations): void
+    {
+        foreach ($fieldAggregations as $aggregation) {
+            if ($aggregation === TraceMetricFieldAggregatorEnum::Sum) {
+                $aggregations['$sum'] = 1;
+
+                continue;
+            }
+
+            if ($aggregation === TraceMetricFieldAggregatorEnum::Avg) {
+                $aggregations['$avg'] = "\$$fieldName";
+
+                continue;
+            }
+
+            if ($aggregation === TraceMetricFieldAggregatorEnum::Min) {
+                $aggregations['$min'] = "\$$fieldName";
+
+                continue;
+            }
+
+            if ($aggregation === TraceMetricFieldAggregatorEnum::Max) {
+                $aggregations['$max'] = "\$$fieldName";
+
+                continue;
+            }
+
+            throw new RuntimeException("Unknown aggregator [$aggregation->value]");
+        }
     }
 }

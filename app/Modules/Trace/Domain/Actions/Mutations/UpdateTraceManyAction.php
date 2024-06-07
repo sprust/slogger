@@ -6,9 +6,9 @@ use App\Modules\Trace\Domain\Entities\Parameters\Profilling\TraceUpdateProfiling
 use App\Modules\Trace\Domain\Entities\Parameters\Profilling\TraceUpdateProfilingObject;
 use App\Modules\Trace\Domain\Entities\Parameters\TraceUpdateParameters;
 use App\Modules\Trace\Domain\Entities\Parameters\TraceUpdateParametersList;
-use App\Modules\Trace\Repositories\Dto\TraceProfilingDataDto;
-use App\Modules\Trace\Repositories\Dto\TraceProfilingDto;
-use App\Modules\Trace\Repositories\Dto\TraceProfilingItemDto;
+use App\Modules\Trace\Repositories\Dto\Profiling\TraceProfilingDataDto;
+use App\Modules\Trace\Repositories\Dto\Profiling\TraceProfilingDto;
+use App\Modules\Trace\Repositories\Dto\Profiling\TraceProfilingItemDto;
 use App\Modules\Trace\Repositories\Dto\TraceUpdateDto;
 use App\Modules\Trace\Repositories\Interfaces\TraceRepositoryInterface;
 
