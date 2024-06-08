@@ -6,7 +6,6 @@ use App\Modules\Trace\Enums\TraceTimestampEnum;
 use App\Modules\Trace\Repositories\Dto\Data\TraceDataFilterDto;
 use App\Modules\Trace\Repositories\Dto\Data\TraceMetricDataFieldsFilterDto;
 use App\Modules\Trace\Repositories\Dto\Data\TraceMetricFieldsFilterDto;
-use App\Modules\Trace\Repositories\Dto\Timestamp\TraceTimestampsDto;
 use App\Modules\Trace\Repositories\Dto\Timestamp\TraceTimestampsListDto;
 use Illuminate\Support\Carbon;
 
