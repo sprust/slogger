@@ -2,6 +2,8 @@
 
 namespace App\Modules\Trace\Repositories\Dto;
 
+use App\Modules\Trace\Repositories\Dto\Profiling\TraceProfilingDto;
+
 class TraceUpdateDto
 {
     /**

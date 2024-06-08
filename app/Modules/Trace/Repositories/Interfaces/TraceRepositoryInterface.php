@@ -3,14 +3,14 @@
 namespace App\Modules\Trace\Repositories\Interfaces;
 
 use App\Modules\Trace\Repositories\Dto\Data\TraceDataFilterDto;
+use App\Modules\Trace\Repositories\Dto\Profiling\TraceProfilingDto;
+use App\Modules\Trace\Repositories\Dto\Timestamp\TraceTimestampMetricDto;
 use App\Modules\Trace\Repositories\Dto\TraceCreateDto;
 use App\Modules\Trace\Repositories\Dto\TraceDetailDto;
 use App\Modules\Trace\Repositories\Dto\TraceDto;
 use App\Modules\Trace\Repositories\Dto\TraceItemsPaginationDto;
 use App\Modules\Trace\Repositories\Dto\TraceLoggedAtDto;
-use App\Modules\Trace\Repositories\Dto\TraceProfilingDto;
 use App\Modules\Trace\Repositories\Dto\TraceSortDto;
-use App\Modules\Trace\Repositories\Dto\TraceTimestampMetricDto;
 use App\Modules\Trace\Repositories\Dto\TraceTreeDto;
 use App\Modules\Trace\Repositories\Dto\TraceTypeDto;
 use App\Modules\Trace\Repositories\Dto\TraceUpdateDto;

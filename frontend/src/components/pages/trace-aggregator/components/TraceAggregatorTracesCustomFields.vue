@@ -138,6 +138,17 @@
         />
       </template>
     </el-table-column>
+    <el-table-column>
+      <template #default="scope">
+        <el-checkbox
+            v-model="scope.row.addToGraph"
+            label="Add to graph"
+            class="content-center"
+            :disabled="!isValueInt(scope.row.searchData)
+              && !isValueFloat(scope.row.searchData)"
+        />
+      </template>
+    </el-table-column>
     <el-table-column align="right">
       <template #default="scope">
         <el-button
@@ -154,7 +165,8 @@
 import {defineComponent, PropType, shallowRef} from 'vue'
 import {
   TraceAggregatorCustomField,
-  TraceAggregatorCustomFieldParameter, TraceAggregatorCustomFieldSearchParameter
+  TraceAggregatorCustomFieldParameter,
+  TraceAggregatorCustomFieldSearchParameter
 } from "../../../../store/traceAggregatorStore.ts";
 import {Delete} from '@element-plus/icons-vue'
 import {TypesHelper} from '../../../../utils/helpers.ts'
@@ -171,7 +183,7 @@ export default defineComponent({
     return {
       directions: ['asc', 'desc'],
       Delete: shallowRef(Delete),
-      TypesHelper
+      TypesHelper,
     }
   },
   methods: {

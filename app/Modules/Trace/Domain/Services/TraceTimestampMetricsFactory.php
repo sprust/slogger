@@ -58,6 +58,7 @@ class TraceTimestampMetricsFactory
         Carbon $dateFrom,
         Carbon $dateTo,
         TraceTimestampEnum $timestamp,
+        array $emptyIndicators,
         array $existsTimestamps
     ): array {
         /** @var Collection<string, TraceTimestampsObject> $timestampsKeyByTimestamp */
@@ -83,8 +84,7 @@ class TraceTimestampMetricsFactory
                         date: $iterator->clone(),
                         timestamp: $timestamp
                     ),
-                    count: 0,
-                    durationPercent: 0
+                    fields: $emptyIndicators
                 );
 
             $iterator = $iterator->subSecond();

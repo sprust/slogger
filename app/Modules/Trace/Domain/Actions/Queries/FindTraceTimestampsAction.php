@@ -6,8 +6,14 @@ use App\Modules\Trace\Domain\Entities\Objects\Timestamp\TraceTimestampsObject;
 use App\Modules\Trace\Domain\Entities\Objects\Timestamp\TraceTimestampsObjects;
 use App\Modules\Trace\Domain\Entities\Parameters\FindTraceTimestampsParameters;
 use App\Modules\Trace\Domain\Entities\Transports\TraceDataFilterTransport;
+use App\Modules\Trace\Domain\Entities\Transports\TraceTimestampFieldTransport;
 use App\Modules\Trace\Domain\Services\TraceTimestampMetricsFactory;
-use App\Modules\Trace\Repositories\Dto\TraceTimestampsDto;
+use App\Modules\Trace\Enums\TraceMetricFieldAggregatorEnum;
+use App\Modules\Trace\Enums\TraceMetricFieldEnum;
+use App\Modules\Trace\Repositories\Dto\Data\TraceMetricDataFieldsFilterDto;
+use App\Modules\Trace\Repositories\Dto\Data\TraceMetricFieldsFilterDto;
+use App\Modules\Trace\Repositories\Dto\Timestamp\TraceTimestampFieldDto;
+use App\Modules\Trace\Repositories\Dto\Timestamp\TraceTimestampsDto;
 use App\Modules\Trace\Repositories\Interfaces\TraceTimestampsRepositoryInterface;
 
 readonly class FindTraceTimestampsAction
@@ -20,6 +26,56 @@ readonly class FindTraceTimestampsAction
 
     public function handle(FindTraceTimestampsParameters $parameters): TraceTimestampsObjects
     {
+        $fields = $parameters->fields;
+
+        if (empty($fields) && empty($parameters->dataFields)) {
+            $fields = TraceMetricFieldEnum::cases();
+        }
+
+        $fieldsFilter = [];
+
+        foreach ($fields as $field) {
+            if ($field === TraceMetricFieldEnum::Count) {
+                $fieldsFilter[] = new TraceMetricFieldsFilterDto(
+                    field: $field,
+                    aggregations: [
+                        TraceMetricFieldAggregatorEnum::Sum,
+                    ]
+                );
+
+                continue;
+            }
+
+            $fieldsFilter[] = new TraceMetricFieldsFilterDto(
+                field: $field,
+                aggregations: [
+                    TraceMetricFieldAggregatorEnum::Avg,
+                    TraceMetricFieldAggregatorEnum::Min,
+                    TraceMetricFieldAggregatorEnum::Max,
+                ]
+            );
+        }
+
+        /** @var TraceMetricFieldsFilterDto[] $fieldsFilter */
+
+        /** @var TraceMetricDataFieldsFilterDto[]|null $dataFieldsFilter */
+        $dataFieldsFilter = null;
+
+        if (!is_null($parameters->dataFields)) {
+            $dataFieldsFilter = [];
+
+            foreach ($parameters->dataFields as $dataField) {
+                $dataFieldsFilter[] = new TraceMetricDataFieldsFilterDto(
+                    field: $dataField,
+                    aggregations: [
+                        TraceMetricFieldAggregatorEnum::Avg,
+                        TraceMetricFieldAggregatorEnum::Min,
+                        TraceMetricFieldAggregatorEnum::Max,
+                    ]
+                );
+            }
+        }
+
         $loggedAtTo = $parameters->loggedAtTo ?? now('UTC');
 
         $loggedAtFrom = $this->traceTimestampMetricsFactory->calcLoggedAtFrom(
@@ -27,15 +83,15 @@ readonly class FindTraceTimestampsAction
             date: $loggedAtTo
         );
 
-        $timestampStep = $parameters->timestampStep;
-
         $loggedAtFrom = $this->traceTimestampMetricsFactory->prepareDateByTimestamp(
             date: $loggedAtFrom,
-            timestamp: $timestampStep
+            timestamp: $parameters->timestampStep
         );
 
         $timestampsDtoList = $this->traceTimestampsRepository->find(
-            timestamp: $timestampStep,
+            timestamp: $parameters->timestampStep,
+            fields: $fieldsFilter,
+            dataFields: $dataFieldsFilter,
             serviceIds: $parameters->serviceIds,
             traceIds: $parameters->traceIds,
             loggedAtFrom: $loggedAtFrom,
@@ -49,29 +105,27 @@ readonly class FindTraceTimestampsAction
             hasProfiling: $parameters->hasProfiling,
         );
 
-        $maxCount = collect($timestampsDtoList)->max(
-            fn(TraceTimestampsDto $dto) => $dto->count
-        ) ?: 10;
-
-        $maxDuration = collect($timestampsDtoList)->max(
-            fn(TraceTimestampsDto $dto) => $dto->durationAvg
-        ) ?: 10;
-
         $items = $this->traceTimestampMetricsFactory->makeTimeLine(
             dateFrom: $loggedAtFrom,
             dateTo: $loggedAtTo,
-            timestamp: $timestampStep,
+            timestamp: $parameters->timestampStep,
+            emptyIndicators: array_map(
+                fn(TraceTimestampFieldDto $dto) => TraceTimestampFieldTransport::toObject($dto),
+                $timestampsDtoList->emptyIndicators
+            ),
             existsTimestamps: array_map(
                 fn(TraceTimestampsDto $dto) => new TraceTimestampsObject(
                     timestamp: $dto->timestamp,
                     timestampTo: $this->traceTimestampMetricsFactory->makeNextTimestamp(
                         date: $dto->timestamp,
-                        timestamp: $timestampStep
+                        timestamp: $parameters->timestampStep
                     ),
-                    count: $dto->count,
-                    durationPercent: ceil(($dto->durationAvg / $maxDuration) * $maxCount)
+                    fields: array_map(
+                        fn(TraceTimestampFieldDto $dto) => TraceTimestampFieldTransport::toObject($dto),
+                        $dto->indicators
+                    )
                 ),
-                $timestampsDtoList
+                $timestampsDtoList->timestamps
             )
         );
 

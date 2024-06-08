@@ -21,6 +21,7 @@ export type TraceAggregatorCustomField = {
     sort: boolean,
     sortDirection: "asc" | "desc",
     addToTable: boolean,
+    addToGraph: boolean,
 }
 
 // TODO: get comp from scheme
@@ -196,6 +197,7 @@ export const traceAggregatorStore = createStore<State>({
                     sort: false,
                     sortDirection: "asc",
                     addToTable: false,
+                    addToGraph: false,
                 })
             }
         },

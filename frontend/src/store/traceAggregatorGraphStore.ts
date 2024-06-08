@@ -4,11 +4,18 @@ import {createStore, Store, useStore as baseUseStore} from 'vuex'
 import {AdminApi} from "../api-schema/admin-api-schema.ts";
 import {ApiContainer} from "../utils/apiContainer.ts";
 import {convertDateStringToLocal, handleApiError} from "../utils/helpers.ts";
-import {ChartData, ChartOptions} from 'chart.js'
+import {ChartData, ChartDataset, ChartOptions} from 'chart.js'
+import {TraceAggregatorCustomField} from "./traceAggregatorStore.ts";
 
 type TraceAggregatorTraceMetricsPayload = AdminApi.TraceAggregatorTraceMetricsCreate.RequestBody
+type TraceAggregatorTraceMetricField = AdminApi.TraceAggregatorTraceMetricsCreate.RequestBody['fields']
 type TraceAggregatorTraceMetricResponse = AdminApi.TraceAggregatorTraceMetricsCreate.ResponseBody
 type TraceAggregatorTraceMetricItem = AdminApi.TraceAggregatorTraceMetricsCreate.ResponseBody['data']['items'][number]
+
+interface GraphItem {
+    name: string,
+    data: ChartData
+}
 
 interface State {
     showGraph: boolean,
@@ -20,11 +27,24 @@ interface State {
     loggedAtFrom: string,
     metrics: Array<TraceAggregatorTraceMetricItem>,
 
-    graphData: ChartData,
+    graphs: Array<GraphItem>,
     graphOptions: ChartOptions,
 
     preTimestamp: string | null,
     preTimestampCounts: number,
+}
+
+interface AggregationColors {
+    [key: string]: string
+}
+
+const defaultAggregationColor: string = 'rgba(248,189,121)'
+
+const graphAggregationColors: AggregationColors = {
+    sum: 'rgba(163,248,121)',
+    avg: 'rgb(246,188,2)',
+    min: 'rgb(0,48,255)',
+    max: 'rgb(246,2,2)',
 }
 
 export const traceAggregatorGraphStore = createStore<State>({
@@ -37,10 +57,7 @@ export const traceAggregatorGraphStore = createStore<State>({
         loggedAtFrom: '',
         metrics: new Array<TraceAggregatorTraceMetricItem>,
 
-        graphData: {
-            labels: [],
-            datasets: []
-        } as ChartData,
+        graphs: new Array<GraphItem>,
         graphOptions: {
             responsive: true,
             maintainAspectRatio: false,
@@ -48,12 +65,12 @@ export const traceAggregatorGraphStore = createStore<State>({
             scales: {
                 x: {
                     grid: {
-                        color: 'rgba(121,146,248,0.1)'
+                        color: 'rgba(121,146,248,0.3)'
                     }
                 },
                 y: {
                     grid: {
-                        color: 'rgba(121,146,248,0.1)'
+                        color: 'rgba(121,146,248,0.2)'
                     }
                 },
             }
@@ -67,64 +84,84 @@ export const traceAggregatorGraphStore = createStore<State>({
             state.metrics = data.data.items
 
             if (!state.metrics.length) {
-                state.graphData = {
-                    labels: [],
-                    datasets: [],
-                }
+                state.graphs = []
 
                 return
             }
 
-            const timestamp = state.metrics[state.metrics.length - 1].timestamp;
-
-            const totalCount = state.metrics.reduce((a, b) => {
-                return a + b.count;
-            }, 0)
-
-            if (state.preTimestamp === timestamp
-                && totalCount === state.preTimestampCounts
-            ) {
-                return;
-            }
-
-            state.preTimestamp = timestamp
-            state.preTimestampCounts = totalCount
-
             const labels: Array<string> = []
 
-            const datasetCountData: Array<number> = []
-            const datasetDurationPercentData: Array<number> = []
+            const fieldIndicators: {
+                [key: string]: {
+                    [key: string]: Array<number>
+                }
+            } = {}
 
             state.metrics.forEach((item: TraceAggregatorTraceMetricItem) => {
                 labels.push(
                     convertDateStringToLocal(item.timestamp, false)
                 )
 
-                datasetCountData.push(item.count)
-                datasetDurationPercentData.push(item.durationPercent)
+                item.fields.forEach(field => {
+                    if (fieldIndicators[field.field] === undefined) {
+                        fieldIndicators[field.field] = {}
+                    }
+
+                    field.indicators.forEach(indicator => {
+                        if (fieldIndicators[field.field][indicator.name] === undefined) {
+                            fieldIndicators[field.field][indicator.name] = []
+                        }
+
+                        fieldIndicators[field.field][indicator.name].push(indicator.value)
+                    })
+                })
             })
 
-            state.graphData = {
-                labels: labels,
-                datasets: [
-                    {
-                        label: 'count',
-                        backgroundColor: 'rgba(163,248,121)',
-                        data: datasetCountData
-                    },
-                    {
-                        hidden: true,
-                        label: 'duration',
-                        backgroundColor: 'rgba(121,146,248,0.3)',
-                        data: datasetDurationPercentData
-                    },
-                ],
-            }
+            const graphs: Array<GraphItem> = []
+
+            Object.keys(fieldIndicators).map(fieldIndicatorName => {
+                const indicators = fieldIndicators[fieldIndicatorName]
+
+                const datasets: Array<ChartDataset> = []
+
+                Object.keys(indicators).map(indicatorName => {
+                    datasets.push({
+                        label: indicatorName,
+                        backgroundColor: graphAggregationColors[indicatorName] ?? defaultAggregationColor,
+                        data: fieldIndicators[fieldIndicatorName][indicatorName]
+                    })
+                })
+
+                graphs.push({
+                    name: fieldIndicatorName,
+                    data: {
+                        labels: labels,
+                        datasets: datasets
+                    }
+                })
+            })
+
+            state.graphs = graphs
         },
     },
     actions: {
-        async findMetrics({commit, state}: { commit: any, state: State }) {
+        async findMetrics(
+            {commit, state}: { commit: any, state: State },
+            {fields, dataFields}: {fields: TraceAggregatorTraceMetricField, dataFields: null | Array<TraceAggregatorCustomField>}
+        ) {
             state.loading = true
+
+            state.payload.fields = fields
+
+            state.payload.data_fields = []
+
+            dataFields?.forEach((customField: TraceAggregatorCustomField) => {
+                if (!customField.addToGraph) {
+                    return
+                }
+
+                state.payload.data_fields?.push(customField.field)
+            })
 
             try {
                 const response = await ApiContainer.get().traceAggregatorTraceMetricsCreate(state.payload)

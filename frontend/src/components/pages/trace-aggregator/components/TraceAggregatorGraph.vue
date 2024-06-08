@@ -1,11 +1,16 @@
 <template>
-  <Bar
-      ref="tracesGraphRef"
-      style="min-height: 60vh; max-height: 60vh"
-      :data="store.state.graphData"
-      :options="store.state.graphOptions"
-      @click="onGraphClick"
-  />
+  <div v-for="graph in store.state.graphs">
+    <el-row>
+      {{ graph.name }}
+    </el-row>
+    <Bar
+        ref="tracesGraphRef"
+        :style="`min-height: ${graphItemHeight}; max-height: ${graphItemHeight}`"
+        :data="graph.data"
+        :options="store.state.graphOptions"
+        @click="onGraphClick"
+    />
+  </div>
 </template>
 
 <script lang="ts">
@@ -21,14 +26,14 @@ import {
   Tooltip
 } from 'chart.js'
 import {Bar, getElementAtEvent} from 'vue-chartjs'
-import ChartDataLabels from 'chartjs-plugin-datalabels';
 
 import {useTraceAggregatorGraphStore} from "../../../../store/traceAggregatorGraphStore.ts";
 import {useTraceAggregatorTimestampPeriodStore} from "../../../../store/traceAggregatorTimestampPeriodsStore.ts";
 import {useTraceAggregatorStore} from "../../../../store/traceAggregatorStore.ts";
 import {convertDateStringToLocalFull} from "../../../../utils/helpers.ts";
+import {useTraceAggregatorTimestampFieldsStore} from "../../../../store/traceAggregatorTimestampFieldsStore.ts";
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ChartDataLabels)
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
 export default defineComponent({
   components: {
@@ -39,6 +44,16 @@ export default defineComponent({
       store: useTraceAggregatorGraphStore(),
       storePeriods: useTraceAggregatorTimestampPeriodStore(),
       traceStore: useTraceAggregatorStore(),
+      storeTimestampsFields: useTraceAggregatorTimestampFieldsStore(),
+    }
+  },
+  computed: {
+    graphItemHeight(): string {
+      if (this.store.state.graphs.length <= 1) {
+        return '60vh'
+      }
+
+      return (80 / this.store.state.graphs.length) + 'vh'
     }
   },
   methods: {
@@ -46,6 +61,8 @@ export default defineComponent({
       if (this.store.state.waiting) {
         return
       }
+
+      this.traceStore.dispatch('prepareCommonPayloadData')
 
       this.store.state.payload.timestamp_period = this.storePeriods.state.selectedTimestampPeriod
       this.store.state.payload.timestamp_step = this.storePeriods.state.selectedTimestampStep
@@ -62,7 +79,11 @@ export default defineComponent({
       this.store.state.payload.data = this.traceStore.state.payload.data
       this.store.state.payload.has_profiling = this.traceStore.state.payload.has_profiling
 
-      this.store.dispatch('findMetrics')
+      this.store.dispatch('findMetrics', {
+            fields: this.storeTimestampsFields.state.selectedTimestampFields,
+            dataFields: this.traceStore.state.customFields,
+          }
+      )
           .finally(() => {
             if (!this.store.state.showGraph) {
               return
@@ -81,7 +102,7 @@ export default defineComponent({
     },
     onGraphClick(mouseEvent: MouseEvent) {
       // @ts-ignore TODO
-      const chart = this.$refs.tracesGraphRef?.chart
+      const chart = this.$refs.tracesGraphRef[0].chart
 
       if (!chart) {
         return
