@@ -60,6 +60,8 @@ export default defineComponent({
         return
       }
 
+      this.traceStore.dispatch('prepareCommonPayloadData')
+
       this.store.state.payload.timestamp_period = this.storePeriods.state.selectedTimestampPeriod
       this.store.state.payload.timestamp_step = this.storePeriods.state.selectedTimestampStep
 
@@ -75,7 +77,7 @@ export default defineComponent({
       this.store.state.payload.data = this.traceStore.state.payload.data
       this.store.state.payload.has_profiling = this.traceStore.state.payload.has_profiling
 
-      this.store.dispatch('findMetrics')
+      this.store.dispatch('findMetrics', {dataFields: this.traceStore.state.customFields})
           .finally(() => {
             if (!this.store.state.showGraph) {
               return

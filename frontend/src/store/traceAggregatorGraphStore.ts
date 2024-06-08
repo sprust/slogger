@@ -5,6 +5,7 @@ import {AdminApi} from "../api-schema/admin-api-schema.ts";
 import {ApiContainer} from "../utils/apiContainer.ts";
 import {convertDateStringToLocal, handleApiError} from "../utils/helpers.ts";
 import {ChartData, ChartDataset, ChartOptions} from 'chart.js'
+import {TraceAggregatorCustomField} from "./traceAggregatorStore.ts";
 
 type TraceAggregatorTraceMetricsPayload = AdminApi.TraceAggregatorTraceMetricsCreate.RequestBody
 type TraceAggregatorTraceMetricResponse = AdminApi.TraceAggregatorTraceMetricsCreate.ResponseBody
@@ -143,8 +144,21 @@ export const traceAggregatorGraphStore = createStore<State>({
         },
     },
     actions: {
-        async findMetrics({commit, state}: { commit: any, state: State }) {
+        async findMetrics(
+            {commit, state}: { commit: any, state: State },
+            {dataFields}: {dataFields: null | Array<TraceAggregatorCustomField>}
+        ) {
             state.loading = true
+
+            state.payload.data_fields = []
+
+            dataFields?.forEach((customField: TraceAggregatorCustomField) => {
+                if (!customField.addToGraph) {
+                    return
+                }
+
+                state.payload.data_fields?.push(customField.field)
+            })
 
             try {
                 const response = await ApiContainer.get().traceAggregatorTraceMetricsCreate(state.payload)
