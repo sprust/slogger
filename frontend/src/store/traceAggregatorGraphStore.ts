@@ -32,6 +32,19 @@ interface State {
     preTimestampCounts: number,
 }
 
+interface AggregationColors {
+    [key: string]: string
+}
+
+const defaultAggregationColor: string = 'rgba(248,189,121)'
+
+const graphAggregationColors: AggregationColors = {
+    sum: 'rgba(163,248,121)',
+    avg: 'rgb(246,188,2)',
+    min: 'rgb(0,48,255)',
+    max: 'rgb(246,2,2)',
+}
+
 export const traceAggregatorGraphStore = createStore<State>({
     state: {
         showGraph: false,
@@ -50,12 +63,12 @@ export const traceAggregatorGraphStore = createStore<State>({
             scales: {
                 x: {
                     grid: {
-                        color: 'rgba(121,146,248,0.1)'
+                        color: 'rgba(121,146,248,0.3)'
                     }
                 },
                 y: {
                     grid: {
-                        color: 'rgba(121,146,248,0.1)'
+                        color: 'rgba(121,146,248,0.2)'
                     }
                 },
             }
@@ -109,16 +122,10 @@ export const traceAggregatorGraphStore = createStore<State>({
 
                 const datasets: Array<ChartDataset> = []
 
-                let opacity: number = 1
-
                 Object.keys(indicators).map(indicatorName => {
-                    opacity -= .2
-
-                    opacity = opacity === 0 ? .2 : opacity
-
                     datasets.push({
                         label: indicatorName,
-                        backgroundColor: `rgba(163,248,121,${opacity})`,
+                        backgroundColor: graphAggregationColors[indicatorName] ?? defaultAggregationColor,
                         data: fieldIndicators[fieldIndicatorName][indicatorName]
                     })
                 })
