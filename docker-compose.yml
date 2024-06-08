@@ -105,7 +105,7 @@ services:
 
   frontend:
     image: node:18-alpine
-    working_dir: /app
+    working_dir: /app/frontend
     container_name: sl-frontend
     ports:
       - ${FRONTEND_DOCKER_PORT}:3000
