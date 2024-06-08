@@ -29,6 +29,10 @@ import {
     traceAggregatorTimestampPeriodStore,
     traceAggregatorTimestampPeriodStoreInjectionKey
 } from "./store/traceAggregatorTimestampPeriodsStore.ts";
+import {
+    traceAggregatorTimestampFieldsStore,
+    traceAggregatorTimestampFieldsStoreInjectionKey
+} from "./store/traceAggregatorTimestampFieldsStore.ts";
 
 createApp(App)
     .use(router)
@@ -42,6 +46,7 @@ createApp(App)
     .use(traceAggregatorDataStore, traceAggregatorDataStoreInjectionKey)
     .use(traceAggregatorGraphStore, traceAggregatorGraphStoreInjectionKey)
     .use(traceAggregatorTimestampPeriodStore, traceAggregatorTimestampPeriodStoreInjectionKey)
+    .use(traceAggregatorTimestampFieldsStore, traceAggregatorTimestampFieldsStoreInjectionKey)
     .use(dashboardDatabaseStore, dashboardDatabaseStoreInjectionKey)
     .use(dashboardServiceStatStore, dashboardServiceStatStoreInjectionKey)
     .use(traceAggregatorServicesStore, traceAggregatorServicesStoreInjectionKey)

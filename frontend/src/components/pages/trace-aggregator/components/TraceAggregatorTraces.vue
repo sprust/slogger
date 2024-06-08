@@ -51,15 +51,31 @@
       <div class="flex-grow"/>
       <el-form>
         <el-form-item label="Graph">
-          <el-switch
-              v-model="storeGraph.state.showGraph"
-              size="small"
-              active-text="show"
-              inactive-text="off"
-              active-color="green"
-              :inactive-icon="Close"
-              :active-icon="storeGraph.state.loading ? Loading : SwitchButton"
-          />
+          <el-space>
+            <el-select
+                v-model="storeTimestampsFields.state.selectedTimestampFields"
+                placeholder="Select"
+                style="width: 200px"
+                clearable
+                multiple
+            >
+              <el-option
+                  v-for="item in storeTimestampsFields.state.timestampFields"
+                  :key="item.value"
+                  :label="item.value"
+                  :value="item.value"
+              />
+            </el-select>
+            <el-switch
+                v-model="storeGraph.state.showGraph"
+                size="small"
+                active-text="show"
+                inactive-text="off"
+                active-color="green"
+                :inactive-icon="Close"
+                :active-icon="storeGraph.state.loading ? Loading : SwitchButton"
+            />
+          </el-space>
         </el-form-item>
       </el-form>
     </el-row>
@@ -188,6 +204,7 @@ import TraceAggregatorGraph from "./TraceAggregatorGraph.vue";
 import TraceAggregatorTimestampPeriods from "./TraceAggregatorTimestampPeriods.vue";
 import {useTraceAggregatorGraphStore} from "../../../../store/traceAggregatorGraphStore.ts";
 import {useTraceAggregatorTimestampPeriodStore} from "../../../../store/traceAggregatorTimestampPeriodsStore.ts";
+import {useTraceAggregatorTimestampFieldsStore} from "../../../../store/traceAggregatorTimestampFieldsStore.ts";
 
 const startOfDay = new Date()
 startOfDay.setUTCHours(Math.ceil(startOfDay.getTimezoneOffset() / 60), 0, 0, 0);
@@ -207,6 +224,7 @@ export default defineComponent({
       store: useTraceAggregatorStore(),
       storeGraph: useTraceAggregatorGraphStore(),
       storeTimestampsPeriods: useTraceAggregatorTimestampPeriodStore(),
+      storeTimestampsFields: useTraceAggregatorTimestampFieldsStore(),
       dateTimeShortcuts: [
         {
           text: 'Start of day',
@@ -267,13 +285,15 @@ export default defineComponent({
     }
   },
   mounted() {
-    if (!this.store.state.loading) {
-      return
+    if (this.store.state.loading) {
+      this.reset()
+
+      this.update()
     }
 
-    this.reset()
-
-    this.update()
+    if (!this.storeTimestampsFields.state.loaded) {
+      this.storeTimestampsFields.dispatch('findTimestampFields')
+    }
   }
 })
 </script>

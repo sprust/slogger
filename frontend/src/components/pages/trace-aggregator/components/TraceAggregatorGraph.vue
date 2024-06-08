@@ -31,6 +31,7 @@ import {useTraceAggregatorGraphStore} from "../../../../store/traceAggregatorGra
 import {useTraceAggregatorTimestampPeriodStore} from "../../../../store/traceAggregatorTimestampPeriodsStore.ts";
 import {useTraceAggregatorStore} from "../../../../store/traceAggregatorStore.ts";
 import {convertDateStringToLocalFull} from "../../../../utils/helpers.ts";
+import {useTraceAggregatorTimestampFieldsStore} from "../../../../store/traceAggregatorTimestampFieldsStore.ts";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
@@ -43,11 +44,12 @@ export default defineComponent({
       store: useTraceAggregatorGraphStore(),
       storePeriods: useTraceAggregatorTimestampPeriodStore(),
       traceStore: useTraceAggregatorStore(),
+      storeTimestampsFields: useTraceAggregatorTimestampFieldsStore(),
     }
   },
   computed: {
     graphItemHeight(): string {
-      if (!this.store.state.graphs.length) {
+      if (this.store.state.graphs.length <= 1) {
         return '60vh'
       }
 
@@ -77,7 +79,11 @@ export default defineComponent({
       this.store.state.payload.data = this.traceStore.state.payload.data
       this.store.state.payload.has_profiling = this.traceStore.state.payload.has_profiling
 
-      this.store.dispatch('findMetrics', {dataFields: this.traceStore.state.customFields})
+      this.store.dispatch('findMetrics', {
+            fields: this.storeTimestampsFields.state.selectedTimestampFields,
+            dataFields: this.traceStore.state.customFields,
+          }
+      )
           .finally(() => {
             if (!this.store.state.showGraph) {
               return

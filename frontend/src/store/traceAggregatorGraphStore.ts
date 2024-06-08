@@ -8,6 +8,7 @@ import {ChartData, ChartDataset, ChartOptions} from 'chart.js'
 import {TraceAggregatorCustomField} from "./traceAggregatorStore.ts";
 
 type TraceAggregatorTraceMetricsPayload = AdminApi.TraceAggregatorTraceMetricsCreate.RequestBody
+type TraceAggregatorTraceMetricField = AdminApi.TraceAggregatorTraceMetricsCreate.RequestBody['fields']
 type TraceAggregatorTraceMetricResponse = AdminApi.TraceAggregatorTraceMetricsCreate.ResponseBody
 type TraceAggregatorTraceMetricItem = AdminApi.TraceAggregatorTraceMetricsCreate.ResponseBody['data']['items'][number]
 
@@ -146,9 +147,11 @@ export const traceAggregatorGraphStore = createStore<State>({
     actions: {
         async findMetrics(
             {commit, state}: { commit: any, state: State },
-            {dataFields}: {dataFields: null | Array<TraceAggregatorCustomField>}
+            {fields, dataFields}: {fields: TraceAggregatorTraceMetricField, dataFields: null | Array<TraceAggregatorCustomField>}
         ) {
             state.loading = true
+
+            state.payload.fields = fields
 
             state.payload.data_fields = []
 
