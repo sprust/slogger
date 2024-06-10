@@ -15,9 +15,6 @@ readonly class UpdateSettingAction implements UpdateSettingActionInterface
     ) {
     }
 
-    /**
-     * @throws SettingNotFoundException
-     */
     public function handle(int $settingId, int $daysLifetime): SettingObject
     {
         if (!$this->settingRepository->findOneById($settingId)) {

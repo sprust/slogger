@@ -17,9 +17,6 @@ readonly class CreateServiceAction implements CreateServiceActionInterface
     ) {
     }
 
-    /**
-     * @throws ServiceAlreadyExistsException
-     */
     public function handle(ServiceCreateParameters $parameters): ServiceObject
     {
         $uniqueKey = Str::slug($parameters->name);

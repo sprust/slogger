@@ -3,7 +3,6 @@
 namespace App\Modules\Dashboard\Domain\Actions;
 
 use App\Modules\Dashboard\Domain\Actions\Interfaces\FindDatabaseStatActionInterface;
-use App\Modules\Dashboard\Domain\Entities\Objects\ServiceStatObject;
 use App\Modules\Dashboard\Domain\Entities\Transports\DatabaseStatTransport;
 use App\Modules\Dashboard\Repositories\Dto\DatabaseStatDto;
 use App\Modules\Dashboard\Repositories\Interfaces\DatabaseStatRepositoryInterface;
@@ -15,9 +14,6 @@ readonly class FindDatabaseStatAction implements FindDatabaseStatActionInterface
     ) {
     }
 
-    /**
-     * @return ServiceStatObject[]
-     */
     public function handle(): array
     {
         return array_map(

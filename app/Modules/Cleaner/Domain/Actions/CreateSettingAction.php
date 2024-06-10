@@ -15,9 +15,6 @@ readonly class CreateSettingAction implements CreateSettingActionInterface
     ) {
     }
 
-    /**
-     * @throws SettingAlreadyExistsException
-     */
     public function handle(int $daysLifetime, ?string $type): SettingObject
     {
         $existSettings = $this->settingRepository->find(
