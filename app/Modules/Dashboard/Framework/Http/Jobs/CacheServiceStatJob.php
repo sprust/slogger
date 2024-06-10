@@ -2,7 +2,7 @@
 
 namespace App\Modules\Dashboard\Framework\Http\Jobs;
 
-use App\Modules\Dashboard\Domain\Actions\CacheServiceStatAction;
+use App\Modules\Dashboard\Domain\Actions\Interfaces\CacheServiceStatActionInterface;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -15,7 +15,7 @@ class CacheServiceStatJob implements ShouldQueue
     /**
      * Execute the job.
      */
-    public function handle(CacheServiceStatAction $action): void
+    public function handle(CacheServiceStatActionInterface $action): void
     {
         $action->handle();
     }
