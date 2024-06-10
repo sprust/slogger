@@ -2,7 +2,7 @@
 
 namespace App\Modules\Auth\Framework\Http\Middlewares;
 
-use App\Modules\Auth\Domain\Actions\FindUserByTokenAction;
+use App\Modules\Auth\Domain\Actions\Interfaces\FindUserByTokenActionInterface;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -10,7 +10,7 @@ use Symfony\Component\HttpFoundation\Response;
 readonly class AuthMiddleware
 {
     public function __construct(
-        private FindUserByTokenAction $findUserByTokenAction
+        private FindUserByTokenActionInterface $findUserByTokenAction
     ) {
     }
 

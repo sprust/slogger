@@ -2,12 +2,13 @@
 
 namespace App\Modules\Auth\Domain\Actions;
 
+use App\Modules\Auth\Domain\Actions\Interfaces\LoginActionInterface;
 use App\Modules\Auth\Domain\Entities\Objects\LoggedUserObject;
 use App\Modules\Auth\Domain\Entities\Parameters\LoginParameters;
 use App\Modules\User\Domain\Actions\FindUserByEmailAction;
 use Illuminate\Support\Facades\Hash;
 
-readonly class LoginAction
+readonly class LoginAction implements LoginActionInterface
 {
     public function __construct(
         private FindUserByEmailAction $findUserByEmailAction,
