@@ -15,7 +15,7 @@
             :indeterminate="true"
             :duration="1"
         />
-        <div v-else>
+        <div v-else style="width: 90vw">
           <TraceAggregatorTraceDataNode
               :data="dataStore.state.dataItems[props.row.trace.trace_id].data"
               :showFilterButton="true"

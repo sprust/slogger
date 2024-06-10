@@ -28,7 +28,7 @@
             <TraceAggregatorProfilingTree/>
           </el-row>
         </el-col>
-        <el-col v-if="showFlowSpan" :span="rightSpan" class="height-100">
+        <el-col v-if="showFlowSpan" :span="rightSpan" style="height: 85vh">
           <VueFlow
               v-model:nodes="store.state.flowItems.nodes"
               v-model:edges="store.state.flowItems.edges"
