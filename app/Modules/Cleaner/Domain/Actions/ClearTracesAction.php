@@ -2,6 +2,7 @@
 
 namespace App\Modules\Cleaner\Domain\Actions;
 
+use App\Modules\Cleaner\Domain\Actions\Interfaces\ClearTracesActionInterface;
 use App\Modules\Cleaner\Domain\Events\ProcessAlreadyActiveEvent;
 use App\Modules\Cleaner\Repositories\Dto\SettingDto;
 use App\Modules\Cleaner\Repositories\Interfaces\ProcessRepositoryInterface;
@@ -13,7 +14,7 @@ use App\Modules\Trace\Domain\Actions\Queries\FindTraceIdsAction;
 use App\Modules\Trace\Domain\Entities\Parameters\FindTraceIdsParameters;
 use Illuminate\Support\Arr;
 
-readonly class ClearTracesAction
+readonly class ClearTracesAction implements ClearTracesActionInterface
 {
     private int $countInDeletionBatch;
 

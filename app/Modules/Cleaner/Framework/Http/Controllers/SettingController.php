@@ -2,11 +2,11 @@
 
 namespace App\Modules\Cleaner\Framework\Http\Controllers;
 
-use App\Modules\Cleaner\Domain\Actions\CreateSettingAction;
-use App\Modules\Cleaner\Domain\Actions\DeleteSettingAction;
-use App\Modules\Cleaner\Domain\Actions\FindSettingByIdAction;
-use App\Modules\Cleaner\Domain\Actions\FindSettingsAction;
-use App\Modules\Cleaner\Domain\Actions\UpdateSettingAction;
+use App\Modules\Cleaner\Domain\Actions\Interfaces\CreateSettingActionInterface;
+use App\Modules\Cleaner\Domain\Actions\Interfaces\DeleteSettingActionInterface;
+use App\Modules\Cleaner\Domain\Actions\Interfaces\FindSettingByIdActionInterface;
+use App\Modules\Cleaner\Domain\Actions\Interfaces\FindSettingsActionInterface;
+use App\Modules\Cleaner\Domain\Actions\Interfaces\UpdateSettingActionInterface;
 use App\Modules\Cleaner\Domain\Exceptions\SettingAlreadyExistsException;
 use App\Modules\Cleaner\Domain\Exceptions\SettingNotFoundException;
 use App\Modules\Cleaner\Framework\Http\Requests\CreateSettingRequest;
@@ -19,11 +19,11 @@ use Symfony\Component\HttpFoundation\Response;
 readonly class SettingController
 {
     public function __construct(
-        private FindSettingByIdAction $findSettingByIdAction,
-        private FindSettingsAction $findSettingsAction,
-        private CreateSettingAction $createSettingAction,
-        private UpdateSettingAction $updateSettingAction,
-        private DeleteSettingAction $deleteSettingAction
+        private FindSettingByIdActionInterface $findSettingByIdAction,
+        private FindSettingsActionInterface $findSettingsAction,
+        private CreateSettingActionInterface $createSettingAction,
+        private UpdateSettingActionInterface $updateSettingAction,
+        private DeleteSettingActionInterface $deleteSettingAction
     ) {
     }
 

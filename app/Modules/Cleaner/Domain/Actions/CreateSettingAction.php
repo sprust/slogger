@@ -2,11 +2,12 @@
 
 namespace App\Modules\Cleaner\Domain\Actions;
 
+use App\Modules\Cleaner\Domain\Actions\Interfaces\CreateSettingActionInterface;
 use App\Modules\Cleaner\Domain\Entities\Objects\SettingObject;
 use App\Modules\Cleaner\Domain\Exceptions\SettingAlreadyExistsException;
 use App\Modules\Cleaner\Repositories\Interfaces\SettingRepositoryInterface;
 
-readonly class CreateSettingAction
+readonly class CreateSettingAction implements CreateSettingActionInterface
 {
     public function __construct(
         private FindSettingByIdAction $findSettingByIdAction,

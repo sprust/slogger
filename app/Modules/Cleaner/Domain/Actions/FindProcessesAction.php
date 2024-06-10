@@ -2,12 +2,13 @@
 
 namespace App\Modules\Cleaner\Domain\Actions;
 
+use App\Modules\Cleaner\Domain\Actions\Interfaces\FindProcessesActionInterface;
 use App\Modules\Cleaner\Domain\Entities\Objects\ProcessObject;
 use App\Modules\Cleaner\Domain\Entities\Transports\ProcessTransport;
 use App\Modules\Cleaner\Repositories\Dto\ProcessDto;
 use App\Modules\Cleaner\Repositories\Interfaces\ProcessRepositoryInterface;
 
-readonly class FindProcessesAction
+readonly class FindProcessesAction implements FindProcessesActionInterface
 {
     public function __construct(
         private ProcessRepositoryInterface $processRepository
