@@ -2,19 +2,16 @@
 
 namespace App\Modules\Trace\Domain\Actions;
 
-use App\Modules\Trace\Domain\Entities\Objects\Timestamp\TraceTimestampMetricObject;
+use App\Modules\Trace\Domain\Actions\Interfaces\MakeTraceTimestampsActionInterface;
 use App\Modules\Trace\Domain\Services\TraceTimestampMetricsFactory;
 use Illuminate\Support\Carbon;
 
-readonly class MakeTraceTimestampsAction
+readonly class MakeTraceTimestampsAction implements MakeTraceTimestampsActionInterface
 {
     public function __construct(private TraceTimestampMetricsFactory $traceTimestampMetricsFactory)
     {
     }
 
-    /**
-     * @return TraceTimestampMetricObject[]
-     */
     public function handle(Carbon $date): array
     {
         return $this->traceTimestampMetricsFactory->makeMetricsByDate(

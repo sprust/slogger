@@ -2,6 +2,7 @@
 
 namespace App\Modules\Trace\Domain\Actions\Mutations;
 
+use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\CreateTraceManyActionInterface;
 use App\Modules\Trace\Domain\Entities\Objects\Timestamp\TraceTimestampMetricObject;
 use App\Modules\Trace\Domain\Entities\Parameters\TraceCreateParameters;
 use App\Modules\Trace\Domain\Entities\Parameters\TraceCreateParametersList;
@@ -11,7 +12,7 @@ use App\Modules\Trace\Repositories\Dto\TraceTreeDto;
 use App\Modules\Trace\Repositories\Interfaces\TraceRepositoryInterface;
 use App\Modules\Trace\Repositories\Interfaces\TraceTreeRepositoryInterface;
 
-readonly class CreateTraceManyAction
+readonly class CreateTraceManyAction implements CreateTraceManyActionInterface
 {
     public function __construct(
         private TraceRepositoryInterface $traceRepository,

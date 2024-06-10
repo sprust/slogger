@@ -2,7 +2,7 @@
 
 namespace App\Modules\Auth\Framework\Http\Controllers;
 
-use App\Modules\Auth\Domain\Actions\LoginAction;
+use App\Modules\Auth\Domain\Actions\Interfaces\LoginActionInterface;
 use App\Modules\Auth\Domain\Entities\Parameters\LoginParameters;
 use App\Modules\Auth\Framework\Http\Requests\LoginRequest;
 use App\Modules\Auth\Framework\Http\Resources\LoggedUserResource;
@@ -11,7 +11,7 @@ use Symfony\Component\HttpFoundation\Response as ResponseFoundation;
 readonly class LoginController
 {
     public function __construct(
-        private LoginAction $loginAction
+        private LoginActionInterface $loginAction
     ) {
     }
 

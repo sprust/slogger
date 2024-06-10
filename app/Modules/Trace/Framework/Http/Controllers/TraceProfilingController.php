@@ -2,7 +2,7 @@
 
 namespace App\Modules\Trace\Framework\Http\Controllers;
 
-use App\Modules\Trace\Domain\Actions\Queries\FindTraceProfilingAction;
+use App\Modules\Trace\Domain\Actions\Interfaces\Queries\FindTraceProfilingActionInterface;
 use App\Modules\Trace\Domain\Entities\Parameters\Profilling\TraceFindProfilingParameters;
 use App\Modules\Trace\Framework\Http\Resources\Profiling\TraceProfilingResource;
 use Symfony\Component\HttpFoundation\Response;
@@ -10,7 +10,7 @@ use Symfony\Component\HttpFoundation\Response;
 readonly class TraceProfilingController
 {
     public function __construct(
-        private FindTraceProfilingAction $findTraceProfilingAction
+        private FindTraceProfilingActionInterface $findTraceProfilingAction
     ) {
     }
 

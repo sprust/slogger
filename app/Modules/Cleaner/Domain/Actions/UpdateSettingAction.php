@@ -2,11 +2,12 @@
 
 namespace App\Modules\Cleaner\Domain\Actions;
 
+use App\Modules\Cleaner\Domain\Actions\Interfaces\UpdateSettingActionInterface;
 use App\Modules\Cleaner\Domain\Entities\Objects\SettingObject;
 use App\Modules\Cleaner\Domain\Exceptions\SettingNotFoundException;
 use App\Modules\Cleaner\Repositories\Interfaces\SettingRepositoryInterface;
 
-readonly class UpdateSettingAction
+readonly class UpdateSettingAction implements UpdateSettingActionInterface
 {
     public function __construct(
         private FindSettingByIdAction $findSettingByIdAction,
@@ -14,9 +15,6 @@ readonly class UpdateSettingAction
     ) {
     }
 
-    /**
-     * @throws SettingNotFoundException
-     */
     public function handle(int $settingId, int $daysLifetime): SettingObject
     {
         if (!$this->settingRepository->findOneById($settingId)) {

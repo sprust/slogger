@@ -4,6 +4,7 @@ namespace App\Modules\Trace\Domain\Actions\Queries;
 
 use App\Modules\Common\Domain\Entities\PaginationInfoObject;
 use App\Modules\Common\Domain\Transports\PaginationInfoTransport;
+use App\Modules\Trace\Domain\Actions\Interfaces\Queries\FindTracesActionInterface;
 use App\Modules\Trace\Domain\Entities\Objects\Data\TraceDataAdditionalFieldObject;
 use App\Modules\Trace\Domain\Entities\Objects\TraceItemObject;
 use App\Modules\Trace\Domain\Entities\Objects\TraceItemObjects;
@@ -20,7 +21,7 @@ use App\Modules\Trace\Repositories\Interfaces\TraceRepositoryInterface;
 use App\Modules\Trace\Repositories\Interfaces\TraceTreeRepositoryInterface;
 use Illuminate\Support\Arr;
 
-readonly class FindTracesAction
+readonly class FindTracesAction implements FindTracesActionInterface
 {
     private int $maxPerPage;
 

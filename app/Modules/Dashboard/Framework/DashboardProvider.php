@@ -2,20 +2,30 @@
 
 namespace App\Modules\Dashboard\Framework;
 
+use App\Modules\Common\Framework\BaseServiceProvider;
+use App\Modules\Dashboard\Domain\Actions\CacheServiceStatAction;
+use App\Modules\Dashboard\Domain\Actions\FindDatabaseStatAction;
 use App\Modules\Dashboard\Domain\Actions\FindServiceStatAction;
+use App\Modules\Dashboard\Domain\Actions\Interfaces\CacheServiceStatActionInterface;
+use App\Modules\Dashboard\Domain\Actions\Interfaces\FindDatabaseStatActionInterface;
+use App\Modules\Dashboard\Domain\Actions\Interfaces\FindServiceStatActionInterface;
 use App\Modules\Dashboard\Repositories\DatabaseStatRepository;
 use App\Modules\Dashboard\Repositories\Interfaces\DatabaseStatRepositoryInterface;
 use App\Modules\Dashboard\Repositories\Interfaces\ServiceStatRepositoryInterface;
 use App\Modules\Dashboard\Repositories\ServiceStatRepository;
-use Illuminate\Support\ServiceProvider;
 
-class DashboardProvider extends ServiceProvider
+class DashboardProvider extends BaseServiceProvider
 {
-    public function boot(): void
+    protected function getContracts(): array
     {
-        $this->app->singleton(DatabaseStatRepositoryInterface::class, DatabaseStatRepository::class);
-        $this->app->singleton(ServiceStatRepositoryInterface::class, ServiceStatRepository::class);
-
-        $this->app->singleton(FindServiceStatAction::class);
+        return [
+            // repositories
+            DatabaseStatRepositoryInterface::class => DatabaseStatRepository::class,
+            ServiceStatRepositoryInterface::class  => ServiceStatRepository::class,
+            // actions
+            CacheServiceStatActionInterface::class => CacheServiceStatAction::class,
+            FindDatabaseStatActionInterface::class => FindDatabaseStatAction::class,
+            FindServiceStatActionInterface::class  => FindServiceStatAction::class,
+        ];
     }
 }

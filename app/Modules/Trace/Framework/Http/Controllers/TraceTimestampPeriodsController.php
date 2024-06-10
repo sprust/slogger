@@ -2,7 +2,7 @@
 
 namespace App\Modules\Trace\Framework\Http\Controllers;
 
-use App\Modules\Trace\Domain\Actions\MakeTraceTimestampPeriodsAction;
+use App\Modules\Trace\Domain\Actions\Interfaces\MakeTraceTimestampPeriodsActionInterface;
 use App\Modules\Trace\Framework\Http\Controllers\Traits\MakeDataFilterParameterTrait;
 use App\Modules\Trace\Framework\Http\Resources\Timestamp\TraceTimestampPeriodResource;
 use Ifksco\OpenApiGenerator\Attributes\OaListItemTypeAttribute;
@@ -13,7 +13,7 @@ readonly class TraceTimestampPeriodsController
     use MakeDataFilterParameterTrait;
 
     public function __construct(
-        private MakeTraceTimestampPeriodsAction $makeTraceTimestampPeriodsAction
+        private MakeTraceTimestampPeriodsActionInterface $makeTraceTimestampPeriodsAction
     ) {
     }
 

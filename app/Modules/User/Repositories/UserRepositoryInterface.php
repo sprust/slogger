@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Modules\User\Repository;
+namespace App\Modules\User\Repositories;
 
-use App\Modules\User\Repository\Dto\UserDetailDto;
+use App\Modules\User\Repositories\Dto\UserDetailDto;
 
 interface UserRepositoryInterface
 {

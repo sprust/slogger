@@ -2,7 +2,7 @@
 
 namespace App\Modules\Service\Framework\Http\Controllers;
 
-use App\Modules\Service\Domain\Actions\FindServicesAction;
+use App\Modules\Service\Domain\Actions\Interfaces\FindServicesActionInterface;
 use App\Modules\Service\Framework\Http\Resources\ServiceResource;
 use Ifksco\OpenApiGenerator\Attributes\OaListItemTypeAttribute;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -10,7 +10,7 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 readonly class ServiceController
 {
     public function __construct(
-        private FindServicesAction $findServicesAction
+        private FindServicesActionInterface $findServicesAction
     ) {
     }
 

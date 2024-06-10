@@ -2,9 +2,9 @@
 
 namespace App\Modules\Trace\Framework\Http\Controllers;
 
-use App\Modules\Trace\Domain\Actions\Queries\FindStatusesAction;
-use App\Modules\Trace\Domain\Actions\Queries\FindTagsAction;
-use App\Modules\Trace\Domain\Actions\Queries\FindTypesAction;
+use App\Modules\Trace\Domain\Actions\Interfaces\Queries\FindStatusesActionInterface;
+use App\Modules\Trace\Domain\Actions\Interfaces\Queries\FindTagsActionInterface;
+use App\Modules\Trace\Domain\Actions\Interfaces\Queries\FindTypesActionInterface;
 use App\Modules\Trace\Domain\Entities\Parameters\PeriodParameters;
 use App\Modules\Trace\Domain\Entities\Parameters\TraceFindStatusesParameters;
 use App\Modules\Trace\Domain\Entities\Parameters\TraceFindTagsParameters;
@@ -22,9 +22,9 @@ readonly class TraceContentController
     use MakeDataFilterParameterTrait;
 
     public function __construct(
-        private FindTypesAction $findTypesAction,
-        private FindTagsAction $findTagsAction,
-        private FindStatusesAction $findStatusesAction,
+        private FindTypesActionInterface $findTypesAction,
+        private FindTagsActionInterface $findTagsAction,
+        private FindStatusesActionInterface $findStatusesAction,
     ) {
     }
 

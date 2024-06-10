@@ -2,7 +2,7 @@
 
 namespace App\Modules\Trace\Framework\Commands;
 
-use App\Modules\Trace\Domain\Actions\Mutations\FreshTraceTimestampsAction;
+use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\FreshTraceTimestampsActionInterface;
 use Illuminate\Console\Command;
 
 class FreshTraceTimestampsCommand extends Command
@@ -24,7 +24,7 @@ class FreshTraceTimestampsCommand extends Command
     /**
      * Execute the console command.
      */
-    public function handle(FreshTraceTimestampsAction $action): int
+    public function handle(FreshTraceTimestampsActionInterface $action): int
     {
         $action->handle();
 

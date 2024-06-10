@@ -2,11 +2,12 @@
 
 namespace App\Modules\Cleaner\Domain\Actions;
 
+use App\Modules\Cleaner\Domain\Actions\Interfaces\FindSettingByIdActionInterface;
 use App\Modules\Cleaner\Domain\Entities\Objects\SettingObject;
 use App\Modules\Cleaner\Domain\Entities\Transports\SettingTransport;
 use App\Modules\Cleaner\Repositories\Interfaces\SettingRepositoryInterface;
 
-readonly class FindSettingByIdAction
+readonly class FindSettingByIdAction implements FindSettingByIdActionInterface
 {
     public function __construct(
         private SettingRepositoryInterface $settingRepository

@@ -2,7 +2,7 @@
 
 namespace App\Modules\Cleaner\Framework\Commands;
 
-use App\Modules\Cleaner\Domain\Actions\ClearTracesAction;
+use App\Modules\Cleaner\Domain\Actions\Interfaces\ClearTracesActionInterface;
 use Illuminate\Console\Command;
 
 class ClearTracesCommand extends Command
@@ -24,7 +24,7 @@ class ClearTracesCommand extends Command
     /**
      * Execute the console command.
      */
-    public function handle(ClearTracesAction $clearTracesAction): int
+    public function handle(ClearTracesActionInterface $clearTracesAction): int
     {
         $clearTracesAction->handle();
 

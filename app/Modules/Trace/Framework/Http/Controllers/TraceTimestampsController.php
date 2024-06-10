@@ -2,8 +2,8 @@
 
 namespace App\Modules\Trace\Framework\Http\Controllers;
 
-use App\Modules\Trace\Domain\Actions\MakeMetricIndicatorsAction;
-use App\Modules\Trace\Domain\Actions\Queries\FindTraceTimestampsAction;
+use App\Modules\Trace\Domain\Actions\Interfaces\MakeMetricIndicatorsActionInterface;
+use App\Modules\Trace\Domain\Actions\Interfaces\Queries\FindTraceTimestampsActionInterface;
 use App\Modules\Trace\Domain\Entities\Parameters\FindTraceTimestampsParameters;
 use App\Modules\Trace\Enums\TraceMetricFieldEnum;
 use App\Modules\Trace\Enums\TraceTimestampEnum;
@@ -21,8 +21,8 @@ readonly class TraceTimestampsController
     use MakeDataFilterParameterTrait;
 
     public function __construct(
-        private FindTraceTimestampsAction $findTraceTimestampsAction,
-        private MakeMetricIndicatorsAction $makeMetricIndicatorsAction
+        private FindTraceTimestampsActionInterface $findTraceTimestampsAction,
+        private MakeMetricIndicatorsActionInterface $makeMetricIndicatorsAction
     ) {
     }
 

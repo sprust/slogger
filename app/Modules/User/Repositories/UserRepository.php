@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Modules\User\Repository;
+namespace App\Modules\User\Repositories;
 
 use App\Models\Users\User;
-use App\Modules\User\Repository\Dto\UserDetailDto;
+use App\Modules\User\Repositories\Dto\UserDetailDto;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 

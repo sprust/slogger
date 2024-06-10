@@ -2,8 +2,8 @@
 
 namespace App\Modules\Cleaner\Framework\Http\Controllers;
 
-use App\Modules\Cleaner\Domain\Actions\FindProcessesAction;
-use App\Modules\Cleaner\Domain\Actions\FindSettingByIdAction;
+use App\Modules\Cleaner\Domain\Actions\Interfaces\FindProcessesActionInterface;
+use App\Modules\Cleaner\Domain\Actions\Interfaces\FindSettingByIdActionInterface;
 use App\Modules\Cleaner\Framework\Http\Resources\ProcessResource;
 use Ifksco\OpenApiGenerator\Attributes\OaListItemTypeAttribute;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -12,8 +12,8 @@ use Symfony\Component\HttpFoundation\Response;
 readonly class ProcessController
 {
     public function __construct(
-        private FindSettingByIdAction $findSettingByIdAction,
-        private FindProcessesAction $findProcessesAction
+        private FindSettingByIdActionInterface $findSettingByIdAction,
+        private FindProcessesActionInterface $findProcessesAction
     ) {
     }
 
