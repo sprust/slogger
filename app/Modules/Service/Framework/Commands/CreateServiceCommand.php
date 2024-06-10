@@ -2,7 +2,7 @@
 
 namespace App\Modules\Service\Framework\Commands;
 
-use App\Modules\Service\Domain\Actions\CreateServiceAction;
+use App\Modules\Service\Domain\Actions\Interfaces\CreateServiceActionInterface;
 use App\Modules\Service\Domain\Entities\Parameters\ServiceCreateParameters;
 use App\Modules\Service\Domain\Exceptions\ServiceAlreadyExistsException;
 use Illuminate\Console\Command;
@@ -26,7 +26,7 @@ class CreateServiceCommand extends Command
     /**
      * Execute the console command.
      */
-    public function handle(CreateServiceAction $createServiceAction): int
+    public function handle(CreateServiceActionInterface $createServiceAction): int
     {
         $serviceName = $this->ask('Name *');
 

@@ -7,7 +7,7 @@ use App\Modules\Dashboard\Domain\Entities\Objects\ServiceObject;
 use App\Modules\Dashboard\Domain\Entities\Transports\ServiceStatTransport;
 use App\Modules\Dashboard\Domain\Services\ServiceStatCache;
 use App\Modules\Dashboard\Repositories\Interfaces\ServiceStatRepositoryInterface;
-use App\Modules\Service\Domain\Actions\FindServicesAction;
+use App\Modules\Service\Domain\Actions\Interfaces\FindServicesActionInterface;
 use App\Modules\Service\Domain\Entities\Objects\ServiceObject as ServiceServiceObject;
 use Illuminate\Support\Collection;
 
@@ -15,7 +15,7 @@ readonly class CacheServiceStatAction implements CacheServiceStatActionInterface
 {
     public function __construct(
         private ServiceStatRepositoryInterface $serviceStatRepository,
-        private FindServicesAction $findServicesAction,
+        private FindServicesActionInterface $findServicesAction,
         private ServiceStatCache $serviceStatCache
     ) {
     }

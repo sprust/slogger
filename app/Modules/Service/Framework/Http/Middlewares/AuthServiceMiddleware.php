@@ -2,7 +2,7 @@
 
 namespace App\Modules\Service\Framework\Http\Middlewares;
 
-use App\Modules\Service\Domain\Actions\FindServiceByTokenAction;
+use App\Modules\Service\Domain\Actions\Interfaces\FindServiceByTokenActionInterface;
 use App\Modules\Service\Framework\Services\ServiceContainer;
 use Closure;
 use Illuminate\Http\Request;
@@ -12,7 +12,7 @@ use Symfony\Component\HttpKernel\TerminableInterface;
 readonly class AuthServiceMiddleware implements TerminableInterface
 {
     public function __construct(
-        private FindServiceByTokenAction $findServiceByTokenAction,
+        private FindServiceByTokenActionInterface $findServiceByTokenAction,
         private ServiceContainer $serviceContainer
     ) {
     }
