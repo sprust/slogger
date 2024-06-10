@@ -21,35 +21,26 @@ use App\Modules\Cleaner\Repositories\Interfaces\ProcessRepositoryInterface;
 use App\Modules\Cleaner\Repositories\Interfaces\SettingRepositoryInterface;
 use App\Modules\Cleaner\Repositories\ProcessRepository;
 use App\Modules\Cleaner\Repositories\SettingRepository;
-use Illuminate\Support\ServiceProvider;
+use App\Modules\Common\Framework\BaseServiceProvider;
 
-class CleanerServiceProvider extends ServiceProvider
+class CleanerServiceProvider extends BaseServiceProvider
 {
     public function boot(): void
     {
-        $this->registerActions();
-        $this->registerRepositories();
+        parent::boot();
 
         $this->commands([
             ClearTracesCommand::class,
         ]);
     }
 
-    private function registerRepositories(): void
+    protected function getContracts(): array
     {
-        $this->app->singleton(
-            ProcessRepositoryInterface::class,
-            ProcessRepository::class
-        );
-        $this->app->singleton(
-            SettingRepositoryInterface::class,
-            SettingRepository::class
-        );
-    }
-
-    private function registerActions(): void
-    {
-        $actions = [
+        return [
+            // repositories
+            ProcessRepositoryInterface::class => ProcessRepository::class,
+            SettingRepositoryInterface::class => SettingRepository::class,
+            // actions
             ClearTracesActionInterface::class     => ClearTracesAction::class,
             CreateSettingActionInterface::class   => CreateSettingAction::class,
             DeleteSettingActionInterface::class   => DeleteSettingAction::class,
@@ -58,9 +49,5 @@ class CleanerServiceProvider extends ServiceProvider
             FindSettingsActionInterface::class    => FindSettingsAction::class,
             UpdateSettingActionInterface::class   => UpdateSettingAction::class,
         ];
-
-        foreach ($actions as $interface => $action) {
-            $this->app->singleton($interface, $action);
-        }
     }
 }
