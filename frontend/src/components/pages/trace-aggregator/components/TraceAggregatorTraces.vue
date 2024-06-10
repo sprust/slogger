@@ -205,6 +205,7 @@ import TraceAggregatorTimestampPeriods from "./TraceAggregatorTimestampPeriods.v
 import {useTraceAggregatorGraphStore} from "../../../../store/traceAggregatorGraphStore.ts";
 import {useTraceAggregatorTimestampPeriodStore} from "../../../../store/traceAggregatorTimestampPeriodsStore.ts";
 import {useTraceAggregatorTimestampFieldsStore} from "../../../../store/traceAggregatorTimestampFieldsStore.ts";
+import {useTraceAggregatorDataStore} from "../../../../store/traceAggregatorDataStore.ts";
 
 const startOfDay = new Date()
 startOfDay.setUTCHours(Math.ceil(startOfDay.getTimezoneOffset() / 60), 0, 0, 0);
@@ -225,6 +226,7 @@ export default defineComponent({
       storeGraph: useTraceAggregatorGraphStore(),
       storeTimestampsPeriods: useTraceAggregatorTimestampPeriodStore(),
       storeTimestampsFields: useTraceAggregatorTimestampFieldsStore(),
+      storeTraceData: useTraceAggregatorDataStore(),
       dateTimeShortcuts: [
         {
           text: 'Start of day',
@@ -257,6 +259,7 @@ export default defineComponent({
     },
     update() {
       this.store.dispatch('fillTraceAggregator')
+      this.storeTraceData.dispatch('clearTraceData')
     },
     reset() {
       this.store.dispatch('resetFilters')

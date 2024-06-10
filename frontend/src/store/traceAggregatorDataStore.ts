@@ -35,6 +35,9 @@ export const traceAggregatorDataStore = createStore<State>({
                 data: trace.data
             }
         },
+        clearTraceData(state: State) {
+            state.dataItems = {}
+        },
     },
     actions: {
         findTraceData({commit}: {commit: any}, traceId: string) {
@@ -48,6 +51,9 @@ export const traceAggregatorDataStore = createStore<State>({
                 .catch((error) => {
                     handleApiError(error)
                 })
+        },
+        clearTraceData({commit}: {commit: any}) {
+            commit('clearTraceData')
         }
     },
 })
