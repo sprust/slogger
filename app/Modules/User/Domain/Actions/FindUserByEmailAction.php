@@ -2,11 +2,12 @@
 
 namespace App\Modules\User\Domain\Actions;
 
+use App\Modules\User\Domain\Actions\Interfaces\FindUserByEmailActionInterface;
 use App\Modules\User\Domain\Entities\Objects\UserDetailObject;
 use App\Modules\User\Domain\Entities\Transports\UserDetailTransport;
-use App\Modules\User\Repository\UserRepositoryInterface;
+use App\Modules\User\Repositories\UserRepositoryInterface;
 
-readonly class FindUserByEmailAction
+readonly class FindUserByEmailAction implements FindUserByEmailActionInterface
 {
     public function __construct(
         private UserRepositoryInterface $userRepository

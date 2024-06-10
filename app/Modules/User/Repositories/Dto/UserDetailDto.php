@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\User\Repository\Dto;
+namespace App\Modules\User\Repositories\Dto;
 
 use Illuminate\Support\Carbon;
 
