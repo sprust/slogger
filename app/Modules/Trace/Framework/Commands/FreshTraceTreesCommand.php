@@ -2,7 +2,7 @@
 
 namespace App\Modules\Trace\Framework\Commands;
 
-use App\Modules\Trace\Domain\Actions\Mutations\FreshTraceTreeAction;
+use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\FreshTraceTreeActionInterface;
 use Illuminate\Console\Command;
 
 class FreshTraceTreesCommand extends Command
@@ -24,7 +24,7 @@ class FreshTraceTreesCommand extends Command
     /**
      * Execute the console command.
      */
-    public function handle(FreshTraceTreeAction $action): int
+    public function handle(FreshTraceTreeActionInterface $action): int
     {
         $action->handle();
 

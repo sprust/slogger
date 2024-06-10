@@ -2,10 +2,11 @@
 
 namespace App\Modules\Trace\Domain\Actions\Mutations;
 
+use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\FreshTraceTreeActionInterface;
 use App\Modules\Trace\Repositories\Interfaces\TraceRepositoryInterface;
 use App\Modules\Trace\Repositories\Interfaces\TraceTreeRepositoryInterface;
 
-readonly class FreshTraceTreeAction
+readonly class FreshTraceTreeAction implements FreshTraceTreeActionInterface
 {
     public function __construct(
         private TraceRepositoryInterface $traceRepository,

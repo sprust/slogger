@@ -8,9 +8,9 @@ use App\Modules\Cleaner\Repositories\Dto\SettingDto;
 use App\Modules\Cleaner\Repositories\Interfaces\ProcessRepositoryInterface;
 use App\Modules\Cleaner\Repositories\Interfaces\SettingRepositoryInterface;
 use App\Modules\Common\EventsDispatcher;
-use App\Modules\Trace\Domain\Actions\Mutations\DeleteTracesByTraceIdsAction;
-use App\Modules\Trace\Domain\Actions\Mutations\DeleteTraceTreesByTraceIdsAction;
-use App\Modules\Trace\Domain\Actions\Queries\FindTraceIdsAction;
+use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\DeleteTracesByTraceIdsActionInterface;
+use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\DeleteTraceTreesByTraceIdsActionInterface;
+use App\Modules\Trace\Domain\Actions\Interfaces\Queries\FindTraceIdsActionInterface;
 use App\Modules\Trace\Domain\Entities\Parameters\FindTraceIdsParameters;
 use Illuminate\Support\Arr;
 
@@ -22,9 +22,9 @@ readonly class ClearTracesAction implements ClearTracesActionInterface
         private EventsDispatcher $eventsDispatcher,
         private SettingRepositoryInterface $settingRepository,
         private ProcessRepositoryInterface $processRepository,
-        private FindTraceIdsAction $findTraceIdsAction,
-        private DeleteTracesByTraceIdsAction $deleteTracesByTraceIdsAction,
-        private DeleteTraceTreesByTraceIdsAction $deleteTraceTreesByTraceIdsAction
+        private FindTraceIdsActionInterface $findTraceIdsAction,
+        private DeleteTracesByTraceIdsActionInterface $deleteTracesByTraceIdsAction,
+        private DeleteTraceTreesByTraceIdsActionInterface $deleteTraceTreesByTraceIdsAction
     ) {
         $this->countInDeletionBatch = 1000;
     }

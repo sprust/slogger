@@ -2,16 +2,17 @@
 
 namespace App\Modules\Trace\Domain\Actions\Mutations;
 
-use App\Modules\Trace\Domain\Actions\MakeTraceTimestampsAction;
+use App\Modules\Trace\Domain\Actions\Interfaces\MakeTraceTimestampsActionInterface;
+use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\FreshTraceTimestampsActionInterface;
 use App\Modules\Trace\Domain\Entities\Objects\Timestamp\TraceTimestampMetricObject;
 use App\Modules\Trace\Repositories\Dto\Timestamp\TraceTimestampMetricDto;
 use App\Modules\Trace\Repositories\Interfaces\TraceRepositoryInterface;
 
-readonly class FreshTraceTimestampsAction
+readonly class FreshTraceTimestampsAction implements FreshTraceTimestampsActionInterface
 {
     public function __construct(
         private TraceRepositoryInterface $traceRepository,
-        private MakeTraceTimestampsAction $makeTraceTimestampsAction
+        private MakeTraceTimestampsActionInterface $makeTraceTimestampsAction
     ) {
     }
 

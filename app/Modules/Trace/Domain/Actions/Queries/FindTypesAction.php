@@ -2,6 +2,7 @@
 
 namespace App\Modules\Trace\Domain\Actions\Queries;
 
+use App\Modules\Trace\Domain\Actions\Interfaces\Queries\FindTypesActionInterface;
 use App\Modules\Trace\Domain\Entities\Parameters\TraceFindTypesParameters;
 use App\Modules\Trace\Domain\Entities\Transports\TraceDataFilterTransport;
 use App\Modules\Trace\Domain\Entities\Transports\TraceStringFieldTransport;
@@ -9,7 +10,7 @@ use App\Modules\Trace\Framework\Http\Controllers\Traits\MakeDataFilterParameterT
 use App\Modules\Trace\Repositories\Dto\TraceStringFieldDto;
 use App\Modules\Trace\Repositories\Interfaces\TraceContentRepositoryInterface;
 
-readonly class FindTypesAction
+readonly class FindTypesAction implements FindTypesActionInterface
 {
     use MakeDataFilterParameterTrait;
 
@@ -18,9 +19,6 @@ readonly class FindTypesAction
     ) {
     }
 
-    /**
-     * @return string[]
-     */
     public function handle(TraceFindTypesParameters $parameters): array
     {
         return array_map(

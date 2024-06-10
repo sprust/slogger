@@ -2,6 +2,7 @@
 
 namespace App\Modules\Trace\Domain\Actions\Queries;
 
+use App\Modules\Trace\Domain\Actions\Interfaces\Queries\FindTraceTimestampsActionInterface;
 use App\Modules\Trace\Domain\Entities\Objects\Timestamp\TraceTimestampsObject;
 use App\Modules\Trace\Domain\Entities\Objects\Timestamp\TraceTimestampsObjects;
 use App\Modules\Trace\Domain\Entities\Parameters\FindTraceTimestampsParameters;
@@ -16,7 +17,7 @@ use App\Modules\Trace\Repositories\Dto\Timestamp\TraceTimestampFieldDto;
 use App\Modules\Trace\Repositories\Dto\Timestamp\TraceTimestampsDto;
 use App\Modules\Trace\Repositories\Interfaces\TraceTimestampsRepositoryInterface;
 
-readonly class FindTraceTimestampsAction
+readonly class FindTraceTimestampsAction implements FindTraceTimestampsActionInterface
 {
     public function __construct(
         private TraceTimestampsRepositoryInterface $traceTimestampsRepository,

@@ -2,6 +2,7 @@
 
 namespace App\Modules\Trace\Domain\Actions\Mutations;
 
+use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\UpdateTraceManyActionInterface;
 use App\Modules\Trace\Domain\Entities\Parameters\Profilling\TraceUpdateProfilingDataObject;
 use App\Modules\Trace\Domain\Entities\Parameters\Profilling\TraceUpdateProfilingObject;
 use App\Modules\Trace\Domain\Entities\Parameters\TraceUpdateParameters;
@@ -12,7 +13,7 @@ use App\Modules\Trace\Repositories\Dto\Profiling\TraceProfilingItemDto;
 use App\Modules\Trace\Repositories\Dto\TraceUpdateDto;
 use App\Modules\Trace\Repositories\Interfaces\TraceRepositoryInterface;
 
-readonly class UpdateTraceManyAction
+readonly class UpdateTraceManyAction implements UpdateTraceManyActionInterface
 {
     public function __construct(
         private TraceRepositoryInterface $traceRepository

@@ -3,8 +3,8 @@
 namespace App\Modules\Trace\Framework\Http\Controllers;
 
 use App\Modules\Common\Enums\SortDirectionEnum;
-use App\Modules\Trace\Domain\Actions\Queries\FindTraceDetailAction;
-use App\Modules\Trace\Domain\Actions\Queries\FindTracesAction;
+use App\Modules\Trace\Domain\Actions\Interfaces\Queries\FindTraceDetailActionInterface;
+use App\Modules\Trace\Domain\Actions\Interfaces\Queries\FindTracesActionInterface;
 use App\Modules\Trace\Domain\Entities\Parameters\PeriodParameters;
 use App\Modules\Trace\Domain\Entities\Parameters\TraceFindParameters;
 use App\Modules\Trace\Domain\Entities\Parameters\TraceSortParameters;
@@ -19,8 +19,8 @@ readonly class TraceController
     use MakeDataFilterParameterTrait;
 
     public function __construct(
-        private FindTracesAction $findTracesAction,
-        private FindTraceDetailAction $findTraceDetailAction
+        private FindTracesActionInterface $findTracesAction,
+        private FindTraceDetailActionInterface $findTraceDetailAction
     ) {
     }
 

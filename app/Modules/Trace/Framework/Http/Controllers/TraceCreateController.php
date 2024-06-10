@@ -3,7 +3,7 @@
 namespace App\Modules\Trace\Framework\Http\Controllers;
 
 use App\Modules\Service\Framework\Services\ServiceContainer;
-use App\Modules\Trace\Domain\Actions\MakeTraceTimestampsAction;
+use App\Modules\Trace\Domain\Actions\Interfaces\MakeTraceTimestampsActionInterface;
 use App\Modules\Trace\Domain\Entities\Parameters\TraceCreateParameters;
 use App\Modules\Trace\Domain\Entities\Parameters\TraceCreateParametersList;
 use App\Modules\Trace\Framework\Http\Requests\TraceCreateRequest;
@@ -18,7 +18,7 @@ readonly class TraceCreateController
     public function __construct(
         private ServiceContainer          $serviceContainer,
         private QueueDispatcher           $tracesServiceQueueDispatcher,
-        private MakeTraceTimestampsAction $makeTraceTimestampsAction,
+        private MakeTraceTimestampsActionInterface $makeTraceTimestampsAction,
         private SLoggerProcessor          $loggerProcessor
     ) {
     }

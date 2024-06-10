@@ -2,6 +2,7 @@
 
 namespace App\Modules\Trace\Domain\Actions\Queries;
 
+use App\Modules\Trace\Domain\Actions\Interfaces\Queries\FindTraceTreeActionInterface;
 use App\Modules\Trace\Domain\Entities\Objects\Tree\TraceTreeObjects;
 use App\Modules\Trace\Domain\Entities\Parameters\TraceFindTreeParameters;
 use App\Modules\Trace\Domain\Entities\Transports\TraceDetailTransport;
@@ -12,7 +13,7 @@ use App\Modules\Trace\Repositories\Dto\TraceDto;
 use App\Modules\Trace\Repositories\Interfaces\TraceRepositoryInterface;
 use App\Modules\Trace\Repositories\Interfaces\TraceTreeRepositoryInterface;
 
-readonly class FindTraceTreeAction
+readonly class FindTraceTreeAction implements FindTraceTreeActionInterface
 {
     public function __construct(
         private TraceRepositoryInterface $traceRepository,
@@ -20,9 +21,6 @@ readonly class FindTraceTreeAction
     ) {
     }
 
-    /**
-     * @throws TreeTooLongException
-     */
     public function handle(TraceFindTreeParameters $parameters): TraceTreeObjects
     {
         $parentTraceId = $this->traceTreeRepository->findParentTraceId(
