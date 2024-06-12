@@ -93,6 +93,7 @@ return [
                 /** url_patterns */
                 'full_hiding'     => [
                     'admin-api/auth/*',
+                    'admin-api/trace-aggregator/trace-metrics',
                 ],
 
                 /** url_pattern => keys */
