@@ -12,7 +12,7 @@ readonly class FindTraceTimestampsParameters
 {
     /**
      * @param TraceMetricFieldEnum[] $fields
-     * @param string[]|null          $serviceIds
+     * @param int[]|null             $serviceIds
      * @param string[]|null          $dataFields
      * @param string[]|null          $traceIds
      * @param string[]               $types

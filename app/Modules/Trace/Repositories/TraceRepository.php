@@ -148,6 +148,12 @@ readonly class TraceRepository implements TraceRepositoryInterface
             ])
             ->when(
                 $to,
+                /** @phpstan-ignore-next-line
+                 * Parameter #2 $callback of method Illuminate\Database\Query\Builder::when() expects
+                 * (callable(Illuminate\Database\Query\Builder, Illuminate\Support\Carbon):
+                 * Illuminate\Database\Eloquent\Builder)|null, Closure(Illuminate\Database\Eloquent\Builder):
+                 * Illuminate\Database\Eloquent\Builder given.
+                 */
                 fn(Builder $query) => $query->where('loggedAt', '<=', new UTCDateTime($to))
             )
             ->forPage(
