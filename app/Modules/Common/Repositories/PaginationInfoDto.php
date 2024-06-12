@@ -11,6 +11,6 @@ class PaginationInfoDto
         public int $perPage,
         public int $currentPage
     ) {
-        $this->totalPages = ceil($this->total / $this->perPage);
+        $this->totalPages = (int) ceil($this->total / $this->perPage);
     }
 }

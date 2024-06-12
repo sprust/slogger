@@ -14,7 +14,7 @@ class ServiceStatTransport
             service: $service
                 ?: new ServiceObject(
                     id: $dto->serviceId,
-                    name: $service?->name ?? 'UNKNOWN',
+                    name: 'UNKNOWN',
                 ),
             from: $dto->from,
             to: $dto->to,

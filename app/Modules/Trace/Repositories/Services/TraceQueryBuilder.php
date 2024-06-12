@@ -20,6 +20,7 @@ class TraceQueryBuilder
      * @param string[]      $tags
      * @param string[]      $statuses
      *
+     * @phpstan-ignore-next-line
      * @return Builder|MongoDBBuilder|Trace
      */
     public function make(
@@ -73,6 +74,7 @@ class TraceQueryBuilder
     }
 
     /**
+     * @phpstan-ignore-next-line
      * @param Builder|MongoDBBuilder $builder
      *
      * @return array

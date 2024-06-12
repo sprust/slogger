@@ -9,24 +9,24 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
- * @property string       $_id
- * @property string       $serviceId
- * @property string       $traceId
- * @property string|null  $parentTraceId
- * @property string       $type
- * @property string       $status
- * @property array        $tags
- * @property array        $data
- * @property float|null   $duration
- * @property float|null   $memory
- * @property float|null   $cpu
- * @property bool         $hasProfiling
- * @property array        $profiling
- * @property Carbon       $loggedAt
- * @property array        $timestamps
- * @property Carbon       $createdAt
- * @property Carbon       $updatedAt
- * @property-read Service $service
+ * @property string            $_id
+ * @property string            $serviceId
+ * @property string            $traceId
+ * @property string|null       $parentTraceId
+ * @property string            $type
+ * @property string            $status
+ * @property array             $tags
+ * @property array             $data
+ * @property float|null        $duration
+ * @property float|null        $memory
+ * @property float|null        $cpu
+ * @property bool              $hasProfiling
+ * @property array             $profiling
+ * @property Carbon            $loggedAt
+ * @property array             $timestamps
+ * @property Carbon            $createdAt
+ * @property Carbon            $updatedAt
+ * @property-read Service|null $service
  */
 class Trace extends AbstractTraceModel
 {

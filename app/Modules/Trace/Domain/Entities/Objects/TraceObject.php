@@ -7,7 +7,6 @@ use Illuminate\Support\Carbon;
 readonly class TraceObject
 {
     public function __construct(
-        string $id,
         public ?TraceServiceObject $service,
         public string $traceId,
         public ?string $parentTraceId,

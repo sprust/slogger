@@ -11,7 +11,6 @@ class TraceTransport
     public static function toObject(TraceDto $dto): TraceObject
     {
         return new TraceObject(
-            id: $dto->id,
             service: $dto->service
                 ? new TraceServiceObject(
                     id: $dto->service->id,

@@ -1,0 +1,19 @@
+parameters:
+    paths:
+        - app
+    excludePaths:
+        - app/Console/Commands/Local
+    level: 3
+    ignoreErrors:
+        -
+            message: '#Unsafe usage of new static#'
+        -
+            message: '#Call to an undefined method Illuminate\\Database\\Query\\Builder::toBase#'
+        -
+            message: '#Call to an undefined method Illuminate\\Database\\Eloquent\\Builder::toMql#'
+        -
+            message: '#Call to an undefined method Illuminate\\Database\\Query\\Builder::with#'
+        -
+            message: '#Call to an undefined method Illuminate\\Database\\Eloquent\\Relations\\BelongsTo::select#'
+        -
+            message: '#Access to an undefined property MongoDB\\Model\\BSONDocument#'

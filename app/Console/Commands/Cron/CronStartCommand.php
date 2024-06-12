@@ -52,6 +52,6 @@ class CronStartCommand extends BaseCronCommand
 
     private function getCurrentMinute(): int
     {
-        return date('i');
+        return (int) date('i');
     }
 }

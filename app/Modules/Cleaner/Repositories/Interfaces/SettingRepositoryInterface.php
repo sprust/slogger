@@ -9,7 +9,7 @@ interface SettingRepositoryInterface
     /**
      * @return SettingDto[]
      */
-    public function find(?string $type, ?bool $typeIsNotNull = null, ?bool $deleted = null): array;
+    public function find(?string $type = null, ?bool $typeIsNotNull = null, ?bool $deleted = null): array;
 
     public function findOneById(int $id): ?SettingDto;
 
