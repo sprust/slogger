@@ -32,6 +32,10 @@ interface TraceTimestampsRepositoryInterface
         array $statuses = [],
         ?float $durationFrom = null,
         ?float $durationTo = null,
+        ?float $memoryFrom = null,
+        ?float $memoryTo = null,
+        ?float $cpuFrom = null,
+        ?float $cpuTo = null,
         ?TraceDataFilterDto $data = null,
         ?bool $hasProfiling = null,
     ): TraceTimestampsListDto;

@@ -70,6 +70,10 @@ export const traceAggregatorStore = createStore<State>({
             statuses: [],
             duration_from: null,
             duration_to: null,
+            memory_from: null,
+            memory_to: null,
+            cpu_from: null,
+            cpu_to: null,
             logging_from: '',
             logging_to: '',
             trace_id: null,
@@ -100,6 +104,10 @@ export const traceAggregatorStore = createStore<State>({
                 statuses: [],
                 duration_from: null,
                 duration_to: null,
+                memory_from: null,
+                memory_to: null,
+                cpu_from: null,
+                cpu_to: null,
                 logging_from: '',
                 logging_to: '',
                 trace_id: null,
@@ -257,6 +265,14 @@ export const traceAggregatorStore = createStore<State>({
         clearDurationFilter(state: State) {
             state.payload.duration_from = null
             state.payload.duration_to = null
+        },
+        clearMemoryFilter(state: State) {
+            state.payload.memory_from = null
+            state.payload.memory_to = null
+        },
+        clearCpuFilter(state: State) {
+            state.payload.cpu_from = null
+            state.payload.cpu_to = null
         },
     },
     actions: {

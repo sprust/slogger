@@ -271,6 +271,14 @@ export namespace AdminApi {
       duration_from?: number | null;
       /** @format float */
       duration_to?: number | null;
+      /** @format float */
+      memory_from?: number | null;
+      /** @format float */
+      memory_to?: number | null;
+      /** @format float */
+      cpu_from?: number | null;
+      /** @format float */
+      cpu_to?: number | null;
       data?: {
         filter?: {
           field?: string;
@@ -910,6 +918,14 @@ export namespace AdminApi {
       duration_from?: number | null;
       /** @format float */
       duration_to?: number | null;
+      /** @format float */
+      memory_from?: number | null;
+      /** @format float */
+      memory_to?: number | null;
+      /** @format float */
+      cpu_from?: number | null;
+      /** @format float */
+      cpu_to?: number | null;
       data?: {
         filter?: {
           field?: string;
@@ -1688,6 +1704,14 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         duration_from?: number | null;
         /** @format float */
         duration_to?: number | null;
+        /** @format float */
+        memory_from?: number | null;
+        /** @format float */
+        memory_to?: number | null;
+        /** @format float */
+        cpu_from?: number | null;
+        /** @format float */
+        cpu_to?: number | null;
         data?: {
           filter?: {
             field?: string;
@@ -2390,6 +2414,14 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         duration_from?: number | null;
         /** @format float */
         duration_to?: number | null;
+        /** @format float */
+        memory_from?: number | null;
+        /** @format float */
+        memory_to?: number | null;
+        /** @format float */
+        cpu_from?: number | null;
+        /** @format float */
+        cpu_to?: number | null;
         data?: {
           filter?: {
             field?: string;

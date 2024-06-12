@@ -44,6 +44,10 @@ readonly class TraceController
                 statuses: $validated['statuses'] ?? [],
                 durationFrom: $validated['duration_from'] ?? null,
                 durationTo: $validated['duration_to'] ?? null,
+                memoryFrom: $validated['memory_from'] ?? null,
+                memoryTo: $validated['memory_to'] ?? null,
+                cpuFrom: $validated['cpu_from'] ?? null,
+                cpuTo: $validated['cpu_to'] ?? null,
                 data: $this->makeDataFilterParameter($validated),
                 hasProfiling: ($validated['has_profiling'] ?? null) ?: null,
                 sort: array_filter(

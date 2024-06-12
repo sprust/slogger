@@ -80,6 +80,10 @@ readonly class FindTracesAction implements FindTracesActionInterface
             statuses: $parameters->statuses,
             durationFrom: $parameters->durationFrom,
             durationTo: $parameters->durationTo,
+            memoryFrom: $parameters->memoryFrom,
+            memoryTo: $parameters->memoryTo,
+            cpuFrom: $parameters->cpuFrom,
+            cpuTo: $parameters->cpuTo,
             data: TraceDataFilterTransport::toDtoIfNotNull($parameters->data),
             hasProfiling: $parameters->hasProfiling,
             sort: array_map(

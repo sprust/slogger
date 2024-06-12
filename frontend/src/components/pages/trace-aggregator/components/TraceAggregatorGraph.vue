@@ -76,6 +76,10 @@ export default defineComponent({
       this.store.state.payload.statuses = this.traceStore.state.payload.statuses
       this.store.state.payload.duration_from = this.traceStore.state.payload.duration_from
       this.store.state.payload.duration_to = this.traceStore.state.payload.duration_to
+      this.store.state.payload.memory_from = this.traceStore.state.payload.memory_from
+      this.store.state.payload.memory_to = this.traceStore.state.payload.memory_to
+      this.store.state.payload.cpu_from = this.traceStore.state.payload.cpu_from
+      this.store.state.payload.cpu_to = this.traceStore.state.payload.cpu_to
       this.store.state.payload.data = this.traceStore.state.payload.data
       this.store.state.payload.has_profiling = this.traceStore.state.payload.has_profiling
 

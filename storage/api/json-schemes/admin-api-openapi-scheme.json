@@ -445,6 +445,26 @@
                                         "format": "float",
                                         "nullable": true
                                     },
+                                    "memory_from": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "nullable": true
+                                    },
+                                    "memory_to": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "nullable": true
+                                    },
+                                    "cpu_from": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "nullable": true
+                                    },
+                                    "cpu_to": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "nullable": true
+                                    },
                                     "data": {
                                         "type": "object",
                                         "properties": {
@@ -2044,6 +2064,26 @@
                                         "nullable": true
                                     },
                                     "duration_to": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "nullable": true
+                                    },
+                                    "memory_from": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "nullable": true
+                                    },
+                                    "memory_to": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "nullable": true
+                                    },
+                                    "cpu_from": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "nullable": true
+                                    },
+                                    "cpu_to": {
                                         "type": "number",
                                         "format": "float",
                                         "nullable": true

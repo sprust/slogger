@@ -189,4 +189,36 @@ class RequestFilterRules
             ],
         ];
     }
+
+    public static function memoryFromTo(): array
+    {
+        return [
+            'memory_from' => [
+                'sometimes',
+                'numeric',
+                'nullable',
+            ],
+            'memory_to'   => [
+                'sometimes',
+                'numeric',
+                'nullable',
+            ],
+        ];
+    }
+
+    public static function cpuFromTo(): array
+    {
+        return [
+            'cpu_from' => [
+                'sometimes',
+                'numeric',
+                'nullable',
+            ],
+            'cpu_to'   => [
+                'sometimes',
+                'numeric',
+                'nullable',
+            ],
+        ];
+    }
 }

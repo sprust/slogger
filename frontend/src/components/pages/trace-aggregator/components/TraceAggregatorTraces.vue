@@ -80,42 +80,70 @@
       </el-form>
     </el-row>
     <el-row>
+      <el-form :disabled="storeGraph.state.showGraph">
+        <el-form-item label="Trace id">
+          <el-input v-model="store.state.payload.trace_id" style="width: 500px" clearable>
+            <template #append>
+              <el-checkbox
+                  v-model="store.state.payload.all_traces_in_tree"
+                  label="All in tree"
+                  :disabled="!store.state.payload.trace_id"
+              />
+            </template>
+          </el-input>
+        </el-form-item>
+      </el-form>
+    </el-row>
+    <el-row>
       <el-space>
-        <el-form :disabled="storeGraph.state.showGraph">
-          <el-form-item label="Trace id">
-            <el-input v-model="store.state.payload.trace_id" style="width: 500px" clearable>
-              <template #append>
-                <el-checkbox
-                    v-model="store.state.payload.all_traces_in_tree"
-                    label="All in tree"
-                    :disabled="!store.state.payload.trace_id"
-                />
-              </template>
-            </el-input>
-          </el-form-item>
-        </el-form>
-        <el-form>
-          <el-form-item label="Duration">
-            <el-space>
-              <el-input-number
-                  v-model="store.state.payload.duration_from"
-                  :precision="6"
-                  :step="0.5"
-                  :min="0"
-                  :max="10"
-              />
-              <el-input-number
-                  v-model="store.state.payload.duration_to"
-                  :precision="6"
-                  :step="0.5"
-                  :min="0"
-                  :max="10"
-              />
-              <el-button :icon="CloseBold" @click="onClearDuration">
-              </el-button>
-            </el-space>
-          </el-form-item>
-        </el-form>
+        <el-form-item label="Duration">
+          <el-input-number
+              v-model="store.state.payload.duration_from"
+              :precision="6"
+              :step="0.5"
+              :min="0"
+          />
+          <el-input-number
+              v-model="store.state.payload.duration_to"
+              :precision="6"
+              :step="0.5"
+              :min="0"
+          />
+          <el-button :icon="CloseBold" @click="onClearDuration">
+          </el-button>
+        </el-form-item>
+        <el-form-item label="Memory">
+          <el-input-number
+              v-model="store.state.payload.memory_from"
+              :precision="2"
+              :step="1"
+              :min="0"
+          />
+          <el-input-number
+              v-model="store.state.payload.memory_to"
+              :precision="2"
+              :step="1"
+              :min="0"
+          />
+          <el-button :icon="CloseBold" @click="onClearMemory">
+          </el-button>
+        </el-form-item>
+        <el-form-item label="Cpu">
+          <el-input-number
+              v-model="store.state.payload.cpu_from"
+              :precision="2"
+              :step="5"
+              :min="0"
+          />
+          <el-input-number
+              v-model="store.state.payload.cpu_to"
+              :precision="2"
+              :step="5"
+              :min="0"
+          />
+          <el-button :icon="CloseBold" @click="onClearCpu">
+          </el-button>
+        </el-form-item>
       </el-space>
     </el-row>
     <el-row>
@@ -285,7 +313,13 @@ export default defineComponent({
     },
     onClearDuration() {
       this.store.commit('clearDurationFilter')
-    }
+    },
+    onClearMemory() {
+      this.store.commit('clearMemoryFilter')
+    },
+    onClearCpu() {
+      this.store.commit('clearCpuFilter')
+    },
   },
   mounted() {
     if (this.store.state.loading) {

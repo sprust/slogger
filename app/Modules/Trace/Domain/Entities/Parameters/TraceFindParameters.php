@@ -24,6 +24,10 @@ readonly class TraceFindParameters
         public array $statuses = [],
         public ?float $durationFrom = null,
         public ?float $durationTo = null,
+        public ?float $memoryFrom = null,
+        public ?float $memoryTo = null,
+        public ?float $cpuFrom = null,
+        public ?float $cpuTo = null,
         public ?TraceDataFilterParameters $data = null,
         public ?bool $hasProfiling = null,
         public array $sort = []

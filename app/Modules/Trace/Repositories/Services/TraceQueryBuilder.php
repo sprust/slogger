@@ -32,6 +32,10 @@ class TraceQueryBuilder
         array $statuses = [],
         ?float $durationFrom = null,
         ?float $durationTo = null,
+        ?float $memoryFrom = null,
+        ?float $memoryTo = null,
+        ?float $cpuFrom = null,
+        ?float $cpuTo = null,
         ?TraceDataFilterDto $data = null,
         ?bool $hasProfiling = null,
     ): Builder {
@@ -59,6 +63,10 @@ class TraceQueryBuilder
             ->when($statuses, fn(Builder $query) => $query->whereIn('status', $statuses))
             ->when(!is_null($durationFrom), fn(Builder $query) => $query->where('duration', '>=', $durationFrom))
             ->when(!is_null($durationTo), fn(Builder $query) => $query->where('duration', '<=', $durationTo))
+            ->when(!is_null($memoryFrom), fn(Builder $query) => $query->where('memory', '>=', $memoryFrom))
+            ->when(!is_null($memoryTo), fn(Builder $query) => $query->where('memory', '<=', $memoryTo))
+            ->when(!is_null($cpuFrom), fn(Builder $query) => $query->where('cpu', '>=', $cpuFrom))
+            ->when(!is_null($cpuTo), fn(Builder $query) => $query->where('cpu', '<=', $cpuTo))
             ->when(!is_null($hasProfiling), fn(Builder $query) => $query->where('hasProfiling', $hasProfiling));
 
         return $this->applyDataFilter($builder, $data?->filter ?? []);

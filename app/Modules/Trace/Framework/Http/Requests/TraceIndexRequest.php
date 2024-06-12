@@ -36,6 +36,8 @@ class TraceIndexRequest extends FormRequest
             ...RequestFilterRules::tags(),
             ...RequestFilterRules::statuses(),
             ...RequestFilterRules::durationFromTo(),
+            ...RequestFilterRules::memoryFromTo(),
+            ...RequestFilterRules::cpuFromTo(),
             ...RequestFilterRules::data(),
             'data.fields'        => [
                 'sometimes',

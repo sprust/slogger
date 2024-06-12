@@ -64,6 +64,8 @@ class TraceTimestampsRequest extends FormRequest
             ...RequestFilterRules::tags(),
             ...RequestFilterRules::statuses(),
             ...RequestFilterRules::durationFromTo(),
+            ...RequestFilterRules::memoryFromTo(),
+            ...RequestFilterRules::cpuFromTo(),
             ...RequestFilterRules::data(),
             ...RequestFilterRules::hasProfiling(),
         ];
