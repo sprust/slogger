@@ -196,7 +196,6 @@ readonly class TraceTimestampsRepository implements TraceTimestampsRepositoryInt
             TraceMetricFieldEnum::Duration => 'duration',
             TraceMetricFieldEnum::Memory => 'memory',
             TraceMetricFieldEnum::Cpu => 'cpu',
-            default => throw new RuntimeException("Unknown field [{$field->field->value}]")
         };
 
         $aggregations = [];
@@ -240,6 +239,7 @@ readonly class TraceTimestampsRepository implements TraceTimestampsRepositoryInt
                 continue;
             }
 
+            /** @phpstan-ignore-next-line No error to ignore is reported */
             throw new RuntimeException("Unknown aggregator [$aggregation->value]");
         }
     }

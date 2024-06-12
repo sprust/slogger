@@ -21,6 +21,10 @@ class TraceQueryBuilder
      * @param string[]      $statuses
      *
      * @phpstan-ignore-next-line
+     * PHPDoc tag 'return' with type
+     * App\Models\Traces\Trace|Illuminate\Database\Eloquent\Builder|MongoDB\Laravel\Query\Builder is not subtype
+     * of native type Illuminate\Database\Eloquent\Builder
+     *
      * @return Builder|MongoDBBuilder|Trace
      */
     public function make(
@@ -75,6 +79,10 @@ class TraceQueryBuilder
 
     /**
      * @phpstan-ignore-next-line
+     * PHPDoc tag 'param' for parameter $builder with type
+     * Illuminate\Database\Eloquent\Builder|MongoDB\Laravel\Query\Builder is not subtype of native type
+     * Illuminate\Database\Eloquent\Builder
+     *
      * @param Builder|MongoDBBuilder $builder
      *
      * @return array

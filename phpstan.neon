@@ -3,7 +3,7 @@ parameters:
         - app
     excludePaths:
         - app/Console/Commands/Local
-    level: 3
+    level: 4
     ignoreErrors:
         -
             message: '#Unsafe usage of new static#'
@@ -17,3 +17,6 @@ parameters:
             message: '#Call to an undefined method Illuminate\\Database\\Eloquent\\Relations\\BelongsTo::select#'
         -
             message: '#Access to an undefined property MongoDB\\Model\\BSONDocument#'
+        -
+            message: '#Property [\s\S]* is never read, only written#'
+            path: *Resource.php
