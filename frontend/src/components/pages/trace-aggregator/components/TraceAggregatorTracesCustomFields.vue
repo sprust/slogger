@@ -1,6 +1,12 @@
 <template>
   <el-table :data="customFields" style="width: 100%">
-    <el-table-column prop="field"/>
+    <el-table-column>
+      <template #default="scope">
+        <el-input
+            v-model="scope.row.field"
+        />
+      </template>
+    </el-table-column>
     <el-table-column>
       <template #default="scope">
         <el-checkbox
