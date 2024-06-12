@@ -16,6 +16,9 @@ class TraceFindStatusesRequest extends FormRequest
             ...RequestFilterRules::types(),
             ...RequestFilterRules::tags(),
             ...RequestFilterRules::loggedFromTo(),
+            ...RequestFilterRules::durationFromTo(),
+            ...RequestFilterRules::memoryFromTo(),
+            ...RequestFilterRules::cpuFromTo(),
             ...RequestFilterRules::data(),
             ...RequestFilterRules::hasProfiling(),
         ];

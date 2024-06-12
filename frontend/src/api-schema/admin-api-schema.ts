@@ -726,6 +726,18 @@ export namespace AdminApi {
       logging_from?: string;
       /** @format date */
       logging_to?: string;
+      /** @format float */
+      duration_from?: number | null;
+      /** @format float */
+      duration_to?: number | null;
+      /** @format float */
+      memory_from?: number | null;
+      /** @format float */
+      memory_to?: number | null;
+      /** @format float */
+      cpu_from?: number | null;
+      /** @format float */
+      cpu_to?: number | null;
       data?: {
         filter?: {
           field?: string;
@@ -779,6 +791,18 @@ export namespace AdminApi {
       logging_from?: string;
       /** @format date */
       logging_to?: string;
+      /** @format float */
+      duration_from?: number | null;
+      /** @format float */
+      duration_to?: number | null;
+      /** @format float */
+      memory_from?: number | null;
+      /** @format float */
+      memory_to?: number | null;
+      /** @format float */
+      cpu_from?: number | null;
+      /** @format float */
+      cpu_to?: number | null;
       data?: {
         filter?: {
           field?: string;
@@ -833,6 +857,18 @@ export namespace AdminApi {
       logging_from?: string;
       /** @format date */
       logging_to?: string;
+      /** @format float */
+      duration_from?: number | null;
+      /** @format float */
+      duration_to?: number | null;
+      /** @format float */
+      memory_from?: number | null;
+      /** @format float */
+      memory_to?: number | null;
+      /** @format float */
+      cpu_from?: number | null;
+      /** @format float */
+      cpu_to?: number | null;
       data?: {
         filter?: {
           field?: string;
@@ -2186,6 +2222,18 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         logging_from?: string;
         /** @format date */
         logging_to?: string;
+        /** @format float */
+        duration_from?: number | null;
+        /** @format float */
+        duration_to?: number | null;
+        /** @format float */
+        memory_from?: number | null;
+        /** @format float */
+        memory_to?: number | null;
+        /** @format float */
+        cpu_from?: number | null;
+        /** @format float */
+        cpu_to?: number | null;
         data?: {
           filter?: {
             field?: string;
@@ -2251,6 +2299,18 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         logging_from?: string;
         /** @format date */
         logging_to?: string;
+        /** @format float */
+        duration_from?: number | null;
+        /** @format float */
+        duration_to?: number | null;
+        /** @format float */
+        memory_from?: number | null;
+        /** @format float */
+        memory_to?: number | null;
+        /** @format float */
+        cpu_from?: number | null;
+        /** @format float */
+        cpu_to?: number | null;
         data?: {
           filter?: {
             field?: string;
@@ -2317,6 +2377,18 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         logging_from?: string;
         /** @format date */
         logging_to?: string;
+        /** @format float */
+        duration_from?: number | null;
+        /** @format float */
+        duration_to?: number | null;
+        /** @format float */
+        memory_from?: number | null;
+        /** @format float */
+        memory_to?: number | null;
+        /** @format float */
+        cpu_from?: number | null;
+        /** @format float */
+        cpu_to?: number | null;
         data?: {
           filter?: {
             field?: string;

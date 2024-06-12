@@ -1549,6 +1549,36 @@
                                         "type": "string",
                                         "format": "date"
                                     },
+                                    "duration_from": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "nullable": true
+                                    },
+                                    "duration_to": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "nullable": true
+                                    },
+                                    "memory_from": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "nullable": true
+                                    },
+                                    "memory_to": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "nullable": true
+                                    },
+                                    "cpu_from": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "nullable": true
+                                    },
+                                    "cpu_to": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "nullable": true
+                                    },
                                     "data": {
                                         "type": "object",
                                         "properties": {
@@ -1697,6 +1727,36 @@
                                     "logging_to": {
                                         "type": "string",
                                         "format": "date"
+                                    },
+                                    "duration_from": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "nullable": true
+                                    },
+                                    "duration_to": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "nullable": true
+                                    },
+                                    "memory_from": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "nullable": true
+                                    },
+                                    "memory_to": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "nullable": true
+                                    },
+                                    "cpu_from": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "nullable": true
+                                    },
+                                    "cpu_to": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "nullable": true
                                     },
                                     "data": {
                                         "type": "object",
@@ -1852,6 +1912,36 @@
                                     "logging_to": {
                                         "type": "string",
                                         "format": "date"
+                                    },
+                                    "duration_from": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "nullable": true
+                                    },
+                                    "duration_to": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "nullable": true
+                                    },
+                                    "memory_from": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "nullable": true
+                                    },
+                                    "memory_to": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "nullable": true
+                                    },
+                                    "cpu_from": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "nullable": true
+                                    },
+                                    "cpu_to": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "nullable": true
                                     },
                                     "data": {
                                         "type": "object",

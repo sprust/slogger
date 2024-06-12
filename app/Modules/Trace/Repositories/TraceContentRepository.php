@@ -23,6 +23,12 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
         ?string $text = null,
         ?Carbon $loggedAtFrom = null,
         ?Carbon $loggedAtTo = null,
+        ?float $durationFrom = null,
+        ?float $durationTo = null,
+        ?float $memoryFrom = null,
+        ?float $memoryTo = null,
+        ?float $cpuFrom = null,
+        ?float $cpuTo = null,
         ?TraceDataFilterDto $data = null,
         ?bool $hasProfiling = null,
     ): array {
@@ -31,6 +37,12 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
                 serviceIds: $serviceIds,
                 loggedAtFrom: $loggedAtFrom,
                 loggedAtTo: $loggedAtTo,
+                durationFrom: $durationFrom,
+                durationTo: $durationTo,
+                memoryFrom: $memoryFrom,
+                memoryTo: $memoryTo,
+                cpuFrom: $cpuFrom,
+                cpuTo: $cpuTo,
                 data: $data,
                 hasProfiling: $hasProfiling
             )
@@ -89,6 +101,12 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
         ?Carbon $loggedAtFrom = null,
         ?Carbon $loggedAtTo = null,
         array $types = [],
+        ?float $durationFrom = null,
+        ?float $durationTo = null,
+        ?float $memoryFrom = null,
+        ?float $memoryTo = null,
+        ?float $cpuFrom = null,
+        ?float $cpuTo = null,
         ?TraceDataFilterDto $data = null,
         ?bool $hasProfiling = null,
     ): array
@@ -98,6 +116,12 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
             loggedAtFrom: $loggedAtFrom,
             loggedAtTo: $loggedAtTo,
             types: $types,
+            durationFrom: $durationFrom,
+            durationTo: $durationTo,
+            memoryFrom: $memoryFrom,
+            memoryTo: $memoryTo,
+            cpuFrom: $cpuFrom,
+            cpuTo: $cpuTo,
             data: $data,
             hasProfiling: $hasProfiling
         );
@@ -169,6 +193,12 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
         ?Carbon $loggedAtTo = null,
         array $types = [],
         array $tags = [],
+        ?float $durationFrom = null,
+        ?float $durationTo = null,
+        ?float $memoryFrom = null,
+        ?float $memoryTo = null,
+        ?float $cpuFrom = null,
+        ?float $cpuTo = null,
         ?TraceDataFilterDto $data = null,
         ?bool $hasProfiling = null,
     ): array
@@ -180,6 +210,12 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
                 loggedAtTo: $loggedAtTo,
                 types: $types,
                 tags: $tags,
+                durationFrom: $durationFrom,
+                durationTo: $durationTo,
+                memoryFrom: $memoryFrom,
+                memoryTo: $memoryTo,
+                cpuFrom: $cpuFrom,
+                cpuTo: $cpuTo,
                 data: $data,
                 hasProfiling: $hasProfiling
             )

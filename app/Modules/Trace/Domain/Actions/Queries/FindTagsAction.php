@@ -29,6 +29,12 @@ readonly class FindTagsAction implements FindTagsActionInterface
                 loggedAtFrom: $parameters->loggingPeriod?->from,
                 loggedAtTo: $parameters->loggingPeriod?->to,
                 types: $parameters->types,
+                durationFrom: $parameters->durationFrom,
+                durationTo: $parameters->durationTo,
+                memoryFrom: $parameters->memoryFrom,
+                memoryTo: $parameters->memoryTo,
+                cpuFrom: $parameters->cpuFrom,
+                cpuTo: $parameters->cpuTo,
                 data: TraceDataFilterTransport::toDtoIfNotNull($parameters->data),
                 hasProfiling: $parameters->hasProfiling,
             )

@@ -28,6 +28,12 @@ readonly class FindTypesAction implements FindTypesActionInterface
                 text: $parameters->text,
                 loggedAtFrom: $parameters->loggingPeriod?->from,
                 loggedAtTo: $parameters->loggingPeriod?->to,
+                durationFrom: $parameters->durationFrom,
+                durationTo: $parameters->durationTo,
+                memoryFrom: $parameters->memoryFrom,
+                memoryTo: $parameters->memoryTo,
+                cpuFrom: $parameters->cpuFrom,
+                cpuTo: $parameters->cpuTo,
                 data: TraceDataFilterTransport::toDtoIfNotNull($parameters->data),
                 hasProfiling: $parameters->hasProfiling,
             )

@@ -17,6 +17,12 @@ readonly class TraceFindStatusesParameters
         public ?PeriodParameters $loggingPeriod = null,
         public array $types = [],
         public array $tags = [],
+        public ?float $durationFrom = null,
+        public ?float $durationTo = null,
+        public ?float $memoryFrom = null,
+        public ?float $memoryTo = null,
+        public ?float $cpuFrom = null,
+        public ?float $cpuTo = null,
         public ?TraceDataFilterParameters $data = null,
         public ?bool $hasProfiling = null,
     ) {
