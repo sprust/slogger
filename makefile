@@ -60,7 +60,7 @@ oa-generate:
 
 deploy:
 	git pull
-	@make composer c=i
+	@make composer c='i --no-dev'
 	@make art c='migrate --force'
 	@make frontend-npm-i
 	@make frontend-npm-build
