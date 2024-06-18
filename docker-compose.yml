@@ -3,6 +3,7 @@ version: '3.5'
 services:
   nginx:
     container_name: sl-nginx
+    restart: unless-stopped
     image: nginx:alpine
     depends_on:
       - php-fpm
@@ -14,6 +15,7 @@ services:
 
   php-fpm:
     container_name: sl-php-fpm
+    restart: unless-stopped
     build:
       context: ./docker/php
       target: php_app
@@ -36,6 +38,7 @@ services:
 
   workers:
     container_name: sl-workers
+    restart: unless-stopped
     build:
       context: ./docker/php
       target: php_workers
@@ -62,8 +65,9 @@ services:
     command: supervisord -n
 
   mysql:
-    image: mysql:8.0
     container_name: sl-mysql
+    restart: unless-stopped
+    image: mysql:8.0
     ports:
       - ${DB_DOCKER_PORT:-3308}:${DB_PORT:-3306}
     environment:
@@ -80,8 +84,9 @@ services:
       timeout: 5s
 
   redis:
-    image: redis:alpine
     container_name: sl-redis
+    restart: unless-stopped
+    image: redis:alpine
     ports:
       - ${REDIS_DOCKER_PORT:-6379}:${REDIS_PORT:-6379}
     volumes:
@@ -92,8 +97,9 @@ services:
       timeout: 5s
 
   mongo:
-    image: mongo:6.0.5
     container_name: sl-mongo
+    restart: unless-stopped
+    image: mongo:6.0.5
     environment:
       MONGO_ADMIN_USERNAME: ${MONGO_ADMIN_USERNAME}
       MONGO_ADMIN_PASSWORD: ${MONGO_ADMIN_PASSWORD}
@@ -104,9 +110,10 @@ services:
       - mongo:/data/db
 
   frontend:
+    container_name: sl-frontend
+    restart: unless-stopped
     image: node:18-alpine
     working_dir: /app/frontend
-    container_name: sl-frontend
     ports:
       - ${FRONTEND_DOCKER_PORT}:3000
     volumes:
