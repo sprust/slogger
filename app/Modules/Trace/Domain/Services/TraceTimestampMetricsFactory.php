@@ -159,6 +159,7 @@ class TraceTimestampMetricsFactory
                 TraceTimestampEnum::Min30,
             ],
             TraceTimestampPeriodEnum::Hour4 => [
+                TraceTimestampEnum::Min10,
                 TraceTimestampEnum::Min30,
                 TraceTimestampEnum::H,
             ],
