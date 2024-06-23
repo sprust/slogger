@@ -18,6 +18,7 @@ class StartRoadRunnerCommand extends \Laravel\Octane\Commands\StartRoadRunnerCom
                     {--grpc-host= : The GRPC IP address the server should bind to}
                     {--grpc-port= : The GRPC port the server should be available on}
                     {--grpc-workers= : The number of workers that should be available to handle requests}
+                    {--grpc-max-requests=500 : The number of requests to process before reloading the server}
 
                     {--workers=auto : The number of workers that should be available to handle requests}
                     {--max-requests=500 : The number of requests to process before reloading the server}
@@ -64,6 +65,7 @@ class StartRoadRunnerCommand extends \Laravel\Octane\Commands\StartRoadRunnerCom
             '-o', 'grpc.listen=tcp://'.$this->grpcHost().':'.$this->grpcPort(),
             '-o', 'grpc.proto='.base_path('grpc/proto/*.proto'),
             '-o', 'grpc.pool.command='.base_path('grpc/rr-grpc-worker.php'),
+            '-o', 'grpc.pool.max_jobs='.$this->option('grpc-max-requests'),
 
             '-o', 'http.pool.supervisor.exec_ttl='.$this->maxExecutionTime(),
             '-o', 'http.static.dir='.public_path(),

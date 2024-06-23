@@ -26,18 +26,20 @@ class OctaneRoadrunnerStartCommand extends Command
     public function handle(): void
     {
         $this->call('octane:roadrunner', [
-            '--host'         => config('octane.servers.roadrunner.host'),
-            '--port'         => config('octane.servers.roadrunner.port'),
-            '--rpc-host'     => config('octane.servers.roadrunner.rpc-host'),
-            '--rpc-port'     => config('octane.servers.roadrunner.rpc-port'),
-            '--grpc-host'    => config('octane.servers.roadrunner.grpc-host'),
-            '--grpc-port'    => config('octane.servers.roadrunner.grpc-port'),
-            '--workers'      => config('octane.servers.roadrunner.workers'),
-            '--max-requests' => config('octane.servers.roadrunner.max-requests'),
-            '--rr-config'    => config('octane.servers.roadrunner.rr-config'),
-            '--watch'        => config('octane.servers.roadrunner.watch'),
-            '--poll'         => config('octane.servers.roadrunner.poll'),
-            '--log-level'    => config('octane.servers.roadrunner.log-level'),
+            '--host'              => config('octane.servers.roadrunner.host'),
+            '--port'              => config('octane.servers.roadrunner.port'),
+            '--rpc-host'          => config('octane.servers.roadrunner.rpc-host'),
+            '--rpc-port'          => config('octane.servers.roadrunner.rpc-port'),
+            '--grpc-host'         => config('octane.servers.roadrunner.grpc-host'),
+            '--grpc-port'         => config('octane.servers.roadrunner.grpc-port'),
+            '--grpc-workers'      => config('octane.servers.roadrunner.grpc-workers'),
+            '--grpc-max-requests' => config('octane.servers.roadrunner.grpc-max-requests'),
+            '--workers'           => config('octane.servers.roadrunner.workers'),
+            '--max-requests'      => config('octane.servers.roadrunner.max-requests'),
+            '--rr-config'         => config('octane.servers.roadrunner.rr-config'),
+            '--watch'             => config('octane.servers.roadrunner.watch'),
+            '--poll'              => config('octane.servers.roadrunner.poll'),
+            '--log-level'         => config('octane.servers.roadrunner.log-level'),
         ]);
     }
 }

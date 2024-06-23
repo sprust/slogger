@@ -9,12 +9,12 @@ use Google\Protobuf\Internal\RepeatedField;
 use Google\Protobuf\Internal\GPBUtil;
 
 /**
- * Generated from protobuf message <code>collector.TraceCreateRequest</code>
+ * Generated from protobuf message <code>collector.TraceUpdateRequest</code>
  */
-class TraceCreateRequest extends \Google\Protobuf\Internal\Message
+class TraceUpdateRequest extends \Google\Protobuf\Internal\Message
 {
     /**
-     * Generated from protobuf field <code>repeated .collector.TraceCreateObject traces = 1;</code>
+     * Generated from protobuf field <code>repeated .collector.TraceUpdateObject traces = 1;</code>
      */
     private $traces;
 
@@ -24,7 +24,7 @@ class TraceCreateRequest extends \Google\Protobuf\Internal\Message
      * @param array $data {
      *     Optional. Data for populating the Message object.
      *
-     *     @type \GRPC\Collector\TraceCreateObject[]|\Google\Protobuf\Internal\RepeatedField $traces
+     *     @type \GRPC\Collector\TraceUpdateObject[]|\Google\Protobuf\Internal\RepeatedField $traces
      * }
      */
     public function __construct($data = NULL) {
@@ -33,7 +33,7 @@ class TraceCreateRequest extends \Google\Protobuf\Internal\Message
     }
 
     /**
-     * Generated from protobuf field <code>repeated .collector.TraceCreateObject traces = 1;</code>
+     * Generated from protobuf field <code>repeated .collector.TraceUpdateObject traces = 1;</code>
      * @return \Google\Protobuf\Internal\RepeatedField
      */
     public function getTraces()
@@ -42,13 +42,13 @@ class TraceCreateRequest extends \Google\Protobuf\Internal\Message
     }
 
     /**
-     * Generated from protobuf field <code>repeated .collector.TraceCreateObject traces = 1;</code>
-     * @param \GRPC\Collector\TraceCreateObject[]|\Google\Protobuf\Internal\RepeatedField $var
+     * Generated from protobuf field <code>repeated .collector.TraceUpdateObject traces = 1;</code>
+     * @param \GRPC\Collector\TraceUpdateObject[]|\Google\Protobuf\Internal\RepeatedField $var
      * @return $this
      */
     public function setTraces($var)
     {
-        $arr = GPBUtil::checkRepeatedField($var, \Google\Protobuf\Internal\GPBType::MESSAGE, \GRPC\Collector\TraceCreateObject::class);
+        $arr = GPBUtil::checkRepeatedField($var, \Google\Protobuf\Internal\GPBType::MESSAGE, \GRPC\Collector\TraceUpdateObject::class);
         $this->traces = $arr;
 
         return $this;

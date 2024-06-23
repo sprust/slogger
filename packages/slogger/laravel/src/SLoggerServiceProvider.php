@@ -2,10 +2,13 @@
 
 namespace SLoggerLaravel;
 
+use Grpc\ChannelCredentials;
 use GuzzleHttp\Client;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\ServiceProvider;
 use SLoggerLaravel\Dispatcher\SLoggerTraceDispatcherInterface;
+use SLoggerLaravel\GrpcClient\Services\SLoggerTraceCollectorGrpcService;
+use SLoggerLaravel\GrpcClient\SLoggerGrpcClient;
 use SLoggerLaravel\HttpClient\SLoggerHttpClient;
 use SLoggerLaravel\Middleware\SLoggerHttpMiddleware;
 use SLoggerLaravel\Profiling\AbstractSLoggerProfiling;
@@ -44,6 +47,23 @@ class SLoggerServiceProvider extends ServiceProvider
                     ],
                     'base_uri' => $url,
                 ])
+            );
+        });
+
+        $this->app->singleton(SLoggerGrpcClient::class, function (Application $app) {
+            $config = $app['config']['slogger.grpc_client'];
+
+            $url   = $config['url'];
+            $token = $config['token'];
+
+            return new SLoggerGrpcClient(
+                $token,
+                new SLoggerTraceCollectorGrpcService(
+                    hostname: $url,
+                    opts: [
+                        'credentials' => ChannelCredentials::createInsecure(),
+                    ]
+                )
             );
         });
 

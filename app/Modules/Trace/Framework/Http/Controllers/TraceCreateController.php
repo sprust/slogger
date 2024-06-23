@@ -16,10 +16,10 @@ use Throwable;
 readonly class TraceCreateController
 {
     public function __construct(
-        private ServiceContainer          $serviceContainer,
-        private QueueDispatcher           $tracesServiceQueueDispatcher,
+        private ServiceContainer $serviceContainer,
+        private QueueDispatcher $tracesServiceQueueDispatcher,
         private MakeTraceTimestampsActionInterface $makeTraceTimestampsAction,
-        private SLoggerProcessor          $loggerProcessor
+        private SLoggerProcessor $loggerProcessor
     ) {
     }
 

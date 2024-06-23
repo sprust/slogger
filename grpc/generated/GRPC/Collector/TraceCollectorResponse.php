@@ -9,9 +9,9 @@ use Google\Protobuf\Internal\RepeatedField;
 use Google\Protobuf\Internal\GPBUtil;
 
 /**
- * Generated from protobuf message <code>collector.TraceCreateResponse</code>
+ * Generated from protobuf message <code>collector.TraceCollectorResponse</code>
  */
-class TraceCreateResponse extends \Google\Protobuf\Internal\Message
+class TraceCollectorResponse extends \Google\Protobuf\Internal\Message
 {
     /**
      * Generated from protobuf field <code>int32 status_code = 1;</code>

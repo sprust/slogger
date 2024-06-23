@@ -14,9 +14,18 @@ interface TraceCollectorInterface extends GRPC\ServiceInterface
     /**
     * @param GRPC\ContextInterface $ctx
     * @param TraceCreateRequest $in
-    * @return TraceCreateResponse
+    * @return TraceCollectorResponse
     *
     * @throws GRPC\Exception\InvokeException
     */
-    public function Create(GRPC\ContextInterface $ctx, TraceCreateRequest $in): TraceCreateResponse;
+    public function Create(GRPC\ContextInterface $ctx, TraceCreateRequest $in): TraceCollectorResponse;
+
+    /**
+    * @param GRPC\ContextInterface $ctx
+    * @param TraceUpdateRequest $in
+    * @return TraceCollectorResponse
+    *
+    * @throws GRPC\Exception\InvokeException
+    */
+    public function Update(GRPC\ContextInterface $ctx, TraceUpdateRequest $in): TraceCollectorResponse;
 }

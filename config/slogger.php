@@ -33,8 +33,8 @@ return [
     ],
 
     'grpc_client' => [
-        'url'   => env('SLOGGER_HTTP_CLIENT_URL'),
-        'token' => env('SLOGGER_HTTP_CLIENT_TOKEN'),
+        'url'   => env('SLOGGER_GRPC_CLIENT_URL'),
+        'token' => env('SLOGGER_GRPC_CLIENT_TOKEN'),
     ],
 
     'profiling'  => [

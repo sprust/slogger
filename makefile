@@ -72,10 +72,10 @@ rr-get-binary:
 rr-workers:
 	@"$(WORKERS_CLI)"./rr workers -i
 
-rr-protoc-load:
+protoc-load:
 	@"$(WORKERS_CLI)"./vendor/bin/rr download-protoc-binary
 
-rr-protoc-compile:
+protoc-compile:
 	@"$(WORKERS_CLI)"protoc --plugin=protoc-gen-php-grpc \
 		--php_out=./grpc/generated \
 		--php-grpc_out=./grpc/generated \
