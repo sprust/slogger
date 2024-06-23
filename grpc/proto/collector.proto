@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+option php_namespace = "GRPC\\Collector";
+option php_metadata_namespace = "GRPC\\GPBMetadata";
+
+package collector;
+
+service TraceCollector {
+    rpc Create(TraceCreateRequest) returns (TraceCreateResponse) {}
+}
+
+message TraceCreateRequest {
+    string url = 1;
+}
+
+message TraceCreateResponse {
+    int32 status_code = 1;
+    string message = 2;
+}

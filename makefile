@@ -69,6 +69,18 @@ deploy:
 rr-get-binary:
 	@"$(WORKERS_CLI)"./vendor/bin/rr get-binary
 
+rr-workers:
+	@"$(WORKERS_CLI)"./rr workers -i
+
+rr-protoc-load:
+	@"$(WORKERS_CLI)"./vendor/bin/rr download-protoc-binary
+
+rr-protoc-compile:
+	@"$(WORKERS_CLI)"protoc --plugin=protoc-gen-php-grpc \
+		--php_out=./grpc/generated \
+		--php-grpc_out=./grpc/generated \
+		./grpc/proto/collector.proto
+
 frontend-npm-i:
 	@"$(FRONTEND_CLI)"npm i
 

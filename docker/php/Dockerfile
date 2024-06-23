@@ -45,6 +45,11 @@ RUN docker-php-ext-enable \
         mongodb \
         zip
 
+# GRPC
+RUN apt-get install -y protobuf-compiler zlib1g-dev \
+    && pecl install protobuf grpc \
+    && pecl docker-php-ext-enable grpc
+
 EXPOSE 9000
 
 FROM php_base as php_app

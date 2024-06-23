@@ -6,9 +6,11 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "ext-grpc": "*",
         "ext-mongodb": "*",
         "ext-pdo": "*",
         "ext-xhprof": "*",
+        "grpc/grpc": "^1.57",
         "guzzlehttp/guzzle": "^7.2",
         "ifksco/openapi-generator": "dev-master",
         "laravel/framework": "^10.10",
@@ -17,7 +19,8 @@
         "mongodb/laravel-mongodb": "^4.1",
         "mongodb/mongodb": "^1.17",
         "slogger/laravel": "dev-master",
-        "spiral/roadrunner-cli": "^2.6.0",
+        "spiral/roadrunner-cli": "^2.6",
+        "spiral/roadrunner-grpc": "^3.3",
         "spiral/roadrunner-http": "^3.3.0"
     },
     "require-dev": {
@@ -49,7 +52,9 @@
         "psr-4": {
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",
-            "Database\\Seeders\\": "database/seeders/"
+            "Database\\Seeders\\": "database/seeders/",
+            "GRPC\\": "grpc/generated/GRPC",
+            "GRPCServices\\": "grpc/implementation"
         }
     },
     "autoload-dev": {

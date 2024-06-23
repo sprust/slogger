@@ -1,5 +1,6 @@
 <?php
 
+use GRPC\Collector\TraceCollectorInterface;
 use Laravel\Octane\Contracts\OperationTerminated;
 use Laravel\Octane\Events\RequestHandled;
 use Laravel\Octane\Events\RequestReceived;
@@ -227,12 +228,19 @@ return [
             'port'         => env('OCTANE_RR_PORT', 9020),
             'rpc-host'     => env('OCTANE_RR_RPC_HOST', '0.0.0.0'),
             'rpc-port'     => env('OCTANE_RR_RPC_PORT', 9010),
+            'grpc-host'    => env('OCTANE_RR_GRPC_HOST', '0.0.0.0'),
+            'grpc-port'    => env('OCTANE_RR_GRPC_PORT', 9030),
+            'grpc-workers' => env('OCTANE_RR_GRPC_WORKERS', 'auto'),
             'workers'      => env('OCTANE_RR_WORKERS', 5),
             'max-requests' => env('OCTANE_RR_MAX_REQUESTS', 250),
             'rr-config'    => env('OCTANE_RR_CONFIG'),
             'watch'        => env('OCTANE_RR_WATCH', false),
             'poll'         => env('OCTANE_RR_POLL', false),
             'log-level'    => env('OCTANE_RR_LOG_LEVEL', 'error'),
+            /* Spiral\RoadRunner\GRPC\ServiceInterface => implementation class */
+            'grpc-services' => [
+                TraceCollectorInterface::class => \GRPCServices\Collector::class
+            ]
         ],
 
         'swoole' => [
