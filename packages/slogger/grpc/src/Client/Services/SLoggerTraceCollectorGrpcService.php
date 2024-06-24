@@ -1,13 +1,13 @@
 <?php
 
-namespace SLoggerLaravel\ApiClients\Grpc\Services;
+namespace GRPCClient\Services;
 
 use Google\Protobuf\Internal\Message;
 use Grpc\BaseStub;
-use GRPC\Collector\TraceCollectorInterface;
-use GRPC\Collector\TraceCollectorResponse;
-use GRPC\Collector\TraceCreateRequest;
-use GRPC\Collector\TraceUpdateRequest;
+use GRPC\TraceCollector\TraceCollectorInterface;
+use GRPC\TraceCollector\TraceCollectorResponse;
+use GRPC\TraceCollector\TraceCreateRequest;
+use GRPC\TraceCollector\TraceUpdateRequest;
 use Spiral\RoadRunner\GRPC;
 
 class SLoggerTraceCollectorGrpcService extends BaseStub implements TraceCollectorInterface

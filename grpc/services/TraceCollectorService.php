@@ -12,20 +12,20 @@ use App\Modules\Trace\Domain\Entities\Parameters\TraceCreateParametersList;
 use App\Modules\Trace\Domain\Entities\Parameters\TraceUpdateParameters;
 use App\Modules\Trace\Domain\Entities\Parameters\TraceUpdateParametersList;
 use App\Modules\Trace\Framework\Http\Services\QueueDispatcher;
-use GRPC\Collector\TraceCollectorInterface;
-use GRPC\Collector\TraceCollectorResponse;
-use GRPC\Collector\TraceCreateObject;
-use GRPC\Collector\TraceCreateRequest;
-use GRPC\Collector\TraceProfilingItemDataItemObject;
-use GRPC\Collector\TraceProfilingItemObject;
-use GRPC\Collector\TraceProfilingItemsObject;
-use GRPC\Collector\TraceUpdateObject;
-use GRPC\Collector\TraceUpdateRequest;
+use GRPC\TraceCollector\TraceCollectorInterface;
+use GRPC\TraceCollector\TraceCollectorResponse;
+use GRPC\TraceCollector\TraceCreateObject;
+use GRPC\TraceCollector\TraceCreateRequest;
+use GRPC\TraceCollector\TraceProfilingItemDataItemObject;
+use GRPC\TraceCollector\TraceProfilingItemObject;
+use GRPC\TraceCollector\TraceProfilingItemsObject;
+use GRPC\TraceCollector\TraceUpdateObject;
+use GRPC\TraceCollector\TraceUpdateRequest;
 use Illuminate\Support\Carbon;
 use Spiral\RoadRunner\GRPC;
 use Throwable;
 
-readonly class Collector implements TraceCollectorInterface
+readonly class TraceCollectorService implements TraceCollectorInterface
 {
     public function __construct(
         private FindServiceByTokenActionInterface $findServiceByTokenAction,

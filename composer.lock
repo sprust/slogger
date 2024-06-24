@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "880ca55b6c61925c2b3fa7fbf8051d0c",
+    "content-hash": "4e9c7e8331f72e76b19a3bbf3c431305",
     "packages": [
         {
             "name": "brick/math",
@@ -3851,17 +3851,51 @@
             "time": "2024-04-11T14:08:46+00:00"
         },
         {
-            "name": "slogger/laravel",
+            "name": "slogger/grpc",
             "version": "dev-master",
             "dist": {
                 "type": "path",
-                "url": "packages/slogger/laravel",
-                "reference": "2a597b59724066612470cfd98c7652349fa202f6"
+                "url": "packages/slogger/grpc",
+                "reference": "64bda6218d4cf5d80e4e41a92a869448ba2abad5"
             },
             "require": {
                 "ext-grpc": "*",
                 "ext-protobuf": "*",
                 "grpc/grpc": "^1.57",
+                "slogger/laravel": "dev-master",
+                "spiral/roadrunner-grpc": "^3.3"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "GRPC\\": "src/GRPC",
+                    "GRPCClient\\": "src/Client"
+                }
+            },
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Pavel",
+                    "email": "sppetrovich@mail.ru"
+                }
+            ],
+            "description": "SLogger grpc client for laravel via Roadrunner",
+            "transport-options": {
+                "symlink": true,
+                "relative": true
+            }
+        },
+        {
+            "name": "slogger/laravel",
+            "version": "dev-master",
+            "dist": {
+                "type": "path",
+                "url": "packages/slogger/laravel",
+                "reference": "90b63691e5ab32a430e5e172b6fa1efc7d12a7f6"
+            },
+            "require": {
                 "laravel/framework": "^9.0 | ^10.0"
             },
             "type": "library",
@@ -9829,6 +9863,7 @@
     "minimum-stability": "stable",
     "stability-flags": {
         "ifksco/openapi-generator": 20,
+        "slogger/grpc": 20,
         "slogger/laravel": 20
     },
     "prefer-stable": true,

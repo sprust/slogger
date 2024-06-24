@@ -1,6 +1,6 @@
 <?php
 
-namespace SLoggerLaravel\ApiClients\Grpc\Services;
+namespace GRPCClient\Services;
 
 use Exception;
 

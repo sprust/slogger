@@ -1,14 +1,14 @@
 <?php
 
-namespace SLoggerLaravel\ApiClients\Grpc;
+namespace GRPCClient;
 
 use Google\Protobuf\DoubleValue;
 use Google\Protobuf\StringValue;
 use Google\Protobuf\Timestamp;
-use GRPC\Collector\TraceCreateObject;
-use GRPC\Collector\TraceCreateRequest;
-use SLoggerLaravel\ApiClients\Grpc\Services\SLoggerGrpcResponseException;
-use SLoggerLaravel\ApiClients\Grpc\Services\SLoggerTraceCollectorGrpcService;
+use GRPC\TraceCollector\TraceCreateObject;
+use GRPC\TraceCollector\TraceCreateRequest;
+use GRPCClient\Services\SLoggerGrpcResponseException;
+use GRPCClient\Services\SLoggerTraceCollectorGrpcService;
 use SLoggerLaravel\ApiClients\SLoggerApiClientInterface;
 use SLoggerLaravel\Objects\SLoggerTraceObjects;
 use SLoggerLaravel\Objects\SLoggerTraceUpdateObjects;

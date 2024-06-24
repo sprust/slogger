@@ -19,6 +19,7 @@
         "laravel/tinker": "^2.8",
         "mongodb/laravel-mongodb": "^4.1",
         "mongodb/mongodb": "^1.17",
+        "slogger/grpc": "dev-master",
         "slogger/laravel": "dev-master",
         "spiral/roadrunner-cli": "^2.6",
         "spiral/roadrunner-grpc": "^3.3",
@@ -43,6 +44,13 @@
         },
         {
             "type": "path",
+            "url": "packages/slogger/grpc",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
             "url": "packages/ifksco/openapi-generator",
             "options": {
                 "symlink": true
@@ -54,8 +62,7 @@
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/",
-            "GRPC\\": "grpc/generated/GRPC",
-            "GRPCServices\\": "grpc/implementation"
+            "GRPCServices\\": "grpc/services"
         }
     },
     "autoload-dev": {

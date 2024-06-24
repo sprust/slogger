@@ -3,10 +3,10 @@ syntax = "proto3";
 import "google/protobuf/wrappers.proto";
 import "google/protobuf/timestamp.proto";
 
-option php_namespace = "GRPC\\Collector";
-option php_metadata_namespace = "GRPC\\GPBMetadata";
+option php_namespace = "GRPC\\TraceCollector";
+option php_metadata_namespace = "GRPC\\TraceCollectorGPBMetadata";
 
-package collector;
+package trace.collector;
 
 service TraceCollector {
     rpc Create (TraceCreateRequest) returns (TraceCollectorResponse) {}

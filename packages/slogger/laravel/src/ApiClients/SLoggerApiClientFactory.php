@@ -5,8 +5,9 @@ namespace SLoggerLaravel\ApiClients;
 use Grpc\ChannelCredentials;
 use GuzzleHttp\Client;
 use Illuminate\Contracts\Foundation\Application;
-use SLoggerLaravel\ApiClients\Grpc\Services\SLoggerTraceCollectorGrpcService;
-use SLoggerLaravel\ApiClients\Grpc\SLoggerGrpcClient;
+use RuntimeException;
+use GRPCClient\SLoggerGrpcClient;
+use GRPCClient\Services\SLoggerTraceCollectorGrpcService;
 use SLoggerLaravel\ApiClients\Http\SLoggerHttpClient;
 
 readonly class SLoggerApiClientFactory
@@ -20,7 +21,7 @@ readonly class SLoggerApiClientFactory
         return match ($apiClientName) {
             'http' => $this->createHttp(),
             'grpc' => $this->createGrpc(),
-            default => throw new \RuntimeException("Unknown api client [$apiClientName]"),
+            default => throw new RuntimeException("Unknown api client [$apiClientName]"),
         };
     }
 
@@ -46,6 +47,12 @@ readonly class SLoggerApiClientFactory
 
     private function createGrpc(): SLoggerGrpcClient
     {
+        if (!class_exists(SLoggerGrpcClient::class)) {
+            throw new RuntimeException(
+                'The package slogger/grpc is not installed'
+            );
+        }
+
         $config = $this->app['config']['slogger.api_clients.grpc'];
 
         $url   = $config['url'];

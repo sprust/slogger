@@ -85,8 +85,8 @@ protoc-load:
 
 protoc-compile:
 	@"$(WORKERS_CLI)"protoc --plugin=protoc-gen-php-grpc \
-		--php_out=./grpc/generated \
-		--php-grpc_out=./grpc/generated \
+		--php_out=./packages/slogger/grpc/src \
+		--php-grpc_out=./packages/slogger/grpc/src \
 		./grpc/proto/collector.proto
 
 frontend-npm-i:
