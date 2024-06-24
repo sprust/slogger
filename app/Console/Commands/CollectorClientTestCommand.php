@@ -31,7 +31,11 @@ class CollectorClientTestCommand extends Command
      */
     public function handle(): int
     {
-        $client = match ($this->argument('client')) {
+        $clientName = $this->argument('client');
+
+        $this->warn($clientName);
+
+        $client = match ($clientName) {
             'http' => app(SLoggerHttpClient::class),
             'grpc' => app(SLoggerGrpcClient::class),
         };
@@ -40,7 +44,11 @@ class CollectorClientTestCommand extends Command
 
         $start = microtime(true);
 
+        $times = [];
+
         while ($requestsCount--) {
+            $startRequest = microtime(true);
+
             $traces = new SLoggerTraceObjects();
 
             $traces->add(
@@ -59,9 +67,12 @@ class CollectorClientTestCommand extends Command
             );
 
             $client->sendTraces($traces);
+
+            $times[] = microtime(true) - $startRequest;
         }
 
-        $this->info(microtime(true) - $start);
+        $this->info('total: ' . microtime(true) - $start);
+        $this->info('avg: ' . collect($times)->avg());
 
         return self::SUCCESS;
     }
