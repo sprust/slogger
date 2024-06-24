@@ -158,8 +158,11 @@ readonly class TraceCollectorService implements TraceCollectorInterface
     {
         $parameters = new TraceUpdateParametersList();
 
-        foreach ($in->getTraces() as $trace) {
+        $traces = $in->getTraces();
+
+        for ($index = 0; $index < $traces->count(); $index++) {
             /** @var TraceUpdateObject $trace */
+            $trace = $traces[$index];
 
             $traceParameters = new TraceUpdateParameters(
                 serviceId: $serviceId,
@@ -199,18 +202,32 @@ readonly class TraceCollectorService implements TraceCollectorInterface
                     raw: $item->getRaw(),
                     calling: $item->getCalling(),
                     callable: $item->getCallable(),
-                    data: array_map(
-                        function (TraceProfilingItemDataItemObject $dataItem) {
-                            $value = $dataItem->getValue();
-
-                            return new TraceUpdateProfilingDataObject(
-                                name: $dataItem->getName(),
-                                value: $value->getInt() ?? $value->getDouble()
-                            );
-                        },
-                        collect($item->getData())->toArray()
-                    ),
+                    data: $this->makeProfilingItemData($item)
                 )
+            );
+        }
+
+        return $result;
+    }
+
+    /**
+     * @return TraceUpdateProfilingDataObject[]
+     */
+    private function makeProfilingItemData(TraceProfilingItemObject $item): array
+    {
+        $result = [];
+
+        $dataList = $item->getData();
+
+        for ($index = 0; $index < $dataList->count(); $index++) {
+            /** @var TraceProfilingItemDataItemObject $data */
+            $data = $dataList[$index];
+
+            $value = $data->getValue();
+
+            $result[] = new TraceUpdateProfilingDataObject(
+                name: $data->getName(),
+                value: $value->getInt()?->getValue() ?? $value->getDouble()?->getValue() ?? -1
             );
         }
 
