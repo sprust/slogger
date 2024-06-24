@@ -51,6 +51,8 @@ readonly class TraceCollectorService implements TraceCollectorInterface
                 in: $in
             );
         } catch (Throwable $exception) {
+            report($exception);
+
             return new TraceCollectorResponse([
                 'status_code' => 500,
                 'message'     => $exception->getMessage(),
@@ -80,6 +82,8 @@ readonly class TraceCollectorService implements TraceCollectorInterface
                 in: $in
             );
         } catch (Throwable $exception) {
+            report($exception);
+
             return new TraceCollectorResponse([
                 'status_code' => 500,
                 'message'     => $exception->getMessage(),
@@ -164,7 +168,7 @@ readonly class TraceCollectorService implements TraceCollectorInterface
             /** @var TraceUpdateObject $trace */
             $trace = $traces[$index];
 
-            $tagsValue = $trace->getTags()->getItems();
+            $tagsValue = $trace->getTags()?->getItems();
 
             if (is_null($tagsValue)) {
                 $tags = null;
@@ -206,8 +210,11 @@ readonly class TraceCollectorService implements TraceCollectorInterface
             mainCaller: $object->getMainCaller()
         );
 
-        foreach ($object->getItems() as $item) {
+        $items = $object->getItems();
+
+        for ($index = 0; $index < $items->count(); $index++) {
             /** @var TraceProfilingItemObject $item */
+            $item = $items[$index];
 
             $result->add(
                 new TraceUpdateProfilingObject(
