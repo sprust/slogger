@@ -1,6 +1,6 @@
 {
     "name": "slogger/grpc",
-    "description": "SLogger grpc client for laravel via Roadrunner",
+    "description": "Grpc client for slogger via Roadrunner",
     "license": "MIT",
     "authors": [
         {
