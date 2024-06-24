@@ -20,7 +20,6 @@ yarn-error.log
 
 rr
 .rr.yaml
-.rr.collector.yaml
 .pid
 
 app/Console/Commands/Local

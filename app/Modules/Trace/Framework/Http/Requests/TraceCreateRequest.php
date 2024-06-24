@@ -56,10 +56,12 @@ class TraceCreateRequest extends FormRequest
             ],
             'traces.*.memory'          => [
                 'sometimes',
+                'nullable',
                 'numeric',
             ],
             'traces.*.cpu'             => [
                 'sometimes',
+                'nullable',
                 'numeric',
             ],
             'traces.*.logged_at'       => [

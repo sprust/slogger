@@ -134,7 +134,7 @@ readonly class TraceCollectorService implements TraceCollectorInterface
             $traceParameters = new TraceCreateParameters(
                 serviceId: $serviceId,
                 traceId: $trace->getTraceId(),
-                parentTraceId: $trace->getParentTraceId()->getValue(),
+                parentTraceId: $trace->getParentTraceId()?->getValue() ?: null,
                 type: $trace->getType(),
                 status: $trace->getStatus(),
                 tags: collect($trace->getTags())->toArray(),
@@ -164,6 +164,18 @@ readonly class TraceCollectorService implements TraceCollectorInterface
             /** @var TraceUpdateObject $trace */
             $trace = $traces[$index];
 
+            $tagsValue = $trace->getTags()->getItems();
+
+            if (is_null($tagsValue)) {
+                $tags = null;
+            } else {
+                $tags = [];
+
+                for ($tagsIndex = 0; $tagsIndex < $tagsValue->count(); $tagsIndex++) {
+                    $tags[] = $tagsValue[$tagsIndex];
+                }
+            }
+
             $traceParameters = new TraceUpdateParameters(
                 serviceId: $serviceId,
                 traceId: $trace->getTraceId(),
@@ -171,11 +183,11 @@ readonly class TraceCollectorService implements TraceCollectorInterface
                 profiling: $this->makeProfiling(
                     $trace->getProfiling()
                 ),
-                tags: $trace->getTags(),
-                data: json_encode($trace->getData(), true),
-                duration: $trace->getDuration(),
-                memory: $trace->getMemory(),
-                cpu: $trace->getCpu(),
+                tags: $tags,
+                data: $trace->getData()->getValue(),
+                duration: $trace->getDuration()?->getValue(),
+                memory: $trace->getMemory()?->getValue(),
+                cpu: $trace->getCpu()?->getValue(),
             );
 
             $parameters->add($traceParameters);

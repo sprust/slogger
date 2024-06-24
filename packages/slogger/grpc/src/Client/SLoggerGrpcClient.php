@@ -5,8 +5,11 @@ namespace GRPCClient;
 use Google\Protobuf\DoubleValue;
 use Google\Protobuf\StringValue;
 use Google\Protobuf\Timestamp;
+use GRPC\TraceCollector\TagsObject;
 use GRPC\TraceCollector\TraceCreateObject;
 use GRPC\TraceCollector\TraceCreateRequest;
+use GRPC\TraceCollector\TraceUpdateObject;
+use GRPC\TraceCollector\TraceUpdateRequest;
 use GRPCClient\Services\SLoggerGrpcResponseException;
 use GRPCClient\Services\SLoggerTraceCollectorGrpcService;
 use SLoggerLaravel\ApiClients\SLoggerApiClientInterface;
@@ -35,7 +38,11 @@ readonly class SLoggerGrpcClient implements SLoggerApiClientInterface
 
             $objects[] = (new TraceCreateObject())
                 ->setTraceId($item->traceId)
-                ->setParentTraceId(new StringValue($item->parentTraceId))
+                ->setParentTraceId(
+                    is_null($item->parentTraceId,)
+                        ? null
+                        : new StringValue(['value' => $item->parentTraceId])
+                )
                 ->setType($item->type)
                 ->setStatus($item->status)
                 ->setTags($item->tags)
@@ -74,5 +81,53 @@ readonly class SLoggerGrpcClient implements SLoggerApiClientInterface
 
     public function updateTraces(SLoggerTraceUpdateObjects $traceObjects): void
     {
+        $objects = [];
+
+        foreach ($traceObjects->get() as $item) {
+            $loggedAt = new Timestamp();
+            $loggedAt->fromDateTime(now('UTC'));
+
+            $objects[] = (new TraceUpdateObject())
+                ->setTraceId($item->traceId)
+                ->setStatus($item->status)
+                ->setTags(
+                    is_null($item->tags)
+                        ? null
+                        : new TagsObject(['items' => $item->tags])
+                )
+                ->setData(
+                    is_null($item->data)
+                        ? null
+                        : new StringValue(['value' => json_encode($item->data)])
+                )
+                ->setDuration(
+                    is_null($item->duration)
+                        ? null
+                        : new DoubleValue(['value' => $item->duration])
+                )
+                ->setMemory(
+                    is_null($item->memory)
+                        ? null
+                        : new DoubleValue(['value' => $item->memory])
+                )
+                ->setCpu(
+                    is_null($item->cpu)
+                        ? null
+                        : new DoubleValue(['value' => $item->cpu])
+                );
+        }
+
+        $this->grpcService->Update(
+            new Context([
+                'metadata' => [
+                    'authorization' => [
+                        "Bearer $this->apiToken",
+                    ],
+                ],
+            ]),
+            new TraceUpdateRequest([
+                'traces' => $objects,
+            ])
+        );
     }
 }
