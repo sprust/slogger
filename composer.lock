@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "4847368bb856f0ad020f8912e1c80f48",
+    "content-hash": "880ca55b6c61925c2b3fa7fbf8051d0c",
     "packages": [
         {
             "name": "brick/math",
@@ -3856,9 +3856,12 @@
             "dist": {
                 "type": "path",
                 "url": "packages/slogger/laravel",
-                "reference": "90b63691e5ab32a430e5e172b6fa1efc7d12a7f6"
+                "reference": "2a597b59724066612470cfd98c7652349fa202f6"
             },
             "require": {
+                "ext-grpc": "*",
+                "ext-protobuf": "*",
+                "grpc/grpc": "^1.57",
                 "laravel/framework": "^9.0 | ^10.0"
             },
             "type": "library",
@@ -9835,6 +9838,7 @@
         "ext-grpc": "*",
         "ext-mongodb": "*",
         "ext-pdo": "*",
+        "ext-protobuf": "*",
         "ext-xhprof": "*"
     },
     "platform-dev": [],

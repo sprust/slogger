@@ -47,8 +47,7 @@ RUN docker-php-ext-enable \
 
 # GRPC
 RUN apt-get install -y protobuf-compiler zlib1g-dev \
-    && pecl install protobuf grpc \
-    && pecl docker-php-ext-enable grpc
+    && pecl install protobuf grpc
 
 EXPOSE 9000
 

@@ -9,6 +9,7 @@
         "ext-grpc": "*",
         "ext-mongodb": "*",
         "ext-pdo": "*",
+        "ext-protobuf": "*",
         "ext-xhprof": "*",
         "grpc/grpc": "^1.57",
         "guzzlehttp/guzzle": "^7.2",

@@ -9,6 +9,9 @@
         }
     ],
     "require": {
+        "ext-grpc": "*",
+        "ext-protobuf": "*",
+        "grpc/grpc": "^1.57",
         "laravel/framework": "^9.0 | ^10.0"
     },
     "autoload": {

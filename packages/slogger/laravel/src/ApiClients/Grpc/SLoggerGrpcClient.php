@@ -1,19 +1,20 @@
 <?php
 
-namespace SLoggerLaravel\GrpcClient;
+namespace SLoggerLaravel\ApiClients\Grpc;
 
 use Google\Protobuf\DoubleValue;
 use Google\Protobuf\StringValue;
 use Google\Protobuf\Timestamp;
 use GRPC\Collector\TraceCreateObject;
 use GRPC\Collector\TraceCreateRequest;
-use SLoggerLaravel\GrpcClient\Services\SLoggerGrpcResponseException;
-use SLoggerLaravel\GrpcClient\Services\SLoggerTraceCollectorGrpcService;
+use SLoggerLaravel\ApiClients\Grpc\Services\SLoggerGrpcResponseException;
+use SLoggerLaravel\ApiClients\Grpc\Services\SLoggerTraceCollectorGrpcService;
+use SLoggerLaravel\ApiClients\SLoggerApiClientInterface;
 use SLoggerLaravel\Objects\SLoggerTraceObjects;
 use SLoggerLaravel\Objects\SLoggerTraceUpdateObjects;
 use Spiral\RoadRunner\GRPC\Context;
 
-readonly class SLoggerGrpcClient
+readonly class SLoggerGrpcClient implements SLoggerApiClientInterface
 {
     public function __construct(
         private string $apiToken,
@@ -42,23 +43,17 @@ readonly class SLoggerGrpcClient
                 ->setDuration(
                     is_null($item->duration)
                         ? null
-                        : new DoubleValue([
-                        'value' => $item->duration,
-                    ])
+                        : new DoubleValue(['value' => $item->duration])
                 )
                 ->setMemory(
                     is_null($item->memory)
                         ? null
-                        : new DoubleValue([
-                        'value' => $item->memory,
-                    ])
+                        : new DoubleValue(['value' => $item->memory])
                 )
                 ->setCpu(
                     is_null($item->cpu)
                         ? null
-                        : new DoubleValue([
-                        'value' => $item->cpu,
-                    ])
+                        : new DoubleValue(['value' => $item->cpu])
                 )
                 ->setLoggedAt($loggedAt);
         }

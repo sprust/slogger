@@ -1,6 +1,6 @@
 <?php
 
-namespace SLoggerLaravel\GrpcClient\Services;
+namespace SLoggerLaravel\ApiClients\Grpc\Services;
 
 use Google\Protobuf\Internal\Message;
 use Grpc\BaseStub;

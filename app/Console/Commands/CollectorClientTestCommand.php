@@ -4,8 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
-use SLoggerLaravel\GrpcClient\SLoggerGrpcClient;
-use SLoggerLaravel\HttpClient\SLoggerHttpClient;
+use SLoggerLaravel\ApiClients\SLoggerApiClientFactory;
 use SLoggerLaravel\Objects\SLoggerTraceObject;
 use SLoggerLaravel\Objects\SLoggerTraceObjects;
 
@@ -35,10 +34,7 @@ class CollectorClientTestCommand extends Command
 
         $this->warn($clientName);
 
-        $client = match ($clientName) {
-            'http' => app(SLoggerHttpClient::class),
-            'grpc' => app(SLoggerGrpcClient::class),
-        };
+        $client = app(SLoggerApiClientFactory::class)->create($clientName);
 
         $requestsCount = $this->argument('requestsCount');
 
