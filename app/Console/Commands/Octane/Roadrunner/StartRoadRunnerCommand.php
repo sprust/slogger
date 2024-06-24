@@ -65,6 +65,7 @@ class StartRoadRunnerCommand extends \Laravel\Octane\Commands\StartRoadRunnerCom
             '-o', 'grpc.listen=tcp://'.$this->grpcHost().':'.$this->grpcPort(),
             '-o', 'grpc.proto='.base_path('grpc/proto/*.proto'),
             '-o', 'grpc.pool.command='.base_path('grpc/rr-grpc-worker.php'),
+            '-o', 'grpc.pool.num_workers='.$this->option('grpc-workers'),
             '-o', 'grpc.pool.max_jobs='.$this->option('grpc-max-requests'),
 
             '-o', 'http.pool.supervisor.exec_ttl='.$this->maxExecutionTime(),
