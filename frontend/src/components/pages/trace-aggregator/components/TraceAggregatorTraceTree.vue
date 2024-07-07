@@ -61,13 +61,34 @@
                 </el-space>
                 <el-space spacer="|">
                   <div>
-                    {{ treeNodeViewsMap[data.key].duration }}
-                  </div>
-                  <div>
                     {{ treeNodeViewsMap[data.key].status }}
                   </div>
                   <div>
                     {{ convertDateStringToLocal(treeNodeViewsMap[data.key].logged_at) }}
+                  </div>
+                  <div>
+                    <el-tooltip>
+                      <template #content>
+                        duration
+                      </template>
+                      {{ treeNodeViewsMap[data.key].duration }}
+                    </el-tooltip>
+                  </div>
+                  <div>
+                    <el-tooltip>
+                      <template #content>
+                        memory
+                      </template>
+                      {{ treeNodeViewsMap[data.key].memory }}
+                    </el-tooltip>
+                  </div>
+                  <div>
+                    <el-tooltip>
+                      <template #content>
+                        cpu
+                      </template>
+                      {{ treeNodeViewsMap[data.key].cpu }}
+                    </el-tooltip>
                   </div>
                 </el-space>
               </el-row>
