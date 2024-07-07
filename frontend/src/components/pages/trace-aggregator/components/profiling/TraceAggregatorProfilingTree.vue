@@ -23,10 +23,10 @@
             <el-button type="info" @click="onCalculateMetrics(node)" link>
               hardest
             </el-button>
-            <div>
-              <TraceAggregatorProfilingNodeMetrics :item="findItemByNode(node)"/>
-            </div>
           </el-space>
+          <div class="flex-grow">
+          </div>
+          <TraceAggregatorProfilingNodeMetrics :item="findItemByNode(node)"/>
         </el-row>
       </template>
     </el-tree>
@@ -145,5 +145,9 @@ export default defineComponent({
 
 .node-flow-hardest-flow {
   color: red;
+}
+
+.flex-grow {
+  flex-grow: 1;
 }
 </style>

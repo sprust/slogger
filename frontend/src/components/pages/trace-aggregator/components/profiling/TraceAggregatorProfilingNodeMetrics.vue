@@ -5,9 +5,11 @@
   <el-tag
       v-for="indicator in indicators"
       type="primary"
-      style=" font-size: 12px"
+      :style="makeIndicatorStyle(indicator)"
   >
-    {{ indicator.name }}: {{ indicator.value }} / {{ indicator.weight_percent }}
+    <el-space>
+      {{ indicator.name }}: {{ indicator.value }} / {{ indicator.weight_percent }}
+    </el-space>
   </el-tag>
 </template>
 
@@ -51,7 +53,18 @@ export default defineComponent({
 
       return indicators
     }
-  }
+  },
+
+  methods: {
+    makeIndicatorStyle(item: ProfilingItem) {
+      return {
+        'font-size': '12px',
+        'border-width': '3px',
+        'border-color': `rgba(255,0,0,${item.weight_percent / 100}`,
+
+      }
+    }
+  },
 })
 </script>
 
