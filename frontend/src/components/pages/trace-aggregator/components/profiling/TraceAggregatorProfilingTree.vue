@@ -24,8 +24,6 @@
               hardest
             </el-button>
           </el-space>
-          <div class="flex-grow">
-          </div>
           <TraceAggregatorProfilingNodeMetrics :item="findItemByNode(node)"/>
         </el-row>
       </template>
@@ -145,9 +143,5 @@ export default defineComponent({
 
 .node-flow-hardest-flow {
   color: red;
-}
-
-.flex-grow {
-  flex-grow: 1;
 }
 </style>
