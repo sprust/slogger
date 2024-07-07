@@ -40,6 +40,9 @@ bash-php-fpm:
 bash-workers:
 	@"$(WORKERS_CLI)"bash
 
+bash-frontend:
+	@"$(FRONTEND_CLI)"sh
+
 art:
 	@"$(PHP_FPM_CLI)"php artisan ${c}
 
@@ -57,6 +60,7 @@ workers-restart:
 
 oa-generate:
 	@make art c='oa:generate'
+	@make frontend-npm-generate
 
 deploy:
 	git pull
@@ -74,3 +78,6 @@ frontend-npm-i:
 
 frontend-npm-build:
 	@"$(FRONTEND_CLI)"npm run build
+
+frontend-npm-generate:
+	@"$(FRONTEND_CLI)"npm run generate
