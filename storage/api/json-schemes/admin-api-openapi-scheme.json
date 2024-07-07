@@ -1483,11 +1483,16 @@
                                                                         "value": {
                                                                             "type": "integer",
                                                                             "nullable": false
+                                                                        },
+                                                                        "weight_percent": {
+                                                                            "type": "number",
+                                                                            "nullable": false
                                                                         }
                                                                     },
                                                                     "required": [
                                                                         "name",
-                                                                        "value"
+                                                                        "value",
+                                                                        "weight_percent"
                                                                     ]
                                                                 }
                                                             }

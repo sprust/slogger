@@ -7,7 +7,7 @@
       type="primary"
       style=" font-size: 12px"
   >
-    {{ indicator.name }}: {{ indicator.value }}
+    {{ indicator.name }}: {{ indicator.value }} / {{ indicator.weight_percent }}
   </el-tag>
 </template>
 

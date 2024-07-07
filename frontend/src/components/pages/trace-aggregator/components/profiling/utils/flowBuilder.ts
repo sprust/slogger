@@ -11,8 +11,8 @@ export class FlowBuilder {
     private posX: number = 50
     private posY: number = 50
 
-    private stepX: number = 400 // horizontal
-    private stepY: number = 400 // vertical
+    private stepX: number = 300 // horizontal
+    private stepY: number = 300 // vertical
 
     private flowMap: FlowMap = {}
 

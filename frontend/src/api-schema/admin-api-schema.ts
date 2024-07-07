@@ -671,6 +671,7 @@ export namespace AdminApi {
     data: ({
     name: string,
     value: number,
+    weight_percent: number,
 
 })[],
 
@@ -697,6 +698,7 @@ export namespace AdminApi {
           data: {
             name: string;
             value: number;
+            weight_percent: number;
           }[];
         }[];
       };
@@ -2164,6 +2166,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     data: ({
     name: string,
     value: number,
+    weight_percent: number,
 
 })[],
 
@@ -2185,6 +2188,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
               data: {
                 name: string;
                 value: number;
+                weight_percent: number;
               }[];
             }[];
           };
