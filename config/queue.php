@@ -71,8 +71,33 @@ return [
             'after_commit' => false,
         ],
 
-        'roadrunner' => [
-            'driver' => 'roadrunner',
+        'rabbitmq' => [
+            'driver'     => 'rabbitmq',
+            'queue'      => env('RABBITMQ_QUEUE', 'default'),
+            'connection' => PhpAmqpLib\Connection\AMQPLazyConnection::class,
+
+            'hosts' => [
+                [
+                    'host'     => env('RABBITMQ_HOST', '127.0.0.1'),
+                    'port'     => env('RABBITMQ_PORT', 5672),
+                    'user'     => env('RABBITMQ_USER'),
+                    'password' => env('RABBITMQ_PASSWORD'),
+                    'vhost'    => env('RABBITMQ_VHOST', '/'),
+                ],
+            ],
+
+            'options' => [
+                'ssl_options' => [
+                    'cafile'      => env('RABBITMQ_SSL_CAFILE'),
+                    'local_cert'  => env('RABBITMQ_SSL_LOCALCERT'),
+                    'local_key'   => env('RABBITMQ_SSL_LOCALKEY'),
+                    'verify_peer' => env('RABBITMQ_SSL_VERIFY_PEER', true),
+                    'passphrase'  => env('RABBITMQ_SSL_PASSPHRASE'),
+                ],
+                'queue'       => [
+                    'job' => VladimirYuldashev\LaravelQueueRabbitMQ\Queue\Jobs\RabbitMQJob::class,
+                ],
+            ],
         ],
 
     ],
@@ -112,7 +137,7 @@ return [
 
     'queues' => [
         'creating' => [
-            'connection' => env('QUEUE_TRACES_CREATING_CONNECTION', env('QUEUE_CONNECTION', 'sync')),
+            'connection' => env('QUEUE_TRACES_CREATING_CONNECTION', 'redis'),
             'name'       => env('QUEUE_TRACES_CREATING_NAME', 'traces-creating'),
         ],
     ],

@@ -35,6 +35,9 @@ BACKEND_URL=https://localhost:10021# see port in .env.OCTANE_RR_DOCKER_PORT
 make setup
 ```
 
+## Rabbitmq
+### Add queue with name from env.QUEUE_TRACES_CREATING_NAME
+
 ## User creating
 ```bash
 make art c=user:create
