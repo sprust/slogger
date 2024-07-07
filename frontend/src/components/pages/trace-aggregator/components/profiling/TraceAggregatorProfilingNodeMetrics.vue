@@ -56,7 +56,7 @@ export default defineComponent({
   },
 
   methods: {
-    makeIndicatorStyle(item: ProfilingItem) {
+    makeIndicatorStyle(item: ProfilingDataItem) {
       return {
         'font-size': '12px',
         'border-width': '3px',
