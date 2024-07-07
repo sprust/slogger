@@ -149,6 +149,7 @@ services:
       - ${FRONTEND_DOCKER_PORT}:3000
     volumes:
       - ./frontend:/app
+      - ./storage/api/json-schemes/:/app/json-schemes
     command: [ "sh", "-c", "${FRONTEND_DOCKER_COMMAND}" ]
 
 volumes:

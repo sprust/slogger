@@ -23,10 +23,8 @@
             <el-button type="info" @click="onCalculateMetrics(node)" link>
               hardest
             </el-button>
-            <div>
-              <TraceAggregatorProfilingNodeMetrics :item="findItemByNode(node)"/>
-            </div>
           </el-space>
+          <TraceAggregatorProfilingNodeMetrics :item="findItemByNode(node)"/>
         </el-row>
       </template>
     </el-tree>

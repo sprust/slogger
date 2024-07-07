@@ -15,6 +15,15 @@ class TraceProfilingTransport
     {
         $objects = [];
 
+        $maxValues = [];
+
+        foreach ($profilingDto->items as $item) {
+            foreach ($item->data as $dataItem) {
+                $maxValues[$dataItem->name] ??= 0;
+                $maxValues[$dataItem->name] = max($maxValues[$dataItem->name], $dataItem->value);
+            }
+        }
+
         foreach ($profilingDto->items as $item) {
             $objects[] = new ProfilingItemObject(
                 id: Str::uuid()->toString(),
@@ -23,7 +32,10 @@ class TraceProfilingTransport
                 data: array_map(
                     fn(TraceProfilingDataDto $itemData) => new ProfilingItemDataObject(
                         name: $itemData->name,
-                        value: $itemData->value
+                        value: $itemData->value,
+                        weightPercent: $maxValues[$itemData->name] !== 0
+                            ? round(($itemData->value / $maxValues[$itemData->name]) * 100, 4)
+                            : 0
                     ),
                     $item->data
                 ),
