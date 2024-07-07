@@ -157,7 +157,5 @@ volumes:
     driver: local
   mongo:
     driver: local
-  mongo_project_logs:
-    driver: local
   rabbitmq-data:
     driver: local
