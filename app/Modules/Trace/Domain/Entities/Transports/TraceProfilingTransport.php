@@ -33,7 +33,9 @@ class TraceProfilingTransport
                     fn(TraceProfilingDataDto $itemData) => new ProfilingItemDataObject(
                         name: $itemData->name,
                         value: $itemData->value,
-                        weightPercent: round(($itemData->value / $maxValues[$itemData->name]) * 100, 4)
+                        weightPercent: $maxValues[$itemData->name] !== 0
+                            ? round(($itemData->value / $maxValues[$itemData->name]) * 100, 4)
+                            : 0
                     ),
                     $item->data
                 ),
