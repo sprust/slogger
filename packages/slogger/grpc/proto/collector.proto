@@ -29,10 +29,15 @@ message TraceCreateObject {
     google.protobuf.StringValue parent_trace_id = 2;
     string type = 3;
     string status = 4;
+    // sometimes
     repeated string tags = 5;
+    // json
     string data = 6;
+    // sometimes
     google.protobuf.DoubleValue duration = 7;
+    // sometimes
     google.protobuf.DoubleValue memory = 8;
+    // sometimes
     google.protobuf.DoubleValue cpu = 9;
     google.protobuf.Timestamp logged_at = 10;
 }
@@ -46,11 +51,17 @@ message TraceUpdateRequest {
 message TraceUpdateObject {
     string trace_id = 1;
     string status = 2;
+    // sometimes
     TraceProfilingItemsObject profiling = 3;
+    // sometimes
     TagsObject tags = 4;
+    // sometimes
     google.protobuf.StringValue data = 5;
+    // sometimes
     google.protobuf.DoubleValue duration = 6;
+    // sometimes
     google.protobuf.DoubleValue memory = 7;
+    // sometimes
     google.protobuf.DoubleValue cpu = 8;
 }
 
