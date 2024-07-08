@@ -1,0 +1,25 @@
+{
+    "name": "slogger/grpc",
+    "description": "Grpc for slogger via Roadrunner",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Pavel",
+            "email": "sppetrovich@mail.ru"
+        }
+    ],
+    "require": {
+        "ext-grpc": "*",
+        "ext-protobuf": "*",
+        "grpc/grpc": "^1.57",
+        "spiral/roadrunner-grpc": "^3.3"
+    },
+    "autoload": {
+        "psr-4": {
+            "SLoggerGrpc\\": "src/",
+            "SLoggerGrpcDto\\": "generated/SLoggerGrpcDto"
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

@@ -26,21 +26,15 @@ class AppServiceProvider extends ServiceProvider
 
     private function bootOctane(): void
     {
-        $this->app->bind(RoadRunnerServerStateFile::class, function ($app) {
+        $this->app->bind(RoadRunnerServerStateFile::class, function () {
             return new RoadRunnerServerStateFile(
-                $app['config']->get(
-                    'octane.state_file',
-                    storage_path('logs/octane-roadrunner-server-state.json')
-                )
+                storage_path('logs/octane-roadrunner-server-state.json')
             );
         });
 
-        $this->app->bind(SwooleServerStateFile::class, function ($app) {
+        $this->app->bind(SwooleServerStateFile::class, function () {
             return new SwooleServerStateFile(
-                $app['config']->get(
-                    'octane.state_file',
-                    storage_path('logs/octane-swoole-server-state.json')
-                )
+                storage_path('logs/octane-swoole-server-state.json')
             );
         });
     }

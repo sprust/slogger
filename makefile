@@ -7,6 +7,14 @@ WORKERS_CLI="docker-compose exec $(WORKERS_SERVICE) "
 FRONTEND_SERVICE="frontend"
 FRONTEND_CLI="docker-compose exec $(FRONTEND_SERVICE) "
 
+ifneq (,$(wildcard ./.env))
+    include .env
+    export
+else
+    include .env.example
+    export
+endif
+
 env-copy:
 	cp -i .env.example .env
 	cp -i frontend/.env.example frontend/.env
@@ -72,6 +80,18 @@ deploy:
 
 rr-get-binary:
 	@"$(WORKERS_CLI)"./vendor/bin/rr get-binary
+
+rr-workers:
+	@"$(WORKERS_CLI)"./rr workers -i -o rpc.listen=tcp://$(OCTANE_RR_RPC_HOST):$(OCTANE_RR_RPC_PORT)
+
+protoc-load:
+	@"$(WORKERS_CLI)"./vendor/bin/rr download-protoc-binary
+
+protoc-compile:
+	@"$(WORKERS_CLI)"protoc --plugin=protoc-gen-php-grpc \
+		--php_out=./packages/slogger/grpc/generated \
+		--php-grpc_out=./packages/slogger/grpc/generated \
+		./packages/slogger/grpc/proto/collector.proto
 
 frontend-npm-i:
 	@"$(FRONTEND_CLI)"npm i

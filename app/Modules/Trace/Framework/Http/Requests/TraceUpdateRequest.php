@@ -76,16 +76,18 @@ class TraceUpdateRequest extends FormRequest
                 'json',
             ],
             'traces.*.duration'                       => [
-                'present',
+                'sometimes',
                 'nullable',
                 'numeric',
             ],
             'traces.*.memory'                         => [
                 'sometimes',
+                'nullable',
                 'numeric',
             ],
             'traces.*.cpu'                            => [
                 'sometimes',
+                'nullable',
                 'numeric',
             ],
         ];
