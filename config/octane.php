@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Trace\Grpc\TraceCollectorService;
 use Laravel\Octane\Contracts\OperationTerminated;
 use Laravel\Octane\Events\RequestHandled;
 use Laravel\Octane\Events\RequestReceived;
@@ -19,8 +20,7 @@ use Laravel\Octane\Listeners\FlushTemporaryContainerInstances;
 use Laravel\Octane\Listeners\ReportException;
 use Laravel\Octane\Listeners\StopWorkerIfNecessary;
 use Laravel\Octane\Octane;
-use GRPCServices\TraceCollectorService;
-use GRPC\TraceCollector\TraceCollectorInterface;
+use SLoggerGrpcDto\TraceCollector\TraceCollectorInterface;
 
 return [
 

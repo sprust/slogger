@@ -1,22 +1,22 @@
 <?php
 
-namespace GRPCClient;
+namespace SLoggerLaravel\ApiClients\Grpc;
 
 use Google\Protobuf\DoubleValue;
 use Google\Protobuf\Int32Value;
 use Google\Protobuf\StringValue;
 use Google\Protobuf\Timestamp;
-use GRPC\TraceCollector\TagsObject;
-use GRPC\TraceCollector\TraceCreateObject;
-use GRPC\TraceCollector\TraceCreateRequest;
-use GRPC\TraceCollector\TraceProfilingItemDataItemObject;
-use GRPC\TraceCollector\TraceProfilingItemDataItemValueObject;
-use GRPC\TraceCollector\TraceProfilingItemObject;
-use GRPC\TraceCollector\TraceProfilingItemsObject;
-use GRPC\TraceCollector\TraceUpdateObject;
-use GRPC\TraceCollector\TraceUpdateRequest;
-use GRPCClient\Services\SLoggerGrpcResponseException;
-use GRPCClient\Services\SLoggerTraceCollectorGrpcService;
+use SLoggerGrpc\Services\SLoggerGrpcResponseException;
+use SLoggerGrpc\Services\SLoggerTraceCollectorGrpcService;
+use SLoggerGrpcDto\TraceCollector\TagsObject;
+use SLoggerGrpcDto\TraceCollector\TraceCreateObject;
+use SLoggerGrpcDto\TraceCollector\TraceCreateRequest;
+use SLoggerGrpcDto\TraceCollector\TraceProfilingItemDataItemObject;
+use SLoggerGrpcDto\TraceCollector\TraceProfilingItemDataItemValueObject;
+use SLoggerGrpcDto\TraceCollector\TraceProfilingItemObject;
+use SLoggerGrpcDto\TraceCollector\TraceProfilingItemsObject;
+use SLoggerGrpcDto\TraceCollector\TraceUpdateObject;
+use SLoggerGrpcDto\TraceCollector\TraceUpdateRequest;
 use SLoggerLaravel\ApiClients\SLoggerApiClientInterface;
 use SLoggerLaravel\Objects\SLoggerTraceObjects;
 use SLoggerLaravel\Objects\SLoggerTraceUpdateObjects;
@@ -45,7 +45,7 @@ readonly class SLoggerGrpcClient implements SLoggerApiClientInterface
             $objects[] = (new TraceCreateObject())
                 ->setTraceId($item->traceId)
                 ->setParentTraceId(
-                    is_null($item->parentTraceId,)
+                    is_null($item->parentTraceId)
                         ? null
                         : new StringValue(['value' => $item->parentTraceId])
                 )
@@ -85,6 +85,9 @@ readonly class SLoggerGrpcClient implements SLoggerApiClientInterface
         );
     }
 
+    /**
+     * @throws SLoggerGrpcResponseException
+     */
     public function updateTraces(SLoggerTraceUpdateObjects $traceObjects): void
     {
         $objects = [];

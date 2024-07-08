@@ -1,6 +1,6 @@
 <?php
 
-namespace GRPCClient\Services;
+namespace SLoggerGrpc\Services;
 
 use Exception;
 

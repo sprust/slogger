@@ -1,6 +1,6 @@
 <?php
 
-namespace GRPCServices;
+namespace App\Modules\Trace\Grpc;
 
 use App\Modules\Service\Domain\Actions\Interfaces\FindServiceByTokenActionInterface;
 use App\Modules\Trace\Domain\Actions\Interfaces\MakeTraceTimestampsActionInterface;
@@ -12,16 +12,16 @@ use App\Modules\Trace\Domain\Entities\Parameters\TraceCreateParametersList;
 use App\Modules\Trace\Domain\Entities\Parameters\TraceUpdateParameters;
 use App\Modules\Trace\Domain\Entities\Parameters\TraceUpdateParametersList;
 use App\Modules\Trace\Framework\Http\Services\QueueDispatcher;
-use GRPC\TraceCollector\TraceCollectorInterface;
-use GRPC\TraceCollector\TraceCollectorResponse;
-use GRPC\TraceCollector\TraceCreateObject;
-use GRPC\TraceCollector\TraceCreateRequest;
-use GRPC\TraceCollector\TraceProfilingItemDataItemObject;
-use GRPC\TraceCollector\TraceProfilingItemObject;
-use GRPC\TraceCollector\TraceProfilingItemsObject;
-use GRPC\TraceCollector\TraceUpdateObject;
-use GRPC\TraceCollector\TraceUpdateRequest;
 use Illuminate\Support\Carbon;
+use SLoggerGrpcDto\TraceCollector\TraceCollectorInterface;
+use SLoggerGrpcDto\TraceCollector\TraceCollectorResponse;
+use SLoggerGrpcDto\TraceCollector\TraceCreateObject;
+use SLoggerGrpcDto\TraceCollector\TraceCreateRequest;
+use SLoggerGrpcDto\TraceCollector\TraceProfilingItemDataItemObject;
+use SLoggerGrpcDto\TraceCollector\TraceProfilingItemObject;
+use SLoggerGrpcDto\TraceCollector\TraceProfilingItemsObject;
+use SLoggerGrpcDto\TraceCollector\TraceUpdateObject;
+use SLoggerGrpcDto\TraceCollector\TraceUpdateRequest;
 use Spiral\RoadRunner\GRPC;
 use Throwable;
 

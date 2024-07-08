@@ -1,6 +1,6 @@
 {
     "name": "slogger/grpc",
-    "description": "Grpc client for slogger via Roadrunner",
+    "description": "Grpc for slogger via Roadrunner",
     "license": "MIT",
     "authors": [
         {
@@ -17,8 +17,8 @@
     },
     "autoload": {
         "psr-4": {
-            "GRPC\\": "src/GRPC",
-            "GRPCClient\\": "src/Client"
+            "SLoggerGrpc\\": "src/",
+            "SLoggerGrpcDto\\": "generated/SLoggerGrpcDto"
         }
     },
     "minimum-stability": "stable",

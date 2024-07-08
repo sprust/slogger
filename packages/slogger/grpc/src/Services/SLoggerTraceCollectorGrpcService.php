@@ -1,13 +1,13 @@
 <?php
 
-namespace GRPCClient\Services;
+namespace SLoggerGrpc\Services;
 
 use Google\Protobuf\Internal\Message;
 use Grpc\BaseStub;
-use GRPC\TraceCollector\TraceCollectorInterface;
-use GRPC\TraceCollector\TraceCollectorResponse;
-use GRPC\TraceCollector\TraceCreateRequest;
-use GRPC\TraceCollector\TraceUpdateRequest;
+use SLoggerGrpcDto\TraceCollector\TraceCollectorInterface;
+use SLoggerGrpcDto\TraceCollector\TraceCollectorResponse;
+use SLoggerGrpcDto\TraceCollector\TraceCreateRequest;
+use SLoggerGrpcDto\TraceCollector\TraceUpdateRequest;
 use Spiral\RoadRunner\GRPC;
 
 class SLoggerTraceCollectorGrpcService extends BaseStub implements TraceCollectorInterface

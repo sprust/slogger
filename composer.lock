@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "4e9c7e8331f72e76b19a3bbf3c431305",
+    "content-hash": "c7175d2cc5bfbbf67facac3a9c3d6b17",
     "packages": [
         {
             "name": "brick/math",
@@ -4164,7 +4164,7 @@
             "dist": {
                 "type": "path",
                 "url": "packages/slogger/grpc",
-                "reference": "64bda6218d4cf5d80e4e41a92a869448ba2abad5"
+                "reference": "72ed1e9564aab78bc7c89d64bc8ea185ca0d5144"
             },
             "require": {
                 "ext-grpc": "*",
@@ -4176,8 +4176,8 @@
             "type": "library",
             "autoload": {
                 "psr-4": {
-                    "GRPC\\": "src/GRPC",
-                    "GRPCClient\\": "src/Client"
+                    "SLoggerGrpc\\": "src/",
+                    "SLoggerGrpcDto\\": "generated/SLoggerGrpcDto"
                 }
             },
             "license": [
@@ -4189,7 +4189,7 @@
                     "email": "sppetrovich@mail.ru"
                 }
             ],
-            "description": "SLogger grpc client for laravel via Roadrunner",
+            "description": "Grpc client for slogger via Roadrunner",
             "transport-options": {
                 "symlink": true,
                 "relative": true

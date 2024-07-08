@@ -3,8 +3,8 @@ syntax = "proto3";
 import "google/protobuf/wrappers.proto";
 import "google/protobuf/timestamp.proto";
 
-option php_namespace = "GRPC\\TraceCollector";
-option php_metadata_namespace = "GRPC\\TraceCollectorGPBMetadata";
+option php_namespace = "SLoggerGrpcDto\\TraceCollector";
+option php_metadata_namespace = "SLoggerGrpcDto\\TraceCollectorGPBMetadata";
 
 package trace.collector;
 

@@ -2,12 +2,13 @@
 
 namespace SLoggerLaravel\ApiClients;
 
+use Exception;
 use Grpc\ChannelCredentials;
 use GuzzleHttp\Client;
 use Illuminate\Contracts\Foundation\Application;
 use RuntimeException;
-use GRPCClient\SLoggerGrpcClient;
-use GRPCClient\Services\SLoggerTraceCollectorGrpcService;
+use SLoggerGrpc\Services\SLoggerTraceCollectorGrpcService;
+use SLoggerLaravel\ApiClients\Grpc\SLoggerGrpcClient;
 use SLoggerLaravel\ApiClients\Http\SLoggerHttpClient;
 
 readonly class SLoggerApiClientFactory
@@ -47,7 +48,7 @@ readonly class SLoggerApiClientFactory
 
     private function createGrpc(): SLoggerGrpcClient
     {
-        if (!class_exists(SLoggerGrpcClient::class)) {
+        if (!class_exists(SLoggerTraceCollectorGrpcService::class)) {
             throw new RuntimeException(
                 'The package slogger/grpc is not installed'
             );
@@ -58,14 +59,18 @@ readonly class SLoggerApiClientFactory
         $url   = $config['url'];
         $token = $config['token'];
 
-        return new SLoggerGrpcClient(
-            $token,
-            new SLoggerTraceCollectorGrpcService(
-                hostname: $url,
-                opts: [
-                    'credentials' => ChannelCredentials::createInsecure(),
-                ]
-            )
-        );
+        try {
+            return new SLoggerGrpcClient(
+                $token,
+                new SLoggerTraceCollectorGrpcService(
+                    hostname: $url,
+                    opts: [
+                        'credentials' => ChannelCredentials::createInsecure(),
+                    ]
+                )
+            );
+        } catch (Exception $exception) {
+            throw new RuntimeException($exception->getMessage());
+        }
     }
 }

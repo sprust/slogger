@@ -1,5 +1,5 @@
 
-# Grpc client for slogger via Roadrunner
+# Grpc for slogger via Roadrunner
 
 ## Installation
 
