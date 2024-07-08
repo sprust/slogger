@@ -12,7 +12,6 @@
         "ext-grpc": "*",
         "ext-protobuf": "*",
         "grpc/grpc": "^1.57",
-        "slogger/laravel": "dev-master",
         "spiral/roadrunner-grpc": "^3.3"
     },
     "autoload": {
