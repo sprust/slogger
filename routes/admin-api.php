@@ -8,6 +8,7 @@ use App\Modules\Cleaner\Framework\Http\Controllers\SettingController;
 use App\Modules\Dashboard\Framework\Http\Controllers\DatabaseStatController;
 use App\Modules\Dashboard\Framework\Http\Controllers\ServiceStatController;
 use App\Modules\Service\Framework\Http\Controllers\ServiceController;
+use App\Modules\Tools\Framework\Http\Controllers\ToolLinksController;
 use App\Modules\Trace\Framework\Http\Controllers\TraceContentController;
 use App\Modules\Trace\Framework\Http\Controllers\TraceController;
 use App\Modules\Trace\Framework\Http\Controllers\TraceProfilingController;
@@ -28,6 +29,12 @@ Route::prefix('/dashboard')
     ->group(function () {
         Route::get('/database', [DatabaseStatController::class, 'index'])->name('index');
         Route::get('/service-stat', [ServiceStatController::class, 'index'])->name('index');
+    });
+
+Route::prefix('/tools')
+    ->as('tools.')
+    ->group(function () {
+        Route::get('/links', ToolLinksController::class)->name('links');
     });
 
 Route::prefix('/services')
