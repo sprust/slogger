@@ -61,11 +61,13 @@
                                                 },
                                                 "memory": {
                                                     "type": "number",
-                                                    "format": "float"
+                                                    "format": "float",
+                                                    "nullable": true
                                                 },
                                                 "cpu": {
                                                     "type": "number",
-                                                    "format": "float"
+                                                    "format": "float",
+                                                    "nullable": true
                                                 },
                                                 "logged_at": {
                                                     "type": "number",
@@ -169,11 +171,13 @@
                                                 },
                                                 "memory": {
                                                     "type": "number",
-                                                    "format": "float"
+                                                    "format": "float",
+                                                    "nullable": true
                                                 },
                                                 "cpu": {
                                                     "type": "number",
-                                                    "format": "float"
+                                                    "format": "float",
+                                                    "nullable": true
                                                 }
                                             }
                                         }
