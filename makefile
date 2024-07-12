@@ -27,6 +27,7 @@ setup:
 	@make composer c=install
 	@make art c=key:generate
 	@make art c="migrate --force"
+	@make rabbitmq-queues-declare
 	@make rr-get-binary
 	@make frontend-npm-i
 	@make frontend-npm-build
@@ -101,3 +102,6 @@ frontend-npm-build:
 
 frontend-npm-generate:
 	@"$(FRONTEND_CLI)"npm run generate
+
+rabbitmq-queues-declare:
+	@make art c="rabbitmq:queue-declare $(QUEUE_TRACES_CREATING_NAME)"
