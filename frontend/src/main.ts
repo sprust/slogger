@@ -33,11 +33,13 @@ import {
     traceAggregatorTimestampFieldsStore,
     traceAggregatorTimestampFieldsStoreInjectionKey
 } from "./store/traceAggregatorTimestampFieldsStore.ts";
+import {toolLinksStore, toolLinksStoreInjectionKey} from "./store/toolLinksStore.ts";
 
 createApp(App)
     .use(router)
     .use(ElementPlus)
     .use(authStore, authStoreInjectionKey)
+    .use(toolLinksStore, toolLinksStoreInjectionKey)
     .use(traceAggregatorStore, traceAggregatorStoreInjectionKey)
     .use(traceAggregatorFindTagsStore, traceAggregatorFindTagsStoreInjectionKey)
     .use(traceAggregatorTreeStore, traceAggregatorTreeStoreInjectionKey)

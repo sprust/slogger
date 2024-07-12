@@ -1,0 +1,92 @@
+syntax = "proto3";
+
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/timestamp.proto";
+
+option php_namespace = "SLoggerGrpcDto\\TraceCollector";
+option php_metadata_namespace = "SLoggerGrpcDto\\TraceCollectorGPBMetadata";
+
+package trace.collector;
+
+service TraceCollector {
+    rpc Create (TraceCreateRequest) returns (TraceCollectorResponse) {}
+    rpc Update (TraceUpdateRequest) returns (TraceCollectorResponse) {}
+}
+
+message TraceCollectorResponse {
+    int32 status_code = 1;
+    string message = 2;
+}
+
+// create
+
+message TraceCreateRequest {
+    repeated TraceCreateObject traces = 1;
+}
+
+message TraceCreateObject {
+    string trace_id = 1;
+    google.protobuf.StringValue parent_trace_id = 2;
+    string type = 3;
+    string status = 4;
+    // sometimes
+    repeated string tags = 5;
+    // json
+    string data = 6;
+    // sometimes
+    google.protobuf.DoubleValue duration = 7;
+    // sometimes
+    google.protobuf.DoubleValue memory = 8;
+    // sometimes
+    google.protobuf.DoubleValue cpu = 9;
+    google.protobuf.Timestamp logged_at = 10;
+}
+
+// update
+
+message TraceUpdateRequest {
+    repeated TraceUpdateObject traces = 1;
+}
+
+message TraceUpdateObject {
+    string trace_id = 1;
+    string status = 2;
+    // sometimes
+    TraceProfilingItemsObject profiling = 3;
+    // sometimes
+    TagsObject tags = 4;
+    // sometimes
+    google.protobuf.StringValue data = 5;
+    // sometimes
+    google.protobuf.DoubleValue duration = 6;
+    // sometimes
+    google.protobuf.DoubleValue memory = 7;
+    // sometimes
+    google.protobuf.DoubleValue cpu = 8;
+}
+
+message TagsObject {
+    repeated string items = 1;
+}
+
+message TraceProfilingItemsObject {
+    string main_caller = 1;
+    repeated TraceProfilingItemObject items = 2;
+}
+
+message TraceProfilingItemObject {
+    string raw = 1;
+    string calling = 2;
+    string callable = 3;
+    repeated TraceProfilingItemDataItemObject data = 4;
+}
+
+message TraceProfilingItemDataItemObject {
+    string name = 1;
+    TraceProfilingItemDataItemValueObject value = 2;
+}
+
+message TraceProfilingItemDataItemValueObject {
+    google.protobuf.DoubleValue double = 1;
+    google.protobuf.Int32Value int = 2;
+}

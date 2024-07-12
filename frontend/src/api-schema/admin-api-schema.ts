@@ -174,6 +174,31 @@ export namespace AdminApi {
     };
   } /**
  * No description
+ * @name ToolsLinksList
+ * @request GET:/admin-api/tools/links
+ * @secure
+ * @response `200` `{
+    data: ({
+    name: string,
+    url: string,
+
+})[],
+
+}` description
+*/
+  export namespace ToolsLinksList {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        name: string;
+        url: string;
+      }[];
+    };
+  } /**
+ * No description
  * @name ServicesList
  * @request GET:/admin-api/services
  * @secure
@@ -671,6 +696,7 @@ export namespace AdminApi {
     data: ({
     name: string,
     value: number,
+    weight_percent: number,
 
 })[],
 
@@ -697,6 +723,7 @@ export namespace AdminApi {
           data: {
             name: string;
             value: number;
+            weight_percent: number;
           }[];
         }[];
       };
@@ -1638,6 +1665,38 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     /**
  * No description
  *
+ * @name ToolsLinksList
+ * @request GET:/admin-api/tools/links
+ * @secure
+ * @response `200` `{
+    data: ({
+    name: string,
+    url: string,
+
+})[],
+
+}` description
+ */
+    toolsLinksList: (params: RequestParams = {}) =>
+      this.request<
+        {
+          data: {
+            name: string;
+            url: string;
+          }[];
+        },
+        any
+      >({
+        path: `/admin-api/tools/links`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
  * @name ServicesList
  * @request GET:/admin-api/services
  * @secure
@@ -2164,6 +2223,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     data: ({
     name: string,
     value: number,
+    weight_percent: number,
 
 })[],
 
@@ -2185,6 +2245,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
               data: {
                 name: string;
                 value: number;
+                weight_percent: number;
               }[];
             }[];
           };
