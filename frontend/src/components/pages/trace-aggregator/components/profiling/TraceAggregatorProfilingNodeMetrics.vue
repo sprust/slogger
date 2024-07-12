@@ -5,10 +5,15 @@
   <el-tag
       v-for="indicator in indicators"
       type="primary"
-      :style="makeIndicatorStyle(indicator)"
   >
     <el-space>
-      {{ indicator.name }}: {{ indicator.value }} / {{ indicator.weight_percent }}
+      {{ indicator.name }}: {{ indicator.value }}
+      <el-tooltip>
+        <template #content>
+          {{ indicator.weight_percent }}%
+        </template>
+        <div class="metric-indicator" :style="makeIndicatorStyle(indicator)"></div>
+      </el-tooltip>
     </el-space>
   </el-tag>
 </template>
@@ -57,11 +62,10 @@ export default defineComponent({
 
   methods: {
     makeIndicatorStyle(item: ProfilingDataItem) {
-      return {
-        'font-size': '12px',
-        'border-width': '3px',
-        'border-color': `rgba(255,0,0,${item.weight_percent / 100}`,
+      const roundedPercent = item.weight_percent - (item.weight_percent % 10)
 
+      return {
+        'background-color': `rgba(255,0,0,${roundedPercent / 100}`,
       }
     }
   },
@@ -69,4 +73,10 @@ export default defineComponent({
 </script>
 
 <style scoped>
+.metric-indicator {
+  width: 15px;
+  height: 15px;
+  border-radius: 20px 20px 20px 20px;
+  border: 1px solid rgba(255,255,255,.3);
+}
 </style>
