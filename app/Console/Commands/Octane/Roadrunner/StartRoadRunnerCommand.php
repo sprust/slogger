@@ -94,6 +94,6 @@ class StartRoadRunnerCommand extends \Laravel\Octane\Commands\StartRoadRunnerCom
 
     protected function grpcPort()
     {
-        return $this->option('grpc-port') ?: $this->getPort() - 2999;
+        return $this->option('grpc-port') ?: ((int) $this->getPort()) - 2999;
     }
 }

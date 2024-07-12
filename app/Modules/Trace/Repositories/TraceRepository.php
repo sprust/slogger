@@ -148,7 +148,8 @@ readonly class TraceRepository implements TraceRepositoryInterface
             ])
             ->when(
                 $to,
-                /** @phpstan-ignore-next-line
+                /**
+                 * @phpstan-ignore-next-line
                  * Parameter #2 $callback of method Illuminate\Database\Query\Builder::when() expects
                  * (callable(Illuminate\Database\Query\Builder, Illuminate\Support\Carbon):
                  * Illuminate\Database\Eloquent\Builder)|null, Closure(Illuminate\Database\Eloquent\Builder):

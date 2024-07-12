@@ -239,7 +239,10 @@ readonly class TraceTimestampsRepository implements TraceTimestampsRepositoryInt
                 continue;
             }
 
-            /** @phpstan-ignore-next-line No error to ignore is reported */
+            /**
+             * @phpstan-ignore-next-line
+             * No error to ignore is reported
+             */
             throw new RuntimeException("Unknown aggregator [$aggregation->value]");
         }
     }

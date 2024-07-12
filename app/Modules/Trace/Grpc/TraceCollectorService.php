@@ -12,6 +12,7 @@ use App\Modules\Trace\Domain\Entities\Parameters\TraceCreateParametersList;
 use App\Modules\Trace\Domain\Entities\Parameters\TraceUpdateParameters;
 use App\Modules\Trace\Domain\Entities\Parameters\TraceUpdateParametersList;
 use App\Modules\Trace\Framework\Http\Services\QueueDispatcher;
+use Google\Protobuf\Internal\RepeatedField;
 use Illuminate\Support\Carbon;
 use SLoggerGrpcDto\TraceCollector\TraceCollectorInterface;
 use SLoggerGrpcDto\TraceCollector\TraceCollectorResponse;
@@ -170,6 +171,12 @@ readonly class TraceCollectorService implements TraceCollectorInterface
 
             $tagsValue = $trace->getTags()?->getItems();
 
+            /**
+             * @phpstan-ignore-next-line
+             * Call to function is_null() with Google\Protobuf\Internal\RepeatedField will always evaluate to false.
+             * 💡 Because the type is coming from a PHPDoc, you can turn off this
+             *      check by setting treatPhpDocTypesAsCertain: false in your phpstan.neon.
+             */
             if (is_null($tagsValue)) {
                 $tags = null;
             } else {
@@ -246,6 +253,10 @@ readonly class TraceCollectorService implements TraceCollectorInterface
 
             $result[] = new TraceUpdateProfilingDataObject(
                 name: $data->getName(),
+                /**
+                 * @phpstan-ignore-next-line
+                 * Expression on left side of ?? is not nullable.
+                 */
                 value: $value->getInt()?->getValue() ?? $value->getDouble()?->getValue() ?? -1
             );
         }
