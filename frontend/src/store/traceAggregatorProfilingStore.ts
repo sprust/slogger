@@ -2,7 +2,7 @@ import type {InjectionKey} from "vue";
 // @ts-ignore // todo
 import {createStore, Store, useStore as baseUseStore} from 'vuex'
 import {ApiContainer} from "../utils/apiContainer.ts";
-import {AdminApi} from "../api-schema/admin-api-schema.ts";
+import {AdminApi, RequestBody, RequestQuery} from "../api-schema/admin-api-schema.ts";
 import {handleApiError} from "../utils/helpers.ts";
 // @ts-ignore // todo
 import {Node} from "@vue-flow/core/dist/types/node";
@@ -13,11 +13,12 @@ import {
     IndicatorsCollector
 } from "../components/pages/trace-aggregator/components/profiling/utils/indicatorsCollector.ts";
 
-type Parameters = AdminApi.TraceAggregatorTracesProfilingDetail.RequestParams
+type Parameters = AdminApi.TraceAggregatorTracesProfilingCreate.RequestParams
+type Body = AdminApi.TraceAggregatorTracesProfilingCreate.RequestBody
 
-export type Profiling = AdminApi.TraceAggregatorTracesProfilingDetail.ResponseBody['data']
-export type ProfilingNode = AdminApi.TraceAggregatorTracesProfilingDetail.ResponseBody['data']['nodes'][number]
-export type ProfilingNodeDataItem = AdminApi.TraceAggregatorTracesProfilingDetail.ResponseBody['data']['nodes'][number]['data'][number]
+export type Profiling = AdminApi.TraceAggregatorTracesProfilingCreate.ResponseBody['data']
+export type ProfilingNode = AdminApi.TraceAggregatorTracesProfilingCreate.ResponseBody['data']['nodes'][number]
+export type ProfilingNodeDataItem = AdminApi.TraceAggregatorTracesProfilingCreate.ResponseBody['data']['nodes'][number]['data'][number]
 
 export interface FlowItems {
     nodes: Array<Node>,
@@ -27,7 +28,10 @@ export interface FlowItems {
 interface State {
     loading: boolean,
     parameters: Parameters,
+    requestBody: Body,
     profiling: Profiling,
+    showExcludedCallerPreviewDialog: boolean,
+    excludedCallerPreview: string,
     showTree: boolean,
     selectedItem: ProfilingNode | null,
     profilingIndicators: Array<string>,
@@ -46,6 +50,10 @@ export const traceAggregatorProfilingStore = createStore<State>({
     state: {
         loading: true,
         parameters: {} as Parameters,
+        requestBody: {
+            caller: null,
+            excluded_callers: []
+        } as Body,
         profiling: {
             nodes: []
         },
@@ -95,6 +103,17 @@ export const traceAggregatorProfilingStore = createStore<State>({
         switchShowTree(state: State) {
             state.showTree = !state.showTree
         },
+        setBodyCaller(state: State, caller: string) {
+            state.requestBody.caller = caller
+        },
+        addBodyExcludedCallers(state: State, excludedCaller: string) {
+            state.requestBody.excluded_callers!.push(excludedCaller)
+        },
+        deleteBodyExcludedCallers(state: State, excludedCaller: string) {
+            state.requestBody.excluded_callers = state.requestBody.excluded_callers!.filter(
+                item => item !== excludedCaller
+            )
+        },
     },
     actions: {
         findProfiling(
@@ -111,10 +130,12 @@ export const traceAggregatorProfilingStore = createStore<State>({
                 traceId: traceId
             }
 
-            ApiContainer.get()
-                .traceAggregatorTracesProfilingDetail(
-                    traceId,
-                )
+            state.requestBody = {
+                caller: null,
+                excluded_callers: []
+            } as Body
+
+            ApiContainer.get().traceAggregatorTracesProfilingCreate(traceId, {})
                 .then(response => {
                     commit('setProfiling', response.data.data)
                 })
@@ -134,10 +155,7 @@ export const traceAggregatorProfilingStore = createStore<State>({
         setSelectedProfilingItem({commit}: { commit: any }, item: ProfilingNode | null) {
             commit('setSelectedProfilingItem', item)
         },
-        findProfilingByTreeNode(
-            {commit, state}: { commit: any, state: State },
-            {caller}: {caller: string }
-        ) {
+        findProfilingWithBody({commit, state}: { commit: any, state: State }) {
             state.loading = true
 
             state.profiling = {
@@ -145,11 +163,9 @@ export const traceAggregatorProfilingStore = createStore<State>({
             }
 
             ApiContainer.get()
-                .traceAggregatorTracesProfilingDetail(
+                .traceAggregatorTracesProfilingCreate(
                     state.parameters.traceId,
-                    {
-                        caller: caller
-                    }
+                    state.requestBody
                 )
                 .then(response => {
                     commit('setProfiling', response.data.data)
@@ -160,7 +176,15 @@ export const traceAggregatorProfilingStore = createStore<State>({
                 .finally(() => {
                     state.loading = false
                 })
-
+        },
+        setBodyCaller({commit}: { commit: any }, caller: string) {
+            commit('setBodyCaller', caller)
+        },
+        addBodyExcludedCallers({commit}: { commit: any }, excludedCaller: string) {
+            commit('addBodyExcludedCallers', excludedCaller)
+        },
+        deleteBodyExcludedCallers({commit}: { commit: any }, excludedCaller: string) {
+            commit('deleteBodyExcludedCallers', excludedCaller)
         },
         switchShowTree({commit}: { commit: any }) {
             commit('switchShowTree')

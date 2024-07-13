@@ -22,7 +22,8 @@ readonly class TraceProfilingController
         $profiling = $this->findTraceProfilingAction->handle(
             new TraceFindProfilingParameters(
                 traceId: $traceId,
-                caller: $validated['caller'] ?? null
+                caller: $validated['caller'] ?? null,
+                excludedCallers: $validated['excluded_callers'] ?? null
             )
         );
 

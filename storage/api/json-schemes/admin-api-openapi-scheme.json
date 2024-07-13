@@ -1476,22 +1476,36 @@
             }
         },
         "/admin-api/trace-aggregator/traces/{traceId}/profiling": {
-            "get": {
+            "post": {
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "caller": {
+                                        "type": "string",
+                                        "nullable": true,
+                                        "minLength": 1
+                                    },
+                                    "excluded_callers": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
                 "parameters": [
                     {
                         "name": "traceId",
                         "required": true,
                         "in": "path",
                         "schema": {}
-                    },
-                    {
-                        "name": "caller",
-                        "required": false,
-                        "in": "query",
-                        "schema": {
-                            "type": "string",
-                            "minLength": 1
-                        }
                     }
                 ],
                 "responses": {

@@ -8,6 +8,7 @@ use App\Modules\Trace\Domain\Entities\Objects\Profiling\Tree\ProfilingTreeObject
 use App\Modules\Trace\Repositories\Dto\Profiling\TraceProfilingDataDto;
 use App\Modules\Trace\Repositories\Dto\Profiling\TraceProfilingDto;
 use App\Modules\Trace\Repositories\Dto\Profiling\TraceProfilingItemDto;
+use Illuminate\Support\Str;
 
 class TraceProfilingTreeBuilder
 {
@@ -21,7 +22,8 @@ class TraceProfilingTreeBuilder
 
     public function __construct(
         private readonly TraceProfilingDto $profiling,
-        private readonly ?string $caller = null
+        private readonly ?string $caller = null,
+        public ?array $excludedCallers = null
     ) {
     }
 
@@ -64,6 +66,10 @@ class TraceProfilingTreeBuilder
         $result = [];
 
         foreach ($items as $item) {
+            if ($this->excludedCallers && Str::is($this->excludedCallers, $item->callable)) {
+                continue;
+            }
+
             $stackKey = "$item->calling:$item->callable";
 
             $id = $this->id++;
@@ -116,7 +122,7 @@ class TraceProfilingTreeBuilder
             fn(TraceProfilingDataDto $dto) => new ProfilingItemDataObject(
                 name: $dto->name,
                 value: $dto->value,
-                weightPercent: 0, // TODO
+                weightPercent: 0,
             ),
             $dataItems
         );

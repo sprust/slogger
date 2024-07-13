@@ -55,7 +55,7 @@ Route::prefix('/trace-aggregator')
                     ->group(function () {
                         Route::get('', [TraceController::class, 'show'])->name('show');
                         Route::get('/tree', [TraceTreeController::class, 'index'])->name('tree');
-                        Route::get('/profiling', [TraceProfilingController::class, 'index'])->name('profiling');
+                        Route::post('/profiling', [TraceProfilingController::class, 'index'])->name('profiling');
                     });
             });
 

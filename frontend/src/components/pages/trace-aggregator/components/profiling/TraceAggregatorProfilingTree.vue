@@ -14,11 +14,14 @@
             {{ makeNodeTitle(data.primary) }}
           </el-text>
           <el-space spacer="|">
-            <el-button type="info" @click="onShowFlow(data)" link>
-              flow
-            </el-button>
             <el-button type="info" @click="onFilter(data)" link>
               filter
+            </el-button>
+            <el-button type="info" @click="onExclude(data)" link>
+              exclude
+            </el-button>
+            <el-button type="info" @click="onShowFlow(data)" link>
+              flow
             </el-button>
             <TraceAggregatorProfilingNodeMetrics :item="data.primary"/>
           </el-space>
@@ -87,8 +90,14 @@ export default defineComponent({
       }
     },
     onFilter(node: ProfilingTreeNode) {
-      this.store.dispatch('findProfilingByTreeNode', {caller: node.primary.calling})
-    }
+      this.store.dispatch('setBodyCaller', node.primary.calling)
+      this.store.dispatch('findProfilingWithBody')
+    },
+    onExclude(node: ProfilingTreeNode) {
+      this.store.state.showExcludedCallerPreviewDialog = true
+
+      this.store.state.excludedCallerPreview = node.primary.calling
+    },
   },
 })
 </script>

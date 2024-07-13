@@ -27,7 +27,8 @@ readonly class FindTraceProfilingAction implements FindTraceProfilingActionInter
 
         $builder = new TraceProfilingTreeBuilder(
             profiling: $profiling,
-            caller: $parameters->caller
+            caller: $parameters->caller,
+            excludedCallers: $parameters->excludedCallers
         );
 
         return $builder->build();

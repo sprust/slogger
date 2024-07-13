@@ -683,8 +683,8 @@ export namespace AdminApi {
     };
   } /**
  * No description
- * @name TraceAggregatorTracesProfilingDetail
- * @request GET:/admin-api/trace-aggregator/traces/{traceId}/profiling
+ * @name TraceAggregatorTracesProfilingCreate
+ * @request POST:/admin-api/trace-aggregator/traces/{traceId}/profiling
  * @secure
  * @response `200` `{
     data: {
@@ -763,15 +763,16 @@ export namespace AdminApi {
 
 }` description
 */
-  export namespace TraceAggregatorTracesProfilingDetail {
+  export namespace TraceAggregatorTracesProfilingCreate {
     export type RequestParams = {
       traceId: any;
     };
-    export type RequestQuery = {
+    export type RequestQuery = {};
+    export type RequestBody = {
       /** @minLength 1 */
-      caller?: string;
+      caller?: string | null;
+      excluded_callers?: string[];
     };
-    export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody = {
       data: {
@@ -2318,8 +2319,8 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     /**
  * No description
  *
- * @name TraceAggregatorTracesProfilingDetail
- * @request GET:/admin-api/trace-aggregator/traces/{traceId}/profiling
+ * @name TraceAggregatorTracesProfilingCreate
+ * @request POST:/admin-api/trace-aggregator/traces/{traceId}/profiling
  * @secure
  * @response `200` `{
     data: {
@@ -2398,11 +2399,12 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
 
 }` description
  */
-    traceAggregatorTracesProfilingDetail: (
+    traceAggregatorTracesProfilingCreate: (
       traceId: any,
-      query?: {
+      data: {
         /** @minLength 1 */
-        caller?: string;
+        caller?: string | null;
+        excluded_callers?: string[];
       },
       params: RequestParams = {},
     ) =>
@@ -2473,9 +2475,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         any
       >({
         path: `/admin-api/trace-aggregator/traces/${traceId}/profiling`,
-        method: "GET",
-        query: query,
+        method: "POST",
+        body: data,
         secure: true,
+        type: ContentType.Json,
         format: "json",
         ...params,
       }),
