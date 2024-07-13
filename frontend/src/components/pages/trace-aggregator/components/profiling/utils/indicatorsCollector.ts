@@ -1,17 +1,28 @@
-import {ProfilingItem} from "../../../../../../store/traceAggregatorProfilingStore.ts";
+import {ProfilingNode} from "../../../../../../store/traceAggregatorProfilingStore.ts";
 
 export class IndicatorsCollector {
-    public collect(items: Array<ProfilingItem>): Array<string> {
-        const indicators: Array<string> = []
+    private indicators: Array<string>
 
-        items.map((item: ProfilingItem) => {
+    public collect(items: Array<ProfilingNode>): Array<string> {
+        this.indicators = []
+
+        this.collectRecursive(items)
+
+        return this.indicators
+    }
+
+    private collectRecursive(items: Array<ProfilingNode>): void {
+        items.map((item: ProfilingNode) => {
             item.data.map(itemData => {
-                if (indicators.indexOf(itemData.name) === -1) {
-                    indicators.push(itemData.name)
+                if (this.indicators.indexOf(itemData.name) === -1) {
+                    this.indicators.push(itemData.name)
                 }
             })
-        })
 
-        return indicators
+            if (item.children) {
+                // @ts-ignore
+                this.collect(item.children)
+            }
+        })
     }
 }

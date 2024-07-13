@@ -13,27 +13,11 @@
       Show:
     </el-text>
     <el-select
-        v-model="store.state.profilingMetricsSetting.showProfilingIndicators"
+        v-model="store.state.showProfilingIndicators"
         placeholder="Indicators"
         style="width: auto; min-width: 300px"
         clearable
         multiple
-    >
-      <el-option
-          v-for="indicator in store.state.profilingIndicators"
-          :key="indicator"
-          :label="indicator"
-          :value="indicator"
-      />
-    </el-select>
-    <el-text style="padding-left: 5px; padding-right: 5px">
-      Hardest:
-    </el-text>
-    <el-select
-        v-model="store.state.profilingMetricsSetting.hardestItemIndicatorName"
-        placeholder="Indicators"
-        style="width: auto; min-width: 200px"
-        @change="onHardestFlowIndicatorChange"
     >
       <el-option
           v-for="indicator in store.state.profilingIndicators"
@@ -91,9 +75,6 @@ export default defineComponent({
     },
     onShowTree() {
       this.store.dispatch('switchShowTree')
-    },
-    onHardestFlowIndicatorChange() {
-      this.store.dispatch('freshHardestFlow')
     },
     onCloseFlow() {
       this.store.dispatch('setSelectedProfilingItem', null)

@@ -688,15 +688,72 @@ export namespace AdminApi {
  * @secure
  * @response `200` `{
     data: {
-    main_caller: string,
-    items: ({
-    id: string,
+    nodes: ({
+    id: number,
     calling: string,
-    callable: string,
     data: ({
     name: string,
     value: number,
     weight_percent: number,
+
+})[],
+    recursionNodeId?: number | null,
+    children?: ({
+    id: number,
+    calling: string,
+    data: ({
+    name: string,
+    value: number,
+    weight_percent: number,
+
+})[],
+    recursionNodeId?: number | null,
+    children?: ({
+    id: number,
+    calling: string,
+    data: ({
+    name: string,
+    value: number,
+    weight_percent: number,
+
+})[],
+    recursionNodeId?: number | null,
+    children?: ({
+    id: number,
+    calling: string,
+    data: ({
+    name: string,
+    value: number,
+    weight_percent: number,
+
+})[],
+    recursionNodeId?: number | null,
+    children?: ({
+    id: number,
+    calling: string,
+    data: ({
+    name: string,
+    value: number,
+    weight_percent: number,
+
+})[],
+    recursionNodeId?: number | null,
+    children?: ({
+    id: number,
+    calling: string,
+  \** @maxItems 0 *\
+    data: (string)[],
+    recursionNodeId?: number | null,
+  \** @maxItems 0 *\
+    children?: (string)[] | null,
+
+})[],
+
+})[],
+
+})[],
+
+})[],
 
 })[],
 
@@ -715,15 +772,63 @@ export namespace AdminApi {
     export type RequestHeaders = {};
     export type ResponseBody = {
       data: {
-        main_caller: string;
-        items: {
-          id: string;
+        nodes: {
+          id: number;
           calling: string;
-          callable: string;
           data: {
             name: string;
             value: number;
             weight_percent: number;
+          }[];
+          recursionNodeId?: number | null;
+          children?: {
+            id: number;
+            calling: string;
+            data: {
+              name: string;
+              value: number;
+              weight_percent: number;
+            }[];
+            recursionNodeId?: number | null;
+            children?: {
+              id: number;
+              calling: string;
+              data: {
+                name: string;
+                value: number;
+                weight_percent: number;
+              }[];
+              recursionNodeId?: number | null;
+              children?: {
+                id: number;
+                calling: string;
+                data: {
+                  name: string;
+                  value: number;
+                  weight_percent: number;
+                }[];
+                recursionNodeId?: number | null;
+                children?: {
+                  id: number;
+                  calling: string;
+                  data: {
+                    name: string;
+                    value: number;
+                    weight_percent: number;
+                  }[];
+                  recursionNodeId?: number | null;
+                  children?: {
+                    id: number;
+                    calling: string;
+                    /** @maxItems 0 */
+                    data: string[];
+                    recursionNodeId?: number | null;
+                    /** @maxItems 0 */
+                    children?: string[] | null;
+                  }[];
+                }[];
+              }[];
+            }[];
           }[];
         }[];
       };
@@ -2215,15 +2320,72 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
  * @secure
  * @response `200` `{
     data: {
-    main_caller: string,
-    items: ({
-    id: string,
+    nodes: ({
+    id: number,
     calling: string,
-    callable: string,
     data: ({
     name: string,
     value: number,
     weight_percent: number,
+
+})[],
+    recursionNodeId?: number | null,
+    children?: ({
+    id: number,
+    calling: string,
+    data: ({
+    name: string,
+    value: number,
+    weight_percent: number,
+
+})[],
+    recursionNodeId?: number | null,
+    children?: ({
+    id: number,
+    calling: string,
+    data: ({
+    name: string,
+    value: number,
+    weight_percent: number,
+
+})[],
+    recursionNodeId?: number | null,
+    children?: ({
+    id: number,
+    calling: string,
+    data: ({
+    name: string,
+    value: number,
+    weight_percent: number,
+
+})[],
+    recursionNodeId?: number | null,
+    children?: ({
+    id: number,
+    calling: string,
+    data: ({
+    name: string,
+    value: number,
+    weight_percent: number,
+
+})[],
+    recursionNodeId?: number | null,
+    children?: ({
+    id: number,
+    calling: string,
+  \** @maxItems 0 *\
+    data: (string)[],
+    recursionNodeId?: number | null,
+  \** @maxItems 0 *\
+    children?: (string)[] | null,
+
+})[],
+
+})[],
+
+})[],
+
+})[],
 
 })[],
 
@@ -2237,15 +2399,63 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       this.request<
         {
           data: {
-            main_caller: string;
-            items: {
-              id: string;
+            nodes: {
+              id: number;
               calling: string;
-              callable: string;
               data: {
                 name: string;
                 value: number;
                 weight_percent: number;
+              }[];
+              recursionNodeId?: number | null;
+              children?: {
+                id: number;
+                calling: string;
+                data: {
+                  name: string;
+                  value: number;
+                  weight_percent: number;
+                }[];
+                recursionNodeId?: number | null;
+                children?: {
+                  id: number;
+                  calling: string;
+                  data: {
+                    name: string;
+                    value: number;
+                    weight_percent: number;
+                  }[];
+                  recursionNodeId?: number | null;
+                  children?: {
+                    id: number;
+                    calling: string;
+                    data: {
+                      name: string;
+                      value: number;
+                      weight_percent: number;
+                    }[];
+                    recursionNodeId?: number | null;
+                    children?: {
+                      id: number;
+                      calling: string;
+                      data: {
+                        name: string;
+                        value: number;
+                        weight_percent: number;
+                      }[];
+                      recursionNodeId?: number | null;
+                      children?: {
+                        id: number;
+                        calling: string;
+                        /** @maxItems 0 */
+                        data: string[];
+                        recursionNodeId?: number | null;
+                        /** @maxItems 0 */
+                        children?: string[] | null;
+                      }[];
+                    }[];
+                  }[];
+                }[];
               }[];
             }[];
           };

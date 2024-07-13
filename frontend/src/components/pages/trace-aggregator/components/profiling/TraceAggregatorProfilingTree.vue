@@ -1,30 +1,24 @@
 <template>
-  <div style="overflow-y: scroll; width: 100%; height: 85vh">
+  <div style="overflow-y: scroll; width: 100%; height: 80vh">
     <el-tree
+        :data="tree"
         :props="treeProps"
         node-key="key"
         :expand-on-click-node="false"
-        style="width: 95vw"
-        :load="loadNode"
-        lazy
+        style="width: 300vw"
+        default-expand-all
     >
-      <template #default="{ node }">
-        <el-row :class="isSelectedNode(node) ? 'selected-node' : ''" style="width: 100%">
-          <el-text
-              :class="isInHardestFlow(node) ? 'node-flow-hardest-flow' : ''" style="padding-right: 5px; font-size: 13px"
-              truncated
-          >
-            {{ node.label }}
+      <template #default="{ node, data }">
+        <el-row :class="isSelectedNode(data) ? 'selected-node' : ''" style="width: 100%">
+          <el-text style="padding-right: 5px; font-size: 13px" truncated>
+            {{ makeNodeTitle(data.primary) }}
           </el-text>
           <el-space spacer="|">
-            <el-button type="info" @click="onShowFlow(node)" link>
+            <el-button type="info" @click="onShowFlow(data)" link>
               flow
             </el-button>
-            <el-button type="info" @click="onCalculateMetrics(node)" link>
-              hardest
-            </el-button>
+            <TraceAggregatorProfilingNodeMetrics :item="data.primary"/>
           </el-space>
-          <TraceAggregatorProfilingNodeMetrics :item="findItemByNode(node)"/>
         </el-row>
       </template>
     </el-tree>
@@ -34,16 +28,12 @@
 <script lang="ts">
 import {defineComponent} from "vue";
 import {
-  ProfilingItem,
+  ProfilingNode,
   ProfilingTreeNode,
   useTraceAggregatorProfilingStore
 } from "../../../../../store/traceAggregatorProfilingStore.ts";
-import {ProfilingItemFinder} from "./utils/itemFinder.ts";
 import TraceAggregatorProfilingNodeData from "./TraceAggregatorProfilingNodeData.vue";
 import TraceAggregatorProfilingNodeMetrics from './TraceAggregatorProfilingNodeMetrics.vue'
-import {TreeFilter} from "./utils/treeFilter.ts";
-import type Node from 'element-plus/es/components/tree/src/model/node'
-import {ProfilingTreeNodeBuilder} from "./utils/treeNodeBuilder.ts";
 
 export default defineComponent({
   components: {TraceAggregatorProfilingNodeData, TraceAggregatorProfilingNodeMetrics},
@@ -52,86 +42,47 @@ export default defineComponent({
     return {
       store: useTraceAggregatorProfilingStore(),
       treeProps: {
-        children: 'children',
+        key: 'key',
         label: 'label',
+        children: 'children',
         disabled: 'disabled',
-        isLeaf: 'leaf',
+        primary: 'primary',
       },
-      finder: new TreeFilter()
     }
   },
 
+  computed: {
+    tree(): Array<ProfilingTreeNode> {
+      return this.treeNodesToViews(this.store.state.profiling.nodes)
+    },
+  },
+
   methods: {
-    loadNode(treeNode: Node, resolve: (data: ProfilingTreeNode[]) => void) {
-      if (treeNode.level === 0) {
-        const foundItem = (new ProfilingItemFinder()).findByCalling(
-            this.store.state.profiling.main_caller,
-            this.store.state.profiling.items
-        )
-
-        if (!foundItem) {
-          resolve([])
-
-          return
+    treeNodesToViews(treeNodes: Array<ProfilingNode>): Array<ProfilingTreeNode> {
+      return treeNodes.map((treeNode: ProfilingNode) => {
+        return {
+          key: treeNode.id,
+          label: treeNode.calling,
+          // @ts-ignore
+          children: treeNode.children ? this.treeNodesToViews(treeNode.children) : null,
+          disabled: false,
+          primary: treeNode
         }
-
-        resolve([
-          {
-            key: foundItem.id,
-            label: foundItem.calling,
-            disabled: false,
-            leaf: false
-          }
-        ])
-
-        return
-      }
-
-      const foundItem = (new ProfilingItemFinder()).findByCalling(
-          treeNode.data.label,
-          this.store.state.profiling.items
-      )
-
-      if (!foundItem) {
-        resolve([])
-
-        return
-      }
-
-      const data = (new ProfilingTreeNodeBuilder()).build(
-          foundItem.calling,
-          this.store.state.profiling.items
-      )
-
-      resolve(data)
+      })
+    },
+    makeNodeTitle(node: ProfilingNode): string {
+      return node.id + ': ' + node.calling + (node.recursionNodeId ? ` ---> ${node.recursionNodeId}` : '')
+    },
+    isSelectedNode(node: ProfilingNode): boolean {
+      return node.id === this.store.state.selectedItem?.id
     },
     onShowFlow(node: ProfilingTreeNode) {
-      if (node.label === this.store.state.selectedItem?.calling) {
+      if (node.primary.id === this.store.state.selectedItem?.id) {
         this.store.dispatch('setSelectedProfilingItem', null)
       } else {
-        const foundItem = (new ProfilingItemFinder()).findByCalling(
-            node.label,
-            this.store.state.profiling.items
-        )
-
-        this.store.dispatch('setSelectedProfilingItem', foundItem)
+        this.store.dispatch('setSelectedProfilingItem', node.primary)
       }
-    },
-    isSelectedNode(node: ProfilingTreeNode): boolean {
-      return node.label === this.store.state.selectedItem?.calling
-    },
-    isInHardestFlow(node: ProfilingTreeNode): boolean {
-      return this.store.state.profilingMetrics.hardestItemIds.indexOf(node.key) !== -1
-    },
-    onCalculateMetrics(node: ProfilingTreeNode) {
-      this.store.dispatch('calculateProfilingMetrics', node)
-    },
-    findItemByNode(node: ProfilingTreeNode): ProfilingItem | null {
-      return (new ProfilingItemFinder()).findById(
-          node.key,
-          this.store.state.profiling.items
-      )
-    },
+    }
   },
 })
 </script>
@@ -139,9 +90,5 @@ export default defineComponent({
 <style scoped>
 .selected-node {
   font-weight: bold;
-}
-
-.node-flow-hardest-flow {
-  color: red;
 }
 </style>

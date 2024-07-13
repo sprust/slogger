@@ -22,15 +22,15 @@
 import {defineComponent, PropType} from "vue";
 // @ts-ignore // todo
 import {
-  ProfilingDataItem,
-  ProfilingItem,
+  ProfilingNodeDataItem,
+  ProfilingNode,
   useTraceAggregatorProfilingStore
 } from "../../../../../store/traceAggregatorProfilingStore.ts";
 
 export default defineComponent({
   props: {
     item: {
-      type: Object as PropType<ProfilingItem | null>,
+      type: Object as PropType<ProfilingNode | null>,
       nullable: true,
       required: false,
     },
@@ -44,12 +44,10 @@ export default defineComponent({
 
   computed: {
     indicators() {
-      const indicators: Array<ProfilingDataItem> = []
+      const indicators: Array<ProfilingNodeDataItem> = []
 
-      this.item?.data.map((data: ProfilingDataItem) => {
-        if (!data.value
-            || this.store.state.profilingMetricsSetting.showProfilingIndicators.indexOf(data.name) === -1
-        ) {
+      this.item?.data.map((data: ProfilingNodeDataItem) => {
+        if (!data.value || this.store.state.showProfilingIndicators.indexOf(data.name) === -1) {
           return
         }
 
@@ -61,7 +59,7 @@ export default defineComponent({
   },
 
   methods: {
-    makeIndicatorStyle(item: ProfilingDataItem) {
+    makeIndicatorStyle(item: ProfilingNodeDataItem) {
       const roundedPercent = item.weight_percent - (item.weight_percent % 10)
 
       return {
@@ -77,6 +75,6 @@ export default defineComponent({
   width: 15px;
   height: 15px;
   border-radius: 20px 20px 20px 20px;
-  border: 1px solid rgba(255,255,255,.3);
+  border: 1px solid rgba(255, 255, 255, .3);
 }
 </style>

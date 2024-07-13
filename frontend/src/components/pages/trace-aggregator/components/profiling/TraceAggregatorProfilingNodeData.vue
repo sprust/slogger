@@ -2,9 +2,9 @@
   <div v-if="!item">
     Not found
   </div>
-  <el-card v-else :class="'node-flow ' + (isInHardestFlow ? 'node-flow-hardest-flow' : '')">
+  <el-card v-else class="node-flow" :style="nodeStyle">
     <template #header>
-      {{ item.callable }}
+      {{ item.calling }}
     </template>
     <div>
       <TraceAggregatorProfilingNodeMetrics :item="item"/>
@@ -15,7 +15,7 @@
 <script lang="ts">
 import {defineComponent, PropType} from "vue";
 // @ts-ignore // todo
-import {ProfilingItem, useTraceAggregatorProfilingStore} from "../../../../../store/traceAggregatorProfilingStore.ts";
+import {ProfilingNode, useTraceAggregatorProfilingStore} from "../../../../../store/traceAggregatorProfilingStore.ts";
 import TraceAggregatorProfilingNodeMetrics from './TraceAggregatorProfilingNodeMetrics.vue'
 
 export default defineComponent({
@@ -23,7 +23,7 @@ export default defineComponent({
 
   props: {
     item: {
-      type: Object as PropType<ProfilingItem | null>,
+      type: Object as PropType<ProfilingNode | null>,
       nullable: true,
       required: false,
     },
@@ -36,12 +36,27 @@ export default defineComponent({
   },
 
   computed: {
-    isInHardestFlow(): boolean {
-      if (!this.item) {
-        return false
+    nodeStyle() {
+      let maxWeightPercent = 0
+
+      this.item?.data.map((dataItem) => {
+        if (!dataItem.value || this.store.state.showProfilingIndicators.indexOf(dataItem.name) === -1) {
+          return 0
+        }
+
+        maxWeightPercent = Math.max(maxWeightPercent, dataItem.weight_percent)
+      })
+
+      if (maxWeightPercent === 0) {
+        return {}
       }
 
-      return this.store.state.profilingMetrics.hardestItemIds.indexOf(this.item.id) !== -1
+      const roundedPercent = maxWeightPercent - (maxWeightPercent % 10)
+
+      return {
+        border: '3px solid',
+        'border-color': `rgba(255,0,0,${roundedPercent / 100}`,
+      }
     }
   }
 })
@@ -52,9 +67,5 @@ export default defineComponent({
   width: 200px;
   word-break: break-all;
   height: auto;
-}
-
-.node-flow-hardest-flow {
-  color: red;
 }
 </style>

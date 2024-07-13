@@ -1495,24 +1495,16 @@
                                     "properties": {
                                         "data": {
                                             "properties": {
-                                                "main_caller": {
-                                                    "type": "string",
-                                                    "nullable": false
-                                                },
-                                                "items": {
+                                                "nodes": {
                                                     "type": "array",
                                                     "nullable": false,
                                                     "items": {
                                                         "properties": {
                                                             "id": {
-                                                                "type": "string",
+                                                                "type": "integer",
                                                                 "nullable": false
                                                             },
                                                             "calling": {
-                                                                "type": "string",
-                                                                "nullable": false
-                                                            },
-                                                            "callable": {
                                                                 "type": "string",
                                                                 "nullable": false
                                                             },
@@ -1540,20 +1532,263 @@
                                                                         "weight_percent"
                                                                     ]
                                                                 }
+                                                            },
+                                                            "recursionNodeId": {
+                                                                "type": "integer",
+                                                                "nullable": true
+                                                            },
+                                                            "children": {
+                                                                "type": "array",
+                                                                "nullable": true,
+                                                                "items": {
+                                                                    "properties": {
+                                                                        "id": {
+                                                                            "type": "integer",
+                                                                            "nullable": false
+                                                                        },
+                                                                        "calling": {
+                                                                            "type": "string",
+                                                                            "nullable": false
+                                                                        },
+                                                                        "data": {
+                                                                            "type": "array",
+                                                                            "nullable": false,
+                                                                            "items": {
+                                                                                "properties": {
+                                                                                    "name": {
+                                                                                        "type": "string",
+                                                                                        "nullable": false
+                                                                                    },
+                                                                                    "value": {
+                                                                                        "type": "integer",
+                                                                                        "nullable": false
+                                                                                    },
+                                                                                    "weight_percent": {
+                                                                                        "type": "number",
+                                                                                        "nullable": false
+                                                                                    }
+                                                                                },
+                                                                                "required": [
+                                                                                    "name",
+                                                                                    "value",
+                                                                                    "weight_percent"
+                                                                                ]
+                                                                            }
+                                                                        },
+                                                                        "recursionNodeId": {
+                                                                            "type": "integer",
+                                                                            "nullable": true
+                                                                        },
+                                                                        "children": {
+                                                                            "type": "array",
+                                                                            "nullable": true,
+                                                                            "items": {
+                                                                                "properties": {
+                                                                                    "id": {
+                                                                                        "type": "integer",
+                                                                                        "nullable": false
+                                                                                    },
+                                                                                    "calling": {
+                                                                                        "type": "string",
+                                                                                        "nullable": false
+                                                                                    },
+                                                                                    "data": {
+                                                                                        "type": "array",
+                                                                                        "nullable": false,
+                                                                                        "items": {
+                                                                                            "properties": {
+                                                                                                "name": {
+                                                                                                    "type": "string",
+                                                                                                    "nullable": false
+                                                                                                },
+                                                                                                "value": {
+                                                                                                    "type": "integer",
+                                                                                                    "nullable": false
+                                                                                                },
+                                                                                                "weight_percent": {
+                                                                                                    "type": "number",
+                                                                                                    "nullable": false
+                                                                                                }
+                                                                                            },
+                                                                                            "required": [
+                                                                                                "name",
+                                                                                                "value",
+                                                                                                "weight_percent"
+                                                                                            ]
+                                                                                        }
+                                                                                    },
+                                                                                    "recursionNodeId": {
+                                                                                        "type": "integer",
+                                                                                        "nullable": true
+                                                                                    },
+                                                                                    "children": {
+                                                                                        "type": "array",
+                                                                                        "nullable": true,
+                                                                                        "items": {
+                                                                                            "properties": {
+                                                                                                "id": {
+                                                                                                    "type": "integer",
+                                                                                                    "nullable": false
+                                                                                                },
+                                                                                                "calling": {
+                                                                                                    "type": "string",
+                                                                                                    "nullable": false
+                                                                                                },
+                                                                                                "data": {
+                                                                                                    "type": "array",
+                                                                                                    "nullable": false,
+                                                                                                    "items": {
+                                                                                                        "properties": {
+                                                                                                            "name": {
+                                                                                                                "type": "string",
+                                                                                                                "nullable": false
+                                                                                                            },
+                                                                                                            "value": {
+                                                                                                                "type": "integer",
+                                                                                                                "nullable": false
+                                                                                                            },
+                                                                                                            "weight_percent": {
+                                                                                                                "type": "number",
+                                                                                                                "nullable": false
+                                                                                                            }
+                                                                                                        },
+                                                                                                        "required": [
+                                                                                                            "name",
+                                                                                                            "value",
+                                                                                                            "weight_percent"
+                                                                                                        ]
+                                                                                                    }
+                                                                                                },
+                                                                                                "recursionNodeId": {
+                                                                                                    "type": "integer",
+                                                                                                    "nullable": true
+                                                                                                },
+                                                                                                "children": {
+                                                                                                    "type": "array",
+                                                                                                    "nullable": true,
+                                                                                                    "items": {
+                                                                                                        "properties": {
+                                                                                                            "id": {
+                                                                                                                "type": "integer",
+                                                                                                                "nullable": false
+                                                                                                            },
+                                                                                                            "calling": {
+                                                                                                                "type": "string",
+                                                                                                                "nullable": false
+                                                                                                            },
+                                                                                                            "data": {
+                                                                                                                "type": "array",
+                                                                                                                "nullable": false,
+                                                                                                                "items": {
+                                                                                                                    "properties": {
+                                                                                                                        "name": {
+                                                                                                                            "type": "string",
+                                                                                                                            "nullable": false
+                                                                                                                        },
+                                                                                                                        "value": {
+                                                                                                                            "type": "integer",
+                                                                                                                            "nullable": false
+                                                                                                                        },
+                                                                                                                        "weight_percent": {
+                                                                                                                            "type": "number",
+                                                                                                                            "nullable": false
+                                                                                                                        }
+                                                                                                                    },
+                                                                                                                    "required": [
+                                                                                                                        "name",
+                                                                                                                        "value",
+                                                                                                                        "weight_percent"
+                                                                                                                    ]
+                                                                                                                }
+                                                                                                            },
+                                                                                                            "recursionNodeId": {
+                                                                                                                "type": "integer",
+                                                                                                                "nullable": true
+                                                                                                            },
+                                                                                                            "children": {
+                                                                                                                "type": "array",
+                                                                                                                "nullable": true,
+                                                                                                                "items": {
+                                                                                                                    "properties": {
+                                                                                                                        "id": {
+                                                                                                                            "type": "integer",
+                                                                                                                            "nullable": false
+                                                                                                                        },
+                                                                                                                        "calling": {
+                                                                                                                            "type": "string",
+                                                                                                                            "nullable": false
+                                                                                                                        },
+                                                                                                                        "data": {
+                                                                                                                            "type": "array",
+                                                                                                                            "nullable": false,
+                                                                                                                            "maxItems": 0,
+                                                                                                                            "items": {
+                                                                                                                                "type": "string"
+                                                                                                                            }
+                                                                                                                        },
+                                                                                                                        "recursionNodeId": {
+                                                                                                                            "type": "integer",
+                                                                                                                            "nullable": true
+                                                                                                                        },
+                                                                                                                        "children": {
+                                                                                                                            "type": "array",
+                                                                                                                            "nullable": true,
+                                                                                                                            "maxItems": 0,
+                                                                                                                            "items": {
+                                                                                                                                "type": "string"
+                                                                                                                            }
+                                                                                                                        }
+                                                                                                                    },
+                                                                                                                    "required": [
+                                                                                                                        "id",
+                                                                                                                        "calling",
+                                                                                                                        "data"
+                                                                                                                    ]
+                                                                                                                }
+                                                                                                            }
+                                                                                                        },
+                                                                                                        "required": [
+                                                                                                            "id",
+                                                                                                            "calling",
+                                                                                                            "data"
+                                                                                                        ]
+                                                                                                    }
+                                                                                                }
+                                                                                            },
+                                                                                            "required": [
+                                                                                                "id",
+                                                                                                "calling",
+                                                                                                "data"
+                                                                                            ]
+                                                                                        }
+                                                                                    }
+                                                                                },
+                                                                                "required": [
+                                                                                    "id",
+                                                                                    "calling",
+                                                                                    "data"
+                                                                                ]
+                                                                            }
+                                                                        }
+                                                                    },
+                                                                    "required": [
+                                                                        "id",
+                                                                        "calling",
+                                                                        "data"
+                                                                    ]
+                                                                }
                                                             }
                                                         },
                                                         "required": [
                                                             "id",
                                                             "calling",
-                                                            "callable",
                                                             "data"
                                                         ]
                                                     }
                                                 }
                                             },
                                             "required": [
-                                                "main_caller",
-                                                "items"
+                                                "nodes"
                                             ]
                                         }
                                     },

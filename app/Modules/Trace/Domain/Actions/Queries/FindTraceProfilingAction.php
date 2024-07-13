@@ -3,9 +3,10 @@
 namespace App\Modules\Trace\Domain\Actions\Queries;
 
 use App\Modules\Trace\Domain\Actions\Interfaces\Queries\FindTraceProfilingActionInterface;
-use App\Modules\Trace\Domain\Entities\Objects\Profiling\ProfilingObject;
+use App\Modules\Trace\Domain\Entities\Objects\Profiling\Tree\ProfilingTreeObject;
 use App\Modules\Trace\Domain\Entities\Parameters\Profilling\TraceFindProfilingParameters;
 use App\Modules\Trace\Domain\Entities\Transports\TraceProfilingTransport;
+use App\Modules\Trace\Domain\Services\TraceProfilingTreeBuilder;
 use App\Modules\Trace\Repositories\Interfaces\TraceRepositoryInterface;
 
 readonly class FindTraceProfilingAction implements FindTraceProfilingActionInterface
@@ -15,7 +16,7 @@ readonly class FindTraceProfilingAction implements FindTraceProfilingActionInter
     ) {
     }
 
-    public function handle(TraceFindProfilingParameters $parameters): ?ProfilingObject
+    public function handle(TraceFindProfilingParameters $parameters): ?ProfilingTreeObject
     {
         $profiling = $this->traceRepository->findProfilingByTraceId(
             traceId: $parameters->traceId
@@ -25,6 +26,10 @@ readonly class FindTraceProfilingAction implements FindTraceProfilingActionInter
             return null;
         }
 
-        return TraceProfilingTransport::toObject($profiling);
+        $builder = new TraceProfilingTreeBuilder(
+            TraceProfilingTransport::toObject($profiling)
+        );
+
+        return $builder->build();
     }
 }

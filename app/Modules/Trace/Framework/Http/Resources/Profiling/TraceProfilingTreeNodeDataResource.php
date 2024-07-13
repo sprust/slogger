@@ -5,7 +5,7 @@ namespace App\Modules\Trace\Framework\Http\Resources\Profiling;
 use App\Modules\Common\Framework\Http\Resources\AbstractApiResource;
 use App\Modules\Trace\Domain\Entities\Objects\Profiling\ProfilingItemDataObject;
 
-class TraceProfilingDataResource extends AbstractApiResource
+class TraceProfilingTreeNodeDataResource extends AbstractApiResource
 {
     private string $name;
     private int|float $value;

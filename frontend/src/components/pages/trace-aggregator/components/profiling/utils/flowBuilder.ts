@@ -1,12 +1,7 @@
-import {FlowItems, ProfilingItem} from "../../../../../../store/traceAggregatorProfilingStore.ts";
-
-interface FlowMap {
-    [key: string]: ProfilingItem
-}
+import {FlowItems, ProfilingNode} from "../../../../../../store/traceAggregatorProfilingStore.ts";
 
 export class FlowBuilder {
-    private readonly profilingItems: Array<ProfilingItem>
-    private readonly hardestItemIds: Array<string>
+    private readonly profilingNode: ProfilingNode
 
     private posX: number = 50
     private posY: number = 50
@@ -14,19 +9,16 @@ export class FlowBuilder {
     private stepX: number = 300 // horizontal
     private stepY: number = 300 // vertical
 
-    private flowMap: FlowMap = {}
-
     private flowItems: FlowItems = {
         nodes: [],
         edges: []
     }
 
-    constructor(profilingItems: Array<ProfilingItem>, hardestItemIds: Array<string>) {
-        this.profilingItems = profilingItems
-        this.hardestItemIds = hardestItemIds
+    constructor(profilingNode: ProfilingNode) {
+        this.profilingNode = profilingNode
     }
 
-    public build(caller: string): FlowItems {
+    public build(): FlowItems {
         this.posX = 0
         this.posY = 0
 
@@ -35,39 +27,29 @@ export class FlowBuilder {
             edges: []
         }
 
-        this.flowMap = {}
-
-        const root: ProfilingItem = {
-            id: (new Date().getTime() / 1000).toString(),
-            calling: caller,
-            callable: caller,
-            data: [],
-        }
-
         this.flowItems.nodes.push({
-            id: root.id,
-            label: caller,
+            id: this.profilingNode.id.toString(),
+            label: this.profilingNode.calling,
             type: 'custom',
-            data: root,
+            data: this.profilingNode,
             position: {
                 x: this.posX,
                 y: this.posY
             },
         })
 
-        this.flowMap[caller] = root
-
-        this.buildRecursive(caller, root)
+        this.buildRecursive(this.profilingNode)
 
         return this.flowItems
     }
 
-    private buildRecursive(caller: string, parent: null | ProfilingItem): void {
+    private buildRecursive(parent: ProfilingNode): void {
         this.posY += this.stepY
 
         let isFirstItem = true
 
-        this.findCallables(caller).forEach((item: ProfilingItem) => {
+        // @ts-ignore
+        parent.children?.map((item: ProfilingNode) => {
             if (!isFirstItem) {
                 this.posX += this.stepX
             }
@@ -75,8 +57,8 @@ export class FlowBuilder {
             isFirstItem = false
 
             this.flowItems.nodes.push({
-                id: item.id,
-                label: item.callable,
+                id: item.id.toString(),
+                label: item.calling,
                 type: 'custom',
                 data: item,
                 position: {
@@ -85,48 +67,29 @@ export class FlowBuilder {
                 },
             })
 
-            if (parent) {
-                this.flowItems.edges.push({
-                    id: `${parent.id}-${item.id}`,
-                    source: parent.id,
-                    target: item.id,
-                    type: 'custom',
-                    style: {stroke: this.isHardestItemIds(parent.id, item.id) ? 'red' : 'green'},
-                })
-            }
+            this.flowItems.edges.push({
+                id: `${parent.id}-${item.id}`,
+                source: parent.id.toString(),
+                target: item.id.toString(),
+                type: 'custom',
+                style: {stroke: 'green'},
+            })
 
-            const link = this.flowMap[item.callable]
-
-            if (link) {
+            if (item.recursionNodeId) {
                 this.flowItems.edges.push({
-                    id: `${item.id}-${link.id}`,
-                    source: item.id,
-                    target: link.id,
+                    id: `${item.id}-${item.recursionNodeId}`,
+                    source: item.id.toString(),
+                    target: item.recursionNodeId.toString(),
                     type: 'custom',
-                    style: {stroke: this.isHardestItemIds(item.id, link.id) ? 'red' : 'gray'},
+                    style: {stroke: 'gray'},
                 })
 
                 return
             }
 
-            this.flowMap[item.callable] = item
-
-            this.buildRecursive(item.callable, item)
+            this.buildRecursive(item)
         })
 
         this.posY -= this.stepY
-    }
-
-    private isHardestItemIds(sourceId: string, targetId: string): boolean {
-        return (this.hardestItemIds.indexOf(sourceId) !== -1
-            && this.hardestItemIds.indexOf(targetId) !== -1
-        ) || (this.hardestItemIds.indexOf(sourceId) === -1
-            && this.hardestItemIds.indexOf(targetId) !== -1)
-    }
-
-    private findCallables(calling: string): Array<ProfilingItem> {
-        return this.profilingItems.filter(item => {
-            return item.calling === calling
-        })
     }
 }
