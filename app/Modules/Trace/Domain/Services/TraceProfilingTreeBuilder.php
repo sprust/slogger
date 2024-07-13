@@ -44,7 +44,7 @@ class TraceProfilingTreeBuilder
     /**
      * @param ProfilingItemObject[] $items
      *
-     * @return ProfilingItemObject[]
+     * @return ProfilingTreeNodeObject[]
      */
     private function buildRecursive(array $items): array
     {
