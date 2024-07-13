@@ -2,7 +2,7 @@ import type {InjectionKey} from "vue";
 // @ts-ignore // todo
 import {createStore, Store, useStore as baseUseStore} from 'vuex'
 import {ApiContainer} from "../utils/apiContainer.ts";
-import {AdminApi, RequestBody, RequestQuery} from "../api-schema/admin-api-schema.ts";
+import {AdminApi} from "../api-schema/admin-api-schema.ts";
 import {handleApiError} from "../utils/helpers.ts";
 // @ts-ignore // todo
 import {Node} from "@vue-flow/core/dist/types/node";
@@ -57,6 +57,8 @@ export const traceAggregatorProfilingStore = createStore<State>({
         profiling: {
             nodes: []
         },
+        showExcludedCallerPreviewDialog: false,
+        excludedCallerPreview: '',
         showTree: true,
         selectedItem: null as ProfilingNode | null,
         profilingIndicators: [],
