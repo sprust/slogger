@@ -1,11 +1,21 @@
 <template>
   <div style="overflow-y: scroll; width: 100%; height: 80vh">
+    <el-row style="width: 100%; padding-bottom: 10px">
+      <el-input
+          v-model="filterTreeNodeText"
+          style="width: 400px"
+          placeholder="Filter"
+          clearable
+      />
+    </el-row>
     <el-tree
+        ref="traceProfilingTreeRef"
+        style="width: 300vw"
         :data="tree"
         :props="treeProps"
         node-key="key"
         :expand-on-click-node="false"
-        style="width: 300vw"
+        :filter-node-method="filterTreeNode"
         default-expand-all
     >
       <template #default="{ data }">
@@ -54,6 +64,7 @@ export default defineComponent({
         disabled: 'disabled',
         primary: 'primary',
       },
+      filterTreeNodeText: '',
     }
   },
 
@@ -98,6 +109,19 @@ export default defineComponent({
 
       this.store.state.excludedCallerPreview = node.primary.calling
     },
+    filterTreeNode(value: string, data: ProfilingTreeNode) {
+      if (!value) {
+        return true
+      }
+
+      return data.primary.calling.includes(value)
+    }
+  },
+  watch: {
+    'filterTreeNodeText'(value: string) {
+      // @ts-ignore
+      this.$refs.traceProfilingTreeRef!.filter(value)
+    }
   },
 })
 </script>
