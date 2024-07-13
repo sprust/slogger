@@ -24,10 +24,6 @@ export interface FlowItems {
     edges: Array<Edge>,
 }
 
-export interface ProfilingMetrics {
-    totalCount: number
-}
-
 interface State {
     loading: boolean,
     parameters: Parameters,
@@ -35,7 +31,6 @@ interface State {
     showTree: boolean,
     selectedItem: ProfilingNode | null,
     profilingIndicators: Array<string>,
-    profilingMetrics: ProfilingMetrics,
     showProfilingIndicators: Array<string>
     flowItems: FlowItems,
 }
@@ -57,12 +52,7 @@ export const traceAggregatorProfilingStore = createStore<State>({
         showTree: true,
         selectedItem: null as ProfilingNode | null,
         profilingIndicators: [],
-        profilingMetrics: {
-            totalCount: 0,
-        },
-        profilingMetricsSetting: {
-            showProfilingIndicators: [],
-        },
+        showProfilingIndicators: [],
         flowItems: {
             nodes: [],
             edges: [],

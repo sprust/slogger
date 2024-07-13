@@ -8,7 +8,7 @@
         style="width: 300vw"
         default-expand-all
     >
-      <template #default="{ node, data }">
+      <template #default="{ data }">
         <el-row :class="isSelectedNode(data) ? 'selected-node' : ''" style="width: 100%">
           <el-text style="padding-right: 5px; font-size: 13px" truncated>
             {{ makeNodeTitle(data.primary) }}

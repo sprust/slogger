@@ -1,7 +1,7 @@
 import {ProfilingNode} from "../../../../../../store/traceAggregatorProfilingStore.ts";
 
 export class IndicatorsCollector {
-    private indicators: Array<string>
+    private indicators: Array<string> = []
 
     public collect(items: Array<ProfilingNode>): Array<string> {
         this.indicators = []
