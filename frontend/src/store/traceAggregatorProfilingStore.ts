@@ -134,6 +134,34 @@ export const traceAggregatorProfilingStore = createStore<State>({
         setSelectedProfilingItem({commit}: { commit: any }, item: ProfilingNode | null) {
             commit('setSelectedProfilingItem', item)
         },
+        findProfilingByTreeNode(
+            {commit, state}: { commit: any, state: State },
+            {caller}: {caller: string }
+        ) {
+            state.loading = true
+
+            state.profiling = {
+                nodes: []
+            }
+
+            ApiContainer.get()
+                .traceAggregatorTracesProfilingDetail(
+                    state.parameters.traceId,
+                    {
+                        caller: caller
+                    }
+                )
+                .then(response => {
+                    commit('setProfiling', response.data.data)
+                })
+                .catch(error => {
+                    handleApiError(error)
+                })
+                .finally(() => {
+                    state.loading = false
+                })
+
+        },
         switchShowTree({commit}: { commit: any }) {
             commit('switchShowTree')
         },

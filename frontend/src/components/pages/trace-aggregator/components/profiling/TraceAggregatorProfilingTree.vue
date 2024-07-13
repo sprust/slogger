@@ -17,6 +17,9 @@
             <el-button type="info" @click="onShowFlow(data)" link>
               flow
             </el-button>
+            <el-button type="info" @click="onFilter(data)" link>
+              filter
+            </el-button>
             <TraceAggregatorProfilingNodeMetrics :item="data.primary"/>
           </el-space>
         </el-row>
@@ -82,6 +85,9 @@ export default defineComponent({
       } else {
         this.store.dispatch('setSelectedProfilingItem', node.primary)
       }
+    },
+    onFilter(node: ProfilingTreeNode) {
+      this.store.dispatch('findProfilingByTreeNode', {caller: node.primary.calling})
     }
   },
 })

@@ -1483,6 +1483,15 @@
                         "required": true,
                         "in": "path",
                         "schema": {}
+                    },
+                    {
+                        "name": "caller",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "minLength": 1
+                        }
                     }
                 ],
                 "responses": {

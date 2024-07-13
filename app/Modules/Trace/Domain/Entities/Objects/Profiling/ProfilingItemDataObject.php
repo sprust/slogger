@@ -2,7 +2,7 @@
 
 namespace App\Modules\Trace\Domain\Entities\Objects\Profiling;
 
-readonly class ProfilingItemDataObject
+class ProfilingItemDataObject
 {
     public function __construct(
         public string $name,

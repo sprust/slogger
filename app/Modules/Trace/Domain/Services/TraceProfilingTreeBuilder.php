@@ -2,10 +2,12 @@
 
 namespace App\Modules\Trace\Domain\Services;
 
-use App\Modules\Trace\Domain\Entities\Objects\Profiling\ProfilingItemObject;
-use App\Modules\Trace\Domain\Entities\Objects\Profiling\ProfilingObject;
+use App\Modules\Trace\Domain\Entities\Objects\Profiling\ProfilingItemDataObject;
 use App\Modules\Trace\Domain\Entities\Objects\Profiling\Tree\ProfilingTreeNodeObject;
 use App\Modules\Trace\Domain\Entities\Objects\Profiling\Tree\ProfilingTreeObject;
+use App\Modules\Trace\Repositories\Dto\Profiling\TraceProfilingDataDto;
+use App\Modules\Trace\Repositories\Dto\Profiling\TraceProfilingDto;
+use App\Modules\Trace\Repositories\Dto\Profiling\TraceProfilingItemDto;
 
 class TraceProfilingTreeBuilder
 {
@@ -14,8 +16,12 @@ class TraceProfilingTreeBuilder
     /** @var array<string, int> */
     private array $stackIds;
 
+    /** @var array<string, int|float> */
+    private array $maxDataValues;
+
     public function __construct(
-        private readonly ProfilingObject $profiling
+        private readonly TraceProfilingDto $profiling,
+        private readonly ?string $caller = null
     ) {
     }
 
@@ -25,24 +31,31 @@ class TraceProfilingTreeBuilder
 
         $this->stackIds = [];
 
-        return new ProfilingTreeObject(
+        $this->maxDataValues = [];
+
+        $rootCaller = $this->caller ?? $this->profiling->mainCaller;
+
+        $result = new ProfilingTreeObject(
             nodes: [
                 new ProfilingTreeNodeObject(
                     id: $this->id++,
-                    calling: $this->profiling->mainCaller,
+                    calling: $rootCaller,
                     data: [],
                     children: $this->buildRecursive(
-                        items: $this->filterByCaller(
-                            $this->profiling->mainCaller
-                        )
+                        $this->filterByCaller($rootCaller)
                     )
                 ),
             ],
         );
+
+        $this->fillMaxDataValuesRecursive($result->nodes);
+        $this->fillMaxDataValuesInResultRecursive($result->nodes);
+
+        return $result;
     }
 
     /**
-     * @param ProfilingItemObject[] $items
+     * @param TraceProfilingItemDto[] $items
      *
      * @return ProfilingTreeNodeObject[]
      */
@@ -59,7 +72,7 @@ class TraceProfilingTreeBuilder
                 $treeNode = new ProfilingTreeNodeObject(
                     id: $id,
                     calling: $item->callable,
-                    data: $item->data,
+                    data: $this->transportData($item->data),
                     recursionNodeId: $this->stackIds[$stackKey],
                 );
             } else {
@@ -68,7 +81,7 @@ class TraceProfilingTreeBuilder
                 $treeNode = new ProfilingTreeNodeObject(
                     id: $id,
                     calling: $item->callable,
-                    data: $item->data,
+                    data: $this->transportData($item->data),
                     children: $this->buildRecursive(
                         items: $this->filterByCaller($item->callable),
                     ),
@@ -82,13 +95,69 @@ class TraceProfilingTreeBuilder
     }
 
     /**
-     * @return ProfilingItemObject[]
+     * @return TraceProfilingItemDto[]
      */
     private function filterByCaller(string $callable): array
     {
         return array_filter(
             $this->profiling->items,
-            fn(ProfilingItemObject $item) => $item->calling === $callable,
+            fn(TraceProfilingItemDto $item) => $item->calling === $callable,
         );
+    }
+
+    /**
+     * @param TraceProfilingDataDto[] $dataItems
+     *
+     * @return ProfilingItemDataObject[]
+     */
+    private function transportData(array $dataItems): array
+    {
+        return array_map(
+            fn(TraceProfilingDataDto $dto) => new ProfilingItemDataObject(
+                name: $dto->name,
+                value: $dto->value,
+                weightPercent: 0, // TODO
+            ),
+            $dataItems
+        );
+    }
+
+    /**
+     * @param ProfilingTreeNodeObject[] $treeNodes
+     */
+    private function fillMaxDataValuesRecursive(array $treeNodes): void
+    {
+        foreach ($treeNodes as $treeNode) {
+            foreach ($treeNode->data as $dataItem) {
+                $this->maxDataValues[$dataItem->name] ??= 0;
+                $this->maxDataValues[$dataItem->name] = max($this->maxDataValues[$dataItem->name], $dataItem->value);
+            }
+
+            if (empty($treeNode->children)) {
+                continue;
+            }
+
+            $this->fillMaxDataValuesRecursive($treeNode->children);
+        }
+    }
+
+    /**
+     * @param ProfilingTreeNodeObject[] $treeNodes
+     */
+    private function fillMaxDataValuesInResultRecursive(array $treeNodes): void
+    {
+        foreach ($treeNodes as $treeNode) {
+            foreach ($treeNode->data as $dataItem) {
+                $dataItem->weightPercent = $this->maxDataValues[$dataItem->name] !== 0
+                    ? round(($dataItem->value / $this->maxDataValues[$dataItem->name]) * 100, 4)
+                    : 0;
+            }
+
+            if (empty($treeNode->children)) {
+                continue;
+            }
+
+            $this->fillMaxDataValuesInResultRecursive($treeNode->children);
+        }
     }
 }
