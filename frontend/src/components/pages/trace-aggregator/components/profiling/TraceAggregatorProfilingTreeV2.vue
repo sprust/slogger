@@ -14,7 +14,7 @@
         style="min-width: 85vw; width: 300vw"
         border
     >
-      <el-table-column width="10px">
+      <el-table-column label="Avg">
         <template #default="scope">
           <div :style="makeTreeNodeLineIndicatorStyle(scope.row)">
           </div>
