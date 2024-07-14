@@ -12,6 +12,7 @@ import {FlowBuilder} from "../components/pages/trace-aggregator/components/profi
 import {
     IndicatorsCollector
 } from "../components/pages/trace-aggregator/components/profiling/utils/indicatorsCollector.ts";
+import {TreeBuilder} from "../components/pages/trace-aggregator/components/profiling/utils/treeBuilder.ts";
 
 type Parameters = AdminApi.TraceAggregatorTracesProfilingCreate.RequestParams
 type Body = AdminApi.TraceAggregatorTracesProfilingCreate.RequestBody
@@ -36,6 +37,7 @@ interface State {
     selectedItem: ProfilingNode | null,
     profilingIndicators: Array<string>,
     showProfilingIndicators: Array<string>
+    treeTable: Array<ProfilingTreeNodeV2>,
     flowItems: FlowItems,
 }
 
@@ -44,6 +46,17 @@ export type ProfilingTreeNode = {
     label: string,
     children: null | Array<ProfilingTreeNode>,
     primary: ProfilingNode,
+}
+
+export type ProfilingTreeNodeV2 = {
+    dept: number,
+    id: number,
+    parentId: null | number,
+    calling: string,
+    data: Array<ProfilingNodeDataItem>,
+    recursionNodeId: null | number,
+    primary: ProfilingNode,
+    hide: boolean,
 }
 
 export const traceAggregatorProfilingStore = createStore<State>({
@@ -63,6 +76,7 @@ export const traceAggregatorProfilingStore = createStore<State>({
         selectedItem: null as ProfilingNode | null,
         profilingIndicators: [],
         showProfilingIndicators: [],
+        treeTable: new Array<ProfilingTreeNodeV2>(),
         flowItems: {
             nodes: [],
             edges: [],
@@ -83,6 +97,8 @@ export const traceAggregatorProfilingStore = createStore<State>({
             state.showProfilingIndicators = state.profilingIndicators.length
                 ? [state.profilingIndicators[0]]
                 : []
+
+            state.treeTable = (new TreeBuilder(state.profiling.nodes)).build()
         },
         setSelectedProfilingItem(state: State, item: ProfilingNode | null) {
             if (!item) {

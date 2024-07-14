@@ -37,25 +37,27 @@ export default defineComponent({
 
   computed: {
     nodeStyle() {
-      let maxWeightPercent = 0
+      let totalPercent = 0
+      let totalCount = 0
 
       this.item?.data.map((dataItem) => {
         if (!dataItem.value || this.store.state.showProfilingIndicators.indexOf(dataItem.name) === -1) {
           return 0
         }
 
-        maxWeightPercent = Math.max(maxWeightPercent, dataItem.weight_percent)
+        totalPercent += dataItem.weight_percent
+        totalCount += 1
       })
 
-      if (maxWeightPercent === 0) {
-        return {}
+      if (totalCount === 0) {
+        return 0
       }
 
-      const roundedPercent = maxWeightPercent - (maxWeightPercent % 10)
+      const roundedPercent = parseFloat((totalPercent / totalCount).toPrecision(5))
 
       return {
         border: '3px solid',
-        'border-color': `rgba(255,0,0,${roundedPercent / 100}`,
+        'border-color': `rgba(255,0,0,${roundedPercent}`,
       }
     }
   }

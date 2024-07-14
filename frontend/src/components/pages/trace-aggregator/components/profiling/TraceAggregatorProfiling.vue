@@ -25,7 +25,7 @@
       <el-row class="height-100">
         <el-col v-show="store.state.showTree" :span="leftSpan" class="height-100">
           <el-row class="height-100">
-            <TraceAggregatorProfilingTree/>
+            <TraceAggregatorProfilingTreeV2/>
           </el-row>
         </el-col>
         <el-col v-if="showFlowSpan" :span="rightSpan" style="height: 85vh">
@@ -58,7 +58,7 @@ import {defineComponent} from "vue";
 import {useTraceAggregatorProfilingStore} from "../../../../../store/traceAggregatorProfilingStore.ts";
 import {MiniMap} from '@vue-flow/minimap'
 import {Controls} from '@vue-flow/controls'
-import TraceAggregatorProfilingTree from './TraceAggregatorProfilingTree.vue'
+import TraceAggregatorProfilingTreeV2 from './TraceAggregatorProfilingTreeV2.vue'
 import TraceAggregatorProfilingNode from './TraceAggregatorProfilingNode.vue'
 import TraceAggregatorProfilingSetting from './TraceAggregatorProfilingSetting.vue'
 import TraceAggregatorProfilingFlowEdge from './TraceAggregatorProfilingFlowEdge.vue'
@@ -72,7 +72,7 @@ export default defineComponent({
     VueFlow,
     MiniMap,
     Controls,
-    TraceAggregatorProfilingTree,
+    TraceAggregatorProfilingTreeV2,
     TraceAggregatorProfilingNode,
     TraceAggregatorProfilingSetting,
     TraceAggregatorProfilingFlowEdge,
