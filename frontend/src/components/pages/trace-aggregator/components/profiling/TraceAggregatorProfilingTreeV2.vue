@@ -23,7 +23,7 @@
       </el-table-column>
 
       <el-table-column
-          v-for="indicatorName in this.store.state.showProfilingIndicators"
+          v-for="indicatorName in store.state.showProfilingIndicators"
           :label="indicatorName"
       >
         <template #default="scope">
@@ -56,7 +56,7 @@
 </template>
 
 <script lang="ts">
-import {defineComponent} from "vue";
+import {defineComponent, StyleValue} from "vue";
 import {
   ProfilingNodeDataItem,
   ProfilingTreeNodeV2,
@@ -86,7 +86,7 @@ export default defineComponent({
   computed: {
     treeTable() {
       return this.store.state.treeTable.filter(
-          item => !item.hide
+          (item: ProfilingTreeNodeV2) => !item.hide
       )
     }
   },
@@ -161,7 +161,7 @@ export default defineComponent({
 
       return !row.calling.includes(value)
     },
-    makeTreeNodeLineIndicatorStyle(data: ProfilingTreeNodeV2) {
+    makeTreeNodeLineIndicatorStyle(data: ProfilingTreeNodeV2): StyleValue {
       const roundedPercent = this.makeIndicatorValuesRoundedPercent(data)
 
       return {
@@ -176,7 +176,7 @@ export default defineComponent({
   watch: {
     'filterTreeNodeText'(value: string) {
       this.store.state.treeTable.forEach(
-          item => item.hide = this.hideTreeNode(value, item)
+          (item: ProfilingTreeNodeV2) => item.hide = this.hideTreeNode(value, item)
       )
     }
   },
