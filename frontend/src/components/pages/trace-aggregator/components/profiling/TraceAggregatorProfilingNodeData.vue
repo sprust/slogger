@@ -4,7 +4,7 @@
   </div>
   <el-card v-else class="node-flow" :style="nodeStyle">
     <template #header>
-      {{ item.calling }}
+      {{item.id}}: {{ item.calling }}
     </template>
     <div>
       <TraceAggregatorProfilingNodeMetrics :item="item"/>
