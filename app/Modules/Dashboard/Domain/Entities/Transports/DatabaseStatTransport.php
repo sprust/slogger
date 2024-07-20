@@ -13,8 +13,11 @@ class DatabaseStatTransport
         return new DatabaseStatObject(
             name: $databaseDto->name,
             size: $databaseDto->size,
+            memoryUsage: $databaseDto->memoryUsage,
             collections: array_map(
-                fn(DatabaseCollectionStatDto $collectionDto) => DatabaseCollectionStatTransport::toObject($collectionDto),
+                fn(DatabaseCollectionStatDto $collectionDto) => DatabaseCollectionStatTransport::toObject(
+                    $collectionDto
+                ),
                 $databaseDto->collections
             )
         );

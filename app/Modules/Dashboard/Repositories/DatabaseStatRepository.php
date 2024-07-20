@@ -8,6 +8,8 @@ use App\Modules\Dashboard\Repositories\Dto\DatabaseStatDto;
 use App\Modules\Dashboard\Repositories\Interfaces\DatabaseStatRepositoryInterface;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\DB;
+use MongoDB\Driver\Command;
+use MongoDB\Driver\Exception\Exception;
 use MongoDB\Laravel\Connection;
 use MongoDB\Model\BSONDocument;
 use MongoDB\Model\DatabaseInfo;
@@ -18,6 +20,9 @@ readonly class DatabaseStatRepository implements DatabaseStatRepositoryInterface
     {
     }
 
+    /**
+     * @throws Exception
+     */
     public function find(): array
     {
         $databaseSizes = null;
@@ -27,6 +32,14 @@ readonly class DatabaseStatRepository implements DatabaseStatRepositoryInterface
         foreach (array_keys($this->app['config']['database.connections.mongodb']) as $connectionName) {
             /** @var Connection $connection */
             $connection = DB::connection("mongodb.$connectionName");
+
+            $memoryUsageSize = $this->bitesToMb(
+                $connection->getManager()
+                    ->executeCommand('admin', new Command(['serverStatus' => 1]))
+                    ->toArray()[0]
+                    ->tcmalloc
+                    ->generic->heap_size
+            );
 
             $databaseSizes = is_null($databaseSizes)
                 ? collect($connection->getMongoClient()->listDatabases())
@@ -94,6 +107,7 @@ readonly class DatabaseStatRepository implements DatabaseStatRepositoryInterface
             $databases[] = new DatabaseStatDto(
                 name: $databaseName,
                 size: $databaseSize,
+                memoryUsage: $memoryUsageSize,
                 collections: $collections
             );
         }

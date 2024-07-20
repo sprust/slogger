@@ -91,8 +91,9 @@ readonly class TraceController
                 );
             } catch (TraceIndexInProcessException) {
                 abort_if(
-                    time() - $start > $this->indexCreateTimeoutInSeconds,
-                    "Couldn't init index"
+                    boolean: time() - $start > $this->indexCreateTimeoutInSeconds,
+                    code: 500,
+                    message: "Couldn't init index"
                 );
 
                 sleep(1);

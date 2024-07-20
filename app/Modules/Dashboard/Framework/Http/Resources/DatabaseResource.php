@@ -10,6 +10,7 @@ class DatabaseResource extends AbstractApiResource
 {
     private string $name;
     private float $size;
+    private float $memory_usage;
     #[OaListItemTypeAttribute(DatabaseCollectionResource::class)]
     private array $collections;
 
@@ -17,8 +18,9 @@ class DatabaseResource extends AbstractApiResource
     {
         parent::__construct($database);
 
-        $this->name        = $database->name;
-        $this->size        = $database->size;
-        $this->collections = DatabaseCollectionResource::mapIntoMe($database->collections);
+        $this->name         = $database->name;
+        $this->size         = $database->size;
+        $this->memory_usage = $database->memoryUsage;
+        $this->collections  = DatabaseCollectionResource::mapIntoMe($database->collections);
     }
 }
