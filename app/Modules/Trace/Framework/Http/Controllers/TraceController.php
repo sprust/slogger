@@ -13,7 +13,6 @@ use App\Modules\Trace\Domain\Exceptions\TraceIndexNotInitException;
 use App\Modules\Trace\Framework\Http\Controllers\Traits\MakeDataFilterParameterTrait;
 use App\Modules\Trace\Framework\Http\Requests\TraceIndexRequest;
 use App\Modules\Trace\Framework\Http\Resources\TraceDetailResource;
-use App\Modules\Trace\Framework\Http\Resources\TraceIndexingResource;
 use App\Modules\Trace\Framework\Http\Resources\TraceItemsResource;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -21,16 +20,19 @@ readonly class TraceController
 {
     use MakeDataFilterParameterTrait;
 
+    private int $indexCreateTimeoutInSeconds;
+
     public function __construct(
         private FindTracesActionInterface $findTracesAction,
         private FindTraceDetailActionInterface $findTraceDetailAction
     ) {
+        $this->indexCreateTimeoutInSeconds = 20;
     }
 
     /**
      * @throws TraceIndexNotInitException
      */
-    public function index(TraceIndexRequest $request): TraceIndexingResource|TraceItemsResource
+    public function index(TraceIndexRequest $request): TraceItemsResource
     {
         $validated = $request->validated();
 
@@ -61,33 +63,44 @@ readonly class TraceController
             )
         );
 
-        try {
-            $traces = $this->findTracesAction->handle(
-                new TraceFindParameters(
-                    page: $validated['page'] ?? 1,
-                    perPage: $validated['per_page'] ?? null,
-                    serviceIds: array_map('intval', $validated['service_ids'] ?? []),
-                    traceId: $validated['trace_id'] ?? null,
-                    allTracesInTree: $validated['all_traces_in_tree'] ?? false,
-                    loggingPeriod: $loggingPeriod,
-                    types: $validated['types'] ?? [],
-                    tags: $validated['tags'] ?? [],
-                    statuses: $validated['statuses'] ?? [],
-                    durationFrom: $validated['duration_from'] ?? null,
-                    durationTo: $validated['duration_to'] ?? null,
-                    memoryFrom: $validated['memory_from'] ?? null,
-                    memoryTo: $validated['memory_to'] ?? null,
-                    cpuFrom: $validated['cpu_from'] ?? null,
-                    cpuTo: $validated['cpu_to'] ?? null,
-                    data: $this->makeDataFilterParameter($validated),
-                    hasProfiling: ($validated['has_profiling'] ?? null) ?: null,
-                    sort: $sort,
-                )
-            );
-        } catch (TraceIndexInProcessException $exception) {
-            return new TraceIndexingResource(
-                $exception->getTraceIndex()
-            );
+        $start = time();
+
+        while (true) {
+            try {
+                $traces = $this->findTracesAction->handle(
+                    new TraceFindParameters(
+                        page: $validated['page'] ?? 1,
+                        perPage: $validated['per_page'] ?? null,
+                        serviceIds: array_map('intval', $validated['service_ids'] ?? []),
+                        traceId: $validated['trace_id'] ?? null,
+                        allTracesInTree: $validated['all_traces_in_tree'] ?? false,
+                        loggingPeriod: $loggingPeriod,
+                        types: $validated['types'] ?? [],
+                        tags: $validated['tags'] ?? [],
+                        statuses: $validated['statuses'] ?? [],
+                        durationFrom: $validated['duration_from'] ?? null,
+                        durationTo: $validated['duration_to'] ?? null,
+                        memoryFrom: $validated['memory_from'] ?? null,
+                        memoryTo: $validated['memory_to'] ?? null,
+                        cpuFrom: $validated['cpu_from'] ?? null,
+                        cpuTo: $validated['cpu_to'] ?? null,
+                        data: $this->makeDataFilterParameter($validated),
+                        hasProfiling: ($validated['has_profiling'] ?? null) ?: null,
+                        sort: $sort,
+                    )
+                );
+            } catch (TraceIndexInProcessException) {
+                abort_if(
+                    time() - $start > $this->indexCreateTimeoutInSeconds,
+                    "Couldn't init index"
+                );
+
+                sleep(1);
+
+                continue;
+            }
+
+            break;
         }
 
         return new TraceItemsResource($traces);
