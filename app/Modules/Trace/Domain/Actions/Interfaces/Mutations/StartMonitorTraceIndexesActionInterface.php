@@ -2,7 +2,7 @@
 
 namespace App\Modules\Trace\Domain\Actions\Interfaces\Mutations;
 
-interface MonitorTraceIndexesActionInterface
+interface StartMonitorTraceIndexesActionInterface
 {
     public function handle(): void;
 }

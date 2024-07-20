@@ -11,7 +11,8 @@ use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\DeleteTracesByTraceIds
 use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\DeleteTraceTreesByTraceIdsActionInterface;
 use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\FreshTraceTimestampsActionInterface;
 use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\FreshTraceTreeActionInterface;
-use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\MonitorTraceIndexesActionInterface;
+use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\StartMonitorTraceIndexesActionInterface;
+use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\StopMonitorTraceIndexesActionInterface;
 use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\UpdateTraceManyActionInterface;
 use App\Modules\Trace\Domain\Actions\Interfaces\Queries\FindStatusesActionInterface;
 use App\Modules\Trace\Domain\Actions\Interfaces\Queries\FindTagsActionInterface;
@@ -30,7 +31,8 @@ use App\Modules\Trace\Domain\Actions\Mutations\DeleteTracesByTraceIdsAction;
 use App\Modules\Trace\Domain\Actions\Mutations\DeleteTraceTreesByTraceIdsAction;
 use App\Modules\Trace\Domain\Actions\Mutations\FreshTraceTimestampsAction;
 use App\Modules\Trace\Domain\Actions\Mutations\FreshTraceTreeAction;
-use App\Modules\Trace\Domain\Actions\Mutations\MonitorTraceIndexesAction;
+use App\Modules\Trace\Domain\Actions\Mutations\StartMonitorTraceIndexesAction;
+use App\Modules\Trace\Domain\Actions\Mutations\StopMonitorTraceIndexesAction;
 use App\Modules\Trace\Domain\Actions\Mutations\UpdateTraceManyAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindStatusesAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTagsAction;
@@ -43,7 +45,8 @@ use App\Modules\Trace\Domain\Actions\Queries\FindTraceTreeAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTypesAction;
 use App\Modules\Trace\Framework\Commands\FreshTraceTimestampsCommand;
 use App\Modules\Trace\Framework\Commands\FreshTraceTreesCommand;
-use App\Modules\Trace\Framework\Commands\MonitorTraceIndexesCommand;
+use App\Modules\Trace\Framework\Commands\StartMonitorTraceIndexesCommand;
+use App\Modules\Trace\Framework\Commands\StopMonitorTraceIndexesCommand;
 use App\Modules\Trace\Repositories\Interfaces\TraceContentRepositoryInterface;
 use App\Modules\Trace\Repositories\Interfaces\TraceIndexRepositoryInterface;
 use App\Modules\Trace\Repositories\Interfaces\TraceRepositoryInterface;
@@ -67,7 +70,8 @@ class TraceProvider extends BaseServiceProvider
         $this->commands([
             FreshTraceTreesCommand::class,
             FreshTraceTimestampsCommand::class,
-            MonitorTraceIndexesCommand::class,
+            StartMonitorTraceIndexesCommand::class,
+            StopMonitorTraceIndexesCommand::class,
         ]);
     }
 
@@ -91,7 +95,8 @@ class TraceProvider extends BaseServiceProvider
             FreshTraceTimestampsActionInterface::class       => FreshTraceTimestampsAction::class,
             FreshTraceTreeActionInterface::class             => FreshTraceTreeAction::class,
             UpdateTraceManyActionInterface::class            => UpdateTraceManyAction::class,
-            MonitorTraceIndexesActionInterface::class        => MonitorTraceIndexesAction::class,
+            StartMonitorTraceIndexesActionInterface::class   => StartMonitorTraceIndexesAction::class,
+            StopMonitorTraceIndexesActionInterface::class    => StopMonitorTraceIndexesAction::class,
             // actions.queries
             FindStatusesActionInterface::class               => FindStatusesAction::class,
             FindTagsActionInterface::class                   => FindTagsAction::class,
