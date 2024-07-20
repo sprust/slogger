@@ -228,7 +228,12 @@ export namespace AdminApi {
  * @request POST:/admin-api/trace-aggregator/traces
  * @secure
  * @response `200` `{
-    data: {
+    data: ({
+    name: string,
+    in_process: boolean,
+    created: boolean,
+
+} | {
     items: ({
     trace: {
     service?: {
@@ -270,7 +275,7 @@ export namespace AdminApi {
 
 },
 
-},
+}),
 
 }` description
 */
@@ -331,42 +336,48 @@ export namespace AdminApi {
     };
     export type RequestHeaders = {};
     export type ResponseBody = {
-      data: {
-        items: {
-          trace: {
-            service?: {
-              id: number;
-              name: string;
-            };
-            trace_id: string;
-            parent_trace_id?: string | null;
-            type: string;
-            status: string;
-            tags: string[];
-            duration?: number | null;
-            memory?: number | null;
-            cpu?: number | null;
-            has_profiling: boolean;
-            additional_fields: {
-              key: string;
-              values: string[];
+      data:
+        | {
+            name: string;
+            in_process: boolean;
+            created: boolean;
+          }
+        | {
+            items: {
+              trace: {
+                service?: {
+                  id: number;
+                  name: string;
+                };
+                trace_id: string;
+                parent_trace_id?: string | null;
+                type: string;
+                status: string;
+                tags: string[];
+                duration?: number | null;
+                memory?: number | null;
+                cpu?: number | null;
+                has_profiling: boolean;
+                additional_fields: {
+                  key: string;
+                  values: string[];
+                }[];
+                logged_at: string;
+                created_at: string;
+                updated_at: string;
+              };
+              types: {
+                type: string;
+                count: number;
+              }[];
             }[];
-            logged_at: string;
-            created_at: string;
-            updated_at: string;
+            paginator: {
+              total: number;
+              per_page: number;
+              current_page: number;
+              total_pages: number;
+            };
           };
-          types: {
-            type: string;
-            count: number;
-          }[];
-        }[];
-        paginator: {
-          total: number;
-          per_page: number;
-          current_page: number;
-          total_pages: number;
-        };
-      };
     };
   } /**
  * No description
@@ -1842,7 +1853,12 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
  * @request POST:/admin-api/trace-aggregator/traces
  * @secure
  * @response `200` `{
-    data: {
+    data: ({
+    name: string,
+    in_process: boolean,
+    created: boolean,
+
+} | {
     items: ({
     trace: {
     service?: {
@@ -1884,7 +1900,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
 
 },
 
-},
+}),
 
 }` description
  */
@@ -1945,42 +1961,48 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     ) =>
       this.request<
         {
-          data: {
-            items: {
-              trace: {
-                service?: {
-                  id: number;
-                  name: string;
-                };
-                trace_id: string;
-                parent_trace_id?: string | null;
-                type: string;
-                status: string;
-                tags: string[];
-                duration?: number | null;
-                memory?: number | null;
-                cpu?: number | null;
-                has_profiling: boolean;
-                additional_fields: {
-                  key: string;
-                  values: string[];
+          data:
+            | {
+                name: string;
+                in_process: boolean;
+                created: boolean;
+              }
+            | {
+                items: {
+                  trace: {
+                    service?: {
+                      id: number;
+                      name: string;
+                    };
+                    trace_id: string;
+                    parent_trace_id?: string | null;
+                    type: string;
+                    status: string;
+                    tags: string[];
+                    duration?: number | null;
+                    memory?: number | null;
+                    cpu?: number | null;
+                    has_profiling: boolean;
+                    additional_fields: {
+                      key: string;
+                      values: string[];
+                    }[];
+                    logged_at: string;
+                    created_at: string;
+                    updated_at: string;
+                  };
+                  types: {
+                    type: string;
+                    count: number;
+                  }[];
                 }[];
-                logged_at: string;
-                created_at: string;
-                updated_at: string;
+                paginator: {
+                  total: number;
+                  per_page: number;
+                  current_page: number;
+                  total_pages: number;
+                };
               };
-              types: {
-                type: string;
-                count: number;
-              }[];
-            }[];
-            paginator: {
-              total: number;
-              per_page: number;
-              current_page: number;
-              total_pages: number;
-            };
-          };
         },
         any
       >({

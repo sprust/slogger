@@ -11,25 +11,33 @@ use App\Modules\Trace\Domain\Entities\Objects\TraceItemObjects;
 use App\Modules\Trace\Domain\Entities\Objects\TraceItemTraceObject;
 use App\Modules\Trace\Domain\Entities\Objects\TraceServiceObject;
 use App\Modules\Trace\Domain\Entities\Parameters\TraceFindParameters;
-use App\Modules\Trace\Domain\Entities\Parameters\TraceSortParameters;
 use App\Modules\Trace\Domain\Entities\Transports\TraceDataFilterTransport;
+use App\Modules\Trace\Domain\Entities\Transports\TraceIndexTransport;
+use App\Modules\Trace\Domain\Entities\Transports\TraceSortTransport;
 use App\Modules\Trace\Domain\Entities\Transports\TraceTypeTransport;
+use App\Modules\Trace\Domain\Exceptions\TraceIndexInProcessException;
+use App\Modules\Trace\Domain\Exceptions\TraceIndexNotInitException;
 use App\Modules\Trace\Repositories\Dto\TraceDetailDto;
-use App\Modules\Trace\Repositories\Dto\TraceSortDto;
 use App\Modules\Trace\Repositories\Dto\TraceTypeDto;
+use App\Modules\Trace\Repositories\Interfaces\TraceIndexRepositoryInterface;
 use App\Modules\Trace\Repositories\Interfaces\TraceRepositoryInterface;
 use App\Modules\Trace\Repositories\Interfaces\TraceTreeRepositoryInterface;
+use App\Modules\Trace\Repositories\Services\TraceIndexFieldsBuilder;
 use Illuminate\Support\Arr;
 
 readonly class FindTracesAction implements FindTracesActionInterface
 {
     private int $maxPerPage;
+    private int $timeLifeIndexInMinutes;
 
     public function __construct(
         private TraceRepositoryInterface $traceRepository,
         private TraceTreeRepositoryInterface $traceTreeRepository,
+        private TraceIndexRepositoryInterface $traceIndexRepository,
+        private TraceIndexFieldsBuilder $traceIndexFieldsBuilder
     ) {
-        $this->maxPerPage = 20;
+        $this->maxPerPage             = 20;
+        $this->timeLifeIndexInMinutes = 15;
     }
 
     public function handle(TraceFindParameters $parameters): TraceItemObjects
@@ -68,6 +76,45 @@ readonly class FindTracesAction implements FindTracesActionInterface
             }
         }
 
+        $data = TraceDataFilterTransport::toDtoIfNotNull($parameters->data);
+        $sort = TraceSortTransport::fromObjects($parameters->sort);
+
+        $indexFields = $this->traceIndexFieldsBuilder->forFind(
+            serviceIds: $parameters->serviceIds,
+            traceIds: $traceIds,
+            loggedAtFrom: $parameters->loggingPeriod?->from,
+            loggedAtTo: $parameters->loggingPeriod?->to,
+            types: $parameters->types,
+            tags: $parameters->tags,
+            statuses: $parameters->statuses,
+            durationFrom: $parameters->durationFrom,
+            durationTo: $parameters->durationTo,
+            memoryFrom: $parameters->memoryFrom,
+            memoryTo: $parameters->memoryTo,
+            cpuFrom: $parameters->cpuFrom,
+            cpuTo: $parameters->cpuTo,
+            data: $data,
+            hasProfiling: $parameters->hasProfiling,
+            sort: $sort,
+        );
+
+        if (!empty($indexFields)) {
+            $indexDto = $this->traceIndexRepository->findOneOrCreate(
+                fields: $indexFields,
+                actualUntilAt: now()->addMinutes($this->timeLifeIndexInMinutes)
+            );
+
+            if (!$indexDto) {
+                throw new TraceIndexNotInitException();
+            }
+
+            if ($indexDto->inProcess) {
+                throw new TraceIndexInProcessException(
+                    TraceIndexTransport::toObject($indexDto)
+                );
+            }
+        }
+
         $traceItemsPagination = $this->traceRepository->find(
             page: $parameters->page,
             perPage: $perPage,
@@ -84,15 +131,9 @@ readonly class FindTracesAction implements FindTracesActionInterface
             memoryTo: $parameters->memoryTo,
             cpuFrom: $parameters->cpuFrom,
             cpuTo: $parameters->cpuTo,
-            data: TraceDataFilterTransport::toDtoIfNotNull($parameters->data),
+            data: $data,
             hasProfiling: $parameters->hasProfiling,
-            sort: array_map(
-                fn(TraceSortParameters $parameters) => new TraceSortDto(
-                    field: $parameters->field,
-                    directionEnum: $parameters->directionEnum,
-                ),
-                $parameters->sort
-            ),
+            sort: $sort,
         );
 
         $traceTypeCounts = empty($traceItemsPagination->items)

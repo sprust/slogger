@@ -23,6 +23,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 use MongoDB\BSON\UTCDateTime;
+use Throwable;
 
 readonly class TraceRepository implements TraceRepositoryInterface
 {
@@ -542,5 +543,43 @@ readonly class TraceRepository implements TraceRepositoryInterface
         }
 
         return $result;
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function createIndex(string $name, array $fields): bool
+    {
+        if (empty($fields)) {
+            return false;
+        }
+
+        $index = [];
+
+        foreach ($fields as $field) {
+            $index[$field->fieldName] = $field->isText ? 'text' : 1;
+        }
+
+        try {
+            Trace::collection()->createIndex(
+                $index,
+                [
+                    'name' => $name,
+                ]
+            );
+        } catch (Throwable $exception) {
+            if (str_starts_with($exception->getMessage(), 'Index already exists with a different name')) {
+                return false;
+            }
+
+            throw $exception;
+        }
+
+        return true;
+    }
+
+    public function deleteIndexByName(string $name): void
+    {
+        Trace::collection()->dropIndex($name);
     }
 }

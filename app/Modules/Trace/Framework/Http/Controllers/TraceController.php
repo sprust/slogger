@@ -8,9 +8,12 @@ use App\Modules\Trace\Domain\Actions\Interfaces\Queries\FindTracesActionInterfac
 use App\Modules\Trace\Domain\Entities\Parameters\PeriodParameters;
 use App\Modules\Trace\Domain\Entities\Parameters\TraceFindParameters;
 use App\Modules\Trace\Domain\Entities\Parameters\TraceSortParameters;
+use App\Modules\Trace\Domain\Exceptions\TraceIndexInProcessException;
+use App\Modules\Trace\Domain\Exceptions\TraceIndexNotInitException;
 use App\Modules\Trace\Framework\Http\Controllers\Traits\MakeDataFilterParameterTrait;
 use App\Modules\Trace\Framework\Http\Requests\TraceIndexRequest;
 use App\Modules\Trace\Framework\Http\Resources\TraceDetailResource;
+use App\Modules\Trace\Framework\Http\Resources\TraceIndexingResource;
 use App\Modules\Trace\Framework\Http\Resources\TraceItemsResource;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -24,55 +27,68 @@ readonly class TraceController
     ) {
     }
 
-    public function index(TraceIndexRequest $request): TraceItemsResource
+    /**
+     * @throws TraceIndexNotInitException
+     */
+    public function index(TraceIndexRequest $request): TraceIndexingResource|TraceItemsResource
     {
         $validated = $request->validated();
 
-        $traces = $this->findTracesAction->handle(
-            new TraceFindParameters(
-                page: $validated['page'] ?? 1,
-                perPage: $validated['per_page'] ?? null,
-                serviceIds: array_map('intval', $validated['service_ids'] ?? []),
-                traceId: $validated['trace_id'] ?? null,
-                allTracesInTree: $validated['all_traces_in_tree'] ?? false,
-                loggingPeriod: PeriodParameters::fromStringValues(
-                    from: $validated['logging_from'] ?? null,
-                    to: $validated['logging_to'] ?? null,
-                ),
-                types: $validated['types'] ?? [],
-                tags: $validated['tags'] ?? [],
-                statuses: $validated['statuses'] ?? [],
-                durationFrom: $validated['duration_from'] ?? null,
-                durationTo: $validated['duration_to'] ?? null,
-                memoryFrom: $validated['memory_from'] ?? null,
-                memoryTo: $validated['memory_to'] ?? null,
-                cpuFrom: $validated['cpu_from'] ?? null,
-                cpuTo: $validated['cpu_to'] ?? null,
-                data: $this->makeDataFilterParameter($validated),
-                hasProfiling: ($validated['has_profiling'] ?? null) ?: null,
-                sort: array_filter(
-                    array_map(
-                        function (array $sortItem) {
-                            $field = $sortItem['field'];
+        $loggingPeriod = PeriodParameters::fromStringValues(
+            from: $validated['logging_from'] ?? null,
+            to: $validated['logging_to'] ?? null,
+        );
 
-                            if (!$field) {
-                                return null;
-                            }
+        $sort = array_filter(
+            array_map(
+                function (array $sortItem) {
+                    $field = $sortItem['field'];
 
-                            $direction = $sortItem['direction'];
+                    if (!$field) {
+                        return null;
+                    }
 
-                            $directionEnum = $direction ? SortDirectionEnum::from($direction) : null;
+                    $direction = $sortItem['direction'];
 
-                            return new TraceSortParameters(
-                                field: $field,
-                                directionEnum: $directionEnum ?: SortDirectionEnum::Desc
-                            );
-                        },
-                        $validated['sort'] ?? []
-                    )
-                ),
+                    $directionEnum = $direction ? SortDirectionEnum::from($direction) : null;
+
+                    return new TraceSortParameters(
+                        field: $field,
+                        directionEnum: $directionEnum ?: SortDirectionEnum::Desc
+                    );
+                },
+                $validated['sort'] ?? []
             )
         );
+
+        try {
+            $traces = $this->findTracesAction->handle(
+                new TraceFindParameters(
+                    page: $validated['page'] ?? 1,
+                    perPage: $validated['per_page'] ?? null,
+                    serviceIds: array_map('intval', $validated['service_ids'] ?? []),
+                    traceId: $validated['trace_id'] ?? null,
+                    allTracesInTree: $validated['all_traces_in_tree'] ?? false,
+                    loggingPeriod: $loggingPeriod,
+                    types: $validated['types'] ?? [],
+                    tags: $validated['tags'] ?? [],
+                    statuses: $validated['statuses'] ?? [],
+                    durationFrom: $validated['duration_from'] ?? null,
+                    durationTo: $validated['duration_to'] ?? null,
+                    memoryFrom: $validated['memory_from'] ?? null,
+                    memoryTo: $validated['memory_to'] ?? null,
+                    cpuFrom: $validated['cpu_from'] ?? null,
+                    cpuTo: $validated['cpu_to'] ?? null,
+                    data: $this->makeDataFilterParameter($validated),
+                    hasProfiling: ($validated['has_profiling'] ?? null) ?: null,
+                    sort: $sort,
+                )
+            );
+        } catch (TraceIndexInProcessException $exception) {
+            return new TraceIndexingResource(
+                $exception->getTraceIndex()
+            );
+        }
 
         return new TraceItemsResource($traces);
     }
