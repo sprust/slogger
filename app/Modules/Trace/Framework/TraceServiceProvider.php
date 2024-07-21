@@ -47,11 +47,13 @@ use App\Modules\Trace\Framework\Commands\FreshTraceTimestampsCommand;
 use App\Modules\Trace\Framework\Commands\FreshTraceTreesCommand;
 use App\Modules\Trace\Framework\Commands\StartMonitorTraceDynamicIndexesCommand;
 use App\Modules\Trace\Framework\Commands\StopMonitorTraceDynamicIndexesCommand;
+use App\Modules\Trace\Framework\Http\Services\TraceDynamicIndexingActionService;
 use App\Modules\Trace\Repositories\Interfaces\TraceContentRepositoryInterface;
 use App\Modules\Trace\Repositories\Interfaces\TraceDynamicIndexRepositoryInterface;
 use App\Modules\Trace\Repositories\Interfaces\TraceRepositoryInterface;
 use App\Modules\Trace\Repositories\Interfaces\TraceTimestampsRepositoryInterface;
 use App\Modules\Trace\Repositories\Interfaces\TraceTreeRepositoryInterface;
+use App\Modules\Trace\Repositories\Services\TraceDynamicIndexInitializer;
 use App\Modules\Trace\Repositories\Services\TraceQueryBuilder;
 use App\Modules\Trace\Repositories\TraceContentRepository;
 use App\Modules\Trace\Repositories\TraceDynamicIndexRepository;
@@ -59,11 +61,13 @@ use App\Modules\Trace\Repositories\TraceRepository;
 use App\Modules\Trace\Repositories\TraceTimestampsRepository;
 use App\Modules\Trace\Repositories\TraceTreeRepository;
 
-class TraceProvider extends BaseServiceProvider
+class TraceServiceProvider extends BaseServiceProvider
 {
     public function boot(): void
     {
         $this->app->singleton(TraceQueryBuilder::class);
+        $this->app->singleton(TraceDynamicIndexInitializer::class);
+        $this->app->singleton(TraceDynamicIndexingActionService::class);
 
         parent::boot();
 

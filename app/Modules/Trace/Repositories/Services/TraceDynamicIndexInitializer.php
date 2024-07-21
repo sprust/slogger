@@ -2,13 +2,24 @@
 
 namespace App\Modules\Trace\Repositories\Services;
 
+use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexInProcessException;
+use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexNotInitException;
 use App\Modules\Trace\Repositories\Dto\Data\TraceDataFilterDto;
 use App\Modules\Trace\Repositories\Dto\TraceDynamicIndexFieldDto;
 use App\Modules\Trace\Repositories\Dto\TraceSortDto;
+use App\Modules\Trace\Repositories\Interfaces\TraceDynamicIndexRepositoryInterface;
 use Illuminate\Support\Carbon;
 
-class TraceDynamicIndexFieldsBuilder
+readonly class TraceDynamicIndexInitializer
 {
+    private int $timeLifeIndexInMinutes;
+
+    public function __construct(
+        private TraceDynamicIndexRepositoryInterface $traceDynamicIndexRepository
+    ) {
+        $this->timeLifeIndexInMinutes = 15;
+    }
+
     /**
      * @param int[]|null          $serviceIds
      * @param string[]            $types
@@ -16,9 +27,10 @@ class TraceDynamicIndexFieldsBuilder
      * @param string[]            $statuses
      * @param TraceSortDto[]|null $sort
      *
-     * @return TraceDynamicIndexFieldDto[]
+     * @throws TraceDynamicIndexNotInitException
+     * @throws TraceDynamicIndexInProcessException
      */
-    public function forFind(
+    public function init(
         ?array $serviceIds = null,
         ?array $traceIds = null,
         ?Carbon $loggedAtFrom = null,
@@ -35,7 +47,7 @@ class TraceDynamicIndexFieldsBuilder
         ?TraceDataFilterDto $data = null,
         ?bool $hasProfiling = null,
         ?array $sort = null,
-    ): array {
+    ): void {
         $fields = [];
 
         if (!empty($serviceIds)) {
@@ -87,6 +99,21 @@ class TraceDynamicIndexFieldsBuilder
             $fields[] = new TraceDynamicIndexFieldDto($sortItem->field);
         }
 
-        return $fields;
+        if (empty($fields)) {
+            return;
+        }
+
+        $indexDto = $this->traceDynamicIndexRepository->findOneOrCreate(
+            fields: $fields,
+            actualUntilAt: now()->addMinutes($this->timeLifeIndexInMinutes)
+        );
+
+        if (!$indexDto) {
+            throw new TraceDynamicIndexNotInitException();
+        }
+
+        if ($indexDto->inProcess) {
+            throw new TraceDynamicIndexInProcessException();
+        }
     }
 }

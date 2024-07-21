@@ -14,29 +14,23 @@ use App\Modules\Trace\Domain\Entities\Parameters\TraceFindParameters;
 use App\Modules\Trace\Domain\Entities\Transports\TraceDataFilterTransport;
 use App\Modules\Trace\Domain\Entities\Transports\TraceSortTransport;
 use App\Modules\Trace\Domain\Entities\Transports\TraceTypeTransport;
-use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexInProcessException;
-use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexNotInitException;
 use App\Modules\Trace\Repositories\Dto\TraceDetailDto;
 use App\Modules\Trace\Repositories\Dto\TraceTypeDto;
-use App\Modules\Trace\Repositories\Interfaces\TraceDynamicIndexRepositoryInterface;
 use App\Modules\Trace\Repositories\Interfaces\TraceRepositoryInterface;
 use App\Modules\Trace\Repositories\Interfaces\TraceTreeRepositoryInterface;
-use App\Modules\Trace\Repositories\Services\TraceDynamicIndexFieldsBuilder;
+use App\Modules\Trace\Repositories\Services\TraceDynamicIndexInitializer;
 use Illuminate\Support\Arr;
 
 readonly class FindTracesAction implements FindTracesActionInterface
 {
     private int $maxPerPage;
-    private int $timeLifeIndexInMinutes;
 
     public function __construct(
         private TraceRepositoryInterface $traceRepository,
         private TraceTreeRepositoryInterface $traceTreeRepository,
-        private TraceDynamicIndexRepositoryInterface $traceDynamicIndexRepository,
-        private TraceDynamicIndexFieldsBuilder $traceDynamicIndexFieldsBuilder
+        private TraceDynamicIndexInitializer $traceDynamicIndexInitializer
     ) {
-        $this->maxPerPage             = 20;
-        $this->timeLifeIndexInMinutes = 15;
+        $this->maxPerPage = 20;
     }
 
     public function handle(TraceFindParameters $parameters): TraceItemObjects
@@ -78,7 +72,7 @@ readonly class FindTracesAction implements FindTracesActionInterface
         $data = TraceDataFilterTransport::toDtoIfNotNull($parameters->data);
         $sort = TraceSortTransport::fromObjects($parameters->sort);
 
-        $indexFields = $this->traceDynamicIndexFieldsBuilder->forFind(
+        $this->traceDynamicIndexInitializer->init(
             serviceIds: $parameters->serviceIds,
             traceIds: $traceIds,
             loggedAtFrom: $parameters->loggingPeriod?->from,
@@ -96,21 +90,6 @@ readonly class FindTracesAction implements FindTracesActionInterface
             hasProfiling: $parameters->hasProfiling,
             sort: $sort,
         );
-
-        if (!empty($indexFields)) {
-            $indexDto = $this->traceDynamicIndexRepository->findOneOrCreate(
-                fields: $indexFields,
-                actualUntilAt: now()->addMinutes($this->timeLifeIndexInMinutes)
-            );
-
-            if (!$indexDto) {
-                throw new TraceDynamicIndexNotInitException();
-            }
-
-            if ($indexDto->inProcess) {
-                throw new TraceDynamicIndexInProcessException();
-            }
-        }
 
         $traceItemsPagination = $this->traceRepository->find(
             page: $parameters->page,
