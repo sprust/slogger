@@ -4,7 +4,11 @@ namespace App\Modules\Trace\Repositories\Services;
 
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexInProcessException;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexNotInitException;
+use App\Modules\Trace\Enums\TraceMetricFieldEnum;
+use App\Modules\Trace\Enums\TraceTimestampEnum;
+use App\Modules\Trace\Enums\TraceTimestampPeriodEnum;
 use App\Modules\Trace\Repositories\Dto\Data\TraceDataFilterDto;
+use App\Modules\Trace\Repositories\Dto\Data\TraceMetricFieldsFilterDto;
 use App\Modules\Trace\Repositories\Dto\TraceDynamicIndexFieldDto;
 use App\Modules\Trace\Repositories\Dto\TraceSortDto;
 use App\Modules\Trace\Repositories\Interfaces\TraceDynamicIndexRepositoryInterface;
@@ -21,17 +25,22 @@ readonly class TraceDynamicIndexInitializer
     }
 
     /**
-     * @param int[]|null          $serviceIds
-     * @param string[]            $types
-     * @param string[]            $tags
-     * @param string[]            $statuses
-     * @param TraceSortDto[]|null $sort
+     * @param int[]|null                        $serviceIds
+     * @param TraceMetricFieldsFilterDto[]|null $fields
+     * @param TraceMetricFieldsFilterDto[]|null $dataFieldsFilter
+     * @param string[]                          $types
+     * @param string[]                          $tags
+     * @param string[]                          $statuses
+     * @param TraceSortDto[]|null               $sort
      *
      * @throws TraceDynamicIndexNotInitException
      * @throws TraceDynamicIndexInProcessException
      */
     public function init(
         ?array $serviceIds = null,
+        ?TraceTimestampEnum $timestampStep = null,
+        ?array $fields = null,
+        ?array $dataFieldsFilter = null,
         ?array $traceIds = null,
         ?Carbon $loggedAtFrom = null,
         ?Carbon $loggedAtTo = null,
@@ -48,63 +57,95 @@ readonly class TraceDynamicIndexInitializer
         ?bool $hasProfiling = null,
         ?array $sort = null,
     ): void {
-        $fields = [];
+        $indexFields = [];
 
         if (!empty($serviceIds)) {
-            $fields[] = new TraceDynamicIndexFieldDto('serviceId');
+            $indexFields[] = new TraceDynamicIndexFieldDto('serviceId');
+        }
+
+        if (!is_null($timestampStep)) {
+            $indexFields[] = new TraceDynamicIndexFieldDto("timestamps.$timestampStep->value");
+        }
+
+        if (!empty($fields)) {
+            foreach ($fields as $field) {
+                if ($field->field === TraceMetricFieldEnum::Count) {
+                    continue;
+                }
+
+                $indexFields[] = new TraceDynamicIndexFieldDto($field->field->name);
+            }
+        }
+
+        if (!empty($dataFieldsFilter)) {
+            foreach ($dataFieldsFilter as $dataFieldFilter) {
+                if ($dataFieldFilter->field === TraceMetricFieldEnum::Count) {
+                    continue;
+                }
+
+                $indexFields[] = new TraceDynamicIndexFieldDto(
+                    "data.{$dataFieldFilter->field->name}"
+                );
+            }
         }
 
         if (!empty($traceIds)) {
-            $fields[] = new TraceDynamicIndexFieldDto('traceId');
+            $indexFields[] = new TraceDynamicIndexFieldDto('traceId');
         }
 
         if (!empty($loggedAtFrom) || !empty($loggedAtTo)) {
-            $fields[] = new TraceDynamicIndexFieldDto('loggedAt');
+            $indexFields[] = new TraceDynamicIndexFieldDto('loggedAt');
         }
 
         if (!empty($types)) {
-            $fields[] = new TraceDynamicIndexFieldDto('type');
+            $indexFields[] = new TraceDynamicIndexFieldDto('type');
         }
 
         if (!empty($tags)) {
-            $fields[] = new TraceDynamicIndexFieldDto('tags');
+            $indexFields[] = new TraceDynamicIndexFieldDto('tags');
         }
         if (!empty($statuses)) {
-            $fields[] = new TraceDynamicIndexFieldDto('status');
+            $indexFields[] = new TraceDynamicIndexFieldDto('status');
         }
 
         if (!is_null($durationFrom) || !is_null($durationTo)) {
-            $fields[] = new TraceDynamicIndexFieldDto('duration');
+            $indexFields[] = new TraceDynamicIndexFieldDto('duration');
         }
 
         if (!is_null($memoryFrom) || !is_null($memoryTo)) {
-            $fields[] = new TraceDynamicIndexFieldDto('memory');
+            $indexFields[] = new TraceDynamicIndexFieldDto('memory');
         }
 
         if (!is_null($cpuFrom) || !is_null($cpuTo)) {
-            $fields[] = new TraceDynamicIndexFieldDto('cpu');
+            $indexFields[] = new TraceDynamicIndexFieldDto('cpu');
         }
 
         if (!is_null($hasProfiling)) {
-            $fields[] = new TraceDynamicIndexFieldDto('hasProfiling');
+            $indexFields[] = new TraceDynamicIndexFieldDto('hasProfiling');
         }
 
         foreach ($data->filter ?? [] as $dataFilterItem) {
-            $fields[] = new TraceDynamicIndexFieldDto(
+            $indexFields[] = new TraceDynamicIndexFieldDto(
                 fieldName: $dataFilterItem->field
             );
         }
 
         foreach ($sort ?? [] as $sortItem) {
-            $fields[] = new TraceDynamicIndexFieldDto($sortItem->field);
+            $indexFields[] = new TraceDynamicIndexFieldDto($sortItem->field);
         }
 
-        if (empty($fields)) {
+        if (empty($indexFields)) {
             return;
         }
 
+        $indexFields = collect($indexFields)
+            ->unique(
+                fn(TraceDynamicIndexFieldDto $dto) => $dto->fieldName
+            )
+            ->all();
+
         $indexDto = $this->traceDynamicIndexRepository->findOneOrCreate(
-            fields: $fields,
+            fields: $indexFields,
             actualUntilAt: now()->addMinutes($this->timeLifeIndexInMinutes)
         );
 
