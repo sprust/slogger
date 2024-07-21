@@ -8,7 +8,7 @@ use App\Modules\Trace\Repositories\Dto\Timestamp\TraceTimestampMetricDto;
 use App\Modules\Trace\Repositories\Dto\TraceCreateDto;
 use App\Modules\Trace\Repositories\Dto\TraceDetailDto;
 use App\Modules\Trace\Repositories\Dto\TraceDto;
-use App\Modules\Trace\Repositories\Dto\TraceIndexFieldDto;
+use App\Modules\Trace\Repositories\Dto\TraceDynamicIndexFieldDto;
 use App\Modules\Trace\Repositories\Dto\TraceItemsPaginationDto;
 use App\Modules\Trace\Repositories\Dto\TraceLoggedAtDto;
 use App\Modules\Trace\Repositories\Dto\TraceSortDto;
@@ -110,7 +110,7 @@ interface TraceRepositoryInterface
     public function deleteByTraceIds(array $ids): int;
 
     /**
-     * @param TraceIndexFieldDto[] $fields
+     * @param TraceDynamicIndexFieldDto[] $fields
      */
     public function createIndex(string $name, array $fields): bool;
 

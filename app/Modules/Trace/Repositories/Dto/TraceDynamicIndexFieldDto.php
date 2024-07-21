@@ -2,11 +2,10 @@
 
 namespace App\Modules\Trace\Repositories\Dto;
 
-readonly class TraceIndexFieldDto
+readonly class TraceDynamicIndexFieldDto
 {
     public function __construct(
-        public string $fieldName,
-        public bool $isText = false
+        public string $fieldName
     ) {
     }
 }

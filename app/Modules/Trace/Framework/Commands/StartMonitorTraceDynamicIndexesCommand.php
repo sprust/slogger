@@ -2,17 +2,17 @@
 
 namespace App\Modules\Trace\Framework\Commands;
 
-use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\StartMonitorTraceIndexesActionInterface;
+use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\StartMonitorTraceDynamicIndexesActionInterface;
 use Illuminate\Console\Command;
 
-class StartMonitorTraceIndexesCommand extends Command
+class StartMonitorTraceDynamicIndexesCommand extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'trace-indexes:monitor:start';
+    protected $signature = 'trace-dynamic-indexes:monitor:start';
 
     /**
      * The console command description.
@@ -24,8 +24,10 @@ class StartMonitorTraceIndexesCommand extends Command
     /**
      * Execute the console command.
      */
-    public function handle(StartMonitorTraceIndexesActionInterface $action): int
+    public function handle(StartMonitorTraceDynamicIndexesActionInterface $action): int
     {
+        $this->components->info('The monitor dynamic trace indexes is starting');
+
         $action->handle();
 
         return self::SUCCESS;

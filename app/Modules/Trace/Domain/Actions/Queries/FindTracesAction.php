@@ -12,17 +12,16 @@ use App\Modules\Trace\Domain\Entities\Objects\TraceItemTraceObject;
 use App\Modules\Trace\Domain\Entities\Objects\TraceServiceObject;
 use App\Modules\Trace\Domain\Entities\Parameters\TraceFindParameters;
 use App\Modules\Trace\Domain\Entities\Transports\TraceDataFilterTransport;
-use App\Modules\Trace\Domain\Entities\Transports\TraceIndexTransport;
 use App\Modules\Trace\Domain\Entities\Transports\TraceSortTransport;
 use App\Modules\Trace\Domain\Entities\Transports\TraceTypeTransport;
-use App\Modules\Trace\Domain\Exceptions\TraceIndexInProcessException;
-use App\Modules\Trace\Domain\Exceptions\TraceIndexNotInitException;
+use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexInProcessException;
+use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexNotInitException;
 use App\Modules\Trace\Repositories\Dto\TraceDetailDto;
 use App\Modules\Trace\Repositories\Dto\TraceTypeDto;
-use App\Modules\Trace\Repositories\Interfaces\TraceIndexRepositoryInterface;
+use App\Modules\Trace\Repositories\Interfaces\TraceDynamicIndexRepositoryInterface;
 use App\Modules\Trace\Repositories\Interfaces\TraceRepositoryInterface;
 use App\Modules\Trace\Repositories\Interfaces\TraceTreeRepositoryInterface;
-use App\Modules\Trace\Repositories\Services\TraceIndexFieldsBuilder;
+use App\Modules\Trace\Repositories\Services\TraceDynamicIndexFieldsBuilder;
 use Illuminate\Support\Arr;
 
 readonly class FindTracesAction implements FindTracesActionInterface
@@ -33,8 +32,8 @@ readonly class FindTracesAction implements FindTracesActionInterface
     public function __construct(
         private TraceRepositoryInterface $traceRepository,
         private TraceTreeRepositoryInterface $traceTreeRepository,
-        private TraceIndexRepositoryInterface $traceIndexRepository,
-        private TraceIndexFieldsBuilder $traceIndexFieldsBuilder
+        private TraceDynamicIndexRepositoryInterface $traceDynamicIndexRepository,
+        private TraceDynamicIndexFieldsBuilder $traceDynamicIndexFieldsBuilder
     ) {
         $this->maxPerPage             = 20;
         $this->timeLifeIndexInMinutes = 15;
@@ -79,7 +78,7 @@ readonly class FindTracesAction implements FindTracesActionInterface
         $data = TraceDataFilterTransport::toDtoIfNotNull($parameters->data);
         $sort = TraceSortTransport::fromObjects($parameters->sort);
 
-        $indexFields = $this->traceIndexFieldsBuilder->forFind(
+        $indexFields = $this->traceDynamicIndexFieldsBuilder->forFind(
             serviceIds: $parameters->serviceIds,
             traceIds: $traceIds,
             loggedAtFrom: $parameters->loggingPeriod?->from,
@@ -99,19 +98,17 @@ readonly class FindTracesAction implements FindTracesActionInterface
         );
 
         if (!empty($indexFields)) {
-            $indexDto = $this->traceIndexRepository->findOneOrCreate(
+            $indexDto = $this->traceDynamicIndexRepository->findOneOrCreate(
                 fields: $indexFields,
                 actualUntilAt: now()->addMinutes($this->timeLifeIndexInMinutes)
             );
 
             if (!$indexDto) {
-                throw new TraceIndexNotInitException();
+                throw new TraceDynamicIndexNotInitException();
             }
 
             if ($indexDto->inProcess) {
-                throw new TraceIndexInProcessException(
-                    TraceIndexTransport::toObject($indexDto)
-                );
+                throw new TraceDynamicIndexInProcessException();
             }
         }
 

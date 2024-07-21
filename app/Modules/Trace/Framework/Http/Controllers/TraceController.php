@@ -8,8 +8,8 @@ use App\Modules\Trace\Domain\Actions\Interfaces\Queries\FindTracesActionInterfac
 use App\Modules\Trace\Domain\Entities\Parameters\PeriodParameters;
 use App\Modules\Trace\Domain\Entities\Parameters\TraceFindParameters;
 use App\Modules\Trace\Domain\Entities\Parameters\TraceSortParameters;
-use App\Modules\Trace\Domain\Exceptions\TraceIndexInProcessException;
-use App\Modules\Trace\Domain\Exceptions\TraceIndexNotInitException;
+use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexInProcessException;
+use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexNotInitException;
 use App\Modules\Trace\Framework\Http\Controllers\Traits\MakeDataFilterParameterTrait;
 use App\Modules\Trace\Framework\Http\Requests\TraceIndexRequest;
 use App\Modules\Trace\Framework\Http\Resources\TraceDetailResource;
@@ -30,7 +30,7 @@ readonly class TraceController
     }
 
     /**
-     * @throws TraceIndexNotInitException
+     * @throws TraceDynamicIndexNotInitException
      */
     public function index(TraceIndexRequest $request): TraceItemsResource
     {
@@ -89,11 +89,11 @@ readonly class TraceController
                         sort: $sort,
                     )
                 );
-            } catch (TraceIndexInProcessException) {
+            } catch (TraceDynamicIndexInProcessException) {
                 abort_if(
                     boolean: time() - $start > $this->indexCreateTimeoutInSeconds,
                     code: 500,
-                    message: "Couldn't init index"
+                    message: "Couldn't init index. Try again."
                 );
 
                 sleep(1);

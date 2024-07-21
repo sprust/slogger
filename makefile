@@ -69,7 +69,7 @@ workers-restart:
 	@make art-workers c='cron:restart'
 	@make art-workers c='octane:roadrunner:stop'
 	@make art-workers c='octane:swoole:stop'
-	@make art-workers c='trace-indexes:monitor:stop'
+	@make art-workers c='trace-dynamic-indexes:monitor:stop'
 
 oa-generate:
 	@make art c='oa:generate'

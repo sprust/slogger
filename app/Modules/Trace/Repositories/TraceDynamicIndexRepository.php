@@ -2,23 +2,23 @@
 
 namespace App\Modules\Trace\Repositories;
 
-use App\Models\Traces\TraceIndex;
-use App\Modules\Trace\Repositories\Dto\TraceIndexDto;
-use App\Modules\Trace\Repositories\Dto\TraceIndexFieldDto;
-use App\Modules\Trace\Repositories\Interfaces\TraceIndexRepositoryInterface;
+use App\Models\Traces\TraceDynamicIndex;
+use App\Modules\Trace\Repositories\Dto\TraceDynamicIndexDto;
+use App\Modules\Trace\Repositories\Dto\TraceDynamicIndexFieldDto;
+use App\Modules\Trace\Repositories\Interfaces\TraceDynamicIndexRepositoryInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use MongoDB\BSON\UTCDateTime;
 
-class TraceIndexRepository implements TraceIndexRepositoryInterface
+class TraceDynamicIndexRepository implements TraceDynamicIndexRepositoryInterface
 {
-    public function findOneOrCreate(array $fields, Carbon $actualUntilAt): ?TraceIndexDto
+    public function findOneOrCreate(array $fields, Carbon $actualUntilAt): ?TraceDynamicIndexDto
     {
         $name = $this->makeIndexName($fields);
 
         $createdAt = now();
 
-        TraceIndex::collection()
+        TraceDynamicIndex::collection()
             ->updateOne(
                 [
                     'name' => $name,
@@ -42,16 +42,16 @@ class TraceIndexRepository implements TraceIndexRepositoryInterface
         return $this->findOneByName($name);
     }
 
-    private function findOneByName(string $name): ?TraceIndexDto
+    private function findOneByName(string $name): ?TraceDynamicIndexDto
     {
-        /** @var TraceIndex|null $index */
-        $index = TraceIndex::query()->where('name', $name)->first();
+        /** @var TraceDynamicIndex|null $index */
+        $index = TraceDynamicIndex::query()->where('name', $name)->first();
 
         if (!$index) {
             return null;
         }
 
-        return new TraceIndexDto(
+        return new TraceDynamicIndexDto(
             name: $name,
             fields: $this->transportFields($index->fields),
             inProcess: $index->inProcess,
@@ -67,7 +67,7 @@ class TraceIndexRepository implements TraceIndexRepositoryInterface
         bool $sortByCreatedAtAsc = false,
         ?Carbon $toActualUntilAt = null
     ): array {
-        return TraceIndex::query()
+        return TraceDynamicIndex::query()
             ->when(
                 !is_null($inProcess),
                 fn(Builder $builder) => $builder->where('inProcess', $inProcess)
@@ -79,7 +79,7 @@ class TraceIndexRepository implements TraceIndexRepositoryInterface
             ->orderBy('createdAt')
             ->take($limit)
             ->get()
-            ->map(fn(TraceIndex $index) => new TraceIndexDto(
+            ->map(fn(TraceDynamicIndex $index) => new TraceDynamicIndexDto(
                 name: $index->name,
                 fields: $this->transportFields($index->fields),
                 inProcess: $index->inProcess,
@@ -92,7 +92,7 @@ class TraceIndexRepository implements TraceIndexRepositoryInterface
 
     public function updateByName(string $name, bool $inProcess, bool $created): bool
     {
-        return (bool) TraceIndex::query()
+        return (bool) TraceDynamicIndex::query()
             ->where('name', $name)
             ->update([
                 'inProcess' => $inProcess,
@@ -102,13 +102,13 @@ class TraceIndexRepository implements TraceIndexRepositoryInterface
 
     public function deleteByName(string $name): bool
     {
-        return (bool) TraceIndex::query()
+        return (bool) TraceDynamicIndex::query()
             ->where('name', $name)
             ->delete();
     }
 
     /**
-     * @param TraceIndexFieldDto[] $fields
+     * @param TraceDynamicIndexFieldDto[] $fields
      *
      * @return string
      */
@@ -120,16 +120,15 @@ class TraceIndexRepository implements TraceIndexRepositoryInterface
     /**
      * @param array $fields
      *
-     * @return TraceIndexFieldDto[]
+     * @return TraceDynamicIndexFieldDto[]
      */
     private function transportFields(array $fields): array
     {
         $result = [];
 
         foreach ($fields as $field) {
-            $result[] = new TraceIndexFieldDto(
-                fieldName: $field['fieldName'],
-                isText: $field['isText'],
+            $result[] = new TraceDynamicIndexFieldDto(
+                fieldName: $field['fieldName']
             );
         }
 

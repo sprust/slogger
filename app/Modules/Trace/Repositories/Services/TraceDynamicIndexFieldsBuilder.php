@@ -3,11 +3,11 @@
 namespace App\Modules\Trace\Repositories\Services;
 
 use App\Modules\Trace\Repositories\Dto\Data\TraceDataFilterDto;
-use App\Modules\Trace\Repositories\Dto\TraceIndexFieldDto;
+use App\Modules\Trace\Repositories\Dto\TraceDynamicIndexFieldDto;
 use App\Modules\Trace\Repositories\Dto\TraceSortDto;
 use Illuminate\Support\Carbon;
 
-class TraceIndexFieldsBuilder
+class TraceDynamicIndexFieldsBuilder
 {
     /**
      * @param int[]|null          $serviceIds
@@ -16,7 +16,7 @@ class TraceIndexFieldsBuilder
      * @param string[]            $statuses
      * @param TraceSortDto[]|null $sort
      *
-     * @return TraceIndexFieldDto[]
+     * @return TraceDynamicIndexFieldDto[]
      */
     public function forFind(
         ?array $serviceIds = null,
@@ -39,53 +39,52 @@ class TraceIndexFieldsBuilder
         $fields = [];
 
         if (!empty($serviceIds)) {
-            $fields[] = new TraceIndexFieldDto('serviceId');
+            $fields[] = new TraceDynamicIndexFieldDto('serviceId');
         }
 
         if (!empty($traceIds)) {
-            $fields[] = new TraceIndexFieldDto('traceId');
+            $fields[] = new TraceDynamicIndexFieldDto('traceId');
         }
 
         if (!empty($loggedAtFrom) || !empty($loggedAtTo)) {
-            $fields[] = new TraceIndexFieldDto('loggedAt');
+            $fields[] = new TraceDynamicIndexFieldDto('loggedAt');
         }
 
         if (!empty($types)) {
-            $fields[] = new TraceIndexFieldDto('type');
+            $fields[] = new TraceDynamicIndexFieldDto('type');
         }
 
         if (!empty($tags)) {
-            $fields[] = new TraceIndexFieldDto('tags');
+            $fields[] = new TraceDynamicIndexFieldDto('tags');
         }
         if (!empty($statuses)) {
-            $fields[] = new TraceIndexFieldDto('status');
+            $fields[] = new TraceDynamicIndexFieldDto('status');
         }
 
         if (!is_null($durationFrom) || !is_null($durationTo)) {
-            $fields[] = new TraceIndexFieldDto('duration');
+            $fields[] = new TraceDynamicIndexFieldDto('duration');
         }
 
         if (!is_null($memoryFrom) || !is_null($memoryTo)) {
-            $fields[] = new TraceIndexFieldDto('memory');
+            $fields[] = new TraceDynamicIndexFieldDto('memory');
         }
 
         if (!is_null($cpuFrom) || !is_null($cpuTo)) {
-            $fields[] = new TraceIndexFieldDto('cpu');
+            $fields[] = new TraceDynamicIndexFieldDto('cpu');
         }
 
         if (!is_null($hasProfiling)) {
-            $fields[] = new TraceIndexFieldDto('hasProfiling');
+            $fields[] = new TraceDynamicIndexFieldDto('hasProfiling');
         }
 
         foreach ($data->filter ?? [] as $dataFilterItem) {
-            $fields[] = new TraceIndexFieldDto(
-                fieldName: $dataFilterItem->field,
-                isText: (bool) $dataFilterItem->string
+            $fields[] = new TraceDynamicIndexFieldDto(
+                fieldName: $dataFilterItem->field
             );
         }
 
         foreach ($sort ?? [] as $sortItem) {
-            $fields[] = new TraceIndexFieldDto($sortItem->field);
+            $fields[] = new TraceDynamicIndexFieldDto($sortItem->field);
         }
 
         return $fields;

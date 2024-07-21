@@ -2,19 +2,19 @@
 
 namespace App\Modules\Trace\Repositories\Interfaces;
 
-use App\Modules\Trace\Repositories\Dto\TraceIndexDto;
-use App\Modules\Trace\Repositories\Dto\TraceIndexFieldDto;
+use App\Modules\Trace\Repositories\Dto\TraceDynamicIndexDto;
+use App\Modules\Trace\Repositories\Dto\TraceDynamicIndexFieldDto;
 use Illuminate\Support\Carbon;
 
-interface TraceIndexRepositoryInterface
+interface TraceDynamicIndexRepositoryInterface
 {
     /**
-     * @param TraceIndexFieldDto[] $fields
+     * @param TraceDynamicIndexFieldDto[] $fields
      */
-    public function findOneOrCreate(array $fields, Carbon $actualUntilAt): ?TraceIndexDto;
+    public function findOneOrCreate(array $fields, Carbon $actualUntilAt): ?TraceDynamicIndexDto;
 
     /**
-     * @return TraceIndexDto[]
+     * @return TraceDynamicIndexDto[]
      */
     public function find(
         int $limit,

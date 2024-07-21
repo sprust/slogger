@@ -2,29 +2,29 @@
 
 namespace App\Modules\Trace\Domain\Actions\Mutations;
 
-use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\StartMonitorTraceIndexesActionInterface;
-use App\Modules\Trace\Domain\Services\TraceIndexesService;
-use App\Modules\Trace\Repositories\Interfaces\TraceIndexRepositoryInterface;
+use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\StartMonitorTraceDynamicIndexesActionInterface;
+use App\Modules\Trace\Domain\Services\MonitorTraceDynamicIndexesService;
+use App\Modules\Trace\Repositories\Interfaces\TraceDynamicIndexRepositoryInterface;
 use App\Modules\Trace\Repositories\Interfaces\TraceRepositoryInterface;
 
-readonly class StartMonitorTraceIndexesAction implements StartMonitorTraceIndexesActionInterface
+readonly class StartMonitorTraceDynamicIndexesAction implements StartMonitorTraceDynamicIndexesActionInterface
 {
     public function __construct(
-        private TraceIndexRepositoryInterface $traceIndexRepository,
+        private TraceDynamicIndexRepositoryInterface $traceDynamicIndexRepository,
         private TraceRepositoryInterface $traceRepository,
-        private TraceIndexesService $indexesService
+        private MonitorTraceDynamicIndexesService $monitorTraceDynamicIndexesService
     ) {
     }
 
     public function handle(): void
     {
-        $this->indexesService->setStopFlag(false);
+        $this->monitorTraceDynamicIndexesService->setStopFlag(false);
 
         $deletingTimeout = time() + 30;
 
-        while (!$this->indexesService->hasRestartFlag()) {
+        while (!$this->monitorTraceDynamicIndexesService->hasRestartFlag()) {
             if ($deletingTimeout < time()) {
-                $indexes = $this->traceIndexRepository->find(
+                $indexes = $this->traceDynamicIndexRepository->find(
                     limit: 10,
                     inProcess: false,
                     sortByCreatedAtAsc: true,
@@ -38,7 +38,7 @@ readonly class StartMonitorTraceIndexesAction implements StartMonitorTraceIndexe
                         );
                     }
 
-                    $this->traceIndexRepository->deleteByName(
+                    $this->traceDynamicIndexRepository->deleteByName(
                         name: $index->name
                     );
                 }
@@ -46,7 +46,7 @@ readonly class StartMonitorTraceIndexesAction implements StartMonitorTraceIndexe
                 $deletingTimeout = time() + 30;
             }
 
-            $indexes = $this->traceIndexRepository->find(
+            $indexes = $this->traceDynamicIndexRepository->find(
                 limit: 10,
                 inProcess: true,
                 sortByCreatedAtAsc: true,
@@ -64,7 +64,7 @@ readonly class StartMonitorTraceIndexesAction implements StartMonitorTraceIndexe
                     fields: $index->fields
                 );
 
-                $this->traceIndexRepository->updateByName(
+                $this->traceDynamicIndexRepository->updateByName(
                     name: $index->name,
                     inProcess: false,
                     created: $indexCreated

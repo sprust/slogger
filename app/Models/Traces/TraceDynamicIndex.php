@@ -14,12 +14,12 @@ use Illuminate\Support\Carbon;
  * @property Carbon $actualUntilAt
  * @property Carbon $createdAt
  */
-class TraceIndex extends AbstractTraceModel
+class TraceDynamicIndex extends AbstractTraceModel
 {
     public const CREATED_AT = 'createdAt';
     public const UPDATED_AT = null;
 
-    protected $collection = 'traceIndexes';
+    protected $collection = 'traceDynamicIndexes';
 
     protected $casts = [
         'inProcess'     => 'bool',

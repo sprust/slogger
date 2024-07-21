@@ -557,7 +557,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
         $index = [];
 
         foreach ($fields as $field) {
-            $index[$field->fieldName] = $field->isText ? 'text' : 1;
+            $index[$field->fieldName] = 1;
         }
 
         try {

@@ -6,7 +6,7 @@ use MongoDB\Laravel\Connection;
 
 return new class extends Migration {
     protected $connection = 'mongodb.traces';
-    protected string $collectionName = 'traceIndexes';
+    protected string $collectionName = 'traceDynamicIndexes';
 
     /**
      * Run the migrations.

@@ -4,10 +4,10 @@ namespace App\Modules\Trace\Repositories\Dto;
 
 use Illuminate\Support\Carbon;
 
-readonly class TraceIndexDto
+readonly class TraceDynamicIndexDto
 {
     /**
-     * @param TraceIndexFieldDto[] $fields
+     * @param TraceDynamicIndexFieldDto[] $fields
      */
     public function __construct(
         public string $name,

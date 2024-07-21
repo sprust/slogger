@@ -4,9 +4,9 @@ namespace App\Modules\Trace\Domain\Services;
 
 use Illuminate\Support\Facades\Cache;
 
-class TraceIndexesService
+class MonitorTraceDynamicIndexesService
 {
-    private string $cacheKey  = 'trace-indexes-monitor-stop-flag';
+    private string $cacheKey  = 'trace-dynamic-indexes-monitor-stop-flag';
 
     public function setStopFlag(bool $restartFlag): void
     {
