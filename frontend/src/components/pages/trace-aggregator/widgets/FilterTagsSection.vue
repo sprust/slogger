@@ -5,7 +5,7 @@
     <el-form-item>
       <el-input v-model="searchQuery" clearable>
         <template #append>
-          <el-button :icon="SearchIcon" @click="findTags"/>
+          <el-button :icon="SearchIcon" @click="findTags" :loading="loading.loading"/>
         </template>
       </el-input>
     </el-form-item>
@@ -26,9 +26,9 @@
 </template>
 
 <script lang="ts">
-import {defineComponent, shallowRef} from "vue";
+import {defineComponent, PropType, shallowRef} from "vue";
 import {Plus as TagAddIcon, Search as SearchIcon} from '@element-plus/icons-vue'
-import {TraceTag} from "../../../../store/traceAggregatorTagsStore.ts";
+import {TagLoading, TraceTag} from "../../../../store/traceAggregatorTagsStore.ts";
 
 export default defineComponent({
   emits: ['findTags', 'onTagClick'],
@@ -47,6 +47,10 @@ export default defineComponent({
     },
     selectedTags: {
       type: Array<string>,
+      required: true,
+    },
+    loading: {
+      type: Object as PropType<TagLoading>,
       required: true,
     },
   },
