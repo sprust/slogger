@@ -19,17 +19,22 @@ export interface TraceTag {
     count: number;
 }
 
-interface State {
-    loading: boolean,
+export type TagLoading = {
+    loading: boolean
+}
 
+interface State {
     types: Array<TraceTag>,
     typesPayload: TraceAggregatorFindTypesPayload,
+    typesLoading: TagLoading,
 
     tags: Array<TraceTag>,
     tagsPayload: TraceAggregatorFindTagsPayload,
+    tagsLoading: TagLoading,
 
     statuses: Array<TraceTag>,
     statusesPayload: TraceAggregatorFindStatusesPayload,
+    statusesLoading: TagLoading,
 }
 
 export const traceAggregatorFindTagsStore = createStore<State>({
@@ -38,12 +43,21 @@ export const traceAggregatorFindTagsStore = createStore<State>({
 
         types: new Array<TraceTag>,
         typesPayload: {} as TraceAggregatorFindTagsPayload,
+        typesLoading: {
+            loading: false
+        },
 
         tags: new Array<TraceTag>,
         tagsPayload: {} as TraceAggregatorFindTagsPayload,
+        tagsLoading: {
+            loading: false
+        },
 
         statuses: new Array<TraceTag>,
         statusesPayload: {} as TraceAggregatorFindStatusesPayload,
+        statusesLoading: {
+            loading: false
+        },
     } as State,
     mutations: {
         setTypes(state: State, types: Array<TraceAggregatorFindType>) {
@@ -58,7 +72,7 @@ export const traceAggregatorFindTagsStore = createStore<State>({
     },
     actions: {
         async findTypes({commit, state}: { commit: any, state: State }) {
-            state.loading = true
+            state.typesLoading.loading = true
             state.types = [];
 
             try {
@@ -67,11 +81,11 @@ export const traceAggregatorFindTagsStore = createStore<State>({
             } catch (error) {
                 handleApiError(error)
             } finally {
-                state.loading = false
+                state.typesLoading.loading = false
             }
         },
         async findTags({commit, state}: { commit: any, state: State }) {
-            state.loading = true
+            state.tagsLoading.loading = true
             state.tags = [];
 
             try {
@@ -81,11 +95,11 @@ export const traceAggregatorFindTagsStore = createStore<State>({
             } catch (error) {
                 handleApiError(error)
             } finally {
-                state.loading = false
+                state.tagsLoading.loading = false
             }
         },
         async findStatuses({commit, state}: { commit: any, state: State }) {
-            state.loading = true
+            state.statusesLoading.loading = true
             state.statuses = [];
 
             try {
@@ -97,7 +111,7 @@ export const traceAggregatorFindTagsStore = createStore<State>({
             } catch (error) {
                 handleApiError(error)
             } finally {
-                state.loading = false
+                state.statusesLoading.loading = false
             }
         },
     },

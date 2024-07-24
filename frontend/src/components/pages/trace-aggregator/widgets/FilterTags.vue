@@ -53,6 +53,7 @@
             tagType="success"
             :tags="tagsStore.state.types"
             :selectedTags="traceStore.state.payload.types"
+            :loading="tagsStore.state.typesLoading"
             @findTags="findTypes"
             @onTagClick="onTypeClick"
         />
@@ -63,6 +64,7 @@
             tagType="warning"
             :tags="tagsStore.state.tags"
             :selectedTags="traceStore.state.payload.tags"
+            :loading="tagsStore.state.tagsLoading"
             @findTags="findTags"
             @onTagClick="onTagClick"
         />
@@ -73,6 +75,7 @@
             tagType="primary"
             :tags="tagsStore.state.statuses"
             :selectedTags="traceStore.state.payload.statuses"
+            :loading="tagsStore.state.statusesLoading"
             @findTags="findStatuses"
             @onTagClick="onStatusClick"
         />
@@ -103,9 +106,9 @@ export default defineComponent({
   },
   methods: {
     onDialogOpen() {
-      this.findTypes(this.tagsStore.state.typesPayload.text)
-      this.findTags(this.tagsStore.state.tagsPayload.text)
-      this.findStatuses(this.tagsStore.state.statusesPayload.text)
+      this.findTypes(this.tagsStore.state.typesPayload.text ?? '')
+      this.findTags(this.tagsStore.state.tagsPayload.text ?? '')
+      this.findStatuses(this.tagsStore.state.statusesPayload.text ?? '')
     },
     findTypes(text: string) {
       this.traceStore.dispatch('prepareCommonPayloadData')
@@ -175,13 +178,13 @@ export default defineComponent({
     onTypeClick(type: string) {
       this.traceStore.dispatch('addOrDeleteType', type)
 
-      this.findTags(this.tagsStore.state.tagsPayload.text)
-      this.findStatuses(this.tagsStore.state.statusesPayload.text)
+      this.findTags(this.tagsStore.state.tagsPayload.text ?? '')
+      this.findStatuses(this.tagsStore.state.statusesPayload.text ?? '')
     },
     onTagClick(tag: string) {
       this.traceStore.dispatch('addOrDeleteTag', tag)
 
-      this.findStatuses(this.tagsStore.state.statusesPayload.text)
+      this.findStatuses(this.tagsStore.state.statusesPayload.text ?? '')
     },
     onStatusClick(status: string) {
       this.traceStore.dispatch('addOrDeleteStatus', status)
