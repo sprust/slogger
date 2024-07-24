@@ -40,7 +40,7 @@ readonly class SLoggerGrpcClient implements SLoggerApiClientInterface
 
         foreach ($traceObjects->get() as $item) {
             $loggedAt = new Timestamp();
-            $loggedAt->fromDateTime(now('UTC'));
+            $loggedAt->fromDateTime($item->loggedAt->toDateTime());
 
             $objects[] = (new TraceCreateObject())
                 ->setTraceId($item->traceId)
