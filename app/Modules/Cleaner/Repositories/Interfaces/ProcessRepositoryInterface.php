@@ -17,4 +17,6 @@ interface ProcessRepositoryInterface
     public function create(int $settingId, int $clearedCount, ?Carbon $clearedAt): ProcessDto;
 
     public function update(string $processId, int $clearedCount, ?Carbon $clearedAt): void;
+
+    public function deleteByProcessId(string $processId): void;
 }

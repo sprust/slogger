@@ -53,8 +53,8 @@ readonly class ClearTracesAction implements ClearTracesActionInterface
         $now = now('UTC');
 
         foreach ($settings as $setting) {
-            $loggedAtTo    = $now->clone()->subDays($setting->daysLifetime);
             $type          = $setting->type;
+            $loggedAtTo    = $now->clone()->subDays($setting->daysLifetime);
             $excludedTypes = is_null($type) ? $customizedTypes : [];
 
             $activeProcess = $this->processRepository->findFirstBySettingId(
@@ -62,7 +62,7 @@ readonly class ClearTracesAction implements ClearTracesActionInterface
                 clearedAtIsNull: true
             );
 
-            if ($activeProcess) {
+            if (empty($activeProcess)) {
                 $this->eventsDispatcher->dispatch(
                     new ProcessAlreadyActiveEvent($setting->id)
                 );
@@ -103,11 +103,17 @@ readonly class ClearTracesAction implements ClearTracesActionInterface
                 $clearedCount += count($traceIds);
             }
 
-            $this->processRepository->update(
-                processId: $process->id,
-                clearedCount: $clearedCount,
-                clearedAt: now()
-            );
+            if ($clearedCount === 0) {
+                $this->processRepository->deleteByProcessId(
+                    processId: $process->id
+                );
+            } else {
+                $this->processRepository->update(
+                    processId: $process->id,
+                    clearedCount: $clearedCount,
+                    clearedAt: now()
+                );
+            }
         }
     }
 }

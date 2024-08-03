@@ -65,9 +65,9 @@ class ProcessRepository implements ProcessRepositoryInterface
     {
         $newProgress = new TraceClearingProcess();
 
-        $newProgress->settingId    = $settingId;
+        $newProgress->settingId = $settingId;
         $newProgress->clearedCount = $clearedCount;
-        $newProgress->clearedAt    = $clearedAt;
+        $newProgress->clearedAt = $clearedAt;
 
         $newProgress->save();
 
@@ -89,5 +89,12 @@ class ProcessRepository implements ProcessRepositoryInterface
                 'clearedCount' => $clearedCount,
                 'clearedAt'    => $clearedAt ? new UTCDateTime($clearedAt) : null,
             ]);
+    }
+
+    public function deleteByProcessId(string $processId): void
+    {
+        TraceClearingProcess::query()
+            ->where('_id', $processId)
+            ->delete();
     }
 }
