@@ -107,8 +107,6 @@ export default defineComponent({
   methods: {
     onDialogOpen() {
       this.findTypes(this.tagsStore.state.typesPayload.text ?? '')
-      this.findTags(this.tagsStore.state.tagsPayload.text ?? '')
-      this.findStatuses(this.tagsStore.state.statusesPayload.text ?? '')
     },
     findTypes(text: string) {
       this.traceStore.dispatch('prepareCommonPayloadData')
