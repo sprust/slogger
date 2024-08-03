@@ -14,7 +14,6 @@ use App\Modules\Trace\Repositories\Dto\TraceSortDto;
 use App\Modules\Trace\Repositories\Interfaces\TraceDynamicIndexRepositoryInterface;
 use Illuminate\Support\Carbon;
 
-// TODO: move to repository layer
 readonly class TraceDynamicIndexInitializer
 {
     private int $timeLifeIndexInMinutes;
@@ -105,6 +104,7 @@ readonly class TraceDynamicIndexInitializer
         if (!empty($tags)) {
             $indexFields[] = new TraceDynamicIndexFieldDto('tags');
         }
+
         if (!empty($statuses)) {
             $indexFields[] = new TraceDynamicIndexFieldDto('status');
         }
