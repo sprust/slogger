@@ -31,7 +31,7 @@ readonly class FindStatusesAction implements FindStatusesActionInterface
             loggedAtTo: $parameters->loggingPeriod?->to,
             types: $parameters->types,
             tags: $parameters->tags,
-            statuses: $parameters->text ? [$parameters->text] : [],
+            statuses: ['stub'],
             durationFrom: $parameters->durationFrom,
             durationTo: $parameters->durationTo,
             memoryFrom: $parameters->memoryFrom,

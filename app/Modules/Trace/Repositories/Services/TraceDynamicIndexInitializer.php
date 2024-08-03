@@ -21,7 +21,7 @@ readonly class TraceDynamicIndexInitializer
     public function __construct(
         private TraceDynamicIndexRepositoryInterface $traceDynamicIndexRepository
     ) {
-        $this->timeLifeIndexInMinutes = 15;
+        $this->timeLifeIndexInMinutes = 30;
     }
 
     /**
@@ -101,6 +101,7 @@ readonly class TraceDynamicIndexInitializer
             $indexFields[] = new TraceDynamicIndexFieldDto('type');
         }
 
+        // TODO: the index for arrays not working like that
         if (!empty($tags)) {
             $indexFields[] = new TraceDynamicIndexFieldDto('tags');
         }

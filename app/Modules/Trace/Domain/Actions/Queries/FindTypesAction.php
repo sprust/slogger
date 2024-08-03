@@ -29,7 +29,7 @@ readonly class FindTypesAction implements FindTypesActionInterface
             serviceIds: $parameters->serviceIds,
             loggedAtFrom: $parameters->loggingPeriod?->from,
             loggedAtTo: $parameters->loggingPeriod?->to,
-            types: $parameters->text ? [$parameters->text] : [],
+            types: ['stub'],
             durationFrom: $parameters->durationFrom,
             durationTo: $parameters->durationTo,
             memoryFrom: $parameters->memoryFrom,
