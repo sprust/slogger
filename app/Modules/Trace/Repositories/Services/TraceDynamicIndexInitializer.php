@@ -6,8 +6,8 @@ use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexInProcessException;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexNotInitException;
 use App\Modules\Trace\Enums\TraceMetricFieldEnum;
 use App\Modules\Trace\Enums\TraceTimestampEnum;
-use App\Modules\Trace\Enums\TraceTimestampPeriodEnum;
 use App\Modules\Trace\Repositories\Dto\Data\TraceDataFilterDto;
+use App\Modules\Trace\Repositories\Dto\Data\TraceMetricDataFieldsFilterDto;
 use App\Modules\Trace\Repositories\Dto\Data\TraceMetricFieldsFilterDto;
 use App\Modules\Trace\Repositories\Dto\TraceDynamicIndexFieldDto;
 use App\Modules\Trace\Repositories\Dto\TraceSortDto;
@@ -25,13 +25,13 @@ readonly class TraceDynamicIndexInitializer
     }
 
     /**
-     * @param int[]|null                        $serviceIds
-     * @param TraceMetricFieldsFilterDto[]|null $fields
-     * @param TraceMetricFieldsFilterDto[]|null $dataFieldsFilter
-     * @param string[]                          $types
-     * @param string[]                          $tags
-     * @param string[]                          $statuses
-     * @param TraceSortDto[]|null               $sort
+     * @param int[]|null                            $serviceIds
+     * @param TraceMetricFieldsFilterDto[]|null     $fields
+     * @param TraceMetricDataFieldsFilterDto[]|null $dataFieldsFilter
+     * @param string[]                              $types
+     * @param string[]                              $tags
+     * @param string[]                              $statuses
+     * @param TraceSortDto[]|null                   $sort
      *
      * @throws TraceDynamicIndexNotInitException
      * @throws TraceDynamicIndexInProcessException
@@ -79,12 +79,12 @@ readonly class TraceDynamicIndexInitializer
 
         if (!empty($dataFieldsFilter)) {
             foreach ($dataFieldsFilter as $dataFieldFilter) {
-                if ($dataFieldFilter->field === TraceMetricFieldEnum::Count) {
+                if ($dataFieldFilter->field === TraceMetricFieldEnum::Count->value) {
                     continue;
                 }
 
                 $indexFields[] = new TraceDynamicIndexFieldDto(
-                    "data.{$dataFieldFilter->field->name}"
+                    "data.{$dataFieldFilter->field}"
                 );
             }
         }
