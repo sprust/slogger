@@ -11,7 +11,7 @@ class TraceDynamicIndexingActionService
 
     public function __construct()
     {
-        $this->indexCreateTimeoutInSeconds = 20;
+        $this->indexCreateTimeoutInSeconds = 25;
     }
 
     /**
