@@ -15,7 +15,6 @@ use App\Modules\Trace\Repositories\Dto\TraceItemsPaginationDto;
 use App\Modules\Trace\Repositories\Dto\TraceLoggedAtDto;
 use App\Modules\Trace\Repositories\Dto\TraceServiceDto;
 use App\Modules\Trace\Repositories\Dto\TraceSortDto;
-use App\Modules\Trace\Repositories\Dto\TraceTreeDto;
 use App\Modules\Trace\Repositories\Dto\TraceTypeDto;
 use App\Modules\Trace\Repositories\Interfaces\TraceRepositoryInterface;
 use App\Modules\Trace\Repositories\Services\TraceQueryBuilder;
@@ -137,40 +136,6 @@ readonly class TraceRepository implements TraceRepositoryInterface
         }
 
         return Trace::collection()->bulkWrite($operations)->getModifiedCount();
-    }
-
-    public function findTree(int $page = 1, int $perPage = 15, ?Carbon $to = null): array
-    {
-        return Trace::query()
-            ->select([
-                'traceId',
-                'parentTraceId',
-                'loggedAt',
-            ])
-            ->when(
-                $to,
-                /**
-                 * @phpstan-ignore-next-line
-                 * Parameter #2 $callback of method Illuminate\Database\Query\Builder::when() expects
-                 * (callable(Illuminate\Database\Query\Builder, Illuminate\Support\Carbon):
-                 * Illuminate\Database\Eloquent\Builder)|null, Closure(Illuminate\Database\Eloquent\Builder):
-                 * Illuminate\Database\Eloquent\Builder given.
-                 */
-                fn(Builder $query) => $query->where('loggedAt', '<=', new UTCDateTime($to))
-            )
-            ->forPage(
-                page: $page,
-                perPage: $perPage
-            )
-            ->get()
-            ->map(
-                fn(Trace $trace) => new TraceTreeDto(
-                    traceId: $trace->traceId,
-                    parentTraceId: $trace->parentTraceId,
-                    loggedAt: $trace->loggedAt
-                )
-            )
-            ->toArray();
     }
 
     public function findLoggedAtList(int $page, int $perPage, Carbon $loggedAtTo): array
@@ -505,12 +470,11 @@ readonly class TraceRepository implements TraceRepositoryInterface
         );
     }
 
-    public function findTraceIds(
-        int $limit,
+    public function deleteTraces(
         ?Carbon $loggedAtTo = null,
         ?string $type = null,
         ?array $excludedTypes = null
-    ): array {
+    ): int {
         return Trace::query()
             ->when(
                 !is_null($loggedAtTo),
@@ -521,14 +485,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
                 is_null($type) && !is_null($excludedTypes),
                 fn(Builder $query) => $query->whereNotIn('type', $excludedTypes)
             )
-            ->take($limit)
-            ->pluck('traceId')
-            ->toArray();
-    }
-
-    public function deleteByTraceIds(array $ids): int
-    {
-        return Trace::query()->whereIn('traceId', $ids)->delete();
+            ->delete();
     }
 
     /**

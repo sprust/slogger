@@ -12,7 +12,6 @@ use App\Modules\Trace\Repositories\Dto\TraceDynamicIndexFieldDto;
 use App\Modules\Trace\Repositories\Dto\TraceItemsPaginationDto;
 use App\Modules\Trace\Repositories\Dto\TraceLoggedAtDto;
 use App\Modules\Trace\Repositories\Dto\TraceSortDto;
-use App\Modules\Trace\Repositories\Dto\TraceTreeDto;
 use App\Modules\Trace\Repositories\Dto\TraceTypeDto;
 use App\Modules\Trace\Repositories\Dto\TraceUpdateDto;
 use Illuminate\Support\Carbon;
@@ -30,9 +29,6 @@ interface TraceRepositoryInterface
      * @param TraceUpdateDto[] $traces
      */
     public function updateMany(array $traces): int;
-
-    /** @return TraceTreeDto[] */
-    public function findTree(int $page = 1, int $perPage = 15, ?Carbon $to = null): array;
 
     /**
      * @return TraceLoggedAtDto[]
@@ -91,23 +87,15 @@ interface TraceRepositoryInterface
     public function findProfilingByTraceId(string $traceId): ?TraceProfilingDto;
 
     /**
-     * @param string[] $excludedTypes
-     *
-     * @return string[]
-     */
-    public function findTraceIds(
-        int $limit,
-        ?Carbon $loggedAtTo = null,
-        ?string $type = null,
-        ?array $excludedTypes = null
-    ): array;
-
-    /**
-     * @param string[] $ids
+     * @param string[]|null $excludedTypes
      *
      * @return int - number of deleted records
      */
-    public function deleteByTraceIds(array $ids): int;
+    public function deleteTraces(
+        ?Carbon $loggedAtTo = null,
+        ?string $type = null,
+        ?array $excludedTypes = null
+    ): int;
 
     /**
      * @param TraceDynamicIndexFieldDto[] $fields

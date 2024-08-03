@@ -59,7 +59,15 @@ readonly class DatabaseStatRepository implements DatabaseStatRepositoryInterface
             $collections = [];
 
             foreach ($connection->listCollections() as $collectionInfo) {
+                if ($collectionInfo->getType() === 'view') {
+                    continue;
+                }
+
                 $collectionName = $collectionInfo->getName();
+
+                if ($collectionName === 'system.views') {
+                    continue;
+                }
 
                 $collection = $connection->selectCollection($collectionName);
 
