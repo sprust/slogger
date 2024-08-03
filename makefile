@@ -5,7 +5,7 @@ WORKERS_SERVICE="workers"
 WORKERS_CLI="docker-compose exec $(WORKERS_SERVICE) "
 
 FRONTEND_SERVICE="frontend"
-FRONTEND_CLI="docker-compose exec $(FRONTEND_SERVICE) "
+FRONTEND_CLI="docker-compose run --rm $(FRONTEND_SERVICE) "
 
 ifneq (,$(wildcard ./.env))
     include .env

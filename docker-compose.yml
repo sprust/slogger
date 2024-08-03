@@ -150,7 +150,7 @@ services:
     volumes:
       - ./frontend:/app
       - ./storage/api/json-schemes/:/app/json-schemes
-    command: [ "sh", "-c", "${FRONTEND_DOCKER_COMMAND}" ]
+    command: [ "npm", "run", "${FRONTEND_DOCKER_COMMAND}" ]
 
 volumes:
   mysql:
