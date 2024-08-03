@@ -96,8 +96,6 @@ readonly class FindTraceTimestampsAction implements FindTraceTimestampsActionInt
         $this->traceDynamicIndexInitializer->init(
             serviceIds: $parameters->serviceIds,
             timestampStep: $parameters->timestampStep,
-            fields: $fieldsFilter,
-            dataFieldsFilter: $dataFieldsFilter,
             traceIds: $parameters->traceIds,
             types: $parameters->types,
             tags: $parameters->tags,

@@ -4,11 +4,8 @@ namespace App\Modules\Trace\Repositories\Services;
 
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexInProcessException;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexNotInitException;
-use App\Modules\Trace\Enums\TraceMetricFieldEnum;
 use App\Modules\Trace\Enums\TraceTimestampEnum;
 use App\Modules\Trace\Repositories\Dto\Data\TraceDataFilterDto;
-use App\Modules\Trace\Repositories\Dto\Data\TraceMetricDataFieldsFilterDto;
-use App\Modules\Trace\Repositories\Dto\Data\TraceMetricFieldsFilterDto;
 use App\Modules\Trace\Repositories\Dto\TraceDynamicIndexFieldDto;
 use App\Modules\Trace\Repositories\Dto\TraceSortDto;
 use App\Modules\Trace\Repositories\Interfaces\TraceDynamicIndexRepositoryInterface;
@@ -25,13 +22,11 @@ readonly class TraceDynamicIndexInitializer
     }
 
     /**
-     * @param int[]|null                            $serviceIds
-     * @param TraceMetricFieldsFilterDto[]|null     $fields
-     * @param TraceMetricDataFieldsFilterDto[]|null $dataFieldsFilter
-     * @param string[]                              $types
-     * @param string[]                              $tags
-     * @param string[]                              $statuses
-     * @param TraceSortDto[]|null                   $sort
+     * @param int[]|null          $serviceIds
+     * @param string[]            $types
+     * @param string[]            $tags
+     * @param string[]            $statuses
+     * @param TraceSortDto[]|null $sort
      *
      * @throws TraceDynamicIndexNotInitException
      * @throws TraceDynamicIndexInProcessException
@@ -39,8 +34,6 @@ readonly class TraceDynamicIndexInitializer
     public function init(
         ?array $serviceIds = null,
         ?TraceTimestampEnum $timestampStep = null,
-        ?array $fields = null,
-        ?array $dataFieldsFilter = null,
         ?array $traceIds = null,
         ?Carbon $loggedAtFrom = null,
         ?Carbon $loggedAtTo = null,
@@ -65,28 +58,6 @@ readonly class TraceDynamicIndexInitializer
 
         if (!is_null($timestampStep)) {
             $indexFields[] = new TraceDynamicIndexFieldDto("timestamps.$timestampStep->value");
-        }
-
-        if (!empty($fields)) {
-            foreach ($fields as $field) {
-                if ($field->field === TraceMetricFieldEnum::Count) {
-                    continue;
-                }
-
-                $indexFields[] = new TraceDynamicIndexFieldDto($field->field->name);
-            }
-        }
-
-        if (!empty($dataFieldsFilter)) {
-            foreach ($dataFieldsFilter as $dataFieldFilter) {
-                if ($dataFieldFilter->field === TraceMetricFieldEnum::Count->value) {
-                    continue;
-                }
-
-                $indexFields[] = new TraceDynamicIndexFieldDto(
-                    "data.{$dataFieldFilter->field}"
-                );
-            }
         }
 
         if (!empty($traceIds)) {
