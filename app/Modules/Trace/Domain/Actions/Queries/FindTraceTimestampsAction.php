@@ -99,8 +99,6 @@ readonly class FindTraceTimestampsAction implements FindTraceTimestampsActionInt
             fields: $fieldsFilter,
             dataFieldsFilter: $dataFieldsFilter,
             traceIds: $parameters->traceIds,
-            loggedAtFrom: $loggedAtFrom,
-            loggedAtTo: $loggedAtTo,
             types: $parameters->types,
             tags: $parameters->tags,
             statuses: $parameters->statuses,

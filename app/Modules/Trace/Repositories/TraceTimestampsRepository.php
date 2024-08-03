@@ -16,6 +16,7 @@ use App\Modules\Trace\Repositories\Interfaces\TraceTimestampsRepositoryInterface
 use App\Modules\Trace\Repositories\Services\TraceQueryBuilder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
+use MongoDB\BSON\UTCDateTime;
 use RuntimeException;
 
 readonly class TraceTimestampsRepository implements TraceTimestampsRepositoryInterface
@@ -48,9 +49,28 @@ readonly class TraceTimestampsRepository implements TraceTimestampsRepositoryInt
     ): TraceTimestampsListDto {
         $timestampField = $timestamp->value;
 
+        $timestampFieldKey = "timestamps.$timestampField";
+
         $match = [
-            "timestamps.$timestampField" => [
-                '$exists' => true,
+            '$and' => [
+                ...($loggedAtFrom
+                    ? [
+                        [
+                            $timestampFieldKey => [
+                                '$gte' => new UTCDateTime($loggedAtFrom),
+                            ],
+                        ],
+                    ]
+                    : []),
+                ...($loggedAtTo
+                    ? [
+                        [
+                            $timestampFieldKey => [
+                                '$lte' => new UTCDateTime($loggedAtTo),
+                            ],
+                        ],
+                    ]
+                    : []),
             ],
         ];
 
@@ -58,8 +78,6 @@ readonly class TraceTimestampsRepository implements TraceTimestampsRepositoryInt
             ->make(
                 serviceIds: $serviceIds,
                 traceIds: $traceIds,
-                loggedAtFrom: $loggedAtFrom,
-                loggedAtTo: $loggedAtTo,
                 types: $types,
                 tags: $tags,
                 statuses: $statuses,

@@ -14,6 +14,7 @@ use App\Modules\Trace\Repositories\Dto\TraceSortDto;
 use App\Modules\Trace\Repositories\Interfaces\TraceDynamicIndexRepositoryInterface;
 use Illuminate\Support\Carbon;
 
+// TODO: move to repository layer
 readonly class TraceDynamicIndexInitializer
 {
     private int $timeLifeIndexInMinutes;
