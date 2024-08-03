@@ -18,7 +18,7 @@ readonly class TraceDynamicIndexInitializer
     public function __construct(
         private TraceDynamicIndexRepositoryInterface $traceDynamicIndexRepository
     ) {
-        $this->timeLifeIndexInMinutes = 30;
+        $this->timeLifeIndexInMinutes = 60 * 24 * 2; // 2 days
     }
 
     /**
