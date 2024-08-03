@@ -91,23 +91,15 @@ interface TraceRepositoryInterface
     public function findProfilingByTraceId(string $traceId): ?TraceProfilingDto;
 
     /**
-     * @param string[] $excludedTypes
-     *
-     * @return string[]
-     */
-    public function findTraceIds(
-        int $limit,
-        ?Carbon $loggedAtTo = null,
-        ?string $type = null,
-        ?array $excludedTypes = null
-    ): array;
-
-    /**
-     * @param string[] $ids
+     * @param string[]|null $excludedTypes
      *
      * @return int - number of deleted records
      */
-    public function deleteByTraceIds(array $ids): int;
+    public function deleteTraces(
+        ?Carbon $loggedAtTo = null,
+        ?string $type = null,
+        ?array $excludedTypes = null
+    ): int;
 
     /**
      * @param TraceDynamicIndexFieldDto[] $fields

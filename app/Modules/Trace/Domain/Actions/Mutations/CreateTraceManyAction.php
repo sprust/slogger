@@ -8,15 +8,12 @@ use App\Modules\Trace\Domain\Entities\Parameters\TraceCreateParameters;
 use App\Modules\Trace\Domain\Entities\Parameters\TraceCreateParametersList;
 use App\Modules\Trace\Repositories\Dto\Timestamp\TraceTimestampMetricDto;
 use App\Modules\Trace\Repositories\Dto\TraceCreateDto;
-use App\Modules\Trace\Repositories\Dto\TraceTreeDto;
 use App\Modules\Trace\Repositories\Interfaces\TraceRepositoryInterface;
-use App\Modules\Trace\Repositories\Interfaces\TraceTreeRepositoryInterface;
 
 readonly class CreateTraceManyAction implements CreateTraceManyActionInterface
 {
     public function __construct(
-        private TraceRepositoryInterface $traceRepository,
-        private TraceTreeRepositoryInterface $traceTreeRepository
+        private TraceRepositoryInterface $traceRepository
     ) {
     }
 
@@ -43,17 +40,6 @@ readonly class CreateTraceManyAction implements CreateTraceManyActionInterface
                         $parameters->timestamps
                     ),
                     loggedAt: $parameters->loggedAt,
-                ),
-                $parametersList->getItems()
-            )
-        );
-
-        $this->traceTreeRepository->insertMany(
-            array_map(
-                fn(TraceCreateParameters $traceCreateParameters) => new TraceTreeDto(
-                    traceId: $traceCreateParameters->traceId,
-                    parentTraceId: $traceCreateParameters->parentTraceId,
-                    loggedAt: $traceCreateParameters->loggedAt
                 ),
                 $parametersList->getItems()
             )

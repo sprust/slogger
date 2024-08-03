@@ -8,25 +8,18 @@ use App\Modules\Cleaner\Repositories\Dto\SettingDto;
 use App\Modules\Cleaner\Repositories\Interfaces\ProcessRepositoryInterface;
 use App\Modules\Cleaner\Repositories\Interfaces\SettingRepositoryInterface;
 use App\Modules\Common\EventsDispatcher;
-use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\DeleteTracesByTraceIdsActionInterface;
-use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\DeleteTraceTreesByTraceIdsActionInterface;
-use App\Modules\Trace\Domain\Actions\Interfaces\Queries\FindTraceIdsActionInterface;
-use App\Modules\Trace\Domain\Entities\Parameters\FindTraceIdsParameters;
+use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\DeleteTracesActionInterface;
+use App\Modules\Trace\Domain\Entities\Parameters\DeleteTracesParameters;
 use Illuminate\Support\Arr;
 
 readonly class ClearTracesAction implements ClearTracesActionInterface
 {
-    private int $countInDeletionBatch;
-
     public function __construct(
         private EventsDispatcher $eventsDispatcher,
         private SettingRepositoryInterface $settingRepository,
         private ProcessRepositoryInterface $processRepository,
-        private FindTraceIdsActionInterface $findTraceIdsAction,
-        private DeleteTracesByTraceIdsActionInterface $deleteTracesByTraceIdsAction,
-        private DeleteTraceTreesByTraceIdsActionInterface $deleteTraceTreesByTraceIdsAction
+        private DeleteTracesActionInterface $deleteTracesAction,
     ) {
-        $this->countInDeletionBatch = 1000;
     }
 
     public function handle(): void
@@ -62,7 +55,7 @@ readonly class ClearTracesAction implements ClearTracesActionInterface
                 clearedAtIsNull: true
             );
 
-            if (empty($activeProcess)) {
+            if (!empty($activeProcess)) {
                 $this->eventsDispatcher->dispatch(
                     new ProcessAlreadyActiveEvent($setting->id)
                 );
@@ -76,41 +69,22 @@ readonly class ClearTracesAction implements ClearTracesActionInterface
                 clearedAt: null
             );
 
-            $clearedCount = 0;
+            $deletedCount = $this->deleteTracesAction->handle(
+                new DeleteTracesParameters(
+                    loggedAtTo: $loggedAtTo,
+                    type: $type,
+                    excludedTypes: $excludedTypes
+                )
+            );
 
-            while (true) {
-                $traceIds = $this->findTraceIdsAction->handle(
-                    new FindTraceIdsParameters(
-                        limit: $this->countInDeletionBatch,
-                        loggedAtTo: $loggedAtTo,
-                        type: $type,
-                        excludedTypes: $excludedTypes
-                    )
-                );
-
-                if (empty($traceIds)) {
-                    break;
-                }
-
-                $this->deleteTracesByTraceIdsAction->handle(
-                    ids: $traceIds
-                );
-
-                $this->deleteTraceTreesByTraceIdsAction->handle(
-                    ids: $traceIds
-                );
-
-                $clearedCount += count($traceIds);
-            }
-
-            if ($clearedCount === 0) {
+            if ($deletedCount === 0) {
                 $this->processRepository->deleteByProcessId(
                     processId: $process->id
                 );
             } else {
                 $this->processRepository->update(
                     processId: $process->id,
-                    clearedCount: $clearedCount,
+                    clearedCount: $deletedCount,
                     clearedAt: now()
                 );
             }

@@ -505,12 +505,11 @@ readonly class TraceRepository implements TraceRepositoryInterface
         );
     }
 
-    public function findTraceIds(
-        int $limit,
+    public function deleteTraces(
         ?Carbon $loggedAtTo = null,
         ?string $type = null,
         ?array $excludedTypes = null
-    ): array {
+    ): int {
         return Trace::query()
             ->when(
                 !is_null($loggedAtTo),
@@ -521,14 +520,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
                 is_null($type) && !is_null($excludedTypes),
                 fn(Builder $query) => $query->whereNotIn('type', $excludedTypes)
             )
-            ->take($limit)
-            ->pluck('traceId')
-            ->toArray();
-    }
-
-    public function deleteByTraceIds(array $ids): int
-    {
-        return Trace::query()->whereIn('traceId', $ids)->delete();
+            ->delete();
     }
 
     /**
