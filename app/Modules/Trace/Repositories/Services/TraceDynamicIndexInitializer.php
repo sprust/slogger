@@ -28,6 +28,7 @@ readonly class TraceDynamicIndexInitializer
      * @param string[]            $statuses
      * @param TraceSortDto[]|null $sort
      *
+     * TODO: violation of layers
      * @throws TraceDynamicIndexNotInitException
      * @throws TraceDynamicIndexInProcessException
      */
