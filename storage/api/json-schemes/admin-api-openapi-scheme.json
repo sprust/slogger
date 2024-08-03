@@ -168,6 +168,10 @@
                                                         "type": "number",
                                                         "nullable": false
                                                     },
+                                                    "memory_usage": {
+                                                        "type": "number",
+                                                        "nullable": false
+                                                    },
                                                     "collections": {
                                                         "type": "array",
                                                         "nullable": false,
@@ -238,6 +242,7 @@
                                                 "required": [
                                                     "name",
                                                     "size",
+                                                    "memory_usage",
                                                     "collections"
                                                 ]
                                             }

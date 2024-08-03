@@ -138,6 +138,7 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
             ];
         }
 
+        // TODO: long handling
         $pipeline[] = [
             '$unwind' => [
                 'path' => '$tags',

@@ -11,14 +11,14 @@ use App\Modules\Trace\Domain\Entities\Objects\TraceItemObjects;
 use App\Modules\Trace\Domain\Entities\Objects\TraceItemTraceObject;
 use App\Modules\Trace\Domain\Entities\Objects\TraceServiceObject;
 use App\Modules\Trace\Domain\Entities\Parameters\TraceFindParameters;
-use App\Modules\Trace\Domain\Entities\Parameters\TraceSortParameters;
 use App\Modules\Trace\Domain\Entities\Transports\TraceDataFilterTransport;
+use App\Modules\Trace\Domain\Entities\Transports\TraceSortTransport;
 use App\Modules\Trace\Domain\Entities\Transports\TraceTypeTransport;
 use App\Modules\Trace\Repositories\Dto\TraceDetailDto;
-use App\Modules\Trace\Repositories\Dto\TraceSortDto;
 use App\Modules\Trace\Repositories\Dto\TraceTypeDto;
 use App\Modules\Trace\Repositories\Interfaces\TraceRepositoryInterface;
 use App\Modules\Trace\Repositories\Interfaces\TraceTreeRepositoryInterface;
+use App\Modules\Trace\Repositories\Services\TraceDynamicIndexInitializer;
 use Illuminate\Support\Arr;
 
 readonly class FindTracesAction implements FindTracesActionInterface
@@ -28,6 +28,7 @@ readonly class FindTracesAction implements FindTracesActionInterface
     public function __construct(
         private TraceRepositoryInterface $traceRepository,
         private TraceTreeRepositoryInterface $traceTreeRepository,
+        private TraceDynamicIndexInitializer $traceDynamicIndexInitializer
     ) {
         $this->maxPerPage = 20;
     }
@@ -68,6 +69,28 @@ readonly class FindTracesAction implements FindTracesActionInterface
             }
         }
 
+        $data = TraceDataFilterTransport::toDtoIfNotNull($parameters->data);
+        $sort = TraceSortTransport::fromObjects($parameters->sort);
+
+        $this->traceDynamicIndexInitializer->init(
+            serviceIds: $parameters->serviceIds,
+            traceIds: $traceIds,
+            loggedAtFrom: $parameters->loggingPeriod?->from,
+            loggedAtTo: $parameters->loggingPeriod?->to,
+            types: $parameters->types,
+            tags: $parameters->tags,
+            statuses: $parameters->statuses,
+            durationFrom: $parameters->durationFrom,
+            durationTo: $parameters->durationTo,
+            memoryFrom: $parameters->memoryFrom,
+            memoryTo: $parameters->memoryTo,
+            cpuFrom: $parameters->cpuFrom,
+            cpuTo: $parameters->cpuTo,
+            data: $data,
+            hasProfiling: $parameters->hasProfiling,
+            sort: $sort,
+        );
+
         $traceItemsPagination = $this->traceRepository->find(
             page: $parameters->page,
             perPage: $perPage,
@@ -84,15 +107,9 @@ readonly class FindTracesAction implements FindTracesActionInterface
             memoryTo: $parameters->memoryTo,
             cpuFrom: $parameters->cpuFrom,
             cpuTo: $parameters->cpuTo,
-            data: TraceDataFilterTransport::toDtoIfNotNull($parameters->data),
+            data: $data,
             hasProfiling: $parameters->hasProfiling,
-            sort: array_map(
-                fn(TraceSortParameters $parameters) => new TraceSortDto(
-                    field: $parameters->field,
-                    directionEnum: $parameters->directionEnum,
-                ),
-                $parameters->sort
-            ),
+            sort: $sort,
         );
 
         $traceTypeCounts = empty($traceItemsPagination->items)

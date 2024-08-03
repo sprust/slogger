@@ -10,6 +10,7 @@ class DatabaseStatDto
     public function __construct(
         public string $name,
         public float $size,
+        public float $memoryUsage,
         public array $collections
     ) {
     }

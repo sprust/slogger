@@ -88,6 +88,7 @@ export namespace AdminApi {
     data: ({
     name: string,
     size: number,
+    memory_usage: number,
     collections: ({
     name: string,
     size: number,
@@ -117,6 +118,7 @@ export namespace AdminApi {
       data: {
         name: string;
         size: number;
+        memory_usage: number;
         collections: {
           name: string;
           size: number;
@@ -1674,6 +1676,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     data: ({
     name: string,
     size: number,
+    memory_usage: number,
     collections: ({
     name: string,
     size: number,
@@ -1700,6 +1703,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
           data: {
             name: string;
             size: number;
+            memory_usage: number;
             collections: {
               name: string;
               size: number;

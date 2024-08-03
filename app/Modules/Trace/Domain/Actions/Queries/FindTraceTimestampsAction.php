@@ -16,12 +16,14 @@ use App\Modules\Trace\Repositories\Dto\Data\TraceMetricFieldsFilterDto;
 use App\Modules\Trace\Repositories\Dto\Timestamp\TraceTimestampFieldDto;
 use App\Modules\Trace\Repositories\Dto\Timestamp\TraceTimestampsDto;
 use App\Modules\Trace\Repositories\Interfaces\TraceTimestampsRepositoryInterface;
+use App\Modules\Trace\Repositories\Services\TraceDynamicIndexInitializer;
 
 readonly class FindTraceTimestampsAction implements FindTraceTimestampsActionInterface
 {
     public function __construct(
         private TraceTimestampsRepositoryInterface $traceTimestampsRepository,
-        private TraceTimestampMetricsFactory $traceTimestampMetricsFactory
+        private TraceTimestampMetricsFactory $traceTimestampMetricsFactory,
+        private TraceDynamicIndexInitializer $traceDynamicIndexInitializer
     ) {
     }
 
@@ -89,6 +91,25 @@ readonly class FindTraceTimestampsAction implements FindTraceTimestampsActionInt
             timestamp: $parameters->timestampStep
         );
 
+        $data = TraceDataFilterTransport::toDtoIfNotNull($parameters->data);
+
+        $this->traceDynamicIndexInitializer->init(
+            serviceIds: $parameters->serviceIds,
+            timestampStep: $parameters->timestampStep,
+            traceIds: $parameters->traceIds,
+            types: $parameters->types,
+            tags: $parameters->tags,
+            statuses: $parameters->statuses,
+            durationFrom: $parameters->durationFrom,
+            durationTo: $parameters->durationTo,
+            memoryFrom: $parameters->memoryFrom,
+            memoryTo: $parameters->memoryTo,
+            cpuFrom: $parameters->cpuFrom,
+            cpuTo: $parameters->cpuTo,
+            data: $data,
+            hasProfiling: $parameters->hasProfiling,
+        );
+
         $timestampsDtoList = $this->traceTimestampsRepository->find(
             timestamp: $parameters->timestampStep,
             fields: $fieldsFilter,
@@ -106,7 +127,7 @@ readonly class FindTraceTimestampsAction implements FindTraceTimestampsActionInt
             memoryTo: $parameters->memoryTo,
             cpuFrom: $parameters->cpuFrom,
             cpuTo: $parameters->cpuTo,
-            data: TraceDataFilterTransport::toDtoIfNotNull($parameters->data),
+            data: $data,
             hasProfiling: $parameters->hasProfiling,
         );
 

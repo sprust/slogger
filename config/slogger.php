@@ -137,6 +137,7 @@ return [
                 'octane:swoole:start',
                 'octane:swoole:reload',
                 'octane:swoole:stop',
+                'trace-dynamic-indexes:monitor:start',
             ],
         ],
 

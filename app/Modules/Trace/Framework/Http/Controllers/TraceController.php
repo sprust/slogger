@@ -5,13 +5,16 @@ namespace App\Modules\Trace\Framework\Http\Controllers;
 use App\Modules\Common\Enums\SortDirectionEnum;
 use App\Modules\Trace\Domain\Actions\Interfaces\Queries\FindTraceDetailActionInterface;
 use App\Modules\Trace\Domain\Actions\Interfaces\Queries\FindTracesActionInterface;
+use App\Modules\Trace\Domain\Entities\Objects\TraceItemObjects;
 use App\Modules\Trace\Domain\Entities\Parameters\PeriodParameters;
 use App\Modules\Trace\Domain\Entities\Parameters\TraceFindParameters;
 use App\Modules\Trace\Domain\Entities\Parameters\TraceSortParameters;
+use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexNotInitException;
 use App\Modules\Trace\Framework\Http\Controllers\Traits\MakeDataFilterParameterTrait;
 use App\Modules\Trace\Framework\Http\Requests\TraceIndexRequest;
 use App\Modules\Trace\Framework\Http\Resources\TraceDetailResource;
 use App\Modules\Trace\Framework\Http\Resources\TraceItemsResource;
+use App\Modules\Trace\Framework\Http\Services\TraceDynamicIndexingActionService;
 use Symfony\Component\HttpFoundation\Response;
 
 readonly class TraceController
@@ -20,57 +23,68 @@ readonly class TraceController
 
     public function __construct(
         private FindTracesActionInterface $findTracesAction,
-        private FindTraceDetailActionInterface $findTraceDetailAction
+        private FindTraceDetailActionInterface $findTraceDetailAction,
+        private TraceDynamicIndexingActionService $traceDynamicIndexingActionService
     ) {
     }
 
+    /**
+     * @throws TraceDynamicIndexNotInitException
+     */
     public function index(TraceIndexRequest $request): TraceItemsResource
     {
         $validated = $request->validated();
 
-        $traces = $this->findTracesAction->handle(
-            new TraceFindParameters(
-                page: $validated['page'] ?? 1,
-                perPage: $validated['per_page'] ?? null,
-                serviceIds: array_map('intval', $validated['service_ids'] ?? []),
-                traceId: $validated['trace_id'] ?? null,
-                allTracesInTree: $validated['all_traces_in_tree'] ?? false,
-                loggingPeriod: PeriodParameters::fromStringValues(
-                    from: $validated['logging_from'] ?? null,
-                    to: $validated['logging_to'] ?? null,
-                ),
-                types: $validated['types'] ?? [],
-                tags: $validated['tags'] ?? [],
-                statuses: $validated['statuses'] ?? [],
-                durationFrom: $validated['duration_from'] ?? null,
-                durationTo: $validated['duration_to'] ?? null,
-                memoryFrom: $validated['memory_from'] ?? null,
-                memoryTo: $validated['memory_to'] ?? null,
-                cpuFrom: $validated['cpu_from'] ?? null,
-                cpuTo: $validated['cpu_to'] ?? null,
-                data: $this->makeDataFilterParameter($validated),
-                hasProfiling: ($validated['has_profiling'] ?? null) ?: null,
-                sort: array_filter(
-                    array_map(
-                        function (array $sortItem) {
-                            $field = $sortItem['field'];
+        $loggingPeriod = PeriodParameters::fromStringValues(
+            from: $validated['logging_from'] ?? null,
+            to: $validated['logging_to'] ?? null,
+        );
 
-                            if (!$field) {
-                                return null;
-                            }
+        $sort = array_filter(
+            array_map(
+                function (array $sortItem) {
+                    $field = $sortItem['field'];
 
-                            $direction = $sortItem['direction'];
+                    if (!$field) {
+                        return null;
+                    }
 
-                            $directionEnum = $direction ? SortDirectionEnum::from($direction) : null;
+                    $direction = $sortItem['direction'];
 
-                            return new TraceSortParameters(
-                                field: $field,
-                                directionEnum: $directionEnum ?: SortDirectionEnum::Desc
-                            );
-                        },
-                        $validated['sort'] ?? []
-                    )
-                ),
+                    $directionEnum = $direction ? SortDirectionEnum::from($direction) : null;
+
+                    return new TraceSortParameters(
+                        field: $field,
+                        directionEnum: $directionEnum ?: SortDirectionEnum::Desc
+                    );
+                },
+                $validated['sort'] ?? []
+            )
+        );
+
+        /** @var TraceItemObjects $traces */
+        $traces = $this->traceDynamicIndexingActionService->handle(
+            fn() => $this->findTracesAction->handle(
+                new TraceFindParameters(
+                    page: $validated['page'] ?? 1,
+                    perPage: $validated['per_page'] ?? null,
+                    serviceIds: array_map('intval', $validated['service_ids'] ?? []),
+                    traceId: $validated['trace_id'] ?? null,
+                    allTracesInTree: $validated['all_traces_in_tree'] ?? false,
+                    loggingPeriod: $loggingPeriod,
+                    types: $validated['types'] ?? [],
+                    tags: $validated['tags'] ?? [],
+                    statuses: $validated['statuses'] ?? [],
+                    durationFrom: $validated['duration_from'] ?? null,
+                    durationTo: $validated['duration_to'] ?? null,
+                    memoryFrom: $validated['memory_from'] ?? null,
+                    memoryTo: $validated['memory_to'] ?? null,
+                    cpuFrom: $validated['cpu_from'] ?? null,
+                    cpuTo: $validated['cpu_to'] ?? null,
+                    data: $this->makeDataFilterParameter($validated),
+                    hasProfiling: ($validated['has_profiling'] ?? null) ?: null,
+                    sort: $sort,
+                )
             )
         );
 

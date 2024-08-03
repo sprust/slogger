@@ -18,7 +18,7 @@
       <el-space wrap>
         <el-card v-for="database in store.state.items">
           <template #header>
-            {{ database.name }} ({{ `${database.size}mb` }})
+            {{ database.name }} (size: {{ `${database.size}mb` }}, memory usage: {{ `${database.memory_usage}mb` }})
           </template>
           <el-table :data="database.collections" :border="true">
             <el-table-column type="expand">

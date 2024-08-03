@@ -8,6 +8,7 @@ use App\Modules\Trace\Repositories\Dto\Timestamp\TraceTimestampMetricDto;
 use App\Modules\Trace\Repositories\Dto\TraceCreateDto;
 use App\Modules\Trace\Repositories\Dto\TraceDetailDto;
 use App\Modules\Trace\Repositories\Dto\TraceDto;
+use App\Modules\Trace\Repositories\Dto\TraceDynamicIndexFieldDto;
 use App\Modules\Trace\Repositories\Dto\TraceItemsPaginationDto;
 use App\Modules\Trace\Repositories\Dto\TraceLoggedAtDto;
 use App\Modules\Trace\Repositories\Dto\TraceSortDto;
@@ -46,10 +47,10 @@ interface TraceRepositoryInterface
     public function findOneByTraceId(string $traceId): ?TraceDetailDto;
 
     /**
-     * @param int[]|null                 $serviceIds
-     * @param string[]                   $types
-     * @param string[]                   $tags
-     * @param string[]                   $statuses
+     * @param int[]|null          $serviceIds
+     * @param string[]            $types
+     * @param string[]            $tags
+     * @param string[]            $statuses
      * @param TraceSortDto[]|null $sort
      */
     public function find(
@@ -107,4 +108,11 @@ interface TraceRepositoryInterface
      * @return int - number of deleted records
      */
     public function deleteByTraceIds(array $ids): int;
+
+    /**
+     * @param TraceDynamicIndexFieldDto[] $fields
+     */
+    public function createIndex(string $name, array $fields): bool;
+
+    public function deleteIndexByName(string $name): void;
 }
