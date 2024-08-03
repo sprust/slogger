@@ -305,6 +305,8 @@ export const traceAggregatorStore = createStore<State>({
                 ]
             }
 
+            commit('setData', [])
+
             return ApiContainer.get().traceAggregatorTracesCreate(state.payload)
                 .then((response) => {
                     commit('setData', response.data.data)
