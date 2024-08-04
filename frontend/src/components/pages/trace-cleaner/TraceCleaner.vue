@@ -29,7 +29,7 @@
           <el-table-column label="Cleared count" prop="cleared_count"/>
           <el-table-column label="Cleared at" prop="cleared_at">
             <template #default="scope">
-              {{ convertDateStringToLocal(scope.row.cleared_at, false) }}
+              {{ scope.row.cleared_at ? convertDateStringToLocal(scope.row.cleared_at, false) : '' }}
             </template>
           </el-table-column>
           <el-table-column label="Created at" prop="created_at">
@@ -46,6 +46,11 @@
       </template>
     </el-table-column>
     <el-table-column label="Type" prop="type"/>
+    <el-table-column label="Only data">
+      <template #default="scope">
+        {{ scope.row.only_data ? 'yes' : '' }}
+      </template>
+    </el-table-column>
     <el-table-column label="Days lifetime" prop="days_lifetime"/>
     <el-table-column label="Created at" prop="created_at">
       <template #default="scope">
@@ -107,6 +112,9 @@
       <el-form-item label="Days lifetime">
         <el-input-number v-model="editorDialog.daysLifetime"/>
       </el-form-item>
+      <el-form-item label="Only data">
+        <el-checkbox v-model="editorDialog.onlyData"/>
+      </el-form-item>
     </el-form>
     <template #footer>
       <el-button @click="onEditorSave">
@@ -135,6 +143,7 @@ export default defineComponent({
         id: null as null | number,
         daysLifetime: 30,
         type: '',
+        onlyData: false,
         deleted: false,
       },
     }
@@ -161,6 +170,7 @@ export default defineComponent({
       this.editorDialog.id = null
       this.editorDialog.daysLifetime = 10
       this.editorDialog.type = ''
+      this.editorDialog.onlyData = false
       this.editorDialog.deleted = false
 
       this.editorDialog.visible = true
@@ -169,6 +179,7 @@ export default defineComponent({
       this.editorDialog.id = setting.id
       this.editorDialog.daysLifetime = setting.days_lifetime
       this.editorDialog.type = setting.type ?? ''
+      this.editorDialog.onlyData = setting.only_data
       this.editorDialog.deleted = setting.deleted
 
       this.editorDialog.visible = true
@@ -180,6 +191,7 @@ export default defineComponent({
         this.store.dispatch('createSetting', {
           daysLifetime: this.editorDialog.daysLifetime,
           type: this.editorDialog.type,
+          onlyData: this.editorDialog.onlyData,
           onSuccess: () => {
             this.update()
             this.editorDialog.visible = false
@@ -189,6 +201,7 @@ export default defineComponent({
         this.store.dispatch('updateSetting', {
           settingId: settingId,
           daysLifetime: this.editorDialog.daysLifetime,
+          onlyData: this.editorDialog.onlyData,
           onSuccess: () => {
             this.editorDialog.visible = false
           }

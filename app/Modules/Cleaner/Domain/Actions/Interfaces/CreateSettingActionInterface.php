@@ -10,5 +10,5 @@ interface CreateSettingActionInterface
     /**
      * @throws SettingAlreadyExistsException
      */
-    public function handle(int $daysLifetime, ?string $type): SettingObject;
+    public function handle(int $daysLifetime, ?string $type, bool $onlyData): SettingObject;
 }

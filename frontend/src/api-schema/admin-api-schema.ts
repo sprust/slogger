@@ -1211,6 +1211,7 @@ export namespace AdminApi {
     id: number,
     days_lifetime: number,
     type?: string | null,
+    only_data: boolean,
     deleted: boolean,
     created_at: string,
     updated_at: string,
@@ -1229,6 +1230,7 @@ export namespace AdminApi {
         id: number;
         days_lifetime: number;
         type?: string | null;
+        only_data: boolean;
         deleted: boolean;
         created_at: string;
         updated_at: string;
@@ -1244,6 +1246,7 @@ export namespace AdminApi {
     id: number,
     days_lifetime: number,
     type?: string | null,
+    only_data: boolean,
     deleted: boolean,
     created_at: string,
     updated_at: string,
@@ -1259,6 +1262,7 @@ export namespace AdminApi {
       /** @min 1 */
       days_life_time: number;
       type?: string | null;
+      only_data: boolean;
     };
     export type RequestHeaders = {};
     export type ResponseBody = {
@@ -1266,6 +1270,7 @@ export namespace AdminApi {
         id: number;
         days_lifetime: number;
         type?: string | null;
+        only_data: boolean;
         deleted: boolean;
         created_at: string;
         updated_at: string;
@@ -1281,6 +1286,7 @@ export namespace AdminApi {
     id: number,
     days_lifetime: number,
     type?: string | null,
+    only_data: boolean,
     deleted: boolean,
     created_at: string,
     updated_at: string,
@@ -1297,6 +1303,7 @@ export namespace AdminApi {
     export type RequestBody = {
       /** @min 1 */
       days_life_time: number;
+      only_data: boolean;
     };
     export type RequestHeaders = {};
     export type ResponseBody = {
@@ -1304,6 +1311,7 @@ export namespace AdminApi {
         id: number;
         days_lifetime: number;
         type?: string | null;
+        only_data: boolean;
         deleted: boolean;
         created_at: string;
         updated_at: string;
@@ -2922,6 +2930,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     id: number,
     days_lifetime: number,
     type?: string | null,
+    only_data: boolean,
     deleted: boolean,
     created_at: string,
     updated_at: string,
@@ -2937,6 +2946,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
             id: number;
             days_lifetime: number;
             type?: string | null;
+            only_data: boolean;
             deleted: boolean;
             created_at: string;
             updated_at: string;
@@ -2962,6 +2972,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     id: number,
     days_lifetime: number,
     type?: string | null,
+    only_data: boolean,
     deleted: boolean,
     created_at: string,
     updated_at: string,
@@ -2975,6 +2986,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         /** @min 1 */
         days_life_time: number;
         type?: string | null;
+        only_data: boolean;
       },
       params: RequestParams = {},
     ) =>
@@ -2984,6 +2996,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
             id: number;
             days_lifetime: number;
             type?: string | null;
+            only_data: boolean;
             deleted: boolean;
             created_at: string;
             updated_at: string;
@@ -3011,6 +3024,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     id: number,
     days_lifetime: number,
     type?: string | null,
+    only_data: boolean,
     deleted: boolean,
     created_at: string,
     updated_at: string,
@@ -3024,6 +3038,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       data: {
         /** @min 1 */
         days_life_time: number;
+        only_data: boolean;
       },
       params: RequestParams = {},
     ) =>
@@ -3033,6 +3048,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
             id: number;
             days_lifetime: number;
             type?: string | null;
+            only_data: boolean;
             deleted: boolean;
             created_at: string;
             updated_at: string;

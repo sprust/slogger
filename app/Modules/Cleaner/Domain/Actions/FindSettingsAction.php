@@ -18,7 +18,9 @@ readonly class FindSettingsAction implements FindSettingsActionInterface
     {
         return array_map(
             fn(SettingDto $settingDto) => SettingTransport::toObject($settingDto),
-            $this->settingRepository->find()
+            $this->settingRepository->find(
+                orderByTypeAndOnlyData: true
+            )
         );
     }
 }

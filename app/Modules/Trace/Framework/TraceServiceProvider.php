@@ -6,6 +6,7 @@ use App\Modules\Common\Framework\BaseServiceProvider;
 use App\Modules\Trace\Domain\Actions\Interfaces\MakeMetricIndicatorsActionInterface;
 use App\Modules\Trace\Domain\Actions\Interfaces\MakeTraceTimestampPeriodsActionInterface;
 use App\Modules\Trace\Domain\Actions\Interfaces\MakeTraceTimestampsActionInterface;
+use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\ClearTracesActionInterface;
 use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\CreateTraceManyActionInterface;
 use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\DeleteTracesActionInterface;
 use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\FreshTraceTimestampsActionInterface;
@@ -23,6 +24,7 @@ use App\Modules\Trace\Domain\Actions\Interfaces\Queries\FindTypesActionInterface
 use App\Modules\Trace\Domain\Actions\MakeMetricIndicatorsAction;
 use App\Modules\Trace\Domain\Actions\MakeTraceTimestampPeriodsAction;
 use App\Modules\Trace\Domain\Actions\MakeTraceTimestampsAction;
+use App\Modules\Trace\Domain\Actions\Mutations\ClearTracesAction;
 use App\Modules\Trace\Domain\Actions\Mutations\CreateTraceManyAction;
 use App\Modules\Trace\Domain\Actions\Mutations\DeleteTracesAction;
 use App\Modules\Trace\Domain\Actions\Mutations\FreshTraceTimestampsAction;
@@ -86,6 +88,7 @@ class TraceServiceProvider extends BaseServiceProvider
             MakeTraceTimestampsActionInterface::class             => MakeTraceTimestampsAction::class,
             // actions.mutations
             CreateTraceManyActionInterface::class                 => CreateTraceManyAction::class,
+            ClearTracesActionInterface::class                     => ClearTracesAction::class,
             DeleteTracesActionInterface::class                    => DeleteTracesAction::class,
             FreshTraceTimestampsActionInterface::class            => FreshTraceTimestampsAction::class,
             UpdateTraceManyActionInterface::class                 => UpdateTraceManyAction::class,

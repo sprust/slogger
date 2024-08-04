@@ -49,6 +49,7 @@ readonly class TraceDynamicIndexInitializer
         ?float $cpuTo = null,
         ?TraceDataFilterDto $data = null,
         ?bool $hasProfiling = null,
+        ?bool $cleared = null,
         ?array $sort = null,
     ): void {
         $indexFields = [];
@@ -96,6 +97,10 @@ readonly class TraceDynamicIndexInitializer
 
         if (!is_null($hasProfiling)) {
             $indexFields[] = new TraceDynamicIndexFieldDto('hasProfiling');
+        }
+
+        if (!is_null($cleared)) {
+            $indexFields[] = new TraceDynamicIndexFieldDto('cleared');
         }
 
         foreach ($data->filter ?? [] as $dataFilterItem) {

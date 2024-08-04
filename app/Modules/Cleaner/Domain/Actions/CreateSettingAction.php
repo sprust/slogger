@@ -15,11 +15,12 @@ readonly class CreateSettingAction implements CreateSettingActionInterface
     ) {
     }
 
-    public function handle(int $daysLifetime, ?string $type): SettingObject
+    public function handle(int $daysLifetime, ?string $type, bool $onlyData): SettingObject
     {
         $existSettings = $this->settingRepository->find(
             type: $type,
-            typeIsNotNull: !is_null($type)
+            typeIsNotNull: !is_null($type),
+            onlyData: $onlyData
         );
 
         if ($existSettings) {
@@ -28,7 +29,8 @@ readonly class CreateSettingAction implements CreateSettingActionInterface
 
         $settingId = $this->settingRepository->create(
             daysLifetime: $daysLifetime,
-            type: $type
+            type: $type,
+            onlyData: $onlyData
         );
 
         return $this->findSettingByIdAction->handle($settingId);

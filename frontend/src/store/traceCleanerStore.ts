@@ -82,16 +82,18 @@ export const traceCleanerStore = createStore<State>({
         },
         async createSetting(
             {},
-            {daysLifetime, type, onSuccess}: {
+            {daysLifetime, type, onlyData, onSuccess}: {
                 daysLifetime: number,
                 type: string
+                onlyData: boolean
                 onSuccess: () => {}
             }
         ) {
             ApiContainer.get()
                 .traceCleanerSettingsCreate({
                     days_life_time: daysLifetime,
-                    type: type
+                    type: type,
+                    only_data: onlyData
                 })
                 .then(() => {
                     onSuccess()
@@ -102,15 +104,17 @@ export const traceCleanerStore = createStore<State>({
         },
         updateSetting(
             {commit}: { commit: any },
-            {settingId, daysLifetime, onSuccess}: {
+            {settingId, daysLifetime, onlyData, onSuccess}: {
                 settingId: number | null,
                 daysLifetime: number,
+                onlyData: boolean
                 onSuccess: () => {}
             }
         ) {
             ApiContainer.get()
                 .traceCleanerSettingsPartialUpdate(settingId, {
                     days_life_time: daysLifetime,
+                    only_data: onlyData
                 })
                 .then((response) => {
                     commit('editSetting', response.data.data)

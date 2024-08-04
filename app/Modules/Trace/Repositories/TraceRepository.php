@@ -22,6 +22,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 use MongoDB\BSON\UTCDateTime;
+use stdClass;
 use Throwable;
 
 readonly class TraceRepository implements TraceRepositoryInterface
@@ -486,6 +487,33 @@ readonly class TraceRepository implements TraceRepositoryInterface
                 fn(Builder $query) => $query->whereNotIn('type', $excludedTypes)
             )
             ->delete();
+    }
+
+    public function clearTraces(
+        ?Carbon $loggedAtTo = null,
+        ?string $type = null,
+        ?array $excludedTypes = null
+    ): int {
+        return Trace::query()
+            ->where(function (Builder $query) {
+                $query->where('cleared', false)
+                    ->orWhere('cleared', 'exists', false);
+            })
+            ->when(
+                !is_null($loggedAtTo),
+                fn(Builder $query) => $query->where('loggedAt', '<=', new UTCDateTime($loggedAtTo))
+            )
+            ->when(!is_null($type), fn(Builder $query) => $query->where('type', $type))
+            ->when(
+                is_null($type) && !is_null($excludedTypes),
+                fn(Builder $query) => $query->whereNotIn('type', $excludedTypes)
+            )
+            ->update([
+                'data'         => new stdClass(),
+                'profiling'    => null,
+                'hasProfiling' => false,
+                'cleared'      => true,
+            ]);
     }
 
     /**

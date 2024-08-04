@@ -14,6 +14,10 @@ class UpdateSettingRequest extends FormRequest
                 'integer',
                 'min:1',
             ],
+            'only_data'      => [
+                'required',
+                'boolean',
+            ],
         ];
     }
 }

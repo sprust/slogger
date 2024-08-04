@@ -24,6 +24,7 @@ use Illuminate\Support\Carbon;
  * @property array             $profiling
  * @property Carbon            $loggedAt
  * @property array             $timestamps
+ * @property bool              $cleared // TODO: added to migration(validation) ?
  * @property Carbon            $createdAt
  * @property Carbon            $updatedAt
  * @property-read Service|null $service
@@ -40,6 +41,7 @@ class Trace extends AbstractTraceModel
     protected $casts = [
         'hasProfiling' => 'boolean',
         'loggedAt'     => 'datetime',
+        'cleared'      => 'boolean',
     ];
 
     public function service(): BelongsTo

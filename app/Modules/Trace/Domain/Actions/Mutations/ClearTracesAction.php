@@ -2,15 +2,15 @@
 
 namespace App\Modules\Trace\Domain\Actions\Mutations;
 
-use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\DeleteTracesActionInterface;
-use App\Modules\Trace\Domain\Entities\Parameters\DeleteTracesParameters;
+use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\ClearTracesActionInterface;
+use App\Modules\Trace\Domain\Entities\Parameters\ClearTracesParameters;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexInProcessException;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexNotInitException;
 use App\Modules\Trace\Domain\Services\TraceDynamicIndexingActionService;
 use App\Modules\Trace\Repositories\Interfaces\TraceRepositoryInterface;
 use App\Modules\Trace\Repositories\Services\TraceDynamicIndexInitializer;
 
-readonly class DeleteTracesAction implements DeleteTracesActionInterface
+readonly class ClearTracesAction implements ClearTracesActionInterface
 {
     public function __construct(
         private TraceRepositoryInterface $traceRepository,
@@ -23,16 +23,17 @@ readonly class DeleteTracesAction implements DeleteTracesActionInterface
      * @throws TraceDynamicIndexInProcessException
      * @throws TraceDynamicIndexNotInitException
      */
-    public function handle(DeleteTracesParameters $parameters): int
+    public function handle(ClearTracesParameters $parameters): int
     {
         $this->traceDynamicIndexingActionService->handle(
             fn() => $this->traceDynamicIndexInitializer->init(
                 loggedAtTo: $parameters->loggedAtTo,
                 types: ['stub'],
+                cleared: true,
             )
         );
 
-        return $this->traceRepository->deleteTraces(
+        return $this->traceRepository->clearTraces(
             loggedAtTo: $parameters->loggedAtTo,
             type: $parameters->type,
             excludedTypes: $parameters->excludedTypes

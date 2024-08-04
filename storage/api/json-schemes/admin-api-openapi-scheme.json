@@ -2805,6 +2805,10 @@
                                                         "type": "string",
                                                         "nullable": true
                                                     },
+                                                    "only_data": {
+                                                        "type": "boolean",
+                                                        "nullable": false
+                                                    },
                                                     "deleted": {
                                                         "type": "boolean",
                                                         "nullable": false
@@ -2821,6 +2825,7 @@
                                                 "required": [
                                                     "id",
                                                     "days_lifetime",
+                                                    "only_data",
                                                     "deleted",
                                                     "created_at",
                                                     "updated_at"
@@ -2856,10 +2861,14 @@
                                     "type": {
                                         "type": "string",
                                         "nullable": true
+                                    },
+                                    "only_data": {
+                                        "type": "boolean"
                                     }
                                 },
                                 "required": [
-                                    "days_life_time"
+                                    "days_life_time",
+                                    "only_data"
                                 ],
                                 "type": "object"
                             }
@@ -2888,6 +2897,10 @@
                                                     "type": "string",
                                                     "nullable": true
                                                 },
+                                                "only_data": {
+                                                    "type": "boolean",
+                                                    "nullable": false
+                                                },
                                                 "deleted": {
                                                     "type": "boolean",
                                                     "nullable": false
@@ -2904,6 +2917,7 @@
                                             "required": [
                                                 "id",
                                                 "days_lifetime",
+                                                "only_data",
                                                 "deleted",
                                                 "created_at",
                                                 "updated_at"
@@ -2936,10 +2950,14 @@
                                     "days_life_time": {
                                         "type": "integer",
                                         "minimum": 1
+                                    },
+                                    "only_data": {
+                                        "type": "boolean"
                                     }
                                 },
                                 "required": [
-                                    "days_life_time"
+                                    "days_life_time",
+                                    "only_data"
                                 ],
                                 "type": "object"
                             }
@@ -2976,6 +2994,10 @@
                                                     "type": "string",
                                                     "nullable": true
                                                 },
+                                                "only_data": {
+                                                    "type": "boolean",
+                                                    "nullable": false
+                                                },
                                                 "deleted": {
                                                     "type": "boolean",
                                                     "nullable": false
@@ -2992,6 +3014,7 @@
                                             "required": [
                                                 "id",
                                                 "days_lifetime",
+                                                "only_data",
                                                 "deleted",
                                                 "created_at",
                                                 "updated_at"

@@ -8,7 +8,9 @@ use App\Modules\Cleaner\Repositories\Dto\SettingDto;
 use App\Modules\Cleaner\Repositories\Interfaces\ProcessRepositoryInterface;
 use App\Modules\Cleaner\Repositories\Interfaces\SettingRepositoryInterface;
 use App\Modules\Common\EventsDispatcher;
+use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\ClearTracesActionInterface as TraceClearTracesActionInterface;
 use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\DeleteTracesActionInterface;
+use App\Modules\Trace\Domain\Entities\Parameters\ClearTracesParameters;
 use App\Modules\Trace\Domain\Entities\Parameters\DeleteTracesParameters;
 use Illuminate\Support\Arr;
 
@@ -18,6 +20,7 @@ readonly class ClearTracesAction implements ClearTracesActionInterface
         private EventsDispatcher $eventsDispatcher,
         private SettingRepositoryInterface $settingRepository,
         private ProcessRepositoryInterface $processRepository,
+        private TraceClearTracesActionInterface $clearTracesAction,
         private DeleteTracesActionInterface $deleteTracesAction,
     ) {
     }
@@ -69,22 +72,32 @@ readonly class ClearTracesAction implements ClearTracesActionInterface
                 clearedAt: null
             );
 
-            $deletedCount = $this->deleteTracesAction->handle(
-                new DeleteTracesParameters(
-                    loggedAtTo: $loggedAtTo,
-                    type: $type,
-                    excludedTypes: $excludedTypes
-                )
-            );
+            if ($setting->onlyData) {
+                $clearedCount = $this->clearTracesAction->handle(
+                    new ClearTracesParameters(
+                        loggedAtTo: $loggedAtTo,
+                        type: $type,
+                        excludedTypes: $excludedTypes
+                    )
+                );
+            } else {
+                $clearedCount = $this->deleteTracesAction->handle(
+                    new DeleteTracesParameters(
+                        loggedAtTo: $loggedAtTo,
+                        type: $type,
+                        excludedTypes: $excludedTypes
+                    )
+                );
+            }
 
-            if ($deletedCount === 0) {
+            if ($clearedCount === 0) {
                 $this->processRepository->deleteByProcessId(
                     processId: $process->id
                 );
             } else {
                 $this->processRepository->update(
                     processId: $process->id,
-                    clearedCount: $deletedCount,
+                    clearedCount: $clearedCount,
                     clearedAt: now()
                 );
             }

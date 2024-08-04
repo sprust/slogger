@@ -43,6 +43,7 @@ readonly class SettingController
             $setting = $this->createSettingAction->handle(
                 daysLifetime: $validated['days_life_time'],
                 type: $validated['type'],
+                onlyData: $validated['only_data'],
             );
         } catch (SettingAlreadyExistsException $exception) {
             abort(Response::HTTP_BAD_REQUEST, $exception->getMessage());
@@ -59,8 +60,9 @@ readonly class SettingController
             $setting = $this->updateSettingAction->handle(
                 settingId: $settingId,
                 daysLifetime: $validated['days_life_time'],
+                onlyData: $validated['only_data'],
             );
-        } catch (SettingNotFoundException $exception) {
+        } catch (SettingNotFoundException|SettingAlreadyExistsException $exception) {
             abort(Response::HTTP_BAD_REQUEST, $exception->getMessage());
         }
 

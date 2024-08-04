@@ -19,6 +19,10 @@ class CreateSettingRequest extends FormRequest
                 'string',
                 'nullable',
             ],
+            'only_data'      => [
+                'required',
+                'boolean',
+            ],
         ];
     }
 }
