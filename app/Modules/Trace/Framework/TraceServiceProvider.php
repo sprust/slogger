@@ -9,6 +9,7 @@ use App\Modules\Trace\Domain\Actions\Interfaces\MakeTraceTimestampsActionInterfa
 use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\ClearTracesActionInterface;
 use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\CreateTraceManyActionInterface;
 use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\DeleteTracesActionInterface;
+use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\FlushDynamicIndexesActionInterface;
 use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\FreshTraceTimestampsActionInterface;
 use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\StartMonitorTraceDynamicIndexesActionInterface;
 use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\StopMonitorTraceDynamicIndexesActionInterface;
@@ -27,6 +28,7 @@ use App\Modules\Trace\Domain\Actions\MakeTraceTimestampsAction;
 use App\Modules\Trace\Domain\Actions\Mutations\ClearTracesAction;
 use App\Modules\Trace\Domain\Actions\Mutations\CreateTraceManyAction;
 use App\Modules\Trace\Domain\Actions\Mutations\DeleteTracesAction;
+use App\Modules\Trace\Domain\Actions\Mutations\FlushDynamicIndexesAction;
 use App\Modules\Trace\Domain\Actions\Mutations\FreshTraceTimestampsAction;
 use App\Modules\Trace\Domain\Actions\Mutations\StartMonitorTraceDynamicIndexesAction;
 use App\Modules\Trace\Domain\Actions\Mutations\StopMonitorTraceDynamicIndexesAction;
@@ -39,6 +41,7 @@ use App\Modules\Trace\Domain\Actions\Queries\FindTracesAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceTimestampsAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceTreeAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTypesAction;
+use App\Modules\Trace\Framework\Commands\FlushDynamicIndexesCommand;
 use App\Modules\Trace\Framework\Commands\FreshTraceTimestampsCommand;
 use App\Modules\Trace\Framework\Commands\StartMonitorTraceDynamicIndexesCommand;
 use App\Modules\Trace\Framework\Commands\StopMonitorTraceDynamicIndexesCommand;
@@ -70,6 +73,7 @@ class TraceServiceProvider extends BaseServiceProvider
             FreshTraceTimestampsCommand::class,
             StartMonitorTraceDynamicIndexesCommand::class,
             StopMonitorTraceDynamicIndexesCommand::class,
+            FlushDynamicIndexesCommand::class,
         ]);
     }
 
@@ -94,6 +98,7 @@ class TraceServiceProvider extends BaseServiceProvider
             UpdateTraceManyActionInterface::class                 => UpdateTraceManyAction::class,
             StartMonitorTraceDynamicIndexesActionInterface::class => StartMonitorTraceDynamicIndexesAction::class,
             StopMonitorTraceDynamicIndexesActionInterface::class  => StopMonitorTraceDynamicIndexesAction::class,
+            FlushDynamicIndexesActionInterface::class             => FlushDynamicIndexesAction::class,
             // actions.queries
             FindStatusesActionInterface::class                    => FindStatusesAction::class,
             FindTagsActionInterface::class                        => FindTagsAction::class,
