@@ -114,7 +114,7 @@ class TraceDynamicIndexRepository implements TraceDynamicIndexRepositoryInterfac
      */
     private function makeIndexName(array $fields): string
     {
-        return 'dynamic_'
+        return 'dyn_'
             . implode(
                 '__',
                 array_map(
