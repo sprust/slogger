@@ -75,9 +75,18 @@ oa-generate:
 	@make art c='oa:generate'
 	@make frontend-npm-generate
 
-deploy:
+deploy-prod:
 	git pull
 	@make composer c='i --no-dev'
+	@make art c='migrate --force'
+	@make workers-restart
+	@make frontend-npm-i
+	@make frontend-npm-build
+	@docker-compose restart $(FRONTEND_SERVICE)
+
+deploy-dev:
+	git pull
+	@make composer c='i'
 	@make art c='migrate --force'
 	@make frontend-npm-i
 	@make frontend-npm-build
