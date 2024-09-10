@@ -84,7 +84,7 @@ export const traceAggregatorStore = createStore<State>({
             },
             sort: [
                 {
-                    field: "loggedAt",
+                    field: "lat",
                     direction: "desc"
                 }
             ]
@@ -118,7 +118,7 @@ export const traceAggregatorStore = createStore<State>({
                 },
                 sort: [
                     {
-                        field: "loggedAt",
+                        field: "lat",
                         direction: "desc"
                     }
                 ]
@@ -299,7 +299,7 @@ export const traceAggregatorStore = createStore<State>({
             if (!state.payload.sort.length) {
                 state.payload.sort = [
                     {
-                        field: 'loggedAt',
+                        field: 'lat',
                         direction: 'desc'
                     }
                 ]
