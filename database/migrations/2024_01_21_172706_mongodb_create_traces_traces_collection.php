@@ -23,60 +23,63 @@ return new class extends Migration {
                     '$jsonSchema' => [
                         'bsonType'   => 'object',
                         'required'   => [
-                            'serviceId',
-                            'traceId',
-                            'parentTraceId',
-                            'type',
-                            'tags',
-                            'data',
-                            'loggedAt',
-                            'createdAt',
-                            'updatedAt',
+                            'sid',
+                            'tid',
+                            'ptid',
+                            'tp',
+                            'tgs',
+                            'dt',
+                            'lat',
+                            'cat',
+                            'uat',
                         ],
                         'properties' => [
-                            'serviceId'     => [
+                            'sid'  => [
                                 'bsonType' => 'number',
                             ],
-                            'traceId'       => [
+                            'tid'  => [
                                 'bsonType' => 'string',
                             ],
-                            'parentTraceId' => [
+                            'ptid' => [
                                 'bsonType' => ['string', 'null'],
                             ],
-                            'type'          => [
+                            'tp'   => [
                                 'bsonType' => 'string',
                             ],
-                            'status'        => [
+                            'st'   => [
                                 'bsonType' => 'string',
                             ],
-                            'tags'          => [
+                            'tgs'  => [
                                 'bsonType' => 'array',
                             ],
-                            'data'          => [
+                            'dt'   => [
                                 'bsonType' => ['object', 'array'],
                             ],
-                            'duration'      => [
+                            'dur'  => [
                                 'bsonType' => ['number', 'null'],
                             ],
-                            'memory'        => [
+                            'mem'  => [
                                 'bsonType' => ['number', 'null'],
                             ],
-                            'cpu'           => [
+                            'cpu'  => [
                                 'bsonType' => ['number', 'null'],
                             ],
-                            'hasProfiling'  => [
+                            'hpr'  => [
                                 'bsonType' => ['bool'],
                             ],
-                            'profiling'     => [
+                            'pr'   => [
                                 'bsonType' => ['object', 'null'],
                             ],
-                            'loggedAt'      => [
+                            'cl'   => [
+                                'bsonType' => ['bool'],
+                            ],
+                            'lat'  => [
                                 'bsonType' => 'date',
                             ],
-                            'createdAt'     => [
+                            'cat'  => [
                                 'bsonType' => 'date',
                             ],
-                            'updatedAt'     => [
+                            'uat'  => [
                                 'bsonType' => 'date',
                             ],
                         ],
@@ -88,25 +91,25 @@ return new class extends Migration {
         $collection = $connection->selectCollection($this->collectionName);
 
         $collection->createIndex([
-            'serviceId' => 1,
+            'sid' => 1,
         ]);
         $collection->createIndex([
-            'traceId' => 1,
+            'tid' => 1,
         ]);
         $collection->createIndex([
-            'parentTraceId' => 1,
+            'ptid' => 1,
         ]);
         $collection->createIndex([
-            'type' => 1,
+            'tp' => 1,
         ]);
         $collection->createIndex([
-            'status' => 1,
+            'st' => 1,
         ]);
         $collection->createIndex([
-            'tags' => 1,
+            'tgs' => 1,
         ]);
         $collection->createIndex([
-            'loggedAt' => 1,
+            'lat' => 1,
         ]);
     }
 

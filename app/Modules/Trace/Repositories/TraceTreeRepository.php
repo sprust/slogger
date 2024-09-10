@@ -18,26 +18,26 @@ class TraceTreeRepository implements TraceTreeRepositoryInterface
                     [
                         '$graphLookup' => [
                             'from'             => 'traceTreesView',
-                            'startWith'        => '$traceId',
-                            'connectFromField' => 'traceId',
-                            'connectToField'   => 'parentTraceId',
+                            'startWith'        => '$tid',
+                            'connectFromField' => 'tid',
+                            'connectToField'   => 'ptid',
                             'as'               => 'children',
                             'maxDepth'         => $this->maxDepthForFindParent,
                         ],
                     ],
                     [
                         '$project' => [
-                            'traceId'  => 1,
+                            'tid'      => 1,
                             'childIds' => [
                                 '$concatArrays' => [
                                     [
-                                        '$traceId',
+                                        '$tid',
                                     ],
                                     [
                                         '$map' => [
                                             'input' => '$children',
                                             'as'    => 'children',
-                                            'in'    => '$$children.traceId',
+                                            'in'    => '$$children.tid',
                                         ],
                                     ],
                                 ],
@@ -46,7 +46,7 @@ class TraceTreeRepository implements TraceTreeRepositoryInterface
                     ],
                     [
                         '$match' => [
-                            'traceId' => $traceId,
+                            'tid' => $traceId,
                         ],
                     ],
                     [
@@ -74,10 +74,10 @@ class TraceTreeRepository implements TraceTreeRepositoryInterface
         /** @var array|null $trace */
         $trace = TraceTree::query()
             ->select([
-                'traceId',
-                'parentTraceId',
+                'tid',
+                'ptid',
             ])
-            ->where('traceId', $traceId)
+            ->where('tid', $traceId)
             ->toBase()
             ->first();
 
@@ -87,21 +87,21 @@ class TraceTreeRepository implements TraceTreeRepositoryInterface
 
         $parentTrace = $trace;
 
-        if ($trace['parentTraceId']) {
+        if ($trace['ptid']) {
             $index = 0;
 
             while (++$index <= $this->maxDepthForFindParent) {
-                if (!$parentTrace['parentTraceId']) {
+                if (!$parentTrace['ptid']) {
                     break;
                 }
 
                 /** @var array|null $currentParentTrace */
                 $currentParentTrace = TraceTree::query()
                     ->select([
-                        'traceId',
-                        'parentTraceId',
+                        'tid',
+                        'ptid',
                     ])
-                    ->where('traceId', $parentTrace['parentTraceId'])
+                    ->where('tid', $parentTrace['ptid'])
                     ->toBase()
                     ->first();
 
@@ -113,6 +113,6 @@ class TraceTreeRepository implements TraceTreeRepositoryInterface
             }
         }
 
-        return $parentTrace['traceId'];
+        return $parentTrace['tid'];
     }
 }

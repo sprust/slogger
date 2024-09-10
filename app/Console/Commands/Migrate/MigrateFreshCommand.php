@@ -27,6 +27,12 @@ class MigrateFreshCommand extends FreshCommand
             for ($index = 0; $index < count($collectionNames); $index++) {
                 $collectionName = $collectionNames[$index];
 
+                if ($collectionName === 'system.views') {
+                    continue;
+                }
+
+                // TODO: to exclude the view collections
+
                 $collection = $connection->selectCollection($collectionName);
 
                 $this->components->task(

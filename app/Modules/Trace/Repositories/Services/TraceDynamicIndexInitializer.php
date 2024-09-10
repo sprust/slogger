@@ -29,6 +29,7 @@ readonly class TraceDynamicIndexInitializer
      * @param TraceSortDto[]|null $sort
      *
      * TODO: violation of layers
+     *
      * @throws TraceDynamicIndexNotInitException
      * @throws TraceDynamicIndexInProcessException
      */
@@ -55,40 +56,40 @@ readonly class TraceDynamicIndexInitializer
         $indexFields = [];
 
         if (!empty($serviceIds)) {
-            $indexFields[] = new TraceDynamicIndexFieldDto('serviceId');
+            $indexFields[] = new TraceDynamicIndexFieldDto('sid');
         }
 
         if (!is_null($timestampStep)) {
-            $indexFields[] = new TraceDynamicIndexFieldDto("timestamps.$timestampStep->value");
+            $indexFields[] = new TraceDynamicIndexFieldDto("tss.$timestampStep->value");
         }
 
         if (!empty($traceIds)) {
-            $indexFields[] = new TraceDynamicIndexFieldDto('traceId');
+            $indexFields[] = new TraceDynamicIndexFieldDto('tid');
         }
 
         if (!empty($loggedAtFrom) || !empty($loggedAtTo)) {
-            $indexFields[] = new TraceDynamicIndexFieldDto('loggedAt');
+            $indexFields[] = new TraceDynamicIndexFieldDto('lat');
         }
 
         if (!empty($types)) {
-            $indexFields[] = new TraceDynamicIndexFieldDto('type');
+            $indexFields[] = new TraceDynamicIndexFieldDto('tp');
         }
 
         // TODO: the index for arrays not working like that
         if (!empty($tags)) {
-            $indexFields[] = new TraceDynamicIndexFieldDto('tags');
+            $indexFields[] = new TraceDynamicIndexFieldDto('tgs');
         }
 
         if (!empty($statuses)) {
-            $indexFields[] = new TraceDynamicIndexFieldDto('status');
+            $indexFields[] = new TraceDynamicIndexFieldDto('st');
         }
 
         if (!is_null($durationFrom) || !is_null($durationTo)) {
-            $indexFields[] = new TraceDynamicIndexFieldDto('duration');
+            $indexFields[] = new TraceDynamicIndexFieldDto('dur');
         }
 
         if (!is_null($memoryFrom) || !is_null($memoryTo)) {
-            $indexFields[] = new TraceDynamicIndexFieldDto('memory');
+            $indexFields[] = new TraceDynamicIndexFieldDto('mem');
         }
 
         if (!is_null($cpuFrom) || !is_null($cpuTo)) {
@@ -96,11 +97,11 @@ readonly class TraceDynamicIndexInitializer
         }
 
         if (!is_null($hasProfiling)) {
-            $indexFields[] = new TraceDynamicIndexFieldDto('hasProfiling');
+            $indexFields[] = new TraceDynamicIndexFieldDto('hpr');
         }
 
         if (!is_null($cleared)) {
-            $indexFields[] = new TraceDynamicIndexFieldDto('cleared');
+            $indexFields[] = new TraceDynamicIndexFieldDto('cl');
         }
 
         foreach ($data->filter ?? [] as $dataFilterItem) {

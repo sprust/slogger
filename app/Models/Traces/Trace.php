@@ -10,42 +10,43 @@ use Illuminate\Support\Carbon;
 
 /**
  * @property string            $_id
- * @property string            $serviceId
- * @property string            $traceId
- * @property string|null       $parentTraceId
- * @property string            $type
- * @property string            $status
- * @property array             $tags
- * @property array             $data
- * @property float|null        $duration
- * @property float|null        $memory
- * @property float|null        $cpu
- * @property bool              $hasProfiling
- * @property array             $profiling
- * @property Carbon            $loggedAt
- * @property array             $timestamps
- * @property bool              $cleared // TODO: added to migration(validation) ?
- * @property Carbon            $createdAt
- * @property Carbon            $updatedAt
+ * @property string            $sid - serviceId
+ * @property string            $tid - traceId
+ * @property string|null       $ptid - parentTraceId
+ * @property string            $tp - type
+ * @property string            $st - status
+ * @property array             $tgs - tags
+ * @property array             $dt - data
+ * @property float|null        $dur - duration
+ * @property float|null        $mem - memory
+ * @property float|null        $cpu - cpu
+ * @property bool              $hp - hasProfiling
+ * @property bool              $hpr - has profiling
+ * @property array             $pr - profiling
+ * @property Carbon            $lat - loggedAt
+ * @property array             $tss - timestamps
+ * @property bool              $cl - cleared
+ * @property Carbon            $cat - createdAt
+ * @property Carbon            $uat - updatedAt
  * @property-read Service|null $service
  */
 class Trace extends AbstractTraceModel
 {
     use HasFactory;
 
-    public const CREATED_AT = 'createdAt';
-    public const UPDATED_AT = 'updatedAt';
+    public const CREATED_AT = 'cat';
+    public const UPDATED_AT = 'uat';
 
     protected $collection = 'traces';
 
     protected $casts = [
-        'hasProfiling' => 'boolean',
-        'loggedAt'     => 'datetime',
-        'cleared'      => 'boolean',
+        'hp'  => 'boolean',
+        'lat' => 'datetime',
+        'cl'  => 'boolean',
     ];
 
     public function service(): BelongsTo
     {
-        return $this->belongsTo(Service::class, 'serviceId', 'id');
+        return $this->belongsTo(Service::class, 'sid', 'id');
     }
 }
