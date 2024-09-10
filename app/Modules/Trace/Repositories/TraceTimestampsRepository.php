@@ -110,7 +110,7 @@ readonly class TraceTimestampsRepository implements TraceTimestampsRepositoryInt
         }
 
         foreach ($dataFields ?? [] as $dataField) {
-            $fieldName = "data.$dataField->field";
+            $fieldName = "dt.$dataField->field";
 
             $groups[$fieldName] = [];
 
