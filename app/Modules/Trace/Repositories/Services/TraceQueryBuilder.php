@@ -64,7 +64,7 @@ class TraceQueryBuilder
                 )
             )
             ->when($types, fn(Builder $query) => $query->whereIn('tp', $types))
-            ->when($tags, fn(Builder $query) => $query->where('tgs', 'all', $tags))
+            ->when($tags, fn(Builder $query) => $query->whereIn('tgs.nm', $tags))
             ->when($statuses, fn(Builder $query) => $query->whereIn('st', $statuses))
             ->when(!is_null($durationFrom), fn(Builder $query) => $query->where('dur', '>=', $durationFrom))
             ->when(!is_null($durationTo), fn(Builder $query) => $query->where('dur', '<=', $durationTo))

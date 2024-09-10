@@ -137,31 +137,39 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
             ];
         }
 
-        // TODO: long handling
-        $pipeline[] = [
-            '$unwind' => [
-                'path' => '$tgs',
-            ],
-        ];
+        if ($text) {
+            $pipeline[] = [
+                '$match' => [
+                    'tgs.nm' => [
+                        '$regex' => "^.*$text.*$",
+                    ],
+                ],
+            ];
+        }
 
         $pipeline[] = [
             '$group' => [
-                '_id'   => '$tgs',
+                '_id'   => '$tgs.nm',
                 'count' => [
                     '$sum' => 1,
                 ],
             ],
         ];
 
-        if ($text) {
-            $pipeline[] = [
-                '$match' => [
-                    '_id' => [
-                        '$regex' => "^.*$text.*$",
-                    ],
+        $pipeline[] = [
+            '$unwind' => [
+                'path' => '$_id',
+            ],
+        ];
+
+        $pipeline[] = [
+            '$group' => [
+                '_id'   => '$_id',
+                'count' => [
+                    '$sum' => 1,
                 ],
-            ];
-        }
+            ],
+        ];
 
         $pipeline[] = [
             '$sort' => [

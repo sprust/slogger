@@ -106,7 +106,7 @@ return new class extends Migration {
             'st' => 1,
         ]);
         $collection->createIndex([
-            'tgs' => 1,
+            'tgs.nm' => 1,
         ]);
         $collection->createIndex([
             'lat' => 1,

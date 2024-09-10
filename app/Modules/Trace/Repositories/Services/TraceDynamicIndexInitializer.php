@@ -75,9 +75,8 @@ readonly class TraceDynamicIndexInitializer
             $indexFields[] = new TraceDynamicIndexFieldDto('tp');
         }
 
-        // TODO: the index for arrays not working like that
         if (!empty($tags)) {
-            $indexFields[] = new TraceDynamicIndexFieldDto('tgs');
+            $indexFields[] = new TraceDynamicIndexFieldDto('tgs.nm');
         }
 
         if (!empty($statuses)) {

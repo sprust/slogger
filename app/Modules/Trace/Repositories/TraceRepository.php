@@ -50,7 +50,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
                             'ptid' => $trace->parentTraceId,
                             'tp'   => $trace->type,
                             'st'   => $trace->status,
-                            'tgs'  => $trace->tags,
+                            'tgs'  => $this->prepareTagsForSave($trace->tags),
                             'dt'   => json_decode($trace->data, true),
                             'dur'  => $trace->duration,
                             'mem'  => $trace->memory,
@@ -107,7 +107,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
                             ...(is_null($trace->tags)
                                 ? []
                                 : [
-                                    'tgs' => $trace->tags,
+                                    'tgs' => $this->prepareTagsForSave($trace->tags),
                                 ]),
                             ...(is_null($trace->data)
                                 ? []
@@ -208,7 +208,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
             parentTraceId: $trace->ptid,
             type: $trace->tp,
             status: $trace->st,
-            tags: $trace->tgs,
+            tags: $this->parseTagsFromDb($trace->tgs),
             data: $trace->dt,
             duration: $trace->dur,
             memory: $trace->mem,
@@ -311,7 +311,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
                     parentTraceId: $trace->ptid,
                     type: $trace->tp,
                     status: $trace->st,
-                    tags: $trace->tgs,
+                    tags: $this->parseTagsFromDb($trace->tgs),
                     data: $trace->dt,
                     duration: $trace->dur,
                     memory: $trace->mem,
@@ -373,7 +373,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
                         parentTraceId: $trace->ptid,
                         type: $trace->tp,
                         status: $trace->st,
-                        tags: $trace->tgs,
+                        tags: $this->parseTagsFromDb($trace->tgs),
                         duration: $trace->dur,
                         memory: $trace->mem,
                         cpu: $trace->cpu,
@@ -566,5 +566,29 @@ readonly class TraceRepository implements TraceRepositoryInterface
     public function deleteIndexByName(string $name): void
     {
         Trace::collection()->dropIndex($name);
+    }
+
+    /**
+     * @param string[] $tags
+     */
+    private function prepareTagsForSave(array $tags): array
+    {
+        return array_map(
+            fn(string $tag) => [
+                'nm' => $tag,
+            ],
+            $tags
+        );
+    }
+
+    /**
+     * @return string[]
+     */
+    private function parseTagsFromDb(array $tags): array
+    {
+        return array_map(
+            fn(string|array $tag) => is_array($tag) ? $tag['nm'] : $tag,
+            $tags
+        );
     }
 }
