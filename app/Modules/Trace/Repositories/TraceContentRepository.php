@@ -137,15 +137,23 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
             ];
         }
 
-        if ($text) {
-            $pipeline[] = [
-                '$match' => [
-                    'tgs.nm' => [
-                        '$regex' => "^.*$text.*$",
-                    ],
-                ],
-            ];
-        }
+        $pipeline[] = [
+            '$project' => [
+                'tgs.nm' => 1,
+            ],
+        ];
+
+        $pipeline[] = [
+            '$unwind' => [
+                'path' => '$tgs',
+            ],
+        ];
+
+        $pipeline[] = [
+            '$sort' => [
+                'tgs.nm' => -1,
+            ],
+        ];
 
         $pipeline[] = [
             '$group' => [
@@ -156,20 +164,15 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
             ],
         ];
 
-        $pipeline[] = [
-            '$unwind' => [
-                'path' => '$_id',
-            ],
-        ];
-
-        $pipeline[] = [
-            '$group' => [
-                '_id'   => '$_id',
-                'count' => [
-                    '$sum' => 1,
+        if ($text) {
+            $pipeline[] = [
+                '$match' => [
+                    '_id' => [
+                        '$regex' => "^.*$text.*$",
+                    ],
                 ],
-            ],
-        ];
+            ];
+        }
 
         $pipeline[] = [
             '$sort' => [
