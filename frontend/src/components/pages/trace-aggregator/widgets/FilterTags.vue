@@ -43,7 +43,6 @@
       width="80%"
       top="10px"
       :append-to-body="true"
-      @open="onDialogOpen"
       :style="storeGraph.state.showGraph ? {opacity: .9} : {}"
   >
     <el-row style="min-height: 80vh">
@@ -51,7 +50,7 @@
         <FilterTagsSection
             title="Types"
             tagType="success"
-            :tags="tagsStore.state.types"
+            :tags="types"
             :selectedTags="traceStore.state.payload.types"
             :loading="tagsStore.state.typesLoading"
             @findTags="findTypes"
@@ -62,7 +61,7 @@
         <FilterTagsSection
             title="Tags"
             tagType="warning"
-            :tags="tagsStore.state.tags"
+            :tags="tags"
             :selectedTags="traceStore.state.payload.tags"
             :loading="tagsStore.state.tagsLoading"
             @findTags="findTags"
@@ -73,7 +72,7 @@
         <FilterTagsSection
             title="Statuses"
             tagType="primary"
-            :tags="tagsStore.state.statuses"
+            :tags="statuses"
             :selectedTags="traceStore.state.payload.statuses"
             :loading="tagsStore.state.statusesLoading"
             @findTags="findStatuses"
@@ -87,7 +86,7 @@
 <script lang="ts">
 import {defineComponent, shallowRef} from "vue";
 import {Plus as TagAddIcon, Search as SearchIcon} from '@element-plus/icons-vue'
-import {useTraceAggregatorTagsStore} from "../../../../store/traceAggregatorTagsStore.ts";
+import {TraceTag, useTraceAggregatorTagsStore} from "../../../../store/traceAggregatorTagsStore.ts";
 import {useTraceAggregatorStore} from "../../../../store/traceAggregatorStore.ts";
 import FilterTagsSection from "./FilterTagsSection.vue";
 import {useTraceAggregatorGraphStore} from "../../../../store/traceAggregatorGraphStore.ts";
@@ -105,9 +104,6 @@ export default defineComponent({
     }
   },
   methods: {
-    onDialogOpen() {
-      this.findTypes(this.tagsStore.state.typesPayload.text ?? '')
-    },
     findTypes(text: string) {
       this.traceStore.dispatch('prepareCommonPayloadData')
 
@@ -175,19 +171,107 @@ export default defineComponent({
     },
     onTypeClick(type: string) {
       this.traceStore.dispatch('addOrDeleteType', type)
-
-      this.findTags(this.tagsStore.state.tagsPayload.text ?? '')
-      this.findStatuses(this.tagsStore.state.statusesPayload.text ?? '')
     },
     onTagClick(tag: string) {
       this.traceStore.dispatch('addOrDeleteTag', tag)
-
-      this.findStatuses(this.tagsStore.state.statusesPayload.text ?? '')
     },
     onStatusClick(status: string) {
       this.traceStore.dispatch('addOrDeleteStatus', status)
     },
   },
+
+  computed: {
+    types() {
+      const result: TraceTag[] = [];
+
+      this.traceStore.state.payload.types?.forEach(
+          selectedItem => {
+            const exists = this.tagsStore.state.types.find(
+                tag => {
+                  return tag.name === selectedItem
+                }
+            )
+
+            if (exists) {
+              return
+            }
+
+            result.push({
+              name: selectedItem,
+              count: 0
+            })
+          }
+      )
+
+      this.tagsStore.state.types?.forEach(
+          item => {
+            result.push(item)
+          }
+      )
+
+      return result
+    },
+    tags() {
+      const result: TraceTag[] = [];
+
+      this.traceStore.state.payload.tags?.forEach(
+          selectedItem => {
+            const exists = this.tagsStore.state.tags.find(
+                tag => {
+                  return tag.name === selectedItem
+                }
+            )
+
+            if (exists) {
+              return
+            }
+
+            result.push({
+              name: selectedItem,
+              count: 0
+            })
+          }
+      )
+
+      this.tagsStore.state.tags?.forEach(
+          item => {
+            result.push(item)
+          }
+      )
+
+      return result
+    },
+    statuses() {
+      const result: TraceTag[] = [];
+
+      this.traceStore.state.payload.statuses?.forEach(
+          selectedItem => {
+            const exists = this.tagsStore.state.statuses.find(
+                tag => {
+                  return tag.name === selectedItem
+                }
+            )
+
+            if (exists) {
+              return
+            }
+
+            result.push({
+              name: selectedItem,
+              count: 0
+            })
+          }
+      )
+
+      this.tagsStore.state.statuses?.forEach(
+          item => {
+            result.push(item)
+          }
+      )
+
+      return result
+    },
+  }
 })
 </script>
 
