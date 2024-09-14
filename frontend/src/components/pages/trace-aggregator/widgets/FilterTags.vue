@@ -190,9 +190,9 @@ export default defineComponent({
       const result: TraceTag[] = [];
 
       this.traceStore.state.payload.types?.forEach(
-          selectedItem => {
+          (selectedItem: string) => {
             const exists = this.tagsStore.state.types.find(
-                tag => {
+                (tag: TraceTag) => {
                   return tag.name === selectedItem
                 }
             )
@@ -209,7 +209,7 @@ export default defineComponent({
       )
 
       this.tagsStore.state.types?.forEach(
-          item => {
+          (item: TraceTag) => {
             result.push(item)
           }
       )
@@ -220,9 +220,9 @@ export default defineComponent({
       const result: TraceTag[] = [];
 
       this.traceStore.state.payload.tags?.forEach(
-          selectedItem => {
+          (selectedItem: string) => {
             const exists = this.tagsStore.state.tags.find(
-                tag => {
+                (tag: TraceTag) => {
                   return tag.name === selectedItem
                 }
             )
@@ -239,7 +239,7 @@ export default defineComponent({
       )
 
       this.tagsStore.state.tags?.forEach(
-          item => {
+          (item: TraceTag) => {
             result.push(item)
           }
       )
@@ -250,9 +250,9 @@ export default defineComponent({
       const result: TraceTag[] = [];
 
       this.traceStore.state.payload.statuses?.forEach(
-          selectedItem => {
+          (selectedItem: string) => {
             const exists = this.tagsStore.state.statuses.find(
-                tag => {
+                (tag: TraceTag) => {
                   return tag.name === selectedItem
                 }
             )
@@ -269,7 +269,7 @@ export default defineComponent({
       )
 
       this.tagsStore.state.statuses?.forEach(
-          item => {
+          (item: TraceTag) => {
             result.push(item)
           }
       )
