@@ -2,6 +2,7 @@
 
 namespace App\Modules\Trace\Framework\Http\Services;
 
+use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexErrorException;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexInProcessException;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexNotInitException;
 
@@ -34,6 +35,11 @@ class TraceDynamicIndexingActionService
                 sleep(1);
 
                 continue;
+            } catch (TraceDynamicIndexErrorException $exception) {
+                abort(
+                    code: 500,
+                    message: $exception->getMessage()
+                );
             }
 
             break;

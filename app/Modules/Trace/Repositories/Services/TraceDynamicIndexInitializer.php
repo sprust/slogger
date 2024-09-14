@@ -2,6 +2,7 @@
 
 namespace App\Modules\Trace\Repositories\Services;
 
+use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexErrorException;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexInProcessException;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexNotInitException;
 use App\Modules\Trace\Enums\TraceTimestampEnum;
@@ -32,6 +33,7 @@ readonly class TraceDynamicIndexInitializer
      *
      * @throws TraceDynamicIndexNotInitException
      * @throws TraceDynamicIndexInProcessException
+     * @throws TraceDynamicIndexErrorException
      */
     public function init(
         ?array $serviceIds = null,
@@ -134,6 +136,12 @@ readonly class TraceDynamicIndexInitializer
 
         if ($indexDto->inProcess) {
             throw new TraceDynamicIndexInProcessException();
+        }
+
+        if ($indexDto->error) {
+            throw new TraceDynamicIndexErrorException(
+                $indexDto->error
+            );
         }
     }
 }

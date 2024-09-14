@@ -9,6 +9,7 @@ use App\Modules\Trace\Repositories\Interfaces\TraceDynamicIndexRepositoryInterfa
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use MongoDB\BSON\UTCDateTime;
+use Throwable;
 
 class TraceDynamicIndexRepository implements TraceDynamicIndexRepositoryInterface
 {
@@ -31,6 +32,7 @@ class TraceDynamicIndexRepository implements TraceDynamicIndexRepositoryInterfac
                         'fields'    => $fields,
                         'inProcess' => true,
                         'created'   => false,
+                        'error'     => null,
                         'createdAt' => new UTCDateTime($createdAt),
                     ],
                 ],
@@ -56,6 +58,7 @@ class TraceDynamicIndexRepository implements TraceDynamicIndexRepositoryInterfac
             fields: $this->transportFields($index->fields),
             inProcess: $index->inProcess,
             created: $index->created,
+            error: $index->error,
             actualUntilAt: $index->actualUntilAt,
             createdAt: $index->createdAt
         );
@@ -84,19 +87,23 @@ class TraceDynamicIndexRepository implements TraceDynamicIndexRepositoryInterfac
                 fields: $this->transportFields($index->fields),
                 inProcess: $index->inProcess,
                 created: $index->created,
+                error: $index->error,
                 actualUntilAt: $index->actualUntilAt,
                 createdAt: $index->createdAt
             ))
             ->all();
     }
 
-    public function updateByName(string $name, bool $inProcess, bool $created): bool
+    public function updateByName(string $name, bool $inProcess, bool $created, ?Throwable $exception): bool
     {
         return (bool) TraceDynamicIndex::query()
             ->where('name', $name)
             ->update([
                 'inProcess' => $inProcess,
                 'created'   => $created,
+                'error'     => $exception
+                    ? $exception::class . ": {$exception->getMessage()}"
+                    : null,
             ]);
     }
 

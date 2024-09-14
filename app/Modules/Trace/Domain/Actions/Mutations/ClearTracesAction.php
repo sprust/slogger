@@ -4,6 +4,7 @@ namespace App\Modules\Trace\Domain\Actions\Mutations;
 
 use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\ClearTracesActionInterface;
 use App\Modules\Trace\Domain\Entities\Parameters\ClearTracesParameters;
+use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexErrorException;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexInProcessException;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexNotInitException;
 use App\Modules\Trace\Domain\Services\TraceDynamicIndexingActionService;
@@ -22,6 +23,7 @@ readonly class ClearTracesAction implements ClearTracesActionInterface
     /**
      * @throws TraceDynamicIndexInProcessException
      * @throws TraceDynamicIndexNotInitException
+     * @throws TraceDynamicIndexErrorException
      */
     public function handle(ClearTracesParameters $parameters): int
     {

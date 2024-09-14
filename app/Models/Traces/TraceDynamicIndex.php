@@ -6,13 +6,14 @@ use App\Models\AbstractTraceModel;
 use Illuminate\Support\Carbon;
 
 /**
- * @property string $_id
- * @property string $name
- * @property array  $fields
- * @property bool   $inProcess
- * @property bool   $created
- * @property Carbon $actualUntilAt
- * @property Carbon $createdAt
+ * @property string      $_id
+ * @property string      $name
+ * @property array       $fields
+ * @property bool        $inProcess
+ * @property bool        $created
+ * @property string|null $error
+ * @property Carbon      $actualUntilAt
+ * @property Carbon      $createdAt
  */
 class TraceDynamicIndex extends AbstractTraceModel
 {

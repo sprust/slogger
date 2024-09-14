@@ -5,6 +5,7 @@ namespace App\Modules\Trace\Repositories\Interfaces;
 use App\Modules\Trace\Repositories\Dto\TraceDynamicIndexDto;
 use App\Modules\Trace\Repositories\Dto\TraceDynamicIndexFieldDto;
 use Illuminate\Support\Carbon;
+use Throwable;
 
 interface TraceDynamicIndexRepositoryInterface
 {
@@ -23,7 +24,7 @@ interface TraceDynamicIndexRepositoryInterface
         ?Carbon $toActualUntilAt = null
     ): array;
 
-    public function updateByName(string $name, bool $inProcess, bool $created): bool;
+    public function updateByName(string $name, bool $inProcess, bool $created, ?Throwable $exception): bool;
 
     public function deleteByName(string $name): bool;
 }

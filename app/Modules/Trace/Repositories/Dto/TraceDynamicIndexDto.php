@@ -14,6 +14,7 @@ readonly class TraceDynamicIndexDto
         public array $fields,
         public bool $inProcess,
         public bool $created,
+        public ?string $error,
         public Carbon $actualUntilAt,
         public Carbon $createdAt
     ) {
