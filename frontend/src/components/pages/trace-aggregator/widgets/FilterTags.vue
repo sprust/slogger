@@ -45,6 +45,11 @@
       :append-to-body="true"
       :style="storeGraph.state.showGraph ? {opacity: .9} : {}"
   >
+    <template #header>
+      <el-text>
+        * filtering only by period and services
+      </el-text>
+    </template>
     <el-row style="min-height: 80vh">
       <el-col :span="8">
         <FilterTagsSection
@@ -59,7 +64,7 @@
       </el-col>
       <el-col :span="8">
         <FilterTagsSection
-            title="Tags"
+            title="Tags (by first 100000)"
             tagType="warning"
             :tags="tags"
             :selectedTags="traceStore.state.payload.tags"

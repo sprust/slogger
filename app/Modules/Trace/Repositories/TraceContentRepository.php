@@ -144,6 +144,10 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
         ];
 
         $pipeline[] = [
+            '$limit' => 100000
+        ];
+
+        $pipeline[] = [
             '$unwind' => [
                 'path' => '$tgs',
             ],
