@@ -27,9 +27,9 @@ class TraceDynamicIndexingActionService
                 $result = $action();
             } catch (TraceDynamicIndexInProcessException) {
                 abort_if(
-                    boolean: time() - $start > $this->indexCreateTimeoutInSeconds,
+                    boolean: (time() - $start) > $this->indexCreateTimeoutInSeconds,
                     code: 500,
-                    message: "Couldn't init index. Try again."
+                    message: "Indexing in progress. Try again or later."
                 );
 
                 sleep(1);
