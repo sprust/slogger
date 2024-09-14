@@ -289,13 +289,13 @@ readonly class TraceRepository implements TraceRepositoryInterface
                     }
                 }
             )
-            ->paginate(
-                perPage: $perPage,
-                page: $page
+            ->forPage(
+                page: $page,
+                perPage: $perPage
             );
 
         /** @var Trace[] $traces */
-        $traces = $tracesPaginator->items();
+        $traces = $tracesPaginator->get()->all();
 
         return new TraceItemsPaginationDto(
             items: array_map(
@@ -324,7 +324,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
                 $traces
             ),
             paginationInfo: new PaginationInfoDto(
-                total: $tracesPaginator->total(),
+                total: 0,
                 perPage: $perPage,
                 currentPage: $page,
             )
