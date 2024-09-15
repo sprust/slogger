@@ -52,7 +52,7 @@ export const traceDynamicIndexesStore = createStore<State>({
         ) {
             state.loading = true
 
-            ApiContainer.get().traceAggregatorDynamicIndexesDelete(id)
+            return ApiContainer.get().traceAggregatorDynamicIndexesDelete(id)
                 .then(() => {
                     commit('deleteTraceDynamicIndexes', id)
                 })

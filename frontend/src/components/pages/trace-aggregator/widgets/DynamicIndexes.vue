@@ -19,7 +19,7 @@
   >
     <template #header>
       <el-text size="default">
-        Dynamic indexes (first 100)
+        Dynamic indexes (last 100)
       </el-text>
     </template>
     <el-table
@@ -50,6 +50,7 @@
               type="danger"
               link
               @click="deleteIndex(props.row)"
+              :loading="this.deleting[props.row.id]"
           >
             Delete
           </el-button>
@@ -68,6 +69,7 @@ export default defineComponent({
     return {
       dialogVisible: false,
       store: useTraceDynamicIndexesStore(),
+      deleting: {},
     }
   },
 
@@ -75,7 +77,7 @@ export default defineComponent({
     update() {
       this.store.dispatch('findTraceDynamicIndexes')
           .finally(() =>
-              setTimeout(() => this.update(), 1000)
+              setTimeout(() => this.update(), 2000)
           )
     },
     deleteIndex(index: TraceDynamicIndex) {
@@ -83,7 +85,12 @@ export default defineComponent({
         return
       }
 
+      this.deleting[index.id] = true
+
       this.store.dispatch('deleteTraceDynamicIndex', {id: index.id})
+          .then(() => {
+            delete this.deleting[index.id]
+          })
     },
     makeName(index: TraceDynamicIndex): string {
       return index.fields.map(index => index.title).join(', ')
