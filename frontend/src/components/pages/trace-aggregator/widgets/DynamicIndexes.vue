@@ -64,9 +64,9 @@
           </el-text>
         </template>
       </el-table-column>
-      <el-table-column label="Created at">
+      <el-table-column label="Created at" fixed="right" min-width="25">
         <template #default="props">
-          {{ props.row.createdAt }}
+          {{ makeCreatedAt(props.row) }}
         </template>
       </el-table-column>
       <el-table-column fixed="right" min-width="15">
@@ -90,6 +90,7 @@
 import {defineComponent} from "vue";
 import {TraceDynamicIndex, useTraceDynamicIndexesStore} from "../../../../store/traceDynamicIndexesStore.ts";
 import {Refresh as RefreshIcon} from "@element-plus/icons-vue";
+import {convertDateStringToLocal} from "../../../../utils/helpers.ts";
 
 interface DeletingIndexes {
   [key: string]: boolean,
@@ -130,11 +131,11 @@ export default defineComponent({
             delete this.deleting[index.id]
           })
     },
-    filter() {
-
-    },
     makeName(index: TraceDynamicIndex): string {
       return index.fields.map(index => index.title).join(', ')
+    },
+    makeCreatedAt(index: TraceDynamicIndex): string {
+      return convertDateStringToLocal(index.createdAt, false)
     },
     makeStatus(index: TraceDynamicIndex): string {
       if (index.error) {
