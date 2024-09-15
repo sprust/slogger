@@ -1249,12 +1249,14 @@ export namespace AdminApi {
   /**
    * No description
    * @name TraceAggregatorDynamicIndexesDelete
-   * @request DELETE:/admin-api/trace-aggregator/dynamic-indexes
+   * @request DELETE:/admin-api/trace-aggregator/dynamic-indexes/{id}
    * @secure
    * @response `200` `void` description
    */
   export namespace TraceAggregatorDynamicIndexesDelete {
-    export type RequestParams = {};
+    export type RequestParams = {
+      id: any;
+    };
     export type RequestQuery = {};
     export type RequestBody = never;
     export type RequestHeaders = {};
@@ -3032,13 +3034,13 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @name TraceAggregatorDynamicIndexesDelete
-     * @request DELETE:/admin-api/trace-aggregator/dynamic-indexes
+     * @request DELETE:/admin-api/trace-aggregator/dynamic-indexes/{id}
      * @secure
      * @response `200` `void` description
      */
-    traceAggregatorDynamicIndexesDelete: (params: RequestParams = {}) =>
+    traceAggregatorDynamicIndexesDelete: (id: any, params: RequestParams = {}) =>
       this.request<void, any>({
-        path: `/admin-api/trace-aggregator/dynamic-indexes`,
+        path: `/admin-api/trace-aggregator/dynamic-indexes/${id}`,
         method: "DELETE",
         secure: true,
         ...params,

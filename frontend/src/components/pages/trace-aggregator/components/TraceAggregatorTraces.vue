@@ -93,6 +93,12 @@
           </el-input>
         </el-form-item>
       </el-form>
+      <div class="flex-grow"/>
+      <el-form>
+        <el-form-item>
+          <DynamicIndexes/>
+        </el-form-item>
+      </el-form>
     </el-row>
     <el-row>
       <el-space>
@@ -218,6 +224,7 @@ import TraceAggregatorTracesPagination from "./TraceAggregatorTracesPagination.v
 import TraceAggregatorTracesCustomFields from "./TraceAggregatorTracesCustomFields.vue";
 import TraceAggregatorServices from "./TraceAggregatorServices.vue";
 import FilterTags from "../widgets/FilterTags.vue";
+import DynamicIndexes from "../widgets/DynamicIndexes.vue";
 import {state} from "vue-tsc/out/shared";
 import {CloseBold, SwitchButton, Close, Loading} from '@element-plus/icons-vue'
 import TraceAggregatorGraph from "./TraceAggregatorGraph.vue";
@@ -236,6 +243,7 @@ export default defineComponent({
     TraceAggregatorTracesTable,
     TraceAggregatorTracesPagination,
     FilterTags,
+    DynamicIndexes,
     TraceAggregatorTraceDataNode,
     TraceAggregatorTracesCustomFields,
     TraceAggregatorServices,
