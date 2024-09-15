@@ -20,6 +20,7 @@ use App\Modules\Trace\Repositories\Interfaces\TraceRepositoryInterface;
 use App\Modules\Trace\Repositories\Services\TraceQueryBuilder;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use MongoDB\BSON\UTCDateTime;
 use stdClass;
@@ -51,7 +52,9 @@ readonly class TraceRepository implements TraceRepositoryInterface
                             'tp'   => $trace->type,
                             'st'   => $trace->status,
                             'tgs'  => $this->prepareTagsForSave($trace->tags),
-                            'dt'   => json_decode($trace->data, true),
+                            'dt'   => $this->prepareData(
+                                json_decode($trace->data, true)
+                            ),
                             'dur'  => $trace->duration,
                             'mem'  => $trace->memory,
                             'cpu'  => $trace->cpu,
@@ -112,7 +115,9 @@ readonly class TraceRepository implements TraceRepositoryInterface
                             ...(is_null($trace->data)
                                 ? []
                                 : [
-                                    'dt' => json_decode($trace->data, true),
+                                    'dt' => $this->prepareData(
+                                        json_decode($trace->data, true)
+                                    ),
                                 ]),
                             ...(is_null($trace->duration)
                                 ? []
@@ -590,5 +595,37 @@ readonly class TraceRepository implements TraceRepositoryInterface
             fn(string|array $tag) => is_array($tag) ? $tag['nm'] : $tag,
             $tags
         );
+    }
+
+    private function prepareData(array $data): array
+    {
+        $result = [];
+
+        foreach ($data as $key => $value) {
+            $this->prepareDataRecursive($result, $key, $value);
+        }
+
+        return $result;
+    }
+
+    private function prepareDataRecursive(array &$result, mixed $key, mixed $value): void
+    {
+        if (!is_array($value)) {
+            $result[$key] = $value;
+
+            return;
+        }
+
+        $result[$key] = [];
+
+        $isList = Arr::isList($value);
+
+        foreach ($value as $valueItemKey => $valueItem) {
+            $this->prepareDataRecursive(
+                result: $result[$key],
+                key: $isList ? "_$valueItemKey" : $valueItemKey,
+                value: $valueItem
+            );
+        }
     }
 }

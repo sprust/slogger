@@ -23,6 +23,9 @@ readonly class TraceDynamicIndexInitializer
     }
 
     /**
+     * WARNING: mongodb not support the index parallel arrays
+     * @see https://www.mongodb.com/docs/manual/core/indexes/index-types/index-multikey/#compound-multikey-indexes
+     *
      * @param int[]|null          $serviceIds
      * @param string[]            $types
      * @param string[]            $tags
