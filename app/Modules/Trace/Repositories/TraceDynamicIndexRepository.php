@@ -44,6 +44,18 @@ class TraceDynamicIndexRepository implements TraceDynamicIndexRepositoryInterfac
         return $this->findOneByName($name);
     }
 
+    public function findOneById(string $id): ?TraceDynamicIndexDto
+    {
+        /** @var TraceDynamicIndex|null $index */
+        $index = TraceDynamicIndex::query()->find($id);
+
+        if (!$index) {
+            return null;
+        }
+
+        return $this->modelToDto($index);
+    }
+
     private function findOneByName(string $name): ?TraceDynamicIndexDto
     {
         /** @var TraceDynamicIndex|null $index */
@@ -53,22 +65,15 @@ class TraceDynamicIndexRepository implements TraceDynamicIndexRepositoryInterfac
             return null;
         }
 
-        return new TraceDynamicIndexDto(
-            name: $name,
-            fields: $this->transportFields($index->fields),
-            inProcess: $index->inProcess,
-            created: $index->created,
-            error: $index->error,
-            actualUntilAt: $index->actualUntilAt,
-            createdAt: $index->createdAt
-        );
+        return $this->modelToDto($index);
     }
 
     public function find(
         int $limit,
         ?bool $inProcess = null,
         bool $sortByCreatedAtAsc = false,
-        ?Carbon $toActualUntilAt = null
+        ?Carbon $toActualUntilAt = null,
+        bool $orderByCreatedAtDesc = false,
     ): array {
         return TraceDynamicIndex::query()
             ->when(
@@ -79,18 +84,14 @@ class TraceDynamicIndexRepository implements TraceDynamicIndexRepositoryInterfac
                 !is_null($toActualUntilAt),
                 fn(Builder $builder) => $builder->where('actualUntilAt', '<', $toActualUntilAt)
             )
-            ->orderBy('createdAt')
+            ->when(
+                value: $orderByCreatedAtDesc,
+                callback: fn(Builder $builder) => $builder->orderByDesc('createdAt'),
+                default: fn(Builder $builder) => $builder->orderBy('createdAt'),
+            )
             ->take($limit)
             ->get()
-            ->map(fn(TraceDynamicIndex $index) => new TraceDynamicIndexDto(
-                name: $index->name,
-                fields: $this->transportFields($index->fields),
-                inProcess: $index->inProcess,
-                created: $index->created,
-                error: $index->error,
-                actualUntilAt: $index->actualUntilAt,
-                createdAt: $index->createdAt
-            ))
+            ->map(fn(TraceDynamicIndex $index) => $this->modelToDto($index))
             ->all();
     }
 
@@ -105,6 +106,13 @@ class TraceDynamicIndexRepository implements TraceDynamicIndexRepositoryInterfac
                     ? $exception::class . ": {$exception->getMessage()}"
                     : null,
             ]);
+    }
+
+    public function deleteById(string $id): bool
+    {
+        return (bool) TraceDynamicIndex::query()
+            ->where('_id', $id)
+            ->delete();
     }
 
     public function deleteByName(string $name): bool
@@ -147,5 +155,19 @@ class TraceDynamicIndexRepository implements TraceDynamicIndexRepositoryInterfac
         }
 
         return $result;
+    }
+
+    private function modelToDto(TraceDynamicIndex $index): TraceDynamicIndexDto
+    {
+        return new TraceDynamicIndexDto(
+            id: $index->_id,
+            name: $index->name,
+            fields: $this->transportFields($index->fields),
+            inProcess: $index->inProcess,
+            created: $index->created,
+            error: $index->error,
+            actualUntilAt: $index->actualUntilAt,
+            createdAt: $index->createdAt
+        );
     }
 }
