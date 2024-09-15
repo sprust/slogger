@@ -2,9 +2,6 @@
   <el-container class="dashboard">
     <DashboardDatabase/>
   </el-container>
-  <el-container class="dashboard">
-    <DashboardServiceStat/>
-  </el-container>
 </template>
 
 <script lang="ts">
