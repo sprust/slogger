@@ -616,6 +616,12 @@ readonly class TraceRepository implements TraceRepositoryInterface
             return;
         }
 
+        if (!$value) {
+            $result[$key] = new stdClass();
+
+            return;
+        }
+
         $result[$key] = [];
 
         $isList = Arr::isList($value);
