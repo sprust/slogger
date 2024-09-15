@@ -50,7 +50,7 @@
               type="danger"
               link
               @click="deleteIndex(props.row)"
-              :loading="this.deleting[props.row.id]"
+              :loading="deleting[props.row.id]"
           >
             Delete
           </el-button>
@@ -64,12 +64,16 @@
 import {defineComponent} from "vue";
 import {TraceDynamicIndex, useTraceDynamicIndexesStore} from "../../../../store/traceDynamicIndexesStore.ts";
 
+interface DeletingIndexes {
+  [key: string]: boolean,
+}
+
 export default defineComponent({
   data() {
     return {
       dialogVisible: false,
       store: useTraceDynamicIndexesStore(),
-      deleting: {},
+      deleting: {} as DeletingIndexes,
     }
   },
 
@@ -122,12 +126,12 @@ export default defineComponent({
   computed: {
     inProcessCount(): number {
       return this.store.state.traceDynamicIndexes.filter(
-          index => index.inProcess
+          (index: TraceDynamicIndex) => index.inProcess
       ).length
     },
     errorsCount(): number {
       return this.store.state.traceDynamicIndexes.filter(
-          index => !!index.error
+          (index: TraceDynamicIndex) => !!index.error
       ).length
     },
     totalCount(): number {
