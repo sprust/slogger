@@ -85,6 +85,7 @@ Route::prefix('/trace-aggregator')
             ->as('dynamic-indexes.')
             ->group(function () {
                 Route::get('', [TraceDynamicIndexController::class, 'index'])->name('index');
+                Route::get('/stats', [TraceDynamicIndexController::class, 'stats'])->name('stats');
                 Route::delete('/{id}', [TraceDynamicIndexController::class, 'destroy'])->name('destroy');
             });
     });

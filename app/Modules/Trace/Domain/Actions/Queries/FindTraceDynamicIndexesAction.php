@@ -15,7 +15,7 @@ readonly class FindTraceDynamicIndexesAction implements FindTraceDynamicIndexesA
         private TraceDynamicIndexTransport $traceDynamicIndexTransport,
         private TraceDynamicIndexRepositoryInterface $traceDynamicIndexRepository
     ) {
-        $this->limit = 100;
+        $this->limit = 50;
     }
 
     public function handle(): array

@@ -1245,6 +1245,33 @@ export namespace AdminApi {
         createdAt: string;
       }[];
     };
+  } /**
+ * No description
+ * @name TraceAggregatorDynamicIndexesStatsList
+ * @request GET:/admin-api/trace-aggregator/dynamic-indexes/stats
+ * @secure
+ * @response `200` `{
+    data: {
+    inProcessCount: number,
+    errorsCount: number,
+    totalCount: number,
+
+},
+
+}` description
+*/
+  export namespace TraceAggregatorDynamicIndexesStatsList {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        inProcessCount: number;
+        errorsCount: number;
+        totalCount: number;
+      };
+    };
   }
   /**
    * No description
@@ -3024,6 +3051,40 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         any
       >({
         path: `/admin-api/trace-aggregator/dynamic-indexes`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name TraceAggregatorDynamicIndexesStatsList
+ * @request GET:/admin-api/trace-aggregator/dynamic-indexes/stats
+ * @secure
+ * @response `200` `{
+    data: {
+    inProcessCount: number,
+    errorsCount: number,
+    totalCount: number,
+
+},
+
+}` description
+ */
+    traceAggregatorDynamicIndexesStatsList: (params: RequestParams = {}) =>
+      this.request<
+        {
+          data: {
+            inProcessCount: number;
+            errorsCount: number;
+            totalCount: number;
+          };
+        },
+        any
+      >({
+        path: `/admin-api/trace-aggregator/dynamic-indexes/stats`,
         method: "GET",
         secure: true,
         format: "json",

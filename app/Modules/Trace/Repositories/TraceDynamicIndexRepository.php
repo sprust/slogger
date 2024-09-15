@@ -5,6 +5,7 @@ namespace App\Modules\Trace\Repositories;
 use App\Models\Traces\TraceDynamicIndex;
 use App\Modules\Trace\Repositories\Dto\TraceDynamicIndexDto;
 use App\Modules\Trace\Repositories\Dto\TraceDynamicIndexFieldDto;
+use App\Modules\Trace\Repositories\Dto\TraceDynamicIndexStatsDto;
 use App\Modules\Trace\Repositories\Interfaces\TraceDynamicIndexRepositoryInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
@@ -93,6 +94,41 @@ class TraceDynamicIndexRepository implements TraceDynamicIndexRepositoryInterfac
             ->get()
             ->map(fn(TraceDynamicIndex $index) => $this->modelToDto($index))
             ->all();
+    }
+
+    public function findStats(): TraceDynamicIndexStatsDto
+    {
+        $cursor = TraceDynamicIndex::collection()
+            ->aggregate(
+                [
+                    [
+                        '$group' => [
+                            '_id'       => null,
+                            'total'     => [
+                                '$sum' => 1,
+                            ],
+                            'inProcess' => [
+                                '$sum' => [
+                                    '$cond' => [['$eq' => ['$inProcess', true]], 1, 0],
+                                ],
+                            ],
+                            'errors'     => [
+                                '$sum' => [
+                                    '$cond' => [['$eq' => ['$error', null]], 0, 1],
+                                ],
+                            ],
+                        ],
+                    ],
+                ]
+            );
+
+        $stats = collect($cursor)->first();
+
+        return new TraceDynamicIndexStatsDto(
+            inProcessCount: $stats?->inProcess ?? 0,
+            errorsCount: $stats?->errors ?? 0,
+            totalCount: $stats?->total ?? 0,
+        );
     }
 
     public function updateByName(string $name, bool $inProcess, bool $created, ?Throwable $exception): bool

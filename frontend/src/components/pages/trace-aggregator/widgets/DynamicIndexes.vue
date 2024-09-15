@@ -5,7 +5,10 @@
         :type="badgeType"
         :offset="[-80, 0]"
     >
-      <el-button style="width: 80px" @click="dialogVisible = true">
+      <el-button
+          style="width: 80px"
+          @click="dialogVisible = true"
+      >
         Indexes
       </el-button>
     </el-badge>
@@ -16,19 +19,42 @@
       width="80%"
       top="10px"
       :append-to-body="true"
+      @open="update"
   >
     <template #header>
-      <el-text size="default">
-        Dynamic indexes (last 100)
-      </el-text>
+      <el-space>
+        <el-text size="default">
+          Dynamic indexes (last 50)
+        </el-text>
+        <el-input
+            v-model="searchText"
+            size="small"
+            placeholder="Type to search"
+            style="width: 300px"
+            clearable
+        />
+        <el-button
+            :icon="RefreshIcon"
+            size="small"
+            @click="update"
+            :loading="store.state.loading"
+        />
+      </el-space>
     </template>
     <el-table
-        :data="store.state.traceDynamicIndexes"
+        :data="indexes"
         style="height: 80vh; width: 100%"
     >
       <el-table-column label="Fields">
         <template #default="props">
-          {{ makeName(props.row) }}
+          <el-row>
+            {{ makeName(props.row) }}
+          </el-row>
+          <el-row>
+            <el-text size="small">
+              {{ props.row.name }}
+            </el-text>
+          </el-row>
         </template>
       </el-table-column>
       <el-table-column label="Status">
@@ -63,25 +89,33 @@
 <script lang="ts">
 import {defineComponent} from "vue";
 import {TraceDynamicIndex, useTraceDynamicIndexesStore} from "../../../../store/traceDynamicIndexesStore.ts";
+import {Refresh as RefreshIcon} from "@element-plus/icons-vue";
 
 interface DeletingIndexes {
   [key: string]: boolean,
 }
 
 export default defineComponent({
+  components: {
+    RefreshIcon
+  },
   data() {
     return {
       dialogVisible: false,
       store: useTraceDynamicIndexesStore(),
       deleting: {} as DeletingIndexes,
+      searchText: '' as String,
     }
   },
 
   methods: {
     update() {
       this.store.dispatch('findTraceDynamicIndexes')
+    },
+    updateStats() {
+      this.store.dispatch('findTraceDynamicIndexStats')
           .finally(() =>
-              setTimeout(() => this.update(), 2000)
+              setTimeout(() => this.updateStats(), 2000)
           )
     },
     deleteIndex(index: TraceDynamicIndex) {
@@ -95,6 +129,9 @@ export default defineComponent({
           .then(() => {
             delete this.deleting[index.id]
           })
+    },
+    filter() {
+
     },
     makeName(index: TraceDynamicIndex): string {
       return index.fields.map(index => index.title).join(', ')
@@ -124,18 +161,28 @@ export default defineComponent({
   },
 
   computed: {
-    inProcessCount(): number {
+    indexes(): Array<TraceDynamicIndex> {
       return this.store.state.traceDynamicIndexes.filter(
-          (index: TraceDynamicIndex) => index.inProcess
-      ).length
+          (index: TraceDynamicIndex) => {
+            if (!this.searchText) {
+              return true
+            }
+
+            const searchString = this.searchText.toLowerCase();
+
+            return this.makeName(index).toLowerCase().includes(searchString)
+              || index.name.toLowerCase().includes(searchString)
+          }
+      )
+    },
+    inProcessCount(): number {
+      return this.store.state.traceDynamicIndexStats.inProcessCount
     },
     errorsCount(): number {
-      return this.store.state.traceDynamicIndexes.filter(
-          (index: TraceDynamicIndex) => !!index.error
-      ).length
+      return this.store.state.traceDynamicIndexStats.errorsCount
     },
     totalCount(): number {
-      return this.store.state.traceDynamicIndexes.length
+      return this.store.state.traceDynamicIndexStats.totalCount
     },
     visibleCount(): number {
       if (this.inProcessCount) {
@@ -159,11 +206,14 @@ export default defineComponent({
 
       return 'info'
     },
+    RefreshIcon() {
+      return RefreshIcon
+    },
   },
 
   mounted() {
-    if (!this.store.state.loaded) {
-      this.update()
+    if (!this.store.state.started) {
+      this.updateStats()
     }
   }
 })

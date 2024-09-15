@@ -2869,6 +2869,53 @@
                 ]
             }
         },
+        "/admin-api/trace-aggregator/dynamic-indexes/stats": {
+            "get": {
+                "responses": {
+                    "200": {
+                        "description": "description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "inProcessCount": {
+                                                    "type": "integer",
+                                                    "nullable": false
+                                                },
+                                                "errorsCount": {
+                                                    "type": "integer",
+                                                    "nullable": false
+                                                },
+                                                "totalCount": {
+                                                    "type": "integer",
+                                                    "nullable": false
+                                                }
+                                            },
+                                            "required": [
+                                                "inProcessCount",
+                                                "errorsCount",
+                                                "totalCount"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/admin-api/trace-aggregator/dynamic-indexes/{id}": {
             "delete": {
                 "parameters": [
