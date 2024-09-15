@@ -72,7 +72,7 @@ class TraceQueryBuilder
             ->when(!is_null($memoryTo), fn(Builder $query) => $query->where('mem', '<=', $memoryTo))
             ->when(!is_null($cpuFrom), fn(Builder $query) => $query->where('cpu', '>=', $cpuFrom))
             ->when(!is_null($cpuTo), fn(Builder $query) => $query->where('cpu', '<=', $cpuTo))
-            ->when(!is_null($hasProfiling), fn(Builder $query) => $query->where('hp', $hasProfiling));
+            ->when(!is_null($hasProfiling), fn(Builder $query) => $query->where('hpr', $hasProfiling));
 
         return $this->applyDataFilter($builder, $data?->filter ?? []);
     }

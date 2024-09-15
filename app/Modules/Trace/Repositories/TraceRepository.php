@@ -189,7 +189,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
                 'dur',
                 'mem',
                 'cpu',
-                'hp',
+                'hpr',
                 'lat',
                 'cat',
                 'uat',
@@ -218,7 +218,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
             duration: $trace->dur,
             memory: $trace->mem,
             cpu: $trace->cpu,
-            hasProfiling: $trace->hp ?? false,
+            hasProfiling: $trace->hpr ?? false,
             loggedAt: $trace->lat,
             createdAt: $trace->cat,
             updatedAt: $trace->uat
@@ -276,7 +276,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
                 'dur',
                 'mem',
                 'cpu',
-                'hp',
+                'hpr',
                 'lat',
                 'cat',
                 'uat',
@@ -321,7 +321,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
                     duration: $trace->dur,
                     memory: $trace->mem,
                     cpu: $trace->cpu,
-                    hasProfiling: $trace->hp ?? false,
+                    hasProfiling: $trace->hpr ?? false,
                     loggedAt: $trace->lat,
                     createdAt: $trace->cat,
                     updatedAt: $trace->uat
@@ -514,10 +514,10 @@ readonly class TraceRepository implements TraceRepositoryInterface
                 fn(Builder $query) => $query->whereNotIn('tp', $excludedTypes)
             )
             ->update([
-                'dt' => new stdClass(),
-                'pr' => null,
-                'hp' => false,
-                'cl' => true,
+                'dt'  => new stdClass(),
+                'pr'  => null,
+                'hpr' => false,
+                'cl'  => true,
             ]);
     }
 

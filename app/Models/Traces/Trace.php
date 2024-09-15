@@ -20,8 +20,7 @@ use Illuminate\Support\Carbon;
  * @property float|null        $dur - duration
  * @property float|null        $mem - memory
  * @property float|null        $cpu - cpu
- * @property bool              $hp - hasProfiling
- * @property bool              $hpr - has profiling
+ * @property bool              $hpr - hasProfiling
  * @property array             $pr - profiling
  * @property Carbon            $lat - loggedAt
  * @property array             $tss - timestamps
@@ -40,7 +39,7 @@ class Trace extends AbstractTraceModel
     protected $collection = 'traces';
 
     protected $casts = [
-        'hp'  => 'boolean',
+        'hpr' => 'boolean',
         'lat' => 'datetime',
         'cl'  => 'boolean',
     ];
