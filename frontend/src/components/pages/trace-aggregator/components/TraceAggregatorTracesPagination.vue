@@ -1,6 +1,6 @@
 <template>
   <el-space>
-    <el-text>
+    <el-text size="small">
       Pages:
     </el-text>
     <el-button
@@ -13,7 +13,7 @@
       </el-icon>
       prev
     </el-button>
-    <el-text>
+    <el-text size="small">
       {{ currentPage }}
     </el-text>
     <el-button
