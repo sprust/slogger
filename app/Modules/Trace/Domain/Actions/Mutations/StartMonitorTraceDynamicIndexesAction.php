@@ -6,6 +6,7 @@ use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\StartMonitorTraceDynam
 use App\Modules\Trace\Domain\Services\MonitorTraceDynamicIndexesService;
 use App\Modules\Trace\Repositories\Interfaces\TraceDynamicIndexRepositoryInterface;
 use App\Modules\Trace\Repositories\Interfaces\TraceRepositoryInterface;
+use Throwable;
 
 readonly class StartMonitorTraceDynamicIndexesAction implements StartMonitorTraceDynamicIndexesActionInterface
 {
@@ -59,15 +60,22 @@ readonly class StartMonitorTraceDynamicIndexesAction implements StartMonitorTrac
             }
 
             foreach ($indexes as $index) {
-                $indexCreated = $this->traceRepository->createIndex(
-                    name: $index->name,
-                    fields: $index->fields
-                );
+                $exception = null;
+
+                try {
+                    $indexCreated = $this->traceRepository->createIndex(
+                        name: $index->name,
+                        fields: $index->fields
+                    );
+                } catch (Throwable $exception) {
+                    $indexCreated = false;
+                }
 
                 $this->traceDynamicIndexRepository->updateByName(
                     name: $index->name,
                     inProcess: false,
-                    created: $indexCreated
+                    created: $indexCreated,
+                    exception: $exception
                 );
             }
         }

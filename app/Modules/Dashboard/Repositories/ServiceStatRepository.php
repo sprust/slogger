@@ -56,7 +56,7 @@ readonly class ServiceStatRepository implements ServiceStatRepositoryInterface
 
             $pipeline[] = [
                 '$match' => [
-                    'loggedAt' => [
+                    'lat' => [
                         '$gte' => new UTCDateTime($from),
                         '$lte' => new UTCDateTime($to),
                     ],
@@ -66,9 +66,9 @@ readonly class ServiceStatRepository implements ServiceStatRepositoryInterface
             $pipeline[] = [
                 '$group' => [
                     '_id'   => [
-                        'serviceId' => '$serviceId',
-                        'type'      => '$type',
-                        'status'    => '$status',
+                        'serviceId' => '$sid',
+                        'type'      => '$tp',
+                        'status'    => '$st',
                     ],
                     'count' => [
                         '$sum' => 1,

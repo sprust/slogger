@@ -48,7 +48,7 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
             )
             ->when(
                 $text,
-                fn(Builder $query) => $query->where('type', 'like', "%$text%")
+                fn(Builder $query) => $query->where('tp', 'like', "%$text%")
             );
 
         $match = $this->traceQueryBuilder->makeMqlMatchFromBuilder(
@@ -65,7 +65,7 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
 
         $pipeline[] = [
             '$group' => [
-                '_id'   => '$type',
+                '_id'   => '$tp',
                 'count' => [
                     '$sum' => 1,
                 ],
@@ -109,8 +109,7 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
         ?float $cpuTo = null,
         ?TraceDataFilterDto $data = null,
         ?bool $hasProfiling = null,
-    ): array
-    {
+    ): array {
         $builder = $this->traceQueryBuilder->make(
             serviceIds: $serviceIds,
             loggedAtFrom: $loggedAtFrom,
@@ -138,16 +137,31 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
             ];
         }
 
-        // TODO: long handling
+        $pipeline[] = [
+            '$project' => [
+                'tgs.nm' => 1,
+            ],
+        ];
+
+        $pipeline[] = [
+            '$limit' => 100000
+        ];
+
         $pipeline[] = [
             '$unwind' => [
-                'path' => '$tags',
+                'path' => '$tgs',
+            ],
+        ];
+
+        $pipeline[] = [
+            '$sort' => [
+                'tgs.nm' => -1,
             ],
         ];
 
         $pipeline[] = [
             '$group' => [
-                '_id'   => '$tags',
+                '_id'   => '$tgs.nm',
                 'count' => [
                     '$sum' => 1,
                 ],
@@ -202,8 +216,7 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
         ?float $cpuTo = null,
         ?TraceDataFilterDto $data = null,
         ?bool $hasProfiling = null,
-    ): array
-    {
+    ): array {
         $builder = $this->traceQueryBuilder
             ->make(
                 serviceIds: $serviceIds,
@@ -222,7 +235,7 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
             )
             ->when(
                 $text,
-                fn(Builder $query) => $query->where('status', 'like', "%$text%")
+                fn(Builder $query) => $query->where('st', 'like', "%$text%")
             );
 
         $match = $this->traceQueryBuilder->makeMqlMatchFromBuilder(
@@ -239,7 +252,7 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
 
         $pipeline[] = [
             '$group' => [
-                '_id'   => '$status',
+                '_id'   => '$st',
                 'count' => [
                     '$sum' => 1,
                 ],

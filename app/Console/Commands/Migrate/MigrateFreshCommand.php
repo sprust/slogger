@@ -5,6 +5,7 @@ namespace App\Console\Commands\Migrate;
 use Illuminate\Database\Console\Migrations\FreshCommand;
 use Illuminate\Support\Facades\DB;
 use MongoDB\Laravel\Connection;
+use Throwable;
 
 class MigrateFreshCommand extends FreshCommand
 {
@@ -27,17 +28,33 @@ class MigrateFreshCommand extends FreshCommand
             for ($index = 0; $index < count($collectionNames); $index++) {
                 $collectionName = $collectionNames[$index];
 
+                if ($collectionName === 'system.views') {
+                    continue;
+                }
+
                 $collection = $connection->selectCollection($collectionName);
+
+                $indexDeletingException = null;
 
                 $this->components->task(
                     "Drop $databaseName.$collectionName",
-                    function () use ($collection) {
-                        $collection->dropIndexes();
+                    function () use ($collection, &$indexDeletingException) {
+                        try {
+                            $collection->dropIndexes();
+                        } catch (Throwable $indexDeletingException) {
+                        }
+
                         $collection->drop();
 
                         return true;
                     }
                 );
+
+                if ($indexDeletingException) {
+                    $this->components->warn(
+                        "Indexes deleting error: {$indexDeletingException->getMessage()}"
+                    );
+                }
             }
         }
 

@@ -4,6 +4,9 @@
     </el-form-item>
     <el-form-item>
       <el-input v-model="searchQuery" clearable>
+        <template #prepend>
+          <el-button :icon="TagAddIcon" @click="onAddTagClick" :disabled="!searchQuery"/>
+        </template>
         <template #append>
           <el-button :icon="SearchIcon" @click="findTags" :loading="loading.loading"/>
         </template>
@@ -62,6 +65,15 @@ export default defineComponent({
     }
   },
   methods: {
+    onAddTagClick() {
+      if (!this.searchQuery) {
+        return
+      }
+
+      this.$emit('onTagClick', this.searchQuery)
+
+      this.searchQuery = ''
+    },
     findTags() {
       this.$emit('findTags', this.searchQuery)
     },

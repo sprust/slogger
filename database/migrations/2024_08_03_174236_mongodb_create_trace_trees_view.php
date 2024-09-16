@@ -22,8 +22,8 @@ return new class extends Migration {
             'pipeline' => [
                 [
                     '$project' => [
-                        'traceId'       => 1,
-                        'parentTraceId' => 1,
+                        'tid'  => 1,
+                        'ptid' => 1,
                     ],
                 ],
             ],

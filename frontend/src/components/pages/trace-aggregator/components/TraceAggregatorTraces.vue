@@ -93,6 +93,12 @@
           </el-input>
         </el-form-item>
       </el-form>
+      <div class="flex-grow"/>
+      <el-form>
+        <el-form-item>
+          <DynamicIndexes/>
+        </el-form-item>
+      </el-form>
     </el-row>
     <el-row>
       <el-space>
@@ -169,17 +175,12 @@
     </div>
 
     <div v-show="!storeGraph.state.showGraph" class="height-100">
-      <el-pagination
-          v-if="store.state.traceAggregator.paginator"
-          small="small"
-          v-model:current-page="store.state.payload.page"
-          v-model:page-size="store.state.traceAggregator.paginator.per_page"
-          layout="sizes, prev, pager, next, jumper"
-          :total="store.state.traceAggregator.paginator.total"
-          :page-sizes="[5, 10, 15, 20]"
-          @current-change="update"
-          @size-change="handlePageSizeChange"
+      <TraceAggregatorTracesPagination
+          style="padding-bottom: 5px"
           :disabled="store.state.loading"
+          :currentPage="currentPage"
+          @on-next-page="onNextPage"
+          @on-prev-page="onPrevPage"
       />
 
       <el-progress
@@ -202,16 +203,12 @@
             @onCustomFieldClick="onCustomFieldClick"
         />
 
-        <el-pagination
-            v-if="store.state.traceAggregator.paginator && store.state.traceAggregator.items.length > 0"
-            small="small"
-            v-model:current-page="store.state.payload.page"
-            v-model:page-size="store.state.traceAggregator.paginator.per_page"
-            layout="sizes, prev, pager, next, jumper"
-            :total="store.state.traceAggregator.paginator.total"
-            :page-sizes="[5, 10, 15, 20]"
-            @current-change="update"
-            @size-change="handlePageSizeChange"
+        <TraceAggregatorTracesPagination
+            style="padding-top: 5px"
+            :disabled="store.state.loading"
+            :currentPage="currentPage"
+            @on-next-page="onNextPage"
+            @on-prev-page="onPrevPage"
         />
       </div>
     </div>
@@ -223,9 +220,11 @@ import {defineComponent} from "vue";
 import {TracesAddCustomFieldParameter, useTraceAggregatorStore} from "../../../../store/traceAggregatorStore.ts";
 import TraceAggregatorTraceDataNode from "./TraceAggregatorTraceDataNode.vue";
 import TraceAggregatorTracesTable from "./TraceAggregatorTracesTable.vue";
+import TraceAggregatorTracesPagination from "./TraceAggregatorTracesPagination.vue";
 import TraceAggregatorTracesCustomFields from "./TraceAggregatorTracesCustomFields.vue";
 import TraceAggregatorServices from "./TraceAggregatorServices.vue";
 import FilterTags from "../widgets/FilterTags.vue";
+import DynamicIndexes from "../widgets/DynamicIndexes.vue";
 import {state} from "vue-tsc/out/shared";
 import {CloseBold, SwitchButton, Close, Loading} from '@element-plus/icons-vue'
 import TraceAggregatorGraph from "./TraceAggregatorGraph.vue";
@@ -242,7 +241,9 @@ export default defineComponent({
   components: {
     TraceAggregatorGraph,
     TraceAggregatorTracesTable,
+    TraceAggregatorTracesPagination,
     FilterTags,
+    DynamicIndexes,
     TraceAggregatorTraceDataNode,
     TraceAggregatorTracesCustomFields,
     TraceAggregatorServices,
@@ -279,6 +280,9 @@ export default defineComponent({
     Loading() {
       return Loading
     },
+    currentPage(): number {
+      return this.store.state.payload.page
+    }
   },
   methods: {
     onButtonSearchClick() {
@@ -289,15 +293,24 @@ export default defineComponent({
       this.store.dispatch('fillTraceAggregator')
       this.storeTraceData.dispatch('clearTraceData')
     },
+    onNextPage() {
+      ++this.store.state.payload.page
+
+      this.update()
+    },
+    onPrevPage() {
+      if (this.store.state.payload.page === 1) {
+        return
+      }
+
+      --this.store.state.payload.page
+
+      this.update()
+    },
     reset() {
       this.store.dispatch('resetFilters')
 
       this.store.state.payload.logging_from = startOfDay.toUTCString()
-    },
-    handlePageSizeChange(perPage: number) {
-      this.store.dispatch('setPerPage', perPage)
-
-      this.update()
     },
     onTraceTypeClick(type: string) {
       this.store.dispatch('addOrDeleteType', type)

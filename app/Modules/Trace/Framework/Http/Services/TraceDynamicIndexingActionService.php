@@ -2,6 +2,7 @@
 
 namespace App\Modules\Trace\Framework\Http\Services;
 
+use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexErrorException;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexInProcessException;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexNotInitException;
 
@@ -11,7 +12,7 @@ class TraceDynamicIndexingActionService
 
     public function __construct()
     {
-        $this->indexCreateTimeoutInSeconds = 25;
+        $this->indexCreateTimeoutInSeconds = 10;
     }
 
     /**
@@ -26,14 +27,19 @@ class TraceDynamicIndexingActionService
                 $result = $action();
             } catch (TraceDynamicIndexInProcessException) {
                 abort_if(
-                    boolean: time() - $start > $this->indexCreateTimeoutInSeconds,
+                    boolean: (time() - $start) > $this->indexCreateTimeoutInSeconds,
                     code: 500,
-                    message: "Couldn't init index. Try again."
+                    message: "Indexing in progress. Try again or later."
                 );
 
                 sleep(1);
 
                 continue;
+            } catch (TraceDynamicIndexErrorException $exception) {
+                abort(
+                    code: 500,
+                    message: $exception->getMessage()
+                );
             }
 
             break;

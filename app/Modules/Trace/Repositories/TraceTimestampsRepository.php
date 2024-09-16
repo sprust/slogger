@@ -49,7 +49,7 @@ readonly class TraceTimestampsRepository implements TraceTimestampsRepositoryInt
     ): TraceTimestampsListDto {
         $timestampField = $timestamp->value;
 
-        $timestampFieldKey = "timestamps.$timestampField";
+        $timestampFieldKey = "tss.$timestampField";
 
         $match = [
             '$and' => [
@@ -110,7 +110,7 @@ readonly class TraceTimestampsRepository implements TraceTimestampsRepositoryInt
         }
 
         foreach ($dataFields ?? [] as $dataField) {
-            $fieldName = "data.$dataField->field";
+            $fieldName = "dt.$dataField->field";
 
             $groups[$fieldName] = [];
 
@@ -142,7 +142,7 @@ readonly class TraceTimestampsRepository implements TraceTimestampsRepositoryInt
         $pipeline[] = [
             '$group' => [
                 '_id' => [
-                    'timestamp' => "\$timestamps.$timestampField",
+                    'timestamp' => "\$tss.$timestampField",
                 ],
                 ...$groupsQuery,
             ],
@@ -211,8 +211,8 @@ readonly class TraceTimestampsRepository implements TraceTimestampsRepositoryInt
     {
         $fieldName = match ($field->field) {
             TraceMetricFieldEnum::Count => 'count',
-            TraceMetricFieldEnum::Duration => 'duration',
-            TraceMetricFieldEnum::Memory => 'memory',
+            TraceMetricFieldEnum::Duration => 'dur',
+            TraceMetricFieldEnum::Memory => 'mem',
             TraceMetricFieldEnum::Cpu => 'cpu',
         };
 

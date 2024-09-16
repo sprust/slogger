@@ -13,8 +13,9 @@ return new class extends Migration {
         Schema::create('trace_clearing_settings', function (Blueprint $table) {
             $table->id();
 
-            $table->string('type')->unique()->nullable();
+            $table->string('type')->nullable();
             $table->unsignedInteger('days_lifetime');
+            $table->boolean('only_data');
 
             $table->timestamps();
 

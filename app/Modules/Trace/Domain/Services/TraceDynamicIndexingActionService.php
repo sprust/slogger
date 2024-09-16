@@ -2,6 +2,7 @@
 
 namespace App\Modules\Trace\Domain\Services;
 
+use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexErrorException;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexInProcessException;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexNotInitException;
 
@@ -17,6 +18,7 @@ class TraceDynamicIndexingActionService
     /**
      * @throws TraceDynamicIndexNotInitException
      * @throws TraceDynamicIndexInProcessException
+     * @throws TraceDynamicIndexErrorException
      */
     public function handle(callable $action): mixed
     {

@@ -84,7 +84,7 @@ export const traceAggregatorStore = createStore<State>({
             },
             sort: [
                 {
-                    field: "loggedAt",
+                    field: "lat",
                     direction: "desc"
                 }
             ]
@@ -118,7 +118,7 @@ export const traceAggregatorStore = createStore<State>({
                 },
                 sort: [
                     {
-                        field: "loggedAt",
+                        field: "lat",
                         direction: "desc"
                     }
                 ]
@@ -225,7 +225,7 @@ export const traceAggregatorStore = createStore<State>({
             state.payload.sort = []
 
             state.customFields.map((customField: TraceAggregatorCustomField) => {
-                const field = `data.${customField.field}`
+                const field = `dt.${customField.field}`
 
                 if (customField.search) {
                     if (customField.searchData.null.enabled) {
@@ -282,7 +282,7 @@ export const traceAggregatorStore = createStore<State>({
             commit('prepareCommonPayloadData')
 
             state.customFields.map((customField: TraceAggregatorCustomField) => {
-                const field = `data.${customField.field}`
+                const field = `dt.${customField.field}`
 
                 if (customField.sort) {
                     state.payload.sort!.push({
@@ -299,7 +299,7 @@ export const traceAggregatorStore = createStore<State>({
             if (!state.payload.sort.length) {
                 state.payload.sort = [
                     {
-                        field: 'loggedAt',
+                        field: 'lat',
                         direction: 'desc'
                     }
                 ]

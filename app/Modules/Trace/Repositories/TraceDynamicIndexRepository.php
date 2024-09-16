@@ -5,10 +5,12 @@ namespace App\Modules\Trace\Repositories;
 use App\Models\Traces\TraceDynamicIndex;
 use App\Modules\Trace\Repositories\Dto\TraceDynamicIndexDto;
 use App\Modules\Trace\Repositories\Dto\TraceDynamicIndexFieldDto;
+use App\Modules\Trace\Repositories\Dto\TraceDynamicIndexStatsDto;
 use App\Modules\Trace\Repositories\Interfaces\TraceDynamicIndexRepositoryInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use MongoDB\BSON\UTCDateTime;
+use Throwable;
 
 class TraceDynamicIndexRepository implements TraceDynamicIndexRepositoryInterface
 {
@@ -31,6 +33,7 @@ class TraceDynamicIndexRepository implements TraceDynamicIndexRepositoryInterfac
                         'fields'    => $fields,
                         'inProcess' => true,
                         'created'   => false,
+                        'error'     => null,
                         'createdAt' => new UTCDateTime($createdAt),
                     ],
                 ],
@@ -42,6 +45,18 @@ class TraceDynamicIndexRepository implements TraceDynamicIndexRepositoryInterfac
         return $this->findOneByName($name);
     }
 
+    public function findOneById(string $id): ?TraceDynamicIndexDto
+    {
+        /** @var TraceDynamicIndex|null $index */
+        $index = TraceDynamicIndex::query()->find($id);
+
+        if (!$index) {
+            return null;
+        }
+
+        return $this->modelToDto($index);
+    }
+
     private function findOneByName(string $name): ?TraceDynamicIndexDto
     {
         /** @var TraceDynamicIndex|null $index */
@@ -51,21 +66,15 @@ class TraceDynamicIndexRepository implements TraceDynamicIndexRepositoryInterfac
             return null;
         }
 
-        return new TraceDynamicIndexDto(
-            name: $name,
-            fields: $this->transportFields($index->fields),
-            inProcess: $index->inProcess,
-            created: $index->created,
-            actualUntilAt: $index->actualUntilAt,
-            createdAt: $index->createdAt
-        );
+        return $this->modelToDto($index);
     }
 
     public function find(
         int $limit,
         ?bool $inProcess = null,
         bool $sortByCreatedAtAsc = false,
-        ?Carbon $toActualUntilAt = null
+        ?Carbon $toActualUntilAt = null,
+        bool $orderByCreatedAtDesc = false,
     ): array {
         return TraceDynamicIndex::query()
             ->when(
@@ -76,28 +85,70 @@ class TraceDynamicIndexRepository implements TraceDynamicIndexRepositoryInterfac
                 !is_null($toActualUntilAt),
                 fn(Builder $builder) => $builder->where('actualUntilAt', '<', $toActualUntilAt)
             )
-            ->orderBy('createdAt')
+            ->when(
+                value: $orderByCreatedAtDesc,
+                callback: fn(Builder $builder) => $builder->orderByDesc('createdAt'),
+                default: fn(Builder $builder) => $builder->orderBy('createdAt'),
+            )
             ->take($limit)
             ->get()
-            ->map(fn(TraceDynamicIndex $index) => new TraceDynamicIndexDto(
-                name: $index->name,
-                fields: $this->transportFields($index->fields),
-                inProcess: $index->inProcess,
-                created: $index->created,
-                actualUntilAt: $index->actualUntilAt,
-                createdAt: $index->createdAt
-            ))
+            ->map(fn(TraceDynamicIndex $index) => $this->modelToDto($index))
             ->all();
     }
 
-    public function updateByName(string $name, bool $inProcess, bool $created): bool
+    public function findStats(): TraceDynamicIndexStatsDto
+    {
+        $cursor = TraceDynamicIndex::collection()
+            ->aggregate(
+                [
+                    [
+                        '$group' => [
+                            '_id'       => null,
+                            'total'     => [
+                                '$sum' => 1,
+                            ],
+                            'inProcess' => [
+                                '$sum' => [
+                                    '$cond' => [['$eq' => ['$inProcess', true]], 1, 0],
+                                ],
+                            ],
+                            'errors'     => [
+                                '$sum' => [
+                                    '$cond' => [['$eq' => ['$error', null]], 0, 1],
+                                ],
+                            ],
+                        ],
+                    ],
+                ]
+            );
+
+        $stats = collect($cursor)->first();
+
+        return new TraceDynamicIndexStatsDto(
+            inProcessCount: $stats?->inProcess ?? 0,
+            errorsCount: $stats?->errors ?? 0,
+            totalCount: $stats?->total ?? 0,
+        );
+    }
+
+    public function updateByName(string $name, bool $inProcess, bool $created, ?Throwable $exception): bool
     {
         return (bool) TraceDynamicIndex::query()
             ->where('name', $name)
             ->update([
                 'inProcess' => $inProcess,
                 'created'   => $created,
+                'error'     => $exception
+                    ? $exception::class . ": {$exception->getMessage()}"
+                    : null,
             ]);
+    }
+
+    public function deleteById(string $id): bool
+    {
+        return (bool) TraceDynamicIndex::query()
+            ->where('_id', $id)
+            ->delete();
     }
 
     public function deleteByName(string $name): bool
@@ -140,5 +191,19 @@ class TraceDynamicIndexRepository implements TraceDynamicIndexRepositoryInterfac
         }
 
         return $result;
+    }
+
+    private function modelToDto(TraceDynamicIndex $index): TraceDynamicIndexDto
+    {
+        return new TraceDynamicIndexDto(
+            id: $index->_id,
+            name: $index->name,
+            fields: $this->transportFields($index->fields),
+            inProcess: $index->inProcess,
+            created: $index->created,
+            error: $index->error,
+            actualUntilAt: $index->actualUntilAt,
+            createdAt: $index->createdAt
+        );
     }
 }

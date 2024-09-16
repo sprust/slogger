@@ -11,6 +11,7 @@ use App\Modules\Service\Framework\Http\Controllers\ServiceController;
 use App\Modules\Tools\Framework\Http\Controllers\ToolLinksController;
 use App\Modules\Trace\Framework\Http\Controllers\TraceContentController;
 use App\Modules\Trace\Framework\Http\Controllers\TraceController;
+use App\Modules\Trace\Framework\Http\Controllers\TraceDynamicIndexController;
 use App\Modules\Trace\Framework\Http\Controllers\TraceProfilingController;
 use App\Modules\Trace\Framework\Http\Controllers\TraceTimestampPeriodsController;
 use App\Modules\Trace\Framework\Http\Controllers\TraceTimestampsController;
@@ -78,6 +79,14 @@ Route::prefix('/trace-aggregator')
             ->as('trace-timestamp-periods.')
             ->group(function () {
                 Route::get('', [TraceTimestampPeriodsController::class, 'index'])->name('index');
+            });
+
+        Route::prefix('/dynamic-indexes')
+            ->as('dynamic-indexes.')
+            ->group(function () {
+                Route::get('', [TraceDynamicIndexController::class, 'index'])->name('index');
+                Route::get('/stats', [TraceDynamicIndexController::class, 'stats'])->name('stats');
+                Route::delete('/{id}', [TraceDynamicIndexController::class, 'destroy'])->name('destroy');
             });
     });
 

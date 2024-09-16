@@ -14,14 +14,14 @@ class TraceFactory extends Factory
     public function definition(): array
     {
         return [
-            'serviceId'     => Service::factory(),
-            'traceId'       => $this->faker->uuid(),
-            'parentTraceId' => null,
-            'type'          => 'fake',
-            'tags'          => [],
-            'data'          => [],
-            'loggedAt'      => Carbon::now(),
-            'createdAt'     => Carbon::now(),
+            'sid'  => Service::factory(),
+            'tid'  => $this->faker->uuid(),
+            'ptid' => null,
+            'tp'   => 'fake',
+            'tgs'  => [],
+            'dt'   => [],
+            'lat'  => Carbon::now(),
+            'cat'  => Carbon::now(),
         ];
     }
 }

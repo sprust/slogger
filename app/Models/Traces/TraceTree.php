@@ -6,8 +6,8 @@ use App\Models\AbstractTraceModel;
 
 /**
  * @property string      $_id
- * @property string      $traceId
- * @property string|null $parentTraceId
+ * @property string      $tid
+ * @property string|null $ptid
  */
 class TraceTree extends AbstractTraceModel
 {

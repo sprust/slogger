@@ -45,12 +45,12 @@ class TraceQueryBuilder
         ?bool $hasProfiling = null,
     ): Builder {
         $builder = Trace::query()
-            ->when($serviceIds, fn(Builder $query) => $query->whereIn('serviceId', $serviceIds))
-            ->when($traceIds, fn(Builder $query) => $query->whereIn('traceId', $traceIds))
+            ->when($serviceIds, fn(Builder $query) => $query->whereIn('sid', $serviceIds))
+            ->when($traceIds, fn(Builder $query) => $query->whereIn('tid', $traceIds))
             ->when(
                 $loggedAtFrom,
                 fn(Builder $query) => $query->where(
-                    'loggedAt',
+                    'lat',
                     '>=',
                     new UTCDateTime($loggedAtFrom->clone()->startOfSecond())
                 )
@@ -58,21 +58,21 @@ class TraceQueryBuilder
             ->when(
                 $loggedAtTo,
                 fn(Builder $query) => $query->where(
-                    'loggedAt',
+                    'lat',
                     '<=',
                     new UTCDateTime($loggedAtTo->clone()->endOfSecond())
                 )
             )
-            ->when($types, fn(Builder $query) => $query->whereIn('type', $types))
-            ->when($tags, fn(Builder $query) => $query->where('tags', 'all', $tags))
-            ->when($statuses, fn(Builder $query) => $query->whereIn('status', $statuses))
-            ->when(!is_null($durationFrom), fn(Builder $query) => $query->where('duration', '>=', $durationFrom))
-            ->when(!is_null($durationTo), fn(Builder $query) => $query->where('duration', '<=', $durationTo))
-            ->when(!is_null($memoryFrom), fn(Builder $query) => $query->where('memory', '>=', $memoryFrom))
-            ->when(!is_null($memoryTo), fn(Builder $query) => $query->where('memory', '<=', $memoryTo))
+            ->when($types, fn(Builder $query) => $query->whereIn('tp', $types))
+            ->when($tags, fn(Builder $query) => $query->whereIn('tgs.nm', $tags))
+            ->when($statuses, fn(Builder $query) => $query->whereIn('st', $statuses))
+            ->when(!is_null($durationFrom), fn(Builder $query) => $query->where('dur', '>=', $durationFrom))
+            ->when(!is_null($durationTo), fn(Builder $query) => $query->where('dur', '<=', $durationTo))
+            ->when(!is_null($memoryFrom), fn(Builder $query) => $query->where('mem', '>=', $memoryFrom))
+            ->when(!is_null($memoryTo), fn(Builder $query) => $query->where('mem', '<=', $memoryTo))
             ->when(!is_null($cpuFrom), fn(Builder $query) => $query->where('cpu', '>=', $cpuFrom))
             ->when(!is_null($cpuTo), fn(Builder $query) => $query->where('cpu', '<=', $cpuTo))
-            ->when(!is_null($hasProfiling), fn(Builder $query) => $query->where('hasProfiling', $hasProfiling));
+            ->when(!is_null($hasProfiling), fn(Builder $query) => $query->where('hpr', $hasProfiling));
 
         return $this->applyDataFilter($builder, $data?->filter ?? []);
     }

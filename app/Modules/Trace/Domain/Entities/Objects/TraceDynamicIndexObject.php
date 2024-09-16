@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Modules\Trace\Repositories\Dto;
+namespace App\Modules\Trace\Domain\Entities\Objects;
 
 use Illuminate\Support\Carbon;
 
-readonly class TraceDynamicIndexDto
+readonly class TraceDynamicIndexObject
 {
     /**
-     * @param TraceDynamicIndexFieldDto[] $fields
+     * @param TraceDynamicIndexFieldObject[] $fields
      */
     public function __construct(
         public string $id,

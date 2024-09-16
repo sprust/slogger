@@ -14,8 +14,10 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
+         // TODO: move to long job
          $schedule->command(ClearTracesCommand::class)->everyFifteenMinutes();
-         $schedule->job(CacheServiceStatJob::class)->everyMinute();
+         // TODO: need that?
+         //$schedule->job(CacheServiceStatJob::class)->everyMinute();
     }
 
     /**

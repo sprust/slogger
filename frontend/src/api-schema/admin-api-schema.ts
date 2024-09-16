@@ -1203,6 +1203,93 @@ export namespace AdminApi {
     };
   } /**
  * No description
+ * @name TraceAggregatorDynamicIndexesList
+ * @request GET:/admin-api/trace-aggregator/dynamic-indexes
+ * @secure
+ * @response `200` `{
+    data: ({
+    id: string,
+    name: string,
+    fields: ({
+    name: string,
+    title: string,
+
+})[],
+    inProcess: boolean,
+    created: boolean,
+    error?: string | null,
+    actualUntilAt: string,
+    createdAt: string,
+
+})[],
+
+}` description
+*/
+  export namespace TraceAggregatorDynamicIndexesList {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        id: string;
+        name: string;
+        fields: {
+          name: string;
+          title: string;
+        }[];
+        inProcess: boolean;
+        created: boolean;
+        error?: string | null;
+        actualUntilAt: string;
+        createdAt: string;
+      }[];
+    };
+  } /**
+ * No description
+ * @name TraceAggregatorDynamicIndexesStatsList
+ * @request GET:/admin-api/trace-aggregator/dynamic-indexes/stats
+ * @secure
+ * @response `200` `{
+    data: {
+    inProcessCount: number,
+    errorsCount: number,
+    totalCount: number,
+
+},
+
+}` description
+*/
+  export namespace TraceAggregatorDynamicIndexesStatsList {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        inProcessCount: number;
+        errorsCount: number;
+        totalCount: number;
+      };
+    };
+  }
+  /**
+   * No description
+   * @name TraceAggregatorDynamicIndexesDelete
+   * @request DELETE:/admin-api/trace-aggregator/dynamic-indexes/{id}
+   * @secure
+   * @response `200` `void` description
+   */
+  export namespace TraceAggregatorDynamicIndexesDelete {
+    export type RequestParams = {
+      id: any;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
+  } /**
+ * No description
  * @name TraceCleanerSettingsList
  * @request GET:/admin-api/trace-cleaner/settings
  * @secure
@@ -2916,6 +3003,107 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: "GET",
         secure: true,
         format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name TraceAggregatorDynamicIndexesList
+ * @request GET:/admin-api/trace-aggregator/dynamic-indexes
+ * @secure
+ * @response `200` `{
+    data: ({
+    id: string,
+    name: string,
+    fields: ({
+    name: string,
+    title: string,
+
+})[],
+    inProcess: boolean,
+    created: boolean,
+    error?: string | null,
+    actualUntilAt: string,
+    createdAt: string,
+
+})[],
+
+}` description
+ */
+    traceAggregatorDynamicIndexesList: (params: RequestParams = {}) =>
+      this.request<
+        {
+          data: {
+            id: string;
+            name: string;
+            fields: {
+              name: string;
+              title: string;
+            }[];
+            inProcess: boolean;
+            created: boolean;
+            error?: string | null;
+            actualUntilAt: string;
+            createdAt: string;
+          }[];
+        },
+        any
+      >({
+        path: `/admin-api/trace-aggregator/dynamic-indexes`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name TraceAggregatorDynamicIndexesStatsList
+ * @request GET:/admin-api/trace-aggregator/dynamic-indexes/stats
+ * @secure
+ * @response `200` `{
+    data: {
+    inProcessCount: number,
+    errorsCount: number,
+    totalCount: number,
+
+},
+
+}` description
+ */
+    traceAggregatorDynamicIndexesStatsList: (params: RequestParams = {}) =>
+      this.request<
+        {
+          data: {
+            inProcessCount: number;
+            errorsCount: number;
+            totalCount: number;
+          };
+        },
+        any
+      >({
+        path: `/admin-api/trace-aggregator/dynamic-indexes/stats`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @name TraceAggregatorDynamicIndexesDelete
+     * @request DELETE:/admin-api/trace-aggregator/dynamic-indexes/{id}
+     * @secure
+     * @response `200` `void` description
+     */
+    traceAggregatorDynamicIndexesDelete: (id: any, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/admin-api/trace-aggregator/dynamic-indexes/${id}`,
+        method: "DELETE",
+        secure: true,
         ...params,
       }),
 

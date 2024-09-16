@@ -2779,6 +2779,165 @@
                 ]
             }
         },
+        "/admin-api/trace-aggregator/dynamic-indexes": {
+            "get": {
+                "responses": {
+                    "200": {
+                        "description": "description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "name": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "fields": {
+                                                        "type": "array",
+                                                        "nullable": false,
+                                                        "items": {
+                                                            "properties": {
+                                                                "name": {
+                                                                    "type": "string",
+                                                                    "nullable": false
+                                                                },
+                                                                "title": {
+                                                                    "type": "string",
+                                                                    "nullable": false
+                                                                }
+                                                            },
+                                                            "required": [
+                                                                "name",
+                                                                "title"
+                                                            ]
+                                                        }
+                                                    },
+                                                    "inProcess": {
+                                                        "type": "boolean",
+                                                        "nullable": false
+                                                    },
+                                                    "created": {
+                                                        "type": "boolean",
+                                                        "nullable": false
+                                                    },
+                                                    "error": {
+                                                        "type": "string",
+                                                        "nullable": true
+                                                    },
+                                                    "actualUntilAt": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "createdAt": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    }
+                                                },
+                                                "required": [
+                                                    "id",
+                                                    "name",
+                                                    "fields",
+                                                    "inProcess",
+                                                    "created",
+                                                    "actualUntilAt",
+                                                    "createdAt"
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/admin-api/trace-aggregator/dynamic-indexes/stats": {
+            "get": {
+                "responses": {
+                    "200": {
+                        "description": "description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "inProcessCount": {
+                                                    "type": "integer",
+                                                    "nullable": false
+                                                },
+                                                "errorsCount": {
+                                                    "type": "integer",
+                                                    "nullable": false
+                                                },
+                                                "totalCount": {
+                                                    "type": "integer",
+                                                    "nullable": false
+                                                }
+                                            },
+                                            "required": [
+                                                "inProcessCount",
+                                                "errorsCount",
+                                                "totalCount"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/admin-api/trace-aggregator/dynamic-indexes/{id}": {
+            "delete": {
+                "parameters": [
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "schema": {}
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "description"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/admin-api/trace-cleaner/settings": {
             "get": {
                 "responses": {
