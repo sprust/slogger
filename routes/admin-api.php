@@ -9,6 +9,7 @@ use App\Modules\Dashboard\Framework\Http\Controllers\DatabaseStatController;
 use App\Modules\Dashboard\Framework\Http\Controllers\ServiceStatController;
 use App\Modules\Service\Framework\Http\Controllers\ServiceController;
 use App\Modules\Tools\Framework\Http\Controllers\ToolLinksController;
+use App\Modules\Trace\Framework\Http\Controllers\TraceAdminStoreController;
 use App\Modules\Trace\Framework\Http\Controllers\TraceContentController;
 use App\Modules\Trace\Framework\Http\Controllers\TraceController;
 use App\Modules\Trace\Framework\Http\Controllers\TraceDynamicIndexController;
@@ -87,6 +88,14 @@ Route::prefix('/trace-aggregator')
                 Route::get('', [TraceDynamicIndexController::class, 'index'])->name('index');
                 Route::get('/stats', [TraceDynamicIndexController::class, 'stats'])->name('stats');
                 Route::delete('/{id}', [TraceDynamicIndexController::class, 'destroy'])->name('destroy');
+            });
+
+        Route::prefix('/states')
+            ->as('states.')
+            ->group(function () {
+                Route::get('', [TraceAdminStoreController::class, 'index'])->name('index');
+                Route::post('', [TraceAdminStoreController::class, 'create'])->name('create');
+                Route::delete('/{id}', [TraceAdminStoreController::class, 'delete'])->name('delete');
             });
     });
 

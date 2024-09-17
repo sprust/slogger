@@ -4,20 +4,20 @@ namespace App\Modules\Trace\Framework\Http\Resources;
 
 use App\Modules\Common\Framework\Http\Resources\AbstractApiResource;
 use App\Modules\Common\Framework\Http\Resources\PaginatorInfoResource;
-use App\Modules\Trace\Domain\Entities\Objects\TraceItemObjects;
+use App\Modules\Trace\Domain\Entities\Objects\TraceAdminStoresPaginationObject;
 use Ifksco\OpenApiGenerator\Attributes\OaListItemTypeAttribute;
 
-class TraceItemsResource extends AbstractApiResource
+class TraceAdminStoresResource extends AbstractApiResource
 {
-    #[OaListItemTypeAttribute(TraceItemResource::class)]
+    #[OaListItemTypeAttribute(TraceAdminStoreResource::class)]
     private array $items;
     private PaginatorInfoResource $paginator;
 
-    public function __construct(TraceItemObjects $resource)
+    public function __construct(TraceAdminStoresPaginationObject $resource)
     {
         parent::__construct($resource);
 
-        $this->items     = TraceItemResource::mapIntoMe($resource->items);
+        $this->items     = TraceAdminStoreResource::mapIntoMe($resource->items);
         $this->paginator = new PaginatorInfoResource($resource->paginationInfo);
     }
 }
