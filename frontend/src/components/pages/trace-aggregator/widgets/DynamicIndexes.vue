@@ -39,6 +39,9 @@
             @click="update"
             :loading="store.state.loading"
         />
+        <el-text>
+          Total: {{ totalCount }}, In process: {{ inProcessCount }}, Errors: {{ errorsCount }}
+        </el-text>
       </el-space>
     </template>
     <el-table
