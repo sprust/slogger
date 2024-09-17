@@ -159,11 +159,13 @@ class TraceTimestampMetricsFactory
                 TraceTimestampEnum::Min30,
             ],
             TraceTimestampPeriodEnum::Hour4 => [
+                TraceTimestampEnum::Min5,
                 TraceTimestampEnum::Min10,
                 TraceTimestampEnum::Min30,
                 TraceTimestampEnum::H,
             ],
             TraceTimestampPeriodEnum::Hour12 => [
+                TraceTimestampEnum::Min10,
                 TraceTimestampEnum::Min30,
                 TraceTimestampEnum::H,
                 TraceTimestampEnum::H4,
@@ -174,29 +176,22 @@ class TraceTimestampMetricsFactory
                 TraceTimestampEnum::H4,
                 TraceTimestampEnum::H12,
             ],
-            TraceTimestampPeriodEnum::Day3 => [
+            TraceTimestampPeriodEnum::Day3, TraceTimestampPeriodEnum::Day7 => [
                 TraceTimestampEnum::H,
                 TraceTimestampEnum::H4,
                 TraceTimestampEnum::H12,
                 TraceTimestampEnum::D,
             ],
-            TraceTimestampPeriodEnum::Day7 => [
-                TraceTimestampEnum::H4,
-                TraceTimestampEnum::H12,
-                TraceTimestampEnum::D,
-            ],
             TraceTimestampPeriodEnum::Day15, TraceTimestampPeriodEnum::Month => [
+                TraceTimestampEnum::H4,
                 TraceTimestampEnum::H12,
                 TraceTimestampEnum::D,
             ],
             TraceTimestampPeriodEnum::Month3 => [
                 TraceTimestampEnum::D,
             ],
-            TraceTimestampPeriodEnum::Month6 => [
+            TraceTimestampPeriodEnum::Month6, TraceTimestampPeriodEnum::Year => [
                 TraceTimestampEnum::D,
-                TraceTimestampEnum::M,
-            ],
-            TraceTimestampPeriodEnum::Year => [
                 TraceTimestampEnum::M,
             ],
         };
