@@ -15,6 +15,7 @@ use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\FreshTraceTimestampsAc
 use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\StartMonitorTraceDynamicIndexesActionInterface;
 use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\StopMonitorTraceDynamicIndexesActionInterface;
 use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\UpdateTraceManyActionInterface;
+use App\Modules\Trace\Domain\Actions\Interfaces\Queries\FindMinLoggedAtTracesActionInterface;
 use App\Modules\Trace\Domain\Actions\Interfaces\Queries\FindStatusesActionInterface;
 use App\Modules\Trace\Domain\Actions\Interfaces\Queries\FindTagsActionInterface;
 use App\Modules\Trace\Domain\Actions\Interfaces\Queries\FindTraceDetailActionInterface;
@@ -37,6 +38,7 @@ use App\Modules\Trace\Domain\Actions\Mutations\FreshTraceTimestampsAction;
 use App\Modules\Trace\Domain\Actions\Mutations\StartMonitorTraceDynamicIndexesAction;
 use App\Modules\Trace\Domain\Actions\Mutations\StopMonitorTraceDynamicIndexesAction;
 use App\Modules\Trace\Domain\Actions\Mutations\UpdateTraceManyAction;
+use App\Modules\Trace\Domain\Actions\Queries\FindMinLoggedAtTracesAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindStatusesAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTagsAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceDetailAction;
@@ -121,6 +123,7 @@ class TraceServiceProvider extends BaseServiceProvider
             FindTypesActionInterface::class                       => FindTypesAction::class,
             FindTraceDynamicIndexesActionInterface::class         => FindTraceDynamicIndexesAction::class,
             FindTraceDynamicIndexStatsActionInterface::class      => FindTraceDynamicIndexStatsAction::class,
+            FindMinLoggedAtTracesActionInterface::class           => FindMinLoggedAtTracesAction::class,
         ];
     }
 }

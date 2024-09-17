@@ -90,6 +90,7 @@ interface TraceRepositoryInterface
      * @return int - number of deleted records
      */
     public function deleteTraces(
+        ?Carbon $loggedAtFrom = null,
         ?Carbon $loggedAtTo = null,
         ?string $type = null,
         ?array $excludedTypes = null
@@ -101,6 +102,7 @@ interface TraceRepositoryInterface
      * @return int - number of cleared records
      */
     public function clearTraces(
+        ?Carbon $loggedAtFrom = null,
         ?Carbon $loggedAtTo = null,
         ?string $type = null,
         ?array $excludedTypes = null
@@ -110,6 +112,8 @@ interface TraceRepositoryInterface
      * @param TraceDynamicIndexFieldDto[] $fields
      */
     public function createIndex(string $name, array $fields): bool;
+
+    public function findMinLoggedAt(): ?Carbon;
 
     public function deleteIndexByName(string $name): void;
 }

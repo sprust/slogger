@@ -12,7 +12,7 @@ class ClearTracesCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'trace-clearing:clear';
+    protected $signature = 'traces-clearing:clear';
 
     /**
      * The console command description.

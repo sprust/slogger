@@ -29,12 +29,14 @@ readonly class DeleteTracesAction implements DeleteTracesActionInterface
     {
         $this->traceDynamicIndexingActionService->handle(
             fn() => $this->traceDynamicIndexInitializer->init(
+                loggedAtFrom: $parameters->loggedAtFrom,
                 loggedAtTo: $parameters->loggedAtTo,
                 types: ['stub'],
             )
         );
 
         return $this->traceRepository->deleteTraces(
+            loggedAtFrom: $parameters->loggedAtFrom,
             loggedAtTo: $parameters->loggedAtTo,
             type: $parameters->type,
             excludedTypes: $parameters->excludedTypes

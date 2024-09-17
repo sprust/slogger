@@ -477,11 +477,16 @@ readonly class TraceRepository implements TraceRepositoryInterface
     }
 
     public function deleteTraces(
+        ?Carbon $loggedAtFrom = null,
         ?Carbon $loggedAtTo = null,
         ?string $type = null,
         ?array $excludedTypes = null
     ): int {
         return Trace::query()
+            ->when(
+                !is_null($loggedAtFrom),
+                fn(Builder $query) => $query->where('lat', '>=', new UTCDateTime($loggedAtFrom))
+            )
             ->when(
                 !is_null($loggedAtTo),
                 fn(Builder $query) => $query->where('lat', '<=', new UTCDateTime($loggedAtTo))
@@ -495,6 +500,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
     }
 
     public function clearTraces(
+        ?Carbon $loggedAtFrom = null,
         ?Carbon $loggedAtTo = null,
         ?string $type = null,
         ?array $excludedTypes = null
@@ -504,6 +510,10 @@ readonly class TraceRepository implements TraceRepositoryInterface
                 $query->where('cl', false)
                     ->orWhere('cl', 'exists', false);
             })
+            ->when(
+                !is_null($loggedAtFrom),
+                fn(Builder $query) => $query->where('lat', '>=', new UTCDateTime($loggedAtFrom))
+            )
             ->when(
                 !is_null($loggedAtTo),
                 fn(Builder $query) => $query->where('lat', '<=', new UTCDateTime($loggedAtTo))
@@ -566,6 +576,14 @@ readonly class TraceRepository implements TraceRepositoryInterface
         }
 
         return true;
+    }
+
+    public function findMinLoggedAt(): ?Carbon
+    {
+        /** @var UTCDateTime|null $min */
+        $min = Trace::query()->min('lat');
+
+        return $min ? new Carbon($min->toDateTime()) : null;
     }
 
     public function deleteIndexByName(string $name): void

@@ -10,19 +10,24 @@ use App\Modules\Cleaner\Repositories\Interfaces\SettingRepositoryInterface;
 use App\Modules\Common\EventsDispatcher;
 use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\ClearTracesActionInterface as TraceClearTracesActionInterface;
 use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\DeleteTracesActionInterface;
+use App\Modules\Trace\Domain\Actions\Interfaces\Queries\FindMinLoggedAtTracesActionInterface;
 use App\Modules\Trace\Domain\Entities\Parameters\ClearTracesParameters;
 use App\Modules\Trace\Domain\Entities\Parameters\DeleteTracesParameters;
 use Illuminate\Support\Arr;
 
 readonly class ClearTracesAction implements ClearTracesActionInterface
 {
+    private int $stepInHours;
+
     public function __construct(
         private EventsDispatcher $eventsDispatcher,
         private SettingRepositoryInterface $settingRepository,
         private ProcessRepositoryInterface $processRepository,
+        private FindMinLoggedAtTracesActionInterface $findMinLoggedAtTracesAction,
         private TraceClearTracesActionInterface $clearTracesAction,
         private DeleteTracesActionInterface $deleteTracesAction,
     ) {
+        $this->stepInHours = 3;
     }
 
     public function handle(): void
@@ -34,6 +39,12 @@ readonly class ClearTracesAction implements ClearTracesActionInterface
         );
 
         if (empty($settings)) {
+            return;
+        }
+
+        $loggedAtFrom = $this->findMinLoggedAtTracesAction->handle();
+
+        if (!$loggedAtFrom) {
             return;
         }
 
@@ -49,10 +60,6 @@ readonly class ClearTracesAction implements ClearTracesActionInterface
         $now = now('UTC');
 
         foreach ($settings as $setting) {
-            $type          = $setting->type;
-            $loggedAtTo    = $now->clone()->subDays($setting->daysLifetime);
-            $excludedTypes = is_null($type) ? $customizedTypes : [];
-
             $activeProcess = $this->processRepository->findFirstBySettingId(
                 settingId: $setting->id,
                 clearedAtIsNull: true
@@ -66,27 +73,48 @@ readonly class ClearTracesAction implements ClearTracesActionInterface
                 continue;
             }
 
+            $loggedAtTo = $now->clone()->subDays($setting->daysLifetime);
+
+            $type = $setting->type;
+            $excludedTypes = is_null($type) ? $customizedTypes : [];
+
             $process = $this->processRepository->create(
                 settingId: $setting->id,
                 clearedCount: 0,
                 clearedAt: null
             );
 
-            if ($setting->onlyData) {
-                $clearedCount = $this->clearTracesAction->handle(
-                    new ClearTracesParameters(
-                        loggedAtTo: $loggedAtTo,
-                        type: $type,
-                        excludedTypes: $excludedTypes
-                    )
-                );
-            } else {
-                $clearedCount = $this->deleteTracesAction->handle(
-                    new DeleteTracesParameters(
-                        loggedAtTo: $loggedAtTo,
-                        type: $type,
-                        excludedTypes: $excludedTypes
-                    )
+            $dateCursor = $loggedAtFrom->clone();
+
+            $clearedCount = 0;
+
+            while ($dateCursor->lt($loggedAtTo)) {
+                if ($setting->onlyData) {
+                    $clearedCount += $this->clearTracesAction->handle(
+                        new ClearTracesParameters(
+                            loggedAtFrom: $dateCursor,
+                            loggedAtTo: $loggedAtTo,
+                            type: $type,
+                            excludedTypes: $excludedTypes
+                        )
+                    );
+                } else {
+                    $clearedCount += $this->deleteTracesAction->handle(
+                        new DeleteTracesParameters(
+                            loggedAtFrom: $dateCursor,
+                            loggedAtTo: $loggedAtTo,
+                            type: $type,
+                            excludedTypes: $excludedTypes
+                        )
+                    );
+                }
+
+                $dateCursor->addHours($this->stepInHours);
+
+                $this->processRepository->update(
+                    processId: $process->id,
+                    clearedCount: $clearedCount,
+                    clearedAt: null
                 );
             }
 
