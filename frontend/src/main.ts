@@ -35,6 +35,7 @@ import {
 } from "./store/traceAggregatorTimestampFieldsStore.ts";
 import {toolLinksStore, toolLinksStoreInjectionKey} from "./store/toolLinksStore.ts";
 import {traceDynamicIndexesStore, traceDynamicIndexesInjectionKey} from "./store/traceDynamicIndexesStore.ts";
+import {traceAdminStoresStore, traceAdminStoresStoreInjectionKey} from "./store/traceAdminStoresStore.ts";
 
 createApp(App)
     .use(router)
@@ -55,4 +56,5 @@ createApp(App)
     .use(traceAggregatorServicesStore, traceAggregatorServicesStoreInjectionKey)
     .use(traceCleanerStore, traceCleanerStoreInjectionKey)
     .use(traceDynamicIndexesStore, traceDynamicIndexesInjectionKey)
+    .use(traceAdminStoresStore, traceAdminStoresStoreInjectionKey)
     .mount('#app')

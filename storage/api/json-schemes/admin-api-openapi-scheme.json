@@ -2951,6 +2951,15 @@
                         }
                     },
                     {
+                        "name": "version",
+                        "required": true,
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1
+                        }
+                    },
+                    {
                         "name": "search_query",
                         "required": false,
                         "in": "query",

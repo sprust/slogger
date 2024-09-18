@@ -1,18 +1,16 @@
 <template>
-  <el-space>
-    <el-badge
-        :value="visibleCount"
-        :type="badgeType"
-        :offset="[-80, 0]"
+  <el-badge
+      :value="visibleCount"
+      :type="badgeType"
+      :offset="[-80, 0]"
+  >
+    <el-button
+        style="width: 80px"
+        @click="dialogVisible = true"
     >
-      <el-button
-          style="width: 80px"
-          @click="dialogVisible = true"
-      >
-        Indexes
-      </el-button>
-    </el-badge>
-  </el-space>
+      Indexes
+    </el-button>
+  </el-badge>
 
   <el-dialog
       v-model="dialogVisible"
@@ -175,7 +173,7 @@ export default defineComponent({
             const searchString = this.searchText.toLowerCase();
 
             return this.makeName(index).toLowerCase().includes(searchString)
-              || index.name.toLowerCase().includes(searchString)
+                || index.name.toLowerCase().includes(searchString)
           }
       )
     },

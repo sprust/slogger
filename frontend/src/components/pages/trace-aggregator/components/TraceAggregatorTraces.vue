@@ -49,6 +49,11 @@
         </el-form>
       </el-space>
       <div class="flex-grow"/>
+      <el-form style="padding-right: 10px">
+        <el-form-item>
+          <AdminStores/>
+        </el-form-item>
+      </el-form>
       <el-form>
         <el-form-item label="Graph">
           <el-space>
@@ -225,6 +230,7 @@ import TraceAggregatorTracesCustomFields from "./TraceAggregatorTracesCustomFiel
 import TraceAggregatorServices from "./TraceAggregatorServices.vue";
 import FilterTags from "../widgets/FilterTags.vue";
 import DynamicIndexes from "../widgets/DynamicIndexes.vue";
+import AdminStores from "../widgets/AdminStores.vue";
 import {state} from "vue-tsc/out/shared";
 import {CloseBold, SwitchButton, Close, Loading} from '@element-plus/icons-vue'
 import TraceAggregatorGraph from "./TraceAggregatorGraph.vue";
@@ -244,6 +250,7 @@ export default defineComponent({
     TraceAggregatorTracesPagination,
     FilterTags,
     DynamicIndexes,
+    AdminStores,
     TraceAggregatorTraceDataNode,
     TraceAggregatorTracesCustomFields,
     TraceAggregatorServices,
