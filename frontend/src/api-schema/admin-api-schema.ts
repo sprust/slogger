@@ -1290,6 +1290,117 @@ export namespace AdminApi {
     export type ResponseBody = void;
   } /**
  * No description
+ * @name TraceAggregatorStatesList
+ * @request GET:/admin-api/trace-aggregator/states
+ * @secure
+ * @response `200` `{
+    data: {
+    items: ({
+    id: string,
+    title: string,
+    store_version: number,
+    store_data: string,
+    created_at: string,
+
+})[],
+    paginator: {
+    total: number,
+    per_page: number,
+    current_page: number,
+    total_pages: number,
+
+},
+
+},
+
+}` description
+*/
+  export namespace TraceAggregatorStatesList {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /** @min 1 */
+      page: number;
+      /** @min 1 */
+      version: number;
+      search_query?: string | null;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        items: {
+          id: string;
+          title: string;
+          store_version: number;
+          store_data: string;
+          created_at: string;
+        }[];
+        paginator: {
+          total: number;
+          per_page: number;
+          current_page: number;
+          total_pages: number;
+        };
+      };
+    };
+  } /**
+ * No description
+ * @name TraceAggregatorStatesCreate
+ * @request POST:/admin-api/trace-aggregator/states
+ * @secure
+ * @response `200` `{
+    data: {
+    id: string,
+    title: string,
+    store_version: number,
+    store_data: string,
+    created_at: string,
+
+},
+
+}` description
+*/
+  export namespace TraceAggregatorStatesCreate {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = {
+      /**
+       * @minLength 10
+       * @maxLength 70
+       */
+      title: string;
+      /** @min 1 */
+      store_version: number;
+      store_data: string;
+    };
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        id: string;
+        title: string;
+        store_version: number;
+        store_data: string;
+        created_at: string;
+      };
+    };
+  }
+  /**
+   * No description
+   * @name TraceAggregatorStatesDelete
+   * @request DELETE:/admin-api/trace-aggregator/states/{id}
+   * @secure
+   * @response `200` `void` description
+   */
+  export namespace TraceAggregatorStatesDelete {
+    export type RequestParams = {
+      id: any;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
+  } /**
+ * No description
  * @name TraceCleanerSettingsList
  * @request GET:/admin-api/trace-cleaner/settings
  * @secure
@@ -3102,6 +3213,140 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     traceAggregatorDynamicIndexesDelete: (id: any, params: RequestParams = {}) =>
       this.request<void, any>({
         path: `/admin-api/trace-aggregator/dynamic-indexes/${id}`,
+        method: "DELETE",
+        secure: true,
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name TraceAggregatorStatesList
+ * @request GET:/admin-api/trace-aggregator/states
+ * @secure
+ * @response `200` `{
+    data: {
+    items: ({
+    id: string,
+    title: string,
+    store_version: number,
+    store_data: string,
+    created_at: string,
+
+})[],
+    paginator: {
+    total: number,
+    per_page: number,
+    current_page: number,
+    total_pages: number,
+
+},
+
+},
+
+}` description
+ */
+    traceAggregatorStatesList: (
+      query: {
+        /** @min 1 */
+        page: number;
+        /** @min 1 */
+        version: number;
+        search_query?: string | null;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          data: {
+            items: {
+              id: string;
+              title: string;
+              store_version: number;
+              store_data: string;
+              created_at: string;
+            }[];
+            paginator: {
+              total: number;
+              per_page: number;
+              current_page: number;
+              total_pages: number;
+            };
+          };
+        },
+        any
+      >({
+        path: `/admin-api/trace-aggregator/states`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name TraceAggregatorStatesCreate
+ * @request POST:/admin-api/trace-aggregator/states
+ * @secure
+ * @response `200` `{
+    data: {
+    id: string,
+    title: string,
+    store_version: number,
+    store_data: string,
+    created_at: string,
+
+},
+
+}` description
+ */
+    traceAggregatorStatesCreate: (
+      data: {
+        /**
+         * @minLength 10
+         * @maxLength 70
+         */
+        title: string;
+        /** @min 1 */
+        store_version: number;
+        store_data: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          data: {
+            id: string;
+            title: string;
+            store_version: number;
+            store_data: string;
+            created_at: string;
+          };
+        },
+        any
+      >({
+        path: `/admin-api/trace-aggregator/states`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @name TraceAggregatorStatesDelete
+     * @request DELETE:/admin-api/trace-aggregator/states/{id}
+     * @secure
+     * @response `200` `void` description
+     */
+    traceAggregatorStatesDelete: (id: any, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/admin-api/trace-aggregator/states/${id}`,
         method: "DELETE",
         secure: true,
         ...params,

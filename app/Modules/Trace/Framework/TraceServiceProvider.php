@@ -7,7 +7,9 @@ use App\Modules\Trace\Domain\Actions\Interfaces\MakeMetricIndicatorsActionInterf
 use App\Modules\Trace\Domain\Actions\Interfaces\MakeTraceTimestampPeriodsActionInterface;
 use App\Modules\Trace\Domain\Actions\Interfaces\MakeTraceTimestampsActionInterface;
 use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\ClearTracesActionInterface;
+use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\CreateTraceAdminStoreActionInterface;
 use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\CreateTraceManyActionInterface;
+use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\DeleteTraceAdminStoreActionInterface;
 use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\DeleteTraceDynamicIndexActionInterface;
 use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\DeleteTracesActionInterface;
 use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\FlushDynamicIndexesActionInterface;
@@ -18,6 +20,7 @@ use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\UpdateTraceManyActionI
 use App\Modules\Trace\Domain\Actions\Interfaces\Queries\FindMinLoggedAtTracesActionInterface;
 use App\Modules\Trace\Domain\Actions\Interfaces\Queries\FindStatusesActionInterface;
 use App\Modules\Trace\Domain\Actions\Interfaces\Queries\FindTagsActionInterface;
+use App\Modules\Trace\Domain\Actions\Interfaces\Queries\FindTraceAdminStoreActionInterface;
 use App\Modules\Trace\Domain\Actions\Interfaces\Queries\FindTraceDetailActionInterface;
 use App\Modules\Trace\Domain\Actions\Interfaces\Queries\FindTraceDynamicIndexesActionInterface;
 use App\Modules\Trace\Domain\Actions\Interfaces\Queries\FindTraceDynamicIndexStatsActionInterface;
@@ -30,7 +33,9 @@ use App\Modules\Trace\Domain\Actions\MakeMetricIndicatorsAction;
 use App\Modules\Trace\Domain\Actions\MakeTraceTimestampPeriodsAction;
 use App\Modules\Trace\Domain\Actions\MakeTraceTimestampsAction;
 use App\Modules\Trace\Domain\Actions\Mutations\ClearTracesAction;
+use App\Modules\Trace\Domain\Actions\Mutations\CreateTraceAdminStoreAction;
 use App\Modules\Trace\Domain\Actions\Mutations\CreateTraceManyAction;
+use App\Modules\Trace\Domain\Actions\Mutations\DeleteTraceAdminStoreAction;
 use App\Modules\Trace\Domain\Actions\Mutations\DeleteTraceDynamicIndexAction;
 use App\Modules\Trace\Domain\Actions\Mutations\DeleteTracesAction;
 use App\Modules\Trace\Domain\Actions\Mutations\FlushDynamicIndexesAction;
@@ -41,6 +46,7 @@ use App\Modules\Trace\Domain\Actions\Mutations\UpdateTraceManyAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindMinLoggedAtTracesAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindStatusesAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTagsAction;
+use App\Modules\Trace\Domain\Actions\Queries\FindTraceAdminStoreAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceDetailAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceDynamicIndexesAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceDynamicIndexStatsAction;
@@ -56,6 +62,7 @@ use App\Modules\Trace\Framework\Commands\FreshTraceTimestampsCommand;
 use App\Modules\Trace\Framework\Commands\StartMonitorTraceDynamicIndexesCommand;
 use App\Modules\Trace\Framework\Commands\StopMonitorTraceDynamicIndexesCommand;
 use App\Modules\Trace\Framework\Http\Services\TraceDynamicIndexingActionService;
+use App\Modules\Trace\Repositories\Interfaces\TraceAdminStoreRepositoryInterface;
 use App\Modules\Trace\Repositories\Interfaces\TraceContentRepositoryInterface;
 use App\Modules\Trace\Repositories\Interfaces\TraceDynamicIndexRepositoryInterface;
 use App\Modules\Trace\Repositories\Interfaces\TraceRepositoryInterface;
@@ -63,6 +70,7 @@ use App\Modules\Trace\Repositories\Interfaces\TraceTimestampsRepositoryInterface
 use App\Modules\Trace\Repositories\Interfaces\TraceTreeRepositoryInterface;
 use App\Modules\Trace\Repositories\Services\TraceDynamicIndexInitializer;
 use App\Modules\Trace\Repositories\Services\TraceQueryBuilder;
+use App\Modules\Trace\Repositories\TraceAdminStoreRepository;
 use App\Modules\Trace\Repositories\TraceContentRepository;
 use App\Modules\Trace\Repositories\TraceDynamicIndexRepository;
 use App\Modules\Trace\Repositories\TraceRepository;
@@ -98,6 +106,7 @@ class TraceServiceProvider extends BaseServiceProvider
             TraceTreeRepositoryInterface::class                   => TraceTreeRepository::class,
             TraceTimestampsRepositoryInterface::class             => TraceTimestampsRepository::class,
             TraceDynamicIndexRepositoryInterface::class           => TraceDynamicIndexRepository::class,
+            TraceAdminStoreRepositoryInterface::class             => TraceAdminStoreRepository::class,
             // actions
             MakeMetricIndicatorsActionInterface::class            => MakeMetricIndicatorsAction::class,
             MakeTraceTimestampPeriodsActionInterface::class       => MakeTraceTimestampPeriodsAction::class,
@@ -112,6 +121,8 @@ class TraceServiceProvider extends BaseServiceProvider
             StopMonitorTraceDynamicIndexesActionInterface::class  => StopMonitorTraceDynamicIndexesAction::class,
             FlushDynamicIndexesActionInterface::class             => FlushDynamicIndexesAction::class,
             DeleteTraceDynamicIndexActionInterface::class         => DeleteTraceDynamicIndexAction::class,
+            CreateTraceAdminStoreActionInterface::class           => CreateTraceAdminStoreAction::class,
+            DeleteTraceAdminStoreActionInterface::class           => DeleteTraceAdminStoreAction::class,
             // actions.queries
             FindStatusesActionInterface::class                    => FindStatusesAction::class,
             FindTagsActionInterface::class                        => FindTagsAction::class,
@@ -124,6 +135,7 @@ class TraceServiceProvider extends BaseServiceProvider
             FindTraceDynamicIndexesActionInterface::class         => FindTraceDynamicIndexesAction::class,
             FindTraceDynamicIndexStatsActionInterface::class      => FindTraceDynamicIndexStatsAction::class,
             FindMinLoggedAtTracesActionInterface::class           => FindMinLoggedAtTracesAction::class,
+            FindTraceAdminStoreActionInterface::class             => FindTraceAdminStoreAction::class,
         ];
     }
 }

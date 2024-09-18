@@ -5,6 +5,9 @@ import {ApiContainer} from "../utils/apiContainer.ts";
 import {handleApiError, TypesHelper} from "../utils/helpers.ts";
 import {AdminApi} from "../api-schema/admin-api-schema.ts";
 
+// need for admin stores
+const stateVersion = 1
+
 type TraceAggregatorRequest = AdminApi.TraceAggregatorTracesCreate.RequestBody;
 type TraceAggregatorResponse = AdminApi.TraceAggregatorTracesCreate.ResponseBody['data'];
 
@@ -53,15 +56,20 @@ export type TracesAddCustomFieldParameter = {
     data: TraceAggregatorCustomFieldSearchParameter
 }
 
-interface State {
+interface State extends TraceStateParameters {
+    version: number,
     loading: boolean,
-    payload: TraceAggregatorPayload,
     traceAggregator: TraceAggregatorResponse
+}
+
+export interface TraceStateParameters {
+    payload: TraceAggregatorPayload,
     customFields: TraceAggregatorCustomField[]
 }
 
 export const traceAggregatorStore = createStore<State>({
     state: {
+        version: stateVersion,
         loading: true,
         payload: {
             page: 1,
@@ -93,6 +101,10 @@ export const traceAggregatorStore = createStore<State>({
         customFields: []
     } as State,
     mutations: {
+        restoreTraceState(state: State, newState: TraceStateParameters) {
+            state.payload = newState.payload
+            state.customFields = newState.customFields
+        },
         setData(state: State, data: TraceAggregatorResponse) {
             state.traceAggregator = data
         },
@@ -276,6 +288,9 @@ export const traceAggregatorStore = createStore<State>({
         },
     },
     actions: {
+        restoreTraceState({commit}: { commit: any }, newState: TraceStateParameters) {
+            commit('restoreTraceState', newState)
+        },
         fillTraceAggregator({commit, state}: { commit: any, state: any }) {
             state.loading = true
 

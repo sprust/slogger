@@ -2938,6 +2938,236 @@
                 ]
             }
         },
+        "/admin-api/trace-aggregator/states": {
+            "get": {
+                "parameters": [
+                    {
+                        "name": "page",
+                        "required": true,
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "version",
+                        "required": true,
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "search_query",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "nullable": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "items": {
+                                                    "type": "array",
+                                                    "nullable": false,
+                                                    "items": {
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "string",
+                                                                "nullable": false
+                                                            },
+                                                            "title": {
+                                                                "type": "string",
+                                                                "nullable": false
+                                                            },
+                                                            "store_version": {
+                                                                "type": "integer",
+                                                                "nullable": false
+                                                            },
+                                                            "store_data": {
+                                                                "type": "string",
+                                                                "nullable": false
+                                                            },
+                                                            "created_at": {
+                                                                "type": "string",
+                                                                "nullable": false
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "id",
+                                                            "title",
+                                                            "store_version",
+                                                            "store_data",
+                                                            "created_at"
+                                                        ]
+                                                    }
+                                                },
+                                                "paginator": {
+                                                    "properties": {
+                                                        "total": {
+                                                            "type": "integer",
+                                                            "nullable": false
+                                                        },
+                                                        "per_page": {
+                                                            "type": "integer",
+                                                            "nullable": false
+                                                        },
+                                                        "current_page": {
+                                                            "type": "integer",
+                                                            "nullable": false
+                                                        },
+                                                        "total_pages": {
+                                                            "type": "integer",
+                                                            "nullable": false
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "total",
+                                                        "per_page",
+                                                        "current_page",
+                                                        "total_pages"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "items",
+                                                "paginator"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "title": {
+                                        "type": "string",
+                                        "maxLength": 70,
+                                        "minLength": 10
+                                    },
+                                    "store_version": {
+                                        "type": "integer",
+                                        "minimum": 1
+                                    },
+                                    "store_data": {
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "title",
+                                    "store_version",
+                                    "store_data"
+                                ],
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "string",
+                                                    "nullable": false
+                                                },
+                                                "title": {
+                                                    "type": "string",
+                                                    "nullable": false
+                                                },
+                                                "store_version": {
+                                                    "type": "integer",
+                                                    "nullable": false
+                                                },
+                                                "store_data": {
+                                                    "type": "string",
+                                                    "nullable": false
+                                                },
+                                                "created_at": {
+                                                    "type": "string",
+                                                    "nullable": false
+                                                }
+                                            },
+                                            "required": [
+                                                "id",
+                                                "title",
+                                                "store_version",
+                                                "store_data",
+                                                "created_at"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/admin-api/trace-aggregator/states/{id}": {
+            "delete": {
+                "parameters": [
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "schema": {}
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "description"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/admin-api/trace-cleaner/settings": {
             "get": {
                 "responses": {
