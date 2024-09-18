@@ -83,7 +83,7 @@ export const traceAdminStoresStore = createStore<State>({
                     handleApiError(error)
                 })
         },
-        deleteAdminStore({commit, state}: { commit: any, state: State }, id: string) {
+        deleteAdminStore({state}: { state: State }, id: string) {
             return ApiContainer.get().traceAggregatorStatesDelete(id)
                 .then(() => {
                     state.adminStoreDeletedIds[id] = true
