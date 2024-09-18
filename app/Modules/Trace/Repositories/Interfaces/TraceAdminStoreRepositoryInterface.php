@@ -17,7 +17,12 @@ interface TraceAdminStoreRepositoryInterface
         ?Carbon $usedAt
     ): TraceAdminStoreDto;
 
-    public function find(int $page, int $perPage, ?string $searchQuery = null): TraceAdminStoresPaginationDto;
+    public function find(
+        int $page,
+        int $perPage,
+        int $version,
+        ?string $searchQuery = null
+    ): TraceAdminStoresPaginationDto;
 
     public function delete(string $id): bool;
 }

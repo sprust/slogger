@@ -19,11 +19,12 @@ readonly class FindTraceAdminStoreAction implements FindTraceAdminStoreActionInt
         $this->perPage = 30;
     }
 
-    public function handle(int $page, ?string $searchQuery = null): TraceAdminStoresPaginationObject
+    public function handle(int $page, int $version, ?string $searchQuery = null): TraceAdminStoresPaginationObject
     {
         $pagination = $this->traceAdminStoreRepository->find(
             page: $page,
             perPage: $this->perPage,
+            version: $version,
             searchQuery: $searchQuery
         );
 

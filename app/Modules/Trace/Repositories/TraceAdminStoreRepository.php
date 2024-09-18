@@ -34,11 +34,16 @@ class TraceAdminStoreRepository implements TraceAdminStoreRepositoryInterface
         return $this->modelToDto($store);
     }
 
-    public function find(int $page, int $perPage, ?string $searchQuery = null): TraceAdminStoresPaginationDto
-    {
+    public function find(
+        int $page,
+        int $perPage,
+        int $version,
+        ?string $searchQuery = null
+    ): TraceAdminStoresPaginationDto {
         $pagination = TraceAdminStore::query()
+            ->where('storeVersion', $version)
             ->when(
-                !is_null($searchQuery),
+                $searchQuery,
                 fn(Builder $builder) => $builder->where('title', 'like', "%$searchQuery%")
             )
             ->orderByDesc('createdAt')
@@ -59,7 +64,7 @@ class TraceAdminStoreRepository implements TraceAdminStoreRepositoryInterface
 
     public function delete(string $id): bool
     {
-        return (bool) TraceAdminStore::query()->where('id', $id)->delete();
+        return (bool) TraceAdminStore::query()->where('_id', $id)->delete();
     }
 
     private function modelToDto(TraceAdminStore $store): TraceAdminStoreDto

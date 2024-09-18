@@ -2,7 +2,7 @@
 
 namespace App\Models\Traces;
 
-use App\Models\AbstractMongoModel;
+use App\Models\AbstractTraceModel;
 use Illuminate\Support\Carbon;
 
 /**
@@ -15,8 +15,9 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $usedAt
  * @property Carbon      $createdAt
  */
-class TraceAdminStore extends AbstractMongoModel
+class TraceAdminStore extends AbstractTraceModel
 {
+    public const CREATED_AT = 'createdAt';
     public const UPDATED_AT = null;
 
     protected $collection = 'traceAdminStores';

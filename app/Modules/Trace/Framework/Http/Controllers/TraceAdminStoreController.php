@@ -25,6 +25,7 @@ readonly class TraceAdminStoreController
 
         $pagination = $this->findTraceAdminStoreAction->handle(
             page: $validated['page'],
+            version: $validated['version'],
             searchQuery: $validated['search_query'] ?? null,
         );
 

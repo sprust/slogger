@@ -14,6 +14,11 @@ class TraceAdminStoreIndexRequest extends FormRequest
                 'int',
                 'min:1',
             ],
+            'version'      => [
+                'required',
+                'int',
+                'min:1',
+            ],
             'search_query' => [
                 'sometimes',
                 'nullable',
