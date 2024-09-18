@@ -11,7 +11,6 @@ class TraceAdminStoreResource extends AbstractApiResource
     private string $title;
     private int $store_version;
     private string $store_data;
-    private ?string $used_at;
     private string $created_at;
 
     public function __construct(TraceAdminStoreObject $resource)
@@ -22,7 +21,6 @@ class TraceAdminStoreResource extends AbstractApiResource
         $this->title         = $resource->title;
         $this->store_version = $resource->storeVersion;
         $this->store_data    = $resource->storeData;
-        $this->used_at       = $resource->usedAt?->toDateTimeString();
         $this->created_at    = $resource->createdAt->toDateTimeString();
     }
 }

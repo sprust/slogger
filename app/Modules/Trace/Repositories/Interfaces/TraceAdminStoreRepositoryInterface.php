@@ -12,9 +12,7 @@ interface TraceAdminStoreRepositoryInterface
         string $title,
         int $storeVersion,
         string $storeDataHash,
-        string $storeData,
-        int $creatorId,
-        ?Carbon $usedAt
+        string $storeData
     ): TraceAdminStoreDto;
 
     public function find(

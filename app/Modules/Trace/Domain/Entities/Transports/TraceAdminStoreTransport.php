@@ -15,8 +15,6 @@ class TraceAdminStoreTransport
             storeVersion: $dto->storeVersion,
             storeDataHash: $dto->storeDataHash,
             storeData: $dto->storeData,
-            creatorId: $dto->creatorId,
-            usedAt: $dto->usedAt,
             createdAt: $dto->createdAt,
         );
     }

@@ -12,8 +12,6 @@ readonly class TraceAdminStoreDto
         public int $storeVersion,
         public string $storeDataHash,
         public string $storeData,
-        public int $creatorId,
-        public ?Carbon $usedAt,
         public Carbon $createdAt
     ) {
     }

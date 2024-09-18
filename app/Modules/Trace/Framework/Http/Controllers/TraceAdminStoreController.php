@@ -40,7 +40,6 @@ readonly class TraceAdminStoreController
             title: $validated['title'],
             storeVersion: $validated['store_version'],
             storeData: $validated['store_data'],
-            creatorId: (int) auth()->id()
         );
 
         return new TraceAdminStoreResource($store);

@@ -11,8 +11,6 @@ use Illuminate\Support\Carbon;
  * @property int         $storeVersion
  * @property string      $storeDataHash
  * @property string      $storeData
- * @property int         $creatorId
- * @property Carbon|null $usedAt
  * @property Carbon      $createdAt
  */
 class TraceAdminStore extends AbstractTraceModel

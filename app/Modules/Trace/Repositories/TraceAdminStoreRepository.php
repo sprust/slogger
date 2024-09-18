@@ -17,8 +17,6 @@ class TraceAdminStoreRepository implements TraceAdminStoreRepositoryInterface
         int $storeVersion,
         string $storeDataHash,
         string $storeData,
-        int $creatorId,
-        ?Carbon $usedAt
     ): TraceAdminStoreDto {
         $store = new TraceAdminStore();
 
@@ -26,8 +24,6 @@ class TraceAdminStoreRepository implements TraceAdminStoreRepositoryInterface
         $store->storeVersion  = $storeVersion;
         $store->storeDataHash = $storeDataHash;
         $store->storeData     = $storeData;
-        $store->creatorId     = $creatorId;
-        $store->usedAt        = $usedAt;
 
         $store->save();
 
@@ -75,8 +71,6 @@ class TraceAdminStoreRepository implements TraceAdminStoreRepositoryInterface
             storeVersion: $store->storeVersion,
             storeDataHash: $store->storeDataHash,
             storeData: $store->storeData,
-            creatorId: $store->creatorId,
-            usedAt: $store->usedAt,
             createdAt: $store->createdAt,
         );
     }

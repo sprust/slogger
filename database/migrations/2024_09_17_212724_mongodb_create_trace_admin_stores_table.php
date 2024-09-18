@@ -18,19 +18,6 @@ return new class extends Migration
         $connection = DB::connection($this->connection);
 
         $connection->createCollection($this->collectionName);
-
-        $collection = $connection->selectCollection($this->collectionName);
-
-        $secondsPerDay = 60 * 60 * 24;
-
-        $collection->createIndex(
-            key: [
-                'usedAt' => 1,
-            ],
-            options: [
-                'expireAfterSeconds' => $secondsPerDay * 30, // 30 days
-            ]
-        );
     }
 
     /**

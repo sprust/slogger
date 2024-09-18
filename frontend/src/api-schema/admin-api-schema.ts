@@ -1300,7 +1300,6 @@ export namespace AdminApi {
     title: string,
     store_version: number,
     store_data: string,
-    used_at?: string | null,
     created_at: string,
 
 })[],
@@ -1334,7 +1333,6 @@ export namespace AdminApi {
           title: string;
           store_version: number;
           store_data: string;
-          used_at?: string | null;
           created_at: string;
         }[];
         paginator: {
@@ -1356,7 +1354,6 @@ export namespace AdminApi {
     title: string,
     store_version: number,
     store_data: string,
-    used_at?: string | null,
     created_at: string,
 
 },
@@ -1383,7 +1380,6 @@ export namespace AdminApi {
         title: string;
         store_version: number;
         store_data: string;
-        used_at?: string | null;
         created_at: string;
       };
     };
@@ -3235,7 +3231,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     title: string,
     store_version: number,
     store_data: string,
-    used_at?: string | null,
     created_at: string,
 
 })[],
@@ -3269,7 +3264,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
               title: string;
               store_version: number;
               store_data: string;
-              used_at?: string | null;
               created_at: string;
             }[];
             paginator: {
@@ -3302,7 +3296,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     title: string,
     store_version: number,
     store_data: string,
-    used_at?: string | null,
     created_at: string,
 
 },
@@ -3329,7 +3322,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
             title: string;
             store_version: number;
             store_data: string;
-            used_at?: string | null;
             created_at: string;
           };
         },

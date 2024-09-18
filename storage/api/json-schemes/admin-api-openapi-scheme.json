@@ -3000,10 +3000,6 @@
                                                                 "type": "string",
                                                                 "nullable": false
                                                             },
-                                                            "used_at": {
-                                                                "type": "string",
-                                                                "nullable": true
-                                                            },
                                                             "created_at": {
                                                                 "type": "string",
                                                                 "nullable": false
@@ -3120,10 +3116,6 @@
                                                 "store_data": {
                                                     "type": "string",
                                                     "nullable": false
-                                                },
-                                                "used_at": {
-                                                    "type": "string",
-                                                    "nullable": true
                                                 },
                                                 "created_at": {
                                                     "type": "string",
