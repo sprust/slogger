@@ -2,7 +2,7 @@
   <el-select
       v-model="traceAggregatorStore.state.payload.service_ids"
       placeholder="Select"
-      style="width: 300px"
+      style="min-width: 200px"
       clearable
       multiple
   >

@@ -43,7 +43,7 @@
               <el-select
                   v-model="storeTimestampsFields.state.selectedTimestampFields"
                   placeholder="Select"
-                  style="width: 200px"
+                  style="min-width: 200px"
                   clearable
                   multiple
               >
