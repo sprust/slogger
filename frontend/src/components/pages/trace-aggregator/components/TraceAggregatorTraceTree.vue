@@ -76,12 +76,15 @@
             <template #default="{ data }">
               <el-row
                   class="tree-row"
-                  :style="makeTreeNodeStyle(data)"
                   @click="onClickOnRow(treeNodeViewsMap[data.key])"
                   style="display: contents;"
               >
+                <div class="trace-tree-select-indicator" :style="makeTreeNodeStyle(data)"/>
+                <div class="trace-tree-metric-indicator" :style="makeTraceIndicatorStyle(data)"/>
                 <el-space spacer=":">
-                  <TraceService :name="treeNodeViewsMap[data.key].service?.name"/>
+                  <TraceService
+                      :name="treeNodeViewsMap[data.key].service?.name"
+                  />
                   <div>
                     <el-tag type="success">
                       {{ treeNodeViewsMap[data.key].type }}
@@ -238,17 +241,30 @@ export default defineComponent({
       })
     },
     makeTreeNodeStyle(data: TreeNodeView) {
-      const style: { color?: string, 'font-weight'?: string } = {}
+      const style: { 'background-color'?: string, 'border-color'?: string } = {}
 
       if (data.key === this.store.state.selectedTrace.trace_id) {
-        style.color = 'green'
+        style['background-color'] = 'green'
       }
 
       if (data.key === this.store.state.parameters.traceId) {
-        style['font-weight'] = 'bold'
+        style['border'] = '1px solid red'
       }
 
       return style
+    },
+    makeTraceIndicatorStyle(data: TreeNodeView) {
+      const trace = this.treeNodeViewsMap[data.key]
+
+      let percent = 0
+
+      if (trace.duration) {
+        percent = (trace.duration / this.store.state.traceMaxDuration) * 100
+      }
+
+      return {
+        width: percent + '%',
+      }
     },
     filterTree() {
       // @ts-ignore
@@ -278,6 +294,9 @@ export default defineComponent({
       }
 
       return true
+    },
+    onTreeMetricIndicatorClick(event) {
+      event.stopPropagation()
     }
   },
   watch: {
@@ -308,5 +327,18 @@ export default defineComponent({
 
 .flex-grow {
   flex-grow: 1;
+}
+.trace-tree-select-indicator {
+  margin-right: 3px;
+  width: 10px;
+  height: 10px;
+  border-radius: 20px 20px 20px 20px;
+}
+.trace-tree-metric-indicator {
+  position: absolute;
+  display: flex;
+  background-color: rgb(255, 0, 0, 5%);
+  right: 0;
+  height: 20px;
 }
 </style>
