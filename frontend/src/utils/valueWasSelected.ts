@@ -1,3 +1,3 @@
-export function valueIsSelected(value): boolean {
+export function valueIsSelected(value: any): boolean {
     return typeof value !== 'undefined' && value !== null
 }
