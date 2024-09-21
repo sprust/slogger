@@ -5,6 +5,7 @@ import {ApiContainer} from "../utils/apiContainer.ts";
 import {AdminApi} from "../api-schema/admin-api-schema.ts";
 import {TraceAggregatorDetail} from "./traceAggregatorDataStore.ts";
 import {handleApiError} from "../utils/helpers.ts";
+import {TraceAggregatorService} from "./traceAggregatorServicesStore.ts";
 
 type TraceAggregatorTreeNodeParameters = AdminApi.TraceAggregatorTracesTreeDetail.RequestParams
 export type TraceAggregatorTree = AdminApi.TraceAggregatorTracesTreeDetail.ResponseBody['data']
@@ -16,7 +17,30 @@ interface State {
     tracesCount: number,
     treeNodes: Array<TraceAggregatorTreeNode>,
     dataLoading: boolean,
-    selectedTrace: TraceAggregatorDetail
+    selectedTrace: TraceAggregatorDetail,
+    traceTypes: Array<string>,
+    selectedTraceTypes: Array<string>,
+    traceServices: Array<TraceAggregatorService>,
+    selectedTraceServiceIds: Array<number>,
+}
+
+const parseTreeRecursive = function (state: State, treeNodes: Array<TraceAggregatorTreeNode>) {
+    treeNodes.forEach((treeNode: TraceAggregatorTreeNode) => {
+        if (treeNode.service?.id
+            && !state.traceServices.find(
+                (service: TraceAggregatorService) => treeNode.service?.id === service.id
+            )
+        ) {
+            state.traceServices.push(treeNode.service)
+        }
+
+        if (state.traceTypes.indexOf(treeNode.type) === -1) {
+            state.traceTypes.push(treeNode.type)
+        }
+
+        // @ts-ignore
+        parseTreeRecursive(state, treeNode.children)
+    })
 }
 
 export const traceAggregatorTreeStore = createStore<State>({
@@ -26,12 +50,23 @@ export const traceAggregatorTreeStore = createStore<State>({
         tracesCount: 0,
         treeNodes: new Array<TraceAggregatorTreeNode>,
         dataLoading: false,
-        selectedTrace: {} as TraceAggregatorDetail
+        selectedTrace: {} as TraceAggregatorDetail,
+        traceTypes: new Array<string>(),
+        selectedTraceTypes: new Array<string>(),
+        traceServices: new Array<TraceAggregatorService>(),
+        selectedTraceServiceIds: new Array<number>(),
     } as State,
     mutations: {
         setTreeNodes(state: State, tree: TraceAggregatorTree) {
+            state.traceTypes = []
+            state.selectedTraceTypes = []
+            state.traceServices = []
+            state.selectedTraceServiceIds = []
+
             state.tracesCount = tree.tracesCount
             state.treeNodes = tree.items
+
+            parseTreeRecursive(state, state.treeNodes)
         },
         setData(state: State, trace: TraceAggregatorDetail) {
             state.selectedTrace = trace
