@@ -70,6 +70,12 @@
       <el-row>
         <FilterTags/>
       </el-row>
+      <el-row v-if="store.state.customFields.length" style="padding-bottom: 15px">
+        <TraceAggregatorTracesCustomFields
+            :custom-fields="store.state.customFields"
+            @onCustomFieldClick="onCustomFieldClick"
+        />
+      </el-row>
       <el-row>
         <OtherFilters/>
         <div class="flex-grow"/>
@@ -83,13 +89,6 @@
             Search
           </el-button>
         </el-space>
-      </el-row>
-
-      <el-row v-if="store.state.customFields.length">
-        <TraceAggregatorTracesCustomFields
-            :custom-fields="store.state.customFields"
-            @onCustomFieldClick="onCustomFieldClick"
-        />
       </el-row>
     </div>
 
