@@ -28,12 +28,9 @@
             clearable
         />
         <el-space style="padding-right: 5px">
-          <el-text>
-            Services
-          </el-text>
           <el-select
               v-model="store.state.selectedTraceServiceIds"
-              placeholder="Select"
+              placeholder="Services"
               style="min-width: 200px"
               @change="filterTree"
               clearable
@@ -48,12 +45,9 @@
           </el-select>
         </el-space>
         <el-space>
-          <el-text>
-            Types
-          </el-text>
           <el-select
               v-model="store.state.selectedTraceTypes"
-              placeholder="Select"
+              placeholder="Types"
               style="min-width: 200px"
               @change="filterTree"
               clearable
