@@ -77,10 +77,10 @@
           <DynamicIndexes/>
           <AdminStores/>
           <el-button @click="reset" :disabled="store.state.loading">
-            reset
+            Reset
           </el-button>
           <el-button @click="onButtonSearchClick" :disabled="store.state.loading || storeGraph.state.showGraph">
-            search
+            Search
           </el-button>
         </el-space>
       </el-row>
