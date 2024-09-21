@@ -1,8 +1,6 @@
 <template>
   <el-button @click="dialogVisible = true">
-    <el-icon>
-      <Present/>
-    </el-icon>
+    Presets
   </el-button>
 
   <el-dialog
@@ -11,11 +9,6 @@
       top="10px"
       :append-to-body="true"
   >
-    <template #header>
-      <el-text>
-        Admin stores
-      </el-text>
-    </template>
     <el-row>
       <el-space>
         <el-text size="default">
@@ -23,14 +16,12 @@
         </el-text>
         <el-input
             v-model="store.state.adminStoresParameters.search_query"
-            size="small"
             placeholder="Search query"
             style="width: 300px"
             clearable
         />
         <el-button
             :icon="SearchIcon"
-            size="small"
             @click="update"
             :loading="store.state.loading"
         />
@@ -39,14 +30,12 @@
         </el-text>
         <el-input
             v-model="store.state.adminStoreCreateParameters.title"
-            size="small"
             placeholder="Title (min 10)"
             style="width: 300px"
             clearable
         />
         <el-button
             :icon="PlusIcon"
-            size="small"
             @click="create"
             :disabled="!store.state.adminStoreCreateParameters.title
               || store.state.adminStoreCreateParameters.title.length < 10"
@@ -78,7 +67,6 @@
         <template #default="props">
           <el-space>
             <el-button
-                size="small"
                 type="success"
                 link
                 @click="restore(props.row)"
@@ -86,7 +74,6 @@
               restore
             </el-button>
             <el-button
-                size="small"
                 type="danger"
                 link
                 :disabled="store.state.adminStoreDeletedIds[props.row.id]"
@@ -100,7 +87,6 @@
     </el-table>
     <el-pagination
         v-model:current-page="store.state.adminStoresParameters.page"
-        size="small"
         background
         layout="prev, pager, next"
         :page-size="store.state.adminStores.paginator.per_page"
@@ -113,7 +99,7 @@
 
 <script lang="ts">
 import {defineComponent} from "vue";
-import {Plus as PlusIcon, Search as SearchIcon, Present} from '@element-plus/icons-vue'
+import {Plus as PlusIcon, Search as SearchIcon} from '@element-plus/icons-vue'
 import {convertDateStringToLocal} from "../../../../utils/helpers.ts";
 import {AdminStore, useTraceAdminStoresStoreStore} from "../../../../store/traceAdminStoresStore.ts";
 import {state} from "vue-tsc/out/shared";
@@ -123,7 +109,6 @@ export default defineComponent({
   components: {
     SearchIcon,
     PlusIcon,
-    Present
   },
   data() {
     return {

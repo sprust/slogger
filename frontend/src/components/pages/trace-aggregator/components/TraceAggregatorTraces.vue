@@ -1,7 +1,7 @@
 <template>
   <el-scrollbar class="height-100" style="padding-right: 10px">
-    <el-row>
-      <el-space>
+    <div style="padding-bottom: 10px">
+      <el-row>
         <el-form>
           <el-form-item label="Logged at">
             <el-space>
@@ -31,149 +31,67 @@
             </el-space>
           </el-form-item>
         </el-form>
-        <el-form>
+        <el-form style="padding-left: 5px">
           <el-form-item label="Services">
             <TraceAggregatorServices/>
           </el-form-item>
         </el-form>
+        <div class="flex-grow"/>
         <el-form>
-          <el-form-item label="Profiling">
-            <el-switch
-                v-model="store.state.payload.has_profiling"
-                size="small"
-                active-text="has"
-                inactive-text="off"
-                active-color="green"
-            />
+          <el-form-item label="Graph">
+            <el-space>
+              <el-select
+                  v-model="storeTimestampsFields.state.selectedTimestampFields"
+                  placeholder="Select"
+                  style="width: 200px"
+                  clearable
+                  multiple
+              >
+                <el-option
+                    v-for="item in storeTimestampsFields.state.timestampFields"
+                    :key="item.value"
+                    :label="item.value"
+                    :value="item.value"
+                />
+              </el-select>
+              <el-switch
+                  v-model="storeGraph.state.showGraph"
+                  size="small"
+                  active-text="show"
+                  inactive-text="off"
+                  active-color="green"
+                  :inactive-icon="Close"
+                  :active-icon="storeGraph.state.loading ? Loading : SwitchButton"
+              />
+            </el-space>
           </el-form-item>
         </el-form>
-      </el-space>
-      <div class="flex-grow"/>
-      <el-form style="padding-right: 10px">
-        <el-form-item>
-          <AdminStores/>
-        </el-form-item>
-      </el-form>
-      <el-form>
-        <el-form-item label="Graph">
-          <el-space>
-            <el-select
-                v-model="storeTimestampsFields.state.selectedTimestampFields"
-                placeholder="Select"
-                style="width: 200px"
-                clearable
-                multiple
-            >
-              <el-option
-                  v-for="item in storeTimestampsFields.state.timestampFields"
-                  :key="item.value"
-                  :label="item.value"
-                  :value="item.value"
-              />
-            </el-select>
-            <el-switch
-                v-model="storeGraph.state.showGraph"
-                size="small"
-                active-text="show"
-                inactive-text="off"
-                active-color="green"
-                :inactive-icon="Close"
-                :active-icon="storeGraph.state.loading ? Loading : SwitchButton"
-            />
-          </el-space>
-        </el-form-item>
-      </el-form>
-    </el-row>
-    <el-row>
-      <el-form :disabled="storeGraph.state.showGraph">
-        <el-form-item label="Trace id">
-          <el-input v-model="store.state.payload.trace_id" style="width: 500px" clearable>
-            <template #append>
-              <el-checkbox
-                  v-model="store.state.payload.all_traces_in_tree"
-                  label="All in tree"
-                  :disabled="!store.state.payload.trace_id"
-              />
-            </template>
-          </el-input>
-        </el-form-item>
-      </el-form>
-      <div class="flex-grow"/>
-      <el-form>
-        <el-form-item>
+      </el-row>
+      <el-row>
+        <FilterTags/>
+      </el-row>
+      <el-row>
+        <OtherFilters/>
+        <div class="flex-grow"/>
+        <el-space>
           <DynamicIndexes/>
-        </el-form-item>
-      </el-form>
-    </el-row>
-    <el-row>
-      <el-space>
-        <el-form-item label="Duration">
-          <el-input-number
-              v-model="store.state.payload.duration_from"
-              :precision="6"
-              :step="0.5"
-              :min="0"
-          />
-          <el-input-number
-              v-model="store.state.payload.duration_to"
-              :precision="6"
-              :step="0.5"
-              :min="0"
-          />
-          <el-button :icon="CloseBold" @click="onClearDuration">
+          <AdminStores/>
+          <el-button @click="reset" :disabled="store.state.loading">
+            reset
           </el-button>
-        </el-form-item>
-        <el-form-item label="Memory">
-          <el-input-number
-              v-model="store.state.payload.memory_from"
-              :precision="2"
-              :step="1"
-              :min="0"
-          />
-          <el-input-number
-              v-model="store.state.payload.memory_to"
-              :precision="2"
-              :step="1"
-              :min="0"
-          />
-          <el-button :icon="CloseBold" @click="onClearMemory">
+          <el-button @click="onButtonSearchClick" :disabled="store.state.loading || storeGraph.state.showGraph">
+            search
           </el-button>
-        </el-form-item>
-        <el-form-item label="Cpu">
-          <el-input-number
-              v-model="store.state.payload.cpu_from"
-              :precision="2"
-              :step="5"
-              :min="0"
-          />
-          <el-input-number
-              v-model="store.state.payload.cpu_to"
-              :precision="2"
-              :step="5"
-              :min="0"
-          />
-          <el-button :icon="CloseBold" @click="onClearCpu">
-          </el-button>
-        </el-form-item>
-      </el-space>
-    </el-row>
-    <el-row>
-      <FilterTags/>
-      <div class="flex-grow"/>
-      <el-button @click="reset" :disabled="store.state.loading">
-        reset
-      </el-button>
-      <el-button @click="onButtonSearchClick" :disabled="store.state.loading || storeGraph.state.showGraph">
-        search
-      </el-button>
-    </el-row>
+        </el-space>
+      </el-row>
 
-    <el-row v-if="store.state.customFields.length">
-      <TraceAggregatorTracesCustomFields
-          :custom-fields="store.state.customFields"
-          @onCustomFieldClick="onCustomFieldClick"
-      />
-    </el-row>
+      <el-row v-if="store.state.customFields.length">
+        <TraceAggregatorTracesCustomFields
+            :custom-fields="store.state.customFields"
+            @onCustomFieldClick="onCustomFieldClick"
+        />
+      </el-row>
+    </div>
 
     <div v-if="storeGraph.state.showGraph && storeTimestampsPeriods.state.loaded">
       <TraceAggregatorGraph/>
@@ -231,6 +149,7 @@ import TraceAggregatorServices from "./TraceAggregatorServices.vue";
 import FilterTags from "../widgets/FilterTags.vue";
 import DynamicIndexes from "../widgets/DynamicIndexes.vue";
 import AdminStores from "../widgets/AdminStores.vue";
+import OtherFilters from "../widgets/OtherFilters.vue";
 import {state} from "vue-tsc/out/shared";
 import {CloseBold, SwitchButton, Close, Loading} from '@element-plus/icons-vue'
 import TraceAggregatorGraph from "./TraceAggregatorGraph.vue";
@@ -251,6 +170,7 @@ export default defineComponent({
     FilterTags,
     DynamicIndexes,
     AdminStores,
+    OtherFilters,
     TraceAggregatorTraceDataNode,
     TraceAggregatorTracesCustomFields,
     TraceAggregatorServices,
@@ -330,15 +250,6 @@ export default defineComponent({
     },
     onCustomFieldClick(parameters: TracesAddCustomFieldParameter) {
       this.store.commit('addOrDeleteCustomField', parameters)
-    },
-    onClearDuration() {
-      this.store.commit('clearDurationFilter')
-    },
-    onClearMemory() {
-      this.store.commit('clearMemoryFilter')
-    },
-    onClearCpu() {
-      this.store.commit('clearCpuFilter')
     },
   },
   mounted() {

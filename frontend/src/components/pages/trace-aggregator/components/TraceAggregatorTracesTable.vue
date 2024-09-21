@@ -121,7 +121,7 @@
 
     <el-table-column prop="trace.type" label="Metrics">
       <template #default="scope">
-        <TraceMetrics
+        <TraceItemMetrics
             :duration="scope.row.trace.duration"
             :memory="scope.row.trace.memory"
             :cpu="scope.row.trace.cpu"
@@ -161,7 +161,7 @@ import {
 } from "../../../../store/traceAggregatorStore.ts";
 import TraceAggregatorTraceDataNode from "./TraceAggregatorTraceDataNode.vue";
 import FilterTags from "../widgets/FilterTags.vue";
-import TraceMetrics from "../widgets/TraceMetrics.vue";
+import TraceItemMetrics from "../widgets/TraceItemMetrics.vue";
 import {traceAggregatorTabs, useTraceAggregatorTabsStore} from "../../../../store/traceAggregatorTabsStore.ts";
 import {useTraceAggregatorTreeStore} from "../../../../store/traceAggregatorTreeStore.ts";
 import {useTraceAggregatorDataStore} from "../../../../store/traceAggregatorDataStore.ts";
@@ -171,7 +171,7 @@ import {convertDateStringToLocal} from "../../../../utils/helpers.ts";
 import {useTraceAggregatorProfilingStore} from "../../../../store/traceAggregatorProfilingStore.ts";
 
 export default defineComponent({
-  components: {TraceId, TraceService, FilterTags, TraceAggregatorTraceDataNode, TraceMetrics},
+  components: {TraceId, TraceService, FilterTags, TraceAggregatorTraceDataNode, TraceItemMetrics},
   emits: ["onTraceTypeClick", "onTraceTagClick", "onTraceStatusClick", "onCustomFieldClick"],
   props: {
     payload: {
