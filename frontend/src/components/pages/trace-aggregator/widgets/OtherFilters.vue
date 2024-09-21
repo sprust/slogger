@@ -1,9 +1,14 @@
 <template>
   <el-popover placement="bottom" :width="600" trigger="click">
     <template #reference>
-      <el-button :icon="Filter">
-        {{ title }}
-      </el-button>
+      <el-row style="align-items: center;">
+        <el-button :icon="Filter" link>
+          Other filters
+        </el-button>
+        <el-tag v-for="filter in titles" type="success" style="margin: 2px">
+          {{ filter }}
+        </el-tag>
+      </el-row>
     </template>
     <el-form label-width="auto">
       <el-form-item label="Trace id">
@@ -129,7 +134,7 @@ export default defineComponent({
     Filter() {
       return Filter
     },
-    title() {
+    titles(): Array<string> {
       const titles = new Array<string>()
 
       const payload = this.store.state.payload
@@ -174,7 +179,7 @@ export default defineComponent({
         titles.push('Has profiling')
       }
 
-      return titles.length ? titles.join(' __ ') : 'Other filters'
+      return titles
     }
   },
 

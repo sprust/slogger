@@ -2,40 +2,40 @@
   <el-scrollbar class="height-100" style="padding-right: 10px">
     <div style="padding-bottom: 10px">
       <el-row>
-        <el-form>
-          <el-form-item label="Logged at">
-            <el-space>
-              <div v-if="storeGraph.state.showGraph" style="width: 220px">
-                <TraceAggregatorTimestampPeriods/>
-              </div>
-              <el-date-picker
-                  v-else
-                  v-model="store.state.payload.logging_from"
-                  type="datetime"
-                  placeholder="From"
-                  format="YYYY-MM-DD HH:mm:ss"
-                  date-format="YYYY-MM-DD"
-                  time-format="HH:mm:ss"
-                  :shortcuts="dateTimeShortcuts"
-                  style="width: 220px"
-              />
-              <el-date-picker
-                  v-model="store.state.payload.logging_to"
-                  type="datetime"
-                  placeholder="To"
-                  format="YYYY-MM-DD HH:mm:ss"
-                  date-format="YYYY-MM-DD"
-                  time-format="HH:mm:ss"
-                  :shortcuts="dateTimeShortcuts"
-              />
-            </el-space>
-          </el-form-item>
-        </el-form>
-        <el-form style="padding-left: 5px">
-          <el-form-item label="Services">
-            <TraceAggregatorServices/>
-          </el-form-item>
-        </el-form>
+        <el-space style="padding-right: 5px">
+          <div v-if="storeGraph.state.showGraph" style="width: 220px">
+            <TraceAggregatorTimestampPeriods/>
+          </div>
+          <el-date-picker
+              v-else
+              v-model="store.state.payload.logging_from"
+              type="datetime"
+              placeholder="From"
+              format="YYYY-MM-DD HH:mm:ss"
+              date-format="YYYY-MM-DD"
+              time-format="HH:mm:ss"
+              :shortcuts="dateTimeShortcuts"
+              style="width: 200px"
+          />
+        </el-space>
+        <el-space style="padding-right: 5px">
+          <el-date-picker
+              v-model="store.state.payload.logging_to"
+              type="datetime"
+              placeholder="To"
+              format="YYYY-MM-DD HH:mm:ss"
+              date-format="YYYY-MM-DD"
+              time-format="HH:mm:ss"
+              :shortcuts="dateTimeShortcuts"
+              style="width: 200px"
+          />
+        </el-space>
+        <el-space>
+          <el-text>
+            Services
+          </el-text>
+          <TraceAggregatorServices/>
+        </el-space>
         <div class="flex-grow"/>
         <el-form>
           <el-form-item label="Graph">
