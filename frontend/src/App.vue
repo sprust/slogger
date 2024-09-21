@@ -23,6 +23,9 @@ export default defineComponent({
       authStore: useAuthStore(),
     }
   },
+  mounted() {
+    document.title = import.meta.env.VITE_APP_NAME ?? 'SLogger'
+  }
 })
 
 </script>
