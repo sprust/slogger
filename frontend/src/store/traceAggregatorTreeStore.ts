@@ -22,7 +22,17 @@ interface State {
     selectedTraceTypes: Array<string>,
     traceServices: Array<TraceAggregatorService>,
     selectedTraceServiceIds: Array<number>,
-    traceMaxDuration: number,
+    traceTotalIndicatorsNumber: number,
+    traceIndicatingIds: Array<string>,
+}
+
+const parseTree = function (state: State, treeNodes: Array<TraceAggregatorTreeNode>) {
+    state.traceTypes = []
+    state.selectedTraceTypes = []
+    state.traceServices = []
+    state.selectedTraceServiceIds = []
+
+    parseTreeRecursive(state, treeNodes)
 }
 
 const parseTreeRecursive = function (state: State, treeNodes: Array<TraceAggregatorTreeNode>) {
@@ -44,12 +54,21 @@ const parseTreeRecursive = function (state: State, treeNodes: Array<TraceAggrega
     })
 }
 
-const calcMaxDurationRecursive = function (state: State, treeNodes: Array<TraceAggregatorTreeNode>) {
+export const calcTraceIndicators = function (state: State, treeNodes: Array<TraceAggregatorTreeNode>) {
+    state.traceTotalIndicatorsNumber = 0
+    state.traceIndicatingIds = []
+
+    calcTraceIndicatorsRecursive(state, treeNodes)
+}
+
+const calcTraceIndicatorsRecursive = function (state: State, treeNodes: Array<TraceAggregatorTreeNode>) {
     treeNodes.forEach((treeNode: TraceAggregatorTreeNode) => {
-        state.traceMaxDuration += (treeNode.duration ?? 0)
+        state.traceIndicatingIds.push(treeNode.trace_id)
+
+        state.traceTotalIndicatorsNumber += (treeNode.duration ?? 0)
 
         // @ts-ignore
-        calcMaxDurationRecursive(state, treeNode.children)
+        calcTraceIndicatorsRecursive(state, treeNode.children)
     })
 }
 
@@ -65,21 +84,16 @@ export const traceAggregatorTreeStore = createStore<State>({
         selectedTraceTypes: new Array<string>(),
         traceServices: new Array<TraceAggregatorService>(),
         selectedTraceServiceIds: new Array<number>(),
-        traceMaxDuration: 0
+        traceTotalIndicatorsNumber: 0,
+        traceIndicatingIds: []
     } as State,
     mutations: {
         setTreeNodes(state: State, tree: TraceAggregatorTree) {
-            state.traceTypes = []
-            state.selectedTraceTypes = []
-            state.traceServices = []
-            state.selectedTraceServiceIds = []
-            state.traceMaxDuration = 0
-
             state.tracesCount = tree.tracesCount
             state.treeNodes = tree.items
 
-            parseTreeRecursive(state, state.treeNodes)
-            calcMaxDurationRecursive(state, state.treeNodes)
+            parseTree(state, state.treeNodes)
+            calcTraceIndicators(state, state.treeNodes)
         },
         setData(state: State, trace: TraceAggregatorDetail) {
             state.selectedTrace = trace

@@ -61,6 +61,11 @@
             />
           </el-select>
         </el-space>
+        <div class="flex-grow"/>
+        <el-text type="info">
+          status | logged at | memory | cpu | duration
+        </el-text>
+
       </el-row>
       <el-row style="width: 100%; height: 100%; position: relative;">
         <div class="row-col" style="width: 100%;">
@@ -76,12 +81,11 @@
             <template #default="{ data }">
               <el-row
                   class="tree-row"
-                  @click="onClickOnRow(treeNodeViewsMap[data.key])"
                   style="display: contents;"
               >
                 <div class="trace-tree-select-indicator" :style="makeTreeNodeStyle(data)"/>
                 <div class="trace-tree-metric-indicator" :style="makeTraceIndicatorStyle(data)"/>
-                <el-space spacer=":">
+                <el-space spacer=":" @click="onClickOnRow(treeNodeViewsMap[data.key])">
                   <TraceService
                       :name="treeNodeViewsMap[data.key].service?.name"
                   />
@@ -96,6 +100,15 @@
                     </el-tag>
                   </div>
                 </el-space>
+                <el-button
+                    style="padding-left: 5px"
+                    @click="indicate(treeNodeViewsMap[data.key])"
+                    type="info"
+                    size="small"
+                    link
+                >
+                  indicate
+                </el-button>
                 <div class="flex-grow"/>
                 <el-space spacer="|">
                   <div>
@@ -105,28 +118,13 @@
                     {{ convertDateStringToLocal(treeNodeViewsMap[data.key].logged_at) }}
                   </div>
                   <div>
-                    <el-tooltip>
-                      <template #content>
-                        duration
-                      </template>
-                      {{ treeNodeViewsMap[data.key].duration }}
-                    </el-tooltip>
+                    {{ treeNodeViewsMap[data.key].memory }}
                   </div>
                   <div>
-                    <el-tooltip>
-                      <template #content>
-                        memory
-                      </template>
-                      {{ treeNodeViewsMap[data.key].memory }}
-                    </el-tooltip>
+                    {{ treeNodeViewsMap[data.key].cpu }}
                   </div>
                   <div>
-                    <el-tooltip>
-                      <template #content>
-                        cpu
-                      </template>
-                      {{ treeNodeViewsMap[data.key].cpu }}
-                    </el-tooltip>
+                    {{ treeNodeViewsMap[data.key].duration }}
                   </div>
                 </el-space>
               </el-row>
@@ -164,6 +162,7 @@
 <script lang="ts">
 import {defineComponent} from "vue";
 import {
+  calcTraceIndicators,
   TraceAggregatorTreeNode,
   useTraceAggregatorTreeStore
 } from "../../../../store/traceAggregatorTreeStore.ts";
@@ -172,7 +171,6 @@ import TraceService from "../widgets/TraceService.vue";
 import TraceAggregatorTraceDataNode from "./TraceAggregatorTraceDataNode.vue";
 import TraceDetail from "../widgets/TraceDetail.vue";
 import {convertDateStringToLocal} from "../../../../utils/helpers.ts";
-import {TraceAggregatorService} from "../../../../store/traceAggregatorServicesStore.ts";
 import {state} from "vue-tsc/out/shared";
 
 type TreeNodeView = {
@@ -258,12 +256,12 @@ export default defineComponent({
 
       let percent = 0
 
-      if (trace.duration) {
-        percent = (trace.duration / this.store.state.traceMaxDuration) * 100
+      if (trace.duration && this.store.state.traceIndicatingIds.indexOf(trace.trace_id) !== -1) {
+        percent = (trace.duration / this.store.state.traceTotalIndicatorsNumber) * 50
       }
 
       return {
-        width: percent + '%',
+        width: percent + 'vw',
       }
     },
     filterTree() {
@@ -295,6 +293,10 @@ export default defineComponent({
 
       return true
     },
+    indicate(treeNode: TraceAggregatorTreeNode) {
+      // @ts-ignore
+      calcTraceIndicators(this.store.state, [treeNode])
+    }
   },
   watch: {
     'filterTreeNodeText'(value: string) {
@@ -336,7 +338,7 @@ export default defineComponent({
 .trace-tree-metric-indicator {
   position: absolute;
   display: flex;
-  background-color: rgb(255, 0, 0, 5%);
+  background-color: rgb(139, 0, 0, 20%);
   right: 0;
   height: 20px;
 }
