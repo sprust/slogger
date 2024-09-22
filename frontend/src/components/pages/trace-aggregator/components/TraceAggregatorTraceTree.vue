@@ -63,7 +63,7 @@
         </el-space>
       </el-row>
       <el-row style="width: 100%; height: 100%; position: relative;">
-        <div class="row-col" style="width: 100%; padding: 10px;">
+        <div class="row-col" style="width: 100%;">
           <el-tree
               ref="traceTreeRef"
               :data="tree"
@@ -136,7 +136,7 @@
         <div
             v-if="showData"
             class="row-col right-col"
-            style="position: absolute; right: 0; width: 50%; height: 100%"
+            style="position: absolute; right: 0; width: 50%;"
         >
           <el-progress
               v-if="store.state.dataLoading"
@@ -295,9 +295,6 @@ export default defineComponent({
 
       return true
     },
-    onTreeMetricIndicatorClick(event) {
-      event.stopPropagation()
-    }
   },
   watch: {
     'filterTreeNodeText'(value: string) {
@@ -328,12 +325,14 @@ export default defineComponent({
 .flex-grow {
   flex-grow: 1;
 }
+
 .trace-tree-select-indicator {
   margin-right: 3px;
   width: 10px;
   height: 10px;
   border-radius: 20px 20px 20px 20px;
 }
+
 .trace-tree-metric-indicator {
   position: absolute;
   display: flex;
