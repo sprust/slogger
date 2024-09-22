@@ -20,16 +20,55 @@
           </div>
         </el-space>
       </el-row>
-      <el-row style="width: 100%; padding-bottom: 10px">
+      <el-row style="padding-bottom: 10px">
         <el-input
             v-model="filterTreeNodeText"
-            style="width: 400px"
+            style="width: 400px; padding-right: 5px"
             placeholder="Filter"
             clearable
         />
+        <el-space style="padding-right: 5px">
+          <el-select
+              v-model="store.state.selectedTraceServiceIds"
+              placeholder="Services"
+              style="min-width: 200px"
+              @change="filterTree"
+              clearable
+              multiple
+          >
+            <el-option
+                v-for="item in store.state.traceServices"
+                :key="item.id"
+                :label="item.name"
+                :value="item.id"
+            />
+          </el-select>
+        </el-space>
+        <el-space>
+          <el-select
+              v-model="store.state.selectedTraceTypes"
+              placeholder="Types"
+              style="min-width: 200px"
+              @change="filterTree"
+              clearable
+              multiple
+          >
+            <el-option
+                v-for="type in store.state.traceTypes"
+                :key="type"
+                :label="type"
+                :value="type"
+            />
+          </el-select>
+        </el-space>
+        <div class="flex-grow"/>
+        <el-text type="info">
+          status | logged at | memory | cpu | duration
+        </el-text>
+
       </el-row>
-      <el-row style="width: 100%; height: 100%">
-        <el-col :span="leftSpan" class="row-col" style="padding: 10px">
+      <el-row style="width: 100%; height: 100%; position: relative;">
+        <div class="row-col" style="width: 100%;">
           <el-tree
               ref="traceTreeRef"
               :data="tree"
@@ -42,12 +81,14 @@
             <template #default="{ data }">
               <el-row
                   class="tree-row"
-                  :style="makeTreeNodeStyle(data)"
-                  @click="onClickOnRow(treeNodeViewsMap[data.key])"
                   style="display: contents;"
               >
-                <el-space spacer=":">
-                  <TraceService :name="treeNodeViewsMap[data.key].service?.name"/>
+                <div class="trace-tree-metric-indicator" :style="makeTraceIndicatorStyle(data)"/>
+                <div class="trace-tree-select-indicator" :style="makeTreeNodeStyle(data)"/>
+                <el-space spacer=":" @click="onClickOnRow(treeNodeViewsMap[data.key])">
+                  <TraceService
+                      :name="treeNodeViewsMap[data.key].service?.name"
+                  />
                   <div>
                     <el-tag type="success">
                       {{ treeNodeViewsMap[data.key].type }}
@@ -55,10 +96,20 @@
                   </div>
                   <div v-if="treeNodeViewsMap[data.key].tags.length">
                     <el-tag v-for="tag in treeNodeViewsMap[data.key].tags" type="warning">
-                      {{ tag.slice(0, 40) }}
+                      {{ tag.slice(0, 100) }}
                     </el-tag>
                   </div>
                 </el-space>
+                <el-button
+                    style="padding-left: 5px"
+                    @click="indicate(treeNodeViewsMap[data.key])"
+                    type="info"
+                    size="small"
+                    link
+                >
+                  indicate
+                </el-button>
+                <div class="flex-grow"/>
                 <el-space spacer="|">
                   <div>
                     {{ treeNodeViewsMap[data.key].status }}
@@ -67,35 +118,24 @@
                     {{ convertDateStringToLocal(treeNodeViewsMap[data.key].logged_at) }}
                   </div>
                   <div>
-                    <el-tooltip>
-                      <template #content>
-                        duration
-                      </template>
-                      {{ treeNodeViewsMap[data.key].duration }}
-                    </el-tooltip>
+                    {{ treeNodeViewsMap[data.key].memory }}
                   </div>
                   <div>
-                    <el-tooltip>
-                      <template #content>
-                        memory
-                      </template>
-                      {{ treeNodeViewsMap[data.key].memory }}
-                    </el-tooltip>
+                    {{ treeNodeViewsMap[data.key].cpu }}
                   </div>
                   <div>
-                    <el-tooltip>
-                      <template #content>
-                        cpu
-                      </template>
-                      {{ treeNodeViewsMap[data.key].cpu }}
-                    </el-tooltip>
+                    {{ treeNodeViewsMap[data.key].duration }}
                   </div>
                 </el-space>
               </el-row>
             </template>
           </el-tree>
-        </el-col>
-        <el-col v-if="showData" :span="12" class="row-col">
+        </div>
+        <div
+            v-if="showData"
+            class="row-col right-col"
+            style="position: absolute; right: 0; width: 50%;"
+        >
           <el-progress
               v-if="store.state.dataLoading"
               status="success"
@@ -113,7 +153,7 @@
             </el-row>
             <TraceDetail :trace="store.state.selectedTrace"/>
           </div>
-        </el-col>
+        </div>
       </el-row>
     </div>
   </div>
@@ -122,6 +162,7 @@
 <script lang="ts">
 import {defineComponent} from "vue";
 import {
+  calcTraceIndicators,
   TraceAggregatorTreeNode,
   useTraceAggregatorTreeStore
 } from "../../../../store/traceAggregatorTreeStore.ts";
@@ -130,6 +171,7 @@ import TraceService from "../widgets/TraceService.vue";
 import TraceAggregatorTraceDataNode from "./TraceAggregatorTraceDataNode.vue";
 import TraceDetail from "../widgets/TraceDetail.vue";
 import {convertDateStringToLocal} from "../../../../utils/helpers.ts";
+import {state} from "vue-tsc/out/shared";
 
 type TreeNodeView = {
   key: string,
@@ -156,6 +198,9 @@ export default defineComponent({
     }
   },
   computed: {
+    state() {
+      return state
+    },
     tree(): Array<TreeNodeView> {
       return this.treeNodesToViews(this.store.state.treeNodes)
     },
@@ -194,30 +239,68 @@ export default defineComponent({
       })
     },
     makeTreeNodeStyle(data: TreeNodeView) {
-      const style: { color?: string, 'font-weight'?: string } = {}
+      const style: { 'background-color'?: string, 'border'?: string } = {}
 
       if (data.key === this.store.state.selectedTrace.trace_id) {
-        style.color = 'green'
+        style['background-color'] = 'red'
       }
 
       if (data.key === this.store.state.parameters.traceId) {
-        style['font-weight'] = 'bold'
+        style['border'] = '1px solid green'
       }
 
       return style
     },
-    filterTreeNode(value: string, data: TreeNodeView) {
-      if (!value) {
-        return true
+    makeTraceIndicatorStyle(data: TreeNodeView) {
+      const trace = this.treeNodeViewsMap[data.key]
+
+      let percent = 0
+
+      if (trace.duration && this.store.state.traceIndicatingIds.indexOf(trace.trace_id) !== -1) {
+        percent = (trace.duration / this.store.state.traceTotalIndicatorsNumber) * 50
       }
 
-      return data.label.includes(value)
+      return {
+        width: percent + 'vw',
+      }
+    },
+    filterTree() {
+      // @ts-ignore
+      this.$refs.traceTreeRef!.filter(this.filterTreeNodeText)
+    },
+    filterTreeNode(value: string, data: TreeNodeView) {
+      if (value && !data.label.includes(value)) {
+        return false
+      }
+
+      const trace = this.treeNodeViewsMap[data.key]
+
+      if (this.store.state.selectedTraceServiceIds.length) {
+        if (!trace.service?.id) {
+          return false
+        }
+
+        if (this.store.state.selectedTraceServiceIds.indexOf(trace.service.id) === -1) {
+          return false
+        }
+      }
+
+      if (this.store.state.selectedTraceTypes.length
+          && this.store.state.selectedTraceTypes.indexOf(trace.type) === -1
+      ) {
+        return false
+      }
+
+      return true
+    },
+    indicate(treeNode: TraceAggregatorTreeNode) {
+      // @ts-ignore
+      calcTraceIndicators(this.store.state, [treeNode])
     }
   },
   watch: {
-    'filterTreeNodeText'(value: string) {
-      // @ts-ignore
-      this.$refs.traceTreeRef!.filter(value)
+    'filterTreeNodeText'() {
+      this.filterTree()
     }
   },
 })
@@ -236,4 +319,27 @@ export default defineComponent({
   overflow-y: scroll;
 }
 
+.right-col {
+  background-color: var(--el-drawer-bg-color);
+  --el-drawer-bg-color: var(--el-dialog-bg-color, var(--el-bg-color));
+}
+
+.flex-grow {
+  flex-grow: 1;
+}
+
+.trace-tree-select-indicator {
+  margin-right: 3px;
+  width: 10px;
+  height: 10px;
+  border-radius: 20px 20px 20px 20px;
+}
+
+.trace-tree-metric-indicator {
+  position: absolute;
+  display: flex;
+  background-color: rgb(139, 0, 0, 30%);
+  right: 0;
+  height: 20px;
+}
 </style>
