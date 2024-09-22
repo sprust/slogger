@@ -83,8 +83,8 @@
                   class="tree-row"
                   style="display: contents;"
               >
-                <div class="trace-tree-select-indicator" :style="makeTreeNodeStyle(data)"/>
                 <div class="trace-tree-metric-indicator" :style="makeTraceIndicatorStyle(data)"/>
+                <div class="trace-tree-select-indicator" :style="makeTreeNodeStyle(data)"/>
                 <el-space spacer=":" @click="onClickOnRow(treeNodeViewsMap[data.key])">
                   <TraceService
                       :name="treeNodeViewsMap[data.key].service?.name"
@@ -239,14 +239,14 @@ export default defineComponent({
       })
     },
     makeTreeNodeStyle(data: TreeNodeView) {
-      const style: { 'background-color'?: string, 'border-color'?: string } = {}
+      const style: { 'background-color'?: string, 'border'?: string } = {}
 
       if (data.key === this.store.state.selectedTrace.trace_id) {
-        style['background-color'] = 'green'
+        style['background-color'] = 'red'
       }
 
       if (data.key === this.store.state.parameters.traceId) {
-        style['border'] = '1px solid red'
+        style['border'] = '1px solid green'
       }
 
       return style
@@ -299,7 +299,7 @@ export default defineComponent({
     }
   },
   watch: {
-    'filterTreeNodeText'(value: string) {
+    'filterTreeNodeText'() {
       this.filterTree()
     }
   },
@@ -338,7 +338,7 @@ export default defineComponent({
 .trace-tree-metric-indicator {
   position: absolute;
   display: flex;
-  background-color: rgb(139, 0, 0, 20%);
+  background-color: rgb(139, 0, 0, 30%);
   right: 0;
   height: 20px;
 }
