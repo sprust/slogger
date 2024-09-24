@@ -24,7 +24,7 @@
         "spiral/roadrunner-cli": "^2.6",
         "spiral/roadrunner-grpc": "^3.3",
         "spiral/roadrunner-http": "^3.3.0",
-        "spp28rus/roadrunner-laravel": "dev-master",
+        "spp28rus/rr-concurrency-laravel": "dev-master",
         "vladimir-yuldashev/laravel-queue-rabbitmq": "^14.1"
     },
     "require-dev": {

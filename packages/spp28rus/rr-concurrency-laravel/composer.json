@@ -25,7 +25,7 @@
     "extra": {
         "laravel": {
             "providers": [
-                "RrConcurrencyServiceProvider"
+                "RrConcurrency\\RrConcurrencyServiceProvider"
             ]
         }
     },
