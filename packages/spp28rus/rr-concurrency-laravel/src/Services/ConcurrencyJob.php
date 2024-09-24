@@ -10,7 +10,8 @@ readonly class ConcurrencyJob
     private string $payload;
 
     public function __construct(
-        Closure $callback
+        Closure $callback,
+        public bool $wait
     ) {
         $this->payload = serialize(new SerializableClosure($callback));
     }

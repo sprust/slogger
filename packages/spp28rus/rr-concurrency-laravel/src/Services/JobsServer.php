@@ -78,6 +78,15 @@ readonly class JobsServer
 
                 $result = $app->call($job->getCallback());
 
+                if ($job->wait) {
+                    $app->make(JobsCommunicator::class)->finish(
+                        id: $task->getId(),
+                        result: new JobResultDto(
+                            serializedResult: serialize($result)
+                        )
+                    );
+                }
+
                 $task->ack();
 
                 $this->dispatchEvent(
@@ -89,6 +98,13 @@ readonly class JobsServer
                     )
                 );
             } catch (Throwable $exception) {
+                $app->make(JobsCommunicator::class)->finish(
+                    id: $task->getId(),
+                    result: new JobResultDto(
+                        exception: $exception
+                    )
+                );
+
                 $task->nack($exception);
 
                 $this->dispatchEvent(

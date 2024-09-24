@@ -4,7 +4,8 @@ namespace RrConcurrency\Services;
 
 use Closure;
 use Illuminate\Support\Str;
-use RrConcurrency\Exceptions\ConcurrencyException;
+use RrConcurrency\Exceptions\ConcurrencyJobsException;
+use RrConcurrency\Exceptions\ConcurrencyWaitTimeoutException;
 use Spiral\Goridge\RPC\RPC;
 use Spiral\RoadRunner\Jobs\Exception\JobsException;
 use Spiral\RoadRunner\Jobs\Jobs;
@@ -16,8 +17,10 @@ readonly class ConcurrencyManager
 {
     private Jobs $jobs;
 
-    public function __construct(private RrJobsPayloadSerializer $payloadSerializer)
-    {
+    public function __construct(
+        private RrJobsPayloadSerializer $payloadSerializer,
+        private JobsCommunicator $communicator,
+    ) {
         $rpcConnection = sprintf(
             'tcp://%s:%s',
             config('rr-concurrency.rpc.host'),
@@ -30,17 +33,85 @@ readonly class ConcurrencyManager
     }
 
     /**
-     * @throws ConcurrencyException
+     * @throws ConcurrencyJobsException
      */
-    public function go(Closure $callback): string
+    public function go(Closure $callback): void
     {
         try {
-            $id = $this->push(new ConcurrencyJob($callback))->getId();
+            $this->push(new ConcurrencyJob(callback: $callback, wait: false));
         } catch (JobsException $exception) {
-            throw new ConcurrencyException(previous: $exception);
+            throw new ConcurrencyJobsException(previous: $exception);
+        }
+    }
+
+    /**
+     * @param Closure[] $callbacks
+     *
+     * @return JobResultDto[]
+     *
+     * @throws ConcurrencyJobsException
+     * @throws ConcurrencyWaitTimeoutException
+     */
+    public function wait(array $callbacks, int $waitSeconds): array
+    {
+        try {
+            $jobs = $this->pushMany(
+                array_map(
+                    fn(Closure $callback) => new ConcurrencyJob(
+                        callback: $callback,
+                        wait: true
+                    ),
+                    $callbacks
+                )
+            );
+        } catch (JobsException $exception) {
+            throw new ConcurrencyJobsException(
+                message: $exception->getMessage()
+            );
         }
 
-        return $id;
+        $expectedCount = count($callbacks);
+
+        /** @var JobResultDto[] $results */
+        $results = [];
+
+        $start = time();
+
+        while (true) {
+            if (count($results) === $expectedCount) {
+                break;
+            }
+
+            if ((time() - $start) > $waitSeconds) {
+                throw new ConcurrencyWaitTimeoutException();
+            }
+
+            for ($index = 0; $index < $expectedCount; $index++) {
+                $job = $jobs[$index];
+
+                if (array_key_exists($index, $results)) {
+                    continue;
+                }
+
+                $result = $this->communicator->result(
+                    id: $job->getId()
+                );
+
+                if (!$result) {
+                    continue;
+                }
+
+                $results[$index] = $result;
+            }
+
+            foreach ($jobs as $job) {
+                $job->getId();
+            }
+        }
+
+        ksort($results);
+
+        return $results;
     }
 
     /**
