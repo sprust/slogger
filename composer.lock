@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c7175d2cc5bfbbf67facac3a9c3d6b17",
+    "content-hash": "24840f12ba111f9949b5067b03ade101",
     "packages": [
         {
             "name": "brick/math",
@@ -4164,13 +4164,12 @@
             "dist": {
                 "type": "path",
                 "url": "packages/slogger/grpc",
-                "reference": "72ed1e9564aab78bc7c89d64bc8ea185ca0d5144"
+                "reference": "c0b1047206857a9fe108cfe6caa84491af6f9c2c"
             },
             "require": {
                 "ext-grpc": "*",
                 "ext-protobuf": "*",
                 "grpc/grpc": "^1.57",
-                "slogger/laravel": "dev-master",
                 "spiral/roadrunner-grpc": "^3.3"
             },
             "type": "library",
@@ -4189,7 +4188,7 @@
                     "email": "sppetrovich@mail.ru"
                 }
             ],
-            "description": "Grpc client for slogger via Roadrunner",
+            "description": "Grpc for slogger via Roadrunner",
             "transport-options": {
                 "symlink": true,
                 "relative": true
@@ -4733,6 +4732,88 @@
             "time": "2024-04-26T11:16:10+00:00"
         },
         {
+            "name": "spiral/roadrunner-jobs",
+            "version": "v4.6.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/roadrunner-php/jobs.git",
+                "reference": "1df9702c591cf761a2735c54326f7bf2adc5dcea"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/roadrunner-php/jobs/zipball/1df9702c591cf761a2735c54326f7bf2adc5dcea",
+                "reference": "1df9702c591cf761a2735c54326f7bf2adc5dcea",
+                "shasum": ""
+            },
+            "require": {
+                "ext-json": "*",
+                "php": ">=8.1",
+                "ramsey/uuid": "^3 || ^4",
+                "roadrunner-php/roadrunner-api-dto": "^1.0",
+                "spiral/goridge": "^4.0",
+                "spiral/roadrunner": "^2023.1 || ^2024.1",
+                "spiral/roadrunner-worker": "^3.0"
+            },
+            "require-dev": {
+                "google/protobuf": "^3.17 || ^4.0",
+                "phpunit/phpunit": "^10.0",
+                "roave/security-advisories": "dev-master",
+                "vimeo/psalm": ">=5.8"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Spiral\\RoadRunner\\Jobs\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Anton Titov (wolfy-j)",
+                    "email": "wolfy-j@spiralscout.com"
+                },
+                {
+                    "name": "Pavel Buchnev (butschster)",
+                    "email": "pavel.buchnev@spiralscout.com"
+                },
+                {
+                    "name": "Aleksei Gagarin (roxblnfk)",
+                    "email": "alexey.gagarin@spiralscout.com"
+                },
+                {
+                    "name": "Maksim Smakouz (msmakouz)",
+                    "email": "maksim.smakouz@spiralscout.com"
+                },
+                {
+                    "name": "Kirill Nesmeyanov (SerafimArts)",
+                    "email": "kirill.nesmeyanov@spiralscout.com"
+                },
+                {
+                    "name": "RoadRunner Community",
+                    "homepage": "https://github.com/spiral/roadrunner/graphs/contributors"
+                }
+            ],
+            "description": "RoadRunner Queues (Jobs) plugin API library",
+            "homepage": "https://roadrunner.dev/",
+            "support": {
+                "chat": "https://discord.gg/V6EK4he",
+                "docs": "https://docs.roadrunner.dev",
+                "forum": "https://forum.roadrunner.dev/",
+                "issues": "https://github.com/roadrunner-server/roadrunner/issues",
+                "source": "https://github.com/roadrunner-php/jobs/tree/v4.6.0"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/sponsors/roadrunner-server",
+                    "type": "github"
+                }
+            ],
+            "time": "2024-07-29T08:02:59+00:00"
+        },
+        {
             "name": "spiral/roadrunner-worker",
             "version": "v3.5.0",
             "source": {
@@ -4886,6 +4967,51 @@
                 "source": "https://github.com/spiral/tokenizer"
             },
             "time": "2024-05-22T18:46:49+00:00"
+        },
+        {
+            "name": "spp28rus/roadrunner-laravel",
+            "version": "dev-master",
+            "dist": {
+                "type": "path",
+                "url": "packages/spp28rus/rr-concurrency-laravel",
+                "reference": "deb7d03bf444058cf22d9110155ab77690660d95"
+            },
+            "require": {
+                "laravel/framework": "^10.0",
+                "laravel/octane": "^2.3",
+                "spiral/roadrunner-cli": "^2.6",
+                "spiral/roadrunner-jobs": "^4.6.0"
+            },
+            "bin": [
+                "bin/rr-concurrency-jobs-worker.php"
+            ],
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "RrConcurrency\\RrServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "RrConcurrency\\": "src/"
+                }
+            },
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Pavel",
+                    "email": "sppetrovich@mail.ru"
+                }
+            ],
+            "description": "RoadRunner concurrency for laravel",
+            "transport-options": {
+                "symlink": true,
+                "relative": true
+            }
         },
         {
             "name": "symfony/console",
@@ -10485,7 +10611,8 @@
     "stability-flags": {
         "ifksco/openapi-generator": 20,
         "slogger/grpc": 20,
-        "slogger/laravel": 20
+        "slogger/laravel": 20,
+        "spp28rus/roadrunner-laravel": 20
     },
     "prefer-stable": true,
     "prefer-lowest": false,

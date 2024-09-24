@@ -1,0 +1,38 @@
+version: '3'
+
+# https://roadrunner.dev/docs/http-http/current/en
+
+rpc:
+  listen: "tcp://0.0.0.0:9044" # not all rr commands can use dotenv
+
+server:
+  command: 'vendor/bin/rr-concurrency-jobs-worker.php'
+  relay: pipes
+
+jobs:
+  timeout: 60
+  pool:
+    num_workers: 3
+    supervisor:
+      max_worker_memory: 100
+    allocate_timeout: 60s
+    destroy_timeout: 60s
+    debug: false
+
+  consume: [ "concurrency" ]
+  pipelines:
+    concurrency:
+      driver: memory
+      config:
+        priority: 10
+        prefetch: 10
+
+logs:
+  mode: development
+  level: debug
+  file_logger_options:
+    log_output: "storage/logs/rr-concurrent/rr-concurrent-log.log"
+    max_size: 10
+    max_age: 10
+    max_backups: 3
+    compress: true

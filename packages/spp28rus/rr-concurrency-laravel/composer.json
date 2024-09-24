@@ -1,0 +1,34 @@
+{
+    "name": "spp28rus/rr-concurrency-laravel",
+    "description": "RoadRunner concurrency for laravel",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Pavel",
+            "email": "sppetrovich@mail.ru"
+        }
+    ],
+    "require": {
+        "laravel/framework": "^10.0",
+        "laravel/octane": "^2.3",
+        "spiral/roadrunner-cli": "^2.6",
+        "spiral/roadrunner-jobs": "^4.6.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "RrConcurrency\\": "src/"
+        }
+    },
+    "bin": [
+        "bin/rr-concurrency-jobs-worker.php"
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [
+                "RrConcurrencyServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
