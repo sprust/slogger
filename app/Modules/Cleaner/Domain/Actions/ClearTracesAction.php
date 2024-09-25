@@ -27,7 +27,7 @@ readonly class ClearTracesAction implements ClearTracesActionInterface
         private TraceClearTracesActionInterface $clearTracesAction,
         private DeleteTracesActionInterface $deleteTracesAction,
     ) {
-        $this->stepInHours = 3;
+        $this->stepInHours = 1;
     }
 
     public function handle(): void
