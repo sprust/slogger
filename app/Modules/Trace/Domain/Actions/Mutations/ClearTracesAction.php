@@ -29,6 +29,7 @@ readonly class ClearTracesAction implements ClearTracesActionInterface
     {
         $this->traceDynamicIndexingActionService->handle(
             fn() => $this->traceDynamicIndexInitializer->init(
+                traceIds: $parameters->traceIds,
                 loggedAtFrom: $parameters->loggedAtFrom,
                 loggedAtTo: $parameters->loggedAtTo,
                 types: ['stub'],
@@ -37,6 +38,7 @@ readonly class ClearTracesAction implements ClearTracesActionInterface
         );
 
         return $this->traceRepository->clearTraces(
+            traceIds: $parameters->traceIds,
             loggedAtFrom: $parameters->loggedAtFrom,
             loggedAtTo: $parameters->loggedAtTo,
             type: $parameters->type,

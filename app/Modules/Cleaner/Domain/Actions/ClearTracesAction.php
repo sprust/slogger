@@ -11,26 +11,33 @@ use App\Modules\Common\EventsDispatcher;
 use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\ClearTracesActionInterface as TraceClearTracesActionInterface;
 use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\DeleteTracesActionInterface;
 use App\Modules\Trace\Domain\Actions\Interfaces\Queries\FindMinLoggedAtTracesActionInterface;
+use App\Modules\Trace\Domain\Actions\Interfaces\Queries\FindTraceIdsActionInterface;
 use App\Modules\Trace\Domain\Entities\Parameters\ClearTracesParameters;
 use App\Modules\Trace\Domain\Entities\Parameters\DeleteTracesParameters;
+use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexErrorException;
+use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexInProcessException;
+use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexNotInitException;
 use Illuminate\Support\Arr;
 use Throwable;
 
 readonly class ClearTracesAction implements ClearTracesActionInterface
 {
-    private int $stepInHours;
-
     public function __construct(
         private EventsDispatcher $eventsDispatcher,
         private SettingRepositoryInterface $settingRepository,
         private ProcessRepositoryInterface $processRepository,
         private FindMinLoggedAtTracesActionInterface $findMinLoggedAtTracesAction,
         private TraceClearTracesActionInterface $clearTracesAction,
+        private FindTraceIdsActionInterface $findTraceIdsAction,
         private DeleteTracesActionInterface $deleteTracesAction,
     ) {
-        $this->stepInHours = 1;
     }
 
+    /**
+     * @throws TraceDynamicIndexErrorException
+     * @throws TraceDynamicIndexInProcessException
+     * @throws TraceDynamicIndexNotInitException
+     */
     public function handle(): void
     {
         /** @var SettingDto[] $settings */
@@ -56,7 +63,7 @@ readonly class ClearTracesAction implements ClearTracesActionInterface
                     $settings
                 )
             )
-        );
+        ) ?: null;
 
         $now = now('UTC');
 
@@ -77,7 +84,7 @@ readonly class ClearTracesAction implements ClearTracesActionInterface
             $loggedAtTo = $now->clone()->subDays($setting->daysLifetime);
 
             $type = $setting->type;
-            $excludedTypes = is_null($type) ? $customizedTypes : [];
+            $excludedTypes = is_null($type) ? $customizedTypes : null;
 
             $process = $this->processRepository->create(
                 settingId: $setting->id,
@@ -85,38 +92,44 @@ readonly class ClearTracesAction implements ClearTracesActionInterface
                 clearedAt: null
             );
 
-            $dateCursor = $loggedAtFrom->clone();
-
             $clearedCount = 0;
 
             $exception = null;
 
-            while ($dateCursor->lt($loggedAtTo)) {
+            $page = 0;
+
+            while (true) {
+                ++$page;
+
+                $traceIds = $this->findTraceIdsAction->handle(
+                    page: $page,
+                    perPage: 3000,
+                    loggedAtTo: $loggedAtTo,
+                    type: $type,
+                    excludedTypes: $excludedTypes
+                );
+
+                if (count($traceIds) === 0) {
+                    break;
+                }
+
                 try {
                     if ($setting->onlyData) {
                         $clearedCount += $this->clearTracesAction->handle(
                             new ClearTracesParameters(
-                                loggedAtFrom: $dateCursor,
-                                loggedAtTo: $loggedAtTo,
-                                type: $type,
-                                excludedTypes: $excludedTypes
+                                traceIds: $traceIds
                             )
                         );
                     } else {
                         $clearedCount += $this->deleteTracesAction->handle(
                             new DeleteTracesParameters(
-                                loggedAtFrom: $dateCursor,
-                                loggedAtTo: $loggedAtTo,
-                                type: $type,
-                                excludedTypes: $excludedTypes
+                                traceIds: $traceIds
                             )
                         );
                     }
                 } catch (Throwable $exception) {
                     break;
                 }
-
-                $dateCursor->addHours($this->stepInHours);
 
                 $this->processRepository->update(
                     processId: $process->id,
