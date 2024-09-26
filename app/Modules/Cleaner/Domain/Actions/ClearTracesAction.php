@@ -14,6 +14,7 @@ use App\Modules\Trace\Domain\Actions\Interfaces\Queries\FindMinLoggedAtTracesAct
 use App\Modules\Trace\Domain\Entities\Parameters\ClearTracesParameters;
 use App\Modules\Trace\Domain\Entities\Parameters\DeleteTracesParameters;
 use Illuminate\Support\Arr;
+use Throwable;
 
 readonly class ClearTracesAction implements ClearTracesActionInterface
 {
@@ -88,25 +89,31 @@ readonly class ClearTracesAction implements ClearTracesActionInterface
 
             $clearedCount = 0;
 
+            $exception = null;
+
             while ($dateCursor->lt($loggedAtTo)) {
-                if ($setting->onlyData) {
-                    $clearedCount += $this->clearTracesAction->handle(
-                        new ClearTracesParameters(
-                            loggedAtFrom: $dateCursor,
-                            loggedAtTo: $loggedAtTo,
-                            type: $type,
-                            excludedTypes: $excludedTypes
-                        )
-                    );
-                } else {
-                    $clearedCount += $this->deleteTracesAction->handle(
-                        new DeleteTracesParameters(
-                            loggedAtFrom: $dateCursor,
-                            loggedAtTo: $loggedAtTo,
-                            type: $type,
-                            excludedTypes: $excludedTypes
-                        )
-                    );
+                try {
+                    if ($setting->onlyData) {
+                        $clearedCount += $this->clearTracesAction->handle(
+                            new ClearTracesParameters(
+                                loggedAtFrom: $dateCursor,
+                                loggedAtTo: $loggedAtTo,
+                                type: $type,
+                                excludedTypes: $excludedTypes
+                            )
+                        );
+                    } else {
+                        $clearedCount += $this->deleteTracesAction->handle(
+                            new DeleteTracesParameters(
+                                loggedAtFrom: $dateCursor,
+                                loggedAtTo: $loggedAtTo,
+                                type: $type,
+                                excludedTypes: $excludedTypes
+                            )
+                        );
+                    }
+                } catch (Throwable $exception) {
+                    break;
                 }
 
                 $dateCursor->addHours($this->stepInHours);
@@ -118,7 +125,7 @@ readonly class ClearTracesAction implements ClearTracesActionInterface
                 );
             }
 
-            if ($clearedCount === 0) {
+            if (!$exception && $clearedCount === 0) {
                 $this->processRepository->deleteByProcessId(
                     processId: $process->id
                 );
@@ -126,7 +133,8 @@ readonly class ClearTracesAction implements ClearTracesActionInterface
                 $this->processRepository->update(
                     processId: $process->id,
                     clearedCount: $clearedCount,
-                    clearedAt: now()
+                    clearedAt: now(),
+                    exception: $exception
                 );
             }
         }

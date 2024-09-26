@@ -9,6 +9,7 @@ use Illuminate\Support\Carbon;
  * @property string      $_id
  * @property int         $settingId
  * @property int         $clearedCount
+ * @property string|null $error
  * @property Carbon|null $clearedAt
  * @property Carbon      $createdAt
  * @property Carbon      $updatedAt

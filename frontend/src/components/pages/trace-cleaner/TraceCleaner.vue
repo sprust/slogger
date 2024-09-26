@@ -32,16 +32,14 @@
               {{ scope.row.cleared_at ? convertDateStringToLocal(scope.row.cleared_at, false) : '' }}
             </template>
           </el-table-column>
-          <el-table-column label="Created at" prop="created_at">
+          <el-table-column label="Created/Updated at" prop="created_at">
             <template #default="scope">
               {{ convertDateStringToLocal(scope.row.created_at, false) }}
-            </template>
-          </el-table-column>
-          <el-table-column label="Updated at" prop="updated_at">
-            <template #default="scope">
+              <br>
               {{ convertDateStringToLocal(scope.row.updated_at, false) }}
             </template>
           </el-table-column>
+          <el-table-column label="Error" prop="error"/>
         </el-table>
       </template>
     </el-table-column>

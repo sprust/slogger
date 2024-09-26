@@ -1541,6 +1541,7 @@ export namespace AdminApi {
     id: string,
     setting_id: number,
     cleared_count: number,
+    error?: string | null,
     cleared_at?: string | null,
     created_at: string,
     updated_at: string,
@@ -1561,6 +1562,7 @@ export namespace AdminApi {
         id: string;
         setting_id: number;
         cleared_count: number;
+        error?: string | null;
         cleared_at?: string | null;
         created_at: string;
         updated_at: string;
@@ -3525,6 +3527,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     id: string,
     setting_id: number,
     cleared_count: number,
+    error?: string | null,
     cleared_at?: string | null,
     created_at: string,
     updated_at: string,
@@ -3540,6 +3543,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
             id: string;
             setting_id: number;
             cleared_count: number;
+            error?: string | null;
             cleared_at?: string | null;
             created_at: string;
             updated_at: string;

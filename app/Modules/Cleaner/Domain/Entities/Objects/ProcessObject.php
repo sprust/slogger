@@ -10,6 +10,7 @@ readonly class ProcessObject
         public string $id,
         public int $settingId,
         public int $clearedCount,
+        public ?string $error,
         public ?Carbon $clearedAt,
         public Carbon $createdAt,
         public Carbon $updatedAt

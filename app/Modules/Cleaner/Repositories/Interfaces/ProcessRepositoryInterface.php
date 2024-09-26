@@ -4,6 +4,7 @@ namespace App\Modules\Cleaner\Repositories\Interfaces;
 
 use App\Modules\Cleaner\Repositories\Dto\ProcessDto;
 use Illuminate\Support\Carbon;
+use Throwable;
 
 interface ProcessRepositoryInterface
 {
@@ -16,7 +17,12 @@ interface ProcessRepositoryInterface
 
     public function create(int $settingId, int $clearedCount, ?Carbon $clearedAt): ProcessDto;
 
-    public function update(string $processId, int $clearedCount, ?Carbon $clearedAt): void;
+    public function update(
+        string $processId,
+        int $clearedCount,
+        ?Carbon $clearedAt,
+        Throwable $exception = null
+    ): void;
 
     public function deleteByProcessId(string $processId): void;
 }
