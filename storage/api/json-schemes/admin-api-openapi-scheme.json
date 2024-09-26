@@ -3479,6 +3479,10 @@
                                                         "type": "integer",
                                                         "nullable": false
                                                     },
+                                                    "error": {
+                                                        "type": "string",
+                                                        "nullable": true
+                                                    },
                                                     "cleared_at": {
                                                         "type": "string",
                                                         "nullable": true
