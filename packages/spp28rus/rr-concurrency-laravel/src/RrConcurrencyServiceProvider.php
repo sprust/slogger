@@ -4,8 +4,8 @@ namespace RrConcurrency;
 
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
-use RrConcurrency\Services\ConcurrencyService;
-use RrConcurrency\Services\ConcurrencyServiceInterface;
+use RrConcurrency\Services\Handlers\ConcurrencyRoadrunnerHandler;
+use RrConcurrency\Services\Handlers\ConcurrencyHandlerInterface;
 use RrConcurrency\Services\JobsWaiter;
 
 class RrConcurrencyServiceProvider extends ServiceProvider
@@ -30,7 +30,7 @@ class RrConcurrencyServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        $this->app->singleton(ConcurrencyServiceInterface::class, ConcurrencyService::class);
+        $this->app->singleton(ConcurrencyHandlerInterface::class, ConcurrencyRoadrunnerHandler::class);
         $this->app->singleton(JobsWaiter::class);
 
         $this->publishes(

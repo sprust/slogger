@@ -83,7 +83,7 @@ readonly class JobsServer
                     $app->make(JobsWaiter::class)->finish(
                         id: $task->getId(),
                         result: new JobResultDto(
-                            serializedResult: serialize($result)
+                            result: $result
                         )
                     );
                 }

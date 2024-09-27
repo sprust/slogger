@@ -7,13 +7,13 @@ use Throwable;
 readonly class JobResultDto
 {
     public ?JobResultErrorDto $error;
-    public ?string $serializedResult;
+    public mixed $result;
 
     public function __construct(
         ?Throwable $exception = null,
-        ?string $serializedResult = null
+        mixed $result = null
     ) {
-        $this->error            = $exception ? new JobResultErrorDto($exception) : null;
-        $this->serializedResult = $serializedResult;
+        $this->error  = $exception ? new JobResultErrorDto($exception) : null;
+        $this->result = $result;
     }
 }

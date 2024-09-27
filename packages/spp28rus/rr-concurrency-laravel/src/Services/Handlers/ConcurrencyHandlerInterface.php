@@ -1,13 +1,13 @@
 <?php
 
-namespace RrConcurrency\Services;
+namespace RrConcurrency\Services\Handlers;
 
 use Closure;
 use RrConcurrency\Exceptions\ConcurrencyJobsException;
 use RrConcurrency\Exceptions\ConcurrencyWaitTimeoutException;
 use RrConcurrency\Services\Dto\JobResultsDto;
 
-interface ConcurrencyServiceInterface
+interface ConcurrencyHandlerInterface
 {
     /**
      * @throws ConcurrencyJobsException
