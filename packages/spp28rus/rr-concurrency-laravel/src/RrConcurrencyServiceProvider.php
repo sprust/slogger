@@ -5,6 +5,7 @@ namespace RrConcurrency;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
+use RrConcurrency\Commands\JobsMonitorCommand;
 use RrConcurrency\Services\Handlers\ConcurrencyRoadrunnerHandler;
 use RrConcurrency\Services\Handlers\ConcurrencyHandlerInterface;
 use RrConcurrency\Services\JobsWaiter;
@@ -17,6 +18,10 @@ class RrConcurrencyServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        $this->commands([
+            JobsMonitorCommand::class,
+        ]);
+
         $this->booting(function () {
             $events = array_merge(
                 config('rr-concurrency.jobs.listeners') ?? [],

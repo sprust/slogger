@@ -9,11 +9,15 @@ use RrConcurrency\Events\WorkerStartingEvent;
 use RrConcurrency\Events\WorkerStoppingEvent;
 
 return [
-    'rpc'  => [
+    'rpc'     => [
         'host' => env('RR_CONCURRENCY_RPC_HOST', '0.0.0.0'),
         'port' => env('RR_CONCURRENCY_RPC_PORT', '9010'),
     ],
-    'jobs' => [
+    'workers' => [
+        'number'     => env('RR_CONCURRENCY_WORKERS_NUMBER', 5),
+        'max_number' => env('RR_CONCURRENCY_WORKERS_MAX_NUMBER', 10),
+    ],
+    'jobs'    => [
         'listeners' => [
             PayloadHandledEvent::class       => [],
             PayloadHandlingErrorEvent::class => [
@@ -30,7 +34,7 @@ return [
             WorkerStoppingEvent::class       => [],
         ],
     ],
-    'kv'   => [
+    'kv'      => [
         'storage-name' => env('RR_CONCURRENCY_KV_STORAGE_NAME', 'concurrency'),
     ],
 ];

@@ -7,24 +7,24 @@ rpc:
 
 server:
   command: 'vendor/bin/rr-concurrency-jobs-worker.php'
+  relay: pipes
 
 jobs:
+  num_pollers: ${RR_CONCURRENCY_WORKERS_MAX_NUMBER}
   timeout: 60
   pool:
-    num_workers: 10
+    num_workers: ${RR_CONCURRENCY_WORKERS_NUMBER}
     supervisor:
       max_worker_memory: 128
     allocate_timeout: 60s
     destroy_timeout: 60s
-    debug: false
+    max_jobs: 250
 
   consume: [ "concurrency" ]
   pipelines:
     concurrency:
       driver: memory
-      config:
-        priority: 10
-        prefetch: 100
+      config: {}
 
 kv:
   concurrency:
