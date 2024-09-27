@@ -12,6 +12,7 @@ use RrConcurrency\Events\PayloadReceivedEvent;
 use RrConcurrency\Events\WorkerErrorEvent;
 use RrConcurrency\Events\WorkerStartingEvent;
 use RrConcurrency\Events\WorkerStoppingEvent;
+use RrConcurrency\Services\Dto\JobResultDto;
 use Spiral\RoadRunner\Jobs\Consumer;
 use Spiral\RoadRunner\Worker;
 use Throwable;
@@ -20,13 +21,13 @@ readonly class JobsServer
 {
     use DispatchesEvents;
 
-    private RrJobsPayloadSerializer $payloadSerializer;
+    private JobsPayloadSerializer $payloadSerializer;
 
     public function __construct(
         private Application $app,
         private Worker $worker
     ) {
-        $this->payloadSerializer = $app->make(RrJobsPayloadSerializer::class);
+        $this->payloadSerializer = $app->make(JobsPayloadSerializer::class);
     }
 
     public function serve(): void
@@ -79,7 +80,7 @@ readonly class JobsServer
                 $result = $app->call($job->getCallback());
 
                 if ($job->wait) {
-                    $app->make(JobsCommunicator::class)->finish(
+                    $app->make(JobsWaiter::class)->finish(
                         id: $task->getId(),
                         result: new JobResultDto(
                             serializedResult: serialize($result)
@@ -98,7 +99,7 @@ readonly class JobsServer
                     )
                 );
             } catch (Throwable $exception) {
-                $app->make(JobsCommunicator::class)->finish(
+                $app->make(JobsWaiter::class)->finish(
                     id: $task->getId(),
                     result: new JobResultDto(
                         exception: $exception

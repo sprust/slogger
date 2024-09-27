@@ -2,7 +2,7 @@
 
 namespace RrConcurrency\Services;
 
-class RrJobsPayloadSerializer
+class JobsPayloadSerializer
 {
     public function serialize(ConcurrencyJob $object): string
     {

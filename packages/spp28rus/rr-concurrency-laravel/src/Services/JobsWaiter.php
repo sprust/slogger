@@ -4,8 +4,9 @@ namespace RrConcurrency\Services;
 
 use Illuminate\Contracts\Cache\Repository;
 use Illuminate\Support\Carbon;
+use RrConcurrency\Services\Dto\JobResultDto;
 
-readonly class JobsCommunicator
+readonly class JobsWaiter
 {
     public function __construct(private Repository $cache)
     {

@@ -6,6 +6,8 @@ use Closure;
 use Illuminate\Support\Str;
 use RrConcurrency\Exceptions\ConcurrencyJobsException;
 use RrConcurrency\Exceptions\ConcurrencyWaitTimeoutException;
+use RrConcurrency\Services\Dto\JobResultDto;
+use RrConcurrency\Services\Dto\JobResultsDto;
 use Spiral\Goridge\RPC\RPC;
 use Spiral\RoadRunner\Jobs\Exception\JobsException;
 use Spiral\RoadRunner\Jobs\Jobs;
@@ -13,13 +15,13 @@ use Spiral\RoadRunner\Jobs\QueueInterface;
 use Spiral\RoadRunner\Jobs\Task\PreparedTaskInterface;
 use Spiral\RoadRunner\Jobs\Task\QueuedTaskInterface;
 
-readonly class ConcurrencyManager
+readonly class ConcurrencyService implements ConcurrencyServiceInterface
 {
     private Jobs $jobs;
 
     public function __construct(
-        private RrJobsPayloadSerializer $payloadSerializer,
-        private JobsCommunicator $communicator,
+        private JobsPayloadSerializer $payloadSerializer,
+        private JobsWaiter $waiter,
     ) {
         $rpcConnection = sprintf(
             'tcp://%s:%s',
@@ -32,9 +34,6 @@ readonly class ConcurrencyManager
         );
     }
 
-    /**
-     * @throws ConcurrencyJobsException
-     */
     public function go(Closure $callback): void
     {
         try {
@@ -44,15 +43,7 @@ readonly class ConcurrencyManager
         }
     }
 
-    /**
-     * @param Closure[] $callbacks
-     *
-     * @return JobResultDto[]
-     *
-     * @throws ConcurrencyJobsException
-     * @throws ConcurrencyWaitTimeoutException
-     */
-    public function wait(array $callbacks, int $waitSeconds): array
+    public function wait(array $callbacks, int $waitSeconds): JobResultsDto
     {
         try {
             $jobs = $this->pushMany(
@@ -69,6 +60,9 @@ readonly class ConcurrencyManager
                 message: $exception->getMessage()
             );
         }
+
+        /** @var JobResultDto[] $failedJobs */
+        $failedJobs = [];
 
         $expectedCount = count($callbacks);
 
@@ -93,7 +87,7 @@ readonly class ConcurrencyManager
                     continue;
                 }
 
-                $result = $this->communicator->result(
+                $result = $this->waiter->result(
                     id: $job->getId()
                 );
 
@@ -102,6 +96,10 @@ readonly class ConcurrencyManager
                 }
 
                 $results[$index] = $result;
+
+                if ($result->error) {
+                    $failedJobs[$index] = $result;
+                }
             }
 
             foreach ($jobs as $job) {
@@ -110,8 +108,12 @@ readonly class ConcurrencyManager
         }
 
         ksort($results);
+        ksort($failedJobs);
 
-        return $results;
+        return new JobResultsDto(
+            results: $results,
+            failed: $failedJobs
+        );
     }
 
     /**
