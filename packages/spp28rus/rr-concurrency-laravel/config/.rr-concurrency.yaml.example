@@ -26,6 +26,9 @@ jobs:
       config:
         priority: 10
         prefetch: 10
+kv:
+  concurrency:
+    driver: memory
 
 logs:
   mode: development

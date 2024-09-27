@@ -4932,6 +4932,90 @@
             "time": "2024-07-29T08:02:59+00:00"
         },
         {
+            "name": "spiral/roadrunner-kv",
+            "version": "v4.3.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/roadrunner-php/kv.git",
+                "reference": "bc6e14298988a7fbb2a22f8f2f894bea32a47091"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/roadrunner-php/kv/zipball/bc6e14298988a7fbb2a22f8f2f894bea32a47091",
+                "reference": "bc6e14298988a7fbb2a22f8f2f894bea32a47091",
+                "shasum": ""
+            },
+            "require": {
+                "ext-json": "*",
+                "php": ">=8.1",
+                "psr/simple-cache": "2 - 3",
+                "roadrunner-php/roadrunner-api-dto": "^1.0",
+                "spiral/goridge": "^4.2",
+                "spiral/roadrunner": "^2023.1 || ^2024.1"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^10.0",
+                "roave/security-advisories": "dev-master",
+                "vimeo/psalm": ">=5.8"
+            },
+            "suggest": {
+                "ext-igbinary": "(>3.1.6) Igbinary serailizer support",
+                "ext-sodium": "Sodium serailizer support"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Spiral\\RoadRunner\\KeyValue\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Wolfy-J",
+                    "email": "wolfy.jd@gmail.com"
+                },
+                {
+                    "name": "Pavel Buchnev (butschster)",
+                    "email": "pavel.buchnev@spiralscout.com"
+                },
+                {
+                    "name": "Aleksei Gagarin (roxblnfk)",
+                    "email": "alexey.gagarin@spiralscout.com"
+                },
+                {
+                    "name": "Maksim Smakouz (msmakouz)",
+                    "email": "maksim.smakouz@spiralscout.com"
+                },
+                {
+                    "name": "Kirill Nesmeyanov (SerafimArts)",
+                    "email": "kirill.nesmeyanov@spiralscout.com"
+                },
+                {
+                    "name": "RoadRunner Community",
+                    "homepage": "https://github.com/spiral/roadrunner/graphs/contributors"
+                }
+            ],
+            "description": "RoadRunner kv plugin bridge",
+            "homepage": "https://roadrunner.dev/",
+            "support": {
+                "chat": "https://discord.gg/V6EK4he",
+                "docs": "https://docs.roadrunner.dev",
+                "forum": "https://forum.roadrunner.dev/",
+                "issues": "https://github.com/roadrunner-server/roadrunner/issues",
+                "source": "https://github.com/roadrunner-php/kv/tree/v4.3.0"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/sponsors/roadrunner-server",
+                    "type": "github"
+                }
+            ],
+            "time": "2024-07-25T09:15:02+00:00"
+        },
+        {
             "name": "spiral/roadrunner-worker",
             "version": "v3.6.0",
             "source": {
@@ -5170,13 +5254,14 @@
             "dist": {
                 "type": "path",
                 "url": "packages/spp28rus/rr-concurrency-laravel",
-                "reference": "53d893f606d3e8327ef084e2097107364fd95d2c"
+                "reference": "0a056a9068f39a4b5102aa324714366942e18134"
             },
             "require": {
                 "laravel/framework": "^10.0",
                 "laravel/octane": "^2.3",
                 "spiral/roadrunner-cli": "^2.6",
-                "spiral/roadrunner-jobs": "^4.6.0"
+                "spiral/roadrunner-jobs": "^4.6.0",
+                "spiral/roadrunner-kv": "^4.3.0"
             },
             "bin": [
                 "bin/rr-concurrency-jobs-worker.php"

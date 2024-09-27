@@ -24,4 +24,7 @@ return [
             WorkerStoppingEvent::class       => [],
         ],
     ],
+    'kv'   => [
+        'storage-name' => env('RR_CONCURRENCY_KV_STORAGE_NAME', 'concurrency'),
+    ],
 ];

@@ -17,7 +17,7 @@ return [
         'listeners' => [
             PayloadHandledEvent::class       => [],
             PayloadHandlingErrorEvent::class => [
-                \App\Services\RrConcurrency\PayloadHandlingErrorListener::class
+                \App\Services\RrConcurrency\PayloadHandlingErrorListener::class,
             ],
             PayloadReceivedEvent::class      => [],
             JobsServerErrorEvent::class      => [],
@@ -25,5 +25,8 @@ return [
             WorkerStartingEvent::class       => [],
             WorkerStoppingEvent::class       => [],
         ],
+    ],
+    'kv'   => [
+        'storage-name' => env('RR_CONCURRENCY_KV_STORAGE_NAME', 'concurrency'),
     ],
 ];
