@@ -17,11 +17,15 @@ return [
         'listeners' => [
             PayloadHandledEvent::class       => [],
             PayloadHandlingErrorEvent::class => [
-                \App\Services\RrConcurrency\PayloadHandlingErrorListener::class,
+                \RrConcurrency\Listeners\PayloadHandlingErrorListener::class,
             ],
             PayloadReceivedEvent::class      => [],
-            JobsServerErrorEvent::class      => [],
-            WorkerErrorEvent::class          => [],
+            JobsServerErrorEvent::class      => [
+                \RrConcurrency\Listeners\JobsServerErrorListener::class,
+            ],
+            WorkerErrorEvent::class          => [
+                \RrConcurrency\Listeners\WorkerErrorListener::class,
+            ],
             WorkerStartingEvent::class       => [],
             WorkerStoppingEvent::class       => [],
         ],

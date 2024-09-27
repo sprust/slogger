@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\RrConcurrency;
+namespace RrConcurrency\Listeners;
 
 use RrConcurrency\Events\PayloadHandlingErrorEvent;
 
