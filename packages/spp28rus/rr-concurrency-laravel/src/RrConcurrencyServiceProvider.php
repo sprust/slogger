@@ -2,11 +2,13 @@
 
 namespace RrConcurrency;
 
+use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use RrConcurrency\Services\Handlers\ConcurrencyRoadrunnerHandler;
 use RrConcurrency\Services\Handlers\ConcurrencyHandlerInterface;
 use RrConcurrency\Services\JobsWaiter;
+use RrConcurrency\Services\Roadrunner\RpcFactory;
 
 class RrConcurrencyServiceProvider extends ServiceProvider
 {
@@ -30,8 +32,22 @@ class RrConcurrencyServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        $this->app->singleton(ConcurrencyHandlerInterface::class, ConcurrencyRoadrunnerHandler::class);
-        $this->app->singleton(JobsWaiter::class);
+        $this->app->singleton(RpcFactory::class, static function () {
+            return new RpcFactory(
+                host: config('rr-concurrency.rpc.host'),
+                port: config('rr-concurrency.rpc.port')
+            );
+        });
+        $this->app->singleton(JobsWaiter::class, static function (Application $app) {
+            return new JobsWaiter(
+                rpcFactory: $app->make(RpcFactory::class),
+                storageName: config('rr-concurrency.kv.storage-name')
+            );
+        });
+        $this->app->singleton(
+            ConcurrencyHandlerInterface::class,
+            ConcurrencyRoadrunnerHandler::class
+        );
 
         $this->publishes(
             paths: [

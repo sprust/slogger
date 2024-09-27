@@ -18,7 +18,7 @@ readonly class ConcurrencySyncHandler implements ConcurrencyHandlerInterface
     ) {
     }
 
-    public function go(Closure $callback): void
+    public function handle(Closure $callback): void
     {
         $this->handleClosure($callback);
     }

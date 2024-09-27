@@ -12,7 +12,7 @@ interface ConcurrencyHandlerInterface
     /**
      * @throws ConcurrencyJobsException
      */
-    public function go(Closure $callback): void;
+    public function handle(Closure $callback): void;
 
     /**
      * @param Closure[] $callbacks

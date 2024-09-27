@@ -11,7 +11,7 @@ use RrConcurrency\Services\Dto\JobResultDto;
 use RrConcurrency\Services\Dto\JobResultsDto;
 use RrConcurrency\Services\JobsPayloadSerializer;
 use RrConcurrency\Services\JobsWaiter;
-use Spiral\Goridge\RPC\RPC;
+use RrConcurrency\Services\Roadrunner\RpcFactory;
 use Spiral\RoadRunner\Jobs\Exception\JobsException;
 use Spiral\RoadRunner\Jobs\Jobs;
 use Spiral\RoadRunner\Jobs\QueueInterface;
@@ -23,21 +23,16 @@ readonly class ConcurrencyRoadrunnerHandler implements ConcurrencyHandlerInterfa
     private Jobs $jobs;
 
     public function __construct(
+        private RpcFactory $rpcFactory,
         private JobsPayloadSerializer $payloadSerializer,
         private JobsWaiter $waiter,
     ) {
-        $rpcConnection = sprintf(
-            'tcp://%s:%s',
-            config('rr-concurrency.rpc.host'),
-            config('rr-concurrency.rpc.port')
-        );
-
         $this->jobs = new Jobs(
-            RPC::create($rpcConnection)
+            $this->rpcFactory->getRpc()
         );
     }
 
-    public function go(Closure $callback): void
+    public function handle(Closure $callback): void
     {
         try {
             $this->push(new ConcurrencyJob(callback: $callback, wait: false));

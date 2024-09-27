@@ -3,7 +3,7 @@
 namespace RrConcurrency\Services;
 
 use RrConcurrency\Services\Dto\JobResultDto;
-use Spiral\Goridge\RPC\RPC;
+use RrConcurrency\Services\Roadrunner\RpcFactory;
 use Spiral\RoadRunner\KeyValue\Factory;
 use Spiral\RoadRunner\KeyValue\StorageInterface;
 
@@ -11,21 +11,15 @@ readonly class JobsWaiter
 {
     private StorageInterface $storage;
 
-    public function __construct()
-    {
-        $rpcConnection = sprintf(
-            'tcp://%s:%s',
-            config('rr-concurrency.rpc.host'),
-            config('rr-concurrency.rpc.port')
+    public function __construct(
+        RpcFactory $rpcFactory,
+        string $storageName,
+    ) {
+        $factory = new Factory(
+            $rpcFactory->getRpc()
         );
 
-        $rpc = RPC::create($rpcConnection);
-
-        $factory = new Factory($rpc);
-
-        $this->storage = $factory->select(
-            config('rr-concurrency.kv.storage-name')
-        );
+        $this->storage = $factory->select($storageName);
     }
 
     public function finish(string $id, JobResultDto $result): void
