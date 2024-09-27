@@ -7,14 +7,14 @@ use Illuminate\Contracts\Foundation\Application;
 use RrConcurrency\Services\ConcurrencyJob;
 use RrConcurrency\Services\Dto\JobResultDto;
 use RrConcurrency\Services\Dto\JobResultsDto;
-use RrConcurrency\Services\JobsPayloadSerializer;
+use RrConcurrency\Services\ConcurrencyJobSerializer;
 use Throwable;
 
 readonly class ConcurrencySyncHandler implements ConcurrencyHandlerInterface
 {
     public function __construct(
         private Application $app,
-        private JobsPayloadSerializer $payloadSerializer,
+        private ConcurrencyJobSerializer $jobSerializer,
     ) {
     }
 
@@ -56,11 +56,11 @@ readonly class ConcurrencySyncHandler implements ConcurrencyHandlerInterface
 
     private function handleClosure(Closure $callback): mixed
     {
-        $payload = $this->payloadSerializer->serialize(
+        $payload = $this->jobSerializer->serialize(
             new ConcurrencyJob(callback: $callback, wait: false)
         );
 
-        $job = $this->payloadSerializer->unSerialize($payload);
+        $job = $this->jobSerializer->unSerialize($payload);
 
         return $this->app->call($job->getCallback());
     }

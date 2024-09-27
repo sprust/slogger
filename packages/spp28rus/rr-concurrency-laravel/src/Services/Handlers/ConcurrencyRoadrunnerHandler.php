@@ -9,7 +9,7 @@ use RrConcurrency\Exceptions\ConcurrencyWaitTimeoutException;
 use RrConcurrency\Services\ConcurrencyJob;
 use RrConcurrency\Services\Dto\JobResultDto;
 use RrConcurrency\Services\Dto\JobResultsDto;
-use RrConcurrency\Services\JobsPayloadSerializer;
+use RrConcurrency\Services\ConcurrencyJobSerializer;
 use RrConcurrency\Services\JobsWaiter;
 use RrConcurrency\Services\Roadrunner\RpcFactory;
 use Spiral\RoadRunner\Jobs\Exception\JobsException;
@@ -24,7 +24,7 @@ readonly class ConcurrencyRoadrunnerHandler implements ConcurrencyHandlerInterfa
 
     public function __construct(
         private RpcFactory $rpcFactory,
-        private JobsPayloadSerializer $payloadSerializer,
+        private ConcurrencyJobSerializer $jobSerializer,
         private JobsWaiter $waiter,
     ) {
         $this->jobs = new Jobs(
@@ -158,7 +158,7 @@ readonly class ConcurrencyRoadrunnerHandler implements ConcurrencyHandlerInterfa
 
     private function makePayload(ConcurrencyJob $job): string
     {
-        return $this->payloadSerializer->serialize($job);
+        return $this->jobSerializer->serialize($job);
     }
 
     private function makeQueue(): QueueInterface

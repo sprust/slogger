@@ -21,13 +21,13 @@ readonly class JobsServer
 {
     use DispatchesEvents;
 
-    private JobsPayloadSerializer $payloadSerializer;
+    private ConcurrencyJobSerializer $jobSerializer;
 
     public function __construct(
         private Application $app,
         private Worker $worker
     ) {
-        $this->payloadSerializer = $app->make(JobsPayloadSerializer::class);
+        $this->jobSerializer = $app->make(ConcurrencyJobSerializer::class);
     }
 
     public function serve(): void
@@ -75,7 +75,7 @@ readonly class JobsServer
             );
 
             try {
-                $job = $this->payloadSerializer->unSerialize($payload);
+                $job = $this->jobSerializer->unSerialize($payload);
 
                 $result = $app->call($job->getCallback());
 
