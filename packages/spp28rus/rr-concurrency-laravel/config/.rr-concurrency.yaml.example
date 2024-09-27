@@ -7,14 +7,13 @@ rpc:
 
 server:
   command: 'vendor/bin/rr-concurrency-jobs-worker.php'
-  relay: pipes
 
 jobs:
   timeout: 60
   pool:
-    num_workers: 3
+    num_workers: 10
     supervisor:
-      max_worker_memory: 100
+      max_worker_memory: 128
     allocate_timeout: 60s
     destroy_timeout: 60s
     debug: false
@@ -25,10 +24,12 @@ jobs:
       driver: memory
       config:
         priority: 10
-        prefetch: 10
+        prefetch: 100
+
 kv:
   concurrency:
     driver: memory
+    config: {}
 
 logs:
   mode: development
@@ -36,6 +37,6 @@ logs:
   file_logger_options:
     log_output: "storage/logs/rr-concurrent/rr-concurrent-log.log"
     max_size: 10
-    max_age: 10
-    max_backups: 3
+    max_age: 5
+    max_backups: 5
     compress: true
