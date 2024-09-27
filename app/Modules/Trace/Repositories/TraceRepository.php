@@ -336,26 +336,34 @@ readonly class TraceRepository implements TraceRepositoryInterface
         );
     }
 
-    public function findIds(
-        int $page = 1,
-        int $perPage = 20,
+    public function findTraceIds(
+        int $limit = 20,
         ?Carbon $loggedAtTo = null,
         ?string $type = null,
         ?array $excludedTypes = null
     ): array {
         $builder = Trace::query()
+            ->select(['tid'])
             ->when(
                 !is_null($loggedAtTo),
                 fn(Builder $query) => $query->where('lat', '<=', new UTCDateTime($loggedAtTo))
             )
-            ->when(!is_null($type), fn(Builder $query) => $query->where('tp', $type))
+            ->when(
+                !is_null($type),
+                fn(Builder $query) => $query->where('tp', $type)
+            )
             ->when(
                 is_null($type) && !is_null($excludedTypes),
                 fn(Builder $query) => $query->whereNotIn('tp', $excludedTypes)
             )
-            ->forPage(page: $page, perPage: $perPage);
+            ->toBase()
+            ->limit($limit);
 
-        return $builder->get()->pluck('_id')->all();
+        return $builder->get()
+            ->map(function (array $document) {
+                return (string) $document['tid'];
+            })
+            ->all();
     }
 
     public function findByTraceIds(array $traceIds): array
@@ -518,7 +526,10 @@ readonly class TraceRepository implements TraceRepositoryInterface
                 !is_null($loggedAtTo),
                 fn(Builder $query) => $query->where('lat', '<=', new UTCDateTime($loggedAtTo))
             )
-            ->when(!is_null($type), fn(Builder $query) => $query->where('tp', $type))
+            ->when(
+                !is_null($type),
+                fn(Builder $query) => $query->where('tp', $type)
+            )
             ->when(
                 is_null($type) && !is_null($excludedTypes),
                 fn(Builder $query) => $query->whereNotIn('tp', $excludedTypes)

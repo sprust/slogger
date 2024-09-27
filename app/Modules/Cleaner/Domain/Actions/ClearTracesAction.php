@@ -96,14 +96,9 @@ readonly class ClearTracesAction implements ClearTracesActionInterface
 
             $exception = null;
 
-            $page = 0;
-
             while (true) {
-                ++$page;
-
                 $traceIds = $this->findTraceIdsAction->handle(
-                    page: $page,
-                    perPage: 3000,
+                    limit: 1000,
                     loggedAtTo: $loggedAtTo,
                     type: $type,
                     excludedTypes: $excludedTypes

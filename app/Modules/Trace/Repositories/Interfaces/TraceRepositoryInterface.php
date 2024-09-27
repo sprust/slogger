@@ -73,9 +73,8 @@ interface TraceRepositoryInterface
     /**
      * @return string[]
      */
-    public function findIds(
-        int $page = 1,
-        int $perPage = 20,
+    public function findTraceIds(
+        int $limit = 20,
         ?Carbon $loggedAtTo = null,
         ?string $type = null,
         ?array $excludedTypes = null

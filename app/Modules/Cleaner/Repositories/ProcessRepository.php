@@ -70,6 +70,7 @@ class ProcessRepository implements ProcessRepositoryInterface
 
         $newProgress->settingId    = $settingId;
         $newProgress->clearedCount = $clearedCount;
+        $newProgress->error        = null;
         $newProgress->clearedAt    = $clearedAt;
 
         $newProgress->save();

@@ -9,18 +9,14 @@ use Illuminate\Support\Carbon;
 
 readonly class FindTraceIdsAction implements FindTraceIdsActionInterface
 {
-    private int $maxPerPage;
-
     public function __construct(
         private TraceDynamicIndexInitializer $traceDynamicIndexInitializer,
         private TraceRepositoryInterface $traceRepository
     ) {
-        $this->maxPerPage = 3000;
     }
 
     public function handle(
-        int $page,
-        int $perPage,
+        int $limit,
         Carbon $loggedAtTo,
         ?string $type = null,
         ?array $excludedTypes = null
@@ -30,11 +26,8 @@ readonly class FindTraceIdsAction implements FindTraceIdsActionInterface
             types: ($type || $excludedTypes) ? ['stub'] : [],
         );
 
-        $perPage = min($perPage ?: $this->maxPerPage, $this->maxPerPage);
-
-        return $this->traceRepository->findIds(
-            page: $page,
-            perPage: $perPage,
+        return $this->traceRepository->findTraceIds(
+            limit: $limit,
             loggedAtTo: $loggedAtTo,
             type: $type,
             excludedTypes: $excludedTypes

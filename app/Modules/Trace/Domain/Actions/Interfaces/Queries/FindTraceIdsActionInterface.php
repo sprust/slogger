@@ -17,8 +17,7 @@ interface FindTraceIdsActionInterface
      * @throws TraceDynamicIndexErrorException
      * */
     public function handle(
-        int $page,
-        int $perPage,
+        int $limit,
         Carbon $loggedAtTo,
         ?string $type = null,
         ?array $excludedTypes = null
