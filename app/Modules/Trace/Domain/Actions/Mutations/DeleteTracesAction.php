@@ -29,6 +29,7 @@ readonly class DeleteTracesAction implements DeleteTracesActionInterface
     {
         $this->traceDynamicIndexingActionService->handle(
             fn() => $this->traceDynamicIndexInitializer->init(
+                traceIds: $parameters->traceIds,
                 loggedAtFrom: $parameters->loggedAtFrom,
                 loggedAtTo: $parameters->loggedAtTo,
                 types: ['stub'],
@@ -36,6 +37,7 @@ readonly class DeleteTracesAction implements DeleteTracesActionInterface
         );
 
         return $this->traceRepository->deleteTraces(
+            traceIds: $parameters->traceIds,
             loggedAtFrom: $parameters->loggedAtFrom,
             loggedAtTo: $parameters->loggedAtTo,
             type: $parameters->type,

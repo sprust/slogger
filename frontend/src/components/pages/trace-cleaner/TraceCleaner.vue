@@ -27,21 +27,19 @@
         />
         <el-table v-else :data="store.state.processes[props.row.id]" :border="true">
           <el-table-column label="Cleared count" prop="cleared_count"/>
+          <el-table-column label="Created/Updated at" prop="created_at">
+            <template #default="scope">
+              {{ convertDateStringToLocal(scope.row.created_at, false) }}
+              <br>
+              {{ convertDateStringToLocal(scope.row.updated_at, false) }}
+            </template>
+          </el-table-column>
           <el-table-column label="Cleared at" prop="cleared_at">
             <template #default="scope">
               {{ scope.row.cleared_at ? convertDateStringToLocal(scope.row.cleared_at, false) : '' }}
             </template>
           </el-table-column>
-          <el-table-column label="Created at" prop="created_at">
-            <template #default="scope">
-              {{ convertDateStringToLocal(scope.row.created_at, false) }}
-            </template>
-          </el-table-column>
-          <el-table-column label="Updated at" prop="updated_at">
-            <template #default="scope">
-              {{ convertDateStringToLocal(scope.row.updated_at, false) }}
-            </template>
-          </el-table-column>
+          <el-table-column label="Error" prop="error"/>
         </el-table>
       </template>
     </el-table-column>
@@ -155,6 +153,8 @@ export default defineComponent({
     },
     tableExpandChange(setting: TraceCleanerSettingItem) {
       if (this.isSettingProcessLoaded(setting.id)) {
+        delete this.store.state.processes[setting.id]
+
         return
       }
 

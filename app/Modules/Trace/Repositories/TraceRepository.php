@@ -336,6 +336,36 @@ readonly class TraceRepository implements TraceRepositoryInterface
         );
     }
 
+    public function findTraceIds(
+        int $limit = 20,
+        ?Carbon $loggedAtTo = null,
+        ?string $type = null,
+        ?array $excludedTypes = null
+    ): array {
+        $builder = Trace::query()
+            ->select(['tid'])
+            ->when(
+                !is_null($loggedAtTo),
+                fn(Builder $query) => $query->where('lat', '<=', new UTCDateTime($loggedAtTo))
+            )
+            ->when(
+                !is_null($type),
+                fn(Builder $query) => $query->where('tp', $type)
+            )
+            ->when(
+                is_null($type) && !is_null($excludedTypes),
+                fn(Builder $query) => $query->whereNotIn('tp', $excludedTypes)
+            )
+            ->toBase()
+            ->limit($limit);
+
+        return $builder->get()
+            ->map(function (array $document) {
+                return (string) $document['tid'];
+            })
+            ->all();
+    }
+
     public function findByTraceIds(array $traceIds): array
     {
         /** @var TraceDto[] $children */
@@ -477,12 +507,17 @@ readonly class TraceRepository implements TraceRepositoryInterface
     }
 
     public function deleteTraces(
+        ?array $traceIds = null,
         ?Carbon $loggedAtFrom = null,
         ?Carbon $loggedAtTo = null,
         ?string $type = null,
         ?array $excludedTypes = null
     ): int {
         return Trace::query()
+            ->when(
+                !is_null($traceIds),
+                fn(Builder $query) => $query->whereIn('tid', $traceIds)
+            )
             ->when(
                 !is_null($loggedAtFrom),
                 fn(Builder $query) => $query->where('lat', '>=', new UTCDateTime($loggedAtFrom))
@@ -491,7 +526,10 @@ readonly class TraceRepository implements TraceRepositoryInterface
                 !is_null($loggedAtTo),
                 fn(Builder $query) => $query->where('lat', '<=', new UTCDateTime($loggedAtTo))
             )
-            ->when(!is_null($type), fn(Builder $query) => $query->where('tp', $type))
+            ->when(
+                !is_null($type),
+                fn(Builder $query) => $query->where('tp', $type)
+            )
             ->when(
                 is_null($type) && !is_null($excludedTypes),
                 fn(Builder $query) => $query->whereNotIn('tp', $excludedTypes)
@@ -500,6 +538,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
     }
 
     public function clearTraces(
+        ?array $traceIds = null,
         ?Carbon $loggedAtFrom = null,
         ?Carbon $loggedAtTo = null,
         ?string $type = null,
@@ -510,6 +549,10 @@ readonly class TraceRepository implements TraceRepositoryInterface
                 $query->where('cl', false)
                     ->orWhere('cl', 'exists', false);
             })
+            ->when(
+                !is_null($traceIds),
+                fn(Builder $query) => $query->whereIn('tid', $traceIds)
+            )
             ->when(
                 !is_null($loggedAtFrom),
                 fn(Builder $query) => $query->where('lat', '>=', new UTCDateTime($loggedAtFrom))

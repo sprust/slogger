@@ -8,6 +8,7 @@ use App\Modules\Cleaner\Repositories\Interfaces\ProcessRepositoryInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use MongoDB\BSON\UTCDateTime;
+use Throwable;
 
 class ProcessRepository implements ProcessRepositoryInterface
 {
@@ -27,6 +28,7 @@ class ProcessRepository implements ProcessRepositoryInterface
                 id: $process->_id,
                 settingId: $process->settingId,
                 clearedCount: $process->clearedCount,
+                error: $process->error,
                 clearedAt: $process->clearedAt,
                 createdAt: $process->createdAt,
                 updatedAt: $process->updatedAt
@@ -55,6 +57,7 @@ class ProcessRepository implements ProcessRepositoryInterface
             id: $process->_id,
             settingId: $process->settingId,
             clearedCount: $process->clearedCount,
+            error: $process->error,
             clearedAt: $process->clearedAt,
             createdAt: $process->createdAt,
             updatedAt: $process->updatedAt
@@ -65,9 +68,10 @@ class ProcessRepository implements ProcessRepositoryInterface
     {
         $newProgress = new TraceClearingProcess();
 
-        $newProgress->settingId = $settingId;
+        $newProgress->settingId    = $settingId;
         $newProgress->clearedCount = $clearedCount;
-        $newProgress->clearedAt = $clearedAt;
+        $newProgress->error        = null;
+        $newProgress->clearedAt    = $clearedAt;
 
         $newProgress->save();
 
@@ -75,18 +79,24 @@ class ProcessRepository implements ProcessRepositoryInterface
             id: $newProgress->_id,
             settingId: $newProgress->settingId,
             clearedCount: $newProgress->clearedCount,
+            error: $newProgress->error,
             clearedAt: $newProgress->clearedAt,
             createdAt: $newProgress->createdAt,
             updatedAt: $newProgress->updatedAt
         );
     }
 
-    public function update(string $processId, int $clearedCount, ?Carbon $clearedAt): void
-    {
+    public function update(
+        string $processId,
+        int $clearedCount,
+        ?Carbon $clearedAt,
+        Throwable $exception = null
+    ): void {
         TraceClearingProcess::query()
             ->where('_id', $processId)
             ->update([
                 'clearedCount' => $clearedCount,
+                'error'        => $exception?->getMessage(),
                 'clearedAt'    => $clearedAt ? new UTCDateTime($clearedAt) : null,
             ]);
     }

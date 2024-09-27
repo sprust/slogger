@@ -71,6 +71,16 @@ interface TraceRepositoryInterface
     ): TraceItemsPaginationDto;
 
     /**
+     * @return string[]
+     */
+    public function findTraceIds(
+        int $limit = 20,
+        ?Carbon $loggedAtTo = null,
+        ?string $type = null,
+        ?array $excludedTypes = null
+    ): array;
+
+    /**
      * @param string[] $traceIds
      *
      * @return TraceDto[]
@@ -87,9 +97,13 @@ interface TraceRepositoryInterface
     public function findProfilingByTraceId(string $traceId): ?TraceProfilingDto;
 
     /**
+     * @param string[]|null $traceIds
+     * @param string[]|null $excludedTypes
+     *
      * @return int - number of deleted records
      */
     public function deleteTraces(
+        ?array $traceIds = null,
         ?Carbon $loggedAtFrom = null,
         ?Carbon $loggedAtTo = null,
         ?string $type = null,
@@ -97,11 +111,13 @@ interface TraceRepositoryInterface
     ): int;
 
     /**
+     * @param string[]|null $traceIds
      * @param string[]|null $excludedTypes
      *
      * @return int - number of cleared records
      */
     public function clearTraces(
+        ?array $traceIds = null,
         ?Carbon $loggedAtFrom = null,
         ?Carbon $loggedAtTo = null,
         ?string $type = null,

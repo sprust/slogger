@@ -11,25 +11,33 @@ use App\Modules\Common\EventsDispatcher;
 use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\ClearTracesActionInterface as TraceClearTracesActionInterface;
 use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\DeleteTracesActionInterface;
 use App\Modules\Trace\Domain\Actions\Interfaces\Queries\FindMinLoggedAtTracesActionInterface;
+use App\Modules\Trace\Domain\Actions\Interfaces\Queries\FindTraceIdsActionInterface;
 use App\Modules\Trace\Domain\Entities\Parameters\ClearTracesParameters;
 use App\Modules\Trace\Domain\Entities\Parameters\DeleteTracesParameters;
+use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexErrorException;
+use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexInProcessException;
+use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexNotInitException;
 use Illuminate\Support\Arr;
+use Throwable;
 
 readonly class ClearTracesAction implements ClearTracesActionInterface
 {
-    private int $stepInHours;
-
     public function __construct(
         private EventsDispatcher $eventsDispatcher,
         private SettingRepositoryInterface $settingRepository,
         private ProcessRepositoryInterface $processRepository,
         private FindMinLoggedAtTracesActionInterface $findMinLoggedAtTracesAction,
         private TraceClearTracesActionInterface $clearTracesAction,
+        private FindTraceIdsActionInterface $findTraceIdsAction,
         private DeleteTracesActionInterface $deleteTracesAction,
     ) {
-        $this->stepInHours = 3;
     }
 
+    /**
+     * @throws TraceDynamicIndexErrorException
+     * @throws TraceDynamicIndexInProcessException
+     * @throws TraceDynamicIndexNotInitException
+     */
     public function handle(): void
     {
         /** @var SettingDto[] $settings */
@@ -55,7 +63,7 @@ readonly class ClearTracesAction implements ClearTracesActionInterface
                     $settings
                 )
             )
-        );
+        ) ?: null;
 
         $now = now('UTC');
 
@@ -76,7 +84,7 @@ readonly class ClearTracesAction implements ClearTracesActionInterface
             $loggedAtTo = $now->clone()->subDays($setting->daysLifetime);
 
             $type = $setting->type;
-            $excludedTypes = is_null($type) ? $customizedTypes : [];
+            $excludedTypes = is_null($type) ? $customizedTypes : null;
 
             $process = $this->processRepository->create(
                 settingId: $setting->id,
@@ -84,32 +92,39 @@ readonly class ClearTracesAction implements ClearTracesActionInterface
                 clearedAt: null
             );
 
-            $dateCursor = $loggedAtFrom->clone();
-
             $clearedCount = 0;
 
-            while ($dateCursor->lt($loggedAtTo)) {
-                if ($setting->onlyData) {
-                    $clearedCount += $this->clearTracesAction->handle(
-                        new ClearTracesParameters(
-                            loggedAtFrom: $dateCursor,
-                            loggedAtTo: $loggedAtTo,
-                            type: $type,
-                            excludedTypes: $excludedTypes
-                        )
-                    );
-                } else {
-                    $clearedCount += $this->deleteTracesAction->handle(
-                        new DeleteTracesParameters(
-                            loggedAtFrom: $dateCursor,
-                            loggedAtTo: $loggedAtTo,
-                            type: $type,
-                            excludedTypes: $excludedTypes
-                        )
-                    );
+            $exception = null;
+
+            while (true) {
+                $traceIds = $this->findTraceIdsAction->handle(
+                    limit: 1000,
+                    loggedAtTo: $loggedAtTo,
+                    type: $type,
+                    excludedTypes: $excludedTypes
+                );
+
+                if (count($traceIds) === 0) {
+                    break;
                 }
 
-                $dateCursor->addHours($this->stepInHours);
+                try {
+                    if ($setting->onlyData) {
+                        $clearedCount += $this->clearTracesAction->handle(
+                            new ClearTracesParameters(
+                                traceIds: $traceIds
+                            )
+                        );
+                    } else {
+                        $clearedCount += $this->deleteTracesAction->handle(
+                            new DeleteTracesParameters(
+                                traceIds: $traceIds
+                            )
+                        );
+                    }
+                } catch (Throwable $exception) {
+                    break;
+                }
 
                 $this->processRepository->update(
                     processId: $process->id,
@@ -118,7 +133,7 @@ readonly class ClearTracesAction implements ClearTracesActionInterface
                 );
             }
 
-            if ($clearedCount === 0) {
+            if (!$exception && $clearedCount === 0) {
                 $this->processRepository->deleteByProcessId(
                     processId: $process->id
                 );
@@ -126,7 +141,8 @@ readonly class ClearTracesAction implements ClearTracesActionInterface
                 $this->processRepository->update(
                     processId: $process->id,
                     clearedCount: $clearedCount,
-                    clearedAt: now()
+                    clearedAt: now(),
+                    exception: $exception
                 );
             }
         }

@@ -13,6 +13,7 @@ class ProcessTransport
             id: $dto->id,
             settingId: $dto->settingId,
             clearedCount: $dto->clearedCount,
+            error: $dto->error,
             clearedAt: $dto->clearedAt,
             createdAt: $dto->createdAt,
             updatedAt: $dto->updatedAt,
