@@ -44,7 +44,9 @@ readonly class JobsMonitor
 
             dump("- removing excess: $removingCount");
 
-            while ($removingCount--) {
+            $index = $removingCount;
+
+            while ($index--) {
                 $this->pool->removeWorker($pluginName);
             }
 
@@ -84,7 +86,9 @@ readonly class JobsMonitor
 
                     dump("- removing free: $removingCount");
 
-                    while ($removingCount--) {
+                    $index = $removingCount;
+
+                    while ($index--) {
                         $this->pool->removeWorker($pluginName);
                     }
 
@@ -105,7 +109,9 @@ readonly class JobsMonitor
 
         dump("+ adding: $addingCount");
 
-        while ($addingCount--) {
+        $index = $addingCount;
+
+        while ($index--) {
             $this->pool->addWorker($pluginName);
         }
 
