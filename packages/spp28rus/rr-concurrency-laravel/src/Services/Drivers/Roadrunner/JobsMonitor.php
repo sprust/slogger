@@ -9,15 +9,17 @@ use RrConcurrency\Events\MonitorRemovedExcessWorkersEvent;
 use RrConcurrency\Events\MonitorRemovedFreeWorkersEvent;
 use Spiral\RoadRunner\WorkerPool;
 
-readonly class JobsMonitor
+class JobsMonitor
 {
     use DispatchesEvents;
 
-    private WorkerPool $pool;
-    private Application $app;
+    private readonly WorkerPool $pool;
+    private readonly Application $app;
 
-    private int $dangerFreePercent;
-    private int $percentStep;
+    private readonly int $dangerFreePercent;
+    private readonly int $percentStep;
+    private readonly int $removingPeriodicityInSeconds;
+    private int $workersCountEditedTime;
 
     public function __construct(RpcFactory $rpcFactory, Application $app)
     {
@@ -26,8 +28,10 @@ readonly class JobsMonitor
         );
         $this->app  = $app;
 
-        $this->dangerFreePercent = 30;
-        $this->percentStep       = 100 - $this->dangerFreePercent;
+        $this->dangerFreePercent            = 30;
+        $this->percentStep                  = 100 - $this->dangerFreePercent;
+        $this->removingPeriodicityInSeconds = 10;
+        $this->workersCountEditedTime       = time();
     }
 
     public function handle(string $pluginName, int $defaultWorkersCount, int $maxWorkersCount): void
@@ -38,8 +42,6 @@ readonly class JobsMonitor
 
         if ($totalCount > $maxWorkersCount) {
             $removingCount = $totalCount - $maxWorkersCount;
-
-            $removingCount = ceil($removingCount * .1);
 
             dump("- removing excess: $removingCount");
 
@@ -78,10 +80,12 @@ readonly class JobsMonitor
             if ($totalCount > $defaultWorkersCount) {
                 $workingPercentByDefault = $workingCount / $defaultWorkersCount * 100;
 
-                if ($workingPercentByDefault < $this->percentStep) {
+                if ($workingPercentByDefault < $this->percentStep
+                    && (time() - $this->workersCountEditedTime) > $this->removingPeriodicityInSeconds
+                ) {
                     $removingCount = $totalCount - $defaultWorkersCount;
 
-                    $removingCount = ceil($removingCount * .1);
+                    $removingCount = ceil($removingCount * .2);
 
                     dump("- removing free: $removingCount");
 
@@ -98,6 +102,8 @@ readonly class JobsMonitor
                             currentTotalCount: $totalCount
                         )
                     );
+
+                    $this->workersCountEditedTime = time();
                 }
             }
 
@@ -121,5 +127,7 @@ readonly class JobsMonitor
                 currentTotalCount: $totalCount
             )
         );
+
+        $this->workersCountEditedTime = time();
     }
 }
