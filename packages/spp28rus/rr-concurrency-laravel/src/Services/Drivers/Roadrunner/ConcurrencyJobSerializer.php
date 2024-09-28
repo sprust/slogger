@@ -1,6 +1,6 @@
 <?php
 
-namespace RrConcurrency\Services;
+namespace RrConcurrency\Services\Drivers\Roadrunner;
 
 class ConcurrencyJobSerializer
 {

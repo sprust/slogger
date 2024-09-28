@@ -1,13 +1,12 @@
 <?php
 
-namespace RrConcurrency\Services;
+namespace RrConcurrency\Services\Drivers\Roadrunner;
 
 use Illuminate\Contracts\Foundation\Application;
 use Laravel\Octane\DispatchesEvents;
 use RrConcurrency\Events\MonitorAddedWorkersEvent;
 use RrConcurrency\Events\MonitorRemovedExcessWorkersEvent;
 use RrConcurrency\Events\MonitorRemovedFreeWorkersEvent;
-use RrConcurrency\Services\Roadrunner\RpcFactory;
 use Spiral\RoadRunner\WorkerPool;
 
 readonly class JobsMonitor

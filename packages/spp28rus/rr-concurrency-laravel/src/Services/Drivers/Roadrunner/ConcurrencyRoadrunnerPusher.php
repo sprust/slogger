@@ -1,17 +1,12 @@
 <?php
 
-namespace RrConcurrency\Services\Handlers;
+namespace RrConcurrency\Services\Drivers\Roadrunner;
 
 use Closure;
 use Illuminate\Support\Str;
 use RrConcurrency\Exceptions\ConcurrencyJobsException;
-use RrConcurrency\Exceptions\ConcurrencyWaitTimeoutException;
-use RrConcurrency\Services\ConcurrencyJob;
-use RrConcurrency\Services\Dto\JobResultDto;
-use RrConcurrency\Services\Dto\JobResultsDto;
-use RrConcurrency\Services\ConcurrencyJobSerializer;
-use RrConcurrency\Services\JobsWaiter;
-use RrConcurrency\Services\Roadrunner\RpcFactory;
+use RrConcurrency\Services\ConcurrencyPusherInterface;
+use RrConcurrency\Services\WaitGroupInterface;
 use Spiral\RoadRunner\Jobs\Exception\JobsException;
 use Spiral\RoadRunner\Jobs\Jobs;
 use Spiral\RoadRunner\Jobs\QueueInterface;
@@ -41,7 +36,7 @@ readonly class ConcurrencyRoadrunnerPusher implements ConcurrencyPusherInterface
         }
     }
 
-    public function wait(array $callbacks, int $waitSeconds): JobResultsDto
+    public function wait(array $callbacks): WaitGroupInterface
     {
         try {
             $jobs = $this->pushMany(
@@ -59,59 +54,7 @@ readonly class ConcurrencyRoadrunnerPusher implements ConcurrencyPusherInterface
             );
         }
 
-        /** @var JobResultDto[] $failedJobs */
-        $failedJobs = [];
-
-        $expectedCount = count($callbacks);
-
-        /** @var JobResultDto[] $results */
-        $results = [];
-
-        $start = time();
-
-        while (true) {
-            if (count($results) === $expectedCount) {
-                break;
-            }
-
-            if ((time() - $start) > $waitSeconds) {
-                throw new ConcurrencyWaitTimeoutException();
-            }
-
-            for ($index = 0; $index < $expectedCount; $index++) {
-                $job = $jobs[$index];
-
-                if (array_key_exists($index, $results)) {
-                    continue;
-                }
-
-                $result = $this->waiter->result(
-                    id: $job->getId()
-                );
-
-                if (!$result) {
-                    continue;
-                }
-
-                $results[$index] = $result;
-
-                if ($result->error) {
-                    $failedJobs[$index] = $result;
-                }
-            }
-
-            foreach ($jobs as $job) {
-                $job->getId();
-            }
-        }
-
-        ksort($results);
-        ksort($failedJobs);
-
-        return new JobResultsDto(
-            results: $results,
-            failed: $failedJobs
-        );
+        return new WaitGroup($jobs, $this->waiter);
     }
 
     /**

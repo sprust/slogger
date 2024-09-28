@@ -1,6 +1,6 @@
 <?php
 
-namespace RrConcurrency\Services\Roadrunner;
+namespace RrConcurrency\Services\Drivers\Roadrunner;
 
 use Spiral\Goridge\RPC\RPC;
 use Spiral\Goridge\RPC\RPCInterface;

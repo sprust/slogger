@@ -1,9 +1,8 @@
 <?php
 
-namespace RrConcurrency\Services;
+namespace RrConcurrency\Services\Drivers\Roadrunner;
 
 use RrConcurrency\Services\Dto\JobResultDto;
-use RrConcurrency\Services\Roadrunner\RpcFactory;
 use Spiral\RoadRunner\KeyValue\Factory;
 use Spiral\RoadRunner\KeyValue\StorageInterface;
 

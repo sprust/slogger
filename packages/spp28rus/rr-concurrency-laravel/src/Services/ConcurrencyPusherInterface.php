@@ -1,11 +1,9 @@
 <?php
 
-namespace RrConcurrency\Services\Handlers;
+namespace RrConcurrency\Services;
 
 use Closure;
 use RrConcurrency\Exceptions\ConcurrencyJobsException;
-use RrConcurrency\Exceptions\ConcurrencyWaitTimeoutException;
-use RrConcurrency\Services\Dto\JobResultsDto;
 
 interface ConcurrencyPusherInterface
 {
@@ -18,7 +16,6 @@ interface ConcurrencyPusherInterface
      * @param Closure[] $callbacks
      *
      * @throws ConcurrencyJobsException
-     * @throws ConcurrencyWaitTimeoutException
      */
-    public function wait(array $callbacks, int $waitSeconds): JobResultsDto;
+    public function wait(array $callbacks): WaitGroupInterface;
 }

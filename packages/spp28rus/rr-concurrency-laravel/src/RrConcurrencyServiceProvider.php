@@ -6,10 +6,10 @@ use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use RrConcurrency\Commands\JobsMonitorCommand;
-use RrConcurrency\Services\Handlers\ConcurrencyRoadrunnerPusher;
-use RrConcurrency\Services\Handlers\ConcurrencyPusherInterface;
-use RrConcurrency\Services\JobsWaiter;
-use RrConcurrency\Services\Roadrunner\RpcFactory;
+use RrConcurrency\Services\ConcurrencyPusherInterface;
+use RrConcurrency\Services\Drivers\Roadrunner\ConcurrencyRoadrunnerPusher;
+use RrConcurrency\Services\Drivers\Roadrunner\JobsWaiter;
+use RrConcurrency\Services\Drivers\Roadrunner\RpcFactory;
 
 class RrConcurrencyServiceProvider extends ServiceProvider
 {

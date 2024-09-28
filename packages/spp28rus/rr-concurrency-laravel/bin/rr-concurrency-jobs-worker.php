@@ -2,7 +2,7 @@
 <?php
 
 use Laravel\Octane\ApplicationFactory;
-use RrConcurrency\Services\JobsServer;
+use RrConcurrency\Services\Drivers\Roadrunner\JobsServer;
 use Spiral\RoadRunner\Worker;
 
 $basePath = __DIR__ . '/../../../../';

@@ -3,7 +3,7 @@
 namespace RrConcurrency\Commands;
 
 use Illuminate\Console\Command;
-use RrConcurrency\Services\JobsMonitor;
+use RrConcurrency\Services\Drivers\Roadrunner\JobsMonitor;
 
 class JobsMonitorCommand extends Command
 {
