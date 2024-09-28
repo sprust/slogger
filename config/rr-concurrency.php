@@ -1,12 +1,12 @@
 <?php
 
-use RrConcurrency\Events\PayloadHandledEvent;
-use RrConcurrency\Events\PayloadHandlingErrorEvent;
-use RrConcurrency\Events\PayloadReceivedEvent;
-use RrConcurrency\Events\JobsServerErrorEvent;
-use RrConcurrency\Events\WorkerErrorEvent;
-use RrConcurrency\Events\WorkerStartingEvent;
-use RrConcurrency\Events\WorkerStoppingEvent;
+use RrConcurrency\Events\JobHandledEvent;
+use RrConcurrency\Events\JobHandlingErrorEvent;
+use RrConcurrency\Events\JobReceivedEvent;
+use RrConcurrency\Events\WorkerServeErrorEvent;
+use RrConcurrency\Events\JobWaitingErrorEvent;
+use RrConcurrency\Events\WorkerStartedEvent;
+use RrConcurrency\Events\WorkerStoppedEvent;
 
 return [
     'rpc'     => [
@@ -19,19 +19,19 @@ return [
     ],
     'jobs'    => [
         'listeners' => [
-            PayloadHandledEvent::class       => [],
-            PayloadHandlingErrorEvent::class => [
-                \RrConcurrency\Listeners\PayloadHandlingErrorListener::class,
+            JobHandledEvent::class           => [],
+            JobHandlingErrorEvent::class => [
+                \RrConcurrency\Listeners\JobHandlingErrorListener::class,
             ],
-            PayloadReceivedEvent::class      => [],
-            JobsServerErrorEvent::class      => [
-                \RrConcurrency\Listeners\JobsServerErrorListener::class,
+            JobReceivedEvent::class      => [],
+            WorkerServeErrorEvent::class => [
+                \RrConcurrency\Listeners\WorkerServeErrorListener::class,
             ],
-            WorkerErrorEvent::class          => [
-                \RrConcurrency\Listeners\WorkerErrorListener::class,
+            JobWaitingErrorEvent::class  => [
+                \RrConcurrency\Listeners\JobWaitingErrorListener::class,
             ],
-            WorkerStartingEvent::class       => [],
-            WorkerStoppingEvent::class       => [],
+            WorkerStartedEvent::class    => [],
+            WorkerStoppedEvent::class    => [],
         ],
     ],
     'kv'      => [

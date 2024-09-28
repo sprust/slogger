@@ -4,11 +4,12 @@ namespace RrConcurrency\Events;
 
 use Illuminate\Foundation\Application;
 
-class PayloadReceivedEvent
+class JobHandledEvent
 {
     public function __construct(
         public Application $app,
-        public string $payload
+        public string $payload,
+        public mixed $result
     ) {
     }
 }

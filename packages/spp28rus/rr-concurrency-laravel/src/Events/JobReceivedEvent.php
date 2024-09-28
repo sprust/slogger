@@ -3,14 +3,12 @@
 namespace RrConcurrency\Events;
 
 use Illuminate\Foundation\Application;
-use Throwable;
 
-class PayloadHandlingErrorEvent
+class JobReceivedEvent
 {
     public function __construct(
         public Application $app,
-        public string $payload,
-        public Throwable $exception
+        public string $payload
     ) {
     }
 }

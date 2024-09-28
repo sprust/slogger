@@ -4,7 +4,7 @@ namespace RrConcurrency\Events;
 
 use Illuminate\Foundation\Application;
 
-class WorkerStartingEvent
+class WorkerStoppedEvent
 {
     public function __construct(public Application $app)
     {

@@ -5,13 +5,13 @@ namespace RrConcurrency\Services;
 use Illuminate\Foundation\Application;
 use Laravel\Octane\CurrentApplication;
 use Laravel\Octane\DispatchesEvents;
-use RrConcurrency\Events\JobsServerErrorEvent;
-use RrConcurrency\Events\PayloadHandledEvent;
-use RrConcurrency\Events\PayloadHandlingErrorEvent;
-use RrConcurrency\Events\PayloadReceivedEvent;
-use RrConcurrency\Events\WorkerErrorEvent;
-use RrConcurrency\Events\WorkerStartingEvent;
-use RrConcurrency\Events\WorkerStoppingEvent;
+use RrConcurrency\Events\WorkerServeErrorEvent;
+use RrConcurrency\Events\JobHandledEvent;
+use RrConcurrency\Events\JobHandlingErrorEvent;
+use RrConcurrency\Events\JobReceivedEvent;
+use RrConcurrency\Events\JobWaitingErrorEvent;
+use RrConcurrency\Events\WorkerStartedEvent;
+use RrConcurrency\Events\WorkerStoppedEvent;
 use RrConcurrency\Services\Dto\JobResultDto;
 use Spiral\RoadRunner\Jobs\Consumer;
 use Spiral\RoadRunner\Worker;
@@ -36,8 +36,11 @@ readonly class JobsServer
             $this->onServe();
         } catch (Throwable $exception) {
             $this->dispatchEvent(
-                $this->app,
-                new JobsServerErrorEvent($this->app, $exception)
+                app: $this->app,
+                event: new WorkerServeErrorEvent(
+                    app: $this->app,
+                    exception: $exception
+                )
             );
         }
     }
@@ -46,7 +49,7 @@ readonly class JobsServer
     {
         $this->dispatchEvent(
             $this->app,
-            new WorkerStartingEvent($this->app)
+            new WorkerStartedEvent($this->app)
         );
 
         $consumer = new Consumer($this->worker);
@@ -57,7 +60,7 @@ readonly class JobsServer
             } catch (Throwable $exception) {
                 $this->dispatchEvent(
                     app: $this->app,
-                    event: new WorkerErrorEvent($exception)
+                    event: new JobWaitingErrorEvent($exception)
                 );
 
                 break;
@@ -71,7 +74,7 @@ readonly class JobsServer
 
             $this->dispatchEvent(
                 app: $app,
-                event: new PayloadReceivedEvent($app, $payload)
+                event: new JobReceivedEvent($app, $payload)
             );
 
             try {
@@ -92,7 +95,7 @@ readonly class JobsServer
 
                 $this->dispatchEvent(
                     app: $app,
-                    event: new PayloadHandledEvent(
+                    event: new JobHandledEvent(
                         app: $app,
                         payload: $payload,
                         result: $result
@@ -110,7 +113,7 @@ readonly class JobsServer
 
                 $this->dispatchEvent(
                     app: $app,
-                    event: new PayloadHandlingErrorEvent(
+                    event: new JobHandlingErrorEvent(
                         app: $app,
                         payload: $payload,
                         exception: $exception
@@ -127,7 +130,7 @@ readonly class JobsServer
 
         $this->dispatchEvent(
             app: $this->app,
-            event: new WorkerStoppingEvent($this->app)
+            event: new WorkerStoppedEvent($this->app)
         );
     }
 }
