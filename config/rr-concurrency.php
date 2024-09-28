@@ -3,9 +3,9 @@
 use RrConcurrency\Events\JobHandledEvent;
 use RrConcurrency\Events\JobHandlingErrorEvent;
 use RrConcurrency\Events\JobReceivedEvent;
-use RrConcurrency\Events\MonitorAddedWorkersEvent;
-use RrConcurrency\Events\MonitorRemovedExcessWorkersEvent;
-use RrConcurrency\Events\MonitorRemovedFreeWorkersEvent;
+use RrConcurrency\Events\MonitorWorkersAddedEvent;
+use RrConcurrency\Events\MonitorExcessWorkersRemovedEvent;
+use RrConcurrency\Events\MonitorFreeWorkersRemovedEvent;
 use RrConcurrency\Events\WorkerServeErrorEvent;
 use RrConcurrency\Events\JobWaitingErrorEvent;
 use RrConcurrency\Events\WorkerStartedEvent;
@@ -41,9 +41,9 @@ return [
                 JobHandlingErrorListener::class,
             ],
             // monitor
-            MonitorAddedWorkersEvent::class         => [],
-            MonitorRemovedFreeWorkersEvent::class   => [],
-            MonitorRemovedExcessWorkersEvent::class => [],
+            MonitorWorkersAddedEvent::class         => [],
+            MonitorFreeWorkersRemovedEvent::class   => [],
+            MonitorExcessWorkersRemovedEvent::class => [],
         ],
     ],
     'kv'      => [

@@ -2,7 +2,7 @@
 
 namespace RrConcurrency\Events;
 
-readonly class MonitorAddedWorkersEvent
+readonly class MonitorFreeWorkersRemovedEvent
 {
     public function __construct(
         public int $count,
