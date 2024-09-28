@@ -6,8 +6,8 @@ use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use RrConcurrency\Commands\JobsMonitorCommand;
-use RrConcurrency\Services\Handlers\ConcurrencyRoadrunnerHandler;
-use RrConcurrency\Services\Handlers\ConcurrencyHandlerInterface;
+use RrConcurrency\Services\Handlers\ConcurrencyRoadrunnerPusher;
+use RrConcurrency\Services\Handlers\ConcurrencyPusherInterface;
 use RrConcurrency\Services\JobsWaiter;
 use RrConcurrency\Services\Roadrunner\RpcFactory;
 
@@ -50,8 +50,8 @@ class RrConcurrencyServiceProvider extends ServiceProvider
             );
         });
         $this->app->singleton(
-            ConcurrencyHandlerInterface::class,
-            ConcurrencyRoadrunnerHandler::class
+            ConcurrencyPusherInterface::class,
+            ConcurrencyRoadrunnerPusher::class
         );
 
         $this->publishes(

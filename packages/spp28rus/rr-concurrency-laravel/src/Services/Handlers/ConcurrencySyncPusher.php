@@ -10,7 +10,7 @@ use RrConcurrency\Services\Dto\JobResultsDto;
 use RrConcurrency\Services\ConcurrencyJobSerializer;
 use Throwable;
 
-readonly class ConcurrencySyncHandler implements ConcurrencyHandlerInterface
+readonly class ConcurrencySyncPusher implements ConcurrencyPusherInterface
 {
     public function __construct(
         private Application $app,
@@ -18,7 +18,7 @@ readonly class ConcurrencySyncHandler implements ConcurrencyHandlerInterface
     ) {
     }
 
-    public function handle(Closure $callback): void
+    public function push(Closure $callback): void
     {
         $this->handleClosure($callback);
     }

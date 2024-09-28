@@ -7,12 +7,12 @@ use RrConcurrency\Exceptions\ConcurrencyJobsException;
 use RrConcurrency\Exceptions\ConcurrencyWaitTimeoutException;
 use RrConcurrency\Services\Dto\JobResultsDto;
 
-interface ConcurrencyHandlerInterface
+interface ConcurrencyPusherInterface
 {
     /**
      * @throws ConcurrencyJobsException
      */
-    public function handle(Closure $callback): void;
+    public function push(Closure $callback): void;
 
     /**
      * @param Closure[] $callbacks

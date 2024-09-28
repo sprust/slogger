@@ -18,7 +18,7 @@ use Spiral\RoadRunner\Jobs\QueueInterface;
 use Spiral\RoadRunner\Jobs\Task\PreparedTaskInterface;
 use Spiral\RoadRunner\Jobs\Task\QueuedTaskInterface;
 
-readonly class ConcurrencyRoadrunnerHandler implements ConcurrencyHandlerInterface
+readonly class ConcurrencyRoadrunnerPusher implements ConcurrencyPusherInterface
 {
     private Jobs $jobs;
 
@@ -32,10 +32,10 @@ readonly class ConcurrencyRoadrunnerHandler implements ConcurrencyHandlerInterfa
         );
     }
 
-    public function handle(Closure $callback): void
+    public function push(Closure $callback): void
     {
         try {
-            $this->push(new ConcurrencyJob(callback: $callback, wait: false));
+            $this->pushJob(new ConcurrencyJob(callback: $callback, wait: false));
         } catch (JobsException $exception) {
             throw new ConcurrencyJobsException(previous: $exception);
         }
@@ -117,7 +117,7 @@ readonly class ConcurrencyRoadrunnerHandler implements ConcurrencyHandlerInterfa
     /**
      * @throws JobsException
      */
-    private function push(ConcurrencyJob $job): QueuedTaskInterface
+    private function pushJob(ConcurrencyJob $job): QueuedTaskInterface
     {
         return $this->pushRaw(
             payload: $this->makePayload($job),
