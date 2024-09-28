@@ -1,13 +1,16 @@
 
-# RoadRunner concurrency for laravel 
+# Concurrency for laravel 
 
 ## Installation
 
-### App
+```bash
+php artisan vendor:publish --tag=rr-concurrency-laravel
+```
+
+### App (RR driver)
 
 system:
 ```bash
-./vendor/bin/rr get-binary
 php artisan vendor:publish --tag=rr-concurrency-laravel
 ```
 
@@ -33,6 +36,14 @@ supervisor example:
 command= /app./rr serve --dotenv /app/.env -c /app/.rr-concurrency.yaml
 stdout_logfile=/var/log/supervisor/rr-server-out.log
 stderr_logfile=/var/log/supervisor/rr-server-err.log
+autostart=true
+autorestart=true
+startsecs=0
+
+[program:rr-jobs-monitor]
+command= php /app/artisan rr-concurrency:monitor
+stdout_logfile=/var/log/supervisor/rr-jobs-monitor-out.log
+stderr_logfile=/var/log/supervisor/rr-jobs-monitor-err.log
 autostart=true
 autorestart=true
 startsecs=0
