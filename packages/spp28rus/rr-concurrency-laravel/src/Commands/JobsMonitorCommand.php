@@ -26,8 +26,8 @@ class JobsMonitorCommand extends Command
      */
     public function handle(JobsMonitor $jobsMonitor)
     {
-        $defaultWorkersCount = config('rr-concurrency.jobs.workers.number');
-        $maxWorkersCount = config('rr-concurrency.jobs.workers.max_number');
+        $defaultWorkersCount = config('rr-concurrency.workers.number');
+        $maxWorkersCount     = config('rr-concurrency.workers.max_number');
 
         while (true) {
             $jobsMonitor->handle(
@@ -36,7 +36,7 @@ class JobsMonitorCommand extends Command
                 maxWorkersCount: $maxWorkersCount,
             );
 
-            usleep(1000);
+            sleep(1);
         }
     }
 }

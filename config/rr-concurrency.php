@@ -3,10 +3,16 @@
 use RrConcurrency\Events\JobHandledEvent;
 use RrConcurrency\Events\JobHandlingErrorEvent;
 use RrConcurrency\Events\JobReceivedEvent;
+use RrConcurrency\Events\MonitorAddedWorkersEvent;
+use RrConcurrency\Events\MonitorRemovedExcessWorkersEvent;
+use RrConcurrency\Events\MonitorRemovedFreeWorkersEvent;
 use RrConcurrency\Events\WorkerServeErrorEvent;
 use RrConcurrency\Events\JobWaitingErrorEvent;
 use RrConcurrency\Events\WorkerStartedEvent;
 use RrConcurrency\Events\WorkerStoppedEvent;
+use RrConcurrency\Listeners\WorkerServeErrorListener;
+use RrConcurrency\Listeners\JobHandlingErrorListener;
+use RrConcurrency\Listeners\JobWaitingErrorListener;
 
 return [
     'rpc'     => [
@@ -19,19 +25,25 @@ return [
     ],
     'jobs'    => [
         'listeners' => [
-            JobHandledEvent::class           => [],
-            JobHandlingErrorEvent::class => [
-                \RrConcurrency\Listeners\JobHandlingErrorListener::class,
+            // workers
+            WorkerServeErrorEvent::class            => [
+                WorkerServeErrorListener::class,
             ],
-            JobReceivedEvent::class      => [],
-            WorkerServeErrorEvent::class => [
-                \RrConcurrency\Listeners\WorkerServeErrorListener::class,
+            WorkerStartedEvent::class               => [],
+            WorkerStoppedEvent::class               => [],
+            // jobs
+            JobWaitingErrorEvent::class             => [
+                JobWaitingErrorListener::class,
             ],
-            JobWaitingErrorEvent::class  => [
-                \RrConcurrency\Listeners\JobWaitingErrorListener::class,
+            JobReceivedEvent::class                 => [],
+            JobHandledEvent::class                  => [],
+            JobHandlingErrorEvent::class            => [
+                JobHandlingErrorListener::class,
             ],
-            WorkerStartedEvent::class    => [],
-            WorkerStoppedEvent::class    => [],
+            // monitor
+            MonitorAddedWorkersEvent::class         => [],
+            MonitorRemovedFreeWorkersEvent::class   => [],
+            MonitorRemovedExcessWorkersEvent::class => [],
         ],
     ],
     'kv'      => [

@@ -2,21 +2,30 @@
 
 namespace RrConcurrency\Services;
 
+use Illuminate\Contracts\Foundation\Application;
+use Laravel\Octane\DispatchesEvents;
+use RrConcurrency\Events\MonitorAddedWorkersEvent;
+use RrConcurrency\Events\MonitorRemovedExcessWorkersEvent;
+use RrConcurrency\Events\MonitorRemovedFreeWorkersEvent;
 use RrConcurrency\Services\Roadrunner\RpcFactory;
 use Spiral\RoadRunner\WorkerPool;
 
 readonly class JobsMonitor
 {
+    use DispatchesEvents;
+
     private WorkerPool $pool;
+    private Application $app;
 
     private int $dangerFreePercent;
     private int $percentStep;
 
-    public function __construct(RpcFactory $rpcFactory)
+    public function __construct(RpcFactory $rpcFactory, Application $app)
     {
         $this->pool = new WorkerPool(
             $rpcFactory->getRpc()
         );
+        $this->app  = $app;
 
         $this->dangerFreePercent = 30;
         $this->percentStep       = 100 - $this->dangerFreePercent;
@@ -31,11 +40,21 @@ readonly class JobsMonitor
         if ($totalCount > $maxWorkersCount) {
             $removingCount = $totalCount - $maxWorkersCount;
 
-            dump("- removing too many: $removingCount");
+            $removingCount = ceil($removingCount * .1);
+
+            dump("- removing excess: $removingCount");
 
             while ($removingCount--) {
                 $this->pool->removeWorker($pluginName);
             }
+
+            $this->dispatchEvent(
+                app: $this->app,
+                event: new MonitorRemovedExcessWorkersEvent(
+                    count: $removingCount,
+                    currentTotalCount: $totalCount
+                )
+            );
 
             return;
         }
@@ -61,11 +80,21 @@ readonly class JobsMonitor
                 if ($workingPercentByDefault < $this->percentStep) {
                     $removingCount = $totalCount - $defaultWorkersCount;
 
+                    $removingCount = ceil($removingCount * .1);
+
                     dump("- removing free: $removingCount");
 
                     while ($removingCount--) {
                         $this->pool->removeWorker($pluginName);
                     }
+
+                    $this->dispatchEvent(
+                        app: $this->app,
+                        event: new MonitorRemovedFreeWorkersEvent(
+                            count: $removingCount,
+                            currentTotalCount: $totalCount
+                        )
+                    );
                 }
             }
 
@@ -79,5 +108,13 @@ readonly class JobsMonitor
         while ($addingCount--) {
             $this->pool->addWorker($pluginName);
         }
+
+        $this->dispatchEvent(
+            app: $this->app,
+            event: new MonitorAddedWorkersEvent(
+                count: $addingCount,
+                currentTotalCount: $totalCount
+            )
+        );
     }
 }
