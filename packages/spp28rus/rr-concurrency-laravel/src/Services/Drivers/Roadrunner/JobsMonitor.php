@@ -54,6 +54,7 @@ class JobsMonitor
             $this->dispatchEvent(
                 app: $this->app,
                 event: new MonitorExcessWorkersRemovedEvent(
+                    pluginName: $pluginName,
                     count: $removingCount,
                     defaultCount: $defaultWorkersCount,
                     currentTotalCount: $totalCount
@@ -99,6 +100,7 @@ class JobsMonitor
                     $this->dispatchEvent(
                         app: $this->app,
                         event: new MonitorFreeWorkersRemovedEvent(
+                            pluginName: $pluginName,
                             count: $removingCount,
                             defaultCount: $defaultWorkersCount,
                             currentTotalCount: $totalCount
@@ -125,6 +127,7 @@ class JobsMonitor
         $this->dispatchEvent(
             app: $this->app,
             event: new MonitorWorkersAddedEvent(
+                pluginName: $pluginName,
                 count: $addingCount,
                 defaultCount: $defaultWorkersCount,
                 currentTotalCount: $totalCount
