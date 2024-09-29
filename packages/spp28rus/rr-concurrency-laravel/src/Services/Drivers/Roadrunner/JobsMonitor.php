@@ -4,9 +4,7 @@ namespace RrConcurrency\Services\Drivers\Roadrunner;
 
 use Illuminate\Contracts\Foundation\Application;
 use Laravel\Octane\DispatchesEvents;
-use RrConcurrency\Events\MonitorWorkersAddedEvent;
-use RrConcurrency\Events\MonitorExcessWorkersRemovedEvent;
-use RrConcurrency\Events\MonitorFreeWorkersRemovedEvent;
+use RrConcurrency\Events\MonitorWorkersCountSetEvent;
 use Spiral\RoadRunner\WorkerPool;
 
 class JobsMonitor
@@ -53,11 +51,14 @@ class JobsMonitor
 
             $this->dispatchEvent(
                 app: $this->app,
-                event: new MonitorExcessWorkersRemovedEvent(
+                event: new MonitorWorkersCountSetEvent(
                     pluginName: $pluginName,
+                    operationName: 'removing-excess',
                     count: $removingCount,
                     defaultCount: $defaultWorkersCount,
-                    currentTotalCount: $totalCount
+                    currentTotalCount: $totalCount,
+                    readyCount: -1,
+                    workingCount: -1
                 )
             );
 
@@ -99,12 +100,16 @@ class JobsMonitor
 
                     $this->dispatchEvent(
                         app: $this->app,
-                        event: new MonitorFreeWorkersRemovedEvent(
+                        event: new MonitorWorkersCountSetEvent(
                             pluginName: $pluginName,
+                            operationName: 'removing-free',
                             count: $removingCount,
                             defaultCount: $defaultWorkersCount,
-                            currentTotalCount: $totalCount
+                            currentTotalCount: $totalCount,
+                            readyCount: $readyCount,
+                            workingCount: $workingCount
                         )
+
                     );
 
                     $this->workersCountEditedTime = time();
@@ -126,11 +131,14 @@ class JobsMonitor
 
         $this->dispatchEvent(
             app: $this->app,
-            event: new MonitorWorkersAddedEvent(
+            event: new MonitorWorkersCountSetEvent(
                 pluginName: $pluginName,
+                operationName: 'added',
                 count: $addingCount,
                 defaultCount: $defaultWorkersCount,
-                currentTotalCount: $totalCount
+                currentTotalCount: $totalCount,
+                readyCount: $readyCount,
+                workingCount: $workingCount
             )
         );
 

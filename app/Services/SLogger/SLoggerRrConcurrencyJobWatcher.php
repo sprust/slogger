@@ -6,17 +6,20 @@ use Illuminate\Support\Carbon;
 use RrConcurrency\Events\JobHandledEvent;
 use RrConcurrency\Events\JobHandlingErrorEvent;
 use RrConcurrency\Events\JobReceivedEvent;
+use RrConcurrency\Events\MonitorWorkersCountSetEvent;
 use RrConcurrency\Services\Drivers\Roadrunner\HeadersResolver;
 use SLoggerLaravel\Enums\SLoggerTraceStatusEnum;
 use SLoggerLaravel\Helpers\SLoggerTraceHelper;
 use SLoggerLaravel\Traces\SLoggerTraceIdContainer;
 use SLoggerLaravel\Watchers\AbstractSLoggerWatcher;
+use Throwable;
 
 class SLoggerRrConcurrencyJobWatcher extends AbstractSLoggerWatcher
 {
     private array $jobs = [];
 
     private string $jobType = 'rr-concurrency-job';
+    private string $monitorType = 'rr-concurrency-monitor';
 
     private string $parentTraceIdHeaderName = 'x-parent-trace-id';
 
@@ -33,9 +36,13 @@ class SLoggerRrConcurrencyJobWatcher extends AbstractSLoggerWatcher
             }
         );
 
+        // jobs
         $this->listenEvent(JobReceivedEvent::class, [$this, 'handleJobReceivedEvent']);
         $this->listenEvent(JobHandledEvent::class, [$this, 'handleJobHandledEvent']);
         $this->listenEvent(JobHandlingErrorEvent::class, [$this, 'handleJobHandlingErrorEvent']);
+
+        // monitor
+        $this->listenEvent(MonitorWorkersCountSetEvent::class, [$this, 'handleMonitorWorkersAddedEvent']);
     }
 
     public function handleJobReceivedEvent(JobReceivedEvent $event): void
@@ -118,5 +125,26 @@ class SLoggerRrConcurrencyJobWatcher extends AbstractSLoggerWatcher
         );
 
         unset($this->jobs[$taskId]);
+    }
+
+    public function handleMonitorWorkersAddedEvent(MonitorWorkersCountSetEvent $event): void
+    {
+        $this->safeHandleWatching(fn() => $this->onHandleMonitorWorkersAddedEvent($event));
+    }
+
+    /**
+     * @throws Throwable
+     */
+    protected function onHandleMonitorWorkersAddedEvent(MonitorWorkersCountSetEvent $event): void
+    {
+        $this->processor->handleSeparateTracing(
+            callback: fn() => null,
+            type: $this->monitorType,
+            tags: [
+                $event->pluginName,
+                $event->operationName,
+            ],
+            data: (array) $event
+        );
     }
 }
