@@ -15,8 +15,8 @@ use RrConcurrency\Listeners\JobWaitingErrorListener;
 return [
     'driver'  => env('RR_CONCURRENCY_DRIVER', 'rr'),
     'rpc'     => [
-        'host' => env('RR_CONCURRENCY_RPC_HOST', '0.0.0.0'),
-        'port' => env('RR_CONCURRENCY_RPC_PORT', '9010'),
+        'host' => env('RR_CONCURRENCY_RPC_HOST', env('OCTANE_RR_RPC_HOST')),
+        'port' => env('RR_CONCURRENCY_RPC_PORT', env('OCTANE_RR_RPC_PORT')),
     ],
     'workers' => [
         'number'     => env('RR_CONCURRENCY_WORKERS_NUMBER', 5),
