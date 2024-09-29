@@ -85,7 +85,11 @@ readonly class JobsServer
 
             $this->dispatchEvent(
                 app: $app,
-                event: new JobReceivedEvent($app, $payload)
+                event: new JobReceivedEvent(
+                    app: $app,
+                    taskId: $task->getId(),
+                    payload: $payload
+                )
             );
 
             try {
@@ -108,6 +112,7 @@ readonly class JobsServer
                     app: $app,
                     event: new JobHandledEvent(
                         app: $app,
+                        taskId: $task->getId(),
                         payload: $payload,
                         result: $result
                     )
@@ -126,6 +131,7 @@ readonly class JobsServer
                     app: $app,
                     event: new JobHandlingErrorEvent(
                         app: $app,
+                        taskId: $task->getId(),
                         payload: $payload,
                         exception: $exception
                     )
