@@ -51,6 +51,9 @@ class StartRoadRunnerCommand extends \Laravel\Octane\Commands\StartRoadRunnerCom
 
         $this->forgetEnvironmentVariables();
 
+        $jobsDefaultWorkersCount = config('rr-concurrency.workers.number');
+        $jobsMaxWorkersCount     = config('rr-concurrency.workers.max_number');
+
         $server = tap(new Process(array_filter([
             $roadRunnerBinary,
             '-c', $this->configPath(),
@@ -67,6 +70,21 @@ class StartRoadRunnerCommand extends \Laravel\Octane\Commands\StartRoadRunnerCom
             '-o', 'grpc.pool.command='.base_path('grpc/rr-grpc-worker.php'),
             '-o', 'grpc.pool.num_workers='.$this->option('grpc-workers'),
             '-o', 'grpc.pool.max_jobs='.$this->option('grpc-max-requests'),
+
+            // Thx Taylor for good code again
+            '-o', 'jobs.num_pollers=' . $jobsMaxWorkersCount,
+            '-o', 'jobs.timeout=' . 60,
+            '-o', 'jobs.pool.command='.base_path('vendor/bin/rr-concurrency-jobs-worker.php'),
+            '-o', 'jobs.pool.num_workers=' . $jobsDefaultWorkersCount,
+            '-o', 'jobs.pool.allocate_timeout=' . '60s',
+            '-o', 'jobs.pool.destroy_timeout=' . '60s',
+            '-o', 'jobs.pool.max_jobs=' . 250,
+            '-o', 'jobs.pool.supervisor.max_worker_memory=' . 128,
+            '-o', 'jobs.consume=' . '"concurrency"',
+            '-o', 'jobs.pipelines.concurrency.driver=' . '"memory"',
+            '-o', 'jobs.pipelines.concurrency.config.{}=null',
+            '-o', 'kv.concurrency.driver=' . '"memory"',
+            '-o', 'kv.concurrency.config.{}=null',
 
             '-o', 'http.pool.supervisor.exec_ttl='.$this->maxExecutionTime(),
             '-o', 'http.static.dir='.public_path(),

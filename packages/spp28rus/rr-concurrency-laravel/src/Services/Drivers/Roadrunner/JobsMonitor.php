@@ -41,8 +41,6 @@ class JobsMonitor
         if ($totalCount > $maxWorkersCount) {
             $removingCount = $totalCount - $maxWorkersCount;
 
-            dump("- removing excess: $removingCount");
-
             $index = $removingCount;
 
             while ($index--) {
@@ -90,8 +88,6 @@ class JobsMonitor
 
                     $removingCount = ceil($removingCount * .2);
 
-                    dump("- removing free: $removingCount");
-
                     $index = $removingCount;
 
                     while ($index--) {
@@ -120,8 +116,6 @@ class JobsMonitor
         }
 
         $addingCount = ceil($totalCount / 100 * $this->dangerFreePercent);
-
-        dump("+ adding: $addingCount");
 
         $index = $addingCount;
 

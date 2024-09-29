@@ -2,7 +2,9 @@
 
 namespace RrConcurrency\Commands;
 
+use Exception;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Cache;
 use RrConcurrency\Services\Drivers\Roadrunner\JobsMonitor;
 
 class JobsMonitorCommand extends Command
@@ -12,7 +14,7 @@ class JobsMonitorCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'rr-concurrency:monitor';
+    protected $signature = 'rr-concurrency:monitor {operation}';
 
     /**
      * The console command description.
@@ -21,22 +23,40 @@ class JobsMonitorCommand extends Command
      */
     protected $description = 'Command description';
 
+    private string $cacheKeyStop = 'rr-concurrency-monitor-status';
+
     /**
      * Execute the console command.
+     *
+     * @throws Exception
      */
-    public function handle(JobsMonitor $jobsMonitor)
+    public function handle(JobsMonitor $jobsMonitor): void
     {
-        $defaultWorkersCount = config('rr-concurrency.workers.number');
-        $maxWorkersCount     = config('rr-concurrency.workers.max_number');
+        $operation = $this->argument('operation');
 
-        while (true) {
-            $jobsMonitor->handle(
-                pluginName: 'jobs',
-                defaultWorkersCount: $defaultWorkersCount,
-                maxWorkersCount: $maxWorkersCount,
-            );
+        Cache::delete($this->cacheKeyStop);
 
-            sleep(1);
+        if ($operation === 'start') {
+            $defaultWorkersCount = config('rr-concurrency.workers.number');
+            $maxWorkersCount     = config('rr-concurrency.workers.max_number');
+
+            while (true) {
+                if (Cache::has($this->cacheKeyStop)) {
+                    break;
+                }
+
+                $jobsMonitor->handle(
+                    pluginName: 'jobs',
+                    defaultWorkersCount: $defaultWorkersCount,
+                    maxWorkersCount: $maxWorkersCount,
+                );
+
+                sleep(1);
+            }
+        } elseif ($operation === 'stop') {
+            Cache::set($this->cacheKeyStop, true);
+        } else {
+            throw new Exception("Unknown operation: $operation");
         }
     }
 }
