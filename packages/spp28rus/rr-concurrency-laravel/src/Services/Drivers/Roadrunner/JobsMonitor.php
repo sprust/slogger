@@ -55,6 +55,7 @@ class JobsMonitor
                 app: $this->app,
                 event: new MonitorExcessWorkersRemovedEvent(
                     count: $removingCount,
+                    defaultCount: $defaultWorkersCount,
                     currentTotalCount: $totalCount
                 )
             );
@@ -99,6 +100,7 @@ class JobsMonitor
                         app: $this->app,
                         event: new MonitorFreeWorkersRemovedEvent(
                             count: $removingCount,
+                            defaultCount: $defaultWorkersCount,
                             currentTotalCount: $totalCount
                         )
                     );
@@ -124,6 +126,7 @@ class JobsMonitor
             app: $this->app,
             event: new MonitorWorkersAddedEvent(
                 count: $addingCount,
+                defaultCount: $defaultWorkersCount,
                 currentTotalCount: $totalCount
             )
         );
