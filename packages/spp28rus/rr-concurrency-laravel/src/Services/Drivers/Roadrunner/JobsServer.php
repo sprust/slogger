@@ -10,7 +10,7 @@ use RrConcurrency\Events\JobHandlingErrorEvent;
 use RrConcurrency\Events\JobReceivedEvent;
 use RrConcurrency\Events\JobWaitingErrorEvent;
 use RrConcurrency\Events\WorkerServeErrorEvent;
-use RrConcurrency\Events\WorkerStartedEvent;
+use RrConcurrency\Events\WorkerStartingEvent;
 use RrConcurrency\Events\WorkerStoppedEvent;
 use RrConcurrency\Services\Dto\JobResultDto;
 use Spiral\RoadRunner\Jobs\Consumer;
@@ -32,6 +32,11 @@ readonly class JobsServer
 
     public function serve(): void
     {
+        $this->dispatchEvent(
+            app: $this->app,
+            event: new WorkerStartingEvent($this->app)
+        );
+
         try {
             $this->onServe();
         } catch (Throwable $exception) {
@@ -42,16 +47,18 @@ readonly class JobsServer
                     exception: $exception
                 )
             );
+
+            return;
         }
+
+        $this->dispatchEvent(
+            app: $this->app,
+            event: new WorkerStoppedEvent($this->app)
+        );
     }
 
     private function onServe(): void
     {
-        $this->dispatchEvent(
-            $this->app,
-            new WorkerStartedEvent($this->app)
-        );
-
         $consumer = new Consumer($this->worker);
 
         while (true) {
@@ -63,6 +70,10 @@ readonly class JobsServer
                     event: new JobWaitingErrorEvent($exception)
                 );
 
+                break;
+            }
+
+            if (!$task) {
                 break;
             }
 
@@ -127,10 +138,5 @@ readonly class JobsServer
                 CurrentApplication::set($this->app);
             }
         }
-
-        $this->dispatchEvent(
-            app: $this->app,
-            event: new WorkerStoppedEvent($this->app)
-        );
     }
 }

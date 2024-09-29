@@ -8,7 +8,7 @@ use RrConcurrency\Events\MonitorExcessWorkersRemovedEvent;
 use RrConcurrency\Events\MonitorFreeWorkersRemovedEvent;
 use RrConcurrency\Events\WorkerServeErrorEvent;
 use RrConcurrency\Events\JobWaitingErrorEvent;
-use RrConcurrency\Events\WorkerStartedEvent;
+use RrConcurrency\Events\WorkerStartingEvent;
 use RrConcurrency\Events\WorkerStoppedEvent;
 use RrConcurrency\Listeners\WorkerServeErrorListener;
 use RrConcurrency\Listeners\JobHandlingErrorListener;
@@ -26,18 +26,18 @@ return [
     'jobs'    => [
         'listeners' => [
             // workers
-            WorkerServeErrorEvent::class            => [
+            WorkerServeErrorEvent::class => [
                 WorkerServeErrorListener::class,
             ],
-            WorkerStartedEvent::class               => [],
-            WorkerStoppedEvent::class               => [],
+            WorkerStartingEvent::class   => [],
+            WorkerStoppedEvent::class    => [],
             // jobs
-            JobWaitingErrorEvent::class             => [
+            JobWaitingErrorEvent::class  => [
                 JobWaitingErrorListener::class,
             ],
-            JobReceivedEvent::class                 => [],
-            JobHandledEvent::class                  => [],
-            JobHandlingErrorEvent::class            => [
+            JobReceivedEvent::class      => [],
+            JobHandledEvent::class       => [],
+            JobHandlingErrorEvent::class => [
                 JobHandlingErrorListener::class,
             ],
             // monitor
