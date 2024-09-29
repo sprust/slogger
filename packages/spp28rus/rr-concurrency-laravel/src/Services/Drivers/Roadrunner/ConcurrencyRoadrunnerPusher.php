@@ -60,9 +60,9 @@ readonly class ConcurrencyRoadrunnerPusher implements ConcurrencyPusherInterface
     /**
      * @throws JobsException
      */
-    private function pushJob(ConcurrencyJob $job): QueuedTaskInterface
+    private function pushJob(ConcurrencyJob $job): void
     {
-        return $this->pushRaw(
+        $this->pushRaw(
             payload: $this->makePayload($job),
         );
     }
@@ -90,13 +90,13 @@ readonly class ConcurrencyRoadrunnerPusher implements ConcurrencyPusherInterface
     /**
      * @throws JobsException
      */
-    private function pushRaw($payload): QueuedTaskInterface
+    private function pushRaw($payload): void
     {
         $queue = $this->makeQueue();
 
         $task = $this->makeTask($queue, $payload);
 
-        return $queue->dispatch($task);
+        $queue->dispatch($task);
     }
 
     private function makePayload(ConcurrencyJob $job): string
