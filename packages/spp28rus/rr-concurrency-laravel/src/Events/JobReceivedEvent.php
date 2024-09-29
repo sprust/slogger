@@ -3,13 +3,13 @@
 namespace RrConcurrency\Events;
 
 use Illuminate\Foundation\Application;
+use Spiral\RoadRunner\Jobs\Task\QueuedTaskInterface;
 
 class JobReceivedEvent
 {
     public function __construct(
         public Application $app,
-        public string $taskId,
-        public string $payload
+        public QueuedTaskInterface $task,
     ) {
     }
 }

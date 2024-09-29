@@ -3,6 +3,7 @@
 namespace RrConcurrency\Services\Drivers\Roadrunner;
 
 use Closure;
+use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Str;
 use RrConcurrency\Exceptions\ConcurrencyJobsException;
 use RrConcurrency\Services\ConcurrencyPusherInterface;
@@ -18,9 +19,11 @@ readonly class ConcurrencyRoadrunnerPusher implements ConcurrencyPusherInterface
     private Jobs $jobs;
 
     public function __construct(
+        private Application $app,
         private RpcFactory $rpcFactory,
         private ConcurrencyJobSerializer $jobSerializer,
         private JobsWaiter $waiter,
+        private HeadersResolver $headersResolver
     ) {
         $this->jobs = new Jobs(
             $this->rpcFactory->getRpc()
@@ -127,9 +130,18 @@ readonly class ConcurrencyRoadrunnerPusher implements ConcurrencyPusherInterface
 
     private function makeTask(QueueInterface $queue, string $payload): PreparedTaskInterface
     {
-        return $queue->create(
+        $task = $queue->create(
             name: Str::uuid()->toString(),
             payload: $payload
         );
+
+        foreach ($this->headersResolver->get() as $name => $header) {
+            $task = $task->withHeader(
+                name: $name,
+                value: is_callable($header) ? $this->app->call($header) : $header
+            );
+        }
+
+        return $task;
     }
 }

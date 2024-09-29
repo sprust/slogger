@@ -87,10 +87,11 @@ readonly class JobsServer
                 app: $app,
                 event: new JobReceivedEvent(
                     app: $app,
-                    taskId: $task->getId(),
-                    payload: $payload
+                    task: $task
                 )
             );
+
+            $taskId = $task->getId();
 
             try {
                 $job = $this->jobSerializer->unSerialize($payload);
@@ -99,7 +100,7 @@ readonly class JobsServer
 
                 if ($job->wait) {
                     $app->make(JobsWaiter::class)->finish(
-                        id: $task->getId(),
+                        id: $taskId,
                         result: new JobResultDto(
                             result: $result
                         )
@@ -112,14 +113,13 @@ readonly class JobsServer
                     app: $app,
                     event: new JobHandledEvent(
                         app: $app,
-                        taskId: $task->getId(),
-                        payload: $payload,
+                        task: $task,
                         result: $result
                     )
                 );
             } catch (Throwable $exception) {
                 $app->make(JobsWaiter::class)->finish(
-                    id: $task->getId(),
+                    id: $taskId,
                     result: new JobResultDto(
                         exception: $exception
                     )
@@ -131,8 +131,7 @@ readonly class JobsServer
                     app: $app,
                     event: new JobHandlingErrorEvent(
                         app: $app,
-                        taskId: $task->getId(),
-                        payload: $payload,
+                        task: $task,
                         exception: $exception
                     )
                 );
