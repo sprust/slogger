@@ -17,5 +17,12 @@ interface ConcurrencyPusherInterface
      *
      * @throws ConcurrencyJobsException
      */
+    public function pushMany(array $callbacks): void;
+
+    /**
+     * @param Closure[] $callbacks
+     *
+     * @throws ConcurrencyJobsException
+     */
     public function wait(array $callbacks): WaitGroupInterface;
 }

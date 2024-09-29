@@ -17,6 +17,13 @@ readonly class ConcurrencySyncPusher implements ConcurrencyPusherInterface
         $this->closureHandler->handleClosure($callback);
     }
 
+    public function pushMany(array $callbacks): void
+    {
+        foreach ($callbacks as $callback) {
+            $this->closureHandler->handleClosure($callback);
+        }
+    }
+
     public function wait(array $callbacks): WaitGroupInterface
     {
         return new WaitGroup($callbacks, $this->closureHandler);

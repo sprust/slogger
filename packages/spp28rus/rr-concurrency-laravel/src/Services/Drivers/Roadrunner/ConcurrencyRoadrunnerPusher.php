@@ -36,10 +36,26 @@ readonly class ConcurrencyRoadrunnerPusher implements ConcurrencyPusherInterface
         }
     }
 
+    /**
+     * @throws JobsException
+     */
+    public function pushMany(array $callbacks): void
+    {
+        $this->pushManyJobs(
+            array_map(
+                fn(Closure $callback) => new ConcurrencyJob(
+                    callback: $callback,
+                    wait: true
+                ),
+                $callbacks
+            )
+        );
+    }
+
     public function wait(array $callbacks): WaitGroupInterface
     {
         try {
-            $jobs = $this->pushMany(
+            $jobs = $this->pushManyJobs(
                 array_map(
                     fn(Closure $callback) => new ConcurrencyJob(
                         callback: $callback,
@@ -74,7 +90,7 @@ readonly class ConcurrencyRoadrunnerPusher implements ConcurrencyPusherInterface
      *
      * @throws JobsException
      */
-    private function pushMany(array $jobs): iterable
+    private function pushManyJobs(array $jobs): iterable
     {
         $queue = $this->makeQueue();
 
