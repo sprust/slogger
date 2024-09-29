@@ -10,6 +10,7 @@ use RrConcurrency\Services\ConcurrencyPusherInterface;
 use RrConcurrency\Services\Drivers\Roadrunner\ConcurrencyRoadrunnerPusher;
 use RrConcurrency\Services\Drivers\Roadrunner\JobsWaiter;
 use RrConcurrency\Services\Drivers\Roadrunner\RpcFactory;
+use RrConcurrency\Services\Drivers\Sync\ConcurrencySyncPusher;
 
 class RrConcurrencyServiceProvider extends ServiceProvider
 {
@@ -51,7 +52,10 @@ class RrConcurrencyServiceProvider extends ServiceProvider
         });
         $this->app->singleton(
             ConcurrencyPusherInterface::class,
-            ConcurrencyRoadrunnerPusher::class
+            match (config('rr-concurrency.driver')) {
+                'rr' => ConcurrencyRoadrunnerPusher::class,
+                'sync' => ConcurrencySyncPusher::class,
+            }
         );
 
         $this->publishes(

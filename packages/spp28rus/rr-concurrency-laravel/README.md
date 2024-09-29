@@ -16,6 +16,8 @@ php artisan vendor:publish --tag=rr-concurrency-laravel
 
 .env:
 ```dotenv
+# one of: rr, sync
+RR_CONCURRENCY_DRIVER=rr
 RR_CONCURRENCY_RPC_HOST=0.0.0.0
 RR_CONCURRENCY_RPC_PORT=9044
 RR_CONCURRENCY_KV_STORAGE_NAME=concurrency

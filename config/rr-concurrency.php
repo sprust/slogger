@@ -15,6 +15,7 @@ use RrConcurrency\Listeners\JobHandlingErrorListener;
 use RrConcurrency\Listeners\JobWaitingErrorListener;
 
 return [
+    'driver'  => env('RR_CONCURRENCY_DRIVER', 'rr'),
     'rpc'     => [
         'host' => env('RR_CONCURRENCY_RPC_HOST', '0.0.0.0'),
         'port' => env('RR_CONCURRENCY_RPC_PORT', '9010'),
@@ -29,7 +30,7 @@ return [
             WorkerServeErrorEvent::class            => [
                 WorkerServeErrorListener::class,
             ],
-            WorkerStartingEvent::class               => [],
+            WorkerStartingEvent::class              => [],
             WorkerStoppedEvent::class               => [],
             // jobs
             JobWaitingErrorEvent::class             => [
