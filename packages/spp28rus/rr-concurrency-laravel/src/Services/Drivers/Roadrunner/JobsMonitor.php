@@ -117,7 +117,7 @@ class JobsMonitor
 
         $addingCount = ceil($totalCount / 100 * $this->dangerFreePercent);
 
-        $index = $addingCount;
+        $index = min($addingCount + $totalCount, $maxWorkersCount);
 
         while ($index--) {
             $this->pool->addWorker($pluginName);

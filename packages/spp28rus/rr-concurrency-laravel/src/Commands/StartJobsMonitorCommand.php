@@ -39,11 +39,13 @@ class StartJobsMonitorCommand extends Command
         $pluginName       = $this->argument('pluginName');
         $workersNumber    = (int) $this->argument('number');
         $workersMaxNumber = (int) $this->argument('maxNumber');
-        $workersMaxNumber = $workersMaxNumber ?: $workersNumber * 2;
+        $workersMaxNumber = $workersMaxNumber ?: ($workersNumber * 2);
 
         $tryCount = 5;
 
         $this->forgetStopSignal($pluginName);
+
+        $monitor = app(JobsMonitor::class);
 
         while (true) {
             if ($this->isTimeToStop($pluginName)) {
@@ -51,7 +53,7 @@ class StartJobsMonitorCommand extends Command
             }
 
             try {
-                app(JobsMonitor::class)->handle(
+                $monitor->handle(
                     pluginName: $pluginName,
                     defaultWorkersCount: $workersNumber,
                     maxWorkersCount: $workersMaxNumber,
@@ -64,6 +66,8 @@ class StartJobsMonitorCommand extends Command
                 if ($tryCount <= 0) {
                     throw $exception;
                 }
+
+                $monitor = app(JobsMonitor::class);
             }
 
             sleep(1);
