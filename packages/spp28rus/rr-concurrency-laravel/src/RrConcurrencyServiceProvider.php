@@ -5,7 +5,8 @@ namespace RrConcurrency;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
-use RrConcurrency\Commands\JobsMonitorCommand;
+use RrConcurrency\Commands\StartJobsMonitorCommand;
+use RrConcurrency\Commands\StopJobsMonitorCommand;
 use RrConcurrency\Services\ConcurrencyPusherInterface;
 use RrConcurrency\Services\Drivers\Roadrunner\ConcurrencyRoadrunnerPusher;
 use RrConcurrency\Services\Drivers\Roadrunner\JobsWaiter;
@@ -20,7 +21,8 @@ class RrConcurrencyServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->commands([
-            JobsMonitorCommand::class,
+            StartJobsMonitorCommand::class,
+            StopJobsMonitorCommand::class,
         ]);
 
         $this->booting(function () {
