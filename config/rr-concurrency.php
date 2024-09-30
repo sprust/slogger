@@ -11,6 +11,7 @@ use RrConcurrency\Events\WorkerStoppedEvent;
 use RrConcurrency\Listeners\WorkerServeErrorListener;
 use RrConcurrency\Listeners\JobHandlingErrorListener;
 use RrConcurrency\Listeners\JobWaitingErrorListener;
+use Laravel\Octane\Octane;
 
 return [
     'driver'  => env('RR_CONCURRENCY_DRIVER', 'rr'),
@@ -34,7 +35,9 @@ return [
             JobWaitingErrorEvent::class        => [
                 JobWaitingErrorListener::class,
             ],
-            JobReceivedEvent::class            => [],
+            JobReceivedEvent::class            => [
+                ...Octane::prepareApplicationForNextOperation(),
+            ],
             JobHandledEvent::class             => [],
             JobHandlingErrorEvent::class       => [
                 JobHandlingErrorListener::class,
