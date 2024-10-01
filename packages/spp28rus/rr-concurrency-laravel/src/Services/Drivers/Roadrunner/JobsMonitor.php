@@ -38,6 +38,21 @@ class JobsMonitor
 
         $totalCount = $workers->count();
 
+        if ($totalCount === $maxWorkersCount) {
+            $this->dispatchEvent(
+                app: $this->app,
+                event: new MonitorWorkersCountSetEvent(
+                    pluginName: $pluginName,
+                    operationName: 'max',
+                    count: $totalCount,
+                    defaultCount: $defaultWorkersCount,
+                    currentTotalCount: $totalCount,
+                    readyCount: -1,
+                    workingCount: -1
+                )
+            );
+        }
+
         if ($totalCount > $maxWorkersCount) {
             $removingCount = $totalCount - $maxWorkersCount;
 
@@ -86,7 +101,7 @@ class JobsMonitor
                 ) {
                     $removingCount = $totalCount - $defaultWorkersCount;
 
-                    $removingCount = ceil($removingCount * .2);
+                    $removingCount = (int) ceil($removingCount * .2);
 
                     $index = $removingCount;
 
@@ -115,9 +130,19 @@ class JobsMonitor
             return;
         }
 
-        $addingCount = ceil($totalCount / 100 * $this->dangerFreePercent);
+        $addingCount = (int) ceil($totalCount / 100 * $this->dangerFreePercent);
 
-        $index = min($addingCount + $totalCount, $maxWorkersCount);
+        $countAfterAdding = $addingCount + $totalCount;
+
+        if ($countAfterAdding > $maxWorkersCount) {
+            $addingCount = $maxWorkersCount - $totalCount;
+        }
+
+        if ($addingCount <= 0) {
+            return;
+        }
+
+        $index = $addingCount;
 
         while ($index--) {
             $this->pool->addWorker($pluginName);
@@ -127,7 +152,7 @@ class JobsMonitor
             app: $this->app,
             event: new MonitorWorkersCountSetEvent(
                 pluginName: $pluginName,
-                operationName: 'added',
+                operationName: 'adding',
                 count: $addingCount,
                 defaultCount: $defaultWorkersCount,
                 currentTotalCount: $totalCount,
