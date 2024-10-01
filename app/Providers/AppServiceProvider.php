@@ -5,6 +5,7 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Octane\RoadRunner\ServerStateFile as RoadRunnerServerStateFile;
 use Laravel\Octane\Swoole\ServerStateFile as SwooleServerStateFile;
+use RrConcurrency\Services\Drivers\Roadrunner\RpcFactory;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -35,6 +36,13 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(SwooleServerStateFile::class, function () {
             return new SwooleServerStateFile(
                 storage_path('logs/octane-swoole-server-state.json')
+            );
+        });
+
+        $this->app->singleton(RpcFactory::class, static function () {
+            return new RpcFactory(
+                host: config('octane.servers.roadrunner.rpc-host'),
+                port: config('octane.servers.roadrunner.rpc-port')
             );
         });
     }
