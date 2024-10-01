@@ -15,7 +15,7 @@ class JobsMonitor
     private readonly Application $app;
 
     private readonly int $dangerFreePercent;
-    private readonly int $percentStep;
+    private readonly int $normalWorkingPercentFromDefault;
     private readonly int $removingPeriodicityInSeconds;
     private int $workersCountEditedTime;
 
@@ -26,10 +26,10 @@ class JobsMonitor
         );
         $this->app  = $app;
 
-        $this->dangerFreePercent            = 30;
-        $this->percentStep                  = 100 - $this->dangerFreePercent;
-        $this->removingPeriodicityInSeconds = 10;
-        $this->workersCountEditedTime       = time();
+        $this->dangerFreePercent               = 30;
+        $this->normalWorkingPercentFromDefault = 100 - $this->dangerFreePercent;
+        $this->removingPeriodicityInSeconds    = 10;
+        $this->workersCountEditedTime          = time();
     }
 
     public function handle(string $pluginName, int $defaultWorkersCount, int $maxWorkersCount): void
@@ -79,9 +79,9 @@ class JobsMonitor
 
         if ($freePercent > $this->dangerFreePercent) {
             if ($totalCount > $defaultWorkersCount) {
-                $workingPercentByDefault = $workingCount / $defaultWorkersCount * 100;
+                $workingPercentFromDefault = $workingCount / $defaultWorkersCount * 100;
 
-                if ($workingPercentByDefault < $this->percentStep
+                if ($workingPercentFromDefault < $this->normalWorkingPercentFromDefault
                     && (time() - $this->workersCountEditedTime) > $this->removingPeriodicityInSeconds
                 ) {
                     $removingCount = $totalCount - $defaultWorkersCount;
