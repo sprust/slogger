@@ -15,7 +15,6 @@ use SLoggerLaravel\Watchers\EntryPoints\SLoggerRequestWatcher;
 use SLoggerLaravel\Watchers\Services\SLoggerCacheWatcher;
 use SLoggerLaravel\Watchers\Services\SLoggerDatabaseWatcher;
 use SLoggerLaravel\Watchers\Services\SLoggerDumpWatcher;
-use SLoggerLaravel\Watchers\Services\SLoggerEventWatcher;
 use SLoggerLaravel\Watchers\Services\SLoggerGateWatcher;
 use SLoggerLaravel\Watchers\Services\SLoggerHttpClientWatcher;
 use SLoggerLaravel\Watchers\Services\SLoggerLogWatcher;
@@ -23,6 +22,8 @@ use SLoggerLaravel\Watchers\Services\SLoggerMailWatcher;
 use SLoggerLaravel\Watchers\Services\SLoggerModelWatcher;
 use SLoggerLaravel\Watchers\Services\SLoggerNotificationWatcher;
 use SLoggerLaravel\Watchers\Services\SLoggerScheduleWatcher;
+use App\Services\SLogger\SLoggerEventWatcher;
+use App\Services\SLogger\SLoggerRrConcurrencyJobWatcher;
 
 return [
     'enabled' => env('SLOGGER_ENABLED', false),
@@ -138,6 +139,8 @@ return [
                 'octane:swoole:reload',
                 'octane:swoole:stop',
                 'trace-dynamic-indexes:monitor:start',
+                'rr-concurrency:monitor:start',
+                'rr-concurrency:monitor:stop',
             ],
         ],
 
@@ -221,6 +224,10 @@ return [
         [
             'class'   => SLoggerHttpClientWatcher::class,
             'enabled' => env('SLOGGER_LOG_HTTP_ENABLED', false),
+        ],
+        [
+            'class'   => SLoggerRrConcurrencyJobWatcher::class,
+            'enabled' => env('SLOGGER_RR_CONCURRENCY_ENABLED', false),
         ],
     ],
 ];

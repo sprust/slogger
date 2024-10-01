@@ -69,6 +69,8 @@ workers-restart:
 	@make art-workers c='cron:restart'
 	@make art-workers c='octane:roadrunner:stop'
 	@make art-workers c='octane:swoole:stop'
+	@make art-workers c='rr-concurrency:monitor:stop grpc'
+	@make art-workers c='rr-concurrency:monitor:stop jobs'
 	@make art-workers c='trace-dynamic-indexes:monitor:stop'
 
 oa-generate:
@@ -96,7 +98,7 @@ rr-get-binary:
 	@"$(WORKERS_CLI)"./vendor/bin/rr get-binary
 
 rr-workers:
-	@"$(WORKERS_CLI)"./rr workers -i -o rpc.listen=tcp://$(OCTANE_RR_RPC_HOST):$(OCTANE_RR_RPC_PORT)
+	@"$(WORKERS_CLI)"./rr workers -i -o rpc.listen=tcp://$(OCTANE_RR_RPC_HOST):$(OCTANE_RR_RPC_PORT) ${c}
 
 protoc-load:
 	@"$(WORKERS_CLI)"./vendor/bin/rr download-protoc-binary

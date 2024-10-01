@@ -21,6 +21,7 @@ yarn-error.log
 rr
 .rr.yaml
 .pid
+.rr-concurrency.yaml
 
 app/Console/Commands/Local
 
