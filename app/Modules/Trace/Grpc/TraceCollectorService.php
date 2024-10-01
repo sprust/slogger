@@ -12,7 +12,6 @@ use App\Modules\Trace\Domain\Entities\Parameters\TraceCreateParametersList;
 use App\Modules\Trace\Domain\Entities\Parameters\TraceUpdateParameters;
 use App\Modules\Trace\Domain\Entities\Parameters\TraceUpdateParametersList;
 use App\Modules\Trace\Framework\Http\Services\QueueDispatcher;
-use Google\Protobuf\Internal\RepeatedField;
 use Illuminate\Support\Carbon;
 use SLoggerGrpcDto\TraceCollector\TraceCollectorInterface;
 use SLoggerGrpcDto\TraceCollector\TraceCollectorResponse;
@@ -195,7 +194,7 @@ readonly class TraceCollectorService implements TraceCollectorInterface
                     $trace->getProfiling()
                 ),
                 tags: $tags,
-                data: $trace->getData()->getValue(),
+                data: $trace->getData()?->getValue(),
                 duration: $trace->getDuration()?->getValue(),
                 memory: $trace->getMemory()?->getValue(),
                 cpu: $trace->getCpu()?->getValue(),
