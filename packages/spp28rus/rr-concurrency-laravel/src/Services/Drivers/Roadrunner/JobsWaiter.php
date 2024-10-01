@@ -15,7 +15,7 @@ readonly class JobsWaiter
         string $storageName,
     ) {
         $factory = new Factory(
-            $rpcFactory->getRpc()
+            $rpcFactory->get()
         );
 
         $this->storage = $factory->select($storageName);

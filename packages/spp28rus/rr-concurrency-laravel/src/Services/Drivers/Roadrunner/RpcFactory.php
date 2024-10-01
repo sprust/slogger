@@ -16,7 +16,7 @@ class RpcFactory
         );
     }
 
-    public function getRpc(): RPCInterface
+    public function get(): RPCInterface
     {
         return $this->rpc;
     }

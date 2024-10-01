@@ -22,7 +22,7 @@ class JobsMonitor
     public function __construct(RpcFactory $rpcFactory, Application $app)
     {
         $this->pool = new WorkerPool(
-            $rpcFactory->getRpc()
+            $rpcFactory->get()
         );
         $this->app  = $app;
 

@@ -27,7 +27,7 @@ readonly class ConcurrencyRoadrunnerPusher implements ConcurrencyPusherInterface
         private HeadersResolver $headersResolver
     ) {
         $this->jobs = new Jobs(
-            $this->rpcFactory->getRpc()
+            $this->rpcFactory->get()
         );
     }
 
