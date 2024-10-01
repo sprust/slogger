@@ -4,6 +4,7 @@ namespace RrConcurrency\Services\Drivers\Roadrunner;
 
 use Closure;
 use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use RrConcurrency\Exceptions\ConcurrencyJobsException;
 use RrConcurrency\Services\ConcurrencyPusherInterface;
@@ -45,12 +46,12 @@ readonly class ConcurrencyRoadrunnerPusher implements ConcurrencyPusherInterface
     public function pushMany(array $callbacks): void
     {
         $this->pushManyJobs(
-            array_map(
-                fn(Closure $callback) => new ConcurrencyJob(
+            Arr::map(
+                array: $callbacks,
+                callback: fn(Closure $callback, mixed $key) => new ConcurrencyJob(
                     callback: $callback,
                     wait: true
-                ),
-                $callbacks
+                )
             )
         );
     }
@@ -58,19 +59,27 @@ readonly class ConcurrencyRoadrunnerPusher implements ConcurrencyPusherInterface
     public function wait(array $callbacks): WaitGroupInterface
     {
         try {
-            $jobs = $this->pushManyJobs(
-                array_map(
-                    fn(Closure $callback) => new ConcurrencyJob(
+            $tasks = $this->pushManyJobs(
+                Arr::map(
+                    array: $callbacks,
+                    callback: fn(Closure $callback, mixed $key) => new ConcurrencyJob(
                         callback: $callback,
                         wait: true
-                    ),
-                    $callbacks
+                    )
                 )
             );
         } catch (JobsException $exception) {
             throw new ConcurrencyJobsException(
                 message: $exception->getMessage()
             );
+        }
+
+        $keys = array_keys($callbacks);
+
+        $jobs = [];
+
+        for ($index = 0; $index < count($tasks); $index++) {
+            $jobs[$keys[$index]] = $tasks[$index];
         }
 
         return new WaitGroup($jobs, $this->waiter);

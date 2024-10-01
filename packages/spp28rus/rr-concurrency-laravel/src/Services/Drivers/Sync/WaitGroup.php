@@ -8,26 +8,42 @@ use RrConcurrency\Services\Dto\JobResultsDto;
 use RrConcurrency\Services\WaitGroupInterface;
 use Throwable;
 
-readonly class WaitGroup implements WaitGroupInterface
+class WaitGroup implements WaitGroupInterface
 {
+    private ?JobResultsDto $result = null;
+
     /**
-     * @param Closure[] $callbacks
+     * @param array<mixed, Closure> $callbacks
      */
     public function __construct(
-        private array $callbacks,
-        private ClosureHandler $closureHandler
+        private readonly array $callbacks,
+        private readonly ClosureHandler $closureHandler
     ) {
+    }
+
+    public function current(): JobResultsDto
+    {
+        return $this->handle();
     }
 
     public function wait(int $waitSeconds): JobResultsDto
     {
+        return $this->handle();
+    }
+
+    private function handle(): JobResultsDto
+    {
+        if (!is_null($this->result)) {
+            return $this->result;
+        }
+
         $results = [];
         $failed  = [];
 
-        for ($index = 0; $index < count($this->callbacks); $index++) {
+        foreach ($this->callbacks as $key => $callback) {
             try {
                 $closureResult = $this->closureHandler->handleClosure(
-                    $this->callbacks[$index]
+                    callback: $callback
                 );
 
                 $result = new JobResultDto(
@@ -39,14 +55,15 @@ readonly class WaitGroup implements WaitGroupInterface
                 );
             }
 
-            $results[$index] = $result;
+            $results[$key] = $result;
 
             if ($result->error) {
-                $failed[$index] = $result;
+                $failed[$key] = $result;
             }
         }
 
-        return new JobResultsDto(
+        return $this->result = new JobResultsDto(
+            finished: true,
             results: $results,
             failed: $failed
         );

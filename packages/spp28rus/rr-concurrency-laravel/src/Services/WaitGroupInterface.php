@@ -7,6 +7,8 @@ use RrConcurrency\Services\Dto\JobResultsDto;
 
 interface WaitGroupInterface
 {
+    public function current(): JobResultsDto;
+
     /**
      * @throws ConcurrencyWaitTimeoutException
      */

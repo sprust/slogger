@@ -13,14 +13,14 @@ interface ConcurrencyPusherInterface
     public function push(Closure $callback): void;
 
     /**
-     * @param Closure[] $callbacks
+     * @param array<mixed, Closure> $callbacks
      *
      * @throws ConcurrencyJobsException
      */
     public function pushMany(array $callbacks): void;
 
     /**
-     * @param Closure[] $callbacks
+     * @param array<mixed, Closure> $callbacks
      *
      * @throws ConcurrencyJobsException
      */

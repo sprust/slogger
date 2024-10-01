@@ -6,11 +6,41 @@ use RrConcurrency\Exceptions\ConcurrencyWaitTimeoutException;
 use RrConcurrency\Services\Dto\JobResultDto;
 use RrConcurrency\Services\Dto\JobResultsDto;
 use RrConcurrency\Services\WaitGroupInterface;
+use Spiral\RoadRunner\Jobs\Task\QueuedTaskInterface;
 
-readonly class WaitGroup implements WaitGroupInterface
+class WaitGroup implements WaitGroupInterface
 {
-    public function __construct(private array $jobs, private JobsWaiter $waiter)
+    private ?JobResultsDto $results = null;
+
+    /** @var array<mixed, JobResultDto> $jobsResult */
+    private array $jobsResult = [];
+    /** @var array<mixed, JobResultDto> $failedJobs */
+    private array $failedJobs = [];
+
+    private int $expectedCount;
+
+    /**
+     * @param array<mixed, QueuedTaskInterface> $jobs
+     * @param JobsWaiter                        $waiter
+     */
+    public function __construct(
+        private readonly array $jobs,
+        private readonly JobsWaiter $waiter
+    ) {
+        $this->expectedCount = count($this->jobs);
+    }
+
+    public function current(): JobResultsDto
     {
+        if (!is_null($this->results)) {
+            return $this->results;
+        }
+
+        $this->checkStatuses();
+
+        return $this->makeResults(
+            finished: $this->isFinished()
+        );
     }
 
     /**
@@ -18,18 +48,14 @@ readonly class WaitGroup implements WaitGroupInterface
      */
     public function wait(int $waitSeconds): JobResultsDto
     {
-        /** @var JobResultDto[] $failedJobs */
-        $failedJobs = [];
-
-        $expectedCount = count($this->jobs);
-
-        /** @var JobResultDto[] $results */
-        $results = [];
+        if (!is_null($this->results)) {
+            return $this->results;
+        }
 
         $start = time();
 
         while (true) {
-            if (count($results) === $expectedCount) {
+            if ($this->isFinished()) {
                 break;
             }
 
@@ -37,35 +63,64 @@ readonly class WaitGroup implements WaitGroupInterface
                 throw new ConcurrencyWaitTimeoutException();
             }
 
-            for ($index = 0; $index < $expectedCount; $index++) {
-                $job = $this->jobs[$index];
+            $this->checkStatuses();
+        }
 
-                if (array_key_exists($index, $results)) {
-                    continue;
-                }
+        return $this->makeResults(finished: true);
+    }
 
-                $result = $this->waiter->result(
-                    id: $job->getId()
-                );
+    private function checkStatuses(): void
+    {
+        foreach ($this->jobs as $key => $job) {
+            if (array_key_exists($key, $this->jobsResult)) {
+                continue;
+            }
 
-                if (!$result) {
-                    continue;
-                }
+            $result = $this->waiter->result(
+                id: $job->getId()
+            );
 
-                $results[$index] = $result;
+            if (!$result) {
+                continue;
+            }
 
-                if ($result->error) {
-                    $failedJobs[$index] = $result;
-                }
+            $this->jobsResult[$key] = $result;
+
+            if ($result->error) {
+                $this->failedJobs[$key] = $result;
+            }
+        }
+    }
+
+    private function isFinished(): bool
+    {
+        return count($this->jobsResult) === $this->expectedCount;
+    }
+
+    private function makeResults(bool $finished): JobResultsDto
+    {
+        $jobsResult = [];
+        $failedJobs = [];
+
+        foreach (array_keys($this->jobs) as $key) {
+            if (array_key_exists($key, $this->jobsResult)) {
+                $jobsResult[$key] = $this->jobsResult[$key];
+            }
+            if (array_key_exists($key, $this->failedJobs)) {
+                $failedJobs[$key] = $this->failedJobs[$key];
             }
         }
 
-        ksort($results);
-        ksort($failedJobs);
-
-        return new JobResultsDto(
-            results: $results,
+        $results = new JobResultsDto(
+            finished: $finished,
+            results: $jobsResult,
             failed: $failedJobs
         );
+
+        if ($finished) {
+            $this->results = $results;
+        }
+
+        return $results;
     }
 }
