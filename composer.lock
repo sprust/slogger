@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "52dbbc8f803dfdb894a5e84acb96e74d",
+    "content-hash": "a0704785f642206e954b78de9cd3b8be",
     "packages": [
         {
             "name": "brick/math",
@@ -5249,12 +5249,12 @@
             "time": "2024-09-23T07:50:29+00:00"
         },
         {
-            "name": "spp28rus/rr-concurrency-laravel",
+            "name": "spprust/rr-parallel-laravel",
             "version": "dev-master",
             "dist": {
                 "type": "path",
-                "url": "packages/spp28rus/rr-concurrency-laravel",
-                "reference": "0a056a9068f39a4b5102aa324714366942e18134"
+                "url": "packages/spprust/rr-parallel-laravel",
+                "reference": "22d9293fe259fafd2a08532c8eb0db350a389cad"
             },
             "require": {
                 "laravel/framework": "^10.0",
@@ -5264,19 +5264,19 @@
                 "spiral/roadrunner-kv": "^4.3.0"
             },
             "bin": [
-                "bin/rr-concurrency-jobs-worker.php"
+                "bin/rr-parallel-jobs-worker.php"
             ],
             "type": "library",
             "extra": {
                 "laravel": {
                     "providers": [
-                        "RrConcurrency\\RrConcurrencyServiceProvider"
+                        "RrParallel\\RrParallelServiceProvider"
                     ]
                 }
             },
             "autoload": {
                 "psr-4": {
-                    "RrConcurrency\\": "src/"
+                    "RrParallel\\": "src/"
                 }
             },
             "license": [
@@ -5288,7 +5288,7 @@
                     "email": "sppetrovich@mail.ru"
                 }
             ],
-            "description": "RoadRunner concurrency for laravel",
+            "description": "RoadRunner parallel for laravel",
             "transport-options": {
                 "symlink": true,
                 "relative": true
@@ -10884,7 +10884,7 @@
         "ifksco/openapi-generator": 20,
         "slogger/grpc": 20,
         "slogger/laravel": 20,
-        "spp28rus/rr-concurrency-laravel": 20
+        "spprust/rr-parallel-laravel": 20
     },
     "prefer-stable": true,
     "prefer-lowest": false,

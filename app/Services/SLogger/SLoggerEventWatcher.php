@@ -2,9 +2,9 @@
 
 namespace App\Services\SLogger;
 
-use RrConcurrency\Events\JobHandledEvent;
-use RrConcurrency\Events\JobHandlingErrorEvent;
-use RrConcurrency\Events\JobReceivedEvent;
+use RrParallel\Events\JobHandledEvent;
+use RrParallel\Events\JobHandlingErrorEvent;
+use RrParallel\Events\JobReceivedEvent;
 
 class SLoggerEventWatcher extends \SLoggerLaravel\Watchers\Services\SLoggerEventWatcher
 {
