@@ -20,8 +20,10 @@ return [
         'port' => env('RR_PARALLEL_RPC_PORT', '9010'),
     ],
     'workers' => [
-        'number'     => env('RR_PARALLEL_WORKERS_NUMBER', 5),
-        'max_number' => env('RR_PARALLEL_WORKERS_MAX_NUMBER', 10),
+        'number'       => env('RR_PARALLEL_WORKERS_NUMBER', 5),
+        'max_number'   => env('RR_PARALLEL_WORKERS_MAX_NUMBER', 10),
+        'memory_limit' => env('RR_PARALLEL_WORKERS_MAX_MEMORY_LIMIT', 128),
+        'max_jobs'     => env('RR_PARALLEL_WORKERS_MAX_JOBS', 1000),
     ],
     'jobs'    => [
         'listeners' => [

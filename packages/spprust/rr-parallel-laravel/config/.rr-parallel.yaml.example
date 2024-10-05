@@ -10,15 +10,15 @@ server:
   relay: pipes
 
 jobs:
-  num_pollers: ${RR_PARALLEL_WORKERS_MAX_NUMBER}
+  num_pollers: ${RR_PARALLEL_WORKERS_MAX_NUMBER:-10}
   timeout: 60
   pool:
-    num_workers: ${RR_PARALLEL_WORKERS_NUMBER}
+    num_workers: ${RR_PARALLEL_WORKERS_NUMBER:-5}
     supervisor:
-      max_worker_memory: 128
+      max_worker_memory: ${RR_PARALLEL_WORKERS_MAX_MEMORY_LIMIT:-128}
     allocate_timeout: 60s
     destroy_timeout: 60s
-    max_jobs: 250
+    max_jobs: ${RR_PARALLEL_WORKERS_MAX_JOBS:-1000}
 
   consume: [ "parallel" ]
   pipelines:
