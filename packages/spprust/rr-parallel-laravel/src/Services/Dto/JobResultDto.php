@@ -4,9 +4,15 @@ namespace RrParallel\Services\Dto;
 
 use Throwable;
 
+/**
+ * @template TResult
+ */
 readonly class JobResultDto
 {
     public ?JobResultErrorDto $error;
+    /**
+     * @var TResult
+     */
     public mixed $result;
 
     public function __construct(

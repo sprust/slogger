@@ -2,13 +2,16 @@
 
 namespace RrParallel\Services\Dto;
 
+/**
+ * @template TResult
+ */
 readonly class JobResultsDto
 {
     public bool $hasFailed;
 
     /**
-     * @param array<mixed, JobResultDto> $results
-     * @param array<mixed, JobResultDto> $failed
+     * @param array<mixed, JobResultDto<TResult>> $results
+     * @param array<mixed, JobResultDto<TResult>> $failed
      */
     public function __construct(
         public bool $finished,
