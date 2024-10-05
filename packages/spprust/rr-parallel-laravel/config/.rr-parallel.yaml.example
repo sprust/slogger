@@ -1,0 +1,42 @@
+version: '3'
+
+# https://roadrunner.dev/docs/http-http/current/en
+
+rpc:
+  listen: "tcp://0.0.0.0:9044" # not all rr commands can use dotenv
+
+server:
+  command: 'vendor/bin/rr-parallel-jobs-worker.php'
+  relay: pipes
+
+jobs:
+  num_pollers: ${RR_PARALLEL_WORKERS_MAX_NUMBER}
+  timeout: 60
+  pool:
+    num_workers: ${RR_PARALLEL_WORKERS_NUMBER}
+    supervisor:
+      max_worker_memory: 128
+    allocate_timeout: 60s
+    destroy_timeout: 60s
+    max_jobs: 250
+
+  consume: [ "parallel" ]
+  pipelines:
+    parallel:
+      driver: memory
+      config: {}
+
+kv:
+  parallel:
+    driver: memory
+    config: {}
+
+logs:
+  mode: development
+  level: debug
+  file_logger_options:
+    log_output: "storage/logs/rr-parallel/rr-parallel-log.log"
+    max_size: 10
+    max_age: 5
+    max_backups: 5
+    compress: true

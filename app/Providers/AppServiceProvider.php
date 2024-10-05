@@ -5,7 +5,7 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Octane\RoadRunner\ServerStateFile as RoadRunnerServerStateFile;
 use Laravel\Octane\Swoole\ServerStateFile as SwooleServerStateFile;
-use RrConcurrency\Services\Drivers\Roadrunner\RpcFactory;
+use RrParallel\Services\Drivers\Roadrunner\RpcFactory;
 
 class AppServiceProvider extends ServiceProvider
 {
