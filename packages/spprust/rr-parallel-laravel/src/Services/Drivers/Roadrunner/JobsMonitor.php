@@ -138,6 +138,8 @@ class JobsMonitor
             $addingCount = $maxWorkersCount - $totalCount;
         }
 
+        $this->workersCountEditedTime = time();
+
         if ($addingCount <= 0) {
             return;
         }
@@ -160,7 +162,5 @@ class JobsMonitor
                 workingCount: $workingCount
             )
         );
-
-        $this->workersCountEditedTime = time();
     }
 }
