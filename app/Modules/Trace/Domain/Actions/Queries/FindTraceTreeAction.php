@@ -15,10 +15,13 @@ use App\Modules\Trace\Repositories\Interfaces\TraceTreeRepositoryInterface;
 
 readonly class FindTraceTreeAction implements FindTraceTreeActionInterface
 {
+    private int $maxItemsCount;
+
     public function __construct(
         private TraceRepositoryInterface $traceRepository,
         private TraceTreeRepositoryInterface $traceTreeRepository
     ) {
+        $this->maxItemsCount = 5000;
     }
 
     public function handle(TraceFindTreeParameters $parameters): TraceTreeObjects
@@ -40,9 +43,9 @@ readonly class FindTraceTreeAction implements FindTraceTreeActionInterface
 
         $tracesCount = count($childrenIds) + 1;
 
-        if ($tracesCount > 3000) {
+        if ($tracesCount > $this->maxItemsCount) {
             throw new TreeTooLongException(
-                limit: 3000,
+                limit: $this->maxItemsCount,
                 current: $tracesCount
             );
         }
