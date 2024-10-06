@@ -28,7 +28,7 @@ return new class extends Migration {
                             'ptid',
                             'tp',
                             'tgs',
-                            'dt',
+                            'dtkv',
                             'lat',
                             'cat',
                             'uat',
@@ -54,6 +54,9 @@ return new class extends Migration {
                             ],
                             'dt'   => [
                                 'bsonType' => ['object', 'array'],
+                            ],
+                            'dtkv' => [
+                                'bsonType' => ['array'],
                             ],
                             'dur'  => [
                                 'bsonType' => ['number', 'null'],
@@ -110,6 +113,16 @@ return new class extends Migration {
         ]);
         $collection->createIndex([
             'lat' => 1,
+        ]);
+        $collection->createIndex([
+            'dtkv.k' => 1,
+        ]);
+        $collection->createIndex([
+            'dtkv.v' => 1,
+        ]);
+        $collection->createIndex([
+            'dtkv.k' => 1,
+            'dtkv.v' => 1,
         ]);
     }
 

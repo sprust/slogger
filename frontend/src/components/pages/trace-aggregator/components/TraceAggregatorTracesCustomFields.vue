@@ -113,31 +113,6 @@
     <el-table-column>
       <template #default="scope">
         <el-checkbox
-            v-model="scope.row.sort"
-            label="Sort"
-            class="content-right"
-        />
-      </template>
-    </el-table-column>
-    <el-table-column>
-      <template #default="scope">
-        <el-select
-            v-model="scope.row.sortDirection"
-            style="width: 80px"
-            :disabled="!scope.row.sort"
-        >
-          <el-option
-              v-for="direction in directions"
-              :key="direction"
-              :label="direction"
-              :value="direction"
-          />
-        </el-select>
-      </template>
-    </el-table-column>
-    <el-table-column>
-      <template #default="scope">
-        <el-checkbox
             v-model="scope.row.addToTable"
             label="Add to table"
             class="content-center"

@@ -125,6 +125,8 @@ return [
 
         'commands' => [
             'excepted' => [
+                // TODO: no commit
+                'fake',
                 'queue:work',
                 'queue:listen',
                 'schedule:run',

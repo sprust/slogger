@@ -19,6 +19,7 @@ readonly class TraceFieldTitlesService
             'st'   => 'status',
             'tgs'  => 'tags',
             'dt'   => 'data',
+            'dtkv' => 'data',
             'dur'  => 'duration',
             'mem'  => 'memory',
             'cpu'  => 'cpu',

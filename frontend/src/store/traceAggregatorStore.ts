@@ -237,7 +237,7 @@ export const traceAggregatorStore = createStore<State>({
             state.payload.sort = []
 
             state.customFields.map((customField: TraceAggregatorCustomField) => {
-                const field = `dt.${customField.field}`
+                const field = customField.field
 
                 if (customField.search) {
                     if (customField.searchData.null.enabled) {
@@ -297,7 +297,7 @@ export const traceAggregatorStore = createStore<State>({
             commit('prepareCommonPayloadData')
 
             state.customFields.map((customField: TraceAggregatorCustomField) => {
-                const field = `dt.${customField.field}`
+                const field = customField.field
 
                 if (customField.sort) {
                     state.payload.sort!.push({

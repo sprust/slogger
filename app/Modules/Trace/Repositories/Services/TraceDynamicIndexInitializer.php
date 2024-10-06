@@ -108,9 +108,12 @@ readonly class TraceDynamicIndexInitializer
             $indexFields[] = new TraceDynamicIndexFieldDto('cl');
         }
 
-        foreach ($data->filter ?? [] as $dataFilterItem) {
+        if (count($data->filter)) {
             $indexFields[] = new TraceDynamicIndexFieldDto(
-                fieldName: $dataFilterItem->field
+                fieldName: 'dtkv.k',
+            );
+            $indexFields[] = new TraceDynamicIndexFieldDto(
+                fieldName: 'dtkv.v',
             );
         }
 

@@ -6,10 +6,10 @@ readonly class TraceDataFilterItemDto
 {
     public function __construct(
         public string $field,
-        public ?bool $null,
-        public ?TraceDataFilterNumericDto $numeric,
-        public ?TraceDataFilterStringDto $string,
-        public ?TraceDataFilterBooleanDto $boolean
+        public ?bool $null = null,
+        public ?TraceDataFilterNumericDto $numeric = null,
+        public ?TraceDataFilterStringDto $string = null,
+        public ?TraceDataFilterBooleanDto $boolean = null
     ) {
     }
 }

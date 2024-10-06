@@ -3,6 +3,7 @@
 namespace App\Modules\Trace\Repositories\Services;
 
 use App\Models\Traces\Trace;
+use App\Modules\Trace\Enums\TraceDataFilterCompNumericTypeEnum;
 use App\Modules\Trace\Repositories\Dto\Data\TraceDataFilterItemDto;
 use App\Modules\Trace\Repositories\Dto\Data\TraceDataFilterDto;
 use App\Modules\Trace\Enums\TraceDataFilterCompStringTypeEnum;
@@ -103,22 +104,47 @@ class TraceQueryBuilder
      */
     private function applyDataFilter(Builder $builder, array $filter): Builder
     {
+        if (!$filter) {
+            return $builder;
+        }
+
         foreach ($filter as $filterItem) {
             $field = $filterItem->field;
 
             if (!is_null($filterItem->null)) {
-                $filterItem->null
-                    ? $builder->whereNull($field)
-                    : $builder->whereNotNull($field);
+                $builder->where(
+                    'dtkv',
+                    'elemMatch',
+                    [
+                        'k' => $field,
+                        'v' => $filterItem->null
+                            ? ['$eq' => null]
+                            : ['$ne' => null],
+                    ]
+                );
 
                 continue;
             }
 
             if (!is_null($filterItem->numeric)) {
+                $operator = match ($filterItem->numeric->comp) {
+                    TraceDataFilterCompNumericTypeEnum::Eq => 'eq',
+                    TraceDataFilterCompNumericTypeEnum::Neq => 'ne',
+                    TraceDataFilterCompNumericTypeEnum::Gt => 'gt',
+                    TraceDataFilterCompNumericTypeEnum::Gte => 'gte',
+                    TraceDataFilterCompNumericTypeEnum::Lt => 'lt',
+                    TraceDataFilterCompNumericTypeEnum::Lte => 'lte',
+                };
+
                 $builder->where(
-                    column: $field,
-                    operator: $filterItem->numeric->comp->value,
-                    value: $filterItem->numeric->value
+                    'dtkv',
+                    'elemMatch',
+                    [
+                        'k' => $field,
+                        'v' => [
+                            '$' . $operator => $filterItem->numeric->value,
+                        ],
+                    ]
                 );
 
                 continue;
@@ -127,15 +153,15 @@ class TraceQueryBuilder
             if (!is_null($filterItem->string)) {
                 switch ($filterItem->string->comp) {
                     case TraceDataFilterCompStringTypeEnum::Con:
-                        $pre  = '%';
-                        $post = '%';
+                        $pre  = '.*';
+                        $post = '.*';
                         break;
                     case TraceDataFilterCompStringTypeEnum::Starts:
                         $pre  = '';
-                        $post = '%';
+                        $post = '.*';
                         break;
                     case TraceDataFilterCompStringTypeEnum::Ends:
-                        $pre  = '%';
+                        $pre  = '.*';
                         $post = '';
                         break;
                     default:
@@ -144,10 +170,28 @@ class TraceQueryBuilder
                         break;
                 }
 
+                if (!$pre && !$post) {
+                    $builder->where(
+                        'dtkv',
+                        'elemMatch',
+                        [
+                            'k' => $field,
+                            'v' => $filterItem->string->value,
+                        ]
+                    );
+
+                    continue;
+                }
+
                 $builder->where(
-                    column: $field,
-                    operator: 'like',
-                    value: "$pre{$filterItem->string->value}$post"
+                    'dtkv',
+                    'elemMatch',
+                    [
+                        'k' => $field,
+                        'v' => [
+                            '$regex' => "^$pre{$filterItem->string->value}$post$",
+                        ],
+                    ]
                 );
 
                 continue;

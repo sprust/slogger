@@ -6,6 +6,7 @@ use App\Models\Services\Service;
 use App\Models\Traces\Trace;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Carbon;
+use stdClass;
 
 class TraceFactory extends Factory
 {
@@ -19,7 +20,7 @@ class TraceFactory extends Factory
             'ptid' => null,
             'tp'   => 'fake',
             'tgs'  => [],
-            'dt'   => [],
+            'dt'   => new stdClass(),
             'lat'  => Carbon::now(),
             'cat'  => Carbon::now(),
         ];

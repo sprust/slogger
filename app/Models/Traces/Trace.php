@@ -17,6 +17,7 @@ use Illuminate\Support\Carbon;
  * @property string            $st - status
  * @property array             $tgs - tags
  * @property array             $dt - data
+ * @property array             $dtkv - data as key: value
  * @property float|null        $dur - duration
  * @property float|null        $mem - memory
  * @property float|null        $cpu - cpu

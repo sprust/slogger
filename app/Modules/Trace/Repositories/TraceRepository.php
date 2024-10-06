@@ -5,6 +5,7 @@ namespace App\Modules\Trace\Repositories;
 use App\Models\Traces\Trace;
 use App\Modules\Common\Repositories\PaginationInfoDto;
 use App\Modules\Trace\Repositories\Dto\Data\TraceDataFilterDto;
+use App\Modules\Trace\Repositories\Dto\Data\TraceDataItemDto;
 use App\Modules\Trace\Repositories\Dto\Profiling\TraceProfilingDataDto;
 use App\Modules\Trace\Repositories\Dto\Profiling\TraceProfilingDto;
 use App\Modules\Trace\Repositories\Dto\Profiling\TraceProfilingItemDto;
@@ -40,6 +41,12 @@ readonly class TraceRepository implements TraceRepositoryInterface
         $operations = [];
 
         foreach ($traces as $trace) {
+            $preparedData = $this->prepareData(
+                json_decode($trace->data, true)
+            );
+
+            $dataKeyValue = $this->prepareDataKeyValue($preparedData);
+
             $operations[] = [
                 'updateOne' => [
                     [
@@ -52,9 +59,8 @@ readonly class TraceRepository implements TraceRepositoryInterface
                             'tp'   => $trace->type,
                             'st'   => $trace->status,
                             'tgs'  => $this->prepareTagsForSave($trace->tags),
-                            'dt'   => $this->prepareData(
-                                json_decode($trace->data, true)
-                            ),
+                            'dt'   => $preparedData,
+                            'dtkv' => $dataKeyValue,
                             'dur'  => $trace->duration,
                             'mem'  => $trace->memory,
                             'cpu'  => $trace->cpu,
@@ -84,6 +90,16 @@ readonly class TraceRepository implements TraceRepositoryInterface
 
         foreach ($traces as $trace) {
             $hasProfiling = is_null($trace->profiling) ? null : !empty($trace->profiling->items);
+
+            $preparedData = is_null($trace->data)
+                ? null
+                : $this->prepareData(
+                    json_decode($trace->data, true)
+                );
+
+            $dataKeyValue = is_null($preparedData)
+                ? null
+                : $this->prepareDataKeyValue($preparedData);
 
             $operations[] = [
                 'updateOne' => [
@@ -115,9 +131,8 @@ readonly class TraceRepository implements TraceRepositoryInterface
                             ...(is_null($trace->data)
                                 ? []
                                 : [
-                                    'dt' => $this->prepareData(
-                                        json_decode($trace->data, true)
-                                    ),
+                                    'dt'   => $preparedData,
+                                    'dtkv' => $dataKeyValue,
                                 ]),
                             ...(is_null($trace->duration)
                                 ? []
@@ -186,6 +201,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
                 'st',
                 'tgs',
                 'dt',
+                'dtkv',
                 'dur',
                 'mem',
                 'cpu',
@@ -214,7 +230,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
             type: $trace->tp,
             status: $trace->st,
             tags: $this->parseTagsFromDb($trace->tgs),
-            data: $trace->dt,
+            data: $this->parseDataFromDb($trace->dtkv),
             duration: $trace->dur,
             memory: $trace->mem,
             cpu: $trace->cpu,
@@ -273,6 +289,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
                 'st',
                 'tgs',
                 'dt',
+                'dtkv',
                 'dur',
                 'mem',
                 'cpu',
@@ -317,7 +334,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
                     type: $trace->tp,
                     status: $trace->st,
                     tags: $this->parseTagsFromDb($trace->tgs),
-                    data: $trace->dt,
+                    data: $this->parseDataFromDb($trace->dtkv),
                     duration: $trace->dur,
                     memory: $trace->mem,
                     cpu: $trace->cpu,
@@ -567,10 +584,11 @@ readonly class TraceRepository implements TraceRepositoryInterface
                 fn(Builder $query) => $query->whereNotIn('tp', $excludedTypes)
             )
             ->update([
-                'dt'  => new stdClass(),
-                'pr'  => null,
-                'hpr' => false,
-                'cl'  => true,
+                'dt'   => new stdClass(),
+                'dtkv' => [],
+                'pr'   => null,
+                'hpr'  => false,
+                'cl'   => true,
             ]);
     }
 
@@ -658,6 +676,17 @@ readonly class TraceRepository implements TraceRepositoryInterface
         );
     }
 
+    private function parseDataFromDb(array $data): array
+    {
+        $result = [];
+
+        foreach ($data as $item) {
+            Arr::set($result, $item['k'], $item['v']);
+        }
+
+        return $result;
+    }
+
     private function prepareData(array $data): array
     {
         $result = [];
@@ -694,5 +723,18 @@ readonly class TraceRepository implements TraceRepositoryInterface
                 value: $valueItem
             );
         }
+    }
+
+    private function prepareDataKeyValue(array $data): array
+    {
+        return array_values(
+            Arr::map(
+                Arr::dot($data),
+                fn(mixed $value, string $key) => [
+                    'k' => $key,
+                    'v' => $value,
+                ]
+            )
+        );
     }
 }
