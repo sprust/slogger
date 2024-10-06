@@ -213,27 +213,6 @@ readonly class FindTraceTimestampsAction implements FindTraceTimestampsActionInt
             }
         }
 
-        //$timestampsDtoList = $this->traceTimestampsRepository->find(
-        //    timestamp: $parameters->timestampStep,
-        //    fields: $fieldsFilter,
-        //    dataFields: $dataFieldsFilter,
-        //    serviceIds: $parameters->serviceIds,
-        //    traceIds: $parameters->traceIds,
-        //    loggedAtFrom: $loggedAtFrom,
-        //    loggedAtTo: $loggedAtTo,
-        //    types: $parameters->types,
-        //    tags: $parameters->tags,
-        //    statuses: $parameters->statuses,
-        //    durationFrom: $parameters->durationFrom,
-        //    durationTo: $parameters->durationTo,
-        //    memoryFrom: $parameters->memoryFrom,
-        //    memoryTo: $parameters->memoryTo,
-        //    cpuFrom: $parameters->cpuFrom,
-        //    cpuTo: $parameters->cpuTo,
-        //    data: $data,
-        //    hasProfiling: $parameters->hasProfiling,
-        //);
-
         $timestampsResult = Arr::sort(
             $timestampsResult,
             fn(TraceTimestampsDto $timestampResult) => $timestampResult->timestamp->getTimestampMs()

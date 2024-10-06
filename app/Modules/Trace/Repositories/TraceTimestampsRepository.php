@@ -92,7 +92,6 @@ readonly class TraceTimestampsRepository implements TraceTimestampsRepositoryInt
             )
             ->toMql();
 
-
         foreach ($mql['find'][0] ?? [] as $key => $value) {
             $match[$key] = $value;
         }
