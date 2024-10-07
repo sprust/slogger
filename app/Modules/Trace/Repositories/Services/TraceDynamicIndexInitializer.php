@@ -10,6 +10,7 @@ use App\Modules\Trace\Repositories\Dto\Data\TraceDataFilterDto;
 use App\Modules\Trace\Repositories\Dto\TraceDynamicIndexFieldDto;
 use App\Modules\Trace\Repositories\Dto\TraceSortDto;
 use App\Modules\Trace\Repositories\Interfaces\TraceDynamicIndexRepositoryInterface;
+use App\Modules\Trace\Repositories\Interfaces\TraceRepositoryInterface;
 use Illuminate\Support\Carbon;
 
 readonly class TraceDynamicIndexInitializer
@@ -17,13 +18,15 @@ readonly class TraceDynamicIndexInitializer
     private int $timeLifeIndexInMinutes;
 
     public function __construct(
-        private TraceDynamicIndexRepositoryInterface $traceDynamicIndexRepository
+        private TraceDynamicIndexRepositoryInterface $traceDynamicIndexRepository,
+        private TraceRepositoryInterface $traceRepository,
     ) {
         $this->timeLifeIndexInMinutes = 60 * 24 * 30; // 30 days
     }
 
     /**
      * WARNING: mongodb not support the index parallel arrays
+     *
      * @see https://www.mongodb.com/docs/manual/core/indexes/index-types/index-multikey/#compound-multikey-indexes
      *
      * @param int[]|null          $serviceIds
@@ -138,7 +141,11 @@ readonly class TraceDynamicIndexInitializer
         }
 
         if ($indexDto->inProcess) {
-            throw new TraceDynamicIndexInProcessException();
+            $progress = $this->traceRepository->getIndexProgressInfo(
+                name: $indexDto->name
+            );
+
+            throw (new TraceDynamicIndexInProcessException())->setProgress($progress?->progress);
         }
 
         if ($indexDto->error) {

@@ -11,6 +11,7 @@ use App\Modules\Trace\Repositories\Dto\Profiling\TraceProfilingItemDto;
 use App\Modules\Trace\Repositories\Dto\Timestamp\TraceTimestampMetricDto;
 use App\Modules\Trace\Repositories\Dto\TraceDetailDto;
 use App\Modules\Trace\Repositories\Dto\TraceDto;
+use App\Modules\Trace\Repositories\Dto\TraceIndexInfoDto;
 use App\Modules\Trace\Repositories\Dto\TraceItemsPaginationDto;
 use App\Modules\Trace\Repositories\Dto\TraceLoggedAtDto;
 use App\Modules\Trace\Repositories\Dto\TraceServiceDto;
@@ -23,6 +24,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use MongoDB\BSON\UTCDateTime;
+use MongoDB\Driver\Command;
+use MongoDB\Driver\Exception\Exception;
 use stdClass;
 use Throwable;
 
@@ -607,8 +610,9 @@ readonly class TraceRepository implements TraceRepositoryInterface
             Trace::collection()->createIndex(
                 $index,
                 [
-                    'name' => $name,
-                ]
+                    'name'       => $name,
+                    'background' => true,
+                ],
             );
         } catch (Throwable $exception) {
             if (str_starts_with($exception->getMessage(), 'Index already exists with a different name')) {
@@ -619,6 +623,47 @@ readonly class TraceRepository implements TraceRepositoryInterface
         }
 
         return true;
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function getIndexProgressInfo(string $name): ?TraceIndexInfoDto
+    {
+        $operations = Trace::collection()->getManager()
+            ->executeCommand(
+                'admin',
+                new Command(
+                    [
+                        'currentOp' => true,
+                        '$and'      => [
+                            ['op' => 'command'],
+                            [
+                                'command.createIndexes' => [
+                                    '$exists' => true,
+                                ],
+                            ],
+                            [
+                                'progress' => [
+                                    '$exists' => true,
+                                ],
+                            ],
+                            ['command.indexes.name' => $name],
+                        ],
+                    ]
+                )
+            );
+
+        $operation = iterator_to_array($operations)[0]->inprog[0] ?? null;
+
+        if (!$operation) {
+            return null;
+        }
+
+        return new TraceIndexInfoDto(
+            $name,
+            round($operation->progress->done / $operation->progress->total * 100, 2)
+        );
     }
 
     public function findMinLoggedAt(): ?Carbon

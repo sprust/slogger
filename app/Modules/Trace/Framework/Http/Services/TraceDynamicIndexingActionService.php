@@ -25,11 +25,11 @@ class TraceDynamicIndexingActionService
         while (true) {
             try {
                 $result = $action();
-            } catch (TraceDynamicIndexInProcessException) {
+            } catch (TraceDynamicIndexInProcessException $exception) {
                 abort_if(
                     boolean: (time() - $start) > $this->indexCreateTimeoutInSeconds,
                     code: 500,
-                    message: "Indexing in progress. Try again or later."
+                    message: "Indexing in progress [{$exception->getProgress()}%]. Try again or later."
                 );
 
                 sleep(1);

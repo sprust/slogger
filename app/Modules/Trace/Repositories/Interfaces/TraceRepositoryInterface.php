@@ -9,6 +9,7 @@ use App\Modules\Trace\Repositories\Dto\TraceCreateDto;
 use App\Modules\Trace\Repositories\Dto\TraceDetailDto;
 use App\Modules\Trace\Repositories\Dto\TraceDto;
 use App\Modules\Trace\Repositories\Dto\TraceDynamicIndexFieldDto;
+use App\Modules\Trace\Repositories\Dto\TraceIndexInfoDto;
 use App\Modules\Trace\Repositories\Dto\TraceItemsPaginationDto;
 use App\Modules\Trace\Repositories\Dto\TraceLoggedAtDto;
 use App\Modules\Trace\Repositories\Dto\TraceSortDto;
@@ -128,6 +129,8 @@ interface TraceRepositoryInterface
      * @param TraceDynamicIndexFieldDto[] $fields
      */
     public function createIndex(string $name, array $fields): bool;
+
+    public function getIndexProgressInfo(string $name): ?TraceIndexInfoDto;
 
     public function findMinLoggedAt(): ?Carbon;
 
