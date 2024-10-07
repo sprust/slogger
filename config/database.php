@@ -104,6 +104,7 @@ return [
                 'options'  => [
                     'appname'    => env('APP_NAME'),
                     'authSource' => env('MONGO_DATABASE_ADMIN', 'admin'),
+                    'socketTimeoutMS'=> 600000 // 10 minutes
                 ],
             ],
         ],
