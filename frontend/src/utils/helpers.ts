@@ -54,10 +54,14 @@ export function handleApiError(error: any) {
     }
 
     console.log(error)
+    console.log(error.status)
 
-    ElMessage.error({
+    const type = error.status === 400 ? "warning" : "error"
+
+    ElMessage({
         dangerouslyUseHTMLString: true,
         message: message,
+        type: type,
         showClose: true,
         duration: 5000
     })
