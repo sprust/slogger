@@ -346,7 +346,6 @@ readonly class TraceRepository implements TraceRepositoryInterface
         ?array $excludedTypes = null
     ): array {
         $builder = Trace::query()
-            ->select(['tid'])
             ->when(
                 !is_null($loggedAtTo),
                 fn(Builder $query) => $query->where('lat', '<=', new UTCDateTime($loggedAtTo))
@@ -359,6 +358,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
                 is_null($type) && !is_null($excludedTypes),
                 fn(Builder $query) => $query->whereNotIn('tp', $excludedTypes)
             )
+            ->select(['tid'])
             ->toBase()
             ->limit($limit);
 

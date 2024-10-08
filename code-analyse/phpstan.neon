@@ -1,8 +1,8 @@
 parameters:
     paths:
-        - app
+        - ../app
     excludePaths:
-        - app/Console/Commands/Local
+        - ../app/Console/Commands/Local
     level: 5
     ignoreErrors:
         -
@@ -21,7 +21,7 @@ parameters:
             message: '#Property [\s\S]* is never read, only written#'
             path: *Resource.php
         -
-            path: app/Modules/Trace/Grpc/TraceCollectorService.php
+            path: ../app/Modules/Trace/Grpc/TraceCollectorService.php
             messages:
                 - '#Using nullsafe method call on non\-nullable type Google\\Protobuf\\#'
                 - '#Using nullsafe method call on non-nullable type SLoggerGrpcDto\\TraceCollector\\TagsObject#'

@@ -123,6 +123,13 @@ readonly class ClearTracesAction implements ClearTracesActionInterface
                         );
                     }
                 } catch (Throwable $exception) {
+                    $this->processRepository->update(
+                        processId: $process->id,
+                        clearedCount: $clearedCount,
+                        clearedAt: now(),
+                        exception: $exception
+                    );
+
                     break;
                 }
 
