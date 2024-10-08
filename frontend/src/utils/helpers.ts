@@ -54,7 +54,6 @@ export function handleApiError(error: any) {
     }
 
     console.log(error)
-    console.log(error.status)
 
     const type = error.status === 400 ? "warning" : "error"
 
