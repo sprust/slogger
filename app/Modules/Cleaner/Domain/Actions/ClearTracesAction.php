@@ -130,7 +130,7 @@ readonly class ClearTracesAction implements ClearTracesActionInterface
                         exception: $exception
                     );
 
-                    continue;
+                    break;
                 }
 
                 $this->processRepository->update(
