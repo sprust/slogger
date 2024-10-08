@@ -98,7 +98,7 @@ rr-get-binary:
 	@"$(WORKERS_CLI)"./vendor/bin/rr get-binary
 
 rr-workers:
-	@"$(WORKERS_CLI)"./rr workers -i -o rpc.listen=tcp://$(OCTANE_RR_RPC_HOST):$(OCTANE_RR_RPC_PORT) ${c}
+	@"$(WORKERS_CLI)"./rr workers -i -o rpc.listen=tcp://$(OCTANE_RR_RPC_HOST):$(OCTANE_RR_RPC_PORT) ${p}
 
 protoc-load:
 	@"$(WORKERS_CLI)"./vendor/bin/rr download-protoc-binary
