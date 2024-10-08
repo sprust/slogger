@@ -46,6 +46,6 @@ readonly class JobsWaiter
 
     private function makeCacheKey(string $id): string
     {
-        return "rr-parallel:$id";
+        return "rr-parallel-result:$id";
     }
 }

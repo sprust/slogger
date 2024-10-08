@@ -9,8 +9,7 @@ class JobHandledEvent
 {
     public function __construct(
         public Application $app,
-        public QueuedTaskInterface $task,
-        public mixed $result
+        public QueuedTaskInterface $task
     ) {
     }
 }

@@ -96,15 +96,19 @@ readonly class JobsServer
             try {
                 $job = $this->jobSerializer->unSerialize($payload);
 
-                $result = $app->call($job->getCallback());
+                if (!$job->wait) {
+                    $app->call($job->getCallback());
+                } else {
+                    $result = $app->call($job->getCallback());
 
-                if ($job->wait) {
                     $app->make(JobsWaiter::class)->finish(
                         id: $taskId,
                         result: new JobResultDto(
                             result: $result
                         )
                     );
+
+                    unset($result);
                 }
 
                 $task->ack();
@@ -113,8 +117,7 @@ readonly class JobsServer
                     app: $app,
                     event: new JobHandledEvent(
                         app: $app,
-                        task: $task,
-                        result: $result
+                        task: $task
                     )
                 );
             } catch (Throwable $exception) {
