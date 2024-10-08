@@ -46,8 +46,8 @@ restart:
 bash-php-fpm:
 	@"$(PHP_FPM_CLI)"bash
 
-stan:
-	@"$(WORKERS_CLI)"./vendor/bin/phpstan analyse app --memory-limit=1G
+code-analise-stan:
+	@"$(WORKERS_CLI)"./vendor/bin/phpstan analyse app -c ./code-analyse/phpstan.neon  --memory-limit=1G
 
 bash-workers:
 	@"$(WORKERS_CLI)"bash
