@@ -29,10 +29,10 @@ readonly class TraceDynamicIndexInitializer
      *
      * @see https://www.mongodb.com/docs/manual/core/indexes/index-types/index-multikey/#compound-multikey-indexes
      *
-     * @param int[]|null          $serviceIds
-     * @param string[]            $types
-     * @param string[]            $tags
-     * @param string[]            $statuses
+     * @param int[]|null                 $serviceIds
+     * @param string[]                   $types
+     * @param string[]                   $tags
+     * @param string[]                   $statuses
      * @param TraceSortParameters[]|null $sort
      *
      * TODO: violation of layers
