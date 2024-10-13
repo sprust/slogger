@@ -1,0 +1,29 @@
+{
+    "name": "spprust/rr-monitor-laravel",
+    "description": "RoadRunner monitor for laravel",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Pavel",
+            "email": "sppetrovich@mail.ru"
+        }
+    ],
+    "require": {
+        "laravel/framework": "^10.0",
+        "spiral/roadrunner-worker": "^3.6"
+    },
+    "autoload": {
+        "psr-4": {
+            "RrMonitor\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "RrMonitor\\RrMonitorServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

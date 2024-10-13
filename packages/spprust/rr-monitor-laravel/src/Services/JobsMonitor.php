@@ -1,10 +1,11 @@
 <?php
 
-namespace RrParallel\Services\Drivers\Roadrunner;
+namespace RrMonitor\Services;
 
 use Illuminate\Contracts\Foundation\Application;
 use Laravel\Octane\DispatchesEvents;
-use RrParallel\Events\MonitorWorkersCountSetEvent;
+use RrMonitor\Events\MonitorWorkersCountSetEvent;
+use Spiral\Goridge\RPC\RPCInterface;
 use Spiral\RoadRunner\WorkerPool;
 
 class JobsMonitor
@@ -19,11 +20,9 @@ class JobsMonitor
     private readonly int $removingPeriodicityInSeconds;
     private int $workersCountEditedTime;
 
-    public function __construct(RpcFactory $rpcFactory, Application $app)
+    public function __construct(RPCInterface $rpc, Application $app)
     {
-        $this->pool = new WorkerPool(
-            $rpcFactory->get()
-        );
+        $this->pool = new WorkerPool($rpc);
         $this->app  = $app;
 
         $this->dangerFreePercent               = 30;

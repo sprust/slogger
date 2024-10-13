@@ -5,13 +5,11 @@ namespace RrParallel;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
-use RrParallel\Commands\StartJobsMonitorCommand;
-use RrParallel\Commands\StopJobsMonitorCommand;
-use RrParallel\Services\ParallelPusherInterface;
-use RrParallel\Services\Drivers\Roadrunner\ParallelRoadrunnerPusher;
 use RrParallel\Services\Drivers\Roadrunner\JobsWaiter;
+use RrParallel\Services\Drivers\Roadrunner\ParallelRoadrunnerPusher;
 use RrParallel\Services\Drivers\Roadrunner\RpcFactory;
 use RrParallel\Services\Drivers\Sync\ParallelSyncPusher;
+use RrParallel\Services\ParallelPusherInterface;
 
 class RrParallelServiceProvider extends ServiceProvider
 {
@@ -20,11 +18,6 @@ class RrParallelServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->commands([
-            StartJobsMonitorCommand::class,
-            StopJobsMonitorCommand::class,
-        ]);
-
         $this->booting(function () {
             $events = array_merge(
                 config('rr-parallel.jobs.listeners') ?? [],

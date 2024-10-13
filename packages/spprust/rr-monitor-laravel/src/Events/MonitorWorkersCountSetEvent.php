@@ -1,6 +1,6 @@
 <?php
 
-namespace RrParallel\Events;
+namespace RrMonitor\Events;
 
 readonly class MonitorWorkersCountSetEvent
 {

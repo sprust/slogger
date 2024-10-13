@@ -76,8 +76,8 @@ workers-restart:
 	@make art-workers c='cron:restart'
 	@make art-workers c='octane:roadrunner:reload'
 	@make art-workers c='octane:swoole:reload'
-	@make art-workers c='rr-parallel:monitor:stop grpc'
-	@make art-workers c='rr-parallel:monitor:stop jobs'
+	@make art-workers c='rr-monitor:stop grpc'
+	@make art-workers c='rr-monitor:stop jobs'
 	@make art-workers c='trace-dynamic-indexes:monitor:stop'
 
 octane-stop:

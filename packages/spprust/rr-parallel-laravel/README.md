@@ -41,12 +41,4 @@ stderr_logfile=/var/log/supervisor/rr-server-err.log
 autostart=true
 autorestart=true
 startsecs=0
-
-[program:rr-jobs-monitor]
-command= php /app/artisan rr-parallel:monitor
-stdout_logfile=/var/log/supervisor/rr-jobs-monitor-out.log
-stderr_logfile=/var/log/supervisor/rr-jobs-monitor-err.log
-autostart=true
-autorestart=true
-startsecs=0
 ```

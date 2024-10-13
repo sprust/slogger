@@ -24,6 +24,7 @@
         "spiral/roadrunner-cli": "^2.6",
         "spiral/roadrunner-grpc": "^3.3",
         "spiral/roadrunner-http": "^3.3.0",
+        "spprust/rr-monitor-laravel": "dev-master",
         "spprust/rr-parallel-laravel": "dev-master",
         "vladimir-yuldashev/laravel-queue-rabbitmq": "^14.1"
     },
@@ -63,6 +64,13 @@
         {
             "type": "path",
             "url": "packages/spprust/rr-parallel-laravel",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "packages/spprust/rr-monitor-laravel",
             "options": {
                 "symlink": true
             }

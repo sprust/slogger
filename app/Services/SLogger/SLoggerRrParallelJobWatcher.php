@@ -3,10 +3,10 @@
 namespace App\Services\SLogger;
 
 use Illuminate\Support\Carbon;
+use RrMonitor\Events\MonitorWorkersCountSetEvent;
 use RrParallel\Events\JobHandledEvent;
 use RrParallel\Events\JobHandlingErrorEvent;
 use RrParallel\Events\JobReceivedEvent;
-use RrParallel\Events\MonitorWorkersCountSetEvent;
 use RrParallel\Services\Drivers\Roadrunner\HeadersResolver;
 use SLoggerLaravel\Enums\SLoggerTraceStatusEnum;
 use SLoggerLaravel\Helpers\SLoggerTraceHelper;
