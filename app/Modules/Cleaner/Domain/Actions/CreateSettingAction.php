@@ -2,10 +2,10 @@
 
 namespace App\Modules\Cleaner\Domain\Actions;
 
-use App\Modules\Cleaner\Domain\Actions\Interfaces\CreateSettingActionInterface;
-use App\Modules\Cleaner\Domain\Entities\Objects\SettingObject;
+use App\Modules\Cleaner\Contracts\Actions\CreateSettingActionInterface;
+use App\Modules\Cleaner\Contracts\Repositories\SettingRepositoryInterface;
 use App\Modules\Cleaner\Domain\Exceptions\SettingAlreadyExistsException;
-use App\Modules\Cleaner\Repositories\Interfaces\SettingRepositoryInterface;
+use App\Modules\Cleaner\Entities\SettingObject;
 
 readonly class CreateSettingAction implements CreateSettingActionInterface
 {

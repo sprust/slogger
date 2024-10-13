@@ -2,8 +2,8 @@
 
 namespace App\Modules\Dashboard\Domain\Actions;
 
-use App\Modules\Dashboard\Domain\Actions\Interfaces\CacheServiceStatActionInterface;
-use App\Modules\Dashboard\Domain\Actions\Interfaces\FindServiceStatActionInterface;
+use App\Modules\Dashboard\Contracts\Actions\CacheServiceStatActionInterface;
+use App\Modules\Dashboard\Contracts\Actions\FindServiceStatActionInterface;
 use App\Modules\Dashboard\Domain\Services\ServiceStatCache;
 
 readonly class FindServiceStatAction implements FindServiceStatActionInterface

@@ -2,7 +2,7 @@
 
 namespace App\Modules\Trace\Domain\Actions;
 
-use App\Modules\Trace\Domain\Actions\Interfaces\MakeTraceTimestampsActionInterface;
+use App\Modules\Trace\Contracts\Actions\MakeTraceTimestampsActionInterface;
 use App\Modules\Trace\Domain\Services\TraceTimestampMetricsFactory;
 use Illuminate\Support\Carbon;
 

@@ -3,8 +3,8 @@
 namespace App\Modules\Cleaner\Repositories;
 
 use App\Models\Traces\TraceClearingSetting;
-use App\Modules\Cleaner\Repositories\Dto\SettingDto;
-use App\Modules\Cleaner\Repositories\Interfaces\SettingRepositoryInterface;
+use App\Modules\Cleaner\Contracts\Repositories\SettingRepositoryInterface;
+use App\Modules\Cleaner\Entities\SettingObject;
 use Illuminate\Database\Eloquent\Builder;
 
 class SettingRepository implements SettingRepositoryInterface
@@ -54,7 +54,7 @@ class SettingRepository implements SettingRepositoryInterface
             ->toArray();
     }
 
-    public function findOneById(int $id): ?SettingDto
+    public function findOneById(int $id): ?SettingObject
     {
         /** @var TraceClearingSetting|null $setting */
         $setting = TraceClearingSetting::query()->find($id);
@@ -99,9 +99,9 @@ class SettingRepository implements SettingRepositoryInterface
             ]);
     }
 
-    private function modelToDto(TraceClearingSetting $setting): SettingDto
+    private function modelToDto(TraceClearingSetting $setting): SettingObject
     {
-        return new SettingDto(
+        return new SettingObject(
             id: $setting->id,
             daysLifetime: $setting->days_lifetime,
             type: $setting->type,

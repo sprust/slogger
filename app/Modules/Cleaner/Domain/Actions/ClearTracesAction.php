@@ -2,21 +2,21 @@
 
 namespace App\Modules\Cleaner\Domain\Actions;
 
-use App\Modules\Cleaner\Domain\Actions\Interfaces\ClearTracesActionInterface;
+use App\Modules\Cleaner\Contracts\Actions\ClearTracesActionInterface;
+use App\Modules\Cleaner\Contracts\Repositories\ProcessRepositoryInterface;
+use App\Modules\Cleaner\Contracts\Repositories\SettingRepositoryInterface;
 use App\Modules\Cleaner\Domain\Events\ProcessAlreadyActiveEvent;
-use App\Modules\Cleaner\Repositories\Dto\SettingDto;
-use App\Modules\Cleaner\Repositories\Interfaces\ProcessRepositoryInterface;
-use App\Modules\Cleaner\Repositories\Interfaces\SettingRepositoryInterface;
-use App\Modules\Common\EventsDispatcher;
-use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\ClearTracesActionInterface as TraceClearTracesActionInterface;
-use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\DeleteTracesActionInterface;
-use App\Modules\Trace\Domain\Actions\Interfaces\Queries\FindMinLoggedAtTracesActionInterface;
-use App\Modules\Trace\Domain\Actions\Interfaces\Queries\FindTraceIdsActionInterface;
-use App\Modules\Trace\Domain\Entities\Parameters\ClearTracesParameters;
-use App\Modules\Trace\Domain\Entities\Parameters\DeleteTracesParameters;
+use App\Modules\Cleaner\Entities\SettingObject;
+use App\Modules\Common\Domain\Service\EventsDispatcher;
+use App\Modules\Trace\Contracts\Actions\Mutations\ClearTracesActionInterface as TraceClearTracesActionInterface;
+use App\Modules\Trace\Contracts\Actions\Mutations\DeleteTracesActionInterface;
+use App\Modules\Trace\Contracts\Actions\Queries\FindMinLoggedAtTracesActionInterface;
+use App\Modules\Trace\Contracts\Actions\Queries\FindTraceIdsActionInterface;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexErrorException;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexInProcessException;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexNotInitException;
+use App\Modules\Trace\Parameters\ClearTracesParameters;
+use App\Modules\Trace\Parameters\DeleteTracesParameters;
 use Illuminate\Support\Arr;
 use Throwable;
 
@@ -40,10 +40,10 @@ readonly class ClearTracesAction implements ClearTracesActionInterface
      */
     public function handle(): void
     {
-        /** @var SettingDto[] $settings */
+        /** @var SettingObject[] $settings */
         $settings = Arr::sort(
             $this->settingRepository->find(deleted: false),
-            fn(SettingDto $settingDto) => is_null($settingDto->type) ? 1 : 0
+            fn(SettingObject $setting) => is_null($setting->type) ? 1 : 0
         );
 
         if (empty($settings)) {
@@ -59,7 +59,7 @@ readonly class ClearTracesAction implements ClearTracesActionInterface
         $customizedTypes = array_unique(
             array_filter(
                 array_map(
-                    fn(SettingDto $settingDto) => $settingDto->type,
+                    fn(SettingObject $setting) => $setting->type,
                     $settings
                 )
             )

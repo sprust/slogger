@@ -2,10 +2,10 @@
 
 namespace App\Modules\Auth\Domain\Actions;
 
-use App\Modules\Auth\Domain\Actions\Interfaces\LoginActionInterface;
-use App\Modules\Auth\Domain\Entities\Objects\LoggedUserObject;
-use App\Modules\Auth\Domain\Entities\Parameters\LoginParameters;
-use App\Modules\User\Domain\Actions\Interfaces\FindUserByEmailActionInterface;
+use App\Modules\Auth\Contracts\Actions\LoginActionInterface;
+use App\Modules\Auth\Entities\LoggedUserObject;
+use App\Modules\Auth\Parameters\LoginParameters;
+use App\Modules\User\Contracts\Domain\FindUserByEmailActionInterface;
 use Illuminate\Support\Facades\Hash;
 
 readonly class LoginAction implements LoginActionInterface

@@ -16,10 +16,7 @@ class StartJobsMonitorCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'rr-parallel:monitor:start
-        { pluginName }
-        { number : number of jobs }
-        { maxNumber : max number of jobs }';
+    protected $signature = 'rr-parallel:monitor:start {pluginName}';
 
     /**
      * The console command description.
@@ -36,9 +33,17 @@ class StartJobsMonitorCommand extends Command
      */
     public function handle(): void
     {
-        $pluginName       = $this->argument('pluginName');
-        $workersNumber    = (int) $this->argument('number');
-        $workersMaxNumber = (int) $this->argument('maxNumber');
+        $pluginName = $this->argument('pluginName');
+
+        $workersNumber = (int) config("rr-parallel.monitor.$pluginName.number");
+
+        if (!$workersNumber) {
+            throw new Exception(
+                "No number of workers defined for plugin $pluginName. Config rr-parallel.monitor.$pluginName.*."
+            );
+        }
+
+        $workersMaxNumber = (int) config("rr-parallel.monitor.$pluginName.max_number");
         $workersMaxNumber = $workersMaxNumber ?: ($workersNumber * 2);
 
         $tryCount = 5;

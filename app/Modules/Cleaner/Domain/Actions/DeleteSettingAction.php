@@ -2,8 +2,8 @@
 
 namespace App\Modules\Cleaner\Domain\Actions;
 
-use App\Modules\Cleaner\Domain\Actions\Interfaces\DeleteSettingActionInterface;
-use App\Modules\Cleaner\Repositories\Interfaces\SettingRepositoryInterface;
+use App\Modules\Cleaner\Contracts\Actions\DeleteSettingActionInterface;
+use App\Modules\Cleaner\Contracts\Repositories\SettingRepositoryInterface;
 
 readonly class DeleteSettingAction implements DeleteSettingActionInterface
 {

@@ -2,7 +2,7 @@
 
 namespace App\Modules\Trace\Domain\Actions\Mutations;
 
-use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\StopMonitorTraceDynamicIndexesActionInterface;
+use App\Modules\Trace\Contracts\Actions\Mutations\StopMonitorTraceDynamicIndexesActionInterface;
 use App\Modules\Trace\Domain\Services\MonitorTraceDynamicIndexesService;
 
 readonly class StopMonitorTraceDynamicIndexesAction implements StopMonitorTraceDynamicIndexesActionInterface

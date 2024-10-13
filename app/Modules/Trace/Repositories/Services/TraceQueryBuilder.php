@@ -3,8 +3,8 @@
 namespace App\Modules\Trace\Repositories\Services;
 
 use App\Models\Traces\Trace;
-use App\Modules\Trace\Repositories\Dto\Data\TraceDataFilterItemDto;
-use App\Modules\Trace\Repositories\Dto\Data\TraceDataFilterDto;
+use App\Modules\Trace\Parameters\Data\TraceDataFilterItemParameters;
+use App\Modules\Trace\Parameters\Data\TraceDataFilterParameters;
 use App\Modules\Trace\Enums\TraceDataFilterCompStringTypeEnum;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
@@ -41,7 +41,7 @@ class TraceQueryBuilder
         ?float $memoryTo = null,
         ?float $cpuFrom = null,
         ?float $cpuTo = null,
-        ?TraceDataFilterDto $data = null,
+        ?TraceDataFilterParameters $data = null,
         ?bool $hasProfiling = null,
     ): Builder {
         $builder = Trace::query()
@@ -99,7 +99,7 @@ class TraceQueryBuilder
     }
 
     /**
-     * @param TraceDataFilterItemDto[] $filter
+     * @param TraceDataFilterItemParameters[] $filter
      */
     private function applyDataFilter(Builder $builder, array $filter): Builder
     {
@@ -154,7 +154,7 @@ class TraceQueryBuilder
             }
 
             if (!is_null($filterItem->boolean)) {
-                $builder->where($field, $filterItem->boolean);
+                $builder->where($field, $filterItem->boolean->value);
             }
         }
 

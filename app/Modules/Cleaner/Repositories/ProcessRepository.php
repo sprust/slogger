@@ -3,8 +3,8 @@
 namespace App\Modules\Cleaner\Repositories;
 
 use App\Models\Traces\TraceClearingProcess;
-use App\Modules\Cleaner\Repositories\Dto\ProcessDto;
-use App\Modules\Cleaner\Repositories\Interfaces\ProcessRepositoryInterface;
+use App\Modules\Cleaner\Contracts\Repositories\ProcessRepositoryInterface;
+use App\Modules\Cleaner\Entities\ProcessObject;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use MongoDB\BSON\UTCDateTime;
@@ -24,7 +24,7 @@ class ProcessRepository implements ProcessRepositoryInterface
                 perPage: $this->perPage
             )
             ->get()
-            ->map(fn(TraceClearingProcess $process) => new ProcessDto(
+            ->map(fn(TraceClearingProcess $process) => new ProcessObject(
                 id: $process->_id,
                 settingId: $process->settingId,
                 clearedCount: $process->clearedCount,
@@ -36,7 +36,7 @@ class ProcessRepository implements ProcessRepositoryInterface
             ->toArray();
     }
 
-    public function findFirstBySettingId(int $settingId, bool $clearedAtIsNull): ?ProcessDto
+    public function findFirstBySettingId(int $settingId, bool $clearedAtIsNull): ?ProcessObject
     {
         /** @var TraceClearingProcess|null $process */
         $process = TraceClearingProcess::query()
@@ -53,7 +53,7 @@ class ProcessRepository implements ProcessRepositoryInterface
             return null;
         }
 
-        return new ProcessDto(
+        return new ProcessObject(
             id: $process->_id,
             settingId: $process->settingId,
             clearedCount: $process->clearedCount,
@@ -64,7 +64,7 @@ class ProcessRepository implements ProcessRepositoryInterface
         );
     }
 
-    public function create(int $settingId, int $clearedCount, ?Carbon $clearedAt): ProcessDto
+    public function create(int $settingId, int $clearedCount, ?Carbon $clearedAt): ProcessObject
     {
         $newProgress = new TraceClearingProcess();
 
@@ -75,7 +75,7 @@ class ProcessRepository implements ProcessRepositoryInterface
 
         $newProgress->save();
 
-        return new ProcessDto(
+        return new ProcessObject(
             id: $newProgress->_id,
             settingId: $newProgress->settingId,
             clearedCount: $newProgress->clearedCount,

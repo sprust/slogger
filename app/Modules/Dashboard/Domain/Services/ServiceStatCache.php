@@ -2,7 +2,7 @@
 
 namespace App\Modules\Dashboard\Domain\Services;
 
-use App\Modules\Dashboard\Domain\Entities\Objects\ServiceStatObject;
+use App\Modules\Dashboard\Entities\ServiceStatObject;
 use Illuminate\Support\Facades\Cache;
 use Throwable;
 

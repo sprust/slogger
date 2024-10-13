@@ -2,8 +2,8 @@
 
 namespace App\Providers;
 
-use App\Modules\Auth\Framework\Http\Middlewares\AuthMiddleware;
-use App\Modules\Service\Framework\Http\Middlewares\AuthServiceMiddleware;
+use App\Modules\Auth\Infrastructure\Http\Middlewares\AuthMiddleware;
+use App\Modules\Service\Infrastructure\Http\Middlewares\AuthServiceMiddleware;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 use Illuminate\Http\Request;

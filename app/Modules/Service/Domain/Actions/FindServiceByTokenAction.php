@@ -2,11 +2,9 @@
 
 namespace App\Modules\Service\Domain\Actions;
 
-use App\Modules\Service\Domain\Actions\Interfaces\FindServiceByTokenActionInterface;
-use App\Modules\Service\Domain\Entities\Objects\ServiceObject;
-use App\Modules\Service\Domain\Entities\Transports\ServiceTransport;
-use App\Modules\Service\Repositories\Dto\ServiceDto;
-use App\Modules\Service\Repositories\ServiceRepositoryInterface;
+use App\Modules\Service\Contracts\Actions\FindServiceByTokenActionInterface;
+use App\Modules\Service\Contracts\Repositories\ServiceRepositoryInterface;
+use App\Modules\Service\Entities\ServiceObject;
 
 readonly class FindServiceByTokenAction implements FindServiceByTokenActionInterface
 {
@@ -16,13 +14,6 @@ readonly class FindServiceByTokenAction implements FindServiceByTokenActionInter
 
     public function handle(string $token): ?ServiceObject
     {
-        /** @var ServiceDto|null $serviceDto */
-        $serviceDto = $this->serviceRepository->findByToken($token);
-
-        if (!$serviceDto) {
-            return null;
-        }
-
-        return ServiceTransport::toObject($serviceDto);
+        return $this->serviceRepository->findByToken($token);
     }
 }

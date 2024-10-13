@@ -2,14 +2,14 @@
 
 namespace App\Modules\Trace\Domain\Actions\Mutations;
 
-use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\DeleteTracesActionInterface;
-use App\Modules\Trace\Domain\Entities\Parameters\DeleteTracesParameters;
+use App\Modules\Trace\Contracts\Actions\Mutations\DeleteTracesActionInterface;
+use App\Modules\Trace\Contracts\Repositories\TraceRepositoryInterface;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexErrorException;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexInProcessException;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexNotInitException;
 use App\Modules\Trace\Domain\Services\TraceDynamicIndexingActionService;
-use App\Modules\Trace\Repositories\Interfaces\TraceRepositoryInterface;
-use App\Modules\Trace\Repositories\Services\TraceDynamicIndexInitializer;
+use App\Modules\Trace\Domain\Services\TraceDynamicIndexInitializer;
+use App\Modules\Trace\Parameters\DeleteTracesParameters;
 
 readonly class DeleteTracesAction implements DeleteTracesActionInterface
 {

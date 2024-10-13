@@ -2,8 +2,7 @@
 
 namespace App\Console;
 
-use App\Modules\Cleaner\Framework\Jobs\ClearTracesJob;
-use App\Modules\Dashboard\Framework\Http\Jobs\CacheServiceStatJob;
+use App\Modules\Cleaner\Infrastructure\Jobs\ClearTracesJob;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 

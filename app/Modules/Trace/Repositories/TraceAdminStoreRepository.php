@@ -3,12 +3,11 @@
 namespace App\Modules\Trace\Repositories;
 
 use App\Models\Traces\TraceAdminStore;
-use App\Modules\Common\Repositories\PaginationInfoDto;
-use App\Modules\Trace\Repositories\Dto\TraceAdminStoreDto;
-use App\Modules\Trace\Repositories\Dto\TraceAdminStoresPaginationDto;
-use App\Modules\Trace\Repositories\Interfaces\TraceAdminStoreRepositoryInterface;
+use App\Modules\Common\Entities\PaginationInfoObject;
+use App\Modules\Trace\Contracts\Repositories\TraceAdminStoreRepositoryInterface;
+use App\Modules\Trace\Entities\Store\TraceAdminStoreObject;
+use App\Modules\Trace\Entities\Store\TraceAdminStoresPaginationObject;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Carbon;
 
 class TraceAdminStoreRepository implements TraceAdminStoreRepositoryInterface
 {
@@ -17,7 +16,7 @@ class TraceAdminStoreRepository implements TraceAdminStoreRepositoryInterface
         int $storeVersion,
         string $storeDataHash,
         string $storeData,
-    ): TraceAdminStoreDto {
+    ): TraceAdminStoreObject {
         $store = new TraceAdminStore();
 
         $store->title         = $title;
@@ -27,7 +26,7 @@ class TraceAdminStoreRepository implements TraceAdminStoreRepositoryInterface
 
         $store->save();
 
-        return $this->modelToDto($store);
+        return $this->modelToObject($store);
     }
 
     public function find(
@@ -35,7 +34,7 @@ class TraceAdminStoreRepository implements TraceAdminStoreRepositoryInterface
         int $perPage,
         int $version,
         ?string $searchQuery = null
-    ): TraceAdminStoresPaginationDto {
+    ): TraceAdminStoresPaginationObject {
         $pagination = TraceAdminStore::query()
             ->where('storeVersion', $version)
             ->when(
@@ -45,12 +44,12 @@ class TraceAdminStoreRepository implements TraceAdminStoreRepositoryInterface
             ->orderByDesc('createdAt')
             ->paginate(perPage: $perPage, page: $page);
 
-        return new TraceAdminStoresPaginationDto(
+        return new TraceAdminStoresPaginationObject(
             items: array_map(
-                fn(TraceAdminStore $store) => $this->modelToDto($store),
+                fn(TraceAdminStore $store) => $this->modelToObject($store),
                 $pagination->items()
             ),
-            paginationInfo: new PaginationInfoDto(
+            paginationInfo: new PaginationInfoObject(
                 total: $pagination->total(),
                 perPage: $pagination->perPage(),
                 currentPage: $pagination->currentPage()
@@ -63,9 +62,9 @@ class TraceAdminStoreRepository implements TraceAdminStoreRepositoryInterface
         return (bool) TraceAdminStore::query()->where('_id', $id)->delete();
     }
 
-    private function modelToDto(TraceAdminStore $store): TraceAdminStoreDto
+    private function modelToObject(TraceAdminStore $store): TraceAdminStoreObject
     {
-        return new TraceAdminStoreDto(
+        return new TraceAdminStoreObject(
             id: $store->_id,
             title: $store->title,
             storeVersion: $store->storeVersion,

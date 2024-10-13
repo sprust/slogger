@@ -67,6 +67,6 @@ class Kernel extends HttpKernel
 
     protected $middlewarePriority = [
         \SLoggerLaravel\Middleware\SLoggerHttpMiddleware::class,
-        \App\Modules\Auth\Framework\Http\Middlewares\AuthMiddleware::class,
+        \App\Modules\Auth\Infrastructure\Http\Middlewares\AuthMiddleware::class,
     ];
 }

@@ -51,4 +51,14 @@ return [
     'kv'      => [
         'storage-name' => env('RR_PARALLEL_KV_STORAGE_NAME', 'parallel'),
     ],
+    'monitor' => [
+        'jobs' => [
+            'number'     => env('RR_PARALLEL_WORKERS_NUMBER', 5),
+            'max_number' => env('RR_PARALLEL_WORKERS_MAX_NUMBER', 10),
+        ],
+        'grpc' => [
+            'number'     => env('OCTANE_RR_GRPC_WORKERS', 5),
+            'max_number' => env('OCTANE_RR_GRPC_MAX_WORKERS', 10),
+        ],
+    ],
 ];

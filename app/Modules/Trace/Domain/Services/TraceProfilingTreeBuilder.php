@@ -2,12 +2,12 @@
 
 namespace App\Modules\Trace\Domain\Services;
 
-use App\Modules\Trace\Domain\Entities\Objects\Profiling\ProfilingItemDataObject;
-use App\Modules\Trace\Domain\Entities\Objects\Profiling\Tree\ProfilingTreeNodeObject;
-use App\Modules\Trace\Domain\Entities\Objects\Profiling\Tree\ProfilingTreeObject;
-use App\Modules\Trace\Repositories\Dto\Profiling\TraceProfilingDataDto;
-use App\Modules\Trace\Repositories\Dto\Profiling\TraceProfilingDto;
-use App\Modules\Trace\Repositories\Dto\Profiling\TraceProfilingItemDto;
+use App\Modules\Trace\Entities\Trace\Profiling\ProfilingItemDataObject;
+use App\Modules\Trace\Entities\Trace\Profiling\ProfilingTreeNodeObject;
+use App\Modules\Trace\Entities\Trace\Profiling\ProfilingTreeObject;
+use App\Modules\Trace\Repositories\Dto\Trace\Profiling\TraceProfilingDataDto;
+use App\Modules\Trace\Repositories\Dto\Trace\Profiling\TraceProfilingDto;
+use App\Modules\Trace\Repositories\Dto\Trace\Profiling\TraceProfilingItemDto;
 use Illuminate\Support\Str;
 
 class TraceProfilingTreeBuilder

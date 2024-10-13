@@ -3,7 +3,8 @@
 namespace App\Modules\Service\Repositories;
 
 use App\Models\Services\Service;
-use App\Modules\Service\Repositories\Dto\ServiceDto;
+use App\Modules\Service\Contracts\Repositories\ServiceRepositoryInterface;
+use App\Modules\Service\Entities\ServiceObject;
 use Illuminate\Support\Str;
 
 class ServiceRepository implements ServiceRepositoryInterface
@@ -18,12 +19,12 @@ class ServiceRepository implements ServiceRepositoryInterface
             ])
             ->get()
             ->map(
-                fn(Service $service) => $this->makeDtoByModel($service)
+                fn(Service $service) => $this->makeObjectByModel($service)
             )
             ->toArray();
     }
 
-    public function create(string $name, string $uniqueKey): ServiceDto
+    public function create(string $name, string $uniqueKey): ServiceObject
     {
         $newService = new Service();
 
@@ -33,10 +34,10 @@ class ServiceRepository implements ServiceRepositoryInterface
 
         $newService->saveOrFail();
 
-        return $this->makeDtoByModel($newService);
+        return $this->makeObjectByModel($newService);
     }
 
-    public function findByToken(string $token): ?ServiceDto
+    public function findByToken(string $token): ?ServiceObject
     {
         /** @var Service|null $service */
         $service = Service::query()->where('api_token', $token)->first();
@@ -45,7 +46,7 @@ class ServiceRepository implements ServiceRepositoryInterface
             return null;
         }
 
-        return $this->makeDtoByModel($service);
+        return $this->makeObjectByModel($service);
     }
 
     public function isExistByUniqueKey(string $uniqueKey): bool
@@ -53,9 +54,9 @@ class ServiceRepository implements ServiceRepositoryInterface
         return Service::query()->where('unique_key', $uniqueKey)->exists();
     }
 
-    private function makeDtoByModel(Service $service): ServiceDto
+    private function makeObjectByModel(Service $service): ServiceObject
     {
-        return new ServiceDto(
+        return new ServiceObject(
             id: $service->id,
             name: $service->name,
             apiToken: $service->api_token

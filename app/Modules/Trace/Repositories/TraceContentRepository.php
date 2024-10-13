@@ -3,9 +3,9 @@
 namespace App\Modules\Trace\Repositories;
 
 use App\Models\Traces\Trace;
-use App\Modules\Trace\Repositories\Dto\Data\TraceDataFilterDto;
-use App\Modules\Trace\Repositories\Dto\TraceStringFieldDto;
-use App\Modules\Trace\Repositories\Interfaces\TraceContentRepositoryInterface;
+use App\Modules\Trace\Contracts\Repositories\TraceContentRepositoryInterface;
+use App\Modules\Trace\Entities\Trace\TraceStringFieldObject;
+use App\Modules\Trace\Parameters\Data\TraceDataFilterParameters;
 use App\Modules\Trace\Repositories\Services\TraceQueryBuilder;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
@@ -29,7 +29,7 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
         ?float $memoryTo = null,
         ?float $cpuFrom = null,
         ?float $cpuTo = null,
-        ?TraceDataFilterDto $data = null,
+        ?TraceDataFilterParameters $data = null,
         ?bool $hasProfiling = null,
     ): array {
         $builder = $this->traceQueryBuilder
@@ -87,7 +87,7 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
 
         return collect($iterator)
             ->map(
-                fn(BSONDocument $document) => new TraceStringFieldDto(
+                fn(BSONDocument $document) => new TraceStringFieldObject(
                     name: $document->_id,
                     count: $document->count
                 )
@@ -107,7 +107,7 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
         ?float $memoryTo = null,
         ?float $cpuFrom = null,
         ?float $cpuTo = null,
-        ?TraceDataFilterDto $data = null,
+        ?TraceDataFilterParameters $data = null,
         ?bool $hasProfiling = null,
     ): array {
         $builder = $this->traceQueryBuilder->make(
@@ -193,7 +193,7 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
 
         return collect($iterator)
             ->map(
-                fn(BSONDocument $document) => new TraceStringFieldDto(
+                fn(BSONDocument $document) => new TraceStringFieldObject(
                     name: $document->_id,
                     count: $document->count
                 )
@@ -214,7 +214,7 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
         ?float $memoryTo = null,
         ?float $cpuFrom = null,
         ?float $cpuTo = null,
-        ?TraceDataFilterDto $data = null,
+        ?TraceDataFilterParameters $data = null,
         ?bool $hasProfiling = null,
     ): array {
         $builder = $this->traceQueryBuilder
@@ -274,7 +274,7 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
 
         return collect($iterator)
             ->map(
-                fn(BSONDocument $document) => new TraceStringFieldDto(
+                fn(BSONDocument $document) => new TraceStringFieldObject(
                     name: $document->_id,
                     count: $document->count
                 )

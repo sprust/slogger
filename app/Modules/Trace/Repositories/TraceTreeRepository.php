@@ -3,7 +3,7 @@
 namespace App\Modules\Trace\Repositories;
 
 use App\Models\Traces\TraceTree;
-use App\Modules\Trace\Repositories\Interfaces\TraceTreeRepositoryInterface;
+use App\Modules\Trace\Contracts\Repositories\TraceTreeRepositoryInterface;
 use MongoDB\Model\BSONDocument;
 
 class TraceTreeRepository implements TraceTreeRepositoryInterface

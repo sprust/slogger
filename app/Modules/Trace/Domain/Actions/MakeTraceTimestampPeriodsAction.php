@@ -2,10 +2,10 @@
 
 namespace App\Modules\Trace\Domain\Actions;
 
-use App\Modules\Trace\Domain\Actions\Interfaces\MakeTraceTimestampPeriodsActionInterface;
-use App\Modules\Trace\Domain\Entities\Objects\Timestamp\TraceTimestampObject;
-use App\Modules\Trace\Domain\Entities\Objects\Timestamp\TraceTimestampPeriodObject;
+use App\Modules\Trace\Contracts\Actions\MakeTraceTimestampPeriodsActionInterface;
 use App\Modules\Trace\Domain\Services\TraceTimestampMetricsFactory;
+use App\Modules\Trace\Entities\Trace\Timestamp\TraceTimestampObject;
+use App\Modules\Trace\Entities\Trace\Timestamp\TraceTimestampPeriodObject;
 use App\Modules\Trace\Enums\TraceTimestampEnum;
 use App\Modules\Trace\Enums\TraceTimestampPeriodEnum;
 

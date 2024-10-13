@@ -2,12 +2,9 @@
 
 namespace App\Modules\Trace\Domain\Actions\Queries;
 
-use App\Modules\Common\Domain\Transports\PaginationInfoTransport;
-use App\Modules\Trace\Domain\Actions\Interfaces\Queries\FindTraceAdminStoreActionInterface;
-use App\Modules\Trace\Domain\Entities\Objects\TraceAdminStoresPaginationObject;
-use App\Modules\Trace\Domain\Entities\Transports\TraceAdminStoreTransport;
-use App\Modules\Trace\Repositories\Dto\TraceAdminStoreDto;
-use App\Modules\Trace\Repositories\Interfaces\TraceAdminStoreRepositoryInterface;
+use App\Modules\Trace\Contracts\Actions\Queries\FindTraceAdminStoreActionInterface;
+use App\Modules\Trace\Contracts\Repositories\TraceAdminStoreRepositoryInterface;
+use App\Modules\Trace\Entities\Store\TraceAdminStoresPaginationObject;
 
 readonly class FindTraceAdminStoreAction implements FindTraceAdminStoreActionInterface
 {
@@ -21,21 +18,11 @@ readonly class FindTraceAdminStoreAction implements FindTraceAdminStoreActionInt
 
     public function handle(int $page, int $version, ?string $searchQuery = null): TraceAdminStoresPaginationObject
     {
-        $pagination = $this->traceAdminStoreRepository->find(
+        return $this->traceAdminStoreRepository->find(
             page: $page,
             perPage: $this->perPage,
             version: $version,
             searchQuery: $searchQuery
-        );
-
-        return new TraceAdminStoresPaginationObject(
-            items: array_map(
-                fn(TraceAdminStoreDto $dto) => TraceAdminStoreTransport::toObject($dto),
-                $pagination->items
-            ),
-            paginationInfo: PaginationInfoTransport::toObject(
-                $pagination->paginationInfo
-            )
         );
     }
 }

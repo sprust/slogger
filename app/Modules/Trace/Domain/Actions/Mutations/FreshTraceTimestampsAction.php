@@ -2,11 +2,9 @@
 
 namespace App\Modules\Trace\Domain\Actions\Mutations;
 
-use App\Modules\Trace\Domain\Actions\Interfaces\MakeTraceTimestampsActionInterface;
-use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\FreshTraceTimestampsActionInterface;
-use App\Modules\Trace\Domain\Entities\Objects\Timestamp\TraceTimestampMetricObject;
-use App\Modules\Trace\Repositories\Dto\Timestamp\TraceTimestampMetricDto;
-use App\Modules\Trace\Repositories\Interfaces\TraceRepositoryInterface;
+use App\Modules\Trace\Contracts\Actions\MakeTraceTimestampsActionInterface;
+use App\Modules\Trace\Contracts\Actions\Mutations\FreshTraceTimestampsActionInterface;
+use App\Modules\Trace\Contracts\Repositories\TraceRepositoryInterface;
 
 readonly class FreshTraceTimestampsAction implements FreshTraceTimestampsActionInterface
 {
@@ -38,14 +36,8 @@ readonly class FreshTraceTimestampsAction implements FreshTraceTimestampsActionI
             foreach ($traceLoggedAtList as $traceLoggedAt) {
                 $this->traceRepository->updateTraceTimestamps(
                     traceId: $traceLoggedAt->traceId,
-                    timestamps: array_map(
-                        fn(TraceTimestampMetricObject $object) => new TraceTimestampMetricDto(
-                            key: $object->key,
-                            value: $object->value
-                        ),
-                        $this->makeTraceTimestampsAction->handle(
-                            date: $traceLoggedAt->loggedAt
-                        )
+                    timestamps: $this->makeTraceTimestampsAction->handle(
+                        date: $traceLoggedAt->loggedAt
                     )
                 );
             }

@@ -1,6 +1,6 @@
 <?php
 
-use App\Modules\Trace\Grpc\TraceCollectorService;
+use App\Modules\Trace\Infrastructure\Grpc\TraceCollectorService;
 use Laravel\Octane\Contracts\OperationTerminated;
 use Laravel\Octane\Events\RequestHandled;
 use Laravel\Octane\Events\RequestReceived;

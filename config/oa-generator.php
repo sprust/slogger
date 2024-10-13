@@ -1,6 +1,6 @@
 <?php
 
-use App\Modules\Common\Framework\Http\Resources\AbstractApiResource;
+use App\Modules\Common\Infrastructure\Http\Resources\AbstractApiResource;
 use Ifksco\OpenApiGenerator\Converters\Request\Rules\OaRuleAsStringConverter;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\ProhibitedIf;
@@ -17,7 +17,7 @@ return [
         ],
     ],
     'security_middlewares' => [
-        \App\Modules\Auth\Framework\Http\Middlewares\AuthMiddleware::class,
+        \App\Modules\Auth\Infrastructure\Http\Middlewares\AuthMiddleware::class,
     ],
     'disks'                => [
         'public'  => 'api-json-schemes-public',

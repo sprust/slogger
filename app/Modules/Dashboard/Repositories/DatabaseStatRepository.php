@@ -2,10 +2,10 @@
 
 namespace App\Modules\Dashboard\Repositories;
 
-use App\Modules\Dashboard\Repositories\Dto\DatabaseCollectionStatDto;
-use App\Modules\Dashboard\Repositories\Dto\DatabaseCollectionIndexStatDto;
-use App\Modules\Dashboard\Repositories\Dto\DatabaseStatDto;
-use App\Modules\Dashboard\Repositories\Interfaces\DatabaseStatRepositoryInterface;
+use App\Modules\Dashboard\Contracts\Repositories\DatabaseStatRepositoryInterface;
+use App\Modules\Dashboard\Entities\DatabaseCollectionIndexStatObject;
+use App\Modules\Dashboard\Entities\DatabaseCollectionStatObject;
+use App\Modules\Dashboard\Entities\DatabaseStatObject;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\DB;
 use MongoDB\Driver\Command;
@@ -92,7 +92,7 @@ readonly class DatabaseStatRepository implements DatabaseStatRepositoryInterface
 
                 $storageStats = $collStats['storageStats'];
 
-                $collections[] = new DatabaseCollectionStatDto(
+                $collections[] = new DatabaseCollectionStatObject(
                     name: $collectionName,
                     size: $this->bitesToMb($storageStats['size']),
                     indexesSize: $this->bitesToMb($storageStats['totalIndexSize']),
@@ -101,7 +101,7 @@ readonly class DatabaseStatRepository implements DatabaseStatRepositoryInterface
                     avgObjSize: $this->bitesToMb($storageStats['avgObjSize'] ?? 0),
                     indexes: collect($storageStats['indexSizes'])
                         ->map(
-                            fn(int $indexSize, string $indexName) => new DatabaseCollectionIndexStatDto(
+                            fn(int $indexSize, string $indexName) => new DatabaseCollectionIndexStatObject(
                                 name: $indexName,
                                 size: $this->bitesToMb($indexSize),
                                 usage: $indexStats[$indexName]['accesses']['ops']
@@ -112,7 +112,7 @@ readonly class DatabaseStatRepository implements DatabaseStatRepositoryInterface
                 );
             }
 
-            $databases[] = new DatabaseStatDto(
+            $databases[] = new DatabaseStatObject(
                 name: $databaseName,
                 size: $databaseSize,
                 memoryUsage: $memoryUsageSize,

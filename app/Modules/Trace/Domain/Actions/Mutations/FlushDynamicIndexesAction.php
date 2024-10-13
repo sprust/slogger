@@ -2,9 +2,9 @@
 
 namespace App\Modules\Trace\Domain\Actions\Mutations;
 
-use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\FlushDynamicIndexesActionInterface;
-use App\Modules\Trace\Repositories\Interfaces\TraceDynamicIndexRepositoryInterface;
-use App\Modules\Trace\Repositories\Interfaces\TraceRepositoryInterface;
+use App\Modules\Trace\Contracts\Actions\Mutations\FlushDynamicIndexesActionInterface;
+use App\Modules\Trace\Contracts\Repositories\TraceDynamicIndexRepositoryInterface;
+use App\Modules\Trace\Contracts\Repositories\TraceRepositoryInterface;
 
 readonly class FlushDynamicIndexesAction implements FlushDynamicIndexesActionInterface
 {

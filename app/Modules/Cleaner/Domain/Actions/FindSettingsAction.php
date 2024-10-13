@@ -2,10 +2,8 @@
 
 namespace App\Modules\Cleaner\Domain\Actions;
 
-use App\Modules\Cleaner\Domain\Actions\Interfaces\FindSettingsActionInterface;
-use App\Modules\Cleaner\Domain\Entities\Transports\SettingTransport;
-use App\Modules\Cleaner\Repositories\Dto\SettingDto;
-use App\Modules\Cleaner\Repositories\Interfaces\SettingRepositoryInterface;
+use App\Modules\Cleaner\Contracts\Actions\FindSettingsActionInterface;
+use App\Modules\Cleaner\Contracts\Repositories\SettingRepositoryInterface;
 
 readonly class FindSettingsAction implements FindSettingsActionInterface
 {
@@ -16,11 +14,8 @@ readonly class FindSettingsAction implements FindSettingsActionInterface
 
     public function handle(): array
     {
-        return array_map(
-            fn(SettingDto $settingDto) => SettingTransport::toObject($settingDto),
-            $this->settingRepository->find(
-                orderByTypeAndOnlyData: true
-            )
+        return $this->settingRepository->find(
+            orderByTypeAndOnlyData: true
         );
     }
 }

@@ -1,0 +1,48 @@
+parameters:
+  paths:
+    - ../app/Modules
+    - ../app/Models
+
+  layers:
+    - name: Domain
+      collectors:
+        - type: directory
+          regex: (/app/Modules/.*/Domain/|/app/Modules/.*/Contracts/Domain/)
+    - name: Entities
+      collectors:
+        - type: directory
+          regex: /app/Modules/.*/Entities/
+    - name: Parameters
+      collectors:
+        - type: directory
+          regex: /app/Modules/.*/Parameters/
+    - name: Repositories
+      collectors:
+        - type: directory
+          regex: (/app/Modules/.*/Repositories/|/app/Modules/.*/Contracts/Repositories/)
+    # only dirs inside Infrastructure
+    - name: Infrastructure
+      collectors:
+        - type: directory
+          regex: /app/Modules/.*/Infrastructure/.*/
+    - name: Models
+      collectors:
+        - type: directory
+          regex: /app/Models
+
+  ruleset:
+    Domain:
+      - Entities
+      - Parameters
+      - Repositories
+    Parameters:
+      - Entities
+    Repositories:
+      - Entities
+      - Parameters
+      - Models
+    Infrastructure:
+      - Domain
+      - Parameters
+      - Entities
+    Models:

@@ -2,10 +2,9 @@
 
 namespace App\Modules\User\Domain\Actions;
 
-use App\Modules\User\Domain\Actions\Interfaces\FindUserByTokenActionInterface;
-use App\Modules\User\Domain\Entities\Objects\UserDetailObject;
-use App\Modules\User\Domain\Entities\Transports\UserDetailTransport;
-use App\Modules\User\Repositories\UserRepositoryInterface;
+use App\Modules\User\Contracts\Domain\FindUserByTokenActionInterface;
+use App\Modules\User\Contracts\Repositories\UserRepositoryInterface;
+use App\Modules\User\Entities\UserDetailObject;
 
 readonly class FindUserByTokenAction implements FindUserByTokenActionInterface
 {
@@ -16,12 +15,6 @@ readonly class FindUserByTokenAction implements FindUserByTokenActionInterface
 
     public function handle(string $token): ?UserDetailObject
     {
-        $userDto = $this->userRepository->findByToken(token: $token);
-
-        if (!$userDto) {
-            return null;
-        }
-
-        return UserDetailTransport::toObject($userDto);
+        return $this->userRepository->findByToken(token: $token);
     }
 }

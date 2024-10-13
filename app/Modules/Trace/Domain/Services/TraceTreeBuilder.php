@@ -2,9 +2,9 @@
 
 namespace App\Modules\Trace\Domain\Services;
 
-use App\Modules\Trace\Domain\Entities\Objects\TraceObject;
-use App\Modules\Trace\Domain\Entities\Objects\TraceServiceObject;
-use App\Modules\Trace\Domain\Entities\Objects\Tree\TraceTreeObject;
+use App\Modules\Trace\Entities\Trace\TraceObject;
+use App\Modules\Trace\Entities\Trace\TraceServiceObject;
+use App\Modules\Trace\Entities\Trace\Tree\TraceTreeObject;
 use Illuminate\Support\Collection;
 
 readonly class TraceTreeBuilder
