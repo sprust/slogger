@@ -2,9 +2,9 @@
 
 namespace App\Modules\Auth\Domain\Actions;
 
-use App\Modules\Auth\Domain\Actions\Interfaces\FindUserByTokenActionInterface;
-use App\Modules\Auth\Domain\Entities\Objects\LoggedUserObject;
-use App\Modules\User\Domain\Actions\Interfaces\FindUserByTokenActionInterface as UserFindUserByTokenAction;
+use App\Modules\Auth\Contracts\Actions\FindUserByTokenActionInterface;
+use App\Modules\Auth\Entities\LoggedUserObject;
+use App\Modules\User\Contracts\Domain\FindUserByTokenActionInterface as UserFindUserByTokenAction;
 
 readonly class FindUserByTokenAction implements FindUserByTokenActionInterface
 {

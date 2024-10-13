@@ -2,10 +2,9 @@
 
 namespace App\Modules\User\Domain\Actions;
 
-use App\Modules\User\Domain\Actions\Interfaces\FindUserByEmailActionInterface;
-use App\Modules\User\Domain\Entities\Objects\UserDetailObject;
-use App\Modules\User\Domain\Entities\Transports\UserDetailTransport;
-use App\Modules\User\Repositories\UserRepositoryInterface;
+use App\Modules\User\Contracts\Domain\FindUserByEmailActionInterface;
+use App\Modules\User\Contracts\Repositories\UserRepositoryInterface;
+use App\Modules\User\Entities\UserDetailObject;
 
 readonly class FindUserByEmailAction implements FindUserByEmailActionInterface
 {
@@ -16,12 +15,6 @@ readonly class FindUserByEmailAction implements FindUserByEmailActionInterface
 
     public function handle(string $email): ?UserDetailObject
     {
-        $userDto = $this->userRepository->findByEmail(email: $email);
-
-        if (!$userDto) {
-            return null;
-        }
-
-        return UserDetailTransport::toObject($userDto);
+        return $this->userRepository->findByEmail(email: $email);
     }
 }

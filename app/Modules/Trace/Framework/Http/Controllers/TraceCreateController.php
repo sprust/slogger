@@ -2,7 +2,7 @@
 
 namespace App\Modules\Trace\Framework\Http\Controllers;
 
-use App\Modules\Service\Framework\Services\ServiceContainer;
+use App\Modules\Service\Infrastructure\Services\ServiceContainer;
 use App\Modules\Trace\Domain\Actions\Interfaces\MakeTraceTimestampsActionInterface;
 use App\Modules\Trace\Domain\Entities\Parameters\TraceCreateParameters;
 use App\Modules\Trace\Domain\Entities\Parameters\TraceCreateParametersList;

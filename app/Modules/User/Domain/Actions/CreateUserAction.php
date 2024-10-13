@@ -2,11 +2,10 @@
 
 namespace App\Modules\User\Domain\Actions;
 
-use App\Modules\User\Domain\Actions\Interfaces\CreateUserActionInterface;
-use App\Modules\User\Domain\Entities\Objects\UserDetailObject;
-use App\Modules\User\Domain\Entities\Parameters\UserCreateParameters;
-use App\Modules\User\Domain\Entities\Transports\UserDetailTransport;
-use App\Modules\User\Repositories\UserRepositoryInterface;
+use App\Modules\User\Contracts\Domain\CreateUserActionInterface;
+use App\Modules\User\Contracts\Repositories\UserRepositoryInterface;
+use App\Modules\User\Entities\UserDetailObject;
+use App\Modules\User\Parameters\UserCreateParameters;
 
 readonly class CreateUserAction implements CreateUserActionInterface
 {
@@ -17,13 +16,6 @@ readonly class CreateUserAction implements CreateUserActionInterface
 
     public function handle(UserCreateParameters $parameters): UserDetailObject
     {
-        return UserDetailTransport::toObject(
-            $this->userRepository->create(
-                firstName: $parameters->firstName,
-                lastName: $parameters->lastName,
-                email: $parameters->email,
-                password: $parameters->password,
-            )
-        );
+        return $this->userRepository->create($parameters);
     }
 }

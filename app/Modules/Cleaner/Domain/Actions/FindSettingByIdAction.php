@@ -2,10 +2,9 @@
 
 namespace App\Modules\Cleaner\Domain\Actions;
 
-use App\Modules\Cleaner\Domain\Actions\Interfaces\FindSettingByIdActionInterface;
-use App\Modules\Cleaner\Domain\Entities\Objects\SettingObject;
-use App\Modules\Cleaner\Domain\Entities\Transports\SettingTransport;
-use App\Modules\Cleaner\Repositories\Interfaces\SettingRepositoryInterface;
+use App\Modules\Cleaner\Contracts\Actions\FindSettingByIdActionInterface;
+use App\Modules\Cleaner\Contracts\Repositories\SettingRepositoryInterface;
+use App\Modules\Cleaner\Entities\SettingObject;
 
 readonly class FindSettingByIdAction implements FindSettingByIdActionInterface
 {
@@ -16,12 +15,6 @@ readonly class FindSettingByIdAction implements FindSettingByIdActionInterface
 
     public function handle(int $settingId): ?SettingObject
     {
-        $settingDto = $this->settingRepository->findOneById($settingId);
-
-        if (!$settingDto) {
-            return null;
-        }
-
-        return SettingTransport::toObject($settingDto);
+        return $this->settingRepository->findOneById($settingId);
     }
 }

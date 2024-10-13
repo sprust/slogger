@@ -2,7 +2,7 @@
 
 namespace App\Modules\Trace\Repositories\Dto;
 
-use App\Modules\Common\Repositories\PaginationInfoDto;
+use App\Modules\Common\Entities\PaginationInfoObject;
 
 readonly class TraceItemsPaginationDto
 {
@@ -11,7 +11,7 @@ readonly class TraceItemsPaginationDto
      */
     public function __construct(
         public array $items,
-        public PaginationInfoDto $paginationInfo
+        public PaginationInfoObject $paginationInfo
     ) {
     }
 }

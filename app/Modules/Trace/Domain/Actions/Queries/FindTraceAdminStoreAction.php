@@ -2,7 +2,6 @@
 
 namespace App\Modules\Trace\Domain\Actions\Queries;
 
-use App\Modules\Common\Domain\Transports\PaginationInfoTransport;
 use App\Modules\Trace\Domain\Actions\Interfaces\Queries\FindTraceAdminStoreActionInterface;
 use App\Modules\Trace\Domain\Entities\Objects\TraceAdminStoresPaginationObject;
 use App\Modules\Trace\Domain\Entities\Transports\TraceAdminStoreTransport;
@@ -33,9 +32,7 @@ readonly class FindTraceAdminStoreAction implements FindTraceAdminStoreActionInt
                 fn(TraceAdminStoreDto $dto) => TraceAdminStoreTransport::toObject($dto),
                 $pagination->items
             ),
-            paginationInfo: PaginationInfoTransport::toObject(
-                $pagination->paginationInfo
-            )
+            paginationInfo: $pagination->paginationInfo
         );
     }
 }

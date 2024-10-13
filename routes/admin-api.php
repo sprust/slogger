@@ -1,14 +1,14 @@
 <?php
 
-use App\Modules\Auth\Framework\Http\Controllers\LoginController;
-use App\Modules\Auth\Framework\Http\Controllers\MeController;
-use App\Modules\Auth\Framework\Http\Middlewares\AuthMiddleware;
-use App\Modules\Cleaner\Framework\Http\Controllers\ProcessController;
-use App\Modules\Cleaner\Framework\Http\Controllers\SettingController;
-use App\Modules\Dashboard\Framework\Http\Controllers\DatabaseStatController;
-use App\Modules\Dashboard\Framework\Http\Controllers\ServiceStatController;
-use App\Modules\Service\Framework\Http\Controllers\ServiceController;
-use App\Modules\Tools\Framework\Http\Controllers\ToolLinksController;
+use App\Modules\Auth\Infrastructure\Http\Controllers\LoginController;
+use App\Modules\Auth\Infrastructure\Http\Controllers\MeController;
+use App\Modules\Auth\Infrastructure\Http\Middlewares\AuthMiddleware;
+use App\Modules\Cleaner\Infrastructure\Http\Controllers\ProcessController;
+use App\Modules\Cleaner\Infrastructure\Http\Controllers\SettingController;
+use App\Modules\Dashboard\Infrastructure\Http\Controllers\DatabaseStatController;
+use App\Modules\Dashboard\Infrastructure\Http\Controllers\ServiceStatController;
+use App\Modules\Service\Infrastructure\Http\Controllers\ServiceController;
+use App\Modules\Tools\Infrastructure\Http\Controllers\ToolLinksController;
 use App\Modules\Trace\Framework\Http\Controllers\TraceAdminStoreController;
 use App\Modules\Trace\Framework\Http\Controllers\TraceContentController;
 use App\Modules\Trace\Framework\Http\Controllers\TraceController;

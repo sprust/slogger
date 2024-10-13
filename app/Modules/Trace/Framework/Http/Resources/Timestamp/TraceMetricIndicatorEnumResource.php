@@ -2,7 +2,7 @@
 
 namespace App\Modules\Trace\Framework\Http\Resources\Timestamp;
 
-use App\Modules\Common\Framework\Http\Resources\AbstractApiResource;
+use App\Modules\Common\Infrastructure\Http\Resources\AbstractApiResource;
 use App\Modules\Trace\Enums\TraceMetricFieldEnum;
 
 class TraceMetricIndicatorEnumResource extends AbstractApiResource

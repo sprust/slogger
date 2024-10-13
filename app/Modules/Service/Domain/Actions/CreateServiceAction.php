@@ -2,12 +2,11 @@
 
 namespace App\Modules\Service\Domain\Actions;
 
-use App\Modules\Service\Domain\Actions\Interfaces\CreateServiceActionInterface;
-use App\Modules\Service\Domain\Entities\Objects\ServiceObject;
-use App\Modules\Service\Domain\Entities\Parameters\ServiceCreateParameters;
-use App\Modules\Service\Domain\Entities\Transports\ServiceTransport;
+use App\Modules\Service\Contracts\Actions\CreateServiceActionInterface;
+use App\Modules\Service\Contracts\Repositories\ServiceRepositoryInterface;
 use App\Modules\Service\Domain\Exceptions\ServiceAlreadyExistsException;
-use App\Modules\Service\Repositories\ServiceRepositoryInterface;
+use App\Modules\Service\Entities\ServiceObject;
+use App\Modules\Service\Parameters\ServiceCreateParameters;
 use Illuminate\Support\Str;
 
 readonly class CreateServiceAction implements CreateServiceActionInterface
@@ -25,11 +24,9 @@ readonly class CreateServiceAction implements CreateServiceActionInterface
             throw new ServiceAlreadyExistsException($parameters->name);
         }
 
-        return ServiceTransport::toObject(
-            $this->serviceRepository->create(
-                name: $parameters->name,
-                uniqueKey: $uniqueKey,
-            )
+        return $this->serviceRepository->create(
+            name: $parameters->name,
+            uniqueKey: $uniqueKey,
         );
     }
 }

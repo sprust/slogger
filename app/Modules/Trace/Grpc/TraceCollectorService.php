@@ -2,7 +2,7 @@
 
 namespace App\Modules\Trace\Grpc;
 
-use App\Modules\Service\Domain\Actions\Interfaces\FindServiceByTokenActionInterface;
+use App\Modules\Service\Contracts\Actions\FindServiceByTokenActionInterface;
 use App\Modules\Trace\Domain\Actions\Interfaces\MakeTraceTimestampsActionInterface;
 use App\Modules\Trace\Domain\Entities\Parameters\Profilling\TraceUpdateProfilingDataObject;
 use App\Modules\Trace\Domain\Entities\Parameters\Profilling\TraceUpdateProfilingObject;

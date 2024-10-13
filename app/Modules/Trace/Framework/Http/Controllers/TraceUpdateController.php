@@ -2,7 +2,7 @@
 
 namespace App\Modules\Trace\Framework\Http\Controllers;
 
-use App\Modules\Service\Framework\Services\ServiceContainer;
+use App\Modules\Service\Infrastructure\Services\ServiceContainer;
 use App\Modules\Trace\Domain\Entities\Parameters\Profilling\TraceUpdateProfilingDataObject;
 use App\Modules\Trace\Domain\Entities\Parameters\Profilling\TraceUpdateProfilingObject;
 use App\Modules\Trace\Domain\Entities\Parameters\Profilling\TraceUpdateProfilingObjects;

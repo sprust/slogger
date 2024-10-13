@@ -3,7 +3,7 @@
 namespace App\Modules\Trace\Repositories;
 
 use App\Models\Traces\TraceAdminStore;
-use App\Modules\Common\Repositories\PaginationInfoDto;
+use App\Modules\Common\Entities\PaginationInfoObject;
 use App\Modules\Trace\Repositories\Dto\TraceAdminStoreDto;
 use App\Modules\Trace\Repositories\Dto\TraceAdminStoresPaginationDto;
 use App\Modules\Trace\Repositories\Interfaces\TraceAdminStoreRepositoryInterface;
@@ -50,7 +50,7 @@ class TraceAdminStoreRepository implements TraceAdminStoreRepositoryInterface
                 fn(TraceAdminStore $store) => $this->modelToDto($store),
                 $pagination->items()
             ),
-            paginationInfo: new PaginationInfoDto(
+            paginationInfo: new PaginationInfoObject(
                 total: $pagination->total(),
                 perPage: $pagination->perPage(),
                 currentPage: $pagination->currentPage()

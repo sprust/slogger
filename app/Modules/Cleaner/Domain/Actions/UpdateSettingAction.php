@@ -2,11 +2,11 @@
 
 namespace App\Modules\Cleaner\Domain\Actions;
 
-use App\Modules\Cleaner\Domain\Actions\Interfaces\UpdateSettingActionInterface;
-use App\Modules\Cleaner\Domain\Entities\Objects\SettingObject;
+use App\Modules\Cleaner\Contracts\Actions\UpdateSettingActionInterface;
+use App\Modules\Cleaner\Contracts\Repositories\SettingRepositoryInterface;
 use App\Modules\Cleaner\Domain\Exceptions\SettingAlreadyExistsException;
 use App\Modules\Cleaner\Domain\Exceptions\SettingNotFoundException;
-use App\Modules\Cleaner\Repositories\Interfaces\SettingRepositoryInterface;
+use App\Modules\Cleaner\Entities\SettingObject;
 
 readonly class UpdateSettingAction implements UpdateSettingActionInterface
 {

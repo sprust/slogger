@@ -2,8 +2,7 @@
 
 namespace App\Modules\Trace\Domain\Actions\Queries;
 
-use App\Modules\Common\Domain\Entities\PaginationInfoObject;
-use App\Modules\Common\Domain\Transports\PaginationInfoTransport;
+use App\Modules\Common\Entities\PaginationInfoObject;
 use App\Modules\Trace\Domain\Actions\Interfaces\Queries\FindTracesActionInterface;
 use App\Modules\Trace\Domain\Entities\Objects\Data\TraceDataAdditionalFieldObject;
 use App\Modules\Trace\Domain\Entities\Objects\TraceItemObject;
@@ -48,8 +47,7 @@ readonly class FindTracesAction implements FindTracesActionInterface
                     paginationInfo: new PaginationInfoObject(
                         total: 0,
                         perPage: $perPage,
-                        currentPage: 1,
-                        totalPages: 1
+                        currentPage: 1
                     )
                 );
             }
@@ -165,9 +163,7 @@ readonly class FindTracesAction implements FindTracesActionInterface
 
         return new TraceItemObjects(
             items: $resultItems,
-            paginationInfo: PaginationInfoTransport::toObject(
-                $traceItemsPagination->paginationInfo
-            ),
+            paginationInfo: $traceItemsPagination->paginationInfo,
         );
     }
 

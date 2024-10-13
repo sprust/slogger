@@ -3,8 +3,8 @@
 namespace App\Modules\Dashboard\Repositories;
 
 use App\Models\Traces\Trace;
-use App\Modules\Dashboard\Repositories\Dto\ServiceStatDto;
-use App\Modules\Dashboard\Repositories\Interfaces\ServiceStatRepositoryInterface;
+use App\Modules\Dashboard\Contracts\Repositories\ServiceStatRepositoryInterface;
+use App\Modules\Dashboard\Entities\ServiceStatRawObject;
 use MongoDB\BSON\UTCDateTime;
 
 readonly class ServiceStatRepository implements ServiceStatRepositoryInterface
@@ -87,10 +87,10 @@ readonly class ServiceStatRepository implements ServiceStatRepositoryInterface
             $documents = Trace::collection()->aggregate($pipeline)->toArray();
 
             foreach ($documents as $document) {
-                $stats[] = new ServiceStatDto(
+                $stats[] = new ServiceStatRawObject(
+                    serviceId: $document->_id->serviceId,
                     from: $from,
                     to: $to,
-                    serviceId: $document->_id->serviceId,
                     type: $document->_id->type,
                     status: $document->_id->status,
                     count: $document->count

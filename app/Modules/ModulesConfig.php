@@ -2,12 +2,12 @@
 
 namespace App\Modules;
 
-use App\Modules\Auth\Framework\AuthServiceProvider;
-use App\Modules\Cleaner\Framework\CleanerServiceProvider;
-use App\Modules\Dashboard\Framework\DashboardProvider;
-use App\Modules\Service\Framework\ServiceServiceProvider;
+use App\Modules\Auth\Infrastructure\AuthServiceProvider;
+use App\Modules\Cleaner\Infrastructure\CleanerServiceProvider;
+use App\Modules\Dashboard\Infrastructure\DashboardProvider;
+use App\Modules\Service\Infrastructure\ServiceServiceProvider;
 use App\Modules\Trace\Framework\TraceServiceProvider;
-use App\Modules\User\Framework\UserServiceProvider;
+use App\Modules\User\Infrastructure\UserServiceProvider;
 
 class ModulesConfig
 {

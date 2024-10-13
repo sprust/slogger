@@ -2,7 +2,7 @@
 
 namespace App\Modules\Trace\Framework;
 
-use App\Modules\Common\Framework\BaseServiceProvider;
+use App\Modules\Common\Infrastructure\BaseServiceProvider;
 use App\Modules\Trace\Domain\Actions\Interfaces\MakeMetricIndicatorsActionInterface;
 use App\Modules\Trace\Domain\Actions\Interfaces\MakeTraceTimestampPeriodsActionInterface;
 use App\Modules\Trace\Domain\Actions\Interfaces\MakeTraceTimestampsActionInterface;

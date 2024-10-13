@@ -3,7 +3,7 @@
 namespace App\Modules\Trace\Repositories;
 
 use App\Models\Traces\Trace;
-use App\Modules\Common\Repositories\PaginationInfoDto;
+use App\Modules\Common\Entities\PaginationInfoObject;
 use App\Modules\Trace\Repositories\Dto\Data\TraceDataFilterDto;
 use App\Modules\Trace\Repositories\Dto\Profiling\TraceProfilingDataDto;
 use App\Modules\Trace\Repositories\Dto\Profiling\TraceProfilingDto;
@@ -331,7 +331,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
                 ),
                 $traces
             ),
-            paginationInfo: new PaginationInfoDto(
+            paginationInfo: new PaginationInfoObject(
                 total: 0,
                 perPage: $perPage,
                 currentPage: $page,
