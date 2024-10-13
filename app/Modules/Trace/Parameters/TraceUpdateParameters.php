@@ -6,6 +6,9 @@ use App\Modules\Trace\Parameters\Profilling\TraceUpdateProfilingObjects;
 
 class TraceUpdateParameters
 {
+    /**
+     * @param string[]|null $tags
+     */
     public function __construct(
         public int $serviceId,
         public string $traceId,

@@ -15,12 +15,6 @@ readonly class FindTraceDynamicIndexStatsAction implements FindTraceDynamicIndex
 
     public function handle(): TraceDynamicIndexStatsObject
     {
-        $stats = $this->traceDynamicIndexRepository->findStats();
-
-        return new TraceDynamicIndexStatsObject(
-            inProcessCount: $stats->inProcessCount,
-            errorsCount: $stats->errorsCount,
-            totalCount: $stats->totalCount,
-        );
+        return $this->traceDynamicIndexRepository->findStats();
     }
 }

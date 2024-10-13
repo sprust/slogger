@@ -7,12 +7,12 @@ use App\Modules\Trace\Contracts\Repositories\TraceTimestampsRepositoryInterface;
 use App\Modules\Trace\Enums\TraceMetricFieldAggregatorEnum;
 use App\Modules\Trace\Enums\TraceMetricFieldEnum;
 use App\Modules\Trace\Enums\TraceTimestampEnum;
-use App\Modules\Trace\Repositories\Dto\Data\TraceDataFilterDto;
-use App\Modules\Trace\Repositories\Dto\Data\TraceMetricFieldsFilterDto;
-use App\Modules\Trace\Repositories\Dto\Timestamp\TraceTimestampFieldDto;
-use App\Modules\Trace\Repositories\Dto\Timestamp\TraceTimestampFieldIndicatorDto;
-use App\Modules\Trace\Repositories\Dto\Timestamp\TraceTimestampsDto;
-use App\Modules\Trace\Repositories\Dto\Timestamp\TraceTimestampsListDto;
+use App\Modules\Trace\Parameters\Data\TraceDataFilterParameters;
+use App\Modules\Trace\Repositories\Dto\Trace\Data\TraceMetricFieldsFilterDto;
+use App\Modules\Trace\Repositories\Dto\Trace\Timestamp\TraceTimestampFieldDto;
+use App\Modules\Trace\Repositories\Dto\Trace\Timestamp\TraceTimestampFieldIndicatorDto;
+use App\Modules\Trace\Repositories\Dto\Trace\Timestamp\TraceTimestampsDto;
+use App\Modules\Trace\Repositories\Dto\Trace\Timestamp\TraceTimestampsListDto;
 use App\Modules\Trace\Repositories\Services\TraceQueryBuilder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
@@ -43,7 +43,7 @@ readonly class TraceTimestampsRepository implements TraceTimestampsRepositoryInt
         ?float $memoryTo = null,
         ?float $cpuFrom = null,
         ?float $cpuTo = null,
-        ?TraceDataFilterDto $data = null,
+        ?TraceDataFilterParameters $data = null,
         ?bool $hasProfiling = null,
         ?array $sort = null,
     ): TraceTimestampsListDto {

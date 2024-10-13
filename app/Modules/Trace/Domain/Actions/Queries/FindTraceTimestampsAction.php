@@ -8,19 +8,20 @@ use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexErrorException;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexInProcessException;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexNotInitException;
 use App\Modules\Trace\Domain\Services\TraceTimestampMetricsFactory;
+use App\Modules\Trace\Entities\Trace\Timestamp\TraceTimestampFieldIndicatorObject;
+use App\Modules\Trace\Entities\Trace\Timestamp\TraceTimestampFieldObject;
 use App\Modules\Trace\Entities\Trace\Timestamp\TraceTimestampsObject;
 use App\Modules\Trace\Entities\Trace\Timestamp\TraceTimestampsObjects;
 use App\Modules\Trace\Enums\TraceMetricFieldAggregatorEnum;
 use App\Modules\Trace\Enums\TraceMetricFieldEnum;
 use App\Modules\Trace\Parameters\FindTraceTimestampsParameters;
-use App\Modules\Trace\Repositories\Dto\Data\TraceMetricDataFieldsFilterDto;
-use App\Modules\Trace\Repositories\Dto\Data\TraceMetricFieldsFilterDto;
-use App\Modules\Trace\Repositories\Dto\Timestamp\TraceTimestampFieldDto;
-use App\Modules\Trace\Repositories\Dto\Timestamp\TraceTimestampsDto;
-use App\Modules\Trace\Repositories\Dto\Timestamp\TraceTimestampsListDto;
+use App\Modules\Trace\Repositories\Dto\Trace\Data\TraceMetricDataFieldsFilterDto;
+use App\Modules\Trace\Repositories\Dto\Trace\Data\TraceMetricFieldsFilterDto;
+use App\Modules\Trace\Repositories\Dto\Trace\Timestamp\TraceTimestampFieldDto;
+use App\Modules\Trace\Repositories\Dto\Trace\Timestamp\TraceTimestampFieldIndicatorDto;
+use App\Modules\Trace\Repositories\Dto\Trace\Timestamp\TraceTimestampsDto;
+use App\Modules\Trace\Repositories\Dto\Trace\Timestamp\TraceTimestampsListDto;
 use App\Modules\Trace\Repositories\Services\TraceDynamicIndexInitializer;
-use App\Modules\Trace\Transports\TraceDataFilterTransport;
-use App\Modules\Trace\Transports\TraceTimestampFieldTransport;
 use Illuminate\Support\Arr;
 use RrParallel\Exceptions\ParallelJobsException;
 use RrParallel\Exceptions\WaitTimeoutException;
@@ -107,7 +108,7 @@ readonly class FindTraceTimestampsAction implements FindTraceTimestampsActionInt
             timestamp: $parameters->timestampStep
         );
 
-        $data = TraceDataFilterTransport::toDtoIfNotNull($parameters->data);
+        $data = $parameters->data;
 
         $this->traceDynamicIndexInitializer->init(
             serviceIds: $parameters->serviceIds,
@@ -223,7 +224,7 @@ readonly class FindTraceTimestampsAction implements FindTraceTimestampsActionInt
             dateTo: $loggedAtTo,
             timestamp: $parameters->timestampStep,
             emptyIndicators: array_map(
-                fn(TraceTimestampFieldDto $dto) => TraceTimestampFieldTransport::toObject($dto),
+                fn(TraceTimestampFieldDto $dto) => $this->transportField($dto),
                 $emptyIndicatorsResult
             ),
             existsTimestamps: array_map(
@@ -234,7 +235,7 @@ readonly class FindTraceTimestampsAction implements FindTraceTimestampsActionInt
                         timestamp: $parameters->timestampStep
                     ),
                     fields: array_map(
-                        fn(TraceTimestampFieldDto $dto) => TraceTimestampFieldTransport::toObject($dto),
+                        fn(TraceTimestampFieldDto $dto) => $this->transportField($dto),
                         $dto->indicators
                     )
                 ),
@@ -245,6 +246,20 @@ readonly class FindTraceTimestampsAction implements FindTraceTimestampsActionInt
         return new TraceTimestampsObjects(
             loggedAtFrom: $loggedAtFrom,
             items: $items
+        );
+    }
+
+    private function transportField(TraceTimestampFieldDto $dto): TraceTimestampFieldObject
+    {
+        return new TraceTimestampFieldObject(
+            field: $dto->field,
+            indicators: array_map(
+                fn(TraceTimestampFieldIndicatorDto $dto) => new TraceTimestampFieldIndicatorObject(
+                    name: $dto->name,
+                    value: $dto->value
+                ),
+                $dto->indicators
+            ),
         );
     }
 }

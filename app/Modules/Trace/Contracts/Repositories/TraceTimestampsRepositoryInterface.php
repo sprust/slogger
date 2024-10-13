@@ -3,10 +3,10 @@
 namespace App\Modules\Trace\Contracts\Repositories;
 
 use App\Modules\Trace\Enums\TraceTimestampEnum;
-use App\Modules\Trace\Repositories\Dto\Data\TraceDataFilterDto;
-use App\Modules\Trace\Repositories\Dto\Data\TraceMetricDataFieldsFilterDto;
-use App\Modules\Trace\Repositories\Dto\Data\TraceMetricFieldsFilterDto;
-use App\Modules\Trace\Repositories\Dto\Timestamp\TraceTimestampsListDto;
+use App\Modules\Trace\Parameters\Data\TraceDataFilterParameters;
+use App\Modules\Trace\Repositories\Dto\Trace\Data\TraceMetricDataFieldsFilterDto;
+use App\Modules\Trace\Repositories\Dto\Trace\Data\TraceMetricFieldsFilterDto;
+use App\Modules\Trace\Repositories\Dto\Trace\Timestamp\TraceTimestampsListDto;
 use Illuminate\Support\Carbon;
 
 interface TraceTimestampsRepositoryInterface
@@ -36,7 +36,7 @@ interface TraceTimestampsRepositoryInterface
         ?float $memoryTo = null,
         ?float $cpuFrom = null,
         ?float $cpuTo = null,
-        ?TraceDataFilterDto $data = null,
+        ?TraceDataFilterParameters $data = null,
         ?bool $hasProfiling = null,
     ): TraceTimestampsListDto;
 }

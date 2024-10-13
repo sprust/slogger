@@ -7,11 +7,10 @@ use App\Modules\Trace\Contracts\Repositories\TraceRepositoryInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceTreeRepositoryInterface;
 use App\Modules\Trace\Domain\Exceptions\TreeTooLongException;
 use App\Modules\Trace\Domain\Services\TraceTreeBuilder;
+use App\Modules\Trace\Entities\Trace\TraceObject;
 use App\Modules\Trace\Entities\Trace\Tree\TraceTreeObjects;
 use App\Modules\Trace\Parameters\TraceFindTreeParameters;
-use App\Modules\Trace\Repositories\Dto\TraceDto;
-use App\Modules\Trace\Transports\TraceDetailTransport;
-use App\Modules\Trace\Transports\TraceTransport;
+use Illuminate\Support\Arr;
 
 readonly class FindTraceTreeAction implements FindTraceTreeActionInterface
 {
@@ -50,21 +49,17 @@ readonly class FindTraceTreeAction implements FindTraceTreeActionInterface
             );
         }
 
-        $parentTrace = $this->traceRepository->findOneByTraceId(
-            traceId: $parentTraceId
-        );
-
-        $children = $this->traceRepository->findByTraceIds(
-            traceIds: $childrenIds
+        $traces = $this->traceRepository->findByTraceIds(
+            traceIds: [
+                $parentTraceId,
+                ...$childrenIds
+            ]
         );
 
         $treeNodesBuilder = new TraceTreeBuilder(
-            parentTrace: TraceDetailTransport::toObject($parentTrace),
-            children: collect(
-                array_map(
-                    fn(TraceDto $dto) => TraceTransport::toObject($dto),
-                    $children
-                )
+            parentTrace: Arr::first($traces, fn(TraceObject $trace) => $trace->traceId === $parentTraceId),
+            children: collect($traces)->filter(
+                fn(TraceObject $trace) => $trace->traceId !== $parentTraceId
             )
         );
 

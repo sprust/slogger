@@ -8,9 +8,9 @@ use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexErrorException;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexInProcessException;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexNotInitException;
 use App\Modules\Trace\Enums\TraceTimestampEnum;
-use App\Modules\Trace\Repositories\Dto\Data\TraceDataFilterDto;
-use App\Modules\Trace\Repositories\Dto\TraceDynamicIndexFieldDto;
-use App\Modules\Trace\Repositories\Dto\TraceSortDto;
+use App\Modules\Trace\Parameters\Data\TraceDataFilterParameters;
+use App\Modules\Trace\Parameters\TraceSortParameters;
+use App\Modules\Trace\Repositories\Dto\DynamicIndex\TraceDynamicIndexFieldDto;
 use Illuminate\Support\Carbon;
 
 readonly class TraceDynamicIndexInitializer
@@ -33,7 +33,7 @@ readonly class TraceDynamicIndexInitializer
      * @param string[]            $types
      * @param string[]            $tags
      * @param string[]            $statuses
-     * @param TraceSortDto[]|null $sort
+     * @param TraceSortParameters[]|null $sort
      *
      * TODO: violation of layers
      *
@@ -56,7 +56,7 @@ readonly class TraceDynamicIndexInitializer
         ?float $memoryTo = null,
         ?float $cpuFrom = null,
         ?float $cpuTo = null,
-        ?TraceDataFilterDto $data = null,
+        ?TraceDataFilterParameters $data = null,
         ?bool $hasProfiling = null,
         ?bool $cleared = null,
         ?array $sort = null,

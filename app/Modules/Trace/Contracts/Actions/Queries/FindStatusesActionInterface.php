@@ -12,6 +12,7 @@ interface FindStatusesActionInterface
 {
     /**
      * @return TraceStringFieldObject[]
+     *
      * @throws TraceDynamicIndexInProcessException
      * @throws TraceDynamicIndexNotInitException
      * @throws TraceDynamicIndexErrorException

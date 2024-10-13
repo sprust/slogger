@@ -2,6 +2,7 @@
 
 namespace App\Modules\Trace\Domain\Services;
 
+use App\Modules\Trace\Entities\Trace\Timestamp\TraceTimestampFieldObject;
 use App\Modules\Trace\Entities\Trace\Timestamp\TraceTimestampMetricObject;
 use App\Modules\Trace\Entities\Trace\Timestamp\TraceTimestampsObject;
 use App\Modules\Trace\Enums\TraceTimestampEnum;
@@ -50,6 +51,7 @@ class TraceTimestampMetricsFactory
     }
 
     /**
+     * @param TraceTimestampFieldObject[] $emptyIndicators
      * @param TraceTimestampsObject[] $existsTimestamps
      *
      * @return TraceTimestampsObject[]

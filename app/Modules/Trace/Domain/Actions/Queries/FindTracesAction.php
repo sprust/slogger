@@ -7,17 +7,15 @@ use App\Modules\Trace\Contracts\Actions\Queries\FindTracesActionInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceRepositoryInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceTreeRepositoryInterface;
 use App\Modules\Trace\Entities\Trace\Data\TraceDataAdditionalFieldObject;
+use App\Modules\Trace\Entities\Trace\Data\TraceDataObject;
+use App\Modules\Trace\Entities\Trace\TraceDetailObject;
 use App\Modules\Trace\Entities\Trace\TraceItemObject;
 use App\Modules\Trace\Entities\Trace\TraceItemObjects;
 use App\Modules\Trace\Entities\Trace\TraceItemTraceObject;
 use App\Modules\Trace\Entities\Trace\TraceServiceObject;
+use App\Modules\Trace\Entities\Trace\TraceTypeCountedObject;
 use App\Modules\Trace\Parameters\TraceFindParameters;
-use App\Modules\Trace\Repositories\Dto\TraceDetailDto;
-use App\Modules\Trace\Repositories\Dto\TraceTypeDto;
 use App\Modules\Trace\Repositories\Services\TraceDynamicIndexInitializer;
-use App\Modules\Trace\Transports\TraceDataFilterTransport;
-use App\Modules\Trace\Transports\TraceSortTransport;
-use App\Modules\Trace\Transports\TraceTypeTransport;
 use Illuminate\Support\Arr;
 
 readonly class FindTracesAction implements FindTracesActionInterface
@@ -39,7 +37,7 @@ readonly class FindTracesAction implements FindTracesActionInterface
         $traceIds = null;
 
         if ($parameters->traceId) {
-            $trace = $this->traceRepository->findOneByTraceId($parameters->traceId);
+            $trace = $this->traceRepository->findOneDetailByTraceId($parameters->traceId);
 
             if (!$trace) {
                 return new TraceItemObjects(
@@ -67,9 +65,6 @@ readonly class FindTracesAction implements FindTracesActionInterface
             }
         }
 
-        $data = TraceDataFilterTransport::toDtoIfNotNull($parameters->data);
-        $sort = TraceSortTransport::fromObjects($parameters->sort);
-
         $this->traceDynamicIndexInitializer->init(
             serviceIds: $parameters->serviceIds,
             traceIds: $traceIds,
@@ -84,9 +79,9 @@ readonly class FindTracesAction implements FindTracesActionInterface
             memoryTo: $parameters->memoryTo,
             cpuFrom: $parameters->cpuFrom,
             cpuTo: $parameters->cpuTo,
-            data: $data,
+            data: $parameters->data,
             hasProfiling: $parameters->hasProfiling,
-            sort: $sort,
+            sort: $parameters->sort,
         );
 
         $traceItemsPagination = $this->traceRepository->find(
@@ -105,32 +100,30 @@ readonly class FindTracesAction implements FindTracesActionInterface
             memoryTo: $parameters->memoryTo,
             cpuFrom: $parameters->cpuFrom,
             cpuTo: $parameters->cpuTo,
-            data: $data,
+            data: $parameters->data,
             hasProfiling: $parameters->hasProfiling,
-            sort: $sort,
+            sort: $parameters->sort,
         );
 
         $traceTypeCounts = empty($traceItemsPagination->items)
             ? []
             : $this->traceRepository->findTypeCounts(
                 traceIds: array_map(
-                    fn(TraceDetailDto $traceDto) => $traceDto->traceId,
+                    fn(TraceDetailObject $traceDto) => $traceDto->traceId,
                     $traceItemsPagination->items
                 )
             );
 
-        /** @var TraceTypeDto[] $groupedTypeCounts */
+        /** @var TraceTypeCountedObject[] $groupedTypeCounts */
         $groupedTypeCounts = collect($traceTypeCounts)
-            ->groupBy(fn(TraceTypeDto $traceTypeDto) => $traceTypeDto->traceId)
+            ->groupBy(fn(TraceTypeCountedObject $countedTraceType) => $countedTraceType->traceId)
             ->toArray();
 
         $resultItems = [];
 
         foreach ($traceItemsPagination->items as $trace) {
-            $types = array_map(
-                fn(TraceTypeDto $item) => TraceTypeTransport::toObject($item),
-                $groupedTypeCounts[$trace->traceId] ?? []
-            );
+            /** @var TraceTypeCountedObject[] $types */
+            $types = $groupedTypeCounts[$trace->traceId] ?? [];
 
             $resultItems[] = new TraceItemObject(
                 trace: new TraceItemTraceObject(
@@ -170,41 +163,43 @@ readonly class FindTracesAction implements FindTracesActionInterface
     /**
      * @return TraceDataAdditionalFieldObject[]
      */
-    private function makeTraceAdditionalFields(array $data, array $additionalFields): array
+    private function makeTraceAdditionalFields(TraceDataObject $data, array $additionalFields): array
     {
         $additionalFieldValues = [];
 
         foreach ($additionalFields as $additionalField) {
-            $additionalFieldData = explode('.', $additionalField);
+            $currentData = null;
+            $currentChildren = $data->children;
+            $currentKey = '';
 
-            if (count($additionalFieldData) === 1) {
-                $values = [Arr::get($data, $additionalField)];
-            } else {
-                $preKey = implode('.', array_slice($additionalFieldData, 0, -1));
+            foreach (explode('.', $additionalField) as $key) {
+                $currentKey .= (($currentKey ? '.' : '') . $key);
 
-                $preValue = Arr::get($data, $preKey);
+                $currentData = Arr::first(
+                    $currentChildren,
+                    fn(TraceDataObject $child) => $child->key === $currentKey
+                );
 
-                if (is_null($preValue)) {
-                    continue;
+                if (!$currentData) {
+                    break;
                 }
 
-                if (Arr::isAssoc($preValue)) {
-                    $values = [Arr::get($data, $additionalField)];
-                } else {
-                    $key = $additionalFieldData[count($additionalFieldData) - 1];
-
-                    $values = array_filter(
-                        array_map(
-                            fn(array $item) => $item[$key] ?? null,
-                            $preValue
-                        )
-                    );
+                if (!$currentData->children) {
+                    break;
                 }
+
+                $currentChildren = $currentData->children;
+            }
+
+            if (!$currentData) {
+                continue;
             }
 
             $additionalFieldValues[] = new TraceDataAdditionalFieldObject(
                 key: $additionalField,
-                values: $values
+                values: [
+                    $currentData->value,
+                ]
             );
         }
 

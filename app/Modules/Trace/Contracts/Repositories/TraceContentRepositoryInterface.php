@@ -2,14 +2,14 @@
 
 namespace App\Modules\Trace\Contracts\Repositories;
 
-use App\Modules\Trace\Repositories\Dto\Data\TraceDataFilterDto;
-use App\Modules\Trace\Repositories\Dto\TraceStringFieldDto;
+use App\Modules\Trace\Entities\Trace\TraceStringFieldObject;
+use App\Modules\Trace\Parameters\Data\TraceDataFilterParameters;
 use Illuminate\Support\Carbon;
 
 interface TraceContentRepositoryInterface
 {
     /**
-     * @return TraceStringFieldDto[]
+     * @return TraceStringFieldObject[]
      */
     public function findTypes(
         array $serviceIds = [],
@@ -22,12 +22,12 @@ interface TraceContentRepositoryInterface
         ?float $memoryTo = null,
         ?float $cpuFrom = null,
         ?float $cpuTo = null,
-        ?TraceDataFilterDto $data = null,
+        ?TraceDataFilterParameters $data = null,
         ?bool $hasProfiling = null,
     ): array;
 
     /**
-     * @return TraceStringFieldDto[]
+     * @return TraceStringFieldObject[]
      */
     public function findTags(
         array $serviceIds = [],
@@ -41,12 +41,12 @@ interface TraceContentRepositoryInterface
         ?float $memoryTo = null,
         ?float $cpuFrom = null,
         ?float $cpuTo = null,
-        ?TraceDataFilterDto $data = null,
+        ?TraceDataFilterParameters $data = null,
         ?bool $hasProfiling = null,
     ): array;
 
     /**
-     * @return TraceStringFieldDto[]
+     * @return TraceStringFieldObject[]
      */
     public function findStatuses(
         array $serviceIds = [],
@@ -61,7 +61,7 @@ interface TraceContentRepositoryInterface
         ?float $memoryTo = null,
         ?float $cpuFrom = null,
         ?float $cpuTo = null,
-        ?TraceDataFilterDto $data = null,
+        ?TraceDataFilterParameters $data = null,
         ?bool $hasProfiling = null,
     ): array;
 }

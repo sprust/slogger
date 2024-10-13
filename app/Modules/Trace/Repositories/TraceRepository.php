@@ -5,19 +5,20 @@ namespace App\Modules\Trace\Repositories;
 use App\Models\Traces\Trace;
 use App\Modules\Common\Entities\PaginationInfoObject;
 use App\Modules\Trace\Contracts\Repositories\TraceRepositoryInterface;
-use App\Modules\Trace\Repositories\Dto\Data\TraceDataFilterDto;
-use App\Modules\Trace\Repositories\Dto\Profiling\TraceProfilingDataDto;
-use App\Modules\Trace\Repositories\Dto\Profiling\TraceProfilingDto;
-use App\Modules\Trace\Repositories\Dto\Profiling\TraceProfilingItemDto;
-use App\Modules\Trace\Repositories\Dto\Timestamp\TraceTimestampMetricDto;
-use App\Modules\Trace\Repositories\Dto\TraceDetailDto;
-use App\Modules\Trace\Repositories\Dto\TraceDto;
-use App\Modules\Trace\Repositories\Dto\TraceIndexInfoDto;
-use App\Modules\Trace\Repositories\Dto\TraceItemsPaginationDto;
-use App\Modules\Trace\Repositories\Dto\TraceLoggedAtDto;
-use App\Modules\Trace\Repositories\Dto\TraceServiceDto;
-use App\Modules\Trace\Repositories\Dto\TraceSortDto;
-use App\Modules\Trace\Repositories\Dto\TraceTypeDto;
+use App\Modules\Trace\Entities\Trace\Timestamp\TraceTimestampMetricObject;
+use App\Modules\Trace\Entities\Trace\TraceDetailObject;
+use App\Modules\Trace\Entities\Trace\TraceDetailPaginationObject;
+use App\Modules\Trace\Entities\Trace\TraceObject;
+use App\Modules\Trace\Entities\Trace\TraceServiceObject;
+use App\Modules\Trace\Entities\Trace\TraceTypeCountedObject;
+use App\Modules\Trace\Parameters\Data\TraceDataFilterParameters;
+use App\Modules\Trace\Parameters\TraceSortParameters;
+use App\Modules\Trace\Repositories\Dto\Trace\Profiling\TraceProfilingDataDto;
+use App\Modules\Trace\Repositories\Dto\Trace\Profiling\TraceProfilingDto;
+use App\Modules\Trace\Repositories\Dto\Trace\Profiling\TraceProfilingItemDto;
+use App\Modules\Trace\Repositories\Dto\Trace\TraceIndexInfoDto;
+use App\Modules\Trace\Repositories\Dto\Trace\TraceLoggedAtDto;
+use App\Modules\Trace\Repositories\Services\TraceDataToObjectBuilder;
 use App\Modules\Trace\Repositories\Services\TraceQueryBuilder;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -86,7 +87,9 @@ readonly class TraceRepository implements TraceRepositoryInterface
         $operations = [];
 
         foreach ($traces as $trace) {
-            $hasProfiling = is_null($trace->profiling) ? null : !empty($trace->profiling->items);
+            $profilingItems = $trace->profiling?->getItems();
+
+            $hasProfiling = !is_null($profilingItems) && (count($profilingItems) > 0);
 
             $operations[] = [
                 'updateOne' => [
@@ -97,17 +100,13 @@ readonly class TraceRepository implements TraceRepositoryInterface
                     [
                         '$set' => [
                             'st'  => $trace->status,
-                            ...(is_null($hasProfiling)
+                            ...(!$hasProfiling
                                 ? []
                                 : [
-                                    'hpr' => $hasProfiling,
-                                ]),
-                            ...(is_null($trace->profiling)
-                                ? []
-                                : [
-                                    'pr' => [
-                                        'mainCaller' => $trace->profiling->mainCaller,
-                                        'items'      => $trace->profiling->items,
+                                    'hpr' => true,
+                                    'pr'  => [
+                                        'mainCaller' => $trace->profiling->getMainCaller(),
+                                        'items'      => $profilingItems,
                                     ],
                                 ]),
                             ...(is_null($trace->tags)
@@ -176,7 +175,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
             ]);
     }
 
-    public function findOneByTraceId(string $traceId): ?TraceDetailDto
+    public function findOneDetailByTraceId(string $traceId): ?TraceDetailObject
     {
         /** @var Trace|null $trace */
         $trace = Trace::query()
@@ -204,28 +203,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
             return null;
         }
 
-        return new TraceDetailDto(
-            id: $trace->_id,
-            service: $trace->service
-                ? new TraceServiceDto(
-                    id: $trace->service->id,
-                    name: $trace->service->name,
-                )
-                : null,
-            traceId: $trace->tid,
-            parentTraceId: $trace->ptid,
-            type: $trace->tp,
-            status: $trace->st,
-            tags: $this->parseTagsFromDb($trace->tgs),
-            data: $trace->dt,
-            duration: $trace->dur,
-            memory: $trace->mem,
-            cpu: $trace->cpu,
-            hasProfiling: $trace->hpr ?? false,
-            loggedAt: $trace->lat,
-            createdAt: $trace->cat,
-            updatedAt: $trace->uat
-        );
+        return $this->makeDetailFromModel($trace);
     }
 
     public function find(
@@ -244,10 +222,10 @@ readonly class TraceRepository implements TraceRepositoryInterface
         ?float $memoryTo = null,
         ?float $cpuFrom = null,
         ?float $cpuTo = null,
-        ?TraceDataFilterDto $data = null,
+        ?TraceDataFilterParameters $data = null,
         ?bool $hasProfiling = null,
         ?array $sort = null,
-    ): TraceItemsPaginationDto {
+    ): TraceDetailPaginationObject {
         $builder = $this->traceQueryBuilder->make(
             serviceIds: $serviceIds,
             traceIds: $traceIds,
@@ -290,7 +268,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
             ->when(
                 !is_null($sort),
                 function (Builder $query) use ($sort) {
-                    /** @var TraceSortDto[] $sort */
+                    /** @var TraceSortParameters[] $sort */
 
                     foreach ($sort as $sortItem) {
                         $query->orderBy($sortItem->field, $sortItem->directionEnum->value);
@@ -305,30 +283,9 @@ readonly class TraceRepository implements TraceRepositoryInterface
         /** @var Trace[] $traces */
         $traces = $tracesPaginator->get()->all();
 
-        return new TraceItemsPaginationDto(
+        return new TraceDetailPaginationObject(
             items: array_map(
-                fn(Trace $trace) => new TraceDetailDto(
-                    id: $trace->_id,
-                    service: $trace->service
-                        ? new TraceServiceDto(
-                            id: $trace->service->id,
-                            name: $trace->service->name,
-                        )
-                        : null,
-                    traceId: $trace->tid,
-                    parentTraceId: $trace->ptid,
-                    type: $trace->tp,
-                    status: $trace->st,
-                    tags: $this->parseTagsFromDb($trace->tgs),
-                    data: $trace->dt,
-                    duration: $trace->dur,
-                    memory: $trace->mem,
-                    cpu: $trace->cpu,
-                    hasProfiling: $trace->hpr ?? false,
-                    loggedAt: $trace->lat,
-                    createdAt: $trace->cat,
-                    updatedAt: $trace->uat
-                ),
+                fn(Trace $trace) => $this->makeDetailFromModel($trace),
                 $traces
             ),
             paginationInfo: new PaginationInfoObject(
@@ -371,7 +328,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
 
     public function findByTraceIds(array $traceIds): array
     {
-        /** @var TraceDto[] $children */
+        /** @var TraceObject[] $children */
         $children = [];
 
         foreach (collect($traceIds)->chunk(1000) as $childrenIdsChunk) {
@@ -399,10 +356,10 @@ readonly class TraceRepository implements TraceRepositoryInterface
                 ])
                 ->whereIn('tid', $childrenIdsChunk)
                 ->each(function (Trace $trace) use (&$children) {
-                    $children[] = new TraceDto(
+                    $children[] = new TraceObject(
                         id: $trace->_id,
                         service: $trace->service
-                            ? new TraceServiceDto(
+                            ? new TraceServiceObject(
                                 id: $trace->service->id,
                                 name: $trace->service->name,
                             )
@@ -468,7 +425,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
         $types = [];
 
         foreach ($typesAggregation as $item) {
-            $types[] = new TraceTypeDto(
+            $types[] = new TraceTypeCountedObject(
                 traceId: $item->_id->parentTraceId,
                 type: $item->_id->type,
                 count: $item->count,
@@ -578,7 +535,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
     }
 
     /**
-     * @param TraceTimestampMetricDto[] $timestamps
+     * @param TraceTimestampMetricObject[] $timestamps
      */
     private function makeTimestampsData(array $timestamps): array
     {
@@ -739,5 +696,31 @@ readonly class TraceRepository implements TraceRepositoryInterface
                 value: $valueItem
             );
         }
+    }
+
+    private function makeDetailFromModel(Trace $trace): TraceDetailObject
+    {
+        return new TraceDetailObject(
+            id: $trace->_id,
+            service: $trace->service
+                ? new TraceServiceObject(
+                    id: $trace->service->id,
+                    name: $trace->service->name,
+                )
+                : null,
+            traceId: $trace->tid,
+            parentTraceId: $trace->ptid,
+            type: $trace->tp,
+            status: $trace->st,
+            tags: $this->parseTagsFromDb($trace->tgs),
+            data: (new TraceDataToObjectBuilder($trace->dt))->build(),
+            duration: $trace->dur,
+            memory: $trace->mem,
+            cpu: $trace->cpu,
+            hasProfiling: $trace->hpr ?? false,
+            loggedAt: $trace->lat,
+            createdAt: $trace->cat,
+            updatedAt: $trace->uat
+        );
     }
 }

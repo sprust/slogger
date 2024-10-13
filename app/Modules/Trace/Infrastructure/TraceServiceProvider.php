@@ -77,14 +77,12 @@ use App\Modules\Trace\Repositories\TraceDynamicIndexRepository;
 use App\Modules\Trace\Repositories\TraceRepository;
 use App\Modules\Trace\Repositories\TraceTimestampsRepository;
 use App\Modules\Trace\Repositories\TraceTreeRepository;
-use App\Modules\Trace\Transports\TraceDynamicIndexTransport;
 
 class TraceServiceProvider extends BaseServiceProvider
 {
     public function boot(): void
     {
         $this->app->singleton(TraceFieldTitlesService::class);
-        $this->app->singleton(TraceDynamicIndexTransport::class);
         $this->app->singleton(TraceQueryBuilder::class);
         $this->app->singleton(TraceDynamicIndexInitializer::class);
         $this->app->singleton(TraceDynamicIndexingActionService::class);

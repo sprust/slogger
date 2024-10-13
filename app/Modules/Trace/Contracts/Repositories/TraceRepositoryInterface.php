@@ -2,32 +2,32 @@
 
 namespace App\Modules\Trace\Contracts\Repositories;
 
-use App\Modules\Trace\Repositories\Dto\Data\TraceDataFilterDto;
-use App\Modules\Trace\Repositories\Dto\Profiling\TraceProfilingDto;
-use App\Modules\Trace\Repositories\Dto\Timestamp\TraceTimestampMetricDto;
-use App\Modules\Trace\Repositories\Dto\TraceCreateDto;
-use App\Modules\Trace\Repositories\Dto\TraceDetailDto;
-use App\Modules\Trace\Repositories\Dto\TraceDto;
-use App\Modules\Trace\Repositories\Dto\TraceDynamicIndexFieldDto;
-use App\Modules\Trace\Repositories\Dto\TraceIndexInfoDto;
-use App\Modules\Trace\Repositories\Dto\TraceItemsPaginationDto;
-use App\Modules\Trace\Repositories\Dto\TraceLoggedAtDto;
-use App\Modules\Trace\Repositories\Dto\TraceSortDto;
-use App\Modules\Trace\Repositories\Dto\TraceTypeDto;
-use App\Modules\Trace\Repositories\Dto\TraceUpdateDto;
+use App\Modules\Trace\Entities\Trace\Timestamp\TraceTimestampMetricObject;
+use App\Modules\Trace\Entities\Trace\TraceDetailObject;
+use App\Modules\Trace\Entities\Trace\TraceDetailPaginationObject;
+use App\Modules\Trace\Entities\Trace\TraceObject;
+use App\Modules\Trace\Entities\Trace\TraceTypeCountedObject;
+use App\Modules\Trace\Parameters\Data\TraceDataFilterParameters;
+use App\Modules\Trace\Parameters\TraceCreateParameters;
+use App\Modules\Trace\Parameters\TraceSortParameters;
+use App\Modules\Trace\Parameters\TraceUpdateParameters;
+use App\Modules\Trace\Repositories\Dto\DynamicIndex\TraceDynamicIndexFieldDto;
+use App\Modules\Trace\Repositories\Dto\Trace\Profiling\TraceProfilingDto;
+use App\Modules\Trace\Repositories\Dto\Trace\TraceIndexInfoDto;
+use App\Modules\Trace\Repositories\Dto\Trace\TraceLoggedAtDto;
 use Illuminate\Support\Carbon;
 
 interface TraceRepositoryInterface
 {
     /**
-     * @param TraceCreateDto[] $traces
+     * @param TraceCreateParameters[] $traces
      *
      * @return void
      */
     public function createMany(array $traces): void;
 
     /**
-     * @param TraceUpdateDto[] $traces
+     * @param TraceUpdateParameters[] $traces
      */
     public function updateMany(array $traces): int;
 
@@ -37,18 +37,18 @@ interface TraceRepositoryInterface
     public function findLoggedAtList(int $page, int $perPage, Carbon $loggedAtTo): array;
 
     /**
-     * @param TraceTimestampMetricDto[] $timestamps
+     * @param TraceTimestampMetricObject[] $timestamps
      */
     public function updateTraceTimestamps(string $traceId, array $timestamps): void;
 
-    public function findOneByTraceId(string $traceId): ?TraceDetailDto;
+    public function findOneDetailByTraceId(string $traceId): ?TraceDetailObject;
 
     /**
-     * @param int[]|null          $serviceIds
-     * @param string[]            $types
-     * @param string[]            $tags
-     * @param string[]            $statuses
-     * @param TraceSortDto[]|null $sort
+     * @param int[]|null                 $serviceIds
+     * @param string[]                   $types
+     * @param string[]                   $tags
+     * @param string[]                   $statuses
+     * @param TraceSortParameters[]|null $sort
      */
     public function find(
         int $page = 1,
@@ -66,10 +66,10 @@ interface TraceRepositoryInterface
         ?float $memoryTo = null,
         ?float $cpuFrom = null,
         ?float $cpuTo = null,
-        ?TraceDataFilterDto $data = null,
+        ?TraceDataFilterParameters $data = null,
         ?bool $hasProfiling = null,
         ?array $sort = null,
-    ): TraceItemsPaginationDto;
+    ): TraceDetailPaginationObject;
 
     /**
      * @return string[]
@@ -84,14 +84,14 @@ interface TraceRepositoryInterface
     /**
      * @param string[] $traceIds
      *
-     * @return TraceDto[]
+     * @return TraceObject[]
      */
     public function findByTraceIds(array $traceIds): array;
 
     /**
      * @param string[] $traceIds
      *
-     * @return TraceTypeDto[]
+     * @return TraceTypeCountedObject[]
      */
     public function findTypeCounts(array $traceIds): array;
 

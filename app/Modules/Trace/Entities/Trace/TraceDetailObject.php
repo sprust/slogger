@@ -11,6 +11,7 @@ readonly class TraceDetailObject
      * @param string[] $tags
      */
     public function __construct(
+        public string $id,
         public ?TraceServiceObject $service,
         public string $traceId,
         public ?string $parentTraceId,
@@ -21,6 +22,7 @@ readonly class TraceDetailObject
         public ?float $duration,
         public ?float $memory,
         public ?float $cpu,
+        public bool $hasProfiling,
         public Carbon $loggedAt,
         public Carbon $createdAt,
         public Carbon $updatedAt
