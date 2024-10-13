@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\Trace\Repositories\Services;
+namespace App\Modules\Trace\Domain\Services;
 
 use App\Modules\Trace\Contracts\Repositories\TraceDynamicIndexRepositoryInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceRepositoryInterface;
@@ -34,8 +34,6 @@ readonly class TraceDynamicIndexInitializer
      * @param string[]                   $tags
      * @param string[]                   $statuses
      * @param TraceSortParameters[]|null $sort
-     *
-     * TODO: violation of layers
      *
      * @throws TraceDynamicIndexNotInitException
      * @throws TraceDynamicIndexInProcessException

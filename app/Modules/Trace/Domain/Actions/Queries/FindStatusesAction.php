@@ -4,14 +4,11 @@ namespace App\Modules\Trace\Domain\Actions\Queries;
 
 use App\Modules\Trace\Contracts\Actions\Queries\FindStatusesActionInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceContentRepositoryInterface;
-use App\Modules\Trace\Infrastructure\Http\Controllers\Traits\MakeDataFilterParameterTrait;
+use App\Modules\Trace\Domain\Services\TraceDynamicIndexInitializer;
 use App\Modules\Trace\Parameters\TraceFindStatusesParameters;
-use App\Modules\Trace\Repositories\Services\TraceDynamicIndexInitializer;
 
 readonly class FindStatusesAction implements FindStatusesActionInterface
 {
-    use MakeDataFilterParameterTrait;
-
     public function __construct(
         private TraceContentRepositoryInterface $repository,
         private TraceDynamicIndexInitializer $traceDynamicIndexInitializer

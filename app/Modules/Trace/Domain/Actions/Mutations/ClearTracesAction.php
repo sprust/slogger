@@ -8,8 +8,8 @@ use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexErrorException;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexInProcessException;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexNotInitException;
 use App\Modules\Trace\Domain\Services\TraceDynamicIndexingActionService;
+use App\Modules\Trace\Domain\Services\TraceDynamicIndexInitializer;
 use App\Modules\Trace\Parameters\ClearTracesParameters;
-use App\Modules\Trace\Repositories\Services\TraceDynamicIndexInitializer;
 
 readonly class ClearTracesAction implements ClearTracesActionInterface
 {
