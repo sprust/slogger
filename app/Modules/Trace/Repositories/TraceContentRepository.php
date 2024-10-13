@@ -3,9 +3,9 @@
 namespace App\Modules\Trace\Repositories;
 
 use App\Models\Traces\Trace;
+use App\Modules\Trace\Contracts\Repositories\TraceContentRepositoryInterface;
 use App\Modules\Trace\Repositories\Dto\Data\TraceDataFilterDto;
 use App\Modules\Trace\Repositories\Dto\TraceStringFieldDto;
-use App\Modules\Trace\Repositories\Interfaces\TraceContentRepositoryInterface;
 use App\Modules\Trace\Repositories\Services\TraceQueryBuilder;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;

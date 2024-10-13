@@ -3,6 +3,7 @@
 namespace App\Modules\Trace\Repositories;
 
 use App\Models\Traces\Trace;
+use App\Modules\Trace\Contracts\Repositories\TraceTimestampsRepositoryInterface;
 use App\Modules\Trace\Enums\TraceMetricFieldAggregatorEnum;
 use App\Modules\Trace\Enums\TraceMetricFieldEnum;
 use App\Modules\Trace\Enums\TraceTimestampEnum;
@@ -12,7 +13,6 @@ use App\Modules\Trace\Repositories\Dto\Timestamp\TraceTimestampFieldDto;
 use App\Modules\Trace\Repositories\Dto\Timestamp\TraceTimestampFieldIndicatorDto;
 use App\Modules\Trace\Repositories\Dto\Timestamp\TraceTimestampsDto;
 use App\Modules\Trace\Repositories\Dto\Timestamp\TraceTimestampsListDto;
-use App\Modules\Trace\Repositories\Interfaces\TraceTimestampsRepositoryInterface;
 use App\Modules\Trace\Repositories\Services\TraceQueryBuilder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;

@@ -2,16 +2,16 @@
 
 namespace App\Modules\Trace\Domain\Actions\Mutations;
 
-use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\UpdateTraceManyActionInterface;
-use App\Modules\Trace\Domain\Entities\Parameters\Profilling\TraceUpdateProfilingDataObject;
-use App\Modules\Trace\Domain\Entities\Parameters\Profilling\TraceUpdateProfilingObject;
-use App\Modules\Trace\Domain\Entities\Parameters\TraceUpdateParameters;
-use App\Modules\Trace\Domain\Entities\Parameters\TraceUpdateParametersList;
+use App\Modules\Trace\Contracts\Actions\Mutations\UpdateTraceManyActionInterface;
+use App\Modules\Trace\Contracts\Repositories\TraceRepositoryInterface;
+use App\Modules\Trace\Parameters\Profilling\TraceUpdateProfilingDataObject;
+use App\Modules\Trace\Parameters\Profilling\TraceUpdateProfilingObject;
+use App\Modules\Trace\Parameters\TraceUpdateParameters;
+use App\Modules\Trace\Parameters\TraceUpdateParametersList;
 use App\Modules\Trace\Repositories\Dto\Profiling\TraceProfilingDataDto;
 use App\Modules\Trace\Repositories\Dto\Profiling\TraceProfilingDto;
 use App\Modules\Trace\Repositories\Dto\Profiling\TraceProfilingItemDto;
 use App\Modules\Trace\Repositories\Dto\TraceUpdateDto;
-use App\Modules\Trace\Repositories\Interfaces\TraceRepositoryInterface;
 
 readonly class UpdateTraceManyAction implements UpdateTraceManyActionInterface
 {

@@ -4,6 +4,7 @@ namespace App\Modules\Trace\Repositories;
 
 use App\Models\Traces\Trace;
 use App\Modules\Common\Entities\PaginationInfoObject;
+use App\Modules\Trace\Contracts\Repositories\TraceRepositoryInterface;
 use App\Modules\Trace\Repositories\Dto\Data\TraceDataFilterDto;
 use App\Modules\Trace\Repositories\Dto\Profiling\TraceProfilingDataDto;
 use App\Modules\Trace\Repositories\Dto\Profiling\TraceProfilingDto;
@@ -17,7 +18,6 @@ use App\Modules\Trace\Repositories\Dto\TraceLoggedAtDto;
 use App\Modules\Trace\Repositories\Dto\TraceServiceDto;
 use App\Modules\Trace\Repositories\Dto\TraceSortDto;
 use App\Modules\Trace\Repositories\Dto\TraceTypeDto;
-use App\Modules\Trace\Repositories\Interfaces\TraceRepositoryInterface;
 use App\Modules\Trace\Repositories\Services\TraceQueryBuilder;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;

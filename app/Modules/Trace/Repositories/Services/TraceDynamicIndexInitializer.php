@@ -2,6 +2,8 @@
 
 namespace App\Modules\Trace\Repositories\Services;
 
+use App\Modules\Trace\Contracts\Repositories\TraceDynamicIndexRepositoryInterface;
+use App\Modules\Trace\Contracts\Repositories\TraceRepositoryInterface;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexErrorException;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexInProcessException;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexNotInitException;
@@ -9,8 +11,6 @@ use App\Modules\Trace\Enums\TraceTimestampEnum;
 use App\Modules\Trace\Repositories\Dto\Data\TraceDataFilterDto;
 use App\Modules\Trace\Repositories\Dto\TraceDynamicIndexFieldDto;
 use App\Modules\Trace\Repositories\Dto\TraceSortDto;
-use App\Modules\Trace\Repositories\Interfaces\TraceDynamicIndexRepositoryInterface;
-use App\Modules\Trace\Repositories\Interfaces\TraceRepositoryInterface;
 use Illuminate\Support\Carbon;
 
 readonly class TraceDynamicIndexInitializer

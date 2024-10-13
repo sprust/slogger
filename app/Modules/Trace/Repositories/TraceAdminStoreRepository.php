@@ -4,11 +4,10 @@ namespace App\Modules\Trace\Repositories;
 
 use App\Models\Traces\TraceAdminStore;
 use App\Modules\Common\Entities\PaginationInfoObject;
+use App\Modules\Trace\Contracts\Repositories\TraceAdminStoreRepositoryInterface;
 use App\Modules\Trace\Repositories\Dto\TraceAdminStoreDto;
 use App\Modules\Trace\Repositories\Dto\TraceAdminStoresPaginationDto;
-use App\Modules\Trace\Repositories\Interfaces\TraceAdminStoreRepositoryInterface;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Carbon;
 
 class TraceAdminStoreRepository implements TraceAdminStoreRepositoryInterface
 {

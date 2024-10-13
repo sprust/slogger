@@ -3,10 +3,10 @@
 namespace App\Modules\Trace\Repositories;
 
 use App\Models\Traces\TraceDynamicIndex;
+use App\Modules\Trace\Contracts\Repositories\TraceDynamicIndexRepositoryInterface;
 use App\Modules\Trace\Repositories\Dto\TraceDynamicIndexDto;
 use App\Modules\Trace\Repositories\Dto\TraceDynamicIndexFieldDto;
 use App\Modules\Trace\Repositories\Dto\TraceDynamicIndexStatsDto;
-use App\Modules\Trace\Repositories\Interfaces\TraceDynamicIndexRepositoryInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use MongoDB\BSON\UTCDateTime;

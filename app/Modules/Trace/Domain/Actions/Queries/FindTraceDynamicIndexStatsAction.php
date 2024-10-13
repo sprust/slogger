@@ -2,9 +2,9 @@
 
 namespace App\Modules\Trace\Domain\Actions\Queries;
 
-use App\Modules\Trace\Domain\Actions\Interfaces\Queries\FindTraceDynamicIndexStatsActionInterface;
-use App\Modules\Trace\Domain\Entities\Objects\TraceDynamicIndexStatsObject;
-use App\Modules\Trace\Repositories\Interfaces\TraceDynamicIndexRepositoryInterface;
+use App\Modules\Trace\Contracts\Actions\Queries\FindTraceDynamicIndexStatsActionInterface;
+use App\Modules\Trace\Contracts\Repositories\TraceDynamicIndexRepositoryInterface;
+use App\Modules\Trace\Entities\DynamicIndex\TraceDynamicIndexStatsObject;
 
 readonly class FindTraceDynamicIndexStatsAction implements FindTraceDynamicIndexStatsActionInterface
 {

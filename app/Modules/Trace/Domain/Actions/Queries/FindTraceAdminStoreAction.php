@@ -2,11 +2,11 @@
 
 namespace App\Modules\Trace\Domain\Actions\Queries;
 
-use App\Modules\Trace\Domain\Actions\Interfaces\Queries\FindTraceAdminStoreActionInterface;
-use App\Modules\Trace\Domain\Entities\Objects\TraceAdminStoresPaginationObject;
-use App\Modules\Trace\Domain\Entities\Transports\TraceAdminStoreTransport;
+use App\Modules\Trace\Contracts\Actions\Queries\FindTraceAdminStoreActionInterface;
+use App\Modules\Trace\Contracts\Repositories\TraceAdminStoreRepositoryInterface;
+use App\Modules\Trace\Entities\Store\TraceAdminStoresPaginationObject;
 use App\Modules\Trace\Repositories\Dto\TraceAdminStoreDto;
-use App\Modules\Trace\Repositories\Interfaces\TraceAdminStoreRepositoryInterface;
+use App\Modules\Trace\Transports\TraceAdminStoreTransport;
 
 readonly class FindTraceAdminStoreAction implements FindTraceAdminStoreActionInterface
 {

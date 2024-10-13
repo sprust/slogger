@@ -9,14 +9,14 @@ use App\Modules\Dashboard\Infrastructure\Http\Controllers\DatabaseStatController
 use App\Modules\Dashboard\Infrastructure\Http\Controllers\ServiceStatController;
 use App\Modules\Service\Infrastructure\Http\Controllers\ServiceController;
 use App\Modules\Tools\Infrastructure\Http\Controllers\ToolLinksController;
-use App\Modules\Trace\Framework\Http\Controllers\TraceAdminStoreController;
-use App\Modules\Trace\Framework\Http\Controllers\TraceContentController;
-use App\Modules\Trace\Framework\Http\Controllers\TraceController;
-use App\Modules\Trace\Framework\Http\Controllers\TraceDynamicIndexController;
-use App\Modules\Trace\Framework\Http\Controllers\TraceProfilingController;
-use App\Modules\Trace\Framework\Http\Controllers\TraceTimestampPeriodsController;
-use App\Modules\Trace\Framework\Http\Controllers\TraceTimestampsController;
-use App\Modules\Trace\Framework\Http\Controllers\TraceTreeController;
+use App\Modules\Trace\Infrastructure\Http\Controllers\TraceAdminStoreController;
+use App\Modules\Trace\Infrastructure\Http\Controllers\TraceContentController;
+use App\Modules\Trace\Infrastructure\Http\Controllers\TraceController;
+use App\Modules\Trace\Infrastructure\Http\Controllers\TraceDynamicIndexController;
+use App\Modules\Trace\Infrastructure\Http\Controllers\TraceProfilingController;
+use App\Modules\Trace\Infrastructure\Http\Controllers\TraceTimestampPeriodsController;
+use App\Modules\Trace\Infrastructure\Http\Controllers\TraceTimestampsController;
+use App\Modules\Trace\Infrastructure\Http\Controllers\TraceTreeController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('/auth')

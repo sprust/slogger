@@ -2,25 +2,25 @@
 
 namespace App\Modules\Trace\Domain\Actions\Queries;
 
-use App\Modules\Trace\Domain\Actions\Interfaces\Queries\FindTraceTimestampsActionInterface;
-use App\Modules\Trace\Domain\Entities\Objects\Timestamp\TraceTimestampsObject;
-use App\Modules\Trace\Domain\Entities\Objects\Timestamp\TraceTimestampsObjects;
-use App\Modules\Trace\Domain\Entities\Parameters\FindTraceTimestampsParameters;
-use App\Modules\Trace\Domain\Entities\Transports\TraceDataFilterTransport;
-use App\Modules\Trace\Domain\Entities\Transports\TraceTimestampFieldTransport;
+use App\Modules\Trace\Contracts\Actions\Queries\FindTraceTimestampsActionInterface;
+use App\Modules\Trace\Contracts\Repositories\TraceTimestampsRepositoryInterface;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexErrorException;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexInProcessException;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexNotInitException;
 use App\Modules\Trace\Domain\Services\TraceTimestampMetricsFactory;
+use App\Modules\Trace\Entities\Trace\Timestamp\TraceTimestampsObject;
+use App\Modules\Trace\Entities\Trace\Timestamp\TraceTimestampsObjects;
 use App\Modules\Trace\Enums\TraceMetricFieldAggregatorEnum;
 use App\Modules\Trace\Enums\TraceMetricFieldEnum;
+use App\Modules\Trace\Parameters\FindTraceTimestampsParameters;
 use App\Modules\Trace\Repositories\Dto\Data\TraceMetricDataFieldsFilterDto;
 use App\Modules\Trace\Repositories\Dto\Data\TraceMetricFieldsFilterDto;
 use App\Modules\Trace\Repositories\Dto\Timestamp\TraceTimestampFieldDto;
 use App\Modules\Trace\Repositories\Dto\Timestamp\TraceTimestampsDto;
 use App\Modules\Trace\Repositories\Dto\Timestamp\TraceTimestampsListDto;
-use App\Modules\Trace\Repositories\Interfaces\TraceTimestampsRepositoryInterface;
 use App\Modules\Trace\Repositories\Services\TraceDynamicIndexInitializer;
+use App\Modules\Trace\Transports\TraceDataFilterTransport;
+use App\Modules\Trace\Transports\TraceTimestampFieldTransport;
 use Illuminate\Support\Arr;
 use RrParallel\Exceptions\ParallelJobsException;
 use RrParallel\Exceptions\WaitTimeoutException;

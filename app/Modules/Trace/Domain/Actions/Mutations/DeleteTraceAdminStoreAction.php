@@ -2,8 +2,8 @@
 
 namespace App\Modules\Trace\Domain\Actions\Mutations;
 
-use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\DeleteTraceAdminStoreActionInterface;
-use App\Modules\Trace\Repositories\Interfaces\TraceAdminStoreRepositoryInterface;
+use App\Modules\Trace\Contracts\Actions\Mutations\DeleteTraceAdminStoreActionInterface;
+use App\Modules\Trace\Contracts\Repositories\TraceAdminStoreRepositoryInterface;
 
 readonly class DeleteTraceAdminStoreAction implements DeleteTraceAdminStoreActionInterface
 {

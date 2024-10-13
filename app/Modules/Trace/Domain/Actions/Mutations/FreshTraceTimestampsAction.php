@@ -2,11 +2,11 @@
 
 namespace App\Modules\Trace\Domain\Actions\Mutations;
 
-use App\Modules\Trace\Domain\Actions\Interfaces\MakeTraceTimestampsActionInterface;
-use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\FreshTraceTimestampsActionInterface;
-use App\Modules\Trace\Domain\Entities\Objects\Timestamp\TraceTimestampMetricObject;
+use App\Modules\Trace\Contracts\Actions\MakeTraceTimestampsActionInterface;
+use App\Modules\Trace\Contracts\Actions\Mutations\FreshTraceTimestampsActionInterface;
+use App\Modules\Trace\Contracts\Repositories\TraceRepositoryInterface;
+use App\Modules\Trace\Entities\Trace\Timestamp\TraceTimestampMetricObject;
 use App\Modules\Trace\Repositories\Dto\Timestamp\TraceTimestampMetricDto;
-use App\Modules\Trace\Repositories\Interfaces\TraceRepositoryInterface;
 
 readonly class FreshTraceTimestampsAction implements FreshTraceTimestampsActionInterface
 {

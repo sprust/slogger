@@ -2,13 +2,13 @@
 
 namespace App\Modules\Trace\Domain\Actions\Mutations;
 
-use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\ClearTracesActionInterface;
-use App\Modules\Trace\Domain\Entities\Parameters\ClearTracesParameters;
+use App\Modules\Trace\Contracts\Actions\Mutations\ClearTracesActionInterface;
+use App\Modules\Trace\Contracts\Repositories\TraceRepositoryInterface;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexErrorException;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexInProcessException;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexNotInitException;
 use App\Modules\Trace\Domain\Services\TraceDynamicIndexingActionService;
-use App\Modules\Trace\Repositories\Interfaces\TraceRepositoryInterface;
+use App\Modules\Trace\Parameters\ClearTracesParameters;
 use App\Modules\Trace\Repositories\Services\TraceDynamicIndexInitializer;
 
 readonly class ClearTracesAction implements ClearTracesActionInterface

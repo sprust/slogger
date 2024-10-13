@@ -3,21 +3,21 @@
 namespace App\Modules\Trace\Domain\Actions\Queries;
 
 use App\Modules\Common\Entities\PaginationInfoObject;
-use App\Modules\Trace\Domain\Actions\Interfaces\Queries\FindTracesActionInterface;
-use App\Modules\Trace\Domain\Entities\Objects\Data\TraceDataAdditionalFieldObject;
-use App\Modules\Trace\Domain\Entities\Objects\TraceItemObject;
-use App\Modules\Trace\Domain\Entities\Objects\TraceItemObjects;
-use App\Modules\Trace\Domain\Entities\Objects\TraceItemTraceObject;
-use App\Modules\Trace\Domain\Entities\Objects\TraceServiceObject;
-use App\Modules\Trace\Domain\Entities\Parameters\TraceFindParameters;
-use App\Modules\Trace\Domain\Entities\Transports\TraceDataFilterTransport;
-use App\Modules\Trace\Domain\Entities\Transports\TraceSortTransport;
-use App\Modules\Trace\Domain\Entities\Transports\TraceTypeTransport;
+use App\Modules\Trace\Contracts\Actions\Queries\FindTracesActionInterface;
+use App\Modules\Trace\Contracts\Repositories\TraceRepositoryInterface;
+use App\Modules\Trace\Contracts\Repositories\TraceTreeRepositoryInterface;
+use App\Modules\Trace\Entities\Trace\Data\TraceDataAdditionalFieldObject;
+use App\Modules\Trace\Entities\Trace\TraceItemObject;
+use App\Modules\Trace\Entities\Trace\TraceItemObjects;
+use App\Modules\Trace\Entities\Trace\TraceItemTraceObject;
+use App\Modules\Trace\Entities\Trace\TraceServiceObject;
+use App\Modules\Trace\Parameters\TraceFindParameters;
 use App\Modules\Trace\Repositories\Dto\TraceDetailDto;
 use App\Modules\Trace\Repositories\Dto\TraceTypeDto;
-use App\Modules\Trace\Repositories\Interfaces\TraceRepositoryInterface;
-use App\Modules\Trace\Repositories\Interfaces\TraceTreeRepositoryInterface;
 use App\Modules\Trace\Repositories\Services\TraceDynamicIndexInitializer;
+use App\Modules\Trace\Transports\TraceDataFilterTransport;
+use App\Modules\Trace\Transports\TraceSortTransport;
+use App\Modules\Trace\Transports\TraceTypeTransport;
 use Illuminate\Support\Arr;
 
 readonly class FindTracesAction implements FindTracesActionInterface

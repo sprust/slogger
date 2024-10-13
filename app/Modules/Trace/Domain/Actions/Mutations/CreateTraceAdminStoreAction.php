@@ -2,10 +2,10 @@
 
 namespace App\Modules\Trace\Domain\Actions\Mutations;
 
-use App\Modules\Trace\Domain\Actions\Interfaces\Mutations\CreateTraceAdminStoreActionInterface;
-use App\Modules\Trace\Domain\Entities\Objects\TraceAdminStoreObject;
-use App\Modules\Trace\Domain\Entities\Transports\TraceAdminStoreTransport;
-use App\Modules\Trace\Repositories\Interfaces\TraceAdminStoreRepositoryInterface;
+use App\Modules\Trace\Contracts\Actions\Mutations\CreateTraceAdminStoreActionInterface;
+use App\Modules\Trace\Contracts\Repositories\TraceAdminStoreRepositoryInterface;
+use App\Modules\Trace\Entities\Store\TraceAdminStoreObject;
+use App\Modules\Trace\Transports\TraceAdminStoreTransport;
 
 readonly class CreateTraceAdminStoreAction implements CreateTraceAdminStoreActionInterface
 {

@@ -2,16 +2,16 @@
 
 namespace App\Modules\Trace\Domain\Actions\Queries;
 
-use App\Modules\Trace\Domain\Actions\Interfaces\Queries\FindTraceTreeActionInterface;
-use App\Modules\Trace\Domain\Entities\Objects\Tree\TraceTreeObjects;
-use App\Modules\Trace\Domain\Entities\Parameters\TraceFindTreeParameters;
-use App\Modules\Trace\Domain\Entities\Transports\TraceDetailTransport;
-use App\Modules\Trace\Domain\Entities\Transports\TraceTransport;
+use App\Modules\Trace\Contracts\Actions\Queries\FindTraceTreeActionInterface;
+use App\Modules\Trace\Contracts\Repositories\TraceRepositoryInterface;
+use App\Modules\Trace\Contracts\Repositories\TraceTreeRepositoryInterface;
 use App\Modules\Trace\Domain\Exceptions\TreeTooLongException;
 use App\Modules\Trace\Domain\Services\TraceTreeBuilder;
+use App\Modules\Trace\Entities\Trace\Tree\TraceTreeObjects;
+use App\Modules\Trace\Parameters\TraceFindTreeParameters;
 use App\Modules\Trace\Repositories\Dto\TraceDto;
-use App\Modules\Trace\Repositories\Interfaces\TraceRepositoryInterface;
-use App\Modules\Trace\Repositories\Interfaces\TraceTreeRepositoryInterface;
+use App\Modules\Trace\Transports\TraceDetailTransport;
+use App\Modules\Trace\Transports\TraceTransport;
 
 readonly class FindTraceTreeAction implements FindTraceTreeActionInterface
 {
