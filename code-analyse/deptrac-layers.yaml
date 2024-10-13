@@ -7,7 +7,7 @@ parameters:
     - name: Domain
       collectors:
         - type: directory
-          regex: (/app/Modules/.*/Domain/|/app/Modules/.*/Contracts/Domain)
+          regex: (/app/Modules/.*/Domain/|/app/Modules/.*/Contracts/Domain/)
     - name: Entities
       collectors:
         - type: directory
