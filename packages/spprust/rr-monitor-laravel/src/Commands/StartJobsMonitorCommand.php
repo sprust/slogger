@@ -1,10 +1,10 @@
 <?php
 
-namespace RrParallel\Commands;
+namespace RrMonitor\Commands;
 
 use Exception;
 use Illuminate\Console\Command;
-use RrParallel\Services\Drivers\Roadrunner\JobsMonitor;
+use RrMonitor\Services\JobsMonitor;
 use Throwable;
 
 class StartJobsMonitorCommand extends Command
@@ -16,7 +16,7 @@ class StartJobsMonitorCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'rr-parallel:monitor:start {pluginName}';
+    protected $signature = 'rr-monitor:start {pluginName}';
 
     /**
      * The console command description.
@@ -28,22 +28,21 @@ class StartJobsMonitorCommand extends Command
     /**
      * Execute the console command.
      *
-     * @throws Exception
      * @throws Throwable
      */
     public function handle(): void
     {
         $pluginName = $this->argument('pluginName');
 
-        $workersNumber = (int) config("rr-parallel.monitor.$pluginName.number");
+        $workersNumber = (int) config("rr-monitor.plugins.$pluginName.number");
 
         if (!$workersNumber) {
             throw new Exception(
-                "No number of workers defined for plugin $pluginName. Config rr-parallel.monitor.$pluginName.*."
+                "No number of workers defined for plugin $pluginName. Config rr-monitor.plugins.$pluginName.*."
             );
         }
 
-        $workersMaxNumber = (int) config("rr-parallel.monitor.$pluginName.max_number");
+        $workersMaxNumber = (int) config("rr-monitor.plugins.$pluginName.max_number");
         $workersMaxNumber = $workersMaxNumber ?: ($workersNumber * 2);
 
         $tryCount = 5;

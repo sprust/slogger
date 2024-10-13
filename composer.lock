@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f528f45c7d67565f5f74d9db8d469c8a",
+    "content-hash": "1a0490e9518d5b61a9c8d18bd99e33ff",
     "packages": [
         {
             "name": "brick/math",
@@ -5247,6 +5247,46 @@
                 }
             ],
             "time": "2024-09-23T07:50:29+00:00"
+        },
+        {
+            "name": "spprust/rr-monitor-laravel",
+            "version": "dev-master",
+            "dist": {
+                "type": "path",
+                "url": "packages/spprust/rr-monitor-laravel",
+                "reference": "4b7fc919b0856e1c15fdb86da93f533443b0ae9b"
+            },
+            "require": {
+                "laravel/framework": "^10.0",
+                "spiral/roadrunner-cli": "^2.6"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "RrMonitor\\RrMonitorServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "RrMonitor\\": "src/"
+                }
+            },
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Pavel",
+                    "email": "sppetrovich@mail.ru"
+                }
+            ],
+            "description": "RoadRunner monitor for laravel",
+            "transport-options": {
+                "symlink": true,
+                "relative": true
+            }
         },
         {
             "name": "spprust/rr-parallel-laravel",
@@ -10939,6 +10979,7 @@
         "ifksco/openapi-generator": 20,
         "slogger/grpc": 20,
         "slogger/laravel": 20,
+        "spprust/rr-monitor-laravel": 20,
         "spprust/rr-parallel-laravel": 20
     },
     "prefer-stable": true,

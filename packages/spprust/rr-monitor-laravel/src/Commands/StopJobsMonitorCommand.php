@@ -1,6 +1,6 @@
 <?php
 
-namespace RrParallel\Commands;
+namespace RrMonitor\Commands;
 
 use Exception;
 use Illuminate\Console\Command;
@@ -15,7 +15,7 @@ class StopJobsMonitorCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'rr-parallel:monitor:stop {pluginName}';
+    protected $signature = 'rr-monitor:stop {pluginName}';
 
     /**
      * The console command description.

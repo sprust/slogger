@@ -1,12 +1,12 @@
 <?php
 
-namespace RrParallel\Commands;
+namespace RrMonitor\Commands;
 
 use Illuminate\Support\Facades\Cache;
 
 trait JobsMonitorTrait
 {
-    private string $cacheKeyStop = 'rr-parallel-monitor-status';
+    private string $cacheKeyStop = 'rr-monitor-status';
 
     private function forgetStopSignal(string $pluginName): void
     {
