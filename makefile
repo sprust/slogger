@@ -73,6 +73,10 @@ workers-restart:
 	@make art-workers c='rr-parallel:monitor:stop jobs'
 	@make art-workers c='trace-dynamic-indexes:monitor:stop'
 
+octane-stop:
+	@make art-workers c='octane:roadrunner:stop'
+	@make art-workers c='octane:swoole:stop'
+
 oa-generate:
 	@make art c='oa:generate'
 	@make frontend-npm-generate
