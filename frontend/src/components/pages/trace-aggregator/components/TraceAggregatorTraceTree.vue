@@ -101,6 +101,7 @@
                   </div>
                 </el-space>
                 <el-button
+                    v-if="treeNodeViewsMap[data.key].children.length"
                     style="padding-left: 5px"
                     @click="indicate(treeNodeViewsMap[data.key])"
                     type="info"
