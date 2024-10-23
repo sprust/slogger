@@ -93,7 +93,11 @@ readonly class TraceTimestampsRepository implements TraceTimestampsRepositoryInt
             ->toMql();
 
         foreach ($mql['find'][0] ?? [] as $key => $value) {
-            $match[$key] = $value;
+            if ($key === '$and') {
+                $match[$key] = is_array($value) ? array_merge($match[$key], $value) : $match[$key];
+            } else {
+                $match[$key] = $value;
+            }
         }
 
         $pipeline = [
