@@ -187,7 +187,7 @@ export default defineComponent({
       }
 
       if (!this.store.state.traceDynamicIndexStats.indexes_in_process.length) {
-        return 0
+        return this.store.state.traceDynamicIndexStats.in_process_count
       }
 
       const percents: number[] = this.store.state.traceDynamicIndexStats.indexes_in_process.map(
