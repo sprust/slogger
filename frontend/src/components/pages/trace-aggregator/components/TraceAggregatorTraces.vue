@@ -57,7 +57,8 @@
               </el-select>
               <el-button
                   v-show="storeGraph.state.showGraph"
-                  :type="storeGraph.state.playGraph ? 'danger' : 'info'"
+                  size="small"
+                  :type="storeGraph.state.playGraph ? 'danger' : 'success'"
                   :icon="storeGraph.state.playGraph ? Stop : Play"
                   @click="storeGraph.state.playGraph = !storeGraph.state.playGraph"
               />
@@ -154,7 +155,7 @@ import DynamicIndexes from "../widgets/DynamicIndexes.vue";
 import AdminStores from "../widgets/AdminStores.vue";
 import OtherFilters from "../widgets/OtherFilters.vue";
 import {state} from "vue-tsc/out/shared";
-import {CloseBold, SwitchButton, Close, Loading, CaretRight, RemoveFilled} from '@element-plus/icons-vue'
+import {CloseBold, SwitchButton, Close, Loading, CaretRight} from '@element-plus/icons-vue'
 import TraceAggregatorGraph from "./TraceAggregatorGraph.vue";
 import TraceAggregatorTimestampPeriods from "./TraceAggregatorTimestampPeriods.vue";
 import {useTraceAggregatorGraphStore} from "../../../../store/traceAggregatorGraphStore.ts";
@@ -211,7 +212,7 @@ export default defineComponent({
       return CaretRight
     },
     Stop() {
-      return RemoveFilled
+      return Close
     },
     Loading() {
       return Loading
