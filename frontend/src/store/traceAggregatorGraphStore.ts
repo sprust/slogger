@@ -19,6 +19,7 @@ interface GraphItem {
 
 interface State {
     showGraph: boolean,
+    playGraph: boolean,
     loading: boolean,
     waiting: boolean,
 
@@ -50,6 +51,7 @@ const graphAggregationColors: AggregationColors = {
 export const traceAggregatorGraphStore = createStore<State>({
     state: {
         showGraph: false,
+        playGraph: false,
         loading: false,
 
         payload: {} as TraceAggregatorTraceMetricsPayload,

@@ -58,7 +58,7 @@ export default defineComponent({
   },
   methods: {
     update() {
-      if (this.store.state.waiting) {
+      if (this.store.state.waiting || !this.store.state.playGraph) {
         return
       }
 
@@ -83,13 +83,14 @@ export default defineComponent({
       this.store.state.payload.data = this.traceStore.state.payload.data
       this.store.state.payload.has_profiling = this.traceStore.state.payload.has_profiling
 
-      this.store.dispatch('findMetrics', {
-            fields: this.storeTimestampsFields.state.selectedTimestampFields,
-            dataFields: this.traceStore.state.customFields,
-          }
-      )
+      this.store
+          .dispatch('findMetrics', {
+                fields: this.storeTimestampsFields.state.selectedTimestampFields,
+                dataFields: this.traceStore.state.customFields,
+              }
+          )
           .finally(() => {
-            if (!this.store.state.showGraph) {
+            if (!this.store.state.playGraph) {
               return
             }
 
@@ -130,9 +131,13 @@ export default defineComponent({
       this.store.state.showGraph = false
     }
   },
-  mounted() {
-    this.update()
-  }
+  watch: {
+    'store.state.playGraph'() {
+       if (this.store.state.playGraph) {
+         this.update()
+       }
+    }
+  },
 })
 </script>
 

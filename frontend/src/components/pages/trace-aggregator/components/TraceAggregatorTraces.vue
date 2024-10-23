@@ -41,6 +41,7 @@
           <el-form-item label="Graph">
             <el-space>
               <el-select
+                  v-show="storeGraph.state.showGraph"
                   v-model="storeTimestampsFields.state.selectedTimestampFields"
                   placeholder="Select"
                   style="min-width: 200px"
@@ -54,13 +55,16 @@
                     :value="item.value"
                 />
               </el-select>
+              <el-button
+                  v-show="storeGraph.state.showGraph"
+                  :type="storeGraph.state.playGraph ? 'danger' : 'info'"
+                  :icon="storeGraph.state.playGraph ? Stop : Play"
+                  @click="storeGraph.state.playGraph = !storeGraph.state.playGraph"
+              />
               <el-switch
                   v-model="storeGraph.state.showGraph"
-                  size="small"
                   active-text="show"
-                  inactive-text="off"
                   active-color="green"
-                  :inactive-icon="Close"
                   :active-icon="storeGraph.state.loading ? Loading : SwitchButton"
               />
             </el-space>
@@ -150,7 +154,7 @@ import DynamicIndexes from "../widgets/DynamicIndexes.vue";
 import AdminStores from "../widgets/AdminStores.vue";
 import OtherFilters from "../widgets/OtherFilters.vue";
 import {state} from "vue-tsc/out/shared";
-import {CloseBold, SwitchButton, Close, Loading} from '@element-plus/icons-vue'
+import {CloseBold, SwitchButton, Close, Loading, CaretRight, RemoveFilled} from '@element-plus/icons-vue'
 import TraceAggregatorGraph from "./TraceAggregatorGraph.vue";
 import TraceAggregatorTimestampPeriods from "./TraceAggregatorTimestampPeriods.vue";
 import {useTraceAggregatorGraphStore} from "../../../../store/traceAggregatorGraphStore.ts";
@@ -203,6 +207,12 @@ export default defineComponent({
     Close() {
       return Close
     },
+    Play() {
+      return CaretRight
+    },
+    Stop() {
+      return RemoveFilled
+    },
     Loading() {
       return Loading
     },
@@ -250,6 +260,11 @@ export default defineComponent({
     onCustomFieldClick(parameters: TracesAddCustomFieldParameter) {
       this.store.commit('addOrDeleteCustomField', parameters)
     },
+  },
+  watch: {
+    'storeGraph.state.showGraph'() {
+      this.storeGraph.state.playGraph = false
+    }
   },
   mounted() {
     if (this.store.state.loading) {
