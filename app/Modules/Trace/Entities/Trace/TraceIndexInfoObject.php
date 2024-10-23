@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Modules\Trace\Repositories\Dto\Trace;
+namespace App\Modules\Trace\Entities\Trace;
 
-readonly class TraceIndexInfoDto
+readonly class TraceIndexInfoObject
 {
     public function __construct(
         public string $name,

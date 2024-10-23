@@ -5,6 +5,7 @@ namespace App\Modules\Trace\Contracts\Repositories;
 use App\Modules\Trace\Entities\Trace\Timestamp\TraceTimestampMetricObject;
 use App\Modules\Trace\Entities\Trace\TraceDetailObject;
 use App\Modules\Trace\Entities\Trace\TraceDetailPaginationObject;
+use App\Modules\Trace\Entities\Trace\TraceIndexInfoObject;
 use App\Modules\Trace\Entities\Trace\TraceObject;
 use App\Modules\Trace\Entities\Trace\TraceTypeCountedObject;
 use App\Modules\Trace\Parameters\Data\TraceDataFilterParameters;
@@ -13,7 +14,6 @@ use App\Modules\Trace\Parameters\TraceSortParameters;
 use App\Modules\Trace\Parameters\TraceUpdateParameters;
 use App\Modules\Trace\Repositories\Dto\DynamicIndex\TraceDynamicIndexFieldDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Profiling\TraceProfilingDto;
-use App\Modules\Trace\Repositories\Dto\Trace\TraceIndexInfoDto;
 use App\Modules\Trace\Repositories\Dto\Trace\TraceLoggedAtDto;
 use Illuminate\Support\Carbon;
 
@@ -130,7 +130,10 @@ interface TraceRepositoryInterface
      */
     public function createIndex(string $name, array $fields): bool;
 
-    public function getIndexProgressInfo(string $name): ?TraceIndexInfoDto;
+    /**
+     * @return TraceIndexInfoObject[]
+     */
+    public function getIndexProgressesInfo(): array;
 
     public function findMinLoggedAt(): ?Carbon;
 

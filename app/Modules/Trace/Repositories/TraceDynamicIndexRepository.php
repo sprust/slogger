@@ -4,9 +4,9 @@ namespace App\Modules\Trace\Repositories;
 
 use App\Models\Traces\TraceDynamicIndex;
 use App\Modules\Trace\Contracts\Repositories\TraceDynamicIndexRepositoryInterface;
-use App\Modules\Trace\Entities\DynamicIndex\TraceDynamicIndexStatsObject;
 use App\Modules\Trace\Repositories\Dto\DynamicIndex\TraceDynamicIndexDto;
 use App\Modules\Trace\Repositories\Dto\DynamicIndex\TraceDynamicIndexFieldDto;
+use App\Modules\Trace\Repositories\Dto\Trace\TraceDynamicIndexStatsDto;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use MongoDB\BSON\UTCDateTime;
@@ -96,7 +96,7 @@ class TraceDynamicIndexRepository implements TraceDynamicIndexRepositoryInterfac
             ->all();
     }
 
-    public function findStats(): TraceDynamicIndexStatsObject
+    public function findStats(): TraceDynamicIndexStatsDto
     {
         $cursor = TraceDynamicIndex::collection()
             ->aggregate(
@@ -124,7 +124,7 @@ class TraceDynamicIndexRepository implements TraceDynamicIndexRepositoryInterfac
 
         $stats = collect($cursor)->first();
 
-        return new TraceDynamicIndexStatsObject(
+        return new TraceDynamicIndexStatsDto(
             inProcessCount: $stats?->inProcess ?? 0,
             errorsCount: $stats?->errors ?? 0,
             totalCount: $stats?->total ?? 0,

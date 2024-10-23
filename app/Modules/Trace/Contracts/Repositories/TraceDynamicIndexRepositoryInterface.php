@@ -2,9 +2,9 @@
 
 namespace App\Modules\Trace\Contracts\Repositories;
 
-use App\Modules\Trace\Entities\DynamicIndex\TraceDynamicIndexStatsObject;
 use App\Modules\Trace\Repositories\Dto\DynamicIndex\TraceDynamicIndexDto;
 use App\Modules\Trace\Repositories\Dto\DynamicIndex\TraceDynamicIndexFieldDto;
+use App\Modules\Trace\Repositories\Dto\Trace\TraceDynamicIndexStatsDto;
 use Illuminate\Support\Carbon;
 use Throwable;
 
@@ -28,7 +28,7 @@ interface TraceDynamicIndexRepositoryInterface
         bool $orderByCreatedAtDesc = false,
     ): array;
 
-    public function findStats(): TraceDynamicIndexStatsObject;
+    public function findStats(): TraceDynamicIndexStatsDto;
 
     public function updateByName(string $name, bool $inProcess, bool $created, ?Throwable $exception): bool;
 

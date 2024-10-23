@@ -2881,23 +2881,44 @@
                                     "properties": {
                                         "data": {
                                             "properties": {
-                                                "inProcessCount": {
+                                                "in_process_count": {
                                                     "type": "integer",
                                                     "nullable": false
                                                 },
-                                                "errorsCount": {
+                                                "errors_count": {
                                                     "type": "integer",
                                                     "nullable": false
                                                 },
-                                                "totalCount": {
+                                                "total_count": {
                                                     "type": "integer",
                                                     "nullable": false
+                                                },
+                                                "indexes_in_process": {
+                                                    "type": "array",
+                                                    "nullable": false,
+                                                    "items": {
+                                                        "properties": {
+                                                            "name": {
+                                                                "type": "string",
+                                                                "nullable": false
+                                                            },
+                                                            "progress": {
+                                                                "type": "number",
+                                                                "nullable": false
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "name",
+                                                            "progress"
+                                                        ]
+                                                    }
                                                 }
                                             },
                                             "required": [
-                                                "inProcessCount",
-                                                "errorsCount",
-                                                "totalCount"
+                                                "in_process_count",
+                                                "errors_count",
+                                                "total_count",
+                                                "indexes_in_process"
                                             ]
                                         }
                                     },

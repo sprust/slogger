@@ -29,7 +29,7 @@ class TraceDynamicIndexingActionService
                 abort_if(
                     boolean: (time() - $start) > $this->indexCreateTimeoutInSeconds,
                     code: 400,
-                    message: "Indexing in progress [{$exception->getProgress()}%]. Try again or later."
+                    message: 'Indexing in progress. Try again or later.'
                 );
 
                 sleep(1);

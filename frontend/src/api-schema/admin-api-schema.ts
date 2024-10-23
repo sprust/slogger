@@ -1252,9 +1252,14 @@ export namespace AdminApi {
  * @secure
  * @response `200` `{
     data: {
-    inProcessCount: number,
-    errorsCount: number,
-    totalCount: number,
+    in_process_count: number,
+    errors_count: number,
+    total_count: number,
+    indexes_in_process: ({
+    name: string,
+    progress: number,
+
+})[],
 
 },
 
@@ -1267,9 +1272,13 @@ export namespace AdminApi {
     export type RequestHeaders = {};
     export type ResponseBody = {
       data: {
-        inProcessCount: number;
-        errorsCount: number;
-        totalCount: number;
+        in_process_count: number;
+        errors_count: number;
+        total_count: number;
+        indexes_in_process: {
+          name: string;
+          progress: number;
+        }[];
       };
     };
   }
@@ -3178,9 +3187,14 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
  * @secure
  * @response `200` `{
     data: {
-    inProcessCount: number,
-    errorsCount: number,
-    totalCount: number,
+    in_process_count: number,
+    errors_count: number,
+    total_count: number,
+    indexes_in_process: ({
+    name: string,
+    progress: number,
+
+})[],
 
 },
 
@@ -3190,9 +3204,13 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       this.request<
         {
           data: {
-            inProcessCount: number;
-            errorsCount: number;
-            totalCount: number;
+            in_process_count: number;
+            errors_count: number;
+            total_count: number;
+            indexes_in_process: {
+              name: string;
+              progress: number;
+            }[];
           };
         },
         any

@@ -89,7 +89,11 @@
 
 <script lang="ts">
 import {defineComponent} from "vue";
-import {TraceDynamicIndex, useTraceDynamicIndexesStore} from "../../../../store/traceDynamicIndexesStore.ts";
+import {
+  TraceDynamicIndex,
+  TraceDynamicIndexInfo,
+  useTraceDynamicIndexesStore
+} from "../../../../store/traceDynamicIndexesStore.ts";
 import {Refresh as RefreshIcon} from "@element-plus/icons-vue";
 import {convertDateStringToLocal} from "../../../../utils/helpers.ts";
 
@@ -178,13 +182,25 @@ export default defineComponent({
       )
     },
     inProcessCount(): number {
-      return this.store.state.traceDynamicIndexStats.inProcessCount
+      if (!this.store.state.traceDynamicIndexStats.in_process_count) {
+        return 0
+      }
+
+      if (!this.store.state.traceDynamicIndexStats.indexes_in_process.length) {
+        return 0
+      }
+
+      const percents: number[] = this.store.state.traceDynamicIndexStats.indexes_in_process.map(
+          (item: TraceDynamicIndexInfo) => item.progress
+      );
+
+      return Math.max(...percents)
     },
     errorsCount(): number {
-      return this.store.state.traceDynamicIndexStats.errorsCount
+      return this.store.state.traceDynamicIndexStats.errors_count
     },
     totalCount(): number {
-      return this.store.state.traceDynamicIndexStats.totalCount
+      return this.store.state.traceDynamicIndexStats.total_count
     },
     visibleCount(): number {
       if (this.inProcessCount) {

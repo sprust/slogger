@@ -3,7 +3,6 @@
 namespace App\Modules\Trace\Domain\Services;
 
 use App\Modules\Trace\Contracts\Repositories\TraceDynamicIndexRepositoryInterface;
-use App\Modules\Trace\Contracts\Repositories\TraceRepositoryInterface;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexErrorException;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexInProcessException;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexNotInitException;
@@ -19,7 +18,6 @@ readonly class TraceDynamicIndexInitializer
 
     public function __construct(
         private TraceDynamicIndexRepositoryInterface $traceDynamicIndexRepository,
-        private TraceRepositoryInterface $traceRepository,
     ) {
         $this->timeLifeIndexInMinutes = 60 * 24 * 30; // 30 days
     }
@@ -139,11 +137,7 @@ readonly class TraceDynamicIndexInitializer
         }
 
         if ($indexDto->inProcess) {
-            $progress = $this->traceRepository->getIndexProgressInfo(
-                name: $indexDto->name
-            );
-
-            throw (new TraceDynamicIndexInProcessException())->setProgress($progress?->progress);
+            throw new TraceDynamicIndexInProcessException();
         }
 
         if ($indexDto->error) {

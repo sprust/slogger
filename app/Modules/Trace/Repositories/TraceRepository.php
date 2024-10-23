@@ -8,6 +8,7 @@ use App\Modules\Trace\Contracts\Repositories\TraceRepositoryInterface;
 use App\Modules\Trace\Entities\Trace\Timestamp\TraceTimestampMetricObject;
 use App\Modules\Trace\Entities\Trace\TraceDetailObject;
 use App\Modules\Trace\Entities\Trace\TraceDetailPaginationObject;
+use App\Modules\Trace\Entities\Trace\TraceIndexInfoObject;
 use App\Modules\Trace\Entities\Trace\TraceObject;
 use App\Modules\Trace\Entities\Trace\TraceServiceObject;
 use App\Modules\Trace\Entities\Trace\TraceTypeCountedObject;
@@ -16,7 +17,6 @@ use App\Modules\Trace\Parameters\TraceSortParameters;
 use App\Modules\Trace\Repositories\Dto\Trace\Profiling\TraceProfilingDataDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Profiling\TraceProfilingDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Profiling\TraceProfilingItemDto;
-use App\Modules\Trace\Repositories\Dto\Trace\TraceIndexInfoDto;
 use App\Modules\Trace\Repositories\Dto\Trace\TraceLoggedAtDto;
 use App\Modules\Trace\Repositories\Services\TraceDataToObjectBuilder;
 use App\Modules\Trace\Repositories\Services\TraceQueryBuilder;
@@ -585,7 +585,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
     /**
      * @throws Exception
      */
-    public function getIndexProgressInfo(string $name): ?TraceIndexInfoDto
+    public function getIndexProgressesInfo(): array
     {
         $operations = Trace::collection()->getManager()
             ->executeCommand(
@@ -594,7 +594,9 @@ readonly class TraceRepository implements TraceRepositoryInterface
                     [
                         'currentOp' => true,
                         '$and'      => [
-                            ['op' => 'command'],
+                            [
+                                'op' => 'command',
+                            ],
                             [
                                 'command.createIndexes' => [
                                     '$exists' => true,
@@ -605,22 +607,24 @@ readonly class TraceRepository implements TraceRepositoryInterface
                                     '$exists' => true,
                                 ],
                             ],
-                            ['command.indexes.name' => $name],
                         ],
                     ]
                 )
             );
 
-        $operation = iterator_to_array($operations)[0]->inprog[0] ?? null;
+        /** @var object[] $operations */
+        $operations = iterator_to_array($operations)[0]->inprog ?? [];
 
-        if (!$operation) {
-            return null;
+        $infoList = [];
+
+        foreach ($operations as $operation) {
+            $infoList[] = new TraceIndexInfoObject(
+                $operation->command->indexes[0]?->name ?? 'untitled',
+                round($operation->progress->done / $operation->progress->total * 100, 2)
+            );
         }
 
-        return new TraceIndexInfoDto(
-            $name,
-            round($operation->progress->done / $operation->progress->total * 100, 2)
-        );
+        return $infoList;
     }
 
     public function findMinLoggedAt(): ?Carbon
