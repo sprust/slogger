@@ -22,8 +22,8 @@
           <el-button type="info" @click="onCustomFieldCopy(data)" link>
             copy
           </el-button>
-          <el-button v-if="showFilterButton" type="info" @click="onCustomFieldFilter(data)" link>
-            filter
+          <el-button v-if="showCustomButton" type="info" @click="onCustomFieldFilter(data)" link>
+            custom
           </el-button>
         </el-space>
       </el-row>
@@ -67,7 +67,7 @@ export default defineComponent({
       type: Object as PropType<TraceAggregatorDetailData>,
       required: true,
     },
-    showFilterButton: {
+    showCustomButton: {
       type: Boolean,
       required: false,
       default: false
