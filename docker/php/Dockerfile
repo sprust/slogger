@@ -77,9 +77,6 @@ FROM php_base as php_workers
 
 RUN apt-get install -y supervisor
 
-# swoole
-RUN pecl install swoole && apt-get install -y procps
-
 RUN chmod 777 -R /var/log/supervisor
 
 # Container user & group
