@@ -27,9 +27,9 @@ class StartRoadRunnerCommand extends \Laravel\Octane\Commands\StartRoadRunnerCom
                     {--poll : Use file system polling while watching in order to watch files over a network}
                     {--log-level= : Log messages at or above the specified log level}';
 
-    public function handle(ServerProcessInspector $inspector, ServerStateFile $serverStateFile)
+    public function handle(ServerProcessInspector $inspector, ServerStateFile $serverStateFile): int
     {
-        if (! $this->isRoadRunnerInstalled()) {
+        if (!$this->isRoadRunnerInstalled()) {
             $this->error('RoadRunner not installed. Please execute the `octane:install` Artisan command.');
 
             return 1;
@@ -54,64 +54,84 @@ class StartRoadRunnerCommand extends \Laravel\Octane\Commands\StartRoadRunnerCom
         $jobsDefaultWorkersCount = config('rr-parallel.workers.number');
         $jobsMaxWorkersCount     = config('rr-parallel.workers.max_number');
 
-        $server = tap(new Process(array_filter([
-            $roadRunnerBinary,
-            '-c', $this->configPath(),
-            '-o', 'version=3',
-            '-o', 'http.address='.$this->option('host').':'.$this->getPort(),
-            '-o', 'server.command='.(new PhpExecutableFinder)->find().','.base_path(config('octane.roadrunner.command', 'vendor/bin/roadrunner-worker')),
-            '-o', 'http.pool.num_workers='.$this->workerCount(),
-            '-o', 'http.pool.max_jobs='.$this->option('max-requests'),
-            '-o', 'rpc.listen=tcp://'.$this->rpcHost().':'.$this->rpcPort(),
+        $options = [
+            'version=3',
+            'http.address=' . $this->option('host') . ':' . $this->getPort(),
+            'server.command=' . (new PhpExecutableFinder)->find() . ',' . base_path(
+                config('octane.roadrunner.command', 'vendor/bin/roadrunner-worker')
+            ),
+            'http.pool.num_workers=' . $this->workerCount(),
+            'http.pool.max_jobs=' . $this->option('max-requests'),
+            'rpc.listen=tcp://' . $this->rpcHost() . ':' . $this->rpcPort(),
 
             // Thx Taylor for good code
-            '-o', 'grpc.listen=tcp://'.$this->grpcHost().':'.$this->grpcPort(),
-            '-o', 'grpc.proto='.base_path('packages/slogger/grpc/proto/*.proto'),
-            '-o', 'grpc.pool.command='.base_path('grpc/rr-grpc-worker.php'),
-            '-o', 'grpc.pool.num_workers='.$this->option('grpc-workers'),
-            '-o', 'grpc.pool.max_jobs='.$this->option('grpc-max-requests'),
+            'grpc.listen=tcp://' . $this->grpcHost() . ':' . $this->grpcPort(),
+            'grpc.proto=' . base_path('packages/slogger/grpc/proto/*.proto'),
+            'grpc.pool.command=' . base_path('grpc/rr-grpc-worker.php'),
+            'grpc.pool.num_workers=' . $this->option('grpc-workers'),
+            'grpc.pool.max_jobs=' . $this->option('grpc-max-requests'),
 
             // Thx Taylor for good code again
-            '-o', 'jobs.num_pollers=' . $jobsMaxWorkersCount,
-            '-o', 'jobs.timeout=' . 60,
-            '-o', 'jobs.pool.command='.base_path('vendor/bin/rr-parallel-jobs-worker.php'),
-            '-o', 'jobs.pool.num_workers=' . $jobsDefaultWorkersCount,
-            '-o', 'jobs.pool.allocate_timeout=' . '60s',
-            '-o', 'jobs.pool.destroy_timeout=' . '60s',
-            '-o', 'jobs.pool.max_jobs=' . config('rr-parallel.workers.max_jobs', 1000),
-            '-o', 'jobs.pool.supervisor.max_worker_memory=' . config('rr-parallel.workers.memory_limit', 128),
-            '-o', 'jobs.consume=' . '"parallel"',
-            '-o', 'jobs.pipelines.parallel.driver=' . '"memory"',
-            '-o', 'jobs.pipelines.parallel.config.{}=null',
-            '-o', 'kv.parallel.driver=' . '"memory"',
-            '-o', 'kv.parallel.config.{}=null',
+            'jobs.num_pollers=' . $jobsMaxWorkersCount,
+            'jobs.timeout=' . 60,
+            'jobs.pool.command=' . base_path('vendor/bin/rr-parallel-jobs-worker.php'),
+            'jobs.pool.num_workers=' . $jobsDefaultWorkersCount,
+            'jobs.pool.allocate_timeout=' . '60s',
+            'jobs.pool.destroy_timeout=' . '60s',
+            'jobs.pool.max_jobs=' . config('rr-parallel.workers.max_jobs', 1000),
+            'jobs.pool.supervisor.max_worker_memory=' . config('rr-parallel.workers.memory_limit', 128),
+            'jobs.consume=' . '"parallel"',
+            'jobs.pipelines.parallel.driver=' . '"memory"',
+            'jobs.pipelines.parallel.config.{}=null',
+            'kv.parallel.driver=' . '"memory"',
+            'kv.parallel.config.{}=null',
 
-            '-o', 'http.pool.supervisor.exec_ttl='.$this->maxExecutionTime(),
-            '-o', 'http.static.dir='.public_path(),
-            '-o', 'http.middleware='.config('octane.roadrunner.http_middleware', 'static'),
-            '-o', 'logs.mode=production',
-            '-o', 'logs.level='.($this->option('log-level') ?: (app()->environment('local') ? 'debug' : 'warn')),
-            '-o', 'logs.output=stdout',
-            '-o', 'logs.encoding=json',
+            'http.pool.supervisor.exec_ttl=' . $this->maxExecutionTime(),
+            'http.static.dir=' . public_path(),
+            'http.middleware=' . config('octane.roadrunner.http_middleware', 'static'),
+            'logs.mode=production',
+            'logs.level=' . ($this->option('log-level') ?: (app()->environment('local') ? 'debug' : 'warn')),
+            'logs.output=stdout',
+            'logs.encoding=json',
+        ];
+
+        $commandOptions = [];
+
+        while ($option = array_shift($options)) {
+            $commandOptions[] = '-o';
+            $commandOptions[] = $option;
+        }
+
+        unset($options);
+
+        $command = array_filter([
+            $roadRunnerBinary,
+            '-c',
+            $this->configPath(),
+            ...$commandOptions,
             'serve',
-        ]), base_path(), [
-            'APP_ENV' => app()->environment(),
-            'APP_BASE_PATH' => base_path(),
+        ]);
+
+        $process = new Process($command, base_path(), [
+            'APP_ENV'        => app()->environment(),
+            'APP_BASE_PATH'  => base_path(),
             'LARAVEL_OCTANE' => 1,
-        ]))->start();
+        ]);
 
-        $serverStateFile->writeProcessId($server->getPid());
+        $process->start();
 
-        return $this->runServer($server, $inspector, 'roadrunner');
+        $serverStateFile->writeProcessId($process->getPid());
+
+        return $this->runServer($process, $inspector, 'roadrunner');
     }
 
-    protected function grpcHost()
+    protected function grpcHost(): string
     {
         return $this->option('grpc-host') ?: $this->getHost();
     }
 
-    protected function grpcPort()
+    protected function grpcPort(): int
     {
-        return $this->option('grpc-port') ?: ((int) $this->getPort()) - 2999;
+        return ((int) $this->option('grpc-port')) ?: ((int) $this->getPort()) - 2999;
     }
 }
