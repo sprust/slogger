@@ -2825,6 +2825,10 @@
                                                         "type": "boolean",
                                                         "nullable": false
                                                     },
+                                                    "progress": {
+                                                        "type": "number",
+                                                        "nullable": true
+                                                    },
                                                     "created": {
                                                         "type": "boolean",
                                                         "nullable": false
