@@ -1334,6 +1334,7 @@ export namespace AdminApi {
       /** @min 1 */
       version: number;
       search_query?: string | null;
+      auto: boolean;
     };
     export type RequestBody = never;
     export type RequestHeaders = {};
@@ -1383,6 +1384,7 @@ export namespace AdminApi {
       /** @min 1 */
       store_version: number;
       store_data: string;
+      auto: boolean;
     };
     export type RequestHeaders = {};
     export type ResponseBody = {
@@ -3277,6 +3279,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         /** @min 1 */
         version: number;
         search_query?: string | null;
+        auto: boolean;
       },
       params: RequestParams = {},
     ) =>
@@ -3336,6 +3339,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         /** @min 1 */
         store_version: number;
         store_data: string;
+        auto: boolean;
       },
       params: RequestParams = {},
     ) =>

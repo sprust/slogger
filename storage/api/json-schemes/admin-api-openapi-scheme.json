@@ -2992,6 +2992,14 @@
                             "type": "string",
                             "nullable": true
                         }
+                    },
+                    {
+                        "name": "auto",
+                        "required": true,
+                        "in": "query",
+                        "schema": {
+                            "type": "boolean"
+                        }
                     }
                 ],
                 "responses": {
@@ -3104,12 +3112,16 @@
                                     },
                                     "store_data": {
                                         "type": "string"
+                                    },
+                                    "auto": {
+                                        "type": "boolean"
                                     }
                                 },
                                 "required": [
                                     "title",
                                     "store_version",
-                                    "store_data"
+                                    "store_data",
+                                    "auto"
                                 ],
                                 "type": "object"
                             }

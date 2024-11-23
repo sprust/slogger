@@ -19,7 +19,13 @@
             placeholder="Search query"
             style="width: 300px"
             clearable
-        />
+        >
+          <template #append>
+            <el-tooltip content="Requests" placement="top-start">
+              <el-checkbox v-model="store.state.adminStoresParameters.auto"/>
+            </el-tooltip>
+          </template>
+        </el-input>
         <el-button
             :icon="SearchIcon"
             @click="update"
@@ -36,7 +42,7 @@
         />
         <el-button
             :icon="PlusIcon"
-            @click="create"
+            @click="create(false)"
             :disabled="!store.state.adminStoreCreateParameters.title
               || store.state.adminStoreCreateParameters.title.length < 10"
         />
@@ -104,9 +110,11 @@ import {convertDateStringToLocal} from "../../../../utils/helpers.ts";
 import {AdminStore, useTraceAdminStoresStoreStore} from "../../../../store/traceAdminStoresStore.ts";
 import {state} from "vue-tsc/out/shared";
 import {TraceStateParameters, useTraceAggregatorStore} from "../../../../store/traceAggregatorStore.ts";
+import TraceAggregatorProfilingNodeData from "../components/profiling/TraceAggregatorProfilingNodeData.vue";
 
 export default defineComponent({
   components: {
+    TraceAggregatorProfilingNodeData,
     SearchIcon,
     PlusIcon,
   },
@@ -124,13 +132,17 @@ export default defineComponent({
 
       this.store.dispatch('findAdminStores')
     },
-    create() {
-      if (!this.store.state.adminStoreCreateParameters.title) {
+    create(auto: boolean) {
+      if (auto) {
+        this.store.state.adminStoreCreateParameters.title = '#AUTO SAVING'
+      } else if (!this.store.state.adminStoreCreateParameters.title) {
         return
       }
 
       this.store.state.adminStoreCreateParameters.store_version = this.traceStore.state.version
       this.store.state.adminStoreCreateParameters.store_data = this.serializeTraceState()
+      this.store.state.adminStoresParameters.auto = auto
+      this.store.state.adminStoreCreateParameters.auto = auto
 
       this.store.dispatch('createAdminStore')
           .then(() => {

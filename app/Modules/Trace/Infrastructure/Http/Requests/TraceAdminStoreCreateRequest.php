@@ -24,6 +24,10 @@ class TraceAdminStoreCreateRequest extends FormRequest
                 'required',
                 'string',
             ],
+            'auto'          => [
+                'required',
+                'boolean',
+            ],
         ];
     }
 }

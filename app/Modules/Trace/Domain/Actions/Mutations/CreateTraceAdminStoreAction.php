@@ -16,13 +16,15 @@ readonly class CreateTraceAdminStoreAction implements CreateTraceAdminStoreActio
     public function handle(
         string $title,
         int $storeVersion,
-        string $storeData
+        string $storeData,
+        bool $auto
     ): TraceAdminStoreObject {
         return $this->traceAdminStoreRepository->create(
             title: $title,
             storeVersion: $storeVersion,
             storeDataHash: md5($storeData),
-            storeData: $storeData
+            storeData: $storeData,
+            auto: $auto
         );
     }
 }

@@ -27,6 +27,7 @@ readonly class TraceAdminStoreController
             page: $validated['page'],
             version: $validated['version'],
             searchQuery: $validated['search_query'] ?? null,
+            auto: $validated['auto'],
         );
 
         return new TraceAdminStoresResource($pagination);
@@ -40,6 +41,7 @@ readonly class TraceAdminStoreController
             title: $validated['title'],
             storeVersion: $validated['store_version'],
             storeData: $validated['store_data'],
+            auto: $validated['auto'],
         );
 
         return new TraceAdminStoreResource($store);

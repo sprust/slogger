@@ -86,7 +86,7 @@
         <div class="flex-grow"/>
         <el-space>
           <DynamicIndexes/>
-          <AdminStores/>
+          <AdminStores ref="adminStoresRef"/>
           <el-button @click="reset" :disabled="store.state.loading">
             Reset
           </el-button>
@@ -225,6 +225,9 @@ export default defineComponent({
     onButtonSearchClick() {
       this.store.dispatch('setPage', 1)
       this.update()
+
+      // @ts-ignore
+      this.$refs.adminStoresRef.create(true)
     },
     update() {
       this.store.dispatch('fillTraceAggregator')
