@@ -19,9 +19,12 @@ class TraceClearingProcess extends AbstractTraceModel
     public const CREATED_AT = 'createdAt';
     public const UPDATED_AT = 'updatedAt';
 
-    protected $collection = 'traceClearingProcesses';
-
     protected $casts = [
         'clearedAt' => 'datetime',
     ];
+
+    function getCollectionName(): string
+    {
+        return 'traceClearingProcesses';
+    }
 }

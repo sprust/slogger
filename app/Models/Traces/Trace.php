@@ -36,13 +36,16 @@ class Trace extends AbstractTraceModel
     public const CREATED_AT = 'cat';
     public const UPDATED_AT = 'uat';
 
-    protected $collection = 'traces';
-
     protected $casts = [
         'hpr' => 'boolean',
         'lat' => 'datetime',
         'cl'  => 'boolean',
     ];
+
+    function getCollectionName(): string
+    {
+        return 'traces';
+    }
 
     public function service(): BelongsTo
     {

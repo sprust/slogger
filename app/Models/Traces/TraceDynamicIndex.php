@@ -20,11 +20,14 @@ class TraceDynamicIndex extends AbstractTraceModel
     public const CREATED_AT = 'createdAt';
     public const UPDATED_AT = null;
 
-    protected $collection = 'traceDynamicIndexes';
-
     protected $casts = [
         'inProcess'     => 'bool',
         'created'       => 'bool',
         'actualUntilAt' => 'datetime',
     ];
+
+    function getCollectionName(): string
+    {
+        return 'traceDynamicIndexes';
+    }
 }
