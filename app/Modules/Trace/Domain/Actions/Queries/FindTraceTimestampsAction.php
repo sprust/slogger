@@ -141,35 +141,26 @@ readonly class FindTraceTimestampsAction implements FindTraceTimestampsActionInt
                 $to = $loggedAtTo->clone();
             }
 
-            $callbacks[] = static function (TraceTimestampsRepositoryInterface $repository) use (
-                $from,
-                $to,
-                $parameters,
-                $fieldsFilter,
-                $dataFieldsFilter,
-                $data,
-            ) {
-                return $repository->find(
-                    timestamp: $parameters->timestampStep,
-                    fields: $fieldsFilter,
-                    dataFields: $dataFieldsFilter,
-                    serviceIds: $parameters->serviceIds,
-                    traceIds: $parameters->traceIds,
-                    loggedAtFrom: $from,
-                    loggedAtTo: $to,
-                    types: $parameters->types,
-                    tags: $parameters->tags,
-                    statuses: $parameters->statuses,
-                    durationFrom: $parameters->durationFrom,
-                    durationTo: $parameters->durationTo,
-                    memoryFrom: $parameters->memoryFrom,
-                    memoryTo: $parameters->memoryTo,
-                    cpuFrom: $parameters->cpuFrom,
-                    cpuTo: $parameters->cpuTo,
-                    data: $data,
-                    hasProfiling: $parameters->hasProfiling,
-                );
-            };
+            $callbacks[] = static fn(TraceTimestampsRepositoryInterface $repository) => $repository->find(
+                timestamp: $parameters->timestampStep,
+                fields: $fieldsFilter,
+                dataFields: $dataFieldsFilter,
+                serviceIds: $parameters->serviceIds,
+                traceIds: $parameters->traceIds,
+                loggedAtFrom: $from,
+                loggedAtTo: $to,
+                types: $parameters->types,
+                tags: $parameters->tags,
+                statuses: $parameters->statuses,
+                durationFrom: $parameters->durationFrom,
+                durationTo: $parameters->durationTo,
+                memoryFrom: $parameters->memoryFrom,
+                memoryTo: $parameters->memoryTo,
+                cpuFrom: $parameters->cpuFrom,
+                cpuTo: $parameters->cpuTo,
+                data: $data,
+                hasProfiling: $parameters->hasProfiling,
+            );
 
             $dateCursor = $to->clone()->addMicrosecond();
         }
@@ -249,8 +240,10 @@ readonly class FindTraceTimestampsAction implements FindTraceTimestampsActionInt
         );
     }
 
-    private function transportField(TraceTimestampFieldDto $dto): TraceTimestampFieldObject
-    {
+    private
+    function transportField(
+        TraceTimestampFieldDto $dto
+    ): TraceTimestampFieldObject {
         return new TraceTimestampFieldObject(
             field: $dto->field,
             indicators: array_map(
