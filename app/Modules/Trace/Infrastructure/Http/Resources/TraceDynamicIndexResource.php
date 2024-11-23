@@ -13,6 +13,7 @@ class TraceDynamicIndexResource extends AbstractApiResource
     #[OaListItemTypeAttribute(TraceDynamicIndexFieldResource::class)]
     private array $fields;
     private bool $inProcess;
+    private ?float $progress;
     private bool $created;
     private ?string $error;
     private string $actualUntilAt;
@@ -26,6 +27,7 @@ class TraceDynamicIndexResource extends AbstractApiResource
         $this->name          = $resource->name;
         $this->fields        = TraceDynamicIndexFieldResource::mapIntoMe($resource->fields);
         $this->inProcess     = $resource->inProcess;
+        $this->progress      = $resource->progress;
         $this->created       = $resource->created;
         $this->error         = $resource->error;
         $this->actualUntilAt = $resource->actualUntilAt->toDateTimeString();

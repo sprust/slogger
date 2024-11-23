@@ -1216,6 +1216,7 @@ export namespace AdminApi {
 
 })[],
     inProcess: boolean,
+    progress?: number | null,
     created: boolean,
     error?: string | null,
     actualUntilAt: string,
@@ -1239,6 +1240,7 @@ export namespace AdminApi {
           title: string;
         }[];
         inProcess: boolean;
+        progress?: number | null;
         created: boolean;
         error?: string | null;
         actualUntilAt: string;
@@ -3144,6 +3146,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
 
 })[],
     inProcess: boolean,
+    progress?: number | null,
     created: boolean,
     error?: string | null,
     actualUntilAt: string,
@@ -3164,6 +3167,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
               title: string;
             }[];
             inProcess: boolean;
+            progress?: number | null;
             created: boolean;
             error?: string | null;
             actualUntilAt: string;

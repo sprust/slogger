@@ -22,7 +22,7 @@
     <template #header>
       <el-space>
         <el-text size="default">
-          Dynamic indexes (last 50)
+          Dynamic indexes (last 100)
         </el-text>
         <el-input
             v-model="searchText"
@@ -148,7 +148,7 @@ export default defineComponent({
       }
 
       if (index.inProcess) {
-        return 'In process'
+        return `In process (${index.progress ?? '-'})`
       }
 
       return 'active'
