@@ -241,16 +241,6 @@ return [
                 TraceCollectorInterface::class => TraceCollectorService::class,
             ],
         ],
-
-        'swoole' => [
-            'host'         => env('OCTANE_SWOOLE_HOST', '0.0.0.0'),
-            'port'         => env('OCTANE_SWOOLE_PORT', 9021),
-            'workers'      => env('OCTANE_SWOOLE_WORKERS', 'auto'),
-            'task-workers' => env('OCTANE_SWOOLE_TASK_WORKERS', 'auto'),
-            'max-requests' => env('OCTANE_SWOOLE_MAX_REQUESTS', 250),
-            'watch'        => env('OCTANE_SWOOLE_WATCH', false),
-            'poll'         => env('OCTANE_SWOOLE_POLL', false),
-        ],
     ],
 
 ];

@@ -68,7 +68,6 @@ services:
     ports:
       - ${OCTANE_RR_DOCKER_PORT:-10021}:${OCTANE_RR_PORT:-9020}
       - ${OCTANE_RR_GRPC_DOCKER_PORT:-10031}:${OCTANE_RR_GRPC_PORT:-9030}
-      - ${OCTANE_SWOOLE_DOCKER_PORT:-10022}:${OCTANE_SWOOLE_PORT:-9021}
     volumes:
       - ./:/app
       - ./docker/php/conf/php-workers.ini:/usr/local/etc/php/conf.d/docker.ini

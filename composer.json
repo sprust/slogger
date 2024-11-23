@@ -24,8 +24,8 @@
         "spiral/roadrunner-cli": "^2.6",
         "spiral/roadrunner-grpc": "^3.3",
         "spiral/roadrunner-http": "^3.3.0",
-        "spprust/rr-monitor-laravel": "dev-master",
-        "spprust/rr-parallel-laravel": "dev-master",
+        "sprust/rr-monitor-laravel": "dev-master",
+        "sprust/rr-parallel-laravel": "dev-master",
         "vladimir-yuldashev/laravel-queue-rabbitmq": "^14.1"
     },
     "require-dev": {
@@ -63,14 +63,14 @@
         },
         {
             "type": "path",
-            "url": "packages/spprust/rr-parallel-laravel",
+            "url": "packages/sprust/rr-parallel-laravel",
             "options": {
                 "symlink": true
             }
         },
         {
             "type": "path",
-            "url": "packages/spprust/rr-monitor-laravel",
+            "url": "packages/sprust/rr-monitor-laravel",
             "options": {
                 "symlink": true
             }
@@ -80,8 +80,7 @@
         "psr-4": {
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",
-            "Database\\Seeders\\": "database/seeders/",
-            "GRPCServices\\": "grpc/services"
+            "Database\\Seeders\\": "database/seeders/"
         }
     },
     "autoload-dev": {

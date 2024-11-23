@@ -13,5 +13,8 @@ class TraceTree extends AbstractTraceModel
 {
     public const UPDATED_AT = null;
 
-    protected $collection = 'traceTreesView';
+    function getCollectionName(): string
+    {
+        return 'traceTreesView';
+    }
 }
