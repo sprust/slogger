@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "1a0490e9518d5b61a9c8d18bd99e33ff",
+    "content-hash": "08ba67fc227850edfe1ac6290e9acf35",
     "packages": [
         {
             "name": "brick/math",
@@ -4851,16 +4851,16 @@
         },
         {
             "name": "spiral/roadrunner-jobs",
-            "version": "v4.6.0",
+            "version": "v4.6.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/roadrunner-php/jobs.git",
-                "reference": "1df9702c591cf761a2735c54326f7bf2adc5dcea"
+                "reference": "a1777e6ff7a460579467e40f700c25f509d90331"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/roadrunner-php/jobs/zipball/1df9702c591cf761a2735c54326f7bf2adc5dcea",
-                "reference": "1df9702c591cf761a2735c54326f7bf2adc5dcea",
+                "url": "https://api.github.com/repos/roadrunner-php/jobs/zipball/a1777e6ff7a460579467e40f700c25f509d90331",
+                "reference": "a1777e6ff7a460579467e40f700c25f509d90331",
                 "shasum": ""
             },
             "require": {
@@ -4921,7 +4921,7 @@
                 "docs": "https://docs.roadrunner.dev",
                 "forum": "https://forum.roadrunner.dev/",
                 "issues": "https://github.com/roadrunner-server/roadrunner/issues",
-                "source": "https://github.com/roadrunner-php/jobs/tree/v4.6.0"
+                "source": "https://github.com/roadrunner-php/jobs/tree/v4.6.1"
             },
             "funding": [
                 {
@@ -4929,7 +4929,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2024-07-29T08:02:59+00:00"
+            "time": "2024-11-21T10:46:31+00:00"
         },
         {
             "name": "spiral/roadrunner-kv",
@@ -5249,16 +5249,16 @@
             "time": "2024-09-23T07:50:29+00:00"
         },
         {
-            "name": "spprust/rr-monitor-laravel",
+            "name": "sprust/rr-monitor-laravel",
             "version": "dev-master",
             "dist": {
                 "type": "path",
-                "url": "packages/spprust/rr-monitor-laravel",
-                "reference": "4b7fc919b0856e1c15fdb86da93f533443b0ae9b"
+                "url": "packages/sprust/rr-monitor-laravel",
+                "reference": "7e79b7efbb2d2123f9fb6c867d5459a6b7e0c0fe"
             },
             "require": {
                 "laravel/framework": "^10.0",
-                "spiral/roadrunner-cli": "^2.6"
+                "spiral/roadrunner-worker": "^3.6"
             },
             "type": "library",
             "extra": {
@@ -5289,12 +5289,12 @@
             }
         },
         {
-            "name": "spprust/rr-parallel-laravel",
+            "name": "sprust/rr-parallel-laravel",
             "version": "dev-master",
             "dist": {
                 "type": "path",
-                "url": "packages/spprust/rr-parallel-laravel",
-                "reference": "22d9293fe259fafd2a08532c8eb0db350a389cad"
+                "url": "packages/sprust/rr-parallel-laravel",
+                "reference": "aadeaf796856b17250738ed66076ff20d8ea1b63"
             },
             "require": {
                 "laravel/framework": "^10.0",
@@ -10979,8 +10979,8 @@
         "ifksco/openapi-generator": 20,
         "slogger/grpc": 20,
         "slogger/laravel": 20,
-        "spprust/rr-monitor-laravel": 20,
-        "spprust/rr-parallel-laravel": 20
+        "sprust/rr-monitor-laravel": 20,
+        "sprust/rr-parallel-laravel": 20
     },
     "prefer-stable": true,
     "prefer-lowest": false,
