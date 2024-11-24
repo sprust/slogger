@@ -196,7 +196,7 @@ export default defineComponent({
     },
     generateTitle(): string {
       const titles: string[] = [
-        ...makeGeneralFiltersTitles(this.traceStore.state.payload, this.servicesStore.state.items),
+        ...makeGeneralFiltersTitles(this.traceStore.state, this.servicesStore.state.items),
         ...makeOtherFiltersTitles(this.traceStore.state.payload),
       ]
 

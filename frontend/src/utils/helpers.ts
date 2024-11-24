@@ -1,6 +1,6 @@
 import {ElMessage} from "element-plus";
 import {valueIsSelected} from "./valueWasSelected.ts";
-import {TraceAggregatorPayload} from "../store/traceAggregatorStore.ts";
+import {TraceAggregatorPayload, TraceStateParameters} from "../store/traceAggregatorStore.ts";
 import {TraceAggregatorService} from "../store/traceAggregatorServicesStore.ts";
 
 export class TypesHelper {
@@ -126,17 +126,25 @@ export function convertDateStringToLocal(
 }
 
 export function makeGeneralFiltersTitles(
-    payload: TraceAggregatorPayload,
+    state: TraceStateParameters,
     services: Array<TraceAggregatorService>
 ): string[] {
+    const payload = state.payload
+
     const titles = new Array<string>()
 
     const loggedAtFromSelected = valueIsSelected(payload.logging_from)
     const loggedAtToSelected = valueIsSelected(payload.logging_to)
 
-    if ((loggedAtFromSelected || loggedAtToSelected)) {
+    if (loggedAtFromSelected || loggedAtToSelected) {
+        const loggedAtFrom: string | null = loggedAtFromSelected
+            ? (state.startOfDay
+                ? 'start of day'
+                : convertDateStringToLocalFull(payload.logging_from))
+            : null
+
         titles.push(
-            'Logged at: ' + (loggedAtFromSelected ? convertDateStringToLocalFull(payload.logging_from) : '∞') + '-'
+            'Logged at: ' + (loggedAtFromSelected ? loggedAtFrom : '∞') + '-'
             + (loggedAtToSelected ? convertDateStringToLocalFull(payload.logging_to) : '∞')
         )
     }
