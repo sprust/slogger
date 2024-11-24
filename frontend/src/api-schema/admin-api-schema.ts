@@ -1377,8 +1377,8 @@ export namespace AdminApi {
     export type RequestQuery = {};
     export type RequestBody = {
       /**
-       * @minLength 10
-       * @maxLength 70
+       * @minLength 1
+       * @maxLength 2000
        */
       title: string;
       /** @min 1 */
@@ -3332,8 +3332,8 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     traceAggregatorStatesCreate: (
       data: {
         /**
-         * @minLength 10
-         * @maxLength 70
+         * @minLength 1
+         * @maxLength 2000
          */
         title: string;
         /** @min 1 */

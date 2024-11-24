@@ -1,4 +1,7 @@
 import {ElMessage} from "element-plus";
+import {valueIsSelected} from "./valueWasSelected.ts";
+import {TraceAggregatorPayload} from "../store/traceAggregatorStore.ts";
+import {TraceAggregatorService} from "../store/traceAggregatorServicesStore.ts";
 
 export class TypesHelper {
     public static isValueInt(value: any): boolean {
@@ -68,7 +71,11 @@ export function handleApiError(error: any) {
 
 const zeroPad = (num: number, places: number): string => String(num).padStart(places, '0')
 
-export function convertDateStringToLocalFull(dateString: string) {
+export function convertDateStringToLocalFull(dateString: string | undefined | null) {
+    if (!dateString) {
+        return ''
+    }
+
     return convertDateStringToLocal(dateString, false, false)
 }
 
@@ -116,4 +123,97 @@ export function convertDateStringToLocal(
     }
 
     return dateResult
+}
+
+export function makeGeneralFiltersTitles(
+    payload: TraceAggregatorPayload,
+    services: Array<TraceAggregatorService>
+): string[] {
+    const titles = new Array<string>()
+
+    const loggedAtFromSelected = valueIsSelected(payload.logging_from)
+    const loggedAtToSelected = valueIsSelected(payload.logging_to)
+
+    if ((loggedAtFromSelected || loggedAtToSelected)) {
+        titles.push(
+            'Logged at: ' + (loggedAtFromSelected ? convertDateStringToLocalFull(payload.logging_from) : '∞') + '-'
+            + (loggedAtToSelected ? convertDateStringToLocalFull(payload.logging_to) : '∞')
+        )
+    }
+
+    if (payload.service_ids?.length) {
+        const serviceNames: Array<string> = services
+            .filter(
+                (service: TraceAggregatorService) => payload.service_ids!.indexOf(service.id) != -1
+            )
+            .map(
+                (service: TraceAggregatorService) => service.name
+            )
+
+        titles.push(`Services: ${serviceNames.join(',')}`)
+    }
+
+    if (payload.types?.length) {
+        titles.push(`Types: ${payload.types.join(',')}`)
+    }
+
+    if (payload.tags?.length) {
+        titles.push(`Tags: ${payload.tags.join(',')}`)
+    }
+
+    if (payload.statuses?.length) {
+        titles.push(`Statuses: ${payload.statuses.join(',')}`)
+    }
+
+    if (payload.data?.filter?.length || payload.data?.fields?.length) {
+        titles.push(`Some custom data`)
+    }
+
+    return titles
+}
+
+export function makeOtherFiltersTitles(payload: TraceAggregatorPayload): string[] {
+    const titles = new Array<string>()
+
+    if (payload.trace_id) {
+        titles.push(
+            'Trace id: ' + payload.trace_id + (payload.all_traces_in_tree ? ' (tree)' : '')
+        )
+    }
+
+    const durationFromSelected = valueIsSelected(payload.duration_from)
+    const durationToSelected = valueIsSelected(payload.duration_to)
+
+    if (durationFromSelected || durationToSelected) {
+        titles.push(
+            'Duration: ' + (durationFromSelected ? payload.duration_from : '∞') + '-'
+            + (durationToSelected ? payload.duration_to : '∞')
+        )
+    }
+
+    const memoryFromSelected = valueIsSelected(payload.memory_from)
+    const memoryToSelected = valueIsSelected(payload.memory_to)
+
+    if (memoryFromSelected || memoryToSelected) {
+        titles.push(
+            'Memory: ' + (memoryFromSelected ? payload.memory_from : '∞') + '-'
+            + (memoryToSelected ? payload.memory_to : '∞')
+        )
+    }
+
+    const cpuFromSelected = valueIsSelected(payload.cpu_from)
+    const cpuToSelected = valueIsSelected(payload.cpu_to)
+
+    if (cpuFromSelected || cpuToSelected) {
+        titles.push(
+            'Cpu: ' + (cpuFromSelected ? payload.cpu_from : '∞') + '-'
+            + (cpuToSelected ? payload.cpu_to : '∞')
+        )
+    }
+
+    if (payload.has_profiling) {
+        titles.push('Has profiling')
+    }
+
+    return titles
 }

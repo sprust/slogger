@@ -3103,8 +3103,8 @@
                                 "properties": {
                                     "title": {
                                         "type": "string",
-                                        "maxLength": 70,
-                                        "minLength": 10
+                                        "maxLength": 2000,
+                                        "minLength": 1
                                     },
                                     "store_version": {
                                         "type": "integer",
