@@ -1216,6 +1216,7 @@ export namespace AdminApi {
 
 })[],
     inProcess: boolean,
+    progress?: number | null,
     created: boolean,
     error?: string | null,
     actualUntilAt: string,
@@ -1239,6 +1240,7 @@ export namespace AdminApi {
           title: string;
         }[];
         inProcess: boolean;
+        progress?: number | null;
         created: boolean;
         error?: string | null;
         actualUntilAt: string;
@@ -1332,6 +1334,7 @@ export namespace AdminApi {
       /** @min 1 */
       version: number;
       search_query?: string | null;
+      auto: boolean;
     };
     export type RequestBody = never;
     export type RequestHeaders = {};
@@ -1374,13 +1377,14 @@ export namespace AdminApi {
     export type RequestQuery = {};
     export type RequestBody = {
       /**
-       * @minLength 10
-       * @maxLength 70
+       * @minLength 1
+       * @maxLength 2000
        */
       title: string;
       /** @min 1 */
       store_version: number;
       store_data: string;
+      auto: boolean;
     };
     export type RequestHeaders = {};
     export type ResponseBody = {
@@ -3144,6 +3148,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
 
 })[],
     inProcess: boolean,
+    progress?: number | null,
     created: boolean,
     error?: string | null,
     actualUntilAt: string,
@@ -3164,6 +3169,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
               title: string;
             }[];
             inProcess: boolean;
+            progress?: number | null;
             created: boolean;
             error?: string | null;
             actualUntilAt: string;
@@ -3273,6 +3279,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         /** @min 1 */
         version: number;
         search_query?: string | null;
+        auto: boolean;
       },
       params: RequestParams = {},
     ) =>
@@ -3325,13 +3332,14 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     traceAggregatorStatesCreate: (
       data: {
         /**
-         * @minLength 10
-         * @maxLength 70
+         * @minLength 1
+         * @maxLength 2000
          */
         title: string;
         /** @min 1 */
         store_version: number;
         store_data: string;
+        auto: boolean;
       },
       params: RequestParams = {},
     ) =>

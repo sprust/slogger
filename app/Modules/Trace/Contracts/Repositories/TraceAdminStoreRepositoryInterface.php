@@ -11,14 +11,16 @@ interface TraceAdminStoreRepositoryInterface
         string $title,
         int $storeVersion,
         string $storeDataHash,
-        string $storeData
+        string $storeData,
+        bool $auto
     ): TraceAdminStoreObject;
 
     public function find(
         int $page,
         int $perPage,
         int $version,
-        ?string $searchQuery = null
+        ?string $searchQuery,
+        bool $auto
     ): TraceAdminStoresPaginationObject;
 
     public function delete(string $id): bool;

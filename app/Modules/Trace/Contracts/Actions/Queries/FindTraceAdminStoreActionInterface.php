@@ -6,5 +6,10 @@ use App\Modules\Trace\Entities\Store\TraceAdminStoresPaginationObject;
 
 interface FindTraceAdminStoreActionInterface
 {
-    public function handle(int $page, int $version, ?string $searchQuery = null): TraceAdminStoresPaginationObject;
+    public function handle(
+        int $page,
+        int $version,
+        ?string $searchQuery,
+        bool $auto
+    ): TraceAdminStoresPaginationObject;
 }

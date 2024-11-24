@@ -14,6 +14,7 @@ readonly class TraceDynamicIndexObject
         public string $name,
         public array $fields,
         public bool $inProcess,
+        public ?float $progress,
         public bool $created,
         public ?string $error,
         public Carbon $actualUntilAt,

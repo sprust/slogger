@@ -11,6 +11,7 @@ use Illuminate\Support\Carbon;
  * @property int    $storeVersion
  * @property string $storeDataHash
  * @property string $storeData
+ * @property bool   $auto
  * @property Carbon $createdAt
  */
 class TraceAdminStore extends AbstractTraceModel
@@ -20,6 +21,7 @@ class TraceAdminStore extends AbstractTraceModel
 
     protected $casts = [
         'usedAt' => 'datetime',
+        'auto'   => 'boolean',
     ];
 
     public function getCollectionName(): string

@@ -16,6 +16,7 @@ class TraceAdminStoreRepository implements TraceAdminStoreRepositoryInterface
         int $storeVersion,
         string $storeDataHash,
         string $storeData,
+        bool $auto
     ): TraceAdminStoreObject {
         $store = new TraceAdminStore();
 
@@ -23,6 +24,7 @@ class TraceAdminStoreRepository implements TraceAdminStoreRepositoryInterface
         $store->storeVersion  = $storeVersion;
         $store->storeDataHash = $storeDataHash;
         $store->storeData     = $storeData;
+        $store->auto          = $auto;
 
         $store->save();
 
@@ -33,10 +35,12 @@ class TraceAdminStoreRepository implements TraceAdminStoreRepositoryInterface
         int $page,
         int $perPage,
         int $version,
-        ?string $searchQuery = null
+        ?string $searchQuery,
+        bool $auto
     ): TraceAdminStoresPaginationObject {
         $pagination = TraceAdminStore::query()
             ->where('storeVersion', $version)
+            ->where('auto', $auto)
             ->when(
                 $searchQuery,
                 fn(Builder $builder) => $builder->where('title', 'like', "%$searchQuery%")

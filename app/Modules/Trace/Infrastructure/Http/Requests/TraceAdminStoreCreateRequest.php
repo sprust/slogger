@@ -12,8 +12,8 @@ class TraceAdminStoreCreateRequest extends FormRequest
             'title'         => [
                 'required',
                 'string',
-                'min:10',
-                'max:70',
+                'min:1',
+                'max:2000',
             ],
             'store_version' => [
                 'required',
@@ -23,6 +23,10 @@ class TraceAdminStoreCreateRequest extends FormRequest
             'store_data'    => [
                 'required',
                 'string',
+            ],
+            'auto'          => [
+                'required',
+                'boolean',
             ],
         ];
     }

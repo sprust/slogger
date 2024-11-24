@@ -24,6 +24,37 @@ class TraceAdminStoreIndexRequest extends FormRequest
                 'nullable',
                 'string',
             ],
+            'auto'         => [
+                'required',
+                'bool',
+            ],
         ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $inputAuto = $this->input('auto');
+
+        $auto = $inputAuto;
+
+        if (is_integer($auto)) {
+            if ($auto === 1) {
+                $auto = true;
+            } elseif ($auto === 0) {
+                $auto = false;
+            }
+        } elseif (is_string($auto)) {
+            $lowerStringAuto = strtolower($auto);
+
+            if ($lowerStringAuto === 'true') {
+                $auto = true;
+            } elseif ($lowerStringAuto === 'false') {
+                $auto = false;
+            }
+        }
+
+        $this->merge([
+            'auto' => $auto,
+        ]);
     }
 }

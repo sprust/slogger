@@ -28,7 +28,8 @@ export const traceAdminStoresStore = createStore<State>({
         adminStoresParameters: {
             page: 1,
             version: 0,
-            search_query: ''
+            search_query: '',
+            auto: false
         },
         adminStores: {
             items: [],
@@ -42,7 +43,8 @@ export const traceAdminStoresStore = createStore<State>({
         adminStoreCreateParameters: {
             title: '',
             store_version: 0,
-            store_data: ''
+            store_data: '',
+            auto: false
         },
         adminStoreDeletedIds: {}
     } as State,
@@ -55,7 +57,8 @@ export const traceAdminStoresStore = createStore<State>({
             state.adminStoreCreateParameters = {
                 title: '',
                 store_version: 0,
-                store_data: ''
+                store_data: '',
+                auto: false
             }
         }
     },

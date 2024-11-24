@@ -117,7 +117,7 @@ import {defineComponent} from "vue";
 import {useTraceAggregatorStore} from "../../../../store/traceAggregatorStore.ts";
 import {CloseBold, Filter} from '@element-plus/icons-vue'
 import {useTraceAggregatorGraphStore} from "../../../../store/traceAggregatorGraphStore.ts";
-import {valueIsSelected} from "../../../../utils/valueWasSelected.ts";
+import {makeOtherFiltersTitles} from "../../../../utils/helpers.ts";
 
 export default defineComponent({
   data() {
@@ -135,51 +135,7 @@ export default defineComponent({
       return Filter
     },
     titles(): Array<string> {
-      const titles = new Array<string>()
-
-      const payload = this.store.state.payload
-
-      if (payload.trace_id) {
-        titles.push(
-            'Trace id: ' + payload.trace_id + (payload.all_traces_in_tree ? ' (tree)' : '')
-        )
-      }
-
-      const durationFromSelected = valueIsSelected(payload.duration_from)
-      const durationToSelected = valueIsSelected(payload.duration_to)
-
-      if (durationFromSelected || durationToSelected) {
-        titles.push(
-            'Duration: ' + (durationFromSelected ? payload.duration_from : '∞') + '-'
-            + (durationToSelected ? payload.duration_to : '∞')
-        )
-      }
-
-      const memoryFromSelected = valueIsSelected(payload.memory_from)
-      const memoryToSelected = valueIsSelected(payload.memory_to)
-
-      if (memoryFromSelected || memoryToSelected) {
-        titles.push(
-            'Memory: ' + (memoryFromSelected ? payload.memory_from : '∞') + '-'
-            + (memoryToSelected ? payload.memory_to : '∞')
-        )
-      }
-
-      const cpuFromSelected = valueIsSelected(payload.cpu_from)
-      const cpuToSelected = valueIsSelected(payload.cpu_to)
-
-      if (cpuFromSelected || cpuToSelected) {
-        titles.push(
-            'Cpu: ' + (cpuFromSelected ? payload.cpu_from : '∞') + '-'
-            + (cpuToSelected ? payload.cpu_to : '∞')
-        )
-      }
-
-      if (payload.has_profiling) {
-        titles.push('Has profiling')
-      }
-
-      return titles
+      return makeOtherFiltersTitles(this.store.state.payload)
     }
   },
 

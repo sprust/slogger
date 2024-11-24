@@ -10,5 +10,6 @@ interface CreateTraceAdminStoreActionInterface
         string $title,
         int $storeVersion,
         string $storeData,
+        bool $auto
     ): TraceAdminStoreObject;
 }

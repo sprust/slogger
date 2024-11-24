@@ -5,7 +5,7 @@
 
   <el-dialog
       v-model="dialogVisible"
-      width="50%"
+      width="80%"
       top="10px"
       :append-to-body="true"
   >
@@ -19,26 +19,41 @@
             placeholder="Search query"
             style="width: 300px"
             clearable
-        />
+        >
+          <template #append>
+            <el-tooltip content="Requests" placement="top-start">
+              <el-checkbox v-model="store.state.adminStoresParameters.auto"/>
+            </el-tooltip>
+          </template>
+        </el-input>
         <el-button
             :icon="SearchIcon"
             @click="update"
             :loading="store.state.loading"
+
         />
         <el-text size="default">
           Create
         </el-text>
         <el-input
             v-model="store.state.adminStoreCreateParameters.title"
-            placeholder="Title (min 10)"
-            style="width: 300px"
+            placeholder="Title"
+            style="width: 500px"
             clearable
-        />
+        >
+          <template #append>
+            <el-tooltip content="Fill title" placement="top-start">
+              <el-button
+                  :icon="FillTitleIvon"
+                  @click="fillTitle"
+              />
+            </el-tooltip>
+          </template>
+        </el-input>
         <el-button
             :icon="PlusIcon"
-            @click="create"
-            :disabled="!store.state.adminStoreCreateParameters.title
-              || store.state.adminStoreCreateParameters.title.length < 10"
+            @click="create(false)"
+            :disabled="!store.state.adminStoreCreateParameters.title"
         />
       </el-space>
     </el-row>
@@ -99,22 +114,27 @@
 
 <script lang="ts">
 import {defineComponent} from "vue";
-import {Plus as PlusIcon, Search as SearchIcon} from '@element-plus/icons-vue'
-import {convertDateStringToLocal} from "../../../../utils/helpers.ts";
+import {Plus as PlusIcon, Search as SearchIcon, CaretLeft as FillTitleIvon} from '@element-plus/icons-vue'
+import {convertDateStringToLocal, makeGeneralFiltersTitles, makeOtherFiltersTitles} from "../../../../utils/helpers.ts";
 import {AdminStore, useTraceAdminStoresStoreStore} from "../../../../store/traceAdminStoresStore.ts";
 import {state} from "vue-tsc/out/shared";
 import {TraceStateParameters, useTraceAggregatorStore} from "../../../../store/traceAggregatorStore.ts";
+import TraceAggregatorProfilingNodeData from "../components/profiling/TraceAggregatorProfilingNodeData.vue";
+import {useTraceAggregatorServicesStore} from "../../../../store/traceAggregatorServicesStore.ts";
 
 export default defineComponent({
   components: {
+    TraceAggregatorProfilingNodeData,
     SearchIcon,
     PlusIcon,
+    FillTitleIvon,
   },
   data() {
     return {
       dialogVisible: false,
       store: useTraceAdminStoresStoreStore(),
       traceStore: useTraceAggregatorStore(),
+      servicesStore: useTraceAggregatorServicesStore(),
     }
   },
 
@@ -124,13 +144,17 @@ export default defineComponent({
 
       this.store.dispatch('findAdminStores')
     },
-    create() {
-      if (!this.store.state.adminStoreCreateParameters.title) {
+    create(auto: boolean) {
+      if (auto) {
+        this.store.state.adminStoreCreateParameters.title = this.generateTitle()
+      } else if (!this.store.state.adminStoreCreateParameters.title) {
         return
       }
 
       this.store.state.adminStoreCreateParameters.store_version = this.traceStore.state.version
       this.store.state.adminStoreCreateParameters.store_data = this.serializeTraceState()
+      this.store.state.adminStoresParameters.auto = auto
+      this.store.state.adminStoreCreateParameters.auto = auto
 
       this.store.dispatch('createAdminStore')
           .then(() => {
@@ -169,6 +193,17 @@ export default defineComponent({
     },
     unSerializeTraceState(store: AdminStore): TraceStateParameters {
       return JSON.parse(store.store_data)
+    },
+    fillTitle() {
+      this.store.state.adminStoreCreateParameters.title = this.generateTitle()
+    },
+    generateTitle(): string {
+      const titles: string[] = [
+        ...makeGeneralFiltersTitles(this.traceStore.state.payload, this.servicesStore.state.items),
+        ...makeOtherFiltersTitles(this.traceStore.state.payload),
+      ]
+
+      return titles.join(' | ')
     }
   },
 
@@ -181,6 +216,9 @@ export default defineComponent({
     },
     PlusIcon() {
       return PlusIcon
+    },
+    FillTitleIvon() {
+      return FillTitleIvon
     },
   },
   mounted() {

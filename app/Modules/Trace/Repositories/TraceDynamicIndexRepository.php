@@ -112,7 +112,7 @@ class TraceDynamicIndexRepository implements TraceDynamicIndexRepositoryInterfac
                                     '$cond' => [['$eq' => ['$inProcess', true]], 1, 0],
                                 ],
                             ],
-                            'errors'     => [
+                            'errors'    => [
                                 '$sum' => [
                                     '$cond' => [['$eq' => ['$error', null]], 0, 1],
                                 ],
