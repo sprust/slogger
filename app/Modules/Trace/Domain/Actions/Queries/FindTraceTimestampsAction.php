@@ -240,10 +240,8 @@ readonly class FindTraceTimestampsAction implements FindTraceTimestampsActionInt
         );
     }
 
-    private
-    function transportField(
-        TraceTimestampFieldDto $dto
-    ): TraceTimestampFieldObject {
+    private function transportField(TraceTimestampFieldDto $dto): TraceTimestampFieldObject
+    {
         return new TraceTimestampFieldObject(
             field: $dto->field,
             indicators: array_map(
