@@ -104,6 +104,7 @@ export const traceAggregatorStore = createStore<State>({
     } as State,
     mutations: {
         restoreTraceState(state: State, newState: TraceStateParameters) {
+            state.startOfDay = newState.startOfDay
             state.payload = newState.payload
             state.customFields = newState.customFields
         },
