@@ -217,3 +217,10 @@ export function makeOtherFiltersTitles(payload: TraceAggregatorPayload): string[
 
     return titles
 }
+
+export function makeStartOfDay(): Date {
+    const startOfDay = new Date()
+    startOfDay.setUTCHours(Math.ceil(startOfDay.getTimezoneOffset() / 60), 0, 0, 0);
+
+    return startOfDay
+}

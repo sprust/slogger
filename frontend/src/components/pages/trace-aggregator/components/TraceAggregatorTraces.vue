@@ -6,17 +6,27 @@
           <div v-if="storeGraph.state.showGraph" style="width: 220px">
             <TraceAggregatorTimestampPeriods/>
           </div>
-          <el-date-picker
-              v-else
-              v-model="store.state.payload.logging_from"
-              type="datetime"
-              placeholder="From"
-              format="YYYY-MM-DD HH:mm:ss"
-              date-format="YYYY-MM-DD"
-              time-format="HH:mm:ss"
-              :shortcuts="dateTimeShortcuts"
-              style="width: 200px"
-          />
+          <div v-else>
+            <el-button
+                v-if="store.state.startOfDay"
+                style="width: 200px"
+                @click="store.state.startOfDay = false"
+                link
+            >
+              Start of day
+            </el-button>
+            <el-date-picker
+                v-else
+                v-model="store.state.payload.logging_from"
+                type="datetime"
+                placeholder="From"
+                format="YYYY-MM-DD HH:mm:ss"
+                date-format="YYYY-MM-DD"
+                time-format="HH:mm:ss"
+                :shortcuts="dateTimeShortcuts"
+                style="width: 200px"
+            />
+          </div>
         </el-space>
         <el-space style="padding-right: 5px">
           <el-date-picker
@@ -162,9 +172,8 @@ import {useTraceAggregatorGraphStore} from "../../../../store/traceAggregatorGra
 import {useTraceAggregatorTimestampPeriodStore} from "../../../../store/traceAggregatorTimestampPeriodsStore.ts";
 import {useTraceAggregatorTimestampFieldsStore} from "../../../../store/traceAggregatorTimestampFieldsStore.ts";
 import {useTraceAggregatorDataStore} from "../../../../store/traceAggregatorDataStore.ts";
+import {makeStartOfDay} from "../../../../utils/helpers.ts";
 
-const startOfDay = new Date()
-startOfDay.setUTCHours(Math.ceil(startOfDay.getTimezoneOffset() / 60), 0, 0, 0);
 
 export default defineComponent({
   components: {
@@ -190,7 +199,7 @@ export default defineComponent({
       dateTimeShortcuts: [
         {
           text: 'Start of day',
-          value: startOfDay,
+          value: () => this.setStartOfDay(),
         },
       ]
     }
@@ -222,6 +231,13 @@ export default defineComponent({
     }
   },
   methods: {
+    setStartOfDay(): Date {
+      const startOfDay = makeStartOfDay()
+
+      this.store.state.startOfDay = true
+
+      return startOfDay
+    },
     onButtonSearchClick() {
       this.store.dispatch('setPage', 1)
       this.update()
@@ -249,8 +265,6 @@ export default defineComponent({
     },
     reset() {
       this.store.dispatch('resetFilters')
-
-      this.store.state.payload.logging_from = startOfDay.toUTCString()
     },
     onTraceTypeClick(type: string) {
       this.store.dispatch('addOrDeleteType', type)

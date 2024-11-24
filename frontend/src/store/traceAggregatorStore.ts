@@ -2,11 +2,11 @@ import type {InjectionKey} from "vue";
 // @ts-ignore // todo
 import {createStore, Store, useStore as baseUseStore} from 'vuex'
 import {ApiContainer} from "../utils/apiContainer.ts";
-import {handleApiError, TypesHelper} from "../utils/helpers.ts";
+import {handleApiError, makeStartOfDay, TypesHelper} from "../utils/helpers.ts";
 import {AdminApi} from "../api-schema/admin-api-schema.ts";
 
 // need for admin stores
-const stateVersion = 1
+const stateVersion = 2
 
 type TraceAggregatorRequest = AdminApi.TraceAggregatorTracesCreate.RequestBody;
 type TraceAggregatorResponse = AdminApi.TraceAggregatorTracesCreate.ResponseBody['data'];
@@ -63,6 +63,7 @@ interface State extends TraceStateParameters {
 }
 
 export interface TraceStateParameters {
+    startOfDay: boolean,
     payload: TraceAggregatorPayload,
     customFields: TraceAggregatorCustomField[]
 }
@@ -71,6 +72,7 @@ export const traceAggregatorStore = createStore<State>({
     state: {
         version: stateVersion,
         loading: true,
+        startOfDay: true,
         payload: {
             page: 1,
             types: [],
@@ -120,7 +122,7 @@ export const traceAggregatorStore = createStore<State>({
                 memory_to: null,
                 cpu_from: null,
                 cpu_to: null,
-                logging_from: '',
+                logging_from: makeStartOfDay().toUTCString(),
                 logging_to: '',
                 trace_id: null,
                 all_traces_in_tree: false,
@@ -293,6 +295,10 @@ export const traceAggregatorStore = createStore<State>({
         },
         fillTraceAggregator({commit, state}: { commit: any, state: any }) {
             state.loading = true
+
+            if (state.startOfDay) {
+                state.payload.logging_from = makeStartOfDay()
+            }
 
             commit('prepareCommonPayloadData')
 

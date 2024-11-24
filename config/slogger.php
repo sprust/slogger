@@ -138,6 +138,7 @@ return [
                 'trace-dynamic-indexes:monitor:start',
                 'rr-parallel:monitor:start',
                 'rr-parallel:monitor:stop',
+                'rr-monitor:start',
             ],
         ],
 

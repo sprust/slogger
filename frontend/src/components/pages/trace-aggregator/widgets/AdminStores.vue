@@ -164,10 +164,6 @@ export default defineComponent({
           })
     },
     deleteStore(store: AdminStore) {
-      if (!confirm('Do you want delete store?')) {
-        return
-      }
-
       this.store.dispatch('deleteAdminStore', store.id)
     },
     restore(store: AdminStore) {
@@ -185,6 +181,7 @@ export default defineComponent({
     },
     serializeTraceState() {
       const state: TraceStateParameters = {
+        startOfDay: this.traceStore.state.startOfDay,
         payload: this.traceStore.state.payload,
         customFields: this.traceStore.state.customFields,
       }
