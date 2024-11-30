@@ -5,6 +5,7 @@ namespace App\Modules\Trace\Repositories;
 use App\Models\Traces\TraceDynamicIndex;
 use App\Modules\Trace\Contracts\Repositories\TraceDynamicIndexRepositoryInterface;
 use App\Modules\Trace\Repositories\Dto\DynamicIndex\TraceDynamicIndexDto;
+use App\Modules\Trace\Repositories\Dto\DynamicIndex\TraceDynamicIndexesDto;
 use App\Modules\Trace\Repositories\Dto\DynamicIndex\TraceDynamicIndexFieldDto;
 use App\Modules\Trace\Repositories\Dto\Trace\TraceDynamicIndexStatsDto;
 use Illuminate\Database\Eloquent\Builder;
@@ -14,53 +15,68 @@ use Throwable;
 
 class TraceDynamicIndexRepository implements TraceDynamicIndexRepositoryInterface
 {
-    public function findOneOrCreate(array $fields, Carbon $actualUntilAt): ?TraceDynamicIndexDto
+    public function findOneOrCreate(TraceDynamicIndexesDto $fields, Carbon $actualUntilAt): ?TraceDynamicIndexDto
     {
-        $name = $this->makeIndexName($fields);
+        $fieldsKey = $this->makeFieldsKey($fields->fieldNames);
 
-        $createdAt = now();
+        /** @var TraceDynamicIndex|null $index */
+        $index = TraceDynamicIndex::query()
+            ->where('fieldsKey', $fieldsKey)
+            ->when(
+                value: is_null($fields->loggedAtFrom),
+                callback: static fn(Builder $builder) => $builder->whereNull('loggedAtFrom'),
+                default: static fn(Builder $builder) => $builder->where(
+                    'loggedAtFrom',
+                    '<=',
+                    new UTCDateTime($fields->loggedAtFrom)
+                )
+            )
+            ->when(
+                value: is_null($fields->loggedAtTo),
+                callback: static fn(Builder $builder) => $builder->whereNull('loggedAtTo'),
+                default: static fn(Builder $builder) => $builder->where(
+                    'loggedAtTo',
+                    '<=',
+                    new UTCDateTime($fields->loggedAtTo)
+                )
+            )
+            ->first();
 
-        TraceDynamicIndex::collection()
-            ->updateOne(
-                [
-                    'name' => $name,
-                ],
-                [
-                    '$set'         => [
-                        'actualUntilAt' => new UTCDateTime($actualUntilAt),
-                    ],
-                    '$setOnInsert' => [
-                        'fields'    => $fields,
-                        'inProcess' => true,
-                        'created'   => false,
-                        'error'     => null,
-                        'createdAt' => new UTCDateTime($createdAt),
-                    ],
-                ],
-                [
-                    'upsert' => true,
-                ]
-            );
+        if (!$index) {
+            $indexName = $fieldsKey;
 
-        return $this->findOneByName($name);
+            if ($fields->loggedAtFrom || $fields->loggedAtTo) {
+                $loggedAtFromView = $fields->loggedAtFrom?->toDateTimeString();
+                $loggedAtFromView = $loggedAtFromView ? "latFrom_$loggedAtFromView" : null;
+
+                $loggedAtToView = $fields->loggedAtTo?->toDateTimeString();
+                $loggedAtToView = $loggedAtToView ? "latTo_$loggedAtToView" : null;
+
+                $indexName .= ('__' . implode('_', array_filter([$loggedAtFromView, $loggedAtToView])));
+            }
+
+            $index = new TraceDynamicIndex();
+
+            $index->indexName    = $indexName;
+            $index->fieldsKey    = $fieldsKey;
+            $index->loggedAtFrom = $fields->loggedAtFrom;
+            $index->loggedAtTo   = $fields->loggedAtTo;
+            $index->fields       = $fields->fieldNames;
+            $index->inProcess    = true;
+            $index->created      = false;
+            $index->error        = null;
+        }
+
+        $index->actualUntilAt = $actualUntilAt;
+        $index->save();
+
+        return $this->modelToDto($index);
     }
 
     public function findOneById(string $id): ?TraceDynamicIndexDto
     {
         /** @var TraceDynamicIndex|null $index */
         $index = TraceDynamicIndex::query()->find($id);
-
-        if (!$index) {
-            return null;
-        }
-
-        return $this->modelToDto($index);
-    }
-
-    private function findOneByName(string $name): ?TraceDynamicIndexDto
-    {
-        /** @var TraceDynamicIndex|null $index */
-        $index = TraceDynamicIndex::query()->where('name', $name)->first();
 
         if (!$index) {
             return null;
@@ -131,10 +147,10 @@ class TraceDynamicIndexRepository implements TraceDynamicIndexRepositoryInterfac
         );
     }
 
-    public function updateByName(string $name, bool $inProcess, bool $created, ?Throwable $exception): bool
+    public function updateById(string $id, bool $inProcess, bool $created, ?Throwable $exception): bool
     {
         return (bool) TraceDynamicIndex::query()
-            ->where('name', $name)
+            ->where('_id', $id)
             ->update([
                 'inProcess' => $inProcess,
                 'created'   => $created,
@@ -151,28 +167,20 @@ class TraceDynamicIndexRepository implements TraceDynamicIndexRepositoryInterfac
             ->delete();
     }
 
-    public function deleteByName(string $name): bool
-    {
-        return (bool) TraceDynamicIndex::query()
-            ->where('name', $name)
-            ->delete();
-    }
-
     /**
-     * @param TraceDynamicIndexFieldDto[] $fields
-     *
-     * @return string
+     * @param TraceDynamicIndexFieldDto[] $fieldNames
      */
-    private function makeIndexName(array $fields): string
+    private function makeFieldsKey(array $fieldNames): string
     {
-        return 'dyn_'
-            . implode(
-                '__',
-                array_map(
-                    fn(TraceDynamicIndexFieldDto $dto) => $dto->fieldName,
-                    $fields
-                )
-            );
+        $fieldNamesView = implode(
+            '__',
+            array_map(
+                fn(TraceDynamicIndexFieldDto $dto) => $dto->fieldName,
+                $fieldNames
+            )
+        );
+
+        return "dyn_$fieldNamesView";
     }
 
     /**
@@ -186,7 +194,7 @@ class TraceDynamicIndexRepository implements TraceDynamicIndexRepositoryInterfac
 
         foreach ($fields as $field) {
             $result[] = new TraceDynamicIndexFieldDto(
-                fieldName: $field['fieldName']
+                fieldName: ((array) $field)['fieldName']
             );
         }
 
@@ -197,7 +205,10 @@ class TraceDynamicIndexRepository implements TraceDynamicIndexRepositoryInterfac
     {
         return new TraceDynamicIndexDto(
             id: $index->_id,
-            name: $index->name,
+            indexName: $index->indexName,
+            fieldsKey: $index->fieldsKey,
+            loggedAtFrom: $index->loggedAtFrom,
+            loggedAtTo: $index->loggedAtTo,
             fields: $this->transportFields($index->fields),
             inProcess: $index->inProcess,
             created: $index->created,

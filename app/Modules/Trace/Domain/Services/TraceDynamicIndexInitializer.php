@@ -9,6 +9,7 @@ use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexNotInitException;
 use App\Modules\Trace\Enums\TraceTimestampEnum;
 use App\Modules\Trace\Parameters\Data\TraceDataFilterParameters;
 use App\Modules\Trace\Parameters\TraceSortParameters;
+use App\Modules\Trace\Repositories\Dto\DynamicIndex\TraceDynamicIndexesDto;
 use App\Modules\Trace\Repositories\Dto\DynamicIndex\TraceDynamicIndexFieldDto;
 use Illuminate\Support\Carbon;
 
@@ -127,8 +128,16 @@ readonly class TraceDynamicIndexInitializer
             )
             ->all();
 
+        if (!count($indexFields)) {
+            return;
+        }
+
         $indexDto = $this->traceDynamicIndexRepository->findOneOrCreate(
-            fields: $indexFields,
+            fields: new TraceDynamicIndexesDto(
+                fieldNames: $indexFields,
+                loggedAtFrom: $loggedAtFrom?->clone(),
+                loggedAtTo: $loggedAtTo?->clone()
+            ),
             actualUntilAt: now()->addMinutes($this->timeLifeIndexInMinutes)
         );
 

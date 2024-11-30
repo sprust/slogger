@@ -40,7 +40,7 @@ readonly class FindTraceDynamicIndexesAction implements FindTraceDynamicIndexesA
         return array_map(
             fn(TraceDynamicIndexDto $dto) => new TraceDynamicIndexObject(
                 id: $dto->id,
-                name: $dto->name,
+                name: $dto->indexName,
                 fields: array_map(
                     fn(TraceDynamicIndexFieldDto $dtoField) => new TraceDynamicIndexFieldObject(
                         name: $dtoField->fieldName,
@@ -49,7 +49,7 @@ readonly class FindTraceDynamicIndexesAction implements FindTraceDynamicIndexesA
                     $dto->fields
                 ),
                 inProcess: $dto->inProcess,
-                progress: ($indexesInProcess[$dto->name] ?? null)?->progress,
+                progress: ($indexesInProcess[$dto->indexName] ?? null)?->progress,
                 created: $dto->created,
                 error: $dto->error,
                 actualUntilAt: $dto->actualUntilAt,

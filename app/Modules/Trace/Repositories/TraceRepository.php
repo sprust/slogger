@@ -551,24 +551,51 @@ readonly class TraceRepository implements TraceRepositoryInterface
     /**
      * @throws Throwable
      */
-    public function createIndex(string $name, array $fields): bool
-    {
-        if (empty($fields)) {
-            return false;
+    public function createIndex(
+        string $name,
+        array $fields,
+        ?Carbon $loggedAtFrom,
+        ?Carbon $loggedAtTo
+    ): bool {
+        if (count($fields)) {
+            $index = [];
+
+            foreach ($fields as $field) {
+                $index[$field->fieldName] = 1;
+            }
+        } else {
+            if (!$loggedAtFrom && !$loggedAtTo) {
+                return false;
+            }
+
+            $index = [
+                'lat' => 1,
+            ];
         }
 
-        $index = [];
+        $latPartialExpression = [];
 
-        foreach ($fields as $field) {
-            $index[$field->fieldName] = 1;
+        if ($loggedAtFrom) {
+            $latPartialExpression['$gte'] = new UTCDateTime($loggedAtFrom);
+        }
+
+        if ($loggedAtTo) {
+            $latPartialExpression['$lte'] = new UTCDateTime($loggedAtTo);
         }
 
         try {
             Trace::collection()->createIndex(
                 $index,
                 [
-                    'name'       => $name,
-                    'background' => true,
+                    'name' => $name,
+                    ...($latPartialExpression
+                        ? [
+                            'partialFilterExpression' => [
+                                'lat' => $latPartialExpression,
+                            ],
+                        ]
+                        : []
+                    ),
                 ],
             );
         } catch (Throwable $exception) {

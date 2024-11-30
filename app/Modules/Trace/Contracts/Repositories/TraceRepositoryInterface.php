@@ -128,7 +128,12 @@ interface TraceRepositoryInterface
     /**
      * @param TraceDynamicIndexFieldDto[] $fields
      */
-    public function createIndex(string $name, array $fields): bool;
+    public function createIndex(
+        string $name,
+        array $fields,
+        ?Carbon $loggedAtFrom,
+        ?Carbon $loggedAtTo
+    ): bool;
 
     /**
      * @return TraceIndexInfoObject[]

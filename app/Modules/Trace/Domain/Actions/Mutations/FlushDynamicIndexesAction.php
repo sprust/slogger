@@ -34,12 +34,12 @@ readonly class FlushDynamicIndexesAction implements FlushDynamicIndexesActionInt
             foreach ($indexes as $index) {
                 if ($index->created) {
                     $this->traceRepository->deleteIndexByName(
-                        name: $index->name
+                        name: $index->indexName
                     );
                 }
 
-                $this->traceDynamicIndexRepository->deleteByName(
-                    name: $index->name
+                $this->traceDynamicIndexRepository->deleteById(
+                    id: $index->id
                 );
             }
         }

@@ -23,7 +23,10 @@ return new class extends Migration {
                     '$jsonSchema' => [
                         'bsonType'   => 'object',
                         'required'   => [
-                            'name',
+                            'indexName',
+                            'fieldsKey',
+                            'loggedAtFrom',
+                            'loggedAtTo',
                             'fields',
                             'inProcess',
                             'created',
@@ -31,8 +34,17 @@ return new class extends Migration {
                             'createdAt',
                         ],
                         'properties' => [
-                            'name'          => [
+                            'indexName'     => [
                                 'bsonType' => 'string',
+                            ],
+                            'fieldsKey'     => [
+                                'bsonType' => 'string',
+                            ],
+                            'loggedAtFrom'  => [
+                                'bsonType' => ['date', 'null'],
+                            ],
+                            'loggedAtTo'    => [
+                                'bsonType' => ['date', 'null'],
                             ],
                             'fields'        => [
                                 'bsonType' => 'array',
@@ -40,7 +52,7 @@ return new class extends Migration {
                             'inProcess'     => [
                                 'bsonType' => 'bool',
                             ],
-                            'created'      => [
+                            'created'       => [
                                 'bsonType' => 'bool',
                             ],
                             'actualUntilAt' => [
@@ -59,7 +71,18 @@ return new class extends Migration {
 
         $collection->createIndex(
             [
-                'name' => 1,
+                'indexName' => 1,
+            ],
+            [
+                'unique' => true,
+            ]
+        );
+
+        $collection->createIndex(
+            [
+                'fieldsKey'    => 1,
+                'loggedAtFrom' => 1,
+                'loggedAtTo'   => 1,
             ],
             [
                 'unique' => true,

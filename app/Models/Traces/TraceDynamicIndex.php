@@ -7,7 +7,10 @@ use Illuminate\Support\Carbon;
 
 /**
  * @property string      $_id
- * @property string      $name
+ * @property string      $indexName
+ * @property string      $fieldsKey
+ * @property Carbon|null $loggedAtFrom
+ * @property Carbon|null $loggedAtTo
  * @property array       $fields
  * @property bool        $inProcess
  * @property bool        $created
@@ -21,6 +24,8 @@ class TraceDynamicIndex extends AbstractTraceModel
     public const UPDATED_AT = null;
 
     protected $casts = [
+        'loggedAtFrom'  => 'datetime',
+        'loggedAtTo'    => 'datetime',
         'inProcess'     => 'bool',
         'created'       => 'bool',
         'actualUntilAt' => 'datetime',

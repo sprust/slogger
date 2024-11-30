@@ -11,7 +11,10 @@ readonly class TraceDynamicIndexDto
      */
     public function __construct(
         public string $id,
-        public string $name,
+        public string $indexName,
+        public string $fieldsKey,
+        public ?Carbon $loggedAtFrom,
+        public ?Carbon $loggedAtTo,
         public array $fields,
         public bool $inProcess,
         public bool $created,
