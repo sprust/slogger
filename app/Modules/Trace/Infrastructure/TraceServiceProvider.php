@@ -70,6 +70,7 @@ use App\Modules\Trace\Infrastructure\Commands\FreshTraceTimestampsCommand;
 use App\Modules\Trace\Infrastructure\Commands\StartMonitorTraceDynamicIndexesCommand;
 use App\Modules\Trace\Infrastructure\Commands\StopMonitorTraceDynamicIndexesCommand;
 use App\Modules\Trace\Infrastructure\Http\Services\TraceDynamicIndexingActionService;
+use App\Modules\Trace\Repositories\Services\PeriodicTraceService;
 use App\Modules\Trace\Repositories\Services\TraceQueryBuilder;
 use App\Modules\Trace\Repositories\TraceAdminStoreRepository;
 use App\Modules\Trace\Repositories\TraceContentRepository;
@@ -77,11 +78,32 @@ use App\Modules\Trace\Repositories\TraceDynamicIndexRepository;
 use App\Modules\Trace\Repositories\TraceRepository;
 use App\Modules\Trace\Repositories\TraceTimestampsRepository;
 use App\Modules\Trace\Repositories\TraceTreeRepository;
+use MongoDB\Client;
 
 class TraceServiceProvider extends BaseServiceProvider
 {
     public function boot(): void
     {
+        $this->app->singleton(
+            PeriodicTraceService::class,
+            static function () {
+                $username = config('database.connections.mongodb.tracesPeriodic.username');
+                $password = config('database.connections.mongodb.tracesPeriodic.password');
+                $host     = config('database.connections.mongodb.tracesPeriodic.host');
+                $port     = config('database.connections.mongodb.tracesPeriodic.port');
+                $database = config('database.connections.mongodb.tracesPeriodic.database');
+                $options  = config('database.connections.mongodb.tracesPeriodic.options');
+
+                $uri = "mongodb://$username:$password@$host:$port";
+
+                $client = new Client($uri, $options);
+
+                return new PeriodicTraceService(
+                    $client->selectDatabase($database)
+                );
+            }
+        );
+
         $this->app->singleton(TraceFieldTitlesService::class);
         $this->app->singleton(TraceQueryBuilder::class);
         $this->app->singleton(TraceDynamicIndexInitializer::class);

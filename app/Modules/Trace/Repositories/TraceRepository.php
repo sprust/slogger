@@ -18,6 +18,7 @@ use App\Modules\Trace\Repositories\Dto\Trace\Profiling\TraceProfilingDataDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Profiling\TraceProfilingDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Profiling\TraceProfilingItemDto;
 use App\Modules\Trace\Repositories\Dto\Trace\TraceLoggedAtDto;
+use App\Modules\Trace\Repositories\Services\PeriodicTraceService;
 use App\Modules\Trace\Repositories\Services\TraceDataToObjectBuilder;
 use App\Modules\Trace\Repositories\Services\TraceQueryBuilder;
 use Illuminate\Database\Eloquent\Builder;
@@ -25,6 +26,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use MongoDB\BSON\UTCDateTime;
+use MongoDB\Collection;
 use MongoDB\Driver\Command;
 use MongoDB\Driver\Exception\Exception;
 use stdClass;
@@ -33,7 +35,8 @@ use Throwable;
 readonly class TraceRepository implements TraceRepositoryInterface
 {
     public function __construct(
-        private TraceQueryBuilder $traceQueryBuilder
+        private TraceQueryBuilder $traceQueryBuilder,
+        private PeriodicTraceService $periodicTraceService
     ) {
     }
 
@@ -41,10 +44,20 @@ readonly class TraceRepository implements TraceRepositoryInterface
     {
         $timestamp = new UTCDateTime(now());
 
-        $operations = [];
+        /**
+         * @var array<string, array{collection: Collection, operations: array<string, mixed>}> $operationsByCollections
+         */
+        $operationsByCollections = [];
 
         foreach ($traces as $trace) {
-            $operations[] = [
+            $collectionName = $this->periodicTraceService->makeCollectionName($trace->loggedAt);
+
+            $operationsByCollections[$collectionName] ??= [
+                'collection' => $this->periodicTraceService->initCollection($trace->loggedAt),
+                'operations' => [],
+            ];
+
+            $operationsByCollections[$collectionName]['operations'][] = [
                 'updateOne' => [
                     [
                         'sid' => $trace->serviceId,
@@ -77,21 +90,49 @@ readonly class TraceRepository implements TraceRepositoryInterface
             ];
         }
 
-        Trace::collection()->bulkWrite($operations);
+        foreach ($operationsByCollections as $collection) {
+            $collection['collection']->bulkWrite($collection['operations']);
+        }
     }
 
     public function updateMany(array $traces): int
     {
+        // TODO: Does not have the loggedAt. To think about an another resolving.
+
+        $periodicTraceService = $this->periodicTraceService;
+
+        $collectionNames = array_reverse($periodicTraceService->detectCollectionNames());
+
         $timestamp = new UTCDateTime(now());
 
-        $operations = [];
+        /**
+         * @var array<string, array{collection: Collection, operations: array<string, mixed>}> $operationsByCollections
+         */
+        $operationsByCollections = [];
 
         foreach ($traces as $trace) {
+            /** @var string|null $collectionName */
+            $collectionName = Arr::first(
+                $collectionNames,
+                static function (string $collectionName) use ($trace, $periodicTraceService) {
+                    return $periodicTraceService->existsTrace($collectionName, $trace->traceId);
+                }
+            );
+
+            if (!$collectionName) {
+                continue;
+            }
+
             $profilingItems = $trace->profiling?->getItems();
 
             $hasProfiling = !is_null($profilingItems) && (count($profilingItems) > 0);
 
-            $operations[] = [
+            $operationsByCollections[$collectionName] ??= [
+                'collection' => $this->periodicTraceService->selectCollectionByName($collectionName),
+                'operations' => [],
+            ];
+
+            $operationsByCollections[$collectionName]['operations'][] = [
                 'updateOne' => [
                     [
                         'sid' => $trace->serviceId,
@@ -143,7 +184,15 @@ readonly class TraceRepository implements TraceRepositoryInterface
             ];
         }
 
-        return Trace::collection()->bulkWrite($operations)->getModifiedCount();
+        $modifiedCount = 0;
+
+        foreach ($operationsByCollections as $collection) {
+            $modifiedCount += $collection['collection']
+                ->bulkWrite($collection['operations'])
+                ->getModifiedCount();
+        }
+
+        return $modifiedCount;
     }
 
     public function findLoggedAtList(int $page, int $perPage, Carbon $loggedAtTo): array

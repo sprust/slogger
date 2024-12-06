@@ -52,9 +52,7 @@ readonly class DatabaseStatRepository implements DatabaseStatRepositoryInterface
 
             $databaseSize = $databaseSizes[$databaseName] ?? null;
 
-            if ($databaseSize) {
-                $databaseSize = $this->bitesToMb($databaseSize);
-            }
+            $databaseSize = $databaseSize ? $this->bitesToMb($databaseSize) : 0;
 
             $collections = [];
 
