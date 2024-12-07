@@ -144,8 +144,12 @@ class PeriodicTraceService
 
     public function deleteIndex(string $collectionName, string $indexName): void
     {
-        $this->database->selectCollection($collectionName)
-            ->dropIndex($indexName);
+        try {
+            $this->database->selectCollection($collectionName)
+                ->dropIndex($indexName);
+        } catch (Throwable) {
+            // TODO
+        }
     }
 
     public function makeCollectionName(Carbon $loggedAt): string

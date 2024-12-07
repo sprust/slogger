@@ -307,24 +307,8 @@ readonly class TraceRepository implements TraceRepositoryInterface
         /** @var TraceDto[] $traces */
         $traces = [];
 
-        foreach ($cursor as $trace) {
-            $traces[] = new TraceDto(
-                id: $trace['_id'],
-                serviceId: $trace['sid'],
-                traceId: $trace['tid'],
-                parentTraceId: $trace['ptid'],
-                type: $trace['tp'],
-                status: $trace['st'],
-                tags: $this->parseTagsFromDb($trace['tgs']),
-                data: (new TraceDataToObjectBuilder($trace['dt']))->build(),
-                duration: $trace['dur'],
-                memory: $trace['mem'],
-                cpu: $trace['cpu'],
-                hasProfiling: $trace['hpr'] ?? false,
-                loggedAt: new Carbon($trace['lat']->toDateTime()),
-                createdAt: new Carbon($trace['cat']->toDateTime()),
-                updatedAt: new Carbon($trace['uat']->toDateTime())
-            );
+        foreach ($cursor as $document) {
+            $traces[] = $this->makeTraceDtoFromDocument($document);
         }
 
         return $traces;
@@ -764,6 +748,27 @@ readonly class TraceRepository implements TraceRepositoryInterface
             loggedAt: $trace->lat,
             createdAt: $trace->cat,
             updatedAt: $trace->uat
+        );
+    }
+
+    private function makeTraceDtoFromDocument(array $document): TraceDto
+    {
+        return new TraceDto(
+            id: $document['_id'],
+            serviceId: $document['sid'],
+            traceId: $document['tid'],
+            parentTraceId: $document['ptid'],
+            type: $document['tp'],
+            status: $document['st'],
+            tags: $this->parseTagsFromDb($document['tgs']),
+            data: (new TraceDataToObjectBuilder($document['dt']))->build(),
+            duration: $document['dur'],
+            memory: $document['mem'],
+            cpu: $document['cpu'],
+            hasProfiling: $document['hpr'] ?? false,
+            loggedAt: new Carbon($document['lat']->toDateTime()),
+            createdAt: new Carbon($document['cat']->toDateTime()),
+            updatedAt: new Carbon($document['uat']->toDateTime())
         );
     }
 }
