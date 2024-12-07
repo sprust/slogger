@@ -3,20 +3,19 @@
 namespace App\Modules\Trace\Repositories;
 
 use App\Models\Traces\Trace;
-use App\Modules\Common\Entities\PaginationInfoObject;
+use App\Modules\Common\Enums\SortDirectionEnum;
 use App\Modules\Trace\Contracts\Repositories\TraceRepositoryInterface;
 use App\Modules\Trace\Entities\Trace\Timestamp\TraceTimestampMetricObject;
 use App\Modules\Trace\Entities\Trace\TraceDetailObject;
-use App\Modules\Trace\Entities\Trace\TraceDetailPaginationObject;
 use App\Modules\Trace\Entities\Trace\TraceIndexInfoObject;
 use App\Modules\Trace\Entities\Trace\TraceObject;
 use App\Modules\Trace\Entities\Trace\TraceServiceObject;
 use App\Modules\Trace\Entities\Trace\TraceTypeCountedObject;
 use App\Modules\Trace\Parameters\Data\TraceDataFilterParameters;
-use App\Modules\Trace\Parameters\TraceSortParameters;
 use App\Modules\Trace\Repositories\Dto\Trace\Profiling\TraceProfilingDataDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Profiling\TraceProfilingDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Profiling\TraceProfilingItemDto;
+use App\Modules\Trace\Repositories\Dto\Trace\TraceDto;
 use App\Modules\Trace\Repositories\Dto\Trace\TraceLoggedAtDto;
 use App\Modules\Trace\Repositories\Services\PeriodicTraceService;
 use App\Modules\Trace\Repositories\Services\TraceDataToObjectBuilder;
@@ -274,7 +273,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
         ?TraceDataFilterParameters $data = null,
         ?bool $hasProfiling = null,
         ?array $sort = null,
-    ): TraceDetailPaginationObject {
+    ): array {
         $builder = $this->traceQueryBuilder->make(
             serviceIds: $serviceIds,
             traceIds: $traceIds,
@@ -293,56 +292,71 @@ readonly class TraceRepository implements TraceRepositoryInterface
             hasProfiling: $hasProfiling,
         );
 
-        $tracesPaginator = $builder
-            ->select([
-                '_id',
-                'sid',
-                'tid',
-                'ptid',
-                'tp',
-                'st',
-                'tgs',
-                'dt',
-                'dur',
-                'mem',
-                'cpu',
-                'hpr',
-                'lat',
-                'cat',
-                'uat',
-            ])
-            ->with([
-                'service',
-            ])
-            ->when(
-                !is_null($sort),
-                function (Builder $query) use ($sort) {
-                    /** @var TraceSortParameters[] $sort */
+        $match = $this->traceQueryBuilder->makeMqlMatchFromBuilder($builder);
 
-                    foreach ($sort as $sortItem) {
-                        $query->orderBy($sortItem->field, $sortItem->directionEnum->value);
-                    }
-                }
-            )
-            ->forPage(
-                page: $page,
-                perPage: $perPage
-            );
-
-        /** @var Trace[] $traces */
-        $traces = $tracesPaginator->get()->all();
-
-        return new TraceDetailPaginationObject(
-            items: array_map(
-                fn(Trace $trace) => $this->makeDetailFromModel($trace),
-                $traces
-            ),
-            paginationInfo: new PaginationInfoObject(
-                total: 0,
-                perPage: $perPage,
-                currentPage: $page,
-            )
+        $aggregation = $this->periodicTraceService->makeAggregation(
+            loggedAtFrom: $loggedAtFrom,
+            loggedAtTo: $loggedAtTo,
+            match: $match
         );
+
+        if (is_null($aggregation)) {
+            return [];
+        }
+
+        $pipeline = $aggregation->pipeline;
+
+        if (!is_null($sort) && count($sort)) {
+            $sortPipeLine = [];
+
+            foreach ($sort as $sortItem) {
+                $sortPipeLine[$sortItem->field] = match ($sortItem->directionEnum) {
+                    SortDirectionEnum::Asc => 1,
+                    SortDirectionEnum::Desc => -1,
+                };
+            }
+
+            $pipeline[] = [
+                '$sort' => $sortPipeLine,
+            ];
+        }
+
+        $pipeline[] = [
+            '$skip' => ($page - 1) * $perPage,
+        ];
+        $pipeline[] = [
+            '$limit' => $perPage,
+        ];
+
+        $cursor = $this->periodicTraceService->aggregate(
+            collectionName: $aggregation->collectionName,
+            pipeline: $pipeline
+        );
+
+        /** @var TraceDto[] $traces */
+        $traces = [];
+
+        foreach ($cursor as $trace) {
+            $traces[] = new TraceDto(
+                id: $trace['_id'],
+                serviceId: $trace['sid'],
+                traceId: $trace['tid'],
+                parentTraceId: $trace['ptid'],
+                type: $trace['tp'],
+                status: $trace['st'],
+                tags: $this->parseTagsFromDb($trace['tgs']),
+                data: (new TraceDataToObjectBuilder($trace['dt']))->build(),
+                duration: $trace['dur'],
+                memory: $trace['mem'],
+                cpu: $trace['cpu'],
+                hasProfiling: $trace['hpr'] ?? false,
+                loggedAt: new Carbon($trace['lat']->toDateTime()),
+                createdAt: new Carbon($trace['cat']->toDateTime()),
+                updatedAt: new Carbon($trace['uat']->toDateTime())
+            );
+        }
+
+        return $traces;
     }
 
     public function findTraceIds(
@@ -600,9 +614,9 @@ readonly class TraceRepository implements TraceRepositoryInterface
     /**
      * @throws Throwable
      */
-    public function createIndex(string $name, array $fields): bool
+    public function createIndex(string $name, array $collectionNames, array $fields): bool
     {
-        if (empty($fields)) {
+        if (empty($collectionNames) || empty($fields)) {
             return false;
         }
 
@@ -612,20 +626,20 @@ readonly class TraceRepository implements TraceRepositoryInterface
             $index[$field->fieldName] = 1;
         }
 
-        try {
-            Trace::collection()->createIndex(
-                $index,
-                [
-                    'name'       => $name,
-                    'background' => true,
-                ],
-            );
-        } catch (Throwable $exception) {
-            if (str_starts_with($exception->getMessage(), 'Index already exists with a different name')) {
-                return false;
-            }
+        foreach ($collectionNames as $collectionName) {
+            try {
+                $this->periodicTraceService->createIndex(
+                    indexName: $name,
+                    collectionName: $collectionName,
+                    index: $index
+                );
+            } catch (Throwable $exception) {
+                if (str_starts_with($exception->getMessage(), 'Index already exists with a different name')) {
+                    continue;
+                }
 
-            throw $exception;
+                throw $exception;
+            }
         }
 
         return true;
@@ -684,9 +698,14 @@ readonly class TraceRepository implements TraceRepositoryInterface
         return $min ? new Carbon($min->toDateTime()) : null;
     }
 
-    public function deleteIndexByName(string $name): void
+    public function deleteIndexByName(string $indexName, array $collectionNames): void
     {
-        Trace::collection()->dropIndex($name);
+        foreach ($collectionNames as $collectionName) {
+            $this->periodicTraceService->deleteIndex(
+                collectionName: $collectionName,
+                indexName: $indexName
+            );
+        }
     }
 
     /**

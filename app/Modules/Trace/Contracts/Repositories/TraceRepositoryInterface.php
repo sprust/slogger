@@ -14,6 +14,7 @@ use App\Modules\Trace\Parameters\TraceSortParameters;
 use App\Modules\Trace\Parameters\TraceUpdateParameters;
 use App\Modules\Trace\Repositories\Dto\DynamicIndex\TraceDynamicIndexFieldDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Profiling\TraceProfilingDto;
+use App\Modules\Trace\Repositories\Dto\Trace\TraceDto;
 use App\Modules\Trace\Repositories\Dto\Trace\TraceLoggedAtDto;
 use Illuminate\Support\Carbon;
 
@@ -49,6 +50,8 @@ interface TraceRepositoryInterface
      * @param string[]                   $tags
      * @param string[]                   $statuses
      * @param TraceSortParameters[]|null $sort
+     *
+     * @return TraceDto[]
      */
     public function find(
         int $page = 1,
@@ -69,7 +72,7 @@ interface TraceRepositoryInterface
         ?TraceDataFilterParameters $data = null,
         ?bool $hasProfiling = null,
         ?array $sort = null,
-    ): TraceDetailPaginationObject;
+    ): array;
 
     /**
      * @return string[]
@@ -126,9 +129,10 @@ interface TraceRepositoryInterface
     ): int;
 
     /**
+     * @param string[]                    $collectionNames
      * @param TraceDynamicIndexFieldDto[] $fields
      */
-    public function createIndex(string $name, array $fields): bool;
+    public function createIndex(string $name, array $collectionNames, array $fields): bool;
 
     /**
      * @return TraceIndexInfoObject[]
@@ -137,5 +141,8 @@ interface TraceRepositoryInterface
 
     public function findMinLoggedAt(): ?Carbon;
 
-    public function deleteIndexByName(string $name): void;
+    /**
+     * @param string[] $collectionNames
+     */
+    public function deleteIndexByName(string $indexName, array $collectionNames): void;
 }

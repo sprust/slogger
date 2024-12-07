@@ -12,8 +12,8 @@ readonly class FindServicesAction implements FindServicesActionInterface
     ) {
     }
 
-    public function handle(): array
+    public function handle(?array $ids = null): array
     {
-        return $this->serviceRepository->find();
+        return $this->serviceRepository->find(ids: $ids);
     }
 }

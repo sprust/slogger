@@ -3,19 +3,21 @@
 namespace App\Modules\Trace\Domain\Actions\Queries;
 
 use App\Modules\Common\Entities\PaginationInfoObject;
+use App\Modules\Service\Contracts\Actions\FindServicesActionInterface;
+use App\Modules\Service\Entities\ServiceObject;
 use App\Modules\Trace\Contracts\Actions\Queries\FindTracesActionInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceRepositoryInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceTreeRepositoryInterface;
 use App\Modules\Trace\Domain\Services\TraceDynamicIndexInitializer;
 use App\Modules\Trace\Entities\Trace\Data\TraceDataAdditionalFieldObject;
 use App\Modules\Trace\Entities\Trace\Data\TraceDataObject;
-use App\Modules\Trace\Entities\Trace\TraceDetailObject;
 use App\Modules\Trace\Entities\Trace\TraceItemObject;
 use App\Modules\Trace\Entities\Trace\TraceItemObjects;
 use App\Modules\Trace\Entities\Trace\TraceItemTraceObject;
 use App\Modules\Trace\Entities\Trace\TraceServiceObject;
 use App\Modules\Trace\Entities\Trace\TraceTypeCountedObject;
 use App\Modules\Trace\Parameters\TraceFindParameters;
+use App\Modules\Trace\Repositories\Dto\Trace\TraceDto;
 use Illuminate\Support\Arr;
 
 readonly class FindTracesAction implements FindTracesActionInterface
@@ -25,6 +27,7 @@ readonly class FindTracesAction implements FindTracesActionInterface
     public function __construct(
         private TraceRepositoryInterface $traceRepository,
         private TraceTreeRepositoryInterface $traceTreeRepository,
+        private FindServicesActionInterface $findServicesAction,
         private TraceDynamicIndexInitializer $traceDynamicIndexInitializer
     ) {
         $this->maxPerPage = 20;
@@ -37,9 +40,9 @@ readonly class FindTracesAction implements FindTracesActionInterface
         $traceIds = null;
 
         if ($parameters->traceId) {
-            $trace = $this->traceRepository->findOneDetailByTraceId($parameters->traceId);
+            $traceDto = $this->traceRepository->findOneDetailByTraceId($parameters->traceId);
 
-            if (!$trace) {
+            if (!$traceDto) {
                 return new TraceItemObjects(
                     items: [],
                     paginationInfo: new PaginationInfoObject(
@@ -55,7 +58,7 @@ readonly class FindTracesAction implements FindTracesActionInterface
                     $parameters->traceId,
                 ];
             } else {
-                $parentTraceId = $this->traceTreeRepository->findParentTraceId($trace->traceId);
+                $parentTraceId = $this->traceTreeRepository->findParentTraceId($traceDto->traceId);
 
                 $traceIds = $parentTraceId
                     ? $this->traceTreeRepository->findTraceIdsInTreeByParentTraceId($parentTraceId)
@@ -84,7 +87,7 @@ readonly class FindTracesAction implements FindTracesActionInterface
             sort: $parameters->sort,
         );
 
-        $traceItemsPagination = $this->traceRepository->find(
+        $tracesDto = $this->traceRepository->find(
             page: $parameters->page,
             perPage: $perPage,
             serviceIds: $parameters->serviceIds,
@@ -105,14 +108,34 @@ readonly class FindTracesAction implements FindTracesActionInterface
             sort: $parameters->sort,
         );
 
-        $traceTypeCounts = empty($traceItemsPagination->items)
-            ? []
-            : $this->traceRepository->findTypeCounts(
+        $traceTypeCounts = count($tracesDto)
+            ? $this->traceRepository->findTypeCounts(
                 traceIds: array_map(
-                    fn(TraceDetailObject $traceDto) => $traceDto->traceId,
-                    $traceItemsPagination->items
+                    fn(TraceDto $traceDto) => $traceDto->traceId,
+                    $tracesDto
                 )
-            );
+            )
+            : [];
+
+        $serviceIds = array_unique(
+            array_filter(
+                array_map(
+                    fn(TraceDto $traceDto) => $traceDto->serviceId,
+                    $tracesDto
+                )
+            )
+        );
+
+        /** @var array<int, ServiceObject> $servicesKeyById */
+        $servicesKeyById = count($serviceIds)
+            ? Arr::keyBy(
+                $this->findServicesAction->handle(
+                    ids: $serviceIds
+                ),
+                fn(ServiceObject $service) => $service->id
+            )
+            : [];
+
 
         /** @var TraceTypeCountedObject[] $groupedTypeCounts */
         $groupedTypeCounts = collect($traceTypeCounts)
@@ -121,34 +144,38 @@ readonly class FindTracesAction implements FindTracesActionInterface
 
         $resultItems = [];
 
-        foreach ($traceItemsPagination->items as $trace) {
+        foreach ($tracesDto as $traceDto) {
+            $service = $traceDto->serviceId
+                ? $servicesKeyById[$traceDto->serviceId] ?? null
+                : null;
+
             /** @var TraceTypeCountedObject[] $types */
-            $types = $groupedTypeCounts[$trace->traceId] ?? [];
+            $types = $groupedTypeCounts[$traceDto->traceId] ?? [];
 
             $resultItems[] = new TraceItemObject(
                 trace: new TraceItemTraceObject(
-                    service: $trace->service
+                    service: $service
                         ? new TraceServiceObject(
-                            id: $trace->service->id,
-                            name: $trace->service->name,
+                            id: $service->id,
+                            name: $service->name,
                         )
                         : null,
-                    traceId: $trace->traceId,
-                    parentTraceId: $trace->parentTraceId,
-                    type: $trace->type,
-                    status: $trace->status,
-                    tags: $trace->tags,
-                    duration: $trace->duration,
-                    memory: $trace->memory,
-                    cpu: $trace->cpu,
-                    hasProfiling: $trace->hasProfiling,
+                    traceId: $traceDto->traceId,
+                    parentTraceId: $traceDto->parentTraceId,
+                    type: $traceDto->type,
+                    status: $traceDto->status,
+                    tags: $traceDto->tags,
+                    duration: $traceDto->duration,
+                    memory: $traceDto->memory,
+                    cpu: $traceDto->cpu,
+                    hasProfiling: $traceDto->hasProfiling,
                     additionalFields: $this->makeTraceAdditionalFields(
-                        data: $trace->data,
+                        data: $traceDto->data,
                         additionalFields: $parameters->data?->fields ?? []
                     ),
-                    loggedAt: $trace->loggedAt,
-                    createdAt: $trace->createdAt,
-                    updatedAt: $trace->updatedAt
+                    loggedAt: $traceDto->loggedAt,
+                    createdAt: $traceDto->createdAt,
+                    updatedAt: $traceDto->updatedAt
                 ),
                 types: $types
             );
@@ -156,7 +183,11 @@ readonly class FindTracesAction implements FindTracesActionInterface
 
         return new TraceItemObjects(
             items: $resultItems,
-            paginationInfo: $traceItemsPagination->paginationInfo,
+            paginationInfo: new PaginationInfoObject(
+                total: 0,
+                perPage: $perPage,
+                currentPage: $parameters->page,
+            ),
         );
     }
 

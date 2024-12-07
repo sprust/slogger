@@ -23,7 +23,9 @@ return new class extends Migration {
                     '$jsonSchema' => [
                         'bsonType'   => 'object',
                         'required'   => [
+                            'indexName',
                             'name',
+                            'collectionNames',
                             'fields',
                             'inProcess',
                             'created',
@@ -31,22 +33,28 @@ return new class extends Migration {
                             'createdAt',
                         ],
                         'properties' => [
-                            'name'          => [
+                            'name'            => [
                                 'bsonType' => 'string',
                             ],
-                            'fields'        => [
+                            'indexName'       => [
+                                'bsonType' => 'string',
+                            ],
+                            'collectionNames' => [
                                 'bsonType' => 'array',
                             ],
-                            'inProcess'     => [
+                            'fields'          => [
+                                'bsonType' => 'array',
+                            ],
+                            'inProcess'       => [
                                 'bsonType' => 'bool',
                             ],
-                            'created'      => [
+                            'created'         => [
                                 'bsonType' => 'bool',
                             ],
-                            'actualUntilAt' => [
+                            'actualUntilAt'   => [
                                 'bsonType' => 'date',
                             ],
-                            'createdAt'     => [
+                            'createdAt'       => [
                                 'bsonType' => 'date',
                             ],
                         ],

@@ -96,7 +96,13 @@ class TraceServiceProvider extends BaseServiceProvider
 
                 $uri = "mongodb://$username:$password@$host:$port";
 
-                $client = new Client($uri, $options);
+                $client = new Client($uri, $options, [
+                    'typeMap' => [
+                        'array'    => 'array',
+                        'document' => 'array',
+                        'root'     => 'array',
+                    ],
+                ]);
 
                 return new PeriodicTraceService(
                     $client->selectDatabase($database)

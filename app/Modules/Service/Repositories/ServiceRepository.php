@@ -5,13 +5,21 @@ namespace App\Modules\Service\Repositories;
 use App\Models\Services\Service;
 use App\Modules\Service\Contracts\Repositories\ServiceRepositoryInterface;
 use App\Modules\Service\Entities\ServiceObject;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
 
 class ServiceRepository implements ServiceRepositoryInterface
 {
-    public function find(): array
+    /**
+     * @param int[]|null $ids
+     */
+    public function find(?array $ids = null): array
     {
         return Service::query()
+            ->when(
+                !is_null($ids),
+                fn(Builder $query) => $query->whereIn('id', $ids)
+            )
             ->select([
                 'id',
                 'name',
@@ -28,9 +36,9 @@ class ServiceRepository implements ServiceRepositoryInterface
     {
         $newService = new Service();
 
-        $newService->name       = $name;
+        $newService->name = $name;
         $newService->unique_key = $uniqueKey;
-        $newService->api_token  = Str::random(50);
+        $newService->api_token = Str::random(50);
 
         $newService->saveOrFail();
 

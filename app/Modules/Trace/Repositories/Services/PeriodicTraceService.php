@@ -2,10 +2,13 @@
 
 namespace App\Modules\Trace\Repositories\Services;
 
+use App\Modules\Trace\Repositories\Dto\PeriodicTraceAggregationDto;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
+use Iterator;
 use MongoDB\Collection;
 use MongoDB\Database;
+use MongoDB\Driver\CursorInterface;
 use RuntimeException;
 use Throwable;
 
@@ -125,7 +128,24 @@ class PeriodicTraceService
     public function existsTrace(string $collectionName, string $traceId): bool
     {
         return $this->database->selectCollection($collectionName)
-            ->countDocuments(['tid' => $traceId], ['limit' => 1]) > 0;
+                ->countDocuments(['tid' => $traceId], ['limit' => 1]) > 0;
+    }
+
+    public function createIndex(string $indexName, string $collectionName, array $index): void
+    {
+        $this->database->selectCollection($collectionName)
+            ->createIndex(
+                key: $index,
+                options: [
+                    'name' => $indexName,
+                ]
+            );
+    }
+
+    public function deleteIndex(string $collectionName, string $indexName): void
+    {
+        $this->database->selectCollection($collectionName)
+            ->dropIndex($indexName);
     }
 
     public function makeCollectionName(Carbon $loggedAt): string
@@ -139,5 +159,64 @@ class PeriodicTraceService
         $hourToFormatted   = sprintf('%02d', $hourTo);
 
         return "traces_{$date}_{$hourFromFormatted}_$hourToFormatted";
+    }
+
+    /**
+     * @param array<string, mixed> $match
+     */
+    public function makeAggregation(
+        ?Carbon $loggedAtFrom = null,
+        ?Carbon $loggedAtTo = null,
+        array $match = []
+    ): ?PeriodicTraceAggregationDto {
+        $collectionNames = $this->detectCollectionNames(
+            loggedAtFrom: $loggedAtFrom,
+            loggedAtTo: $loggedAtTo
+        );
+
+        if (!count($collectionNames)) {
+            return null;
+        }
+
+        $hasMatch = count($match) > 0;
+
+        $pipeline = [];
+
+        $first = true;
+
+        foreach ($collectionNames as $collectionName) {
+            if ($first) {
+                if ($hasMatch) {
+                    $pipeline[] = [
+                        '$match' => $match,
+                    ];
+                }
+
+                $first = false;
+
+                continue;
+            }
+
+            $pipeline[] = [
+                '$unionWith' => [
+                    'coll' => $collectionName,
+                    ...($hasMatch ? ['pipeline' => [['$match' => $match]]] : []),
+                ],
+            ];
+        }
+
+        return new PeriodicTraceAggregationDto(
+            collectionName: $collectionNames[0],
+            pipeline: $pipeline
+        );
+    }
+
+    /**
+     * @param array<array<string, mixed>> $pipeline
+     */
+    public function aggregate(string $collectionName, array $pipeline): CursorInterface&Iterator
+    {
+        return $this->database->selectCollection($collectionName)
+            ->aggregate($pipeline);
     }
 }

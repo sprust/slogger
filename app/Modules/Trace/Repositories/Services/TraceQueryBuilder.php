@@ -85,7 +85,7 @@ class TraceQueryBuilder
      *
      * @param Builder|MongoDBBuilder $builder
      *
-     * @return array
+     * @return array<string, mixed>
      */
     public function makeMqlMatchFromBuilder(Builder $builder): array
     {
