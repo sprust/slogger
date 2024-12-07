@@ -33,8 +33,10 @@ class PeriodicTraceService
      */
     public function detectCollectionNames(?Carbon $loggedAtFrom = null, ?Carbon $loggedAtTo = null): array
     {
-        $allCollectionNames = Arr::sort(
-            iterator_to_array($this->database->listCollectionNames())
+        $allCollectionNames = array_values(
+            Arr::sort(
+                iterator_to_array($this->database->listCollectionNames())
+            )
         );
 
         if (!$loggedAtFrom && !$loggedAtTo) {

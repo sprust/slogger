@@ -2,7 +2,6 @@
 
 namespace App\Modules\Trace\Repositories;
 
-use App\Models\Traces\Trace;
 use App\Modules\Trace\Contracts\Repositories\TraceTimestampsRepositoryInterface;
 use App\Modules\Trace\Enums\TraceMetricFieldAggregatorEnum;
 use App\Modules\Trace\Enums\TraceMetricFieldEnum;
@@ -13,6 +12,7 @@ use App\Modules\Trace\Repositories\Dto\Trace\Timestamp\TraceTimestampFieldDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Timestamp\TraceTimestampFieldIndicatorDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Timestamp\TraceTimestampsDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Timestamp\TraceTimestampsListDto;
+use App\Modules\Trace\Repositories\Services\PeriodicTraceService;
 use App\Modules\Trace\Repositories\Services\TraceQueryBuilder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
@@ -22,7 +22,8 @@ use RuntimeException;
 readonly class TraceTimestampsRepository implements TraceTimestampsRepositoryInterface
 {
     public function __construct(
-        private TraceQueryBuilder $traceQueryBuilder
+        private TraceQueryBuilder $traceQueryBuilder,
+        private PeriodicTraceService $periodicTraceService
     ) {
     }
 
@@ -100,11 +101,20 @@ readonly class TraceTimestampsRepository implements TraceTimestampsRepositoryInt
             }
         }
 
-        $pipeline = [
-            [
-                '$match' => $match,
-            ],
-        ];
+        $aggregation = $this->periodicTraceService->makeAggregation(
+            loggedAtFrom: $loggedAtFrom,
+            loggedAtTo: $loggedAtTo,
+            match: $match
+        );
+
+        if (is_null($aggregation)) {
+            return new TraceTimestampsListDto(
+                timestamps: [],
+                emptyIndicators: [],
+            );
+        }
+
+        $pipeline = $aggregation->pipeline;
 
         $groups = [];
 
@@ -157,11 +167,14 @@ readonly class TraceTimestampsRepository implements TraceTimestampsRepositoryInt
             ],
         ];
 
-        $aggregation = Trace::collection()->aggregate($pipeline);
+        $cursor = $this->periodicTraceService->aggregate(
+            collectionName: $aggregation->collectionName,
+            pipeline: $pipeline
+        );
 
         $metrics = [];
 
-        foreach ($aggregation as $item) {
+        foreach ($cursor as $item) {
             $groupIndicatorsDtoList = [];
 
             foreach ($groupsMatch as $fieldName => $aggregators) {
@@ -170,7 +183,7 @@ readonly class TraceTimestampsRepository implements TraceTimestampsRepositoryInt
                 foreach ($aggregators as $key => $aggregator) {
                     $indicators[] = new TraceTimestampFieldIndicatorDto(
                         name: $aggregator,
-                        value: round(is_numeric($item->{$key}) ? $item->{$key} : 0, 6),
+                        value: round(is_numeric($item[$key]) ? $item[$key] : 0, 6),
                     );
                 }
 
@@ -181,7 +194,7 @@ readonly class TraceTimestampsRepository implements TraceTimestampsRepositoryInt
             }
 
             $metrics[] = new TraceTimestampsDto(
-                timestamp: new Carbon($item->_id->timestamp->toDateTime()),
+                timestamp: new Carbon($item['_id']['timestamp']->toDateTime()),
                 indicators: $groupIndicatorsDtoList
             );
         }

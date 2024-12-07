@@ -27,6 +27,7 @@ use RrParallel\Exceptions\ParallelJobsException;
 use RrParallel\Exceptions\WaitTimeoutException;
 use RrParallel\Services\Dto\JobResultsDto;
 use RrParallel\Services\ParallelPusherInterface;
+use RuntimeException;
 
 readonly class FindTraceTimestampsAction implements FindTraceTimestampsActionInterface
 {
@@ -114,6 +115,8 @@ readonly class FindTraceTimestampsAction implements FindTraceTimestampsActionInt
             serviceIds: $parameters->serviceIds,
             timestampStep: $parameters->timestampStep,
             traceIds: $parameters->traceIds,
+            loggedAtFrom: $loggedAtFrom,
+            loggedAtTo: $loggedAtTo,
             types: $parameters->types,
             tags: $parameters->tags,
             statuses: $parameters->statuses,
@@ -169,6 +172,19 @@ readonly class FindTraceTimestampsAction implements FindTraceTimestampsActionInt
 
         /** @var JobResultsDto<TraceTimestampsListDto> $results */
         $results = $waitGroup->wait(20);
+
+        // TODO: normal error handling
+        if ($results->hasFailed) {
+            $jobResultError = Arr::first($results->failed)->error;
+
+            if (!$jobResultError) {
+                throw new RuntimeException('Unknown error');
+            }
+
+            throw new RuntimeException(
+                $jobResultError->message . PHP_EOL . $jobResultError->traceAsString
+            );
+        }
 
         /** @var TraceTimestampsDto[] $timestampsResult */
         $timestampsResult = [];
