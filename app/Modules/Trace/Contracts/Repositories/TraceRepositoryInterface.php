@@ -13,7 +13,6 @@ use App\Modules\Trace\Parameters\TraceUpdateParameters;
 use App\Modules\Trace\Repositories\Dto\DynamicIndex\TraceDynamicIndexFieldDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Profiling\TraceProfilingDto;
 use App\Modules\Trace\Repositories\Dto\Trace\TraceDto;
-use App\Modules\Trace\Repositories\Dto\Trace\TraceLoggedAtDto;
 use Illuminate\Support\Carbon;
 
 interface TraceRepositoryInterface
@@ -29,11 +28,6 @@ interface TraceRepositoryInterface
      * @param TraceUpdateParameters[] $traces
      */
     public function updateMany(array $traces): int;
-
-    /**
-     * @return TraceLoggedAtDto[]
-     */
-    public function findLoggedAtList(int $page, int $perPage, Carbon $loggedAtTo): array;
 
     public function findOneDetailByTraceId(string $traceId): ?TraceDetailObject;
 

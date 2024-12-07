@@ -16,7 +16,6 @@ use App\Modules\Trace\Repositories\Dto\Trace\Profiling\TraceProfilingDataDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Profiling\TraceProfilingDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Profiling\TraceProfilingItemDto;
 use App\Modules\Trace\Repositories\Dto\Trace\TraceDto;
-use App\Modules\Trace\Repositories\Dto\Trace\TraceLoggedAtDto;
 use App\Modules\Trace\Repositories\Services\PeriodicTraceService;
 use App\Modules\Trace\Repositories\Services\TraceDataToObjectBuilder;
 use App\Modules\Trace\Repositories\Services\TraceQueryBuilder;
@@ -192,26 +191,6 @@ readonly class TraceRepository implements TraceRepositoryInterface
         }
 
         return $modifiedCount;
-    }
-
-    public function findLoggedAtList(int $page, int $perPage, Carbon $loggedAtTo): array
-    {
-        return Trace::query()
-            ->select([
-                'tid',
-                'lat',
-            ])
-            ->where('lat', '<=', $loggedAtTo)
-            ->orderBy('_id')
-            ->forPage(page: $page, perPage: $perPage)
-            ->get()
-            ->map(
-                fn(Trace $trace) => new TraceLoggedAtDto(
-                    traceId: $trace->tid,
-                    loggedAt: $trace->lat
-                )
-            )
-            ->toArray();
     }
 
     public function findOneDetailByTraceId(string $traceId): ?TraceDetailObject
