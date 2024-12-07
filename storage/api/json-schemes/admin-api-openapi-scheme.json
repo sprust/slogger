@@ -168,6 +168,10 @@
                                                         "type": "number",
                                                         "nullable": false
                                                     },
+                                                    "total_documents_count": {
+                                                        "type": "integer",
+                                                        "nullable": false
+                                                    },
                                                     "memory_usage": {
                                                         "type": "number",
                                                         "nullable": false
@@ -242,6 +246,7 @@
                                                 "required": [
                                                     "name",
                                                     "size",
+                                                    "total_documents_count",
                                                     "memory_usage",
                                                     "collections"
                                                 ]

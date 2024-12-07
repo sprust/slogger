@@ -7,6 +7,7 @@ use App\Modules\Dashboard\Entities\DatabaseCollectionIndexStatObject;
 use App\Modules\Dashboard\Entities\DatabaseCollectionStatObject;
 use App\Modules\Dashboard\Entities\DatabaseStatObject;
 use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use MongoDB\Driver\Command;
 use MongoDB\Driver\Exception\Exception;
@@ -56,7 +57,14 @@ readonly class DatabaseStatRepository implements DatabaseStatRepositoryInterface
 
             $collections = [];
 
-            foreach ($connection->listCollections() as $collectionInfo) {
+            $totalDocumentsCount = 0;
+
+            $listCollections = Arr::sort(
+                iterator_to_array($connection->listCollections()),
+                fn($collectionInfo) => $collectionInfo->getName()
+            );
+
+            foreach ($listCollections as $collectionInfo) {
                 if ($collectionInfo->getType() === 'view') {
                     continue;
                 }
@@ -90,12 +98,16 @@ readonly class DatabaseStatRepository implements DatabaseStatRepositoryInterface
 
                 $storageStats = $collStats['storageStats'];
 
+                $documentsCount = $storageStats['count'];
+
+                $totalDocumentsCount += $documentsCount;
+
                 $collections[] = new DatabaseCollectionStatObject(
                     name: $collectionName,
                     size: $this->bitesToMb($storageStats['size']),
                     indexesSize: $this->bitesToMb($storageStats['totalIndexSize']),
                     totalSize: $this->bitesToMb($storageStats['totalSize']),
-                    count: $storageStats['count'],
+                    count: $documentsCount,
                     avgObjSize: $this->bitesToMb($storageStats['avgObjSize'] ?? 0),
                     indexes: collect($storageStats['indexSizes'])
                         ->map(
@@ -113,6 +125,7 @@ readonly class DatabaseStatRepository implements DatabaseStatRepositoryInterface
             $databases[] = new DatabaseStatObject(
                 name: $databaseName,
                 size: $databaseSize,
+                totalDocumentsCount: $totalDocumentsCount,
                 memoryUsage: $memoryUsageSize,
                 collections: $collections
             );
