@@ -26,6 +26,7 @@ use App\Modules\Trace\Contracts\Actions\Queries\FindTraceDynamicIndexStatsAction
 use App\Modules\Trace\Contracts\Actions\Queries\FindTraceIdsActionInterface;
 use App\Modules\Trace\Contracts\Actions\Queries\FindTraceProfilingActionInterface;
 use App\Modules\Trace\Contracts\Actions\Queries\FindTracesActionInterface;
+use App\Modules\Trace\Contracts\Actions\Queries\FindTraceServicesActionInterface;
 use App\Modules\Trace\Contracts\Actions\Queries\FindTraceTimestampsActionInterface;
 use App\Modules\Trace\Contracts\Actions\Queries\FindTraceTreeActionInterface;
 use App\Modules\Trace\Contracts\Actions\Queries\FindTypesActionInterface;
@@ -58,6 +59,7 @@ use App\Modules\Trace\Domain\Actions\Queries\FindTraceDynamicIndexStatsAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceIdsAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceProfilingAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTracesAction;
+use App\Modules\Trace\Domain\Actions\Queries\FindTraceServicesAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceTimestampsAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceTreeAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTypesAction;
@@ -160,6 +162,7 @@ class TraceServiceProvider extends BaseServiceProvider
             FindMinLoggedAtTracesActionInterface::class           => FindMinLoggedAtTracesAction::class,
             FindTraceAdminStoreActionInterface::class             => FindTraceAdminStoreAction::class,
             FindTraceIdsActionInterface::class                    => FindTraceIdsAction::class,
+            FindTraceServicesActionInterface::class               => FindTraceServicesAction::class,
         ];
     }
 }

@@ -244,6 +244,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
         ?bool $hasProfiling = null,
         ?array $sort = null,
     ): array {
+        // TODO: refactored for unusage of model
         $builder = $this->traceQueryBuilder->make(
             serviceIds: $serviceIds,
             traceIds: $traceIds,

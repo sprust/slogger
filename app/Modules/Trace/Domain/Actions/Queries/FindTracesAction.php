@@ -3,9 +3,8 @@
 namespace App\Modules\Trace\Domain\Actions\Queries;
 
 use App\Modules\Common\Entities\PaginationInfoObject;
-use App\Modules\Service\Contracts\Actions\FindServicesActionInterface;
-use App\Modules\Service\Entities\ServiceObject;
 use App\Modules\Trace\Contracts\Actions\Queries\FindTracesActionInterface;
+use App\Modules\Trace\Contracts\Actions\Queries\FindTraceServicesActionInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceRepositoryInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceTreeRepositoryInterface;
 use App\Modules\Trace\Domain\Services\TraceDynamicIndexInitializer;
@@ -27,7 +26,7 @@ readonly class FindTracesAction implements FindTracesActionInterface
     public function __construct(
         private TraceRepositoryInterface $traceRepository,
         private TraceTreeRepositoryInterface $traceTreeRepository,
-        private FindServicesActionInterface $findServicesAction,
+        private FindTraceServicesActionInterface $findTraceServicesAction,
         private TraceDynamicIndexInitializer $traceDynamicIndexInitializer
     ) {
         $this->maxPerPage = 20;
@@ -126,16 +125,9 @@ readonly class FindTracesAction implements FindTracesActionInterface
             )
         );
 
-        /** @var array<int, ServiceObject> $servicesKeyById */
-        $servicesKeyById = count($serviceIds)
-            ? Arr::keyBy(
-                $this->findServicesAction->handle(
-                    ids: $serviceIds
-                ),
-                fn(ServiceObject $service) => $service->id
-            )
-            : [];
-
+        $traceServices = $this->findTraceServicesAction->handle(
+            serviceIds: $serviceIds
+        );
 
         /** @var TraceTypeCountedObject[] $groupedTypeCounts */
         $groupedTypeCounts = collect($traceTypeCounts)
@@ -146,7 +138,7 @@ readonly class FindTracesAction implements FindTracesActionInterface
 
         foreach ($tracesDto as $traceDto) {
             $service = $traceDto->serviceId
-                ? $servicesKeyById[$traceDto->serviceId] ?? null
+                ? $traceServices->getById($traceDto->serviceId)
                 : null;
 
             /** @var TraceTypeCountedObject[] $types */
