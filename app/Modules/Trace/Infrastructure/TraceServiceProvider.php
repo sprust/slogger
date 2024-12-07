@@ -13,7 +13,6 @@ use App\Modules\Trace\Contracts\Actions\Mutations\DeleteTraceAdminStoreActionInt
 use App\Modules\Trace\Contracts\Actions\Mutations\DeleteTraceDynamicIndexActionInterface;
 use App\Modules\Trace\Contracts\Actions\Mutations\DeleteTracesActionInterface;
 use App\Modules\Trace\Contracts\Actions\Mutations\FlushDynamicIndexesActionInterface;
-use App\Modules\Trace\Contracts\Actions\Mutations\FreshTraceTimestampsActionInterface;
 use App\Modules\Trace\Contracts\Actions\Mutations\StartMonitorTraceDynamicIndexesActionInterface;
 use App\Modules\Trace\Contracts\Actions\Mutations\StopMonitorTraceDynamicIndexesActionInterface;
 use App\Modules\Trace\Contracts\Actions\Mutations\UpdateTraceManyActionInterface;
@@ -46,7 +45,6 @@ use App\Modules\Trace\Domain\Actions\Mutations\DeleteTraceAdminStoreAction;
 use App\Modules\Trace\Domain\Actions\Mutations\DeleteTraceDynamicIndexAction;
 use App\Modules\Trace\Domain\Actions\Mutations\DeleteTracesAction;
 use App\Modules\Trace\Domain\Actions\Mutations\FlushDynamicIndexesAction;
-use App\Modules\Trace\Domain\Actions\Mutations\FreshTraceTimestampsAction;
 use App\Modules\Trace\Domain\Actions\Mutations\StartMonitorTraceDynamicIndexesAction;
 use App\Modules\Trace\Domain\Actions\Mutations\StopMonitorTraceDynamicIndexesAction;
 use App\Modules\Trace\Domain\Actions\Mutations\UpdateTraceManyAction;
@@ -66,7 +64,6 @@ use App\Modules\Trace\Domain\Actions\Queries\FindTypesAction;
 use App\Modules\Trace\Domain\Services\TraceDynamicIndexInitializer;
 use App\Modules\Trace\Domain\Services\TraceFieldTitlesService;
 use App\Modules\Trace\Infrastructure\Commands\FlushDynamicIndexesCommand;
-use App\Modules\Trace\Infrastructure\Commands\FreshTraceTimestampsCommand;
 use App\Modules\Trace\Infrastructure\Commands\StartMonitorTraceDynamicIndexesCommand;
 use App\Modules\Trace\Infrastructure\Commands\StopMonitorTraceDynamicIndexesCommand;
 use App\Modules\Trace\Infrastructure\Http\Services\TraceDynamicIndexingActionService;
@@ -118,7 +115,6 @@ class TraceServiceProvider extends BaseServiceProvider
         parent::boot();
 
         $this->commands([
-            FreshTraceTimestampsCommand::class,
             StartMonitorTraceDynamicIndexesCommand::class,
             StopMonitorTraceDynamicIndexesCommand::class,
             FlushDynamicIndexesCommand::class,
@@ -143,7 +139,6 @@ class TraceServiceProvider extends BaseServiceProvider
             CreateTraceManyActionInterface::class                 => CreateTraceManyAction::class,
             ClearTracesActionInterface::class                     => ClearTracesAction::class,
             DeleteTracesActionInterface::class                    => DeleteTracesAction::class,
-            FreshTraceTimestampsActionInterface::class            => FreshTraceTimestampsAction::class,
             UpdateTraceManyActionInterface::class                 => UpdateTraceManyAction::class,
             StartMonitorTraceDynamicIndexesActionInterface::class => StartMonitorTraceDynamicIndexesAction::class,
             StopMonitorTraceDynamicIndexesActionInterface::class  => StopMonitorTraceDynamicIndexesAction::class,

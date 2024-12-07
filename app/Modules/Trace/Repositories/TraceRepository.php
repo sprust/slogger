@@ -214,15 +214,6 @@ readonly class TraceRepository implements TraceRepositoryInterface
             ->toArray();
     }
 
-    public function updateTraceTimestamps(string $traceId, array $timestamps): void
-    {
-        Trace::query()
-            ->where('tid', $traceId)
-            ->update([
-                'tss' => $this->makeTimestampsData($timestamps),
-            ]);
-    }
-
     public function findOneDetailByTraceId(string $traceId): ?TraceDetailObject
     {
         /** @var Trace|null $trace */

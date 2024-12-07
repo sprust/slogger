@@ -2,9 +2,7 @@
 
 namespace App\Modules\Trace\Contracts\Repositories;
 
-use App\Modules\Trace\Entities\Trace\Timestamp\TraceTimestampMetricObject;
 use App\Modules\Trace\Entities\Trace\TraceDetailObject;
-use App\Modules\Trace\Entities\Trace\TraceDetailPaginationObject;
 use App\Modules\Trace\Entities\Trace\TraceIndexInfoObject;
 use App\Modules\Trace\Entities\Trace\TraceObject;
 use App\Modules\Trace\Entities\Trace\TraceTypeCountedObject;
@@ -36,11 +34,6 @@ interface TraceRepositoryInterface
      * @return TraceLoggedAtDto[]
      */
     public function findLoggedAtList(int $page, int $perPage, Carbon $loggedAtTo): array;
-
-    /**
-     * @param TraceTimestampMetricObject[] $timestamps
-     */
-    public function updateTraceTimestamps(string $traceId, array $timestamps): void;
 
     public function findOneDetailByTraceId(string $traceId): ?TraceDetailObject;
 
