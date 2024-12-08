@@ -147,7 +147,9 @@ export default defineComponent({
     create(auto: boolean) {
       if (auto) {
         this.store.state.adminStoreCreateParameters.title = this.generateTitle()
-      } else if (!this.store.state.adminStoreCreateParameters.title) {
+      }
+
+      if (!this.store.state.adminStoreCreateParameters.title) {
         return
       }
 

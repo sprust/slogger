@@ -241,7 +241,8 @@ readonly class TraceRepository implements TraceRepositoryInterface
         ?float $cpuTo = null,
         ?TraceDataFilterParameters $data = null,
         ?bool $hasProfiling = null,
-        ?array $sort = null, // TODO: delete
+        // TODO: delete this parameter
+        ?array $sort = null,
     ): array {
         $collectionNames = $this->periodicTraceService->detectCollectionNames(
             loggedAtFrom: $loggedAtFrom,
@@ -278,9 +279,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
         $match = $this->traceQueryBuilder->makeMqlMatchFromBuilder($builder);
 
         $pipeline = [
-            [
-                '$match' => $match,
-            ],
+            ...(count($match) ? [['$match' => $match]] : []),
             [
                 '$sort' => [
                     'lat' => -1,
