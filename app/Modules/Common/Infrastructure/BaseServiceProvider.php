@@ -17,4 +17,9 @@ abstract class BaseServiceProvider extends ServiceProvider
     {
         return [];
     }
+
+    protected function listen(string $eventClass, string $listenerClass): void
+    {
+        $this->app['events']->listen($eventClass, $listenerClass);
+    }
 }

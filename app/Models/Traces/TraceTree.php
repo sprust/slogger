@@ -13,8 +13,10 @@ class TraceTree extends AbstractTraceModel
 {
     public const UPDATED_AT = null;
 
+    protected $connection = 'mongodb.tracesPeriodic';
+
     function getCollectionName(): string
     {
-        return 'traceTreesView';
+        return '_traceTreesView';
     }
 }

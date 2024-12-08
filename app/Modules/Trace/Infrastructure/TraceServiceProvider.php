@@ -13,6 +13,7 @@ use App\Modules\Trace\Contracts\Actions\Mutations\DeleteTraceAdminStoreActionInt
 use App\Modules\Trace\Contracts\Actions\Mutations\DeleteTraceDynamicIndexActionInterface;
 use App\Modules\Trace\Contracts\Actions\Mutations\DeleteTracesActionInterface;
 use App\Modules\Trace\Contracts\Actions\Mutations\FlushDynamicIndexesActionInterface;
+use App\Modules\Trace\Contracts\Actions\Mutations\FreshTraceTreesActionInterface;
 use App\Modules\Trace\Contracts\Actions\Mutations\StartMonitorTraceDynamicIndexesActionInterface;
 use App\Modules\Trace\Contracts\Actions\Mutations\StopMonitorTraceDynamicIndexesActionInterface;
 use App\Modules\Trace\Contracts\Actions\Mutations\UpdateTraceManyActionInterface;
@@ -46,6 +47,7 @@ use App\Modules\Trace\Domain\Actions\Mutations\DeleteTraceAdminStoreAction;
 use App\Modules\Trace\Domain\Actions\Mutations\DeleteTraceDynamicIndexAction;
 use App\Modules\Trace\Domain\Actions\Mutations\DeleteTracesAction;
 use App\Modules\Trace\Domain\Actions\Mutations\FlushDynamicIndexesAction;
+use App\Modules\Trace\Domain\Actions\Mutations\FreshTraceTreesAction;
 use App\Modules\Trace\Domain\Actions\Mutations\StartMonitorTraceDynamicIndexesAction;
 use App\Modules\Trace\Domain\Actions\Mutations\StopMonitorTraceDynamicIndexesAction;
 use App\Modules\Trace\Domain\Actions\Mutations\UpdateTraceManyAction;
@@ -69,6 +71,8 @@ use App\Modules\Trace\Infrastructure\Commands\FlushDynamicIndexesCommand;
 use App\Modules\Trace\Infrastructure\Commands\StartMonitorTraceDynamicIndexesCommand;
 use App\Modules\Trace\Infrastructure\Commands\StopMonitorTraceDynamicIndexesCommand;
 use App\Modules\Trace\Infrastructure\Http\Services\TraceDynamicIndexingActionService;
+use App\Modules\Trace\Infrastructure\Listeners\TraceCollectionCreatedListener;
+use App\Modules\Trace\Repositories\Events\TraceCollectionCreatedEvent;
 use App\Modules\Trace\Repositories\Services\PeriodicTraceService;
 use App\Modules\Trace\Repositories\Services\TracePipelineBuilder;
 use App\Modules\Trace\Repositories\TraceAdminStoreRepository;
@@ -121,6 +125,11 @@ class TraceServiceProvider extends BaseServiceProvider
             StopMonitorTraceDynamicIndexesCommand::class,
             FlushDynamicIndexesCommand::class,
         ]);
+
+        $this->listen(
+            TraceCollectionCreatedEvent::class,
+            TraceCollectionCreatedListener::class
+        );
     }
 
     protected function getContracts(): array
@@ -148,6 +157,7 @@ class TraceServiceProvider extends BaseServiceProvider
             DeleteTraceDynamicIndexActionInterface::class         => DeleteTraceDynamicIndexAction::class,
             CreateTraceAdminStoreActionInterface::class           => CreateTraceAdminStoreAction::class,
             DeleteTraceAdminStoreActionInterface::class           => DeleteTraceAdminStoreAction::class,
+            FreshTraceTreesActionInterface::class                 => FreshTraceTreesAction::class,
             // actions.queries
             FindStatusesActionInterface::class                    => FindStatusesAction::class,
             FindTagsActionInterface::class                        => FindTagsAction::class,

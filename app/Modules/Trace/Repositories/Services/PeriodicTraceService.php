@@ -2,7 +2,9 @@
 
 namespace App\Modules\Trace\Repositories\Services;
 
+use App\Models\Traces\TraceTree;
 use App\Modules\Trace\Repositories\Dto\Trace\TraceCollectionNamesDto;
+use App\Modules\Trace\Repositories\Events\TraceCollectionCreatedEvent;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use Iterator;
@@ -108,7 +110,7 @@ class PeriodicTraceService
         ]);
 
         if (iterator_count($filtered)) {
-            return $this->collections[$collectionName] = $this->database->selectCollection($collectionName);
+            return $this->collections[$collectionName] = $this->selectCollectionByName($collectionName);
         }
 
         try {
@@ -122,10 +124,10 @@ class PeriodicTraceService
                 );
             }
 
-            return $this->collections[$collectionName] = $this->database->selectCollection($collectionName);
+            return $this->collections[$collectionName] = $this->selectCollectionByName($collectionName);
         }
 
-        $collection = $this->database->selectCollection($collectionName);
+        $collection = $this->selectCollectionByName($collectionName);
 
         $this->collections[$collectionName] = $collection;
 
@@ -158,12 +160,14 @@ class PeriodicTraceService
             '_id' => 1,
         ]);
 
+        event(new TraceCollectionCreatedEvent($collectionName));
+
         return $collection;
     }
 
     public function createIndex(string $indexName, string $collectionName, array $index): void
     {
-        $this->database->selectCollection($collectionName)
+        $this->selectCollectionByName($collectionName)
             ->createIndex(
                 key: $index,
                 options: [
@@ -175,7 +179,7 @@ class PeriodicTraceService
     public function deleteIndex(string $collectionName, string $indexName): void
     {
         try {
-            $this->database->selectCollection($collectionName)
+            $this->selectCollectionByName($collectionName)
                 ->dropIndex($indexName);
         } catch (Throwable) {
             // TODO
@@ -200,13 +204,13 @@ class PeriodicTraceService
      */
     public function aggregate(string $collectionName, array $pipeline): CursorInterface&Iterator
     {
-        return $this->database->selectCollection($collectionName)
+        return $this->selectCollectionByName($collectionName)
             ->aggregate($pipeline);
     }
 
     public function findOne(string $collectionName, string $traceId): ?array
     {
-        return $this->database->selectCollection($collectionName)
+        return $this->selectCollectionByName($collectionName)
             ->findOne(['tid' => $traceId]);
     }
 
@@ -218,7 +222,7 @@ class PeriodicTraceService
     public function findMany(string $collectionName, array $traceIds): array
     {
         return iterator_to_array(
-            $this->database->selectCollection($collectionName)
+            $this->selectCollectionByName($collectionName)
                 ->find(['tid' => ['$in' => $traceIds]])
         );
     }
@@ -249,7 +253,7 @@ class PeriodicTraceService
 
         foreach ($collectionNames as $collectionName) {
             $foundTraceIds = iterator_to_array(
-                $this->database->selectCollection($collectionName)
+                $this->selectCollectionByName($collectionName)
                     ->find(
                         ['tid' => ['$in' => $remainTraceIds]],
                         ['projection' => ['tid' => 1]]
@@ -277,9 +281,81 @@ class PeriodicTraceService
         return $traceCollectionNames;
     }
 
+    public function freshTraceTrees(): void
+    {
+        $collectionNames = $this->detectCollectionNames();
+
+        if (!count($collectionNames)) {
+            return;
+        }
+
+        $pipeline = [];
+
+        $project = [
+            'tid'  => 1,
+            'ptid' => 1,
+        ];
+
+        $first = true;
+
+        $mainCollectionName = null;
+
+        foreach ($collectionNames as $collectionName) {
+            $set = [
+                '$set' => [
+                    '__cn' => $collectionName,
+                ],
+            ];
+
+            if ($first) {
+                $mainCollectionName = $collectionName;
+
+                $pipeline[] = [
+                    '$project' => $project,
+                ];
+
+                $pipeline[] = $set;
+
+                $first = false;
+
+                continue;
+            }
+
+            $pipeline[] = [
+                '$unionWith' => [
+                    'coll'     => $collectionName,
+                    'pipeline' => [
+                        [
+                            '$project' => $project,
+                        ],
+                        $set
+                    ],
+                ],
+            ];
+        }
+
+        $traceTreesCollectionName = (new TraceTree())->getCollectionName();
+
+        $exists = iterator_count($this->database->listCollectionNames([
+                'filter' => [
+                    'name' => $traceTreesCollectionName,
+                ],
+            ])) > 0;
+
+        if ($exists) {
+            $this->selectCollectionByName($traceTreesCollectionName)->drop();
+        }
+
+        $this->database->command([
+            'create'   => $traceTreesCollectionName,
+            'viewOn'   => $mainCollectionName,
+            'pipeline' => $pipeline,
+        ]);
+    }
+
     private function isTraceExists(string $collectionName, string $traceId): bool
     {
-        return $this->database->selectCollection($collectionName)
+        return $this->selectCollectionByName($collectionName)
                 ->countDocuments(['tid' => $traceId], ['limit' => 1]) > 0;
     }
 }
