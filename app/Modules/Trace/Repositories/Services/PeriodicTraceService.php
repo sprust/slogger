@@ -39,12 +39,23 @@ class PeriodicTraceService
             )
         );
 
+        $allCollectionNamesCount = count($allCollectionNames);
+
+        if (!$allCollectionNamesCount) {
+            return [];
+        }
+
         if (!$loggedAtFrom && !$loggedAtTo) {
             return $allCollectionNames;
         }
 
-        $loggedAtFromCollectionName = $this->makeCollectionName($loggedAtFrom);
-        $loggedAtToCollectionName   = $this->makeCollectionName($loggedAtTo);
+        $loggedAtFromCollectionName = $loggedAtFrom
+            ? $this->makeCollectionName($loggedAtFrom)
+            : $allCollectionNames[0];
+
+        $loggedAtToCollectionName = $loggedAtTo
+            ? $this->makeCollectionName($loggedAtTo)
+            : $allCollectionNames[$allCollectionNamesCount - 1];
 
         return array_values(
             array_filter(
