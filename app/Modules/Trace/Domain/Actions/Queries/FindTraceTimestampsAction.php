@@ -145,13 +145,13 @@ readonly class FindTraceTimestampsAction implements FindTraceTimestampsActionInt
             }
 
             $callbacks[] = static fn(TraceTimestampsRepositoryInterface $repository) => $repository->find(
+                loggedAtFrom: $from,
+                loggedAtTo: $to,
                 timestamp: $parameters->timestampStep,
                 fields: $fieldsFilter,
                 dataFields: $dataFieldsFilter,
                 serviceIds: $parameters->serviceIds,
                 traceIds: $parameters->traceIds,
-                loggedAtFrom: $from,
-                loggedAtTo: $to,
                 types: $parameters->types,
                 tags: $parameters->tags,
                 statuses: $parameters->statuses,

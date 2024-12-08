@@ -20,13 +20,13 @@ interface TraceTimestampsRepositoryInterface
      * @param string[]                              $statuses
      */
     public function find(
+        Carbon $loggedAtFrom,
+        Carbon $loggedAtTo,
         TraceTimestampEnum $timestamp,
         array $fields,
         ?array $dataFields = null,
         ?array $serviceIds = null,
         ?array $traceIds = null,
-        ?Carbon $loggedAtFrom = null,
-        ?Carbon $loggedAtTo = null,
         array $types = [],
         array $tags = [],
         array $statuses = [],

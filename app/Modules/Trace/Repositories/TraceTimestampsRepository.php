@@ -28,13 +28,13 @@ readonly class TraceTimestampsRepository implements TraceTimestampsRepositoryInt
     }
 
     public function find(
+        Carbon $loggedAtFrom,
+        Carbon $loggedAtTo,
         TraceTimestampEnum $timestamp,
         array $fields,
         ?array $dataFields = null,
         ?array $serviceIds = null,
         ?array $traceIds = null,
-        ?Carbon $loggedAtFrom = null,
-        ?Carbon $loggedAtTo = null,
         array $types = [],
         array $tags = [],
         array $statuses = [],
@@ -48,30 +48,34 @@ readonly class TraceTimestampsRepository implements TraceTimestampsRepositoryInt
         ?bool $hasProfiling = null,
         ?array $sort = null,
     ): TraceTimestampsListDto {
+        $collectionNames = $this->periodicTraceService->detectCollectionNames(
+            loggedAtFrom: $loggedAtFrom,
+            loggedAtTo: $loggedAtTo
+        );
+
+        if (!count($collectionNames)) {
+            return new TraceTimestampsListDto(
+                timestamps: [],
+                emptyIndicators: [],
+            );
+        }
+
         $timestampField = $timestamp->value;
 
         $timestampFieldKey = "tss.$timestampField";
 
         $match = [
             '$and' => [
-                ...($loggedAtFrom
-                    ? [
-                        [
-                            $timestampFieldKey => [
-                                '$gte' => new UTCDateTime($loggedAtFrom),
-                            ],
-                        ],
-                    ]
-                    : []),
-                ...($loggedAtTo
-                    ? [
-                        [
-                            $timestampFieldKey => [
-                                '$lte' => new UTCDateTime($loggedAtTo),
-                            ],
-                        ],
-                    ]
-                    : []),
+                [
+                    $timestampFieldKey => [
+                        '$gte' => new UTCDateTime($loggedAtFrom),
+                    ],
+                ],
+                [
+                    $timestampFieldKey => [
+                        '$lte' => new UTCDateTime($loggedAtTo),
+                    ],
+                ],
             ],
         ];
 
@@ -101,20 +105,11 @@ readonly class TraceTimestampsRepository implements TraceTimestampsRepositoryInt
             }
         }
 
-        $aggregation = $this->periodicTraceService->makeAggregation(
-            loggedAtFrom: $loggedAtFrom,
-            loggedAtTo: $loggedAtTo,
-            match: $match
-        );
-
-        if (is_null($aggregation)) {
-            return new TraceTimestampsListDto(
-                timestamps: [],
-                emptyIndicators: [],
-            );
-        }
-
-        $pipeline = $aggregation->pipeline;
+        $pipeline = [
+            [
+                '$match' => $match,
+            ],
+        ];
 
         $groups = [];
 
@@ -135,7 +130,6 @@ readonly class TraceTimestampsRepository implements TraceTimestampsRepositoryInt
         }
 
         $groupsMatch = [];
-
         $groupsQuery = [];
 
         foreach ($groups as $fieldName => $aggregations) {
@@ -161,42 +155,38 @@ readonly class TraceTimestampsRepository implements TraceTimestampsRepositoryInt
             ],
         ];
 
-        $pipeline[] = [
-            '$sort' => [
-                '_id.timestamp' => 1,
-            ],
-        ];
-
-        $cursor = $this->periodicTraceService->aggregate(
-            collectionName: $aggregation->collectionName,
-            pipeline: $pipeline
-        );
-
         $metrics = [];
 
-        foreach ($cursor as $item) {
-            $groupIndicatorsDtoList = [];
+        foreach ($collectionNames as $collectionName) {
+            $cursor = $this->periodicTraceService->aggregate(
+                collectionName: $collectionName,
+                pipeline: $pipeline
+            );
 
-            foreach ($groupsMatch as $fieldName => $aggregators) {
-                $indicators = [];
+            foreach ($cursor as $item) {
+                $groupIndicatorsDtoList = [];
 
-                foreach ($aggregators as $key => $aggregator) {
-                    $indicators[] = new TraceTimestampFieldIndicatorDto(
-                        name: $aggregator,
-                        value: round(is_numeric($item[$key]) ? $item[$key] : 0, 6),
+                foreach ($groupsMatch as $fieldName => $aggregators) {
+                    $indicators = [];
+
+                    foreach ($aggregators as $key => $aggregator) {
+                        $indicators[] = new TraceTimestampFieldIndicatorDto(
+                            name: $aggregator,
+                            value: round(is_numeric($item[$key]) ? $item[$key] : 0, 6),
+                        );
+                    }
+
+                    $groupIndicatorsDtoList[] = new TraceTimestampFieldDto(
+                        field: $fieldName,
+                        indicators: $indicators
                     );
                 }
 
-                $groupIndicatorsDtoList[] = new TraceTimestampFieldDto(
-                    field: $fieldName,
-                    indicators: $indicators
+                $metrics[] = new TraceTimestampsDto(
+                    timestamp: new Carbon($item['_id']['timestamp']->toDateTime()),
+                    indicators: $groupIndicatorsDtoList
                 );
             }
-
-            $metrics[] = new TraceTimestampsDto(
-                timestamp: new Carbon($item['_id']['timestamp']->toDateTime()),
-                indicators: $groupIndicatorsDtoList
-            );
         }
 
         $emptyIndicators = [];
