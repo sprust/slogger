@@ -2,7 +2,6 @@
 
 namespace App\Modules\Trace\Contracts\Repositories;
 
-use App\Modules\Trace\Entities\Trace\TraceDetailObject;
 use App\Modules\Trace\Entities\Trace\TraceIndexInfoObject;
 use App\Modules\Trace\Entities\Trace\TraceObject;
 use App\Modules\Trace\Entities\Trace\TraceTypeCountedObject;
@@ -29,7 +28,7 @@ interface TraceRepositoryInterface
      */
     public function updateMany(array $traces): int;
 
-    public function findOneDetailByTraceId(string $traceId): ?TraceDetailObject;
+    public function findOneDetailByTraceId(string $traceId): ?TraceDto;
 
     /**
      * @param int[]|null                 $serviceIds

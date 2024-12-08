@@ -200,6 +200,12 @@ class PeriodicTraceService
             ->aggregate($pipeline);
     }
 
+    public function findOne(string $collectionName, string $traceId): ?array
+    {
+        return $this->database->selectCollection($collectionName)
+            ->findOne(['tid' => $traceId]);
+    }
+
     public function findCollectionNameByTraceId(string $traceId): ?string
     {
         $collectionNames = $this->detectCollectionNamesReverse();

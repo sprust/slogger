@@ -5,7 +5,6 @@ namespace App\Modules\Trace\Repositories;
 use App\Models\Traces\Trace;
 use App\Modules\Trace\Contracts\Repositories\TraceRepositoryInterface;
 use App\Modules\Trace\Entities\Trace\Timestamp\TraceTimestampMetricObject;
-use App\Modules\Trace\Entities\Trace\TraceDetailObject;
 use App\Modules\Trace\Entities\Trace\TraceIndexInfoObject;
 use App\Modules\Trace\Entities\Trace\TraceObject;
 use App\Modules\Trace\Entities\Trace\TraceServiceObject;
@@ -184,35 +183,24 @@ readonly class TraceRepository implements TraceRepositoryInterface
         return $modifiedCount;
     }
 
-    public function findOneDetailByTraceId(string $traceId): ?TraceDetailObject
+    public function findOneDetailByTraceId(string $traceId): ?TraceDto
     {
-        /** @var Trace|null $trace */
-        $trace = Trace::query()
-            ->select([
-                '_id',
-                'sid',
-                'tid',
-                'ptid',
-                'tp',
-                'st',
-                'tgs',
-                'dt',
-                'dur',
-                'mem',
-                'cpu',
-                'hpr',
-                'lat',
-                'cat',
-                'uat',
-            ])
-            ->where('tid', $traceId)
-            ->first();
+        $collectionName = $this->periodicTraceService->findCollectionNameByTraceId($traceId);
 
-        if (!$trace) {
+        if (is_null($collectionName)) {
             return null;
         }
 
-        return $this->makeDetailFromModel($trace);
+        $document = $this->periodicTraceService->findOne(
+            collectionName: $collectionName,
+            traceId: $traceId
+        );
+
+        if (!$document) {
+            return null;
+        }
+
+        return $this->makeTraceDtoFromDocument($document);
     }
 
     public function find(
@@ -756,32 +744,6 @@ readonly class TraceRepository implements TraceRepositoryInterface
                 value: $valueItem
             );
         }
-    }
-
-    private function makeDetailFromModel(Trace $trace): TraceDetailObject
-    {
-        return new TraceDetailObject(
-            id: $trace->_id,
-            service: $trace->service
-                ? new TraceServiceObject(
-                    id: $trace->service->id,
-                    name: $trace->service->name,
-                )
-                : null,
-            traceId: $trace->tid,
-            parentTraceId: $trace->ptid,
-            type: $trace->tp,
-            status: $trace->st,
-            tags: $this->parseTagsFromDb($trace->tgs),
-            data: (new TraceDataToObjectBuilder($trace->dt))->build(),
-            duration: $trace->dur,
-            memory: $trace->mem,
-            cpu: $trace->cpu,
-            hasProfiling: $trace->hpr ?? false,
-            loggedAt: $trace->lat,
-            createdAt: $trace->cat,
-            updatedAt: $trace->uat
-        );
     }
 
     private function makeTraceDtoFromDocument(array $document): TraceDto
