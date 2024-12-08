@@ -473,10 +473,12 @@ readonly class TraceRepository implements TraceRepositoryInterface
 
     public function findProfilingByTraceId(string $traceId): ?TraceProfilingDto
     {
-        /** @var Trace|null $trace */
-        $trace = Trace::query()->where('tid', $traceId)->first();
+        $trace = $this->periodicTraceService->findOne(
+            collectionName: $this->periodicTraceService->findCollectionNameByTraceId($traceId),
+            traceId: $traceId
+        );
 
-        $profilingData = $trace?->pr;
+        $profilingData = is_null($trace) ? null : ($trace['pr'] ?? null);
 
         if (is_null($profilingData)) {
             return null;
