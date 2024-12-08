@@ -282,8 +282,4 @@ class PeriodicTraceService
         return $this->database->selectCollection($collectionName)
                 ->countDocuments(['tid' => $traceId], ['limit' => 1]) > 0;
     }
-
-    private function freshTreesView(): void
-    {
-    }
 }

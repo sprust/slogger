@@ -7,6 +7,7 @@ use App\Modules\Trace\Contracts\Repositories\TraceRepositoryInterface;
 use App\Modules\Trace\Entities\Trace\Timestamp\TraceTimestampMetricObject;
 use App\Modules\Trace\Entities\Trace\TraceIndexInfoObject;
 use App\Modules\Trace\Parameters\Data\TraceDataFilterParameters;
+use App\Modules\Trace\Parameters\TraceUpdateParameters;
 use App\Modules\Trace\Repositories\Dto\Trace\Profiling\TraceProfilingDataDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Profiling\TraceProfilingDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Profiling\TraceProfilingItemDto;
@@ -91,7 +92,23 @@ readonly class TraceRepository implements TraceRepositoryInterface
     {
         // TODO: Does not have the loggedAt. To think about an another resolving.
 
-        $periodicTraceService = $this->periodicTraceService;
+        $traceIds = array_unique(
+            array_map(
+                fn(TraceUpdateParameters $trace) => $trace->traceId,
+                $traces
+            )
+        );
+
+        $traceCollectionNames = $this->periodicTraceService->findCollectionNamesByTraceIds($traceIds);
+
+        /** @var array<int, string> $collectionNamesKeyByTraceId */
+        $collectionNamesKeyByTraceId = [];
+
+        foreach ($traceCollectionNames->get() as $collectionName => $traceIds) {
+            foreach ($traceIds as $traceId) {
+                $collectionNamesKeyByTraceId[$traceId] = $collectionName;
+            }
+        }
 
         $timestamp = new UTCDateTime(now());
 
@@ -100,8 +117,14 @@ readonly class TraceRepository implements TraceRepositoryInterface
          */
         $operationsByCollections = [];
 
-        foreach ($traces as $trace) {
-            $collectionName = $periodicTraceService->findCollectionNameByTraceId($trace->traceId);
+        $tracesCount = count($traces);
+
+        for ($index = 0; $index < $tracesCount; $index++) {
+            $trace = $traces[$index];
+
+            unset($traces[$index]);
+
+            $collectionName = $collectionNamesKeyByTraceId[$trace->traceId] ?? null;
 
             if (!$collectionName) {
                 continue;
