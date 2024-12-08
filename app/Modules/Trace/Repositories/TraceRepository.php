@@ -3,7 +3,6 @@
 namespace App\Modules\Trace\Repositories;
 
 use App\Models\Traces\Trace;
-use App\Modules\Common\Enums\SortDirectionEnum;
 use App\Modules\Trace\Contracts\Repositories\TraceRepositoryInterface;
 use App\Modules\Trace\Entities\Trace\Timestamp\TraceTimestampMetricObject;
 use App\Modules\Trace\Entities\Trace\TraceDetailObject;
@@ -113,7 +112,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
             $collectionName = Arr::first(
                 $collectionNames,
                 static function (string $collectionName) use ($trace, $periodicTraceService) {
-                    return $periodicTraceService->existsTrace($collectionName, $trace->traceId);
+                    return $periodicTraceService->isTraceExists($collectionName, $trace->traceId);
                 }
             );
 
@@ -242,8 +241,21 @@ readonly class TraceRepository implements TraceRepositoryInterface
         ?float $cpuTo = null,
         ?TraceDataFilterParameters $data = null,
         ?bool $hasProfiling = null,
-        ?array $sort = null,
+        ?array $sort = null, // TODO: delete
     ): array {
+        $collectionNames = $this->periodicTraceService->detectCollectionNames(
+            loggedAtFrom: $loggedAtFrom,
+            loggedAtTo: $loggedAtTo
+        );
+
+        if (!count($collectionNames)) {
+            return [];
+        }
+
+        $collectionNames = array_values(
+            array_reverse($collectionNames)
+        );
+
         // TODO: refactored for unusage of model
         $builder = $this->traceQueryBuilder->make(
             serviceIds: $serviceIds,
@@ -265,50 +277,81 @@ readonly class TraceRepository implements TraceRepositoryInterface
 
         $match = $this->traceQueryBuilder->makeMqlMatchFromBuilder($builder);
 
-        $aggregation = $this->periodicTraceService->makeAggregation(
-            loggedAtFrom: $loggedAtFrom,
-            loggedAtTo: $loggedAtTo,
-            match: $match
-        );
-
-        if (is_null($aggregation)) {
-            return [];
-        }
-
-        $pipeline = $aggregation->pipeline;
-
-        if (!is_null($sort) && count($sort)) {
-            $sortPipeLine = [];
-
-            foreach ($sort as $sortItem) {
-                $sortPipeLine[$sortItem->field] = match ($sortItem->directionEnum) {
-                    SortDirectionEnum::Asc => 1,
-                    SortDirectionEnum::Desc => -1,
-                };
-            }
-
-            $pipeline[] = [
-                '$sort' => $sortPipeLine,
-            ];
-        }
-
-        $pipeline[] = [
-            '$skip' => ($page - 1) * $perPage,
+        $pipeline = [
+            [
+                '$match' => $match,
+            ],
+            [
+                '$sort' => [
+                    'lat' => -1,
+                    '_id' => 1,
+                ],
+            ],
         ];
-        $pipeline[] = [
-            '$limit' => $perPage,
-        ];
-
-        $cursor = $this->periodicTraceService->aggregate(
-            collectionName: $aggregation->collectionName,
-            pipeline: $pipeline
-        );
 
         /** @var TraceDto[] $traces */
         $traces = [];
 
-        foreach ($cursor as $document) {
-            $traces[] = $this->makeTraceDtoFromDocument($document);
+        $totalFoundCount   = 0;
+        $resultTracesCount = 0;
+
+        $offsetCount = ($page - 1) * $perPage;
+
+        $collected = false;
+
+        foreach ($collectionNames as $collectionName) {
+            if ($collected) {
+                break;
+            }
+
+            $collectionPage = 0;
+
+            while (true) {
+                if ($collected) {
+                    break;
+                }
+
+                ++$collectionPage;
+
+                $collectionPipeline = [
+                    ...$pipeline,
+                    [
+                        '$skip' => ($collectionPage - 1) * $perPage,
+                    ],
+                    [
+                        '$limit' => $perPage,
+                    ],
+                ];
+
+                $cursor = $this->periodicTraceService->aggregate(
+                    collectionName: $collectionName,
+                    pipeline: $collectionPipeline
+                );
+
+                $documents = iterator_to_array($cursor);
+
+                $documentsCount = count($documents);
+
+                if (!$documentsCount) {
+                    break;
+                }
+
+                $totalFoundCount += $documentsCount;
+
+                if ($offsetCount >= $totalFoundCount) {
+                    continue;
+                }
+
+                foreach ($documents as $document) {
+                    $traces[] = $this->makeTraceDtoFromDocument($document);
+
+                    if (++$resultTracesCount >= $perPage) {
+                        $collected = true;
+
+                        break;
+                    }
+                }
+            }
         }
 
         return $traces;
