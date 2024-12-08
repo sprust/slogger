@@ -98,8 +98,6 @@ readonly class TraceRepository implements TraceRepositoryInterface
 
         $periodicTraceService = $this->periodicTraceService;
 
-        $collectionNames = $periodicTraceService->detectCollectionNamesReverse();
-
         $timestamp = new UTCDateTime(now());
 
         /**
@@ -108,13 +106,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
         $operationsByCollections = [];
 
         foreach ($traces as $trace) {
-            /** @var string|null $collectionName */
-            $collectionName = Arr::first(
-                $collectionNames,
-                static function (string $collectionName) use ($trace, $periodicTraceService) {
-                    return $periodicTraceService->isTraceExists($collectionName, $trace->traceId);
-                }
-            );
+            $collectionName = $periodicTraceService->findCollectionNameByTraceId($trace->traceId);
 
             if (!$collectionName) {
                 continue;

@@ -157,12 +157,6 @@ class PeriodicTraceService
         return $collection;
     }
 
-    public function isTraceExists(string $collectionName, string $traceId): bool
-    {
-        return $this->database->selectCollection($collectionName)
-                ->countDocuments(['tid' => $traceId], ['limit' => 1]) > 0;
-    }
-
     public function createIndex(string $indexName, string $collectionName, array $index): void
     {
         $this->database->selectCollection($collectionName)
@@ -204,5 +198,24 @@ class PeriodicTraceService
     {
         return $this->database->selectCollection($collectionName)
             ->aggregate($pipeline);
+    }
+
+    public function findCollectionNameByTraceId(string $traceId): ?string
+    {
+        $collectionNames = $this->detectCollectionNamesReverse();
+
+        foreach ($collectionNames as $collectionName) {
+            if ($this->isTraceExists($collectionName, $traceId)) {
+                return $collectionName;
+            }
+        }
+
+        return null;
+    }
+
+    private function isTraceExists(string $collectionName, string $traceId): bool
+    {
+        return $this->database->selectCollection($collectionName)
+                ->countDocuments(['tid' => $traceId], ['limit' => 1]) > 0;
     }
 }
