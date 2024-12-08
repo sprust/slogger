@@ -50,7 +50,10 @@ class PeriodicTraceService
     {
         $allCollectionNames = array_values(
             Arr::sort(
-                iterator_to_array($this->database->listCollectionNames())
+                array_filter(
+                    iterator_to_array($this->database->listCollectionNames()),
+                    static fn(string $collectionName) => str_starts_with($collectionName, 'traces_')
+                )
             )
         );
 
@@ -278,5 +281,9 @@ class PeriodicTraceService
     {
         return $this->database->selectCollection($collectionName)
                 ->countDocuments(['tid' => $traceId], ['limit' => 1]) > 0;
+    }
+
+    private function freshTreesView(): void
+    {
     }
 }
