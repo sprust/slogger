@@ -322,10 +322,6 @@ export namespace AdminApi {
         }[];
         fields?: string[];
       };
-      sort?: {
-        field?: string;
-        direction?: "asc" | "desc";
-      }[];
       has_profiling?: boolean;
     };
     export type RequestHeaders = {};
@@ -2150,10 +2146,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
           }[];
           fields?: string[];
         };
-        sort?: {
-          field?: string;
-          direction?: "asc" | "desc";
-        }[];
         has_profiling?: boolean;
       },
       params: RequestParams = {},

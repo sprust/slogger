@@ -5,7 +5,6 @@ namespace App\Modules\Trace\Contracts\Repositories;
 use App\Modules\Trace\Entities\Trace\TraceIndexInfoObject;
 use App\Modules\Trace\Parameters\Data\TraceDataFilterParameters;
 use App\Modules\Trace\Parameters\TraceCreateParameters;
-use App\Modules\Trace\Parameters\TraceSortParameters;
 use App\Modules\Trace\Parameters\TraceUpdateParameters;
 use App\Modules\Trace\Repositories\Dto\DynamicIndex\TraceDynamicIndexFieldDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Profiling\TraceProfilingDto;
@@ -33,7 +32,6 @@ interface TraceRepositoryInterface
      * @param string[]                   $types
      * @param string[]                   $tags
      * @param string[]                   $statuses
-     * @param TraceSortParameters[]|null $sort
      *
      * @return TraceDto[]
      */
@@ -55,7 +53,6 @@ interface TraceRepositoryInterface
         ?float $cpuTo = null,
         ?TraceDataFilterParameters $data = null,
         ?bool $hasProfiling = null,
-        ?array $sort = null,
     ): array;
 
     /**

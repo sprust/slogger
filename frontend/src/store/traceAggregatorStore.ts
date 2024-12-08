@@ -21,8 +21,6 @@ export type TraceAggregatorCustomField = {
     field: string,
     search: false,
     searchData: TraceAggregatorCustomFieldSearchParameter,
-    sort: boolean,
-    sortDirection: "asc" | "desc",
     addToTable: boolean,
     addToGraph: boolean,
 }
@@ -92,12 +90,6 @@ export const traceAggregatorStore = createStore<State>({
                 filter: [],
                 fields: []
             },
-            sort: [
-                {
-                    field: "lat",
-                    direction: "desc"
-                }
-            ]
         } as TraceAggregatorPayload,
         traceAggregator: {} as TraceAggregatorResponse,
         customFields: []
@@ -131,12 +123,6 @@ export const traceAggregatorStore = createStore<State>({
                     filter: [],
                     fields: []
                 },
-                sort: [
-                    {
-                        field: "lat",
-                        direction: "desc"
-                    }
-                ]
             }
             state.customFields = []
         },
@@ -217,8 +203,6 @@ export const traceAggregatorStore = createStore<State>({
                     field: customField,
                     search: false,
                     searchData: searchData.data,
-                    sort: false,
-                    sortDirection: "asc",
                     addToTable: false,
                     addToGraph: false,
                 })
@@ -237,7 +221,6 @@ export const traceAggregatorStore = createStore<State>({
 
             data.filter = []
             data.fields = []
-            state.payload.sort = []
 
             state.customFields.map((customField: TraceAggregatorCustomField) => {
                 const field = `dt.${customField.field}`
@@ -304,28 +287,10 @@ export const traceAggregatorStore = createStore<State>({
             commit('prepareCommonPayloadData')
 
             state.customFields.map((customField: TraceAggregatorCustomField) => {
-                const field = `dt.${customField.field}`
-
-                if (customField.sort) {
-                    state.payload.sort!.push({
-                        field: field,
-                        direction: customField.sortDirection
-                    })
-                }
-
                 if (customField.addToTable) {
                     state.payload.data.fields.push(customField.field)
                 }
             });
-
-            if (!state.payload.sort.length) {
-                state.payload.sort = [
-                    {
-                        field: 'lat',
-                        direction: 'desc'
-                    }
-                ]
-            }
 
             commit('setData', [])
 

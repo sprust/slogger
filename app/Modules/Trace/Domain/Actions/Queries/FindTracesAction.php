@@ -82,7 +82,7 @@ readonly class FindTracesAction implements FindTracesActionInterface
             cpuTo: $parameters->cpuTo,
             data: $parameters->data,
             hasProfiling: $parameters->hasProfiling,
-            sort: $parameters->sort,
+            needLoggedAt: true,
         );
 
         $tracesDto = $this->traceRepository->find(
@@ -103,7 +103,6 @@ readonly class FindTracesAction implements FindTracesActionInterface
             cpuTo: $parameters->cpuTo,
             data: $parameters->data,
             hasProfiling: $parameters->hasProfiling,
-            sort: $parameters->sort,
         );
 
         $serviceIds = array_unique(

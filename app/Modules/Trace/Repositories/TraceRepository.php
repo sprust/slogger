@@ -217,8 +217,6 @@ readonly class TraceRepository implements TraceRepositoryInterface
         ?float $cpuTo = null,
         ?TraceDataFilterParameters $data = null,
         ?bool $hasProfiling = null,
-        // TODO: delete this parameter
-        ?array $sort = null,
     ): array {
         $collectionNames = $this->periodicTraceService->detectCollectionNamesReverse(
             loggedAtFrom: $loggedAtFrom,

@@ -590,24 +590,6 @@
                                             }
                                         }
                                     },
-                                    "sort": {
-                                        "type": "array",
-                                        "items": {
-                                            "type": "object",
-                                            "properties": {
-                                                "field": {
-                                                    "type": "string"
-                                                },
-                                                "direction": {
-                                                    "type": "string",
-                                                    "enum": [
-                                                        "asc",
-                                                        "desc"
-                                                    ]
-                                                }
-                                            }
-                                        }
-                                    },
                                     "has_profiling": {
                                         "type": "boolean"
                                     }
