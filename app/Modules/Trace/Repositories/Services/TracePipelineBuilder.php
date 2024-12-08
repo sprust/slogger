@@ -120,12 +120,13 @@ class TracePipelineBuilder
                 }
 
                 if (!is_null($filterItem->string)) {
-                    $regex         = match ($filterItem->string->comp) {
+                    $regex = match ($filterItem->string->comp) {
                         TraceDataFilterCompStringTypeEnum::Con => ".*{$filterItem->string->value}.*",
                         TraceDataFilterCompStringTypeEnum::Starts => "^{$filterItem->string->value}.*",
                         TraceDataFilterCompStringTypeEnum::Ends => ".*{$filterItem->string->value}$",
                         default => $filterItem->string->value,
                     };
+
                     $match[$field] = ['$regex' => $regex];
 
                     continue;
