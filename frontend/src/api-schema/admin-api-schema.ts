@@ -259,11 +259,6 @@ export namespace AdminApi {
     updated_at: string,
 
 },
-    types: ({
-    type: string,
-    count: number,
-
-})[],
 
 })[],
     paginator: {
@@ -359,10 +354,6 @@ export namespace AdminApi {
             created_at: string;
             updated_at: string;
           };
-          types: {
-            type: string;
-            count: number;
-          }[];
         }[];
         paginator: {
           total: number;
@@ -2098,11 +2089,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     updated_at: string,
 
 },
-    types: ({
-    type: string,
-    count: number,
-
-})[],
 
 })[],
     paginator: {
@@ -2198,10 +2184,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
                 created_at: string;
                 updated_at: string;
               };
-              types: {
-                type: string;
-                count: number;
-              }[];
             }[];
             paginator: {
               total: number;

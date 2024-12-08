@@ -14,7 +14,6 @@ use App\Modules\Trace\Entities\Trace\TraceItemObject;
 use App\Modules\Trace\Entities\Trace\TraceItemObjects;
 use App\Modules\Trace\Entities\Trace\TraceItemTraceObject;
 use App\Modules\Trace\Entities\Trace\TraceServiceObject;
-use App\Modules\Trace\Entities\Trace\TraceTypeCountedObject;
 use App\Modules\Trace\Parameters\TraceFindParameters;
 use App\Modules\Trace\Repositories\Dto\Trace\TraceDto;
 use Illuminate\Support\Arr;
@@ -107,15 +106,6 @@ readonly class FindTracesAction implements FindTracesActionInterface
             sort: $parameters->sort,
         );
 
-        $traceTypeCounts = count($tracesDto)
-            ? $this->traceRepository->findTypeCounts(
-                traceIds: array_map(
-                    fn(TraceDto $traceDto) => $traceDto->traceId,
-                    $tracesDto
-                )
-            )
-            : [];
-
         $serviceIds = array_unique(
             array_filter(
                 array_map(
@@ -129,20 +119,12 @@ readonly class FindTracesAction implements FindTracesActionInterface
             serviceIds: $serviceIds
         );
 
-        /** @var TraceTypeCountedObject[] $groupedTypeCounts */
-        $groupedTypeCounts = collect($traceTypeCounts)
-            ->groupBy(fn(TraceTypeCountedObject $countedTraceType) => $countedTraceType->traceId)
-            ->toArray();
-
         $resultItems = [];
 
         foreach ($tracesDto as $traceDto) {
             $service = $traceDto->serviceId
                 ? $traceServices->getById($traceDto->serviceId)
                 : null;
-
-            /** @var TraceTypeCountedObject[] $types */
-            $types = $groupedTypeCounts[$traceDto->traceId] ?? [];
 
             $resultItems[] = new TraceItemObject(
                 trace: new TraceItemTraceObject(
@@ -168,8 +150,7 @@ readonly class FindTracesAction implements FindTracesActionInterface
                     loggedAt: $traceDto->loggedAt,
                     createdAt: $traceDto->createdAt,
                     updatedAt: $traceDto->updatedAt
-                ),
-                types: $types
+                )
             );
         }
 

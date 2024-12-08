@@ -3,7 +3,6 @@
 namespace App\Modules\Trace\Contracts\Repositories;
 
 use App\Modules\Trace\Entities\Trace\TraceIndexInfoObject;
-use App\Modules\Trace\Entities\Trace\TraceTypeCountedObject;
 use App\Modules\Trace\Parameters\Data\TraceDataFilterParameters;
 use App\Modules\Trace\Parameters\TraceCreateParameters;
 use App\Modules\Trace\Parameters\TraceSortParameters;
@@ -75,13 +74,6 @@ interface TraceRepositoryInterface
      * @return TraceDto[]
      */
     public function findByTraceIds(array $traceIds): array;
-
-    /**
-     * @param string[] $traceIds
-     *
-     * @return TraceTypeCountedObject[]
-     */
-    public function findTypeCounts(array $traceIds): array;
 
     public function findProfilingByTraceId(string $traceId): ?TraceProfilingDto;
 

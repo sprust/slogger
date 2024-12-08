@@ -6,7 +6,6 @@ use App\Models\Traces\Trace;
 use App\Modules\Trace\Contracts\Repositories\TraceRepositoryInterface;
 use App\Modules\Trace\Entities\Trace\Timestamp\TraceTimestampMetricObject;
 use App\Modules\Trace\Entities\Trace\TraceIndexInfoObject;
-use App\Modules\Trace\Entities\Trace\TraceTypeCountedObject;
 use App\Modules\Trace\Parameters\Data\TraceDataFilterParameters;
 use App\Modules\Trace\Repositories\Dto\Trace\Profiling\TraceProfilingDataDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Profiling\TraceProfilingDto;
@@ -366,7 +365,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
 
         $collectionNames = $this->periodicTraceService->findCollectionNamesByTraceIds($traceIds);
 
-        foreach ($collectionNames as $collectionName => $collectionTraceIds) {
+        foreach ($collectionNames->get() as $collectionName => $collectionTraceIds) {
             $documents = $this->periodicTraceService->findMany(
                 collectionName: $collectionName,
                 traceIds: $collectionTraceIds
@@ -378,59 +377,6 @@ readonly class TraceRepository implements TraceRepositoryInterface
         }
 
         return $traces;
-    }
-
-    public function findTypeCounts(array $traceIds): array
-    {
-        $pipeline = [];
-
-        $pipeline[] = [
-            '$match' => [
-                'ptid' => [
-                    '$in' => $traceIds,
-                ],
-            ],
-        ];
-
-        $pipeline[] = [
-            '$group' => [
-                '_id'   => [
-                    'parentTraceId' => '$ptid',
-                    'type'          => '$tp',
-                ],
-                'count' => [
-                    '$sum' => 1,
-                ],
-            ],
-        ];
-
-        $pipeline[] = [
-            '$project' => [
-                '_id'   => 1,
-                'count' => 1,
-            ],
-        ];
-
-        $pipeline[] = [
-            '$sort' => [
-                'count'    => -1,
-                '_id.type' => 1,
-            ],
-        ];
-
-        $typesAggregation = Trace::collection()->aggregate($pipeline);
-
-        $types = [];
-
-        foreach ($typesAggregation as $item) {
-            $types[] = new TraceTypeCountedObject(
-                traceId: $item->_id->parentTraceId,
-                type: $item->_id->type,
-                count: $item->count,
-            );
-        }
-
-        return $types;
     }
 
     public function findProfilingByTraceId(string $traceId): ?TraceProfilingDto
