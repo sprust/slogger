@@ -98,7 +98,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
 
         $periodicTraceService = $this->periodicTraceService;
 
-        $collectionNames = array_reverse($periodicTraceService->detectCollectionNames());
+        $collectionNames = $periodicTraceService->detectCollectionNamesReverse();
 
         $timestamp = new UTCDateTime(now());
 
@@ -244,7 +244,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
         // TODO: delete this parameter
         ?array $sort = null,
     ): array {
-        $collectionNames = $this->periodicTraceService->detectCollectionNames(
+        $collectionNames = $this->periodicTraceService->detectCollectionNamesReverse(
             loggedAtFrom: $loggedAtFrom,
             loggedAtTo: $loggedAtTo
         );
@@ -252,10 +252,6 @@ readonly class TraceRepository implements TraceRepositoryInterface
         if (!count($collectionNames)) {
             return [];
         }
-
-        $collectionNames = array_values(
-            array_reverse($collectionNames)
-        );
 
         // TODO: refactored for unusage of model
         $builder = $this->traceQueryBuilder->make(

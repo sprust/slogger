@@ -30,6 +30,21 @@ class PeriodicTraceService
     /**
      * @return string[]
      */
+    public function detectCollectionNamesReverse(?Carbon $loggedAtFrom = null, ?Carbon $loggedAtTo = null): array
+    {
+        return array_values(
+            array_reverse(
+                $this->detectCollectionNames(
+                    loggedAtFrom: $loggedAtFrom,
+                    loggedAtTo: $loggedAtTo
+                )
+            )
+        );
+    }
+
+    /**
+     * @return string[]
+     */
     public function detectCollectionNames(?Carbon $loggedAtFrom = null, ?Carbon $loggedAtTo = null): array
     {
         $allCollectionNames = array_values(
