@@ -43,30 +43,24 @@ class PeriodicTraceService
             return $allCollectionNames;
         }
 
-        if (!$loggedAtFrom) {
-            $indexFrom = 0;
-        } else {
-            $indexFrom = (int) array_search(
-                needle: $this->makeCollectionName($loggedAtFrom),
-                haystack: $allCollectionNames,
-                strict: true
-            ) ?: 0;
-        }
+        $loggedAtFromCollectionName = $this->makeCollectionName($loggedAtFrom);
+        $loggedAtToCollectionName   = $this->makeCollectionName($loggedAtTo);
 
-        if (!$loggedAtTo) {
-            $indexTo = count($allCollectionNames) - 1;
-        } else {
-            $indexTo = (int) array_search(
-                needle: $this->makeCollectionName($loggedAtTo),
-                haystack: $allCollectionNames,
-                strict: true
-            ) ?: (count($allCollectionNames) - 1);
-        }
+        return array_values(
+            array_filter(
+                $allCollectionNames,
+                static function (string $collectionName) use ($loggedAtFromCollectionName, $loggedAtToCollectionName) {
+                    if ($loggedAtFromCollectionName && $collectionName < $loggedAtFromCollectionName) {
+                        return false;
+                    }
 
-        return array_slice(
-            $allCollectionNames,
-            $indexFrom,
-            $indexTo - $indexFrom + 1
+                    if ($loggedAtToCollectionName && $collectionName > $loggedAtToCollectionName) {
+                        return false;
+                    }
+
+                    return true;
+                }
+            )
         );
     }
 
