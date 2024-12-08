@@ -6,8 +6,6 @@ use App\Models\Traces\Trace;
 use App\Modules\Trace\Contracts\Repositories\TraceRepositoryInterface;
 use App\Modules\Trace\Entities\Trace\Timestamp\TraceTimestampMetricObject;
 use App\Modules\Trace\Entities\Trace\TraceIndexInfoObject;
-use App\Modules\Trace\Entities\Trace\TraceObject;
-use App\Modules\Trace\Entities\Trace\TraceServiceObject;
 use App\Modules\Trace\Entities\Trace\TraceTypeCountedObject;
 use App\Modules\Trace\Parameters\Data\TraceDataFilterParameters;
 use App\Modules\Trace\Repositories\Dto\Trace\Profiling\TraceProfilingDataDto;
@@ -18,7 +16,6 @@ use App\Modules\Trace\Repositories\Services\PeriodicTraceService;
 use App\Modules\Trace\Repositories\Services\TraceDataToObjectBuilder;
 use App\Modules\Trace\Repositories\Services\TraceQueryBuilder;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use MongoDB\BSON\UTCDateTime;
@@ -364,58 +361,23 @@ readonly class TraceRepository implements TraceRepositoryInterface
 
     public function findByTraceIds(array $traceIds): array
     {
-        /** @var TraceObject[] $children */
-        $children = [];
+        /** @var TraceDto[] $traces */
+        $traces = [];
 
-        foreach (collect($traceIds)->chunk(1000) as $childrenIdsChunk) {
-            Trace::query()
-                ->select([
-                    '_id',
-                    'sid',
-                    'tid',
-                    'ptid',
-                    'tp',
-                    'st',
-                    'tgs',
-                    'dur',
-                    'mem',
-                    'cpu',
-                    'lat',
-                    'cat',
-                    'uat',
-                ])
-                ->with([
-                    'service' => fn(BelongsTo $relation) => $relation->select([
-                        'id',
-                        'name',
-                    ]),
-                ])
-                ->whereIn('tid', $childrenIdsChunk)
-                ->each(function (Trace $trace) use (&$children) {
-                    $children[] = new TraceObject(
-                        id: $trace->_id,
-                        service: $trace->service
-                            ? new TraceServiceObject(
-                                id: $trace->service->id,
-                                name: $trace->service->name,
-                            )
-                            : null,
-                        traceId: $trace->tid,
-                        parentTraceId: $trace->ptid,
-                        type: $trace->tp,
-                        status: $trace->st,
-                        tags: $this->parseTagsFromDb($trace->tgs),
-                        duration: $trace->dur,
-                        memory: $trace->mem,
-                        cpu: $trace->cpu,
-                        loggedAt: $trace->lat,
-                        createdAt: $trace->cat,
-                        updatedAt: $trace->uat
-                    );
-                });
+        $collectionNames = $this->periodicTraceService->findCollectionNamesByTraceIds($traceIds);
+
+        foreach ($collectionNames as $collectionName => $collectionTraceIds) {
+            $documents = $this->periodicTraceService->findMany(
+                collectionName: $collectionName,
+                traceIds: $collectionTraceIds
+            );
+
+            foreach ($documents as $document) {
+                $traces[] = $this->makeTraceDtoFromDocument($document);
+            }
         }
 
-        return $children;
+        return $traces;
     }
 
     public function findTypeCounts(array $traceIds): array

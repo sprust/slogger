@@ -2,6 +2,7 @@
 
 namespace App\Modules\Trace\Domain\Actions\Queries;
 
+use App\Modules\Trace\Contracts\Actions\Queries\FindTraceServicesActionInterface;
 use App\Modules\Trace\Contracts\Actions\Queries\FindTraceTreeActionInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceRepositoryInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceTreeRepositoryInterface;
@@ -10,6 +11,7 @@ use App\Modules\Trace\Domain\Services\TraceTreeBuilder;
 use App\Modules\Trace\Entities\Trace\TraceObject;
 use App\Modules\Trace\Entities\Trace\Tree\TraceTreeObjects;
 use App\Modules\Trace\Parameters\TraceFindTreeParameters;
+use App\Modules\Trace\Repositories\Dto\Trace\TraceDto;
 use Illuminate\Support\Arr;
 
 readonly class FindTraceTreeAction implements FindTraceTreeActionInterface
@@ -18,7 +20,8 @@ readonly class FindTraceTreeAction implements FindTraceTreeActionInterface
 
     public function __construct(
         private TraceRepositoryInterface $traceRepository,
-        private TraceTreeRepositoryInterface $traceTreeRepository
+        private TraceTreeRepositoryInterface $traceTreeRepository,
+        private FindTraceServicesActionInterface $findTraceServicesAction
     ) {
         $this->maxItemsCount = 5000;
     }
@@ -49,11 +52,48 @@ readonly class FindTraceTreeAction implements FindTraceTreeActionInterface
             );
         }
 
-        $traces = $this->traceRepository->findByTraceIds(
+        $foundTraces = $this->traceRepository->findByTraceIds(
             traceIds: [
                 $parentTraceId,
-                ...$childrenIds
+                ...$childrenIds,
             ]
+        );
+
+        /** @var int[] $serviceIds */
+        $serviceIds = array_values(
+            array_unique(
+                array_filter(
+                    array_map(
+                        fn(TraceDto $trace) => $trace->serviceId,
+                        $foundTraces
+                    )
+                )
+            )
+        );
+
+        $services = $this->findTraceServicesAction->handle(
+            serviceIds: $serviceIds
+        );
+
+        $traces = array_map(
+            fn(TraceDto $trace) => new TraceObject(
+                id: $trace->id,
+                service: $trace->serviceId
+                    ? $services->getById($trace->serviceId)
+                    : null,
+                traceId: $trace->traceId,
+                parentTraceId: $trace->parentTraceId,
+                type: $trace->type,
+                status: $trace->status,
+                tags: $trace->tags,
+                duration: $trace->duration,
+                memory: $trace->memory,
+                cpu: $trace->cpu,
+                loggedAt: $trace->loggedAt,
+                createdAt: $trace->createdAt,
+                updatedAt: $trace->updatedAt,
+            ),
+            $foundTraces
         );
 
         $treeNodesBuilder = new TraceTreeBuilder(

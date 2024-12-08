@@ -3,7 +3,6 @@
 namespace App\Modules\Trace\Contracts\Repositories;
 
 use App\Modules\Trace\Entities\Trace\TraceIndexInfoObject;
-use App\Modules\Trace\Entities\Trace\TraceObject;
 use App\Modules\Trace\Entities\Trace\TraceTypeCountedObject;
 use App\Modules\Trace\Parameters\Data\TraceDataFilterParameters;
 use App\Modules\Trace\Parameters\TraceCreateParameters;
@@ -73,7 +72,7 @@ interface TraceRepositoryInterface
     /**
      * @param string[] $traceIds
      *
-     * @return TraceObject[]
+     * @return TraceDto[]
      */
     public function findByTraceIds(array $traceIds): array;
 

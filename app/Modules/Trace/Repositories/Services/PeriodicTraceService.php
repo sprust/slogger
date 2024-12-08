@@ -2,6 +2,7 @@
 
 namespace App\Modules\Trace\Repositories\Services;
 
+use App\Modules\Trace\Repositories\Dto\Trace\TraceCollectionNamesDto;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use Iterator;
@@ -206,6 +207,19 @@ class PeriodicTraceService
             ->findOne(['tid' => $traceId]);
     }
 
+    /**
+     * @param string[] $traceIds
+     *
+     * @return array[]
+     */
+    public function findMany(string $collectionName, array $traceIds): array
+    {
+        return iterator_to_array(
+            $this->database->selectCollection($collectionName)
+                ->find(['tid' => ['$in' => $traceIds]])
+        );
+    }
+
     public function findCollectionNameByTraceId(string $traceId): ?string
     {
         $collectionNames = $this->detectCollectionNamesReverse();
@@ -217,6 +231,47 @@ class PeriodicTraceService
         }
 
         return null;
+    }
+
+    /**
+     * @param string[] $traceIds
+     */
+    public function findCollectionNamesByTraceIds(array $traceIds): TraceCollectionNamesDto
+    {
+        $traceCollectionNames = new TraceCollectionNamesDto();
+
+        $remainTraceIds = $traceIds;
+
+        $collectionNames = $this->detectCollectionNamesReverse();
+
+        foreach ($collectionNames as $collectionName) {
+            $foundTraceIds = iterator_to_array(
+                $this->database->selectCollection($collectionName)
+                    ->find(
+                        ['tid' => ['$in' => $remainTraceIds]],
+                        ['projection' => ['tid' => 1]]
+                    )
+            );
+
+            if (!count($foundTraceIds)) {
+                continue;
+            }
+
+            $foundTraceIds = array_map(
+                static fn(array $trace) => $trace['tid'],
+                $foundTraceIds
+            );
+
+            $traceCollectionNames->add($collectionName, $foundTraceIds);
+
+            $remainTraceIds = array_values(array_diff($remainTraceIds, $foundTraceIds));
+
+            if (!count($remainTraceIds)) {
+                break;
+            }
+        }
+
+        return $traceCollectionNames;
     }
 
     private function isTraceExists(string $collectionName, string $traceId): bool
