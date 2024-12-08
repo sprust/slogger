@@ -10,8 +10,6 @@ parameters:
         -
             message: '#Call to an undefined method Illuminate\\Database\\Query\\Builder::toBase#'
         -
-            message: '#Call to an undefined method Illuminate\\Database\\Eloquent\\Builder::toMql#'
-        -
             message: '#Access to an undefined property MongoDB\\Model\\BSONDocument#'
         -
             message: '#Property [\s\S]* is never read, only written#'

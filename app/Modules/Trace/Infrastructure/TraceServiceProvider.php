@@ -70,7 +70,7 @@ use App\Modules\Trace\Infrastructure\Commands\StartMonitorTraceDynamicIndexesCom
 use App\Modules\Trace\Infrastructure\Commands\StopMonitorTraceDynamicIndexesCommand;
 use App\Modules\Trace\Infrastructure\Http\Services\TraceDynamicIndexingActionService;
 use App\Modules\Trace\Repositories\Services\PeriodicTraceService;
-use App\Modules\Trace\Repositories\Services\TraceQueryBuilder;
+use App\Modules\Trace\Repositories\Services\TracePipelineBuilder;
 use App\Modules\Trace\Repositories\TraceAdminStoreRepository;
 use App\Modules\Trace\Repositories\TraceContentRepository;
 use App\Modules\Trace\Repositories\TraceDynamicIndexRepository;
@@ -110,7 +110,7 @@ class TraceServiceProvider extends BaseServiceProvider
         );
 
         $this->app->singleton(TraceFieldTitlesService::class);
-        $this->app->singleton(TraceQueryBuilder::class);
+        $this->app->singleton(TracePipelineBuilder::class);
         $this->app->singleton(TraceDynamicIndexInitializer::class);
         $this->app->singleton(TraceDynamicIndexingActionService::class);
 

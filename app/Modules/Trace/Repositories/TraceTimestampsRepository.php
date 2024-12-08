@@ -13,7 +13,7 @@ use App\Modules\Trace\Repositories\Dto\Trace\Timestamp\TraceTimestampFieldIndica
 use App\Modules\Trace\Repositories\Dto\Trace\Timestamp\TraceTimestampsDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Timestamp\TraceTimestampsListDto;
 use App\Modules\Trace\Repositories\Services\PeriodicTraceService;
-use App\Modules\Trace\Repositories\Services\TraceQueryBuilder;
+use App\Modules\Trace\Repositories\Services\TracePipelineBuilder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use MongoDB\BSON\UTCDateTime;
@@ -22,7 +22,7 @@ use RuntimeException;
 readonly class TraceTimestampsRepository implements TraceTimestampsRepositoryInterface
 {
     public function __construct(
-        private TraceQueryBuilder $traceQueryBuilder,
+        private TracePipelineBuilder $tracePipelineBuilder,
         private PeriodicTraceService $periodicTraceService
     ) {
     }
@@ -64,52 +64,35 @@ readonly class TraceTimestampsRepository implements TraceTimestampsRepositoryInt
 
         $timestampFieldKey = "tss.$timestampField";
 
-        $match = [
-            '$and' => [
-                [
-                    $timestampFieldKey => [
-                        '$gte' => new UTCDateTime($loggedAtFrom),
+        $pipeline = $this->tracePipelineBuilder->make(
+            serviceIds: $serviceIds,
+            traceIds: $traceIds,
+            types: $types,
+            tags: $tags,
+            statuses: $statuses,
+            durationFrom: $durationFrom,
+            durationTo: $durationTo,
+            memoryFrom: $memoryFrom,
+            memoryTo: $memoryTo,
+            cpuFrom: $cpuFrom,
+            cpuTo: $cpuTo,
+            data: $data,
+            hasProfiling: $hasProfiling,
+            customMatch: [
+                '$and' => [
+                    [
+                        $timestampFieldKey => [
+                            '$gte' => new UTCDateTime($loggedAtFrom),
+                        ],
+                    ],
+                    [
+                        $timestampFieldKey => [
+                            '$lte' => new UTCDateTime($loggedAtTo),
+                        ],
                     ],
                 ],
-                [
-                    $timestampFieldKey => [
-                        '$lte' => new UTCDateTime($loggedAtTo),
-                    ],
-                ],
-            ],
-        ];
-
-        $mql = $this->traceQueryBuilder
-            ->make(
-                serviceIds: $serviceIds,
-                traceIds: $traceIds,
-                types: $types,
-                tags: $tags,
-                statuses: $statuses,
-                durationFrom: $durationFrom,
-                durationTo: $durationTo,
-                memoryFrom: $memoryFrom,
-                memoryTo: $memoryTo,
-                cpuFrom: $cpuFrom,
-                cpuTo: $cpuTo,
-                data: $data,
-                hasProfiling: $hasProfiling,
-            )
-            ->toMql();
-
-        foreach ($mql['find'][0] ?? [] as $key => $value) {
-            if ($key === '$and') {
-                $match[$key] = is_array($value) ? array_merge($match[$key], $value) : $match[$key];
-            } else {
-                $match[$key] = $value;
-            }
-        }
-
-        $pipeline = [
-            [
-                '$match' => $match,
-            ],
-        ];
+            ]
+        );
 
         $groups = [];
 

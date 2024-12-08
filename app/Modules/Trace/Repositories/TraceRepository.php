@@ -13,7 +13,7 @@ use App\Modules\Trace\Repositories\Dto\Trace\Profiling\TraceProfilingItemDto;
 use App\Modules\Trace\Repositories\Dto\Trace\TraceDto;
 use App\Modules\Trace\Repositories\Services\PeriodicTraceService;
 use App\Modules\Trace\Repositories\Services\TraceDataToObjectBuilder;
-use App\Modules\Trace\Repositories\Services\TraceQueryBuilder;
+use App\Modules\Trace\Repositories\Services\TracePipelineBuilder;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
@@ -27,7 +27,7 @@ use Throwable;
 readonly class TraceRepository implements TraceRepositoryInterface
 {
     public function __construct(
-        private TraceQueryBuilder $traceQueryBuilder,
+        private TracePipelineBuilder $tracePipelineBuilder,
         private PeriodicTraceService $periodicTraceService
     ) {
     }
@@ -229,7 +229,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
             return [];
         }
 
-        $pipeline = $this->traceQueryBuilder->makeAggregationPipeline(
+        $pipeline = $this->tracePipelineBuilder->make(
             serviceIds: $serviceIds,
             traceIds: $traceIds,
             loggedAtFrom: $loggedAtFrom,
