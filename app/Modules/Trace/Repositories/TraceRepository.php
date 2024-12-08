@@ -229,8 +229,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
             return [];
         }
 
-        // TODO: refactored for unusage of model
-        $builder = $this->traceQueryBuilder->make(
+        $pipeline = $this->traceQueryBuilder->makeAggregationPipeline(
             serviceIds: $serviceIds,
             traceIds: $traceIds,
             loggedAtFrom: $loggedAtFrom,
@@ -248,15 +247,10 @@ readonly class TraceRepository implements TraceRepositoryInterface
             hasProfiling: $hasProfiling,
         );
 
-        $match = $this->traceQueryBuilder->makeMqlMatchFromBuilder($builder);
-
-        $pipeline = [
-            ...(count($match) ? [['$match' => $match]] : []),
-            [
-                '$sort' => [
-                    'lat' => -1,
-                    '_id' => 1,
-                ],
+        $pipeline[] = [
+            '$sort' => [
+                'lat' => -1,
+                '_id' => 1,
             ],
         ];
 
