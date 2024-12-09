@@ -2690,6 +2690,17 @@
                                                         "type": "string",
                                                         "nullable": false
                                                     },
+                                                    "indexName": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "collectionNames": {
+                                                        "type": "array",
+                                                        "nullable": false,
+                                                        "items": {
+                                                            "type": "string"
+                                                        }
+                                                    },
                                                     "fields": {
                                                         "type": "array",
                                                         "nullable": false,
@@ -2714,10 +2725,6 @@
                                                         "type": "boolean",
                                                         "nullable": false
                                                     },
-                                                    "progress": {
-                                                        "type": "number",
-                                                        "nullable": true
-                                                    },
                                                     "created": {
                                                         "type": "boolean",
                                                         "nullable": false
@@ -2738,6 +2745,8 @@
                                                 "required": [
                                                     "id",
                                                     "name",
+                                                    "indexName",
+                                                    "collectionNames",
                                                     "fields",
                                                     "inProcess",
                                                     "created",
@@ -2791,6 +2800,10 @@
                                                     "nullable": false,
                                                     "items": {
                                                         "properties": {
+                                                            "collectionName": {
+                                                                "type": "string",
+                                                                "nullable": false
+                                                            },
                                                             "name": {
                                                                 "type": "string",
                                                                 "nullable": false
@@ -2801,6 +2814,7 @@
                                                             }
                                                         },
                                                         "required": [
+                                                            "collectionName",
                                                             "name",
                                                             "progress"
                                                         ]

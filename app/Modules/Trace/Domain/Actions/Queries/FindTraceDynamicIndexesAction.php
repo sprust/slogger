@@ -7,10 +7,8 @@ use App\Modules\Trace\Contracts\Repositories\TraceDynamicIndexRepositoryInterfac
 use App\Modules\Trace\Domain\Services\TraceFieldTitlesService;
 use App\Modules\Trace\Entities\DynamicIndex\TraceDynamicIndexFieldObject;
 use App\Modules\Trace\Entities\DynamicIndex\TraceDynamicIndexObject;
-use App\Modules\Trace\Entities\Trace\TraceIndexInfoObject;
 use App\Modules\Trace\Repositories\Dto\DynamicIndex\TraceDynamicIndexDto;
 use App\Modules\Trace\Repositories\Dto\DynamicIndex\TraceDynamicIndexFieldDto;
-use Illuminate\Support\Arr;
 
 readonly class FindTraceDynamicIndexesAction implements FindTraceDynamicIndexesActionInterface
 {
@@ -18,7 +16,6 @@ readonly class FindTraceDynamicIndexesAction implements FindTraceDynamicIndexesA
 
     public function __construct(
         private TraceFieldTitlesService $traceFieldTitlesService,
-        private FindTraceDynamicIndexStatsAction $findTraceDynamicIndexStatsAction,
         private TraceDynamicIndexRepositoryInterface $traceDynamicIndexRepository
     ) {
         $this->limit = 100;
@@ -31,16 +28,12 @@ readonly class FindTraceDynamicIndexesAction implements FindTraceDynamicIndexesA
             orderByCreatedAtDesc: true
         );
 
-        /** @var array<string, TraceIndexInfoObject> $indexesInProcess */
-        $indexesInProcess = Arr::keyBy(
-            $this->findTraceDynamicIndexStatsAction->handle()->indexesInProcess,
-            fn(TraceIndexInfoObject $index) => $index->name
-        );
-
         return array_map(
             fn(TraceDynamicIndexDto $dto) => new TraceDynamicIndexObject(
                 id: $dto->id,
                 name: $dto->name,
+                indexName: $dto->indexName,
+                collectionNames: $dto->collectionNames,
                 fields: array_map(
                     fn(TraceDynamicIndexFieldDto $dtoField) => new TraceDynamicIndexFieldObject(
                         name: $dtoField->fieldName,
@@ -49,7 +42,6 @@ readonly class FindTraceDynamicIndexesAction implements FindTraceDynamicIndexesA
                     $dto->fields
                 ),
                 inProcess: $dto->inProcess,
-                progress: ($indexesInProcess[$dto->name] ?? null)?->progress,
                 created: $dto->created,
                 error: $dto->error,
                 actualUntilAt: $dto->actualUntilAt,

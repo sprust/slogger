@@ -1159,13 +1159,14 @@ export namespace AdminApi {
     data: ({
     id: string,
     name: string,
+    indexName: string,
+    collectionNames: (string)[],
     fields: ({
     name: string,
     title: string,
 
 })[],
     inProcess: boolean,
-    progress?: number | null,
     created: boolean,
     error?: string | null,
     actualUntilAt: string,
@@ -1184,12 +1185,13 @@ export namespace AdminApi {
       data: {
         id: string;
         name: string;
+        indexName: string;
+        collectionNames: string[];
         fields: {
           name: string;
           title: string;
         }[];
         inProcess: boolean;
-        progress?: number | null;
         created: boolean;
         error?: string | null;
         actualUntilAt: string;
@@ -1207,6 +1209,7 @@ export namespace AdminApi {
     errors_count: number,
     total_count: number,
     indexes_in_process: ({
+    collectionName: string,
     name: string,
     progress: number,
 
@@ -1227,6 +1230,7 @@ export namespace AdminApi {
         errors_count: number;
         total_count: number;
         indexes_in_process: {
+          collectionName: string;
           name: string;
           progress: number;
         }[];
@@ -3033,13 +3037,14 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     data: ({
     id: string,
     name: string,
+    indexName: string,
+    collectionNames: (string)[],
     fields: ({
     name: string,
     title: string,
 
 })[],
     inProcess: boolean,
-    progress?: number | null,
     created: boolean,
     error?: string | null,
     actualUntilAt: string,
@@ -3055,12 +3060,13 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
           data: {
             id: string;
             name: string;
+            indexName: string;
+            collectionNames: string[];
             fields: {
               name: string;
               title: string;
             }[];
             inProcess: boolean;
-            progress?: number | null;
             created: boolean;
             error?: string | null;
             actualUntilAt: string;
@@ -3088,6 +3094,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     errors_count: number,
     total_count: number,
     indexes_in_process: ({
+    collectionName: string,
     name: string,
     progress: number,
 
@@ -3105,6 +3112,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
             errors_count: number;
             total_count: number;
             indexes_in_process: {
+              collectionName: string;
               name: string;
               progress: number;
             }[];
