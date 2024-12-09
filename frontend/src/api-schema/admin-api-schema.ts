@@ -138,46 +138,6 @@ export namespace AdminApi {
     };
   } /**
  * No description
- * @name DashboardServiceStatList
- * @request GET:/admin-api/dashboard/service-stat
- * @secure
- * @response `200` `{
-    data: ({
-    service: {
-    id: number,
-    name: string,
-
-},
-    from: string,
-    to: string,
-    type: string,
-    status: string,
-    count: number,
-
-})[],
-
-}` description
-*/
-  export namespace DashboardServiceStatList {
-    export type RequestParams = {};
-    export type RequestQuery = {};
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = {
-      data: {
-        service: {
-          id: number;
-          name: string;
-        };
-        from: string;
-        to: string;
-        type: string;
-        status: string;
-        count: number;
-      }[];
-    };
-  } /**
- * No description
  * @name ToolsLinksList
  * @request GET:/admin-api/tools/links
  * @secure
@@ -1934,53 +1894,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         any
       >({
         path: `/admin-api/dashboard/database`,
-        method: "GET",
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-
-    /**
- * No description
- *
- * @name DashboardServiceStatList
- * @request GET:/admin-api/dashboard/service-stat
- * @secure
- * @response `200` `{
-    data: ({
-    service: {
-    id: number,
-    name: string,
-
-},
-    from: string,
-    to: string,
-    type: string,
-    status: string,
-    count: number,
-
-})[],
-
-}` description
- */
-    dashboardServiceStatList: (params: RequestParams = {}) =>
-      this.request<
-        {
-          data: {
-            service: {
-              id: number;
-              name: string;
-            };
-            from: string;
-            to: string;
-            type: string;
-            status: string;
-            count: number;
-          }[];
-        },
-        any
-      >({
-        path: `/admin-api/dashboard/service-stat`,
         method: "GET",
         secure: true,
         format: "json",

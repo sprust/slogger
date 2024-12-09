@@ -19,7 +19,6 @@ import {
     traceAggregatorServicesStoreInjectionKey
 } from "./store/traceAggregatorServicesStore.ts";
 import {traceCleanerStore, traceCleanerStoreInjectionKey} from "./store/traceCleanerStore.ts";
-import {dashboardServiceStatStore, dashboardServiceStatStoreInjectionKey} from "./store/dashboardServiceStatStore.ts";
 import {
     traceAggregatorProfilingStore,
     traceAggregatorProfilingStoreInjectionKey
@@ -52,7 +51,6 @@ createApp(App)
     .use(traceAggregatorTimestampPeriodStore, traceAggregatorTimestampPeriodStoreInjectionKey)
     .use(traceAggregatorTimestampFieldsStore, traceAggregatorTimestampFieldsStoreInjectionKey)
     .use(dashboardDatabaseStore, dashboardDatabaseStoreInjectionKey)
-    .use(dashboardServiceStatStore, dashboardServiceStatStoreInjectionKey)
     .use(traceAggregatorServicesStore, traceAggregatorServicesStoreInjectionKey)
     .use(traceCleanerStore, traceCleanerStoreInjectionKey)
     .use(traceDynamicIndexesStore, traceDynamicIndexesInjectionKey)
