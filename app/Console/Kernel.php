@@ -14,7 +14,7 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        $schedule->job(ClearTracesJob::class)->everyFifteenMinutes();
+        $schedule->job(ClearTracesJob::class)->hourly();
         $schedule->job(FreshTraceTreesJob::class)->hourly();
     }
 
