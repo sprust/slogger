@@ -2,6 +2,7 @@
 
 namespace App\Modules\Trace\Contracts\Repositories;
 
+use App\Modules\Trace\Entities\Trace\TraceCollectionNameObjects;
 use App\Modules\Trace\Entities\Trace\TraceIndexInfoObject;
 use App\Modules\Trace\Parameters\Data\TraceDataFilterParameters;
 use App\Modules\Trace\Parameters\TraceCreateParameters;
@@ -55,15 +56,13 @@ interface TraceRepositoryInterface
         ?bool $hasProfiling = null,
     ): array;
 
-    /**
-     * @return string[]
-     */
     public function findTraceIds(
-        int $limit = 20,
+        int $limit,
         ?Carbon $loggedAtTo = null,
         ?string $type = null,
-        ?array $excludedTypes = null
-    ): array;
+        ?array $excludedTypes = null,
+        ?bool $noCleared = null
+    ): TraceCollectionNameObjects;
 
     /**
      * @param string[] $traceIds
@@ -81,6 +80,7 @@ interface TraceRepositoryInterface
      * @return int - number of deleted records
      */
     public function deleteTraces(
+        string $collectionName,
         ?array $traceIds = null,
         ?Carbon $loggedAtFrom = null,
         ?Carbon $loggedAtTo = null,
@@ -95,6 +95,7 @@ interface TraceRepositoryInterface
      * @return int - number of cleared records
      */
     public function clearTraces(
+        string $collectionName,
         ?array $traceIds = null,
         ?Carbon $loggedAtFrom = null,
         ?Carbon $loggedAtTo = null,
@@ -112,8 +113,6 @@ interface TraceRepositoryInterface
      * @return TraceIndexInfoObject[]
      */
     public function getIndexProgressesInfo(): array;
-
-    public function findMinLoggedAt(): ?Carbon;
 
     /**
      * @param string[] $collectionNames

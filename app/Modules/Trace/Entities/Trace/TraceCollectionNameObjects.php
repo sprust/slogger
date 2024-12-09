@@ -1,12 +1,15 @@
 <?php
 
-namespace App\Modules\Trace\Repositories\Dto\Trace;
+namespace App\Modules\Trace\Entities\Trace;
 
-class TraceCollectionNamesDto
+class TraceCollectionNameObjects
 {
     /** @var array<string, string[]> */
     private array $traceCollections = [];
 
+    /**
+     * @param string[] $traceIds
+     */
     public function add(string $collectionName, array $traceIds): void
     {
         $this->traceCollections[$collectionName] = $traceIds;
@@ -18,5 +21,10 @@ class TraceCollectionNamesDto
     public function get(): array
     {
         return $this->traceCollections;
+    }
+
+    public function count(): int
+    {
+        return count($this->traceCollections);
     }
 }

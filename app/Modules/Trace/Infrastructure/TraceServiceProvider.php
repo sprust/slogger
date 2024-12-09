@@ -17,7 +17,6 @@ use App\Modules\Trace\Contracts\Actions\Mutations\FreshTraceTreesActionInterface
 use App\Modules\Trace\Contracts\Actions\Mutations\StartMonitorTraceDynamicIndexesActionInterface;
 use App\Modules\Trace\Contracts\Actions\Mutations\StopMonitorTraceDynamicIndexesActionInterface;
 use App\Modules\Trace\Contracts\Actions\Mutations\UpdateTraceManyActionInterface;
-use App\Modules\Trace\Contracts\Actions\Queries\FindMinLoggedAtTracesActionInterface;
 use App\Modules\Trace\Contracts\Actions\Queries\FindStatusesActionInterface;
 use App\Modules\Trace\Contracts\Actions\Queries\FindTagsActionInterface;
 use App\Modules\Trace\Contracts\Actions\Queries\FindTraceAdminStoreActionInterface;
@@ -51,7 +50,6 @@ use App\Modules\Trace\Domain\Actions\Mutations\FreshTraceTreesAction;
 use App\Modules\Trace\Domain\Actions\Mutations\StartMonitorTraceDynamicIndexesAction;
 use App\Modules\Trace\Domain\Actions\Mutations\StopMonitorTraceDynamicIndexesAction;
 use App\Modules\Trace\Domain\Actions\Mutations\UpdateTraceManyAction;
-use App\Modules\Trace\Domain\Actions\Queries\FindMinLoggedAtTracesAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindStatusesAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTagsAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceAdminStoreAction;
@@ -169,7 +167,6 @@ class TraceServiceProvider extends BaseServiceProvider
             FindTypesActionInterface::class                       => FindTypesAction::class,
             FindTraceDynamicIndexesActionInterface::class         => FindTraceDynamicIndexesAction::class,
             FindTraceDynamicIndexStatsActionInterface::class      => FindTraceDynamicIndexStatsAction::class,
-            FindMinLoggedAtTracesActionInterface::class           => FindMinLoggedAtTracesAction::class,
             FindTraceAdminStoreActionInterface::class             => FindTraceAdminStoreAction::class,
             FindTraceIdsActionInterface::class                    => FindTraceIdsAction::class,
             FindTraceServicesActionInterface::class               => FindTraceServicesAction::class,

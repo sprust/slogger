@@ -50,11 +50,11 @@ class TracePipelineBuilder
         }
 
         if ($loggedAtFrom) {
-            $match['lat']['$gte'] = new UTCDateTime($loggedAtFrom->clone()->startOfSecond());
+            $match['lat']['$gte'] = new UTCDateTime($loggedAtFrom->clone());
         }
 
         if ($loggedAtTo) {
-            $match['lat']['$lte'] = new UTCDateTime($loggedAtTo->clone()->endOfSecond());
+            $match['lat']['$lte'] = new UTCDateTime($loggedAtTo->clone());
         }
 
         if ($types) {

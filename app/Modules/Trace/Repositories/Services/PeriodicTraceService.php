@@ -3,8 +3,9 @@
 namespace App\Modules\Trace\Repositories\Services;
 
 use App\Models\Traces\TraceTree;
-use App\Modules\Trace\Repositories\Dto\Trace\TraceCollectionNamesDto;
+use App\Modules\Trace\Entities\Trace\TraceCollectionNameObjects;
 use App\Modules\Trace\Repositories\Events\TraceCollectionCreatedEvent;
+use Closure;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use Iterator;
@@ -243,9 +244,9 @@ class PeriodicTraceService
     /**
      * @param string[] $traceIds
      */
-    public function findCollectionNamesByTraceIds(array $traceIds): TraceCollectionNamesDto
+    public function findCollectionNamesByTraceIds(array $traceIds): TraceCollectionNameObjects
     {
-        $traceCollectionNames = new TraceCollectionNamesDto();
+        $traceCollectionNames = new TraceCollectionNameObjects();
 
         $remainTraceIds = $traceIds;
 
@@ -279,6 +280,89 @@ class PeriodicTraceService
         }
 
         return $traceCollectionNames;
+    }
+
+    /**
+     * @template T
+     *
+     * @param string[]                                     $collectionNames
+     * @param array<array<string, mixed>>                  $pipeline
+     * @param Closure(string $collectionName, array $document): T $documentPreparer
+     *
+     * @return T[]
+     */
+    public function paginate(
+        array $collectionNames,
+        array $pipeline,
+        int $page,
+        int $perPage,
+        Closure $documentPreparer
+    ): array {
+        $result = [];
+
+        $totalFoundCount   = 0;
+        $resultTracesCount = 0;
+
+        $offsetCount = ($page - 1) * $perPage;
+
+        $collected = false;
+
+        foreach ($collectionNames as $collectionName) {
+            if ($collected) {
+                break;
+            }
+
+            $collectionPage = 0;
+
+            while (true) {
+                if ($collected) {
+                    break;
+                }
+
+                ++$collectionPage;
+
+                $collectionPipeline = [
+                    ...$pipeline,
+                    [
+                        '$skip' => ($collectionPage - 1) * $perPage,
+                    ],
+                    [
+                        '$limit' => $perPage,
+                    ],
+                ];
+
+                $cursor = $this->aggregate(
+                    collectionName: $collectionName,
+                    pipeline: $collectionPipeline
+                );
+
+                $documents = iterator_to_array($cursor);
+
+                $documentsCount = count($documents);
+
+                if (!$documentsCount) {
+                    break;
+                }
+
+                $totalFoundCount += $documentsCount;
+
+                if ($offsetCount >= $totalFoundCount) {
+                    continue;
+                }
+
+                foreach ($documents as $document) {
+                    $result[] = $documentPreparer($collectionName, $document);
+
+                    if (++$resultTracesCount >= $perPage) {
+                        $collected = true;
+
+                        break;
+                    }
+                }
+            }
+        }
+
+        return $result;
     }
 
     public function freshTraceTrees(): void
@@ -328,7 +412,7 @@ class PeriodicTraceService
                         [
                             '$project' => $project,
                         ],
-                        $set
+                        $set,
                     ],
                 ],
             ];

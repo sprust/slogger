@@ -2,9 +2,10 @@
 
 namespace App\Modules\Trace\Repositories;
 
-use App\Models\Traces\Trace;
+use App\Models\Traces\TraceDynamicIndex;
 use App\Modules\Trace\Contracts\Repositories\TraceRepositoryInterface;
 use App\Modules\Trace\Entities\Trace\Timestamp\TraceTimestampMetricObject;
+use App\Modules\Trace\Entities\Trace\TraceCollectionNameObjects;
 use App\Modules\Trace\Entities\Trace\TraceIndexInfoObject;
 use App\Modules\Trace\Parameters\Data\TraceDataFilterParameters;
 use App\Modules\Trace\Parameters\TraceUpdateParameters;
@@ -15,7 +16,6 @@ use App\Modules\Trace\Repositories\Dto\Trace\TraceDto;
 use App\Modules\Trace\Repositories\Services\PeriodicTraceService;
 use App\Modules\Trace\Repositories\Services\TraceDataToObjectBuilder;
 use App\Modules\Trace\Repositories\Services\TracePipelineBuilder;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use MongoDB\BSON\UTCDateTime;
@@ -275,102 +275,95 @@ readonly class TraceRepository implements TraceRepositoryInterface
             ],
         ];
 
-        /** @var TraceDto[] $traces */
-        $traces = [];
-
-        $totalFoundCount   = 0;
-        $resultTracesCount = 0;
-
-        $offsetCount = ($page - 1) * $perPage;
-
-        $collected = false;
-
-        foreach ($collectionNames as $collectionName) {
-            if ($collected) {
-                break;
+        return $this->periodicTraceService->paginate(
+            collectionNames: $collectionNames,
+            pipeline: $pipeline,
+            page: $page,
+            perPage: $perPage,
+            documentPreparer: function (string $collectionName, array $document): TraceDto {
+                return $this->makeTraceDtoFromDocument($document);
             }
-
-            $collectionPage = 0;
-
-            while (true) {
-                if ($collected) {
-                    break;
-                }
-
-                ++$collectionPage;
-
-                $collectionPipeline = [
-                    ...$pipeline,
-                    [
-                        '$skip' => ($collectionPage - 1) * $perPage,
-                    ],
-                    [
-                        '$limit' => $perPage,
-                    ],
-                ];
-
-                $cursor = $this->periodicTraceService->aggregate(
-                    collectionName: $collectionName,
-                    pipeline: $collectionPipeline
-                );
-
-                $documents = iterator_to_array($cursor);
-
-                $documentsCount = count($documents);
-
-                if (!$documentsCount) {
-                    break;
-                }
-
-                $totalFoundCount += $documentsCount;
-
-                if ($offsetCount >= $totalFoundCount) {
-                    continue;
-                }
-
-                foreach ($documents as $document) {
-                    $traces[] = $this->makeTraceDtoFromDocument($document);
-
-                    if (++$resultTracesCount >= $perPage) {
-                        $collected = true;
-
-                        break;
-                    }
-                }
-            }
-        }
-
-        return $traces;
+        );
     }
 
     public function findTraceIds(
-        int $limit = 20,
+        int $limit,
         ?Carbon $loggedAtTo = null,
         ?string $type = null,
-        ?array $excludedTypes = null
-    ): array {
-        $builder = Trace::query()
-            ->when(
-                !is_null($loggedAtTo),
-                fn(Builder $query) => $query->where('lat', '<=', new UTCDateTime($loggedAtTo))
-            )
-            ->when(
-                !is_null($type),
-                fn(Builder $query) => $query->where('tp', $type)
-            )
-            ->when(
-                is_null($type) && !is_null($excludedTypes),
-                fn(Builder $query) => $query->whereNotIn('tp', $excludedTypes)
-            )
-            ->select(['tid'])
-            ->toBase()
-            ->limit($limit);
+        ?array $excludedTypes = null,
+        ?bool $noCleared = null
+    ): TraceCollectionNameObjects {
+        $collectionNames = $this->periodicTraceService->detectCollectionNames(
+            loggedAtTo: $loggedAtTo
+        );
 
-        return $builder->get()
-            ->map(function (array $document) {
-                return (string) $document['tid'];
-            })
-            ->all();
+        if (!count($collectionNames)) {
+            return new TraceCollectionNameObjects();
+        }
+
+        $customMatch = [];
+
+        if (is_null($type) && !is_null($excludedTypes)) {
+            $customMatch['tp'] = ['$nin' => $excludedTypes];
+        }
+
+        $pipeline = $this->tracePipelineBuilder->make(
+            loggedAtTo: $loggedAtTo,
+            types: is_null($type) ? [] : [$type],
+            customMatch: count($customMatch) ? $customMatch : null
+        );
+
+        if ($noCleared) {
+            $pipeline[] = [
+                '$match' => [
+                    '$or' => [
+                        ['cl' => false],
+                        ['cl' => ['$exists' => false]],
+                    ],
+                ],
+            ];
+        }
+
+        $pipeline[] = [
+            '$sort' => [
+                'lat' => -1,
+                '_id' => 1,
+            ],
+        ];
+
+        $pipeline[] = [
+            '$project' => [
+                'tid' => 1,
+            ],
+        ];
+
+        $traceCollectionNamesRaw = $this->periodicTraceService->paginate(
+            collectionNames: $collectionNames,
+            pipeline: $pipeline,
+            page: 1,
+            perPage: $limit,
+            documentPreparer: static function (string $collectionName, array $document) {
+                return [
+                    'cn'  => $collectionName,
+                    'tid' => $document['tid'],
+                ];
+            }
+        );
+
+        $traceCollectionNames = [];
+
+        foreach ($traceCollectionNamesRaw as $item) {
+            $traceCollectionNames[$item['cn']]   ??= [];
+            $traceCollectionNames[$item['cn']][] = $item['tid'];
+        }
+
+        $result = new TraceCollectionNameObjects();
+
+        foreach ($traceCollectionNames as $collectionName => $traceIds) {
+            $result->add($collectionName, $traceIds);
+        }
+
+        return $result;
     }
 
     public function findByTraceIds(array $traceIds): array
@@ -428,71 +421,79 @@ readonly class TraceRepository implements TraceRepositoryInterface
     }
 
     public function deleteTraces(
+        string $collectionName,
         ?array $traceIds = null,
         ?Carbon $loggedAtFrom = null,
         ?Carbon $loggedAtTo = null,
         ?string $type = null,
         ?array $excludedTypes = null
     ): int {
-        return Trace::query()
-            ->when(
-                !is_null($traceIds),
-                fn(Builder $query) => $query->whereIn('tid', $traceIds)
-            )
-            ->when(
-                !is_null($loggedAtFrom),
-                fn(Builder $query) => $query->where('lat', '>=', new UTCDateTime($loggedAtFrom))
-            )
-            ->when(
-                !is_null($loggedAtTo),
-                fn(Builder $query) => $query->where('lat', '<=', new UTCDateTime($loggedAtTo))
-            )
-            ->when(
-                !is_null($type),
-                fn(Builder $query) => $query->where('tp', $type)
-            )
-            ->when(
-                is_null($type) && !is_null($excludedTypes),
-                fn(Builder $query) => $query->whereNotIn('tp', $excludedTypes)
-            )
-            ->delete();
+        $collection = $this->periodicTraceService->selectCollectionByName($collectionName);
+
+        $lat = [];
+
+        if (!is_null($loggedAtFrom)) {
+            $lat['$gte'] = new UTCDateTime($loggedAtFrom);
+        }
+
+        if (!is_null($loggedAtTo)) {
+            $lat['$lte'] = new UTCDateTime($loggedAtTo);
+        }
+
+        $result = $collection->deleteMany(
+            [
+                ...(count($traceIds) ? ['tid' => ['$in' => $traceIds]] : []),
+                ...(count($lat) ? ['lat' => $lat] : []),
+                ...(is_null($type) ? [] : ['tp' => $type]),
+                ...(is_null($type) && !is_null($excludedTypes) ? ['tp' => ['$nin' => $excludedTypes]] : []),
+            ],
+        );
+
+        return $result->getDeletedCount();
     }
 
     public function clearTraces(
+        string $collectionName,
         ?array $traceIds = null,
         ?Carbon $loggedAtFrom = null,
         ?Carbon $loggedAtTo = null,
         ?string $type = null,
         ?array $excludedTypes = null
     ): int {
-        return Trace::query()
-            ->where(function (Builder $query) {
-                $query->where('cl', false)
-                    ->orWhere('cl', 'exists', false);
-            })
-            ->when(
-                !is_null($traceIds),
-                fn(Builder $query) => $query->whereIn('tid', $traceIds)
-            )
-            ->when(
-                !is_null($loggedAtFrom),
-                fn(Builder $query) => $query->where('lat', '>=', new UTCDateTime($loggedAtFrom))
-            )
-            ->when(
-                !is_null($loggedAtTo),
-                fn(Builder $query) => $query->where('lat', '<=', new UTCDateTime($loggedAtTo))
-            )
-            ->when(!is_null($type), fn(Builder $query) => $query->where('tp', $type))
-            ->when(
-                is_null($type) && !is_null($excludedTypes),
-                fn(Builder $query) => $query->whereNotIn('tp', $excludedTypes)
-            )
-            ->update([
-                'dt'  => new stdClass(),
-                'pr'  => null,
-                'hpr' => false,
-                'cl'  => true,
-            ]);
+        $collection = $this->periodicTraceService->selectCollectionByName($collectionName);
+
+        $lat = [];
+
+        if (!is_null($loggedAtFrom)) {
+            $lat['$gte'] = new UTCDateTime($loggedAtFrom);
+        }
+
+        if (!is_null($loggedAtTo)) {
+            $lat['$lte'] = new UTCDateTime($loggedAtTo);
+        }
+
+        $result = $collection->updateMany(
+            [
+                ...(count($traceIds) ? ['tid' => ['$in' => $traceIds]] : []),
+                ...(count($lat) ? ['lat' => $lat] : []),
+                ...(is_null($type) ? [] : ['tp' => $type]),
+                ...(is_null($type) && !is_null($excludedTypes) ? ['tp' => ['$nin' => $excludedTypes]] : []),
+                '$or' => [
+                    ['cl' => false],
+                    ['cl' => ['$exists' => false]],
+                ],
+            ],
+            [
+                '$set' => [
+                    'dt'  => new stdClass(),
+                    'pr'  => null,
+                    'hpr' => false,
+                    'cl'  => true,
+                ],
+            ]
+        );
+
+        return $result->getModifiedCount();
     }
 
     /**
@@ -548,7 +549,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
      */
     public function getIndexProgressesInfo(): array
     {
-        $operations = Trace::collection()->getManager()
+        $operations = TraceDynamicIndex::collection()->getManager()
             ->executeCommand(
                 'admin',
                 new Command(
@@ -589,14 +590,6 @@ readonly class TraceRepository implements TraceRepositoryInterface
         }
 
         return $infoList;
-    }
-
-    public function findMinLoggedAt(): ?Carbon
-    {
-        /** @var UTCDateTime|null $min */
-        $min = Trace::query()->min('lat');
-
-        return $min ? new Carbon($min->toDateTime()) : null;
     }
 
     public function deleteIndexByName(string $indexName, array $collectionNames): void
