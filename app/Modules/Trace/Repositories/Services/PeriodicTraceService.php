@@ -230,15 +230,10 @@ class PeriodicTraceService
 
     public function findCollectionNameByTraceId(string $traceId): ?string
     {
-        $collectionNames = $this->detectCollectionNamesReverse();
+        /** @var TraceTree|null $traceTree */
+        $traceTree = TraceTree::query()->where('tid', $traceId)->first();
 
-        foreach ($collectionNames as $collectionName) {
-            if ($this->isTraceExists($collectionName, $traceId)) {
-                return $collectionName;
-            }
-        }
-
-        return null;
+        return $traceTree?->__cn;
     }
 
     /**
@@ -285,8 +280,8 @@ class PeriodicTraceService
     /**
      * @template T
      *
-     * @param string[]                                     $collectionNames
-     * @param array<array<string, mixed>>                  $pipeline
+     * @param string[]                                            $collectionNames
+     * @param array<array<string, mixed>>                         $pipeline
      * @param Closure(string $collectionName, array $document): T $documentPreparer
      *
      * @return T[]
@@ -435,11 +430,5 @@ class PeriodicTraceService
             'viewOn'   => $mainCollectionName,
             'pipeline' => $pipeline,
         ]);
-    }
-
-    private function isTraceExists(string $collectionName, string $traceId): bool
-    {
-        return $this->selectCollectionByName($collectionName)
-                ->countDocuments(['tid' => $traceId], ['limit' => 1]) > 0;
     }
 }
