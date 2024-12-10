@@ -11,6 +11,7 @@ class DeleteTracesParameters
      * @param string[]|null $excludedTypes
      */
     public function __construct(
+        public string $collectionName,
         public ?array $traceIds = null,
         public ?Carbon $loggedAtFrom = null,
         public ?Carbon $loggedAtTo = null,

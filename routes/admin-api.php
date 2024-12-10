@@ -6,7 +6,6 @@ use App\Modules\Auth\Infrastructure\Http\Middlewares\AuthMiddleware;
 use App\Modules\Cleaner\Infrastructure\Http\Controllers\ProcessController;
 use App\Modules\Cleaner\Infrastructure\Http\Controllers\SettingController;
 use App\Modules\Dashboard\Infrastructure\Http\Controllers\DatabaseStatController;
-use App\Modules\Dashboard\Infrastructure\Http\Controllers\ServiceStatController;
 use App\Modules\Service\Infrastructure\Http\Controllers\ServiceController;
 use App\Modules\Tools\Infrastructure\Http\Controllers\ToolLinksController;
 use App\Modules\Trace\Infrastructure\Http\Controllers\TraceAdminStoreController;
@@ -30,7 +29,6 @@ Route::prefix('/dashboard')
     ->as('dashboard.')
     ->group(function () {
         Route::get('/database', [DatabaseStatController::class, 'index'])->name('index');
-        Route::get('/service-stat', [ServiceStatController::class, 'index'])->name('index');
     });
 
 Route::prefix('/tools')

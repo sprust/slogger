@@ -133,8 +133,8 @@ export function makeGeneralFiltersTitles(
 
     const titles = new Array<string>()
 
-    const loggedAtFromSelected = valueIsSelected(payload.logging_from)
-    const loggedAtToSelected = valueIsSelected(payload.logging_to)
+    const loggedAtFromSelected = payload.logging_from && valueIsSelected(payload.logging_from)
+    const loggedAtToSelected = payload.logging_to && valueIsSelected(payload.logging_to)
 
     if (loggedAtFromSelected || loggedAtToSelected) {
         const loggedAtFrom: string | null = loggedAtFromSelected

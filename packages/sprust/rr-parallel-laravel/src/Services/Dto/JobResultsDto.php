@@ -18,6 +18,6 @@ readonly class JobResultsDto
         public array $results,
         public array $failed
     ) {
-        $this->hasFailed = (bool) $this->failed;
+        $this->hasFailed = count($this->failed) > 0;
     }
 }

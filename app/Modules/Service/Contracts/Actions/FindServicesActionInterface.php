@@ -7,7 +7,9 @@ use App\Modules\Service\Entities\ServiceObject;
 interface FindServicesActionInterface
 {
     /**
+     * @param int[]|null $ids
+     *
      * @return ServiceObject[]
      */
-    public function handle(): array;
+    public function handle(?array $ids = null): array;
 }

@@ -12,12 +12,14 @@ class TraceTreeRepository implements TraceTreeRepositoryInterface
 
     public function findTraceIdsInTreeByParentTraceId(string $traceId): array
     {
+        $traceTreesCollectionName = (new TraceTree())->getCollectionName();
+
         $childrenAggregation = TraceTree::collection()
             ->aggregate(
                 [
                     [
                         '$graphLookup' => [
-                            'from'             => 'traceTreesView',
+                            'from'             => $traceTreesCollectionName,
                             'startWith'        => '$tid',
                             'connectFromField' => 'tid',
                             'connectToField'   => 'ptid',

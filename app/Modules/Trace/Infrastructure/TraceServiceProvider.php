@@ -13,11 +13,10 @@ use App\Modules\Trace\Contracts\Actions\Mutations\DeleteTraceAdminStoreActionInt
 use App\Modules\Trace\Contracts\Actions\Mutations\DeleteTraceDynamicIndexActionInterface;
 use App\Modules\Trace\Contracts\Actions\Mutations\DeleteTracesActionInterface;
 use App\Modules\Trace\Contracts\Actions\Mutations\FlushDynamicIndexesActionInterface;
-use App\Modules\Trace\Contracts\Actions\Mutations\FreshTraceTimestampsActionInterface;
+use App\Modules\Trace\Contracts\Actions\Mutations\FreshTraceTreesActionInterface;
 use App\Modules\Trace\Contracts\Actions\Mutations\StartMonitorTraceDynamicIndexesActionInterface;
 use App\Modules\Trace\Contracts\Actions\Mutations\StopMonitorTraceDynamicIndexesActionInterface;
 use App\Modules\Trace\Contracts\Actions\Mutations\UpdateTraceManyActionInterface;
-use App\Modules\Trace\Contracts\Actions\Queries\FindMinLoggedAtTracesActionInterface;
 use App\Modules\Trace\Contracts\Actions\Queries\FindStatusesActionInterface;
 use App\Modules\Trace\Contracts\Actions\Queries\FindTagsActionInterface;
 use App\Modules\Trace\Contracts\Actions\Queries\FindTraceAdminStoreActionInterface;
@@ -27,6 +26,7 @@ use App\Modules\Trace\Contracts\Actions\Queries\FindTraceDynamicIndexStatsAction
 use App\Modules\Trace\Contracts\Actions\Queries\FindTraceIdsActionInterface;
 use App\Modules\Trace\Contracts\Actions\Queries\FindTraceProfilingActionInterface;
 use App\Modules\Trace\Contracts\Actions\Queries\FindTracesActionInterface;
+use App\Modules\Trace\Contracts\Actions\Queries\FindTraceServicesActionInterface;
 use App\Modules\Trace\Contracts\Actions\Queries\FindTraceTimestampsActionInterface;
 use App\Modules\Trace\Contracts\Actions\Queries\FindTraceTreeActionInterface;
 use App\Modules\Trace\Contracts\Actions\Queries\FindTypesActionInterface;
@@ -46,11 +46,10 @@ use App\Modules\Trace\Domain\Actions\Mutations\DeleteTraceAdminStoreAction;
 use App\Modules\Trace\Domain\Actions\Mutations\DeleteTraceDynamicIndexAction;
 use App\Modules\Trace\Domain\Actions\Mutations\DeleteTracesAction;
 use App\Modules\Trace\Domain\Actions\Mutations\FlushDynamicIndexesAction;
-use App\Modules\Trace\Domain\Actions\Mutations\FreshTraceTimestampsAction;
+use App\Modules\Trace\Domain\Actions\Mutations\FreshTraceTreesAction;
 use App\Modules\Trace\Domain\Actions\Mutations\StartMonitorTraceDynamicIndexesAction;
 use App\Modules\Trace\Domain\Actions\Mutations\StopMonitorTraceDynamicIndexesAction;
 use App\Modules\Trace\Domain\Actions\Mutations\UpdateTraceManyAction;
-use App\Modules\Trace\Domain\Actions\Queries\FindMinLoggedAtTracesAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindStatusesAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTagsAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceAdminStoreAction;
@@ -60,41 +59,75 @@ use App\Modules\Trace\Domain\Actions\Queries\FindTraceDynamicIndexStatsAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceIdsAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceProfilingAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTracesAction;
+use App\Modules\Trace\Domain\Actions\Queries\FindTraceServicesAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceTimestampsAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceTreeAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTypesAction;
 use App\Modules\Trace\Domain\Services\TraceDynamicIndexInitializer;
 use App\Modules\Trace\Domain\Services\TraceFieldTitlesService;
 use App\Modules\Trace\Infrastructure\Commands\FlushDynamicIndexesCommand;
-use App\Modules\Trace\Infrastructure\Commands\FreshTraceTimestampsCommand;
 use App\Modules\Trace\Infrastructure\Commands\StartMonitorTraceDynamicIndexesCommand;
 use App\Modules\Trace\Infrastructure\Commands\StopMonitorTraceDynamicIndexesCommand;
 use App\Modules\Trace\Infrastructure\Http\Services\TraceDynamicIndexingActionService;
-use App\Modules\Trace\Repositories\Services\TraceQueryBuilder;
+use App\Modules\Trace\Infrastructure\Listeners\TraceCollectionCreatedListener;
+use App\Modules\Trace\Repositories\Events\TraceCollectionCreatedEvent;
+use App\Modules\Trace\Repositories\Services\PeriodicTraceService;
+use App\Modules\Trace\Repositories\Services\TracePipelineBuilder;
 use App\Modules\Trace\Repositories\TraceAdminStoreRepository;
 use App\Modules\Trace\Repositories\TraceContentRepository;
 use App\Modules\Trace\Repositories\TraceDynamicIndexRepository;
 use App\Modules\Trace\Repositories\TraceRepository;
 use App\Modules\Trace\Repositories\TraceTimestampsRepository;
 use App\Modules\Trace\Repositories\TraceTreeRepository;
+use MongoDB\Client;
 
 class TraceServiceProvider extends BaseServiceProvider
 {
     public function boot(): void
     {
+        $this->app->singleton(
+            PeriodicTraceService::class,
+            static function () {
+                $username = config('database.connections.mongodb.tracesPeriodic.username');
+                $password = config('database.connections.mongodb.tracesPeriodic.password');
+                $host     = config('database.connections.mongodb.tracesPeriodic.host');
+                $port     = config('database.connections.mongodb.tracesPeriodic.port');
+                $database = config('database.connections.mongodb.tracesPeriodic.database');
+                $options  = config('database.connections.mongodb.tracesPeriodic.options');
+
+                $uri = "mongodb://$username:$password@$host:$port";
+
+                $client = new Client($uri, $options, [
+                    'typeMap' => [
+                        'array'    => 'array',
+                        'document' => 'array',
+                        'root'     => 'array',
+                    ],
+                ]);
+
+                return new PeriodicTraceService(
+                    $client->selectDatabase($database)
+                );
+            }
+        );
+
         $this->app->singleton(TraceFieldTitlesService::class);
-        $this->app->singleton(TraceQueryBuilder::class);
+        $this->app->singleton(TracePipelineBuilder::class);
         $this->app->singleton(TraceDynamicIndexInitializer::class);
         $this->app->singleton(TraceDynamicIndexingActionService::class);
 
         parent::boot();
 
         $this->commands([
-            FreshTraceTimestampsCommand::class,
             StartMonitorTraceDynamicIndexesCommand::class,
             StopMonitorTraceDynamicIndexesCommand::class,
             FlushDynamicIndexesCommand::class,
         ]);
+
+        $this->listen(
+            TraceCollectionCreatedEvent::class,
+            TraceCollectionCreatedListener::class
+        );
     }
 
     protected function getContracts(): array
@@ -115,7 +148,6 @@ class TraceServiceProvider extends BaseServiceProvider
             CreateTraceManyActionInterface::class                 => CreateTraceManyAction::class,
             ClearTracesActionInterface::class                     => ClearTracesAction::class,
             DeleteTracesActionInterface::class                    => DeleteTracesAction::class,
-            FreshTraceTimestampsActionInterface::class            => FreshTraceTimestampsAction::class,
             UpdateTraceManyActionInterface::class                 => UpdateTraceManyAction::class,
             StartMonitorTraceDynamicIndexesActionInterface::class => StartMonitorTraceDynamicIndexesAction::class,
             StopMonitorTraceDynamicIndexesActionInterface::class  => StopMonitorTraceDynamicIndexesAction::class,
@@ -123,6 +155,7 @@ class TraceServiceProvider extends BaseServiceProvider
             DeleteTraceDynamicIndexActionInterface::class         => DeleteTraceDynamicIndexAction::class,
             CreateTraceAdminStoreActionInterface::class           => CreateTraceAdminStoreAction::class,
             DeleteTraceAdminStoreActionInterface::class           => DeleteTraceAdminStoreAction::class,
+            FreshTraceTreesActionInterface::class                 => FreshTraceTreesAction::class,
             // actions.queries
             FindStatusesActionInterface::class                    => FindStatusesAction::class,
             FindTagsActionInterface::class                        => FindTagsAction::class,
@@ -134,9 +167,9 @@ class TraceServiceProvider extends BaseServiceProvider
             FindTypesActionInterface::class                       => FindTypesAction::class,
             FindTraceDynamicIndexesActionInterface::class         => FindTraceDynamicIndexesAction::class,
             FindTraceDynamicIndexStatsActionInterface::class      => FindTraceDynamicIndexStatsAction::class,
-            FindMinLoggedAtTracesActionInterface::class           => FindMinLoggedAtTracesAction::class,
             FindTraceAdminStoreActionInterface::class             => FindTraceAdminStoreAction::class,
             FindTraceIdsActionInterface::class                    => FindTraceIdsAction::class,
+            FindTraceServicesActionInterface::class               => FindTraceServicesAction::class,
         ];
     }
 }

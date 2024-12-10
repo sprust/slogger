@@ -88,6 +88,7 @@ export namespace AdminApi {
     data: ({
     name: string,
     size: number,
+    total_documents_count: number,
     memory_usage: number,
     collections: ({
     name: string,
@@ -118,6 +119,7 @@ export namespace AdminApi {
       data: {
         name: string;
         size: number;
+        total_documents_count: number;
         memory_usage: number;
         collections: {
           name: string;
@@ -132,46 +134,6 @@ export namespace AdminApi {
             usage: number;
           }[];
         }[];
-      }[];
-    };
-  } /**
- * No description
- * @name DashboardServiceStatList
- * @request GET:/admin-api/dashboard/service-stat
- * @secure
- * @response `200` `{
-    data: ({
-    service: {
-    id: number,
-    name: string,
-
-},
-    from: string,
-    to: string,
-    type: string,
-    status: string,
-    count: number,
-
-})[],
-
-}` description
-*/
-  export namespace DashboardServiceStatList {
-    export type RequestParams = {};
-    export type RequestQuery = {};
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = {
-      data: {
-        service: {
-          id: number;
-          name: string;
-        };
-        from: string;
-        to: string;
-        type: string;
-        status: string;
-        count: number;
       }[];
     };
   } /**
@@ -257,11 +219,6 @@ export namespace AdminApi {
     updated_at: string,
 
 },
-    types: ({
-    type: string,
-    count: number,
-
-})[],
 
 })[],
     paginator: {
@@ -325,10 +282,6 @@ export namespace AdminApi {
         }[];
         fields?: string[];
       };
-      sort?: {
-        field?: string;
-        direction?: "asc" | "desc";
-      }[];
       has_profiling?: boolean;
     };
     export type RequestHeaders = {};
@@ -357,10 +310,6 @@ export namespace AdminApi {
             created_at: string;
             updated_at: string;
           };
-          types: {
-            type: string;
-            count: number;
-          }[];
         }[];
         paginator: {
           total: number;
@@ -1210,13 +1159,14 @@ export namespace AdminApi {
     data: ({
     id: string,
     name: string,
+    indexName: string,
+    collectionNames: (string)[],
     fields: ({
     name: string,
     title: string,
 
 })[],
     inProcess: boolean,
-    progress?: number | null,
     created: boolean,
     error?: string | null,
     actualUntilAt: string,
@@ -1235,12 +1185,13 @@ export namespace AdminApi {
       data: {
         id: string;
         name: string;
+        indexName: string;
+        collectionNames: string[];
         fields: {
           name: string;
           title: string;
         }[];
         inProcess: boolean;
-        progress?: number | null;
         created: boolean;
         error?: string | null;
         actualUntilAt: string;
@@ -1258,6 +1209,7 @@ export namespace AdminApi {
     errors_count: number,
     total_count: number,
     indexes_in_process: ({
+    collectionName: string,
     name: string,
     progress: number,
 
@@ -1278,6 +1230,7 @@ export namespace AdminApi {
         errors_count: number;
         total_count: number;
         indexes_in_process: {
+          collectionName: string;
           name: string;
           progress: number;
         }[];
@@ -1897,6 +1850,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     data: ({
     name: string,
     size: number,
+    total_documents_count: number,
     memory_usage: number,
     collections: ({
     name: string,
@@ -1924,6 +1878,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
           data: {
             name: string;
             size: number;
+            total_documents_count: number;
             memory_usage: number;
             collections: {
               name: string;
@@ -1943,53 +1898,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         any
       >({
         path: `/admin-api/dashboard/database`,
-        method: "GET",
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-
-    /**
- * No description
- *
- * @name DashboardServiceStatList
- * @request GET:/admin-api/dashboard/service-stat
- * @secure
- * @response `200` `{
-    data: ({
-    service: {
-    id: number,
-    name: string,
-
-},
-    from: string,
-    to: string,
-    type: string,
-    status: string,
-    count: number,
-
-})[],
-
-}` description
- */
-    dashboardServiceStatList: (params: RequestParams = {}) =>
-      this.request<
-        {
-          data: {
-            service: {
-              id: number;
-              name: string;
-            };
-            from: string;
-            to: string;
-            type: string;
-            status: string;
-            count: number;
-          }[];
-        },
-        any
-      >({
-        path: `/admin-api/dashboard/service-stat`,
         method: "GET",
         secure: true,
         format: "json",
@@ -2094,11 +2002,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     updated_at: string,
 
 },
-    types: ({
-    type: string,
-    count: number,
-
-})[],
 
 })[],
     paginator: {
@@ -2160,10 +2063,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
           }[];
           fields?: string[];
         };
-        sort?: {
-          field?: string;
-          direction?: "asc" | "desc";
-        }[];
         has_profiling?: boolean;
       },
       params: RequestParams = {},
@@ -2194,10 +2093,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
                 created_at: string;
                 updated_at: string;
               };
-              types: {
-                type: string;
-                count: number;
-              }[];
             }[];
             paginator: {
               total: number;
@@ -3142,13 +3037,14 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     data: ({
     id: string,
     name: string,
+    indexName: string,
+    collectionNames: (string)[],
     fields: ({
     name: string,
     title: string,
 
 })[],
     inProcess: boolean,
-    progress?: number | null,
     created: boolean,
     error?: string | null,
     actualUntilAt: string,
@@ -3164,12 +3060,13 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
           data: {
             id: string;
             name: string;
+            indexName: string;
+            collectionNames: string[];
             fields: {
               name: string;
               title: string;
             }[];
             inProcess: boolean;
-            progress?: number | null;
             created: boolean;
             error?: string | null;
             actualUntilAt: string;
@@ -3197,6 +3094,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     errors_count: number,
     total_count: number,
     indexes_in_process: ({
+    collectionName: string,
     name: string,
     progress: number,
 
@@ -3214,6 +3112,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
             errors_count: number;
             total_count: number;
             indexes_in_process: {
+              collectionName: string;
               name: string;
               progress: number;
             }[];

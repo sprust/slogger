@@ -10,7 +10,6 @@ use App\Modules\Cleaner\Entities\SettingObject;
 use App\Modules\Common\Domain\Service\EventsDispatcher;
 use App\Modules\Trace\Contracts\Actions\Mutations\ClearTracesActionInterface as TraceClearTracesActionInterface;
 use App\Modules\Trace\Contracts\Actions\Mutations\DeleteTracesActionInterface;
-use App\Modules\Trace\Contracts\Actions\Queries\FindMinLoggedAtTracesActionInterface;
 use App\Modules\Trace\Contracts\Actions\Queries\FindTraceIdsActionInterface;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexErrorException;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexInProcessException;
@@ -26,7 +25,6 @@ readonly class ClearTracesAction implements ClearTracesActionInterface
         private EventsDispatcher $eventsDispatcher,
         private SettingRepositoryInterface $settingRepository,
         private ProcessRepositoryInterface $processRepository,
-        private FindMinLoggedAtTracesActionInterface $findMinLoggedAtTracesAction,
         private TraceClearTracesActionInterface $clearTracesAction,
         private FindTraceIdsActionInterface $findTraceIdsAction,
         private DeleteTracesActionInterface $deleteTracesAction,
@@ -47,12 +45,6 @@ readonly class ClearTracesAction implements ClearTracesActionInterface
         );
 
         if (empty($settings)) {
-            return;
-        }
-
-        $loggedAtFrom = $this->findMinLoggedAtTracesAction->handle();
-
-        if (!$loggedAtFrom) {
             return;
         }
 
@@ -97,40 +89,45 @@ readonly class ClearTracesAction implements ClearTracesActionInterface
             $exception = null;
 
             while (true) {
-                $traceIds = $this->findTraceIdsAction->handle(
+                $traceCollectionNameObjects = $this->findTraceIdsAction->handle(
                     limit: 1000,
                     loggedAtTo: $loggedAtTo,
                     type: $type,
-                    excludedTypes: $excludedTypes
+                    excludedTypes: $excludedTypes,
+                    noCleared: $setting->onlyData ?: null
                 );
 
-                if (count($traceIds) === 0) {
+                if (!$traceCollectionNameObjects->count()) {
                     break;
                 }
 
-                try {
-                    if ($setting->onlyData) {
-                        $clearedCount += $this->clearTracesAction->handle(
-                            new ClearTracesParameters(
-                                traceIds: $traceIds
-                            )
+                foreach ($traceCollectionNameObjects->get() as $collectionName => $traceIds) {
+                    try {
+                        if ($setting->onlyData) {
+                            $clearedCount += $this->clearTracesAction->handle(
+                                new ClearTracesParameters(
+                                    collectionName: $collectionName,
+                                    traceIds: $traceIds
+                                )
+                            );
+                        } else {
+                            $clearedCount += $this->deleteTracesAction->handle(
+                                new DeleteTracesParameters(
+                                    collectionName: $collectionName,
+                                    traceIds: $traceIds
+                                )
+                            );
+                        }
+                    } catch (Throwable $exception) {
+                        $this->processRepository->update(
+                            processId: $process->id,
+                            clearedCount: $clearedCount,
+                            clearedAt: now(),
+                            exception: $exception
                         );
-                    } else {
-                        $clearedCount += $this->deleteTracesAction->handle(
-                            new DeleteTracesParameters(
-                                traceIds: $traceIds
-                            )
-                        );
-                    }
-                } catch (Throwable $exception) {
-                    $this->processRepository->update(
-                        processId: $process->id,
-                        clearedCount: $clearedCount,
-                        clearedAt: now(),
-                        exception: $exception
-                    );
 
-                    break;
+                        break;
+                    }
                 }
 
                 $this->processRepository->update(

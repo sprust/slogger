@@ -94,19 +94,6 @@
       </template>
     </el-table-column>
 
-    <el-table-column label="Children types">
-      <template #default="scope">
-        <el-tag
-            v-for="type in scope.row.types"
-            :key="type.type"
-            type="info"
-            effect="plain"
-        >
-          {{ type.type }} ({{ type.count }})
-        </el-tag>
-      </template>
-    </el-table-column>
-
     <el-table-column label="Status">
       <template #default="scope">
         <el-check-tag

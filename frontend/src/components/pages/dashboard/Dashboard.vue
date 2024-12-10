@@ -7,10 +7,9 @@
 <script lang="ts">
 import {defineComponent} from "vue";
 import DashboardDatabase from "./database/DashboardDatabase.vue";
-import DashboardServiceStat from "./database/DashboardServiceStat.vue";
 
 export default defineComponent({
-  components: {DashboardDatabase, DashboardServiceStat}
+  components: {DashboardDatabase}
 })
 
 </script>
