@@ -14,25 +14,33 @@ use Illuminate\Support\Carbon;
 
 interface TraceRepositoryInterface
 {
+    public function createOne(TraceCreateParameters $trace): void;
+
+    public function updateOne(TraceUpdateParameters $trace): bool;
+
     /**
      * @param TraceCreateParameters[] $traces
      *
      * @return void
+     * @deprecated
+     *
      */
     public function createMany(array $traces): void;
 
     /**
      * @param TraceUpdateParameters[] $traces
+     *
+     * @deprecated
      */
     public function updateMany(array $traces): int;
 
     public function findOneDetailByTraceId(string $traceId): ?TraceDto;
 
     /**
-     * @param int[]|null                 $serviceIds
-     * @param string[]                   $types
-     * @param string[]                   $tags
-     * @param string[]                   $statuses
+     * @param int[]|null $serviceIds
+     * @param string[]   $types
+     * @param string[]   $tags
+     * @param string[]   $statuses
      *
      * @return TraceDto[]
      */
