@@ -142,7 +142,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
             $duration      = $trace->duration;
             $memory        = $trace->memory;
             $cpu           = $trace->cpu;
-            $timestamps    = [];
+            $timestamps    = new stdClass();
             $loggedAt      = $timestamp;
             $updatedAt     = $timestamp;
             $createdAt     = $timestamp;
