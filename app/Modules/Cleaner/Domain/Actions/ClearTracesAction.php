@@ -11,9 +11,6 @@ use App\Modules\Common\Domain\Service\EventsDispatcher;
 use App\Modules\Trace\Contracts\Actions\Mutations\ClearTracesActionInterface as TraceClearTracesActionInterface;
 use App\Modules\Trace\Contracts\Actions\Mutations\DeleteTracesActionInterface;
 use App\Modules\Trace\Contracts\Actions\Queries\FindTraceIdsActionInterface;
-use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexErrorException;
-use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexInProcessException;
-use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexNotInitException;
 use App\Modules\Trace\Parameters\ClearTracesParameters;
 use App\Modules\Trace\Parameters\DeleteTracesParameters;
 use Illuminate\Support\Arr;
@@ -31,11 +28,6 @@ readonly class ClearTracesAction implements ClearTracesActionInterface
     ) {
     }
 
-    /**
-     * @throws TraceDynamicIndexErrorException
-     * @throws TraceDynamicIndexInProcessException
-     * @throws TraceDynamicIndexNotInitException
-     */
     public function handle(): void
     {
         /** @var SettingObject[] $settings */
@@ -89,20 +81,20 @@ readonly class ClearTracesAction implements ClearTracesActionInterface
             $exception = null;
 
             while (true) {
-                $traceCollectionNameObjects = $this->findTraceIdsAction->handle(
-                    limit: 1000,
-                    loggedAtTo: $loggedAtTo,
-                    type: $type,
-                    excludedTypes: $excludedTypes,
-                    noCleared: $setting->onlyData ?: null
-                );
+                try {
+                    $traceCollectionNameObjects = $this->findTraceIdsAction->handle(
+                        limit: 1000,
+                        loggedAtTo: $loggedAtTo,
+                        type: $type,
+                        excludedTypes: $excludedTypes,
+                        noCleared: $setting->onlyData ?: null
+                    );
 
-                if (!$traceCollectionNameObjects->count()) {
-                    break;
-                }
+                    if (!$traceCollectionNameObjects->count()) {
+                        break;
+                    }
 
-                foreach ($traceCollectionNameObjects->get() as $collectionName => $traceIds) {
-                    try {
+                    foreach ($traceCollectionNameObjects->get() as $collectionName => $traceIds) {
                         if ($setting->onlyData) {
                             $clearedCount += $this->clearTracesAction->handle(
                                 new ClearTracesParameters(
@@ -118,16 +110,16 @@ readonly class ClearTracesAction implements ClearTracesActionInterface
                                 )
                             );
                         }
-                    } catch (Throwable $exception) {
-                        $this->processRepository->update(
-                            processId: $process->id,
-                            clearedCount: $clearedCount,
-                            clearedAt: now(),
-                            exception: $exception
-                        );
-
-                        break;
                     }
+                } catch (Throwable $exception) {
+                    $this->processRepository->update(
+                        processId: $process->id,
+                        clearedCount: $clearedCount,
+                        clearedAt: now(),
+                        exception: $exception
+                    );
+
+                    break;
                 }
 
                 $this->processRepository->update(
