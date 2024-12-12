@@ -30,24 +30,29 @@ readonly class DatabaseStatRepository implements DatabaseStatRepositoryInterface
 
         $databases = [];
 
+        $memoryUsageSize = null;
+
         foreach (array_keys($this->app['config']['database.connections.mongodb']) as $connectionName) {
             /** @var Connection $connection */
             $connection = DB::connection("mongodb.$connectionName");
 
-            $memoryUsageSize = $this->bitesToMb(
-                $connection->getManager()
-                    ->executeCommand('admin', new Command(['serverStatus' => 1]))
-                    ->toArray()[0]
-                    ->tcmalloc
-                    ->generic->heap_size
-            );
+            if (is_null($memoryUsageSize)) {
+                $memoryUsageSize = $this->bitesToMb(
+                    $connection->getManager()
+                        ->executeCommand('admin', new Command(['serverStatus' => 1]))
+                        ->toArray()[0]
+                        ->tcmalloc
+                        ->generic
+                        ->heap_size
+                );
+            }
 
-            $databaseSizes = is_null($databaseSizes)
-                ? collect($connection->getMongoClient()->listDatabases())
+            if (is_null($databaseSizes)) {
+                $databaseSizes = collect($connection->getMongoClient()->listDatabases())
                     ->keyBy(fn(DatabaseInfo $databaseInfo) => $databaseInfo->getName())
                     ->map(fn(DatabaseInfo $databaseInfo) => $databaseInfo->getSizeOnDisk())
-                    ->toArray()
-                : [];
+                    ->toArray();
+            }
 
             $databaseName = $connection->getDatabaseName();
 
@@ -77,7 +82,7 @@ readonly class DatabaseStatRepository implements DatabaseStatRepositoryInterface
 
                 $collection = $connection->selectCollection($collectionName);
 
-                $collStats = collect(
+                $collStats = iterator_to_array(
                     $collection->aggregate([
                         [
                             '$collStats' => [
@@ -87,14 +92,14 @@ readonly class DatabaseStatRepository implements DatabaseStatRepositoryInterface
                     ])
                 )[0];
 
-                $indexStats =
-                    collect($collection->aggregate([
+                $indexStatsKeyByName = Arr::keyBy(
+                    iterator_to_array($collection->aggregate([
                         [
                             '$indexStats' => (object) [],
                         ],
-                    ]))
-                        ->keyBy(fn(BSONDocument $indexStat) => $indexStat->name)
-                        ->toArray();
+                    ])),
+                    fn(BSONDocument $indexStat) => $indexStat->name
+                );
 
                 $storageStats = $collStats['storageStats'];
 
@@ -114,7 +119,7 @@ readonly class DatabaseStatRepository implements DatabaseStatRepositoryInterface
                             fn(int $indexSize, string $indexName) => new DatabaseCollectionIndexStatObject(
                                 name: $indexName,
                                 size: $this->bitesToMb($indexSize),
-                                usage: $indexStats[$indexName]['accesses']['ops']
+                                usage: $indexStatsKeyByName[$indexName]['accesses']['ops']
                             )
                         )
                         ->values()
