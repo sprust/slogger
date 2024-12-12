@@ -18,22 +18,6 @@ interface TraceRepositoryInterface
 
     public function updateOne(TraceUpdateParameters $trace): bool;
 
-    /**
-     * @param TraceCreateParameters[] $traces
-     *
-     * @return void
-     * @deprecated
-     *
-     */
-    public function createMany(array $traces): void;
-
-    /**
-     * @param TraceUpdateParameters[] $traces
-     *
-     * @deprecated
-     */
-    public function updateMany(array $traces): int;
-
     public function findOneDetailByTraceId(string $traceId): ?TraceDto;
 
     /**
