@@ -6,7 +6,6 @@ use App\Models\Traces\TraceTree;
 use App\Modules\Trace\Entities\Trace\TraceCollectionNameObjects;
 use App\Modules\Trace\Repositories\Events\TraceCollectionCreatedEvent;
 use Closure;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use Iterator;
 use MongoDB\Collection;
@@ -17,13 +16,13 @@ use Throwable;
 
 class PeriodicTraceService
 {
-    private int $hoursStep = 4;
-
     /** @var array<string, Collection> */
     private array $collections = [];
 
-    public function __construct(private readonly Database $database)
-    {
+    public function __construct(
+        private readonly Database $database,
+        private readonly PeriodicTraceCollectionNameService $periodicTraceCollectionNameService
+    ) {
     }
 
     public function selectCollectionByName(string $collectionName): Collection
@@ -51,54 +50,16 @@ class PeriodicTraceService
      */
     public function detectCollectionNames(?Carbon $loggedAtFrom = null, ?Carbon $loggedAtTo = null): array
     {
-        $allCollectionNames = array_values(
-            Arr::sort(
-                array_filter(
-                    iterator_to_array($this->database->listCollectionNames()),
-                    static fn(string $collectionName) => str_starts_with($collectionName, 'traces_')
-                )
-            )
-        );
-
-        $allCollectionNamesCount = count($allCollectionNames);
-
-        if (!$allCollectionNamesCount) {
-            return [];
-        }
-
-        if (!$loggedAtFrom && !$loggedAtTo) {
-            return $allCollectionNames;
-        }
-
-        $loggedAtFromCollectionName = $loggedAtFrom
-            ? $this->makeCollectionName($loggedAtFrom)
-            : $allCollectionNames[0];
-
-        $loggedAtToCollectionName = $loggedAtTo
-            ? $this->makeCollectionName($loggedAtTo)
-            : $allCollectionNames[$allCollectionNamesCount - 1];
-
-        return array_values(
-            array_filter(
-                $allCollectionNames,
-                static function (string $collectionName) use ($loggedAtFromCollectionName, $loggedAtToCollectionName) {
-                    if ($loggedAtFromCollectionName && $collectionName < $loggedAtFromCollectionName) {
-                        return false;
-                    }
-
-                    if ($loggedAtToCollectionName && $collectionName > $loggedAtToCollectionName) {
-                        return false;
-                    }
-
-                    return true;
-                }
-            )
+        return $this->periodicTraceCollectionNameService->filterCollectionNamesByPeriod(
+            collectionNames: iterator_to_array($this->database->listCollectionNames()),
+            from: $loggedAtFrom,
+            to: $loggedAtTo
         );
     }
 
     public function initCollection(Carbon $loggedAt): Collection
     {
-        $collectionName = $this->makeCollectionName($loggedAt);
+        $collectionName = $this->periodicTraceCollectionNameService->newByDatetime($loggedAt);
 
         if ($collection = $this->collections[$collectionName] ?? null) {
             return $collection;
@@ -142,24 +103,24 @@ class PeriodicTraceService
             'lat',
         ];
 
-        foreach ($indexFields as $indexField) {
-            try {
+        try {
+            foreach ($indexFields as $indexField) {
                 $collection->createIndex([$indexField => 1]);
-            } catch (Throwable $exception) {
-                if (!str_contains($exception->getMessage(), 'already exists')) {
-                    throw new RuntimeException(
-                        message: $exception->getMessage(),
-                        code: $exception->getCode(),
-                        previous: $exception
-                    );
-                }
+            }
+
+            $collection->createIndex([
+                'lat' => -1,
+                '_id' => 1,
+            ]);
+        } catch (Throwable $exception) {
+            if (!str_contains($exception->getMessage(), 'already exists')) {
+                throw new RuntimeException(
+                    message: $exception->getMessage(),
+                    code: $exception->getCode(),
+                    previous: $exception
+                );
             }
         }
-
-        $collection->createIndex([
-            'lat' => -1,
-            '_id' => 1,
-        ]);
 
         event(new TraceCollectionCreatedEvent($collectionName));
 
@@ -185,19 +146,6 @@ class PeriodicTraceService
         } catch (Throwable) {
             // TODO
         }
-    }
-
-    public function makeCollectionName(Carbon $loggedAt): string
-    {
-        $date = $loggedAt->format('Y_m_d');
-
-        $hourFrom = (int) floor($loggedAt->hour / $this->hoursStep) * $this->hoursStep;
-        $hourTo   = $hourFrom + $this->hoursStep - 1;
-
-        $hourFromFormatted = sprintf('%02d', $hourFrom);
-        $hourToFormatted   = sprintf('%02d', $hourTo);
-
-        return "traces_{$date}_{$hourFromFormatted}_$hourToFormatted";
     }
 
     /**

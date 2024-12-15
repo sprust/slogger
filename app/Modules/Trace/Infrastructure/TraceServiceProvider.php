@@ -71,6 +71,7 @@ use App\Modules\Trace\Infrastructure\Commands\StopMonitorTraceDynamicIndexesComm
 use App\Modules\Trace\Infrastructure\Http\Services\TraceDynamicIndexingActionService;
 use App\Modules\Trace\Infrastructure\Listeners\TraceCollectionCreatedListener;
 use App\Modules\Trace\Repositories\Events\TraceCollectionCreatedEvent;
+use App\Modules\Trace\Repositories\Services\PeriodicTraceCollectionNameService;
 use App\Modules\Trace\Repositories\Services\PeriodicTraceService;
 use App\Modules\Trace\Repositories\Services\TracePipelineBuilder;
 use App\Modules\Trace\Repositories\TraceAdminStoreRepository;
@@ -79,6 +80,7 @@ use App\Modules\Trace\Repositories\TraceDynamicIndexRepository;
 use App\Modules\Trace\Repositories\TraceRepository;
 use App\Modules\Trace\Repositories\TraceTimestampsRepository;
 use App\Modules\Trace\Repositories\TraceTreeRepository;
+use Illuminate\Contracts\Foundation\Application;
 use MongoDB\Client;
 
 class TraceServiceProvider extends BaseServiceProvider
@@ -87,7 +89,7 @@ class TraceServiceProvider extends BaseServiceProvider
     {
         $this->app->singleton(
             PeriodicTraceService::class,
-            static function () {
+            static function (Application $app) {
                 $username = config('database.connections.mongodb.tracesPeriodic.username');
                 $password = config('database.connections.mongodb.tracesPeriodic.password');
                 $host     = config('database.connections.mongodb.tracesPeriodic.host');
@@ -106,7 +108,8 @@ class TraceServiceProvider extends BaseServiceProvider
                 ]);
 
                 return new PeriodicTraceService(
-                    $client->selectDatabase($database)
+                    database: $client->selectDatabase($database),
+                    periodicTraceCollectionNameService: $app->make(PeriodicTraceCollectionNameService::class)
                 );
             }
         );
