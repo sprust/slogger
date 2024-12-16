@@ -369,12 +369,10 @@ class PeriodicTraceService
                 ],
             ])) > 0;
 
-        if ($exists) {
-            $this->selectCollectionByName($traceTreesCollectionName)->drop();
-        }
+        $operation = $exists ? 'collMod' : 'create';
 
         $this->database->command([
-            'create'   => $traceTreesCollectionName,
+            $operation => $traceTreesCollectionName,
             'viewOn'   => $mainCollectionName,
             'pipeline' => $pipeline,
         ]);
