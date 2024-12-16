@@ -104,6 +104,8 @@ export const traceAggregatorStore = createStore<State>({
             state.traceAggregator = data
         },
         resetFilters(state: State) {
+            state.startOfDay = true
+
             state.payload = {
                 page: 1,
                 types: [],
