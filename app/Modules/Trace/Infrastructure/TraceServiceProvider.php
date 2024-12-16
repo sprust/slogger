@@ -92,6 +92,18 @@ class TraceServiceProvider extends BaseServiceProvider
     public function boot(): void
     {
         $this->app->singleton(
+            PeriodicTraceCollectionNameService::class,
+            fn() => new PeriodicTraceCollectionNameService(
+                hoursStep: match (PeriodicTraceStepEnum::from(config('module-trace.step_in_hours'))) {
+                    PeriodicTraceStepEnum::OneHour => 1,
+                    PeriodicTraceStepEnum::TwoHours => 2,
+                    PeriodicTraceStepEnum::FourHours => 4,
+                    PeriodicTraceStepEnum::SixHours => 6,
+                }
+            )
+        );
+
+        $this->app->singleton(
             PeriodicTraceService::class,
             static function (Application $app) {
                 $username = config('database.connections.mongodb.tracesPeriodic.username');
@@ -113,14 +125,7 @@ class TraceServiceProvider extends BaseServiceProvider
 
                 return new PeriodicTraceService(
                     database: $client->selectDatabase($database),
-                    periodicTraceCollectionNameService: new PeriodicTraceCollectionNameService(
-                        hoursStep: match (PeriodicTraceStepEnum::from(config('module-trace.step_in_hours'))) {
-                            PeriodicTraceStepEnum::OneHour => 1,
-                            PeriodicTraceStepEnum::TwoHours => 2,
-                            PeriodicTraceStepEnum::FourHours => 4,
-                            PeriodicTraceStepEnum::SixHours => 6,
-                        }
-                    )
+                    periodicTraceCollectionNameService: $app->make(PeriodicTraceCollectionNameService::class)
                 );
             }
         );
