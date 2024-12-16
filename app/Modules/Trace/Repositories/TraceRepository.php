@@ -22,6 +22,9 @@ use Illuminate\Support\Carbon;
 use MongoDB\BSON\UTCDateTime;
 use MongoDB\Driver\Command;
 use MongoDB\Driver\Exception\Exception;
+use RrParallel\Exceptions\ParallelJobsException;
+use RrParallel\Exceptions\WaitTimeoutException;
+use RrParallel\Services\ParallelPusherInterface;
 use stdClass;
 use Throwable;
 
@@ -29,7 +32,8 @@ readonly class TraceRepository implements TraceRepositoryInterface
 {
     public function __construct(
         private TracePipelineBuilder $tracePipelineBuilder,
-        private PeriodicTraceService $periodicTraceService
+        private PeriodicTraceService $periodicTraceService,
+        private ParallelPusherInterface $parallelPusher
     ) {
     }
 
@@ -521,7 +525,8 @@ readonly class TraceRepository implements TraceRepositoryInterface
     }
 
     /**
-     * @throws Throwable
+     * @throws WaitTimeoutException
+     * @throws ParallelJobsException
      */
     public function createIndex(string $name, array $collectionNames, array $fields): bool
     {
@@ -535,19 +540,41 @@ readonly class TraceRepository implements TraceRepositoryInterface
             $index[$field->fieldName] = 1;
         }
 
-        foreach ($collectionNames as $collectionName) {
-            try {
-                $this->periodicTraceService->createIndex(
-                    indexName: $name,
-                    collectionName: $collectionName,
-                    index: $index
-                );
-            } catch (Throwable $exception) {
-                if (str_starts_with($exception->getMessage(), 'Index already exists with a different name')) {
-                    continue;
-                }
+        /** @var string[][] $collectionNameChunks */
+        $collectionNameChunks = array_chunk($collectionNames, 3);
 
-                throw $exception;
+        foreach ($collectionNameChunks as $collectionNameChunk) {
+            $callbacks = array_map(
+                static function (string $collectionName) use ($name, $index) {
+                    return static function (PeriodicTraceService $periodicTraceService) use (
+                        $name,
+                        $index,
+                        $collectionName
+                    ) {
+                        try {
+                            $periodicTraceService->createIndex(
+                                indexName: $name,
+                                collectionName: $collectionName,
+                                index: $index
+                            );
+                        } catch (Throwable $exception) {
+                            if (str_starts_with($exception->getMessage(), 'already exists')) {
+                                return;
+                            }
+
+                            throw $exception;
+                        }
+                    };
+                },
+                $collectionNameChunk
+            );
+
+            $waitGroup = $this->parallelPusher->wait($callbacks);
+
+            $result = $waitGroup->wait(waitSeconds: 120);
+
+            if ($result->hasFailed) {
+                return false;
             }
         }
 
