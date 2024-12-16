@@ -7,11 +7,8 @@ use Illuminate\Support\Carbon;
 
 readonly class PeriodicTraceCollectionNameService
 {
-    private int $hoursStep;
-
-    public function __construct()
+    public function __construct(private int $hoursStep)
     {
-        $this->hoursStep = 4;
     }
 
     public function newByDatetime(Carbon $datetime): string
