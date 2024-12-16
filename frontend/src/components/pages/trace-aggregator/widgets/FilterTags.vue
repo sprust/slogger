@@ -43,7 +43,7 @@
       width="80%"
       top="10px"
       :append-to-body="true"
-      :style="storeGraph.state.showGraph ? {opacity: .9} : {}"
+      style="opacity: .9"
   >
     <template #header>
       <el-text>
@@ -94,7 +94,6 @@ import {Plus as TagAddIcon, Search as SearchIcon} from '@element-plus/icons-vue'
 import {TraceTag, useTraceAggregatorTagsStore} from "../../../../store/traceAggregatorTagsStore.ts";
 import {useTraceAggregatorStore} from "../../../../store/traceAggregatorStore.ts";
 import FilterTagsSection from "./FilterTagsSection.vue";
-import {useTraceAggregatorGraphStore} from "../../../../store/traceAggregatorGraphStore.ts";
 
 export default defineComponent({
   components: {FilterTagsSection},
@@ -105,7 +104,6 @@ export default defineComponent({
       SearchIcon: shallowRef(SearchIcon),
       traceStore: useTraceAggregatorStore(),
       tagsStore: useTraceAggregatorTagsStore(),
-      storeGraph: useTraceAggregatorGraphStore(),
     }
   },
   methods: {
