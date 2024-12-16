@@ -541,7 +541,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
         }
 
         /** @var string[][] $collectionNameChunks */
-        $collectionNameChunks = array_chunk($collectionNames, 3);
+        $collectionNameChunks = array_chunk($collectionNames, 6);
 
         foreach ($collectionNameChunks as $collectionNameChunk) {
             $callbacks = array_map(
