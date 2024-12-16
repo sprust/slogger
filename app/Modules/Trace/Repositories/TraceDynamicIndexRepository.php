@@ -4,37 +4,53 @@ namespace App\Modules\Trace\Repositories;
 
 use App\Models\Traces\TraceDynamicIndex;
 use App\Modules\Trace\Contracts\Repositories\TraceDynamicIndexRepositoryInterface;
+use App\Modules\Trace\Repositories\Dto\DynamicIndex\TraceDynamicIndexDataDto;
 use App\Modules\Trace\Repositories\Dto\DynamicIndex\TraceDynamicIndexDto;
 use App\Modules\Trace\Repositories\Dto\DynamicIndex\TraceDynamicIndexFieldDto;
 use App\Modules\Trace\Repositories\Dto\Trace\TraceDynamicIndexStatsDto;
+use App\Modules\Trace\Repositories\Services\PeriodicTraceService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use MongoDB\BSON\UTCDateTime;
 use Throwable;
 
-class TraceDynamicIndexRepository implements TraceDynamicIndexRepositoryInterface
+readonly class TraceDynamicIndexRepository implements TraceDynamicIndexRepositoryInterface
 {
-    public function findOneOrCreate(array $fields, Carbon $actualUntilAt): ?TraceDynamicIndexDto
+    public function __construct(private PeriodicTraceService $periodicTraceService)
     {
-        $name = $this->makeIndexName($fields);
+    }
+
+    public function findOneOrCreate(TraceDynamicIndexDataDto $indexData, Carbon $actualUntilAt): ?TraceDynamicIndexDto
+    {
+        $collectionsNames = $this->periodicTraceService->detectCollectionNames(
+            loggedAtFrom: $indexData->loggedAtFrom,
+            loggedAtTo: $indexData->loggedAtTo
+        );
+
+        $fieldsName      = $this->makeFieldsName($indexData->fields);
+        $collectionsName = $this->makeCollectionsName($collectionsNames);
+
+        $indexName = "dyn_{$fieldsName}_$collectionsName";
 
         $createdAt = now();
 
         TraceDynamicIndex::collection()
             ->updateOne(
                 [
-                    'name' => $name,
+                    'name' => $indexName,
                 ],
                 [
                     '$set'         => [
                         'actualUntilAt' => new UTCDateTime($actualUntilAt),
                     ],
                     '$setOnInsert' => [
-                        'fields'    => $fields,
-                        'inProcess' => true,
-                        'created'   => false,
-                        'error'     => null,
-                        'createdAt' => new UTCDateTime($createdAt),
+                        'indexName'       => "dyn_$fieldsName",
+                        'collectionNames' => $collectionsNames,
+                        'fields'          => $indexData->fields,
+                        'inProcess'       => true,
+                        'created'         => false,
+                        'error'           => null,
+                        'createdAt'       => new UTCDateTime($createdAt),
                     ],
                 ],
                 [
@@ -42,7 +58,7 @@ class TraceDynamicIndexRepository implements TraceDynamicIndexRepositoryInterfac
                 ]
             );
 
-        return $this->findOneByName($name);
+        return $this->findOneByName($indexName);
     }
 
     public function findOneById(string $id): ?TraceDynamicIndexDto
@@ -151,28 +167,26 @@ class TraceDynamicIndexRepository implements TraceDynamicIndexRepositoryInterfac
             ->delete();
     }
 
-    public function deleteByName(string $name): bool
+    /**
+     * @param TraceDynamicIndexFieldDto[] $fields
+     */
+    private function makeFieldsName(array $fields): string
     {
-        return (bool) TraceDynamicIndex::query()
-            ->where('name', $name)
-            ->delete();
+        return implode(
+            '__',
+            array_map(
+                fn(TraceDynamicIndexFieldDto $dto) => $dto->fieldName,
+                $fields
+            )
+        );
     }
 
     /**
-     * @param TraceDynamicIndexFieldDto[] $fields
-     *
-     * @return string
+     * @param string[] $collectionNames
      */
-    private function makeIndexName(array $fields): string
+    private function makeCollectionsName(array $collectionNames): string
     {
-        return 'dyn_'
-            . implode(
-                '__',
-                array_map(
-                    fn(TraceDynamicIndexFieldDto $dto) => $dto->fieldName,
-                    $fields
-                )
-            );
+        return implode('__', $collectionNames);
     }
 
     /**
@@ -198,6 +212,8 @@ class TraceDynamicIndexRepository implements TraceDynamicIndexRepositoryInterfac
         return new TraceDynamicIndexDto(
             id: $index->_id,
             name: $index->name,
+            indexName: $index->indexName,
+            collectionNames: $index->collectionNames,
             fields: $this->transportFields($index->fields),
             inProcess: $index->inProcess,
             created: $index->created,

@@ -107,6 +107,19 @@ return [
                     'socketTimeoutMS'=> 1200000 // 20 minutes
                 ],
             ],
+            'tracesPeriodic' => [
+                'driver'   => 'mongodb', // not using
+                'host'     => env('MONGO_HOST'),
+                'port'     => env('MONGO_PORT'),
+                'username' => env('MONGO_ADMIN_USERNAME'),
+                'password' => env('MONGO_ADMIN_PASSWORD'),
+                'database' => env('MONGO_DATABASE_TRACES_PERIODIC',  'tracesPeriodic'),
+                'options'  => [
+                    'appname'    => env('APP_NAME'),
+                    'authSource' => env('MONGO_DATABASE_ADMIN', 'admin'),
+                    'socketTimeoutMS'=> 1200000 // 20 minutes
+                ],
+            ],
         ],
 
     ],

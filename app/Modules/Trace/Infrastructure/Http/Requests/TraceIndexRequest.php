@@ -2,7 +2,6 @@
 
 namespace App\Modules\Trace\Infrastructure\Http\Requests;
 
-use App\Modules\Common\Enums\SortDirectionEnum;
 use App\Modules\Trace\Infrastructure\Http\Services\RequestFilterRules;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -47,26 +46,7 @@ class TraceIndexRequest extends FormRequest
                 'required',
                 'string',
             ],
-            'sort'               => [
-                'sometimes',
-                'array',
-            ],
             ...RequestFilterRules::hasProfiling(),
-            'sort.*.field'       => [
-                'required',
-                'string',
-            ],
-            'sort.*.direction'   => [
-                'required',
-                'string',
-                'in:' . implode(
-                    ',',
-                    array_map(
-                        fn(SortDirectionEnum $enum) => $enum->value,
-                        SortDirectionEnum::cases()
-                    )
-                ),
-            ],
         ];
     }
 }

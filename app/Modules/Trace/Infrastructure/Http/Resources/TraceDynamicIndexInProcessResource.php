@@ -7,6 +7,7 @@ use App\Modules\Trace\Entities\Trace\TraceIndexInfoObject;
 
 class TraceDynamicIndexInProcessResource extends AbstractApiResource
 {
+    private string $collectionName;
     private string $name;
     private float $progress;
 
@@ -14,7 +15,8 @@ class TraceDynamicIndexInProcessResource extends AbstractApiResource
     {
         parent::__construct($resource);
 
-        $this->name = $resource->name;
-        $this->progress = $resource->progress;
+        $this->collectionName = $resource->collectionName;
+        $this->name           = $resource->name;
+        $this->progress       = $resource->progress;
     }
 }

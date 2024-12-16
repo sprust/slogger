@@ -8,6 +8,8 @@ use Illuminate\Support\Carbon;
 /**
  * @property string      $_id
  * @property string      $name
+ * @property string      $indexName
+ * @property string[]    $collectionNames
  * @property array       $fields
  * @property bool        $inProcess
  * @property bool        $created

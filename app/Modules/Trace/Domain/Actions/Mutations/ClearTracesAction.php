@@ -38,6 +38,7 @@ readonly class ClearTracesAction implements ClearTracesActionInterface
         );
 
         return $this->traceRepository->clearTraces(
+            collectionName: $parameters->collectionName,
             traceIds: $parameters->traceIds,
             loggedAtFrom: $parameters->loggedAtFrom,
             loggedAtTo: $parameters->loggedAtTo,

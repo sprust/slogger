@@ -12,9 +12,10 @@ readonly class TraceDynamicIndexObject
     public function __construct(
         public string $id,
         public string $name,
+        public string $indexName,
+        public array $collectionNames,
         public array $fields,
         public bool $inProcess,
-        public ?float $progress,
         public bool $created,
         public ?string $error,
         public Carbon $actualUntilAt,

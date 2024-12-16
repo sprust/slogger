@@ -37,6 +37,7 @@ readonly class DeleteTracesAction implements DeleteTracesActionInterface
         );
 
         return $this->traceRepository->deleteTraces(
+            collectionName: $parameters->collectionName,
             traceIds: $parameters->traceIds,
             loggedAtFrom: $parameters->loggedAtFrom,
             loggedAtTo: $parameters->loggedAtTo,

@@ -2,53 +2,31 @@
 
 namespace App\Modules\Trace\Contracts\Repositories;
 
-use App\Modules\Trace\Entities\Trace\Timestamp\TraceTimestampMetricObject;
-use App\Modules\Trace\Entities\Trace\TraceDetailObject;
-use App\Modules\Trace\Entities\Trace\TraceDetailPaginationObject;
+use App\Modules\Trace\Entities\Trace\TraceCollectionNameObjects;
 use App\Modules\Trace\Entities\Trace\TraceIndexInfoObject;
-use App\Modules\Trace\Entities\Trace\TraceObject;
-use App\Modules\Trace\Entities\Trace\TraceTypeCountedObject;
 use App\Modules\Trace\Parameters\Data\TraceDataFilterParameters;
 use App\Modules\Trace\Parameters\TraceCreateParameters;
-use App\Modules\Trace\Parameters\TraceSortParameters;
 use App\Modules\Trace\Parameters\TraceUpdateParameters;
 use App\Modules\Trace\Repositories\Dto\DynamicIndex\TraceDynamicIndexFieldDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Profiling\TraceProfilingDto;
-use App\Modules\Trace\Repositories\Dto\Trace\TraceLoggedAtDto;
+use App\Modules\Trace\Repositories\Dto\Trace\TraceDto;
 use Illuminate\Support\Carbon;
 
 interface TraceRepositoryInterface
 {
+    public function createOne(TraceCreateParameters $trace): void;
+
+    public function updateOne(TraceUpdateParameters $trace): bool;
+
+    public function findOneDetailByTraceId(string $traceId): ?TraceDto;
+
     /**
-     * @param TraceCreateParameters[] $traces
+     * @param int[]|null $serviceIds
+     * @param string[]   $types
+     * @param string[]   $tags
+     * @param string[]   $statuses
      *
-     * @return void
-     */
-    public function createMany(array $traces): void;
-
-    /**
-     * @param TraceUpdateParameters[] $traces
-     */
-    public function updateMany(array $traces): int;
-
-    /**
-     * @return TraceLoggedAtDto[]
-     */
-    public function findLoggedAtList(int $page, int $perPage, Carbon $loggedAtTo): array;
-
-    /**
-     * @param TraceTimestampMetricObject[] $timestamps
-     */
-    public function updateTraceTimestamps(string $traceId, array $timestamps): void;
-
-    public function findOneDetailByTraceId(string $traceId): ?TraceDetailObject;
-
-    /**
-     * @param int[]|null                 $serviceIds
-     * @param string[]                   $types
-     * @param string[]                   $tags
-     * @param string[]                   $statuses
-     * @param TraceSortParameters[]|null $sort
+     * @return TraceDto[]
      */
     public function find(
         int $page = 1,
@@ -68,32 +46,22 @@ interface TraceRepositoryInterface
         ?float $cpuTo = null,
         ?TraceDataFilterParameters $data = null,
         ?bool $hasProfiling = null,
-        ?array $sort = null,
-    ): TraceDetailPaginationObject;
-
-    /**
-     * @return string[]
-     */
-    public function findTraceIds(
-        int $limit = 20,
-        ?Carbon $loggedAtTo = null,
-        ?string $type = null,
-        ?array $excludedTypes = null
     ): array;
 
-    /**
-     * @param string[] $traceIds
-     *
-     * @return TraceObject[]
-     */
-    public function findByTraceIds(array $traceIds): array;
+    public function findTraceIds(
+        int $limit,
+        ?Carbon $loggedAtTo = null,
+        ?string $type = null,
+        ?array $excludedTypes = null,
+        ?bool $noCleared = null
+    ): TraceCollectionNameObjects;
 
     /**
      * @param string[] $traceIds
      *
-     * @return TraceTypeCountedObject[]
+     * @return TraceDto[]
      */
-    public function findTypeCounts(array $traceIds): array;
+    public function findByTraceIds(array $traceIds): array;
 
     public function findProfilingByTraceId(string $traceId): ?TraceProfilingDto;
 
@@ -104,6 +72,7 @@ interface TraceRepositoryInterface
      * @return int - number of deleted records
      */
     public function deleteTraces(
+        string $collectionName,
         ?array $traceIds = null,
         ?Carbon $loggedAtFrom = null,
         ?Carbon $loggedAtTo = null,
@@ -118,6 +87,7 @@ interface TraceRepositoryInterface
      * @return int - number of cleared records
      */
     public function clearTraces(
+        string $collectionName,
         ?array $traceIds = null,
         ?Carbon $loggedAtFrom = null,
         ?Carbon $loggedAtTo = null,
@@ -126,16 +96,20 @@ interface TraceRepositoryInterface
     ): int;
 
     /**
+     * @param string[]                    $collectionNames
      * @param TraceDynamicIndexFieldDto[] $fields
      */
-    public function createIndex(string $name, array $fields): bool;
+    public function createIndex(string $name, array $collectionNames, array $fields): bool;
 
     /**
      * @return TraceIndexInfoObject[]
      */
     public function getIndexProgressesInfo(): array;
 
-    public function findMinLoggedAt(): ?Carbon;
+    /**
+     * @param string[] $collectionNames
+     */
+    public function deleteIndexByName(string $indexName, array $collectionNames): void;
 
-    public function deleteIndexByName(string $name): void;
+    public function deleteEmptyCollections(Carbon $loggedAtTo): void;
 }

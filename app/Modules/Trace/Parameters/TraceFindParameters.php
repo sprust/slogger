@@ -10,7 +10,6 @@ readonly class TraceFindParameters
      * @param int[]                 $serviceIds
      * @param string[]              $types
      * @param string[]              $tags
-     * @param TraceSortParameters[] $sort
      */
     public function __construct(
         public int $page = 1,
@@ -29,8 +28,7 @@ readonly class TraceFindParameters
         public ?float $cpuFrom = null,
         public ?float $cpuTo = null,
         public ?TraceDataFilterParameters $data = null,
-        public ?bool $hasProfiling = null,
-        public array $sort = []
+        public ?bool $hasProfiling = null
     ) {
     }
 }
