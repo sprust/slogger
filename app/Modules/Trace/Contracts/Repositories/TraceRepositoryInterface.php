@@ -110,4 +110,6 @@ interface TraceRepositoryInterface
      * @param string[] $collectionNames
      */
     public function deleteIndexByName(string $indexName, array $collectionNames): void;
+
+    public function deleteEmptyCollections(Carbon $loggedAtTo): void;
 }

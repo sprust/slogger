@@ -613,6 +613,39 @@ readonly class TraceRepository implements TraceRepositoryInterface
         }
     }
 
+    public function deleteEmptyCollections(Carbon $loggedAtTo): void
+    {
+        $collectionNames = $this->periodicTraceService->detectCollectionNames(
+            loggedAtTo: $loggedAtTo
+        );
+
+        if (!count($collectionNames)) {
+            return;
+        }
+
+        foreach ($collectionNames as $collectionName) {
+            $collection = $this->periodicTraceService->selectCollectionByName($collectionName);
+
+            $collStats = iterator_to_array(
+                $collection->aggregate([
+                    [
+                        '$collStats' => [
+                            'storageStats' => (object) [],
+                        ],
+                    ],
+                ])
+            )[0];
+
+            $documentsCount = $collStats['storageStats']['count'] ?? null;
+
+            if ($documentsCount) {
+                continue;
+            }
+
+            $collection->drop();
+        }
+    }
+
     /**
      * @param string[] $tags
      */

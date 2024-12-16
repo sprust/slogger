@@ -9,6 +9,7 @@ use App\Modules\Trace\Contracts\Actions\MakeTraceTimestampsActionInterface;
 use App\Modules\Trace\Contracts\Actions\Mutations\ClearTracesActionInterface;
 use App\Modules\Trace\Contracts\Actions\Mutations\CreateTraceAdminStoreActionInterface;
 use App\Modules\Trace\Contracts\Actions\Mutations\CreateTraceManyActionInterface;
+use App\Modules\Trace\Contracts\Actions\Mutations\DeleteOldEmptyCollectionsActionInterface;
 use App\Modules\Trace\Contracts\Actions\Mutations\DeleteTraceAdminStoreActionInterface;
 use App\Modules\Trace\Contracts\Actions\Mutations\DeleteTraceDynamicIndexActionInterface;
 use App\Modules\Trace\Contracts\Actions\Mutations\DeleteTracesActionInterface;
@@ -42,6 +43,7 @@ use App\Modules\Trace\Domain\Actions\MakeTraceTimestampsAction;
 use App\Modules\Trace\Domain\Actions\Mutations\ClearTracesAction;
 use App\Modules\Trace\Domain\Actions\Mutations\CreateTraceAdminStoreAction;
 use App\Modules\Trace\Domain\Actions\Mutations\CreateTraceManyAction;
+use App\Modules\Trace\Domain\Actions\Mutations\DeleteOldEmptyCollectionsAction;
 use App\Modules\Trace\Domain\Actions\Mutations\DeleteTraceAdminStoreAction;
 use App\Modules\Trace\Domain\Actions\Mutations\DeleteTraceDynamicIndexAction;
 use App\Modules\Trace\Domain\Actions\Mutations\DeleteTracesAction;
@@ -66,6 +68,7 @@ use App\Modules\Trace\Domain\Actions\Queries\FindTypesAction;
 use App\Modules\Trace\Domain\Services\TraceDynamicIndexInitializer;
 use App\Modules\Trace\Domain\Services\TraceFieldTitlesService;
 use App\Modules\Trace\Enums\PeriodicTraceStepEnum;
+use App\Modules\Trace\Infrastructure\Commands\DeleteOldEmptyCollectionsCommand;
 use App\Modules\Trace\Infrastructure\Commands\FlushDynamicIndexesCommand;
 use App\Modules\Trace\Infrastructure\Commands\StartMonitorTraceDynamicIndexesCommand;
 use App\Modules\Trace\Infrastructure\Commands\StopMonitorTraceDynamicIndexesCommand;
@@ -133,6 +136,7 @@ class TraceServiceProvider extends BaseServiceProvider
             StartMonitorTraceDynamicIndexesCommand::class,
             StopMonitorTraceDynamicIndexesCommand::class,
             FlushDynamicIndexesCommand::class,
+            DeleteOldEmptyCollectionsCommand::class,
         ]);
 
         $this->listen(
@@ -167,6 +171,7 @@ class TraceServiceProvider extends BaseServiceProvider
             CreateTraceAdminStoreActionInterface::class           => CreateTraceAdminStoreAction::class,
             DeleteTraceAdminStoreActionInterface::class           => DeleteTraceAdminStoreAction::class,
             FreshTraceTreesActionInterface::class                 => FreshTraceTreesAction::class,
+            DeleteOldEmptyCollectionsActionInterface::class       => DeleteOldEmptyCollectionsAction::class,
             // actions.queries
             FindStatusesActionInterface::class                    => FindStatusesAction::class,
             FindTagsActionInterface::class                        => FindTagsAction::class,
