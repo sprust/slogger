@@ -90,15 +90,14 @@ class ProcessRepository implements ProcessRepositoryInterface
         string $processId,
         int $clearedCount,
         ?Carbon $clearedAt,
-        Throwable $exception = null
+        ?Throwable $exception = null
     ): void {
         TraceClearingProcess::query()
             ->where('_id', $processId)
             ->update([
                 'clearedCount' => $clearedCount,
-                'error'        => $exception
-                    ? (($exception->getMessage() ?: $exception::class) . PHP_EOL . $exception->getTraceAsString())
-                    : null,
+                'error'        => $exception ? ($exception->getMessage() ?: $exception::class) : null,
+                'errorTrace'   => $exception ? ($exception->getTraceAsString()) : null,
                 'clearedAt'    => $clearedAt ? new UTCDateTime($clearedAt) : null,
             ]);
     }

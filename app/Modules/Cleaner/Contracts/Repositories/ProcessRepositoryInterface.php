@@ -21,7 +21,7 @@ interface ProcessRepositoryInterface
         string $processId,
         int $clearedCount,
         ?Carbon $clearedAt,
-        Throwable $exception = null
+        ?Throwable $exception = null
     ): void;
 
     public function deleteByProcessId(string $processId): void;
