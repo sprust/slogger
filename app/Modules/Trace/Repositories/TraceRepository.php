@@ -459,7 +459,10 @@ readonly class TraceRepository implements TraceRepositoryInterface
                 ...(count($traceIds) ? ['tid' => ['$in' => $traceIds]] : []),
                 ...(count($lat) ? ['lat' => $lat] : []),
                 ...(is_null($type) ? [] : ['tp' => $type]),
-                ...(is_null($type) && !is_null($excludedTypes) ? ['tp' => ['$nin' => $excludedTypes]] : []),
+                ...((is_null($type) && !is_null($excludedTypes))
+                    ? ['tp' => ['$nin' => $excludedTypes]]
+                    : []
+                ),
             ],
         );
 
@@ -491,7 +494,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
                 ...(count($traceIds) ? ['tid' => ['$in' => $traceIds]] : []),
                 ...(count($lat) ? ['lat' => $lat] : []),
                 ...(is_null($type) ? [] : ['tp' => $type]),
-                ...(is_null($type) && !is_null($excludedTypes) ? ['tp' => ['$nin' => $excludedTypes]] : []),
+                ...((is_null($type) && !is_null($excludedTypes)) ? ['tp' => ['$nin' => $excludedTypes]] : []),
                 '$or' => [
                     ['cl' => false],
                     ['cl' => ['$exists' => false]],
@@ -558,7 +561,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
                                 index: $index
                             );
                         } catch (Throwable $exception) {
-                            if (str_starts_with($exception->getMessage(), 'already exists')) {
+                            if (str_contains($exception->getMessage(), 'already exists')) {
                                 return;
                             }
 

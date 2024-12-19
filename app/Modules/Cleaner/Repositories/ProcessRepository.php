@@ -96,7 +96,9 @@ class ProcessRepository implements ProcessRepositoryInterface
             ->where('_id', $processId)
             ->update([
                 'clearedCount' => $clearedCount,
-                'error'        => $exception ? ($exception->getMessage() ?: $exception::class) : null,
+                'error'        => $exception
+                    ? (($exception->getMessage() ?: $exception::class) . PHP_EOL . $exception->getTraceAsString())
+                    : null,
                 'clearedAt'    => $clearedAt ? new UTCDateTime($clearedAt) : null,
             ]);
     }

@@ -40,11 +40,13 @@ readonly class ClearTracesAction implements ClearTracesActionInterface
             return;
         }
 
-        $customizedTypes = array_unique(
-            array_filter(
-                array_map(
-                    fn(SettingObject $setting) => $setting->type,
-                    $settings
+        $customizedTypes = array_values(
+            array_unique(
+                array_filter(
+                    array_map(
+                        fn(SettingObject $setting) => $setting->type,
+                        $settings
+                    )
                 )
             )
         ) ?: null;
