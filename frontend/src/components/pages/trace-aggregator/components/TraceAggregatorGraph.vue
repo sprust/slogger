@@ -121,7 +121,7 @@ export default defineComponent({
 
       const {index} = elements[0]
 
-      this.store.state.startOfDay = false
+      this.traceStore.state.startOfDay = false
 
       this.traceStore.state.payload.logging_from = new Date(
           convertDateStringToLocalFull(this.store.state.metrics[index].timestamp)
