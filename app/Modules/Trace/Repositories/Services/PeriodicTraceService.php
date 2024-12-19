@@ -4,7 +4,6 @@ namespace App\Modules\Trace\Repositories\Services;
 
 use App\Models\Traces\TraceTree;
 use App\Modules\Trace\Entities\Trace\TraceCollectionNameObjects;
-use App\Modules\Trace\Repositories\Events\TraceCollectionCreatedEvent;
 use Closure;
 use Illuminate\Support\Carbon;
 use Iterator;
@@ -122,7 +121,7 @@ class PeriodicTraceService
             }
         }
 
-        event(new TraceCollectionCreatedEvent($collectionName));
+        $this->freshTraceTrees();
 
         return $collection;
     }

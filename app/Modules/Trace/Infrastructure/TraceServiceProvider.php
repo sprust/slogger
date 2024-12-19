@@ -73,8 +73,6 @@ use App\Modules\Trace\Infrastructure\Commands\FlushDynamicIndexesCommand;
 use App\Modules\Trace\Infrastructure\Commands\StartMonitorTraceDynamicIndexesCommand;
 use App\Modules\Trace\Infrastructure\Commands\StopMonitorTraceDynamicIndexesCommand;
 use App\Modules\Trace\Infrastructure\Http\Services\TraceDynamicIndexingActionService;
-use App\Modules\Trace\Infrastructure\Listeners\TraceCollectionCreatedListener;
-use App\Modules\Trace\Repositories\Events\TraceCollectionCreatedEvent;
 use App\Modules\Trace\Repositories\Services\PeriodicTraceCollectionNameService;
 use App\Modules\Trace\Repositories\Services\PeriodicTraceService;
 use App\Modules\Trace\Repositories\Services\TracePipelineBuilder;
@@ -143,11 +141,6 @@ class TraceServiceProvider extends BaseServiceProvider
             FlushDynamicIndexesCommand::class,
             DeleteOldEmptyCollectionsCommand::class,
         ]);
-
-        $this->listen(
-            TraceCollectionCreatedEvent::class,
-            TraceCollectionCreatedListener::class
-        );
     }
 
     protected function getContracts(): array
