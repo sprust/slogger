@@ -15,9 +15,9 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        $schedule->job(ClearTracesJob::class)->hourly();
-        $schedule->job(DeleteOldEmptyCollectionsJob::class)->hourlyAt(30);
-        $schedule->job(FreshTraceTreesJob::class)->hourlyAt(15);
+        $schedule->job(ClearTracesJob::class)->everyFifteenMinutes();
+        $schedule->job(DeleteOldEmptyCollectionsJob::class)->hourlyAt(23);
+        $schedule->job(FreshTraceTreesJob::class)->hourlyAt(37);
     }
 
     /**
