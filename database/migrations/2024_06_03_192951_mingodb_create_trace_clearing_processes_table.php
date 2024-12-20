@@ -60,7 +60,7 @@ return new class extends Migration {
                 'createdAt' => 1,
             ],
             options: [
-                'expireAfterSeconds' => $secondsPerHour * 3, // 3 hours
+                'expireAfterSeconds' => $secondsPerHour * 24, // 24 hours
             ]
         );
     }
