@@ -8,7 +8,7 @@ use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexInProcessException;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexNotInitException;
 use App\Modules\Trace\Enums\TraceTimestampEnum;
 use App\Modules\Trace\Parameters\Data\TraceDataFilterParameters;
-use App\Modules\Trace\Parameters\TraceSortParameters;
+use App\Modules\Trace\Repositories\Dto\DynamicIndex\TraceDynamicIndexDataDto;
 use App\Modules\Trace\Repositories\Dto\DynamicIndex\TraceDynamicIndexFieldDto;
 use Illuminate\Support\Carbon;
 
@@ -19,7 +19,7 @@ readonly class TraceDynamicIndexInitializer
     public function __construct(
         private TraceDynamicIndexRepositoryInterface $traceDynamicIndexRepository,
     ) {
-        $this->timeLifeIndexInMinutes = 60 * 24 * 30; // 30 days
+        $this->timeLifeIndexInMinutes = 60 * 24 * 5; // 5 days
     }
 
     /**
@@ -31,7 +31,6 @@ readonly class TraceDynamicIndexInitializer
      * @param string[]                   $types
      * @param string[]                   $tags
      * @param string[]                   $statuses
-     * @param TraceSortParameters[]|null $sort
      *
      * @throws TraceDynamicIndexNotInitException
      * @throws TraceDynamicIndexInProcessException
@@ -55,7 +54,7 @@ readonly class TraceDynamicIndexInitializer
         ?TraceDataFilterParameters $data = null,
         ?bool $hasProfiling = null,
         ?bool $cleared = null,
-        ?array $sort = null,
+        ?bool $needLoggedAt = null,
     ): void {
         $indexFields = [];
 
@@ -71,7 +70,7 @@ readonly class TraceDynamicIndexInitializer
             $indexFields[] = new TraceDynamicIndexFieldDto('tid');
         }
 
-        if (!empty($loggedAtFrom) || !empty($loggedAtTo)) {
+        if ($needLoggedAt || !empty($loggedAtFrom) || !empty($loggedAtTo)) {
             $indexFields[] = new TraceDynamicIndexFieldDto('lat');
         }
 
@@ -113,10 +112,6 @@ readonly class TraceDynamicIndexInitializer
             );
         }
 
-        foreach ($sort ?? [] as $sortItem) {
-            $indexFields[] = new TraceDynamicIndexFieldDto($sortItem->field);
-        }
-
         if (empty($indexFields)) {
             return;
         }
@@ -128,7 +123,11 @@ readonly class TraceDynamicIndexInitializer
             ->all();
 
         $indexDto = $this->traceDynamicIndexRepository->findOneOrCreate(
-            fields: $indexFields,
+            indexData: new TraceDynamicIndexDataDto(
+                loggedAtFrom: $loggedAtFrom,
+                loggedAtTo: $loggedAtTo,
+                fields: $indexFields
+            ),
             actualUntilAt: now()->addMinutes($this->timeLifeIndexInMinutes)
         );
 

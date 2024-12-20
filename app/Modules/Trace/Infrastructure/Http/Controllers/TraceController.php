@@ -2,7 +2,6 @@
 
 namespace App\Modules\Trace\Infrastructure\Http\Controllers;
 
-use App\Modules\Common\Enums\SortDirectionEnum;
 use App\Modules\Trace\Contracts\Actions\Queries\FindTraceDetailActionInterface;
 use App\Modules\Trace\Contracts\Actions\Queries\FindTracesActionInterface;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexNotInitException;
@@ -14,7 +13,6 @@ use App\Modules\Trace\Infrastructure\Http\Resources\TraceItemsResource;
 use App\Modules\Trace\Infrastructure\Http\Services\TraceDynamicIndexingActionService;
 use App\Modules\Trace\Parameters\PeriodParameters;
 use App\Modules\Trace\Parameters\TraceFindParameters;
-use App\Modules\Trace\Parameters\TraceSortParameters;
 use Symfony\Component\HttpFoundation\Response;
 
 readonly class TraceController
@@ -40,28 +38,6 @@ readonly class TraceController
             to: $validated['logging_to'] ?? null,
         );
 
-        $sort = array_filter(
-            array_map(
-                function (array $sortItem) {
-                    $field = $sortItem['field'];
-
-                    if (!$field) {
-                        return null;
-                    }
-
-                    $direction = $sortItem['direction'];
-
-                    $directionEnum = $direction ? SortDirectionEnum::from($direction) : null;
-
-                    return new TraceSortParameters(
-                        field: $field,
-                        directionEnum: $directionEnum ?: SortDirectionEnum::Desc
-                    );
-                },
-                $validated['sort'] ?? []
-            )
-        );
-
         /** @var TraceItemObjects $traces */
         $traces = $this->traceDynamicIndexingActionService->handle(
             fn() => $this->findTracesAction->handle(
@@ -82,8 +58,7 @@ readonly class TraceController
                     cpuFrom: $validated['cpu_from'] ?? null,
                     cpuTo: $validated['cpu_to'] ?? null,
                     data: $this->makeDataFilterParameter($validated),
-                    hasProfiling: ($validated['has_profiling'] ?? null) ?: null,
-                    sort: $sort,
+                    hasProfiling: ($validated['has_profiling'] ?? null) ?: null
                 )
             )
         );

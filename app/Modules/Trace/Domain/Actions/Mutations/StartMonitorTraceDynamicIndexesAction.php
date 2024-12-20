@@ -35,12 +35,13 @@ readonly class StartMonitorTraceDynamicIndexesAction implements StartMonitorTrac
                 foreach ($indexes as $index) {
                     if ($index->created) {
                         $this->traceRepository->deleteIndexByName(
-                            name: $index->name
+                            indexName: $index->indexName,
+                            collectionNames: $index->collectionNames
                         );
                     }
 
-                    $this->traceDynamicIndexRepository->deleteByName(
-                        name: $index->name
+                    $this->traceDynamicIndexRepository->deleteById(
+                        id: $index->id
                     );
                 }
 
@@ -64,7 +65,8 @@ readonly class StartMonitorTraceDynamicIndexesAction implements StartMonitorTrac
 
                 try {
                     $indexCreated = $this->traceRepository->createIndex(
-                        name: $index->name,
+                        name: $index->indexName,
+                        collectionNames: $index->collectionNames,
                         fields: $index->fields
                     );
                 } catch (Throwable $exception) {

@@ -10,10 +10,12 @@ class TraceDynamicIndexResource extends AbstractApiResource
 {
     private string $id;
     private string $name;
+    private string $indexName;
+    #[OaListItemTypeAttribute('string')]
+    private array $collectionNames;
     #[OaListItemTypeAttribute(TraceDynamicIndexFieldResource::class)]
     private array $fields;
     private bool $inProcess;
-    private ?float $progress;
     private bool $created;
     private ?string $error;
     private string $actualUntilAt;
@@ -23,14 +25,15 @@ class TraceDynamicIndexResource extends AbstractApiResource
     {
         parent::__construct($resource);
 
-        $this->id            = $resource->id;
-        $this->name          = $resource->name;
-        $this->fields        = TraceDynamicIndexFieldResource::mapIntoMe($resource->fields);
-        $this->inProcess     = $resource->inProcess;
-        $this->progress      = $resource->progress;
-        $this->created       = $resource->created;
-        $this->error         = $resource->error;
-        $this->actualUntilAt = $resource->actualUntilAt->toDateTimeString();
-        $this->createdAt     = $resource->createdAt->toDateTimeString();
+        $this->id              = $resource->id;
+        $this->name            = $resource->name;
+        $this->indexName       = $resource->indexName;
+        $this->collectionNames = $resource->collectionNames;
+        $this->fields          = TraceDynamicIndexFieldResource::mapIntoMe($resource->fields);
+        $this->inProcess       = $resource->inProcess;
+        $this->created         = $resource->created;
+        $this->error           = $resource->error;
+        $this->actualUntilAt   = $resource->actualUntilAt->toDateTimeString();
+        $this->createdAt       = $resource->createdAt->toDateTimeString();
     }
 }

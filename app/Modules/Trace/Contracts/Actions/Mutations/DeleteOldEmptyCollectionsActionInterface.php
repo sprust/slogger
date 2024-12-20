@@ -2,7 +2,7 @@
 
 namespace App\Modules\Trace\Contracts\Actions\Mutations;
 
-interface FreshTraceTimestampsActionInterface
+interface DeleteOldEmptyCollectionsActionInterface
 {
     public function handle(): void;
 }

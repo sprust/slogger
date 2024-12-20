@@ -168,6 +168,10 @@
                                                         "type": "number",
                                                         "nullable": false
                                                     },
+                                                    "total_documents_count": {
+                                                        "type": "integer",
+                                                        "nullable": false
+                                                    },
                                                     "memory_usage": {
                                                         "type": "number",
                                                         "nullable": false
@@ -242,85 +246,9 @@
                                                 "required": [
                                                     "name",
                                                     "size",
+                                                    "total_documents_count",
                                                     "memory_usage",
                                                     "collections"
-                                                ]
-                                            }
-                                        }
-                                    },
-                                    "required": [
-                                        "data"
-                                    ]
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/admin-api/dashboard/service-stat": {
-            "get": {
-                "responses": {
-                    "200": {
-                        "description": "description",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "properties": {
-                                                    "service": {
-                                                        "properties": {
-                                                            "id": {
-                                                                "type": "integer",
-                                                                "nullable": false
-                                                            },
-                                                            "name": {
-                                                                "type": "string",
-                                                                "nullable": false
-                                                            }
-                                                        },
-                                                        "required": [
-                                                            "id",
-                                                            "name"
-                                                        ]
-                                                    },
-                                                    "from": {
-                                                        "type": "string",
-                                                        "nullable": false
-                                                    },
-                                                    "to": {
-                                                        "type": "string",
-                                                        "nullable": false
-                                                    },
-                                                    "type": {
-                                                        "type": "string",
-                                                        "nullable": false
-                                                    },
-                                                    "status": {
-                                                        "type": "string",
-                                                        "nullable": false
-                                                    },
-                                                    "count": {
-                                                        "type": "integer",
-                                                        "nullable": false
-                                                    }
-                                                },
-                                                "required": [
-                                                    "service",
-                                                    "from",
-                                                    "to",
-                                                    "type",
-                                                    "status",
-                                                    "count"
                                                 ]
                                             }
                                         }
@@ -585,24 +513,6 @@
                                             }
                                         }
                                     },
-                                    "sort": {
-                                        "type": "array",
-                                        "items": {
-                                            "type": "object",
-                                            "properties": {
-                                                "field": {
-                                                    "type": "string"
-                                                },
-                                                "direction": {
-                                                    "type": "string",
-                                                    "enum": [
-                                                        "asc",
-                                                        "desc"
-                                                    ]
-                                                }
-                                            }
-                                        }
-                                    },
                                     "has_profiling": {
                                         "type": "boolean"
                                     }
@@ -734,31 +644,10 @@
                                                                     "created_at",
                                                                     "updated_at"
                                                                 ]
-                                                            },
-                                                            "types": {
-                                                                "type": "array",
-                                                                "nullable": false,
-                                                                "items": {
-                                                                    "properties": {
-                                                                        "type": {
-                                                                            "type": "string",
-                                                                            "nullable": false
-                                                                        },
-                                                                        "count": {
-                                                                            "type": "integer",
-                                                                            "nullable": false
-                                                                        }
-                                                                    },
-                                                                    "required": [
-                                                                        "type",
-                                                                        "count"
-                                                                    ]
-                                                                }
                                                             }
                                                         },
                                                         "required": [
-                                                            "trace",
-                                                            "types"
+                                                            "trace"
                                                         ]
                                                     }
                                                 },
@@ -2801,6 +2690,17 @@
                                                         "type": "string",
                                                         "nullable": false
                                                     },
+                                                    "indexName": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "collectionNames": {
+                                                        "type": "array",
+                                                        "nullable": false,
+                                                        "items": {
+                                                            "type": "string"
+                                                        }
+                                                    },
                                                     "fields": {
                                                         "type": "array",
                                                         "nullable": false,
@@ -2825,10 +2725,6 @@
                                                         "type": "boolean",
                                                         "nullable": false
                                                     },
-                                                    "progress": {
-                                                        "type": "number",
-                                                        "nullable": true
-                                                    },
                                                     "created": {
                                                         "type": "boolean",
                                                         "nullable": false
@@ -2849,6 +2745,8 @@
                                                 "required": [
                                                     "id",
                                                     "name",
+                                                    "indexName",
+                                                    "collectionNames",
                                                     "fields",
                                                     "inProcess",
                                                     "created",
@@ -2902,6 +2800,10 @@
                                                     "nullable": false,
                                                     "items": {
                                                         "properties": {
+                                                            "collectionName": {
+                                                                "type": "string",
+                                                                "nullable": false
+                                                            },
                                                             "name": {
                                                                 "type": "string",
                                                                 "nullable": false
@@ -2912,6 +2814,7 @@
                                                             }
                                                         },
                                                         "required": [
+                                                            "collectionName",
                                                             "name",
                                                             "progress"
                                                         ]

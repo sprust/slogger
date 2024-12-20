@@ -46,14 +46,29 @@
         :data="indexes"
         style="height: 80vh; width: 100%"
     >
+      <el-table-column type="expand">
+        <template #default="props">
+          <el-row>
+            <el-tag
+                v-for="collectionName in props.row.collectionNames"
+                :type="isCollectionNameInProcess(props.row, collectionName) ? 'warning' : 'info'"
+                style="margin: 2px"
+            >
+              {{ collectionName }}
+            </el-tag>
+          </el-row>
+        </template>
+      </el-table-column>
       <el-table-column label="Fields">
         <template #default="props">
           <el-row>
-            {{ makeName(props.row) }}
+            <el-text type="info">
+              {{ props.row.id }}
+            </el-text>
           </el-row>
           <el-row>
             <el-text size="small">
-              {{ props.row.name }}
+              {{ makeName(props.row) }}
             </el-text>
           </el-row>
         </template>
@@ -148,7 +163,7 @@ export default defineComponent({
       }
 
       if (index.inProcess) {
-        return `In process (${index.progress ?? '-'})`
+        return 'In process'
       }
 
       return 'active'
@@ -164,6 +179,17 @@ export default defineComponent({
 
       return 'info'
     },
+    isCollectionNameInProcess(index: TraceDynamicIndex, collectionName: string): boolean {
+      const indexes = this.store.state.traceDynamicIndexStats.indexes_in_process.filter(
+          (item: TraceDynamicIndexInfo) => item.name === index.indexName
+      )
+
+      if (!indexes.length) {
+        return false
+      }
+
+      return indexes.map((item: TraceDynamicIndexInfo) => item.collectionName).flat().includes(collectionName)
+    }
   },
 
   computed: {

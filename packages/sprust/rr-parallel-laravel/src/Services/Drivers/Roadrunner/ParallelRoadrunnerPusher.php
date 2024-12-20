@@ -145,9 +145,15 @@ readonly class ParallelRoadrunnerPusher implements ParallelPusherInterface
         );
 
         foreach ($this->headersResolver->get() as $name => $header) {
+            $value = is_callable($header) ? $this->app->call($header) : $header;
+
+            if (is_null($value)) {
+                continue;
+            }
+
             $task = $task->withHeader(
                 name: $name,
-                value: is_callable($header) ? $this->app->call($header) : $header
+                value: $value
             );
         }
 

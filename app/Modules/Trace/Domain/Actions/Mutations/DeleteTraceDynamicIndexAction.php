@@ -20,7 +20,8 @@ readonly class DeleteTraceDynamicIndexAction implements DeleteTraceDynamicIndexA
 
         if ($index->created) {
             $this->traceRepository->deleteIndexByName(
-                name: $index->name
+                indexName: $index->indexName,
+                collectionNames: $index->collectionNames
             );
         }
 

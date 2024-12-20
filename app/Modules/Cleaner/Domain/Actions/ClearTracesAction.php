@@ -10,11 +10,7 @@ use App\Modules\Cleaner\Entities\SettingObject;
 use App\Modules\Common\Domain\Service\EventsDispatcher;
 use App\Modules\Trace\Contracts\Actions\Mutations\ClearTracesActionInterface as TraceClearTracesActionInterface;
 use App\Modules\Trace\Contracts\Actions\Mutations\DeleteTracesActionInterface;
-use App\Modules\Trace\Contracts\Actions\Queries\FindMinLoggedAtTracesActionInterface;
 use App\Modules\Trace\Contracts\Actions\Queries\FindTraceIdsActionInterface;
-use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexErrorException;
-use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexInProcessException;
-use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexNotInitException;
 use App\Modules\Trace\Parameters\ClearTracesParameters;
 use App\Modules\Trace\Parameters\DeleteTracesParameters;
 use Illuminate\Support\Arr;
@@ -26,18 +22,12 @@ readonly class ClearTracesAction implements ClearTracesActionInterface
         private EventsDispatcher $eventsDispatcher,
         private SettingRepositoryInterface $settingRepository,
         private ProcessRepositoryInterface $processRepository,
-        private FindMinLoggedAtTracesActionInterface $findMinLoggedAtTracesAction,
         private TraceClearTracesActionInterface $clearTracesAction,
         private FindTraceIdsActionInterface $findTraceIdsAction,
         private DeleteTracesActionInterface $deleteTracesAction,
     ) {
     }
 
-    /**
-     * @throws TraceDynamicIndexErrorException
-     * @throws TraceDynamicIndexInProcessException
-     * @throws TraceDynamicIndexNotInitException
-     */
     public function handle(): void
     {
         /** @var SettingObject[] $settings */
@@ -50,17 +40,13 @@ readonly class ClearTracesAction implements ClearTracesActionInterface
             return;
         }
 
-        $loggedAtFrom = $this->findMinLoggedAtTracesAction->handle();
-
-        if (!$loggedAtFrom) {
-            return;
-        }
-
-        $customizedTypes = array_unique(
-            array_filter(
-                array_map(
-                    fn(SettingObject $setting) => $setting->type,
-                    $settings
+        $customizedTypes = array_values(
+            array_unique(
+                array_filter(
+                    array_map(
+                        fn(SettingObject $setting) => $setting->type,
+                        $settings
+                    )
                 )
             )
         ) ?: null;
@@ -97,30 +83,35 @@ readonly class ClearTracesAction implements ClearTracesActionInterface
             $exception = null;
 
             while (true) {
-                $traceIds = $this->findTraceIdsAction->handle(
-                    limit: 1000,
-                    loggedAtTo: $loggedAtTo,
-                    type: $type,
-                    excludedTypes: $excludedTypes
-                );
-
-                if (count($traceIds) === 0) {
-                    break;
-                }
-
                 try {
-                    if ($setting->onlyData) {
-                        $clearedCount += $this->clearTracesAction->handle(
-                            new ClearTracesParameters(
-                                traceIds: $traceIds
-                            )
-                        );
-                    } else {
-                        $clearedCount += $this->deleteTracesAction->handle(
-                            new DeleteTracesParameters(
-                                traceIds: $traceIds
-                            )
-                        );
+                    $traceCollectionNameObjects = $this->findTraceIdsAction->handle(
+                        limit: 1000,
+                        loggedAtTo: $loggedAtTo,
+                        type: $type,
+                        excludedTypes: $excludedTypes,
+                        noCleared: $setting->onlyData ?: null
+                    );
+
+                    if (!$traceCollectionNameObjects->count()) {
+                        break;
+                    }
+
+                    foreach ($traceCollectionNameObjects->get() as $collectionName => $traceIds) {
+                        if ($setting->onlyData) {
+                            $clearedCount += $this->clearTracesAction->handle(
+                                new ClearTracesParameters(
+                                    collectionName: $collectionName,
+                                    traceIds: $traceIds
+                                )
+                            );
+                        } else {
+                            $clearedCount += $this->deleteTracesAction->handle(
+                                new DeleteTracesParameters(
+                                    collectionName: $collectionName,
+                                    traceIds: $traceIds
+                                )
+                            );
+                        }
                     }
                 } catch (Throwable $exception) {
                     $this->processRepository->update(

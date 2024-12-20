@@ -2,22 +2,31 @@
 
 namespace App\Modules\Trace\Repositories;
 
-use App\Models\Traces\Trace;
 use App\Modules\Trace\Contracts\Repositories\TraceContentRepositoryInterface;
 use App\Modules\Trace\Entities\Trace\TraceStringFieldObject;
 use App\Modules\Trace\Parameters\Data\TraceDataFilterParameters;
-use App\Modules\Trace\Repositories\Services\TraceQueryBuilder;
-use Illuminate\Database\Eloquent\Builder;
+use App\Modules\Trace\Repositories\Services\PeriodicTraceService;
+use App\Modules\Trace\Repositories\Services\TracePipelineBuilder;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
-use MongoDB\Model\BSONDocument;
+use RrParallel\Exceptions\ParallelJobsException;
+use RrParallel\Exceptions\WaitTimeoutException;
+use RrParallel\Services\ParallelPusherInterface;
+use RuntimeException;
 
 readonly class TraceContentRepository implements TraceContentRepositoryInterface
 {
     public function __construct(
-        private TraceQueryBuilder $traceQueryBuilder
+        private ParallelPusherInterface $parallelPusher,
+        private TracePipelineBuilder $tracePipelineBuilder,
+        private PeriodicTraceService $periodicTraceService
     ) {
     }
 
+    /**
+     * @throws WaitTimeoutException
+     * @throws ParallelJobsException
+     */
     public function findTypes(
         array $serviceIds = [],
         ?string $text = null,
@@ -32,36 +41,44 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
         ?TraceDataFilterParameters $data = null,
         ?bool $hasProfiling = null,
     ): array {
-        $builder = $this->traceQueryBuilder
-            ->make(
-                serviceIds: $serviceIds,
-                loggedAtFrom: $loggedAtFrom,
-                loggedAtTo: $loggedAtTo,
-                durationFrom: $durationFrom,
-                durationTo: $durationTo,
-                memoryFrom: $memoryFrom,
-                memoryTo: $memoryTo,
-                cpuFrom: $cpuFrom,
-                cpuTo: $cpuTo,
-                data: $data,
-                hasProfiling: $hasProfiling
-            )
-            ->when(
-                $text,
-                fn(Builder $query) => $query->where('tp', 'like', "%$text%")
-            );
-
-        $match = $this->traceQueryBuilder->makeMqlMatchFromBuilder(
-            builder: $builder
+        $collectionNames = $this->periodicTraceService->detectCollectionNamesReverse(
+            loggedAtFrom: $loggedAtFrom,
+            loggedAtTo: $loggedAtTo,
         );
 
-        $pipeline = [];
-
-        if ($match) {
-            $pipeline[] = [
-                '$match' => $match,
-            ];
+        if (!$collectionNames) {
+            return [];
         }
+
+        $pipeline = $this->tracePipelineBuilder->make(
+            serviceIds: $serviceIds,
+            loggedAtFrom: $loggedAtFrom,
+            loggedAtTo: $loggedAtTo,
+            durationFrom: $durationFrom,
+            durationTo: $durationTo,
+            memoryFrom: $memoryFrom,
+            memoryTo: $memoryTo,
+            cpuFrom: $cpuFrom,
+            cpuTo: $cpuTo,
+            data: $data,
+            hasProfiling: $hasProfiling,
+            projectFields: [
+                'tp',
+            ],
+            customMatch: $text
+                ? [
+                    'tp' => [
+                        '$regex' => "^.*$text.*$",
+                    ],
+                ]
+                : null
+        );
+
+        $pipeline[] = [
+            '$sort' => [
+                'lat' => -1,
+            ],
+        ];
 
         $pipeline[] = [
             '$group' => [
@@ -72,29 +89,16 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
             ],
         ];
 
-        $pipeline[] = [
-            '$sort' => [
-                'count' => -1,
-                '_id'   => 1,
-            ],
-        ];
-
-        $pipeline[] = [
-            '$limit' => 50,
-        ];
-
-        $iterator = Trace::collection()->aggregate($pipeline);
-
-        return collect($iterator)
-            ->map(
-                fn(BSONDocument $document) => new TraceStringFieldObject(
-                    name: $document->_id,
-                    count: $document->count
-                )
-            )
-            ->toArray();
+        return $this->handleRequest(
+            collectionNames: $collectionNames,
+            pipeline: $pipeline
+        );
     }
 
+    /**
+     * @throws WaitTimeoutException
+     * @throws ParallelJobsException
+     */
     public function findTags(
         array $serviceIds = [],
         ?string $text = null,
@@ -110,7 +114,16 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
         ?TraceDataFilterParameters $data = null,
         ?bool $hasProfiling = null,
     ): array {
-        $builder = $this->traceQueryBuilder->make(
+        $collectionNames = $this->periodicTraceService->detectCollectionNamesReverse(
+            loggedAtFrom: $loggedAtFrom,
+            loggedAtTo: $loggedAtTo,
+        );
+
+        if (!$collectionNames) {
+            return [];
+        }
+
+        $pipeline = $this->tracePipelineBuilder->make(
             serviceIds: $serviceIds,
             loggedAtFrom: $loggedAtFrom,
             loggedAtTo: $loggedAtTo,
@@ -122,40 +135,25 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
             cpuFrom: $cpuFrom,
             cpuTo: $cpuTo,
             data: $data,
-            hasProfiling: $hasProfiling
+            hasProfiling: $hasProfiling,
+            projectFields: [
+                'tgs',
+            ],
         );
-
-        $match = $this->traceQueryBuilder->makeMqlMatchFromBuilder(
-            builder: $builder
-        );
-
-        $pipeline = [];
-
-        if ($match) {
-            $pipeline[] = [
-                '$match' => $match,
-            ];
-        }
 
         $pipeline[] = [
-            '$project' => [
-                'tgs.nm' => 1,
+            '$sort' => [
+                'lat' => -1,
             ],
         ];
 
         $pipeline[] = [
-            '$limit' => 100000
+            '$limit' => 100000,
         ];
 
         $pipeline[] = [
             '$unwind' => [
                 'path' => '$tgs',
-            ],
-        ];
-
-        $pipeline[] = [
-            '$sort' => [
-                'tgs.nm' => -1,
             ],
         ];
 
@@ -189,18 +187,16 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
             '$limit' => 50,
         ];
 
-        $iterator = Trace::collection()->aggregate($pipeline);
-
-        return collect($iterator)
-            ->map(
-                fn(BSONDocument $document) => new TraceStringFieldObject(
-                    name: $document->_id,
-                    count: $document->count
-                )
-            )
-            ->toArray();
+        return $this->handleRequest(
+            collectionNames: $collectionNames,
+            pipeline: $pipeline
+        );
     }
 
+    /**
+     * @throws WaitTimeoutException
+     * @throws ParallelJobsException
+     */
     public function findStatuses(
         array $serviceIds = [],
         ?string $text = null,
@@ -217,38 +213,46 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
         ?TraceDataFilterParameters $data = null,
         ?bool $hasProfiling = null,
     ): array {
-        $builder = $this->traceQueryBuilder
-            ->make(
-                serviceIds: $serviceIds,
-                loggedAtFrom: $loggedAtFrom,
-                loggedAtTo: $loggedAtTo,
-                types: $types,
-                tags: $tags,
-                durationFrom: $durationFrom,
-                durationTo: $durationTo,
-                memoryFrom: $memoryFrom,
-                memoryTo: $memoryTo,
-                cpuFrom: $cpuFrom,
-                cpuTo: $cpuTo,
-                data: $data,
-                hasProfiling: $hasProfiling
-            )
-            ->when(
-                $text,
-                fn(Builder $query) => $query->where('st', 'like', "%$text%")
-            );
-
-        $match = $this->traceQueryBuilder->makeMqlMatchFromBuilder(
-            builder: $builder
+        $collectionNames = $this->periodicTraceService->detectCollectionNamesReverse(
+            loggedAtFrom: $loggedAtFrom,
+            loggedAtTo: $loggedAtTo,
         );
 
-        $pipeline = [];
-
-        if ($match) {
-            $pipeline[] = [
-                '$match' => $match,
-            ];
+        if (!$collectionNames) {
+            return [];
         }
+
+        $pipeline = $this->tracePipelineBuilder->make(
+            serviceIds: $serviceIds,
+            loggedAtFrom: $loggedAtFrom,
+            loggedAtTo: $loggedAtTo,
+            types: $types,
+            tags: $tags,
+            durationFrom: $durationFrom,
+            durationTo: $durationTo,
+            memoryFrom: $memoryFrom,
+            memoryTo: $memoryTo,
+            cpuFrom: $cpuFrom,
+            cpuTo: $cpuTo,
+            data: $data,
+            hasProfiling: $hasProfiling,
+            projectFields: [
+                'st',
+            ],
+            customMatch: $text
+                ? [
+                    'st' => [
+                        '$regex' => "^.*$text.*$",
+                    ],
+                ]
+                : null
+        );
+
+        $pipeline[] = [
+            '$sort' => [
+                'lat' => -1,
+            ],
+        ];
 
         $pipeline[] = [
             '$group' => [
@@ -259,26 +263,92 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
             ],
         ];
 
-        $pipeline[] = [
-            '$sort' => [
-                'count' => -1,
-                '_id'   => 1,
-            ],
-        ];
+        return $this->handleRequest(
+            collectionNames: $collectionNames,
+            pipeline: $pipeline
+        );
+    }
 
-        $pipeline[] = [
-            '$limit' => 50,
-        ];
+    /**
+     * @param string[] $collectionNames
+     * @param array[]  $pipeline
+     *
+     * @return TraceStringFieldObject[]
+     *
+     * @throws ParallelJobsException
+     * @throws WaitTimeoutException
+     */
+    private function handleRequest(array $collectionNames, array $pipeline): array
+    {
+        /** @var callable[] $callbacks */
+        $callbacks = [];
 
-        $iterator = Trace::collection()->aggregate($pipeline);
+        foreach ($collectionNames as $collectionName) {
+            $callbacks[] = static function (PeriodicTraceService $periodicTraceService) use (
+                $collectionName,
+                $pipeline
+            ) {
+                /** @var array<string, int> $groups */
+                $groups = [];
 
-        return collect($iterator)
-            ->map(
-                fn(BSONDocument $document) => new TraceStringFieldObject(
-                    name: $document->_id,
-                    count: $document->count
-                )
-            )
-            ->toArray();
+                $cursor = $periodicTraceService->aggregate(
+                    collectionName: $collectionName,
+                    pipeline: $pipeline
+                );
+
+                foreach ($cursor as $item) {
+                    $id = $item['_id'];
+
+                    $groups[$id] ??= 0;
+                    $groups[$id] += $item['count'];
+                }
+
+                return $groups;
+            };
+        }
+
+        $results = $this->parallelPusher->wait($callbacks)->wait(20);
+
+        // TODO: normal error handling
+        if ($results->hasFailed) {
+            $jobResultError = Arr::first($results->failed)->error;
+
+            if (!$jobResultError) {
+                throw new RuntimeException('Unknown error');
+            }
+
+            throw new RuntimeException(
+                $jobResultError->message . PHP_EOL . $jobResultError->traceAsString
+            );
+        }
+
+        /** @var array<string, int> $groups */
+        $groups = [];
+
+        foreach ($results->results as $result) {
+            foreach ($result->result as $type => $count) {
+                $groups[$type] ??= 0;
+                $groups[$type] += $count;
+            }
+        }
+
+        $limit = 50;
+
+        /** @var TraceStringFieldObject[] $result */
+        $result = [];
+
+        foreach ($groups as $name => $count) {
+            $result[] = new TraceStringFieldObject(
+                name: $name,
+                count: $count
+            );
+        }
+
+        $sortedResult = Arr::sortDesc(
+            $result,
+            fn(TraceStringFieldObject $item) => $item->count
+        );
+
+        return array_slice($sortedResult, 0, $limit);
     }
 }

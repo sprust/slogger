@@ -2,7 +2,6 @@
 
 namespace App\Modules\Trace\Repositories;
 
-use App\Models\Traces\Trace;
 use App\Modules\Trace\Contracts\Repositories\TraceTimestampsRepositoryInterface;
 use App\Modules\Trace\Enums\TraceMetricFieldAggregatorEnum;
 use App\Modules\Trace\Enums\TraceMetricFieldEnum;
@@ -13,7 +12,8 @@ use App\Modules\Trace\Repositories\Dto\Trace\Timestamp\TraceTimestampFieldDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Timestamp\TraceTimestampFieldIndicatorDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Timestamp\TraceTimestampsDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Timestamp\TraceTimestampsListDto;
-use App\Modules\Trace\Repositories\Services\TraceQueryBuilder;
+use App\Modules\Trace\Repositories\Services\PeriodicTraceService;
+use App\Modules\Trace\Repositories\Services\TracePipelineBuilder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use MongoDB\BSON\UTCDateTime;
@@ -22,18 +22,19 @@ use RuntimeException;
 readonly class TraceTimestampsRepository implements TraceTimestampsRepositoryInterface
 {
     public function __construct(
-        private TraceQueryBuilder $traceQueryBuilder
+        private TracePipelineBuilder $tracePipelineBuilder,
+        private PeriodicTraceService $periodicTraceService
     ) {
     }
 
     public function find(
+        Carbon $loggedAtFrom,
+        Carbon $loggedAtTo,
         TraceTimestampEnum $timestamp,
         array $fields,
         ?array $dataFields = null,
         ?array $serviceIds = null,
         ?array $traceIds = null,
-        ?Carbon $loggedAtFrom = null,
-        ?Carbon $loggedAtTo = null,
         array $types = [],
         array $tags = [],
         array $statuses = [],
@@ -47,64 +48,51 @@ readonly class TraceTimestampsRepository implements TraceTimestampsRepositoryInt
         ?bool $hasProfiling = null,
         ?array $sort = null,
     ): TraceTimestampsListDto {
+        $collectionNames = $this->periodicTraceService->detectCollectionNames(
+            loggedAtFrom: $loggedAtFrom,
+            loggedAtTo: $loggedAtTo
+        );
+
+        if (!count($collectionNames)) {
+            return new TraceTimestampsListDto(
+                timestamps: [],
+                emptyIndicators: [],
+            );
+        }
+
         $timestampField = $timestamp->value;
 
         $timestampFieldKey = "tss.$timestampField";
 
-        $match = [
-            '$and' => [
-                ...($loggedAtFrom
-                    ? [
-                        [
-                            $timestampFieldKey => [
-                                '$gte' => new UTCDateTime($loggedAtFrom),
-                            ],
+        $pipeline = $this->tracePipelineBuilder->make(
+            serviceIds: $serviceIds,
+            traceIds: $traceIds,
+            types: $types,
+            tags: $tags,
+            statuses: $statuses,
+            durationFrom: $durationFrom,
+            durationTo: $durationTo,
+            memoryFrom: $memoryFrom,
+            memoryTo: $memoryTo,
+            cpuFrom: $cpuFrom,
+            cpuTo: $cpuTo,
+            data: $data,
+            hasProfiling: $hasProfiling,
+            customMatch: [
+                '$and' => [
+                    [
+                        $timestampFieldKey => [
+                            '$gte' => new UTCDateTime($loggedAtFrom),
                         ],
-                    ]
-                    : []),
-                ...($loggedAtTo
-                    ? [
-                        [
-                            $timestampFieldKey => [
-                                '$lte' => new UTCDateTime($loggedAtTo),
-                            ],
+                    ],
+                    [
+                        $timestampFieldKey => [
+                            '$lte' => new UTCDateTime($loggedAtTo),
                         ],
-                    ]
-                    : []),
-            ],
-        ];
-
-        $mql = $this->traceQueryBuilder
-            ->make(
-                serviceIds: $serviceIds,
-                traceIds: $traceIds,
-                types: $types,
-                tags: $tags,
-                statuses: $statuses,
-                durationFrom: $durationFrom,
-                durationTo: $durationTo,
-                memoryFrom: $memoryFrom,
-                memoryTo: $memoryTo,
-                cpuFrom: $cpuFrom,
-                cpuTo: $cpuTo,
-                data: $data,
-                hasProfiling: $hasProfiling,
-            )
-            ->toMql();
-
-        foreach ($mql['find'][0] ?? [] as $key => $value) {
-            if ($key === '$and') {
-                $match[$key] = is_array($value) ? array_merge($match[$key], $value) : $match[$key];
-            } else {
-                $match[$key] = $value;
-            }
-        }
-
-        $pipeline = [
-            [
-                '$match' => $match,
-            ],
-        ];
+                    ],
+                ],
+            ]
+        );
 
         $groups = [];
 
@@ -125,7 +113,6 @@ readonly class TraceTimestampsRepository implements TraceTimestampsRepositoryInt
         }
 
         $groupsMatch = [];
-
         $groupsQuery = [];
 
         foreach ($groups as $fieldName => $aggregations) {
@@ -151,39 +138,38 @@ readonly class TraceTimestampsRepository implements TraceTimestampsRepositoryInt
             ],
         ];
 
-        $pipeline[] = [
-            '$sort' => [
-                '_id.timestamp' => 1,
-            ],
-        ];
-
-        $aggregation = Trace::collection()->aggregate($pipeline);
-
         $metrics = [];
 
-        foreach ($aggregation as $item) {
-            $groupIndicatorsDtoList = [];
+        foreach ($collectionNames as $collectionName) {
+            $cursor = $this->periodicTraceService->aggregate(
+                collectionName: $collectionName,
+                pipeline: $pipeline
+            );
 
-            foreach ($groupsMatch as $fieldName => $aggregators) {
-                $indicators = [];
+            foreach ($cursor as $item) {
+                $groupIndicatorsDtoList = [];
 
-                foreach ($aggregators as $key => $aggregator) {
-                    $indicators[] = new TraceTimestampFieldIndicatorDto(
-                        name: $aggregator,
-                        value: round(is_numeric($item->{$key}) ? $item->{$key} : 0, 6),
+                foreach ($groupsMatch as $fieldName => $aggregators) {
+                    $indicators = [];
+
+                    foreach ($aggregators as $key => $aggregator) {
+                        $indicators[] = new TraceTimestampFieldIndicatorDto(
+                            name: $aggregator,
+                            value: round(is_numeric($item[$key]) ? $item[$key] : 0, 6),
+                        );
+                    }
+
+                    $groupIndicatorsDtoList[] = new TraceTimestampFieldDto(
+                        field: $fieldName,
+                        indicators: $indicators
                     );
                 }
 
-                $groupIndicatorsDtoList[] = new TraceTimestampFieldDto(
-                    field: $fieldName,
-                    indicators: $indicators
+                $metrics[] = new TraceTimestampsDto(
+                    timestamp: new Carbon($item['_id']['timestamp']->toDateTime()),
+                    indicators: $groupIndicatorsDtoList
                 );
             }
-
-            $metrics[] = new TraceTimestampsDto(
-                timestamp: new Carbon($item->_id->timestamp->toDateTime()),
-                indicators: $groupIndicatorsDtoList
-            );
         }
 
         $emptyIndicators = [];

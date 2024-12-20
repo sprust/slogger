@@ -3,17 +3,14 @@
 namespace App\Modules\Trace\Contracts\Repositories;
 
 use App\Modules\Trace\Repositories\Dto\DynamicIndex\TraceDynamicIndexDto;
-use App\Modules\Trace\Repositories\Dto\DynamicIndex\TraceDynamicIndexFieldDto;
+use App\Modules\Trace\Repositories\Dto\DynamicIndex\TraceDynamicIndexDataDto;
 use App\Modules\Trace\Repositories\Dto\Trace\TraceDynamicIndexStatsDto;
 use Illuminate\Support\Carbon;
 use Throwable;
 
 interface TraceDynamicIndexRepositoryInterface
 {
-    /**
-     * @param TraceDynamicIndexFieldDto[] $fields
-     */
-    public function findOneOrCreate(array $fields, Carbon $actualUntilAt): ?TraceDynamicIndexDto;
+    public function findOneOrCreate(TraceDynamicIndexDataDto $indexData, Carbon $actualUntilAt): ?TraceDynamicIndexDto;
 
     public function findOneById(string $id): ?TraceDynamicIndexDto;
 
@@ -33,6 +30,4 @@ interface TraceDynamicIndexRepositoryInterface
     public function updateByName(string $name, bool $inProcess, bool $created, ?Throwable $exception): bool;
 
     public function deleteById(string $id): bool;
-
-    public function deleteByName(string $name): bool;
 }
