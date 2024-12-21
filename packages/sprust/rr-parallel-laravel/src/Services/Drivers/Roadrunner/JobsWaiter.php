@@ -72,15 +72,15 @@ readonly class JobsWaiter
 
         $finished = $result['finished'];
 
-        if (!$finished && !file_exists("/proc/$jobWorkerPid")) {
-            return new JobResultDto(
-                exception: new Exception(
-                    "Process [$jobWorkerPid] was killed"
-                )
-            );
-        }
-
         if (!$finished) {
+            if (!file_exists("/proc/$jobWorkerPid")) {
+                return new JobResultDto(
+                    exception: new Exception(
+                        "Process [$jobWorkerPid] was killed"
+                    )
+                );
+            }
+
             return null;
         }
 
