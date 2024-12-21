@@ -2,6 +2,7 @@
 
 namespace RrParallel\Services\Drivers\Roadrunner;
 
+use Psr\SimpleCache\InvalidArgumentException;
 use RrParallel\Exceptions\WaitTimeoutException;
 use RrParallel\Services\Dto\JobResultDto;
 use RrParallel\Services\Dto\JobResultsDto;
@@ -30,6 +31,9 @@ class WaitGroup implements WaitGroupInterface
         $this->expectedCount = count($this->jobs);
     }
 
+    /**
+     * @throws InvalidArgumentException
+     */
     public function current(): JobResultsDto
     {
         if (!is_null($this->results)) {
@@ -45,6 +49,7 @@ class WaitGroup implements WaitGroupInterface
 
     /**
      * @throws WaitTimeoutException
+     * @throws InvalidArgumentException
      */
     public function wait(int $waitSeconds): JobResultsDto
     {
@@ -69,6 +74,9 @@ class WaitGroup implements WaitGroupInterface
         return $this->makeResults(finished: true);
     }
 
+    /**
+     * @throws InvalidArgumentException
+     */
     private function checkStatuses(): void
     {
         foreach ($this->jobs as $key => $job) {

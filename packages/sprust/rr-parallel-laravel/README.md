@@ -1,5 +1,9 @@
+# Parallel for laravel
 
-# Parallel for laravel 
+## Description
+
+For use parallel processing in Laravel. Has two drivers: rr and sync. Roadrunner server should be started on the same
+machine that calling side.
 
 ## Installation
 
@@ -10,11 +14,13 @@ php artisan vendor:publish --tag=rr-parallel-laravel
 ### App (RR driver)
 
 system:
+
 ```bash
 php artisan vendor:publish --tag=rr-parallel-laravel
 ```
 
 .env:
+
 ```dotenv
 # one of: rr, sync
 RR_PARALLEL_DRIVER=rr
@@ -26,6 +32,7 @@ RR_PARALLEL_WORKERS_MAX_NUMBER=20
 ```
 
 .gitignore:
+
 ```gitignore
 rr
 .rr.yaml
@@ -33,6 +40,7 @@ rr
 ```
 
 supervisor example:
+
 ```
 [program:rr-server]
 command= /app./rr serve --dotenv /app/.env -c /app/.rr-parallel.yaml

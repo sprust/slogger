@@ -5,6 +5,7 @@ namespace RrParallel\Services\Drivers\Roadrunner;
 use Illuminate\Foundation\Application;
 use Laravel\Octane\CurrentApplication;
 use Laravel\Octane\DispatchesEvents;
+use Psr\SimpleCache\InvalidArgumentException;
 use RrParallel\Events\JobHandledEvent;
 use RrParallel\Events\JobHandlingErrorEvent;
 use RrParallel\Events\JobReceivedEvent;
@@ -57,6 +58,9 @@ readonly class JobsServer
         );
     }
 
+    /**
+     * @throws InvalidArgumentException
+     */
     private function onServe(): void
     {
         $consumer = new Consumer($this->worker);
@@ -93,15 +97,22 @@ readonly class JobsServer
 
             $taskId = $task->getId();
 
+            $job = null;
+
             try {
                 $job = $this->jobSerializer->unSerialize($payload);
 
                 if (!$job->wait) {
                     $app->call($job->getCallback());
                 } else {
+                    /** @var JobsWaiter $waiter */
+                    $waiter = $app->make(JobsWaiter::class);
+
+                    $waiter->start($taskId);
+
                     $result = $app->call($job->getCallback());
 
-                    $app->make(JobsWaiter::class)->finish(
+                    $waiter->finish(
                         id: $taskId,
                         result: new JobResultDto(
                             result: $result
@@ -121,12 +132,14 @@ readonly class JobsServer
                     )
                 );
             } catch (Throwable $exception) {
-                $app->make(JobsWaiter::class)->finish(
-                    id: $taskId,
-                    result: new JobResultDto(
-                        exception: $exception
-                    )
-                );
+                if ($job?->wait) {
+                    $app->make(JobsWaiter::class)->finish(
+                        id: $taskId,
+                        result: new JobResultDto(
+                            exception: $exception
+                        )
+                    );
+                }
 
                 $task->nack($exception);
 
@@ -142,8 +155,6 @@ readonly class JobsServer
                 $app->flush();
 
                 unset($app);
-
-                CurrentApplication::set($this->app);
             }
         }
     }
