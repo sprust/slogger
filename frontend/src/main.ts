@@ -1,3 +1,4 @@
+// @ts-ignore // todo
 import App from './App.vue'
 import {createApp} from "vue";
 import ElementPlus from 'element-plus'
@@ -35,6 +36,7 @@ import {
 import {toolLinksStore, toolLinksStoreInjectionKey} from "./store/toolLinksStore.ts";
 import {traceDynamicIndexesStore, traceDynamicIndexesInjectionKey} from "./store/traceDynamicIndexesStore.ts";
 import {traceAdminStoresStore, traceAdminStoresStoreInjectionKey} from "./store/traceAdminStoresStore.ts";
+import {logsViewerStore, logsViewerStoreInjectionKey} from "./components/pages/logs-viewer/store/logsViewerStore.ts";
 
 createApp(App)
     .use(router)
@@ -55,4 +57,5 @@ createApp(App)
     .use(traceCleanerStore, traceCleanerStoreInjectionKey)
     .use(traceDynamicIndexesStore, traceDynamicIndexesInjectionKey)
     .use(traceAdminStoresStore, traceAdminStoresStoreInjectionKey)
+    .use(logsViewerStore, logsViewerStoreInjectionKey)
     .mount('#app')

@@ -4,6 +4,7 @@ use Monolog\Handler\NullHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Handler\SyslogUdpHandler;
 use Monolog\Processor\PsrLogMessageProcessor;
+use App\Services\Logging\Mongodb\MongodbLogHandler;
 
 return [
 
@@ -54,8 +55,8 @@ return [
     'channels' => [
         'stack' => [
             'driver' => 'stack',
-            'channels' => ['single'],
-            'ignore_exceptions' => false,
+            'channels' => ['daily', 'mongodb'],
+            'ignore_exceptions' => true,
         ],
 
         'single' => [
@@ -131,6 +132,11 @@ return [
             'driver' => 'daily',
             'path'   => storage_path('logs/slogger/slogger.log'),
             'days'   => 5,
+        ],
+
+        'mongodb' => [
+            'driver'    => 'monolog',
+            'handler'   => MongodbLogHandler::class,
         ],
     ],
 

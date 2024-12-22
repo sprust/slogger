@@ -1534,6 +1534,62 @@ export namespace AdminApi {
         updated_at: string;
       }[];
     };
+  } /**
+ * No description
+ * @name LogsList
+ * @request GET:/admin-api/logs
+ * @secure
+ * @response `200` `{
+    data: {
+    items: ({
+    level: string,
+    message: string,
+    context: string,
+    channel: string,
+    logged_at: string,
+
+})[],
+    paginator: {
+    total: number,
+    per_page: number,
+    current_page: number,
+    total_pages: number,
+
+},
+
+},
+
+}` description
+*/
+  export namespace LogsList {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /** @min 1 */
+      page: number;
+      /** @maxLength 255 */
+      search_query?: string | null;
+      /** @maxLength 255 */
+      level?: string | null;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        items: {
+          level: string;
+          message: string;
+          context: string;
+          channel: string;
+          logged_at: string;
+        }[];
+        paginator: {
+          total: number;
+          per_page: number;
+          current_page: number;
+          total_pages: number;
+        };
+      };
+    };
   }
 }
 
@@ -3478,6 +3534,73 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       >({
         path: `/admin-api/trace-cleaner/settings/${settingId}/processes`,
         method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name LogsList
+ * @request GET:/admin-api/logs
+ * @secure
+ * @response `200` `{
+    data: {
+    items: ({
+    level: string,
+    message: string,
+    context: string,
+    channel: string,
+    logged_at: string,
+
+})[],
+    paginator: {
+    total: number,
+    per_page: number,
+    current_page: number,
+    total_pages: number,
+
+},
+
+},
+
+}` description
+ */
+    logsList: (
+      query: {
+        /** @min 1 */
+        page: number;
+        /** @maxLength 255 */
+        search_query?: string | null;
+        /** @maxLength 255 */
+        level?: string | null;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          data: {
+            items: {
+              level: string;
+              message: string;
+              context: string;
+              channel: string;
+              logged_at: string;
+            }[];
+            paginator: {
+              total: number;
+              per_page: number;
+              current_page: number;
+              total_pages: number;
+            };
+          };
+        },
+        any
+      >({
+        path: `/admin-api/logs`,
+        method: "GET",
+        query: query,
         secure: true,
         format: "json",
         ...params,

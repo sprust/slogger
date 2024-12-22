@@ -1,9 +1,10 @@
 import {createRouter, createWebHistory, NavigationGuardNext, RouteLocationNormalized} from "vue-router";
+import {useAuthStore} from "../store/authStore.ts";
 import Login from "../components/Login.vue";
 import Dashboard from "../components/pages/dashboard/Dashboard.vue";
 import TraceAggregator from "../components/pages/trace-aggregator/TraceAggregator.vue";
 import TraceCleaner from "../components/pages/trace-cleaner/TraceCleaner.vue";
-import {useAuthStore} from "../store/authStore.ts";
+import Logs from "../components/pages/logs-viewer/Logs.vue";
 
 export const routes = {
     login: {
@@ -21,6 +22,10 @@ export const routes = {
     traceCleaner: {
         path: '/trace-cleaner',
         name: 'trace-cleaner',
+    },
+    logs: {
+        path: '/logs',
+        name: 'logs',
     },
 }
 
@@ -46,6 +51,11 @@ export const router = createRouter({
             path: routes.traceCleaner.path,
             component: TraceCleaner,
             name: routes.traceCleaner.name
+        },
+        {
+            path: routes.logs.path,
+            component: Logs,
+            name: routes.logs.name
         },
     ],
 });

@@ -104,7 +104,6 @@ return [
                 'options'  => [
                     'appname'    => env('APP_NAME'),
                     'authSource' => env('MONGO_DATABASE_ADMIN', 'admin'),
-                    'socketTimeoutMS'=> 1200000 // 20 minutes
                 ],
             ],
             'tracesPeriodic' => [
@@ -118,6 +117,18 @@ return [
                     'appname'    => env('APP_NAME'),
                     'authSource' => env('MONGO_DATABASE_ADMIN', 'admin'),
                     'socketTimeoutMS'=> 1200000 // 20 minutes
+                ],
+            ],
+            'logs' => [
+                'driver'   => 'mongodb',
+                'host'     => env('MONGO_HOST'),
+                'port'     => env('MONGO_PORT'),
+                'username' => env('MONGO_ADMIN_USERNAME'),
+                'password' => env('MONGO_ADMIN_PASSWORD'),
+                'database' => env('MONGO_DATABASE_LOGS',  'logs'),
+                'options'  => [
+                    'appname'    => env('APP_NAME'),
+                    'authSource' => env('MONGO_DATABASE_ADMIN', 'admin'),
                 ],
             ],
         ],

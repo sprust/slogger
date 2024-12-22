@@ -9,6 +9,9 @@
     <el-menu-item :index="routes.traceCleaner.path">
       Cleaner
     </el-menu-item>
+    <el-menu-item :index="routes.logs.path">
+      Logs
+    </el-menu-item>
     <div class="flex-grow"/>
     <el-menu-item index="" @click="toggleDark">
       <el-button :icon="isDark ? Moon : Sunny" link/>
