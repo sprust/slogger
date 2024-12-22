@@ -6,6 +6,7 @@ use App\Modules\Auth\Infrastructure\Http\Middlewares\AuthMiddleware;
 use App\Modules\Cleaner\Infrastructure\Http\Controllers\ProcessController;
 use App\Modules\Cleaner\Infrastructure\Http\Controllers\SettingController;
 use App\Modules\Dashboard\Infrastructure\Http\Controllers\DatabaseStatController;
+use App\Modules\Logs\Infrastructure\Http\Controllers\LogController;
 use App\Modules\Service\Infrastructure\Http\Controllers\ServiceController;
 use App\Modules\Tools\Infrastructure\Http\Controllers\ToolLinksController;
 use App\Modules\Trace\Infrastructure\Http\Controllers\TraceAdminStoreController;
@@ -114,4 +115,10 @@ Route::prefix('/trace-cleaner')
                 Route::get('/{settingId}/processes', [ProcessController::class, 'index'])
                     ->name('processes');
             });
+    });
+
+Route::prefix('/logs')
+    ->as('logs.')
+    ->group(function () {
+        Route::get('/', [LogController::class, 'index'])->name('index');
     });

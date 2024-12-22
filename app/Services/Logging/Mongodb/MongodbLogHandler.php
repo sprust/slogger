@@ -2,7 +2,8 @@
 
 namespace App\Services\Logging\Mongodb;
 
-use App\Models\Logs\Log;
+use App\Modules\Logs\Domain\Actions\CreateLogAction;
+use App\Modules\Logs\Parameters\CreateLogParameters;
 use Illuminate\Support\Carbon;
 use Monolog\Handler\AbstractProcessingHandler;
 use Monolog\LogRecord;
@@ -11,14 +12,17 @@ class MongodbLogHandler extends AbstractProcessingHandler
 {
     protected function write(LogRecord $record): void
     {
-        $log = new Log();
+        /** @var CreateLogAction $action */
+        $action = app(CreateLogAction::class);
 
-        $log->level    = $record->level->getName();
-        $log->message  = $record->message;
-        $log->context  = $record->context;
-        $log->channel  = $record->channel;
-        $log->loggedAt = new Carbon($record->datetime);
-
-        $log->save();
+        $action->handle(
+            new CreateLogParameters(
+                level: $record->level->getName(),
+                message: $record->message,
+                context: $record->context,
+                channel: $record->channel,
+                loggedAt: new Carbon($record->datetime)
+            )
+        );
     }
 }

@@ -11,7 +11,11 @@ abstract class BaseServiceProvider extends ServiceProvider
     public function boot(): void
     {
         foreach ($this->getContracts() as $interface => $implementation) {
-            $this->app->singleton($interface, $implementation);
+            if (is_integer($interface)) {
+                $this->app->singleton($implementation);
+            } else {
+                $this->app->singleton($interface, $implementation);
+            }
         }
     }
 

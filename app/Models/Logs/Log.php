@@ -3,6 +3,8 @@
 namespace App\Models\Logs;
 
 use App\Models\AbstractMongoModel;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Carbon;
 
 /**
  * @property string $_id
@@ -10,8 +12,10 @@ use App\Models\AbstractMongoModel;
  * @property string $message
  * @property array  $context
  * @property string $channel
- * @property string $loggedAt
+ * @property Carbon $loggedAt
  * @property string $createdAt
+ *
+ * @method static Builder|Log query()
  */
 class Log extends AbstractMongoModel
 {
