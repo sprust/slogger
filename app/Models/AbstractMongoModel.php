@@ -8,6 +8,13 @@ use MongoDB\Laravel\Eloquent\Model;
 
 abstract class AbstractMongoModel extends Model
 {
+    abstract function getCollectionName(): string;
+
+    public function getTable()
+    {
+        return $this->getCollectionName();
+    }
+
     public static function collection(): MongoCollection
     {
         /** @var MongoCollection $collection */
