@@ -166,6 +166,8 @@ readonly class FindTracesAction implements FindTracesActionInterface
     }
 
     /**
+     * @param string[] $additionalFields
+     *
      * @return TraceDataAdditionalFieldObject[]
      */
     private function makeTraceAdditionalFields(TraceDataObject $data, array $additionalFields): array

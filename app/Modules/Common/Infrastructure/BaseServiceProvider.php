@@ -15,6 +15,9 @@ abstract class BaseServiceProvider extends ServiceProvider
         }
     }
 
+    /**
+     * @return array<int|class-string<object>, class-string<object>>
+     */
     protected function getContracts(): array
     {
         return [];

@@ -8,6 +8,9 @@ use Illuminate\Support\Carbon;
 
 readonly class TraceObject
 {
+    /**
+     * @param string[] $tags
+     */
     public function __construct(
         public string $id,
         public ?TraceServiceObject $service,

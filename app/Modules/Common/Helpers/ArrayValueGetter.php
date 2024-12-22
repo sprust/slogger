@@ -60,6 +60,9 @@ class ArrayValueGetter
         return (float) $value;
     }
 
+    /**
+     * @param array<string, mixed> $data
+     */
     public static function intFloat(array $data, string $key): int|float
     {
         $value = $data[$key];

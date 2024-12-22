@@ -23,10 +23,11 @@ interface TraceRepositoryInterface
     public function findOneDetailByTraceId(string $traceId): ?TraceDto;
 
     /**
-     * @param int[]|null $serviceIds
-     * @param string[]   $types
-     * @param string[]   $tags
-     * @param string[]   $statuses
+     * @param int[]|null    $serviceIds
+     * @param string[]|null $traceIds
+     * @param string[]      $types
+     * @param string[]      $tags
+     * @param string[]      $statuses
      *
      * @return TraceDto[]
      */
@@ -50,6 +51,9 @@ interface TraceRepositoryInterface
         ?bool $hasProfiling = null,
     ): array;
 
+    /**
+     * @param string[]|null $excludedTypes
+     */
     public function findTraceIds(
         int $limit,
         ?Carbon $loggedAtTo = null,

@@ -36,7 +36,7 @@ readonly class TraceCreateController
         );
     }
 
-    private function handle(TraceCreateRequest $request)
+    private function handle(TraceCreateRequest $request): void
     {
         $validated = $request->validated();
 

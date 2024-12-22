@@ -9,6 +9,9 @@ use App\Modules\Trace\Enums\TraceDataFilterCompStringTypeEnum;
 
 class RequestFilterRules
 {
+    /**
+     * @return array<string, string[]>
+     */
     public static function services(): array
     {
         return [
@@ -23,6 +26,9 @@ class RequestFilterRules
         ];
     }
 
+    /**
+     * @return array<string, string[]>
+     */
     public static function loggedFromTo(): array
     {
         return [
@@ -34,6 +40,9 @@ class RequestFilterRules
         ];
     }
 
+    /**
+     * @return array<string, string[]>
+     */
     public static function loggedTo(): array
     {
         return [
@@ -44,6 +53,9 @@ class RequestFilterRules
         ];
     }
 
+    /**
+     * @return array<string, string[]>
+     */
     public static function text(): array
     {
         return [
@@ -56,6 +68,9 @@ class RequestFilterRules
         ];
     }
 
+    /**
+     * @return array<string, string[]>
+     */
     public static function types(): array
     {
         return [
@@ -70,6 +85,9 @@ class RequestFilterRules
         ];
     }
 
+    /**
+     * @return array<string, string[]>
+     */
     public static function tags(): array
     {
         return [
@@ -84,6 +102,9 @@ class RequestFilterRules
         ];
     }
 
+    /**
+     * @return array<string, string[]>
+     */
     public static function statuses(): array
     {
         return [
@@ -98,6 +119,9 @@ class RequestFilterRules
         ];
     }
 
+    /**
+     * @return array<string, string[]>
+     */
     public static function data(): array
     {
         return [
@@ -166,6 +190,9 @@ class RequestFilterRules
         ];
     }
 
+    /**
+     * @return array<string, string[]>
+     */
     public static function hasProfiling(): array
     {
         return [
@@ -176,6 +203,9 @@ class RequestFilterRules
         ];
     }
 
+    /**
+     * @return array<string, string[]>
+     */
     public static function durationFromTo(): array
     {
         return [
@@ -192,6 +222,9 @@ class RequestFilterRules
         ];
     }
 
+    /**
+     * @return array<string, string[]>
+     */
     public static function memoryFromTo(): array
     {
         return [
@@ -208,6 +241,9 @@ class RequestFilterRules
         ];
     }
 
+    /**
+     * @return array<string, string[]>
+     */
     public static function cpuFromTo(): array
     {
         return [

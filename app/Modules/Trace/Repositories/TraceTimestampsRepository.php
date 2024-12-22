@@ -47,8 +47,7 @@ readonly class TraceTimestampsRepository implements TraceTimestampsRepositoryInt
         ?float $cpuFrom = null,
         ?float $cpuTo = null,
         ?TraceDataFilterParameters $data = null,
-        ?bool $hasProfiling = null,
-        ?array $sort = null,
+        ?bool $hasProfiling = null
     ): TraceTimestampsListDto {
         $collectionNames = $this->periodicTraceService->detectCollectionNames(
             loggedAtFrom: $loggedAtFrom,
@@ -96,6 +95,7 @@ readonly class TraceTimestampsRepository implements TraceTimestampsRepositoryInt
             ]
         );
 
+        /** @var array<string, array<string, int|string>> $groups */
         $groups = [];
 
         foreach ($fields as $field) {
@@ -198,6 +198,9 @@ readonly class TraceTimestampsRepository implements TraceTimestampsRepositoryInt
         );
     }
 
+    /**
+     * @param array<string, array<string, int|string>> $groups
+     */
     private function injectAggregationToGroups(array &$groups, TraceMetricFieldsFilterDto $field): void
     {
         $fieldName = match ($field->field) {
@@ -219,6 +222,7 @@ readonly class TraceTimestampsRepository implements TraceTimestampsRepositoryInt
     }
 
     /**
+     * @param array<string, int|string> $aggregations
      * @param TraceMetricFieldAggregatorEnum[] $fieldAggregations
      */
     private function injectAggregation(array &$aggregations, string $fieldName, array $fieldAggregations): void

@@ -25,6 +25,9 @@ class TraceUpdateProfilingObjects
         return $this;
     }
 
+    /**
+     * @return TraceUpdateProfilingObject[]
+     */
     public function getItems(): array
     {
         return $this->items;

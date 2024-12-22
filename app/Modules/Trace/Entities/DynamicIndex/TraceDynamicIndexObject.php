@@ -9,6 +9,7 @@ use Illuminate\Support\Carbon;
 readonly class TraceDynamicIndexObject
 {
     /**
+     * @param string[]                       $collectionNames
      * @param TraceDynamicIndexFieldObject[] $fields
      */
     public function __construct(

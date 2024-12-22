@@ -6,6 +6,9 @@ namespace App\Modules\Trace\Domain\Actions\Queries;
 
 use App\Modules\Trace\Contracts\Actions\Queries\FindTraceIdsActionInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceRepositoryInterface;
+use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexErrorException;
+use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexInProcessException;
+use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexNotInitException;
 use App\Modules\Trace\Domain\Services\TraceDynamicIndexInitializer;
 use App\Modules\Trace\Entities\Trace\TraceCollectionNameObjects;
 use Illuminate\Support\Carbon;
@@ -18,6 +21,13 @@ readonly class FindTraceIdsAction implements FindTraceIdsActionInterface
     ) {
     }
 
+    /**
+     * @param string[]|null $excludedTypes
+     *
+     * @throws TraceDynamicIndexErrorException
+     * @throws TraceDynamicIndexInProcessException
+     * @throws TraceDynamicIndexNotInitException
+     */
     public function handle(
         int $limit,
         Carbon $loggedAtTo,

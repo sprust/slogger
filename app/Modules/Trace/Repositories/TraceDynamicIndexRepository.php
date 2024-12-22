@@ -140,7 +140,7 @@ readonly class TraceDynamicIndexRepository implements TraceDynamicIndexRepositor
                 ]
             );
 
-        $stats = collect($cursor)->first();
+        $stats = $cursor->toArray()[0] ?? null;
 
         return new TraceDynamicIndexStatsDto(
             inProcessCount: $stats?->inProcess ?? 0,
@@ -191,24 +191,6 @@ readonly class TraceDynamicIndexRepository implements TraceDynamicIndexRepositor
         return implode('__', $collectionNames);
     }
 
-    /**
-     * @param array $fields
-     *
-     * @return TraceDynamicIndexFieldDto[]
-     */
-    private function transportFields(array $fields): array
-    {
-        $result = [];
-
-        foreach ($fields as $field) {
-            $result[] = new TraceDynamicIndexFieldDto(
-                fieldName: $field['fieldName']
-            );
-        }
-
-        return $result;
-    }
-
     private function modelToDto(TraceDynamicIndex $index): TraceDynamicIndexDto
     {
         return new TraceDynamicIndexDto(
@@ -216,7 +198,12 @@ readonly class TraceDynamicIndexRepository implements TraceDynamicIndexRepositor
             name: $index->name,
             indexName: $index->indexName,
             collectionNames: $index->collectionNames,
-            fields: $this->transportFields($index->fields),
+            fields: array_map(
+                static fn(array $field) => new TraceDynamicIndexFieldDto(
+                    fieldName: $field['fieldName']
+                ),
+                $index->fields
+            ),
             inProcess: $index->inProcess,
             created: $index->created,
             error: $index->error,

@@ -8,7 +8,11 @@ use App\Modules\Service\Entities\ServiceObject;
 
 interface ServiceRepositoryInterface
 {
-    /** @return ServiceObject[] */
+    /**
+     * @param int[]|null $ids
+     *
+     * @return ServiceObject[]
+     */
     public function find(?array $ids = null): array;
 
     public function create(string $name, string $uniqueKey): ServiceObject;

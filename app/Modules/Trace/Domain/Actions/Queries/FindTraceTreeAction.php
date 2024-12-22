@@ -100,8 +100,9 @@ readonly class FindTraceTreeAction implements FindTraceTreeActionInterface
 
         $treeNodesBuilder = new TraceTreeBuilder(
             parentTrace: Arr::first($traces, fn(TraceObject $trace) => $trace->traceId === $parentTraceId),
-            children: collect($traces)->filter(
-                fn(TraceObject $trace) => $trace->traceId !== $parentTraceId
+            children: array_filter(
+                $traces,
+                static fn(TraceObject $trace) => $trace->traceId !== $parentTraceId
             )
         );
 

@@ -22,6 +22,9 @@ class TraceProfilingTreeBuilder
     /** @var array<string, int|float> */
     private array $maxDataValues;
 
+    /**
+     * @param string[]|null $excludedCallers
+     */
     public function __construct(
         private readonly TraceProfilingDto $profiling,
         private readonly ?string $caller = null,

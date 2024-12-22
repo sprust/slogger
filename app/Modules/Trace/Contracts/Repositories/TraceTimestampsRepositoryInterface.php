@@ -15,6 +15,7 @@ interface TraceTimestampsRepositoryInterface
 {
     /**
      * @param int[]|null                            $serviceIds
+     * @param string[]|null                         $traceIds
      * @param TraceMetricFieldsFilterDto[]          $fields
      * @param TraceMetricDataFieldsFilterDto[]|null $dataFields
      * @param string[]                              $types

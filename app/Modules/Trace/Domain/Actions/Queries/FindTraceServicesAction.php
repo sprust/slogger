@@ -16,6 +16,9 @@ readonly class FindTraceServicesAction implements FindTraceServicesActionInterfa
     {
     }
 
+    /**
+     * @param int[]|null $serviceIds
+     */
     public function handle(?array $serviceIds = null): TraceServicesObject
     {
         if (!is_null($serviceIds) && !count($serviceIds)) {

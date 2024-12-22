@@ -15,6 +15,9 @@ use App\Modules\Trace\Parameters\Data\TraceDataFilterStringParameters;
 
 trait MakeDataFilterParameterTrait
 {
+    /**
+     * @param array<string, mixed> $validated
+     */
     protected function makeDataFilterParameter(array $validated): TraceDataFilterParameters
     {
         return new TraceDataFilterParameters(

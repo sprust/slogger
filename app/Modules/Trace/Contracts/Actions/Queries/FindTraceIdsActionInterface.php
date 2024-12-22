@@ -13,10 +13,12 @@ use Illuminate\Support\Carbon;
 interface FindTraceIdsActionInterface
 {
     /**
+     * @param string[]|null $excludedTypes
+     *
      * @throws TraceDynamicIndexInProcessException
      * @throws TraceDynamicIndexNotInitException
      * @throws TraceDynamicIndexErrorException
-     * */
+     */
     public function handle(
         int $limit,
         Carbon $loggedAtTo,

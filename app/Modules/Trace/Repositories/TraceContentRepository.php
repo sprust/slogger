@@ -272,8 +272,8 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
     }
 
     /**
-     * @param string[] $collectionNames
-     * @param array[]  $pipeline
+     * @param string[]                    $collectionNames
+     * @param array<array<string, mixed>> $pipeline
      *
      * @return TraceStringFieldObject[]
      *

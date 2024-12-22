@@ -68,14 +68,15 @@ class TraceTreeRepository implements TraceTreeRepositoryInterface
                 ]
             );
 
-        return collect($childrenAggregation)
-            ->map(fn(BSONDocument $item) => $item['childIds'])
-            ->toArray();
+        return array_map(
+            fn(BSONDocument $item) => $item['childIds'],
+            iterator_to_array($childrenAggregation)
+        );
     }
 
     public function findParentTraceId(string $traceId): ?string
     {
-        /** @var array|null $trace */
+        /** @var array{tid: string, ptid: string|null}|null $trace */
         $trace = TraceTree::query()
             ->select([
                 'tid',
@@ -99,7 +100,7 @@ class TraceTreeRepository implements TraceTreeRepositoryInterface
                     break;
                 }
 
-                /** @var array|null $currentParentTrace */
+                /** @var array{tid: string, ptid: string|null}|null $currentParentTrace */
                 $currentParentTrace = TraceTree::query()
                     ->select([
                         'tid',

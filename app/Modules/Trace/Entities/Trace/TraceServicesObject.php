@@ -6,6 +6,9 @@ namespace App\Modules\Trace\Entities\Trace;
 
 readonly class TraceServicesObject
 {
+    /**
+     * @var array<int, TraceServiceObject>
+     */
     private array $servicesKeById;
 
     /**

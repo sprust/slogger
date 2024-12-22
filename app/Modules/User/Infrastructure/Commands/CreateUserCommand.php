@@ -80,6 +80,9 @@ class CreateUserCommand extends Command
         return self::SUCCESS;
     }
 
+    /**
+     * @param string[] $rules
+     */
     private function askAndCheck(string $title, bool $required, array $rules = []): bool|string|null
     {
         $answer = $this->ask($title);

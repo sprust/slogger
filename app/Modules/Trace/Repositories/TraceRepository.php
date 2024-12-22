@@ -517,6 +517,8 @@ readonly class TraceRepository implements TraceRepositoryInterface
 
     /**
      * @param TraceTimestampMetricObject[] $timestamps
+     *
+     * @return array<string, UTCDateTime>
      */
     private function makeTimestampsData(array $timestamps): array
     {
@@ -539,6 +541,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
             return false;
         }
 
+        /** @var array<string, int> $index */
         $index = [];
 
         foreach ($fields as $field) {
@@ -680,6 +683,8 @@ readonly class TraceRepository implements TraceRepositoryInterface
 
     /**
      * @param string[] $tags
+     *
+     * @return array<string, string>[]
      */
     private function prepareTagsForSave(array $tags): array
     {
@@ -692,16 +697,10 @@ readonly class TraceRepository implements TraceRepositoryInterface
     }
 
     /**
-     * @return string[]
+     * @param array<string|int, mixed> $data
+     *
+     * @return array<string|int, mixed>
      */
-    private function parseTagsFromDb(array $tags): array
-    {
-        return array_map(
-            fn(string|array $tag) => is_array($tag) ? $tag['nm'] : $tag,
-            $tags
-        );
-    }
-
     private function prepareData(array $data): array
     {
         $result = [];
@@ -713,6 +712,9 @@ readonly class TraceRepository implements TraceRepositoryInterface
         return $result;
     }
 
+    /**
+     * @param array<string|int, mixed> $result
+     */
     private function prepareDataRecursive(array &$result, mixed $key, mixed $value): void
     {
         if (!is_array($value)) {
@@ -740,6 +742,9 @@ readonly class TraceRepository implements TraceRepositoryInterface
         }
     }
 
+    /**
+     * @param array<string, mixed> $document
+     */
     private function makeTraceDtoFromDocument(array $document): TraceDto
     {
         return new TraceDto(
@@ -749,7 +754,10 @@ readonly class TraceRepository implements TraceRepositoryInterface
             parentTraceId: $document['ptid'],
             type: $document['tp'],
             status: $document['st'],
-            tags: $this->parseTagsFromDb($document['tgs']),
+            tags: array_map(
+                static fn(array $tag) => $tag['nm'],
+                $document['tgs']
+            ),
             data: (new TraceDataToObjectBuilder($document['dt']))->build(),
             duration: $document['dur'],
             memory: $document['mem'],

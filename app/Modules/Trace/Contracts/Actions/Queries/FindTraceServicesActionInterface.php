@@ -8,5 +8,8 @@ use App\Modules\Trace\Entities\Trace\TraceServicesObject;
 
 interface FindTraceServicesActionInterface
 {
+    /**
+     * @param int[]|null $serviceIds
+     */
     public function handle(?array $serviceIds = null): TraceServicesObject;
 }
