@@ -23,7 +23,7 @@ readonly class LogController
             page: $validated['page'],
             parameters: new FindLogsParameters(
                 searchQuery: ArrayValueGetter::stringNull($validated, 'search_query'),
-                levels: ArrayValueGetter::arrayStringNull($validated, 'levels'),
+                level: ArrayValueGetter::stringNull($validated, 'level'),
             )
         );
 

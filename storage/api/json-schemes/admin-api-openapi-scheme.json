@@ -3460,6 +3460,132 @@
                     }
                 ]
             }
+        },
+        "/admin-api/logs": {
+            "get": {
+                "parameters": [
+                    {
+                        "name": "page",
+                        "required": true,
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "search_query",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "nullable": true,
+                            "maxLength": 255
+                        }
+                    },
+                    {
+                        "name": "level",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "nullable": true,
+                            "maxLength": 255
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "items": {
+                                                    "type": "array",
+                                                    "nullable": false,
+                                                    "items": {
+                                                        "properties": {
+                                                            "level": {
+                                                                "type": "string",
+                                                                "nullable": false
+                                                            },
+                                                            "message": {
+                                                                "type": "string",
+                                                                "nullable": false
+                                                            },
+                                                            "context": {
+                                                                "type": "string",
+                                                                "nullable": false
+                                                            },
+                                                            "channel": {
+                                                                "type": "string",
+                                                                "nullable": false
+                                                            },
+                                                            "logged_at": {
+                                                                "type": "string",
+                                                                "nullable": false
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "level",
+                                                            "message",
+                                                            "context",
+                                                            "channel",
+                                                            "logged_at"
+                                                        ]
+                                                    }
+                                                },
+                                                "paginator": {
+                                                    "properties": {
+                                                        "total": {
+                                                            "type": "integer",
+                                                            "nullable": false
+                                                        },
+                                                        "per_page": {
+                                                            "type": "integer",
+                                                            "nullable": false
+                                                        },
+                                                        "current_page": {
+                                                            "type": "integer",
+                                                            "nullable": false
+                                                        },
+                                                        "total_pages": {
+                                                            "type": "integer",
+                                                            "nullable": false
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "total",
+                                                        "per_page",
+                                                        "current_page",
+                                                        "total_pages"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "items",
+                                                "paginator"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
         }
     }
 }

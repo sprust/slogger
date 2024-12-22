@@ -30,7 +30,6 @@
             :icon="SearchIcon"
             @click="update"
             :loading="store.state.loading"
-
         />
         <el-text size="default">
           Create

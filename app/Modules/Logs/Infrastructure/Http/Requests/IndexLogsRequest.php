@@ -20,13 +20,9 @@ class IndexLogsRequest extends FormRequest
                 'string',
                 'max:255',
             ],
-            'levels'       => [
+            'level'        => [
                 'sometimes',
                 'nullable',
-                'array',
-            ],
-            'levels.*'     => [
-                'required',
                 'string',
                 'max:255',
             ],

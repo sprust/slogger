@@ -17,7 +17,7 @@ readonly class PaginateLogsAction
     {
         return $this->logRepository->paginate(
             page: $page,
-            perPage: 30,
+            perPage: 20,
             parameters: $parameters
         );
     }

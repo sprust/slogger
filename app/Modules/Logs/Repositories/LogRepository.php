@@ -34,8 +34,8 @@ readonly class LogRepository
             $builder->where('message', 'like', "%{$parameters->searchQuery}%");
         }
 
-        if ($parameters->levels) {
-            $builder->whereIn('level', $parameters->levels);
+        if ($parameters->level) {
+            $builder->where('level', $parameters->level);
         }
 
         $total = $builder->count();
