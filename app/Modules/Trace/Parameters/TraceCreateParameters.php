@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Modules\Trace\Parameters;
 
 use App\Modules\Trace\Entities\Trace\Timestamp\TraceTimestampMetricObject;

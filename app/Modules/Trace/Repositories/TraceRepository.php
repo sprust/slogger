@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Modules\Trace\Repositories;
 
 use App\Models\Traces\TraceDynamicIndex;
@@ -741,7 +743,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
     private function makeTraceDtoFromDocument(array $document): TraceDto
     {
         return new TraceDto(
-            id: $document['_id'],
+            id: (string) $document['_id'],
             serviceId: $document['sid'],
             traceId: $document['tid'],
             parentTraceId: $document['ptid'],

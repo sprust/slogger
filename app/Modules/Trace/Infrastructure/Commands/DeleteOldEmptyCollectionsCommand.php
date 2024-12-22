@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Modules\Trace\Infrastructure\Commands;
 
 use App\Modules\Trace\Contracts\Actions\Mutations\DeleteOldEmptyCollectionsActionInterface;

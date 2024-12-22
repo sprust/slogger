@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Modules\Trace\Infrastructure\Http\Controllers;
 
+use App\Modules\Common\Helpers\ArrayValueGetter;
 use App\Modules\Service\Infrastructure\Services\ServiceContainer;
 use App\Modules\Trace\Contracts\Actions\MakeTraceTimestampsActionInterface;
 use App\Modules\Trace\Infrastructure\Http\Requests\TraceCreateRequest;
@@ -49,18 +52,16 @@ readonly class TraceCreateController
             $parametersList->add(
                 new TraceCreateParameters(
                     serviceId: $serviceId,
-                    traceId: $item['trace_id'],
+                    traceId: ArrayValueGetter::string($item, 'trace_id'),
                     parentTraceId: $item['parent_trace_id'] ?? null,
-                    type: $item['type'],
-                    status: $item['status'],
-                    tags: $item['tags'] ?? [],
-                    data: $item['data'],
-                    duration: $item['duration'],
-                    memory: $item['memory'] ?? null,
-                    cpu: $item['cpu'] ?? null,
-                    timestamps: $this->makeTraceTimestampsAction->handle(
-                        date: $loggedAt
-                    ),
+                    type: ArrayValueGetter::string($item, 'type'),
+                    status: ArrayValueGetter::string($item, 'status'),
+                    tags: ArrayValueGetter::arrayStringNull($item, 'tags') ?? [],
+                    data: ArrayValueGetter::string($item, 'data'),
+                    duration: ArrayValueGetter::float($item, 'duration'),
+                    memory: ArrayValueGetter::floatNull($item, 'memory'),
+                    cpu: ArrayValueGetter::floatNull($item, 'cpu'),
+                    timestamps: $this->makeTraceTimestampsAction->handle(date: $loggedAt),
                     loggedAt: $loggedAt,
                 )
             );

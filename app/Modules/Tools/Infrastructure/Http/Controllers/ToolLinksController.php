@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Modules\Tools\Infrastructure\Http\Controllers;
 
 use App\Modules\Tools\Infrastructure\Http\Resources\ToolLinksResource;

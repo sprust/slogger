@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Modules\Trace\Infrastructure\Http\Controllers;
 
+use App\Modules\Common\Helpers\ArrayValueGetter;
 use App\Modules\Trace\Contracts\Actions\MakeMetricIndicatorsActionInterface;
 use App\Modules\Trace\Contracts\Actions\Queries\FindTraceTimestampsActionInterface;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexNotInitException;
@@ -40,30 +43,32 @@ readonly class TraceTimestampsController
             $this->traceDynamicIndexingActionService->handle(
                 fn() => $this->findTraceTimestampsAction->handle(
                     new FindTraceTimestampsParameters(
-                        timestampPeriod: TraceTimestampPeriodEnum::from($validated['timestamp_period']),
-                        timestampStep: TraceTimestampEnum::from($validated['timestamp_step']),
+                        timestampPeriod: TraceTimestampPeriodEnum::from(
+                            ArrayValueGetter::string($validated, 'timestamp_period')
+                        ),
+                        timestampStep: TraceTimestampEnum::from(
+                            ArrayValueGetter::string($validated, 'timestamp_step')
+                        ),
                         fields: array_map(
                             fn(string $indicator) => TraceMetricFieldEnum::from($indicator),
-                            $validated['fields'] ?? []
+                            ArrayValueGetter::arrayStringNull($validated, 'fields') ?? []
                         ),
-                        dataFields: $validated['data_fields'] ?? [],
-                        serviceIds: !is_null($validated['service_ids'] ?? null)
-                            ? array_map('intval', $validated['service_ids'])
-                            : null,
+                        dataFields: ArrayValueGetter::arrayStringNull($validated, 'data_fields'),
+                        serviceIds: ArrayValueGetter::arrayIntNull($validated, 'service_ids'),
                         loggedAtTo: ($validated['logging_to'] ?? null)
                             ? new Carbon($validated['logging_to'])
                             : null,
-                        types: $validated['types'] ?? [],
-                        tags: $validated['tags'] ?? [],
-                        statuses: $validated['statuses'] ?? [],
-                        durationFrom: $validated['duration_from'] ?? null,
-                        durationTo: $validated['duration_to'] ?? null,
-                        memoryFrom: $validated['memory_from'] ?? null,
-                        memoryTo: $validated['memory_to'] ?? null,
-                        cpuFrom: $validated['cpu_from'] ?? null,
-                        cpuTo: $validated['cpu_to'] ?? null,
+                        types: ArrayValueGetter::arrayStringNull($validated, 'types') ?? [],
+                        tags: ArrayValueGetter::arrayStringNull($validated, 'tags') ?? [],
+                        statuses: ArrayValueGetter::arrayStringNull($validated, 'statuses') ?? [],
+                        durationFrom: ArrayValueGetter::floatNull($validated, 'duration_from'),
+                        durationTo: ArrayValueGetter::floatNull($validated, 'duration_to'),
+                        memoryFrom: ArrayValueGetter::floatNull($validated, 'memory_from'),
+                        memoryTo: ArrayValueGetter::floatNull($validated, 'memory_to'),
+                        cpuFrom: ArrayValueGetter::floatNull($validated, 'cpu_from'),
+                        cpuTo: ArrayValueGetter::floatNull($validated, 'cpu_to'),
                         data: $this->makeDataFilterParameter($validated),
-                        hasProfiling: ($validated['has_profiling'] ?? null) ?: null,
+                        hasProfiling: ArrayValueGetter::boolNull($validated, 'has_profiling')
                     )
                 )
             )

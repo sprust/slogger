@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Modules\Trace\Domain\Services\Locker;
 
 use Illuminate\Contracts\Foundation\Application;

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Modules\Trace\Infrastructure\Http\Resources;
 
 use App\Modules\Common\Infrastructure\Http\Resources\AbstractApiResource;

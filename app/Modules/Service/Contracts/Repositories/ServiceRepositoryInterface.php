@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Modules\Service\Contracts\Repositories;
 
 use App\Modules\Service\Entities\ServiceObject;

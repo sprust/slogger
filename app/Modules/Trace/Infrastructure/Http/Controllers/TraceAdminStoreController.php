@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Modules\Trace\Infrastructure\Http\Controllers;
 
+use App\Modules\Common\Helpers\ArrayValueGetter;
 use App\Modules\Trace\Contracts\Actions\Mutations\CreateTraceAdminStoreActionInterface;
 use App\Modules\Trace\Contracts\Actions\Mutations\DeleteTraceAdminStoreActionInterface;
 use App\Modules\Trace\Contracts\Actions\Queries\FindTraceAdminStoreActionInterface;
@@ -24,10 +27,10 @@ readonly class TraceAdminStoreController
         $validated = $request->validated();
 
         $pagination = $this->findTraceAdminStoreAction->handle(
-            page: $validated['page'],
-            version: $validated['version'],
-            searchQuery: $validated['search_query'] ?? null,
-            auto: $validated['auto'],
+            page: ArrayValueGetter::int($validated, 'page'),
+            version: ArrayValueGetter::int($validated, 'version'),
+            searchQuery: ArrayValueGetter::stringNull($validated, 'search_query'),
+            auto: ArrayValueGetter::bool($validated, 'auto'),
         );
 
         return new TraceAdminStoresResource($pagination);
@@ -38,10 +41,10 @@ readonly class TraceAdminStoreController
         $validated = $request->validated();
 
         $store = $this->createTraceAdminStoreAction->handle(
-            title: $validated['title'],
-            storeVersion: $validated['store_version'],
-            storeData: $validated['store_data'],
-            auto: $validated['auto'],
+            title: ArrayValueGetter::string($validated, 'title'),
+            storeVersion: ArrayValueGetter::int($validated, 'store_version'),
+            storeData: ArrayValueGetter::string($validated, 'store_data'),
+            auto: ArrayValueGetter::bool($validated, 'auto'),
         );
 
         return new TraceAdminStoreResource($store);

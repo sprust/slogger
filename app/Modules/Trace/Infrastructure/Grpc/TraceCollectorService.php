@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Modules\Trace\Infrastructure\Grpc;
 
 use App\Modules\Service\Contracts\Actions\FindServiceByTokenActionInterface;

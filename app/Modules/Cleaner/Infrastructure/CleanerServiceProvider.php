@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Modules\Cleaner\Infrastructure;
 
 use App\Modules\Cleaner\Contracts\Actions\ClearTracesActionInterface;

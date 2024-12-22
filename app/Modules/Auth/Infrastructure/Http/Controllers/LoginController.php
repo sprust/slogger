@@ -1,11 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Modules\Auth\Infrastructure\Http\Controllers;
 
 use App\Modules\Auth\Contracts\Actions\LoginActionInterface;
 use App\Modules\Auth\Infrastructure\Http\Requests\LoginRequest;
 use App\Modules\Auth\Infrastructure\Http\Resources\LoggedUserResource;
 use App\Modules\Auth\Parameters\LoginParameters;
+use App\Modules\Common\Helpers\ArrayValueGetter;
 use Symfony\Component\HttpFoundation\Response as ResponseFoundation;
 
 readonly class LoginController
@@ -21,8 +24,8 @@ readonly class LoginController
 
         $loggedUser = $this->loginAction->handle(
             new LoginParameters(
-                email: $validated['email'],
-                password: $validated['password']
+                email: ArrayValueGetter::string($validated, 'email'),
+                password: ArrayValueGetter::string($validated, 'password')
             )
         );
 

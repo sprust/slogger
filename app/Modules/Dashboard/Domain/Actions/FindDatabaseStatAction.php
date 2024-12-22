@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Modules\Dashboard\Domain\Actions;
 
 use App\Modules\Dashboard\Contracts\Actions\FindDatabaseStatActionInterface;

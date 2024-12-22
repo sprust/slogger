@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Modules\Trace\Entities\Store;
 
 use App\Modules\Common\Entities\PaginationInfoObject;

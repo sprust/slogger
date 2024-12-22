@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Modules\Dashboard\Repositories;
 
 use App\Modules\Dashboard\Contracts\Repositories\DatabaseStatRepositoryInterface;

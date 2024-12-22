@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Modules\Cleaner\Infrastructure\Http\Resources;
 
 use App\Modules\Cleaner\Entities\SettingObject;
