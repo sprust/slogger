@@ -118,7 +118,7 @@ readonly class DatabaseStatRepository implements DatabaseStatRepositoryInterface
                     avgObjSize: $this->bitesToMb($storageStats['avgObjSize'] ?? 0),
                     indexes: array_values(
                         Arr::map(
-                            $storageStats['indexSizes'],
+                            (array) $storageStats['indexSizes'],
                             fn(int $indexSize, string $indexName) => new DatabaseCollectionIndexStatObject(
                                 name: $indexName,
                                 size: $this->bitesToMb($indexSize),
