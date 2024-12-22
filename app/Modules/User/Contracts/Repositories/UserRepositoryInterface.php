@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Modules\User\Contracts\Repositories;
 
 use App\Modules\User\Entities\UserDetailObject;

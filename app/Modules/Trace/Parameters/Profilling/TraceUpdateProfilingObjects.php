@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Modules\Trace\Parameters\Profilling;
 
 class TraceUpdateProfilingObjects
@@ -23,6 +25,9 @@ class TraceUpdateProfilingObjects
         return $this;
     }
 
+    /**
+     * @return TraceUpdateProfilingObject[]
+     */
     public function getItems(): array
     {
         return $this->items;

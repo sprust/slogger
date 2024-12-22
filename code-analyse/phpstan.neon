@@ -3,7 +3,8 @@ parameters:
         - ../app
     excludePaths:
         - ../app/Console/Commands/Local
-    level: 5
+        - ../app/Models
+    level: 6
     ignoreErrors:
         -
             message: '#Unsafe usage of new static#'
@@ -12,10 +13,19 @@ parameters:
         -
             message: '#Access to an undefined property MongoDB\\Model\\BSONDocument#'
         -
-            message: '#Property [\s\S]* is never read, only written#'
+            messages:
+                - '#Property [\s\S]* is never read, only written#'
+                - '#Property [\s\S]* type has no value type specified in iterable type array#'
+
             path: *Resource.php
         -
             path: ../app/Modules/Trace/Infrastructure/Grpc/TraceCollectorService.php
             messages:
                 - '#Using nullsafe method call on non\-nullable type Google\\Protobuf\\#'
                 - '#Using nullsafe method call on non-nullable type SLoggerGrpcDto\\TraceCollector\\TagsObject#'
+        -
+            message: '#return type has no value type specified in iterable type array#'
+            path: *Request.php
+        -
+            messages:
+                - '#Unable to resolve the template type TKey in call to function collect#'

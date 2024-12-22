@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Modules\User\Infrastructure\Commands;
 
 use App\Modules\User\Contracts\Domain\CreateUserActionInterface;
@@ -78,6 +80,9 @@ class CreateUserCommand extends Command
         return self::SUCCESS;
     }
 
+    /**
+     * @param string[] $rules
+     */
     private function askAndCheck(string $title, bool $required, array $rules = []): bool|string|null
     {
         $answer = $this->ask($title);

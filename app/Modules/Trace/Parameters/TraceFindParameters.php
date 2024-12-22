@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Modules\Trace\Parameters;
 
 use App\Modules\Trace\Parameters\Data\TraceDataFilterParameters;
@@ -7,9 +9,10 @@ use App\Modules\Trace\Parameters\Data\TraceDataFilterParameters;
 readonly class TraceFindParameters
 {
     /**
-     * @param int[]                 $serviceIds
-     * @param string[]              $types
-     * @param string[]              $tags
+     * @param int[]    $serviceIds
+     * @param string[] $types
+     * @param string[] $tags
+     * @param string[] $statuses
      */
     public function __construct(
         public int $page = 1,

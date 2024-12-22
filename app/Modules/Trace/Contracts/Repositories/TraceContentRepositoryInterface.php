@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Modules\Trace\Contracts\Repositories;
 
 use App\Modules\Trace\Entities\Trace\TraceStringFieldObject;
@@ -9,6 +11,8 @@ use Illuminate\Support\Carbon;
 interface TraceContentRepositoryInterface
 {
     /**
+     * @param int[] $serviceIds
+     *
      * @return TraceStringFieldObject[]
      */
     public function findTypes(
@@ -27,6 +31,9 @@ interface TraceContentRepositoryInterface
     ): array;
 
     /**
+     * @param int[] $serviceIds
+     * @param string[] $types
+     *
      * @return TraceStringFieldObject[]
      */
     public function findTags(
@@ -46,6 +53,10 @@ interface TraceContentRepositoryInterface
     ): array;
 
     /**
+     * @param int[] $serviceIds
+     * @param string[] $types
+     * @param string[] $tags
+     *
      * @return TraceStringFieldObject[]
      */
     public function findStatuses(

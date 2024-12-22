@@ -16,6 +16,7 @@ use Throwable;
 
 class SLoggerRrParallelJobWatcher extends AbstractSLoggerWatcher
 {
+    /** @var array<string, array<string, mixed>> */
     private array $jobs = [];
 
     private string $jobType = 'rr-parallel-job';

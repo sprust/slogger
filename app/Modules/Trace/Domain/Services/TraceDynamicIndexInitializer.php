@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Modules\Trace\Domain\Services;
 
 use App\Modules\Trace\Contracts\Repositories\TraceDynamicIndexRepositoryInterface;
@@ -27,10 +29,11 @@ readonly class TraceDynamicIndexInitializer
      *
      * @see https://www.mongodb.com/docs/manual/core/indexes/index-types/index-multikey/#compound-multikey-indexes
      *
-     * @param int[]|null                 $serviceIds
-     * @param string[]                   $types
-     * @param string[]                   $tags
-     * @param string[]                   $statuses
+     * @param int[]|null $serviceIds
+     * @param string[]   $traceIds
+     * @param string[]   $types
+     * @param string[]   $tags
+     * @param string[]   $statuses
      *
      * @throws TraceDynamicIndexNotInitException
      * @throws TraceDynamicIndexInProcessException

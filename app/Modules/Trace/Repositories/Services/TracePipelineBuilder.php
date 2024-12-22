@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Modules\Trace\Repositories\Services;
 
+use App\Modules\Trace\Enums\TraceDataFilterCompNumericTypeEnum;
 use App\Modules\Trace\Enums\TraceDataFilterCompStringTypeEnum;
 use App\Modules\Trace\Parameters\Data\TraceDataFilterParameters;
 use Illuminate\Support\Carbon;
@@ -114,7 +117,16 @@ class TracePipelineBuilder
                 }
 
                 if (!is_null($filterItem->numeric)) {
-                    $match[$field][$filterItem->numeric->comp->value] = $filterItem->numeric->value;
+                    $operator = match ($filterItem->numeric->comp) {
+                        TraceDataFilterCompNumericTypeEnum::Eq => '$eq',
+                        TraceDataFilterCompNumericTypeEnum::Gt => '$gt',
+                        TraceDataFilterCompNumericTypeEnum::Gte => '$gte',
+                        TraceDataFilterCompNumericTypeEnum::Lt => '$lt',
+                        TraceDataFilterCompNumericTypeEnum::Lte => '$lte',
+                        TraceDataFilterCompNumericTypeEnum::Neq => '$ne',
+                    };
+
+                    $match[$field][$operator] = $filterItem->numeric->value;
 
                     continue;
                 }

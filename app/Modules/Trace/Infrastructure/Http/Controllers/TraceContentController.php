@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Modules\Trace\Infrastructure\Http\Controllers;
 
+use App\Modules\Common\Helpers\ArrayValueGetter;
 use App\Modules\Trace\Contracts\Actions\Queries\FindStatusesActionInterface;
 use App\Modules\Trace\Contracts\Actions\Queries\FindTagsActionInterface;
 use App\Modules\Trace\Contracts\Actions\Queries\FindTypesActionInterface;
@@ -43,11 +46,11 @@ readonly class TraceContentController
             $this->traceDynamicIndexingActionService->handle(
                 fn() => $this->findTypesAction->handle(
                     new TraceFindTypesParameters(
-                        serviceIds: array_map('intval', $validated['service_ids'] ?? []),
-                        text: $validated['text'] ?? null,
+                        serviceIds: ArrayValueGetter::arrayIntNull($validated, 'service_ids') ?? [],
+                        text: ArrayValueGetter::stringNull($validated, 'text'),
                         loggingPeriod: PeriodParameters::fromStringValues(
-                            from: $validated['logging_from'] ?? null,
-                            to: $validated['logging_to'] ?? null,
+                            from: ArrayValueGetter::stringNull($validated, 'logging_from'),
+                            to: ArrayValueGetter::stringNull($validated, 'logging_to'),
                         ),
                         // TODO: long executing for float values
                         //durationFrom: $validated['duration_from'] ?? null,
@@ -76,13 +79,13 @@ readonly class TraceContentController
             $this->traceDynamicIndexingActionService->handle(
                 fn() => $this->findTagsAction->handle(
                     new TraceFindTagsParameters(
-                        serviceIds: array_map('intval', $validated['service_ids'] ?? []),
-                        text: $validated['text'] ?? null,
+                        serviceIds: ArrayValueGetter::arrayIntNull($validated, 'service_ids') ?? [],
+                        text: ArrayValueGetter::stringNull($validated, 'text'),
                         loggingPeriod: PeriodParameters::fromStringValues(
-                            from: $validated['logging_from'] ?? null,
-                            to: $validated['logging_to'] ?? null,
+                            from: ArrayValueGetter::stringNull($validated, 'logging_from'),
+                            to: ArrayValueGetter::stringNull($validated, 'logging_to'),
                         ),
-                        types: $validated['types'] ?? [],
+                        types: ArrayValueGetter::arrayStringNull($validated, 'types') ?? [],
                         // TODO: long executing for float values
                         //durationFrom: $validated['duration_from'] ?? null,
                         //durationTo: $validated['duration_to'] ?? null,
@@ -110,14 +113,14 @@ readonly class TraceContentController
             $this->traceDynamicIndexingActionService->handle(
                 fn() => $this->findStatusesAction->handle(
                     new TraceFindStatusesParameters(
-                        serviceIds: array_map('intval', $validated['service_ids'] ?? []),
-                        text: $validated['text'] ?? null,
+                        serviceIds: ArrayValueGetter::arrayIntNull($validated, 'service_ids') ?? [],
+                        text: ArrayValueGetter::stringNull($validated, 'text'),
                         loggingPeriod: PeriodParameters::fromStringValues(
-                            from: $validated['logging_from'] ?? null,
-                            to: $validated['logging_to'] ?? null,
+                            from: ArrayValueGetter::stringNull($validated, 'logging_from'),
+                            to: ArrayValueGetter::stringNull($validated, 'logging_to'),
                         ),
-                        types: $validated['types'] ?? [],
-                        tags: $validated['tags'] ?? [],
+                        types: ArrayValueGetter::arrayStringNull($validated, 'types') ?? [],
+                        tags: ArrayValueGetter::arrayStringNull($validated, 'tags') ?? [],
                         // TODO: long executing for float values
                         //durationFrom: $validated['duration_from'] ?? null,
                         //durationTo: $validated['duration_to'] ?? null,

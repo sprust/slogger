@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Modules\Trace\Domain\Actions\Queries;
 
 use App\Modules\Service\Contracts\Actions\FindServicesActionInterface;
@@ -14,6 +16,9 @@ readonly class FindTraceServicesAction implements FindTraceServicesActionInterfa
     {
     }
 
+    /**
+     * @param int[]|null $serviceIds
+     */
     public function handle(?array $serviceIds = null): TraceServicesObject
     {
         if (!is_null($serviceIds) && !count($serviceIds)) {

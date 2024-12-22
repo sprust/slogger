@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Modules\Common\Infrastructure;
 
 use Illuminate\Support\ServiceProvider;
@@ -13,6 +15,9 @@ abstract class BaseServiceProvider extends ServiceProvider
         }
     }
 
+    /**
+     * @return array<int|class-string<object>, class-string<object>>
+     */
     protected function getContracts(): array
     {
         return [];

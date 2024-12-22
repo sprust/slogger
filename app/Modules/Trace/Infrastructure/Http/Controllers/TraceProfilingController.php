@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Modules\Trace\Infrastructure\Http\Controllers;
 
+use App\Modules\Common\Helpers\ArrayValueGetter;
 use App\Modules\Trace\Contracts\Actions\Queries\FindTraceProfilingActionInterface;
 use App\Modules\Trace\Infrastructure\Http\Requests\TraceProfilingRequest;
 use App\Modules\Trace\Infrastructure\Http\Resources\Profiling\TraceProfilingTreeResource;
@@ -22,8 +25,8 @@ readonly class TraceProfilingController
         $profiling = $this->findTraceProfilingAction->handle(
             new TraceFindProfilingParameters(
                 traceId: $traceId,
-                caller: $validated['caller'] ?? null,
-                excludedCallers: $validated['excluded_callers'] ?? null
+                caller: ArrayValueGetter::stringNull($validated, 'caller'),
+                excludedCallers: ArrayValueGetter::arrayStringNull($validated, 'excluded_callers')
             )
         );
 

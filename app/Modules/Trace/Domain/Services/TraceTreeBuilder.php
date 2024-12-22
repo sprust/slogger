@@ -1,20 +1,21 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Modules\Trace\Domain\Services;
 
 use App\Modules\Trace\Entities\Trace\TraceObject;
 use App\Modules\Trace\Entities\Trace\TraceServiceObject;
 use App\Modules\Trace\Entities\Trace\Tree\TraceTreeObject;
-use Illuminate\Support\Collection;
 
 readonly class TraceTreeBuilder
 {
     /**
-     * @param Collection<TraceObject> $children
+     * @param TraceObject[] $children
      */
     public function __construct(
         private TraceObject $parentTrace,
-        private Collection $children
+        private array $children
     ) {
     }
 
@@ -30,19 +31,25 @@ readonly class TraceTreeBuilder
     {
         ++$depth;
 
-        return $this->children
-            ->filter(
-                fn(TraceObject $childTrace) => $childTrace->parentTraceId === $parentTrace->traceId
-            )
-            ->map(
-                fn(TraceObject $childTrace) => $this->traceToTraceTree($childTrace, $depth)
-            )
-            ->sortBy(
-                fn(TraceTreeObject $traceTreeNodeObject) => $traceTreeNodeObject->loggedAt
-                    ->toDateTimeString('microsecond')
-            )
-            ->values()
-            ->toArray();
+        $items = array_filter(
+            $this->children,
+            static fn(TraceObject $childTrace) => $childTrace->parentTraceId === $parentTrace->traceId
+        );
+
+        $items = array_map(
+            fn(TraceObject $childTrace) => $this->traceToTraceTree($childTrace, $depth),
+            $items
+        );
+
+        usort(
+            $items,
+            static function (TraceTreeObject $a, TraceTreeObject $b) {
+                return $a->loggedAt->toDateTimeString('microsecond')
+                    <=> $b->loggedAt->toDateTimeString('microsecond');
+            }
+        );
+
+        return array_values($items);
     }
 
     private function traceToTraceTree(TraceObject $trace, int $depth): TraceTreeObject

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Modules\Trace\Domain\Actions\Queries;
 
 use App\Modules\Common\Entities\PaginationInfoObject;
@@ -164,6 +166,8 @@ readonly class FindTracesAction implements FindTracesActionInterface
     }
 
     /**
+     * @param string[] $additionalFields
+     *
      * @return TraceDataAdditionalFieldObject[]
      */
     private function makeTraceAdditionalFields(TraceDataObject $data, array $additionalFields): array

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Modules\Auth\Infrastructure\Http\Resources;
 
 use App\Modules\Auth\Entities\LoggedUserObject;

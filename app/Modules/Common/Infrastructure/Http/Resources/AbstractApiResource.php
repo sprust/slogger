@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Modules\Common\Infrastructure\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -7,9 +9,14 @@ use ReflectionProperty;
 
 abstract class AbstractApiResource extends JsonResource
 {
-    /** @var ReflectionProperty[]|null $reflectionProperties */
+    /**
+     * @var ReflectionProperty[]|null $reflectionProperties
+     */
     protected ?array $reflectionProperties = null;
 
+    /**
+     * @return array<string, mixed>
+     */
     public function toArray($request = null): array
     {
         $response = [];
@@ -21,6 +28,11 @@ abstract class AbstractApiResource extends JsonResource
         return $response;
     }
 
+    /**
+     * @param object[] $list
+     *
+     * @return static[]
+     */
     public static function mapIntoMe(iterable $list): array
     {
         $result = [];
@@ -37,6 +49,9 @@ abstract class AbstractApiResource extends JsonResource
         return $object ? new static($object) : null;
     }
 
+    /**
+     * @return ReflectionProperty[]
+     */
     protected function getReflectionProperties(): array
     {
         if (!is_null($this->reflectionProperties)) {

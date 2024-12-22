@@ -8,6 +8,7 @@ use RrParallel\Events\JobReceivedEvent;
 
 class SLoggerEventWatcher extends \SLoggerLaravel\Watchers\Services\SLoggerEventWatcher
 {
+    /** @var array<class-string<object>> */
     private array $ignoredEvents = [
         JobReceivedEvent::class,
         JobHandlingErrorEvent::class,

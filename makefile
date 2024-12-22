@@ -65,22 +65,22 @@ bash-frontend:
 art:
 	@"$(PHP_FPM_CLI)"php artisan ${c}
 
-art-workers:
+workers-art:
 	@"$(WORKERS_CLI)"php artisan ${c}
 
 composer:
 	@docker-compose exec -e XDEBUG_MODE=off $(PHP_FPM_SERVICE) composer ${c}
 
 workers-restart:
-	@make art-workers c='queue:restart'
-	@make art-workers c='cron:restart'
-	@make art-workers c='octane:roadrunner:reload'
-	@make art-workers c='rr-monitor:stop grpc'
-	@make art-workers c='rr-monitor:stop jobs'
-	@make art-workers c='trace-dynamic-indexes:monitor:stop'
+	@make workers-art c='queue:restart'
+	@make workers-art c='cron:restart'
+	@make workers-art c='octane:roadrunner:reload'
+	@make workers-art c='rr-monitor:stop grpc'
+	@make workers-art c='rr-monitor:stop jobs'
+	@make workers-art c='trace-dynamic-indexes:monitor:stop'
 
 octane-stop:
-	@make art-workers c='octane:roadrunner:stop'
+	@make workers-art c='octane:roadrunner:stop'
 
 oa-generate:
 	@make art c='oa:generate'

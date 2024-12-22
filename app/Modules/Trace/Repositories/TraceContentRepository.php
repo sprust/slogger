@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Modules\Trace\Repositories;
 
 use App\Modules\Trace\Contracts\Repositories\TraceContentRepositoryInterface;
@@ -270,8 +272,8 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
     }
 
     /**
-     * @param string[] $collectionNames
-     * @param array[]  $pipeline
+     * @param string[]                    $collectionNames
+     * @param array<array<string, mixed>> $pipeline
      *
      * @return TraceStringFieldObject[]
      *

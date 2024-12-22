@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Modules\Trace\Entities\DynamicIndex;
 
 use Illuminate\Support\Carbon;
@@ -7,6 +9,7 @@ use Illuminate\Support\Carbon;
 readonly class TraceDynamicIndexObject
 {
     /**
+     * @param string[]                       $collectionNames
      * @param TraceDynamicIndexFieldObject[] $fields
      */
     public function __construct(

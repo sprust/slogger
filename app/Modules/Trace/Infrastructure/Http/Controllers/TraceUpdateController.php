@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Modules\Trace\Infrastructure\Http\Controllers;
 
+use App\Modules\Common\Helpers\ArrayValueGetter;
 use App\Modules\Service\Infrastructure\Services\ServiceContainer;
 use App\Modules\Trace\Infrastructure\Http\Requests\TraceUpdateRequest;
 use App\Modules\Trace\Infrastructure\Http\Services\QueueDispatcher;
@@ -52,13 +55,13 @@ readonly class TraceUpdateController
                 foreach ($profilingData['items'] ?? [] as $profilingItemData) {
                     $profiling->add(
                         new TraceUpdateProfilingObject(
-                            raw: $profilingItemData['raw'],
-                            calling: $profilingItemData['calling'],
-                            callable: $profilingItemData['callable'],
+                            raw: ArrayValueGetter::string($profilingItemData, 'raw'),
+                            calling: ArrayValueGetter::string($profilingItemData, 'calling'),
+                            callable: ArrayValueGetter::string($profilingItemData, 'callable'),
                             data: array_map(
                                 fn(array $profilingItemData) => new TraceUpdateProfilingDataObject(
-                                    name: $profilingItemData['name'],
-                                    value: $profilingItemData['value']
+                                    name: ArrayValueGetter::string($profilingItemData, 'name'),
+                                    value: ArrayValueGetter::intFloat($profilingItemData, 'value')
                                 ),
                                 $profilingItemData['data']
                             )
@@ -69,14 +72,14 @@ readonly class TraceUpdateController
 
             $parameters = new TraceUpdateParameters(
                 serviceId: $serviceId,
-                traceId: $item['trace_id'],
-                status: $item['status'],
+                traceId: ArrayValueGetter::string($item, 'trace_id'),
+                status: ArrayValueGetter::string($item, 'status'),
                 profiling: $profiling,
-                tags: $item['tags'] ?? null,
-                data: $item['data'] ?? null,
-                duration: $item['duration'],
-                memory: $item['memory'] ?? null,
-                cpu: $item['cpu'] ?? null
+                tags: ArrayValueGetter::arrayStringNull($item, 'tags'),
+                data: ArrayValueGetter::stringNull($item, 'data'),
+                duration: ArrayValueGetter::float($item, 'duration'),
+                memory: ArrayValueGetter::floatNull($item, 'memory'),
+                cpu: ArrayValueGetter::floatNull($item, 'cpu')
             );
 
             $parametersList->add($parameters);

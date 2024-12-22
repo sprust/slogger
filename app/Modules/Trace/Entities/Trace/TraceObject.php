@@ -1,11 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Modules\Trace\Entities\Trace;
 
 use Illuminate\Support\Carbon;
 
 readonly class TraceObject
 {
+    /**
+     * @param string[] $tags
+     */
     public function __construct(
         public string $id,
         public ?TraceServiceObject $service,

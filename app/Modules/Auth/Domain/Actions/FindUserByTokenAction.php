@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Modules\Auth\Domain\Actions;
 
 use App\Modules\Auth\Contracts\Actions\FindUserByTokenActionInterface;

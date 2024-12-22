@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Modules\Trace\Repositories\Services;
 
 use App\Models\Traces\TraceTree;
@@ -126,6 +128,9 @@ class PeriodicTraceService
         return $collection;
     }
 
+    /**
+     * @param array<string, int> $index
+     */
     public function createIndex(string $indexName, string $collectionName, array $index): void
     {
         $this->selectCollectionByName($collectionName)
@@ -156,6 +161,9 @@ class PeriodicTraceService
             ->aggregate($pipeline);
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     public function findOne(string $collectionName, string $traceId): ?array
     {
         return $this->selectCollectionByName($collectionName)
@@ -165,7 +173,7 @@ class PeriodicTraceService
     /**
      * @param string[] $traceIds
      *
-     * @return array[]
+     * @return array<array<string, mixed>>
      */
     public function findMany(string $collectionName, array $traceIds): array
     {
@@ -227,9 +235,9 @@ class PeriodicTraceService
     /**
      * @template T
      *
-     * @param string[]                                            $collectionNames
-     * @param array<array<string, mixed>>                         $pipeline
-     * @param Closure(string $collectionName, array $document): T $documentPreparer
+     * @param string[]                                                           $collectionNames
+     * @param array<array<string, mixed>>                                        $pipeline
+     * @param Closure(string $collectionName, array<string, mixed> $document): T $documentPreparer
      *
      * @return T[]
      */

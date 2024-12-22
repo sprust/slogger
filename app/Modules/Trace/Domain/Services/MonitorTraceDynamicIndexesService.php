@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Modules\Trace\Domain\Services;
 
 use Illuminate\Support\Facades\Cache;

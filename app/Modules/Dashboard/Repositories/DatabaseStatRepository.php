@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Modules\Dashboard\Repositories;
 
 use App\Modules\Dashboard\Contracts\Repositories\DatabaseStatRepositoryInterface;
@@ -114,16 +116,16 @@ readonly class DatabaseStatRepository implements DatabaseStatRepositoryInterface
                     totalSize: $this->bitesToMb($storageStats['totalSize']),
                     count: $documentsCount,
                     avgObjSize: $this->bitesToMb($storageStats['avgObjSize'] ?? 0),
-                    indexes: collect($storageStats['indexSizes'])
-                        ->map(
+                    indexes: array_values(
+                        Arr::map(
+                            $storageStats['indexSizes'],
                             fn(int $indexSize, string $indexName) => new DatabaseCollectionIndexStatObject(
                                 name: $indexName,
                                 size: $this->bitesToMb($indexSize),
                                 usage: $indexStatsKeyByName[$indexName]['accesses']['ops']
                             )
                         )
-                        ->values()
-                        ->toArray()
+                    ),
                 );
             }
 

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Modules\Cleaner\Infrastructure\Http\Controllers;
 
 use App\Modules\Cleaner\Contracts\Actions\CreateSettingActionInterface;
@@ -12,6 +14,7 @@ use App\Modules\Cleaner\Domain\Exceptions\SettingNotFoundException;
 use App\Modules\Cleaner\Infrastructure\Http\Requests\CreateSettingRequest;
 use App\Modules\Cleaner\Infrastructure\Http\Requests\UpdateSettingRequest;
 use App\Modules\Cleaner\Infrastructure\Http\Resources\SettingResource;
+use App\Modules\Common\Helpers\ArrayValueGetter;
 use Ifksco\OpenApiGenerator\Attributes\OaListItemTypeAttribute;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Symfony\Component\HttpFoundation\Response;
@@ -41,9 +44,9 @@ readonly class SettingController
 
         try {
             $setting = $this->createSettingAction->handle(
-                daysLifetime: $validated['days_life_time'],
-                type: $validated['type'],
-                onlyData: $validated['only_data'],
+                daysLifetime: ArrayValueGetter::int($validated, 'days_life_time'),
+                type: ArrayValueGetter::stringNull($validated, 'type'),
+                onlyData: ArrayValueGetter::bool($validated, 'only_data'),
             );
         } catch (SettingAlreadyExistsException $exception) {
             abort(Response::HTTP_BAD_REQUEST, $exception->getMessage());
@@ -59,8 +62,8 @@ readonly class SettingController
         try {
             $setting = $this->updateSettingAction->handle(
                 settingId: $settingId,
-                daysLifetime: $validated['days_life_time'],
-                onlyData: $validated['only_data'],
+                daysLifetime: ArrayValueGetter::int($validated, 'days_life_time'),
+                onlyData: ArrayValueGetter::bool($validated, 'only_data'),
             );
         } catch (SettingNotFoundException|SettingAlreadyExistsException $exception) {
             abort(Response::HTTP_BAD_REQUEST, $exception->getMessage());

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Modules\Trace\Domain\Services;
 
 use App\Modules\Trace\Entities\Trace\Profiling\ProfilingItemDataObject;
@@ -20,6 +22,9 @@ class TraceProfilingTreeBuilder
     /** @var array<string, int|float> */
     private array $maxDataValues;
 
+    /**
+     * @param string[]|null $excludedCallers
+     */
     public function __construct(
         private readonly TraceProfilingDto $profiling,
         private readonly ?string $caller = null,

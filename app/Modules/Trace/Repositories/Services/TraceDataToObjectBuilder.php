@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Modules\Trace\Repositories\Services;
 
 use App\Modules\Trace\Entities\Trace\Data\TraceDataObject;
@@ -9,6 +11,9 @@ class TraceDataToObjectBuilder
 {
     private string $key;
 
+    /**
+     * @param array<string, mixed> $data
+     */
     public function __construct(private readonly array $data)
     {
     }
@@ -20,6 +25,9 @@ class TraceDataToObjectBuilder
         return $this->buildRecursive($this->data);
     }
 
+    /**
+     * @param array<string, mixed>|string|bool|int|float|null $data
+     */
     private function buildRecursive(array|string|bool|int|float|null $data): TraceDataObject
     {
         if (!is_array($data)) {
