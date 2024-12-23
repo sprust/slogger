@@ -324,7 +324,7 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
             );
         }
 
-        /** @var array<string, int> $groups */
+        /** @var array<string|int, int> $groups */
         $groups = [];
 
         foreach ($results->results as $result) {
@@ -341,7 +341,7 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
 
         foreach ($groups as $name => $count) {
             $result[] = new TraceStringFieldObject(
-                name: $name,
+                name: (string) $name,
                 count: $count
             );
         }
