@@ -15,6 +15,10 @@ class TraceCreateJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable;
 
+    public int $tries = 120;
+
+    public int $backoff = 1;
+
     /**
      * Create a new job instance.
      */

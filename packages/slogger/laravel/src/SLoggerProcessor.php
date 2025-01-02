@@ -3,6 +3,7 @@
 namespace SLoggerLaravel;
 
 use Closure;
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Carbon;
 use LogicException;
@@ -26,13 +27,19 @@ class SLoggerProcessor
 
     private bool $paused = false;
 
+    private readonly SLoggerTraceDispatcherInterface $traceDispatcher;
+
+    /**
+     * @throws BindingResolutionException
+     */
     public function __construct(
         private readonly Application $app,
-        private readonly SLoggerTraceDispatcherInterface $traceDispatcher,
+        private readonly SLoggerConfig $config,
         private readonly SLoggerTraceIdContainer $traceIdContainer,
         private readonly AbstractSLoggerProfiling $profiler,
         private readonly SLoggerTraceDataComplementer $traceDataComplementer
     ) {
+        $this->traceDispatcher = $this->app->make($this->config->getDispatcherClass());
     }
 
     public function isActive(): bool
@@ -137,7 +144,7 @@ class SLoggerProcessor
 
         $this->traceDataComplementer->inject($data);
 
-        $this->traceDispatcher->push(
+        $this->dispatchPushTrace(
             new SLoggerTraceObject(
                 traceId: $traceId,
                 parentTraceId: $customParentTraceId ?? $parentTraceId,
@@ -185,7 +192,7 @@ class SLoggerProcessor
 
         $this->traceDataComplementer->inject($data);
 
-        $this->traceDispatcher->push(
+        $this->dispatchPushTrace(
             new SLoggerTraceObject(
                 traceId: $traceId,
                 parentTraceId: $parentTraceId,
@@ -223,7 +230,7 @@ class SLoggerProcessor
         $preParentTraceId = array_pop($this->preParentIdsStack);
 
         $this->traceIdContainer->setParentTraceId(
-            $preParentTraceId
+            parentTraceId: $preParentTraceId
         );
 
         if (count($this->preParentIdsStack) == 0) {
@@ -236,17 +243,27 @@ class SLoggerProcessor
             $this->traceDataComplementer->inject($data);
         }
 
-        $parameters = new SLoggerTraceUpdateObject(
-            traceId: $traceId,
-            status: $status,
-            profiling: $this->profiler->stop(),
-            tags: $tags,
-            data: $data,
-            duration: $duration,
-            memory: SLoggerMetricsHelper::getMemoryUsagePercent(),
-            cpu: SLoggerMetricsHelper::getCpuAvgPercent()
+        $this->dispatchUpdateTrace(
+            new SLoggerTraceUpdateObject(
+                traceId: $traceId,
+                status: $status,
+                profiling: $this->profiler->stop(),
+                tags: $tags,
+                data: $data,
+                duration: $duration,
+                memory: SLoggerMetricsHelper::getMemoryUsagePercent(),
+                cpu: SLoggerMetricsHelper::getCpuAvgPercent()
+            )
         );
+    }
 
-        $this->traceDispatcher->stop($parameters);
+    private function dispatchPushTrace(SLoggerTraceObject $trace): void
+    {
+        $this->traceDispatcher->push($trace);
+    }
+
+    private function dispatchUpdateTrace(SLoggerTraceUpdateObject $trace): void
+    {
+        $this->traceDispatcher->stop($trace);
     }
 }

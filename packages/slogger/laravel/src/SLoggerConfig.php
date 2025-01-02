@@ -4,6 +4,7 @@ namespace SLoggerLaravel;
 
 use Illuminate\Config\Repository;
 use Illuminate\Contracts\Foundation\Application;
+use SLoggerLaravel\Dispatcher\SLoggerTraceDispatcherInterface;
 
 readonly class SLoggerConfig
 {
@@ -13,6 +14,14 @@ readonly class SLoggerConfig
         protected Application $app
     ) {
         $this->config = $this->app['config'];
+    }
+
+    /**
+     * @return class-string<SLoggerTraceDispatcherInterface>
+     */
+    public function getDispatcherClass(): string
+    {
+        return $this->config['slogger.dispatcher'];
     }
 
     public function profilingEnabled(): bool

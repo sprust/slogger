@@ -137,7 +137,7 @@ return [
 
     'queues' => [
         'creating' => [
-            'connection' => env('QUEUE_TRACES_CREATING_CONNECTION', 'redis'),
+            'connection' => env('QUEUE_TRACES_CREATING_CONNECTION', 'rabbitmq'),
             'name'       => env('QUEUE_TRACES_CREATING_NAME', 'traces-creating'),
         ],
     ],

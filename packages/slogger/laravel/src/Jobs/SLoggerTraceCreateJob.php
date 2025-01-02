@@ -13,9 +13,9 @@ class SLoggerTraceCreateJob extends AbstractSLoggerTraceJob
         parent::__construct();
     }
 
-    protected function onHandle(SLoggerApiClientInterface $loggerHttpClient): void
+    protected function onHandle(SLoggerApiClientInterface $apiClient): void
     {
-        $loggerHttpClient->sendTraces(
+        $apiClient->sendTraces(
             SLoggerTraceObjects::fromJson($this->traceObjectsJson)
         );
     }

@@ -23,7 +23,7 @@ class SLoggerTraceUpdateObject
         return json_encode([
             'traceId'   => $this->traceId,
             'status'    => $this->status,
-            'profiling' => serialize($this->profiling),
+            'profiling' => $this->profiling?->toJson(),
             'tags'      => $this->tags,
             'data'      => $this->data,
             'duration'  => $this->duration,
@@ -39,7 +39,9 @@ class SLoggerTraceUpdateObject
         return new static(
             traceId: $data['traceId'],
             status: $data['status'],
-            profiling: unserialize($data['profiling']),
+            profiling: ($data['profiling'] ?? null)
+                ? SLoggerProfilingObjects::fromJson($data['profiling'])
+                : null,
             tags: $data['tags'],
             data: $data['data'],
             duration: $data['duration'],

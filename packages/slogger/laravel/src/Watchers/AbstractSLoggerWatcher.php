@@ -5,7 +5,6 @@ namespace SLoggerLaravel\Watchers;
 use Closure;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\Foundation\Application;
-use SLoggerLaravel\Dispatcher\SLoggerTraceDispatcherInterface;
 use SLoggerLaravel\Events\SLoggerWatcherErrorEvent;
 use SLoggerLaravel\SLoggerConfig;
 use SLoggerLaravel\SLoggerProcessor;
@@ -20,7 +19,6 @@ abstract class AbstractSLoggerWatcher
 
     public function __construct(
         protected readonly Application $app,
-        protected readonly SLoggerTraceDispatcherInterface $traceDispatcher,
         protected readonly SLoggerProcessor $processor,
         protected readonly SLoggerTraceIdContainer $traceIdContainer,
         protected readonly SLoggerConfig $loggerConfig,

@@ -27,7 +27,7 @@ setup:
 	@make composer c=install
 	@make art c=key:generate
 	@make art c="migrate --force"
-	@make rabbitmq-queues-declare
+	@make workers-art c='queues-declare'
 	@make rr-get-binary
 	@make frontend-npm-i
 	@make frontend-npm-build
@@ -72,6 +72,7 @@ composer:
 	@docker-compose exec -e XDEBUG_MODE=off $(PHP_FPM_SERVICE) composer ${c}
 
 workers-restart:
+	@make workers-art c='queues-declare'
 	@make workers-art c='queue:restart'
 	@make workers-art c='cron:restart'
 	@make workers-art c='octane:roadrunner:reload'
@@ -116,7 +117,7 @@ protoc-compile:
 	@"$(WORKERS_CLI)"protoc --plugin=protoc-gen-php-grpc \
 		--php_out=./packages/slogger/grpc/generated \
 		--php-grpc_out=./packages/slogger/grpc/generated \
-		./packages/slogger/grpc/proto/collector.proto
+		./packages/slogger/grpc/proto/*.proto
 
 frontend-npm-i:
 	@"$(FRONTEND_CLI)"npm i
@@ -126,6 +127,3 @@ frontend-npm-build:
 
 frontend-npm-generate:
 	@"$(FRONTEND_CLI)"npm run generate
-
-rabbitmq-queues-declare:
-	@make art c="rabbitmq:queue-declare $(QUEUE_TRACES_CREATING_NAME)"

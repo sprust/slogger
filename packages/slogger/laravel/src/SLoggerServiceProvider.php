@@ -6,7 +6,6 @@ use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\ServiceProvider;
 use SLoggerLaravel\ApiClients\SLoggerApiClientFactory;
 use SLoggerLaravel\ApiClients\SLoggerApiClientInterface;
-use SLoggerLaravel\Dispatcher\SLoggerTraceDispatcherInterface;
 use SLoggerLaravel\Middleware\SLoggerHttpMiddleware;
 use SLoggerLaravel\Profiling\AbstractSLoggerProfiling;
 use SLoggerLaravel\Profiling\SLoggerXHProfProfiler;
@@ -22,10 +21,6 @@ class SLoggerServiceProvider extends ServiceProvider
         $this->app->singleton(SLoggerProcessor::class);
         $this->app->singleton(SLoggerTraceIdContainer::class);
         $this->app->singleton(SLoggerHttpMiddleware::class);
-        $this->app->singleton(
-            SLoggerTraceDispatcherInterface::class,
-            $this->app['config']['slogger.dispatcher']
-        );
         $this->app->singleton(AbstractSLoggerProfiling::class, SLoggerXHProfProfiler::class);
 
         $this->app->singleton(SLoggerApiClientInterface::class, function (Application $app) {
