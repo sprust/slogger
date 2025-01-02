@@ -24,6 +24,8 @@ use SLoggerLaravel\Watchers\Services\SLoggerScheduleWatcher;
 return [
     'enabled' => env('SLOGGER_ENABLED', false),
 
+    'token' => env('SLOGGER_TOKEN'),
+
     'api_clients' => [
         'default' => env('SLOGGER_API_CLIENT', 'http'),
 
