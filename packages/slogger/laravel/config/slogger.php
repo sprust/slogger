@@ -55,6 +55,11 @@ return [
         'name'       => env('SLOGGER_QUEUE_TRACES_PUSHING_NAME', 'slogger-pushing'),
     ],
 
+    'queue_transporter' => [
+        'connection' => env('SLOGGER_TRANSPORTER_QUEUE_CONNECTION', env('QUEUE_CONNECTION')),
+        'name'       => env('SLOGGER_TRANSPORTER_QUEUE_NAME', 'slogger-transporter'),
+    ],
+
     'listeners' => [
         SLoggerWatcherErrorEvent::class => [
             SLoggerWatcherErrorListener::class,

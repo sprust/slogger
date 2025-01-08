@@ -42,6 +42,9 @@ class QueuesDeclareCommand extends Command
         if (config('slogger.queue.connection') === 'rabbitmq') {
             $rabbitmqQueueNames[] = config('slogger.queue.name');
         }
+        if (config('slogger.queue_transporter.connection') === 'rabbitmq') {
+            $rabbitmqQueueNames[] = config('slogger.queue_transporter.name');
+        }
 
         if (empty($rabbitmqQueueNames)) {
             $this->error('No queues found.');
