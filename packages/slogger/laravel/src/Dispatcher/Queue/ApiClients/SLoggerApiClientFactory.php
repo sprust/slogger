@@ -1,20 +1,22 @@
 <?php
 
-namespace SLoggerLaravel\ApiClients;
+namespace SLoggerLaravel\Dispatcher\Queue\ApiClients;
 
 use Exception;
 use Grpc\ChannelCredentials;
 use GuzzleHttp\Client;
-use Illuminate\Contracts\Foundation\Application;
 use RuntimeException;
 use SLoggerGrpc\Services\SLoggerTraceCollectorGrpcService;
-use SLoggerLaravel\ApiClients\Grpc\SLoggerGrpcClient;
-use SLoggerLaravel\ApiClients\Http\SLoggerHttpClient;
+use SLoggerLaravel\Dispatcher\Queue\ApiClients\Grpc\SLoggerGrpcClient;
+use SLoggerLaravel\Dispatcher\Queue\ApiClients\Http\SLoggerHttpClient;
 
 readonly class SLoggerApiClientFactory
 {
-    public function __construct(private Application $app)
+    private string $apiToken;
+
+    public function __construct()
     {
+        $this->apiToken = config('slogger.token');
     }
 
     public function create(string $apiClientName): SLoggerApiClientInterface
@@ -28,15 +30,12 @@ readonly class SLoggerApiClientFactory
 
     private function createHttp(): SLoggerHttpClient
     {
-        $config = $this->app['config']['slogger.api_clients.http'];
-
-        $url   = $config['url'];
-        $token = $config['token'];
+        $url = config('slogger.dispatchers.queue.api_clients.http.url');
 
         return new SLoggerHttpClient(
             new Client([
                 'headers'  => [
-                    'Authorization'    => "Bearer $token",
+                    'Authorization'    => "Bearer $this->apiToken",
                     'X-Requested-With' => 'XMLHttpRequest',
                     'Content-Type'     => 'application/json',
                     'Accept'           => 'application/json',
@@ -54,15 +53,12 @@ readonly class SLoggerApiClientFactory
             );
         }
 
-        $config = $this->app['config']['slogger.api_clients.grpc'];
-
-        $url   = $config['url'];
-        $token = $config['token'];
+        $url = config('slogger.dispatchers.queue.api_clients.grpc.url');
 
         try {
             return new SLoggerGrpcClient(
-                $token,
-                new SLoggerTraceCollectorGrpcService(
+                apiToken: $this->apiToken,
+                grpcService: new SLoggerTraceCollectorGrpcService(
                     hostname: $url,
                     opts: [
                         'credentials' => ChannelCredentials::createInsecure(),

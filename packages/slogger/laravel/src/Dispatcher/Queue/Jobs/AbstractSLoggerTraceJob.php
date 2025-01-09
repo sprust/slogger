@@ -1,13 +1,13 @@
 <?php
 
-namespace SLoggerLaravel\Jobs;
+namespace SLoggerLaravel\Dispatcher\Queue\Jobs;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Log;
-use SLoggerLaravel\ApiClients\SLoggerApiClientInterface;
+use SLoggerLaravel\Dispatcher\Queue\ApiClients\SLoggerApiClientInterface;
 use SLoggerLaravel\SLoggerProcessor;
 use Throwable;
 
@@ -23,8 +23,8 @@ abstract class AbstractSLoggerTraceJob implements ShouldQueue
 
     public function __construct()
     {
-        $this->onConnection(config('slogger.queue.connection'))
-            ->onQueue(config('slogger.queue.name'));
+        $this->onConnection(config('slogger.dispatchers.queue.connection'))
+            ->onQueue(config('slogger.dispatchers.queue.name'));
     }
 
     /**

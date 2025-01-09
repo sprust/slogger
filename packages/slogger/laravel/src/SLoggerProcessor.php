@@ -3,7 +3,6 @@
 namespace SLoggerLaravel;
 
 use Closure;
-use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Carbon;
 use LogicException;
@@ -27,19 +26,13 @@ class SLoggerProcessor
 
     private bool $paused = false;
 
-    private readonly SLoggerTraceDispatcherInterface $traceDispatcher;
-
-    /**
-     * @throws BindingResolutionException
-     */
     public function __construct(
         private readonly Application $app,
-        private readonly SLoggerConfig $config,
+        private readonly SLoggerTraceDispatcherInterface $traceDispatcher,
         private readonly SLoggerTraceIdContainer $traceIdContainer,
         private readonly AbstractSLoggerProfiling $profiler,
         private readonly SLoggerTraceDataComplementer $traceDataComplementer
     ) {
-        $this->traceDispatcher = $this->app->make($this->config->getDispatcherClass());
     }
 
     public function isActive(): bool

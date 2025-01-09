@@ -1,10 +1,8 @@
 <?php
 
-use SLoggerLaravel\Dispatcher\SLoggerTraceDispatcherInterface;
-use SLoggerLaravel\Dispatcher\SLoggerTraceQueueDispatcher;
+use SLoggerLaravel\Dispatcher\Queue\Jobs\SLoggerTraceCreateJob;
+use SLoggerLaravel\Dispatcher\Queue\Jobs\SLoggerTraceUpdateJob;
 use SLoggerLaravel\Events\SLoggerWatcherErrorEvent;
-use SLoggerLaravel\Jobs\SLoggerTraceCreateJob;
-use SLoggerLaravel\Jobs\SLoggerTraceUpdateJob;
 use SLoggerLaravel\Listeners\SLoggerWatcherErrorListener;
 use SLoggerLaravel\Watchers\EntryPoints\SLoggerCommandWatcher;
 use SLoggerLaravel\Watchers\EntryPoints\SLoggerJobWatcher;
@@ -26,39 +24,41 @@ return [
 
     'token' => env('SLOGGER_TOKEN'),
 
-    'api_clients' => [
-        'default' => env('SLOGGER_API_CLIENT', 'http'),
+    'dispatchers' => [
+        'default' => env('SLOGGER_DISPATCHER', 'queue'),
 
-        'http' => [
-            'url'   => env('SLOGGER_HTTP_CLIENT_URL'),
-            'token' => env('SLOGGER_HTTP_CLIENT_TOKEN'),
+        'queue' => [
+            'connection' => env('SLOGGER_QUEUE_TRACES_PUSHING_CONNECTION', env('QUEUE_CONNECTION')),
+            'name'       => env('SLOGGER_QUEUE_TRACES_PUSHING_NAME', 'slogger-pushing'),
+
+            'api_clients' => [
+                'default' => env('SLOGGER_API_CLIENT', 'http'),
+
+                'http' => [
+                    'url'   => env('SLOGGER_HTTP_CLIENT_URL'),
+                    'token' => env('SLOGGER_HTTP_CLIENT_TOKEN'),
+                ],
+
+                'grpc' => [
+                    'url'   => env('SLOGGER_GRPC_CLIENT_URL'),
+                    'token' => env('SLOGGER_GRPC_CLIENT_TOKEN'),
+                ],
+            ],
         ],
 
-        'grpc' => [
-            'url'   => env('SLOGGER_GRPC_CLIENT_URL'),
-            'token' => env('SLOGGER_GRPC_CLIENT_TOKEN'),
+        'transporter' => [
+            'queue' => [
+                'connection' => env('SLOGGER_TRANSPORTER_QUEUE_CONNECTION', env('QUEUE_CONNECTION')),
+                'name'       => env('SLOGGER_TRANSPORTER_QUEUE_NAME', 'slogger-transporter'),
+            ],
         ],
     ],
 
-
-    'profiling'  => [
+    'profiling' => [
         'enabled' => env('SLOGGER_PROFILING_ENABLED', false),
     ],
 
-    /** @see SLoggerTraceDispatcherInterface */
-    'dispatcher' => SLoggerTraceQueueDispatcher::class,
-
     'log_channel' => env('SLOGGER_LOG_CHANNEL', 'daily'),
-
-    'queue' => [
-        'connection' => env('SLOGGER_QUEUE_TRACES_PUSHING_CONNECTION', env('QUEUE_CONNECTION')),
-        'name'       => env('SLOGGER_QUEUE_TRACES_PUSHING_NAME', 'slogger-pushing'),
-    ],
-
-    'queue_transporter' => [
-        'connection' => env('SLOGGER_TRANSPORTER_QUEUE_CONNECTION', env('QUEUE_CONNECTION')),
-        'name'       => env('SLOGGER_TRANSPORTER_QUEUE_NAME', 'slogger-transporter'),
-    ],
 
     'listeners' => [
         SLoggerWatcherErrorEvent::class => [

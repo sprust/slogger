@@ -1,11 +1,12 @@
 <?php
 
-namespace SLoggerLaravel\Dispatcher;
+namespace SLoggerLaravel\Dispatcher\File;
 
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Container\CircularDependencyException;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Arr;
+use SLoggerLaravel\Dispatcher\SLoggerTraceDispatcherInterface;
 use SLoggerLaravel\Objects\SLoggerTraceObject;
 use SLoggerLaravel\Objects\SLoggerTraceObjects;
 use SLoggerLaravel\Objects\SLoggerTraceUpdateObject;

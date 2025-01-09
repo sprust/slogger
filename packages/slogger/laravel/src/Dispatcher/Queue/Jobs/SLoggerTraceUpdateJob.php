@@ -1,8 +1,8 @@
 <?php
 
-namespace SLoggerLaravel\Jobs;
+namespace SLoggerLaravel\Dispatcher\Queue\Jobs;
 
-use SLoggerLaravel\ApiClients\SLoggerApiClientInterface;
+use SLoggerLaravel\Dispatcher\Queue\ApiClients\SLoggerApiClientInterface;
 use SLoggerLaravel\Objects\SLoggerTraceUpdateObjects;
 
 class SLoggerTraceUpdateJob extends AbstractSLoggerTraceJob

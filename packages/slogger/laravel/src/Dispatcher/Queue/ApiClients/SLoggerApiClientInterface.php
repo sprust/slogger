@@ -1,6 +1,6 @@
 <?php
 
-namespace SLoggerLaravel\ApiClients;
+namespace SLoggerLaravel\Dispatcher\Queue\ApiClients;
 
 use SLoggerLaravel\Objects\SLoggerTraceObjects;
 use SLoggerLaravel\Objects\SLoggerTraceUpdateObjects;

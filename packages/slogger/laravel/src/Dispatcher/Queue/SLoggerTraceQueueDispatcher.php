@@ -1,9 +1,10 @@
 <?php
 
-namespace SLoggerLaravel\Dispatcher;
+namespace SLoggerLaravel\Dispatcher\Queue;
 
-use SLoggerLaravel\Jobs\SLoggerTraceCreateJob;
-use SLoggerLaravel\Jobs\SLoggerTraceUpdateJob;
+use SLoggerLaravel\Dispatcher\Queue\Jobs\SLoggerTraceCreateJob;
+use SLoggerLaravel\Dispatcher\Queue\Jobs\SLoggerTraceUpdateJob;
+use SLoggerLaravel\Dispatcher\SLoggerTraceDispatcherInterface;
 use SLoggerLaravel\Objects\SLoggerTraceObject;
 use SLoggerLaravel\Objects\SLoggerTraceObjects;
 use SLoggerLaravel\Objects\SLoggerTraceUpdateObject;

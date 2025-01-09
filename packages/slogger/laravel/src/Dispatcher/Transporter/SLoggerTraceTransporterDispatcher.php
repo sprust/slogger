@@ -1,12 +1,12 @@
 <?php
 
-namespace SLoggerLaravel\Dispatcher;
+namespace SLoggerLaravel\Dispatcher\Transporter;
 
 use Exception;
-use Illuminate\Contracts\Queue\Queue;
+use SLoggerLaravel\Dispatcher\SLoggerTraceDispatcherInterface;
+use SLoggerLaravel\Dispatcher\Transporter\Clients\SLoggerTransporterClientInterface;
 use SLoggerLaravel\Objects\SLoggerTraceObject;
 use SLoggerLaravel\Objects\SLoggerTraceUpdateObject;
-use Illuminate\Support\Facades\Queue as QueueFacade;
 use SLoggerLaravel\Profiling\Dto\SLoggerProfilingObjects;
 
 class SLoggerTraceTransporterDispatcher implements SLoggerTraceDispatcherInterface
@@ -16,20 +16,12 @@ class SLoggerTraceTransporterDispatcher implements SLoggerTraceDispatcherInterfa
 
     private int $maxBatchSize = 5;
 
-    private string $token;
-
-    private Queue $connection;
-    private string $queue;
-
     /**
      * @throws Exception
      */
-    public function __construct()
-    {
-        $this->token = config('slogger.token');
-
-        $this->connection = QueueFacade::connection(config('slogger.queue_transporter.connection'));
-        $this->queue      = config('slogger.queue_transporter.name');
+    public function __construct(
+        private readonly SLoggerTransporterClientInterface $client
+    ) {
     }
 
     public function push(SLoggerTraceObject $parameters): void
@@ -40,22 +32,22 @@ class SLoggerTraceTransporterDispatcher implements SLoggerTraceDispatcherInterfa
             return;
         }
 
-        $payload = array_map(
+        $actions = array_map(
             fn(SLoggerTraceObject $trace) => $this->makeCreateData($trace),
             $this->traces
         );
 
         $this->traces = [];
 
-        $this->dispatch($payload);
+        $this->client->dispatch($actions);
     }
 
     public function stop(SLoggerTraceUpdateObject $parameters): void
     {
-        $payload = [];
+        $actions = [];
 
         if (count($this->traces)) {
-            $payload = array_map(
+            $actions = array_map(
                 fn(SLoggerTraceObject $trace) => $this->makeCreateData($trace),
                 $this->traces
             );
@@ -63,9 +55,9 @@ class SLoggerTraceTransporterDispatcher implements SLoggerTraceDispatcherInterfa
 
         $this->traces = [];
 
-        $payload[] = $this->makeUpdateData($parameters);
+        $actions[] = $this->makeUpdateData($parameters);
 
-        $this->dispatch($payload);
+        $this->client->dispatch($actions);
     }
 
     private function makeCreateData(SLoggerTraceObject $trace): array
@@ -157,19 +149,5 @@ class SLoggerTraceTransporterDispatcher implements SLoggerTraceDispatcherInterfa
             'nm'  => $name,
             'val' => $value,
         ];
-    }
-
-    private function dispatch(array $actions): void
-    {
-        $this->connection->pushRaw(
-            payload: json_encode([
-                'id'      => uniqid(),
-                'payload' => json_encode([
-                    'tok' => $this->token,
-                    'acs' => $actions,
-                ]),
-            ]),
-            queue: $this->queue
-        );
     }
 }
