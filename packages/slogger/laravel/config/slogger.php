@@ -19,6 +19,8 @@ use SLoggerLaravel\Watchers\Services\SLoggerModelWatcher;
 use SLoggerLaravel\Watchers\Services\SLoggerNotificationWatcher;
 use SLoggerLaravel\Watchers\Services\SLoggerScheduleWatcher;
 
+$defaultQueueConnection = env('QUEUE_CONNECTION');
+
 return [
     'enabled' => env('SLOGGER_ENABLED', false),
 
@@ -28,28 +30,26 @@ return [
         'default' => env('SLOGGER_DISPATCHER', 'queue'),
 
         'queue' => [
-            'connection' => env('SLOGGER_QUEUE_TRACES_PUSHING_CONNECTION', env('QUEUE_CONNECTION')),
-            'name'       => env('SLOGGER_QUEUE_TRACES_PUSHING_NAME', 'slogger-pushing'),
+            'connection' => env('SLOGGER_DISPATCHER_QUEUE_CONNECTION', $defaultQueueConnection),
+            'name'       => env('SLOGGER_DISPATCHER_QUEUE_NAME', 'slogger'),
 
             'api_clients' => [
-                'default' => env('SLOGGER_API_CLIENT', 'http'),
+                'default' => env('SLOGGER_DISPATCHER_QUEUE_API_CLIENT', 'http'),
 
                 'http' => [
-                    'url'   => env('SLOGGER_HTTP_CLIENT_URL'),
-                    'token' => env('SLOGGER_HTTP_CLIENT_TOKEN'),
+                    'url' => env('SLOGGER_DISPATCHER_QUEUE_HTTP_CLIENT_URL'),
                 ],
 
                 'grpc' => [
-                    'url'   => env('SLOGGER_GRPC_CLIENT_URL'),
-                    'token' => env('SLOGGER_GRPC_CLIENT_TOKEN'),
+                    'url' => env('SLOGGER_DISPATCHER_QUEUE_GRPC_CLIENT_URL'),
                 ],
             ],
         ],
 
         'transporter' => [
             'queue' => [
-                'connection' => env('SLOGGER_TRANSPORTER_QUEUE_CONNECTION', env('QUEUE_CONNECTION')),
-                'name'       => env('SLOGGER_TRANSPORTER_QUEUE_NAME', 'slogger-transporter'),
+                'connection' => env('SLOGGER_DISPATCHER_TRANSPORTER_QUEUE_CONNECTION', $defaultQueueConnection),
+                'name'       => env('SLOGGER_DISPATCHER_TRANSPORTER_QUEUE_NAME', 'slogger-transporter'),
             ],
         ],
     ],
