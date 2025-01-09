@@ -3,9 +3,14 @@
 namespace SLoggerLaravel;
 
 use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\ServiceProvider;
+use SLoggerLaravel\Dispatcher\Queue\ApiClients\SLoggerApiClientFactory;
+use SLoggerLaravel\Dispatcher\Queue\ApiClients\SLoggerApiClientInterface;
 use SLoggerLaravel\Dispatcher\SLoggerDispatcherFactory;
 use SLoggerLaravel\Dispatcher\SLoggerTraceDispatcherInterface;
+use SLoggerLaravel\Dispatcher\Transporter\Clients\SLoggerTransporterClient;
+use SLoggerLaravel\Dispatcher\Transporter\Clients\SLoggerTransporterClientInterface;
 use SLoggerLaravel\Middleware\SLoggerHttpMiddleware;
 use SLoggerLaravel\Profiling\AbstractSLoggerProfiling;
 use SLoggerLaravel\Profiling\SLoggerXHProfProfiler;
@@ -23,7 +28,21 @@ class SLoggerServiceProvider extends ServiceProvider
         $this->app->singleton(SLoggerHttpMiddleware::class);
         $this->app->singleton(AbstractSLoggerProfiling::class, SLoggerXHProfProfiler::class);
 
-        $this->app->singleton(SLoggerTraceDispatcherInterface::class, function (Application $app) {
+        $this->app->singleton(SLoggerApiClientInterface::class, static function (Application $app) {
+            return $app->make(SLoggerApiClientFactory::class)->create(
+                config('slogger.dispatchers.queue.api_clients.default')
+            );
+        });
+
+        $this->app->singleton(SLoggerTransporterClientInterface::class, static function () {
+            return new SLoggerTransporterClient(
+                apiToken: config('slogger.token'),
+                connection: Queue::connection(config('slogger.dispatchers.transporter.queue.connection')),
+                queueName: config('slogger.dispatchers.transporter.queue.name')
+            );
+        });
+
+        $this->app->singleton(SLoggerTraceDispatcherInterface::class, static function (Application $app) {
             return $app->make(SLoggerDispatcherFactory::class)->create(
                 config('slogger.dispatchers.default')
             );
