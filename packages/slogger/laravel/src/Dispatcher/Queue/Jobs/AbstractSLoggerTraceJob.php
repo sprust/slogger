@@ -7,15 +7,15 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Log;
-use SLoggerLaravel\Dispatcher\Queue\ApiClients\SLoggerApiClientInterface;
-use SLoggerLaravel\SLoggerProcessor;
+use SLoggerLaravel\Dispatcher\Queue\ApiClients\ApiClientInterface;
+use SLoggerLaravel\Processor;
 use Throwable;
 
 abstract class AbstractSLoggerTraceJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable;
 
-    abstract protected function onHandle(SLoggerApiClientInterface $apiClient): void;
+    abstract protected function onHandle(ApiClientInterface $apiClient): void;
 
     public int $tries = 120;
 
@@ -30,10 +30,10 @@ abstract class AbstractSLoggerTraceJob implements ShouldQueue
     /**
      * @throws Throwable
      */
-    public function handle(SLoggerProcessor $loggerProcessor, SLoggerApiClientInterface $apiClient): void
+    public function handle(Processor $processor, ApiClientInterface $apiClient): void
     {
         try {
-            $loggerProcessor->handleWithoutTracing(
+            $processor->handleWithoutTracing(
                 fn() => $this->onHandle($apiClient)
             );
         } catch (Throwable $exception) {

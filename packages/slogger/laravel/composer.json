@@ -19,7 +19,7 @@
     "extra": {
         "laravel": {
             "providers": [
-                "SLoggerLaravel\\SLoggerServiceProvider"
+                "SLoggerLaravel\\ServiceProvider"
             ]
         }
     },

@@ -4161,7 +4161,7 @@
             "dist": {
                 "type": "path",
                 "url": "packages/slogger/laravel",
-                "reference": "90b63691e5ab32a430e5e172b6fa1efc7d12a7f6"
+                "reference": "2b11945937884ee0fa76aa8b5b031c748d376b84"
             },
             "require": {
                 "laravel/framework": "^9.0 | ^10.0"
@@ -4170,7 +4170,7 @@
             "extra": {
                 "laravel": {
                     "providers": [
-                        "SLoggerLaravel\\SLoggerServiceProvider"
+                        "SLoggerLaravel\\ServiceProvider"
                     ]
                 }
             },

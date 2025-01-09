@@ -12,7 +12,7 @@ use App\Modules\Trace\Infrastructure\Http\Services\QueueDispatcher;
 use App\Modules\Trace\Parameters\TraceCreateParameters;
 use App\Modules\Trace\Parameters\TraceCreateParametersList;
 use Illuminate\Support\Carbon;
-use SLoggerLaravel\SLoggerProcessor;
+use SLoggerLaravel\Processor;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
@@ -22,7 +22,7 @@ readonly class TraceCreateController
         private ServiceContainer $serviceContainer,
         private QueueDispatcher $tracesServiceQueueDispatcher,
         private MakeTraceTimestampsActionInterface $makeTraceTimestampsAction,
-        private SLoggerProcessor $loggerProcessor
+        private Processor $processor
     ) {
     }
 
@@ -31,7 +31,7 @@ readonly class TraceCreateController
      */
     public function __invoke(TraceCreateRequest $request): void
     {
-        $this->loggerProcessor->handleWithoutTracing(
+        $this->processor->handleWithoutTracing(
             fn() => $this->handle($request)
         );
     }

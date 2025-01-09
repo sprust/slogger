@@ -1,23 +1,23 @@
 <?php
 
-use SLoggerLaravel\Dispatcher\Queue\Jobs\SLoggerTraceCreateJob;
-use SLoggerLaravel\Dispatcher\Queue\Jobs\SLoggerTraceUpdateJob;
-use SLoggerLaravel\Events\SLoggerWatcherErrorEvent;
-use SLoggerLaravel\Listeners\SLoggerWatcherErrorListener;
-use SLoggerLaravel\Watchers\EntryPoints\SLoggerCommandWatcher;
-use SLoggerLaravel\Watchers\EntryPoints\SLoggerJobWatcher;
-use SLoggerLaravel\Watchers\EntryPoints\SLoggerRequestWatcher;
-use SLoggerLaravel\Watchers\Services\SLoggerCacheWatcher;
-use SLoggerLaravel\Watchers\Services\SLoggerDatabaseWatcher;
-use SLoggerLaravel\Watchers\Services\SLoggerDumpWatcher;
-use SLoggerLaravel\Watchers\Services\SLoggerEventWatcher;
-use SLoggerLaravel\Watchers\Services\SLoggerGateWatcher;
-use SLoggerLaravel\Watchers\Services\SLoggerHttpClientWatcher;
-use SLoggerLaravel\Watchers\Services\SLoggerLogWatcher;
-use SLoggerLaravel\Watchers\Services\SLoggerMailWatcher;
-use SLoggerLaravel\Watchers\Services\SLoggerModelWatcher;
-use SLoggerLaravel\Watchers\Services\SLoggerNotificationWatcher;
-use SLoggerLaravel\Watchers\Services\SLoggerScheduleWatcher;
+use SLoggerLaravel\Dispatcher\Queue\Jobs\TraceCreateJob;
+use SLoggerLaravel\Dispatcher\Queue\Jobs\TraceUpdateJob;
+use SLoggerLaravel\Events\WatcherErrorEvent;
+use SLoggerLaravel\Listeners\WatcherErrorListener;
+use SLoggerLaravel\Watchers\EntryPoints\CommandWatcher;
+use SLoggerLaravel\Watchers\EntryPoints\JobWatcher;
+use SLoggerLaravel\Watchers\EntryPoints\RequestWatcher;
+use SLoggerLaravel\Watchers\Services\CacheWatcher;
+use SLoggerLaravel\Watchers\Services\DatabaseWatcher;
+use SLoggerLaravel\Watchers\Services\DumpWatcher;
+use SLoggerLaravel\Watchers\Services\EventWatcher;
+use SLoggerLaravel\Watchers\Services\GateWatcher;
+use SLoggerLaravel\Watchers\Services\HttpClientWatcher;
+use SLoggerLaravel\Watchers\Services\LogWatcher;
+use SLoggerLaravel\Watchers\Services\MailWatcher;
+use SLoggerLaravel\Watchers\Services\ModelWatcher;
+use SLoggerLaravel\Watchers\Services\NotificationWatcher;
+use SLoggerLaravel\Watchers\Services\ScheduleWatcher;
 
 $defaultQueueConnection = env('QUEUE_CONNECTION');
 
@@ -61,8 +61,8 @@ return [
     'log_channel' => env('SLOGGER_LOG_CHANNEL', 'daily'),
 
     'listeners' => [
-        SLoggerWatcherErrorEvent::class => [
-            SLoggerWatcherErrorListener::class,
+        WatcherErrorEvent::class => [
+            WatcherErrorListener::class,
         ],
     ],
 
@@ -133,8 +133,8 @@ return [
 
         'jobs' => [
             'excepted' => [
-                SLoggerTraceCreateJob::class,
-                SLoggerTraceUpdateJob::class,
+                TraceCreateJob::class,
+                TraceUpdateJob::class,
             ],
         ],
 
@@ -151,59 +151,59 @@ return [
 
     'watchers' => [
         [
-            'class'   => SLoggerRequestWatcher::class,
+            'class'   => RequestWatcher::class,
             'enabled' => env('SLOGGER_LOG_REQUESTS_ENABLED', false),
         ],
         [
-            'class'   => SLoggerCommandWatcher::class,
+            'class'   => CommandWatcher::class,
             'enabled' => env('SLOGGER_LOG_COMMANDS_ENABLED', false),
         ],
         [
-            'class'   => SLoggerDatabaseWatcher::class,
+            'class'   => DatabaseWatcher::class,
             'enabled' => env('SLOGGER_LOG_DATABASE_ENABLED', false),
         ],
         [
-            'class'   => SLoggerLogWatcher::class,
+            'class'   => LogWatcher::class,
             'enabled' => env('SLOGGER_LOG_LOG_ENABLED', false),
         ],
         [
-            'class'   => SLoggerScheduleWatcher::class,
+            'class'   => ScheduleWatcher::class,
             'enabled' => env('SLOGGER_LOG_LOG_ENABLED', false),
         ],
         [
-            'class'   => SLoggerJobWatcher::class,
+            'class'   => JobWatcher::class,
             'enabled' => env('SLOGGER_LOG_JOBS_ENABLED', false),
         ],
         [
-            'class'   => SLoggerModelWatcher::class,
+            'class'   => ModelWatcher::class,
             'enabled' => env('SLOGGER_LOG_MODEL_ENABLED', false),
         ],
         [
-            'class'   => SLoggerGateWatcher::class,
+            'class'   => GateWatcher::class,
             'enabled' => env('SLOGGER_LOG_GATE_ENABLED', false),
         ],
         [
-            'class'   => SLoggerEventWatcher::class,
+            'class'   => EventWatcher::class,
             'enabled' => env('SLOGGER_LOG_EVENT_ENABLED', false),
         ],
         [
-            'class'   => SLoggerMailWatcher::class,
+            'class'   => MailWatcher::class,
             'enabled' => env('SLOGGER_LOG_MAIL_ENABLED', false),
         ],
         [
-            'class'   => SLoggerNotificationWatcher::class,
+            'class'   => NotificationWatcher::class,
             'enabled' => env('SLOGGER_LOG_NOTIFICATION_ENABLED', false),
         ],
         [
-            'class'   => SLoggerCacheWatcher::class,
+            'class'   => CacheWatcher::class,
             'enabled' => env('SLOGGER_LOG_CACHE_ENABLED', false),
         ],
         [
-            'class'   => SLoggerDumpWatcher::class,
+            'class'   => DumpWatcher::class,
             'enabled' => env('SLOGGER_LOG_DUMP_ENABLED', false),
         ],
         [
-            'class'   => SLoggerHttpClientWatcher::class,
+            'class'   => HttpClientWatcher::class,
             'enabled' => env('SLOGGER_LOG_HTTP_ENABLED', false),
         ],
     ],

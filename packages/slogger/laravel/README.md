@@ -60,15 +60,17 @@ SLOGGER_LOG_HTTP_ENABLED=true
 ```
 
 For requests watcher you can use the middleware
+
 ```php
-\SLoggerLaravel\Middleware\SLoggerHttpMiddleware::class
+\SLoggerLaravel\Middleware\HttpMiddleware::class
 ```
 
 For guzzle requests you can use the factory
+
 ```php
 new \GuzzleHttp\Client([
     'base_uri' => 'https://url.com',
-    'handler'  => app(\SLoggerLaravel\Guzzle\SLoggerGuzzleHandlerFactory::class)->prepareHandler(
+    'handler'  => app(\SLoggerLaravel\Guzzle\GuzzleHandlerFactory::class)->prepareHandler(
         (new SLoggerRequestDataFormatters())
             ->add(
                 new SLoggerRequestDataFormatter(
