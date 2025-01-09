@@ -35,15 +35,22 @@ class QueuesDeclareCommand extends Command
     {
         $this->warn('[RABBITMQ]');
 
-        $rabbitmqQueueNames = [
-            config('queue.queues.creating.name')
-        ];
+        $rabbitmqQueueNames = [];
 
-        if (config('slogger.queue.connection') === 'rabbitmq') {
-            $rabbitmqQueueNames[] = config('slogger.queue.name');
+        if (config('queue.queues.creating.connection') === 'rabbitmq') {
+            $rabbitmqQueueNames[] = config('queue.queues.creating.name');
         }
-        if (config('slogger.queue_transporter.connection') === 'rabbitmq') {
-            $rabbitmqQueueNames[] = config('slogger.queue_transporter.name');
+
+        if (config('slogger.dispatchers.default') === 'queue') {
+            if (config('slogger.dispatchers.queue.connection') === 'rabbitmq') {
+                $rabbitmqQueueNames[] = config('slogger.dispatchers.queue.name');
+            }
+        }
+
+        if (config('slogger.dispatchers.default') === 'transporter') {
+            if (config('slogger.dispatchers.transporter.queue.connection') === 'rabbitmq') {
+                $rabbitmqQueueNames[] = config('slogger.dispatchers.transporter.queue.name');
+            }
         }
 
         if (empty($rabbitmqQueueNames)) {
