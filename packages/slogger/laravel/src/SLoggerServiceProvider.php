@@ -4,8 +4,6 @@ namespace SLoggerLaravel;
 
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\ServiceProvider;
-use SLoggerLaravel\Dispatcher\Queue\ApiClients\SLoggerApiClientFactory;
-use SLoggerLaravel\Dispatcher\Queue\ApiClients\SLoggerApiClientInterface;
 use SLoggerLaravel\Dispatcher\SLoggerDispatcherFactory;
 use SLoggerLaravel\Dispatcher\SLoggerTraceDispatcherInterface;
 use SLoggerLaravel\Middleware\SLoggerHttpMiddleware;
