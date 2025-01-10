@@ -4,12 +4,14 @@ namespace SLoggerLaravel;
 
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\Queue;
+use SLoggerLaravel\Commands\LoadTransporterCommand;
 use SLoggerLaravel\Dispatcher\Queue\ApiClients\ApiClientFactory;
 use SLoggerLaravel\Dispatcher\Queue\ApiClients\ApiClientInterface;
 use SLoggerLaravel\Dispatcher\DispatcherFactory;
 use SLoggerLaravel\Dispatcher\TraceDispatcherInterface;
 use SLoggerLaravel\Dispatcher\Transporter\Clients\TransporterClient;
 use SLoggerLaravel\Dispatcher\Transporter\Clients\TransporterClientInterface;
+use SLoggerLaravel\Dispatcher\Transporter\TransporterLoader;
 use SLoggerLaravel\Middleware\HttpMiddleware;
 use SLoggerLaravel\Profiling\AbstractProfiling;
 use SLoggerLaravel\Profiling\XHProfProfiler;
@@ -50,6 +52,8 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
         $this->registerListeners();
 
         $this->registerWatchers();
+
+        $this->registerConsole();
 
         $this->publishes(
             paths: [
@@ -97,5 +101,22 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
 
             $watcher->register();
         }
+    }
+
+    private function registerConsole(): void
+    {
+        if (!$this->app->runningInConsole()) {
+            return;
+        }
+
+        $this->commands([
+            LoadTransporterCommand::class,
+        ]);
+
+        $this->app->singleton(TransporterLoader::class, static function () {
+            return new TransporterLoader(
+                path: base_path('strans')
+            );
+        });
     }
 }
