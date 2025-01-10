@@ -25,6 +25,8 @@ class LoadTransporterCommand extends Command
     {
         $loader->load();
 
+        $this->info('Transporter loaded ' . $loader->getVersion());
+
         return self::SUCCESS;
     }
 }

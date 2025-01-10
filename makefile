@@ -29,6 +29,7 @@ setup:
 	@make art c="migrate --force"
 	@make workers-art c='queues-declare'
 	@make rr-get-binary
+	@make strans-load
 	@make frontend-npm-i
 	@make frontend-npm-build
 	@make restart
@@ -127,3 +128,9 @@ frontend-npm-build:
 
 frontend-npm-generate:
 	@"$(FRONTEND_CLI)"npm run generate
+
+strans-load:
+	@make workers-art c='slogger:transporter:load'&& chmod +x ./strans
+
+strans-start:
+	@"$(WORKERS_CLI)"./strans --env=.env.strans start

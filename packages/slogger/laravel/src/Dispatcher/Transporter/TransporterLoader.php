@@ -24,4 +24,9 @@ readonly class TransporterLoader
     {
         return "https://github.com/sprust/slogger-transporter/releases/download/v$this->version/strans";
     }
+
+    public function getVersion(): string
+    {
+        return $this->version;
+    }
 }

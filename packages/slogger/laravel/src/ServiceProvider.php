@@ -58,6 +58,7 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
         $this->publishes(
             paths: [
                 __DIR__ . '/../config/slogger.php' => config_path('slogger.php'),
+                __DIR__ . '/../config/.env.strans.example' => base_path('.env.strans.example'),
             ],
             groups: [
                 'slogger-laravel',
