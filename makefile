@@ -132,5 +132,11 @@ frontend-npm-generate:
 strans-load:
 	@make workers-art c='slogger:transporter:load'&& chmod +x ./strans
 
+strans-stop:
+	@"$(WORKERS_CLI)"./strans --env=.env.strans manage stop
+
+strans-stat:
+	@"$(WORKERS_CLI)"./strans --env=.env.strans manage stat
+
 strans-start:
 	@"$(WORKERS_CLI)"./strans --env=.env.strans start
