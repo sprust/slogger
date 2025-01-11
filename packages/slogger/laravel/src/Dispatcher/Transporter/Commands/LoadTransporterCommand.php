@@ -1,6 +1,6 @@
 <?php
 
-namespace SLoggerLaravel\Commands;
+namespace SLoggerLaravel\Dispatcher\Transporter\Commands;
 
 use Illuminate\Console\Command;
 use SLoggerLaravel\Dispatcher\Transporter\TransporterLoader;
@@ -23,9 +23,16 @@ class LoadTransporterCommand extends Command
 
     public function handle(TransporterLoader $loader): int
     {
-        $loader->load();
+        $this->components->task(
+            'Downloading transporter',
+            static function () use ($loader) {
+                $loader->load();
 
-        $this->info('Transporter loaded ' . $loader->getVersion());
+                if (PHP_OS_FAMILY === 'Linux') {
+                    exec('chmod +x ' . $loader->getPath());
+                }
+            }
+        );
 
         return self::SUCCESS;
     }

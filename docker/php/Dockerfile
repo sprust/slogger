@@ -49,6 +49,9 @@ RUN docker-php-ext-enable \
 RUN apt-get update && apt-get install -y protobuf-compiler zlib1g-dev \
     && pecl install protobuf-4.27.2 grpc-1.64.1
 
+# pcntl
+RUN pecl pcntl && docker-php-ext-install pcntl
+
 EXPOSE 9000
 
 FROM php_base as php_app

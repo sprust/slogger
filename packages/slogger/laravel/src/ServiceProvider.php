@@ -2,15 +2,19 @@
 
 namespace SLoggerLaravel;
 
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\Queue;
-use SLoggerLaravel\Commands\LoadTransporterCommand;
+use SLoggerLaravel\Dispatcher\DispatcherFactory;
 use SLoggerLaravel\Dispatcher\Queue\ApiClients\ApiClientFactory;
 use SLoggerLaravel\Dispatcher\Queue\ApiClients\ApiClientInterface;
-use SLoggerLaravel\Dispatcher\DispatcherFactory;
 use SLoggerLaravel\Dispatcher\TraceDispatcherInterface;
 use SLoggerLaravel\Dispatcher\Transporter\Clients\TransporterClient;
 use SLoggerLaravel\Dispatcher\Transporter\Clients\TransporterClientInterface;
+use SLoggerLaravel\Dispatcher\Transporter\Commands\LoadTransporterCommand;
+use SLoggerLaravel\Dispatcher\Transporter\Commands\StartTransporterCommand;
+use SLoggerLaravel\Dispatcher\Transporter\Commands\StatTransporterCommand;
+use SLoggerLaravel\Dispatcher\Transporter\Commands\StopTransporterCommand;
 use SLoggerLaravel\Dispatcher\Transporter\TransporterLoader;
 use SLoggerLaravel\Middleware\HttpMiddleware;
 use SLoggerLaravel\Profiling\AbstractProfiling;
@@ -20,6 +24,9 @@ use SLoggerLaravel\Watchers\AbstractWatcher;
 
 class ServiceProvider extends \Illuminate\Support\ServiceProvider
 {
+    /**
+     * @throws BindingResolutionException
+     */
     public function boot(): void
     {
         $this->app->singleton(Config::class);
@@ -60,7 +67,6 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
         $this->publishes(
             paths: [
                 __DIR__ . '/../config/slogger.php' => config_path('slogger.php'),
-                __DIR__ . '/../config/.env.strans.example' => base_path('.env.strans.example'),
             ],
             groups: [
                 'slogger-laravel',
@@ -79,6 +85,9 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
         }
     }
 
+    /**
+     * @throws BindingResolutionException
+     */
     private function registerWatchers(): void
     {
         if (!$this->app['config']['slogger.enabled']) {
@@ -114,6 +123,9 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
 
         $this->commands([
             LoadTransporterCommand::class,
+            StartTransporterCommand::class,
+            StopTransporterCommand::class,
+            StatTransporterCommand::class,
         ]);
 
         $this->app->singleton(TransporterLoader::class, static function () {

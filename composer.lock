@@ -4161,10 +4161,12 @@
             "dist": {
                 "type": "path",
                 "url": "packages/slogger/laravel",
-                "reference": "2b11945937884ee0fa76aa8b5b031c748d376b84"
+                "reference": "319de85d83a3ff95dd98501a7330635ee8383a08"
             },
             "require": {
-                "laravel/framework": "^9.0 | ^10.0"
+                "ext-pcntl": "*",
+                "laravel/framework": "^9.0 | ^10.0",
+                "symfony/process": "^6.4|^7.0"
             },
             "type": "library",
             "extra": {
@@ -11003,6 +11005,6 @@
         "ext-protobuf": "*",
         "ext-xhprof": "*"
     },
-    "platform-dev": [],
+    "platform-dev": {},
     "plugin-api-version": "2.6.0"
 }

@@ -11,6 +11,11 @@ readonly class TransporterLoader
         $this->version = '0.0.1';
     }
 
+    public function fileExists(): bool
+    {
+        return file_exists($this->path);
+    }
+
     public function load(): void
     {
         $url = $this->makeUrl();
@@ -28,5 +33,10 @@ readonly class TransporterLoader
     public function getVersion(): string
     {
         return $this->version;
+    }
+
+    public function getPath(): string
+    {
+        return $this->path;
     }
 }
