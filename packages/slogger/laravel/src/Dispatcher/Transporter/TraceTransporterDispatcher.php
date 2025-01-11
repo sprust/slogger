@@ -103,7 +103,7 @@ class TraceTransporterDispatcher implements TraceDispatcherInterface
                 ? $this->prepareProfiling($trace->profiling)
                 : null,
             'tgs' => $trace->tags,
-            'dt'  => $trace->data,
+            'dt'  => is_null($trace->data) ? null : json_encode($trace->data),
             'dur' => $trace->duration,
             'mem' => $trace->memory,
             'cpu' => $trace->cpu,

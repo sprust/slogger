@@ -2,19 +2,29 @@
 
 namespace SLoggerLaravel\Dispatcher\Transporter\Clients;
 
+use Closure;
 use Illuminate\Contracts\Queue\Queue;
 
-readonly class TransporterClient implements TransporterClientInterface
+class TransporterClient implements TransporterClientInterface
 {
+    private ?Queue $connection = null;
+
+    /**
+     * @param Closure(): Queue $connectionResolver
+     */
     public function __construct(
-        private string $apiToken,
-        private Queue $connection,
-        private string $queueName,
+        private readonly string $apiToken,
+        private readonly Closure $connectionResolver,
+        private readonly string $queueName,
     ) {
     }
 
     public function dispatch(array $actions): void
     {
+        if (!$this->connection) {
+            $this->connection = ($this->connectionResolver)();
+        }
+
         $this->connection->pushRaw(
             payload: json_encode([
                 'id'      => uniqid(),

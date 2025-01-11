@@ -75,6 +75,7 @@ composer:
 workers-restart:
 	@make workers-art c='queues-declare'
 	@make workers-art c='queue:restart'
+	@make strans-stop
 	@make workers-art c='cron:restart'
 	@make workers-art c='octane:roadrunner:reload'
 	@make workers-art c='rr-monitor:stop grpc'

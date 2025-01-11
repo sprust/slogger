@@ -35,15 +35,17 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
             );
         });
 
-        $this->app->singleton(TransporterClientInterface::class, static function () {
+        $this->app->singleton(TransporterClientInterface::class, function () {
             return new TransporterClient(
                 apiToken: config('slogger.token'),
-                connection: Queue::connection(config('slogger.dispatchers.transporter.queue.connection')),
+                connectionResolver: static function (): \Illuminate\Contracts\Queue\Queue {
+                    return Queue::connection(config('slogger.dispatchers.transporter.queue.connection'));
+                },
                 queueName: config('slogger.dispatchers.transporter.queue.name')
             );
         });
 
-        $this->app->singleton(TraceDispatcherInterface::class, static function (Application $app) {
+        $this->app->singleton(TraceDispatcherInterface::class, function (Application $app) {
             return $app->make(DispatcherFactory::class)->create(
                 config('slogger.dispatchers.default')
             );
