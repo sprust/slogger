@@ -109,12 +109,12 @@ new \GuzzleHttp\Client([
 
 For the transporter usage you have to set env.SLOGGER_DISPATCHER_TRANSPORTER_*
 
-load bin file (for example, for supervisor)
+load bin file
 ```bash
 php artisan slogger:transporter:load
 ```
 
-start transporter
+start transporter (for example, for supervisor)
 ```bash
 php artisan slogger:transporter:start
 ```
@@ -130,7 +130,7 @@ strans
 .env.strans.*
 ```
 
-Set SLOGGER_DISPATCHER -> transporter
+Set env.SLOGGER_DISPATCHER -> transporter
 
 ### Profiling
 
@@ -144,3 +144,5 @@ php.ini
 [xhprof]
 extension=xhprof.so
 ```
+
+Set env.SLOGGER_PROFILING_ENABLED -> true
