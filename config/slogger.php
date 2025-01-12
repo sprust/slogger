@@ -9,19 +9,19 @@ use SLoggerLaravel\Dispatcher\Queue\Jobs\TraceCreateJob as SLoggerTraceCreateJob
 use SLoggerLaravel\Dispatcher\Queue\Jobs\TraceUpdateJob as SLoggerTraceUpdateJob;
 use SLoggerLaravel\Events\WatcherErrorEvent;
 use SLoggerLaravel\Listeners\WatcherErrorListener;
-use SLoggerLaravel\Watchers\EntryPoints\CommandWatcher;
-use SLoggerLaravel\Watchers\EntryPoints\JobWatcher;
-use SLoggerLaravel\Watchers\EntryPoints\RequestWatcher;
-use SLoggerLaravel\Watchers\Services\CacheWatcher;
-use SLoggerLaravel\Watchers\Services\DatabaseWatcher;
-use SLoggerLaravel\Watchers\Services\DumpWatcher;
-use SLoggerLaravel\Watchers\Services\GateWatcher;
-use SLoggerLaravel\Watchers\Services\HttpClientWatcher;
-use SLoggerLaravel\Watchers\Services\LogWatcher;
-use SLoggerLaravel\Watchers\Services\MailWatcher;
-use SLoggerLaravel\Watchers\Services\ModelWatcher;
-use SLoggerLaravel\Watchers\Services\NotificationWatcher;
-use SLoggerLaravel\Watchers\Services\ScheduleWatcher;
+use SLoggerLaravel\Watchers\Children\CacheWatcher;
+use SLoggerLaravel\Watchers\Children\DatabaseWatcher;
+use SLoggerLaravel\Watchers\Children\DumpWatcher;
+use SLoggerLaravel\Watchers\Children\GateWatcher;
+use SLoggerLaravel\Watchers\Children\HttpClientWatcher;
+use SLoggerLaravel\Watchers\Children\LogWatcher;
+use SLoggerLaravel\Watchers\Children\MailWatcher;
+use SLoggerLaravel\Watchers\Children\ModelWatcher;
+use SLoggerLaravel\Watchers\Children\NotificationWatcher;
+use SLoggerLaravel\Watchers\Children\ScheduleWatcher;
+use SLoggerLaravel\Watchers\Parents\CommandWatcher;
+use SLoggerLaravel\Watchers\Parents\JobWatcher;
+use SLoggerLaravel\Watchers\Parents\RequestWatcher;
 
 $defaultQueueConnection = env('QUEUE_TRACES_CREATING_CONNECTION');
 

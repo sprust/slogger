@@ -1,6 +1,6 @@
 <?php
 
-namespace SLoggerLaravel\Watchers\Services;
+namespace SLoggerLaravel\Watchers\Children;
 
 use Closure;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;

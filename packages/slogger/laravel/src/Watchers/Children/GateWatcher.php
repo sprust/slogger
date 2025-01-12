@@ -1,6 +1,6 @@
 <?php
 
-namespace SLoggerLaravel\Watchers\Services;
+namespace SLoggerLaravel\Watchers\Children;
 
 use Illuminate\Auth\Access\Events\GateEvaluated;
 use Illuminate\Auth\Access\Response;

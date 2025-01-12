@@ -6,7 +6,7 @@ use RrParallel\Events\JobHandledEvent;
 use RrParallel\Events\JobHandlingErrorEvent;
 use RrParallel\Events\JobReceivedEvent;
 
-class EventWatcher extends \SLoggerLaravel\Watchers\Services\EventWatcher
+class EventWatcher extends \SLoggerLaravel\Watchers\Children\EventWatcher
 {
     /** @var array<class-string<object>> */
     private array $ignoredEvents = [

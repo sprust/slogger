@@ -1,6 +1,6 @@
 <?php
 
-namespace SLoggerLaravel\Watchers\Services;
+namespace SLoggerLaravel\Watchers\Children;
 
 use Illuminate\Log\Events\MessageLogged;
 use SLoggerLaravel\Enums\TraceStatusEnum;

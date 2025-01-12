@@ -9,7 +9,7 @@ use GuzzleHttp\Psr7\Response;
 use Psr\Http\Message\RequestInterface;
 use SLoggerLaravel\RequestPreparer\RequestDataFormatters;
 use SLoggerLaravel\State;
-use SLoggerLaravel\Watchers\Services\HttpClientWatcher;
+use SLoggerLaravel\Watchers\Children\HttpClientWatcher;
 use Throwable;
 
 readonly class GuzzleHandlerFactory

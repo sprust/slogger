@@ -1,6 +1,6 @@
 <?php
 
-namespace SLoggerLaravel\Watchers\EntryPoints;
+namespace SLoggerLaravel\Watchers\Parents;
 
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Foundation\Http\Events\RequestHandled;

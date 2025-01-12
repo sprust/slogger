@@ -1,6 +1,6 @@
 <?php
 
-namespace SLoggerLaravel\Watchers\EntryPoints;
+namespace SLoggerLaravel\Watchers\Parents;
 
 use Illuminate\Console\Events\CommandFinished;
 use Illuminate\Console\Events\CommandStarting;

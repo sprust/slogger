@@ -1,6 +1,6 @@
 <?php
 
-namespace SLoggerLaravel\Watchers\EntryPoints;
+namespace SLoggerLaravel\Watchers\Parents;
 
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Queue\Events\JobProcessed;
