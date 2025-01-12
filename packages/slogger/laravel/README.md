@@ -105,6 +105,33 @@ new \GuzzleHttp\Client([
 ])
 ```
 
+### Transporter
+
+For the transporter usage you have to set env.SLOGGER_DISPATCHER_TRANSPORTER_*
+
+load bin file (for example, for supervisor)
+```bash
+php artisan slogger:transporter:start
+```
+
+start transporter
+```bash
+php artisan slogger:transporter:load
+```
+
+stop transporter
+```bash
+php artisan slogger:transporter:stop
+```
+
+.gitignore
+```gitignore
+strans
+.env.strans.*
+```
+
+Set SLOGGER_DISPATCHER -> transporter
+
 ### Profiling
 
 bash
