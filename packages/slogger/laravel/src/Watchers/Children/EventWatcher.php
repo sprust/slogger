@@ -21,11 +21,17 @@ class EventWatcher extends AbstractWatcher
         $this->listenEvent('*', [$this, 'handleEvent']);
     }
 
+    /**
+     * @param array<string, mixed> $payload
+     */
     public function handleEvent(string $eventName, array $payload): void
     {
         $this->safeHandleWatching(fn() => $this->onHandleEvent($eventName, $payload));
     }
 
+    /**
+     * @param array<string, mixed> $payload
+     */
     protected function onHandleEvent(string $eventName, array $payload): void
     {
         if ($this->shouldIgnore($eventName)) {
@@ -40,6 +46,11 @@ class EventWatcher extends AbstractWatcher
         );
     }
 
+    /**
+     * @param array<string, mixed> $payload
+     *
+     * @return string[]
+     */
     protected function prepareTags(string $eventName, array $payload): array
     {
         return [
@@ -47,15 +58,22 @@ class EventWatcher extends AbstractWatcher
         ];
     }
 
+    /**
+     * @param array<string, mixed> $payload
+     *
+     * @return array<string, mixed>
+     */
     protected function prepareData(string $eventName, array $payload): array
     {
         $payloadData = $this->preparePayload($payload);
 
+        $isBroadcast = class_exists($eventName)
+            && in_array(ShouldBroadcast::class, (array) class_implements($eventName));
+
         return [
             'name'      => $eventName,
             'listeners' => $this->formatListeners($eventName),
-            'broadcast' => class_exists($eventName)
-                && in_array(ShouldBroadcast::class, (array) class_implements($eventName)),
+            'broadcast' => $isBroadcast,
             ...($payloadData
                 ? [
                     'payload' => $payloadData,
@@ -64,14 +82,25 @@ class EventWatcher extends AbstractWatcher
         ];
     }
 
+    /**
+     * @param array<string, mixed> $payload
+     *
+     * @return array<string, mixed>
+     */
     protected function preparePayload(array $payload): array
     {
         return [];
     }
 
+    /**
+     * @return array<array{name: string, queued: bool}>
+     */
     protected function formatListeners(string $eventName): array
     {
-        return collect($this->app['events']->getListeners($eventName))
+        /** @var array<Closure|string|object> $listeners */
+        $listeners = $this->app['events']->getListeners($eventName);
+
+        return collect($listeners)
             ->map(function ($listener) {
                 $listener = (new ReflectionFunction($listener))
                     ->getStaticVariables()['listener'];
@@ -107,7 +136,7 @@ class EventWatcher extends AbstractWatcher
         return $this->eventIsFiredByTheFramework($eventName);
     }
 
-    protected function eventIsFiredByTheFramework($eventName): bool
+    protected function eventIsFiredByTheFramework(string $eventName): bool
     {
         return Str::is(
             [

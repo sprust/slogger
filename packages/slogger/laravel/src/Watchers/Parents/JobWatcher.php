@@ -17,7 +17,13 @@ use SLoggerLaravel\Watchers\AbstractWatcher;
 
 class JobWatcher extends AbstractWatcher
 {
+    /**
+     * @var array<array{trace_id: string, started_at: Carbon}>
+     */
     protected array $jobs = [];
+    /**
+     * @var class-string[]
+     */
     protected array $exceptedJobs = [];
 
     protected function init(): void

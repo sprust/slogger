@@ -20,6 +20,9 @@ class HttpClientWatcher extends AbstractWatcher
     protected ?string $headerTraceIdKey;
     protected ?string $headerParentTraceIdKey;
 
+    /**
+     * @var array<string, array{trace_id: string, started_at: Carbon}>
+     */
     protected array $requests = [];
 
     protected function init(): void
@@ -72,6 +75,9 @@ class HttpClientWatcher extends AbstractWatcher
         return $request;
     }
 
+    /**
+     * @param array<string, mixed> $options
+     */
     final public function handleResponse(
         RequestInterface $request,
         array $options,
@@ -85,6 +91,9 @@ class HttpClientWatcher extends AbstractWatcher
         );
     }
 
+    /**
+     * @param array<string, mixed> $options
+     */
     protected function onHandleResponse(
         RequestInterface $request,
         array $options,
@@ -187,13 +196,16 @@ class HttpClientWatcher extends AbstractWatcher
         return true;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     protected function prepareRequestHeaders(
         RequestInterface $request,
         RequestDataFormatters $formatters
     ): array {
         $headers = $request->getHeaders();
 
-        foreach ($formatters?->getItems() ?? [] as $formatter) {
+        foreach ($formatters->getItems() as $formatter) {
             $headers = $formatter->prepareRequestHeaders(
                 url: $this->getRequestPath($request),
                 headers: $headers
@@ -203,6 +215,9 @@ class HttpClientWatcher extends AbstractWatcher
         return $headers;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     protected function prepareRequestParameters(
         RequestInterface $request,
         RequestDataFormatters $formatters
@@ -215,7 +230,7 @@ class HttpClientWatcher extends AbstractWatcher
 
         $url = $this->getRequestPath($request);
 
-        foreach ($formatters?->getItems() ?? [] as $formatter) {
+        foreach ($formatters->getItems() as $formatter) {
             $parameters = $formatter->prepareRequestParameters(
                 url: $url,
                 parameters: $parameters
@@ -225,6 +240,9 @@ class HttpClientWatcher extends AbstractWatcher
         return $parameters;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     protected function prepareResponseHeaders(
         RequestInterface $request,
         ResponseInterface $response,
@@ -234,7 +252,7 @@ class HttpClientWatcher extends AbstractWatcher
 
         $headers = $response->getHeaders();
 
-        foreach ($formatters?->getItems() ?? [] as $formatter) {
+        foreach ($formatters->getItems() as $formatter) {
             $headers = $formatter->prepareResponseHeaders(
                 url: $url,
                 headers: $headers
@@ -244,6 +262,9 @@ class HttpClientWatcher extends AbstractWatcher
         return $headers;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     protected function prepareResponseBody(
         RequestInterface $request,
         ResponseInterface $response,
@@ -267,7 +288,7 @@ class HttpClientWatcher extends AbstractWatcher
             fn() => json_decode($body->getContents(), true) ?: []
         );
 
-        foreach ($formatters->getItems() ?? [] as $formatter) {
+        foreach ($formatters->getItems() as $formatter) {
             $continue = $formatter->prepareResponseData(
                 url: $url,
                 dataResolver: $dataResolver
@@ -285,6 +306,9 @@ class HttpClientWatcher extends AbstractWatcher
         return $data;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     protected function getCommonRequestData(RequestInterface $request): array
     {
         return [

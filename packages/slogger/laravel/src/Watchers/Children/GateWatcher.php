@@ -5,6 +5,7 @@ namespace SLoggerLaravel\Watchers\Children;
 use Illuminate\Auth\Access\Events\GateEvaluated;
 use Illuminate\Auth\Access\Response;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Arr;
 use SLoggerLaravel\Enums\TraceStatusEnum;
 use SLoggerLaravel\Enums\TraceTypeEnum;
 use SLoggerLaravel\Helpers\DataFormatter;
@@ -48,7 +49,7 @@ class GateWatcher extends AbstractWatcher
         );
     }
 
-    protected function prepareResult($result): string
+    protected function prepareResult(mixed $result): string
     {
         if ($result instanceof Response) {
             return $result->allowed() ? self::ALLOWED : self::DENIED;
@@ -57,14 +58,20 @@ class GateWatcher extends AbstractWatcher
         return $result ? self::ALLOWED : self::DENIED;
     }
 
-    protected function prepareArguments($arguments): array
+    /**
+     * @param array<string|int, mixed> $arguments
+     *
+     * @return array<string|int, mixed>
+     */
+    protected function prepareArguments(array $arguments): array
     {
-        return collect($arguments)
-            ->map(function ($argument) {
+        return Arr::map(
+            $arguments,
+            function (mixed $argument) {
                 return $argument instanceof Model
                     ? DataFormatter::model($argument)
                     : $argument;
-            })
-            ->toArray();
+            }
+        );
     }
 }

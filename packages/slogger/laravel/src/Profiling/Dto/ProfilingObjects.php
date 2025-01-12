@@ -4,7 +4,9 @@ namespace SLoggerLaravel\Profiling\Dto;
 
 class ProfilingObjects
 {
-    /** @var ProfilingObject[] */
+    /**
+     * @var ProfilingObject[]
+     */
     private array $items = [];
 
     public function __construct(private readonly string $mainCaller)
@@ -23,6 +25,9 @@ class ProfilingObjects
         return $this;
     }
 
+    /**
+     * @return ProfilingObject[]
+     */
     public function getItems(): array
     {
         return $this->items;

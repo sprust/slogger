@@ -7,6 +7,12 @@ use Illuminate\Support\Str;
 
 class MaskHelper
 {
+    /**
+     * @param array<string, mixed> $data
+     * @param array<string, mixed> $patterns
+     *
+     * @return array<string, mixed>
+     */
     public static function maskArrayByList(array $data, array $patterns): array
     {
         foreach ($patterns as $key) {
@@ -22,6 +28,12 @@ class MaskHelper
         return $data;
     }
 
+    /**
+     * @param array<string, mixed> $data
+     * @param array<string, mixed> $patterns
+     *
+     * @return array<string, mixed>
+     */
     public static function maskArrayByPatterns(array $data, array $patterns): array
     {
         $result = [];

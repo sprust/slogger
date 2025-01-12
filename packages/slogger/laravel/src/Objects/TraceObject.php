@@ -6,6 +6,10 @@ use Illuminate\Support\Carbon;
 
 class TraceObject
 {
+    /**
+     * @param string[]             $tags
+     * @param array<string, mixed> $data
+     */
     public function __construct(
         public string $traceId,
         public ?string $parentTraceId,

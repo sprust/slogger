@@ -49,25 +49,25 @@ readonly class GuzzleHandlerFactory
                 array $options,
                 PromiseInterface $response
             ) use ($formatters): void {
-                /** @var Response $responseWaited */
-
                 try {
                     $responseWaited = $response->wait();
                 } catch (Throwable $exception) {
                     $this->httpClientWatcher->handleInvalidResponse(
-                        $request,
-                        $exception,
-                        $formatters
+                        request: $request,
+                        exception: $exception,
+                        formatters: $formatters
                     );
 
                     return;
                 }
 
+                /** @var Response $responseWaited */
+
                 $this->httpClientWatcher->handleResponse(
-                    $request,
-                    $options,
-                    $responseWaited,
-                    $formatters
+                    request: $request,
+                    options: $options,
+                    response: $responseWaited,
+                    formatters: $formatters
                 );
             }
         );

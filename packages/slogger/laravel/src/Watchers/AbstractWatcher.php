@@ -32,9 +32,12 @@ abstract class AbstractWatcher
     {
     }
 
-    protected function listenEvent(string $eventClass, array $function): void
+    /**
+     * @param array<Closure|string|array<string|int, mixed>|null> $listener
+     */
+    protected function listenEvent(string $eventClass, array $listener): void
     {
-        $this->events->listen($eventClass, $function);
+        $this->events->listen($eventClass, $listener);
     }
 
     protected function safeHandleWatching(Closure $callback): mixed

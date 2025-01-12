@@ -22,6 +22,9 @@ class Processor
 {
     private bool $started = false;
 
+    /**
+     * @var array<string|null>
+     */
     private array $preParentIdsStack = [];
 
     private bool $paused = false;
@@ -70,6 +73,9 @@ class Processor
     }
 
     /**
+     * @param string[]             $tags
+     * @param array<string, mixed> $data
+     *
      * @throws Throwable
      */
     public function handleSeparateTracing(
@@ -122,6 +128,10 @@ class Processor
         return $result;
     }
 
+    /**
+     * @param string[]             $tags
+     * @param array<string, mixed> $data
+     */
     public function startAndGetTraceId(
         string $type,
         array $tags = [],
@@ -161,6 +171,10 @@ class Processor
         return $traceId;
     }
 
+    /**
+     * @param string[]             $tags
+     * @param array<string, mixed> $data
+     */
     public function push(
         string $type,
         string $status,
@@ -201,6 +215,10 @@ class Processor
         );
     }
 
+    /**
+     * @param string[]|null             $tags
+     * @param array<string, mixed>|null $data
+     */
     public function stop(
         string $traceId,
         string $status,

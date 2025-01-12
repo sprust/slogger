@@ -48,7 +48,7 @@ class NotificationWatcher extends AbstractWatcher
         );
     }
 
-    protected function formatNotifiable($notifiable): string
+    protected function formatNotifiable(mixed $notifiable): string
     {
         if ($notifiable instanceof Model) {
             return DataFormatter::model($notifiable);

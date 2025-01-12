@@ -6,6 +6,7 @@ use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Foundation\Http\Events\RequestHandled;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as IlluminateResponse;
+use Illuminate\Routing\Route;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
@@ -26,8 +27,13 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class RequestWatcher extends AbstractWatcher
 {
+    /**
+     * @var array<array{trace_id: string, boot_time: float}>
+     */
     protected array $requests = [];
-
+    /**
+     * @var string[]
+     */
     protected array $exceptedPaths = [];
 
     protected RequestDataFormatters $formatters;
@@ -137,6 +143,9 @@ class RequestWatcher extends AbstractWatcher
         );
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     protected function getCommonRequestData(Request $request): array
     {
         $url = str_replace($request->root(), '', $request->fullUrl());
@@ -150,6 +159,9 @@ class RequestWatcher extends AbstractWatcher
         ];
     }
 
+    /**
+     * @return string[]
+     */
     protected function getPreTags(Request $request): array
     {
         $url = str_replace($request->root(), '', $request->fullUrl());
@@ -159,11 +171,24 @@ class RequestWatcher extends AbstractWatcher
         ];
     }
 
+    /**
+     * @return string[]
+     */
     protected function getPostTags(Request $request, Response $response): array
     {
         $route = $request->route();
 
         if (!$route) {
+            return [];
+        }
+
+        if (is_string($route)) {
+            return [
+                $route,
+            ];
+        }
+
+        if (!$route instanceof Route) {
             return [];
         }
 
@@ -178,11 +203,17 @@ class RequestWatcher extends AbstractWatcher
         return '/' . ltrim($url, '/');
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     protected function getAdditionalData(): array
     {
         return [];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     protected function prepareRequestHeaders(Request $request): array
     {
         $uri = $this->getRequestPath($request);
@@ -196,6 +227,9 @@ class RequestWatcher extends AbstractWatcher
         return $headers;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     protected function prepareRequestParameters(Request $request): array
     {
         $uri = $this->getRequestPath($request);
@@ -209,6 +243,9 @@ class RequestWatcher extends AbstractWatcher
         return $parameters;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     protected function prepareResponseHeaders(Request $request, Response $response): array
     {
         $uri = $this->getRequestPath($request);
@@ -222,6 +259,9 @@ class RequestWatcher extends AbstractWatcher
         return $headers;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     protected function prepareResponseData(Request $request, Response $response): array
     {
         if ($response instanceof RedirectResponse) {
@@ -260,6 +300,9 @@ class RequestWatcher extends AbstractWatcher
         return [];
     }
 
+    /**
+     * @param string[] $patterns
+     */
     protected function isRequestByPatterns(Request $request, array $patterns): bool
     {
         $path = trim($request->getPathInfo(), '/');
@@ -275,6 +318,9 @@ class RequestWatcher extends AbstractWatcher
         return false;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     protected function getRequestParameters(Request $request): array
     {
         $files = $request->files->all();

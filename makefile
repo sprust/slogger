@@ -48,7 +48,7 @@ bash-php-fpm:
 	@"$(PHP_FPM_CLI)"bash
 
 code-analise-stan:
-	@"$(WORKERS_CLI)"./vendor/bin/phpstan analyse app -c ./code-analyse/phpstan.neon  --memory-limit=1G
+	@"$(WORKERS_CLI)"./vendor/bin/phpstan analyse -c ./code-analyse/phpstan.neon  --memory-limit=1G
 
 code-analise-deptrac:
 	@"$(WORKERS_CLI)"./vendor/bin/deptrac analyse --config-file=./code-analyse/deptrac-layers.yaml

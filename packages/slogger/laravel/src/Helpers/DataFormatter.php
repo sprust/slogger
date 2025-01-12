@@ -8,6 +8,17 @@ use Throwable;
 
 class DataFormatter
 {
+    /**
+     * @param Throwable $exception
+     *
+     * @return array{
+     *     message: string,
+     *     exception: string,
+     *     file: string,
+     *     line: int,
+     *     trace: array<array{file: string, line: int}>
+     * }
+     */
     public static function exception(Throwable $exception): array
     {
         return [
@@ -26,6 +37,10 @@ class DataFormatter
 
     /**
      * @see Throwable::getTrace()
+     *
+     * @param array<array{file: string, line: int}> $stackTrace
+     *
+     * @return array<array{file: string, line: int}>
      */
     private static function stackTrace(array $stackTrace): array
     {

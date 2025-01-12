@@ -13,7 +13,13 @@ use Symfony\Component\Console\Input\InputInterface;
 
 class CommandWatcher extends AbstractWatcher
 {
+    /**
+     * @var array<array{trace_id: string, started_at: Carbon}>
+     */
     protected array $commands = [];
+    /**
+     * @var string[]
+     */
     protected array $exceptedCommands = [];
 
     protected function init(): void

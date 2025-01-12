@@ -84,6 +84,20 @@ class HttpClient implements ApiClientInterface
         ]);
     }
 
+    /**
+     * @return array{
+     *     main_caller: string,
+     *     items: array{
+     *      raw: string,
+     *      calling: string,
+     *      callable: string,
+     *      data: array{
+     *          name: string,
+     *          value: int|float
+     *      }[]
+     *     }[]
+     * }
+     */
     private function prepareProfiling(ProfilingObjects $profiling): array
     {
         $result = [];
@@ -109,6 +123,9 @@ class HttpClient implements ApiClientInterface
         ];
     }
 
+    /**
+     * @return array{name: string, value: int|float}
+     */
     private function makeProfileDataItem(string $name, int|float $value): array
     {
         return [

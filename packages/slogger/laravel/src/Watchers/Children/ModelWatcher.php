@@ -11,6 +11,9 @@ use SLoggerLaravel\Watchers\AbstractWatcher;
 
 class ModelWatcher extends AbstractWatcher
 {
+    /**
+     * @var array<string, string[]>
+     */
     protected array $masks = [];
 
     protected function init(): void
@@ -23,11 +26,17 @@ class ModelWatcher extends AbstractWatcher
         $this->listenEvent('eloquent.*', [$this, 'handleEvent']);
     }
 
+    /**
+     * @param array{model: Model}|Model[] $eventData
+     */
     public function handleEvent(string $eventName, array $eventData): void
     {
         $this->safeHandleWatching(fn() => $this->onHandleEvent($eventName, $eventData));
     }
 
+    /**
+     * @param array{model: Model}|Model[] $eventData
+     */
     protected function onHandleEvent(string $eventName, array $eventData): void
     {
         if (!$this->shouldRecord($eventName)) {
@@ -77,6 +86,9 @@ class ModelWatcher extends AbstractWatcher
         ], $eventName);
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     protected function prepareChanges(Model $modelInstance): ?array
     {
         $changes = $modelInstance->getChanges() ?: null;

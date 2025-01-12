@@ -96,7 +96,7 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
 
         $state = $this->app->make(State::class);
 
-        /** @var array[] $watcherConfigs */
+        /** @var array{enabled: bool, class: class-string<AbstractWatcher>}[] $watcherConfigs */
         $watcherConfigs = $this->app['config']['slogger.watchers'] ?? [];
 
         foreach ($watcherConfigs as $watcherConfig) {

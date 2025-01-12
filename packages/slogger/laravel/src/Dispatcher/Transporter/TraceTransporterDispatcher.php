@@ -60,6 +60,9 @@ class TraceTransporterDispatcher implements TraceDispatcherInterface
         $this->client->dispatch($actions);
     }
 
+    /**
+     * @return array{tp: string, dt: string}
+     */
     private function makeCreateData(TraceObject $trace): array
     {
         return $this->makeAction(
@@ -68,6 +71,9 @@ class TraceTransporterDispatcher implements TraceDispatcherInterface
         );
     }
 
+    /**
+     * @return array{tp: string, dt: string}
+     */
     private function makeUpdateData(TraceUpdateObject $trace): array
     {
         return $this->makeAction(
@@ -110,6 +116,9 @@ class TraceTransporterDispatcher implements TraceDispatcherInterface
         ]);
     }
 
+    /**
+     * @return array{tp: string, dt: string}
+     */
     private function makeAction(string $type, string $data): array
     {
         return [
@@ -118,6 +127,20 @@ class TraceTransporterDispatcher implements TraceDispatcherInterface
         ];
     }
 
+    /**
+     * @return array{
+     *     mc: string,
+     *     its: array{
+     *      raw: string,
+     *      c_ing: string,
+     *      c_ble: string,
+     *      dt: array{
+     *          nm: string,
+     *          val: int|float
+     *      }[]
+     *     }[]
+     * }
+     */
     private function prepareProfiling(ProfilingObjects $profiling): array
     {
         $result = [];
@@ -143,6 +166,9 @@ class TraceTransporterDispatcher implements TraceDispatcherInterface
         ];
     }
 
+    /**
+     * @return array{nm: string, val: int|float}
+     */
     private function makeProfileDataItem(string $name, int|float $value): array
     {
         return [

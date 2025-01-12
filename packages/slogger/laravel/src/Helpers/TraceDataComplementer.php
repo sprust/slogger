@@ -15,6 +15,9 @@ class TraceDataComplementer
         $this->basePathPackages = base_path('packages' . DIRECTORY_SEPARATOR);
     }
 
+    /**
+     * @param array<string, mixed> $data
+     */
     public function inject(array &$data): void
     {
         $backTrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);

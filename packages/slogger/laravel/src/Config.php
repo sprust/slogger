@@ -25,57 +25,81 @@ readonly class Config
         return $this->config['slogger.watchers_customizing.requests.header_parent_trace_id_key'] ?? null;
     }
 
-    // watchers_customizing.requests
+    /**
+     * @return string[]
+     */
     public function requestsExceptedPaths(): array
     {
         return $this->config['slogger.watchers_customizing.requests.excepted_paths'] ?? [];
     }
 
-    // watchers_customizing.requests.input
+    /**
+     * @return string[]
+     */
     public function requestsInputFullHiding(): array
     {
         return $this->config['slogger.watchers_customizing.requests.input.full_hiding'] ?? [];
     }
 
+    /**
+     * @return array<string, string[]>
+     */
     public function requestsInputMaskHeadersMasking(): array
     {
         return $this->config['slogger.watchers_customizing.requests.input.headers_masking'] ?? [];
     }
 
+    /**
+     * @return array<string, string[]>
+     */
     public function requestsInputParametersMasking(): array
     {
         return $this->config['slogger.watchers_customizing.requests.input.parameters_masking'] ?? [];
     }
 
-    // watchers_customizing.requests.output
+    /**
+     * @return string[]
+     */
     public function requestsOutputFullHiding(): array
     {
         return $this->config['slogger.watchers_customizing.requests.output.full_hiding'] ?? [];
     }
 
+    /**
+     * @return array<string, string[]>
+     */
     public function requestsOutputHeadersMasking(): array
     {
         return $this->config['slogger.watchers_customizing.requests.output.headers_masking'] ?? [];
     }
 
+    /**
+     * @return array<string, string[]>
+     */
     public function requestsOutputFieldsMasking(): array
     {
         return $this->config['slogger.watchers_customizing.requests.output.fields_masking'] ?? [];
     }
 
-    // watchers_customizing.commands
+    /**
+     * @return string[]
+     */
     public function commandsExcepted(): array
     {
         return $this->config['slogger.watchers_customizing.commands.excepted'] ?? [];
     }
 
-    // watchers_customizing.jobs
+    /**
+     * @return class-string[]
+     */
     public function jobsExcepted(): array
     {
         return $this->config['slogger.watchers_customizing.jobs.excepted'] ?? [];
     }
 
-    // watchers_customizing.models
+    /**
+     * @return array<string, string[]>
+     */
     public function modelsMasks(): array
     {
         return $this->config['slogger.watchers_customizing.models.masks'] ?? [];

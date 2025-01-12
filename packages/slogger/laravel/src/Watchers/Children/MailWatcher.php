@@ -53,6 +53,11 @@ class MailWatcher extends AbstractWatcher
         return $event->data['__laravel_notification_queued'] ?? false;
     }
 
+    /**
+     * @param array<string, string>|Address[]|null $addresses
+     *
+     * @return array<string, string>|null
+     */
     protected function formatAddresses(?array $addresses): ?array
     {
         if (is_null($addresses)) {

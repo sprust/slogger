@@ -8,10 +8,17 @@ use SLoggerLaravel\Helpers\MaskHelper;
 
 class RequestDataFormatter
 {
+    /**
+     * @var string[] $urlPatterns
+     */
     protected array $urlPatterns;
 
     /**
      * @param string[] $urlPatterns
+     * @param string[] $requestHeaders
+     * @param string[] $requestParameters
+     * @param string[] $responseHeaders
+     * @param string[] $responseFields
      */
     public function __construct(
         array $urlPatterns,
@@ -35,6 +42,9 @@ class RequestDataFormatter
         return $this;
     }
 
+    /**
+     * @param string[] $headers
+     */
     public function addRequestHeaders(array $headers): static
     {
         $this->requestHeaders = array_merge($this->requestHeaders, $headers);
@@ -42,6 +52,9 @@ class RequestDataFormatter
         return $this;
     }
 
+    /**
+     * @param string[] $parameters
+     */
     public function addRequestParameters(array $parameters): static
     {
         $this->requestParameters = array_merge($this->requestParameters, $parameters);
@@ -56,6 +69,9 @@ class RequestDataFormatter
         return $this;
     }
 
+    /**
+     * @param string[] $headers
+     */
     public function addResponseHeaders(array $headers): static
     {
         $this->responseHeaders = array_merge($this->responseHeaders, $headers);
@@ -63,6 +79,9 @@ class RequestDataFormatter
         return $this;
     }
 
+    /**
+     * @param string[] $fields
+     */
     public function addResponseFields(array $fields): static
     {
         $this->responseFields = array_merge($this->responseFields, $fields);
@@ -70,6 +89,11 @@ class RequestDataFormatter
         return $this;
     }
 
+    /**
+     * @param array<string, mixed> $headers
+     *
+     * @return array<string, mixed>
+     */
     public function prepareRequestHeaders(string $url, array $headers): array
     {
         if (!$this->is($url)) {
@@ -82,6 +106,11 @@ class RequestDataFormatter
         );
     }
 
+    /**
+     * @param array<string, mixed> $parameters
+     *
+     * @return array<string, mixed>
+     */
     public function prepareRequestParameters(string $url, array $parameters): array
     {
         if (!$this->is($url)) {
@@ -100,6 +129,11 @@ class RequestDataFormatter
         );
     }
 
+    /**
+     * @param array<string, mixed> $headers
+     *
+     * @return array<string, mixed>
+     */
     public function prepareResponseHeaders(string $url, array $headers): array
     {
         if (!$this->is($url)) {
@@ -146,6 +180,12 @@ class RequestDataFormatter
         return Str::is($this->urlPatterns, trim($url, '/'));
     }
 
+
+    /**
+     * @param array<string, mixed> $headers
+     *
+     * @return array<string, mixed>
+     */
     protected function prepareHeaders(array $headers): array
     {
         return collect($headers)
