@@ -25,11 +25,6 @@ readonly class TransporterLoader
         file_put_contents($this->path, $content);
     }
 
-    private function makeUrl(): string
-    {
-        return "https://github.com/sprust/slogger-transporter/releases/download/v$this->version/strans";
-    }
-
     public function getVersion(): string
     {
         return $this->version;
@@ -38,5 +33,10 @@ readonly class TransporterLoader
     public function getPath(): string
     {
         return $this->path;
+    }
+
+    private function makeUrl(): string
+    {
+        return "https://github.com/sprust/slogger-transporter/releases/download/v$this->version/strans";
     }
 }
