@@ -111,12 +111,12 @@ For the transporter usage you have to set env.SLOGGER_DISPATCHER_TRANSPORTER_*
 
 load bin file (for example, for supervisor)
 ```bash
-php artisan slogger:transporter:start
+php artisan slogger:transporter:load
 ```
 
 start transporter
 ```bash
-php artisan slogger:transporter:load
+php artisan slogger:transporter:start
 ```
 
 stop transporter
