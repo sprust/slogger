@@ -13,7 +13,7 @@ use App\Modules\Trace\Parameters\Profilling\TraceUpdateProfilingObject;
 use App\Modules\Trace\Parameters\Profilling\TraceUpdateProfilingObjects;
 use App\Modules\Trace\Parameters\TraceUpdateParameters;
 use App\Modules\Trace\Parameters\TraceUpdateParametersList;
-use SLoggerLaravel\SLoggerProcessor;
+use SLoggerLaravel\Processor;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
@@ -22,7 +22,7 @@ readonly class TraceUpdateController
     public function __construct(
         private ServiceContainer $serviceContainer,
         private QueueDispatcher $queueDispatcher,
-        private SLoggerProcessor $loggerProcessor
+        private Processor $processor
     ) {
     }
 
@@ -31,7 +31,7 @@ readonly class TraceUpdateController
      */
     public function __invoke(TraceUpdateRequest $request): void
     {
-        $this->loggerProcessor->handleWithoutTracing(
+        $this->processor->handleWithoutTracing(
             fn() => $this->handle($request)
         );
     }

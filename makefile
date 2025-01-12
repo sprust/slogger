@@ -27,8 +27,9 @@ setup:
 	@make composer c=install
 	@make art c=key:generate
 	@make art c="migrate --force"
-	@make rabbitmq-queues-declare
+	@make workers-art c='queues-declare'
 	@make rr-get-binary
+	@make strans-load
 	@make frontend-npm-i
 	@make frontend-npm-build
 	@make restart
@@ -47,7 +48,7 @@ bash-php-fpm:
 	@"$(PHP_FPM_CLI)"bash
 
 code-analise-stan:
-	@"$(WORKERS_CLI)"./vendor/bin/phpstan analyse app -c ./code-analyse/phpstan.neon  --memory-limit=1G
+	@"$(WORKERS_CLI)"./vendor/bin/phpstan analyse -c ./code-analyse/phpstan.neon  --memory-limit=1G
 
 code-analise-deptrac:
 	@"$(WORKERS_CLI)"./vendor/bin/deptrac analyse --config-file=./code-analyse/deptrac-layers.yaml
@@ -72,7 +73,9 @@ composer:
 	@docker-compose exec -e XDEBUG_MODE=off $(PHP_FPM_SERVICE) composer ${c}
 
 workers-restart:
+	@make workers-art c='queues-declare'
 	@make workers-art c='queue:restart'
+	@make strans-stop
 	@make workers-art c='cron:restart'
 	@make workers-art c='octane:roadrunner:reload'
 	@make workers-art c='rr-monitor:stop grpc'
@@ -116,7 +119,7 @@ protoc-compile:
 	@"$(WORKERS_CLI)"protoc --plugin=protoc-gen-php-grpc \
 		--php_out=./packages/slogger/grpc/generated \
 		--php-grpc_out=./packages/slogger/grpc/generated \
-		./packages/slogger/grpc/proto/collector.proto
+		./packages/slogger/grpc/proto/*.proto
 
 frontend-npm-i:
 	@"$(FRONTEND_CLI)"npm i
@@ -127,5 +130,14 @@ frontend-npm-build:
 frontend-npm-generate:
 	@"$(FRONTEND_CLI)"npm run generate
 
-rabbitmq-queues-declare:
-	@make art c="rabbitmq:queue-declare $(QUEUE_TRACES_CREATING_NAME)"
+strans-load:
+	@make workers-art c='slogger:transporter:load' && chmod +x ./strans
+
+strans-start:
+	@make workers-art c='slogger:transporter:start'
+
+strans-stat:
+	@make workers-art c='slogger:transporter:stat'
+
+strans-stop:
+	@make workers-art c='slogger:transporter:stop'

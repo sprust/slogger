@@ -28,3 +28,6 @@ app/Console/Commands/Local
 protoc-gen-php-grpc
 
 .deptrac.cache
+
+strans
+.env.strans.*

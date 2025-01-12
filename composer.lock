@@ -4161,16 +4161,18 @@
             "dist": {
                 "type": "path",
                 "url": "packages/slogger/laravel",
-                "reference": "90b63691e5ab32a430e5e172b6fa1efc7d12a7f6"
+                "reference": "319de85d83a3ff95dd98501a7330635ee8383a08"
             },
             "require": {
-                "laravel/framework": "^9.0 | ^10.0"
+                "ext-pcntl": "*",
+                "laravel/framework": "^9.0 | ^10.0",
+                "symfony/process": "^6.4|^7.0"
             },
             "type": "library",
             "extra": {
                 "laravel": {
                     "providers": [
-                        "SLoggerLaravel\\SLoggerServiceProvider"
+                        "SLoggerLaravel\\ServiceProvider"
                     ]
                 }
             },
@@ -11003,6 +11005,6 @@
         "ext-protobuf": "*",
         "ext-xhprof": "*"
     },
-    "platform-dev": [],
+    "platform-dev": {},
     "plugin-api-version": "2.6.0"
 }
