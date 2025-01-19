@@ -6,10 +6,12 @@ use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Container\CircularDependencyException;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Arr;
+use RuntimeException;
 use SLoggerLaravel\Dispatcher\TraceDispatcherInterface;
 use SLoggerLaravel\Objects\TraceObject;
 use SLoggerLaravel\Objects\TraceObjects;
 use SLoggerLaravel\Objects\TraceUpdateObject;
+use Symfony\Component\Console\Output\OutputInterface;
 
 class TraceFileDispatcher implements TraceDispatcherInterface
 {
@@ -18,6 +20,11 @@ class TraceFileDispatcher implements TraceDispatcherInterface
 
     public function __construct(protected readonly Application $app)
     {
+    }
+
+    public function start(OutputInterface $output): void
+    {
+        throw new RuntimeException('Not implemented');
     }
 
     public function push(TraceObject $parameters): void

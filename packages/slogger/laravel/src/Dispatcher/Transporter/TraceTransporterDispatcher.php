@@ -3,11 +3,15 @@
 namespace SLoggerLaravel\Dispatcher\Transporter;
 
 use Exception;
+use Illuminate\Console\OutputStyle;
+use Illuminate\Support\Facades\Artisan;
 use SLoggerLaravel\Dispatcher\TraceDispatcherInterface;
 use SLoggerLaravel\Dispatcher\Transporter\Clients\TransporterClientInterface;
+use SLoggerLaravel\Dispatcher\Transporter\Commands\StartTransporterCommand;
 use SLoggerLaravel\Objects\TraceObject;
 use SLoggerLaravel\Objects\TraceUpdateObject;
 use SLoggerLaravel\Profiling\Dto\ProfilingObjects;
+use Symfony\Component\Console\Output\OutputInterface;
 
 class TraceTransporterDispatcher implements TraceDispatcherInterface
 {
@@ -22,6 +26,11 @@ class TraceTransporterDispatcher implements TraceDispatcherInterface
     public function __construct(
         private readonly TransporterClientInterface $client
     ) {
+    }
+
+    public function start(OutputInterface $output): void
+    {
+        Artisan::call(StartTransporterCommand::class, outputBuffer: $output);
     }
 
     public function push(TraceObject $parameters): void
