@@ -33,14 +33,16 @@ class TransporterProcess
         $envFileName = $env ?? '.env.strans.' . Str::slug($commandName, '.');
         $envFilePath = base_path($envFileName);
 
-        pcntl_async_signals(true);
+        if ($commandName === 'start') {
+            pcntl_async_signals(true);
 
-        pcntl_signal(SIGINT, function () use ($envFileName) {
-            $this->shouldQuit = true;
+            pcntl_signal(SIGINT, function () use ($envFileName) {
+                $this->shouldQuit = true;
 
-            // TODO: transporter process does not receive SIGINT signal by posix_kill
-            Artisan::call(StopTransporterCommand::class, ['--env' => $envFileName]);
-        });
+                // TODO: transporter process does not receive SIGINT signal by posix_kill
+                Artisan::call(StopTransporterCommand::class, ['--env' => $envFileName]);
+            });
+        }
 
         $this->initEnv($envFilePath);
 
