@@ -33,7 +33,7 @@ class TraceTransporterDispatcher implements TraceDispatcherInterface
         Artisan::call(StartTransporterCommand::class, outputBuffer: $output);
     }
 
-    public function push(TraceObject $parameters): void
+    public function create(TraceObject $parameters): void
     {
         $this->traces[] = $parameters;
 
@@ -51,7 +51,7 @@ class TraceTransporterDispatcher implements TraceDispatcherInterface
         $this->client->dispatch($actions);
     }
 
-    public function stop(TraceUpdateObject $parameters): void
+    public function update(TraceUpdateObject $parameters): void
     {
         $actions = [];
 

@@ -26,13 +26,12 @@ class TraceFileDispatcher implements TraceDispatcherInterface
     {
         throw new RuntimeException('Not implemented');
     }
-
-    public function push(TraceObject $parameters): void
+    public function create(TraceObject $parameters): void
     {
         $this->traces[] = $parameters;
     }
 
-    public function stop(TraceUpdateObject $parameters): void
+    public function update(TraceUpdateObject $parameters): void
     {
         if (!$this->traces) {
             return;

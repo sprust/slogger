@@ -35,15 +35,15 @@ class QueueManager
             120,
             1
         );
-
-        pcntl_async_signals(true);
-
-        pcntl_signal(SIGQUIT, fn() => $this->shouldQuit = true);
-        pcntl_signal(SIGTERM, fn() => $this->shouldQuit = true);
     }
 
     public function start(OutputInterface $output): void
     {
+        pcntl_async_signals(true);
+
+        pcntl_signal(SIGINT, fn() => $this->shouldQuit = true);
+        pcntl_signal(SIGTERM, fn() => $this->shouldQuit = true);
+
         /** @var array<int, Process> $processes */
         $processes = [];
 
@@ -55,14 +55,41 @@ class QueueManager
             $processes[$index] = $process;
         }
 
+        $processesCount = count($processes);
+
+        $output->writeln("Worker processes are started: $processesCount");
+
         while (true) {
             if ($this->shouldQuit) {
+                $output->writeln('Received stop signal');
+
+                $startTime = time();
+
                 foreach ($processes as $process) {
                     if (!$process->isRunning()) {
                         continue;
                     }
 
                     $process->signal(SIGQUIT);
+                }
+
+                while ($processesCount > 0 && time() - $startTime < 10) {
+                    foreach ($processes as $process) {
+                        if ($process->isRunning()) {
+                            continue;
+                        }
+
+                        $processesCount--;
+                    }
+
+                    sleep(1);
+                }
+
+                if ($processesCount === 0) {
+                    $output->writeln('Worker processes are stopped');
+                } else {
+                    $this->logger->error('Failed to stop worker processes');
+                    $output->writeln('Failed to stop worker processes');
                 }
 
                 break;

@@ -32,7 +32,7 @@ class TraceQueueDispatcher implements TraceDispatcherInterface
         $this->app->make(QueueManager::class)->start($output);
     }
 
-    public function push(TraceObject $parameters): void
+    public function create(TraceObject $parameters): void
     {
         $this->traces[] = $parameters;
 
@@ -43,7 +43,7 @@ class TraceQueueDispatcher implements TraceDispatcherInterface
         $this->sendAndClearTraces();
     }
 
-    public function stop(TraceUpdateObject $parameters): void
+    public function update(TraceUpdateObject $parameters): void
     {
         if (count($this->traces)) {
             $this->sendAndClearTraces();

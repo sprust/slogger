@@ -3,7 +3,7 @@
 namespace SLoggerLaravel\Dispatcher;
 
 use Illuminate\Console\Command;
-use Illuminate\Contracts\Container\BindingResolutionException;
+use Throwable;
 
 class StartDispatcherCommand extends Command
 {
@@ -23,13 +23,31 @@ class StartDispatcherCommand extends Command
 
     /**
      * Execute the console command.
-     *
-     * @throws BindingResolutionException
      */
-    public function handle(DispatcherFactory $dispatcherFactory): void
+    public function handle(DispatcherProcessState $processState, DispatcherFactory $dispatcherFactory): void
     {
-        $dispatcher = $this->argument('dispatcher') ?: config('slogger.dispatchers.default');
+        if ($savedPid = $processState->getSavedPid()) {
+            if ($processState->isPidActive($savedPid)) {
+                $this->error("Dispatcher already started with PID: $savedPid");
 
-        $dispatcherFactory->create($dispatcher)->start($this->output);
+                return;
+            }
+        }
+
+        $currentPid = $processState->getCurrentPid();
+
+        $processState->savePid($currentPid);
+
+        try {
+            $dispatcher = $this->argument('dispatcher') ?: config('slogger.dispatchers.default');
+
+            $dispatcherFactory->create($dispatcher)->start($this->output);
+        } catch (Throwable $exception) {
+            $this->error($exception->getMessage());
+        }
+
+        $processState->purgePid();
+
+        $this->info('Dispatcher stopped');
     }
 }
