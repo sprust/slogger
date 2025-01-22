@@ -35,9 +35,8 @@ class TransporterProcess
         if ($commandName === 'start') {
             pcntl_async_signals(true);
 
-            pcntl_signal(SIGINT, function () use ($envFileName) {
-                $this->shouldQuit = true;
-            });
+            pcntl_signal(SIGINT, fn() => $this->shouldQuit = true);
+            pcntl_signal(SIGTERM, fn() => $this->shouldQuit = true);
         }
 
         $this->initEnv($envFilePath);
