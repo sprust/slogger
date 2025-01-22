@@ -7,7 +7,6 @@ namespace SLoggerLaravel\Dispatcher\Transporter;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Str;
 use SLoggerLaravel\Dispatcher\Transporter\Commands\LoadTransporterCommand;
-use SLoggerLaravel\Dispatcher\Transporter\Commands\StopTransporterCommand;
 use Symfony\Component\Console\Output\ConsoleOutput;
 use Symfony\Component\Process\Process;
 use Throwable;
@@ -38,9 +37,6 @@ class TransporterProcess
 
             pcntl_signal(SIGINT, function () use ($envFileName) {
                 $this->shouldQuit = true;
-
-                // TODO: transporter process does not receive SIGINT signal by posix_kill
-                Artisan::call(StopTransporterCommand::class, ['--env' => $envFileName]);
             });
         }
 
@@ -64,6 +60,13 @@ class TransporterProcess
                 $startTime = time();
 
                 while ($process->isRunning()) {
+                    $pid = $process->getPid();
+
+                    $pgid = posix_getpgid($pid);
+
+                    posix_kill($pid, SIGTERM);
+                    posix_kill(-$pgid, SIGTERM);
+
                     if (time() - $startTime > 5) {
                         $this->output->writeln('Force stopped');
 
