@@ -33,7 +33,7 @@ class StopDispatcherCommand extends Command
             return;
         }
 
-        if (!$processState->isPidActive($savedPid)) {
+        if (!$processState->isPidActive($savedPid, app(StartDispatcherCommand::class)->getName())) {
             $this->warn("Dispatcher already stopped with PID: $savedPid");
 
             return;

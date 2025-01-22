@@ -57,11 +57,11 @@ class QueueManager
 
         $processesCount = count($processes);
 
-        $output->writeln("Worker processes are started: $processesCount");
+        $this->logInfo($output, "Worker processes are started: $processesCount");
 
         while (true) {
             if ($this->shouldQuit) {
-                $output->writeln('Received stop signal');
+                $this->logInfo($output, 'Received stop signal');
 
                 $startTime = time();
 
@@ -70,7 +70,12 @@ class QueueManager
                         continue;
                     }
 
-                    $process->signal(SIGQUIT);
+                    $pid = $process->getPid();
+
+                    $pgid = posix_getpgid($pid);
+
+                    posix_kill($pid, SIGTERM);
+                    posix_kill(-$pgid, SIGTERM);
                 }
 
                 while ($processesCount > 0 && time() - $startTime < 10) {
@@ -86,10 +91,9 @@ class QueueManager
                 }
 
                 if ($processesCount === 0) {
-                    $output->writeln('Worker processes are stopped');
+                    $this->logInfo($output, 'Worker processes are stopped');
                 } else {
-                    $this->logger->error('Failed to stop worker processes');
-                    $output->writeln('Failed to stop worker processes');
+                    $this->logError($output, 'Failed to stop worker processes');
                 }
 
                 break;
@@ -102,10 +106,7 @@ class QueueManager
                     continue;
                 }
 
-                $this->logger->error(
-                    'Worker process is stopped',
-                    ['exit_code' => $process->getExitCode()]
-                );
+                $this->logError($output, "Worker process is stopped with exit code [{$process->getExitCode()}]}");
 
                 $processes[$index] = $this->createProcess();
                 $processes[$index]->start();
@@ -113,6 +114,8 @@ class QueueManager
 
             sleep(1);
         }
+
+        $this->logInfo($output, 'Queue dispatcher exit');
     }
 
     private function createProcess(): Process
@@ -137,5 +140,17 @@ class QueueManager
         }
 
         $output->writeln($message);
+    }
+
+    private function logInfo(OutputInterface $output, string $message): void
+    {
+        $output->writeln($message);
+        $this->logger->info($message);
+    }
+
+    private function logError(OutputInterface $output, string $message): void
+    {
+        $output->writeln($message);
+        $this->logger->error($message);
     }
 }

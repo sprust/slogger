@@ -64,19 +64,21 @@ readonly class DispatcherProcessState
         }
     }
 
-    public function isPidActive(int $pid): bool
+    public function isPidActive(int $pid, string $commandName): bool
     {
         if ($pid <= 0) {
             return false;
         }
 
         try {
-            file_get_contents("/proc/$pid/cmdline");
+            $cmd = file_get_contents("/proc/$pid/cmdline");
         } catch (Throwable) {
             return false;
         }
 
-        return true;
+        $processName = trim($cmd, "\0");
+
+        return str_contains($processName, $commandName);
     }
 
     public function sendStopSignal(int $pid): void

@@ -27,7 +27,7 @@ class StartDispatcherCommand extends Command
     public function handle(DispatcherProcessState $processState, DispatcherFactory $dispatcherFactory): void
     {
         if ($savedPid = $processState->getSavedPid()) {
-            if ($processState->isPidActive($savedPid)) {
+            if ($processState->isPidActive($savedPid, $this->getName())) {
                 $this->error("Dispatcher already started with PID: $savedPid");
 
                 return;
