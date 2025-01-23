@@ -22,7 +22,13 @@ readonly class TransporterLoader
 
         $content = file_get_contents($url);
 
-        file_put_contents($this->path, $content);
+        $tmpFilePath = $this->path . '.tmp';
+
+        file_put_contents($tmpFilePath, $content);
+
+        rename($tmpFilePath, $this->path);
+
+        chmod($this->path, 0755);
     }
 
     public function getVersion(): string

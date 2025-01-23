@@ -29,5 +29,5 @@ protoc-gen-php-grpc
 
 .deptrac.cache
 
-strans
+strans*
 .env.strans.*

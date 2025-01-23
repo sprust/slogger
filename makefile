@@ -132,7 +132,7 @@ frontend-npm-generate:
 	@"$(FRONTEND_CLI)"npm run generate
 
 strans-load:
-	@make workers-art c='slogger:transporter:load' && chmod +x ./strans
+	@make workers-art c='slogger:transporter:load'
 
 strans-start:
 	@make workers-art c='slogger:transporter:start'
