@@ -2,6 +2,9 @@
 
 namespace SLoggerLaravel\Dispatcher\Transporter;
 
+use GuzzleHttp\Client;
+use GuzzleHttp\Exception\GuzzleException;
+
 readonly class TransporterLoader
 {
     private string $version;
@@ -16,11 +19,15 @@ readonly class TransporterLoader
         return file_exists($this->path);
     }
 
+    /**
+     * @throws GuzzleException
+     */
     public function load(): void
     {
         $url = $this->makeUrl();
 
-        $content = file_get_contents($url);
+        $response = (new Client())->get($url, ['timeout' => 30]);
+        $content  = $response->getBody()->getContents();
 
         $tmpFilePath = $this->path . '.tmp';
 
