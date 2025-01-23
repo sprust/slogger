@@ -80,6 +80,7 @@ workers-restart:
 	@make workers-art c='octane:roadrunner:reload'
 	@make workers-art c='rr-monitor:stop grpc'
 	@make workers-art c='rr-monitor:stop jobs'
+	@make workers-art c='slogger:dispatcher:stop'
 	@make workers-art c='trace-dynamic-indexes:monitor:stop'
 
 octane-stop:
@@ -131,7 +132,7 @@ frontend-npm-generate:
 	@"$(FRONTEND_CLI)"npm run generate
 
 strans-load:
-	@make workers-art c='slogger:transporter:load' && chmod +x ./strans
+	@make workers-art c='slogger:transporter:load'
 
 strans-start:
 	@make workers-art c='slogger:transporter:start'
