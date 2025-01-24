@@ -23,6 +23,6 @@ class StatTransporterCommand extends Command
 
     public function handle(TransporterProcess $process): int
     {
-        return $process->handle('manage stat');
+        return $process->stat();
     }
 }

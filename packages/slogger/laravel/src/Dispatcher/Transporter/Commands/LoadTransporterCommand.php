@@ -27,10 +27,6 @@ class LoadTransporterCommand extends Command
             'Downloading transporter',
             static function () use ($loader) {
                 $loader->load();
-
-                if (PHP_OS_FAMILY === 'Linux') {
-                    exec('chmod +x ' . $loader->getPath());
-                }
             }
         );
 

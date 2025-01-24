@@ -23,6 +23,6 @@ class StartTransporterCommand extends Command
 
     public function handle(TransporterProcess $process): int
     {
-        return $process->handle('start');
+        return $process->start();
     }
 }

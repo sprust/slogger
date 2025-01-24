@@ -23,6 +23,6 @@ class StopTransporterCommand extends Command
 
     public function handle(TransporterProcess $process): int
     {
-        return $process->handle('manage stop', $this->option('env'));
+        return $process->stop($this->option('env'));
     }
 }

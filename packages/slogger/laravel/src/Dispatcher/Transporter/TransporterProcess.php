@@ -20,7 +20,22 @@ class TransporterProcess
     ) {
     }
 
-    public function handle(string $commandName, ?string $env = null): int
+    public function start(?string $env = null): int
+    {
+        return $this->handle('start', $env);
+    }
+
+    public function stop(?string $env = null): int
+    {
+        return $this->handle('manage stop', $env);
+    }
+
+    public function stat(?string $env = null): int
+    {
+        return $this->handle('manage stat', $env);
+    }
+
+    private function handle(string $commandName, ?string $env = null): int
     {
         $this->output->writeln("handling: $commandName");
 
@@ -30,15 +45,17 @@ class TransporterProcess
             );
         }
 
+        $envFileName = $env ?? '.env.strans.' . Str::slug($commandName, '.');
+        $envFilePath = base_path($envFileName);
+
         if ($commandName === 'start') {
+            $this->stop($envFileName);
+
             pcntl_async_signals(true);
 
             pcntl_signal(SIGINT, fn() => $this->shouldQuit = true);
             pcntl_signal(SIGTERM, fn() => $this->shouldQuit = true);
         }
-
-        $envFileName = $env ?? '.env.strans.' . Str::slug($commandName, '.');
-        $envFilePath = base_path($envFileName);
 
         $this->initEnv($envFilePath);
 
