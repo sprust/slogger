@@ -4,14 +4,14 @@ namespace SLoggerLaravel\Dispatcher\Items\Queue;
 
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Foundation\Application;
+use SLoggerLaravel\Dispatcher\Items\DispatcherProcessorInterface;
 use SLoggerLaravel\Dispatcher\Items\Queue\Jobs\TraceCreateJob;
 use SLoggerLaravel\Dispatcher\Items\Queue\Jobs\TraceUpdateJob;
-use SLoggerLaravel\Dispatcher\TraceDispatcherInterface;
+use SLoggerLaravel\Dispatcher\Items\TraceDispatcherInterface;
 use SLoggerLaravel\Objects\TraceObject;
 use SLoggerLaravel\Objects\TraceObjects;
 use SLoggerLaravel\Objects\TraceUpdateObject;
 use SLoggerLaravel\Objects\TraceUpdateObjects;
-use Symfony\Component\Console\Output\OutputInterface;
 
 class TraceQueueDispatcher implements TraceDispatcherInterface
 {
@@ -27,9 +27,9 @@ class TraceQueueDispatcher implements TraceDispatcherInterface
     /**
      * @throws BindingResolutionException
      */
-    public function start(OutputInterface $output): void
+    public function getProcessor(): DispatcherProcessorInterface
     {
-        $this->app->make(QueueManager::class)->start($output);
+        return $this->app->make(QueueDispatcherProcessor::class);
     }
 
     public function create(TraceObject $parameters): void

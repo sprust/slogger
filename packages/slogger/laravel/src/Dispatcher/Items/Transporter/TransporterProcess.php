@@ -35,6 +35,25 @@ class TransporterProcess
         return $this->handle('manage stat', $env);
     }
 
+    public function createProcess(string $commandName, ?string $env = null): Process
+    {
+        if (!$this->loader->fileExists()) {
+            throw new RuntimeException(
+                "Transporter is not loaded. Run 'php artisan slogger:transporter:load' first"
+            );
+        }
+
+        $envFileName = $env ?? '.env.strans.' . Str::slug($commandName, '.');
+        $envFilePath = base_path($envFileName);
+
+        $this->initEnv($envFilePath);
+
+        $command = "{$this->loader->getPath()} --env=$envFileName $commandName";
+
+        return Process::fromShellCommandline($command)
+            ->setTimeout(null);
+    }
+
     private function handle(string $commandName, ?string $env = null): int
     {
         $this->output->writeln("handling: $commandName");
@@ -57,20 +76,16 @@ class TransporterProcess
             pcntl_signal(SIGTERM, fn() => $this->shouldQuit = true);
         }
 
-        $this->initEnv($envFilePath);
-
-        $command = "{$this->loader->getPath()} --env=$envFileName $commandName";
-
-        $process = Process::fromShellCommandline($command)
-            ->setTimeout(null);
-
+        $process = $this->createProcess($commandName, $envFileName);
         $process->start();
 
         while (!$process->isStarted()) {
             sleep(1);
         }
 
-        $this->output->writeln("started: $command");
+        $commandLine = $process->getCommandLine();
+
+        $this->output->writeln("started: $commandLine");
 
         while ($process->isRunning()) {
             if ($this->shouldQuit) {
@@ -108,7 +123,7 @@ class TransporterProcess
             // no action
         }
 
-        $this->output->writeln("stopped: $command");
+        $this->output->writeln("stopped: $commandLine");
 
         return $process->getExitCode() ?? 1;
     }

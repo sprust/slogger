@@ -7,11 +7,11 @@ use Illuminate\Contracts\Container\CircularDependencyException;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Arr;
 use RuntimeException;
-use SLoggerLaravel\Dispatcher\TraceDispatcherInterface;
+use SLoggerLaravel\Dispatcher\Items\DispatcherProcessorInterface;
+use SLoggerLaravel\Dispatcher\Items\TraceDispatcherInterface;
 use SLoggerLaravel\Objects\TraceObject;
 use SLoggerLaravel\Objects\TraceObjects;
 use SLoggerLaravel\Objects\TraceUpdateObject;
-use Symfony\Component\Console\Output\OutputInterface;
 
 class TraceFileDispatcher implements TraceDispatcherInterface
 {
@@ -22,10 +22,11 @@ class TraceFileDispatcher implements TraceDispatcherInterface
     {
     }
 
-    public function start(OutputInterface $output): void
+    public function getProcessor(): DispatcherProcessorInterface
     {
         throw new RuntimeException('Not implemented');
     }
+
     public function create(TraceObject $parameters): void
     {
         $this->traces[] = $parameters;

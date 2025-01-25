@@ -3,14 +3,14 @@
 namespace SLoggerLaravel\Dispatcher\Items\Transporter;
 
 use Exception;
-use Illuminate\Support\Facades\Artisan;
+use Illuminate\Contracts\Container\BindingResolutionException;
+use Illuminate\Contracts\Foundation\Application;
+use SLoggerLaravel\Dispatcher\Items\DispatcherProcessorInterface;
+use SLoggerLaravel\Dispatcher\Items\TraceDispatcherInterface;
 use SLoggerLaravel\Dispatcher\Items\Transporter\Clients\TransporterClientInterface;
-use SLoggerLaravel\Dispatcher\Items\Transporter\Commands\StartTransporterCommand;
-use SLoggerLaravel\Dispatcher\TraceDispatcherInterface;
 use SLoggerLaravel\Objects\TraceObject;
 use SLoggerLaravel\Objects\TraceUpdateObject;
 use SLoggerLaravel\Profiling\Dto\ProfilingObjects;
-use Symfony\Component\Console\Output\OutputInterface;
 
 class TraceTransporterDispatcher implements TraceDispatcherInterface
 {
@@ -23,13 +23,17 @@ class TraceTransporterDispatcher implements TraceDispatcherInterface
      * @throws Exception
      */
     public function __construct(
+        private readonly Application $app,
         private readonly TransporterClientInterface $client
     ) {
     }
 
-    public function start(OutputInterface $output): void
+    /**
+     * @throws BindingResolutionException
+     */
+    public function getProcessor(): DispatcherProcessorInterface
     {
-        Artisan::call(StartTransporterCommand::class, outputBuffer: $output);
+        return $this->app->make(TransporterDispatcherProcessor::class);
     }
 
     public function create(TraceObject $parameters): void

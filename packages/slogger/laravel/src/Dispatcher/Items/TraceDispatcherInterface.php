@@ -1,14 +1,13 @@
 <?php
 
-namespace SLoggerLaravel\Dispatcher;
+namespace SLoggerLaravel\Dispatcher\Items;
 
 use SLoggerLaravel\Objects\TraceObject;
 use SLoggerLaravel\Objects\TraceUpdateObject;
-use Symfony\Component\Console\Output\OutputInterface;
 
 interface TraceDispatcherInterface
 {
-    public function start(OutputInterface $output): void;
+    public function getProcessor(): DispatcherProcessorInterface;
 
     public function create(TraceObject $parameters): void;
 

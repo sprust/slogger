@@ -31,3 +31,4 @@ protoc-gen-php-grpc
 
 strans*
 .env.strans.*
+storage/slogger-dispatcher-state*
