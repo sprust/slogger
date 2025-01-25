@@ -1,6 +1,6 @@
 <?php
 
-namespace SLoggerLaravel\Dispatcher\Queue;
+namespace SLoggerLaravel\Dispatcher\Items\Queue;
 
 use Illuminate\Queue\Console\WorkCommand;
 use Illuminate\Support\Facades\Log;

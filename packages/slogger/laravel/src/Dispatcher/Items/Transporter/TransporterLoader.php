@@ -1,6 +1,6 @@
 <?php
 
-namespace SLoggerLaravel\Dispatcher\Transporter;
+namespace SLoggerLaravel\Dispatcher\Items\Transporter;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;

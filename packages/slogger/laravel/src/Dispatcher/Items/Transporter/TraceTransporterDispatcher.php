@@ -1,13 +1,12 @@
 <?php
 
-namespace SLoggerLaravel\Dispatcher\Transporter;
+namespace SLoggerLaravel\Dispatcher\Items\Transporter;
 
 use Exception;
-use Illuminate\Console\OutputStyle;
 use Illuminate\Support\Facades\Artisan;
+use SLoggerLaravel\Dispatcher\Items\Transporter\Clients\TransporterClientInterface;
+use SLoggerLaravel\Dispatcher\Items\Transporter\Commands\StartTransporterCommand;
 use SLoggerLaravel\Dispatcher\TraceDispatcherInterface;
-use SLoggerLaravel\Dispatcher\Transporter\Clients\TransporterClientInterface;
-use SLoggerLaravel\Dispatcher\Transporter\Commands\StartTransporterCommand;
 use SLoggerLaravel\Objects\TraceObject;
 use SLoggerLaravel\Objects\TraceUpdateObject;
 use SLoggerLaravel\Profiling\Dto\ProfilingObjects;

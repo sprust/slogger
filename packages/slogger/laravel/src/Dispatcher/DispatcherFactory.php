@@ -5,9 +5,9 @@ namespace SLoggerLaravel\Dispatcher;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Foundation\Application;
 use RuntimeException;
-use SLoggerLaravel\Dispatcher\File\TraceFileDispatcher;
-use SLoggerLaravel\Dispatcher\Queue\TraceQueueDispatcher;
-use SLoggerLaravel\Dispatcher\Transporter\TraceTransporterDispatcher;
+use SLoggerLaravel\Dispatcher\Items\File\TraceFileDispatcher;
+use SLoggerLaravel\Dispatcher\Items\Queue\TraceQueueDispatcher;
+use SLoggerLaravel\Dispatcher\Items\Transporter\TraceTransporterDispatcher;
 
 readonly class DispatcherFactory
 {

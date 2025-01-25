@@ -1,9 +1,9 @@
 <?php
 
-namespace SLoggerLaravel\Dispatcher\Transporter\Commands;
+namespace SLoggerLaravel\Dispatcher\Items\Transporter\Commands;
 
 use Illuminate\Console\Command;
-use SLoggerLaravel\Dispatcher\Transporter\TransporterProcess;
+use SLoggerLaravel\Dispatcher\Items\Transporter\TransporterProcess;
 
 class StartTransporterCommand extends Command
 {

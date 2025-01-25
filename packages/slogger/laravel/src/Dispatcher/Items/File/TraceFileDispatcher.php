@@ -1,6 +1,6 @@
 <?php
 
-namespace SLoggerLaravel\Dispatcher\File;
+namespace SLoggerLaravel\Dispatcher\Items\File;
 
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Container\CircularDependencyException;

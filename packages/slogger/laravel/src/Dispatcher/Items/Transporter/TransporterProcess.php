@@ -2,7 +2,7 @@
 
 declare(ticks=1);
 
-namespace SLoggerLaravel\Dispatcher\Transporter;
+namespace SLoggerLaravel\Dispatcher\Items\Transporter;
 
 use Illuminate\Support\Str;
 use RuntimeException;

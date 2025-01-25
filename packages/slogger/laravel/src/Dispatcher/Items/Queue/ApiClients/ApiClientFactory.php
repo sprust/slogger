@@ -1,14 +1,14 @@
 <?php
 
-namespace SLoggerLaravel\Dispatcher\Queue\ApiClients;
+namespace SLoggerLaravel\Dispatcher\Items\Queue\ApiClients;
 
 use Exception;
 use Grpc\ChannelCredentials;
 use GuzzleHttp\Client;
 use RuntimeException;
 use SLoggerGrpc\Services\TraceCollectorGrpcService;
-use SLoggerLaravel\Dispatcher\Queue\ApiClients\Grpc\GrpcClient;
-use SLoggerLaravel\Dispatcher\Queue\ApiClients\Http\HttpClient;
+use SLoggerLaravel\Dispatcher\Items\Queue\ApiClients\Grpc\GrpcClient;
+use SLoggerLaravel\Dispatcher\Items\Queue\ApiClients\Http\HttpClient;
 
 readonly class ApiClientFactory
 {

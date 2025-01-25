@@ -1,13 +1,13 @@
 <?php
 
-namespace SLoggerLaravel\Dispatcher\Queue\Jobs;
+namespace SLoggerLaravel\Dispatcher\Items\Queue\Jobs;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Log;
-use SLoggerLaravel\Dispatcher\Queue\ApiClients\ApiClientInterface;
+use SLoggerLaravel\Dispatcher\Items\Queue\ApiClients\ApiClientInterface;
 use SLoggerLaravel\Processor;
 use Throwable;
 

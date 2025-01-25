@@ -1,6 +1,6 @@
 <?php
 
-namespace SLoggerLaravel\Dispatcher\Queue\ApiClients\Grpc;
+namespace SLoggerLaravel\Dispatcher\Items\Queue\ApiClients\Grpc;
 
 use Google\Protobuf\DoubleValue;
 use Google\Protobuf\Int32Value;
@@ -17,7 +17,7 @@ use SLoggerGrpcDto\TraceCollector\TraceProfilingItemObject;
 use SLoggerGrpcDto\TraceCollector\TraceProfilingItemsObject;
 use SLoggerGrpcDto\TraceCollector\TraceUpdateObject;
 use SLoggerGrpcDto\TraceCollector\TraceUpdateRequest;
-use SLoggerLaravel\Dispatcher\Queue\ApiClients\ApiClientInterface;
+use SLoggerLaravel\Dispatcher\Items\Queue\ApiClients\ApiClientInterface;
 use SLoggerLaravel\Objects\TraceObjects;
 use SLoggerLaravel\Objects\TraceUpdateObjects;
 use SLoggerLaravel\Profiling\Dto\ProfilingObjects;

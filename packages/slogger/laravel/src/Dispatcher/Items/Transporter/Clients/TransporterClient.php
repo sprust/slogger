@@ -1,6 +1,6 @@
 <?php
 
-namespace SLoggerLaravel\Dispatcher\Transporter\Clients;
+namespace SLoggerLaravel\Dispatcher\Items\Transporter\Clients;
 
 use Closure;
 use Illuminate\Contracts\Queue\Queue;

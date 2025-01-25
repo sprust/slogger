@@ -1,11 +1,11 @@
 <?php
 
-namespace SLoggerLaravel\Dispatcher\Queue;
+namespace SLoggerLaravel\Dispatcher\Items\Queue;
 
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Foundation\Application;
-use SLoggerLaravel\Dispatcher\Queue\Jobs\TraceCreateJob;
-use SLoggerLaravel\Dispatcher\Queue\Jobs\TraceUpdateJob;
+use SLoggerLaravel\Dispatcher\Items\Queue\Jobs\TraceCreateJob;
+use SLoggerLaravel\Dispatcher\Items\Queue\Jobs\TraceUpdateJob;
 use SLoggerLaravel\Dispatcher\TraceDispatcherInterface;
 use SLoggerLaravel\Objects\TraceObject;
 use SLoggerLaravel\Objects\TraceObjects;
