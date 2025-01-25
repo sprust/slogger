@@ -77,8 +77,7 @@ class TransporterProcess
                 $startTime = time();
 
                 while ($process->isRunning()) {
-                    $pid = $process->getPid();
-
+                    $pid  = $process->getPid();
                     $pgid = posix_getpgid($pid);
 
                     posix_kill($pid, SIGTERM);
