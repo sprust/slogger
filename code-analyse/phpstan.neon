@@ -6,7 +6,7 @@ parameters:
         - ../app/Console/Commands/Local
         - ../app/Models
         - ../packages/slogger/grpc/generated
-        - ../packages/slogger/laravel/src/Dispatcher/Queue/ApiClients/Grpc
+        - ../packages/slogger/laravel/src/Dispatcher/Items/Queue/ApiClients/Grpc
     level: 6
     ignoreErrors:
         -
