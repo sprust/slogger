@@ -16,6 +16,8 @@ use App\Modules\Trace\Repositories\Dto\Trace\Profiling\TraceProfilingDataDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Profiling\TraceProfilingDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Profiling\TraceProfilingItemDto;
 use App\Modules\Trace\Repositories\Dto\Trace\TraceDto;
+use App\Modules\Trace\Repositories\Dto\Trace\TraceHubDto;
+use App\Modules\Trace\Repositories\Services\PeriodicTraceCollectionNameService;
 use App\Modules\Trace\Repositories\Services\PeriodicTraceService;
 use App\Modules\Trace\Repositories\Services\TraceDataToObjectBuilder;
 use App\Modules\Trace\Repositories\Services\TracePipelineBuilder;
@@ -33,10 +35,68 @@ use Throwable;
 readonly class TraceRepository implements TraceRepositoryInterface
 {
     public function __construct(
+        private PeriodicTraceCollectionNameService $periodicTraceCollectionNameService,
         private TracePipelineBuilder $tracePipelineBuilder,
         private PeriodicTraceService $periodicTraceService,
         private ParallelPusherInterface $parallelPusher
     ) {
+    }
+
+    public function createManyByHubs(array $traceHubs): void
+    {
+        /**
+         * @var array<string, TraceHubDto[]> $collectionNameTraceHubs
+         */
+        $collectionNameTraceHubs = [];
+
+        foreach ($traceHubs as $traceHub) {
+            $collectionName = $this->periodicTraceCollectionNameService->newByDatetime(
+                datetime: $traceHub->loggedAt
+            );
+
+            $collectionNameTraceHubs[$collectionName]   ??= [];
+            $collectionNameTraceHubs[$collectionName][] = $traceHub;
+        }
+
+        foreach ($collectionNameTraceHubs as $collectionName => $collectionTraces) {
+            $operations = [];
+
+            foreach ($collectionTraces as $traceHub) {
+                $operations[] = [
+                    'updateOne' => [
+                        [
+                            'sid' => $traceHub->serviceId,
+                            'tid' => $traceHub->traceId,
+                        ],
+                        [
+                            '$set' => [
+                                'ptid' => $traceHub->parentTraceId,
+                                'tp'   => $traceHub->type,
+                                'st'   => $traceHub->status,
+                                'tgs'  => $traceHub->tags,
+                                'dt'   => $traceHub->data,
+                                'dur'  => $traceHub->duration,
+                                'mem'  => $traceHub->memory,
+                                'cpu'  => $traceHub->cpu,
+                                'tss'  => $traceHub->timestamps,
+                                'lat'  => $traceHub->loggedAt,
+                                'uat'  => $traceHub->updatedAt,
+                                'cat'  => $traceHub->createdAt,
+                                'hpr'  => $traceHub->hasProfiling,
+                                'pr'   => $traceHub->profiling,
+
+                            ],
+                        ],
+                        [
+                            'upsert' => true,
+                        ],
+                    ],
+                ];
+            }
+
+            $this->periodicTraceService->initCollectionByName($collectionName)
+                ->bulkWrite($operations);
+        }
     }
 
     public function createOne(TraceCreateParameters $trace): void

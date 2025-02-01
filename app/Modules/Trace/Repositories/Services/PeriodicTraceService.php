@@ -62,6 +62,11 @@ class PeriodicTraceService
     {
         $collectionName = $this->periodicTraceCollectionNameService->newByDatetime($loggedAt);
 
+        return $this->initCollectionByName($collectionName);
+    }
+
+    public function initCollectionByName(string $collectionName): Collection
+    {
         if ($collection = $this->collections[$collectionName] ?? null) {
             return $collection;
         }
@@ -112,6 +117,11 @@ class PeriodicTraceService
             $collection->createIndex([
                 'lat' => -1,
                 '_id' => 1,
+            ]);
+
+            $collection->createIndex([
+                'sid' => 1,
+                'tid' => 1,
             ]);
         } catch (Throwable $exception) {
             if (!str_contains($exception->getMessage(), 'already exists')) {

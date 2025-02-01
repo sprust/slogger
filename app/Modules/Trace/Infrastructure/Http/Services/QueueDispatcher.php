@@ -18,6 +18,6 @@ readonly class QueueDispatcher
 
     public function updateMany(TraceUpdateParametersList $parametersList): void
     {
-        dispatch(new TraceUpdateJob($parametersList))->delay(5);
+        dispatch(new TraceUpdateJob($parametersList));
     }
 }
