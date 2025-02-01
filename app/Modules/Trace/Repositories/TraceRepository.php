@@ -73,7 +73,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
                                 'ptid' => $traceHub->parentTraceId,
                                 'tp'   => $traceHub->type,
                                 'st'   => $traceHub->status,
-                                'tgs'  => $traceHub->tags,
+                                'tgs'  => $this->prepareTagsForSave($traceHub->tags),
                                 'dt'   => $traceHub->data,
                                 'dur'  => $traceHub->duration,
                                 'mem'  => $traceHub->memory,
