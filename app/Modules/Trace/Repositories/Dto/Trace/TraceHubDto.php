@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Modules\Trace\Repositories\Dto\Trace;
 
 use Illuminate\Support\Carbon;
@@ -18,7 +20,7 @@ readonly class TraceHubDto
         public ?int $serviceId,
         public string $traceId,
         public ?string $parentTraceId,
-        public ?string $type,
+        public string $type,
         public string $status,
         public array $tags,
         public array $data,

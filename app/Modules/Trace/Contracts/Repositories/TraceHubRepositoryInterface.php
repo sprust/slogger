@@ -4,7 +4,7 @@ namespace App\Modules\Trace\Contracts\Repositories;
 
 use App\Modules\Trace\Parameters\TraceCreateParameters;
 use App\Modules\Trace\Parameters\TraceUpdateParameters;
-use App\Modules\Trace\Repositories\Dto\Trace\TraceHubDto;
+use App\Modules\Trace\Repositories\Dto\Trace\TraceHubsDto;
 use Illuminate\Support\Carbon;
 
 interface TraceHubRepositoryInterface
@@ -13,10 +13,7 @@ interface TraceHubRepositoryInterface
 
     public function update(TraceUpdateParameters $trace): bool;
 
-    /**
-     * @return TraceHubDto[]
-     */
-    public function findForHandling(int $page, int $perPage, Carbon $deadTimeLine): array;
+    public function findForHandling(int $page, int $perPage, Carbon $deadTimeLine): TraceHubsDto;
 
     /**
      * @param string[] $traceIds

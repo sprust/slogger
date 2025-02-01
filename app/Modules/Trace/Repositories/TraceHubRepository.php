@@ -9,11 +9,14 @@ use App\Modules\Trace\Entities\Trace\Timestamp\TraceTimestampMetricObject;
 use App\Modules\Trace\Parameters\TraceCreateParameters;
 use App\Modules\Trace\Parameters\TraceUpdateParameters;
 use App\Modules\Trace\Repositories\Dto\Trace\TraceHubDto;
+use App\Modules\Trace\Repositories\Dto\Trace\TraceHubInvalidDto;
+use App\Modules\Trace\Repositories\Dto\Trace\TraceHubsDto;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use MongoDB\BSON\UTCDateTime;
 use MongoDB\Collection;
 use stdClass;
+use Throwable;
 
 readonly class TraceHubRepository implements TraceHubRepositoryInterface
 {
@@ -172,7 +175,7 @@ readonly class TraceHubRepository implements TraceHubRepositoryInterface
         return $result->getModifiedCount() > 0;
     }
 
-    public function findForHandling(int $page, int $perPage, Carbon $deadTimeLine): array
+    public function findForHandling(int $page, int $perPage, Carbon $deadTimeLine): TraceHubsDto
     {
         $pipeline = [
             [
@@ -205,36 +208,57 @@ readonly class TraceHubRepository implements TraceHubRepositoryInterface
 
         $cursor = $this->collection->aggregate($pipeline);
 
+        /** @var TraceHubDto[] $result */
         $result = [];
 
+        /** @var TraceHubInvalidDto[] $invalidTraces */
+        $invalidTraces = [];
+
         foreach ($cursor as $document) {
-            $result[] = new TraceHubDto(
-                id: (string) $document['_id'],
-                serviceId: $document['sid'],
-                traceId: $document['tid'],
-                parentTraceId: $document['ptid'],
-                type: $document['tp'],
-                status: $document['st'],
-                tags: array_map(
-                    static fn(array $tag) => $tag['nm'],
-                    $document['tgs']
-                ),
-                data: $document['dt'],
-                duration: $document['dur'],
-                memory: $document['mem'],
-                cpu: $document['cpu'],
-                hasProfiling: $document['hpr'] ?? false,
-                profiling: $document['pr'] ?? null,
-                timestamps: $document['tss'],
-                loggedAt: new Carbon($document['lat']->toDateTime()),
-                createdAt: new Carbon($document['cat']->toDateTime()),
-                updatedAt: new Carbon($document['uat']->toDateTime()),
-                inserted: $document['__ins'],
-                updated: $document['__upd'],
-            );
+            try {
+                $result[] = new TraceHubDto(
+                    id: (string) $document['_id'],
+                    serviceId: $document['sid'],
+                    traceId: $document['tid'],
+                    parentTraceId: $document['ptid'],
+                    type: $document['tp'],
+                    status: $document['st'],
+                    tags: array_map(
+                        static fn(array $tag) => $tag['nm'],
+                        $document['tgs']
+                    ),
+                    data: $document['dt'],
+                    duration: $document['dur'],
+                    memory: $document['mem'],
+                    cpu: $document['cpu'],
+                    hasProfiling: $document['hpr'] ?? false,
+                    profiling: $document['pr'] ?? null,
+                    timestamps: $document['tss'],
+                    loggedAt: new Carbon($document['lat']->toDateTime()),
+                    createdAt: new Carbon($document['cat']->toDateTime()),
+                    updatedAt: new Carbon($document['uat']->toDateTime()),
+                    inserted: $document['__ins'],
+                    updated: $document['__upd'],
+                );
+            } catch (Throwable $exception) {
+                $traceId = $document['tid'] ?? null;
+
+                if (!is_string($traceId)) {
+                    $traceId = null;
+                }
+
+                $invalidTraces[] = new TraceHubInvalidDto(
+                    traceId: $traceId,
+                    document: $document,
+                    error: $exception->getMessage() . PHP_EOL . $exception->getTraceAsString(),
+                );
+            }
         }
 
-        return $result;
+        return new TraceHubsDto(
+            traces: $result,
+            invalidTraces: $invalidTraces
+        );
     }
 
     public function delete(array $traceIds): int

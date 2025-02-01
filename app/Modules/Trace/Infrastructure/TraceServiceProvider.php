@@ -37,6 +37,7 @@ use App\Modules\Trace\Contracts\Actions\StartTraceHubHandlingActionInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceAdminStoreRepositoryInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceContentRepositoryInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceDynamicIndexRepositoryInterface;
+use App\Modules\Trace\Contracts\Repositories\TraceHubInvalidRepositoryInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceHubRepositoryInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceRepositoryInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceTimestampsRepositoryInterface;
@@ -85,12 +86,14 @@ use App\Modules\Trace\Repositories\Services\TracePipelineBuilder;
 use App\Modules\Trace\Repositories\TraceAdminStoreRepository;
 use App\Modules\Trace\Repositories\TraceContentRepository;
 use App\Modules\Trace\Repositories\TraceDynamicIndexRepository;
+use App\Modules\Trace\Repositories\TraceHubInvalidRepository;
 use App\Modules\Trace\Repositories\TraceHubRepository;
 use App\Modules\Trace\Repositories\TraceRepository;
 use App\Modules\Trace\Repositories\TraceTimestampsRepository;
 use App\Modules\Trace\Repositories\TraceTreeRepository;
 use Illuminate\Contracts\Foundation\Application;
 use MongoDB\Client;
+use MongoDB\Database;
 
 class TraceServiceProvider extends BaseServiceProvider
 {
@@ -135,29 +138,22 @@ class TraceServiceProvider extends BaseServiceProvider
             }
         );
 
+        $tracesDatabase = $this->makeMongodbTracesClient();
+
         $this->app->singleton(
             TraceHubRepositoryInterface::class,
-            static function (Application $app): TraceHubRepositoryInterface {
-                $username = config('database.connections.mongodb.traces.username');
-                $password = config('database.connections.mongodb.traces.password');
-                $host     = config('database.connections.mongodb.traces.host');
-                $port     = config('database.connections.mongodb.traces.port');
-                $database = config('database.connections.mongodb.traces.database');
-                $options  = config('database.connections.mongodb.traces.options');
-
-                $uri = "mongodb://$username:$password@$host:$port";
-
-                $client = new Client($uri, $options, [
-                    'typeMap' => [
-                        'array'    => 'array',
-                        'document' => 'array',
-                        'root'     => 'array',
-                    ],
-                ]);
-
+            static function () use ($tracesDatabase): TraceHubRepositoryInterface {
                 return new TraceHubRepository(
-                    collection: $client->selectDatabase($database)
-                        ->selectCollection('hub'), // TODO: move to config
+                    collection: $tracesDatabase->selectCollection('hub'), // TODO: move to config?
+                );
+            }
+        );
+
+        $this->app->singleton(
+            TraceHubInvalidRepositoryInterface::class,
+            static function () use ($tracesDatabase): TraceHubInvalidRepositoryInterface {
+                return new TraceHubInvalidRepository(
+                    collection: $tracesDatabase->selectCollection('hubInvalid'), // TODO: move to config?
                 );
             }
         );
@@ -221,5 +217,27 @@ class TraceServiceProvider extends BaseServiceProvider
             FindTraceIdsActionInterface::class                    => FindTraceIdsAction::class,
             FindTraceServicesActionInterface::class               => FindTraceServicesAction::class,
         ];
+    }
+
+    private function makeMongodbTracesClient(): Database
+    {
+        $username = config('database.connections.mongodb.traces.username');
+        $password = config('database.connections.mongodb.traces.password');
+        $host     = config('database.connections.mongodb.traces.host');
+        $port     = config('database.connections.mongodb.traces.port');
+        $database = config('database.connections.mongodb.traces.database');
+        $options  = config('database.connections.mongodb.traces.options');
+
+        $uri = "mongodb://$username:$password@$host:$port";
+
+        $client = new Client($uri, $options, [
+            'typeMap' => [
+                'array'    => 'array',
+                'document' => 'array',
+                'root'     => 'array',
+            ],
+        ]);
+
+        return $client->selectDatabase($database);
     }
 }
