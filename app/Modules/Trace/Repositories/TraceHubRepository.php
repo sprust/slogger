@@ -221,7 +221,7 @@ readonly class TraceHubRepository implements TraceHubRepositoryInterface
                     serviceId: $document['sid'],
                     traceId: $document['tid'],
                     parentTraceId: $document['ptid'],
-                    type: $document['tp'],
+                    type: $document['tp'] ?? 'unknown',
                     status: $document['st'],
                     tags: array_map(
                         static fn(array $tag) => $tag['nm'],
