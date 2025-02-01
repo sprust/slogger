@@ -34,6 +34,7 @@ readonly class TraceHubRepository implements TraceHubRepositoryInterface
             'command',
             'entity-queue',
             'separate',
+            'http-client',
         ];
     }
 
