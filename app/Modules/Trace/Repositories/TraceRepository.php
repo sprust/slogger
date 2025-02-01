@@ -79,9 +79,9 @@ readonly class TraceRepository implements TraceRepositoryInterface
                                 'mem'  => $traceHub->memory,
                                 'cpu'  => $traceHub->cpu,
                                 'tss'  => $traceHub->timestamps,
-                                'lat'  => $traceHub->loggedAt,
-                                'uat'  => $traceHub->updatedAt,
-                                'cat'  => $traceHub->createdAt,
+                                'lat'  => new UTCDateTime($traceHub->loggedAt),
+                                'uat'  => new UTCDateTime($traceHub->updatedAt),
+                                'cat'  => new UTCDateTime($traceHub->createdAt),
                                 'hpr'  => $traceHub->hasProfiling,
                                 'pr'   => $traceHub->profiling,
 
