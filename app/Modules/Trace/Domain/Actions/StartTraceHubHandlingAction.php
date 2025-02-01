@@ -6,6 +6,7 @@ use App\Modules\Trace\Contracts\Actions\StartTraceHubHandlingActionInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceHubRepositoryInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceRepositoryInterface;
 use App\Modules\Trace\Repositories\Dto\Trace\TraceHubDto;
+use Symfony\Component\Console\Output\OutputInterface;
 
 readonly class StartTraceHubHandlingAction implements StartTraceHubHandlingActionInterface
 {
@@ -15,7 +16,7 @@ readonly class StartTraceHubHandlingAction implements StartTraceHubHandlingActio
     ) {
     }
 
-    public function handle(): void
+    public function handle(OutputInterface $output): void
     {
         $insertedCount = 0;
         $skippedCount  = 0;
@@ -51,7 +52,7 @@ readonly class StartTraceHubHandlingAction implements StartTraceHubHandlingActio
                 traceIds: $traceIds
             );
 
-            dump("ins: $insertedCount, sk: $skippedCount, del: $deletedCount"); // TODO
+            $output->writeln("ins: $insertedCount, sk: $skippedCount, del: $deletedCount");
         }
     }
 }

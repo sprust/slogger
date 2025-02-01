@@ -28,7 +28,7 @@ class StartTraceHubHandlingCommand extends Command
      */
     public function handle(StartTraceHubHandlingActionInterface $action): int
     {
-        $action->handle();
+        $action->handle($this->output);
 
         return self::SUCCESS;
     }
