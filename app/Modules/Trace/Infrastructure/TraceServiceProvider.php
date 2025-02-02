@@ -34,14 +34,17 @@ use App\Modules\Trace\Contracts\Actions\Queries\FindTraceTimestampsActionInterfa
 use App\Modules\Trace\Contracts\Actions\Queries\FindTraceTreeActionInterface;
 use App\Modules\Trace\Contracts\Actions\Queries\FindTypesActionInterface;
 use App\Modules\Trace\Contracts\Actions\StartTraceBufferHandlingActionInterface;
+use App\Modules\Trace\Contracts\Actions\StopTraceBufferHandlingActionInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceAdminStoreRepositoryInterface;
-use App\Modules\Trace\Contracts\Repositories\TraceContentRepositoryInterface;
-use App\Modules\Trace\Contracts\Repositories\TraceDynamicIndexRepositoryInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceBufferInvalidRepositoryInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceBufferRepositoryInterface;
+use App\Modules\Trace\Contracts\Repositories\TraceContentRepositoryInterface;
+use App\Modules\Trace\Contracts\Repositories\TraceDynamicIndexRepositoryInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceRepositoryInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceTimestampsRepositoryInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceTreeRepositoryInterface;
+use App\Modules\Trace\Domain\Actions\Buffer\StartTraceBufferHandlingAction;
+use App\Modules\Trace\Domain\Actions\Buffer\StopTraceBufferHandlingAction;
 use App\Modules\Trace\Domain\Actions\MakeMetricIndicatorsAction;
 use App\Modules\Trace\Domain\Actions\MakeTraceTimestampPeriodsAction;
 use App\Modules\Trace\Domain\Actions\MakeTraceTimestampsAction;
@@ -70,7 +73,6 @@ use App\Modules\Trace\Domain\Actions\Queries\FindTraceServicesAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceTimestampsAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceTreeAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTypesAction;
-use App\Modules\Trace\Domain\Actions\StartTraceBufferHandlingAction;
 use App\Modules\Trace\Domain\Services\TraceDynamicIndexInitializer;
 use App\Modules\Trace\Domain\Services\TraceFieldTitlesService;
 use App\Modules\Trace\Enums\PeriodicTraceStepEnum;
@@ -79,15 +81,16 @@ use App\Modules\Trace\Infrastructure\Commands\FlushDynamicIndexesCommand;
 use App\Modules\Trace\Infrastructure\Commands\StartMonitorTraceDynamicIndexesCommand;
 use App\Modules\Trace\Infrastructure\Commands\StartTraceBufferHandlingCommand;
 use App\Modules\Trace\Infrastructure\Commands\StopMonitorTraceDynamicIndexesCommand;
+use App\Modules\Trace\Infrastructure\Commands\StopTraceBufferHandlingCommand;
 use App\Modules\Trace\Infrastructure\Http\Services\TraceDynamicIndexingActionService;
 use App\Modules\Trace\Repositories\Services\PeriodicTraceCollectionNameService;
 use App\Modules\Trace\Repositories\Services\PeriodicTraceService;
 use App\Modules\Trace\Repositories\Services\TracePipelineBuilder;
 use App\Modules\Trace\Repositories\TraceAdminStoreRepository;
-use App\Modules\Trace\Repositories\TraceContentRepository;
-use App\Modules\Trace\Repositories\TraceDynamicIndexRepository;
 use App\Modules\Trace\Repositories\TraceBufferInvalidRepository;
 use App\Modules\Trace\Repositories\TraceBufferRepository;
+use App\Modules\Trace\Repositories\TraceContentRepository;
+use App\Modules\Trace\Repositories\TraceDynamicIndexRepository;
 use App\Modules\Trace\Repositories\TraceRepository;
 use App\Modules\Trace\Repositories\TraceTimestampsRepository;
 use App\Modules\Trace\Repositories\TraceTreeRepository;
@@ -171,6 +174,7 @@ class TraceServiceProvider extends BaseServiceProvider
 
         $this->commands([
             StartTraceBufferHandlingCommand::class,
+            StopTraceBufferHandlingCommand::class,
             StartMonitorTraceDynamicIndexesCommand::class,
             StopMonitorTraceDynamicIndexesCommand::class,
             FlushDynamicIndexesCommand::class,
@@ -193,6 +197,7 @@ class TraceServiceProvider extends BaseServiceProvider
             MakeTraceTimestampPeriodsActionInterface::class       => MakeTraceTimestampPeriodsAction::class,
             MakeTraceTimestampsActionInterface::class             => MakeTraceTimestampsAction::class,
             StartTraceBufferHandlingActionInterface::class        => StartTraceBufferHandlingAction::class,
+            StopTraceBufferHandlingActionInterface::class         => StopTraceBufferHandlingAction::class,
             // actions.mutations
             CreateTraceManyActionInterface::class                 => CreateTraceManyAction::class,
             ClearTracesActionInterface::class                     => ClearTracesAction::class,

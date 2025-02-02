@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Modules\Trace\Domain\Actions;
+namespace App\Modules\Trace\Domain\Actions\Buffer;
 
 use App\Modules\Trace\Contracts\Actions\StartTraceBufferHandlingActionInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceBufferInvalidRepositoryInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceBufferRepositoryInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceRepositoryInterface;
+use App\Modules\Trace\Domain\Services\MonitorTraceBufferHandlingService;
 use App\Modules\Trace\Repositories\Dto\Trace\TraceBufferDto;
 use App\Modules\Trace\Repositories\Dto\Trace\TraceBufferInvalidDto;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -14,6 +15,7 @@ use Throwable;
 readonly class StartTraceBufferHandlingAction implements StartTraceBufferHandlingActionInterface
 {
     public function __construct(
+        private MonitorTraceBufferHandlingService $monitorTraceBufferHandlingService,
         private TraceBufferRepositoryInterface $traceBufferRepository,
         private TraceRepositoryInterface $traceRepository,
         private TraceBufferInvalidRepositoryInterface $traceBufferInvalidRepository,
@@ -22,13 +24,16 @@ readonly class StartTraceBufferHandlingAction implements StartTraceBufferHandlin
 
     public function handle(OutputInterface $output): void
     {
+        $output->writeln('Start trace buffer handling');
+
         $totalCount         = 0;
         $totalInsertedCount = 0;
         $totalSkippedCount  = 0;
         $totalInvalidCount  = 0;
 
-        // TODO: stop signal feature
-        while (true) {
+        $processKey = $this->monitorTraceBufferHandlingService->startProcess();
+
+        while ($this->monitorTraceBufferHandlingService->isProcessKeyActual($processKey)) {
             $traces = $this->traceBufferRepository->findForHandling(
                 page: 1,
                 perPage: 20,
@@ -143,5 +148,7 @@ readonly class StartTraceBufferHandlingAction implements StartTraceBufferHandlin
                 )
             );
         }
+
+        $output->writeln('Stop trace buffer handling');
     }
 }
