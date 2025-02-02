@@ -62,6 +62,8 @@ readonly class TraceCreateController
                     memory: ArrayValueGetter::floatNull($item, 'memory'),
                     cpu: ArrayValueGetter::floatNull($item, 'cpu'),
                     timestamps: $this->makeTraceTimestampsAction->handle(date: $loggedAt),
+                    // TODO: required after release
+                    isParent: ArrayValueGetter::boolNull($item, 'is_parent') ?? false,
                     loggedAt: $loggedAt,
                 )
             );

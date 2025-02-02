@@ -40,6 +40,7 @@ message TraceCreateObject {
     // sometimes
     google.protobuf.DoubleValue cpu = 9;
     google.protobuf.Timestamp logged_at = 10;
+    google.protobuf.BoolValue isParent = 11;
 }
 
 // update

@@ -20,22 +20,9 @@ use Throwable;
 
 readonly class TraceHubRepository implements TraceHubRepositoryInterface
 {
-    /**
-     * @var string[]
-     */
-    private array $parentTypes; // TODO: crutch
-
     public function __construct(
         private Collection $collection
     ) {
-        $this->parentTypes = [
-            'request',
-            'job',
-            'command',
-            'entity-queue',
-            'separate',
-            'http-client',
-        ];
     }
 
     public function create(TraceCreateParameters $trace): void
@@ -47,7 +34,10 @@ readonly class TraceHubRepository implements TraceHubRepositoryInterface
             'tid' => $trace->traceId,
         ];
 
-        $existTrace = $this->collection->findOne($filter) ?? [];
+        $existTrace = $this->collection->findOne([
+            ...$filter,
+            '__ins' => false,
+        ]) ?? [];
 
         $hasExistsTrace = count($existTrace) > 0;
 
@@ -76,7 +66,7 @@ readonly class TraceHubRepository implements TraceHubRepositoryInterface
                     'cat'   => $timestamp,
                     ...$profiling,
                     '__ins' => true,
-                    '__upd' => $hasExistsTrace || !in_array($trace->type, $this->parentTypes),
+                    '__upd' => $hasExistsTrace || !$trace->isParent,
                 ],
             ],
             [
