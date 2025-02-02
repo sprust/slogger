@@ -64,6 +64,8 @@ class TraceCreateObject extends \Google\Protobuf\Internal\Message
      */
     protected $logged_at = null;
     /**
+     * sometimes
+     *
      * Generated from protobuf field <code>.google.protobuf.BoolValue isParent = 11;</code>
      */
     protected $isParent = null;
@@ -90,6 +92,7 @@ class TraceCreateObject extends \Google\Protobuf\Internal\Message
      *           sometimes
      *     @type \Google\Protobuf\Timestamp $logged_at
      *     @type \Google\Protobuf\BoolValue $isParent
+     *           sometimes
      * }
      */
     public function __construct($data = NULL) {
@@ -442,6 +445,8 @@ class TraceCreateObject extends \Google\Protobuf\Internal\Message
     }
 
     /**
+     * sometimes
+     *
      * Generated from protobuf field <code>.google.protobuf.BoolValue isParent = 11;</code>
      * @return \Google\Protobuf\BoolValue
      */
@@ -453,6 +458,8 @@ class TraceCreateObject extends \Google\Protobuf\Internal\Message
     /**
      * Returns the unboxed value from <code>getIsParent()</code>
 
+     * sometimes
+     *
      * Generated from protobuf field <code>.google.protobuf.BoolValue isParent = 11;</code>
      * @return bool|null
      */
@@ -462,6 +469,8 @@ class TraceCreateObject extends \Google\Protobuf\Internal\Message
     }
 
     /**
+     * sometimes
+     *
      * Generated from protobuf field <code>.google.protobuf.BoolValue isParent = 11;</code>
      * @param \Google\Protobuf\BoolValue $var
      * @return $this
@@ -477,6 +486,8 @@ class TraceCreateObject extends \Google\Protobuf\Internal\Message
     /**
      * Sets the field by wrapping a primitive type in a Google\Protobuf\BoolValue object.
 
+     * sometimes
+     *
      * Generated from protobuf field <code>.google.protobuf.BoolValue isParent = 11;</code>
      * @param bool|null $var
      * @return $this

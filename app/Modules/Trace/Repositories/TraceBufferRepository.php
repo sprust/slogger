@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Modules\Trace\Repositories;
 
-use App\Modules\Trace\Contracts\Repositories\TraceHubRepositoryInterface;
+use App\Modules\Trace\Contracts\Repositories\TraceBufferRepositoryInterface;
 use App\Modules\Trace\Entities\Trace\Timestamp\TraceTimestampMetricObject;
 use App\Modules\Trace\Parameters\TraceCreateParameters;
 use App\Modules\Trace\Parameters\TraceUpdateParameters;
-use App\Modules\Trace\Repositories\Dto\Trace\TraceHubDto;
-use App\Modules\Trace\Repositories\Dto\Trace\TraceHubInvalidDto;
-use App\Modules\Trace\Repositories\Dto\Trace\TraceHubsDto;
+use App\Modules\Trace\Repositories\Dto\Trace\TraceBufferDto;
+use App\Modules\Trace\Repositories\Dto\Trace\TraceBufferInvalidDto;
+use App\Modules\Trace\Repositories\Dto\Trace\TraceBuffersDto;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use MongoDB\BSON\UTCDateTime;
@@ -18,7 +18,7 @@ use MongoDB\Collection;
 use stdClass;
 use Throwable;
 
-readonly class TraceHubRepository implements TraceHubRepositoryInterface
+readonly class TraceBufferRepository implements TraceBufferRepositoryInterface
 {
     public function __construct(
         private Collection $collection
@@ -166,7 +166,7 @@ readonly class TraceHubRepository implements TraceHubRepositoryInterface
         return $result->getModifiedCount() > 0;
     }
 
-    public function findForHandling(int $page, int $perPage, Carbon $deadTimeLine): TraceHubsDto
+    public function findForHandling(int $page, int $perPage, Carbon $deadTimeLine): TraceBuffersDto
     {
         $pipeline = [
             [
@@ -199,15 +199,15 @@ readonly class TraceHubRepository implements TraceHubRepositoryInterface
 
         $cursor = $this->collection->aggregate($pipeline);
 
-        /** @var TraceHubDto[] $result */
+        /** @var TraceBufferDto[] $result */
         $result = [];
 
-        /** @var TraceHubInvalidDto[] $invalidTraces */
+        /** @var TraceBufferInvalidDto[] $invalidTraces */
         $invalidTraces = [];
 
         foreach ($cursor as $document) {
             try {
-                $result[] = new TraceHubDto(
+                $result[] = new TraceBufferDto(
                     id: (string) $document['_id'],
                     serviceId: $document['sid'],
                     traceId: $document['tid'],
@@ -238,7 +238,7 @@ readonly class TraceHubRepository implements TraceHubRepositoryInterface
                     $traceId = null;
                 }
 
-                $invalidTraces[] = new TraceHubInvalidDto(
+                $invalidTraces[] = new TraceBufferInvalidDto(
                     traceId: $traceId,
                     document: $document,
                     error: $exception->getMessage() . PHP_EOL . $exception->getTraceAsString(),
@@ -246,7 +246,7 @@ readonly class TraceHubRepository implements TraceHubRepositoryInterface
             }
         }
 
-        return new TraceHubsDto(
+        return new TraceBuffersDto(
             traces: $result,
             invalidTraces: $invalidTraces
         );

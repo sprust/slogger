@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Modules\Trace\Repositories\Dto\Trace;
 
-readonly class TraceHubsDto
+readonly class TraceBuffersDto
 {
     /**
-     * @param TraceHubDto[]        $traces
-     * @param TraceHubInvalidDto[] $invalidTraces
+     * @param TraceBufferDto[]        $traces
+     * @param TraceBufferInvalidDto[] $invalidTraces
      */
     public function __construct(
         public array $traces,

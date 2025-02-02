@@ -7,7 +7,7 @@ namespace App\Modules\Trace\Repositories\Dto\Trace;
 use Illuminate\Support\Carbon;
 use MongoDB\BSON\UTCDateTime;
 
-readonly class TraceHubDto
+readonly class TraceBufferDto
 {
     /**
      * @param string[]                   $tags

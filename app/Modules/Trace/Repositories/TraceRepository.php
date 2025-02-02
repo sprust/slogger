@@ -16,7 +16,7 @@ use App\Modules\Trace\Repositories\Dto\Trace\Profiling\TraceProfilingDataDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Profiling\TraceProfilingDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Profiling\TraceProfilingItemDto;
 use App\Modules\Trace\Repositories\Dto\Trace\TraceDto;
-use App\Modules\Trace\Repositories\Dto\Trace\TraceHubDto;
+use App\Modules\Trace\Repositories\Dto\Trace\TraceBufferDto;
 use App\Modules\Trace\Repositories\Services\PeriodicTraceCollectionNameService;
 use App\Modules\Trace\Repositories\Services\PeriodicTraceService;
 use App\Modules\Trace\Repositories\Services\TraceDataToObjectBuilder;
@@ -42,48 +42,48 @@ readonly class TraceRepository implements TraceRepositoryInterface
     ) {
     }
 
-    public function createManyByHubs(array $traceHubs): void
+    public function createManyByBuffers(array $traceBuffers): void
     {
         /**
-         * @var array<string, TraceHubDto[]> $collectionNameTraceHubs
+         * @var array<string, TraceBufferDto[]> $collectionNameTraceBuffers
          */
-        $collectionNameTraceHubs = [];
+        $collectionNameTraceBuffers = [];
 
-        foreach ($traceHubs as $traceHub) {
+        foreach ($traceBuffers as $traceBuffer) {
             $collectionName = $this->periodicTraceCollectionNameService->newByDatetime(
-                datetime: $traceHub->loggedAt
+                datetime: $traceBuffer->loggedAt
             );
 
-            $collectionNameTraceHubs[$collectionName]   ??= [];
-            $collectionNameTraceHubs[$collectionName][] = $traceHub;
+            $collectionNameTraceBuffers[$collectionName]   ??= [];
+            $collectionNameTraceBuffers[$collectionName][] = $traceBuffer;
         }
 
-        foreach ($collectionNameTraceHubs as $collectionName => $collectionTraces) {
+        foreach ($collectionNameTraceBuffers as $collectionName => $collectionNameTraceBuffer) {
             $operations = [];
 
-            foreach ($collectionTraces as $traceHub) {
+            foreach ($collectionNameTraceBuffer as $buffer) {
                 $operations[] = [
                     'updateOne' => [
                         [
-                            'sid' => $traceHub->serviceId,
-                            'tid' => $traceHub->traceId,
+                            'sid' => $buffer->serviceId,
+                            'tid' => $buffer->traceId,
                         ],
                         [
                             '$set' => [
-                                'ptid' => $traceHub->parentTraceId,
-                                'tp'   => $traceHub->type,
-                                'st'   => $traceHub->status,
-                                'tgs'  => $this->prepareTagsForSave($traceHub->tags),
-                                'dt'   => $traceHub->data,
-                                'dur'  => $traceHub->duration,
-                                'mem'  => $traceHub->memory,
-                                'cpu'  => $traceHub->cpu,
-                                'tss'  => $traceHub->timestamps,
-                                'lat'  => new UTCDateTime($traceHub->loggedAt),
-                                'uat'  => new UTCDateTime($traceHub->updatedAt),
-                                'cat'  => new UTCDateTime($traceHub->createdAt),
-                                'hpr'  => $traceHub->hasProfiling,
-                                'pr'   => $traceHub->profiling,
+                                'ptid' => $buffer->parentTraceId,
+                                'tp'   => $buffer->type,
+                                'st'   => $buffer->status,
+                                'tgs'  => $this->prepareTagsForSave($buffer->tags),
+                                'dt'   => $buffer->data,
+                                'dur'  => $buffer->duration,
+                                'mem'  => $buffer->memory,
+                                'cpu'  => $buffer->cpu,
+                                'tss'  => $buffer->timestamps,
+                                'lat'  => new UTCDateTime($buffer->loggedAt),
+                                'uat'  => new UTCDateTime($buffer->updatedAt),
+                                'cat'  => new UTCDateTime($buffer->createdAt),
+                                'hpr'  => $buffer->hasProfiling,
+                                'pr'   => $buffer->profiling,
 
                             ],
                         ],

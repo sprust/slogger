@@ -12,15 +12,15 @@ use App\Modules\Trace\Parameters\TraceUpdateParameters;
 use App\Modules\Trace\Repositories\Dto\DynamicIndex\TraceDynamicIndexFieldDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Profiling\TraceProfilingDto;
 use App\Modules\Trace\Repositories\Dto\Trace\TraceDto;
-use App\Modules\Trace\Repositories\Dto\Trace\TraceHubDto;
+use App\Modules\Trace\Repositories\Dto\Trace\TraceBufferDto;
 use Illuminate\Support\Carbon;
 
 interface TraceRepositoryInterface
 {
     /**
-     * @param TraceHubDto[] $traceHubs
+     * @param TraceBufferDto[] $traceBuffers
      */
-    public function createManyByHubs(array $traceHubs): void;
+    public function createManyByBuffers(array $traceBuffers): void;
 
     public function createOne(TraceCreateParameters $trace): void;
 
