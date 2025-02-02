@@ -18,12 +18,15 @@ use Throwable;
 class PeriodicTraceService
 {
     /** @var array<string, Collection> */
-    private array $collections = [];
+    private array $connectionsCache = [];
+    private int $connectionsCachedAtSec;
+    private int $connectionsCachedLifeTimeSec = 60;
 
     public function __construct(
         private readonly Database $database,
         private readonly PeriodicTraceCollectionNameService $periodicTraceCollectionNameService
     ) {
+        $this->connectionsCachedAtSec = time();
     }
 
     public function selectCollectionByName(string $collectionName): Collection
@@ -58,16 +61,12 @@ class PeriodicTraceService
         );
     }
 
-    public function initCollection(Carbon $loggedAt): Collection
-    {
-        $collectionName = $this->periodicTraceCollectionNameService->newByDatetime($loggedAt);
-
-        return $this->initCollectionByName($collectionName);
-    }
-
     public function initCollectionByName(string $collectionName): Collection
     {
-        if ($collection = $this->collections[$collectionName] ?? null) {
+        if ((time() - $this->connectionsCachedAtSec) > $this->connectionsCachedLifeTimeSec) {
+            $this->connectionsCache       = [];
+            $this->connectionsCachedAtSec = time();
+        } elseif ($collection = $this->connectionsCache[$collectionName] ?? null) {
             return $collection;
         }
 
@@ -78,7 +77,7 @@ class PeriodicTraceService
         ]);
 
         if (iterator_count($filtered)) {
-            return $this->collections[$collectionName] = $this->selectCollectionByName($collectionName);
+            return $this->connectionsCache[$collectionName] = $this->selectCollectionByName($collectionName);
         }
 
         try {
@@ -92,12 +91,12 @@ class PeriodicTraceService
                 );
             }
 
-            return $this->collections[$collectionName] = $this->selectCollectionByName($collectionName);
+            return $this->connectionsCache[$collectionName] = $this->selectCollectionByName($collectionName);
         }
 
         $collection = $this->selectCollectionByName($collectionName);
 
-        $this->collections[$collectionName] = $collection;
+        $this->connectionsCache[$collectionName] = $collection;
 
         $indexFields = [
             'sid',
