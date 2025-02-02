@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Modules\Trace\Domain\Actions\Buffer;
 
 use App\Modules\Trace\Contracts\Actions\StartTraceBufferHandlingActionInterface;
@@ -10,7 +12,6 @@ use App\Modules\Trace\Domain\Services\MonitorTraceBufferHandlingService;
 use App\Modules\Trace\Repositories\Dto\Trace\TraceBufferDto;
 use App\Modules\Trace\Repositories\Dto\Trace\TraceBufferInvalidDto;
 use Symfony\Component\Console\Output\OutputInterface;
-use Throwable;
 
 readonly class StartTraceBufferHandlingAction implements StartTraceBufferHandlingActionInterface
 {

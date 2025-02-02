@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Modules\Logs\Entities\Log;
 
 use Illuminate\Support\Carbon;
