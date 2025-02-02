@@ -66,7 +66,7 @@ readonly class StartTraceBufferHandlingAction implements StartTraceBufferHandlin
             /** @var string[] $allTraceIds */
             $allTraceIds = [];
 
-            /** @var TraceBufferInvalidDto[] $traces */
+            /** @var TraceBufferInvalidDto[] $currentInvalidTraces */
             $currentInvalidTraces = [];
 
             if ($currentTracesCount) {
@@ -101,21 +101,10 @@ readonly class StartTraceBufferHandlingAction implements StartTraceBufferHandlin
 
                     array_map(
                         static function (TraceBufferDto $trace) use (&$currentInvalidTraces) {
-                            $exception = null;
-
-                            try {
-                                $document = (array) $trace;
-                            } catch (Throwable $exception) {
-                                $document = [];
-                            }
-
                             $currentInvalidTraces[] = new TraceBufferInvalidDto(
                                 traceId: $trace->traceId,
-                                document: $document,
-                                error: 'not inserted' . (is_null($exception)
-                                    ? ''
-                                    : ", convert trace error: {$exception->getMessage()}"
-                                ),
+                                document: (array) $trace,
+                                error: 'not inserted'
                             );
                         },
                         $skippedTraces
