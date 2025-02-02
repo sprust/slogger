@@ -7,24 +7,18 @@ namespace App\Modules\Trace\Contracts\Repositories;
 use App\Modules\Trace\Entities\Trace\TraceCollectionNameObjects;
 use App\Modules\Trace\Entities\Trace\TraceIndexInfoObject;
 use App\Modules\Trace\Parameters\Data\TraceDataFilterParameters;
-use App\Modules\Trace\Parameters\TraceCreateParameters;
-use App\Modules\Trace\Parameters\TraceUpdateParameters;
 use App\Modules\Trace\Repositories\Dto\DynamicIndex\TraceDynamicIndexFieldDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Profiling\TraceProfilingDto;
+use App\Modules\Trace\Repositories\Dto\Trace\TraceBufferDto;
 use App\Modules\Trace\Repositories\Dto\Trace\TraceDto;
-use App\Modules\Trace\Repositories\Dto\Trace\TraceHubDto;
 use Illuminate\Support\Carbon;
 
 interface TraceRepositoryInterface
 {
     /**
-     * @param TraceHubDto[] $traceHubs
+     * @param TraceBufferDto[] $traceBuffers
      */
-    public function createManyByHubs(array $traceHubs): void;
-
-    public function createOne(TraceCreateParameters $trace): void;
-
-    public function updateOne(TraceUpdateParameters $trace): bool;
+    public function createManyByBuffers(array $traceBuffers): void;
 
     public function findOneDetailByTraceId(string $traceId): ?TraceDto;
 

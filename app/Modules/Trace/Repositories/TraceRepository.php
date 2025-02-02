@@ -6,17 +6,14 @@ namespace App\Modules\Trace\Repositories;
 
 use App\Models\Traces\TraceDynamicIndex;
 use App\Modules\Trace\Contracts\Repositories\TraceRepositoryInterface;
-use App\Modules\Trace\Entities\Trace\Timestamp\TraceTimestampMetricObject;
 use App\Modules\Trace\Entities\Trace\TraceCollectionNameObjects;
 use App\Modules\Trace\Entities\Trace\TraceIndexInfoObject;
 use App\Modules\Trace\Parameters\Data\TraceDataFilterParameters;
-use App\Modules\Trace\Parameters\TraceCreateParameters;
-use App\Modules\Trace\Parameters\TraceUpdateParameters;
 use App\Modules\Trace\Repositories\Dto\Trace\Profiling\TraceProfilingDataDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Profiling\TraceProfilingDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Profiling\TraceProfilingItemDto;
+use App\Modules\Trace\Repositories\Dto\Trace\TraceBufferDto;
 use App\Modules\Trace\Repositories\Dto\Trace\TraceDto;
-use App\Modules\Trace\Repositories\Dto\Trace\TraceHubDto;
 use App\Modules\Trace\Repositories\Services\PeriodicTraceCollectionNameService;
 use App\Modules\Trace\Repositories\Services\PeriodicTraceService;
 use App\Modules\Trace\Repositories\Services\TraceDataToObjectBuilder;
@@ -42,49 +39,48 @@ readonly class TraceRepository implements TraceRepositoryInterface
     ) {
     }
 
-    public function createManyByHubs(array $traceHubs): void
+    public function createManyByBuffers(array $traceBuffers): void
     {
         /**
-         * @var array<string, TraceHubDto[]> $collectionNameTraceHubs
+         * @var array<string, TraceBufferDto[]> $collectionNameTraceBuffers
          */
-        $collectionNameTraceHubs = [];
+        $collectionNameTraceBuffers = [];
 
-        foreach ($traceHubs as $traceHub) {
+        foreach ($traceBuffers as $traceBuffer) {
             $collectionName = $this->periodicTraceCollectionNameService->newByDatetime(
-                datetime: $traceHub->loggedAt
+                datetime: $traceBuffer->loggedAt
             );
 
-            $collectionNameTraceHubs[$collectionName]   ??= [];
-            $collectionNameTraceHubs[$collectionName][] = $traceHub;
+            $collectionNameTraceBuffers[$collectionName]   ??= [];
+            $collectionNameTraceBuffers[$collectionName][] = $traceBuffer;
         }
 
-        foreach ($collectionNameTraceHubs as $collectionName => $collectionTraces) {
+        foreach ($collectionNameTraceBuffers as $collectionName => $collectionNameTraceBuffer) {
             $operations = [];
 
-            foreach ($collectionTraces as $traceHub) {
+            foreach ($collectionNameTraceBuffer as $buffer) {
                 $operations[] = [
                     'updateOne' => [
                         [
-                            'sid' => $traceHub->serviceId,
-                            'tid' => $traceHub->traceId,
+                            'sid' => $buffer->serviceId,
+                            'tid' => $buffer->traceId,
                         ],
                         [
                             '$set' => [
-                                'ptid' => $traceHub->parentTraceId,
-                                'tp'   => $traceHub->type,
-                                'st'   => $traceHub->status,
-                                'tgs'  => $this->prepareTagsForSave($traceHub->tags),
-                                'dt'   => $traceHub->data,
-                                'dur'  => $traceHub->duration,
-                                'mem'  => $traceHub->memory,
-                                'cpu'  => $traceHub->cpu,
-                                'tss'  => $traceHub->timestamps,
-                                'lat'  => new UTCDateTime($traceHub->loggedAt),
-                                'uat'  => new UTCDateTime($traceHub->updatedAt),
-                                'cat'  => new UTCDateTime($traceHub->createdAt),
-                                'hpr'  => $traceHub->hasProfiling,
-                                'pr'   => $traceHub->profiling,
-
+                                'ptid' => $buffer->parentTraceId,
+                                'tp'   => $buffer->type,
+                                'st'   => $buffer->status,
+                                'tgs'  => $this->prepareTagsForSave($buffer->tags),
+                                'dt'   => $this->prepareData(json_decode($buffer->data, true)),
+                                'dur'  => $buffer->duration,
+                                'mem'  => $buffer->memory,
+                                'cpu'  => $buffer->cpu,
+                                'tss'  => $buffer->timestamps,
+                                'lat'  => new UTCDateTime($buffer->loggedAt),
+                                'uat'  => new UTCDateTime($buffer->updatedAt),
+                                'cat'  => new UTCDateTime($buffer->createdAt),
+                                'hpr'  => $buffer->hasProfiling,
+                                'pr'   => $buffer->profiling,
                             ],
                         ],
                         [
@@ -97,185 +93,6 @@ readonly class TraceRepository implements TraceRepositoryInterface
             $this->periodicTraceService->initCollectionByName($collectionName)
                 ->bulkWrite($operations);
         }
-    }
-
-    public function createOne(TraceCreateParameters $trace): void
-    {
-        $timestamp = new UTCDateTime(now());
-
-        $collection = $this->periodicTraceService->initCollection($trace->loggedAt);
-
-        $collectionNameOfExistsTrace = $this->periodicTraceService->findCollectionNameByTraceId($trace->traceId);
-
-        $existDocument = [];
-
-        if ($collectionNameOfExistsTrace) {
-            $existDocument = $this->periodicTraceService->findOne(
-                collectionName: $collectionNameOfExistsTrace,
-                traceId: $trace->traceId
-            );
-        }
-
-        $serviceId     = $trace->serviceId;
-        $traceId       = $trace->traceId;
-        $parentTraceId = $trace->parentTraceId;
-        $type          = $trace->type;
-        $status        = ($existDocument['st'] ?? null) ?: $trace->status;
-        $tags          = ($existDocument['tgs'] ?? null) ?: $this->prepareTagsForSave($trace->tags);
-        $data          = ($existDocument['dt'] ?? null) ?: $this->prepareData(json_decode($trace->data, true));
-        $duration      = is_null($existDocument['dur'] ?? null) ? $trace->duration : $existDocument['dur'];
-        $memory        = is_null($existDocument['mem'] ?? null) ? $trace->memory : $existDocument['mem'];
-        $cpu           = is_null($existDocument['cpu'] ?? null) ? $trace->cpu : $existDocument['cpu'];
-        $timestamps    = $this->makeTimestampsData($trace->timestamps);
-        $loggedAt      = new UTCDateTime($trace->loggedAt);
-        $updatedAt     = $timestamp;
-        $createdAt     = $timestamp;
-
-        $profiling = ($existDocument['hpr'] ?? false)
-            ? [
-                'hpr' => true,
-                'pr'  => $existDocument['pr'],
-            ]
-            : [];
-
-        if ($collectionNameOfExistsTrace) {
-            $this->periodicTraceService->selectCollectionByName($collectionNameOfExistsTrace)
-                ->deleteOne([
-                    'tid' => $traceId,
-                ]);
-        }
-
-        $collection->insertOne([
-            'sid'  => $serviceId,
-            'tid'  => $traceId,
-            'ptid' => $parentTraceId,
-            'tp'   => $type,
-            'st'   => $status,
-            'tgs'  => $tags,
-            'dt'   => $data,
-            'dur'  => $duration,
-            'mem'  => $memory,
-            'cpu'  => $cpu,
-            'tss'  => $timestamps,
-            'lat'  => $loggedAt,
-            'uat'  => $updatedAt,
-            'cat'  => $createdAt,
-            ...$profiling,
-        ]);
-    }
-
-    public function updateOne(TraceUpdateParameters $trace): bool
-    {
-        $timestamp = new UTCDateTime(now());
-
-        $collectionName = $this->periodicTraceService->findCollectionNameByTraceId($trace->traceId);
-
-        /** @var TraceDto|null $existTrace */
-        $existTrace = null;
-
-        if ($collectionName) {
-            $existTraceDocument = $this->periodicTraceService->findOne(
-                collectionName: $collectionName,
-                traceId: $trace->traceId
-            );
-
-            if ($existTraceDocument) {
-                $existTrace = $this->makeTraceDtoFromDocument($existTraceDocument);
-            }
-        }
-
-        $profilingItems = $trace->profiling?->getItems() ?? [];
-
-        $profiling = count($profilingItems)
-            ? [
-                'hpr' => true,
-                'pr'  => [
-                    'mainCaller' => $trace->profiling->getMainCaller(),
-                    'items'      => $profilingItems,
-                ],
-            ]
-            : [];
-
-        if (!$existTrace) {
-            $serviceId     = $trace->serviceId;
-            $traceId       = $trace->traceId;
-            $parentTraceId = null;
-            $type          = 'wait-inserting'; // TODO: maybe set to nullable
-            $status        = $trace->status;
-            $tags          = $trace->tags ? $this->prepareTagsForSave($trace->tags) : [];
-            $data          = $trace->data ? $this->prepareData(json_decode($trace->data, true)) : [];
-            $duration      = $trace->duration;
-            $memory        = $trace->memory;
-            $cpu           = $trace->cpu;
-            $timestamps    = new stdClass();
-            $loggedAt      = $timestamp;
-            $updatedAt     = $timestamp;
-            $createdAt     = $timestamp;
-
-            $this->periodicTraceService->initCollection(now())
-                ->insertOne([
-                    'sid'  => $serviceId,
-                    'tid'  => $traceId,
-                    'ptid' => $parentTraceId,
-                    'tp'   => $type,
-                    'st'   => $status,
-                    'tgs'  => $tags,
-                    'dt'   => $data,
-                    'dur'  => $duration,
-                    'mem'  => $memory,
-                    'cpu'  => $cpu,
-                    'tss'  => $timestamps,
-                    'lat'  => $loggedAt,
-                    'uat'  => $updatedAt,
-                    'cat'  => $createdAt,
-                    ...$profiling,
-                ]);
-
-            return true;
-        }
-
-        $result = $this->periodicTraceService->selectCollectionByName($collectionName)
-            ->updateOne(
-                [
-                    'tid' => $trace->traceId,
-                ],
-                [
-                    '$set' => [
-                        'st'  => $trace->status,
-                        ...(is_null($trace->tags)
-                            ? []
-                            : [
-                                'tgs' => $this->prepareTagsForSave($trace->tags),
-                            ]),
-                        ...(is_null($trace->data)
-                            ? []
-                            : [
-                                'dt' => $this->prepareData(
-                                    json_decode($trace->data, true)
-                                ),
-                            ]),
-                        ...(is_null($trace->duration)
-                            ? []
-                            : [
-                                'dur' => $trace->duration,
-                            ]),
-                        ...(is_null($trace->memory)
-                            ? []
-                            : [
-                                'mem' => $trace->memory,
-                            ]),
-                        ...(is_null($trace->cpu)
-                            ? []
-                            : [
-                                'cpu' => $trace->cpu,
-                            ]),
-                        'uat' => $timestamp,
-                        ...$profiling,
-                    ],
-                ]
-            );
-
-        return $result->getModifiedCount() > 0;
     }
 
     public function findOneDetailByTraceId(string $traceId): ?TraceDto
@@ -573,22 +390,6 @@ readonly class TraceRepository implements TraceRepositoryInterface
         );
 
         return $result->getModifiedCount();
-    }
-
-    /**
-     * @param TraceTimestampMetricObject[] $timestamps
-     *
-     * @return array<string, UTCDateTime>
-     */
-    private function makeTimestampsData(array $timestamps): array
-    {
-        $result = [];
-
-        foreach ($timestamps as $timestamp) {
-            $result[$timestamp->key] = new UTCDateTime($timestamp->value);
-        }
-
-        return $result;
     }
 
     /**

@@ -7,11 +7,10 @@ namespace App\Modules\Trace\Repositories\Dto\Trace;
 use Illuminate\Support\Carbon;
 use MongoDB\BSON\UTCDateTime;
 
-readonly class TraceHubDto
+readonly class TraceBufferDto
 {
     /**
      * @param string[]                   $tags
-     * @param array<string, mixed>       $data
      * @param array<string, mixed>       $profiling
      * @param array<string, UTCDateTime> $timestamps
      */
@@ -23,7 +22,7 @@ readonly class TraceHubDto
         public string $type,
         public string $status,
         public array $tags,
-        public array $data,
+        public string $data,
         public ?float $duration,
         public ?float $memory,
         public ?float $cpu,

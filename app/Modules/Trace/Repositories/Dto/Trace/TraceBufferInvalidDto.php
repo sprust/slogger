@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Trace\Repositories\Dto\Trace;
 
-readonly class TraceHubInvalidDto
+readonly class TraceBufferInvalidDto
 {
     /**
      * @param array<string, mixed> $document

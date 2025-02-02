@@ -1,35 +1,51 @@
 <?php
 
-namespace App\Modules\Trace\Domain\Actions;
+declare(strict_types=1);
 
-use App\Modules\Trace\Contracts\Actions\StartTraceHubHandlingActionInterface;
-use App\Modules\Trace\Contracts\Repositories\TraceHubInvalidRepositoryInterface;
-use App\Modules\Trace\Contracts\Repositories\TraceHubRepositoryInterface;
+namespace App\Modules\Trace\Domain\Actions\Buffer;
+
+use App\Modules\Trace\Contracts\Actions\StartTraceBufferHandlingActionInterface;
+use App\Modules\Trace\Contracts\Repositories\TraceBufferInvalidRepositoryInterface;
+use App\Modules\Trace\Contracts\Repositories\TraceBufferRepositoryInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceRepositoryInterface;
-use App\Modules\Trace\Repositories\Dto\Trace\TraceHubDto;
-use App\Modules\Trace\Repositories\Dto\Trace\TraceHubInvalidDto;
+use App\Modules\Trace\Domain\Services\MonitorTraceBufferHandlingService;
+use App\Modules\Trace\Repositories\Dto\Trace\TraceBufferDto;
+use App\Modules\Trace\Repositories\Dto\Trace\TraceBufferInvalidDto;
 use Symfony\Component\Console\Output\OutputInterface;
-use Throwable;
 
-readonly class StartTraceHubHandlingAction implements StartTraceHubHandlingActionInterface
+readonly class StartTraceBufferHandlingAction implements StartTraceBufferHandlingActionInterface
 {
     public function __construct(
-        private TraceHubRepositoryInterface $traceHubRepository,
+        private MonitorTraceBufferHandlingService $monitorTraceBufferHandlingService,
+        private TraceBufferRepositoryInterface $traceBufferRepository,
         private TraceRepositoryInterface $traceRepository,
-        private TraceHubInvalidRepositoryInterface $traceHubInvalidRepository,
+        private TraceBufferInvalidRepositoryInterface $traceBufferInvalidRepository,
     ) {
     }
 
     public function handle(OutputInterface $output): void
     {
+        $output->writeln('Start trace buffer handling');
+
         $totalCount         = 0;
         $totalInsertedCount = 0;
         $totalSkippedCount  = 0;
         $totalInvalidCount  = 0;
 
-        // TODO: stop signal feature
+        $processKey = $this->monitorTraceBufferHandlingService->startProcess();
+
+        $processMonitorTime = time();
+
         while (true) {
-            $traces = $this->traceHubRepository->findForHandling(
+            if (time() - $processMonitorTime > 2) {
+                if (!$this->monitorTraceBufferHandlingService->isProcessKeyActual($processKey)) {
+                    break;
+                }
+
+                $processMonitorTime = time();
+            }
+
+            $traces = $this->traceBufferRepository->findForHandling(
                 page: 1,
                 perPage: 20,
                 deadTimeLine: now()->subMinutes(50) // TODO: move to config?
@@ -51,12 +67,12 @@ readonly class StartTraceHubHandlingAction implements StartTraceHubHandlingActio
             /** @var string[] $allTraceIds */
             $allTraceIds = [];
 
-            /** @var TraceHubInvalidDto[] $traces */
+            /** @var TraceBufferInvalidDto[] $currentInvalidTraces */
             $currentInvalidTraces = [];
 
             if ($currentTracesCount) {
                 array_map(
-                    static function (TraceHubDto $trace) use (&$allTraceIds) {
+                    static function (TraceBufferDto $trace) use (&$allTraceIds) {
                         $allTraceIds[] = $trace->traceId;
                     },
                     $traces->traces
@@ -64,12 +80,12 @@ readonly class StartTraceHubHandlingAction implements StartTraceHubHandlingActio
 
                 $insertedTraces = array_filter(
                     $traces->traces,
-                    static fn(TraceHubDto $trace) => $trace->inserted
+                    static fn(TraceBufferDto $trace) => $trace->inserted
                 );
 
                 $skippedTraces = array_filter(
                     $traces->traces,
-                    static fn(TraceHubDto $trace) => !$trace->inserted
+                    static fn(TraceBufferDto $trace) => !$trace->inserted
                 );
 
                 $currentInsertedTracesCount = count($insertedTraces);
@@ -77,30 +93,19 @@ readonly class StartTraceHubHandlingAction implements StartTraceHubHandlingActio
 
                 $totalInsertedCount += $currentInsertedTracesCount;
 
-                $this->traceRepository->createManyByHubs(
-                    traceHubs: $insertedTraces
+                $this->traceRepository->createManyByBuffers(
+                    traceBuffers: $insertedTraces
                 );
 
                 if ($currentSkippedTracesCount) {
                     $totalSkippedCount += $currentSkippedTracesCount;
 
                     array_map(
-                        static function (TraceHubDto $trace) use (&$currentInvalidTraces) {
-                            $exception = null;
-
-                            try {
-                                $document = (array) $trace;
-                            } catch (Throwable $exception) {
-                                $document = [];
-                            }
-
-                            $currentInvalidTraces[] = new TraceHubInvalidDto(
+                        static function (TraceBufferDto $trace) use (&$currentInvalidTraces) {
+                            $currentInvalidTraces[] = new TraceBufferInvalidDto(
                                 traceId: $trace->traceId,
-                                document: $document,
-                                error: 'not inserted' . (is_null($exception)
-                                    ? ''
-                                    : ", convert trace error: {$exception->getMessage()}"
-                                ),
+                                document: (array) $trace,
+                                error: 'not inserted'
                             );
                         },
                         $skippedTraces
@@ -108,7 +113,7 @@ readonly class StartTraceHubHandlingAction implements StartTraceHubHandlingActio
                 }
 
                 array_map(
-                    static function (TraceHubInvalidDto $trace) use (&$currentInvalidTraces, &$allTraceIds) {
+                    static function (TraceBufferInvalidDto $trace) use (&$currentInvalidTraces, &$allTraceIds) {
                         $currentInvalidTraces[] = $trace;
 
                         if (!$trace->traceId) {
@@ -122,12 +127,12 @@ readonly class StartTraceHubHandlingAction implements StartTraceHubHandlingActio
             }
 
             if (count($currentInvalidTraces)) {
-                $this->traceHubInvalidRepository->createMany(
-                    invalidTraceHubs: $currentInvalidTraces
+                $this->traceBufferInvalidRepository->createMany(
+                    invalidTraceBuffers: $currentInvalidTraces
                 );
             }
 
-            $deletedCount = $this->traceHubRepository->delete(
+            $deletedCount = $this->traceBufferRepository->delete(
                 traceIds: $allTraceIds
             );
 
@@ -143,5 +148,7 @@ readonly class StartTraceHubHandlingAction implements StartTraceHubHandlingActio
                 )
             );
         }
+
+        $output->writeln('Stop trace buffer handling');
     }
 }

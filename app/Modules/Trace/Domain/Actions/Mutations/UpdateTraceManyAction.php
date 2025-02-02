@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Trace\Domain\Actions\Mutations;
 
 use App\Modules\Trace\Contracts\Actions\Mutations\UpdateTraceManyActionInterface;
-use App\Modules\Trace\Contracts\Repositories\TraceHubRepositoryInterface;
+use App\Modules\Trace\Contracts\Repositories\TraceBufferRepositoryInterface;
 use App\Modules\Trace\Domain\Services\Locker\TraceLocker;
 use App\Modules\Trace\Parameters\TraceUpdateParametersList;
 
@@ -22,7 +22,7 @@ readonly class UpdateTraceManyAction implements UpdateTraceManyActionInterface
             $this->traceLocker
                 ->resolve(
                     traceId: $trace->traceId,
-                    class: TraceHubRepositoryInterface::class
+                    class: TraceBufferRepositoryInterface::class
                 )
                 ->update(
                     trace: $trace

@@ -25,6 +25,7 @@ class TraceCreateParameters
         public ?float $memory,
         public ?float $cpu,
         public array $timestamps,
+        public bool $isParent,
         public Carbon $loggedAt
     ) {
     }
