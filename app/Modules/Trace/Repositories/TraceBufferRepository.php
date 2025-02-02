@@ -11,7 +11,6 @@ use App\Modules\Trace\Parameters\TraceUpdateParameters;
 use App\Modules\Trace\Repositories\Dto\Trace\TraceBufferDto;
 use App\Modules\Trace\Repositories\Dto\Trace\TraceBufferInvalidDto;
 use App\Modules\Trace\Repositories\Dto\Trace\TraceBuffersDto;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use MongoDB\BSON\UTCDateTime;
 use MongoDB\Collection;
@@ -55,8 +54,8 @@ readonly class TraceBufferRepository implements TraceBufferRepositoryInterface
                     'ptid'  => $trace->parentTraceId,
                     'tp'    => $trace->type,
                     'st'    => ($existTrace['st'] ?? null) ?: $trace->status,
-                    'tgs'   => ($existTrace['tgs'] ?? null) ?: $this->prepareTagsForSave($trace->tags),
-                    'dt'    => ($existTrace['dt'] ?? null) ?: $this->prepareData(json_decode($trace->data, true)),
+                    'tgs'   => ($existTrace['tgs'] ?? null) ?: $trace->tags,
+                    'dt'    => ($existTrace['dt'] ?? null) ?: $trace->data,
                     'dur'   => is_null($existTrace['dur'] ?? null) ? $trace->duration : $existTrace['dur'],
                     'mem'   => is_null($existTrace['mem'] ?? null) ? $trace->memory : $existTrace['mem'],
                     'cpu'   => is_null($existTrace['cpu'] ?? null) ? $trace->cpu : $existTrace['cpu'],
@@ -106,8 +105,8 @@ readonly class TraceBufferRepository implements TraceBufferRepositoryInterface
                 'ptid'  => null,
                 'tp'    => null,
                 'st'    => $trace->status,
-                'tgs'   => $trace->tags ? $this->prepareTagsForSave($trace->tags) : [],
-                'dt'    => $trace->data ? $this->prepareData(json_decode($trace->data, true)) : new stdClass(),
+                'tgs'   => $trace->tags ?: [],
+                'dt'    => $trace->data ?: new stdClass(),
                 'dur'   => $trace->duration,
                 'mem'   => $trace->memory,
                 'cpu'   => $trace->cpu,
@@ -131,14 +130,12 @@ readonly class TraceBufferRepository implements TraceBufferRepositoryInterface
                     ...(is_null($trace->tags)
                         ? []
                         : [
-                            'tgs' => $this->prepareTagsForSave($trace->tags),
+                            'tgs' => $trace->tags,
                         ]),
                     ...(is_null($trace->data)
                         ? []
                         : [
-                            'dt' => $this->prepareData(
-                                json_decode($trace->data, true)
-                            ),
+                            'dt' => $trace->data,
                         ]),
                     ...(is_null($trace->duration)
                         ? []
@@ -214,10 +211,7 @@ readonly class TraceBufferRepository implements TraceBufferRepositoryInterface
                     parentTraceId: $document['ptid'],
                     type: $document['tp'] ?? 'unknown',
                     status: $document['st'],
-                    tags: array_map(
-                        static fn(array $tag) => $tag['nm'],
-                        $document['tgs']
-                    ),
+                    tags: $document['tgs'],
                     data: $document['dt'],
                     duration: $document['dur'],
                     memory: $document['mem'],
@@ -262,69 +256,6 @@ readonly class TraceBufferRepository implements TraceBufferRepositoryInterface
 
         return $result->getDeletedCount();
     }
-
-
-    /**
-     * @param string[] $tags
-     *
-     * @return array<string, string>[]
-     */
-    private function prepareTagsForSave(array $tags): array
-    {
-        return array_map(
-            fn(string $tag) => [
-                'nm' => $tag,
-            ],
-            $tags
-        );
-    }
-
-    /**
-     * @param array<string|int, mixed> $data
-     *
-     * @return array<string|int, mixed>
-     */
-    private function prepareData(array $data): array
-    {
-        $result = [];
-
-        foreach ($data as $key => $value) {
-            $this->prepareDataRecursive($result, $key, $value);
-        }
-
-        return $result;
-    }
-
-    /**
-     * @param array<string|int, mixed> $result
-     */
-    private function prepareDataRecursive(array &$result, mixed $key, mixed $value): void
-    {
-        if (!is_array($value)) {
-            $result[$key] = $value;
-
-            return;
-        }
-
-        if (!$value) {
-            $result[$key] = new stdClass();
-
-            return;
-        }
-
-        $result[$key] = [];
-
-        $isList = Arr::isList($value);
-
-        foreach ($value as $valueItemKey => $valueItem) {
-            $this->prepareDataRecursive(
-                result: $result[$key],
-                key: $isList ? "_$valueItemKey" : $valueItemKey,
-                value: $valueItem
-            );
-        }
-    }
-
 
     /**
      * @param TraceTimestampMetricObject[] $timestamps

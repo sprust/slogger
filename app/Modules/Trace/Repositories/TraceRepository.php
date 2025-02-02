@@ -6,7 +6,6 @@ namespace App\Modules\Trace\Repositories;
 
 use App\Models\Traces\TraceDynamicIndex;
 use App\Modules\Trace\Contracts\Repositories\TraceRepositoryInterface;
-use App\Modules\Trace\Entities\Trace\Timestamp\TraceTimestampMetricObject;
 use App\Modules\Trace\Entities\Trace\TraceCollectionNameObjects;
 use App\Modules\Trace\Entities\Trace\TraceIndexInfoObject;
 use App\Modules\Trace\Parameters\Data\TraceDataFilterParameters;
@@ -72,7 +71,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
                                 'tp'   => $buffer->type,
                                 'st'   => $buffer->status,
                                 'tgs'  => $this->prepareTagsForSave($buffer->tags),
-                                'dt'   => $buffer->data,
+                                'dt'   => $this->prepareData(json_decode($buffer->data, true)),
                                 'dur'  => $buffer->duration,
                                 'mem'  => $buffer->memory,
                                 'cpu'  => $buffer->cpu,
@@ -391,22 +390,6 @@ readonly class TraceRepository implements TraceRepositoryInterface
         );
 
         return $result->getModifiedCount();
-    }
-
-    /**
-     * @param TraceTimestampMetricObject[] $timestamps
-     *
-     * @return array<string, UTCDateTime>
-     */
-    private function makeTimestampsData(array $timestamps): array
-    {
-        $result = [];
-
-        foreach ($timestamps as $timestamp) {
-            $result[$timestamp->key] = new UTCDateTime($timestamp->value);
-        }
-
-        return $result;
     }
 
     /**
