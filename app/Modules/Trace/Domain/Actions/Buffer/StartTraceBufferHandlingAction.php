@@ -33,7 +33,17 @@ readonly class StartTraceBufferHandlingAction implements StartTraceBufferHandlin
 
         $processKey = $this->monitorTraceBufferHandlingService->startProcess();
 
-        while ($this->monitorTraceBufferHandlingService->isProcessKeyActual($processKey)) {
+        $processMonitorTime = time();
+
+        while (true) {
+            if (time() - $processMonitorTime > 2) {
+                if (!$this->monitorTraceBufferHandlingService->isProcessKeyActual($processKey)) {
+                    break;
+                }
+
+                $processMonitorTime = time();
+            }
+
             $traces = $this->traceBufferRepository->findForHandling(
                 page: 1,
                 perPage: 20,
