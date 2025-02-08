@@ -151,6 +151,7 @@ readonly class TraceCollectorService implements TraceCollectorInterface
                 timestamps: $this->makeTraceTimestampsAction->handle(
                     date: $loggedAt
                 ),
+                isParent: $trace->getIsParent()?->getValue() ?: false, // TODO: required after release
                 loggedAt: $loggedAt,
             );
 

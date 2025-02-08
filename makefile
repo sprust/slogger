@@ -47,6 +47,9 @@ restart:
 bash-php-fpm:
 	@"$(PHP_FPM_CLI)"bash
 
+code-analise-declare-strict-fix:
+	@make workers-art c='declare-strict-fix'
+
 code-analise-stan:
 	@"$(WORKERS_CLI)"./vendor/bin/phpstan analyse -c ./code-analyse/phpstan.neon  --memory-limit=1G
 
@@ -54,6 +57,7 @@ code-analise-deptrac:
 	@"$(WORKERS_CLI)"./vendor/bin/deptrac analyse --config-file=./code-analyse/deptrac-layers.yaml
 
 code-analise:
+	make code-analise-declare-strict-fix
 	make code-analise-stan
 	make code-analise-deptrac
 
@@ -81,6 +85,7 @@ workers-restart:
 	@make workers-art c='rr-monitor:stop jobs'
 	@make workers-art c='slogger:dispatcher:stop'
 	@make workers-art c='trace-dynamic-indexes:monitor:stop'
+	@make workers-art c='trace-buffer:handle:stop'
 
 octane-stop:
 	@make workers-art c='octane:roadrunner:stop'

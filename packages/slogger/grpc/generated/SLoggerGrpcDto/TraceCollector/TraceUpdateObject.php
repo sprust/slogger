@@ -22,26 +22,38 @@ class TraceUpdateObject extends \Google\Protobuf\Internal\Message
      */
     protected $status = '';
     /**
+     * sometimes
+     *
      * Generated from protobuf field <code>.trace.collector.TraceProfilingItemsObject profiling = 3;</code>
      */
     protected $profiling = null;
     /**
+     * sometimes
+     *
      * Generated from protobuf field <code>.trace.collector.TagsObject tags = 4;</code>
      */
     protected $tags = null;
     /**
+     * sometimes
+     *
      * Generated from protobuf field <code>.google.protobuf.StringValue data = 5;</code>
      */
     protected $data = null;
     /**
+     * sometimes
+     *
      * Generated from protobuf field <code>.google.protobuf.DoubleValue duration = 6;</code>
      */
     protected $duration = null;
     /**
+     * sometimes
+     *
      * Generated from protobuf field <code>.google.protobuf.DoubleValue memory = 7;</code>
      */
     protected $memory = null;
     /**
+     * sometimes
+     *
      * Generated from protobuf field <code>.google.protobuf.DoubleValue cpu = 8;</code>
      */
     protected $cpu = null;
@@ -55,11 +67,17 @@ class TraceUpdateObject extends \Google\Protobuf\Internal\Message
      *     @type string $trace_id
      *     @type string $status
      *     @type \SLoggerGrpcDto\TraceCollector\TraceProfilingItemsObject $profiling
+     *           sometimes
      *     @type \SLoggerGrpcDto\TraceCollector\TagsObject $tags
+     *           sometimes
      *     @type \Google\Protobuf\StringValue $data
+     *           sometimes
      *     @type \Google\Protobuf\DoubleValue $duration
+     *           sometimes
      *     @type \Google\Protobuf\DoubleValue $memory
+     *           sometimes
      *     @type \Google\Protobuf\DoubleValue $cpu
+     *           sometimes
      * }
      */
     public function __construct($data = NULL) {
@@ -112,6 +130,8 @@ class TraceUpdateObject extends \Google\Protobuf\Internal\Message
     }
 
     /**
+     * sometimes
+     *
      * Generated from protobuf field <code>.trace.collector.TraceProfilingItemsObject profiling = 3;</code>
      * @return \SLoggerGrpcDto\TraceCollector\TraceProfilingItemsObject
      */
@@ -121,6 +141,8 @@ class TraceUpdateObject extends \Google\Protobuf\Internal\Message
     }
 
     /**
+     * sometimes
+     *
      * Generated from protobuf field <code>.trace.collector.TraceProfilingItemsObject profiling = 3;</code>
      * @param \SLoggerGrpcDto\TraceCollector\TraceProfilingItemsObject $var
      * @return $this
@@ -134,6 +156,8 @@ class TraceUpdateObject extends \Google\Protobuf\Internal\Message
     }
 
     /**
+     * sometimes
+     *
      * Generated from protobuf field <code>.trace.collector.TagsObject tags = 4;</code>
      * @return \SLoggerGrpcDto\TraceCollector\TagsObject
      */
@@ -143,6 +167,8 @@ class TraceUpdateObject extends \Google\Protobuf\Internal\Message
     }
 
     /**
+     * sometimes
+     *
      * Generated from protobuf field <code>.trace.collector.TagsObject tags = 4;</code>
      * @param \SLoggerGrpcDto\TraceCollector\TagsObject $var
      * @return $this
@@ -156,6 +182,8 @@ class TraceUpdateObject extends \Google\Protobuf\Internal\Message
     }
 
     /**
+     * sometimes
+     *
      * Generated from protobuf field <code>.google.protobuf.StringValue data = 5;</code>
      * @return \Google\Protobuf\StringValue
      */
@@ -167,6 +195,8 @@ class TraceUpdateObject extends \Google\Protobuf\Internal\Message
     /**
      * Returns the unboxed value from <code>getData()</code>
 
+     * sometimes
+     *
      * Generated from protobuf field <code>.google.protobuf.StringValue data = 5;</code>
      * @return string|null
      */
@@ -176,6 +206,8 @@ class TraceUpdateObject extends \Google\Protobuf\Internal\Message
     }
 
     /**
+     * sometimes
+     *
      * Generated from protobuf field <code>.google.protobuf.StringValue data = 5;</code>
      * @param \Google\Protobuf\StringValue $var
      * @return $this
@@ -191,6 +223,8 @@ class TraceUpdateObject extends \Google\Protobuf\Internal\Message
     /**
      * Sets the field by wrapping a primitive type in a Google\Protobuf\StringValue object.
 
+     * sometimes
+     *
      * Generated from protobuf field <code>.google.protobuf.StringValue data = 5;</code>
      * @param string|null $var
      * @return $this
@@ -201,6 +235,8 @@ class TraceUpdateObject extends \Google\Protobuf\Internal\Message
         return $this;}
 
     /**
+     * sometimes
+     *
      * Generated from protobuf field <code>.google.protobuf.DoubleValue duration = 6;</code>
      * @return \Google\Protobuf\DoubleValue
      */
@@ -212,6 +248,8 @@ class TraceUpdateObject extends \Google\Protobuf\Internal\Message
     /**
      * Returns the unboxed value from <code>getDuration()</code>
 
+     * sometimes
+     *
      * Generated from protobuf field <code>.google.protobuf.DoubleValue duration = 6;</code>
      * @return float|null
      */
@@ -221,6 +259,8 @@ class TraceUpdateObject extends \Google\Protobuf\Internal\Message
     }
 
     /**
+     * sometimes
+     *
      * Generated from protobuf field <code>.google.protobuf.DoubleValue duration = 6;</code>
      * @param \Google\Protobuf\DoubleValue $var
      * @return $this
@@ -236,6 +276,8 @@ class TraceUpdateObject extends \Google\Protobuf\Internal\Message
     /**
      * Sets the field by wrapping a primitive type in a Google\Protobuf\DoubleValue object.
 
+     * sometimes
+     *
      * Generated from protobuf field <code>.google.protobuf.DoubleValue duration = 6;</code>
      * @param float|null $var
      * @return $this
@@ -246,6 +288,8 @@ class TraceUpdateObject extends \Google\Protobuf\Internal\Message
         return $this;}
 
     /**
+     * sometimes
+     *
      * Generated from protobuf field <code>.google.protobuf.DoubleValue memory = 7;</code>
      * @return \Google\Protobuf\DoubleValue
      */
@@ -257,6 +301,8 @@ class TraceUpdateObject extends \Google\Protobuf\Internal\Message
     /**
      * Returns the unboxed value from <code>getMemory()</code>
 
+     * sometimes
+     *
      * Generated from protobuf field <code>.google.protobuf.DoubleValue memory = 7;</code>
      * @return float|null
      */
@@ -266,6 +312,8 @@ class TraceUpdateObject extends \Google\Protobuf\Internal\Message
     }
 
     /**
+     * sometimes
+     *
      * Generated from protobuf field <code>.google.protobuf.DoubleValue memory = 7;</code>
      * @param \Google\Protobuf\DoubleValue $var
      * @return $this
@@ -281,6 +329,8 @@ class TraceUpdateObject extends \Google\Protobuf\Internal\Message
     /**
      * Sets the field by wrapping a primitive type in a Google\Protobuf\DoubleValue object.
 
+     * sometimes
+     *
      * Generated from protobuf field <code>.google.protobuf.DoubleValue memory = 7;</code>
      * @param float|null $var
      * @return $this
@@ -291,6 +341,8 @@ class TraceUpdateObject extends \Google\Protobuf\Internal\Message
         return $this;}
 
     /**
+     * sometimes
+     *
      * Generated from protobuf field <code>.google.protobuf.DoubleValue cpu = 8;</code>
      * @return \Google\Protobuf\DoubleValue
      */
@@ -302,6 +354,8 @@ class TraceUpdateObject extends \Google\Protobuf\Internal\Message
     /**
      * Returns the unboxed value from <code>getCpu()</code>
 
+     * sometimes
+     *
      * Generated from protobuf field <code>.google.protobuf.DoubleValue cpu = 8;</code>
      * @return float|null
      */
@@ -311,6 +365,8 @@ class TraceUpdateObject extends \Google\Protobuf\Internal\Message
     }
 
     /**
+     * sometimes
+     *
      * Generated from protobuf field <code>.google.protobuf.DoubleValue cpu = 8;</code>
      * @param \Google\Protobuf\DoubleValue $var
      * @return $this
@@ -326,6 +382,8 @@ class TraceUpdateObject extends \Google\Protobuf\Internal\Message
     /**
      * Sets the field by wrapping a primitive type in a Google\Protobuf\DoubleValue object.
 
+     * sometimes
+     *
      * Generated from protobuf field <code>.google.protobuf.DoubleValue cpu = 8;</code>
      * @param float|null $var
      * @return $this

@@ -33,12 +33,18 @@ use App\Modules\Trace\Contracts\Actions\Queries\FindTraceServicesActionInterface
 use App\Modules\Trace\Contracts\Actions\Queries\FindTraceTimestampsActionInterface;
 use App\Modules\Trace\Contracts\Actions\Queries\FindTraceTreeActionInterface;
 use App\Modules\Trace\Contracts\Actions\Queries\FindTypesActionInterface;
+use App\Modules\Trace\Contracts\Actions\StartTraceBufferHandlingActionInterface;
+use App\Modules\Trace\Contracts\Actions\StopTraceBufferHandlingActionInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceAdminStoreRepositoryInterface;
+use App\Modules\Trace\Contracts\Repositories\TraceBufferInvalidRepositoryInterface;
+use App\Modules\Trace\Contracts\Repositories\TraceBufferRepositoryInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceContentRepositoryInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceDynamicIndexRepositoryInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceRepositoryInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceTimestampsRepositoryInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceTreeRepositoryInterface;
+use App\Modules\Trace\Domain\Actions\Buffer\StartTraceBufferHandlingAction;
+use App\Modules\Trace\Domain\Actions\Buffer\StopTraceBufferHandlingAction;
 use App\Modules\Trace\Domain\Actions\MakeMetricIndicatorsAction;
 use App\Modules\Trace\Domain\Actions\MakeTraceTimestampPeriodsAction;
 use App\Modules\Trace\Domain\Actions\MakeTraceTimestampsAction;
@@ -73,12 +79,16 @@ use App\Modules\Trace\Enums\PeriodicTraceStepEnum;
 use App\Modules\Trace\Infrastructure\Commands\DeleteOldEmptyCollectionsCommand;
 use App\Modules\Trace\Infrastructure\Commands\FlushDynamicIndexesCommand;
 use App\Modules\Trace\Infrastructure\Commands\StartMonitorTraceDynamicIndexesCommand;
+use App\Modules\Trace\Infrastructure\Commands\StartTraceBufferHandlingCommand;
 use App\Modules\Trace\Infrastructure\Commands\StopMonitorTraceDynamicIndexesCommand;
+use App\Modules\Trace\Infrastructure\Commands\StopTraceBufferHandlingCommand;
 use App\Modules\Trace\Infrastructure\Http\Services\TraceDynamicIndexingActionService;
 use App\Modules\Trace\Repositories\Services\PeriodicTraceCollectionNameService;
 use App\Modules\Trace\Repositories\Services\PeriodicTraceService;
 use App\Modules\Trace\Repositories\Services\TracePipelineBuilder;
 use App\Modules\Trace\Repositories\TraceAdminStoreRepository;
+use App\Modules\Trace\Repositories\TraceBufferInvalidRepository;
+use App\Modules\Trace\Repositories\TraceBufferRepository;
 use App\Modules\Trace\Repositories\TraceContentRepository;
 use App\Modules\Trace\Repositories\TraceDynamicIndexRepository;
 use App\Modules\Trace\Repositories\TraceRepository;
@@ -86,6 +96,7 @@ use App\Modules\Trace\Repositories\TraceTimestampsRepository;
 use App\Modules\Trace\Repositories\TraceTreeRepository;
 use Illuminate\Contracts\Foundation\Application;
 use MongoDB\Client;
+use MongoDB\Database;
 
 class TraceServiceProvider extends BaseServiceProvider
 {
@@ -130,6 +141,30 @@ class TraceServiceProvider extends BaseServiceProvider
             }
         );
 
+        $tracesDatabase = $this->makeMongodbTracesClient();
+
+        $this->app->singleton(
+            TraceBufferRepositoryInterface::class,
+            static function () use ($tracesDatabase): TraceBufferRepositoryInterface {
+                return new TraceBufferRepository(
+                    collection: $tracesDatabase->selectCollection(
+                        config('database.connections.mongodb.traces.databases.buffer')
+                    ),
+                );
+            }
+        );
+
+        $this->app->singleton(
+            TraceBufferInvalidRepositoryInterface::class,
+            static function () use ($tracesDatabase): TraceBufferInvalidRepositoryInterface {
+                return new TraceBufferInvalidRepository(
+                    collection: $tracesDatabase->selectCollection(
+                        config('database.connections.mongodb.traces.databases.bufferInvalid')
+                    ),
+                );
+            }
+        );
+
         $this->app->singleton(TraceFieldTitlesService::class);
         $this->app->singleton(TracePipelineBuilder::class);
         $this->app->singleton(TraceDynamicIndexInitializer::class);
@@ -138,6 +173,8 @@ class TraceServiceProvider extends BaseServiceProvider
         parent::boot();
 
         $this->commands([
+            StartTraceBufferHandlingCommand::class,
+            StopTraceBufferHandlingCommand::class,
             StartMonitorTraceDynamicIndexesCommand::class,
             StopMonitorTraceDynamicIndexesCommand::class,
             FlushDynamicIndexesCommand::class,
@@ -159,6 +196,8 @@ class TraceServiceProvider extends BaseServiceProvider
             MakeMetricIndicatorsActionInterface::class            => MakeMetricIndicatorsAction::class,
             MakeTraceTimestampPeriodsActionInterface::class       => MakeTraceTimestampPeriodsAction::class,
             MakeTraceTimestampsActionInterface::class             => MakeTraceTimestampsAction::class,
+            StartTraceBufferHandlingActionInterface::class        => StartTraceBufferHandlingAction::class,
+            StopTraceBufferHandlingActionInterface::class         => StopTraceBufferHandlingAction::class,
             // actions.mutations
             CreateTraceManyActionInterface::class                 => CreateTraceManyAction::class,
             ClearTracesActionInterface::class                     => ClearTracesAction::class,
@@ -187,5 +226,27 @@ class TraceServiceProvider extends BaseServiceProvider
             FindTraceIdsActionInterface::class                    => FindTraceIdsAction::class,
             FindTraceServicesActionInterface::class               => FindTraceServicesAction::class,
         ];
+    }
+
+    private function makeMongodbTracesClient(): Database
+    {
+        $username = config('database.connections.mongodb.traces.username');
+        $password = config('database.connections.mongodb.traces.password');
+        $host     = config('database.connections.mongodb.traces.host');
+        $port     = config('database.connections.mongodb.traces.port');
+        $database = config('database.connections.mongodb.traces.database');
+        $options  = config('database.connections.mongodb.traces.options');
+
+        $uri = "mongodb://$username:$password@$host:$port";
+
+        $client = new Client($uri, $options, [
+            'typeMap' => [
+                'array'    => 'array',
+                'document' => 'array',
+                'root'     => 'array',
+            ],
+        ]);
+
+        return $client->selectDatabase($database);
     }
 }

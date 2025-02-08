@@ -66,6 +66,10 @@ class TraceCreateRequest extends FormRequest
                 'nullable',
                 'numeric',
             ],
+            'traces.*.is_parent'       => [ // TODO: required after release
+                'sometimes',
+                'bool',
+            ],
             'traces.*.logged_at'       => [
                 'required',
                 'numeric',

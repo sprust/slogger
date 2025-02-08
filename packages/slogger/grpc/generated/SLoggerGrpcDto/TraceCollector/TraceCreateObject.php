@@ -30,22 +30,32 @@ class TraceCreateObject extends \Google\Protobuf\Internal\Message
      */
     protected $status = '';
     /**
+     * sometimes
+     *
      * Generated from protobuf field <code>repeated string tags = 5;</code>
      */
     private $tags;
     /**
+     * json
+     *
      * Generated from protobuf field <code>string data = 6;</code>
      */
     protected $data = '';
     /**
+     * sometimes
+     *
      * Generated from protobuf field <code>.google.protobuf.DoubleValue duration = 7;</code>
      */
     protected $duration = null;
     /**
+     * sometimes
+     *
      * Generated from protobuf field <code>.google.protobuf.DoubleValue memory = 8;</code>
      */
     protected $memory = null;
     /**
+     * sometimes
+     *
      * Generated from protobuf field <code>.google.protobuf.DoubleValue cpu = 9;</code>
      */
     protected $cpu = null;
@@ -53,6 +63,12 @@ class TraceCreateObject extends \Google\Protobuf\Internal\Message
      * Generated from protobuf field <code>.google.protobuf.Timestamp logged_at = 10;</code>
      */
     protected $logged_at = null;
+    /**
+     * sometimes
+     *
+     * Generated from protobuf field <code>.google.protobuf.BoolValue isParent = 11;</code>
+     */
+    protected $isParent = null;
 
     /**
      * Constructor.
@@ -65,11 +81,18 @@ class TraceCreateObject extends \Google\Protobuf\Internal\Message
      *     @type string $type
      *     @type string $status
      *     @type string[]|\Google\Protobuf\Internal\RepeatedField $tags
+     *           sometimes
      *     @type string $data
+     *           json
      *     @type \Google\Protobuf\DoubleValue $duration
+     *           sometimes
      *     @type \Google\Protobuf\DoubleValue $memory
+     *           sometimes
      *     @type \Google\Protobuf\DoubleValue $cpu
+     *           sometimes
      *     @type \Google\Protobuf\Timestamp $logged_at
+     *     @type \Google\Protobuf\BoolValue $isParent
+     *           sometimes
      * }
      */
     public function __construct($data = NULL) {
@@ -189,6 +212,8 @@ class TraceCreateObject extends \Google\Protobuf\Internal\Message
     }
 
     /**
+     * sometimes
+     *
      * Generated from protobuf field <code>repeated string tags = 5;</code>
      * @return \Google\Protobuf\Internal\RepeatedField
      */
@@ -198,6 +223,8 @@ class TraceCreateObject extends \Google\Protobuf\Internal\Message
     }
 
     /**
+     * sometimes
+     *
      * Generated from protobuf field <code>repeated string tags = 5;</code>
      * @param string[]|\Google\Protobuf\Internal\RepeatedField $var
      * @return $this
@@ -211,6 +238,8 @@ class TraceCreateObject extends \Google\Protobuf\Internal\Message
     }
 
     /**
+     * json
+     *
      * Generated from protobuf field <code>string data = 6;</code>
      * @return string
      */
@@ -220,6 +249,8 @@ class TraceCreateObject extends \Google\Protobuf\Internal\Message
     }
 
     /**
+     * json
+     *
      * Generated from protobuf field <code>string data = 6;</code>
      * @param string $var
      * @return $this
@@ -233,6 +264,8 @@ class TraceCreateObject extends \Google\Protobuf\Internal\Message
     }
 
     /**
+     * sometimes
+     *
      * Generated from protobuf field <code>.google.protobuf.DoubleValue duration = 7;</code>
      * @return \Google\Protobuf\DoubleValue
      */
@@ -244,6 +277,8 @@ class TraceCreateObject extends \Google\Protobuf\Internal\Message
     /**
      * Returns the unboxed value from <code>getDuration()</code>
 
+     * sometimes
+     *
      * Generated from protobuf field <code>.google.protobuf.DoubleValue duration = 7;</code>
      * @return float|null
      */
@@ -253,6 +288,8 @@ class TraceCreateObject extends \Google\Protobuf\Internal\Message
     }
 
     /**
+     * sometimes
+     *
      * Generated from protobuf field <code>.google.protobuf.DoubleValue duration = 7;</code>
      * @param \Google\Protobuf\DoubleValue $var
      * @return $this
@@ -268,6 +305,8 @@ class TraceCreateObject extends \Google\Protobuf\Internal\Message
     /**
      * Sets the field by wrapping a primitive type in a Google\Protobuf\DoubleValue object.
 
+     * sometimes
+     *
      * Generated from protobuf field <code>.google.protobuf.DoubleValue duration = 7;</code>
      * @param float|null $var
      * @return $this
@@ -278,6 +317,8 @@ class TraceCreateObject extends \Google\Protobuf\Internal\Message
         return $this;}
 
     /**
+     * sometimes
+     *
      * Generated from protobuf field <code>.google.protobuf.DoubleValue memory = 8;</code>
      * @return \Google\Protobuf\DoubleValue
      */
@@ -289,6 +330,8 @@ class TraceCreateObject extends \Google\Protobuf\Internal\Message
     /**
      * Returns the unboxed value from <code>getMemory()</code>
 
+     * sometimes
+     *
      * Generated from protobuf field <code>.google.protobuf.DoubleValue memory = 8;</code>
      * @return float|null
      */
@@ -298,6 +341,8 @@ class TraceCreateObject extends \Google\Protobuf\Internal\Message
     }
 
     /**
+     * sometimes
+     *
      * Generated from protobuf field <code>.google.protobuf.DoubleValue memory = 8;</code>
      * @param \Google\Protobuf\DoubleValue $var
      * @return $this
@@ -313,6 +358,8 @@ class TraceCreateObject extends \Google\Protobuf\Internal\Message
     /**
      * Sets the field by wrapping a primitive type in a Google\Protobuf\DoubleValue object.
 
+     * sometimes
+     *
      * Generated from protobuf field <code>.google.protobuf.DoubleValue memory = 8;</code>
      * @param float|null $var
      * @return $this
@@ -323,6 +370,8 @@ class TraceCreateObject extends \Google\Protobuf\Internal\Message
         return $this;}
 
     /**
+     * sometimes
+     *
      * Generated from protobuf field <code>.google.protobuf.DoubleValue cpu = 9;</code>
      * @return \Google\Protobuf\DoubleValue
      */
@@ -334,6 +383,8 @@ class TraceCreateObject extends \Google\Protobuf\Internal\Message
     /**
      * Returns the unboxed value from <code>getCpu()</code>
 
+     * sometimes
+     *
      * Generated from protobuf field <code>.google.protobuf.DoubleValue cpu = 9;</code>
      * @return float|null
      */
@@ -343,6 +394,8 @@ class TraceCreateObject extends \Google\Protobuf\Internal\Message
     }
 
     /**
+     * sometimes
+     *
      * Generated from protobuf field <code>.google.protobuf.DoubleValue cpu = 9;</code>
      * @param \Google\Protobuf\DoubleValue $var
      * @return $this
@@ -358,6 +411,8 @@ class TraceCreateObject extends \Google\Protobuf\Internal\Message
     /**
      * Sets the field by wrapping a primitive type in a Google\Protobuf\DoubleValue object.
 
+     * sometimes
+     *
      * Generated from protobuf field <code>.google.protobuf.DoubleValue cpu = 9;</code>
      * @param float|null $var
      * @return $this
@@ -388,6 +443,59 @@ class TraceCreateObject extends \Google\Protobuf\Internal\Message
 
         return $this;
     }
+
+    /**
+     * sometimes
+     *
+     * Generated from protobuf field <code>.google.protobuf.BoolValue isParent = 11;</code>
+     * @return \Google\Protobuf\BoolValue
+     */
+    public function getIsParent()
+    {
+        return $this->isParent;
+    }
+
+    /**
+     * Returns the unboxed value from <code>getIsParent()</code>
+
+     * sometimes
+     *
+     * Generated from protobuf field <code>.google.protobuf.BoolValue isParent = 11;</code>
+     * @return bool|null
+     */
+    public function getIsParentUnwrapped()
+    {
+        return $this->readWrapperValue("isParent");
+    }
+
+    /**
+     * sometimes
+     *
+     * Generated from protobuf field <code>.google.protobuf.BoolValue isParent = 11;</code>
+     * @param \Google\Protobuf\BoolValue $var
+     * @return $this
+     */
+    public function setIsParent($var)
+    {
+        GPBUtil::checkMessage($var, \Google\Protobuf\BoolValue::class);
+        $this->isParent = $var;
+
+        return $this;
+    }
+
+    /**
+     * Sets the field by wrapping a primitive type in a Google\Protobuf\BoolValue object.
+
+     * sometimes
+     *
+     * Generated from protobuf field <code>.google.protobuf.BoolValue isParent = 11;</code>
+     * @param bool|null $var
+     * @return $this
+     */
+    public function setIsParentUnwrapped($var)
+    {
+        $this->writeWrapperValue("isParent", $var);
+        return $this;}
 
 }
 

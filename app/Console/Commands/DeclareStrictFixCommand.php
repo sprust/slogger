@@ -19,7 +19,7 @@ class DeclareStrictFixCommand extends Command
      *
      * @var string
      */
-    protected $description = 'Find and fix declare(strict_types=1); in all module php files';
+    protected $description = 'Find and fix declare(strict_types=1); in php files';
 
     public function handle(): int
     {
@@ -29,13 +29,12 @@ class DeclareStrictFixCommand extends Command
             return self::FAILURE;
         }
 
-        $appPath = app_path();
+        /** @var string[] $filePaths */
+        $filePaths = [
+            ...$this->findFilePaths(app_path() . '/Modules'),
+        ];
 
-        $resGrep = [];
-
-        exec("grep -Lr \"declare(strict_types=1);\" $appPath/Modules", $resGrep);
-
-        foreach ($resGrep as $filePath) {
+        foreach ($filePaths as $filePath) {
             if (File::extension($filePath) !== 'php') {
                 continue;
             }
@@ -46,7 +45,7 @@ class DeclareStrictFixCommand extends Command
             }
 
             if (!$write) {
-                $this->info("File $filePath can to be fixed");
+                $this->info("File $filePath can be fixed");
 
                 continue;
             }
@@ -60,6 +59,34 @@ class DeclareStrictFixCommand extends Command
             $this->info("File $filePath fixed");
         }
 
+        $filesCount = count($filePaths);
+
+        if ($write) {
+            if ($filesCount) {
+                $this->info('All files fixed');
+            } else {
+                $this->info('All files already fixed');
+            }
+        } elseif ($filesCount) {
+            $this->warn('Use --write option to fix declare(strict_types=1); in all files');
+
+            return self::FAILURE;
+        } else {
+            $this->info('All files have declare(strict_types=1);');
+        }
+
         return self::SUCCESS;
+    }
+
+    /**
+     * @return string[]
+     */
+    private function findFilePaths(string $path): array
+    {
+        $filePaths = [];
+
+        exec("grep -Lr \"declare(strict_types=1);\" $path", $filePaths);
+
+        return $filePaths;
     }
 }
