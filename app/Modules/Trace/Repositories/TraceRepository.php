@@ -18,14 +18,16 @@ use App\Modules\Trace\Repositories\Services\PeriodicTraceCollectionNameService;
 use App\Modules\Trace\Repositories\Services\PeriodicTraceService;
 use App\Modules\Trace\Repositories\Services\TraceDataToObjectBuilder;
 use App\Modules\Trace\Repositories\Services\TracePipelineBuilder;
+use Closure;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use MongoDB\BSON\UTCDateTime;
 use MongoDB\Driver\Command;
 use MongoDB\Driver\Exception\Exception;
 use RrParallel\Exceptions\ParallelJobsException;
-use RrParallel\Exceptions\WaitTimeoutException;
 use RrParallel\Services\ParallelPusherInterface;
+use RrParallel\Services\WaitGroupInterface;
+use RuntimeException;
 use stdClass;
 use Throwable;
 
@@ -393,7 +395,6 @@ readonly class TraceRepository implements TraceRepositoryInterface
     }
 
     /**
-     * @throws WaitTimeoutException
      * @throws ParallelJobsException
      */
     public function createIndex(string $name, array $collectionNames, array $fields): bool
@@ -409,41 +410,80 @@ readonly class TraceRepository implements TraceRepositoryInterface
             $index[$field->fieldName] = 1;
         }
 
-        /** @var string[][] $collectionNameChunks */
-        $collectionNameChunks = array_chunk($collectionNames, 6);
+        $maxWaitGroupsCount = 6;
 
-        foreach ($collectionNameChunks as $collectionNameChunk) {
-            $callbacks = array_map(
-                static function (string $collectionName) use ($name, $index) {
-                    return static function (PeriodicTraceService $periodicTraceService) use (
-                        $name,
-                        $index,
-                        $collectionName
-                    ) {
-                        try {
-                            $periodicTraceService->createIndex(
-                                indexName: $name,
-                                collectionName: $collectionName,
-                                index: $index
-                            );
-                        } catch (Throwable $exception) {
-                            if (str_contains($exception->getMessage(), 'already exists')) {
-                                return;
-                            }
+        /** @var WaitGroupInterface[] $waitGroups */
+        $waitGroups = [];
 
-                            throw $exception;
-                        }
-                    };
-                },
-                $collectionNameChunk
-            );
+        /** @var Closure[] $remainCallbacks */
+        $remainCallbacks = [];
 
-            $waitGroup = $this->parallelPusher->wait($callbacks);
+        foreach ($collectionNames as $collectionName) {
+            $remainCallbacks[] = static function (PeriodicTraceService $periodicTraceService) use (
+                $name,
+                $index,
+                $collectionName
+            ) {
+                try {
+                    $periodicTraceService->createIndex(
+                        indexName: $name,
+                        collectionName: $collectionName,
+                        index: $index
+                    );
+                } catch (Throwable $exception) {
+                    if (str_contains($exception->getMessage(), 'already exists')) {
+                        return;
+                    }
 
-            $result = $waitGroup->wait(waitSeconds: 120);
+                    throw $exception;
+                }
+            };
+        }
 
-            if ($result->hasFailed) {
-                return false;
+        $start           = time();
+        $maxTotalTimeSec = 180; // 3 minutes
+
+        while (count($remainCallbacks) > 0 || count($waitGroups) > 0) {
+            if (time() - $start > $maxTotalTimeSec) {
+                throw new RuntimeException(
+                    "Timeout on index creating: $name"
+                );
+            }
+
+            $waitGroups = array_values($waitGroups);
+
+            $waitGroupsCount = count($waitGroups);
+
+            for ($index = 0; $index < $waitGroupsCount; $index++) {
+                $waitGroup = $waitGroups[$index];
+
+                $current = $waitGroup->current();
+
+                if ($current->hasFailed) {
+                    return false;
+                }
+
+                if (!$current->finished) {
+                    continue;
+                }
+
+                unset($waitGroups[$index]);
+            }
+
+            $freeWaitGroupsCount = $maxWaitGroupsCount - count($waitGroups);
+
+            if ($freeWaitGroupsCount <= 0 || !count($remainCallbacks)) {
+                continue;
+            }
+
+            for ($index = 0; $index < $freeWaitGroupsCount; $index++) {
+                $callback = array_shift($remainCallbacks);
+
+                if (!$callback) {
+                    break;
+                }
+
+                $waitGroups[] = $this->parallelPusher->wait([$callback]);
             }
         }
 
@@ -486,8 +526,8 @@ readonly class TraceRepository implements TraceRepositoryInterface
         $infoList = [];
 
         foreach ($operations as $operation) {
-            $progressTotal = $operation->progress->total;
-            $progressDone  = $operation->progress->done;
+            $progressTotal = $operation->progress?->total;
+            $progressDone  = $operation->progress?->done;
 
             $infoList[] = new TraceIndexInfoObject(
                 collectionName: $operation->command->createIndexes,
