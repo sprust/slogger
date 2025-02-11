@@ -22,7 +22,7 @@ readonly class LogController
         $validated = $request->validated();
 
         $pagination = $this->paginateLogsAction->handle(
-            page: $validated['page'],
+            page: ArrayValueGetter::int($validated, 'page'),
             parameters: new FindLogsParameters(
                 searchQuery: ArrayValueGetter::stringNull($validated, 'search_query'),
                 level: ArrayValueGetter::stringNull($validated, 'level'),
