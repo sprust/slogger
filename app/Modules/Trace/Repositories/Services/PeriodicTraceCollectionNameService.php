@@ -27,8 +27,6 @@ readonly class PeriodicTraceCollectionNameService
     }
 
     /**
-     * TODO: need more tests
-     *
      * @param string[] $collectionNames
      *
      * @return string[]

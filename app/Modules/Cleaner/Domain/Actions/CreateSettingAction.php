@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Cleaner\Domain\Actions;
 
 use App\Modules\Cleaner\Contracts\Actions\CreateSettingActionInterface;
+use App\Modules\Cleaner\Contracts\Actions\FindSettingByIdActionInterface;
 use App\Modules\Cleaner\Contracts\Repositories\SettingRepositoryInterface;
 use App\Modules\Cleaner\Domain\Exceptions\SettingAlreadyExistsException;
 use App\Modules\Cleaner\Entities\SettingObject;
@@ -12,7 +13,7 @@ use App\Modules\Cleaner\Entities\SettingObject;
 readonly class CreateSettingAction implements CreateSettingActionInterface
 {
     public function __construct(
-        private FindSettingByIdAction $findSettingByIdAction,
+        private FindSettingByIdActionInterface $findSettingByIdAction,
         private SettingRepositoryInterface $settingRepository
     ) {
     }

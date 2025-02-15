@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Trace\Domain\Services;
 
+use App\Modules\Cleaner\Contracts\Actions\FindMaxDaysSettingActionInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceDynamicIndexRepositoryInterface;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexErrorException;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexInProcessException;
@@ -16,12 +17,13 @@ use Illuminate\Support\Carbon;
 
 readonly class TraceDynamicIndexInitializer
 {
-    private int $timeLifeIndexInMinutes;
+    private int $shortTermTimeLifeIndexInDays;
 
     public function __construct(
         private TraceDynamicIndexRepositoryInterface $traceDynamicIndexRepository,
+        private FindMaxDaysSettingActionInterface $findMaxDaysSettingAction,
     ) {
-        $this->timeLifeIndexInMinutes = 60 * 24 * 30; // 30 days // TODO: max cleaner day + 1 day
+        $this->shortTermTimeLifeIndexInDays = 5;
     }
 
     /**
@@ -61,11 +63,15 @@ readonly class TraceDynamicIndexInitializer
     ): void {
         $indexFields = [];
 
+        $isShortTermIndex = false;
+
         if (!empty($serviceIds)) {
             $indexFields[] = new TraceDynamicIndexFieldDto('sid');
         }
 
         if (!is_null($timestampStep)) {
+            $isShortTermIndex = true;
+
             $indexFields[] = new TraceDynamicIndexFieldDto("tss.$timestampStep->value");
         }
 
@@ -77,31 +83,43 @@ readonly class TraceDynamicIndexInitializer
             $indexFields[] = new TraceDynamicIndexFieldDto('lat');
         }
 
-        if (!empty($types)) {
+        if ($types) {
             $indexFields[] = new TraceDynamicIndexFieldDto('tp');
         }
 
-        if (!empty($tags)) {
+        if ($tags) {
+            $isShortTermIndex = true;
+
             $indexFields[] = new TraceDynamicIndexFieldDto('tgs.nm');
         }
 
-        if (!empty($statuses)) {
+        if ($statuses) {
+            $isShortTermIndex = true;
+
             $indexFields[] = new TraceDynamicIndexFieldDto('st');
         }
 
         if (!is_null($durationFrom) || !is_null($durationTo)) {
+            $isShortTermIndex = true;
+
             $indexFields[] = new TraceDynamicIndexFieldDto('dur');
         }
 
         if (!is_null($memoryFrom) || !is_null($memoryTo)) {
+            $isShortTermIndex = true;
+
             $indexFields[] = new TraceDynamicIndexFieldDto('mem');
         }
 
         if (!is_null($cpuFrom) || !is_null($cpuTo)) {
+            $isShortTermIndex = true;
+
             $indexFields[] = new TraceDynamicIndexFieldDto('cpu');
         }
 
         if (!is_null($hasProfiling)) {
+            $isShortTermIndex = true;
+
             $indexFields[] = new TraceDynamicIndexFieldDto('hpr');
         }
 
@@ -110,12 +128,14 @@ readonly class TraceDynamicIndexInitializer
         }
 
         foreach ($data->filter ?? [] as $dataFilterItem) {
+            $isShortTermIndex = true;
+
             $indexFields[] = new TraceDynamicIndexFieldDto(
                 fieldName: $dataFilterItem->field
             );
         }
 
-        if (empty($indexFields)) {
+        if (!count($indexFields)) {
             return;
         }
 
@@ -125,13 +145,27 @@ readonly class TraceDynamicIndexInitializer
             )
             ->all();
 
+        if ($isShortTermIndex) {
+            $actualUntilAt = now()->addDays(
+                $this->shortTermTimeLifeIndexInDays
+            );
+        } else {
+            if ($maxDaysSetting = $this->findMaxDaysSettingAction->handle()) {
+                $actualUntilAt = now()->addDays($maxDaysSetting);
+            } else {
+                $actualUntilAt = now()->addDays(
+                    $this->shortTermTimeLifeIndexInDays
+                );
+            }
+        }
+
         $indexDto = $this->traceDynamicIndexRepository->findOneOrCreate(
             indexData: new TraceDynamicIndexDataDto(
                 loggedAtFrom: $loggedAtFrom,
                 loggedAtTo: $loggedAtTo,
                 fields: $indexFields
             ),
-            actualUntilAt: now()->addMinutes($this->timeLifeIndexInMinutes)
+            actualUntilAt: $actualUntilAt
         );
 
         if (!$indexDto) {

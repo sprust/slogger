@@ -6,12 +6,13 @@ namespace App\Modules\Logs\Repositories;
 
 use App\Models\Logs\Log;
 use App\Modules\Common\Entities\PaginationInfoObject;
+use App\Modules\Logs\Contracts\Repositories\LogRepositoryInterface;
 use App\Modules\Logs\Entities\Log\LogObject;
 use App\Modules\Logs\Entities\Log\LogsPaginationObject;
 use App\Modules\Logs\Parameters\CreateLogParameters;
 use App\Modules\Logs\Parameters\FindLogsParameters;
 
-readonly class LogRepository
+readonly class LogRepository implements LogRepositoryInterface
 {
     public function create(CreateLogParameters $parameters): string
     {

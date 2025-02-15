@@ -68,6 +68,12 @@ class SettingRepository implements SettingRepositoryInterface
         return $this->modelToDto($setting);
     }
 
+    public function findMaxDay(): ?int
+    {
+        return ((int) TraceClearingSetting::query()
+            ->max('days_lifetime')) ?: null;
+    }
+
     public function create(int $daysLifetime, ?string $type, bool $onlyData): int
     {
         $newSetting = new TraceClearingSetting();
