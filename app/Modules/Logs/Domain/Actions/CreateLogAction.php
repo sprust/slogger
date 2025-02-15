@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace App\Modules\Logs\Domain\Actions;
 
+use App\Modules\Logs\Contracts\Actions\CreateLogActionInterface;
+use App\Modules\Logs\Contracts\Repositories\LogRepositoryInterface;
 use App\Modules\Logs\Parameters\CreateLogParameters;
-use App\Modules\Logs\Repositories\LogRepository;
 
-readonly class CreateLogAction
+readonly class CreateLogAction implements CreateLogActionInterface
 {
     public function __construct(
-        protected LogRepository $logRepository
+        protected LogRepositoryInterface $logRepository
     ) {
     }
 
