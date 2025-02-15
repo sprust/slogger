@@ -27,14 +27,14 @@ class CronStartCommand extends BaseCronCommand
     {
         $this->components->info('Cron start');
 
-        $this->setRestartFlag(false);
+        $sessionKey = $this->setSessionKey();
 
         $previousMinute = $this->getCurrentMinute();
 
         while (true) {
             sleep(5);
 
-            if ($this->hasRestartFlag()) {
+            if (!$this->isSessionKeyActive($sessionKey)) {
                 break;
             }
 

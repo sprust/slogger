@@ -7,15 +7,24 @@ use Illuminate\Support\Facades\Cache;
 
 abstract class BaseCronCommand extends Command
 {
-    private string $cacheRestartFlagKey = 'cron-restart-flag';
+    private string $cacheKey = 'cron-session-key';
 
-    protected function setRestartFlag(bool $restartFlag): void
+    protected function setSessionKey(): string
     {
-        Cache::set($this->cacheRestartFlagKey, $restartFlag);
+        $sessionKey = now()->toDateTimeString('microsecond');
+
+        Cache::set($this->cacheKey, $sessionKey);
+
+        return $sessionKey;
     }
 
-    protected function hasRestartFlag(): bool
+    protected function isSessionKeyActive(string $sessionKey): bool
     {
-        return (bool) Cache::get($this->cacheRestartFlagKey);
+        return Cache::get($this->cacheKey) === $sessionKey;
+    }
+
+    protected function forgetSessionKey(): void
+    {
+        Cache::forget($this->cacheKey);
     }
 }
