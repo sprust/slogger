@@ -441,7 +441,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
         }
 
         $start           = time();
-        $maxTotalTimeSec = 180; // 3 minutes
+        $maxTotalTimeSec = 180; // 3 minutes // TODO: smart calculation
 
         while (count($remainCallbacks) > 0 || count($waitGroups) > 0) {
             if (time() - $start > $maxTotalTimeSec) {
