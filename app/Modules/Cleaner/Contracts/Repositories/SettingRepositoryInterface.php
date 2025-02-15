@@ -22,6 +22,8 @@ interface SettingRepositoryInterface
 
     public function findOneById(int $id): ?SettingObject;
 
+    public function findMaxDay(): ?int;
+
     public function create(int $daysLifetime, ?string $type, bool $onlyData): int;
 
     public function update(int $id, int $daysLifetime, bool $onlyData): bool;

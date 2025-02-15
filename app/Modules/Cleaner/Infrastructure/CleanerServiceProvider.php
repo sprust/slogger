@@ -7,6 +7,7 @@ namespace App\Modules\Cleaner\Infrastructure;
 use App\Modules\Cleaner\Contracts\Actions\ClearTracesActionInterface;
 use App\Modules\Cleaner\Contracts\Actions\CreateSettingActionInterface;
 use App\Modules\Cleaner\Contracts\Actions\DeleteSettingActionInterface;
+use App\Modules\Cleaner\Contracts\Actions\FindMaxDaysSettingActionInterface;
 use App\Modules\Cleaner\Contracts\Actions\FindProcessesActionInterface;
 use App\Modules\Cleaner\Contracts\Actions\FindSettingByIdActionInterface;
 use App\Modules\Cleaner\Contracts\Actions\FindSettingsActionInterface;
@@ -16,6 +17,7 @@ use App\Modules\Cleaner\Contracts\Repositories\SettingRepositoryInterface;
 use App\Modules\Cleaner\Domain\Actions\ClearTracesAction;
 use App\Modules\Cleaner\Domain\Actions\CreateSettingAction;
 use App\Modules\Cleaner\Domain\Actions\DeleteSettingAction;
+use App\Modules\Cleaner\Domain\Actions\FindMaxDaysSettingAction;
 use App\Modules\Cleaner\Domain\Actions\FindProcessesAction;
 use App\Modules\Cleaner\Domain\Actions\FindSettingByIdAction;
 use App\Modules\Cleaner\Domain\Actions\FindSettingsAction;
@@ -40,16 +42,17 @@ class CleanerServiceProvider extends BaseServiceProvider
     {
         return [
             // repositories
-            ProcessRepositoryInterface::class => ProcessRepository::class,
-            SettingRepositoryInterface::class => SettingRepository::class,
+            ProcessRepositoryInterface::class        => ProcessRepository::class,
+            SettingRepositoryInterface::class        => SettingRepository::class,
             // actions
-            ClearTracesActionInterface::class     => ClearTracesAction::class,
-            CreateSettingActionInterface::class   => CreateSettingAction::class,
-            DeleteSettingActionInterface::class   => DeleteSettingAction::class,
-            FindProcessesActionInterface::class   => FindProcessesAction::class,
-            FindSettingByIdActionInterface::class => FindSettingByIdAction::class,
-            FindSettingsActionInterface::class    => FindSettingsAction::class,
-            UpdateSettingActionInterface::class   => UpdateSettingAction::class,
+            ClearTracesActionInterface::class        => ClearTracesAction::class,
+            CreateSettingActionInterface::class      => CreateSettingAction::class,
+            DeleteSettingActionInterface::class      => DeleteSettingAction::class,
+            FindProcessesActionInterface::class      => FindProcessesAction::class,
+            FindSettingByIdActionInterface::class    => FindSettingByIdAction::class,
+            FindSettingsActionInterface::class       => FindSettingsAction::class,
+            UpdateSettingActionInterface::class      => UpdateSettingAction::class,
+            FindMaxDaysSettingActionInterface::class => FindMaxDaysSettingAction::class,
         ];
     }
 }
