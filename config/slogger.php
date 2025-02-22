@@ -3,8 +3,11 @@
 use App\Models\Users\User;
 use App\Modules\Trace\Infrastructure\Jobs\TraceCreateJob;
 use App\Modules\Trace\Infrastructure\Jobs\TraceUpdateJob;
-use App\Services\SLogger\EventWatcher;
+use SLoggerLaravel\Watchers\Children\EventWatcher;
 use App\Services\SLogger\RrParallelJobWatcher;
+use RrParallel\Events\JobHandledEvent;
+use RrParallel\Events\JobHandlingErrorEvent;
+use RrParallel\Events\JobReceivedEvent;
 use SLoggerLaravel\Dispatcher\Items\Queue\Jobs\TraceCreateJob as SLoggerTraceCreateJob;
 use SLoggerLaravel\Dispatcher\Items\Queue\Jobs\TraceUpdateJob as SLoggerTraceUpdateJob;
 use SLoggerLaravel\Events\WatcherErrorEvent;
@@ -22,6 +25,7 @@ use SLoggerLaravel\Watchers\Children\ScheduleWatcher;
 use SLoggerLaravel\Watchers\Parents\CommandWatcher;
 use SLoggerLaravel\Watchers\Parents\JobWatcher;
 use SLoggerLaravel\Watchers\Parents\RequestWatcher;
+use RrMonitor\Events\MonitorWorkersCountSetEvent;
 
 $defaultQueueConnection = env('QUEUE_TRACES_CREATING_CONNECTION');
 
@@ -88,6 +92,12 @@ return [
     'listeners' => [
         WatcherErrorEvent::class => [
             WatcherErrorListener::class,
+        ],
+    ],
+
+    'data_completer' => [
+        'excluded_file_masks' => [
+            '*SLogger/RrParallelJobWatcher*',
         ],
     ],
 
@@ -162,9 +172,8 @@ return [
                 'octane:roadrunner:reload',
                 'octane:roadrunner:stop',
                 'trace-dynamic-indexes:monitor:start',
-                'rr-parallel:monitor:start',
-                'rr-parallel:monitor:stop',
                 'rr-monitor:start',
+                'rr-monitor:stop',
             ],
         ],
 
@@ -188,6 +197,20 @@ return [
                     '*name*',
                     '*email*',
                 ],
+            ],
+        ],
+
+        'events' => [
+            'ignore_events'    => [
+                JobReceivedEvent::class,
+                JobHandlingErrorEvent::class,
+                JobHandledEvent::class,
+            ],
+            'serialize_events' => [
+                MonitorWorkersCountSetEvent::class,
+            ],
+            'can_be_orphan'    => [
+                MonitorWorkersCountSetEvent::class,
             ],
         ],
     ],
