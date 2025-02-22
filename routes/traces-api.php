@@ -1,8 +1,7 @@
 <?php
 
-use App\Modules\Trace\Infrastructure\Http\Controllers\TraceCreateController;
-use App\Modules\Trace\Infrastructure\Http\Controllers\TraceUpdateController;
+use App\Modules\Trace\Infrastructure\Http\Controllers\TraceCollectorController;
 use Illuminate\Support\Facades\Route;
 
-Route::post('', TraceCreateController::class)->name('create');
-Route::patch('', TraceUpdateController::class)->name('update');
+Route::post('', [TraceCollectorController::class, 'create'])->name('create');
+Route::patch('', [TraceCollectorController::class, 'update'])->name('create');

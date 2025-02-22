@@ -6,37 +6,101 @@ namespace App\Modules\Trace\Infrastructure\Http\Controllers;
 
 use App\Modules\Common\Helpers\ArrayValueGetter;
 use App\Modules\Service\Infrastructure\Services\ServiceContainer;
+use App\Modules\Trace\Contracts\Actions\MakeTraceTimestampsActionInterface;
+use App\Modules\Trace\Infrastructure\Http\Requests\TraceCreateRequest;
 use App\Modules\Trace\Infrastructure\Http\Requests\TraceUpdateRequest;
 use App\Modules\Trace\Infrastructure\Http\Services\QueueDispatcher;
 use App\Modules\Trace\Parameters\Profilling\TraceUpdateProfilingDataObject;
 use App\Modules\Trace\Parameters\Profilling\TraceUpdateProfilingObject;
 use App\Modules\Trace\Parameters\Profilling\TraceUpdateProfilingObjects;
+use App\Modules\Trace\Parameters\TraceCreateParameters;
+use App\Modules\Trace\Parameters\TraceCreateParametersList;
 use App\Modules\Trace\Parameters\TraceUpdateParameters;
 use App\Modules\Trace\Parameters\TraceUpdateParametersList;
+use Illuminate\Support\Carbon;
 use SLoggerLaravel\Processor;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
-readonly class TraceUpdateController
+class TraceCollectorController
 {
+    private readonly bool $sloggerEnabled;
+
+    private ?Processor $processor = null;
+
     public function __construct(
-        private ServiceContainer $serviceContainer,
-        private QueueDispatcher $queueDispatcher,
-        private Processor $processor
+        private readonly ServiceContainer $serviceContainer,
+        private readonly QueueDispatcher $queueDispatcher,
+        private readonly MakeTraceTimestampsActionInterface $makeTraceTimestampsAction,
     ) {
+        $this->sloggerEnabled = (bool) config('slogger.enabled');
     }
 
     /**
      * @throws Throwable
      */
-    public function __invoke(TraceUpdateRequest $request): void
+    public function create(TraceCreateRequest $request): void
     {
-        $this->processor->handleWithoutTracing(
-            fn() => $this->handle($request)
-        );
+        if ($this->sloggerEnabled) {
+            $this->getProcessor()->handleWithoutTracing(
+                fn() => $this->onCreate($request)
+            );
+        } else {
+            $this->onCreate($request);
+        }
     }
 
-    private function handle(TraceUpdateRequest $request): void
+    private function onCreate(TraceCreateRequest $request): void
+    {
+        $validated = $request->validated();
+
+        $serviceId = $this->serviceContainer->getService()?->id;
+
+        abort_if(!$serviceId, Response::HTTP_UNAUTHORIZED);
+
+        $parametersList = new TraceCreateParametersList();
+
+        foreach ($validated['traces'] as $item) {
+            $loggedAt = new Carbon($item['logged_at']);
+
+            $parametersList->add(
+                new TraceCreateParameters(
+                    serviceId: $serviceId,
+                    traceId: ArrayValueGetter::string($item, 'trace_id'),
+                    parentTraceId: $item['parent_trace_id'] ?? null,
+                    type: ArrayValueGetter::string($item, 'type'),
+                    status: ArrayValueGetter::string($item, 'status'),
+                    tags: ArrayValueGetter::arrayStringNull($item, 'tags') ?? [],
+                    data: ArrayValueGetter::string($item, 'data'),
+                    duration: ArrayValueGetter::float($item, 'duration'),
+                    memory: ArrayValueGetter::floatNull($item, 'memory'),
+                    cpu: ArrayValueGetter::floatNull($item, 'cpu'),
+                    timestamps: $this->makeTraceTimestampsAction->handle(date: $loggedAt),
+                    // TODO: required after release
+                    isParent: ArrayValueGetter::boolNull($item, 'is_parent') ?? false,
+                    loggedAt: $loggedAt,
+                )
+            );
+        }
+
+        $this->queueDispatcher->createMany($parametersList);
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function update(TraceUpdateRequest $request): void
+    {
+        if ($this->sloggerEnabled) {
+            $this->getProcessor()->handleWithoutTracing(
+                fn() => $this->onUpdate($request)
+            );
+        } else {
+            $this->onUpdate($request);
+        }
+    }
+
+    private function onUpdate(TraceUpdateRequest $request): void
     {
         $validated = $request->validated();
 
@@ -86,5 +150,10 @@ readonly class TraceUpdateController
         }
 
         $this->queueDispatcher->updateMany($parametersList);
+    }
+
+    private function getProcessor(): Processor
+    {
+        return $this->processor ??= app(Processor::class);
     }
 }
