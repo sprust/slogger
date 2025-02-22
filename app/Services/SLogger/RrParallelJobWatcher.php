@@ -138,14 +138,15 @@ class RrParallelJobWatcher extends AbstractWatcher
      */
     protected function onHandleMonitorWorkersAddedEvent(MonitorWorkersCountSetEvent $event): void
     {
-        $this->processor->handleSeparateTracing(
-            callback: fn() => null,
+        $this->processor->push(
             type: $this->monitorType,
+            status: TraceStatusEnum::Success->value,
             tags: [
                 $event->pluginName,
                 $event->operationName,
             ],
-            data: (array) $event
+            data: (array) $event,
+            canBeOrphan: true,
         );
     }
 }
