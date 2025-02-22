@@ -165,6 +165,18 @@ return [
                 ],
             ],
         ],
+
+        'events' => [
+            'ignore_events'    => [
+                //
+            ],
+            'serialize_events' => [
+                //
+            ],
+            'can_be_orphan'    => [
+                //
+            ],
+        ],
     ],
 
     'watchers' => [
