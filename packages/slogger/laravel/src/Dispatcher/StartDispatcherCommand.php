@@ -36,6 +36,11 @@ class StartDispatcherCommand extends Command
 
             $logger = Log::channel(config('slogger.log_channel'));
 
+            /**
+             * @phpstan-ignore-next-line
+             *
+             * While loop condition is always true.
+             */
             while (true) {
                 $message = 'SLogger is disabled';
 

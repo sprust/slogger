@@ -12,7 +12,7 @@ use Symfony\Component\HttpKernel\TerminableInterface;
 
 class HttpMiddleware implements TerminableInterface
 {
-    private string $enabled;
+    private bool $enabled;
 
     private ?TraceIdContainer $traceIdContainer = null;
 
@@ -43,7 +43,7 @@ class HttpMiddleware implements TerminableInterface
                 )
             );
 
-            $this->traceId = $this->getLoggerTraceIdContainer()?->getParentTraceId();
+            $this->traceId = $this->getLoggerTraceIdContainer()->getParentTraceId();
         }
 
         return $next($request);
