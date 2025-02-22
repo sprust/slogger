@@ -114,16 +114,16 @@ class EventWatcher extends AbstractWatcher
      */
     protected function preparePayload(array $payload): array
     {
-        $payloadKeys = array_keys($payload);
-
-        if (!$payloadKeys) {
+        if (!$payload) {
             return [];
         }
+
+        $payloadKeys = array_keys($payload);
 
         $event = $payload[$payloadKeys[0]] ?? null;
 
         if (is_object($event) && in_array(get_class($event), $this->serializeEvents)) {
-            return (array) $event;
+            return json_decode(json_encode($event), true) ?: [];
         }
 
         return [];
