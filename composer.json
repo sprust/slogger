@@ -6,6 +6,7 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "ext-curl": "*",
         "ext-grpc": "*",
         "ext-mongodb": "*",
         "ext-pdo": "*",
@@ -26,6 +27,8 @@
         "spiral/roadrunner-http": "^3.3.0",
         "sprust/rr-monitor-laravel": "dev-master",
         "sprust/rr-parallel-laravel": "dev-master",
+        "supervisorphp/configuration": "^0.3.0",
+        "supervisorphp/supervisor": "^5.1",
         "vladimir-yuldashev/laravel-queue-rabbitmq": "^14.1"
     },
     "require-dev": {
