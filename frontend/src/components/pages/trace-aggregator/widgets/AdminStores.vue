@@ -115,11 +115,11 @@
 import {defineComponent} from "vue";
 import {Plus as PlusIcon, Search as SearchIcon, CaretLeft as FillTitleIvon} from '@element-plus/icons-vue'
 import {convertDateStringToLocal, makeGeneralFiltersTitles, makeOtherFiltersTitles} from "../../../../utils/helpers.ts";
-import {AdminStore, useTraceAdminStoresStoreStore} from "../../../../store/traceAdminStoresStore.ts";
+import {AdminStore, useTraceAdminStoresStoreStore} from "../store/traceAdminStoresStore.ts";
 import {state} from "vue-tsc/out/shared";
-import {TraceStateParameters, useTraceAggregatorStore} from "../../../../store/traceAggregatorStore.ts";
+import {TraceStateParameters, useTraceAggregatorStore} from "../store/traceAggregatorStore.ts";
 import TraceAggregatorProfilingNodeData from "../components/profiling/TraceAggregatorProfilingNodeData.vue";
-import {useTraceAggregatorServicesStore} from "../../../../store/traceAggregatorServicesStore.ts";
+import {useTraceAggregatorServicesStore} from "../store/traceAggregatorServicesStore.ts";
 
 export default defineComponent({
   components: {

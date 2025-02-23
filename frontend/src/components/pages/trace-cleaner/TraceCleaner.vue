@@ -127,7 +127,7 @@
 
 <script lang="ts">
 import {defineComponent} from 'vue'
-import {TraceCleanerSettingItem, useTraceCleanerStore} from "../../../store/traceCleanerStore.ts";
+import {TraceCleanerSettingItem, useTraceCleanerStore} from "./store/traceCleanerStore.ts";
 import {DocumentAdd, Edit, Delete, RefreshLeft, Refresh} from '@element-plus/icons-vue'
 import {ElMessageBox} from "element-plus";
 import {convertDateStringToLocal} from "../../../utils/helpers.ts";

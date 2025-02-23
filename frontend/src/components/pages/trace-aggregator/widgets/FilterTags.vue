@@ -91,8 +91,8 @@
 <script lang="ts">
 import {defineComponent, shallowRef} from "vue";
 import {Plus as TagAddIcon, Search as SearchIcon} from '@element-plus/icons-vue'
-import {TraceTag, useTraceAggregatorTagsStore} from "../../../../store/traceAggregatorTagsStore.ts";
-import {useTraceAggregatorStore} from "../../../../store/traceAggregatorStore.ts";
+import {TraceTag, useTraceAggregatorTagsStore} from "../store/traceAggregatorTagsStore.ts";
+import {useTraceAggregatorStore} from "../store/traceAggregatorStore.ts";
 import FilterTagsSection from "./FilterTagsSection.vue";
 
 export default defineComponent({

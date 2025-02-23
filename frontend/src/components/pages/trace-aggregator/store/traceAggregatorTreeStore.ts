@@ -1,10 +1,10 @@
 import type {InjectionKey} from "vue";
 // @ts-ignore // todo
 import {createStore, Store, useStore as baseUseStore} from 'vuex'
-import {ApiContainer} from "../utils/apiContainer.ts";
-import {AdminApi} from "../api-schema/admin-api-schema.ts";
+import {ApiContainer} from "../../../../utils/apiContainer.ts";
+import {AdminApi} from "../../../../api-schema/admin-api-schema.ts";
 import {TraceAggregatorDetail} from "./traceAggregatorDataStore.ts";
-import {handleApiError} from "../utils/helpers.ts";
+import {handleApiError} from "../../../../utils/helpers.ts";
 import {TraceAggregatorService} from "./traceAggregatorServicesStore.ts";
 
 type TraceAggregatorTreeNodeParameters = AdminApi.TraceAggregatorTracesTreeDetail.RequestParams

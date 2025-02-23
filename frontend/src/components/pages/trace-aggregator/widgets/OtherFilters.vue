@@ -114,9 +114,9 @@
 
 <script lang="ts">
 import {defineComponent} from "vue";
-import {useTraceAggregatorStore} from "../../../../store/traceAggregatorStore.ts";
+import {useTraceAggregatorStore} from "../store/traceAggregatorStore.ts";
 import {CloseBold, Filter} from '@element-plus/icons-vue'
-import {useTraceAggregatorGraphStore} from "../../../../store/traceAggregatorGraphStore.ts";
+import {useTraceAggregatorGraphStore} from "../store/traceAggregatorGraphStore.ts";
 import {makeOtherFiltersTitles} from "../../../../utils/helpers.ts";
 
 export default defineComponent({

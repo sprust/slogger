@@ -108,7 +108,7 @@ import {
   TraceDynamicIndex,
   TraceDynamicIndexInfo,
   useTraceDynamicIndexesStore
-} from "../../../../store/traceDynamicIndexesStore.ts";
+} from "../store/traceDynamicIndexesStore.ts";
 import {Refresh as RefreshIcon} from "@element-plus/icons-vue";
 import {convertDateStringToLocal} from "../../../../utils/helpers.ts";
 

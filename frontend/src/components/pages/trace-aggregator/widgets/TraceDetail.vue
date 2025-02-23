@@ -34,7 +34,7 @@
 
 <script lang="ts">
 import {defineComponent, PropType} from 'vue'
-import {TraceAggregatorDetail} from "../../../../store/traceAggregatorDataStore.ts";
+import {TraceAggregatorDetail} from "../store/traceAggregatorDataStore.ts";
 import TraceAggregatorTraceDataNode from "../components/TraceAggregatorTraceDataNode.vue";
 import {convertDateStringToLocal} from "../../../../utils/helpers.ts";
 

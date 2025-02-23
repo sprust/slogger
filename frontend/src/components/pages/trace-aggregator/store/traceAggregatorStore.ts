@@ -1,9 +1,9 @@
 import type {InjectionKey} from "vue";
 // @ts-ignore // todo
 import {createStore, Store, useStore as baseUseStore} from 'vuex'
-import {ApiContainer} from "../utils/apiContainer.ts";
-import {handleApiError, makeStartOfDay, TypesHelper} from "../utils/helpers.ts";
-import {AdminApi} from "../api-schema/admin-api-schema.ts";
+import {ApiContainer} from "../../../../utils/apiContainer.ts";
+import {handleApiError, makeStartOfDay, TypesHelper} from "../../../../utils/helpers.ts";
+import {AdminApi} from "../../../../api-schema/admin-api-schema.ts";
 
 // need for admin stores
 const stateVersion = 2

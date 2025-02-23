@@ -17,8 +17,8 @@
 
 <script lang="ts">
 import {defineComponent} from "vue";
-import {useTraceAggregatorServicesStore} from "../../../../store/traceAggregatorServicesStore.ts";
-import {useTraceAggregatorStore} from "../../../../store/traceAggregatorStore.ts";
+import {useTraceAggregatorServicesStore} from "../store/traceAggregatorServicesStore.ts";
+import {useTraceAggregatorStore} from "../store/traceAggregatorStore.ts";
 
 export default defineComponent({
   data() {

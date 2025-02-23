@@ -1,18 +1,18 @@
 import type {InjectionKey} from "vue";
 // @ts-ignore // todo
 import {createStore, Store, useStore as baseUseStore} from 'vuex'
-import {ApiContainer} from "../utils/apiContainer.ts";
-import {AdminApi} from "../api-schema/admin-api-schema.ts";
-import {handleApiError} from "../utils/helpers.ts";
+import {ApiContainer} from "../../../../utils/apiContainer.ts";
+import {AdminApi} from "../../../../api-schema/admin-api-schema.ts";
+import {handleApiError} from "../../../../utils/helpers.ts";
 // @ts-ignore // todo
 import {Node} from "@vue-flow/core/dist/types/node";
 // @ts-ignore // todo
 import {Edge} from "@vue-flow/core/dist/types/edge";
-import {FlowBuilder} from "../components/pages/trace-aggregator/components/profiling/utils/flowBuilder.ts";
+import {FlowBuilder} from "../components/profiling/utils/flowBuilder.ts";
 import {
     IndicatorsCollector
-} from "../components/pages/trace-aggregator/components/profiling/utils/indicatorsCollector.ts";
-import {TreeBuilder} from "../components/pages/trace-aggregator/components/profiling/utils/treeBuilder.ts";
+} from "../components/profiling/utils/indicatorsCollector.ts";
+import {TreeBuilder} from "../components/profiling/utils/treeBuilder.ts";
 
 type Parameters = AdminApi.TraceAggregatorTracesProfilingCreate.RequestParams
 type Body = AdminApi.TraceAggregatorTracesProfilingCreate.RequestBody

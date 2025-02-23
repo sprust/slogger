@@ -154,7 +154,7 @@
 
 <script lang="ts">
 import {defineComponent} from "vue";
-import {TracesAddCustomFieldParameter, useTraceAggregatorStore} from "../../../../store/traceAggregatorStore.ts";
+import {TracesAddCustomFieldParameter, useTraceAggregatorStore} from "../store/traceAggregatorStore.ts";
 import TraceAggregatorTraceDataNode from "./TraceAggregatorTraceDataNode.vue";
 import TraceAggregatorTracesTable from "./TraceAggregatorTracesTable.vue";
 import TraceAggregatorTracesPagination from "./TraceAggregatorTracesPagination.vue";
@@ -168,10 +168,10 @@ import {state} from "vue-tsc/out/shared";
 import {CloseBold, SwitchButton, Close, Loading, CaretRight} from '@element-plus/icons-vue'
 import TraceAggregatorGraph from "./TraceAggregatorGraph.vue";
 import TraceAggregatorTimestampPeriods from "./TraceAggregatorTimestampPeriods.vue";
-import {useTraceAggregatorGraphStore} from "../../../../store/traceAggregatorGraphStore.ts";
-import {useTraceAggregatorTimestampPeriodStore} from "../../../../store/traceAggregatorTimestampPeriodsStore.ts";
-import {useTraceAggregatorTimestampFieldsStore} from "../../../../store/traceAggregatorTimestampFieldsStore.ts";
-import {useTraceAggregatorDataStore} from "../../../../store/traceAggregatorDataStore.ts";
+import {useTraceAggregatorGraphStore} from "../store/traceAggregatorGraphStore.ts";
+import {useTraceAggregatorTimestampPeriodStore} from "../store/traceAggregatorTimestampPeriodsStore.ts";
+import {useTraceAggregatorTimestampFieldsStore} from "../store/traceAggregatorTimestampFieldsStore.ts";
+import {useTraceAggregatorDataStore} from "../store/traceAggregatorDataStore.ts";
 import {makeStartOfDay} from "../../../../utils/helpers.ts";
 
 

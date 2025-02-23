@@ -99,7 +99,7 @@
 
 <script lang="ts">
 import {defineComponent} from "vue";
-import {useTraceAggregatorProfilingStore} from "../../../../../store/traceAggregatorProfilingStore.ts";
+import {useTraceAggregatorProfilingStore} from "../../store/traceAggregatorProfilingStore.ts";
 import {Close, Refresh, Fold, Expand, Plus, Filter} from '@element-plus/icons-vue'
 
 export default defineComponent({

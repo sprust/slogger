@@ -46,7 +46,7 @@
 
 <script lang="ts">
 import {defineComponent} from "vue";
-import {useDashboardDatabaseStore} from "../../../../store/dashboardDatabaseStore.ts";
+import {useDashboardDatabaseStore} from "./store/dashboardDatabaseStore.ts";
 import {Loading, Refresh} from '@element-plus/icons-vue'
 
 export default defineComponent({

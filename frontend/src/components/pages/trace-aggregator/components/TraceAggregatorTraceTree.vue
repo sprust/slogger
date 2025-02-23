@@ -166,7 +166,7 @@ import {
   calcTraceIndicators,
   TraceAggregatorTreeNode,
   useTraceAggregatorTreeStore
-} from "../../../../store/traceAggregatorTreeStore.ts";
+} from "../store/traceAggregatorTreeStore.ts";
 import TraceMetrics from "../widgets/TraceItemMetrics.vue";
 import TraceService from "../widgets/TraceService.vue";
 import TraceAggregatorTraceDataNode from "./TraceAggregatorTraceDataNode.vue";

@@ -18,7 +18,7 @@ import TraceAggregatorTraces from "./components/TraceAggregatorTraces.vue";
 import TraceAggregatorTraceTree from "./components/TraceAggregatorTraceTree.vue";
 import TraceAggregatorProfiling from "./components/profiling/TraceAggregatorProfiling.vue";
 import FilterTags from "./widgets/FilterTags.vue";
-import {traceAggregatorTabs, useTraceAggregatorTabsStore} from "../../../store/traceAggregatorTabsStore.ts";
+import {traceAggregatorTabs, useTraceAggregatorTabsStore} from "./store/traceAggregatorTabsStore.ts";
 
 export default defineComponent({
   components: {

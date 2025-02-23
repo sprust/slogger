@@ -31,7 +31,7 @@
 <script lang="ts">
 import {defineComponent, PropType, shallowRef} from "vue";
 import {Plus as TagAddIcon, Search as SearchIcon} from '@element-plus/icons-vue'
-import {TagLoading, TraceTag} from "../../../../store/traceAggregatorTagsStore.ts";
+import {TagLoading, TraceTag} from "../store/traceAggregatorTagsStore.ts";
 
 export default defineComponent({
   emits: ['findTags', 'onTagClick'],

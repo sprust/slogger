@@ -30,8 +30,8 @@
 
 <script lang="ts">
 import {defineComponent} from "vue";
-import {useTraceAggregatorTimestampPeriodStore} from "../../../../store/traceAggregatorTimestampPeriodsStore.ts";
-import {useTraceAggregatorGraphStore} from "../../../../store/traceAggregatorGraphStore.ts";
+import {useTraceAggregatorTimestampPeriodStore} from "../store/traceAggregatorTimestampPeriodsStore.ts";
+import {useTraceAggregatorGraphStore} from "../store/traceAggregatorGraphStore.ts";
 
 export default defineComponent({
   data() {

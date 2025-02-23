@@ -148,7 +148,7 @@ import {
   TraceAggregatorCustomField,
   TraceAggregatorCustomFieldParameter,
   TraceAggregatorCustomFieldSearchParameter
-} from "../../../../store/traceAggregatorStore.ts";
+} from "../store/traceAggregatorStore.ts";
 import {Delete} from '@element-plus/icons-vue'
 import {TypesHelper} from '../../../../utils/helpers.ts'
 

@@ -47,7 +47,7 @@ import {
   ProfilingNode,
   ProfilingTreeNode,
   useTraceAggregatorProfilingStore
-} from "../../../../../store/traceAggregatorProfilingStore.ts";
+} from "../../store/traceAggregatorProfilingStore.ts";
 import TraceAggregatorProfilingNodeData from "./TraceAggregatorProfilingNodeData.vue";
 import TraceAggregatorProfilingNodeMetrics from './TraceAggregatorProfilingNodeMetrics.vue'
 

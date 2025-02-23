@@ -145,17 +145,17 @@ import {
   TraceAggregatorCustomFieldParameter, TraceAggregatorItem,
   TraceAggregatorItems,
   TraceAggregatorPayload,
-} from "../../../../store/traceAggregatorStore.ts";
+} from "../store/traceAggregatorStore.ts";
 import TraceAggregatorTraceDataNode from "./TraceAggregatorTraceDataNode.vue";
 import FilterTags from "../widgets/FilterTags.vue";
 import TraceItemMetrics from "../widgets/TraceItemMetrics.vue";
-import {traceAggregatorTabs, useTraceAggregatorTabsStore} from "../../../../store/traceAggregatorTabsStore.ts";
-import {useTraceAggregatorTreeStore} from "../../../../store/traceAggregatorTreeStore.ts";
-import {useTraceAggregatorDataStore} from "../../../../store/traceAggregatorDataStore.ts";
+import {traceAggregatorTabs, useTraceAggregatorTabsStore} from "../store/traceAggregatorTabsStore.ts";
+import {useTraceAggregatorTreeStore} from "../store/traceAggregatorTreeStore.ts";
+import {useTraceAggregatorDataStore} from "../store/traceAggregatorDataStore.ts";
 import TraceService from "../widgets/TraceService.vue";
 import TraceId from "../widgets/TraceId.vue";
 import {convertDateStringToLocal} from "../../../../utils/helpers.ts";
-import {useTraceAggregatorProfilingStore} from "../../../../store/traceAggregatorProfilingStore.ts";
+import {useTraceAggregatorProfilingStore} from "../store/traceAggregatorProfilingStore.ts";
 
 export default defineComponent({
   components: {TraceId, TraceService, FilterTags, TraceAggregatorTraceDataNode, TraceItemMetrics},

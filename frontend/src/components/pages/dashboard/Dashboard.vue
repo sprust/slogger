@@ -6,7 +6,7 @@
 
 <script lang="ts">
 import {defineComponent} from "vue";
-import DashboardDatabase from "./database/DashboardDatabase.vue";
+import DashboardDatabase from "./DashboardDatabase.vue";
 
 export default defineComponent({
   components: {DashboardDatabase}

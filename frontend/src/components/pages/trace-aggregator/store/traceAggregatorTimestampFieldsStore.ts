@@ -1,9 +1,9 @@
 import type {InjectionKey} from "vue";
 // @ts-ignore // todo
 import {createStore, Store, useStore as baseUseStore} from 'vuex'
-import {ApiContainer} from "../utils/apiContainer.ts";
-import {AdminApi} from "../api-schema/admin-api-schema.ts";
-import {handleApiError} from "../utils/helpers.ts";
+import {ApiContainer} from "../../../../utils/apiContainer.ts";
+import {AdminApi} from "../../../../api-schema/admin-api-schema.ts";
+import {handleApiError} from "../../../../utils/helpers.ts";
 
 export type TraceTimestampField = AdminApi.TraceAggregatorTraceMetricsFieldsList.ResponseBody['data'][number]
 

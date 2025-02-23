@@ -1,9 +1,9 @@
 import type {InjectionKey} from "vue";
 // @ts-ignore // todo
 import {createStore, Store, useStore as baseUseStore} from 'vuex'
-import {AdminApi} from "../api-schema/admin-api-schema.ts";
-import {ApiContainer} from "../utils/apiContainer.ts";
-import {convertDateStringToLocal, handleApiError} from "../utils/helpers.ts";
+import {AdminApi} from "../../../../api-schema/admin-api-schema.ts";
+import {ApiContainer} from "../../../../utils/apiContainer.ts";
+import {convertDateStringToLocal, handleApiError} from "../../../../utils/helpers.ts";
 import {ChartData, ChartDataset, ChartOptions} from 'chart.js'
 import {TraceAggregatorCustomField} from "./traceAggregatorStore.ts";
 
