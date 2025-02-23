@@ -14,7 +14,7 @@
       <el-form-item label="Trace id">
         <el-input
             v-model="store.state.payload.trace_id"
-            :disabled="storeGraph.state.showGraph"
+            :disabled="traceAggregatorGraphStore.showGraph"
             style="width: 450px"
             clearable
         >
@@ -123,11 +123,13 @@ export default defineComponent({
   data() {
     return {
       store: useTraceAggregatorStore(),
-      storeGraph: useTraceAggregatorGraphStore(),
     }
   },
 
   computed: {
+    traceAggregatorGraphStore() {
+      return useTraceAggregatorGraphStore()
+    },
     CloseBold() {
       return CloseBold
     },

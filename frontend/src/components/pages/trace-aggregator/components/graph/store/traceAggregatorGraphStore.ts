@@ -1,11 +1,10 @@
-import type {InjectionKey} from "vue";
-// @ts-ignore // todo
-import {createStore, Store, useStore as baseUseStore} from 'vuex'
 import {AdminApi} from "../../../../../../api-schema/admin-api-schema.ts";
 import {ApiContainer} from "../../../../../../utils/apiContainer.ts";
-import {convertDateStringToLocal, handleApiError} from "../../../../../../utils/helpers.ts";
+import {convertDateStringToLocal} from "../../../../../../utils/helpers.ts";
 import {ChartData, ChartDataset, ChartOptions} from 'chart.js'
 import {TraceAggregatorCustomField} from "../../traces/store/traceAggregatorStore.ts";
+import {defineStore} from "pinia";
+import {handleApiRequest} from "../../../../../../utils/handleApiRequest.ts";
 
 type TraceAggregatorTraceMetricsPayload = AdminApi.TraceAggregatorTraceMetricsCreate.RequestBody
 type TraceAggregatorTraceMetricField = AdminApi.TraceAggregatorTraceMetricsCreate.RequestBody['fields']
@@ -17,7 +16,7 @@ interface GraphItem {
     data: ChartData
 }
 
-interface State {
+interface TraceAggregatorGraphStoreInterface {
     showGraph: boolean,
     playGraph: boolean,
     loading: boolean,
@@ -48,45 +47,77 @@ const graphAggregationColors: AggregationColors = {
     max: 'rgb(246,2,2)',
 }
 
-export const traceAggregatorGraphStore = createStore<State>({
-    state: {
-        showGraph: false,
-        playGraph: false,
-        loading: false,
+export const useTraceAggregatorGraphStore = defineStore('traceAggregatorGraphStore', {
+    state: (): TraceAggregatorGraphStoreInterface => {
+        return {
+            showGraph: false,
+            playGraph: false,
+            loading: false,
+            waiting: false,
 
-        payload: {} as TraceAggregatorTraceMetricsPayload,
+            payload: {} as TraceAggregatorTraceMetricsPayload,
 
-        loggedAtFrom: '',
-        metrics: new Array<TraceAggregatorTraceMetricItem>,
+            loggedAtFrom: '',
+            metrics: new Array<TraceAggregatorTraceMetricItem>,
 
-        graphs: new Array<GraphItem>,
-        graphOptions: {
-            responsive: true,
-            maintainAspectRatio: false,
-            animation: false,
-            scales: {
-                x: {
-                    grid: {
-                        color: 'rgba(121,146,248,0.3)'
-                    }
-                },
-                y: {
-                    grid: {
-                        color: 'rgba(121,146,248,0.2)'
-                    }
-                },
-            }
-        } as ChartOptions,
+            graphs: new Array<GraphItem>,
+            graphOptions: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: false,
+                scales: {
+                    x: {
+                        grid: {
+                            color: 'rgba(121,146,248,0.3)'
+                        }
+                    },
+                    y: {
+                        grid: {
+                            color: 'rgba(121,146,248,0.2)'
+                        }
+                    },
+                }
+            },
 
-        preTimestamp: null
-    } as State,
-    mutations: {
-        setMetrics(state: State, data: TraceAggregatorTraceMetricResponse) {
-            state.loggedAtFrom = data.data.loggedAtFrom
-            state.metrics = data.data.items
+            preTimestamp: null,
+            preTimestampCounts: 0
+        }
+    },
+    actions: {
+        async findMetrics(
+            fields: TraceAggregatorTraceMetricField,
+            dataFields: null | Array<TraceAggregatorCustomField>
+        ) {
+            this.loading = true
 
-            if (!state.metrics.length) {
-                state.graphs = []
+            this.payload.fields = fields
+
+            this.payload.data_fields = []
+
+            dataFields?.forEach((customField: TraceAggregatorCustomField) => {
+                if (!customField.addToGraph) {
+                    return
+                }
+
+                this.payload.data_fields?.push(customField.field)
+            })
+
+            return await handleApiRequest(
+                ApiContainer.get().traceAggregatorTraceMetricsCreate(this.payload)
+                    .then(response => {
+                        this.setMetrics(response.data)
+                    })
+                    .finally(() => {
+                        this.loading = false
+                    })
+            )
+        },
+        setMetrics(data: TraceAggregatorTraceMetricResponse) {
+            this.loggedAtFrom = data.data.loggedAtFrom
+            this.metrics = data.data.items
+
+            if (!this.metrics.length) {
+                this.graphs = []
 
                 return
             }
@@ -99,7 +130,7 @@ export const traceAggregatorGraphStore = createStore<State>({
                 }
             } = {}
 
-            state.metrics.forEach((item: TraceAggregatorTraceMetricItem) => {
+            this.metrics.forEach((item: TraceAggregatorTraceMetricItem) => {
                 labels.push(
                     convertDateStringToLocal(item.timestamp, false)
                 )
@@ -143,43 +174,7 @@ export const traceAggregatorGraphStore = createStore<State>({
                 })
             })
 
-            state.graphs = graphs
-        },
-    },
-    actions: {
-        async findMetrics(
-            {commit, state}: { commit: any, state: State },
-            {fields, dataFields}: {fields: TraceAggregatorTraceMetricField, dataFields: null | Array<TraceAggregatorCustomField>}
-        ) {
-            state.loading = true
-
-            state.payload.fields = fields
-
-            state.payload.data_fields = []
-
-            dataFields?.forEach((customField: TraceAggregatorCustomField) => {
-                if (!customField.addToGraph) {
-                    return
-                }
-
-                state.payload.data_fields?.push(customField.field)
-            })
-
-            try {
-                const response = await ApiContainer.get().traceAggregatorTraceMetricsCreate(state.payload)
-
-                commit('setMetrics', response.data)
-            } catch (error) {
-                handleApiError(error)
-            } finally {
-                state.loading = false
-            }
-        },
+            this.graphs = graphs
+        }
     },
 })
-
-export const traceAggregatorGraphStoreInjectionKey: InjectionKey<Store<State>> = Symbol()
-
-export function useTraceAggregatorGraphStore(): Store<State> {
-    return baseUseStore(traceAggregatorGraphStoreInjectionKey)
-}

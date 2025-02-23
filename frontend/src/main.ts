@@ -22,15 +22,6 @@ import {
     traceAggregatorProfilingStore,
     traceAggregatorProfilingStoreInjectionKey
 } from "./components/pages/trace-aggregator/components/profiling/store/traceAggregatorProfilingStore.ts";
-import {traceAggregatorGraphStore, traceAggregatorGraphStoreInjectionKey} from "./components/pages/trace-aggregator/components/graph/store/traceAggregatorGraphStore.ts";
-import {
-    traceAggregatorTimestampPeriodStore,
-    traceAggregatorTimestampPeriodStoreInjectionKey
-} from "./components/pages/trace-aggregator/components/graph/store/traceAggregatorTimestampPeriodsStore.ts";
-import {
-    traceAggregatorTimestampFieldsStore,
-    traceAggregatorTimestampFieldsStoreInjectionKey
-} from "./components/pages/trace-aggregator/components/graph/store/traceAggregatorTimestampFieldsStore.ts";
 import {toolLinksStore, toolLinksStoreInjectionKey} from "./store/toolLinksStore.ts";
 import {createPinia} from "pinia";
 
@@ -49,8 +40,5 @@ createApp(App)
     .use(traceAggregatorProfilingStore, traceAggregatorProfilingStoreInjectionKey)
     .use(traceAggregatorTabsStore, traceAggregatorTabsStoreInjectionKey)
     .use(traceAggregatorDataStore, traceAggregatorDataStoreInjectionKey)
-    .use(traceAggregatorGraphStore, traceAggregatorGraphStoreInjectionKey)
-    .use(traceAggregatorTimestampPeriodStore, traceAggregatorTimestampPeriodStoreInjectionKey)
-    .use(traceAggregatorTimestampFieldsStore, traceAggregatorTimestampFieldsStoreInjectionKey)
     .use(traceAggregatorServicesStore, traceAggregatorServicesStoreInjectionKey)
     .mount('#app')

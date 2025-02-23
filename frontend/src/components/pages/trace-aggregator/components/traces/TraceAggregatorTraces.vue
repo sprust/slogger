@@ -3,7 +3,7 @@
     <div style="padding-bottom: 10px">
       <el-row>
         <el-space style="padding-right: 5px">
-          <div v-if="storeGraph.state.showGraph" style="width: 220px">
+          <div v-if="traceAggregatorGraphStore.showGraph" style="width: 220px">
             <TraceAggregatorTimestampPeriods/>
           </div>
           <div v-else>
@@ -51,32 +51,32 @@
           <el-form-item label="Graph">
             <el-space>
               <el-select
-                  v-show="storeGraph.state.showGraph"
-                  v-model="storeTimestampsFields.state.selectedTimestampFields"
+                  v-show="traceAggregatorGraphStore.showGraph"
+                  v-model="traceAggregatorTimestampFieldsStore.selectedFields"
                   placeholder="Select"
                   style="min-width: 200px"
                   clearable
                   multiple
               >
                 <el-option
-                    v-for="item in storeTimestampsFields.state.timestampFields"
+                    v-for="item in traceAggregatorTimestampFieldsStore.fields"
                     :key="item.value"
                     :label="item.value"
                     :value="item.value"
                 />
               </el-select>
               <el-button
-                  v-show="storeGraph.state.showGraph"
+                  v-show="traceAggregatorGraphStore.showGraph"
                   size="small"
-                  :type="storeGraph.state.playGraph ? 'danger' : 'success'"
-                  :icon="storeGraph.state.playGraph ? Stop : Play"
-                  @click="storeGraph.state.playGraph = !storeGraph.state.playGraph"
+                  :type="traceAggregatorGraphStore.playGraph ? 'danger' : 'success'"
+                  :icon="traceAggregatorGraphStore.playGraph ? Stop : Play"
+                  @click="traceAggregatorGraphStore.playGraph = !traceAggregatorGraphStore.playGraph"
               />
               <el-switch
-                  v-model="storeGraph.state.showGraph"
+                  v-model="traceAggregatorGraphStore.showGraph"
                   active-text="show"
                   active-color="green"
-                  :active-icon="storeGraph.state.loading ? Loading : SwitchButton"
+                  :active-icon="traceAggregatorGraphStore.loading ? Loading : SwitchButton"
               />
             </el-space>
           </el-form-item>
@@ -100,18 +100,18 @@
           <el-button @click="reset" :disabled="store.state.loading">
             Reset
           </el-button>
-          <el-button @click="onButtonSearchClick" :disabled="store.state.loading || storeGraph.state.showGraph">
+          <el-button @click="onButtonSearchClick" :disabled="store.state.loading || traceAggregatorGraphStore.showGraph">
             Search
           </el-button>
         </el-space>
       </el-row>
     </div>
 
-    <div v-if="storeGraph.state.showGraph && storeTimestampsPeriods.state.loaded">
+    <div v-if="traceAggregatorGraphStore.showGraph && traceAggregatorTimestampPeriodStore.loaded">
       <TraceAggregatorGraph/>
     </div>
 
-    <div v-show="!storeGraph.state.showGraph" class="height-100">
+    <div v-show="!traceAggregatorGraphStore.showGraph" class="height-100">
       <TraceAggregatorTracesPagination
           style="padding-bottom: 5px"
           :disabled="store.state.loading"
@@ -164,8 +164,7 @@ import FilterTags from "../tags/FilterTags.vue";
 import DynamicIndexes from "../dynamic-indexes/DynamicIndexes.vue";
 import AdminStores from "../admin-stores/AdminStores.vue";
 import OtherFilters from "./OtherFilters.vue";
-import {state} from "vue-tsc/out/shared";
-import {CloseBold, SwitchButton, Close, Loading, CaretRight} from '@element-plus/icons-vue'
+import {CaretRight, Close, CloseBold, Loading, SwitchButton} from '@element-plus/icons-vue'
 import TraceAggregatorGraph from "../graph/TraceAggregatorGraph.vue";
 import TraceAggregatorTimestampPeriods from "../graph/TraceAggregatorTimestampPeriods.vue";
 import {useTraceAggregatorGraphStore} from "../graph/store/traceAggregatorGraphStore.ts";
@@ -192,9 +191,6 @@ export default defineComponent({
   data() {
     return {
       store: useTraceAggregatorStore(),
-      storeGraph: useTraceAggregatorGraphStore(),
-      storeTimestampsPeriods: useTraceAggregatorTimestampPeriodStore(),
-      storeTimestampsFields: useTraceAggregatorTimestampFieldsStore(),
       storeTraceData: useTraceAggregatorDataStore(),
       dateTimeShortcuts: [
         {
@@ -205,8 +201,14 @@ export default defineComponent({
     }
   },
   computed: {
-    state() {
-      return state
+    traceAggregatorGraphStore() {
+      return useTraceAggregatorGraphStore()
+    },
+    traceAggregatorTimestampFieldsStore() {
+      return useTraceAggregatorTimestampFieldsStore()
+    },
+    traceAggregatorTimestampPeriodStore() {
+      return useTraceAggregatorTimestampPeriodStore()
     },
     CloseBold() {
       return CloseBold
@@ -280,8 +282,8 @@ export default defineComponent({
     },
   },
   watch: {
-    'storeGraph.state.showGraph'() {
-      this.storeGraph.state.playGraph = false
+    'traceAggregatorGraphStore.showGraph'() {
+      this.traceAggregatorGraphStore.playGraph = false
     }
   },
   mounted() {
@@ -291,8 +293,8 @@ export default defineComponent({
       this.update()
     }
 
-    if (!this.storeTimestampsFields.state.loaded) {
-      this.storeTimestampsFields.dispatch('findTimestampFields')
+    if (!this.traceAggregatorTimestampFieldsStore.loaded) {
+      this.traceAggregatorTimestampFieldsStore.findTimestampFields()
     }
   }
 })

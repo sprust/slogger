@@ -1,5 +1,5 @@
 <template>
-  <div v-for="graph in store.state.graphs">
+  <div v-for="graph in traceAggregatorGraphStore.graphs">
     <el-row>
       {{ graph.name }}
     </el-row>
@@ -7,7 +7,7 @@
         ref="tracesGraphRef"
         :style="`min-height: ${graphItemHeight}; max-height: ${graphItemHeight}`"
         :data="graph.data"
-        :options="store.state.graphOptions"
+        :options="traceAggregatorGraphStore.graphOptions"
         @click="onGraphClick"
     />
   </div>
@@ -39,67 +39,78 @@ export default defineComponent({
   components: {
     Bar,
   },
+
   data() {
     return {
-      store: useTraceAggregatorGraphStore(),
-      storePeriods: useTraceAggregatorTimestampPeriodStore(),
       traceStore: useTraceAggregatorStore(),
-      storeTimestampsFields: useTraceAggregatorTimestampFieldsStore(),
     }
   },
+
   computed: {
+    traceAggregatorGraphStore() {
+      return useTraceAggregatorGraphStore()
+    },
+    traceAggregatorTimestampFieldsStore() {
+      return useTraceAggregatorTimestampFieldsStore()
+    },
+    traceAggregatorTimestampPeriodStore() {
+      return useTraceAggregatorTimestampPeriodStore()
+    },
     graphItemHeight(): string {
-      if (this.store.state.graphs.length <= 1) {
+      if (this.traceAggregatorGraphStore.graphs.length <= 1) {
         return '60vh'
       }
 
-      return (80 / this.store.state.graphs.length) + 'vh'
+      return (80 / this.traceAggregatorGraphStore.graphs.length) + 'vh'
     }
   },
+
   methods: {
     update() {
-      if (this.store.state.waiting || !this.store.state.playGraph) {
+      if (this.traceAggregatorGraphStore.waiting || !this.traceAggregatorGraphStore.playGraph) {
         return
       }
 
       this.traceStore.dispatch('prepareCommonPayloadData')
 
-      this.store.state.payload.timestamp_period = this.storePeriods.state.selectedTimestampPeriod
-      this.store.state.payload.timestamp_step = this.storePeriods.state.selectedTimestampStep
+      // @ts-ignore TODO
+      this.traceAggregatorGraphStore.payload.timestamp_period = this.traceAggregatorTimestampPeriodStore.selectedTimestampPeriod
+      // @ts-ignore TODO
+      this.traceAggregatorGraphStore.payload.timestamp_step = this.traceAggregatorTimestampPeriodStore.selectedTimestampStep
 
-      this.store.state.payload.service_ids = this.traceStore.state.payload.service_ids
-      this.store.state.payload.logging_to = this.traceStore.state.payload.logging_to
+      this.traceAggregatorGraphStore.payload.service_ids = this.traceStore.state.payload.service_ids
+      this.traceAggregatorGraphStore.payload.logging_to = this.traceStore.state.payload.logging_to
           ? this.traceStore.state.payload.logging_to
           : undefined
-      this.store.state.payload.types = this.traceStore.state.payload.types
-      this.store.state.payload.tags = this.traceStore.state.payload.tags
-      this.store.state.payload.statuses = this.traceStore.state.payload.statuses
-      this.store.state.payload.duration_from = this.traceStore.state.payload.duration_from
-      this.store.state.payload.duration_to = this.traceStore.state.payload.duration_to
-      this.store.state.payload.memory_from = this.traceStore.state.payload.memory_from
-      this.store.state.payload.memory_to = this.traceStore.state.payload.memory_to
-      this.store.state.payload.cpu_from = this.traceStore.state.payload.cpu_from
-      this.store.state.payload.cpu_to = this.traceStore.state.payload.cpu_to
-      this.store.state.payload.data = this.traceStore.state.payload.data
-      this.store.state.payload.has_profiling = this.traceStore.state.payload.has_profiling
+      this.traceAggregatorGraphStore.payload.types = this.traceStore.state.payload.types
+      this.traceAggregatorGraphStore.payload.tags = this.traceStore.state.payload.tags
+      this.traceAggregatorGraphStore.payload.statuses = this.traceStore.state.payload.statuses
+      this.traceAggregatorGraphStore.payload.duration_from = this.traceStore.state.payload.duration_from
+      this.traceAggregatorGraphStore.payload.duration_to = this.traceStore.state.payload.duration_to
+      this.traceAggregatorGraphStore.payload.memory_from = this.traceStore.state.payload.memory_from
+      this.traceAggregatorGraphStore.payload.memory_to = this.traceStore.state.payload.memory_to
+      this.traceAggregatorGraphStore.payload.cpu_from = this.traceStore.state.payload.cpu_from
+      this.traceAggregatorGraphStore.payload.cpu_to = this.traceStore.state.payload.cpu_to
+      this.traceAggregatorGraphStore.payload.data = this.traceStore.state.payload.data
+      this.traceAggregatorGraphStore.payload.has_profiling = this.traceStore.state.payload.has_profiling
 
-      this.store
-          .dispatch('findMetrics', {
-                fields: this.storeTimestampsFields.state.selectedTimestampFields,
-                dataFields: this.traceStore.state.customFields,
-              }
+      this.traceAggregatorGraphStore
+          .findMetrics(
+              // @ts-ignore TODO
+              this.traceAggregatorTimestampFieldsStore.selectedFields,
+              this.traceStore.state.customFields,
           )
           .finally(() => {
-            if (!this.store.state.playGraph) {
+            if (!this.traceAggregatorGraphStore.playGraph) {
               return
             }
 
-            this.traceStore.state.payload.logging_from = this.store.state.loggedAtFrom
+            this.traceStore.state.payload.logging_from = this.traceAggregatorGraphStore.loggedAtFrom
 
-            this.store.state.waiting = true
+            this.traceAggregatorGraphStore.waiting = true
 
             setTimeout(() => {
-              this.store.state.waiting = false
+              this.traceAggregatorGraphStore.waiting = false
 
               this.update()
             }, 1000)
@@ -124,20 +135,20 @@ export default defineComponent({
       this.traceStore.state.startOfDay = false
 
       this.traceStore.state.payload.logging_from = new Date(
-          convertDateStringToLocalFull(this.store.state.metrics[index].timestamp)
+          convertDateStringToLocalFull(this.traceAggregatorGraphStore.metrics[index].timestamp)
       )
       this.traceStore.state.payload.logging_to = new Date(
-          convertDateStringToLocalFull(this.store.state.metrics[index].timestamp_to)
+          convertDateStringToLocalFull(this.traceAggregatorGraphStore.metrics[index].timestamp_to)
       )
 
-      this.store.state.showGraph = false
+      this.traceAggregatorGraphStore.showGraph = false
     }
   },
   watch: {
-    'store.state.playGraph'() {
-       if (this.store.state.playGraph) {
-         this.update()
-       }
+    'traceAggregatorGraphStore.playGraph'() {
+      if (this.traceAggregatorGraphStore.playGraph) {
+        this.update()
+      }
     }
   },
 })
