@@ -165,7 +165,6 @@ export default defineComponent({
             this.traceAdminStoresStore.clearAdminStoreCreateParameters()
 
             this.update()
-
           })
     },
     deleteStore(store: AdminStore) {
