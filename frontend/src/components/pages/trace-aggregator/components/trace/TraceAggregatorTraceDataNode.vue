@@ -47,7 +47,6 @@ import {defineComponent, PropType} from "vue";
 import {
   TraceAggregatorCustomFieldParameter,
 } from "../traces/store/traceAggregatorStore.ts";
-import {ElTree} from 'element-plus'
 import {TraceAggregatorDetailData} from "./store/traceAggregatorDataStore.ts";
 import {copyToClipboard} from "../../../../../utils/helpers.ts";
 import FilterTagsSection from "../tags/FilterTagsSection.vue";

@@ -191,7 +191,6 @@ export default defineComponent({
   data() {
     return {
       store: useTraceAggregatorStore(),
-      storeTraceData: useTraceAggregatorDataStore(),
       dateTimeShortcuts: [
         {
           text: 'Start of day',
@@ -209,6 +208,9 @@ export default defineComponent({
     },
     traceAggregatorTimestampPeriodStore() {
       return useTraceAggregatorTimestampPeriodStore()
+    },
+    traceAggregatorDataStore() {
+      return useTraceAggregatorDataStore()
     },
     CloseBold() {
       return CloseBold
@@ -249,7 +251,7 @@ export default defineComponent({
     },
     update() {
       this.store.dispatch('fillTraceAggregator')
-      this.storeTraceData.dispatch('clearTraceData')
+      this.traceAggregatorDataStore.$reset()
     },
     onNextPage() {
       ++this.store.state.payload.page

@@ -17,7 +17,7 @@
         />
         <div v-else style="width: 90vw">
           <TraceAggregatorTraceDataNode
-              :data="dataStore.state.dataItems[props.row.trace.trace_id].data"
+              :data="traceAggregatorDataStore.dataItems[props.row.trace.trace_id].data"
               :showCustomButton="true"
               @onCustomFieldClick="onCustomFieldClick"
           />
@@ -159,7 +159,9 @@ import {useTraceAggregatorProfilingStore} from "../profiling/store/traceAggregat
 
 export default defineComponent({
   components: {TraceId, TraceService, FilterTags, TraceAggregatorTraceDataNode, TraceItemMetrics},
+
   emits: ["onTraceTypeClick", "onTraceTagClick", "onTraceStatusClick", "onCustomFieldClick"],
+
   props: {
     payload: {
       type: Object as PropType<TraceAggregatorPayload>,
@@ -170,14 +172,21 @@ export default defineComponent({
       required: true,
     },
   },
+
   data() {
     return {
       traceAggregatorTabsStore: useTraceAggregatorTabsStore(),
       traceAggregatorTreeStore: useTraceAggregatorTreeStore(),
-      dataStore: useTraceAggregatorDataStore(),
       traceAggregatorProfilingStore: useTraceAggregatorProfilingStore(),
     }
   },
+
+  computed: {
+    traceAggregatorDataStore() {
+      return useTraceAggregatorDataStore()
+    },
+  },
+
   methods: {
     convertDateStringToLocal,
     dataExpandChange(trace: TraceAggregatorItem) {
@@ -185,10 +194,10 @@ export default defineComponent({
         return
       }
 
-      this.dataStore.dispatch('findTraceData', trace.trace.trace_id)
+      this.traceAggregatorDataStore.findTraceData(trace.trace.trace_id)
     },
     isTraceDataLoaded(traceId: string): boolean {
-      return !!this.dataStore.state.dataItems[traceId]?.loaded
+      return !!this.traceAggregatorDataStore.dataItems[traceId]?.loaded
     },
     onCustomFieldClick(parameters: TraceAggregatorCustomFieldParameter) {
       this.$emit("onCustomFieldClick", parameters)
@@ -219,8 +228,6 @@ export default defineComponent({
       return !!traceId && traceId === this.payload.trace_id
     }
   },
-  mounted() {
-  }
 })
 </script>
 

@@ -9,7 +9,6 @@ import {router} from "./utils/router.ts";
 import {traceAggregatorStore, traceAggregatorStoreInjectionKey} from "./components/pages/trace-aggregator/components/traces/store/traceAggregatorStore.ts";
 import {traceAggregatorTreeStore, traceAggregatorTreeStoreInjectionKey} from "./components/pages/trace-aggregator/components/tree/store/traceAggregatorTreeStore.ts";
 import {traceAggregatorTabsStore, traceAggregatorTabsStoreInjectionKey} from "./components/pages/trace-aggregator/store/traceAggregatorTabsStore.ts";
-import {traceAggregatorDataStore, traceAggregatorDataStoreInjectionKey} from "./components/pages/trace-aggregator/components/trace/store/traceAggregatorDataStore.ts";
 import {
     traceAggregatorProfilingStore,
     traceAggregatorProfilingStoreInjectionKey
@@ -30,5 +29,4 @@ createApp(App)
     .use(traceAggregatorTreeStore, traceAggregatorTreeStoreInjectionKey)
     .use(traceAggregatorProfilingStore, traceAggregatorProfilingStoreInjectionKey)
     .use(traceAggregatorTabsStore, traceAggregatorTabsStoreInjectionKey)
-    .use(traceAggregatorDataStore, traceAggregatorDataStoreInjectionKey)
     .mount('#app')

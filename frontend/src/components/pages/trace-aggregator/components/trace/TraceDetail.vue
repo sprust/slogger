@@ -39,14 +39,16 @@ import TraceAggregatorTraceDataNode from "./TraceAggregatorTraceDataNode.vue";
 import {convertDateStringToLocal} from "../../../../../utils/helpers.ts";
 
 export default defineComponent({
-  methods: {convertDateStringToLocal},
   components: {TraceAggregatorTraceDataNode},
+
   props: {
     trace: {
       type: Object as PropType<TraceAggregatorDetail>,
       required: true,
     },
-  }
+  },
+
+  methods: {convertDateStringToLocal},
 })
 </script>
 
