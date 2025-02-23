@@ -14,7 +14,6 @@ import {
 import {traceAggregatorTreeStore, traceAggregatorTreeStoreInjectionKey} from "./components/pages/trace-aggregator/store/traceAggregatorTreeStore.ts";
 import {traceAggregatorTabsStore, traceAggregatorTabsStoreInjectionKey} from "./components/pages/trace-aggregator/store/traceAggregatorTabsStore.ts";
 import {traceAggregatorDataStore, traceAggregatorDataStoreInjectionKey} from "./components/pages/trace-aggregator/store/traceAggregatorDataStore.ts";
-import {dashboardDatabaseStore, dashboardDatabaseStoreInjectionKey} from "./components/pages/dashboard/store/dashboardDatabaseStore.ts";
 import {
     traceAggregatorServicesStore,
     traceAggregatorServicesStoreInjectionKey
@@ -37,10 +36,15 @@ import {toolLinksStore, toolLinksStoreInjectionKey} from "./store/toolLinksStore
 import {traceDynamicIndexesStore, traceDynamicIndexesInjectionKey} from "./components/pages/trace-aggregator/store/traceDynamicIndexesStore.ts";
 import {traceAdminStoresStore, traceAdminStoresStoreInjectionKey} from "./components/pages/trace-aggregator/store/traceAdminStoresStore.ts";
 import {logsViewerStore, logsViewerStoreInjectionKey} from "./components/pages/logs-viewer/store/logsViewerStore.ts";
+import {createPinia} from "pinia";
+
+const pinia = createPinia()
 
 createApp(App)
     .use(router)
     .use(ElementPlus)
+    .use(pinia)
+    //
     .use(authStore, authStoreInjectionKey)
     .use(toolLinksStore, toolLinksStoreInjectionKey)
     .use(traceAggregatorStore, traceAggregatorStoreInjectionKey)
@@ -52,7 +56,6 @@ createApp(App)
     .use(traceAggregatorGraphStore, traceAggregatorGraphStoreInjectionKey)
     .use(traceAggregatorTimestampPeriodStore, traceAggregatorTimestampPeriodStoreInjectionKey)
     .use(traceAggregatorTimestampFieldsStore, traceAggregatorTimestampFieldsStoreInjectionKey)
-    .use(dashboardDatabaseStore, dashboardDatabaseStoreInjectionKey)
     .use(traceAggregatorServicesStore, traceAggregatorServicesStoreInjectionKey)
     .use(traceCleanerStore, traceCleanerStoreInjectionKey)
     .use(traceDynamicIndexesStore, traceDynamicIndexesInjectionKey)

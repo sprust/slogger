@@ -1,3 +1,43 @@
+<script lang="ts">
+import {defineComponent} from "vue";
+import {useDashboardDatabaseStore} from "./store/dashboardDatabaseStore.ts";
+import {Loading as IconLoading, Refresh as IconRefresh} from '@element-plus/icons-vue'
+
+export default defineComponent({
+  components: {
+    IconLoading,
+    IconRefresh,
+  },
+
+  computed: {
+    dashboardDatabaseStore() {
+      return useDashboardDatabaseStore()
+    },
+    IconLoading() {
+      return IconLoading
+    },
+    IconRefresh() {
+      return IconRefresh
+    },
+  },
+
+  methods: {
+    update() {
+      this.dashboardDatabaseStore.findDashboardDatabase()
+    }
+  },
+
+  mounted() {
+    if (!this.dashboardDatabaseStore.loading) {
+      return
+    }
+
+    this.update()
+  },
+})
+
+</script>
+
 <template>
   <div style="width: 100%">
     <el-row>
@@ -6,18 +46,19 @@
           Databases
         </div>
         <el-button
-            :loading="store.state.loading"
-            :icon="store.state.loading ? Loading : Refresh"
+            :loading="dashboardDatabaseStore.loading"
+            :icon="dashboardDatabaseStore.loading ? IconLoading : IconRefresh"
             link
             @click="update"
         />
       </el-space>
     </el-row>
     <el-divider></el-divider>
-    <el-row v-for="database in store.state.items">
+    <el-row v-for="database in dashboardDatabaseStore.items">
       <el-card style="width: 100%">
         <template #header>
-          {{ database.name }} (count: {{ database.total_documents_count }}, size: {{ `${database.size}mb` }}, memory usage: {{ `${database.memory_usage}mb` }})
+          {{ database.name }} (count: {{ database.total_documents_count }}, size: {{ `${database.size}mb` }}, memory
+          usage: {{ `${database.memory_usage}mb` }})
         </template>
         <el-table :data="database.collections" :border="true">
           <el-table-column type="expand">
@@ -43,41 +84,6 @@
     </el-row>
   </div>
 </template>
-
-<script lang="ts">
-import {defineComponent} from "vue";
-import {useDashboardDatabaseStore} from "./store/dashboardDatabaseStore.ts";
-import {Loading, Refresh} from '@element-plus/icons-vue'
-
-export default defineComponent({
-  data() {
-    return {
-      store: useDashboardDatabaseStore(),
-    }
-  },
-  computed: {
-    Loading() {
-      return Loading
-    },
-    Refresh() {
-      return Refresh
-    }
-  },
-  methods: {
-    update() {
-      this.store.dispatch('findDashboardDatabase')
-    }
-  },
-  mounted() {
-    if (!this.store.state.loading) {
-      return
-    }
-
-    this.update()
-  },
-})
-
-</script>
 
 <style scoped>
 
