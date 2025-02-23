@@ -1,84 +1,61 @@
-import type {InjectionKey} from "vue";
-// @ts-ignore // todo
-import {createStore, Store, useStore as baseUseStore} from 'vuex'
 import {ApiContainer} from "../../../../../../utils/apiContainer.ts";
 import {AdminApi} from "../../../../../../api-schema/admin-api-schema.ts";
-import {handleApiError} from "../../../../../../utils/helpers.ts";
+import {defineStore} from "pinia";
+import {handleApiRequest} from "../../../../../../utils/handleApiRequest.ts";
 
 export type TraceDynamicIndex = AdminApi.TraceAggregatorDynamicIndexesList.ResponseBody['data'][number];
 export type TraceDynamicIndexStats = AdminApi.TraceAggregatorDynamicIndexesStatsList.ResponseBody['data']
 export type TraceDynamicIndexInfo = AdminApi.TraceAggregatorDynamicIndexesStatsList.ResponseBody['data']['indexes_in_process'][number]
 
-interface State {
+interface TraceDynamicIndexesStoreInterface {
     started: boolean,
     loading: boolean
     traceDynamicIndexStats: TraceDynamicIndexStats,
     traceDynamicIndexes: Array<TraceDynamicIndex>
 }
 
-export const traceDynamicIndexesStore = createStore<State>({
-    state: {
-        started: false,
-        loading: false,
-        traceDynamicIndexStats: {} as TraceDynamicIndexStats,
-        traceDynamicIndexes: [] as Array<TraceDynamicIndex>
-    } as State,
-    mutations: {
-        setTraceDynamicIndexes(state: State, indexes: Array<TraceDynamicIndex>) {
-            state.traceDynamicIndexes = indexes
+export const useTraceDynamicIndexesStore = defineStore('traceDynamicIndexesStore', {
+    state: (): TraceDynamicIndexesStoreInterface => {
+        return {
+            started: false,
+            loading: false,
+            traceDynamicIndexStats: {} as TraceDynamicIndexStats,
+            traceDynamicIndexes: [] as Array<TraceDynamicIndex>
+        }
+    },
+    actions: {
+        async findTraceDynamicIndexes() {
+            this.loading = true
+
+            return await handleApiRequest(
+                ApiContainer.get().traceAggregatorDynamicIndexesList()
+                    .then(response => {
+                        this.traceDynamicIndexes = response.data.data
+                    })
+                    .finally(() => {
+                        this.loading = false
+                    })
+            )
         },
-        setTraceDynamicIndexStats(state: State, stats: TraceDynamicIndexStats) {
-            state.traceDynamicIndexStats = stats
+        async findTraceDynamicIndexStats() {
+            this.started = true
+
+            return await handleApiRequest(
+                ApiContainer.get().traceAggregatorDynamicIndexesStatsList()
+                    .then(response => {
+                        this.traceDynamicIndexStats = response.data.data
+                    })
+            )
         },
-        deleteTraceDynamicIndexes(state: State, id: string) {
-            state.traceDynamicIndexes = state.traceDynamicIndexes.filter(
-                (index: TraceDynamicIndex) => index.id !== id
+        async deleteTraceDynamicIndex(id: string) {
+            return await handleApiRequest(
+                ApiContainer.get().traceAggregatorDynamicIndexesDelete(id)
+                    .then(() => {
+                        this.traceDynamicIndexes = this.traceDynamicIndexes.filter(
+                            (index: TraceDynamicIndex) => index.id !== id
+                        )
+                    })
             )
         },
     },
-    actions: {
-        findTraceDynamicIndexes({commit, state}: { commit: any, state: State }) {
-            state.loading = true
-
-            ApiContainer.get().traceAggregatorDynamicIndexesList()
-                .then(response => {
-                    commit('setTraceDynamicIndexes', response.data.data)
-                })
-                .catch((error) => {
-                    handleApiError(error)
-                })
-                .finally(() => {
-                    state.loading = false
-                })
-        },
-        findTraceDynamicIndexStats({commit, state}: { commit: any, state: State }) {
-            state.started = true
-
-            return ApiContainer.get().traceAggregatorDynamicIndexesStatsList()
-                .then(response => {
-                    commit('setTraceDynamicIndexStats', response.data.data)
-                })
-                .catch((error) => {
-                    handleApiError(error)
-                })
-        },
-        deleteTraceDynamicIndex(
-            {commit}: { commit: any },
-            {id}: {id: string}
-        ) {
-            return ApiContainer.get().traceAggregatorDynamicIndexesDelete(id)
-                .then(() => {
-                    commit('deleteTraceDynamicIndexes', id)
-                })
-                .catch((error) => {
-                    handleApiError(error)
-                })
-        },
-    },
 })
-
-export const traceDynamicIndexesInjectionKey: InjectionKey<Store<State>> = Symbol()
-
-export function useTraceDynamicIndexesStore(): Store<State> {
-    return baseUseStore(traceDynamicIndexesInjectionKey)
-}

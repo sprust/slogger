@@ -1,6 +1,5 @@
 import {ApiContainer} from "../../../../../../utils/apiContainer.ts";
 import {AdminApi} from "../../../../../../api-schema/admin-api-schema.ts";
-import {handleApiError} from "../../../../../../utils/helpers.ts";
 import {defineStore} from "pinia";
 import {handleApiRequest} from "../../../../../../utils/handleApiRequest.ts";
 
@@ -58,9 +57,6 @@ export const useTraceAdminStoresStore = defineStore('traceAdminStoresStore', {
                     .then(response => {
                         this.deletedIds = {}
                         this.adminStores = response.data.data
-                    })
-                    .catch((error) => {
-                        handleApiError(error)
                     })
                     .finally(() => {
                         this.loading = false

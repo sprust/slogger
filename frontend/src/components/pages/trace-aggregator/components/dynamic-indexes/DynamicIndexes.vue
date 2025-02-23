@@ -32,10 +32,10 @@
             clearable
         />
         <el-button
-            :icon="RefreshIcon"
+            :icon="IconRefreshList"
             size="small"
             @click="update"
-            :loading="store.state.loading"
+            :loading="traceDynamicIndexesStore.loading"
         />
         <el-text>
           Total: {{ totalCount }}, In process: {{ inProcessCount }}, Errors: {{ errorsCount }}
@@ -109,7 +109,7 @@ import {
   TraceDynamicIndexInfo,
   useTraceDynamicIndexesStore
 } from "./store/traceDynamicIndexesStore.ts";
-import {Refresh as RefreshIcon} from "@element-plus/icons-vue";
+import {Refresh as IconRefreshList} from "@element-plus/icons-vue";
 import {convertDateStringToLocal} from "../../../../../utils/helpers.ts";
 
 interface DeletingIndexes {
@@ -117,13 +117,9 @@ interface DeletingIndexes {
 }
 
 export default defineComponent({
-  components: {
-    RefreshIcon
-  },
   data() {
     return {
       dialogVisible: false,
-      store: useTraceDynamicIndexesStore(),
       deleting: {} as DeletingIndexes,
       searchText: '' as String,
     }
@@ -131,10 +127,10 @@ export default defineComponent({
 
   methods: {
     update() {
-      this.store.dispatch('findTraceDynamicIndexes')
+      this.traceDynamicIndexesStore.findTraceDynamicIndexes()
     },
     updateStats() {
-      this.store.dispatch('findTraceDynamicIndexStats')
+      this.traceDynamicIndexesStore.findTraceDynamicIndexStats()
           .finally(() =>
               setTimeout(() => this.updateStats(), 2000)
           )
@@ -146,7 +142,7 @@ export default defineComponent({
 
       this.deleting[index.id] = true
 
-      this.store.dispatch('deleteTraceDynamicIndex', {id: index.id})
+      this.traceDynamicIndexesStore.deleteTraceDynamicIndex(index.id)
           .then(() => {
             delete this.deleting[index.id]
           })
@@ -180,7 +176,7 @@ export default defineComponent({
       return 'info'
     },
     isCollectionNameInProcess(index: TraceDynamicIndex, collectionName: string): boolean {
-      const indexes = this.store.state.traceDynamicIndexStats.indexes_in_process.filter(
+      const indexes = this.traceDynamicIndexesStore.traceDynamicIndexStats.indexes_in_process.filter(
           (item: TraceDynamicIndexInfo) => item.name === index.indexName
       )
 
@@ -193,8 +189,11 @@ export default defineComponent({
   },
 
   computed: {
+    traceDynamicIndexesStore() {
+      return useTraceDynamicIndexesStore()
+    },
     indexes(): Array<TraceDynamicIndex> {
-      return this.store.state.traceDynamicIndexes.filter(
+      return this.traceDynamicIndexesStore.traceDynamicIndexes.filter(
           (index: TraceDynamicIndex) => {
             if (!this.searchText) {
               return true
@@ -208,25 +207,25 @@ export default defineComponent({
       )
     },
     inProcessCount(): number {
-      if (!this.store.state.traceDynamicIndexStats.in_process_count) {
+      if (!this.traceDynamicIndexesStore.traceDynamicIndexStats.in_process_count) {
         return 0
       }
 
-      if (!this.store.state.traceDynamicIndexStats.indexes_in_process.length) {
-        return this.store.state.traceDynamicIndexStats.in_process_count
+      if (!this.traceDynamicIndexesStore.traceDynamicIndexStats.indexes_in_process.length) {
+        return this.traceDynamicIndexesStore.traceDynamicIndexStats.in_process_count
       }
 
-      const percents: number[] = this.store.state.traceDynamicIndexStats.indexes_in_process.map(
+      const percents: number[] = this.traceDynamicIndexesStore.traceDynamicIndexStats.indexes_in_process.map(
           (item: TraceDynamicIndexInfo) => item.progress
       );
 
       return Math.max(...percents)
     },
     errorsCount(): number {
-      return this.store.state.traceDynamicIndexStats.errors_count
+      return this.traceDynamicIndexesStore.traceDynamicIndexStats.errors_count
     },
     totalCount(): number {
-      return this.store.state.traceDynamicIndexStats.total_count
+      return this.traceDynamicIndexesStore.traceDynamicIndexStats.total_count
     },
     visibleCount(): number {
       if (this.inProcessCount) {
@@ -250,13 +249,13 @@ export default defineComponent({
 
       return 'info'
     },
-    RefreshIcon() {
-      return RefreshIcon
+    IconRefreshList() {
+      return IconRefreshList
     },
   },
 
   mounted() {
-    if (!this.store.state.started) {
+    if (!this.traceDynamicIndexesStore.started) {
       this.updateStats()
     }
   }

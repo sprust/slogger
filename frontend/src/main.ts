@@ -32,7 +32,6 @@ import {
     traceAggregatorTimestampFieldsStoreInjectionKey
 } from "./components/pages/trace-aggregator/components/graph/store/traceAggregatorTimestampFieldsStore.ts";
 import {toolLinksStore, toolLinksStoreInjectionKey} from "./store/toolLinksStore.ts";
-import {traceDynamicIndexesStore, traceDynamicIndexesInjectionKey} from "./components/pages/trace-aggregator/components/dynamic-indexes/store/traceDynamicIndexesStore.ts";
 import {createPinia} from "pinia";
 
 const pinia = createPinia()
@@ -54,5 +53,4 @@ createApp(App)
     .use(traceAggregatorTimestampPeriodStore, traceAggregatorTimestampPeriodStoreInjectionKey)
     .use(traceAggregatorTimestampFieldsStore, traceAggregatorTimestampFieldsStoreInjectionKey)
     .use(traceAggregatorServicesStore, traceAggregatorServicesStoreInjectionKey)
-    .use(traceDynamicIndexesStore, traceDynamicIndexesInjectionKey)
     .mount('#app')
