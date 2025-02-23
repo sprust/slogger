@@ -35,7 +35,6 @@ import {
 import {toolLinksStore, toolLinksStoreInjectionKey} from "./store/toolLinksStore.ts";
 import {traceDynamicIndexesStore, traceDynamicIndexesInjectionKey} from "./components/pages/trace-aggregator/store/traceDynamicIndexesStore.ts";
 import {traceAdminStoresStore, traceAdminStoresStoreInjectionKey} from "./components/pages/trace-aggregator/store/traceAdminStoresStore.ts";
-import {logsViewerStore, logsViewerStoreInjectionKey} from "./components/pages/logs-viewer/store/logsViewerStore.ts";
 import {createPinia} from "pinia";
 
 const pinia = createPinia()
@@ -60,5 +59,4 @@ createApp(App)
     .use(traceCleanerStore, traceCleanerStoreInjectionKey)
     .use(traceDynamicIndexesStore, traceDynamicIndexesInjectionKey)
     .use(traceAdminStoresStore, traceAdminStoresStoreInjectionKey)
-    .use(logsViewerStore, logsViewerStoreInjectionKey)
     .mount('#app')
