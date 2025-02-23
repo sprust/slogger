@@ -55,16 +55,16 @@
 <script lang="ts">
 import {VueFlow} from '@vue-flow/core'
 import {defineComponent} from "vue";
-import {useTraceAggregatorProfilingStore} from "../../store/traceAggregatorProfilingStore.ts";
+import {useTraceAggregatorProfilingStore} from "./store/traceAggregatorProfilingStore.ts";
 import {MiniMap} from '@vue-flow/minimap'
 import {Controls} from '@vue-flow/controls'
 import TraceAggregatorProfilingTreeV2 from './TraceAggregatorProfilingTreeV2.vue'
 import TraceAggregatorProfilingNode from './TraceAggregatorProfilingNode.vue'
 import TraceAggregatorProfilingSetting from './TraceAggregatorProfilingSetting.vue'
 import TraceAggregatorProfilingFlowEdge from './TraceAggregatorProfilingFlowEdge.vue'
-import TraceId from "../../widgets/TraceId.vue";
+import TraceId from "../trace/TraceId.vue";
 import {traceAggregatorTabs, useTraceAggregatorTabsStore} from "../../store/traceAggregatorTabsStore.ts";
-import {useTraceAggregatorTreeStore} from "../../store/traceAggregatorTreeStore.ts";
+import {useTraceAggregatorTreeStore} from "../tree/store/traceAggregatorTreeStore.ts";
 
 export default defineComponent({
   components: {

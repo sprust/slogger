@@ -1,4 +1,4 @@
-import {FlowItems, ProfilingNode} from "../../../store/traceAggregatorProfilingStore.ts";
+import {FlowItems, ProfilingNode} from "../store/traceAggregatorProfilingStore.ts";
 
 export class FlowBuilder {
     private readonly profilingNode: ProfilingNode

@@ -25,7 +25,7 @@ import {
   ProfilingNodeDataItem,
   ProfilingNode,
   useTraceAggregatorProfilingStore
-} from "../../store/traceAggregatorProfilingStore.ts";
+} from "./store/traceAggregatorProfilingStore.ts";
 
 export default defineComponent({
   props: {

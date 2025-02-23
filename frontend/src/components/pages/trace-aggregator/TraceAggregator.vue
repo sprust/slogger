@@ -14,16 +14,16 @@
 
 <script lang="ts">
 import {defineComponent} from "vue";
-import TraceAggregatorTraces from "./components/TraceAggregatorTraces.vue";
-import TraceAggregatorTraceTree from "./components/TraceAggregatorTraceTree.vue";
+import TraceAggregatorTraces from "./components/traces/TraceAggregatorTraces.vue";
+import TraceAggregatorTraceTree from "./components/tree/TraceAggregatorTraceTree.vue";
 import TraceAggregatorProfiling from "./components/profiling/TraceAggregatorProfiling.vue";
-import FilterTags from "./widgets/FilterTags.vue";
+import FilterTags from "./components/tags/FilterTags.vue";
 import {traceAggregatorTabs, useTraceAggregatorTabsStore} from "./store/traceAggregatorTabsStore.ts";
 
 export default defineComponent({
   components: {
     FilterTags,
-    TraceAggregatorTraces,
+    TraceAggregatorTraces: TraceAggregatorTraces,
     TraceAggregatorTraceTree,
     TraceAggregatorProfiling
   },

@@ -15,7 +15,7 @@
 <script lang="ts">
 import {defineComponent, PropType} from "vue";
 // @ts-ignore // todo
-import {ProfilingNode, useTraceAggregatorProfilingStore} from "../../store/traceAggregatorProfilingStore.ts";
+import {ProfilingNode, useTraceAggregatorProfilingStore} from "./store/traceAggregatorProfilingStore.ts";
 import TraceAggregatorProfilingNodeMetrics from './TraceAggregatorProfilingNodeMetrics.vue'
 
 export default defineComponent({

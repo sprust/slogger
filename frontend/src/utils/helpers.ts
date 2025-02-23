@@ -1,7 +1,7 @@
 import {ElMessage} from "element-plus";
 import {valueIsSelected} from "./valueWasSelected.ts";
-import {TraceAggregatorPayload, TraceStateParameters} from "../components/pages/trace-aggregator/store/traceAggregatorStore.ts";
-import {TraceAggregatorService} from "../components/pages/trace-aggregator/store/traceAggregatorServicesStore.ts";
+import {TraceAggregatorPayload, TraceStateParameters} from "../components/pages/trace-aggregator/components/traces/store/traceAggregatorStore.ts";
+import {TraceAggregatorService} from "../components/pages/trace-aggregator/components/services/store/traceAggregatorServicesStore.ts";
 
 export class TypesHelper {
     public static isValueInt(value: any): boolean {
