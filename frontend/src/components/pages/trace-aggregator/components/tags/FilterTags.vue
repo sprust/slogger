@@ -57,7 +57,7 @@
             tagType="success"
             :tags="types"
             :selectedTags="traceStore.state.payload.types"
-            :loading="tagsStore.state.typesLoading"
+            :loading="traceAggregatorTagsStore.typesLoading"
             @findTags="findTypes"
             @onTagClick="onTypeClick"
         />
@@ -68,7 +68,7 @@
             tagType="warning"
             :tags="tags"
             :selectedTags="traceStore.state.payload.tags"
-            :loading="tagsStore.state.tagsLoading"
+            :loading="traceAggregatorTagsStore.tagsLoading"
             @findTags="findTags"
             @onTagClick="onTagClick"
         />
@@ -79,7 +79,7 @@
             tagType="primary"
             :tags="statuses"
             :selectedTags="traceStore.state.payload.statuses"
-            :loading="tagsStore.state.statusesLoading"
+            :loading="traceAggregatorTagsStore.statusesLoading"
             @findTags="findStatuses"
             @onTagClick="onStatusClick"
         />
@@ -97,20 +97,21 @@ import FilterTagsSection from "./FilterTagsSection.vue";
 
 export default defineComponent({
   components: {FilterTagsSection},
+
   data() {
     return {
       dialogVisible: false,
       TagAddIcon: shallowRef(TagAddIcon),
       SearchIcon: shallowRef(SearchIcon),
       traceStore: useTraceAggregatorStore(),
-      tagsStore: useTraceAggregatorTagsStore(),
     }
   },
+
   methods: {
     findTypes(text: string) {
       this.traceStore.dispatch('prepareCommonPayloadData')
 
-      this.tagsStore.state.typesPayload = {
+      this.traceAggregatorTagsStore.typesPayload = {
         text: text,
         service_ids: this.traceStore.state.payload.service_ids,
         logging_from: this.traceStore.state.payload.logging_from,
@@ -125,14 +126,14 @@ export default defineComponent({
         has_profiling: this.traceStore.state.payload.has_profiling,
       }
 
-      this.tagsStore.state.typesPayload.text = text
+      this.traceAggregatorTagsStore.typesPayload.text = text
 
-      this.tagsStore.dispatch('findTypes')
+      this.traceAggregatorTagsStore.findTypes()
     },
     findTags(text: string) {
       this.traceStore.dispatch('prepareCommonPayloadData')
 
-      this.tagsStore.state.tagsPayload = {
+      this.traceAggregatorTagsStore.tagsPayload = {
         text: text,
         service_ids: this.traceStore.state.payload.service_ids,
         logging_from: this.traceStore.state.payload.logging_from,
@@ -148,12 +149,12 @@ export default defineComponent({
         has_profiling: this.traceStore.state.payload.has_profiling,
       }
 
-      this.tagsStore.dispatch('findTags')
+      this.traceAggregatorTagsStore.findTags()
     },
     findStatuses(text: string) {
       this.traceStore.dispatch('prepareCommonPayloadData')
 
-      this.tagsStore.state.statusesPayload = {
+      this.traceAggregatorTagsStore.statusesPayload = {
         text: text,
         service_ids: this.traceStore.state.payload.service_ids,
         logging_from: this.traceStore.state.payload.logging_from,
@@ -170,7 +171,7 @@ export default defineComponent({
         has_profiling: this.traceStore.state.payload.has_profiling,
       }
 
-      this.tagsStore.dispatch('findStatuses')
+      this.traceAggregatorTagsStore.findStatuses()
     },
     onTypeClick(type: string) {
       this.traceStore.dispatch('addOrDeleteType', type)
@@ -184,12 +185,15 @@ export default defineComponent({
   },
 
   computed: {
+    traceAggregatorTagsStore() {
+      return useTraceAggregatorTagsStore()
+    },
     types() {
       const result: TraceTag[] = [];
 
       this.traceStore.state.payload.types?.forEach(
           (selectedItem: string) => {
-            const exists = this.tagsStore.state.types.find(
+            const exists = this.traceAggregatorTagsStore.types.find(
                 (tag: TraceTag) => {
                   return tag.name === selectedItem
                 }
@@ -206,7 +210,7 @@ export default defineComponent({
           }
       )
 
-      this.tagsStore.state.types?.forEach(
+      this.traceAggregatorTagsStore.types?.forEach(
           (item: TraceTag) => {
             result.push(item)
           }
@@ -219,7 +223,7 @@ export default defineComponent({
 
       this.traceStore.state.payload.tags?.forEach(
           (selectedItem: string) => {
-            const exists = this.tagsStore.state.tags.find(
+            const exists = this.traceAggregatorTagsStore.tags.find(
                 (tag: TraceTag) => {
                   return tag.name === selectedItem
                 }
@@ -236,7 +240,7 @@ export default defineComponent({
           }
       )
 
-      this.tagsStore.state.tags?.forEach(
+      this.traceAggregatorTagsStore.tags?.forEach(
           (item: TraceTag) => {
             result.push(item)
           }
@@ -249,7 +253,7 @@ export default defineComponent({
 
       this.traceStore.state.payload.statuses?.forEach(
           (selectedItem: string) => {
-            const exists = this.tagsStore.state.statuses.find(
+            const exists = this.traceAggregatorTagsStore.statuses.find(
                 (tag: TraceTag) => {
                   return tag.name === selectedItem
                 }
@@ -266,7 +270,7 @@ export default defineComponent({
           }
       )
 
-      this.tagsStore.state.statuses?.forEach(
+      this.traceAggregatorTagsStore.statuses?.forEach(
           (item: TraceTag) => {
             result.push(item)
           }

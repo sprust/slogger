@@ -1,9 +1,7 @@
-import type {InjectionKey} from "vue";
-// @ts-ignore // todo
-import {createStore, Store, useStore as baseUseStore} from 'vuex'
 import {AdminApi} from "../../../../../../api-schema/admin-api-schema.ts";
 import {ApiContainer} from "../../../../../../utils/apiContainer.ts";
-import {handleApiError} from "../../../../../../utils/helpers.ts";
+import {defineStore} from "pinia";
+import {handleApiRequest} from "../../../../../../utils/handleApiRequest.ts";
 
 type TraceAggregatorFindTypesPayload = AdminApi.TraceAggregatorTracesContentTypesCreate.RequestBody;
 type TraceAggregatorFindType = AdminApi.TraceAggregatorTracesContentTypesCreate.ResponseBody['data'][number];
@@ -23,7 +21,7 @@ export type TagLoading = {
     loading: boolean
 }
 
-interface State {
+interface TraceAggregatorTagsStoreInterface {
     types: Array<TraceTag>,
     typesPayload: TraceAggregatorFindTypesPayload,
     typesLoading: TagLoading,
@@ -37,88 +35,79 @@ interface State {
     statusesLoading: TagLoading,
 }
 
-export const traceAggregatorFindTagsStore = createStore<State>({
-    state: {
-        loading: true,
+export const useTraceAggregatorTagsStore = defineStore('traceAggregatorTagsStore', {
+    state: (): TraceAggregatorTagsStoreInterface => {
+        return {
+            types: new Array<TraceTag>,
+            typesPayload: {} as TraceAggregatorFindTagsPayload,
+            typesLoading: {
+                loading: false
+            },
 
-        types: new Array<TraceTag>,
-        typesPayload: {} as TraceAggregatorFindTagsPayload,
-        typesLoading: {
-            loading: false
-        },
+            tags: new Array<TraceTag>,
+            tagsPayload: {} as TraceAggregatorFindTagsPayload,
+            tagsLoading: {
+                loading: false
+            },
 
-        tags: new Array<TraceTag>,
-        tagsPayload: {} as TraceAggregatorFindTagsPayload,
-        tagsLoading: {
-            loading: false
-        },
-
-        statuses: new Array<TraceTag>,
-        statusesPayload: {} as TraceAggregatorFindStatusesPayload,
-        statusesLoading: {
-            loading: false
-        },
-    } as State,
-    mutations: {
-        setTypes(state: State, types: Array<TraceAggregatorFindType>) {
-            state.types = types
-        },
-        setTags(state: State, tags: Array<TraceAggregatorFindTag>) {
-            state.tags = tags
-        },
-        setStatuses(state: State, statuses: Array<TraceAggregatorFindStatus>) {
-            state.statuses = statuses
-        },
+            statuses: new Array<TraceTag>,
+            statusesPayload: {} as TraceAggregatorFindStatusesPayload,
+            statusesLoading: {
+                loading: false
+            },
+        }
     },
     actions: {
-        async findTypes({commit, state}: { commit: any, state: State }) {
-            state.typesLoading.loading = true
-            state.types = [];
+        async findTypes() {
+            this.typesLoading.loading = true
+            this.types = [];
 
-            try {
-                const response = await ApiContainer.get().traceAggregatorTracesContentTypesCreate(state.typesPayload)
-                commit('setTypes', response.data.data)
-            } catch (error) {
-                handleApiError(error)
-            } finally {
-                state.typesLoading.loading = false
-            }
+            return await handleApiRequest(
+                ApiContainer.get().traceAggregatorTracesContentTypesCreate(this.tagsPayload)
+                    .then(response => {
+                        this.setTypes(response.data.data)
+                    })
+                    .finally(() => {
+                        this.typesLoading.loading = false
+                    })
+            )
         },
-        async findTags({commit, state}: { commit: any, state: State }) {
-            state.tagsLoading.loading = true
-            state.tags = [];
+        async findTags() {
+            this.tagsLoading.loading = true
+            this.tags = [];
 
-            try {
-                const response = await ApiContainer.get().traceAggregatorTracesContentTagsCreate(state.tagsPayload)
-
-                commit('setTags', response.data.data)
-            } catch (error) {
-                handleApiError(error)
-            } finally {
-                state.tagsLoading.loading = false
-            }
+            return await handleApiRequest(
+                ApiContainer.get().traceAggregatorTracesContentTagsCreate(this.tagsPayload)
+                    .then(response => {
+                        this.setTags(response.data.data)
+                    })
+                    .finally(() => {
+                        this.tagsLoading.loading = false
+                    })
+            )
         },
-        async findStatuses({commit, state}: { commit: any, state: State }) {
-            state.statusesLoading.loading = true
-            state.statuses = [];
+        async findStatuses() {
+            this.statusesLoading.loading = true
+            this.statuses = [];
 
-            try {
-                const response = await ApiContainer.get().traceAggregatorTracesContentStatusesCreate(
-                    state.statusesPayload
-                )
-
-                commit('setStatuses', response.data.data)
-            } catch (error) {
-                handleApiError(error)
-            } finally {
-                state.statusesLoading.loading = false
-            }
+            return await handleApiRequest(
+                ApiContainer.get().traceAggregatorTracesContentStatusesCreate(this.tagsPayload)
+                    .then(response => {
+                        this.setStatuses(response.data.data)
+                    })
+                    .finally(() => {
+                        this.statusesLoading.loading = false
+                    })
+            )
+        },
+        setTypes(types: Array<TraceAggregatorFindType>) {
+            this.types = types
+        },
+        setTags(tags: Array<TraceAggregatorFindTag>) {
+            this.tags = tags
+        },
+        setStatuses(statuses: Array<TraceAggregatorFindStatus>) {
+            this.statuses = statuses
         },
     },
 })
-
-export const traceAggregatorFindTagsStoreInjectionKey: InjectionKey<Store<State>> = Symbol()
-
-export function useTraceAggregatorTagsStore(): Store<State> {
-    return baseUseStore(traceAggregatorFindTagsStoreInjectionKey)
-}
