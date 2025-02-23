@@ -12,6 +12,7 @@
     "generate": "npx swagger-typescript-api -p json-schemes/admin-api-openapi-scheme.json -o ./src/api-schema -n admin-api-schema.ts --route-types --responses --enum-names-as-values --union-enums"
   },
   "dependencies": {
+    "@element-plus/icons-vue": "^2.3.1",
     "@vue-flow/controls": "^1.1.1",
     "@vue-flow/core": "^1.33.6",
     "@vue-flow/minimap": "^1.4.0",
