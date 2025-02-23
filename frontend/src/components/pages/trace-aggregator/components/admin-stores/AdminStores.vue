@@ -15,27 +15,27 @@
           Filter
         </el-text>
         <el-input
-            v-model="store.state.adminStoresParameters.search_query"
+            v-model="traceAdminStoresStore.findParameters.search_query"
             placeholder="Search query"
             style="width: 300px"
             clearable
         >
           <template #append>
             <el-tooltip content="Requests" placement="top-start">
-              <el-checkbox v-model="store.state.adminStoresParameters.auto"/>
+              <el-checkbox v-model="traceAdminStoresStore.findParameters.auto"/>
             </el-tooltip>
           </template>
         </el-input>
         <el-button
             :icon="SearchIcon"
             @click="update"
-            :loading="store.state.loading"
+            :loading="traceAdminStoresStore.loading"
         />
         <el-text size="default">
           Create
         </el-text>
         <el-input
-            v-model="store.state.adminStoreCreateParameters.title"
+            v-model="traceAdminStoresStore.createParameters.title"
             placeholder="Title"
             style="width: 500px"
             clearable
@@ -52,12 +52,12 @@
         <el-button
             :icon="PlusIcon"
             @click="create(false)"
-            :disabled="!store.state.adminStoreCreateParameters.title"
+            :disabled="!traceAdminStoresStore.createParameters.title"
         />
       </el-space>
     </el-row>
     <el-table
-        :data="store.state.adminStores.items"
+        :data="traceAdminStoresStore.adminStores.items"
         style="height: 80vh; width: 100%"
     >
       <el-table-column type="expand">
@@ -90,21 +90,21 @@
             <el-button
                 type="danger"
                 link
-                :disabled="store.state.adminStoreDeletedIds[props.row.id]"
+                :disabled="traceAdminStoresStore.deletedIds[props.row.id]"
                 @click="deleteStore(props.row)"
             >
-              {{ store.state.adminStoreDeletedIds[props.row.id] ? 'deleted' : 'delete' }}
+              {{ traceAdminStoresStore.deletedIds[props.row.id] ? 'deleted' : 'delete' }}
             </el-button>
           </el-space>
         </template>
       </el-table-column>
     </el-table>
     <el-pagination
-        v-model:current-page="store.state.adminStoresParameters.page"
+        v-model:current-page="traceAdminStoresStore.findParameters.page"
         background
         layout="prev, pager, next"
-        :page-size="store.state.adminStores.paginator.per_page"
-        :total="store.state.adminStores.paginator.total"
+        :page-size="traceAdminStoresStore.adminStores.paginator.per_page"
+        :total="traceAdminStoresStore.adminStores.paginator.total"
         class="mt-4"
         @current-change="update"
     />
@@ -113,10 +113,13 @@
 
 <script lang="ts">
 import {defineComponent} from "vue";
-import {Plus as PlusIcon, Search as SearchIcon, CaretLeft as FillTitleIvon} from '@element-plus/icons-vue'
-import {convertDateStringToLocal, makeGeneralFiltersTitles, makeOtherFiltersTitles} from "../../../../../utils/helpers.ts";
-import {AdminStore, useTraceAdminStoresStoreStore} from "./store/traceAdminStoresStore.ts";
-import {state} from "vue-tsc/out/shared";
+import {CaretLeft as FillTitleIvon, Plus as PlusIcon, Search as SearchIcon} from '@element-plus/icons-vue'
+import {
+  convertDateStringToLocal,
+  makeGeneralFiltersTitles,
+  makeOtherFiltersTitles
+} from "../../../../../utils/helpers.ts";
+import {AdminStore, useTraceAdminStoresStore} from "./store/traceAdminStoresStore.ts";
 import {TraceStateParameters, useTraceAggregatorStore} from "../traces/store/traceAggregatorStore.ts";
 import TraceAggregatorProfilingNodeData from "../profiling/TraceAggregatorProfilingNodeData.vue";
 import {useTraceAggregatorServicesStore} from "../services/store/traceAggregatorServicesStore.ts";
@@ -128,10 +131,10 @@ export default defineComponent({
     PlusIcon,
     FillTitleIvon,
   },
+
   data() {
     return {
       dialogVisible: false,
-      store: useTraceAdminStoresStoreStore(),
       traceStore: useTraceAggregatorStore(),
       servicesStore: useTraceAggregatorServicesStore(),
     }
@@ -139,40 +142,41 @@ export default defineComponent({
 
   methods: {
     update() {
-      this.store.state.adminStoresParameters.version = this.traceStore.state.version
+      this.traceAdminStoresStore.findParameters.version = this.traceStore.state.version
 
-      this.store.dispatch('findAdminStores')
+      this.traceAdminStoresStore.findAdminStores()
     },
     create(auto: boolean) {
       if (auto) {
-        this.store.state.adminStoreCreateParameters.title = this.generateTitle()
+        this.traceAdminStoresStore.createParameters.title = this.generateTitle()
       }
 
-      if (!this.store.state.adminStoreCreateParameters.title) {
+      if (!this.traceAdminStoresStore.createParameters.title) {
         return
       }
 
-      this.store.state.adminStoreCreateParameters.store_version = this.traceStore.state.version
-      this.store.state.adminStoreCreateParameters.store_data = this.serializeTraceState()
-      this.store.state.adminStoresParameters.auto = auto
-      this.store.state.adminStoreCreateParameters.auto = auto
+      this.traceAdminStoresStore.createParameters.store_version = this.traceStore.state.version
+      this.traceAdminStoresStore.createParameters.store_data = this.serializeTraceState()
+      this.traceAdminStoresStore.findParameters.auto = auto
+      this.traceAdminStoresStore.createParameters.auto = auto
 
-      this.store.dispatch('createAdminStore')
+      this.traceAdminStoresStore.createAdminStore()
           .then(() => {
-            this.store.dispatch('clearAdminStoreCreateParameters')
+            this.traceAdminStoresStore.clearAdminStoreCreateParameters()
 
             this.update()
+
           })
     },
     deleteStore(store: AdminStore) {
-      this.store.dispatch('deleteAdminStore', store.id)
+      this.traceAdminStoresStore.deleteAdminStore(store.id)
     },
     restore(store: AdminStore) {
       this.traceStore.dispatch('restoreTraceState', this.unSerializeTraceState(store))
 
       this.dialogVisible = false
 
-      this.store.dispatch('clearAdminStoreCreateParameters')
+      this.traceAdminStoresStore.clearAdminStoreCreateParameters()
     },
     makeName(store: AdminStore): string {
       return store.title
@@ -193,7 +197,7 @@ export default defineComponent({
       return JSON.parse(store.store_data)
     },
     fillTitle() {
-      this.store.state.adminStoreCreateParameters.title = this.generateTitle()
+      this.traceAdminStoresStore.createParameters.title = this.generateTitle()
     },
     generateTitle(): string {
       const titles: string[] = [
@@ -206,8 +210,8 @@ export default defineComponent({
   },
 
   computed: {
-    state() {
-      return state
+    traceAdminStoresStore() {
+      return useTraceAdminStoresStore()
     },
     SearchIcon() {
       return SearchIcon
@@ -220,7 +224,7 @@ export default defineComponent({
     },
   },
   mounted() {
-    if (this.store.state.loading) {
+    if (this.traceAdminStoresStore.loading) {
       this.update()
     }
   }

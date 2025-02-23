@@ -1,9 +1,8 @@
-import type {InjectionKey} from "vue";
-// @ts-ignore // todo
-import {createStore, Store, useStore as baseUseStore} from 'vuex'
 import {ApiContainer} from "../../../../../../utils/apiContainer.ts";
 import {AdminApi} from "../../../../../../api-schema/admin-api-schema.ts";
 import {handleApiError} from "../../../../../../utils/helpers.ts";
+import {defineStore} from "pinia";
+import {handleApiRequest} from "../../../../../../utils/handleApiRequest.ts";
 
 export type AdminStores = AdminApi.TraceAggregatorStatesList.ResponseBody['data']
 export type AdminStore = AdminApi.TraceAggregatorStatesList.ResponseBody['data']['items'][number]
@@ -14,94 +13,78 @@ interface DeletedIds {
     [key: string]: boolean
 }
 
-interface State {
+interface AdminStoresStoreInterface {
     loading: boolean
-    adminStoresParameters: AdminStoresParameters
+    findParameters: AdminStoresParameters
     adminStores: AdminStores
-    adminStoreCreateParameters: AdminStoreCreateParameters
-    adminStoreDeletedIds: DeletedIds
+    createParameters: AdminStoreCreateParameters
+    deletedIds: DeletedIds
 }
 
-export const traceAdminStoresStore = createStore<State>({
-    state: {
-        loading: true,
-        adminStoresParameters: {
-            page: 1,
-            version: 0,
-            search_query: '',
-            auto: false
-        },
-        adminStores: {
-            items: [],
-            paginator: {
-                total: 0,
-                total_pages: 0,
-                per_page: 0,
-                current_page: 1
-            }
-        },
-        adminStoreCreateParameters: {
-            title: '',
-            store_version: 0,
-            store_data: '',
-            auto: false
-        },
-        adminStoreDeletedIds: {}
-    } as State,
-    mutations: {
-        setAdminStores(state: State, stores: AdminStores) {
-            state.adminStoreDeletedIds = {}
-            state.adminStores = stores
-        },
-        clearAdminStoreCreateParameters(state: State) {
-            state.adminStoreCreateParameters = {
+export const useTraceAdminStoresStore = defineStore('traceAdminStoresStore', {
+    state: (): AdminStoresStoreInterface => {
+        return {
+            loading: true,
+            findParameters: {
+                page: 1,
+                version: 0,
+                search_query: '',
+                auto: false
+            },
+            adminStores: {
+                items: [],
+                paginator: {
+                    total: 0,
+                    total_pages: 0,
+                    per_page: 0,
+                    current_page: 1
+                }
+            },
+            createParameters: {
                 title: '',
                 store_version: 0,
                 store_data: '',
                 auto: false
-            }
+            },
+            deletedIds: {}
         }
     },
     actions: {
-        findAdminStores({commit, state}: { commit: any, state: State }) {
-            state.loading = true
+        findAdminStores() {
+            this.loading = true
 
-            ApiContainer.get().traceAggregatorStatesList(state.adminStoresParameters)
+            ApiContainer.get().traceAggregatorStatesList(this.findParameters)
                 .then(response => {
-                    commit('setAdminStores', response.data.data)
+                    this.deletedIds = {}
+                    this.adminStores = response.data.data
                 })
                 .catch((error) => {
                     handleApiError(error)
                 })
                 .finally(() => {
-                    state.loading = false
+                    this.loading = false
                 })
         },
-        clearAdminStoreCreateParameters({commit}: { commit: any }) {
-            commit('clearAdminStoreCreateParameters')
+        clearAdminStoreCreateParameters() {
+            this.createParameters = {
+                title: '',
+                store_version: 0,
+                store_data: '',
+                auto: false
+            }
         },
-        createAdminStore({state}: { state: State }) {
-            return ApiContainer.get().traceAggregatorStatesCreate(state.adminStoreCreateParameters)
-                .catch((error) => {
-                    handleApiError(error)
-                })
+        async createAdminStore() {
+            return await handleApiRequest(
+                ApiContainer.get().traceAggregatorStatesCreate(this.createParameters)
+            )
         },
-        deleteAdminStore({state}: { state: State }, id: string) {
-            return ApiContainer.get().traceAggregatorStatesDelete(id)
+        async deleteAdminStore(id: string) {
+            return await ApiContainer.get().traceAggregatorStatesDelete(id)
                 .then(() => {
-                    state.adminStoreDeletedIds[id] = true
+                    this.deletedIds[id] = true
 
-                    state.loading = false
-                })
-                .catch((error) => {
-                    handleApiError(error)
+                    this.loading = false
                 })
         }
     },
 })
-
-export const traceAdminStoresStoreInjectionKey: InjectionKey<Store<State>> = Symbol()
-
-export function useTraceAdminStoresStoreStore(): Store<State> {
-    return baseUseStore(traceAdminStoresStoreInjectionKey)
-}
