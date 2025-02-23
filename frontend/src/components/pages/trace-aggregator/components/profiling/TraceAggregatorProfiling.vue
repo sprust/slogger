@@ -82,20 +82,21 @@ export default defineComponent({
     return {
       store: useTraceAggregatorProfilingStore(),
       traceAggregatorTabsStore: useTraceAggregatorTabsStore(),
-      traceAggregatorTreeStore: useTraceAggregatorTreeStore(),
     }
   },
 
   methods: {
     onClickTraceIdTree(traceId: string) {
-      this.traceAggregatorTreeStore.dispatch('findTreeNodes', {
-        traceId: traceId
-      })
+      this.traceAggregatorTreeStore.findTreeNodes(traceId)
+
       this.traceAggregatorTabsStore.dispatch('setCurrentTab', traceAggregatorTabs.tree)
     },
   },
 
   computed: {
+    traceAggregatorTreeStore() {
+      return useTraceAggregatorTreeStore()
+    },
     leftSpan() {
       return this.showFlowSpan ? 6 : 24
     },

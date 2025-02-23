@@ -7,7 +7,6 @@ import {authStore, authStoreInjectionKey} from "./store/authStore.ts";
 import 'element-plus/theme-chalk/dark/css-vars.css'
 import {router} from "./utils/router.ts";
 import {traceAggregatorStore, traceAggregatorStoreInjectionKey} from "./components/pages/trace-aggregator/components/traces/store/traceAggregatorStore.ts";
-import {traceAggregatorTreeStore, traceAggregatorTreeStoreInjectionKey} from "./components/pages/trace-aggregator/components/tree/store/traceAggregatorTreeStore.ts";
 import {traceAggregatorTabsStore, traceAggregatorTabsStoreInjectionKey} from "./components/pages/trace-aggregator/store/traceAggregatorTabsStore.ts";
 import {
     traceAggregatorProfilingStore,
@@ -26,7 +25,6 @@ createApp(App)
     .use(authStore, authStoreInjectionKey)
     .use(toolLinksStore, toolLinksStoreInjectionKey)
     .use(traceAggregatorStore, traceAggregatorStoreInjectionKey)
-    .use(traceAggregatorTreeStore, traceAggregatorTreeStoreInjectionKey)
     .use(traceAggregatorProfilingStore, traceAggregatorProfilingStoreInjectionKey)
     .use(traceAggregatorTabsStore, traceAggregatorTabsStoreInjectionKey)
     .mount('#app')

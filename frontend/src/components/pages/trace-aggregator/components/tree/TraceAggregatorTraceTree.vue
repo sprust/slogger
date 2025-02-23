@@ -1,7 +1,7 @@
 <template>
   <div class="height-100">
     <el-progress
-        v-if="store.state.loading"
+        v-if="traceAggregatorTreeStore.loading"
         status="success"
         :text-inside="true"
         :percentage="100"
@@ -9,14 +9,14 @@
         :duration="5"
         striped
     />
-    <div v-else-if="store.state.treeNodes.length" class="height-100">
+    <div v-else-if="traceAggregatorTreeStore.treeNodes.length" class="height-100">
       <el-row style="width: 100%; padding-bottom: 10px">
         <el-space>
           <el-button @click="update">
             Update
           </el-button>
           <div>
-            {{ store.state.parameters.traceId }} ({{ store.state.tracesCount }})
+            {{ traceAggregatorTreeStore.parameters.traceId }} ({{ traceAggregatorTreeStore.tracesCount }})
           </div>
         </el-space>
       </el-row>
@@ -29,7 +29,7 @@
         />
         <el-space style="padding-right: 5px">
           <el-select
-              v-model="store.state.selectedTraceServiceIds"
+              v-model="traceAggregatorTreeStore.selectedTraceServiceIds"
               placeholder="Services"
               style="min-width: 200px"
               @change="filterTree"
@@ -37,7 +37,7 @@
               multiple
           >
             <el-option
-                v-for="item in store.state.traceServices"
+                v-for="item in traceAggregatorTreeStore.traceServices"
                 :key="item.id"
                 :label="item.name"
                 :value="item.id"
@@ -46,7 +46,7 @@
         </el-space>
         <el-space>
           <el-select
-              v-model="store.state.selectedTraceTypes"
+              v-model="traceAggregatorTreeStore.selectedTraceTypes"
               placeholder="Types"
               style="min-width: 200px"
               @change="filterTree"
@@ -54,7 +54,7 @@
               multiple
           >
             <el-option
-                v-for="type in store.state.traceTypes"
+                v-for="type in traceAggregatorTreeStore.traceTypes"
                 :key="type"
                 :label="type"
                 :value="type"
@@ -138,7 +138,7 @@
             style="position: absolute; right: 0; width: 50%;"
         >
           <el-progress
-              v-if="store.state.dataLoading"
+              v-if="traceAggregatorTreeStore.dataLoading"
               status="success"
               :text-inside="true"
               :percentage="100"
@@ -152,7 +152,7 @@
                 Close
               </el-button>
             </el-row>
-            <TraceDetail :trace="store.state.selectedTrace"/>
+            <TraceDetail :trace="traceAggregatorTreeStore.selectedTrace"/>
           </div>
         </div>
       </el-row>
@@ -162,17 +162,12 @@
 
 <script lang="ts">
 import {defineComponent} from "vue";
-import {
-  calcTraceIndicators,
-  TraceAggregatorTreeNode,
-  useTraceAggregatorTreeStore
-} from "./store/traceAggregatorTreeStore.ts";
+import {TraceAggregatorTreeNode, useTraceAggregatorTreeStore} from "./store/traceAggregatorTreeStore.ts";
 import TraceMetrics from "../traces/TraceItemMetrics.vue";
 import TraceService from "../services/TraceService.vue";
 import TraceAggregatorTraceDataNode from "../trace/TraceAggregatorTraceDataNode.vue";
 import TraceDetail from "../trace/TraceDetail.vue";
 import {convertDateStringToLocal} from "../../../../../utils/helpers.ts";
-import {state} from "vue-tsc/out/shared";
 
 type TreeNodeView = {
   key: string,
@@ -188,7 +183,6 @@ export default defineComponent({
   components: {TraceDetail, TraceAggregatorTraceDataNode, TraceService, TraceMetrics},
   data() {
     return {
-      store: useTraceAggregatorTreeStore(),
       treeProps: {
         children: 'children',
         label: 'label',
@@ -199,14 +193,14 @@ export default defineComponent({
     }
   },
   computed: {
-    state() {
-      return state
+    traceAggregatorTreeStore() {
+      return useTraceAggregatorTreeStore()
     },
     tree(): Array<TreeNodeView> {
-      return this.treeNodesToViews(this.store.state.treeNodes)
+      return this.treeNodesToViews(this.traceAggregatorTreeStore.treeNodes)
     },
     showData() {
-      return this.store.state.selectedTrace.trace_id || this.store.state.dataLoading
+      return this.traceAggregatorTreeStore.selectedTrace.trace_id || this.traceAggregatorTreeStore.dataLoading
     },
     leftSpan() {
       return this.showData ? 12 : 24
@@ -215,16 +209,16 @@ export default defineComponent({
   methods: {
     convertDateStringToLocal,
     update() {
-      this.store.dispatch('refreshTree')
+      this.traceAggregatorTreeStore.refreshTree()
     },
     treeNodeTitle(treeNode: TraceAggregatorTreeNode): string {
       return treeNode.type + (treeNode.tags.length ? ` [${treeNode.tags.join(' | ')}]` : '')
     },
     onClickOnRow(treeNode: TraceAggregatorTreeNode) {
-      this.store.dispatch('findData', treeNode.trace_id)
+      this.traceAggregatorTreeStore.findData(treeNode.trace_id)
     },
     onClickCloseData() {
-      this.store.dispatch('resetData')
+      this.traceAggregatorTreeStore.resetData()
     },
     treeNodesToViews(treeNodes: Array<TraceAggregatorTreeNode>): Array<TreeNodeView> {
       return treeNodes.map((treeNode: TraceAggregatorTreeNode) => {
@@ -242,11 +236,11 @@ export default defineComponent({
     makeTreeNodeStyle(data: TreeNodeView) {
       const style: { 'background-color'?: string, 'border'?: string } = {}
 
-      if (data.key === this.store.state.selectedTrace.trace_id) {
+      if (data.key === this.traceAggregatorTreeStore.selectedTrace.trace_id) {
         style['background-color'] = 'red'
       }
 
-      if (data.key === this.store.state.parameters.traceId) {
+      if (data.key === this.traceAggregatorTreeStore.parameters.traceId) {
         style['border'] = '1px solid green'
       }
 
@@ -257,8 +251,8 @@ export default defineComponent({
 
       let percent = 0
 
-      if (trace.duration && this.store.state.traceIndicatingIds.indexOf(trace.trace_id) !== -1) {
-        percent = (trace.duration / this.store.state.traceTotalIndicatorsNumber) * 50
+      if (trace.duration && this.traceAggregatorTreeStore.traceIndicatingIds.indexOf(trace.trace_id) !== -1) {
+        percent = (trace.duration / this.traceAggregatorTreeStore.traceTotalIndicatorsNumber) * 50
       }
 
       return {
@@ -276,18 +270,18 @@ export default defineComponent({
 
       const trace = this.treeNodeViewsMap[data.key]
 
-      if (this.store.state.selectedTraceServiceIds.length) {
+      if (this.traceAggregatorTreeStore.selectedTraceServiceIds.length) {
         if (!trace.service?.id) {
           return false
         }
 
-        if (this.store.state.selectedTraceServiceIds.indexOf(trace.service.id) === -1) {
+        if (this.traceAggregatorTreeStore.selectedTraceServiceIds.indexOf(trace.service.id) === -1) {
           return false
         }
       }
 
-      if (this.store.state.selectedTraceTypes.length
-          && this.store.state.selectedTraceTypes.indexOf(trace.type) === -1
+      if (this.traceAggregatorTreeStore.selectedTraceTypes.length
+          && this.traceAggregatorTreeStore.selectedTraceTypes.indexOf(trace.type) === -1
       ) {
         return false
       }
@@ -295,8 +289,7 @@ export default defineComponent({
       return true
     },
     indicate(treeNode: TraceAggregatorTreeNode) {
-      // @ts-ignore
-      calcTraceIndicators(this.store.state, [treeNode])
+      this.traceAggregatorTreeStore.calcTraceIndicators([treeNode])
     }
   },
   watch: {

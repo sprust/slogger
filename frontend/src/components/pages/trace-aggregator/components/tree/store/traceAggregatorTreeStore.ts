@@ -1,17 +1,15 @@
-import type {InjectionKey} from "vue";
-// @ts-ignore // todo
-import {createStore, Store, useStore as baseUseStore} from 'vuex'
 import {ApiContainer} from "../../../../../../utils/apiContainer.ts";
 import {AdminApi} from "../../../../../../api-schema/admin-api-schema.ts";
 import {TraceAggregatorDetail} from "../../trace/store/traceAggregatorDataStore.ts";
-import {handleApiError} from "../../../../../../utils/helpers.ts";
 import {TraceAggregatorService} from "../../services/store/traceAggregatorServicesStore.ts";
+import {defineStore} from "pinia";
+import {handleApiRequest} from "../../../../../../utils/handleApiRequest.ts";
 
 type TraceAggregatorTreeNodeParameters = AdminApi.TraceAggregatorTracesTreeDetail.RequestParams
 export type TraceAggregatorTree = AdminApi.TraceAggregatorTracesTreeDetail.ResponseBody['data']
 export type TraceAggregatorTreeNode = AdminApi.TraceAggregatorTracesTreeDetail.ResponseBody['data']['items'][number]
 
-interface State {
+interface TraceAggregatorTreeStoreInterface {
     loading: boolean,
     parameters: TraceAggregatorTreeNodeParameters,
     tracesCount: number,
@@ -26,150 +24,133 @@ interface State {
     traceIndicatingIds: Array<string>,
 }
 
-const parseTree = function (state: State, treeNodes: Array<TraceAggregatorTreeNode>) {
-    state.traceTypes = []
-    state.selectedTraceTypes = []
-    state.traceServices = []
-    state.selectedTraceServiceIds = []
-
-    parseTreeRecursive(state, treeNodes)
-}
-
-const parseTreeRecursive = function (state: State, treeNodes: Array<TraceAggregatorTreeNode>) {
-    treeNodes.forEach((treeNode: TraceAggregatorTreeNode) => {
-        if (treeNode.service?.id
-            && !state.traceServices.find(
-                (service: TraceAggregatorService) => treeNode.service?.id === service.id
-            )
-        ) {
-            state.traceServices.push(treeNode.service)
-        }
-
-        if (state.traceTypes.indexOf(treeNode.type) === -1) {
-            state.traceTypes.push(treeNode.type)
-        }
-
-        // @ts-ignore
-        parseTreeRecursive(state, treeNode.children)
-    })
-}
-
-export const calcTraceIndicators = function (state: State, treeNodes: Array<TraceAggregatorTreeNode>) {
-    state.traceTotalIndicatorsNumber = 0
-    state.traceIndicatingIds = []
-
-    calcTraceIndicatorsRecursive(state, treeNodes)
-}
-
-const calcTraceIndicatorsRecursive = function (state: State, treeNodes: Array<TraceAggregatorTreeNode>) {
-    treeNodes.forEach((treeNode: TraceAggregatorTreeNode) => {
-        state.traceIndicatingIds.push(treeNode.trace_id)
-
-        state.traceTotalIndicatorsNumber += (treeNode.duration ?? 0)
-
-        // @ts-ignore
-        calcTraceIndicatorsRecursive(state, treeNode.children)
-    })
-}
-
-export const traceAggregatorTreeStore = createStore<State>({
-    state: {
-        loading: false,
-        parameters: {} as TraceAggregatorTreeNodeParameters,
-        tracesCount: 0,
-        treeNodes: new Array<TraceAggregatorTreeNode>,
-        dataLoading: false,
-        selectedTrace: {} as TraceAggregatorDetail,
-        traceTypes: new Array<string>(),
-        selectedTraceTypes: new Array<string>(),
-        traceServices: new Array<TraceAggregatorService>(),
-        selectedTraceServiceIds: new Array<number>(),
-        traceTotalIndicatorsNumber: 0,
-        traceIndicatingIds: []
-    } as State,
-    mutations: {
-        setTreeNodes(state: State, tree: TraceAggregatorTree) {
-            state.tracesCount = tree.tracesCount
-            state.treeNodes = tree.items
-
-            parseTree(state, state.treeNodes)
-            calcTraceIndicators(state, state.treeNodes)
-        },
-        setData(state: State, trace: TraceAggregatorDetail) {
-            state.selectedTrace = trace
-        },
-        resetData(state: State) {
-            state.selectedTrace = {} as TraceAggregatorDetail
+export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore', {
+    state: (): TraceAggregatorTreeStoreInterface => {
+        return {
+            loading: false,
+            parameters: {} as TraceAggregatorTreeNodeParameters,
+            tracesCount: 0,
+            treeNodes: new Array<TraceAggregatorTreeNode>,
+            dataLoading: false,
+            selectedTrace: {} as TraceAggregatorDetail,
+            traceTypes: new Array<string>(),
+            selectedTraceTypes: new Array<string>(),
+            traceServices: new Array<TraceAggregatorService>(),
+            selectedTraceServiceIds: new Array<number>(),
+            traceTotalIndicatorsNumber: 0,
+            traceIndicatingIds: []
         }
     },
     actions: {
-        async findTreeNodes(
-            {commit, state}: { commit: any, state: State },
-            parameters: TraceAggregatorTreeNodeParameters
-        ) {
-            state.loading = true
+        async findTreeNodes(traceId: string) {
+            this.loading = true
 
-            commit('resetData')
+            this.resetData()
 
-            state.treeNodes = []
+            this.treeNodes = []
 
-            state.parameters = parameters
-
-            try {
-                const response = await ApiContainer.get().traceAggregatorTracesTreeDetail(parameters.traceId)
-
-                commit('setTreeNodes', response.data.data)
-            } catch (error) {
-                handleApiError(error)
-            } finally {
-                state.loading = false
+            this.parameters = {
+                traceId: traceId
             }
+
+            return await handleApiRequest(
+                ApiContainer.get().traceAggregatorTracesTreeDetail(this.parameters.traceId)
+                    .then(response => {
+                        this.setTreeNodes(response.data.data)
+                    })
+                    .finally(() => {
+                        this.loading = false
+                    })
+            )
         },
-        async refreshTree({commit, state}: { commit: any, state: State }) {
-            state.loading = true
+        async refreshTree() {
+            this.loading = true
 
-            commit('resetData')
+            this.resetData()
 
-            state.treeNodes = []
+            this.treeNodes = []
 
-            try {
-                const response = await ApiContainer.get().traceAggregatorTracesTreeDetail(state.parameters.traceId)
-
-                commit('setTreeNodes', response.data.data)
-            } catch (error) {
-                handleApiError(error)
-            } finally {
-                state.loading = false
-            }
+            return await handleApiRequest(
+                ApiContainer.get().traceAggregatorTracesTreeDetail(this.parameters.traceId)
+                    .then(response => {
+                        this.setTreeNodes(response.data.data)
+                    })
+                    .finally(() => {
+                        this.loading = false
+                    })
+            )
         },
-        findData({commit, state}: { commit: any, state: State }, traceId: string) {
-            if (traceId === state.selectedTrace.trace_id) {
-                commit('resetData')
+        async findData(traceId: string) {
+            if (traceId === this.selectedTrace.trace_id) {
+                this.resetData()
 
                 return
             }
 
-            state.dataLoading = true
+            this.dataLoading = true
 
-            ApiContainer.get().traceAggregatorTracesDetail(traceId)
-                .then(response => {
-                    commit('setData', response.data)
-                })
-                .catch((error) => {
-                    handleApiError(error)
-                })
-                .finally(() => {
-                    state.dataLoading = false
-                })
+            return await handleApiRequest(
+                ApiContainer.get().traceAggregatorTracesDetail(traceId)
+                    .then(response => {
+                        // @ts-ignore TODO
+                        this.selectedTrace = response.data
+                    })
+                    .finally(() => {
+                        this.dataLoading = false
+                    })
+            )
         },
-        resetData({commit}: { commit: any }) {
-            commit('resetData')
+        resetData() {
+            this.selectedTrace = {} as TraceAggregatorDetail
+        },
+        setTreeNodes(tree: TraceAggregatorTree) {
+            this.tracesCount = tree.tracesCount
+            this.treeNodes = tree.items
+
+            this.parseTree(this.treeNodes)
+            this.calcTraceIndicators(this.treeNodes)
+        },
+        parseTree(treeNodes: Array<TraceAggregatorTreeNode>) {
+            this.traceTypes = []
+            this.selectedTraceTypes = []
+            this.traceServices = []
+            this.selectedTraceServiceIds = []
+
+            this.parseTreeRecursive(treeNodes)
+        },
+        parseTreeRecursive(treeNodes: Array<TraceAggregatorTreeNode>) {
+            treeNodes.forEach((treeNode: TraceAggregatorTreeNode) => {
+                if (treeNode.service?.id
+                    && !this.traceServices.find(
+                        (service: TraceAggregatorService) => treeNode.service?.id === service.id
+                    )
+                ) {
+                    this.traceServices.push(treeNode.service)
+                }
+
+                if (this.traceTypes.indexOf(treeNode.type) === -1) {
+                    this.traceTypes.push(treeNode.type)
+                }
+
+                // @ts-ignore recursion
+                this.parseTreeRecursive(treeNode.children)
+            })
+        },
+        calcTraceIndicators(treeNodes: Array<TraceAggregatorTreeNode>) {
+            this.traceTotalIndicatorsNumber = 0
+            this.traceIndicatingIds = []
+
+            this.calcTraceIndicatorsRecursive(treeNodes)
+        },
+        calcTraceIndicatorsRecursive(treeNodes: Array<TraceAggregatorTreeNode>) {
+            treeNodes.forEach((treeNode: TraceAggregatorTreeNode) => {
+                this.traceIndicatingIds.push(treeNode.trace_id)
+
+                this.traceTotalIndicatorsNumber += (treeNode.duration ?? 0)
+
+                // @ts-ignore recursion
+                this.calcTraceIndicatorsRecursive(treeNode.children)
+            })
         }
     },
 })
-
-export const traceAggregatorTreeStoreInjectionKey: InjectionKey<Store<State>> = Symbol()
-
-export function useTraceAggregatorTreeStore(): Store<State> {
-    return baseUseStore(traceAggregatorTreeStoreInjectionKey)
-}
