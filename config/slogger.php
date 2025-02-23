@@ -161,19 +161,15 @@ return [
 
         'commands' => [
             'excepted' => [
+                'cron:start',
+                'schedule:run',
+                'octane:roadrunner:start',
+                'rr-monitor:start',
                 'queue:work',
                 'queue:listen',
-                'schedule:run',
-                'cron:start',
-                'octane:start',
-                'octane:reload',
-                'octane:stop',
-                'octane:roadrunner:start',
-                'octane:roadrunner:reload',
-                'octane:roadrunner:stop',
+                'trace-buffer:handle:start',
+                'slogger:dispatcher:start',
                 'trace-dynamic-indexes:monitor:start',
-                'rr-monitor:start',
-                'rr-monitor:stop',
             ],
         ],
 
