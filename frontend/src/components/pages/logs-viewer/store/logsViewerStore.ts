@@ -51,11 +51,13 @@ export const useLogsViewerStore = defineStore('logsViewerStore', {
                 parameters.level = this.parameters.level
             }
 
-            return handleApiRequest(
+            return await handleApiRequest(
                 ApiContainer.get()
                     .logsList(parameters)
                     .then((response) => {
                         this.logs = response.data.data
+
+                        return response
                     })
                     .catch((error) => {
                         handleApiError(error)

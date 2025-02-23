@@ -1,6 +1,6 @@
 <template>
   <el-progress
-      v-if="store.state.loading"
+      v-if="traceCleanerStore.loading"
       status="success"
       :text-inside="true"
       :percentage="100"
@@ -10,7 +10,7 @@
   />
   <el-table
       v-else
-      :data="store.state.settings"
+      :data="traceCleanerStore.settings"
       :border="true"
       @expandChange="tableExpandChange"
       :row-class-name="settingsRowClassName"
@@ -25,7 +25,7 @@
             :indeterminate="true"
             :duration="1"
         />
-        <el-table v-else :data="store.state.processes[props.row.id]" :border="true">
+        <el-table v-else :data="traceCleanerStore.settingProcesses[props.row.id]" :border="true">
           <el-table-column label="Cleared count" prop="cleared_count"/>
           <el-table-column label="Created/Updated at" prop="created_at">
             <template #default="scope">
@@ -65,13 +65,13 @@
         <el-space>
           <el-button
               type="success"
-              :icon="DocumentAdd"
+              :icon="IconCreate"
               @click="onCreateSetting"
               circle
           />
           <el-button
               type="warning"
-              :icon="Refresh"
+              :icon="IconRefreshList"
               @click="onUpdate"
               circle
           />
@@ -81,14 +81,14 @@
         <el-space>
           <el-button
               :type="props.row.deleted ? 'info' : 'primary'"
-              :icon="props.row.deleted ? RefreshLeft : Edit"
+              :icon="props.row.deleted ? IconRestore : IconEdit"
               @click="onEditSetting(props.row)"
               circle
           />
           <el-button
               v-if="!props.row.deleted"
               type="danger"
-              :icon="Delete"
+              :icon="IconDelete"
               @click="onDeleteSetting(props.row)"
               circle
           />
@@ -146,22 +146,55 @@ export default defineComponent({
       },
     }
   },
+
+  computed: {
+    traceCleanerStore() {
+      return useTraceCleanerStore()
+    },
+    actionButtonTitle() {
+      if (!this.editorDialog.id) {
+        return 'Create'
+      }
+
+      if (this.editorDialog.deleted) {
+        return 'Update & restore'
+      }
+
+      return 'Update'
+    },
+    IconCreate() {
+      return DocumentAdd
+    },
+    IconEdit() {
+      return Edit
+    },
+    IconDelete() {
+      return Delete
+    },
+    IconRestore() {
+      return RefreshLeft
+    },
+    IconRefreshList() {
+      return Refresh
+    },
+  },
+
   methods: {
     convertDateStringToLocal,
     update() {
-      this.store.dispatch('findTraceCleanerSettings')
+      this.traceCleanerStore.findTraceCleanerSettings()
     },
     tableExpandChange(setting: TraceCleanerSettingItem) {
       if (this.isSettingProcessLoaded(setting.id)) {
-        delete this.store.state.processes[setting.id]
+        delete this.traceCleanerStore.settingProcesses[setting.id]
 
         return
       }
 
-      this.store.dispatch('findTraceCleanerProcesses', setting.id)
+      this.traceCleanerStore.findTraceCleanerProcesses(setting.id)
     },
     isSettingProcessLoaded(settingId: number): boolean {
-      return !!this.store.state.processes[settingId]
+      return !!this.traceCleanerStore.settingProcesses[settingId]
     },
     onUpdate() {
       this.update()
@@ -188,24 +221,26 @@ export default defineComponent({
       const settingId = this.editorDialog.id
 
       if (!settingId) {
-        this.store.dispatch('createSetting', {
-          daysLifetime: this.editorDialog.daysLifetime,
-          type: this.editorDialog.type,
-          onlyData: this.editorDialog.onlyData,
-          onSuccess: () => {
-            this.update()
-            this.editorDialog.visible = false
-          }
-        });
+        this.traceCleanerStore
+            .createSetting(
+                this.editorDialog.daysLifetime,
+                this.editorDialog.type,
+                this.editorDialog.onlyData,
+            )
+            .then(() => {
+              this.update()
+              this.editorDialog.visible = false
+            });
       } else {
-        this.store.dispatch('updateSetting', {
-          settingId: settingId,
-          daysLifetime: this.editorDialog.daysLifetime,
-          onlyData: this.editorDialog.onlyData,
-          onSuccess: () => {
-            this.editorDialog.visible = false
-          }
-        });
+        this.traceCleanerStore
+            .updateSetting(
+                settingId,
+                this.editorDialog.daysLifetime,
+                this.editorDialog.onlyData,
+            )
+            .then(() => {
+              this.editorDialog.visible = false
+            })
       }
     },
     onDeleteSetting(setting: TraceCleanerSettingItem) {
@@ -220,45 +255,18 @@ export default defineComponent({
               }
           )
           .then(() => {
-            this.store.dispatch('deleteSetting', setting.id)
+            this.traceCleanerStore.deleteSetting(setting.id)
           })
           .catch(() => {
           })
     },
-    settingsRowClassName({row}: {row: TraceCleanerSettingItem}) {
-      return row.deleted ? 'deleted-setting': ''
+    settingsRowClassName({row}: { row: TraceCleanerSettingItem }) {
+      return row.deleted ? 'deleted-setting' : ''
     },
   },
-  computed: {
-    actionButtonTitle() {
-      if (!this.editorDialog.id) {
-        return 'Create'
-      }
 
-      if (this.editorDialog.deleted) {
-        return 'Update & restore'
-      }
-
-      return 'Update'
-    },
-    DocumentAdd() {
-      return DocumentAdd
-    },
-    Edit() {
-      return Edit
-    },
-    Delete() {
-      return Delete
-    },
-    RefreshLeft() {
-      return RefreshLeft
-    },
-    Refresh() {
-      return Refresh
-    },
-  },
   mounted() {
-    if (!this.store.state.loading) {
+    if (!this.traceCleanerStore.loading) {
       return
     }
 
