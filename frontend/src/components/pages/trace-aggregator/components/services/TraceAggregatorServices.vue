@@ -7,7 +7,7 @@
       multiple
   >
     <el-option
-        v-for="item in servicesStore.state.items"
+        v-for="item in traceAggregatorServicesStore.items"
         :key="item.id"
         :label="item.name"
         :value="item.id"
@@ -23,17 +23,24 @@ import {useTraceAggregatorStore} from "../traces/store/traceAggregatorStore.ts";
 export default defineComponent({
   data() {
     return {
-      servicesStore: useTraceAggregatorServicesStore(),
       traceAggregatorStore: useTraceAggregatorStore(),
     }
   },
+
+  computed: {
+    traceAggregatorServicesStore() {
+      return useTraceAggregatorServicesStore()
+    },
+  },
+
   methods: {
     update() {
-      this.servicesStore.dispatch('findServices')
+      this.traceAggregatorServicesStore.findServices()
     }
   },
+
   mounted() {
-    if (!this.servicesStore.state.loading) {
+    if (!this.traceAggregatorServicesStore.loading) {
       return
     }
 

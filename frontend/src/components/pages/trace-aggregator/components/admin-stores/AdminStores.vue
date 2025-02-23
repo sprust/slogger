@@ -136,7 +136,6 @@ export default defineComponent({
     return {
       dialogVisible: false,
       traceStore: useTraceAggregatorStore(),
-      servicesStore: useTraceAggregatorServicesStore(),
     }
   },
 
@@ -200,7 +199,7 @@ export default defineComponent({
     },
     generateTitle(): string {
       const titles: string[] = [
-        ...makeGeneralFiltersTitles(this.traceStore.state, this.servicesStore.state.items),
+        ...makeGeneralFiltersTitles(this.traceStore.state, this.traceAggregatorServicesStore.items),
         ...makeOtherFiltersTitles(this.traceStore.state.payload),
       ]
 
@@ -212,6 +211,9 @@ export default defineComponent({
     traceAdminStoresStore() {
       return useTraceAdminStoresStore()
     },
+    traceAggregatorServicesStore() {
+      return useTraceAggregatorServicesStore()
+    },
     SearchIcon() {
       return SearchIcon
     },
@@ -222,6 +224,7 @@ export default defineComponent({
       return FillTitleIvon
     },
   },
+
   mounted() {
     if (this.traceAdminStoresStore.loading) {
       this.update()
