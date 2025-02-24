@@ -6,8 +6,8 @@
     <Bar
         ref="tracesGraphRef"
         :style="`min-height: ${graphItemHeight}; max-height: ${graphItemHeight}`"
-        :data="graph.data"
-        :options="traceAggregatorGraphStore.graphOptions"
+        :data="graph.data as any"
+        :options="traceAggregatorGraphStore.graphOptions as any"
         @click="onGraphClick"
     />
   </div>
