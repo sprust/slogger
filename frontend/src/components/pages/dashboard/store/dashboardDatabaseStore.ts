@@ -1,6 +1,5 @@
 import {ApiContainer} from "../../../../utils/apiContainer.ts";
 import {AdminApi} from "../../../../api-schema/admin-api-schema.ts";
-import {handleApiError} from "../../../../utils/helpers.ts";
 import {defineStore} from "pinia";
 import {handleApiRequest} from "../../../../utils/handleApiRequest.ts";
 
@@ -28,9 +27,6 @@ export const useDashboardDatabaseStore = defineStore('dashboardDatabase', {
                         this.items = response.data.data
 
                         return response
-                    })
-                    .catch((error) => {
-                        handleApiError(error)
                     })
                     .finally(() => {
                         this.loading = false

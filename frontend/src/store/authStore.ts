@@ -1,8 +1,7 @@
 import {AdminApi} from "../api-schema/admin-api-schema.ts";
 import {ApiContainer, ApiTokenStorage} from "../utils/apiContainer.ts";
-import {handleApiError} from "../utils/helpers.ts";
 import {defineStore} from "pinia";
-import {handleApiRequest} from "../utils/handleApiRequest.ts";
+import {handleApiError, handleApiRequest} from "../utils/handleApiRequest.ts";
 
 type AuthUser = AdminApi.AuthMeList.ResponseBody['data']
 
@@ -41,10 +40,14 @@ export const useAuthStore = defineStore('authStore', {
 
                 this.setUser(response.data.data)
             } catch (error: any) {
-                if ('status' in error && error.status === 401) {
-                    this.setUser(null)
-                } else {
+                if ('status' in error) {
+                    if (error.status === 401) {
+                        this.setUser(null)
+                    }
+
                     handleApiError(error)
+                } else {
+                    throw error
                 }
             }
         },

@@ -1,7 +1,7 @@
 import {ApiContainer} from "../../../../../../utils/apiContainer.ts";
 import {AdminApi} from "../../../../../../api-schema/admin-api-schema.ts";
-import {handleApiError} from "../../../../../../utils/helpers.ts";
 import {defineStore} from "pinia";
+import {handleApiRequest} from "../../../../../../utils/handleApiRequest.ts";
 
 export type TraceTimestampPeriod = AdminApi.TraceAggregatorTraceTimestampPeriodsList.ResponseBody['data'][number];
 export type TraceTimestampStep = AdminApi.TraceAggregatorTraceTimestampPeriodsList.ResponseBody['data'][number]['timestamps'][number];
@@ -27,17 +27,16 @@ export const useTraceAggregatorTimestampPeriodStore = defineStore('traceAggregat
         }
     },
     actions: {
-        findTimestampPeriods() {
-            ApiContainer.get().traceAggregatorTraceTimestampPeriodsList()
-                .then(response => {
-                    this.setPeriods(response.data.data)
-                    this.freshTimestampSteps()
+        async findTimestampPeriods() {
+            return await handleApiRequest(
+                ApiContainer.get().traceAggregatorTraceTimestampPeriodsList()
+                    .then(response => {
+                        this.setPeriods(response.data.data)
+                        this.freshTimestampSteps()
 
-                    this.loaded = true
-                })
-                .catch((error) => {
-                    handleApiError(error)
-                })
+                        this.loaded = true
+                    })
+            )
         },
         freshTimestampSteps() {
             const selectedTimestampPeriod = this.timestampPeriods.find((periodItem: TraceTimestampPeriod) => {
