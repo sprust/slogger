@@ -1,6 +1,4 @@
-import type {InjectionKey} from "vue";
-// @ts-ignore // todo
-import {createStore, Store, useStore as baseUseStore} from 'vuex'
+import {defineStore} from "pinia";
 
 export const traceAggregatorTabs = {
     traces: 'traces',
@@ -8,28 +6,19 @@ export const traceAggregatorTabs = {
     profiling: 'profiling',
 }
 
-interface State {
+interface TraceAggregatorTabsStoreInterface {
     currentTab: string,
 }
 
-export const traceAggregatorTabsStore = createStore<State>({
-    state: {
-        currentTab: traceAggregatorTabs.traces,
-    } as State,
-    mutations: {
-        setCurrentTab(state: State, tab: string) {
-            state.currentTab = tab
-        },
+export const useTraceAggregatorTabsStore = defineStore('traceAggregatorTabsStore', {
+    state: (): TraceAggregatorTabsStoreInterface => {
+        return {
+            currentTab: traceAggregatorTabs.traces,
+        }
     },
     actions: {
-        setCurrentTab({commit}: { commit: any }, tab: string) {
-            commit('setCurrentTab', tab)
+        setCurrentTab(tab: string) {
+            this.currentTab = tab
         }
     },
 })
-
-export const traceAggregatorTabsStoreInjectionKey: InjectionKey<Store<State>> = Symbol()
-
-export function useTraceAggregatorTabsStore(): Store<State> {
-    return baseUseStore(traceAggregatorTabsStoreInjectionKey)
-}

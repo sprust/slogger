@@ -1,5 +1,5 @@
 <template>
-  <el-tabs v-model="tabsStore.state.currentTab" class="height-100">
+  <el-tabs v-model="traceAggregatorTabsStore.currentTab" class="height-100">
     <el-tab-pane label="Traces" :name="traceAggregatorTabs.traces" class="height-100">
       <TraceAggregatorTraces/>
     </el-tab-pane>
@@ -27,19 +27,21 @@ export default defineComponent({
     TraceAggregatorTraceTree,
     TraceAggregatorProfiling
   },
+
   data() {
     return {
       tabsStore: useTraceAggregatorTabsStore()
     }
   },
+
   computed: {
     traceAggregatorTabs() {
       return traceAggregatorTabs
+    },
+    traceAggregatorTabsStore() {
+      return useTraceAggregatorTabsStore()
     }
   },
-  methods: {},
-  mounted() {
-  }
 })
 
 </script>

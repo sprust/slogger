@@ -175,7 +175,6 @@ export default defineComponent({
 
   data() {
     return {
-      traceAggregatorTabsStore: useTraceAggregatorTabsStore(),
       traceAggregatorProfilingStore: useTraceAggregatorProfilingStore(),
     }
   },
@@ -186,6 +185,9 @@ export default defineComponent({
     },
     traceAggregatorTreeStore() {
       return useTraceAggregatorTreeStore()
+    },
+    traceAggregatorTabsStore() {
+      return useTraceAggregatorTabsStore()
     },
   },
 
@@ -207,14 +209,14 @@ export default defineComponent({
     onClickTraceIdTree(traceId: string) {
       this.traceAggregatorTreeStore.findTreeNodes(traceId)
 
-      this.traceAggregatorTabsStore.dispatch('setCurrentTab', traceAggregatorTabs.tree)
+      this.traceAggregatorTabsStore.setCurrentTab(traceAggregatorTabs.tree)
     },
     onShowProfiling(traceId: string) {
       this.traceAggregatorProfilingStore.dispatch('findProfiling', {
         traceId: traceId
       })
 
-      this.traceAggregatorTabsStore.dispatch('setCurrentTab', traceAggregatorTabs.profiling)
+      this.traceAggregatorTabsStore.setCurrentTab(traceAggregatorTabs.profiling)
     },
     onClickTraceIdFilter(traceId: string) {
       if (traceId === this.payload.trace_id) {

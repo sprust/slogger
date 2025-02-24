@@ -81,7 +81,6 @@ export default defineComponent({
   data() {
     return {
       store: useTraceAggregatorProfilingStore(),
-      traceAggregatorTabsStore: useTraceAggregatorTabsStore(),
     }
   },
 
@@ -89,11 +88,14 @@ export default defineComponent({
     onClickTraceIdTree(traceId: string) {
       this.traceAggregatorTreeStore.findTreeNodes(traceId)
 
-      this.traceAggregatorTabsStore.dispatch('setCurrentTab', traceAggregatorTabs.tree)
+      this.traceAggregatorTabsStore.setCurrentTab(traceAggregatorTabs.tree)
     },
   },
 
   computed: {
+    traceAggregatorTabsStore() {
+      return useTraceAggregatorTabsStore()
+    },
     traceAggregatorTreeStore() {
       return useTraceAggregatorTreeStore()
     },
