@@ -4,7 +4,7 @@
   </div>
   <el-card v-else class="node-flow" :style="nodeStyle">
     <template #header>
-      {{item.id}}: {{ item.calling }}
+      {{ item.id }}: {{ item.calling }}
     </template>
     <div>
       <TraceAggregatorProfilingNodeMetrics :item="item"/>
@@ -29,19 +29,18 @@ export default defineComponent({
     },
   },
 
-  data() {
-    return {
-      store: useTraceAggregatorProfilingStore(),
-    }
-  },
-
   computed: {
+    traceAggregatorProfilingStore() {
+      return useTraceAggregatorProfilingStore()
+    },
     nodeStyle() {
       let totalPercent = 0
       let totalCount = 0
 
       this.item?.data.map((dataItem) => {
-        if (!dataItem.value || this.store.state.showProfilingIndicators.indexOf(dataItem.name) === -1) {
+        if (!dataItem.value
+            || this.traceAggregatorProfilingStore.showProfilingIndicators.indexOf(dataItem.name) === -1
+        ) {
           return 0
         }
 

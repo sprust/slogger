@@ -6,10 +6,6 @@ import 'element-plus/dist/index.css'
 import 'element-plus/theme-chalk/dark/css-vars.css'
 import {router} from "./utils/router.ts";
 import {traceAggregatorStore, traceAggregatorStoreInjectionKey} from "./components/pages/trace-aggregator/components/traces/store/traceAggregatorStore.ts";
-import {
-    traceAggregatorProfilingStore,
-    traceAggregatorProfilingStoreInjectionKey
-} from "./components/pages/trace-aggregator/components/profiling/store/traceAggregatorProfilingStore.ts";
 import {createPinia} from "pinia";
 
 const pinia = createPinia()
@@ -20,5 +16,4 @@ createApp(App)
     .use(pinia)
     //
     .use(traceAggregatorStore, traceAggregatorStoreInjectionKey)
-    .use(traceAggregatorProfilingStore, traceAggregatorProfilingStoreInjectionKey)
     .mount('#app')

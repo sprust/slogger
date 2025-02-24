@@ -173,12 +173,6 @@ export default defineComponent({
     },
   },
 
-  data() {
-    return {
-      traceAggregatorProfilingStore: useTraceAggregatorProfilingStore(),
-    }
-  },
-
   computed: {
     traceAggregatorDataStore() {
       return useTraceAggregatorDataStore()
@@ -188,6 +182,9 @@ export default defineComponent({
     },
     traceAggregatorTabsStore() {
       return useTraceAggregatorTabsStore()
+    },
+    traceAggregatorProfilingStore() {
+      return useTraceAggregatorProfilingStore()
     },
   },
 
@@ -212,9 +209,7 @@ export default defineComponent({
       this.traceAggregatorTabsStore.setCurrentTab(traceAggregatorTabs.tree)
     },
     onShowProfiling(traceId: string) {
-      this.traceAggregatorProfilingStore.dispatch('findProfiling', {
-        traceId: traceId
-      })
+      this.traceAggregatorProfilingStore.findProfiling(traceId)
 
       this.traceAggregatorTabsStore.setCurrentTab(traceAggregatorTabs.profiling)
     },

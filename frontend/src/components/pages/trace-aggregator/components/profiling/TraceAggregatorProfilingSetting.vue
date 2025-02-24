@@ -9,21 +9,21 @@
       </el-tooltip>
       <el-button
           @click="onShowTree"
-          :icon="store.state.showTree ? Fold : Expand"
+          :icon="traceAggregatorProfilingStore.showTree ? Fold : Expand"
           style="margin-right: 10px"
       />
       <el-text style="padding-right: 5px">
         Show:
       </el-text>
       <el-select
-          v-model="store.state.showProfilingIndicators"
+          v-model="traceAggregatorProfilingStore.showProfilingIndicators"
           placeholder="Indicators"
           style="width: auto; min-width: 300px; padding-right: 5px"
           clearable
           multiple
       >
         <el-option
-            v-for="indicator in store.state.profilingIndicators"
+            v-for="indicator in traceAggregatorProfilingStore.profilingIndicators"
             :key="indicator"
             :label="indicator"
             :value="indicator"
@@ -34,7 +34,7 @@
       </el-text>
       <el-badge
           style="margin-right: 10px"
-          :value="store.state.requestBody.excluded_callers?.length ?? 0"
+          :value="traceAggregatorProfilingStore.requestBody.excluded_callers?.length ?? 0"
           color="green"
       >
         <el-button
@@ -53,17 +53,17 @@
     <div class="flex-grow"/>
     <el-button
         @click="onCloseFlow"
-        :disabled="!store.state.selectedItem"
+        :disabled="!traceAggregatorProfilingStore.selectedItem"
         :icon="Close"
         link
     >
       Close flow
     </el-button>
   </el-row>
-  <el-dialog v-model="store.state.showExcludedCallerPreviewDialog" title="Exclude caller" width="500">
+  <el-dialog v-model="traceAggregatorProfilingStore.showExcludedCallerPreviewDialog" title="Exclude caller" width="500">
     <el-row>
       <el-input
-          v-model="store.state.excludedCallerPreview"
+          v-model="traceAggregatorProfilingStore.excludedCallerPreview"
           autocomplete="off"
           v-on:keyup.enter="addExcludedCaller"
       >
@@ -78,7 +78,7 @@
     </el-row>
     <el-row style="margin-top: 5px">
       <el-tag
-          v-for="excludedCaller in store.state.requestBody.excluded_callers ?? []"
+          v-for="excludedCaller in traceAggregatorProfilingStore.requestBody.excluded_callers ?? []"
           style="margin-right: 5px"
           type="danger"
           closable
@@ -90,7 +90,8 @@
       </el-tag>
     </el-row>
     <template #footer>
-      <el-button @click="store.state.showExcludedCallerPreviewDialog = false; store.state.excludedCallerPreview = ''">
+      <el-button
+          @click="traceAggregatorProfilingStore.showExcludedCallerPreviewDialog = false; traceAggregatorProfilingStore.excludedCallerPreview = ''">
         Close
       </el-button>
     </template>
@@ -105,13 +106,10 @@ import {Close, Refresh, Fold, Expand, Plus, Filter} from '@element-plus/icons-vu
 export default defineComponent({
   components: {Close},
 
-  data() {
-    return {
-      store: useTraceAggregatorProfilingStore(),
-    }
-  },
-
   computed: {
+    traceAggregatorProfilingStore() {
+      return useTraceAggregatorProfilingStore()
+    },
     Close() {
       return Close
     },
@@ -134,34 +132,36 @@ export default defineComponent({
 
   methods: {
     onReload() {
-      this.store.dispatch('findProfiling', {
-        traceId: this.store.state.parameters.traceId
-      })
+      this.traceAggregatorProfilingStore.findProfiling(
+          this.traceAggregatorProfilingStore.parameters.traceId
+      )
     },
     onShowTree() {
-      this.store.dispatch('switchShowTree')
+      this.traceAggregatorProfilingStore.switchShowTree()
     },
     onAddExcludedCaller() {
-      this.store.state.excludedCallerPreview = ''
-      this.store.state.showExcludedCallerPreviewDialog = true
+      this.traceAggregatorProfilingStore.excludedCallerPreview = ''
+      this.traceAggregatorProfilingStore.showExcludedCallerPreviewDialog = true
     },
     onDeleteExcludedCaller(excludedCaller: string) {
-      this.store.dispatch('deleteBodyExcludedCallers', excludedCaller)
+      this.traceAggregatorProfilingStore.deleteBodyExcludedCallers(excludedCaller)
     },
     addExcludedCaller() {
-      if (!this.store.state.excludedCallerPreview) {
+      if (!this.traceAggregatorProfilingStore.excludedCallerPreview) {
         return
       }
 
-      this.store.dispatch('addBodyExcludedCallers', this.store.state.excludedCallerPreview)
+      this.traceAggregatorProfilingStore.addBodyExcludedCallers(
+          this.traceAggregatorProfilingStore.excludedCallerPreview
+      )
 
-      this.store.state.excludedCallerPreview = ''
+      this.traceAggregatorProfilingStore.excludedCallerPreview = ''
     },
     onFilter() {
-      this.store.dispatch('findProfilingWithBody')
+      this.traceAggregatorProfilingStore.findProfilingWithBody()
     },
     onCloseFlow() {
-      this.store.dispatch('setSelectedProfilingItem', null)
+      this.traceAggregatorProfilingStore.setSelectedProfilingItem(null)
     },
   }
 })

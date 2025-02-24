@@ -1,7 +1,7 @@
 <template>
   <div class="height-100">
     <el-progress
-        v-if="store.state.loading && store.state.parameters.traceId"
+        v-if="traceAggregatorProfilingStore.loading && traceAggregatorProfilingStore.parameters.traceId"
         style="width: 100vw"
         status="success"
         :text-inside="true"
@@ -10,11 +10,11 @@
         :duration="5"
         striped
     />
-    <div v-else-if="store.state.parameters.traceId" class="height-100">
+    <div v-else-if="traceAggregatorProfilingStore.parameters.traceId" class="height-100">
       <el-row style="width: 100%; padding-bottom: 5px">
         <TraceId
             title="Trace id"
-            :trace-id="store.state.parameters.traceId"
+            :trace-id="traceAggregatorProfilingStore.parameters.traceId"
             :show-filter-button="false"
             @onClickTraceIdTree="onClickTraceIdTree"
         />
@@ -23,15 +23,15 @@
         <TraceAggregatorProfilingSetting/>
       </el-row>
       <el-row class="height-100">
-        <el-col v-show="store.state.showTree" :span="leftSpan" class="height-100">
+        <el-col v-show="traceAggregatorProfilingStore.showTree" :span="leftSpan" class="height-100">
           <el-row class="height-100">
             <TraceAggregatorProfilingTreeV2/>
           </el-row>
         </el-col>
         <el-col v-if="showFlowSpan" :span="rightSpan" style="height: 85vh">
           <VueFlow
-              v-model:nodes="store.state.flowItems.nodes"
-              v-model:edges="store.state.flowItems.edges"
+              v-model:nodes="traceAggregatorProfilingStore.flowItems.nodes"
+              v-model:edges="traceAggregatorProfilingStore.flowItems.edges"
               :min-zoom="0.1"
           >
             <template #node-custom="props">
@@ -78,20 +78,6 @@ export default defineComponent({
     TraceAggregatorProfilingFlowEdge,
   },
 
-  data() {
-    return {
-      store: useTraceAggregatorProfilingStore(),
-    }
-  },
-
-  methods: {
-    onClickTraceIdTree(traceId: string) {
-      this.traceAggregatorTreeStore.findTreeNodes(traceId)
-
-      this.traceAggregatorTabsStore.setCurrentTab(traceAggregatorTabs.tree)
-    },
-  },
-
   computed: {
     traceAggregatorTabsStore() {
       return useTraceAggregatorTabsStore()
@@ -99,14 +85,25 @@ export default defineComponent({
     traceAggregatorTreeStore() {
       return useTraceAggregatorTreeStore()
     },
+    traceAggregatorProfilingStore() {
+      return useTraceAggregatorProfilingStore()
+    },
     leftSpan() {
       return this.showFlowSpan ? 6 : 24
     },
     rightSpan() {
-      return this.store.state.showTree ? 18 : 24
+      return this.traceAggregatorProfilingStore.showTree ? 18 : 24
     },
     showFlowSpan(): boolean {
-      return !!this.store.state.selectedItem
+      return !!this.traceAggregatorProfilingStore.selectedItem
+    },
+  },
+
+  methods: {
+    onClickTraceIdTree(traceId: string) {
+      this.traceAggregatorTreeStore.findTreeNodes(traceId)
+
+      this.traceAggregatorTabsStore.setCurrentTab(traceAggregatorTabs.tree)
     },
   },
 })

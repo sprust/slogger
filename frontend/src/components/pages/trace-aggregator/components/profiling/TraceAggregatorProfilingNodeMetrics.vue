@@ -20,7 +20,6 @@
 
 <script lang="ts">
 import {defineComponent, PropType} from "vue";
-// @ts-ignore // todo
 import {
   ProfilingNodeDataItem,
   ProfilingNode,
@@ -36,18 +35,17 @@ export default defineComponent({
     },
   },
 
-  data() {
-    return {
-      store: useTraceAggregatorProfilingStore(),
-    }
-  },
-
   computed: {
+    traceAggregatorProfilingStore() {
+      return useTraceAggregatorProfilingStore()
+    },
     indicators() {
       const indicators: Array<ProfilingNodeDataItem> = []
 
       this.item?.data.map((data: ProfilingNodeDataItem) => {
-        if (!data.value || this.store.state.showProfilingIndicators.indexOf(data.name) === -1) {
+        if (!data.value
+            || this.traceAggregatorProfilingStore.showProfilingIndicators.indexOf(data.name) === -1
+        ) {
           return
         }
 

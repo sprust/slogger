@@ -1,18 +1,12 @@
-import type {InjectionKey} from "vue";
-// @ts-ignore // todo
-import {createStore, Store, useStore as baseUseStore} from 'vuex'
 import {ApiContainer} from "../../../../../../utils/apiContainer.ts";
 import {AdminApi} from "../../../../../../api-schema/admin-api-schema.ts";
-import {handleApiError} from "../../../../../../utils/helpers.ts";
-// @ts-ignore // todo
-import {Node} from "@vue-flow/core/dist/types/node";
-// @ts-ignore // todo
-import {Edge} from "@vue-flow/core/dist/types/edge";
+// @ts-ignore todo
+import {Node, Edge} from "@vue-flow/core/dist/types/node";
 import {FlowBuilder} from "../utils/flowBuilder.ts";
-import {
-    IndicatorsCollector
-} from "../utils/indicatorsCollector.ts";
+import {IndicatorsCollector} from "../utils/indicatorsCollector.ts";
 import {TreeBuilder} from "../utils/treeBuilder.ts";
+import {defineStore} from "pinia";
+import {handleApiRequest} from "../../../../../../utils/handleApiRequest.ts";
 
 type Parameters = AdminApi.TraceAggregatorTracesProfilingCreate.RequestParams
 type Body = AdminApi.TraceAggregatorTracesProfilingCreate.RequestBody
@@ -26,7 +20,7 @@ export interface FlowItems {
     edges: Array<Edge>,
 }
 
-interface State {
+interface TraceAggregatorProfilingStoreInterface {
     loading: boolean,
     parameters: Parameters,
     requestBody: Body,
@@ -59,51 +53,100 @@ export type ProfilingTreeNodeV2 = {
     hide: boolean,
 }
 
-export const traceAggregatorProfilingStore = createStore<State>({
-    state: {
-        loading: true,
-        parameters: {} as Parameters,
-        requestBody: {
-            caller: null,
-            excluded_callers: []
-        } as Body,
-        profiling: {
-            nodes: []
+export const useTraceAggregatorProfilingStore = defineStore('traceAggregatorProfilingStore', {
+    state: (): TraceAggregatorProfilingStoreInterface => {
+        return {
+            loading: true,
+            parameters: {} as Parameters,
+            requestBody: {
+                caller: null,
+                excluded_callers: []
+            } as Body,
+            profiling: {
+                nodes: []
+            },
+            showExcludedCallerPreviewDialog: false,
+            excludedCallerPreview: '',
+            showTree: true,
+            selectedItem: null as ProfilingNode | null,
+            profilingIndicators: [],
+            showProfilingIndicators: [],
+            treeTable: new Array<ProfilingTreeNodeV2>(),
+            flowItems: {
+                nodes: [],
+                edges: [],
+            },
+        }
+    },
+    actions: {
+        async findProfiling(traceId: string) {
+            this.loading = true
+
+            this.profiling = {
+                nodes: []
+            }
+
+            this.parameters = {
+                traceId: traceId
+            }
+
+            this.requestBody = {
+                caller: null,
+                excluded_callers: []
+            } as Body
+
+            return await handleApiRequest(
+                ApiContainer.get().traceAggregatorTracesProfilingCreate(traceId, {})
+                    .then(response => {
+                        this.setProfiling(response.data.data)
+                    })
+                    .finally(() => {
+                        this.loading = false
+                    })
+            )
         },
-        showExcludedCallerPreviewDialog: false,
-        excludedCallerPreview: '',
-        showTree: true,
-        selectedItem: null as ProfilingNode | null,
-        profilingIndicators: [],
-        showProfilingIndicators: [],
-        treeTable: new Array<ProfilingTreeNodeV2>(),
-        flowItems: {
-            nodes: [],
-            edges: [],
+        async findProfilingWithBody() {
+            this.loading = true
+
+            this.profiling = {
+                nodes: []
+            }
+
+            return await handleApiRequest(
+                ApiContainer.get()
+                    .traceAggregatorTracesProfilingCreate(
+                        this.parameters.traceId,
+                        this.requestBody
+                    )
+                    .then(response => {
+                        this.setProfiling(response.data.data)
+                    })
+                    .finally(() => {
+                        this.loading = false
+                    })
+            )
         },
-    } as State,
-    mutations: {
-        setProfiling(state: State, profiling: Profiling) {
-            state.selectedItem = null
-            state.flowItems = {
+        setProfiling(profiling: Profiling) {
+            this.selectedItem = null
+            this.flowItems = {
                 nodes: [],
                 edges: [],
             }
 
-            state.profiling = profiling
+            this.profiling = profiling
 
-            state.profilingIndicators = (new IndicatorsCollector()).collect(state.profiling.nodes)
+            this.profilingIndicators = (new IndicatorsCollector()).collect(this.profiling.nodes)
 
-            state.showProfilingIndicators = state.profilingIndicators.length
-                ? [state.profilingIndicators[0]]
+            this.showProfilingIndicators = this.profilingIndicators.length
+                ? [this.profilingIndicators[0]]
                 : []
 
-            state.treeTable = (new TreeBuilder(state.profiling.nodes)).build()
+            this.treeTable = (new TreeBuilder(this.profiling.nodes)).build()
         },
-        setSelectedProfilingItem(state: State, item: ProfilingNode | null) {
+        setSelectedProfilingItem(item: ProfilingNode | null) {
             if (!item) {
-                state.selectedItem = null
-                state.flowItems = {
+                this.selectedItem = null
+                this.flowItems = {
                     nodes: [],
                     edges: [],
                 }
@@ -111,107 +154,27 @@ export const traceAggregatorProfilingStore = createStore<State>({
                 return;
             }
 
-            state.selectedItem = item
+            this.selectedItem = item
 
-            const flow = (new FlowBuilder(state.selectedItem)).build()
+            const flow = (new FlowBuilder(this.selectedItem)).build()
 
-            state.flowItems.nodes = flow.nodes
-            state.flowItems.edges = flow.edges
+            this.flowItems.nodes = flow.nodes
+            this.flowItems.edges = flow.edges
         },
-        switchShowTree(state: State) {
-            state.showTree = !state.showTree
+        switchShowTree() {
+            this.showTree = !this.showTree
         },
-        setBodyCaller(state: State, caller: string) {
-            state.requestBody.caller = caller
+        setBodyCaller(caller: string) {
+            this.requestBody.caller = caller
         },
-        addBodyExcludedCallers(state: State, excludedCaller: string) {
-            state.requestBody.excluded_callers!.push(excludedCaller)
+        addBodyExcludedCallers(excludedCaller: string) {
+            this.requestBody.excluded_callers!.push(excludedCaller)
         },
-        deleteBodyExcludedCallers(state: State, excludedCaller: string) {
-            state.requestBody.excluded_callers = state.requestBody.excluded_callers!.filter(
+        deleteBodyExcludedCallers(excludedCaller: string) {
+            this.requestBody.excluded_callers = this.requestBody.excluded_callers!.filter(
                 item => item !== excludedCaller
             )
         },
-    },
-    actions: {
-        findProfiling(
-            {commit, state}: { commit: any, state: State },
-            {traceId}: { traceId: string }
-        ) {
-            state.loading = true
 
-            state.profiling = {
-                nodes: []
-            }
-
-            state.parameters = {
-                traceId: traceId
-            }
-
-            state.requestBody = {
-                caller: null,
-                excluded_callers: []
-            } as Body
-
-            ApiContainer.get().traceAggregatorTracesProfilingCreate(traceId, {})
-                .then(response => {
-                    commit('setProfiling', response.data.data)
-                })
-                .catch(error => {
-                    handleApiError(error)
-                })
-                .finally(() => {
-                    state.loading = false
-                })
-        },
-        clearProfiling({commit}: { commit: any }) {
-            commit('setProfilingItems', [])
-        },
-        setProfilingItems({commit}: { commit: any }, profilingItems: Array<ProfilingNode>) {
-            commit('setProfilingItems', profilingItems)
-        },
-        setSelectedProfilingItem({commit}: { commit: any }, item: ProfilingNode | null) {
-            commit('setSelectedProfilingItem', item)
-        },
-        findProfilingWithBody({commit, state}: { commit: any, state: State }) {
-            state.loading = true
-
-            state.profiling = {
-                nodes: []
-            }
-
-            ApiContainer.get()
-                .traceAggregatorTracesProfilingCreate(
-                    state.parameters.traceId,
-                    state.requestBody
-                )
-                .then(response => {
-                    commit('setProfiling', response.data.data)
-                })
-                .catch(error => {
-                    handleApiError(error)
-                })
-                .finally(() => {
-                    state.loading = false
-                })
-        },
-        setBodyCaller({commit}: { commit: any }, caller: string) {
-            commit('setBodyCaller', caller)
-        },
-        addBodyExcludedCallers({commit}: { commit: any }, excludedCaller: string) {
-            commit('addBodyExcludedCallers', excludedCaller)
-        },
-        deleteBodyExcludedCallers({commit}: { commit: any }, excludedCaller: string) {
-            commit('deleteBodyExcludedCallers', excludedCaller)
-        },
-        switchShowTree({commit}: { commit: any }) {
-            commit('switchShowTree')
-        },
     },
 })
-
-export const traceAggregatorProfilingStoreInjectionKey: InjectionKey<Store<State>> = Symbol()
-
-export function useTraceAggregatorProfilingStore(): Store<State> {
-    return baseUseStore(traceAggregatorProfilingStoreInjectionKey)
-}
