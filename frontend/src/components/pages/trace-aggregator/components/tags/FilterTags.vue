@@ -224,8 +224,6 @@ export default defineComponent({
         has_profiling: this.traceAggregatorStore.payload.has_profiling,
       }
 
-      this.traceAggregatorTagsStore.typesPayload.text = text
-
       this.traceAggregatorTagsStore.findTypes()
     },
     findTags(text: string) {

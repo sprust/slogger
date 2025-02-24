@@ -63,7 +63,7 @@ export const useTraceAggregatorTagsStore = defineStore('traceAggregatorTagsStore
             this.types = [];
 
             return await handleApiRequest(
-                ApiContainer.get().traceAggregatorTracesContentTypesCreate(this.tagsPayload)
+                ApiContainer.get().traceAggregatorTracesContentTypesCreate(this.typesPayload)
                     .then(response => {
                         this.setTypes(response.data.data)
                     })
@@ -91,7 +91,7 @@ export const useTraceAggregatorTagsStore = defineStore('traceAggregatorTagsStore
             this.statuses = [];
 
             return await handleApiRequest(
-                ApiContainer.get().traceAggregatorTracesContentStatusesCreate(this.tagsPayload)
+                ApiContainer.get().traceAggregatorTracesContentStatusesCreate(this.statusesPayload)
                     .then(response => {
                         this.setStatuses(response.data.data)
                     })
