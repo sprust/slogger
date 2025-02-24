@@ -2,7 +2,7 @@
   <el-form :inline="true">
     <el-form-item label="Types:">
       <el-check-tag
-          v-for="type in traceStore.state.payload.types"
+          v-for="type in traceAggregatorStore.payload.types"
           :key="type"
           type="success"
           :checked="true"
@@ -13,7 +13,7 @@
     </el-form-item>
     <el-form-item label="Tags:">
       <el-check-tag
-          v-for="tag in traceStore.state.payload.tags"
+          v-for="tag in traceAggregatorStore.payload.tags"
           :key="tag"
           type="warning"
           :checked="true"
@@ -24,7 +24,7 @@
     </el-form-item>
     <el-form-item label="Statuses:">
       <el-check-tag
-          v-for="status in traceStore.state.payload.statuses"
+          v-for="status in traceAggregatorStore.payload.statuses"
           :key="status"
           type="primary"
           :checked="true"
@@ -56,7 +56,7 @@
             title="Types"
             tagType="success"
             :tags="types"
-            :selectedTags="traceStore.state.payload.types"
+            :selectedTags="traceAggregatorStore.payload.types!"
             :loading="traceAggregatorTagsStore.typesLoading"
             @findTags="findTypes"
             @onTagClick="onTypeClick"
@@ -67,7 +67,7 @@
             title="Tags (by first 100000)"
             tagType="warning"
             :tags="tags"
-            :selectedTags="traceStore.state.payload.tags"
+            :selectedTags="traceAggregatorStore.payload.tags!"
             :loading="traceAggregatorTagsStore.tagsLoading"
             @findTags="findTags"
             @onTagClick="onTagClick"
@@ -78,7 +78,7 @@
             title="Statuses"
             tagType="primary"
             :tags="statuses"
-            :selectedTags="traceStore.state.payload.statuses"
+            :selectedTags="traceAggregatorStore.payload.statuses!"
             :loading="traceAggregatorTagsStore.statusesLoading"
             @findTags="findStatuses"
             @onTagClick="onStatusClick"
@@ -103,95 +103,20 @@ export default defineComponent({
       dialogVisible: false,
       TagAddIcon: shallowRef(TagAddIcon),
       SearchIcon: shallowRef(SearchIcon),
-      traceStore: useTraceAggregatorStore(),
     }
   },
 
-  methods: {
-    findTypes(text: string) {
-      this.traceStore.dispatch('prepareCommonPayloadData')
-
-      this.traceAggregatorTagsStore.typesPayload = {
-        text: text,
-        service_ids: this.traceStore.state.payload.service_ids,
-        logging_from: this.traceStore.state.payload.logging_from,
-        logging_to: this.traceStore.state.payload.logging_to,
-        duration_from: this.traceStore.state.payload.duration_from,
-        duration_to: this.traceStore.state.payload.duration_to,
-        memory_from: this.traceStore.state.payload.memory_from,
-        memory_to: this.traceStore.state.payload.memory_to,
-        cpu_from: this.traceStore.state.payload.cpu_from,
-        cpu_to: this.traceStore.state.payload.cpu_to,
-        data: this.traceStore.state.payload.data,
-        has_profiling: this.traceStore.state.payload.has_profiling,
-      }
-
-      this.traceAggregatorTagsStore.typesPayload.text = text
-
-      this.traceAggregatorTagsStore.findTypes()
-    },
-    findTags(text: string) {
-      this.traceStore.dispatch('prepareCommonPayloadData')
-
-      this.traceAggregatorTagsStore.tagsPayload = {
-        text: text,
-        service_ids: this.traceStore.state.payload.service_ids,
-        logging_from: this.traceStore.state.payload.logging_from,
-        logging_to: this.traceStore.state.payload.logging_to,
-        types: this.traceStore.state.payload.types,
-        duration_from: this.traceStore.state.payload.duration_from,
-        duration_to: this.traceStore.state.payload.duration_to,
-        memory_from: this.traceStore.state.payload.memory_from,
-        memory_to: this.traceStore.state.payload.memory_to,
-        cpu_from: this.traceStore.state.payload.cpu_from,
-        cpu_to: this.traceStore.state.payload.cpu_to,
-        data: this.traceStore.state.payload.data,
-        has_profiling: this.traceStore.state.payload.has_profiling,
-      }
-
-      this.traceAggregatorTagsStore.findTags()
-    },
-    findStatuses(text: string) {
-      this.traceStore.dispatch('prepareCommonPayloadData')
-
-      this.traceAggregatorTagsStore.statusesPayload = {
-        text: text,
-        service_ids: this.traceStore.state.payload.service_ids,
-        logging_from: this.traceStore.state.payload.logging_from,
-        logging_to: this.traceStore.state.payload.logging_to,
-        types: this.traceStore.state.payload.types,
-        tags: this.traceStore.state.payload.tags,
-        duration_from: this.traceStore.state.payload.duration_from,
-        duration_to: this.traceStore.state.payload.duration_to,
-        memory_from: this.traceStore.state.payload.memory_from,
-        memory_to: this.traceStore.state.payload.memory_to,
-        cpu_from: this.traceStore.state.payload.cpu_from,
-        cpu_to: this.traceStore.state.payload.cpu_to,
-        data: this.traceStore.state.payload.data,
-        has_profiling: this.traceStore.state.payload.has_profiling,
-      }
-
-      this.traceAggregatorTagsStore.findStatuses()
-    },
-    onTypeClick(type: string) {
-      this.traceStore.dispatch('addOrDeleteType', type)
-    },
-    onTagClick(tag: string) {
-      this.traceStore.dispatch('addOrDeleteTag', tag)
-    },
-    onStatusClick(status: string) {
-      this.traceStore.dispatch('addOrDeleteStatus', status)
-    },
-  },
-
   computed: {
+    traceAggregatorStore() {
+      return useTraceAggregatorStore()
+    },
     traceAggregatorTagsStore() {
       return useTraceAggregatorTagsStore()
     },
     types() {
       const result: TraceTag[] = [];
 
-      this.traceStore.state.payload.types?.forEach(
+      this.traceAggregatorStore.payload.types?.forEach(
           (selectedItem: string) => {
             const exists = this.traceAggregatorTagsStore.types.find(
                 (tag: TraceTag) => {
@@ -221,7 +146,7 @@ export default defineComponent({
     tags() {
       const result: TraceTag[] = [];
 
-      this.traceStore.state.payload.tags?.forEach(
+      this.traceAggregatorStore.payload.tags?.forEach(
           (selectedItem: string) => {
             const exists = this.traceAggregatorTagsStore.tags.find(
                 (tag: TraceTag) => {
@@ -251,7 +176,7 @@ export default defineComponent({
     statuses() {
       const result: TraceTag[] = [];
 
-      this.traceStore.state.payload.statuses?.forEach(
+      this.traceAggregatorStore.payload.statuses?.forEach(
           (selectedItem: string) => {
             const exists = this.traceAggregatorTagsStore.statuses.find(
                 (tag: TraceTag) => {
@@ -278,7 +203,84 @@ export default defineComponent({
 
       return result
     },
-  }
+  },
+
+  methods: {
+    findTypes(text: string) {
+      this.traceAggregatorStore.prepareCommonPayloadData()
+
+      this.traceAggregatorTagsStore.typesPayload = {
+        text: text,
+        service_ids: this.traceAggregatorStore.payload.service_ids,
+        logging_from: this.traceAggregatorStore.payload.logging_from,
+        logging_to: this.traceAggregatorStore.payload.logging_to,
+        duration_from: this.traceAggregatorStore.payload.duration_from,
+        duration_to: this.traceAggregatorStore.payload.duration_to,
+        memory_from: this.traceAggregatorStore.payload.memory_from,
+        memory_to: this.traceAggregatorStore.payload.memory_to,
+        cpu_from: this.traceAggregatorStore.payload.cpu_from,
+        cpu_to: this.traceAggregatorStore.payload.cpu_to,
+        data: this.traceAggregatorStore.payload.data,
+        has_profiling: this.traceAggregatorStore.payload.has_profiling,
+      }
+
+      this.traceAggregatorTagsStore.typesPayload.text = text
+
+      this.traceAggregatorTagsStore.findTypes()
+    },
+    findTags(text: string) {
+      this.traceAggregatorStore.prepareCommonPayloadData()
+
+      this.traceAggregatorTagsStore.tagsPayload = {
+        text: text,
+        service_ids: this.traceAggregatorStore.payload.service_ids,
+        logging_from: this.traceAggregatorStore.payload.logging_from,
+        logging_to: this.traceAggregatorStore.payload.logging_to,
+        types: this.traceAggregatorStore.payload.types,
+        duration_from: this.traceAggregatorStore.payload.duration_from,
+        duration_to: this.traceAggregatorStore.payload.duration_to,
+        memory_from: this.traceAggregatorStore.payload.memory_from,
+        memory_to: this.traceAggregatorStore.payload.memory_to,
+        cpu_from: this.traceAggregatorStore.payload.cpu_from,
+        cpu_to: this.traceAggregatorStore.payload.cpu_to,
+        data: this.traceAggregatorStore.payload.data,
+        has_profiling: this.traceAggregatorStore.payload.has_profiling,
+      }
+
+      this.traceAggregatorTagsStore.findTags()
+    },
+    findStatuses(text: string) {
+      this.traceAggregatorStore.prepareCommonPayloadData()
+
+      this.traceAggregatorTagsStore.statusesPayload = {
+        text: text,
+        service_ids: this.traceAggregatorStore.payload.service_ids,
+        logging_from: this.traceAggregatorStore.payload.logging_from,
+        logging_to: this.traceAggregatorStore.payload.logging_to,
+        types: this.traceAggregatorStore.payload.types,
+        tags: this.traceAggregatorStore.payload.tags,
+        duration_from: this.traceAggregatorStore.payload.duration_from,
+        duration_to: this.traceAggregatorStore.payload.duration_to,
+        memory_from: this.traceAggregatorStore.payload.memory_from,
+        memory_to: this.traceAggregatorStore.payload.memory_to,
+        cpu_from: this.traceAggregatorStore.payload.cpu_from,
+        cpu_to: this.traceAggregatorStore.payload.cpu_to,
+        data: this.traceAggregatorStore.payload.data,
+        has_profiling: this.traceAggregatorStore.payload.has_profiling,
+      }
+
+      this.traceAggregatorTagsStore.findStatuses()
+    },
+    onTypeClick(type: string) {
+      this.traceAggregatorStore.addOrDeleteType(type)
+    },
+    onTagClick(tag: string) {
+      this.traceAggregatorStore.addOrDeleteTag(tag)
+    },
+    onStatusClick(status: string) {
+      this.traceAggregatorStore.addOrDeleteStatus(status)
+    },
+  },
 })
 </script>
 

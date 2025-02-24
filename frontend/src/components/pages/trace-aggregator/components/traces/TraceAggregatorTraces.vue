@@ -8,16 +8,16 @@
           </div>
           <div v-else>
             <el-button
-                v-if="store.state.startOfDay"
+                v-if="traceAggregatorStore.startOfDay"
                 style="width: 200px"
-                @click="store.state.startOfDay = false"
+                @click="traceAggregatorStore.startOfDay = false"
                 link
             >
               Start of day
             </el-button>
             <el-date-picker
                 v-else
-                v-model="store.state.payload.logging_from"
+                v-model="traceAggregatorStore.payload.logging_from"
                 type="datetime"
                 placeholder="From"
                 format="YYYY-MM-DD HH:mm:ss"
@@ -30,7 +30,7 @@
         </el-space>
         <el-space style="padding-right: 5px">
           <el-date-picker
-              v-model="store.state.payload.logging_to"
+              v-model="traceAggregatorStore.payload.logging_to"
               type="datetime"
               placeholder="To"
               format="YYYY-MM-DD HH:mm:ss"
@@ -85,9 +85,9 @@
       <el-row>
         <FilterTags/>
       </el-row>
-      <el-row v-if="store.state.customFields.length" style="padding-bottom: 15px">
+      <el-row v-if="traceAggregatorStore.customFields.length" style="padding-bottom: 15px">
         <TraceAggregatorTracesCustomFields
-            :custom-fields="store.state.customFields"
+            :custom-fields="traceAggregatorStore.customFields"
             @onCustomFieldClick="onCustomFieldClick"
         />
       </el-row>
@@ -97,10 +97,11 @@
         <el-space>
           <DynamicIndexes/>
           <AdminStores ref="adminStoresRef"/>
-          <el-button @click="reset" :disabled="store.state.loading">
+          <el-button @click="reset" :disabled="traceAggregatorStore.loading">
             Reset
           </el-button>
-          <el-button @click="onButtonSearchClick" :disabled="store.state.loading || traceAggregatorGraphStore.showGraph">
+          <el-button @click="onButtonSearchClick"
+                     :disabled="traceAggregatorStore.loading || traceAggregatorGraphStore.showGraph">
             Search
           </el-button>
         </el-space>
@@ -114,14 +115,14 @@
     <div v-show="!traceAggregatorGraphStore.showGraph" class="height-100">
       <TraceAggregatorTracesPagination
           style="padding-bottom: 5px"
-          :disabled="store.state.loading"
+          :disabled="traceAggregatorStore.loading"
           :currentPage="currentPage"
           @on-next-page="onNextPage"
           @on-prev-page="onPrevPage"
       />
 
       <el-progress
-          v-if="store.state.loading"
+          v-if="traceAggregatorStore.loading"
           status="success"
           :text-inside="true"
           :percentage="100"
@@ -132,8 +133,8 @@
 
       <div v-else>
         <TraceAggregatorTracesTable
-            :items="store.state.traceAggregator.items"
-            :payload="store.state.payload"
+            :items="traceAggregatorStore.traceAggregator.items"
+            :payload="traceAggregatorStore.payload"
             @onTraceTagClick="onTraceTagClick"
             @onTraceTypeClick="onTraceTypeClick"
             @onTraceStatusClick="onTraceStatusClick"
@@ -142,7 +143,7 @@
 
         <TraceAggregatorTracesPagination
             style="padding-top: 5px"
-            :disabled="store.state.loading"
+            :disabled="traceAggregatorStore.loading"
             :currentPage="currentPage"
             @on-next-page="onNextPage"
             @on-prev-page="onPrevPage"
@@ -154,7 +155,7 @@
 
 <script lang="ts">
 import {defineComponent} from "vue";
-import {TracesAddCustomFieldParameter, useTraceAggregatorStore} from "./store/traceAggregatorStore.ts";
+import {TraceAggregatorCustomFieldParameter, useTraceAggregatorStore} from "./store/traceAggregatorStore.ts";
 import TraceAggregatorTraceDataNode from "../trace/TraceAggregatorTraceDataNode.vue";
 import TraceAggregatorTracesTable from "./TraceAggregatorTracesTable.vue";
 import TraceAggregatorTracesPagination from "./TraceAggregatorTracesPagination.vue";
@@ -188,9 +189,9 @@ export default defineComponent({
     TraceAggregatorServices,
     TraceAggregatorTimestampPeriods,
   },
+
   data() {
     return {
-      store: useTraceAggregatorStore(),
       dateTimeShortcuts: [
         {
           text: 'Start of day',
@@ -199,7 +200,11 @@ export default defineComponent({
       ]
     }
   },
+
   computed: {
+    traceAggregatorStore() {
+      return useTraceAggregatorStore()
+    },
     traceAggregatorGraphStore() {
       return useTraceAggregatorGraphStore()
     },
@@ -231,56 +236,56 @@ export default defineComponent({
       return Loading
     },
     currentPage(): number {
-      return this.store.state.payload.page
+      return this.traceAggregatorStore.payload.page
     }
   },
   methods: {
     setStartOfDay(): Date {
       const startOfDay = makeStartOfDay()
 
-      this.store.state.startOfDay = true
+      this.traceAggregatorStore.startOfDay = true
 
       return startOfDay
     },
     onButtonSearchClick() {
-      this.store.dispatch('setPage', 1)
+      this.traceAggregatorStore.setPage(1)
       this.update()
 
       // @ts-ignore
       this.$refs.adminStoresRef.create(true)
     },
     update() {
-      this.store.dispatch('fillTraceAggregator')
+      this.traceAggregatorStore.fillTraceAggregator()
       this.traceAggregatorDataStore.$reset()
     },
     onNextPage() {
-      ++this.store.state.payload.page
+      ++this.traceAggregatorStore.payload.page
 
       this.update()
     },
     onPrevPage() {
-      if (this.store.state.payload.page === 1) {
+      if (this.traceAggregatorStore.payload.page === 1) {
         return
       }
 
-      --this.store.state.payload.page
+      --this.traceAggregatorStore.payload.page
 
       this.update()
     },
     reset() {
-      this.store.dispatch('resetFilters')
+      this.traceAggregatorStore.resetFilters()
     },
     onTraceTypeClick(type: string) {
-      this.store.dispatch('addOrDeleteType', type)
+      this.traceAggregatorStore.addOrDeleteType(type)
     },
     onTraceTagClick(tag: string) {
-      this.store.dispatch('addOrDeleteTag', tag)
+      this.traceAggregatorStore.addOrDeleteTag(tag)
     },
     onTraceStatusClick(status: string) {
-      this.store.dispatch('addOrDeleteStatus', status)
+      this.traceAggregatorStore.addOrDeleteStatus(status)
     },
-    onCustomFieldClick(parameters: TracesAddCustomFieldParameter) {
-      this.store.commit('addOrDeleteCustomField', parameters)
+    onCustomFieldClick(parameters: TraceAggregatorCustomFieldParameter) {
+      this.traceAggregatorStore.addOrDeleteCustomField(parameters)
     },
   },
   watch: {
@@ -289,7 +294,7 @@ export default defineComponent({
     }
   },
   mounted() {
-    if (this.store.state.loading) {
+    if (this.traceAggregatorStore.loading) {
       this.reset()
 
       this.update()

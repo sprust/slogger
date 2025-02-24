@@ -135,13 +135,33 @@ export default defineComponent({
   data() {
     return {
       dialogVisible: false,
-      traceStore: useTraceAggregatorStore(),
     }
+  },
+
+  computed: {
+    traceAdminStoresStore() {
+      return useTraceAdminStoresStore()
+    },
+    traceAggregatorServicesStore() {
+      return useTraceAggregatorServicesStore()
+    },
+    traceAggregatorStore() {
+      return useTraceAggregatorStore()
+    },
+    SearchIcon() {
+      return SearchIcon
+    },
+    PlusIcon() {
+      return PlusIcon
+    },
+    FillTitleIvon() {
+      return FillTitleIvon
+    },
   },
 
   methods: {
     update() {
-      this.traceAdminStoresStore.findParameters.version = this.traceStore.state.version
+      this.traceAdminStoresStore.findParameters.version = this.traceAggregatorStore.version
 
       this.traceAdminStoresStore.findAdminStores()
     },
@@ -154,7 +174,7 @@ export default defineComponent({
         return
       }
 
-      this.traceAdminStoresStore.createParameters.store_version = this.traceStore.state.version
+      this.traceAdminStoresStore.createParameters.store_version = this.traceAggregatorStore.version
       this.traceAdminStoresStore.createParameters.store_data = this.serializeTraceState()
       this.traceAdminStoresStore.findParameters.auto = auto
       this.traceAdminStoresStore.createParameters.auto = auto
@@ -170,7 +190,7 @@ export default defineComponent({
       this.traceAdminStoresStore.deleteAdminStore(store.id)
     },
     restore(store: AdminStore) {
-      this.traceStore.dispatch('restoreTraceState', this.unSerializeTraceState(store))
+      this.traceAggregatorStore.restoreTraceState(this.unSerializeTraceState(store))
 
       this.dialogVisible = false
 
@@ -184,9 +204,9 @@ export default defineComponent({
     },
     serializeTraceState() {
       const state: TraceStateParameters = {
-        startOfDay: this.traceStore.state.startOfDay,
-        payload: this.traceStore.state.payload,
-        customFields: this.traceStore.state.customFields,
+        startOfDay: this.traceAggregatorStore.startOfDay,
+        payload: this.traceAggregatorStore.payload,
+        customFields: this.traceAggregatorStore.customFields,
       }
 
       return JSON.stringify(state)
@@ -199,30 +219,12 @@ export default defineComponent({
     },
     generateTitle(): string {
       const titles: string[] = [
-        ...makeGeneralFiltersTitles(this.traceStore.state, this.traceAggregatorServicesStore.items),
-        ...makeOtherFiltersTitles(this.traceStore.state.payload),
+        ...makeGeneralFiltersTitles(this.traceAggregatorStore, this.traceAggregatorServicesStore.items),
+        ...makeOtherFiltersTitles(this.traceAggregatorStore.payload),
       ]
 
       return titles.join(' | ')
     }
-  },
-
-  computed: {
-    traceAdminStoresStore() {
-      return useTraceAdminStoresStore()
-    },
-    traceAggregatorServicesStore() {
-      return useTraceAggregatorServicesStore()
-    },
-    SearchIcon() {
-      return SearchIcon
-    },
-    PlusIcon() {
-      return PlusIcon
-    },
-    FillTitleIvon() {
-      return FillTitleIvon
-    },
   },
 
   mounted() {

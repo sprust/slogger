@@ -154,12 +154,14 @@ import {TypesHelper} from '../../../../../utils/helpers.ts'
 
 export default defineComponent({
   emits: ["onCustomFieldClick"],
+
   props: {
     customFields: {
       type: Array as PropType<TraceAggregatorCustomField[]>,
       required: true,
     },
   },
+
   data() {
     return {
       directions: ['asc', 'desc'],
@@ -167,6 +169,7 @@ export default defineComponent({
       TypesHelper,
     }
   },
+
   methods: {
     isValueInt(searchData: TraceAggregatorCustomFieldSearchParameter): boolean {
       return !!(searchData.number && TypesHelper.isValueInt(searchData.number.value))

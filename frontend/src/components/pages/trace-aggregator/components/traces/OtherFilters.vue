@@ -13,23 +13,23 @@
     <el-form label-width="auto">
       <el-form-item label="Trace id">
         <el-input
-            v-model="store.state.payload.trace_id"
+            v-model="traceAggregatorStore.payload.trace_id"
             :disabled="traceAggregatorGraphStore.showGraph"
             style="width: 450px"
             clearable
         >
           <template #append>
             <el-checkbox
-                v-model="store.state.payload.all_traces_in_tree"
+                v-model="traceAggregatorStore.payload.all_traces_in_tree"
                 label="Tree"
-                :disabled="!store.state.payload.trace_id"
+                :disabled="!traceAggregatorStore.payload.trace_id"
             />
           </template>
         </el-input>
       </el-form-item>
       <el-form-item label="Duration">
         <el-input-number
-            v-model="store.state.payload.duration_from"
+            v-model="traceAggregatorStore.payload.duration_from"
             :precision="6"
             :step="0.5"
             :min="0"
@@ -37,7 +37,7 @@
             class="number-input"
         />
         <el-input-number
-            v-model="store.state.payload.duration_to"
+            v-model="traceAggregatorStore.payload.duration_to"
             :precision="6"
             :step="0.5"
             :min="0"
@@ -53,7 +53,7 @@
       </el-form-item>
       <el-form-item label="Memory">
         <el-input-number
-            v-model="store.state.payload.memory_from"
+            v-model="traceAggregatorStore.payload.memory_from"
             :precision="2"
             :step="1"
             :min="0"
@@ -61,7 +61,7 @@
             class="number-input"
         />
         <el-input-number
-            v-model="store.state.payload.memory_to"
+            v-model="traceAggregatorStore.payload.memory_to"
             :precision="2"
             :step="1"
             :min="0"
@@ -77,7 +77,7 @@
       </el-form-item>
       <el-form-item label="Cpu">
         <el-input-number
-            v-model="store.state.payload.cpu_from"
+            v-model="traceAggregatorStore.payload.cpu_from"
             :precision="2"
             :step="5"
             :min="0"
@@ -85,7 +85,7 @@
             class="number-input"
         />
         <el-input-number
-            v-model="store.state.payload.cpu_to"
+            v-model="traceAggregatorStore.payload.cpu_to"
             :precision="2"
             :step="5"
             :min="0"
@@ -101,7 +101,7 @@
       </el-form-item>
       <el-form-item label="Profiling">
         <el-switch
-            v-model="store.state.payload.has_profiling"
+            v-model="traceAggregatorStore.payload.has_profiling"
             size="small"
             active-text="has"
             inactive-text="off"
@@ -120,13 +120,10 @@ import {useTraceAggregatorGraphStore} from "../graph/store/traceAggregatorGraphS
 import {makeOtherFiltersTitles} from "../../../../../utils/helpers.ts";
 
 export default defineComponent({
-  data() {
-    return {
-      store: useTraceAggregatorStore(),
-    }
-  },
-
   computed: {
+    traceAggregatorStore() {
+      return useTraceAggregatorStore()
+    },
     traceAggregatorGraphStore() {
       return useTraceAggregatorGraphStore()
     },
@@ -137,19 +134,19 @@ export default defineComponent({
       return Filter
     },
     titles(): Array<string> {
-      return makeOtherFiltersTitles(this.store.state.payload)
+      return makeOtherFiltersTitles(this.traceAggregatorStore.payload)
     }
   },
 
   methods: {
     onClearDuration() {
-      this.store.commit('clearDurationFilter')
+      this.traceAggregatorStore.clearDurationFilter()
     },
     onClearMemory() {
-      this.store.commit('clearMemoryFilter')
+      this.traceAggregatorStore.clearMemoryFilter()
     },
     onClearCpu() {
-      this.store.commit('clearCpuFilter')
+      this.traceAggregatorStore.clearCpuFilter()
     },
   }
 })

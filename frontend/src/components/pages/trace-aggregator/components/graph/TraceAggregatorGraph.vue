@@ -40,12 +40,6 @@ export default defineComponent({
     Bar,
   },
 
-  data() {
-    return {
-      traceStore: useTraceAggregatorStore(),
-    }
-  },
-
   computed: {
     traceAggregatorGraphStore() {
       return useTraceAggregatorGraphStore()
@@ -55,6 +49,9 @@ export default defineComponent({
     },
     traceAggregatorTimestampPeriodStore() {
       return useTraceAggregatorTimestampPeriodStore()
+    },
+    traceAggregatorStore() {
+      return useTraceAggregatorStore()
     },
     graphItemHeight(): string {
       if (this.traceAggregatorGraphStore.graphs.length <= 1) {
@@ -71,41 +68,41 @@ export default defineComponent({
         return
       }
 
-      this.traceStore.dispatch('prepareCommonPayloadData')
+      this.traceAggregatorStore.prepareCommonPayloadData()
 
       // @ts-ignore TODO
       this.traceAggregatorGraphStore.payload.timestamp_period = this.traceAggregatorTimestampPeriodStore.selectedTimestampPeriod
       // @ts-ignore TODO
       this.traceAggregatorGraphStore.payload.timestamp_step = this.traceAggregatorTimestampPeriodStore.selectedTimestampStep
 
-      this.traceAggregatorGraphStore.payload.service_ids = this.traceStore.state.payload.service_ids
-      this.traceAggregatorGraphStore.payload.logging_to = this.traceStore.state.payload.logging_to
-          ? this.traceStore.state.payload.logging_to
+      this.traceAggregatorGraphStore.payload.service_ids = this.traceAggregatorStore.payload.service_ids
+      this.traceAggregatorGraphStore.payload.logging_to = this.traceAggregatorStore.payload.logging_to
+          ? this.traceAggregatorStore.payload.logging_to
           : undefined
-      this.traceAggregatorGraphStore.payload.types = this.traceStore.state.payload.types
-      this.traceAggregatorGraphStore.payload.tags = this.traceStore.state.payload.tags
-      this.traceAggregatorGraphStore.payload.statuses = this.traceStore.state.payload.statuses
-      this.traceAggregatorGraphStore.payload.duration_from = this.traceStore.state.payload.duration_from
-      this.traceAggregatorGraphStore.payload.duration_to = this.traceStore.state.payload.duration_to
-      this.traceAggregatorGraphStore.payload.memory_from = this.traceStore.state.payload.memory_from
-      this.traceAggregatorGraphStore.payload.memory_to = this.traceStore.state.payload.memory_to
-      this.traceAggregatorGraphStore.payload.cpu_from = this.traceStore.state.payload.cpu_from
-      this.traceAggregatorGraphStore.payload.cpu_to = this.traceStore.state.payload.cpu_to
-      this.traceAggregatorGraphStore.payload.data = this.traceStore.state.payload.data
-      this.traceAggregatorGraphStore.payload.has_profiling = this.traceStore.state.payload.has_profiling
+      this.traceAggregatorGraphStore.payload.types = this.traceAggregatorStore.payload.types
+      this.traceAggregatorGraphStore.payload.tags = this.traceAggregatorStore.payload.tags
+      this.traceAggregatorGraphStore.payload.statuses = this.traceAggregatorStore.payload.statuses
+      this.traceAggregatorGraphStore.payload.duration_from = this.traceAggregatorStore.payload.duration_from
+      this.traceAggregatorGraphStore.payload.duration_to = this.traceAggregatorStore.payload.duration_to
+      this.traceAggregatorGraphStore.payload.memory_from = this.traceAggregatorStore.payload.memory_from
+      this.traceAggregatorGraphStore.payload.memory_to = this.traceAggregatorStore.payload.memory_to
+      this.traceAggregatorGraphStore.payload.cpu_from = this.traceAggregatorStore.payload.cpu_from
+      this.traceAggregatorGraphStore.payload.cpu_to = this.traceAggregatorStore.payload.cpu_to
+      this.traceAggregatorGraphStore.payload.data = this.traceAggregatorStore.payload.data
+      this.traceAggregatorGraphStore.payload.has_profiling = this.traceAggregatorStore.payload.has_profiling
 
       this.traceAggregatorGraphStore
           .findMetrics(
               // @ts-ignore TODO
               this.traceAggregatorTimestampFieldsStore.selectedFields,
-              this.traceStore.state.customFields,
+              this.traceAggregatorStore.customFields,
           )
           .finally(() => {
             if (!this.traceAggregatorGraphStore.playGraph) {
               return
             }
 
-            this.traceStore.state.payload.logging_from = this.traceAggregatorGraphStore.loggedAtFrom
+            this.traceAggregatorStore.payload.logging_from = this.traceAggregatorGraphStore.loggedAtFrom
 
             this.traceAggregatorGraphStore.waiting = true
 
@@ -132,14 +129,15 @@ export default defineComponent({
 
       const {index} = elements[0]
 
-      this.traceStore.state.startOfDay = false
+      this.traceAggregatorStore.startOfDay = false
 
-      this.traceStore.state.payload.logging_from = new Date(
+      this.traceAggregatorStore.payload.logging_from = new Date(
           convertDateStringToLocalFull(this.traceAggregatorGraphStore.metrics[index].timestamp)
-      )
-      this.traceStore.state.payload.logging_to = new Date(
+      ).toUTCString()
+
+      this.traceAggregatorStore.payload.logging_to = new Date(
           convertDateStringToLocalFull(this.traceAggregatorGraphStore.metrics[index].timestamp_to)
-      )
+      ).toUTCString()
 
       this.traceAggregatorGraphStore.showGraph = false
     }

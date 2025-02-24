@@ -1,9 +1,8 @@
-import type {InjectionKey} from "vue";
-// @ts-ignore // todo
-import {createStore, Store, useStore as baseUseStore} from 'vuex'
 import {ApiContainer} from "../../../../../../utils/apiContainer.ts";
-import {handleApiError, makeStartOfDay, TypesHelper} from "../../../../../../utils/helpers.ts";
+import {makeStartOfDay, TypesHelper} from "../../../../../../utils/helpers.ts";
 import {AdminApi} from "../../../../../../api-schema/admin-api-schema.ts";
+import {defineStore} from "pinia";
+import {handleApiRequest} from "../../../../../../utils/handleApiRequest.ts";
 
 // need for admin stores
 const stateVersion = 2
@@ -66,47 +65,76 @@ export interface TraceStateParameters {
     customFields: TraceAggregatorCustomField[]
 }
 
-export const traceAggregatorStore = createStore<State>({
-    state: {
-        version: stateVersion,
-        loading: true,
-        startOfDay: true,
-        payload: {
-            page: 1,
-            types: [],
-            tags: [],
-            statuses: [],
-            duration_from: null,
-            duration_to: null,
-            memory_from: null,
-            memory_to: null,
-            cpu_from: null,
-            cpu_to: null,
-            logging_from: '',
-            logging_to: '',
-            trace_id: null,
-            all_traces_in_tree: false,
-            data: {
-                filter: [],
-                fields: []
-            },
-        } as TraceAggregatorPayload,
-        traceAggregator: {} as TraceAggregatorResponse,
-        customFields: []
-    } as State,
-    mutations: {
-        restoreTraceState(state: State, newState: TraceStateParameters) {
-            state.startOfDay = newState.startOfDay
-            state.payload = newState.payload
-            state.customFields = newState.customFields
-        },
-        setData(state: State, data: TraceAggregatorResponse) {
-            state.traceAggregator = data
-        },
-        resetFilters(state: State) {
-            state.startOfDay = true
+export const useTraceAggregatorStore = defineStore('traceAggregatorStore', {
+    state: (): State => {
+        return {
+            version: stateVersion,
+            loading: true,
+            startOfDay: true,
+            payload: {
+                page: 1,
+                types: [],
+                tags: [],
+                statuses: [],
+                duration_from: null,
+                duration_to: null,
+                memory_from: null,
+                memory_to: null,
+                cpu_from: null,
+                cpu_to: null,
+                logging_from: '',
+                logging_to: '',
+                trace_id: null,
+                all_traces_in_tree: false,
+                data: {
+                    filter: [],
+                    fields: []
+                },
+            } as TraceAggregatorPayload,
+            traceAggregator: {} as TraceAggregatorResponse,
+            customFields: []
+        }
+    },
+    actions: {
+        async fillTraceAggregator() {
+            this.loading = true
 
-            state.payload = {
+            if (this.startOfDay) {
+                this.payload.logging_from = makeStartOfDay().toUTCString()
+            }
+
+            this.prepareCommonPayloadData()
+
+            this.customFields.map((customField: TraceAggregatorCustomField) => {
+                if (customField.addToTable) {
+                    this.payload.data!.fields!.push(customField.field)
+                }
+            });
+
+            this.setData({} as TraceAggregatorResponse)
+
+            return await handleApiRequest(
+                ApiContainer.get().traceAggregatorTracesCreate(this.payload)
+                    .then((response) => {
+                        this.setData(response.data.data)
+                    })
+                    .finally(() => {
+                        this.loading = false
+                    })
+            )
+        },
+        restoreTraceState(newState: TraceStateParameters) {
+            this.startOfDay = newState.startOfDay
+            this.payload = newState.payload
+            this.customFields = newState.customFields
+        },
+        setData(data: TraceAggregatorResponse) {
+            this.traceAggregator = data
+        },
+        resetFilters() {
+            this.startOfDay = true
+
+            this.payload = {
                 page: 1,
                 types: [],
                 tags: [],
@@ -126,50 +154,50 @@ export const traceAggregatorStore = createStore<State>({
                     fields: []
                 },
             }
-            state.customFields = []
+            this.customFields = []
         },
-        setPage(state: State, page: number) {
-            state.payload!.page = page
+        setPage(page: number) {
+            this.payload!.page = page
         },
-        setPerPage(state: State, perPage: number) {
-            state.payload!.per_page = perPage
+        setPerPage(perPage: number) {
+            this.payload!.per_page = perPage
         },
-        addOrDeleteType(state: State, type: string) {
-            if (state.payload.types?.indexOf(type) === -1) {
-                state.payload.types?.push(type)
+        addOrDeleteType(type: string) {
+            if (this.payload.types?.indexOf(type) === -1) {
+                this.payload.types?.push(type)
             } else {
-                state.payload.types = state.payload.types?.filter(
+                this.payload.types = this.payload.types?.filter(
                     (typeItem: string) => typeItem !== type
                 ) ?? []
             }
         },
-        addOrDeleteTag(state: State, tag: string) {
-            if (state.payload.tags?.indexOf(tag) === -1) {
-                state.payload.tags?.push(tag)
+        addOrDeleteTag(tag: string) {
+            if (this.payload.tags?.indexOf(tag) === -1) {
+                this.payload.tags?.push(tag)
             } else {
-                state.payload.tags = state.payload.tags?.filter(
+                this.payload.tags = this.payload.tags?.filter(
                     (tagItem: string) => tagItem !== tag
                 ) ?? []
             }
         },
-        addOrDeleteStatus(state: State, status: string) {
-            if (state.payload.statuses?.indexOf(status) === -1) {
-                state.payload.statuses?.push(status)
+        addOrDeleteStatus(status: string) {
+            if (this.payload.statuses?.indexOf(status) === -1) {
+                this.payload.statuses?.push(status)
             } else {
-                state.payload.statuses = state.payload.statuses?.filter(
+                this.payload.statuses = this.payload.statuses?.filter(
                     (statusItem: string) => statusItem !== status
                 ) ?? []
             }
         },
-        addOrDeleteCustomField(state: State, parameters: TraceAggregatorCustomFieldParameter) {
+        addOrDeleteCustomField(parameters: TraceAggregatorCustomFieldParameter) {
             const customField = parameters.field
 
-            const index = state.customFields.findIndex(
+            const index = this.customFields.findIndex(
                 (customFieldsItem: TraceAggregatorCustomField) => customFieldsItem.field === customField
             )
 
             if (index !== -1) {
-                state.customFields.splice(index, 1)
+                this.customFields.splice(index, 1)
             } else {
                 const data: TraceAggregatorCustomFieldSearchParameter = {
                     null: {
@@ -201,7 +229,7 @@ export const traceAggregatorStore = createStore<State>({
                     data: data
                 }
 
-                state.customFields.push({
+                this.customFields.push({
                     field: customField,
                     search: false,
                     searchData: searchData.data,
@@ -210,21 +238,21 @@ export const traceAggregatorStore = createStore<State>({
                 })
             }
         },
-        prepareCommonPayloadData(state: State) {
-            if (!state.payload.logging_from) {
-                delete state.payload.logging_from
+        prepareCommonPayloadData() {
+            if (!this.payload.logging_from) {
+                delete this.payload.logging_from
             }
 
-            if (!state.payload.logging_to) {
-                delete state.payload.logging_to
+            if (!this.payload.logging_to) {
+                delete this.payload.logging_to
             }
 
-            const data = state.payload.data!;
+            const data = this.payload.data!;
 
             data.filter = []
             data.fields = []
 
-            state.customFields.map((customField: TraceAggregatorCustomField) => {
+            this.customFields.map((customField: TraceAggregatorCustomField) => {
                 const field = `dt.${customField.field}`
 
                 if (customField.search) {
@@ -262,80 +290,18 @@ export const traceAggregatorStore = createStore<State>({
                 }
             });
         },
-        clearDurationFilter(state: State) {
-            state.payload.duration_from = null
-            state.payload.duration_to = null
+        clearDurationFilter() {
+            this.payload.duration_from = null
+            this.payload.duration_to = null
         },
-        clearMemoryFilter(state: State) {
-            state.payload.memory_from = null
-            state.payload.memory_to = null
+        clearMemoryFilter() {
+            this.payload.memory_from = null
+            this.payload.memory_to = null
         },
-        clearCpuFilter(state: State) {
-            state.payload.cpu_from = null
-            state.payload.cpu_to = null
+        clearCpuFilter() {
+            this.payload.cpu_from = null
+            this.payload.cpu_to = null
         },
-    },
-    actions: {
-        restoreTraceState({commit}: { commit: any }, newState: TraceStateParameters) {
-            commit('restoreTraceState', newState)
-        },
-        fillTraceAggregator({commit, state}: { commit: any, state: any }) {
-            state.loading = true
 
-            if (state.startOfDay) {
-                state.payload.logging_from = makeStartOfDay()
-            }
-
-            commit('prepareCommonPayloadData')
-
-            state.customFields.map((customField: TraceAggregatorCustomField) => {
-                if (customField.addToTable) {
-                    state.payload.data.fields.push(customField.field)
-                }
-            });
-
-            commit('setData', [])
-
-            return ApiContainer.get().traceAggregatorTracesCreate(state.payload)
-                .then((response) => {
-                    commit('setData', response.data.data)
-                })
-                .catch((error) => {
-                    handleApiError(error)
-                })
-                .finally(() => {
-                    state.loading = false
-                })
-        },
-        resetFilters({commit}: { commit: any }) {
-            commit('resetFilters')
-        },
-        setPage({commit}: { commit: any }, page: number) {
-            commit('setPage', page)
-        },
-        setPerPage({commit}: { commit: any }, perPage: number) {
-            commit('setPerPage', perPage)
-        },
-        addOrDeleteType({commit}: { commit: any }, type: string) {
-            commit('addOrDeleteType', type)
-        },
-        addOrDeleteTag({commit}: { commit: any }, tag: string) {
-            commit('addOrDeleteTag', tag)
-        },
-        addOrDeleteStatus({commit}: { commit: any }, status: string) {
-            commit('addOrDeleteStatus', status)
-        },
-        prepareCommonPayloadData({commit}: { commit: any }) {
-            commit('prepareCommonPayloadData')
-        },
-        clearDurationFilter({commit}: { commit: any }) {
-            commit('clearDurationFilter')
-        }
     },
 })
-
-export const traceAggregatorStoreInjectionKey: InjectionKey<Store<State>> = Symbol()
-
-export function useTraceAggregatorStore(): Store<State> {
-    return baseUseStore(traceAggregatorStoreInjectionKey)
-}

@@ -1,6 +1,6 @@
 <template>
   <el-select
-      v-model="traceAggregatorStore.state.payload.service_ids"
+      v-model="traceAggregatorStore.payload.service_ids"
       placeholder="Select"
       style="min-width: 200px"
       clearable
@@ -21,15 +21,12 @@ import {useTraceAggregatorServicesStore} from "./store/traceAggregatorServicesSt
 import {useTraceAggregatorStore} from "../traces/store/traceAggregatorStore.ts";
 
 export default defineComponent({
-  data() {
-    return {
-      traceAggregatorStore: useTraceAggregatorStore(),
-    }
-  },
-
   computed: {
     traceAggregatorServicesStore() {
       return useTraceAggregatorServicesStore()
+    },
+    traceAggregatorStore() {
+      return useTraceAggregatorStore()
     },
   },
 
