@@ -27,7 +27,6 @@
 import {defineComponent} from "vue";
 import {useAuthStore} from "../store/authStore.ts";
 import {defaultRouteName, router} from "../utils/router.ts";
-import {handleApiError} from "../utils/helpers.ts";
 
 export default defineComponent({
   data() {
@@ -40,6 +39,16 @@ export default defineComponent({
       router: router,
     };
   },
+
+  computed: {
+    authStore() {
+      return useAuthStore()
+    },
+    validated(): boolean {
+      return !!this.email && !!this.password
+    },
+  },
+
   methods: {
     login() {
       this.loginText = '';
@@ -49,7 +58,7 @@ export default defineComponent({
       } else {
         this.loading = true
 
-        this.store.dispatch('login', {email: this.email, password: this.password})
+        this.authStore.login(this.email, this.password)
             .then(() => {
               try {
                 this.router.push({name: defaultRouteName})
@@ -57,18 +66,10 @@ export default defineComponent({
                 console.log(error)
               }
             })
-            .catch(async (error: any) => {
-              handleApiError(error)
-            })
             .finally(() => {
               this.loading = false
             })
       }
-    },
-  },
-  computed: {
-    validated(): boolean {
-      return !!this.email && !!this.password
     },
   },
 })

@@ -43,13 +43,16 @@ export default defineComponent({
 
     return {
       router: useRouter(),
-      authStore: useAuthStore(),
       routes: routes,
       isDark,
       toggleDarkUsing: useToggle(isDark)
     }
   },
+
   computed: {
+    authStore() {
+      return useAuthStore()
+    },
     toolLinksStore() {
       return useToolLinksStore()
     },
@@ -65,7 +68,8 @@ export default defineComponent({
       this.toggleDarkUsing()
     },
     logout() {
-      this.authStore.dispatch('logout')
+      this.authStore.logout()
+
       this.router.push(this.routes.login)
     }
   },

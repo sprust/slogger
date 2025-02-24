@@ -5,7 +5,7 @@ import {useAuthStore} from "../store/authStore.ts";
 export async function handleApiRequest<T>(request: Promise<T>): Promise<T> {
     return request.catch<T>((error): any => {
         if (error.status === 401) {
-            useAuthStore().dispatch('logout') // TODO
+            useAuthStore().logout()
 
             router.push(routes.login)
 

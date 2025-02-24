@@ -1,23 +1,58 @@
-import type {InjectionKey} from "vue";
-// @ts-ignore // todo
-import {createStore, useStore as baseUseStore, Store} from 'vuex'
 import {AdminApi} from "../api-schema/admin-api-schema.ts";
 import {ApiContainer, ApiTokenStorage} from "../utils/apiContainer.ts";
 import {handleApiError} from "../utils/helpers.ts";
+import {defineStore} from "pinia";
+import {handleApiRequest} from "../utils/handleApiRequest.ts";
 
 type AuthUser = AdminApi.AuthMeList.ResponseBody['data']
 
-interface State {
+interface AuthStoreInterface {
     user: AuthUser | null
 }
 
-export const authStore = createStore<State>({
-    state: {
-        user: null
+export const useAuthStore = defineStore('authStore', {
+    state: (): AuthStoreInterface => {
+        return {
+            user: null
+        }
     },
-    mutations: {
-        setUser(state: State, user: AuthUser | null) {
-            state.user = user
+    actions: {
+        async login(email: string, password: string) {
+            return await handleApiRequest(
+                ApiContainer.get()
+                    .authLoginCreate({
+                        email: email,
+                        password: password
+                    })
+                    .then((response) => {
+                        this.setUser(response.data.data)
+                    })
+            )
+        },
+        async auth() {
+            if (!ApiTokenStorage.getToken()) {
+                this.setUser(null)
+
+                return
+            }
+
+            try {
+                const response = await ApiContainer.get().authMeList()
+
+                this.setUser(response.data.data)
+            } catch (error: any) {
+                if ('status' in error && error.status === 401) {
+                    this.setUser(null)
+                } else {
+                    handleApiError(error)
+                }
+            }
+        },
+        async logout() {
+            this.setUser(null)
+        },
+        setUser(user: AuthUser | null) {
+            this.user = user
 
             if (user === null) {
                 ApiTokenStorage.forgetToken()
@@ -26,47 +61,4 @@ export const authStore = createStore<State>({
             }
         }
     },
-    actions: {
-        login({commit}: { commit: any }, {email, password}: { email: string, password: string }) {
-            return ApiContainer.get()
-                .authLoginCreate({
-                    email: email,
-                    password: password
-                })
-                .then((response) => {
-                    commit('setUser', response.data.data)
-                })
-                .catch((error) => {
-                    handleApiError(error)
-                })
-        },
-        async auth({commit}: { commit: any }) {
-            if (!ApiTokenStorage.getToken()) {
-                commit('setUser', null)
-
-                return
-            }
-
-            try {
-                const response = await ApiContainer.get().authMeList()
-
-                commit('setUser', response.data.data)
-            } catch (error: any) {
-                if ('status' in error && error.status === 401) {
-                    commit('setUser', null)
-                } else {
-                    handleApiError(error)
-                }
-            }
-        },
-        async logout({commit}: { commit: any }) {
-            commit('setUser', null)
-        },
-    },
 })
-
-export const authStoreInjectionKey: InjectionKey<Store<State>> = Symbol()
-
-export function useAuthStore() {
-    return baseUseStore(authStoreInjectionKey)
-}

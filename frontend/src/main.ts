@@ -3,7 +3,6 @@ import App from './App.vue'
 import {createApp} from "vue";
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
-import {authStore, authStoreInjectionKey} from "./store/authStore.ts";
 import 'element-plus/theme-chalk/dark/css-vars.css'
 import {router} from "./utils/router.ts";
 import {traceAggregatorStore, traceAggregatorStoreInjectionKey} from "./components/pages/trace-aggregator/components/traces/store/traceAggregatorStore.ts";
@@ -20,7 +19,6 @@ createApp(App)
     .use(ElementPlus)
     .use(pinia)
     //
-    .use(authStore, authStoreInjectionKey)
     .use(traceAggregatorStore, traceAggregatorStoreInjectionKey)
     .use(traceAggregatorProfilingStore, traceAggregatorProfilingStoreInjectionKey)
     .mount('#app')
