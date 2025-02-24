@@ -12,7 +12,6 @@ import {
     traceAggregatorProfilingStore,
     traceAggregatorProfilingStoreInjectionKey
 } from "./components/pages/trace-aggregator/components/profiling/store/traceAggregatorProfilingStore.ts";
-import {toolLinksStore, toolLinksStoreInjectionKey} from "./store/toolLinksStore.ts";
 import {createPinia} from "pinia";
 
 const pinia = createPinia()
@@ -23,7 +22,6 @@ createApp(App)
     .use(pinia)
     //
     .use(authStore, authStoreInjectionKey)
-    .use(toolLinksStore, toolLinksStoreInjectionKey)
     .use(traceAggregatorStore, traceAggregatorStoreInjectionKey)
     .use(traceAggregatorProfilingStore, traceAggregatorProfilingStoreInjectionKey)
     .use(traceAggregatorTabsStore, traceAggregatorTabsStoreInjectionKey)

@@ -16,7 +16,7 @@
     <el-menu-item index="" @click="toggleDark">
       <el-button :icon="isDark ? Moon : Sunny" link/>
     </el-menu-item>
-    <el-menu-item v-for="toolLink in toolLinksStore.state.toolLinks" index="">
+    <el-menu-item v-for="toolLink in toolLinksStore.toolLinks" index="">
       <el-link :underline="false" :href="toolLink.url" target="_blank">{{ toolLink.name }}</el-link>
     </el-menu-item>
     <el-menu-item index="" @click="logout">
@@ -32,7 +32,7 @@ import {useAuthStore} from "../store/authStore.ts";
 import {routes} from "../utils/router.ts";
 import {useToggle} from '@vueuse/shared'
 import {useDark} from '@vueuse/core'
-import {Sunny, Moon} from '@element-plus/icons-vue'
+import {Moon, Sunny} from '@element-plus/icons-vue'
 import {useToolLinksStore} from "../store/toolLinksStore.ts";
 
 export default defineComponent({
@@ -44,13 +44,15 @@ export default defineComponent({
     return {
       router: useRouter(),
       authStore: useAuthStore(),
-      toolLinksStore: useToolLinksStore(),
       routes: routes,
       isDark,
       toggleDarkUsing: useToggle(isDark)
     }
   },
   computed: {
+    toolLinksStore() {
+      return useToolLinksStore()
+    },
     Sunny() {
       return Sunny
     },
@@ -68,8 +70,8 @@ export default defineComponent({
     }
   },
   mounted() {
-    if (!this.toolLinksStore.state.loaded) {
-      this.toolLinksStore.dispatch('findToolLinks')
+    if (!this.toolLinksStore.loaded) {
+      this.toolLinksStore.findToolLinks()
     }
   }
 })
