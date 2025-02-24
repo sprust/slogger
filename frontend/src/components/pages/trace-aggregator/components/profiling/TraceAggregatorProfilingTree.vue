@@ -47,7 +47,7 @@ import {
   ProfilingNode,
   ProfilingTreeNode,
   useTraceAggregatorProfilingStore
-} from "../../../../../store/traceAggregatorProfilingStore.ts";
+} from "./store/traceAggregatorProfilingStore.ts";
 import TraceAggregatorProfilingNodeData from "./TraceAggregatorProfilingNodeData.vue";
 import TraceAggregatorProfilingNodeMetrics from './TraceAggregatorProfilingNodeMetrics.vue'
 
@@ -56,7 +56,6 @@ export default defineComponent({
 
   data() {
     return {
-      store: useTraceAggregatorProfilingStore(),
       treeProps: {
         key: 'key',
         label: 'label',
@@ -69,8 +68,11 @@ export default defineComponent({
   },
 
   computed: {
+    traceAggregatorProfilingStore() {
+      return useTraceAggregatorProfilingStore()
+    },
     tree(): Array<ProfilingTreeNode> {
-      return this.treeNodesToViews(this.store.state.profiling.nodes)
+      return this.treeNodesToViews(this.traceAggregatorProfilingStore.profiling.nodes)
     },
   },
 
@@ -91,23 +93,23 @@ export default defineComponent({
       return node.id + ': ' + node.calling + (node.recursionNodeId ? ` ---> ${node.recursionNodeId}` : '')
     },
     isSelectedNode(node: ProfilingNode): boolean {
-      return node.id === this.store.state.selectedItem?.id
+      return node.id === this.traceAggregatorProfilingStore.selectedItem?.id
     },
     onShowFlow(node: ProfilingTreeNode) {
-      if (node.primary.id === this.store.state.selectedItem?.id) {
-        this.store.dispatch('setSelectedProfilingItem', null)
+      if (node.primary.id === this.traceAggregatorProfilingStore.selectedItem?.id) {
+        this.traceAggregatorProfilingStore.setSelectedProfilingItem(null)
       } else {
-        this.store.dispatch('setSelectedProfilingItem', node.primary)
+        this.traceAggregatorProfilingStore.setSelectedProfilingItem(node.primary)
       }
     },
     onFilter(node: ProfilingTreeNode) {
-      this.store.dispatch('setBodyCaller', node.primary.calling)
-      this.store.dispatch('findProfilingWithBody')
+      this.traceAggregatorProfilingStore.setBodyCaller(node.primary.calling)
+      this.traceAggregatorProfilingStore.findProfilingWithBody()
     },
     onExclude(node: ProfilingTreeNode) {
-      this.store.state.showExcludedCallerPreviewDialog = true
+      this.traceAggregatorProfilingStore.showExcludedCallerPreviewDialog = true
 
-      this.store.state.excludedCallerPreview = node.primary.calling
+      this.traceAggregatorProfilingStore.excludedCallerPreview = node.primary.calling
     },
     filterTreeNode(value: string, data: ProfilingTreeNode) {
       if (!value) {

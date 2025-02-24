@@ -1,47 +1,32 @@
-import type {InjectionKey} from "vue";
-// @ts-ignore // todo
-import {createStore, Store, useStore as baseUseStore} from 'vuex'
 import {ApiContainer} from "../utils/apiContainer.ts";
 import {AdminApi} from "../api-schema/admin-api-schema.ts";
-import {handleApiError} from "../utils/helpers.ts";
+import {defineStore} from "pinia";
 
 export type ToolsLink = AdminApi.ToolsLinksList.ResponseBody['data'][number];
 
-interface State {
+interface ToolLinksStoreInterface {
     loaded: boolean
     toolLinks: Array<ToolsLink>
 }
 
-export const toolLinksStore = createStore<State>({
-    state: {
-        loaded: false,
-        toolLinks: [] as Array<ToolsLink>
-    } as State,
-    mutations: {
-        setToolLinks(state: State, toolLinks: Array<ToolsLink>) {
-            state.toolLinks = toolLinks
-        },
+export const useToolLinksStore = defineStore('toolLinksStore', {
+    state: (): ToolLinksStoreInterface => {
+        return {
+            loaded: false,
+            toolLinks: [] as Array<ToolsLink>
+        }
     },
     actions: {
-        findToolLinks({commit, state}: { commit: any, state: State }) {
-            state.loaded = false
+        async findToolLinks() {
+            this.loaded = false
 
-            ApiContainer.get().toolsLinksList()
+            return await ApiContainer.get().toolsLinksList()
                 .then(response => {
-                    commit('setToolLinks', response.data.data)
-                })
-                .catch((error) => {
-                    handleApiError(error)
+                    this.toolLinks = response.data.data
                 })
                 .finally(() => {
-                    state.loaded = true
+                    this.loaded = true
                 })
         }
     },
 })
-
-export const toolLinksStoreInjectionKey: InjectionKey<Store<State>> = Symbol()
-
-export function useToolLinksStore(): Store<State> {
-    return baseUseStore(toolLinksStoreInjectionKey)
-}

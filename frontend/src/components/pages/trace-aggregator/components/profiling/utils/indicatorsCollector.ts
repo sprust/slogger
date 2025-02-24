@@ -1,4 +1,4 @@
-import {ProfilingNode} from "../../../../../../store/traceAggregatorProfilingStore.ts";
+import {ProfilingNode} from "../store/traceAggregatorProfilingStore.ts";
 
 export class IndicatorsCollector {
     private indicators: Array<string> = []

@@ -1,7 +1,7 @@
-import {ElMessage} from "element-plus";
 import {valueIsSelected} from "./valueWasSelected.ts";
-import {TraceAggregatorPayload, TraceStateParameters} from "../store/traceAggregatorStore.ts";
-import {TraceAggregatorService} from "../store/traceAggregatorServicesStore.ts";
+import {TraceAggregatorPayload, TraceStateParameters} from "../components/pages/trace-aggregator/components/traces/store/traceAggregatorStore.ts";
+import {TraceAggregatorService} from "../components/pages/trace-aggregator/components/services/store/traceAggregatorServicesStore.ts";
+import alerts from "./alerts.ts";
 
 export class TypesHelper {
     public static isValueInt(value: any): boolean {
@@ -34,39 +34,11 @@ export async function copyToClipboard(value: string) {
         try {
             document.execCommand('copy');
         } catch (err) {
-            handleApiError('Unable to copy to clipboard')
+            alerts.error('Unable to copy to clipboard')
         }
 
         document.body.removeChild(textArea);
     }
-}
-
-export function handleApiError(error: any) {
-    let message = '' + (error?.error?.message ?? error ?? 'Unknown error')
-
-    const errorsList = Object.values(error?.error?.errors ?? []).flat()
-
-    if (errorsList.length) {
-        message += '<br><ul>'
-
-        errorsList.map((errorItemText) => {
-            message += `<li>${errorItemText}</li>`
-        })
-
-        message += '</ul>'
-    }
-
-    console.log(error)
-
-    const type = error.status === 400 ? "warning" : "error"
-
-    ElMessage({
-        dangerouslyUseHTMLString: true,
-        message: message,
-        type: type,
-        showClose: true,
-        duration: 5000
-    })
 }
 
 const zeroPad = (num: number, places: number): string => String(num).padStart(places, '0')

@@ -1,7 +1,7 @@
 <template>
   <el-container class="common-layout">
     <el-header>
-      <Header v-if="authStore.state.user"/>
+      <Header v-if="authStore.user"/>
     </el-header>
     <div class="height-100" style="padding: 0 20px 20px 20px; overflow-y: auto">
       <router-view/>
@@ -17,12 +17,19 @@ import Header from "./components/Header.vue";
 
 export default defineComponent({
   components: {Header},
+
   data() {
     return {
       loading: true,
-      authStore: useAuthStore(),
     }
   },
+
+  computed: {
+    authStore() {
+      return useAuthStore()
+    },
+  },
+
   mounted() {
     document.title = import.meta.env.VITE_APP_NAME ?? 'SLogger'
   }

@@ -1,13 +1,13 @@
 <template>
   <el-row style="height: 6%">
     <el-input
-        v-model="logsViewerStore.state.logsParameters.search_query"
+        v-model="logsViewerStore.parameters.search_query"
         style="width: 300px; height: 35px; margin: 3px"
         placeholder="Search query"
         clearable
     />
     <el-input
-        v-model="logsViewerStore.state.logsParameters.level"
+        v-model="logsViewerStore.parameters.level"
         style="width: 300px; height: 35px; margin: 3px"
         placeholder="Level"
         clearable
@@ -15,24 +15,24 @@
     <el-button
         :icon="SearchIcon"
         @click="onUpdate"
-        :loading="logsViewerStore.state.loading"
+        :loading="logsViewerStore.loading"
         style="height: 35px; margin: 3px"
     />
     <el-pagination
-        v-model:current-page="logsViewerStore.state.logsParameters.page"
+        v-model:current-page="logsViewerStore.parameters.page"
         layout="prev, pager, next"
-        :page-size="logsViewerStore.state.logs.paginator.per_page"
-        :total="logsViewerStore.state.logs.paginator.total"
+        :page-size="logsViewerStore.logs.paginator.per_page"
+        :total="logsViewerStore.logs.paginator.total"
         class="mt-4"
         @current-change="update"
-        :disabled="logsViewerStore.state.loading"
+        :disabled="logsViewerStore.loading"
         style="height: 35px; margin: 3px"
     />
   </el-row>
   <el-row style="height: 90%; width: 100%">
     <el-scrollbar style="width: 100%">
       <el-table
-          :data="logsViewerStore.state.logs.items"
+          :data="logsViewerStore.logs.items"
           :border="true"
       >
         <el-table-column type="expand">
@@ -55,33 +55,34 @@
 <script lang="ts">
 import {defineComponent} from 'vue'
 import {convertDateStringToLocal} from "../../../utils/helpers.ts";
-import {useLogsViewerStoreStore} from "./store/logsViewerStore.ts";
 import {Search as SearchIcon} from '@element-plus/icons-vue'
+import {useLogsViewerStore} from "./store/logsViewerStore.ts";
 
 export default defineComponent({
-  data() {
-    return {
-      logsViewerStore: useLogsViewerStoreStore(),
-    }
-  },
-  methods: {
-    convertDateStringToLocal,
-    update() {
-      this.logsViewerStore.dispatch('findLogs')
-    },
-    onUpdate() {
-      this.logsViewerStore.state.logsParameters.page = 1
+  name: 'LogsViewer',
 
-      this.update()
-    },
-  },
   computed: {
+    logsViewerStore() {
+      return useLogsViewerStore()
+    },
     SearchIcon() {
       return SearchIcon
     },
   },
+
+  methods: {
+    convertDateStringToLocal,
+    update() {
+      this.logsViewerStore.findLogs()
+    },
+    onUpdate() {
+      this.logsViewerStore.parameters.page = 1
+
+      this.update()
+    },
+  },
   mounted() {
-    if (!this.logsViewerStore.state.loading) {
+    if (!this.logsViewerStore.loading) {
       return
     }
 
@@ -90,8 +91,5 @@ export default defineComponent({
 })
 </script>
 
-<style>
-.flex-grow {
-  flex-grow: 1;
-}
+<style scoped>
 </style>

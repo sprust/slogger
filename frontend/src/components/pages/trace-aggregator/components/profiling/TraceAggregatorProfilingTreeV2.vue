@@ -23,7 +23,7 @@
       </el-table-column>
 
       <el-table-column
-          v-for="indicatorName in store.state.showProfilingIndicators"
+          v-for="indicatorName in traceAggregatorProfilingStore.showProfilingIndicators"
           :label="indicatorName"
       >
         <template #default="scope">
@@ -61,7 +61,7 @@ import {
   ProfilingNodeDataItem,
   ProfilingTreeNodeV2,
   useTraceAggregatorProfilingStore
-} from "../../../../../store/traceAggregatorProfilingStore.ts";
+} from "./store/traceAggregatorProfilingStore.ts";
 import TraceAggregatorProfilingNodeData from "./TraceAggregatorProfilingNodeData.vue";
 import TraceAggregatorProfilingNodeMetrics from './TraceAggregatorProfilingNodeMetrics.vue'
 
@@ -70,7 +70,6 @@ export default defineComponent({
 
   data() {
     return {
-      store: useTraceAggregatorProfilingStore(),
       treeProps: {
         key: 'key',
         label: 'label',
@@ -84,8 +83,11 @@ export default defineComponent({
   },
 
   computed: {
+    traceAggregatorProfilingStore() {
+      return useTraceAggregatorProfilingStore()
+    },
     treeTable() {
-      return this.store.state.treeTable.filter(
+      return this.traceAggregatorProfilingStore.treeTable.filter(
           (item: ProfilingTreeNodeV2) => !item.hide
       )
     }
@@ -97,7 +99,7 @@ export default defineComponent({
       let totalCount = 0
 
       node.data.map((dataItem) => {
-        if (!dataItem.value || this.store.state.showProfilingIndicators.indexOf(dataItem.name) === -1) {
+        if (!dataItem.value || this.traceAggregatorProfilingStore.showProfilingIndicators.indexOf(dataItem.name) === -1) {
           return 0
         }
 
@@ -130,23 +132,23 @@ export default defineComponent({
       }
     },
     isSelectedNode(node: ProfilingTreeNodeV2): boolean {
-      return node.id === this.store.state.selectedItem?.id
+      return node.id === this.traceAggregatorProfilingStore.selectedItem?.id
     },
     onShowFlow(node: ProfilingTreeNodeV2) {
-      if (node.id === this.store.state.selectedItem?.id) {
-        this.store.dispatch('setSelectedProfilingItem', null)
+      if (node.id === this.traceAggregatorProfilingStore.selectedItem?.id) {
+        this.traceAggregatorProfilingStore.setSelectedProfilingItem(null)
       } else {
-        this.store.dispatch('setSelectedProfilingItem', node.primary)
+        this.traceAggregatorProfilingStore.setSelectedProfilingItem(node.primary)
       }
     },
     onFilter(node: ProfilingTreeNodeV2) {
-      this.store.dispatch('setBodyCaller', node.calling)
-      this.store.dispatch('findProfilingWithBody')
+      this.traceAggregatorProfilingStore.setBodyCaller(node.calling)
+      this.traceAggregatorProfilingStore.findProfilingWithBody()
     },
     onExclude(node: ProfilingTreeNodeV2) {
-      this.store.state.showExcludedCallerPreviewDialog = true
+      this.traceAggregatorProfilingStore.showExcludedCallerPreviewDialog = true
 
-      this.store.state.excludedCallerPreview = node.calling
+      this.traceAggregatorProfilingStore.excludedCallerPreview = node.calling
     },
     hideTreeNode(value: string, row: ProfilingTreeNodeV2): boolean {
       if (!value) {
@@ -175,7 +177,7 @@ export default defineComponent({
   },
   watch: {
     'filterTreeNodeText'(value: string) {
-      this.store.state.treeTable.forEach(
+      this.traceAggregatorProfilingStore.treeTable.forEach(
           (item: ProfilingTreeNodeV2) => item.hide = this.hideTreeNode(value, item)
       )
     }

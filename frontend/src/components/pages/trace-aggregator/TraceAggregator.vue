@@ -1,5 +1,5 @@
 <template>
-  <el-tabs v-model="tabsStore.state.currentTab" class="height-100">
+  <el-tabs v-model="traceAggregatorTabsStore.currentTab" class="height-100">
     <el-tab-pane label="Traces" :name="traceAggregatorTabs.traces" class="height-100">
       <TraceAggregatorTraces/>
     </el-tab-pane>
@@ -14,32 +14,34 @@
 
 <script lang="ts">
 import {defineComponent} from "vue";
-import TraceAggregatorTraces from "./components/TraceAggregatorTraces.vue";
-import TraceAggregatorTraceTree from "./components/TraceAggregatorTraceTree.vue";
+import TraceAggregatorTraces from "./components/traces/TraceAggregatorTraces.vue";
+import TraceAggregatorTraceTree from "./components/tree/TraceAggregatorTraceTree.vue";
 import TraceAggregatorProfiling from "./components/profiling/TraceAggregatorProfiling.vue";
-import FilterTags from "./widgets/FilterTags.vue";
-import {traceAggregatorTabs, useTraceAggregatorTabsStore} from "../../../store/traceAggregatorTabsStore.ts";
+import FilterTags from "./components/tags/FilterTags.vue";
+import {traceAggregatorTabs, useTraceAggregatorTabsStore} from "./store/traceAggregatorTabsStore.ts";
 
 export default defineComponent({
   components: {
     FilterTags,
-    TraceAggregatorTraces,
+    TraceAggregatorTraces: TraceAggregatorTraces,
     TraceAggregatorTraceTree,
     TraceAggregatorProfiling
   },
+
   data() {
     return {
       tabsStore: useTraceAggregatorTabsStore()
     }
   },
+
   computed: {
     traceAggregatorTabs() {
       return traceAggregatorTabs
+    },
+    traceAggregatorTabsStore() {
+      return useTraceAggregatorTabsStore()
     }
   },
-  methods: {},
-  mounted() {
-  }
 })
 
 </script>
