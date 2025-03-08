@@ -2,9 +2,12 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Octane\RoadRunner\ServerStateFile as RoadRunnerServerStateFile;
 use RrParallel\Services\Drivers\Roadrunner\RpcFactory;
+use SLoggerLaravel\Helpers\TraceDataComplementer;
+use SLoggerLaravel\Processor;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -21,6 +24,21 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        if (config('slogger.enabled')) {
+            $this->app->make(TraceDataComplementer::class)
+                ->add(
+                    key: '__context',
+                    value: static function (Processor $processor) {
+                        return $processor->handleWithoutTracing(
+                            static fn() => [
+                                ...Log::sharedContext(),
+                                'pid' => getmypid(),
+                            ]
+                        );
+                    }
+                );
+        }
+
         $this->bootOctane();
     }
 
