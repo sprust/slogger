@@ -2,10 +2,12 @@
 
 namespace App\Providers;
 
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Octane\RoadRunner\ServerStateFile as RoadRunnerServerStateFile;
 use RrParallel\Services\Drivers\Roadrunner\RpcFactory;
+use SLoggerLaravel\Configs\GeneralConfig;
 use SLoggerLaravel\Helpers\TraceDataComplementer;
 use SLoggerLaravel\Processor;
 
@@ -21,10 +23,12 @@ class AppServiceProvider extends ServiceProvider
 
     /**
      * Bootstrap any application services.
+     *
+     * @throws BindingResolutionException
      */
     public function boot(): void
     {
-        if (config('slogger.enabled')) {
+        if ($this->app->make(GeneralConfig::class)->isEnabled()) {
             $this->app->make(TraceDataComplementer::class)
                 ->add(
                     key: '__context',

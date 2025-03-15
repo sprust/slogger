@@ -18,6 +18,7 @@ use App\Modules\Trace\Parameters\TraceCreateParametersList;
 use App\Modules\Trace\Parameters\TraceUpdateParameters;
 use App\Modules\Trace\Parameters\TraceUpdateParametersList;
 use Illuminate\Support\Carbon;
+use SLoggerLaravel\Configs\GeneralConfig;
 use SLoggerLaravel\Processor;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
@@ -29,11 +30,12 @@ class TraceCollectorController
     private ?Processor $processor = null;
 
     public function __construct(
+        GeneralConfig $config,
         private readonly ServiceContainer $serviceContainer,
         private readonly QueueDispatcher $queueDispatcher,
         private readonly MakeTraceTimestampsActionInterface $makeTraceTimestampsAction,
     ) {
-        $this->sloggerEnabled = (bool) config('slogger.enabled');
+        $this->sloggerEnabled = $config->isEnabled();
     }
 
     /**
