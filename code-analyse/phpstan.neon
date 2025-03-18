@@ -32,3 +32,4 @@ parameters:
         -
             messages:
                 - '#Unable to resolve the template type TKey in call to function collect#'
+                - '#Parameter \#1 \$callback of method Illuminate\\Support\\Collection<int\,stdClass\>::map\(\) expects callable\(stdClass\, int\)#'

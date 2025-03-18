@@ -44,7 +44,7 @@ readonly class AuthServiceMiddleware implements TerminableInterface
     }
 
 
-    public function terminate(\Symfony\Component\HttpFoundation\Request $request, Response $response)
+    public function terminate(\Symfony\Component\HttpFoundation\Request $request, Response $response): void
     {
         $this->serviceContainer->setService(null);
     }

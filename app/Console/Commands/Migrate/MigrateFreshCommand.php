@@ -2,14 +2,20 @@
 
 namespace App\Console\Commands\Migrate;
 
+use Illuminate\Console\Command;
+use Illuminate\Console\ConfirmableTrait;
 use Illuminate\Database\Console\Migrations\FreshCommand;
 use Illuminate\Support\Facades\DB;
 use MongoDB\Laravel\Connection;
 use Throwable;
 
-class MigrateFreshCommand extends FreshCommand
+class MigrateFreshCommand extends Command
 {
-    public function handle()
+    use ConfirmableTrait;
+
+    protected $name = 'migrate:fresh';
+
+    public function handle(): int
     {
         if (!$this->confirmToProceed()) {
             return 1;
@@ -58,6 +64,6 @@ class MigrateFreshCommand extends FreshCommand
             }
         }
 
-        return parent::handle();
+        return $this->call(FreshCommand::class);
     }
 }
