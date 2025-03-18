@@ -1288,10 +1288,10 @@
             "dist": {
                 "type": "path",
                 "url": "packages/ifksco/openapi-generator",
-                "reference": "da150ad3daa0e678e69212556a48b6bb35d891af"
+                "reference": "c77b2ea0ac4720e759cd06541be2cd21b7266cff"
             },
             "require": {
-                "laravel/framework": "^10.0"
+                "laravel/framework": "^10.0 | ^11.0"
             },
             "type": "library",
             "extra": {
@@ -4149,12 +4149,12 @@
             "dist": {
                 "type": "path",
                 "url": "packages/slogger/laravel",
-                "reference": "2db6a11c4386fec603811a61e094583ffdc586ae"
+                "reference": "c12a82bd1f8b1cd965ed19e2376fa17a9878f852"
             },
             "require": {
                 "ext-pcntl": "*",
                 "ext-posix": "*",
-                "laravel/framework": "^9.0 | ^10.0",
+                "laravel/framework": "^9.0 | ^10.0 | ^11.0",
                 "symfony/process": "^6.4|^7.0"
             },
             "type": "library",
@@ -5261,10 +5261,10 @@
             "dist": {
                 "type": "path",
                 "url": "packages/sprust/rr-monitor-laravel",
-                "reference": "7e79b7efbb2d2123f9fb6c867d5459a6b7e0c0fe"
+                "reference": "adb26f2dae0ea063b9c418410db4da9cd7355e85"
             },
             "require": {
-                "laravel/framework": "^10.0",
+                "laravel/framework": "^10.0 | ^11.0",
                 "spiral/roadrunner-worker": "^3.6"
             },
             "type": "library",
@@ -5301,10 +5301,10 @@
             "dist": {
                 "type": "path",
                 "url": "packages/sprust/rr-parallel-laravel",
-                "reference": "aadeaf796856b17250738ed66076ff20d8ea1b63"
+                "reference": "21fa63e9ce3e77a3fed9d8a4c19e4e365aa133ad"
             },
             "require": {
-                "laravel/framework": "^10.0",
+                "laravel/framework": "^10.0 | ^11.0",
                 "laravel/octane": "^2.3",
                 "spiral/roadrunner-cli": "^2.6",
                 "spiral/roadrunner-jobs": "^4.6.0",
