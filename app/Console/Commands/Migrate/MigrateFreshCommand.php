@@ -2,15 +2,19 @@
 
 namespace App\Console\Commands\Migrate;
 
+use Illuminate\Console\Command;
+use Illuminate\Console\ConfirmableTrait;
 use Illuminate\Database\Console\Migrations\FreshCommand;
 use Illuminate\Support\Facades\DB;
 use MongoDB\Laravel\Connection;
-use Symfony\Component\Console\Attribute\AsCommand;
 use Throwable;
 
-#[AsCommand(name: 'migrate:fresh')]
-class MigrateFreshCommand extends FreshCommand
+class MigrateFreshCommand extends Command
 {
+    use ConfirmableTrait;
+
+    protected $name = 'migrate:fresh';
+
     public function handle(): int
     {
         if (!$this->confirmToProceed()) {
@@ -60,6 +64,6 @@ class MigrateFreshCommand extends FreshCommand
             }
         }
 
-        return parent::handle();
+        return $this->call(FreshCommand::class);
     }
 }
