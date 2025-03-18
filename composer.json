@@ -21,9 +21,9 @@
         "mongodb/mongodb": "^1.17",
         "slogger/grpc": "dev-master",
         "slogger/laravel": "dev-master",
-        "spiral/roadrunner-cli": "^2.6",
-        "spiral/roadrunner-grpc": "^3.3",
-        "spiral/roadrunner-http": "^3.3.0",
+        "spiral/roadrunner-cli": "^2.7",
+        "spiral/roadrunner-grpc": "^3.5",
+        "spiral/roadrunner-http": "^3.5",
         "sprust/rr-monitor-laravel": "dev-master",
         "sprust/rr-parallel-laravel": "dev-master",
         "vladimir-yuldashev/laravel-queue-rabbitmq": "^14.1"
