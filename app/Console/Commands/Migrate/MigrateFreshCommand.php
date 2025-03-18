@@ -5,11 +5,13 @@ namespace App\Console\Commands\Migrate;
 use Illuminate\Database\Console\Migrations\FreshCommand;
 use Illuminate\Support\Facades\DB;
 use MongoDB\Laravel\Connection;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Throwable;
 
+#[AsCommand(name: 'migrate:fresh')]
 class MigrateFreshCommand extends FreshCommand
 {
-    public function handle()
+    public function handle(): int
     {
         if (!$this->confirmToProceed()) {
             return 1;
