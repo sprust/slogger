@@ -1,4 +1,4 @@
-FROM php:8.2.6-fpm as php_base
+FROM php:8.4-fpm as php_base
 
 WORKDIR /app
 
@@ -19,7 +19,6 @@ RUN apt-get update \
 
 RUN pecl install \
         redis \
-        imagick \
         mongodb \
         zstd \
         zip \
@@ -37,7 +36,6 @@ RUN docker-php-ext-install \
 
 RUN docker-php-ext-enable \
         redis \
-        imagick \
         zstd \
         bcmath \
         exif \
