@@ -7,28 +7,28 @@ parameters:
     - name: Domain
       collectors:
         - type: directory
-          regex: (/app/Modules/.*/Domain/|/app/Modules/.*/Contracts/Domain/)
+          value: (/app/Modules/.*/Domain/|/app/Modules/.*/Contracts/Domain/)
     - name: Entities
       collectors:
         - type: directory
-          regex: /app/Modules/.*/Entities/
+          value: /app/Modules/.*/Entities/
     - name: Parameters
       collectors:
         - type: directory
-          regex: /app/Modules/.*/Parameters/
+          value: /app/Modules/.*/Parameters/
     - name: Repositories
       collectors:
         - type: directory
-          regex: (/app/Modules/.*/Repositories/|/app/Modules/.*/Contracts/Repositories/)
+          value: (/app/Modules/.*/Repositories/|/app/Modules/.*/Contracts/Repositories/)
     # only dirs inside Infrastructure
     - name: Infrastructure
       collectors:
         - type: directory
-          regex: /app/Modules/.*/Infrastructure/.*/
+          value: /app/Modules/.*/Infrastructure/.*/
     - name: Models
       collectors:
         - type: directory
-          regex: /app/Models
+          value: /app/Models
 
   ruleset:
     Domain:
