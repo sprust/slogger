@@ -34,12 +34,12 @@
       </el-check-tag>
     </el-form-item>
     <el-form-item>
-      <el-button :icon="TagAddIcon" @click="dialogVisible = true"/>
+      <el-button :icon="TagAddIcon" @click="traceAggregatorTagsStore.showDialog = true"/>
     </el-form-item>
   </el-form>
 
   <el-dialog
-      v-model="dialogVisible"
+      v-model="traceAggregatorTagsStore.showDialog"
       width="80%"
       top="10px"
       :append-to-body="true"
@@ -100,7 +100,6 @@ export default defineComponent({
 
   data() {
     return {
-      dialogVisible: false,
       TagAddIcon: shallowRef(TagAddIcon),
       SearchIcon: shallowRef(SearchIcon),
     }

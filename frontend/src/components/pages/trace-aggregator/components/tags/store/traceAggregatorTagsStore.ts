@@ -33,6 +33,8 @@ interface TraceAggregatorTagsStoreInterface {
     statuses: Array<TraceTag>,
     statusesPayload: TraceAggregatorFindStatusesPayload,
     statusesLoading: TagLoading,
+
+    showDialog: boolean
 }
 
 export const useTraceAggregatorTagsStore = defineStore('traceAggregatorTagsStore', {
@@ -55,6 +57,8 @@ export const useTraceAggregatorTagsStore = defineStore('traceAggregatorTagsStore
             statusesLoading: {
                 loading: false
             },
+
+            showDialog: false,
         }
     },
     actions: {
