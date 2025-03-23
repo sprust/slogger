@@ -45,7 +45,8 @@ export const useTraceAggregatorTimestampPeriodStore = defineStore('traceAggregat
 
             this.timestampSteps = selectedTimestampPeriod ? selectedTimestampPeriod.timestamps : []
 
-            this.selectedTimestampStep = this.timestampSteps[0].value        },
+            this.selectedTimestampStep = this.timestampSteps[0].value
+        },
         setPeriods(periods: Array<TraceTimestampPeriod>) {
             this.timestampPeriods = periods
 

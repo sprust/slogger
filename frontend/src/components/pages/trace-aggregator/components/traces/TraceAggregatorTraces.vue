@@ -173,7 +173,7 @@ import {useTraceAggregatorTimestampPeriodStore} from "../graph/store/traceAggreg
 import {useTraceAggregatorTimestampFieldsStore} from "../graph/store/traceAggregatorTimestampFieldsStore.ts";
 import {useTraceAggregatorDataStore} from "../trace/store/traceAggregatorDataStore.ts";
 import {makeStartOfDay} from "../../../../../utils/helpers.ts";
-
+import {useTraceAdminStoresStore} from "../admin-stores/store/traceAdminStoresStore.ts";
 
 export default defineComponent({
   components: {
@@ -204,6 +204,9 @@ export default defineComponent({
   computed: {
     traceAggregatorStore() {
       return useTraceAggregatorStore()
+    },
+    traceAdminStoresStore() {
+      return useTraceAdminStoresStore()
     },
     traceAggregatorGraphStore() {
       return useTraceAggregatorGraphStore()
@@ -251,8 +254,7 @@ export default defineComponent({
       this.traceAggregatorStore.setPage(1)
       this.update()
 
-      // @ts-ignore
-      this.$refs.adminStoresRef.create(true)
+      this.traceAdminStoresStore.create(true)
     },
     update() {
       this.traceAggregatorStore.fillTraceAggregator()
@@ -302,6 +304,11 @@ export default defineComponent({
 
     if (!this.traceAggregatorTimestampFieldsStore.loaded) {
       this.traceAggregatorTimestampFieldsStore.findTimestampFields()
+    }
+
+
+    if (!this.traceAggregatorTimestampPeriodStore.loaded) {
+      this.traceAggregatorTimestampPeriodStore.findTimestampPeriods()
     }
   }
 })

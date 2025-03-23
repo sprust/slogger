@@ -3,9 +3,7 @@ import {makeStartOfDay, TypesHelper} from "../../../../../../utils/helpers.ts";
 import {AdminApi} from "../../../../../../api-schema/admin-api-schema.ts";
 import {defineStore} from "pinia";
 import {handleApiRequest} from "../../../../../../utils/handleApiRequest.ts";
-
-// need for admin stores
-const stateVersion = 2
+import {useTraceAggregatorServicesStore} from "../../services/store/traceAggregatorServicesStore.ts";
 
 type TraceAggregatorRequest = AdminApi.TraceAggregatorTracesCreate.RequestBody;
 type TraceAggregatorResponse = AdminApi.TraceAggregatorTracesCreate.ResponseBody['data'];
@@ -54,7 +52,6 @@ export type TracesAddCustomFieldParameter = {
 }
 
 interface State extends TraceStateParameters {
-    version: number,
     loading: boolean,
     traceAggregator: TraceAggregatorResponse
 }
@@ -62,13 +59,12 @@ interface State extends TraceStateParameters {
 export interface TraceStateParameters {
     startOfDay: boolean,
     payload: TraceAggregatorPayload,
-    customFields: TraceAggregatorCustomField[]
+    customFields: TraceAggregatorCustomField[],
 }
 
 export const useTraceAggregatorStore = defineStore('traceAggregatorStore', {
     state: (): State => {
         return {
-            version: stateVersion,
             loading: true,
             startOfDay: true,
             payload: {
@@ -92,7 +88,12 @@ export const useTraceAggregatorStore = defineStore('traceAggregatorStore', {
                 },
             } as TraceAggregatorPayload,
             traceAggregator: {} as TraceAggregatorResponse,
-            customFields: []
+            customFields: [],
+        }
+    },
+    getters: {
+        traceAggregatorServicesStore() {
+            return useTraceAggregatorServicesStore()
         }
     },
     actions: {
@@ -122,11 +123,6 @@ export const useTraceAggregatorStore = defineStore('traceAggregatorStore', {
                         this.loading = false
                     })
             )
-        },
-        restoreTraceState(newState: TraceStateParameters) {
-            this.startOfDay = newState.startOfDay
-            this.payload = newState.payload
-            this.customFields = newState.customFields
         },
         setData(data: TraceAggregatorResponse) {
             this.traceAggregator = data
@@ -158,9 +154,6 @@ export const useTraceAggregatorStore = defineStore('traceAggregatorStore', {
         },
         setPage(page: number) {
             this.payload!.page = page
-        },
-        setPerPage(perPage: number) {
-            this.payload!.per_page = perPage
         },
         addOrDeleteType(type: string) {
             if (this.payload.types?.indexOf(type) === -1) {
