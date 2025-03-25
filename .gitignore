@@ -29,6 +29,5 @@ protoc-gen-php-grpc
 
 .deptrac.cache
 
-strans*
 .env.strans.*
-storage/slogger-dispatcher-state*
+storage/slogger/*
