@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "3c217b006ddb6a090a9efbc019b73fac",
+    "content-hash": "44a5c261f12a3360218c3dee4473b1cb",
     "packages": [
         {
             "name": "brick/math",
@@ -3139,6 +3139,70 @@
             "time": "2024-11-21T10:39:51+00:00"
         },
         {
+            "name": "opis/closure",
+            "version": "4.3.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/opis/closure.git",
+                "reference": "9b6ef5f622b4b29cf98bdc144f2a370c3a40d4df"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/opis/closure/zipball/9b6ef5f622b4b29cf98bdc144f2a370c3a40d4df",
+                "reference": "9b6ef5f622b4b29cf98bdc144f2a370c3a40d4df",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^9.0"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "4.x-dev"
+                }
+            },
+            "autoload": {
+                "files": [
+                    "src/functions.php"
+                ],
+                "psr-4": {
+                    "Opis\\Closure\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Marius Sarca",
+                    "email": "marius.sarca@gmail.com"
+                },
+                {
+                    "name": "Sorin Sarca",
+                    "email": "sarca_sorin@hotmail.com"
+                }
+            ],
+            "description": "A library that can be used to serialize closures (anonymous functions) and arbitrary data.",
+            "homepage": "https://opis.io/closure",
+            "keywords": [
+                "anonymous functions",
+                "closure",
+                "function",
+                "serializable",
+                "serialization",
+                "serialize"
+            ],
+            "support": {
+                "issues": "https://github.com/opis/closure/issues",
+                "source": "https://github.com/opis/closure/tree/4.3.1"
+            },
+            "time": "2025-01-10T20:42:24+00:00"
+        },
+        {
             "name": "paragonie/constant_time_encoding",
             "version": "v3.0.0",
             "source": {
@@ -4368,6 +4432,109 @@
                 "symlink": true,
                 "relative": true
             }
+        },
+        {
+            "name": "sparallel/sparallel",
+            "version": "v0.0.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/sprust/sparallel.git",
+                "reference": "7758282c2a59797f5d46b095e92182c9d845cff9"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/sprust/sparallel/zipball/7758282c2a59797f5d46b095e92182c9d845cff9",
+                "reference": "7758282c2a59797f5d46b095e92182c9d845cff9",
+                "shasum": ""
+            },
+            "require": {
+                "ext-pcntl": "*",
+                "ext-posix": "*",
+                "ext-sockets": "*",
+                "opis/closure": "^4.3",
+                "php": "^8.2",
+                "psr/container": "^2.0",
+                "symfony/process": "^6.4|^7.0"
+            },
+            "require-dev": {
+                "phpstan/phpstan": "^2.1",
+                "phpunit/phpunit": "^11.5"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "SParallel\\": "src/SParallel"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Pavel",
+                    "email": "sprust28@gmail.com"
+                }
+            ],
+            "description": "Parallel PHP via processes",
+            "support": {
+                "issues": "https://github.com/sprust/sparallel/issues",
+                "source": "https://github.com/sprust/sparallel/tree/v0.0.1"
+            },
+            "time": "2025-04-16T11:55:41+00:00"
+        },
+        {
+            "name": "sparallel/sparallel-laravel",
+            "version": "v0.0.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/sprust/sparallel-laravel.git",
+                "reference": "e6379fa2196ae9956fdcc04e0c7c572116cf75b7"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/sprust/sparallel-laravel/zipball/e6379fa2196ae9956fdcc04e0c7c572116cf75b7",
+                "reference": "e6379fa2196ae9956fdcc04e0c7c572116cf75b7",
+                "shasum": ""
+            },
+            "require": {
+                "laravel/framework": "^9.0 | ^10.0 | ^11.0",
+                "php": "^8.2",
+                "sparallel/sparallel": "^0.0.1"
+            },
+            "require-dev": {
+                "phpstan/phpstan": "^2.1",
+                "phpunit/phpunit": "^11.5"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "SParallelLaravel\\SParallelServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "SParallelLaravel\\": "src/SParallelLaravel"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Pavel",
+                    "email": "sprust28@gmail.com"
+                }
+            ],
+            "description": "Parallel PHP via processes for Laravel",
+            "support": {
+                "issues": "https://github.com/sprust/sparallel-laravel/issues",
+                "source": "https://github.com/sprust/sparallel-laravel/tree/v0.0.1"
+            },
+            "time": "2025-04-16T12:33:54+00:00"
         },
         {
             "name": "spiral/core",

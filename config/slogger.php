@@ -3,8 +3,9 @@
 use App\Models\Users\User;
 use App\Modules\Trace\Infrastructure\Jobs\TraceCreateJob;
 use App\Modules\Trace\Infrastructure\Jobs\TraceUpdateJob;
-use SLoggerLaravel\Watchers\Children\EventWatcher;
 use App\Services\SLogger\RrParallelJobWatcher;
+use App\Services\SLogger\SParallelJobWatcher;
+use RrMonitor\Events\MonitorWorkersCountSetEvent;
 use RrParallel\Events\JobHandledEvent;
 use RrParallel\Events\JobHandlingErrorEvent;
 use RrParallel\Events\JobReceivedEvent;
@@ -15,6 +16,7 @@ use SLoggerLaravel\Listeners\WatcherErrorListener;
 use SLoggerLaravel\Watchers\Children\CacheWatcher;
 use SLoggerLaravel\Watchers\Children\DatabaseWatcher;
 use SLoggerLaravel\Watchers\Children\DumpWatcher;
+use SLoggerLaravel\Watchers\Children\EventWatcher;
 use SLoggerLaravel\Watchers\Children\GateWatcher;
 use SLoggerLaravel\Watchers\Children\HttpClientWatcher;
 use SLoggerLaravel\Watchers\Children\LogWatcher;
@@ -25,7 +27,12 @@ use SLoggerLaravel\Watchers\Children\ScheduleWatcher;
 use SLoggerLaravel\Watchers\Parents\CommandWatcher;
 use SLoggerLaravel\Watchers\Parents\JobWatcher;
 use SLoggerLaravel\Watchers\Parents\RequestWatcher;
-use RrMonitor\Events\MonitorWorkersCountSetEvent;
+use SParallelLaravel\Events\SParallelTaskFinishedEvent;
+use SParallelLaravel\Events\SParallelTaskFailedEvent;
+use SParallelLaravel\Events\SParallelTaskStartingEvent;
+use SParallelLaravel\Events\SParallelFlowFailedEvent;
+use SParallelLaravel\Events\SParallelFlowFinishedEvent;
+use SParallelLaravel\Events\SParallelFlowStartingEvent;
 
 $defaultQueueConnection = env('QUEUE_TRACES_CREATING_CONNECTION');
 
@@ -170,6 +177,7 @@ return [
                 'trace-buffer:handle:start',
                 'slogger:dispatcher:start',
                 'trace-dynamic-indexes:monitor:start',
+                'sparallel:handle-serialized-closure',
             ],
         ],
 
@@ -201,6 +209,12 @@ return [
                 JobReceivedEvent::class,
                 JobHandlingErrorEvent::class,
                 JobHandledEvent::class,
+                SParallelFlowFailedEvent::class,
+                SParallelFlowFinishedEvent::class,
+                SParallelFlowStartingEvent::class,
+                SParallelTaskStartingEvent::class,
+                SParallelTaskFinishedEvent::class,
+                SParallelTaskFailedEvent::class,
             ],
             'serialize_events' => [
                 MonitorWorkersCountSetEvent::class,
@@ -271,6 +285,10 @@ return [
         [
             'class'   => RrParallelJobWatcher::class,
             'enabled' => env('SLOGGER_RR_PARALLEL_ENABLED', false),
+        ],
+        [
+            'class'   => SParallelJobWatcher::class,
+            'enabled' => env('SLOGGER_SPARALLEL_ENABLED', false),
         ],
     ],
 ];
