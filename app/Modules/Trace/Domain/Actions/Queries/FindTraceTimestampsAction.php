@@ -25,26 +25,24 @@ use App\Modules\Trace\Repositories\Dto\Trace\Timestamp\TraceTimestampFieldIndica
 use App\Modules\Trace\Repositories\Dto\Trace\Timestamp\TraceTimestampsDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Timestamp\TraceTimestampsListDto;
 use Illuminate\Support\Arr;
-use RrParallel\Exceptions\ParallelJobsException;
-use RrParallel\Exceptions\WaitTimeoutException;
-use RrParallel\Services\Dto\JobResultsDto;
-use RrParallel\Services\ParallelPusherInterface;
 use RuntimeException;
+use SParallel\Exceptions\SParallelTimeoutException;
+use SParallel\Objects\ResultErrorObject;
+use SParallel\Services\SParallelService;
 
 readonly class FindTraceTimestampsAction implements FindTraceTimestampsActionInterface
 {
     public function __construct(
         private TraceTimestampMetricsFactory $traceTimestampMetricsFactory,
         private TraceDynamicIndexInitializer $traceDynamicIndexInitializer,
-        private ParallelPusherInterface $parallelPusher
+        private SParallelService $parallelService
     ) {
     }
 
     /**
      * @throws TraceDynamicIndexErrorException
+     * @throws SParallelTimeoutException
      * @throws TraceDynamicIndexInProcessException
-     * @throws ParallelJobsException
-     * @throws WaitTimeoutException
      * @throws TraceDynamicIndexNotInitException
      */
     public function handle(FindTraceTimestampsParameters $parameters): TraceTimestampsObjects
@@ -146,45 +144,48 @@ readonly class FindTraceTimestampsAction implements FindTraceTimestampsActionInt
                 $to = $loggedAtTo->clone();
             }
 
-            $callbacks[] = static fn(TraceTimestampsRepositoryInterface $repository) => $repository->find(
-                loggedAtFrom: $from,
-                loggedAtTo: $to,
-                timestamp: $parameters->timestampStep,
-                fields: $fieldsFilter,
-                dataFields: $dataFieldsFilter,
-                serviceIds: $parameters->serviceIds,
-                traceIds: $parameters->traceIds,
-                types: $parameters->types,
-                tags: $parameters->tags,
-                statuses: $parameters->statuses,
-                durationFrom: $parameters->durationFrom,
-                durationTo: $parameters->durationTo,
-                memoryFrom: $parameters->memoryFrom,
-                memoryTo: $parameters->memoryTo,
-                cpuFrom: $parameters->cpuFrom,
-                cpuTo: $parameters->cpuTo,
-                data: $data,
-                hasProfiling: $parameters->hasProfiling,
-            );
+            $callbacks[] = static fn() => app(TraceTimestampsRepositoryInterface::class)
+                ->find(
+                    loggedAtFrom: $from,
+                    loggedAtTo: $to,
+                    timestamp: $parameters->timestampStep,
+                    fields: $fieldsFilter,
+                    dataFields: $dataFieldsFilter,
+                    serviceIds: $parameters->serviceIds,
+                    traceIds: $parameters->traceIds,
+                    types: $parameters->types,
+                    tags: $parameters->tags,
+                    statuses: $parameters->statuses,
+                    durationFrom: $parameters->durationFrom,
+                    durationTo: $parameters->durationTo,
+                    memoryFrom: $parameters->memoryFrom,
+                    memoryTo: $parameters->memoryTo,
+                    cpuFrom: $parameters->cpuFrom,
+                    cpuTo: $parameters->cpuTo,
+                    data: $data,
+                    hasProfiling: $parameters->hasProfiling,
+                );
 
             $dateCursor = $to->clone()->addMicrosecond();
         }
 
-        $waitGroup = $this->parallelPusher->wait($callbacks);
-
-        /** @var JobResultsDto<TraceTimestampsListDto> $results */
-        $results = $waitGroup->wait(20);
+        $results = $this->parallelService->wait(
+            callbacks: $callbacks,
+            waitMicroseconds: 20_000_000,
+            breakAtFirstError: true
+        );
 
         // TODO: normal error handling
-        if ($results->hasFailed) {
-            $jobResultError = Arr::first($results->failed)->error;
+        if ($results->hasFailed()) {
+            /** @var ResultErrorObject|null $resultError */
+            $resultError = ($results->getFailed()[0] ?? null)->error;
 
-            if (!$jobResultError) {
+            if (!$resultError) {
                 throw new RuntimeException('Unknown error');
             }
 
             throw new RuntimeException(
-                $jobResultError->message . PHP_EOL . $jobResultError->traceAsString
+                $resultError->message . PHP_EOL . $resultError->traceAsString
             );
         }
 
@@ -193,8 +194,11 @@ readonly class FindTraceTimestampsAction implements FindTraceTimestampsActionInt
         /** @var TraceTimestampFieldDto[] $emptyIndicatorsResult */
         $emptyIndicatorsResult = [];
 
-        foreach ($results->results as $result) {
-            foreach ($result->result->timestamps as $foundTimestamp) {
+        foreach ($results->getResults() as $result) {
+            /** @var TraceTimestampsListDto $timestampsList */
+            $timestampsList = $result->result;
+
+            foreach ($timestampsList->timestamps as $foundTimestamp) {
                 $existsTimestamp = Arr::first(
                     $timestampsResult,
                     fn(TraceTimestampsDto $timestampResult) => $timestampResult->timestamp
@@ -208,7 +212,7 @@ readonly class FindTraceTimestampsAction implements FindTraceTimestampsActionInt
                 $timestampsResult[] = $foundTimestamp;
             }
 
-            foreach ($result->result->emptyIndicators as $foundEmptyIndicator) {
+            foreach ($timestampsList->emptyIndicators as $foundEmptyIndicator) {
                 $existsEmptyIndicator = Arr::first(
                     $emptyIndicatorsResult,
                     fn(TraceTimestampFieldDto $emptyIndicatorResult) => $emptyIndicatorResult->field

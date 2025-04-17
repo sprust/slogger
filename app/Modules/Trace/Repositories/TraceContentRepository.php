@@ -11,23 +11,22 @@ use App\Modules\Trace\Repositories\Services\PeriodicTraceService;
 use App\Modules\Trace\Repositories\Services\TracePipelineBuilder;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
-use RrParallel\Exceptions\ParallelJobsException;
-use RrParallel\Exceptions\WaitTimeoutException;
-use RrParallel\Services\ParallelPusherInterface;
 use RuntimeException;
+use SParallel\Exceptions\SParallelTimeoutException;
+use SParallel\Objects\ResultErrorObject;
+use SParallel\Services\SParallelService;
 
 readonly class TraceContentRepository implements TraceContentRepositoryInterface
 {
     public function __construct(
-        private ParallelPusherInterface $parallelPusher,
+        private SParallelService $parallelService,
         private TracePipelineBuilder $tracePipelineBuilder,
         private PeriodicTraceService $periodicTraceService
     ) {
     }
 
     /**
-     * @throws WaitTimeoutException
-     * @throws ParallelJobsException
+     * @throws SParallelTimeoutException
      */
     public function findTypes(
         array $serviceIds = [],
@@ -98,8 +97,7 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
     }
 
     /**
-     * @throws WaitTimeoutException
-     * @throws ParallelJobsException
+     * @throws SParallelTimeoutException
      */
     public function findTags(
         array $serviceIds = [],
@@ -196,8 +194,7 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
     }
 
     /**
-     * @throws WaitTimeoutException
-     * @throws ParallelJobsException
+     * @throws SParallelTimeoutException
      */
     public function findStatuses(
         array $serviceIds = [],
@@ -277,8 +274,7 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
      *
      * @return TraceStringFieldObject[]
      *
-     * @throws ParallelJobsException
-     * @throws WaitTimeoutException
+     * @throws SParallelTimeoutException
      */
     private function handleRequest(array $collectionNames, array $pipeline): array
     {
@@ -286,10 +282,9 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
         $callbacks = [];
 
         foreach ($collectionNames as $collectionName) {
-            $callbacks[] = static function (PeriodicTraceService $periodicTraceService) use (
-                $collectionName,
-                $pipeline
-            ) {
+            $callbacks[] = static function () use ($collectionName, $pipeline) {
+                $periodicTraceService = app(PeriodicTraceService::class);
+
                 /** @var array<string, int> $groups */
                 $groups = [];
 
@@ -309,25 +304,30 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
             };
         }
 
-        $results = $this->parallelPusher->wait($callbacks)->wait(20);
+        $results = $this->parallelService->wait(
+            callbacks: $callbacks,
+            waitMicroseconds: 20_000_000,
+            breakAtFirstError: true
+        );
 
         // TODO: normal error handling
-        if ($results->hasFailed) {
-            $jobResultError = Arr::first($results->failed)->error;
+        if ($results->hasFailed()) {
+            /** @var ResultErrorObject|null $resultError */
+            $resultError = ($results->getFailed()[0] ?? null)->error;
 
-            if (!$jobResultError) {
+            if (!$resultError) {
                 throw new RuntimeException('Unknown error');
             }
 
             throw new RuntimeException(
-                $jobResultError->message . PHP_EOL . $jobResultError->traceAsString
+                $resultError->message . PHP_EOL . $resultError->traceAsString
             );
         }
 
         /** @var array<string|int, int> $groups */
         $groups = [];
 
-        foreach ($results->results as $result) {
+        foreach ($results->getResults() as $result) {
             foreach ($result->result as $type => $count) {
                 $groups[$type] ??= 0;
                 $groups[$type] += $count;
