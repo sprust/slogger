@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "44a5c261f12a3360218c3dee4473b1cb",
+    "content-hash": "b8becdcae033f427a03b9b9f28f629f0",
     "packages": [
         {
             "name": "brick/math",
@@ -4435,16 +4435,16 @@
         },
         {
             "name": "sparallel/sparallel",
-            "version": "v0.0.1",
+            "version": "v0.0.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sprust/sparallel.git",
-                "reference": "7758282c2a59797f5d46b095e92182c9d845cff9"
+                "reference": "911f64ce02a5407f72baea8544594374ecb04fc2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sprust/sparallel/zipball/7758282c2a59797f5d46b095e92182c9d845cff9",
-                "reference": "7758282c2a59797f5d46b095e92182c9d845cff9",
+                "url": "https://api.github.com/repos/sprust/sparallel/zipball/911f64ce02a5407f72baea8544594374ecb04fc2",
+                "reference": "911f64ce02a5407f72baea8544594374ecb04fc2",
                 "shasum": ""
             },
             "require": {
@@ -4479,28 +4479,28 @@
             "description": "Parallel PHP via processes",
             "support": {
                 "issues": "https://github.com/sprust/sparallel/issues",
-                "source": "https://github.com/sprust/sparallel/tree/v0.0.1"
+                "source": "https://github.com/sprust/sparallel/tree/v0.0.2"
             },
-            "time": "2025-04-16T11:55:41+00:00"
+            "time": "2025-04-17T13:40:21+00:00"
         },
         {
             "name": "sparallel/sparallel-laravel",
-            "version": "v0.0.1",
+            "version": "v0.0.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sprust/sparallel-laravel.git",
-                "reference": "e6379fa2196ae9956fdcc04e0c7c572116cf75b7"
+                "reference": "2252f4678543e54b99b374ae6100cf92f4020e29"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sprust/sparallel-laravel/zipball/e6379fa2196ae9956fdcc04e0c7c572116cf75b7",
-                "reference": "e6379fa2196ae9956fdcc04e0c7c572116cf75b7",
+                "url": "https://api.github.com/repos/sprust/sparallel-laravel/zipball/2252f4678543e54b99b374ae6100cf92f4020e29",
+                "reference": "2252f4678543e54b99b374ae6100cf92f4020e29",
                 "shasum": ""
             },
             "require": {
                 "laravel/framework": "^9.0 | ^10.0 | ^11.0",
                 "php": "^8.2",
-                "sparallel/sparallel": "^0.0.1"
+                "sparallel/sparallel": "^0.0.2"
             },
             "require-dev": {
                 "phpstan/phpstan": "^2.1",
@@ -4532,9 +4532,9 @@
             "description": "Parallel PHP via processes for Laravel",
             "support": {
                 "issues": "https://github.com/sprust/sparallel-laravel/issues",
-                "source": "https://github.com/sprust/sparallel-laravel/tree/v0.0.1"
+                "source": "https://github.com/sprust/sparallel-laravel/tree/v0.0.2"
             },
-            "time": "2025-04-16T12:33:54+00:00"
+            "time": "2025-04-17T15:37:01+00:00"
         },
         {
             "name": "spiral/core",
