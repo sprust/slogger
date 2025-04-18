@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "b8becdcae033f427a03b9b9f28f629f0",
+    "content-hash": "983f72ea6515ea77db24b4d2794d53b9",
     "packages": [
         {
             "name": "brick/math",
@@ -4434,57 +4434,7 @@
             }
         },
         {
-            "name": "sparallel/sparallel",
-            "version": "v0.0.2",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/sprust/sparallel.git",
-                "reference": "911f64ce02a5407f72baea8544594374ecb04fc2"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/sprust/sparallel/zipball/911f64ce02a5407f72baea8544594374ecb04fc2",
-                "reference": "911f64ce02a5407f72baea8544594374ecb04fc2",
-                "shasum": ""
-            },
-            "require": {
-                "ext-pcntl": "*",
-                "ext-posix": "*",
-                "ext-sockets": "*",
-                "opis/closure": "^4.3",
-                "php": "^8.2",
-                "psr/container": "^2.0",
-                "symfony/process": "^6.4|^7.0"
-            },
-            "require-dev": {
-                "phpstan/phpstan": "^2.1",
-                "phpunit/phpunit": "^11.5"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "SParallel\\": "src/SParallel"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Pavel",
-                    "email": "sprust28@gmail.com"
-                }
-            ],
-            "description": "Parallel PHP via processes",
-            "support": {
-                "issues": "https://github.com/sprust/sparallel/issues",
-                "source": "https://github.com/sprust/sparallel/tree/v0.0.2"
-            },
-            "time": "2025-04-17T13:40:21+00:00"
-        },
-        {
-            "name": "sparallel/sparallel-laravel",
+            "name": "sparallel/laravel",
             "version": "v0.0.2",
             "source": {
                 "type": "git",
@@ -4535,6 +4485,56 @@
                 "source": "https://github.com/sprust/sparallel-laravel/tree/v0.0.2"
             },
             "time": "2025-04-17T15:37:01+00:00"
+        },
+        {
+            "name": "sparallel/sparallel",
+            "version": "v0.0.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/sprust/sparallel.git",
+                "reference": "911f64ce02a5407f72baea8544594374ecb04fc2"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/sprust/sparallel/zipball/911f64ce02a5407f72baea8544594374ecb04fc2",
+                "reference": "911f64ce02a5407f72baea8544594374ecb04fc2",
+                "shasum": ""
+            },
+            "require": {
+                "ext-pcntl": "*",
+                "ext-posix": "*",
+                "ext-sockets": "*",
+                "opis/closure": "^4.3",
+                "php": "^8.2",
+                "psr/container": "^2.0",
+                "symfony/process": "^6.4|^7.0"
+            },
+            "require-dev": {
+                "phpstan/phpstan": "^2.1",
+                "phpunit/phpunit": "^11.5"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "SParallel\\": "src/SParallel"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Pavel",
+                    "email": "sprust28@gmail.com"
+                }
+            ],
+            "description": "Parallel PHP via processes",
+            "support": {
+                "issues": "https://github.com/sprust/sparallel/issues",
+                "source": "https://github.com/sprust/sparallel/tree/v0.0.2"
+            },
+            "time": "2025-04-17T13:40:21+00:00"
         },
         {
             "name": "spiral/core",

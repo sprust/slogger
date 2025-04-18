@@ -21,7 +21,7 @@
         "mongodb/mongodb": "^1.17",
         "slogger/grpc": "dev-master",
         "slogger/laravel": "dev-master",
-        "sparallel/sparallel-laravel": "^0.0.2",
+        "sparallel/laravel": "^0.0.2",
         "spiral/roadrunner-cli": "^2.7",
         "spiral/roadrunner-grpc": "^3.5",
         "spiral/roadrunner-http": "^3.5",
