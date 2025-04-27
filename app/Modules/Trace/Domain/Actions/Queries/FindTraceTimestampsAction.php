@@ -26,8 +26,7 @@ use App\Modules\Trace\Repositories\Dto\Trace\Timestamp\TraceTimestampsDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Timestamp\TraceTimestampsListDto;
 use Illuminate\Support\Arr;
 use RuntimeException;
-use SParallel\Exceptions\SParallelTimeoutException;
-use SParallel\Objects\ResultErrorObject;
+use SParallel\Exceptions\CancelerException;
 use SParallel\Services\SParallelService;
 
 readonly class FindTraceTimestampsAction implements FindTraceTimestampsActionInterface
@@ -41,7 +40,7 @@ readonly class FindTraceTimestampsAction implements FindTraceTimestampsActionInt
 
     /**
      * @throws TraceDynamicIndexErrorException
-     * @throws SParallelTimeoutException
+     * @throws CancelerException
      * @throws TraceDynamicIndexInProcessException
      * @throws TraceDynamicIndexNotInitException
      */
@@ -144,57 +143,50 @@ readonly class FindTraceTimestampsAction implements FindTraceTimestampsActionInt
                 $to = $loggedAtTo->clone();
             }
 
-            $callbacks[] = static fn() => app(TraceTimestampsRepositoryInterface::class)
-                ->find(
-                    loggedAtFrom: $from,
-                    loggedAtTo: $to,
-                    timestamp: $parameters->timestampStep,
-                    fields: $fieldsFilter,
-                    dataFields: $dataFieldsFilter,
-                    serviceIds: $parameters->serviceIds,
-                    traceIds: $parameters->traceIds,
-                    types: $parameters->types,
-                    tags: $parameters->tags,
-                    statuses: $parameters->statuses,
-                    durationFrom: $parameters->durationFrom,
-                    durationTo: $parameters->durationTo,
-                    memoryFrom: $parameters->memoryFrom,
-                    memoryTo: $parameters->memoryTo,
-                    cpuFrom: $parameters->cpuFrom,
-                    cpuTo: $parameters->cpuTo,
-                    data: $data,
-                    hasProfiling: $parameters->hasProfiling,
-                );
+            $callbacks[] = static fn(
+                TraceTimestampsRepositoryInterface $timestampsRepository
+            ) => $timestampsRepository->find(
+                loggedAtFrom: $from,
+                loggedAtTo: $to,
+                timestamp: $parameters->timestampStep,
+                fields: $fieldsFilter,
+                dataFields: $dataFieldsFilter,
+                serviceIds: $parameters->serviceIds,
+                traceIds: $parameters->traceIds,
+                types: $parameters->types,
+                tags: $parameters->tags,
+                statuses: $parameters->statuses,
+                durationFrom: $parameters->durationFrom,
+                durationTo: $parameters->durationTo,
+                memoryFrom: $parameters->memoryFrom,
+                memoryTo: $parameters->memoryTo,
+                cpuFrom: $parameters->cpuFrom,
+                cpuTo: $parameters->cpuTo,
+                data: $data,
+                hasProfiling: $parameters->hasProfiling,
+            );
 
             $dateCursor = $to->clone()->addMicrosecond();
         }
 
-        $results = $this->parallelService->wait(
+        $results = $this->parallelService->run(
             callbacks: $callbacks,
-            waitMicroseconds: 20_000_000,
+            timeoutSeconds: 20,
             breakAtFirstError: true
         );
-
-        // TODO: normal error handling
-        if ($results->hasFailed()) {
-            /** @var ResultErrorObject|null $resultError */
-            $resultError = ($results->getFailed()[0] ?? null)->error;
-
-            if (!$resultError) {
-                throw new RuntimeException('Unknown error');
-            }
-
-            throw new RuntimeException(
-                $resultError->message . PHP_EOL . $resultError->traceAsString
-            );
-        }
 
         /** @var TraceTimestampsDto[] $timestampsResult */
         $timestampsResult = [];
         /** @var TraceTimestampFieldDto[] $emptyIndicatorsResult */
         $emptyIndicatorsResult = [];
 
-        foreach ($results->getResults() as $result) {
+        foreach ($results as $result) {
+            if ($result->error) {
+                throw new RuntimeException(
+                    $result->error->message . PHP_EOL . $result->error->traceAsString
+                );
+            }
+
             /** @var TraceTimestampsListDto $timestampsList */
             $timestampsList = $result->result;
 

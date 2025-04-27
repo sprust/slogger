@@ -12,8 +12,7 @@ use App\Modules\Trace\Repositories\Services\TracePipelineBuilder;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use RuntimeException;
-use SParallel\Exceptions\SParallelTimeoutException;
-use SParallel\Objects\ResultErrorObject;
+use SParallel\Exceptions\CancelerException;
 use SParallel\Services\SParallelService;
 
 readonly class TraceContentRepository implements TraceContentRepositoryInterface
@@ -26,7 +25,7 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
     }
 
     /**
-     * @throws SParallelTimeoutException
+     * @throws CancelerException
      */
     public function findTypes(
         array $serviceIds = [],
@@ -97,7 +96,7 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
     }
 
     /**
-     * @throws SParallelTimeoutException
+     * @throws CancelerException
      */
     public function findTags(
         array $serviceIds = [],
@@ -194,7 +193,7 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
     }
 
     /**
-     * @throws SParallelTimeoutException
+     * @throws CancelerException
      */
     public function findStatuses(
         array $serviceIds = [],
@@ -274,7 +273,7 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
      *
      * @return TraceStringFieldObject[]
      *
-     * @throws SParallelTimeoutException
+     * @throws CancelerException
      */
     private function handleRequest(array $collectionNames, array $pipeline): array
     {
@@ -282,9 +281,7 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
         $callbacks = [];
 
         foreach ($collectionNames as $collectionName) {
-            $callbacks[] = static function () use ($collectionName, $pipeline) {
-                $periodicTraceService = app(PeriodicTraceService::class);
-
+            $callbacks[] = static function (PeriodicTraceService $periodicTraceService) use ($collectionName, $pipeline) {
                 /** @var array<string, int> $groups */
                 $groups = [];
 
@@ -304,30 +301,22 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
             };
         }
 
-        $results = $this->parallelService->wait(
+        $results = $this->parallelService->run(
             callbacks: $callbacks,
-            waitMicroseconds: 20_000_000,
+            timeoutSeconds: 20,
             breakAtFirstError: true
         );
-
-        // TODO: normal error handling
-        if ($results->hasFailed()) {
-            /** @var ResultErrorObject|null $resultError */
-            $resultError = ($results->getFailed()[0] ?? null)->error;
-
-            if (!$resultError) {
-                throw new RuntimeException('Unknown error');
-            }
-
-            throw new RuntimeException(
-                $resultError->message . PHP_EOL . $resultError->traceAsString
-            );
-        }
 
         /** @var array<string|int, int> $groups */
         $groups = [];
 
-        foreach ($results->getResults() as $result) {
+        foreach ($results as $result) {
+            if ($result->error) {
+                throw new RuntimeException(
+                    $result->error->message . PHP_EOL . $result->error->traceAsString
+                );
+            }
+
             foreach ($result->result as $type => $count) {
                 $groups[$type] ??= 0;
                 $groups[$type] += $count;

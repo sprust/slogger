@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "983f72ea6515ea77db24b4d2794d53b9",
+    "content-hash": "22c340ca110275601c165e7844db3286",
     "packages": [
         {
             "name": "brick/math",
@@ -4435,27 +4435,29 @@
         },
         {
             "name": "sparallel/laravel",
-            "version": "v0.0.2",
+            "version": "dev-master",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sprust/sparallel-laravel.git",
-                "reference": "2252f4678543e54b99b374ae6100cf92f4020e29"
+                "reference": "a62d7c245458e138d5a12c07ca197a1da2da8965"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sprust/sparallel-laravel/zipball/2252f4678543e54b99b374ae6100cf92f4020e29",
-                "reference": "2252f4678543e54b99b374ae6100cf92f4020e29",
+                "url": "https://api.github.com/repos/sprust/sparallel-laravel/zipball/a62d7c245458e138d5a12c07ca197a1da2da8965",
+                "reference": "a62d7c245458e138d5a12c07ca197a1da2da8965",
                 "shasum": ""
             },
             "require": {
                 "laravel/framework": "^9.0 | ^10.0 | ^11.0",
                 "php": "^8.2",
-                "sparallel/sparallel": "^0.0.2"
+                "sparallel/sparallel": "dev-master"
             },
             "require-dev": {
+                "orchestra/testbench": "^9.13",
                 "phpstan/phpstan": "^2.1",
                 "phpunit/phpunit": "^11.5"
             },
+            "default-branch": true,
             "type": "library",
             "extra": {
                 "laravel": {
@@ -4482,22 +4484,22 @@
             "description": "Parallel PHP via processes for Laravel",
             "support": {
                 "issues": "https://github.com/sprust/sparallel-laravel/issues",
-                "source": "https://github.com/sprust/sparallel-laravel/tree/v0.0.2"
+                "source": "https://github.com/sprust/sparallel-laravel/tree/master"
             },
-            "time": "2025-04-17T15:37:01+00:00"
+            "time": "2025-04-27T12:03:56+00:00"
         },
         {
             "name": "sparallel/sparallel",
-            "version": "v0.0.2",
+            "version": "dev-master",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sprust/sparallel.git",
-                "reference": "911f64ce02a5407f72baea8544594374ecb04fc2"
+                "reference": "f4d53ed53ec8269cb4e715b0706ad8eb343ac9fb"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sprust/sparallel/zipball/911f64ce02a5407f72baea8544594374ecb04fc2",
-                "reference": "911f64ce02a5407f72baea8544594374ecb04fc2",
+                "url": "https://api.github.com/repos/sprust/sparallel/zipball/f4d53ed53ec8269cb4e715b0706ad8eb343ac9fb",
+                "reference": "f4d53ed53ec8269cb4e715b0706ad8eb343ac9fb",
                 "shasum": ""
             },
             "require": {
@@ -4513,6 +4515,7 @@
                 "phpstan/phpstan": "^2.1",
                 "phpunit/phpunit": "^11.5"
             },
+            "default-branch": true,
             "type": "library",
             "autoload": {
                 "psr-4": {
@@ -4532,9 +4535,9 @@
             "description": "Parallel PHP via processes",
             "support": {
                 "issues": "https://github.com/sprust/sparallel/issues",
-                "source": "https://github.com/sprust/sparallel/tree/v0.0.2"
+                "source": "https://github.com/sprust/sparallel/tree/master"
             },
-            "time": "2025-04-17T13:40:21+00:00"
+            "time": "2025-04-27T12:03:16+00:00"
         },
         {
             "name": "spiral/core",
@@ -11356,6 +11359,8 @@
         "ifksco/openapi-generator": 20,
         "slogger/grpc": 20,
         "slogger/laravel": 20,
+        "sparallel/laravel": 20,
+        "sparallel/sparallel": 20,
         "sprust/rr-monitor-laravel": 20,
         "sprust/rr-parallel-laravel": 20
     },

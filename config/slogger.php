@@ -4,7 +4,7 @@ use App\Models\Users\User;
 use App\Modules\Trace\Infrastructure\Jobs\TraceCreateJob;
 use App\Modules\Trace\Infrastructure\Jobs\TraceUpdateJob;
 use App\Services\SLogger\RrParallelJobWatcher;
-use App\Services\SLogger\SParallelJobWatcher;
+use App\Services\SLogger\SParallelWatcher;
 use RrMonitor\Events\MonitorWorkersCountSetEvent;
 use RrParallel\Events\JobHandledEvent;
 use RrParallel\Events\JobHandlingErrorEvent;
@@ -33,6 +33,8 @@ use SParallelLaravel\Events\SParallelTaskStartingEvent;
 use SParallelLaravel\Events\SParallelFlowFailedEvent;
 use SParallelLaravel\Events\SParallelFlowFinishedEvent;
 use SParallelLaravel\Events\SParallelFlowStartingEvent;
+use SParallelLaravel\Events\SParallelProcessCreatedEvent;
+use SParallelLaravel\Events\SParallelProcessFinishedEvent;
 
 $defaultQueueConnection = env('QUEUE_TRACES_CREATING_CONNECTION');
 
@@ -215,6 +217,8 @@ return [
                 SParallelTaskStartingEvent::class,
                 SParallelTaskFinishedEvent::class,
                 SParallelTaskFailedEvent::class,
+                SParallelProcessCreatedEvent::class,
+                SParallelProcessFinishedEvent::class,
             ],
             'serialize_events' => [
                 MonitorWorkersCountSetEvent::class,
@@ -287,7 +291,7 @@ return [
             'enabled' => env('SLOGGER_RR_PARALLEL_ENABLED', false),
         ],
         [
-            'class'   => SParallelJobWatcher::class,
+            'class'   => SParallelWatcher::class,
             'enabled' => env('SLOGGER_SPARALLEL_ENABLED', false),
         ],
     ],

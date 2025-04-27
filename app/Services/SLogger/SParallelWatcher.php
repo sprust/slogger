@@ -11,14 +11,14 @@ use SLoggerLaravel\Helpers\DataFormatter;
 use SLoggerLaravel\Helpers\TraceHelper;
 use SLoggerLaravel\Traces\TraceIdContainer;
 use SLoggerLaravel\Watchers\AbstractWatcher;
-use SParallel\Objects\Context;
+use SParallel\Contracts\ContextResolverInterface;
 use SParallelLaravel\Events\SParallelFlowFinishedEvent;
 use SParallelLaravel\Events\SParallelFlowStartingEvent;
 use SParallelLaravel\Events\SParallelTaskFailedEvent;
 use SParallelLaravel\Events\SParallelTaskFinishedEvent;
 use SParallelLaravel\Events\SParallelTaskStartingEvent;
 
-class SParallelJobWatcher extends AbstractWatcher
+class SParallelWatcher extends AbstractWatcher
 {
     /** @var array<string, array<string, mixed>> */
     private array $tasks = [];
@@ -34,7 +34,7 @@ class SParallelJobWatcher extends AbstractWatcher
      */
     public function register(): void
     {
-        $this->app->get(Context::class)
+        $this->app->get(ContextResolverInterface::class)->get()
             ->add(
                 key: $this->parentTraceIdContextKey,
                 value: static fn() => app(TraceIdContainer::class)->getParentTraceId()
@@ -59,7 +59,7 @@ class SParallelJobWatcher extends AbstractWatcher
      */
     protected function onHandleSParallelFlowStartingEvent(SParallelFlowStartingEvent $event): void
     {
-        $this->app->get(Context::class)
+        $this->app->get(ContextResolverInterface::class)->get()
             ->add(
                 key: $this->flowParentTraceIdContextKey,
                 value: app(TraceIdContainer::class)->getParentTraceId()
@@ -77,7 +77,8 @@ class SParallelJobWatcher extends AbstractWatcher
      */
     protected function onHandleSParallelFlowFinishedEvent(SParallelFlowFinishedEvent $event): void
     {
-        $this->app->get(Context::class)->delete(key: $this->flowParentTraceIdContextKey);
+        $this->app->get(ContextResolverInterface::class)->get()
+            ->delete(key: $this->flowParentTraceIdContextKey);
     }
 
     public function handleSParallelTaskStartingEvent(SParallelTaskStartingEvent $event): void
