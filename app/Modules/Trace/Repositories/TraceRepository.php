@@ -24,10 +24,8 @@ use Illuminate\Support\Carbon;
 use MongoDB\BSON\UTCDateTime;
 use MongoDB\Driver\Command;
 use MongoDB\Driver\Exception\Exception;
-use RrParallel\Exceptions\ParallelJobsException;
-use RrParallel\Services\ParallelPusherInterface;
-use RrParallel\Services\WaitGroupInterface;
-use RuntimeException;
+use SParallel\Exceptions\CancelerException;
+use SParallel\Services\SParallelService;
 use stdClass;
 use Throwable;
 
@@ -37,7 +35,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
         private PeriodicTraceCollectionNameService $periodicTraceCollectionNameService,
         private TracePipelineBuilder $tracePipelineBuilder,
         private PeriodicTraceService $periodicTraceService,
-        private ParallelPusherInterface $parallelPusher
+        private SParallelService $parallelService
     ) {
     }
 
@@ -395,7 +393,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
     }
 
     /**
-     * @throws ParallelJobsException
+     * @throws CancelerException
      */
     public function createIndex(string $name, array $collectionNames, array $fields): bool
     {
@@ -410,16 +408,11 @@ readonly class TraceRepository implements TraceRepositoryInterface
             $index[$field->fieldName] = 1;
         }
 
-        $maxWaitGroupsCount = 6;
-
-        /** @var WaitGroupInterface[] $waitGroups */
-        $waitGroups = [];
-
-        /** @var Closure[] $remainCallbacks */
-        $remainCallbacks = [];
+        /** @var Closure[] $callbacks */
+        $callbacks = [];
 
         foreach ($collectionNames as $collectionName) {
-            $remainCallbacks[] = static function (PeriodicTraceService $periodicTraceService) use (
+            $callbacks[] = static function (PeriodicTraceService $periodicTraceService) use (
                 $name,
                 $index,
                 $collectionName
@@ -440,52 +433,11 @@ readonly class TraceRepository implements TraceRepositoryInterface
             };
         }
 
-        $start           = time();
-        $maxTotalTimeSec = 600; // 10 minutes // TODO: smart calculation
-
-        while (count($remainCallbacks) > 0 || count($waitGroups) > 0) {
-            if (time() - $start > $maxTotalTimeSec) {
-                throw new RuntimeException(
-                    "Timeout on index creating: $name"
-                );
-            }
-
-            $waitGroups = array_values($waitGroups);
-
-            $waitGroupsCount = count($waitGroups);
-
-            for ($index = 0; $index < $waitGroupsCount; $index++) {
-                $waitGroup = $waitGroups[$index];
-
-                $current = $waitGroup->current();
-
-                if ($current->hasFailed) {
-                    return false;
-                }
-
-                if (!$current->finished) {
-                    continue;
-                }
-
-                unset($waitGroups[$index]);
-            }
-
-            $freeWaitGroupsCount = $maxWaitGroupsCount - count($waitGroups);
-
-            if ($freeWaitGroupsCount <= 0 || !count($remainCallbacks)) {
-                continue;
-            }
-
-            for ($index = 0; $index < $freeWaitGroupsCount; $index++) {
-                $callback = array_shift($remainCallbacks);
-
-                if (!$callback) {
-                    break;
-                }
-
-                $waitGroups[] = $this->parallelPusher->wait([$callback]);
-            }
-        }
+        $this->parallelService->run(
+            callbacks: $callbacks,
+            timeoutSeconds: 600, // 10 minutes // TODO: smart calculation
+            workersLimit: 6
+        );
 
         return true;
     }
