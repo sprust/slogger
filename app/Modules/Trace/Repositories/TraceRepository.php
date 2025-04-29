@@ -24,6 +24,7 @@ use Illuminate\Support\Carbon;
 use MongoDB\BSON\UTCDateTime;
 use MongoDB\Driver\Command;
 use MongoDB\Driver\Exception\Exception;
+use RuntimeException;
 use SParallel\Exceptions\CancelerException;
 use SParallel\Services\SParallelService;
 use stdClass;
@@ -433,11 +434,23 @@ readonly class TraceRepository implements TraceRepositoryInterface
             };
         }
 
-        $this->parallelService->run(
+        $results = $this->parallelService->wait(
             callbacks: $callbacks,
             timeoutSeconds: 600, // 10 minutes // TODO: smart calculation
-            workersLimit: 6
+            workersLimit: 6,
+            breakAtFirstError: true
         );
+
+        if ($results->hasFailed()) {
+            $failedResult = $results->getFailed()[0] ?? null;
+
+            $message       = $failedResult?->error?->message ?? 'unknown error';
+            $traceAsString = $failedResult?->error?->traceAsString;
+
+            throw new RuntimeException(
+                message: $message . ($traceAsString ? "\n$traceAsString" : ''),
+            );
+        }
 
         return true;
     }
