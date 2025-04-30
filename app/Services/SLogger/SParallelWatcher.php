@@ -3,15 +3,12 @@
 namespace App\Services\SLogger;
 
 use Illuminate\Support\Carbon;
-use Psr\Container\ContainerExceptionInterface;
-use Psr\Container\NotFoundExceptionInterface;
 use RuntimeException;
 use SLoggerLaravel\Enums\TraceStatusEnum;
 use SLoggerLaravel\Helpers\DataFormatter;
 use SLoggerLaravel\Helpers\TraceHelper;
 use SLoggerLaravel\Traces\TraceIdContainer;
 use SLoggerLaravel\Watchers\AbstractWatcher;
-use SParallel\Contracts\ContextResolverInterface;
 use SParallelLaravel\Events\SParallelFlowFinishedEvent;
 use SParallelLaravel\Events\SParallelFlowStartingEvent;
 use SParallelLaravel\Events\SParallelTaskFailedEvent;
@@ -28,18 +25,8 @@ class SParallelWatcher extends AbstractWatcher
     private string $parentTraceIdContextKey = 'slogger-task-parent-trace-id';
     private string $flowParentTraceIdContextKey = 'slogger-flow-parent-trace-id';
 
-    /**
-     * @throws ContainerExceptionInterface
-     * @throws NotFoundExceptionInterface
-     */
     public function register(): void
     {
-        $this->app->get(ContextResolverInterface::class)->get()
-            ->add(
-                key: $this->parentTraceIdContextKey,
-                value: static fn() => app(TraceIdContainer::class)->getParentTraceId()
-            );
-
         $this->listenEvent(SParallelFlowStartingEvent::class, [$this, 'handleSParallelFlowStartingEvent']);
         $this->listenEvent(SParallelFlowFinishedEvent::class, [$this, 'handleSParallelFlowFinishedEvent']);
 
@@ -53,17 +40,12 @@ class SParallelWatcher extends AbstractWatcher
         $this->safeHandleWatching(fn() => $this->onHandleSParallelFlowStartingEvent($event));
     }
 
-    /**
-     * @throws ContainerExceptionInterface
-     * @throws NotFoundExceptionInterface
-     */
     protected function onHandleSParallelFlowStartingEvent(SParallelFlowStartingEvent $event): void
     {
-        $this->app->get(ContextResolverInterface::class)->get()
-            ->add(
-                key: $this->flowParentTraceIdContextKey,
-                value: app(TraceIdContainer::class)->getParentTraceId()
-            );
+        $event->context->addValue(
+            key: $this->flowParentTraceIdContextKey,
+            value: app(TraceIdContainer::class)->getParentTraceId()
+        );
     }
 
     public function handleSParallelFlowFinishedEvent(SParallelFlowFinishedEvent $event): void
@@ -71,14 +53,11 @@ class SParallelWatcher extends AbstractWatcher
         $this->safeHandleWatching(fn() => $this->onHandleSParallelFlowFinishedEvent($event));
     }
 
-    /**
-     * @throws ContainerExceptionInterface
-     * @throws NotFoundExceptionInterface
-     */
     protected function onHandleSParallelFlowFinishedEvent(SParallelFlowFinishedEvent $event): void
     {
-        $this->app->get(ContextResolverInterface::class)->get()
-            ->delete(key: $this->flowParentTraceIdContextKey);
+        $event->context->deleteValue(
+            key: $this->flowParentTraceIdContextKey,
+        );
     }
 
     public function handleSParallelTaskStartingEvent(SParallelTaskStartingEvent $event): void
@@ -88,25 +67,23 @@ class SParallelWatcher extends AbstractWatcher
 
     protected function onHandleSParallelTaskStartingEvent(SParallelTaskStartingEvent $event): void
     {
-        if ($event->context?->has($this->flowParentTraceIdContextKey)) {
-            $parentTraceId = $event->context->get($this->flowParentTraceIdContextKey);
+        $parentTraceId = $event->context->getValue($this->flowParentTraceIdContextKey);
 
-            $event->context->delete($this->flowParentTraceIdContextKey);
+        if (!is_null($parentTraceId)) {
+            $event->context->deleteValue($this->flowParentTraceIdContextKey);
         } else {
-            $parentTraceId = $event->context?->get($this->parentTraceIdContextKey);
+            $parentTraceId = $event->context->getValue($this->parentTraceIdContextKey);
         }
 
         /** @var string|null $parentTraceId */
 
-        $context = is_null($event->context)
-            ? null
-            : array_diff_key(
-                $event->context->all(),
-                array_flip([
-                    $this->parentTraceIdContextKey,
-                    $this->flowParentTraceIdContextKey,
-                ])
-            );
+        $context = array_diff_key(
+            $event->context->getValues(),
+            array_flip([
+                $this->parentTraceIdContextKey,
+                $this->flowParentTraceIdContextKey,
+            ])
+        );
 
         $traceId = $this->processor->startAndGetTraceId(
             type: $this->traceType,
