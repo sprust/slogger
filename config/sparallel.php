@@ -8,6 +8,7 @@ use SParallelLaravel\Events\SParallelTaskFinishedEvent;
 use SParallelLaravel\Events\SParallelFlowStartingEvent;
 use SParallelLaravel\Events\SParallelFlowFailedEvent;
 use SParallelLaravel\Events\SParallelFlowFinishedEvent;
+use SParallelLaravel\Listeners\DBReconnectAtTaskStartingListener;
 
 return [
     /**
@@ -32,7 +33,9 @@ return [
             LogSParallelFlowFailedListener::class,
         ],
         SParallelFlowFinishedEvent::class => [],
-        SParallelTaskStartingEvent::class => [],
+        SParallelTaskStartingEvent::class => [
+            DBReconnectAtTaskStartingListener::class,
+        ],
         SParallelTaskFailedEvent::class   => [
             LogSParallelTaskFailedListener::class,
         ],
