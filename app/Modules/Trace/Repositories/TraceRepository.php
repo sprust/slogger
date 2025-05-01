@@ -25,7 +25,7 @@ use MongoDB\BSON\UTCDateTime;
 use MongoDB\Driver\Command;
 use MongoDB\Driver\Exception\Exception;
 use RuntimeException;
-use SParallel\Exceptions\CancelerException;
+use SParallel\Exceptions\ContextCheckerException;
 use SParallel\Services\SParallelService;
 use stdClass;
 use Throwable;
@@ -394,7 +394,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
     }
 
     /**
-     * @throws CancelerException
+     * @throws ContextCheckerException
      */
     public function createIndex(string $name, array $collectionNames, array $fields): bool
     {

@@ -26,7 +26,7 @@ use App\Modules\Trace\Repositories\Dto\Trace\Timestamp\TraceTimestampsDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Timestamp\TraceTimestampsListDto;
 use Illuminate\Support\Arr;
 use RuntimeException;
-use SParallel\Exceptions\CancelerException;
+use SParallel\Exceptions\ContextCheckerException;
 use SParallel\Services\SParallelService;
 
 readonly class FindTraceTimestampsAction implements FindTraceTimestampsActionInterface
@@ -40,7 +40,7 @@ readonly class FindTraceTimestampsAction implements FindTraceTimestampsActionInt
 
     /**
      * @throws TraceDynamicIndexErrorException
-     * @throws CancelerException
+     * @throws ContextCheckerException
      * @throws TraceDynamicIndexInProcessException
      * @throws TraceDynamicIndexNotInitException
      */

@@ -12,7 +12,7 @@ use App\Modules\Trace\Repositories\Services\TracePipelineBuilder;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use RuntimeException;
-use SParallel\Exceptions\CancelerException;
+use SParallel\Exceptions\ContextCheckerException;
 use SParallel\Services\SParallelService;
 
 readonly class TraceContentRepository implements TraceContentRepositoryInterface
@@ -25,7 +25,7 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
     }
 
     /**
-     * @throws CancelerException
+     * @throws ContextCheckerException
      */
     public function findTypes(
         array $serviceIds = [],
@@ -96,7 +96,7 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
     }
 
     /**
-     * @throws CancelerException
+     * @throws ContextCheckerException
      */
     public function findTags(
         array $serviceIds = [],
@@ -193,7 +193,7 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
     }
 
     /**
-     * @throws CancelerException
+     * @throws ContextCheckerException
      */
     public function findStatuses(
         array $serviceIds = [],
@@ -273,7 +273,7 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
      *
      * @return TraceStringFieldObject[]
      *
-     * @throws CancelerException
+     * @throws ContextCheckerException
      */
     private function handleRequest(array $collectionNames, array $pipeline): array
     {
@@ -281,7 +281,9 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
         $callbacks = [];
 
         foreach ($collectionNames as $collectionName) {
-            $callbacks[] = static function (PeriodicTraceService $periodicTraceService) use ($collectionName, $pipeline) {
+            $callbacks[] = static function (
+                PeriodicTraceService $periodicTraceService
+            ) use ($collectionName, $pipeline) {
                 /** @var array<string, int> $groups */
                 $groups = [];
 
@@ -304,6 +306,7 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
         $results = $this->parallelService->run(
             callbacks: $callbacks,
             timeoutSeconds: 20,
+            workersLimit: 20,
             breakAtFirstError: true
         );
 
