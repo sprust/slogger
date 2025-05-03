@@ -27,14 +27,14 @@ use SLoggerLaravel\Watchers\Children\ScheduleWatcher;
 use SLoggerLaravel\Watchers\Parents\CommandWatcher;
 use SLoggerLaravel\Watchers\Parents\JobWatcher;
 use SLoggerLaravel\Watchers\Parents\RequestWatcher;
-use SParallelLaravel\Events\SParallelTaskFinishedEvent;
-use SParallelLaravel\Events\SParallelTaskFailedEvent;
-use SParallelLaravel\Events\SParallelTaskStartingEvent;
-use SParallelLaravel\Events\SParallelFlowFailedEvent;
-use SParallelLaravel\Events\SParallelFlowFinishedEvent;
-use SParallelLaravel\Events\SParallelFlowStartingEvent;
-use SParallelLaravel\Events\SParallelProcessCreatedEvent;
-use SParallelLaravel\Events\SParallelProcessFinishedEvent;
+use SParallelLaravel\Events\TaskFinishedEvent;
+use SParallelLaravel\Events\TaskFailedEvent;
+use SParallelLaravel\Events\TaskStartingEvent;
+use SParallelLaravel\Events\FlowFailedEvent;
+use SParallelLaravel\Events\FlowFinishedEvent;
+use SParallelLaravel\Events\FlowStartingEvent;
+use SParallelLaravel\Events\ProcessCreatedEvent;
+use SParallelLaravel\Events\ProcessFinishedEvent;
 
 $defaultQueueConnection = env('QUEUE_TRACES_CREATING_CONNECTION');
 
@@ -211,14 +211,14 @@ return [
                 JobReceivedEvent::class,
                 JobHandlingErrorEvent::class,
                 JobHandledEvent::class,
-                SParallelFlowFailedEvent::class,
-                SParallelFlowFinishedEvent::class,
-                SParallelFlowStartingEvent::class,
-                SParallelTaskStartingEvent::class,
-                SParallelTaskFinishedEvent::class,
-                SParallelTaskFailedEvent::class,
-                SParallelProcessCreatedEvent::class,
-                SParallelProcessFinishedEvent::class,
+                FlowFailedEvent::class,
+                FlowFinishedEvent::class,
+                FlowStartingEvent::class,
+                TaskStartingEvent::class,
+                TaskFinishedEvent::class,
+                TaskFailedEvent::class,
+                ProcessCreatedEvent::class,
+                ProcessFinishedEvent::class,
             ],
             'serialize_events' => [
                 MonitorWorkersCountSetEvent::class,
