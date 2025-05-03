@@ -4501,12 +4501,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/sprust/sparallel-laravel.git",
-                "reference": "620d692a91b74432dc07e24172687f0ba92c0680"
+                "reference": "fa5ade670d6b6a62934a05b3817a6f7804510be4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sprust/sparallel-laravel/zipball/620d692a91b74432dc07e24172687f0ba92c0680",
-                "reference": "620d692a91b74432dc07e24172687f0ba92c0680",
+                "url": "https://api.github.com/repos/sprust/sparallel-laravel/zipball/fa5ade670d6b6a62934a05b3817a6f7804510be4",
+                "reference": "fa5ade670d6b6a62934a05b3817a6f7804510be4",
                 "shasum": ""
             },
             "require": {
@@ -4523,6 +4523,10 @@
                 "phpunit/phpunit": "^11.5"
             },
             "default-branch": true,
+            "bin": [
+                "bin/sparallel-process",
+                "bin/sparallel-hybrid-process"
+            ],
             "type": "library",
             "extra": {
                 "laravel": {
@@ -4551,7 +4555,7 @@
                 "issues": "https://github.com/sprust/sparallel-laravel/issues",
                 "source": "https://github.com/sprust/sparallel-laravel/tree/master"
             },
-            "time": "2025-05-03T14:20:10+00:00"
+            "time": "2025-05-03T21:22:46+00:00"
         },
         {
             "name": "sparallel/sparallel",
