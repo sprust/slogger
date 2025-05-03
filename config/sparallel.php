@@ -8,7 +8,6 @@ use SParallelLaravel\Events\TaskFinishedEvent;
 use SParallelLaravel\Events\FlowStartingEvent;
 use SParallelLaravel\Events\FlowFailedEvent;
 use SParallelLaravel\Events\FlowFinishedEvent;
-use SParallelLaravel\Listeners\DBReconnectAtTaskStartingListener;
 use SParallelLaravel\Events\ProcessCreatedEvent;
 use SParallelLaravel\Listeners\InsertCreatedProcessToRepositoryListener;
 use SParallelLaravel\Events\ProcessFinishedEvent;
@@ -42,9 +41,7 @@ return [
             LogSParallelFlowFailedListener::class,
         ],
         FlowFinishedEvent::class    => [],
-        TaskStartingEvent::class    => [
-            DBReconnectAtTaskStartingListener::class,
-        ],
+        TaskStartingEvent::class    => [],
         TaskFailedEvent::class      => [
             LogSParallelTaskFailedListener::class,
         ],
