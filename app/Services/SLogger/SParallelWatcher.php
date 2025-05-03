@@ -9,11 +9,11 @@ use SLoggerLaravel\Helpers\DataFormatter;
 use SLoggerLaravel\Helpers\TraceHelper;
 use SLoggerLaravel\Traces\TraceIdContainer;
 use SLoggerLaravel\Watchers\AbstractWatcher;
-use SParallelLaravel\Events\SParallelFlowFinishedEvent;
-use SParallelLaravel\Events\SParallelFlowStartingEvent;
-use SParallelLaravel\Events\SParallelTaskFailedEvent;
-use SParallelLaravel\Events\SParallelTaskFinishedEvent;
-use SParallelLaravel\Events\SParallelTaskStartingEvent;
+use SParallelLaravel\Events\FlowFinishedEvent;
+use SParallelLaravel\Events\FlowStartingEvent;
+use SParallelLaravel\Events\TaskFailedEvent;
+use SParallelLaravel\Events\TaskFinishedEvent;
+use SParallelLaravel\Events\TaskStartingEvent;
 
 class SParallelWatcher extends AbstractWatcher
 {
@@ -27,20 +27,20 @@ class SParallelWatcher extends AbstractWatcher
 
     public function register(): void
     {
-        $this->listenEvent(SParallelFlowStartingEvent::class, [$this, 'handleSParallelFlowStartingEvent']);
-        $this->listenEvent(SParallelFlowFinishedEvent::class, [$this, 'handleSParallelFlowFinishedEvent']);
+        $this->listenEvent(FlowStartingEvent::class, [$this, 'handleFlowStartingEvent']);
+        $this->listenEvent(FlowFinishedEvent::class, [$this, 'handleFlowFinishedEvent']);
 
-        $this->listenEvent(SParallelTaskStartingEvent::class, [$this, 'handleSParallelTaskStartingEvent']);
-        $this->listenEvent(SParallelTaskFailedEvent::class, [$this, 'handleSParallelTaskFailedEvent']);
-        $this->listenEvent(SParallelTaskFinishedEvent::class, [$this, 'handleSParallelTaskFinishedEvent']);
+        $this->listenEvent(TaskStartingEvent::class, [$this, 'handleTaskStartingEvent']);
+        $this->listenEvent(TaskFailedEvent::class, [$this, 'handleTaskFailedEvent']);
+        $this->listenEvent(TaskFinishedEvent::class, [$this, 'handleTaskFinishedEvent']);
     }
 
-    public function handleSParallelFlowStartingEvent(SParallelFlowStartingEvent $event): void
+    public function handleFlowStartingEvent(FlowStartingEvent $event): void
     {
-        $this->safeHandleWatching(fn() => $this->onHandleSParallelFlowStartingEvent($event));
+        $this->safeHandleWatching(fn() => $this->onHandleFlowStartingEvent($event));
     }
 
-    protected function onHandleSParallelFlowStartingEvent(SParallelFlowStartingEvent $event): void
+    protected function onHandleFlowStartingEvent(FlowStartingEvent $event): void
     {
         $event->context->addValue(
             key: $this->flowParentTraceIdContextKey,
@@ -48,24 +48,24 @@ class SParallelWatcher extends AbstractWatcher
         );
     }
 
-    public function handleSParallelFlowFinishedEvent(SParallelFlowFinishedEvent $event): void
+    public function handleFlowFinishedEvent(FlowFinishedEvent $event): void
     {
-        $this->safeHandleWatching(fn() => $this->onHandleSParallelFlowFinishedEvent($event));
+        $this->safeHandleWatching(fn() => $this->onHandleFlowFinishedEvent($event));
     }
 
-    protected function onHandleSParallelFlowFinishedEvent(SParallelFlowFinishedEvent $event): void
+    protected function onHandleFlowFinishedEvent(FlowFinishedEvent $event): void
     {
         $event->context->deleteValue(
             key: $this->flowParentTraceIdContextKey,
         );
     }
 
-    public function handleSParallelTaskStartingEvent(SParallelTaskStartingEvent $event): void
+    public function handleTaskStartingEvent(TaskStartingEvent $event): void
     {
-        $this->safeHandleWatching(fn() => $this->onHandleSParallelTaskStartingEvent($event));
+        $this->safeHandleWatching(fn() => $this->onHandleTaskStartingEvent($event));
     }
 
-    protected function onHandleSParallelTaskStartingEvent(SParallelTaskStartingEvent $event): void
+    protected function onHandleTaskStartingEvent(TaskStartingEvent $event): void
     {
         $parentTraceId = $event->context->getValue($this->flowParentTraceIdContextKey);
 
@@ -104,12 +104,12 @@ class SParallelWatcher extends AbstractWatcher
         ];
     }
 
-    public function handleSParallelTaskFailedEvent(SParallelTaskFailedEvent $event): void
+    public function handleTaskFailedEvent(TaskFailedEvent $event): void
     {
-        $this->safeHandleWatching(fn() => $this->onHandleSParallelTaskFailedEvent($event));
+        $this->safeHandleWatching(fn() => $this->onHandleTaskFailedEvent($event));
     }
 
-    protected function onHandleSParallelTaskFailedEvent(SParallelTaskFailedEvent $event): void
+    protected function onHandleTaskFailedEvent(TaskFailedEvent $event): void
     {
         if (!count($this->tasks)) {
             throw new RuntimeException(
@@ -124,12 +124,12 @@ class SParallelWatcher extends AbstractWatcher
         $this->tasks[$traceId]['exception'] = DataFormatter::exception($event->exception);
     }
 
-    public function handleSParallelTaskFinishedEvent(SParallelTaskFinishedEvent $event): void
+    public function handleTaskFinishedEvent(TaskFinishedEvent $event): void
     {
-        $this->safeHandleWatching(fn() => $this->onHandleSParallelTaskFinishedEvent($event));
+        $this->safeHandleWatching(fn() => $this->onHandleTaskFinishedEvent($event));
     }
 
-    protected function onHandleSParallelTaskFinishedEvent(SParallelTaskFinishedEvent $event): void
+    protected function onHandleTaskFinishedEvent(TaskFinishedEvent $event): void
     {
         if (!count($this->tasks)) {
             throw new RuntimeException(

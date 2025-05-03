@@ -1,14 +1,18 @@
 <?php
 
-use SParallelLaravel\Events\SParallelTaskStartingEvent;
-use SParallelLaravel\Events\SParallelTaskFailedEvent;
+use SParallelLaravel\Events\TaskStartingEvent;
+use SParallelLaravel\Events\TaskFailedEvent;
 use SParallelLaravel\Listeners\LogSParallelTaskFailedListener;
 use SParallelLaravel\Listeners\LogSParallelFlowFailedListener;
-use SParallelLaravel\Events\SParallelTaskFinishedEvent;
-use SParallelLaravel\Events\SParallelFlowStartingEvent;
-use SParallelLaravel\Events\SParallelFlowFailedEvent;
-use SParallelLaravel\Events\SParallelFlowFinishedEvent;
+use SParallelLaravel\Events\TaskFinishedEvent;
+use SParallelLaravel\Events\FlowStartingEvent;
+use SParallelLaravel\Events\FlowFailedEvent;
+use SParallelLaravel\Events\FlowFinishedEvent;
 use SParallelLaravel\Listeners\DBReconnectAtTaskStartingListener;
+use SParallelLaravel\Events\ProcessCreatedEvent;
+use SParallelLaravel\Listeners\InsertCreatedProcessToRepositoryListener;
+use SParallelLaravel\Events\ProcessFinishedEvent;
+use SParallelLaravel\Listeners\DeleteFinishedProcessFromRepositoryListener;
 
 return [
     /**
@@ -23,21 +27,33 @@ return [
     'task_memory_limit_mb' => (int) env('SPARALLEL_TASK_MEMORY_LIMIT_MB', 128),
 
     /**
+     * none - No process monitoring
+     * redis - Use Redis for process monitoring
+     */
+    'workers_repository'   => env('SPARALLEL_WORKERS_REPOSITORY', 'redis'),
+
+    /**
      * key - event class
      * value - listener classes
      */
     'listeners'            => [
-        SParallelFlowStartingEvent::class => [],
-        SParallelFlowFailedEvent::class   => [
+        FlowStartingEvent::class    => [],
+        FlowFailedEvent::class      => [
             LogSParallelFlowFailedListener::class,
         ],
-        SParallelFlowFinishedEvent::class => [],
-        SParallelTaskStartingEvent::class => [
+        FlowFinishedEvent::class    => [],
+        TaskStartingEvent::class    => [
             DBReconnectAtTaskStartingListener::class,
         ],
-        SParallelTaskFailedEvent::class   => [
+        TaskFailedEvent::class      => [
             LogSParallelTaskFailedListener::class,
         ],
-        SParallelTaskFinishedEvent::class => [],
+        TaskFinishedEvent::class    => [],
+        ProcessCreatedEvent::class  => [
+            InsertCreatedProcessToRepositoryListener::class,
+        ],
+        ProcessFinishedEvent::class => [
+            DeleteFinishedProcessFromRepositoryListener::class,
+        ],
     ],
 ];
