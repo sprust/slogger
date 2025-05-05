@@ -7,7 +7,6 @@ use RuntimeException;
 use SLoggerLaravel\Enums\TraceStatusEnum;
 use SLoggerLaravel\Helpers\DataFormatter;
 use SLoggerLaravel\Helpers\TraceHelper;
-use SLoggerLaravel\Traces\TraceIdContainer;
 use SLoggerLaravel\Watchers\AbstractWatcher;
 use SParallelLaravel\Events\FlowFinishedEvent;
 use SParallelLaravel\Events\FlowStartingEvent;
@@ -17,6 +16,9 @@ use SParallelLaravel\Events\TaskStartingEvent;
 
 class SParallelWatcher extends AbstractWatcher
 {
+    /** @var array<string, array<string, mixed>> */
+    private array $flows = [];
+
     /** @var array<string, array<string, mixed>> */
     private array $tasks = [];
 
@@ -42,10 +44,22 @@ class SParallelWatcher extends AbstractWatcher
 
     protected function onHandleFlowStartingEvent(FlowStartingEvent $event): void
     {
+        $traceId = $this->processor->startAndGetTraceId(
+            type: $this->traceType,
+            data: [
+                'context' => $event->context->getValues(),
+            ],
+        );
+
         $event->context->addValue(
             key: $this->flowParentTraceIdContextKey,
-            value: app(TraceIdContainer::class)->getParentTraceId()
+            value: $traceId
         );
+
+        $this->flows[$traceId] = [
+            'trace_id'   => $traceId,
+            'started_at' => now(),
+        ];
     }
 
     public function handleFlowFinishedEvent(FlowFinishedEvent $event): void
@@ -55,6 +69,21 @@ class SParallelWatcher extends AbstractWatcher
 
     protected function onHandleFlowFinishedEvent(FlowFinishedEvent $event): void
     {
+        $traceId = array_key_last($this->flows);
+
+        $flowData = $this->flows[$traceId];
+
+        /** @var Carbon $startedAt */
+        $startedAt = $flowData['started_at'];
+
+        $this->processor->stop(
+            traceId: $traceId,
+            status: TraceStatusEnum::Success->value,
+            duration: TraceHelper::calcDuration($startedAt)
+        );
+
+        unset($this->flows[$traceId]);
+
         $event->context->deleteValue(
             key: $this->flowParentTraceIdContextKey,
         );
@@ -69,9 +98,7 @@ class SParallelWatcher extends AbstractWatcher
     {
         $parentTraceId = $event->context->getValue($this->flowParentTraceIdContextKey);
 
-        if (!is_null($parentTraceId)) {
-            $event->context->deleteValue($this->flowParentTraceIdContextKey);
-        } else {
+        if (is_null($parentTraceId)) {
             $parentTraceId = $event->context->getValue($this->parentTraceIdContextKey);
         }
 
