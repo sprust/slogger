@@ -4501,18 +4501,18 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/sprust/sparallel-laravel.git",
-                "reference": "e6ede0e67c1d77c5e2d24d6b623ba86be64a58e3"
+                "reference": "6415319bccaeeae9d841575e581b802cc2876493"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sprust/sparallel-laravel/zipball/e6ede0e67c1d77c5e2d24d6b623ba86be64a58e3",
-                "reference": "e6ede0e67c1d77c5e2d24d6b623ba86be64a58e3",
+                "url": "https://api.github.com/repos/sprust/sparallel-laravel/zipball/6415319bccaeeae9d841575e581b802cc2876493",
+                "reference": "6415319bccaeeae9d841575e581b802cc2876493",
                 "shasum": ""
             },
             "require": {
                 "ext-posix": "*",
                 "ext-redis": "*",
-                "laravel/framework": "^9.0 | ^10.0 | ^11.0",
+                "laravel/framework": "^9.0 | ^10.0 | ^11.0 | ^12.0",
                 "php": "^8.2",
                 "predis/predis": "^2.2",
                 "sparallel/sparallel": "dev-master"
@@ -4555,7 +4555,7 @@
                 "issues": "https://github.com/sprust/sparallel-laravel/issues",
                 "source": "https://github.com/sprust/sparallel-laravel/tree/master"
             },
-            "time": "2025-05-03T23:46:18+00:00"
+            "time": "2025-05-05T16:31:46+00:00"
         },
         {
             "name": "sparallel/sparallel",
