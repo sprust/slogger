@@ -46,6 +46,9 @@ class SParallelWatcher extends AbstractWatcher
     {
         $traceId = $this->processor->startAndGetTraceId(
             type: $this->traceType,
+            tags: [
+                '#flow',
+            ],
             data: [
                 'context' => $event->context->getValues(),
             ],
