@@ -20,6 +20,7 @@ env-copy:
 	cp -i frontend/.env.example frontend/.env
 
 setup:
+	@make env-copy
 	@docker-compose stop
 	@docker-compose down
 	@docker-compose build
@@ -30,6 +31,7 @@ setup:
 	@make workers-art c='queues-declare'
 	@make rr-get-binary
 	@make strans-load
+	@make sparallel-load
 	@make frontend-npm-i
 	@make frontend-npm-build
 	@make restart
@@ -86,6 +88,7 @@ workers-restart:
 	@make workers-art c='slogger:dispatcher:stop'
 	@make workers-art c='trace-dynamic-indexes:monitor:stop'
 	@make workers-art c='trace-buffer:handle:stop'
+	@make sparallel-reload
 
 octane-stop:
 	@make workers-art c='octane:roadrunner:stop'
@@ -146,6 +149,9 @@ strans-stat:
 
 strans-stop:
 	@make workers-art c='slogger:transporter:stop'
+
+sparallel-load:
+	@make workers-art c='sparallel:server:load'
 
 sparallel-reload:
 	@make workers-art c='sparallel:server:workers:reload'
