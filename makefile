@@ -146,3 +146,12 @@ strans-stat:
 
 strans-stop:
 	@make workers-art c='slogger:transporter:stop'
+
+sparallel-reload:
+	@make workers-art c='sparallel:server:workers:reload'
+
+sparallel-stop:
+	@make workers-art c='sparallel:server:stop'
+
+sparallel-stats:
+	@make workers-art c='sparallel:server:stats'
