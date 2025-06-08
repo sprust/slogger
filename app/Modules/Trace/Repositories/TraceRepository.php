@@ -26,7 +26,7 @@ use MongoDB\Driver\Command;
 use MongoDB\Driver\Exception\Exception;
 use RuntimeException;
 use SParallel\Exceptions\ContextCheckerException;
-use SParallel\Services\SParallelService;
+use SParallel\SParallelWorkers;
 use stdClass;
 use Throwable;
 
@@ -36,7 +36,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
         private PeriodicTraceCollectionNameService $periodicTraceCollectionNameService,
         private TracePipelineBuilder $tracePipelineBuilder,
         private PeriodicTraceService $periodicTraceService,
-        private SParallelService $parallelService
+        private SParallelWorkers $parallelWorkers
     ) {
     }
 
@@ -434,7 +434,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
             };
         }
 
-        $results = $this->parallelService->wait(
+        $results = $this->parallelWorkers->wait(
             callbacks: $callbacks,
             timeoutSeconds: 600, // 10 minutes // TODO: smart calculation
             workersLimit: 6,

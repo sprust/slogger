@@ -30,4 +30,7 @@ protoc-gen-php-grpc
 .deptrac.cache
 
 .env.strans.*
-storage/slogger/*
+
+.env.sparallel
+storage/sparallel/*
+sparallel-server

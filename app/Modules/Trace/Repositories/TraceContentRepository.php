@@ -13,12 +13,12 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use RuntimeException;
 use SParallel\Exceptions\ContextCheckerException;
-use SParallel\Services\SParallelService;
+use SParallel\SParallelWorkers;
 
 readonly class TraceContentRepository implements TraceContentRepositoryInterface
 {
     public function __construct(
-        private SParallelService $parallelService,
+        private SParallelWorkers $parallelWorkers,
         private TracePipelineBuilder $tracePipelineBuilder,
         private PeriodicTraceService $periodicTraceService
     ) {
@@ -303,7 +303,7 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
             };
         }
 
-        $results = $this->parallelService->run(
+        $results = $this->parallelWorkers->run(
             callbacks: $callbacks,
             timeoutSeconds: 20,
             workersLimit: 20,

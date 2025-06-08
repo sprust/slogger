@@ -29,12 +29,11 @@ use SLoggerLaravel\Watchers\Parents\JobWatcher;
 use SLoggerLaravel\Watchers\Parents\RequestWatcher;
 use SParallelLaravel\Events\TaskFinishedEvent;
 use SParallelLaravel\Events\TaskFailedEvent;
+use SParallelLaravel\Events\ServerGoneEvent;
 use SParallelLaravel\Events\TaskStartingEvent;
 use SParallelLaravel\Events\FlowFailedEvent;
 use SParallelLaravel\Events\FlowFinishedEvent;
 use SParallelLaravel\Events\FlowStartingEvent;
-use SParallelLaravel\Events\ProcessCreatedEvent;
-use SParallelLaravel\Events\ProcessFinishedEvent;
 
 $defaultQueueConnection = env('QUEUE_TRACES_CREATING_CONNECTION');
 
@@ -217,14 +216,13 @@ return [
                 TaskStartingEvent::class,
                 TaskFinishedEvent::class,
                 TaskFailedEvent::class,
-                ProcessCreatedEvent::class,
-                ProcessFinishedEvent::class,
             ],
             'serialize_events' => [
                 MonitorWorkersCountSetEvent::class,
             ],
             'can_be_orphan'    => [
                 MonitorWorkersCountSetEvent::class,
+                ServerGoneEvent::class,
             ],
         ],
     ],

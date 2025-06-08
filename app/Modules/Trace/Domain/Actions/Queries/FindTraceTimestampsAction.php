@@ -27,14 +27,14 @@ use App\Modules\Trace\Repositories\Dto\Trace\Timestamp\TraceTimestampsListDto;
 use Illuminate\Support\Arr;
 use RuntimeException;
 use SParallel\Exceptions\ContextCheckerException;
-use SParallel\Services\SParallelService;
+use SParallel\SParallelWorkers;
 
 readonly class FindTraceTimestampsAction implements FindTraceTimestampsActionInterface
 {
     public function __construct(
         private TraceTimestampMetricsFactory $traceTimestampMetricsFactory,
         private TraceDynamicIndexInitializer $traceDynamicIndexInitializer,
-        private SParallelService $parallelService
+        private SParallelWorkers $parallelWorkers
     ) {
     }
 
@@ -169,7 +169,7 @@ readonly class FindTraceTimestampsAction implements FindTraceTimestampsActionInt
             $dateCursor = $to->clone()->addMicrosecond();
         }
 
-        $results = $this->parallelService->run(
+        $results = $this->parallelWorkers->run(
             callbacks: $callbacks,
             timeoutSeconds: 20,
             breakAtFirstError: true
