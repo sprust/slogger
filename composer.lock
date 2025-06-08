@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "4ba188482f8ff8854c4d62a1a6378901",
+    "content-hash": "16ad1511ea72dcd8c410b9fed96f3804",
     "packages": [
         {
             "name": "brick/math",
@@ -4497,12 +4497,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/sprust/sparallel.git",
-                "reference": "c3f7c6214ff7818f6b2d7eb5e535254ccb4365ea"
+                "reference": "c6b3f49d1cf213e2ea8708d8baa45fb0849428f5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sprust/sparallel/zipball/c3f7c6214ff7818f6b2d7eb5e535254ccb4365ea",
-                "reference": "c3f7c6214ff7818f6b2d7eb5e535254ccb4365ea",
+                "url": "https://api.github.com/repos/sprust/sparallel/zipball/c6b3f49d1cf213e2ea8708d8baa45fb0849428f5",
+                "reference": "c6b3f49d1cf213e2ea8708d8baa45fb0849428f5",
                 "shasum": ""
             },
             "require": {
@@ -4541,7 +4541,7 @@
                 "issues": "https://github.com/sprust/sparallel/issues",
                 "source": "https://github.com/sprust/sparallel/tree/master"
             },
-            "time": "2025-06-08T17:45:56+00:00"
+            "time": "2025-06-08T20:39:10+00:00"
         },
         {
             "name": "spiral/core",
