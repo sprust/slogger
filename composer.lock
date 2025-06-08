@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "22c340ca110275601c165e7844db3286",
+    "content-hash": "4ba188482f8ff8854c4d62a1a6378901",
     "packages": [
         {
             "name": "brick/math",
@@ -5215,172 +5215,6 @@
             "time": "2024-04-26T11:16:10+00:00"
         },
         {
-            "name": "spiral/roadrunner-jobs",
-            "version": "v4.6.2",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/roadrunner-php/jobs.git",
-                "reference": "52ae1fb934604cd81b69a91cdf764f9c2b9b5fa7"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/roadrunner-php/jobs/zipball/52ae1fb934604cd81b69a91cdf764f9c2b9b5fa7",
-                "reference": "52ae1fb934604cd81b69a91cdf764f9c2b9b5fa7",
-                "shasum": ""
-            },
-            "require": {
-                "ext-json": "*",
-                "php": ">=8.1",
-                "ramsey/uuid": "^3 || ^4",
-                "roadrunner-php/roadrunner-api-dto": "^1.0",
-                "spiral/goridge": "^4.0",
-                "spiral/roadrunner": "^2023.1 || ^2024.1",
-                "spiral/roadrunner-worker": "^3.0"
-            },
-            "require-dev": {
-                "google/protobuf": "^3.17 || ^4.0",
-                "phpunit/phpunit": "^10.0",
-                "roave/security-advisories": "dev-master",
-                "vimeo/psalm": ">=5.8"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Spiral\\RoadRunner\\Jobs\\": "src"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Anton Titov (wolfy-j)",
-                    "email": "wolfy-j@spiralscout.com"
-                },
-                {
-                    "name": "Pavel Buchnev (butschster)",
-                    "email": "pavel.buchnev@spiralscout.com"
-                },
-                {
-                    "name": "Aleksei Gagarin (roxblnfk)",
-                    "email": "alexey.gagarin@spiralscout.com"
-                },
-                {
-                    "name": "Maksim Smakouz (msmakouz)",
-                    "email": "maksim.smakouz@spiralscout.com"
-                },
-                {
-                    "name": "Kirill Nesmeyanov (SerafimArts)",
-                    "email": "kirill.nesmeyanov@spiralscout.com"
-                },
-                {
-                    "name": "RoadRunner Community",
-                    "homepage": "https://github.com/spiral/roadrunner/graphs/contributors"
-                }
-            ],
-            "description": "RoadRunner Queues (Jobs) plugin API library",
-            "homepage": "https://roadrunner.dev/",
-            "support": {
-                "chat": "https://discord.gg/V6EK4he",
-                "docs": "https://docs.roadrunner.dev",
-                "forum": "https://forum.roadrunner.dev/",
-                "issues": "https://github.com/roadrunner-server/roadrunner/issues",
-                "source": "https://github.com/roadrunner-php/jobs/tree/v4.6.2"
-            },
-            "funding": [
-                {
-                    "url": "https://github.com/sponsors/roadrunner-server",
-                    "type": "github"
-                }
-            ],
-            "time": "2024-11-30T15:38:28+00:00"
-        },
-        {
-            "name": "spiral/roadrunner-kv",
-            "version": "v4.3.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/roadrunner-php/kv.git",
-                "reference": "bc6e14298988a7fbb2a22f8f2f894bea32a47091"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/roadrunner-php/kv/zipball/bc6e14298988a7fbb2a22f8f2f894bea32a47091",
-                "reference": "bc6e14298988a7fbb2a22f8f2f894bea32a47091",
-                "shasum": ""
-            },
-            "require": {
-                "ext-json": "*",
-                "php": ">=8.1",
-                "psr/simple-cache": "2 - 3",
-                "roadrunner-php/roadrunner-api-dto": "^1.0",
-                "spiral/goridge": "^4.2",
-                "spiral/roadrunner": "^2023.1 || ^2024.1"
-            },
-            "require-dev": {
-                "phpunit/phpunit": "^10.0",
-                "roave/security-advisories": "dev-master",
-                "vimeo/psalm": ">=5.8"
-            },
-            "suggest": {
-                "ext-igbinary": "(>3.1.6) Igbinary serailizer support",
-                "ext-sodium": "Sodium serailizer support"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Spiral\\RoadRunner\\KeyValue\\": "src"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Wolfy-J",
-                    "email": "wolfy.jd@gmail.com"
-                },
-                {
-                    "name": "Pavel Buchnev (butschster)",
-                    "email": "pavel.buchnev@spiralscout.com"
-                },
-                {
-                    "name": "Aleksei Gagarin (roxblnfk)",
-                    "email": "alexey.gagarin@spiralscout.com"
-                },
-                {
-                    "name": "Maksim Smakouz (msmakouz)",
-                    "email": "maksim.smakouz@spiralscout.com"
-                },
-                {
-                    "name": "Kirill Nesmeyanov (SerafimArts)",
-                    "email": "kirill.nesmeyanov@spiralscout.com"
-                },
-                {
-                    "name": "RoadRunner Community",
-                    "homepage": "https://github.com/spiral/roadrunner/graphs/contributors"
-                }
-            ],
-            "description": "RoadRunner kv plugin bridge",
-            "homepage": "https://roadrunner.dev/",
-            "support": {
-                "chat": "https://discord.gg/V6EK4he",
-                "docs": "https://docs.roadrunner.dev",
-                "forum": "https://forum.roadrunner.dev/",
-                "issues": "https://github.com/roadrunner-server/roadrunner/issues",
-                "source": "https://github.com/roadrunner-php/kv/tree/v4.3.0"
-            },
-            "funding": [
-                {
-                    "url": "https://github.com/sponsors/roadrunner-server",
-                    "type": "github"
-                }
-            ],
-            "time": "2024-07-25T09:15:02+00:00"
-        },
-        {
             "name": "spiral/roadrunner-worker",
             "version": "v3.6.1",
             "source": {
@@ -5648,52 +5482,6 @@
                 }
             ],
             "description": "RoadRunner monitor for laravel",
-            "transport-options": {
-                "symlink": true,
-                "relative": true
-            }
-        },
-        {
-            "name": "sprust/rr-parallel-laravel",
-            "version": "dev-master",
-            "dist": {
-                "type": "path",
-                "url": "packages/sprust/rr-parallel-laravel",
-                "reference": "21fa63e9ce3e77a3fed9d8a4c19e4e365aa133ad"
-            },
-            "require": {
-                "laravel/framework": "^10.0 | ^11.0",
-                "laravel/octane": "^2.3",
-                "spiral/roadrunner-cli": "^2.6",
-                "spiral/roadrunner-jobs": "^4.6.0",
-                "spiral/roadrunner-kv": "^4.3.0"
-            },
-            "bin": [
-                "bin/rr-parallel-jobs-worker.php"
-            ],
-            "type": "library",
-            "extra": {
-                "laravel": {
-                    "providers": [
-                        "RrParallel\\RrParallelServiceProvider"
-                    ]
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "RrParallel\\": "src/"
-                }
-            },
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Pavel",
-                    "email": "sppetrovich@mail.ru"
-                }
-            ],
-            "description": "RoadRunner parallel for laravel",
             "transport-options": {
                 "symlink": true,
                 "relative": true
@@ -11365,8 +11153,7 @@
         "slogger/laravel": 20,
         "sparallel/laravel": 20,
         "sparallel/sparallel": 20,
-        "sprust/rr-monitor-laravel": 20,
-        "sprust/rr-parallel-laravel": 20
+        "sprust/rr-monitor-laravel": 20
     },
     "prefer-stable": true,
     "prefer-lowest": false,

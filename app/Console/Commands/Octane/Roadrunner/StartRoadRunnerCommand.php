@@ -51,9 +51,6 @@ class StartRoadRunnerCommand extends \Laravel\Octane\Commands\StartRoadRunnerCom
 
         $this->forgetEnvironmentVariables();
 
-        $jobsDefaultWorkersCount = config('rr-parallel.workers.number');
-        $jobsMaxWorkersCount     = config('rr-parallel.workers.max_number');
-
         $options = [
             'version=3',
             'http.address=' . $this->option('host') . ':' . $this->getPort(),
@@ -70,21 +67,6 @@ class StartRoadRunnerCommand extends \Laravel\Octane\Commands\StartRoadRunnerCom
             'grpc.pool.command=' . base_path('grpc/rr-grpc-worker.php'),
             'grpc.pool.num_workers=' . $this->option('grpc-workers'),
             'grpc.pool.max_jobs=' . $this->option('grpc-max-requests'),
-
-            // Thx Taylor for good code again
-            'jobs.num_pollers=' . $jobsMaxWorkersCount,
-            'jobs.timeout=' . 60,
-            'jobs.pool.command=' . base_path('vendor/bin/rr-parallel-jobs-worker.php'),
-            'jobs.pool.num_workers=' . $jobsDefaultWorkersCount,
-            'jobs.pool.allocate_timeout=' . '60s',
-            'jobs.pool.destroy_timeout=' . '60s',
-            'jobs.pool.max_jobs=' . config('rr-parallel.workers.max_jobs', 1000),
-            'jobs.pool.supervisor.max_worker_memory=' . config('rr-parallel.workers.memory_limit', 128),
-            'jobs.consume=' . '"parallel"',
-            'jobs.pipelines.parallel.driver=' . '"memory"',
-            'jobs.pipelines.parallel.config.{}=null',
-            'kv.parallel.driver=' . '"memory"',
-            'kv.parallel.config.{}=null',
 
             'http.pool.supervisor.exec_ttl=' . $this->maxExecutionTime(),
             'http.static.dir=' . public_path(),

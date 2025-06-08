@@ -6,7 +6,6 @@ use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Octane\RoadRunner\ServerStateFile as RoadRunnerServerStateFile;
-use RrParallel\Services\Drivers\Roadrunner\RpcFactory;
 use SLoggerLaravel\Configs\GeneralConfig;
 use SLoggerLaravel\Helpers\TraceDataComplementer;
 use SLoggerLaravel\Processor;
@@ -51,13 +50,6 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(RoadRunnerServerStateFile::class, function () {
             return new RoadRunnerServerStateFile(
                 storage_path('logs/octane-roadrunner-server-state.json')
-            );
-        });
-
-        $this->app->singleton(RpcFactory::class, static function () {
-            return new RpcFactory(
-                host: config('octane.servers.roadrunner.rpc-host'),
-                port: config('octane.servers.roadrunner.rpc-port')
             );
         });
     }

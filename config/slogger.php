@@ -3,12 +3,8 @@
 use App\Models\Users\User;
 use App\Modules\Trace\Infrastructure\Jobs\TraceCreateJob;
 use App\Modules\Trace\Infrastructure\Jobs\TraceUpdateJob;
-use App\Services\SLogger\RrParallelJobWatcher;
 use App\Services\SLogger\SParallelWatcher;
 use RrMonitor\Events\MonitorWorkersCountSetEvent;
-use RrParallel\Events\JobHandledEvent;
-use RrParallel\Events\JobHandlingErrorEvent;
-use RrParallel\Events\JobReceivedEvent;
 use SLoggerLaravel\Dispatcher\Items\Queue\Jobs\TraceCreateJob as SLoggerTraceCreateJob;
 use SLoggerLaravel\Dispatcher\Items\Queue\Jobs\TraceUpdateJob as SLoggerTraceUpdateJob;
 use SLoggerLaravel\Events\WatcherErrorEvent;
@@ -105,7 +101,7 @@ return [
 
     'data_completer' => [
         'excluded_file_masks' => [
-            '*SLogger/RrParallelJobWatcher*',
+            '*SLogger/SParallelWatcher*',
         ],
     ],
 
@@ -207,9 +203,6 @@ return [
 
         'events' => [
             'ignore_events'    => [
-                JobReceivedEvent::class,
-                JobHandlingErrorEvent::class,
-                JobHandledEvent::class,
                 FlowFailedEvent::class,
                 FlowFinishedEvent::class,
                 FlowStartingEvent::class,
@@ -283,10 +276,6 @@ return [
         [
             'class'   => HttpClientWatcher::class,
             'enabled' => env('SLOGGER_LOG_HTTP_ENABLED', false),
-        ],
-        [
-            'class'   => RrParallelJobWatcher::class,
-            'enabled' => env('SLOGGER_RR_PARALLEL_ENABLED', false),
         ],
         [
             'class'   => SParallelWatcher::class,
