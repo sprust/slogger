@@ -17,6 +17,7 @@ endif
 
 env-copy:
 	cp -i .env.example .env
+	cp -i .env.sparallel.example .env.sparallel
 	cp -i frontend/.env.example frontend/.env
 
 setup:
