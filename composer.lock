@@ -4439,12 +4439,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/sprust/sparallel-laravel.git",
-                "reference": "d95b51d54e0d93a54b780d5c77d15e4fcee9becc"
+                "reference": "ca607b4d594ff8ab00f3fbf648273d522818c7f8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sprust/sparallel-laravel/zipball/d95b51d54e0d93a54b780d5c77d15e4fcee9becc",
-                "reference": "d95b51d54e0d93a54b780d5c77d15e4fcee9becc",
+                "url": "https://api.github.com/repos/sprust/sparallel-laravel/zipball/ca607b4d594ff8ab00f3fbf648273d522818c7f8",
+                "reference": "ca607b4d594ff8ab00f3fbf648273d522818c7f8",
                 "shasum": ""
             },
             "require": {
@@ -4489,7 +4489,7 @@
                 "issues": "https://github.com/sprust/sparallel-laravel/issues",
                 "source": "https://github.com/sprust/sparallel-laravel/tree/master"
             },
-            "time": "2025-06-08T22:06:49+00:00"
+            "time": "2025-06-10T00:46:32+00:00"
         },
         {
             "name": "sparallel/sparallel",
@@ -4497,12 +4497,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/sprust/sparallel.git",
-                "reference": "de951f3c6f99e75486a67b27b9bc3a3e411ea432"
+                "reference": "fc4727c568c0a882d8a9b8b098cb2a31e1b9e108"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sprust/sparallel/zipball/de951f3c6f99e75486a67b27b9bc3a3e411ea432",
-                "reference": "de951f3c6f99e75486a67b27b9bc3a3e411ea432",
+                "url": "https://api.github.com/repos/sprust/sparallel/zipball/fc4727c568c0a882d8a9b8b098cb2a31e1b9e108",
+                "reference": "fc4727c568c0a882d8a9b8b098cb2a31e1b9e108",
                 "shasum": ""
             },
             "require": {
@@ -4541,7 +4541,7 @@
                 "issues": "https://github.com/sprust/sparallel/issues",
                 "source": "https://github.com/sprust/sparallel/tree/master"
             },
-            "time": "2025-06-08T21:10:28+00:00"
+            "time": "2025-06-10T00:44:05+00:00"
         },
         {
             "name": "spiral/core",
