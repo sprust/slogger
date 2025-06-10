@@ -25,7 +25,6 @@ use App\Modules\Trace\Repositories\Dto\Trace\Timestamp\TraceTimestampFieldIndica
 use App\Modules\Trace\Repositories\Dto\Trace\Timestamp\TraceTimestampsDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Timestamp\TraceTimestampsListDto;
 use Illuminate\Support\Arr;
-use RuntimeException;
 use SParallel\Exceptions\ContextCheckerException;
 use SParallel\SParallelWorkers;
 
@@ -181,10 +180,8 @@ readonly class FindTraceTimestampsAction implements FindTraceTimestampsActionInt
         $emptyIndicatorsResult = [];
 
         foreach ($results as $result) {
-            if ($result->error) {
-                throw new RuntimeException(
-                    $result->error->message . PHP_EOL . $result->error->traceAsString
-                );
+            if ($result->exception) {
+                throw $result->exception;
             }
 
             /** @var TraceTimestampsListDto $timestampsList */

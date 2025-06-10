@@ -11,7 +11,6 @@ use App\Modules\Trace\Repositories\Services\PeriodicTraceService;
 use App\Modules\Trace\Repositories\Services\TracePipelineBuilder;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
-use RuntimeException;
 use SParallel\Exceptions\ContextCheckerException;
 use SParallel\SParallelWorkers;
 
@@ -314,10 +313,8 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
         $groups = [];
 
         foreach ($results as $result) {
-            if ($result->error) {
-                throw new RuntimeException(
-                    $result->error->message . PHP_EOL . $result->error->traceAsString
-                );
+            if ($result->exception) {
+                throw $result->exception;
             }
 
             foreach ($result->result as $type => $count) {

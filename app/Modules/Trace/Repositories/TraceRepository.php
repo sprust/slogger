@@ -444,11 +444,12 @@ readonly class TraceRepository implements TraceRepositoryInterface
         if ($results->hasFailed()) {
             $failedResult = $results->getFailed()[0] ?? null;
 
-            $message       = $failedResult?->error?->message ?? 'unknown error';
-            $traceAsString = $failedResult?->error?->traceAsString;
+            if ($failedResult?->exception) {
+                throw $failedResult->exception;
+            }
 
             throw new RuntimeException(
-                message: $message . ($traceAsString ? "\n$traceAsString" : ''),
+                message: 'unknown error',
             );
         }
 
