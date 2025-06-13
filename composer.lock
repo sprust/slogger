@@ -4439,12 +4439,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/sprust/sparallel-laravel.git",
-                "reference": "ca607b4d594ff8ab00f3fbf648273d522818c7f8"
+                "reference": "3ec3c61d32f34db9f061cff418fa1c197ed2ee9a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sprust/sparallel-laravel/zipball/ca607b4d594ff8ab00f3fbf648273d522818c7f8",
-                "reference": "ca607b4d594ff8ab00f3fbf648273d522818c7f8",
+                "url": "https://api.github.com/repos/sprust/sparallel-laravel/zipball/3ec3c61d32f34db9f061cff418fa1c197ed2ee9a",
+                "reference": "3ec3c61d32f34db9f061cff418fa1c197ed2ee9a",
                 "shasum": ""
             },
             "require": {
@@ -4489,7 +4489,7 @@
                 "issues": "https://github.com/sprust/sparallel-laravel/issues",
                 "source": "https://github.com/sprust/sparallel-laravel/tree/master"
             },
-            "time": "2025-06-10T00:46:32+00:00"
+            "time": "2025-06-13T13:59:40+00:00"
         },
         {
             "name": "sparallel/sparallel",
@@ -4497,15 +4497,16 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/sprust/sparallel.git",
-                "reference": "fc4727c568c0a882d8a9b8b098cb2a31e1b9e108"
+                "reference": "c7a28b063b1217ac277f83b4839f2c3beff58213"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sprust/sparallel/zipball/fc4727c568c0a882d8a9b8b098cb2a31e1b9e108",
-                "reference": "fc4727c568c0a882d8a9b8b098cb2a31e1b9e108",
+                "url": "https://api.github.com/repos/sprust/sparallel/zipball/c7a28b063b1217ac277f83b4839f2c3beff58213",
+                "reference": "c7a28b063b1217ac277f83b4839f2c3beff58213",
                 "shasum": ""
             },
             "require": {
+                "ext-curl": "*",
                 "ext-sockets": "*",
                 "opis/closure": "^4.3",
                 "php": "^8.2",
@@ -4541,7 +4542,7 @@
                 "issues": "https://github.com/sprust/sparallel/issues",
                 "source": "https://github.com/sprust/sparallel/tree/master"
             },
-            "time": "2025-06-10T00:44:05+00:00"
+            "time": "2025-06-13T13:41:14+00:00"
         },
         {
             "name": "spiral/core",

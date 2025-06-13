@@ -99,15 +99,18 @@ oa-generate:
 	@make frontend-npm-generate
 
 deploy-prod:
+	@make sparallel-sleep
 	git pull
 	@make composer c='i --no-dev'
 	@make art c='migrate --force'
 	@make workers-restart
+	@make sparallel-wake-up
 	@make frontend-npm-i
 	@make frontend-npm-build
 	@docker-compose restart $(FRONTEND_SERVICE)
 
 deploy-dev:
+	@make sparallel-sleep
 	git pull
 	@make composer c='i'
 	@make art c='migrate --force'
@@ -162,3 +165,9 @@ sparallel-stop:
 
 sparallel-stats:
 	@make workers-art c='sparallel:server:stats'
+
+sparallel-sleep:
+	@make workers-art c='sparallel:server:sleep'
+
+sparallel-wake-up:
+	@make workers-art c='sparallel:server:wake-up'
