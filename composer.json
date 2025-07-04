@@ -21,11 +21,12 @@
         "mongodb/mongodb": "^1.17",
         "slogger/grpc": "dev-master",
         "slogger/laravel": "dev-master",
+        "sparallel/laravel": "dev-master",
+        "sparallel/sparallel": "dev-master",
         "spiral/roadrunner-cli": "^2.7",
         "spiral/roadrunner-grpc": "^3.5",
         "spiral/roadrunner-http": "^3.5",
         "sprust/rr-monitor-laravel": "dev-master",
-        "sprust/rr-parallel-laravel": "dev-master",
         "vladimir-yuldashev/laravel-queue-rabbitmq": "^14.1"
     },
     "require-dev": {
@@ -57,13 +58,6 @@
         {
             "type": "path",
             "url": "packages/ifksco/openapi-generator",
-            "options": {
-                "symlink": true
-            }
-        },
-        {
-            "type": "path",
-            "url": "packages/sprust/rr-parallel-laravel",
             "options": {
                 "symlink": true
             }

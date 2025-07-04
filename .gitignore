@@ -21,7 +21,6 @@ yarn-error.log
 rr
 .rr.yaml
 .pid
-.rr-parallel.yaml
 
 app/Console/Commands/Local
 
@@ -30,4 +29,9 @@ protoc-gen-php-grpc
 .deptrac.cache
 
 .env.strans.*
-storage/slogger/*
+storage/slogger
+
+.env.sparallel
+storage/sparallel/*
+sparallel-server
+sparallel-server.tmp
