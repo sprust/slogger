@@ -155,7 +155,7 @@ strans-stop:
 	@make workers-art c='slogger:transporter:stop'
 
 sparallel-load:
-	@make workers-art c='sparallel:server:load'
+	@make workers-art c='sparallel:load-server-bin'
 
 sparallel-reload:
 	@make workers-art c='sparallel:server:workers:reload'
