@@ -21,7 +21,8 @@
             </el-dropdown>
             <el-text
                 v-if="!isCustomFromPreset"
-                style="width: 200px"
+                style="width: 200px; cursor: pointer"
+                @click="traceAggregatorStore.payload.logging_from_preset = PeriodPresetEnum.Custom"
             >
               {{ getCurrentFromPresetTitle() }}
             </el-text>
