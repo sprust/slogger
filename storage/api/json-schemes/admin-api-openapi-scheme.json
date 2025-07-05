@@ -387,6 +387,15 @@
                                     "all_traces_in_tree": {
                                         "type": "boolean"
                                     },
+                                    "logging_from_preset": {
+                                        "type": "string",
+                                        "enum": [
+                                            "one_hour",
+                                            "two_hours",
+                                            "four_hours",
+                                            "six_hours"
+                                        ]
+                                    },
                                     "logging_from": {
                                         "type": "string",
                                         "format": "date"
@@ -1743,6 +1752,15 @@
                                         "nullable": true,
                                         "minLength": 1
                                     },
+                                    "logging_from_preset": {
+                                        "type": "string",
+                                        "enum": [
+                                            "one_hour",
+                                            "two_hours",
+                                            "four_hours",
+                                            "six_hours"
+                                        ]
+                                    },
                                     "logging_from": {
                                         "type": "string",
                                         "format": "date"
@@ -1921,6 +1939,15 @@
                                         "items": {
                                             "type": "string"
                                         }
+                                    },
+                                    "logging_from_preset": {
+                                        "type": "string",
+                                        "enum": [
+                                            "one_hour",
+                                            "two_hours",
+                                            "four_hours",
+                                            "six_hours"
+                                        ]
                                     },
                                     "logging_from": {
                                         "type": "string",
@@ -2106,6 +2133,15 @@
                                         "items": {
                                             "type": "string"
                                         }
+                                    },
+                                    "logging_from_preset": {
+                                        "type": "string",
+                                        "enum": [
+                                            "one_hour",
+                                            "two_hours",
+                                            "four_hours",
+                                            "six_hours"
+                                        ]
                                     },
                                     "logging_from": {
                                         "type": "string",

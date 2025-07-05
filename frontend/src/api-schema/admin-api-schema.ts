@@ -244,6 +244,7 @@ export namespace AdminApi {
       service_ids?: number[];
       trace_id?: string | null;
       all_traces_in_tree?: boolean;
+      logging_from_preset?: "one_hour" | "two_hours" | "four_hours" | "six_hours";
       /** @format date */
       logging_from?: string;
       /** @format date */
@@ -809,6 +810,7 @@ export namespace AdminApi {
       service_ids?: number[];
       /** @minLength 1 */
       text?: string | null;
+      logging_from_preset?: "one_hour" | "two_hours" | "four_hours" | "six_hours";
       /** @format date */
       logging_from?: string;
       /** @format date */
@@ -874,6 +876,7 @@ export namespace AdminApi {
       /** @minLength 1 */
       text?: string | null;
       types?: string[];
+      logging_from_preset?: "one_hour" | "two_hours" | "four_hours" | "six_hours";
       /** @format date */
       logging_from?: string;
       /** @format date */
@@ -940,6 +943,7 @@ export namespace AdminApi {
       text?: string | null;
       types?: string[];
       tags?: string[];
+      logging_from_preset?: "one_hour" | "two_hours" | "four_hours" | "six_hours";
       /** @format date */
       logging_from?: string;
       /** @format date */
@@ -2081,6 +2085,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         service_ids?: number[];
         trace_id?: string | null;
         all_traces_in_tree?: boolean;
+        logging_from_preset?: "one_hour" | "two_hours" | "four_hours" | "six_hours";
         /** @format date */
         logging_from?: string;
         /** @format date */
@@ -2679,6 +2684,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         service_ids?: number[];
         /** @minLength 1 */
         text?: string | null;
+        logging_from_preset?: "one_hour" | "two_hours" | "four_hours" | "six_hours";
         /** @format date */
         logging_from?: string;
         /** @format date */
@@ -2756,6 +2762,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         /** @minLength 1 */
         text?: string | null;
         types?: string[];
+        logging_from_preset?: "one_hour" | "two_hours" | "four_hours" | "six_hours";
         /** @format date */
         logging_from?: string;
         /** @format date */
@@ -2834,6 +2841,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         text?: string | null;
         types?: string[];
         tags?: string[];
+        logging_from_preset?: "one_hour" | "two_hours" | "four_hours" | "six_hours";
         /** @format date */
         logging_from?: string;
         /** @format date */

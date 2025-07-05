@@ -37,6 +37,7 @@ readonly class TraceController
         $validated = $request->validated();
 
         $loggingPeriod = PeriodParameters::fromStringValues(
+            fromPreset: ArrayValueGetter::stringNull($validated, 'logging_from_preset'),
             from: ArrayValueGetter::stringNull($validated, 'logging_from'),
             to: ArrayValueGetter::stringNull($validated, 'logging_to'),
         );

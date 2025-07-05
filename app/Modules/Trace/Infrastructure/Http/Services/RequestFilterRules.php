@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Trace\Infrastructure\Http\Services;
 
+use App\Modules\Trace\Enums\PeriodicTraceStepEnum;
 use App\Modules\Trace\Enums\TraceDataFilterCompNumericTypeEnum;
 use App\Modules\Trace\Enums\TraceDataFilterCompStringTypeEnum;
 
@@ -32,7 +33,18 @@ class RequestFilterRules
     public static function loggedFromTo(): array
     {
         return [
-            'logging_from' => [
+            'logging_from_preset' => [
+                'sometimes',
+                'string',
+                'in:' . implode(
+                    ',',
+                    array_map(
+                        fn(PeriodicTraceStepEnum $enum) => $enum->value,
+                        PeriodicTraceStepEnum::cases()
+                    )
+                ),
+            ],
+            'logging_from'        => [
                 'sometimes',
                 'date',
             ],

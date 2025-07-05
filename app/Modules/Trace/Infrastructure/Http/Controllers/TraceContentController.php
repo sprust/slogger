@@ -49,18 +49,19 @@ readonly class TraceContentController
                         serviceIds: ArrayValueGetter::arrayIntNull($validated, 'service_ids') ?? [],
                         text: ArrayValueGetter::stringNull($validated, 'text'),
                         loggingPeriod: PeriodParameters::fromStringValues(
+                            fromPreset: ArrayValueGetter::stringNull($validated, 'logging_from_preset'),
                             from: ArrayValueGetter::stringNull($validated, 'logging_from'),
                             to: ArrayValueGetter::stringNull($validated, 'logging_to'),
                         ),
-                        // TODO: long executing for float values
-                        //durationFrom: $validated['duration_from'] ?? null,
-                        //durationTo: $validated['duration_to'] ?? null,
-                        //memoryFrom: $validated['memory_from'] ?? null,
-                        //memoryTo: $validated['memory_to'] ?? null,
-                        //cpuFrom: $validated['cpu_from'] ?? null,
-                        //cpuTo: $validated['cpu_to'] ?? null,
-                        //data: $this->makeDataFilterParameter($validated),
-                        //hasProfiling: ($validated['has_profiling'] ?? null) ?: null,
+                    // TODO: long executing for float values
+                    //durationFrom: $validated['duration_from'] ?? null,
+                    //durationTo: $validated['duration_to'] ?? null,
+                    //memoryFrom: $validated['memory_from'] ?? null,
+                    //memoryTo: $validated['memory_to'] ?? null,
+                    //cpuFrom: $validated['cpu_from'] ?? null,
+                    //cpuTo: $validated['cpu_to'] ?? null,
+                    //data: $this->makeDataFilterParameter($validated),
+                    //hasProfiling: ($validated['has_profiling'] ?? null) ?: null,
                     )
                 )
             )
@@ -82,19 +83,20 @@ readonly class TraceContentController
                         serviceIds: ArrayValueGetter::arrayIntNull($validated, 'service_ids') ?? [],
                         text: ArrayValueGetter::stringNull($validated, 'text'),
                         loggingPeriod: PeriodParameters::fromStringValues(
+                            fromPreset: ArrayValueGetter::stringNull($validated, 'logging_from_preset'),
                             from: ArrayValueGetter::stringNull($validated, 'logging_from'),
                             to: ArrayValueGetter::stringNull($validated, 'logging_to'),
                         ),
                         types: ArrayValueGetter::arrayStringNull($validated, 'types') ?? [],
-                        // TODO: long executing for float values
-                        //durationFrom: $validated['duration_from'] ?? null,
-                        //durationTo: $validated['duration_to'] ?? null,
-                        //memoryFrom: $validated['memory_from'] ?? null,
-                        //memoryTo: $validated['memory_to'] ?? null,
-                        //cpuFrom: $validated['cpu_from'] ?? null,
-                        //cpuTo: $validated['cpu_to'] ?? null,
-                        //data: $this->makeDataFilterParameter($validated),
-                        //hasProfiling: ($validated['has_profiling'] ?? null) ?: null,
+                    // TODO: long executing for float values
+                    //durationFrom: $validated['duration_from'] ?? null,
+                    //durationTo: $validated['duration_to'] ?? null,
+                    //memoryFrom: $validated['memory_from'] ?? null,
+                    //memoryTo: $validated['memory_to'] ?? null,
+                    //cpuFrom: $validated['cpu_from'] ?? null,
+                    //cpuTo: $validated['cpu_to'] ?? null,
+                    //data: $this->makeDataFilterParameter($validated),
+                    //hasProfiling: ($validated['has_profiling'] ?? null) ?: null,
                     )
                 )
             )
@@ -116,20 +118,21 @@ readonly class TraceContentController
                         serviceIds: ArrayValueGetter::arrayIntNull($validated, 'service_ids') ?? [],
                         text: ArrayValueGetter::stringNull($validated, 'text'),
                         loggingPeriod: PeriodParameters::fromStringValues(
+                            fromPreset: ArrayValueGetter::stringNull($validated, 'logging_from_preset'),
                             from: ArrayValueGetter::stringNull($validated, 'logging_from'),
                             to: ArrayValueGetter::stringNull($validated, 'logging_to'),
                         ),
                         types: ArrayValueGetter::arrayStringNull($validated, 'types') ?? [],
                         tags: ArrayValueGetter::arrayStringNull($validated, 'tags') ?? [],
-                        // TODO: long executing for float values
-                        //durationFrom: $validated['duration_from'] ?? null,
-                        //durationTo: $validated['duration_to'] ?? null,
-                        //memoryFrom: $validated['memory_from'] ?? null,
-                        //memoryTo: $validated['memory_to'] ?? null,
-                        //cpuFrom: $validated['cpu_from'] ?? null,
-                        //cpuTo: $validated['cpu_to'] ?? null,
-                        //data: $this->makeDataFilterParameter($validated),
-                        //hasProfiling: ($validated['has_profiling'] ?? null) ?: null,
+                    // TODO: long executing for float values
+                    //durationFrom: $validated['duration_from'] ?? null,
+                    //durationTo: $validated['duration_to'] ?? null,
+                    //memoryFrom: $validated['memory_from'] ?? null,
+                    //memoryTo: $validated['memory_to'] ?? null,
+                    //cpuFrom: $validated['cpu_from'] ?? null,
+                    //cpuTo: $validated['cpu_to'] ?? null,
+                    //data: $this->makeDataFilterParameter($validated),
+                    //hasProfiling: ($validated['has_profiling'] ?? null) ?: null,
                     )
                 )
             )
