@@ -17,9 +17,11 @@ endif
 
 env-copy:
 	cp -i .env.example .env
+	cp -i .env.sparallel.example .env.sparallel
 	cp -i frontend/.env.example frontend/.env
 
 setup:
+	@make env-copy
 	@docker-compose stop
 	@docker-compose down
 	@docker-compose build
@@ -30,6 +32,7 @@ setup:
 	@make workers-art c='queues-declare'
 	@make rr-get-binary
 	@make strans-load
+	@make sparallel-load
 	@make frontend-npm-i
 	@make frontend-npm-build
 	@make restart
@@ -86,6 +89,7 @@ workers-restart:
 	@make workers-art c='slogger:dispatcher:stop'
 	@make workers-art c='trace-dynamic-indexes:monitor:stop'
 	@make workers-art c='trace-buffer:handle:stop'
+	@make sparallel-reload
 
 octane-stop:
 	@make workers-art c='octane:roadrunner:stop'
@@ -95,15 +99,18 @@ oa-generate:
 	@make frontend-npm-generate
 
 deploy-prod:
+	@make sparallel-sleep
 	git pull
 	@make composer c='i --no-dev'
 	@make art c='migrate --force'
 	@make workers-restart
+	@make sparallel-wake-up
 	@make frontend-npm-i
 	@make frontend-npm-build
 	@docker-compose restart $(FRONTEND_SERVICE)
 
 deploy-dev:
+	@make sparallel-sleep
 	git pull
 	@make composer c='i'
 	@make art c='migrate --force'
@@ -146,3 +153,21 @@ strans-stat:
 
 strans-stop:
 	@make workers-art c='slogger:transporter:stop'
+
+sparallel-load:
+	@make workers-art c='sparallel:load-server-bin'
+
+sparallel-reload:
+	@make workers-art c='sparallel:server:workers:reload'
+
+sparallel-stop:
+	@make workers-art c='sparallel:server:stop'
+
+sparallel-stats:
+	@make workers-art c='sparallel:server:stats'
+
+sparallel-sleep:
+	@make workers-art c='sparallel:server:sleep'
+
+sparallel-wake-up:
+	@make workers-art c='sparallel:server:wake-up'

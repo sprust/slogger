@@ -20,7 +20,7 @@ RUN apt-get update \
 RUN pecl install \
         redis \
         imagick \
-        mongodb \
+        mongodb-1.21.0 \
         zstd \
         zip \
         xhprof

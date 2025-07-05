@@ -57,6 +57,8 @@ readonly class StartTraceBufferHandlingAction implements StartTraceBufferHandlin
             $currentAllTracesCount = $currentTracesCount + $currentInvalidTracesCount;
 
             if (!$currentAllTracesCount) {
+                usleep(100);
+
                 continue;
             }
 
