@@ -1,6 +1,12 @@
 import {valueIsSelected} from "./valueWasSelected.ts";
-import {TraceAggregatorPayload, TraceStateParameters} from "../components/pages/trace-aggregator/components/traces/store/traceAggregatorStore.ts";
-import {TraceAggregatorService} from "../components/pages/trace-aggregator/components/services/store/traceAggregatorServicesStore.ts";
+import {
+    getPeriodPresetEnumByValue, PeriodPresetEnum,
+    TraceAggregatorPayload,
+    TraceStateParameters
+} from "../components/pages/trace-aggregator/components/traces/store/traceAggregatorStore.ts";
+import {
+    TraceAggregatorService
+} from "../components/pages/trace-aggregator/components/services/store/traceAggregatorServicesStore.ts";
 import alerts from "./alerts.ts";
 
 export class TypesHelper {
@@ -105,15 +111,23 @@ export function makeGeneralFiltersTitles(
 
     const titles = new Array<string>()
 
-    const loggedAtFromSelected = payload.logging_from && valueIsSelected(payload.logging_from)
+    const loggedAtFromSelected = payload.logging_from_preset !== PeriodPresetEnum.Custom
+        || (payload.logging_from && valueIsSelected(payload.logging_from))
+
     const loggedAtToSelected = payload.logging_to && valueIsSelected(payload.logging_to)
 
     if (loggedAtFromSelected || loggedAtToSelected) {
-        const loggedAtFrom: string | null = loggedAtFromSelected
-            ? (state.startOfDay
-                ? 'start of day'
-                : convertDateStringToLocalFull(payload.logging_from))
-            : null
+        let loggedAtFrom: string | null = null
+
+        if (payload.logging_from_preset === PeriodPresetEnum.Custom) {
+            if (payload.logging_from) {
+                loggedAtFrom = convertDateStringToLocalFull(payload.logging_from)
+            }
+        } else {
+            loggedAtFrom = snackToTitle(
+                getPeriodPresetEnumByValue(payload.logging_from_preset ?? '')
+            )
+        }
 
         titles.push(
             'Logged at: ' + (loggedAtFromSelected ? loggedAtFrom : '∞') + '-'
@@ -198,9 +212,50 @@ export function makeOtherFiltersTitles(payload: TraceAggregatorPayload): string[
     return titles
 }
 
+export function makeGraphTitles(
+    showGraph: boolean,
+    fields: Array<string>,
+    period: string,
+    step: string,
+): string[] {
+    if (!showGraph) {
+        return []
+    }
+
+    const titles: Array<string> = [
+        'Graph',
+        'Period: ' + period,
+        'Step: ' + step,
+    ]
+
+    if (!fields) {
+        return titles
+    }
+
+    const fieldsTitles: Array<string> = []
+
+    fields.forEach(
+        function (field: string) {
+            fieldsTitles.push(field)
+        }
+    )
+
+    titles.push('Fields: ' + fieldsTitles.join(','))
+
+    return titles
+}
+
 export function makeStartOfDay(): Date {
     const startOfDay = new Date()
     startOfDay.setUTCHours(Math.ceil(startOfDay.getTimezoneOffset() / 60), 0, 0, 0);
 
     return startOfDay
+}
+
+export function snackToTitle(text: string): string {
+    return text.split('_')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(' ')
+
+
 }

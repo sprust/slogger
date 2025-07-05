@@ -6,15 +6,26 @@
           <div v-if="traceAggregatorGraphStore.showGraph" style="width: 220px">
             <TraceAggregatorTimestampPeriods/>
           </div>
-          <div v-else>
-            <el-button
-                v-if="traceAggregatorStore.startOfDay"
-                style="width: 200px"
-                @click="traceAggregatorStore.startOfDay = false"
-                link
+          <el-space v-else>
+            <el-dropdown trigger="click" style="width: 25px; cursor: pointer; padding-right: 5px">
+              <span class="el-dropdown-link">
+                <el-icon size="large"><FromPresetIcon/></el-icon>
+              </span>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item v-for="preset in fromPresets" @click="onFromPresetSelected(preset)">
+                    {{ getFromPresetTitle(preset) }}
+                  </el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+            <el-text
+                v-if="!isCustomFromPreset"
+                style="width: 200px; cursor: pointer"
+                @click="traceAggregatorStore.payload.logging_from_preset = PeriodPresetEnum.Custom"
             >
-              Start of day
-            </el-button>
+              {{ getCurrentFromPresetTitle() }}
+            </el-text>
             <el-date-picker
                 v-else
                 v-model="traceAggregatorStore.payload.logging_from"
@@ -26,7 +37,7 @@
                 :shortcuts="dateTimeShortcuts"
                 style="width: 200px"
             />
-          </div>
+          </el-space>
         </el-space>
         <el-space style="padding-right: 5px">
           <el-date-picker
@@ -155,7 +166,12 @@
 
 <script lang="ts">
 import {defineComponent} from "vue";
-import {TraceAggregatorCustomFieldParameter, useTraceAggregatorStore} from "./store/traceAggregatorStore.ts";
+import {
+  getPeriodPresetEnumByValue,
+  PeriodPresetEnum,
+  TraceAggregatorCustomFieldParameter,
+  useTraceAggregatorStore
+} from "./store/traceAggregatorStore.ts";
 import TraceAggregatorTraceDataNode from "../trace/TraceAggregatorTraceDataNode.vue";
 import TraceAggregatorTracesTable from "./TraceAggregatorTracesTable.vue";
 import TraceAggregatorTracesPagination from "./TraceAggregatorTracesPagination.vue";
@@ -165,15 +181,15 @@ import FilterTags from "../tags/FilterTags.vue";
 import DynamicIndexes from "../dynamic-indexes/DynamicIndexes.vue";
 import AdminStores from "../admin-stores/AdminStores.vue";
 import OtherFilters from "./OtherFilters.vue";
-import {CaretRight, Close, CloseBold, Loading, SwitchButton} from '@element-plus/icons-vue'
+import {CaretRight, Clock as FromPresetIcon, Close, CloseBold, Loading, SwitchButton} from '@element-plus/icons-vue'
 import TraceAggregatorGraph from "../graph/TraceAggregatorGraph.vue";
 import TraceAggregatorTimestampPeriods from "../graph/TraceAggregatorTimestampPeriods.vue";
 import {useTraceAggregatorGraphStore} from "../graph/store/traceAggregatorGraphStore.ts";
 import {useTraceAggregatorTimestampPeriodStore} from "../graph/store/traceAggregatorTimestampPeriodsStore.ts";
 import {useTraceAggregatorTimestampFieldsStore} from "../graph/store/traceAggregatorTimestampFieldsStore.ts";
 import {useTraceAggregatorDataStore} from "../trace/store/traceAggregatorDataStore.ts";
-import {makeStartOfDay} from "../../../../../utils/helpers.ts";
-
+import {makeStartOfDay, snackToTitle} from "../../../../../utils/helpers.ts";
+import {useTraceAdminStoresStore} from "../admin-stores/store/traceAdminStoresStore.ts";
 
 export default defineComponent({
   components: {
@@ -188,6 +204,7 @@ export default defineComponent({
     TraceAggregatorTracesCustomFields,
     TraceAggregatorServices,
     TraceAggregatorTimestampPeriods,
+    FromPresetIcon,
   },
 
   data() {
@@ -204,6 +221,9 @@ export default defineComponent({
   computed: {
     traceAggregatorStore() {
       return useTraceAggregatorStore()
+    },
+    traceAdminStoresStore() {
+      return useTraceAdminStoresStore()
     },
     traceAggregatorGraphStore() {
       return useTraceAggregatorGraphStore()
@@ -237,22 +257,26 @@ export default defineComponent({
     },
     currentPage(): number {
       return this.traceAggregatorStore.payload.page
-    }
+    },
+    PeriodPresetEnum() {
+      return PeriodPresetEnum
+    },
+    fromPresets(): PeriodPresetEnum[] {
+      return Object.values(PeriodPresetEnum)
+    },
+    isCustomFromPreset() {
+      return this.traceAggregatorStore.payload.logging_from_preset === PeriodPresetEnum.Custom
+    },
   },
   methods: {
     setStartOfDay(): Date {
-      const startOfDay = makeStartOfDay()
-
-      this.traceAggregatorStore.startOfDay = true
-
-      return startOfDay
+      return makeStartOfDay()
     },
     onButtonSearchClick() {
       this.traceAggregatorStore.setPage(1)
       this.update()
 
-      // @ts-ignore
-      this.$refs.adminStoresRef.create(true)
+      this.traceAdminStoresStore.create(true)
     },
     update() {
       this.traceAggregatorStore.fillTraceAggregator()
@@ -287,6 +311,17 @@ export default defineComponent({
     onCustomFieldClick(parameters: TraceAggregatorCustomFieldParameter) {
       this.traceAggregatorStore.addOrDeleteCustomField(parameters)
     },
+    getCurrentFromPresetTitle() {
+      return this.getFromPresetTitle(
+          getPeriodPresetEnumByValue(this.traceAggregatorStore.payload.logging_from_preset ?? '')
+      )
+    },
+    getFromPresetTitle(preset: PeriodPresetEnum) {
+      return snackToTitle(preset.valueOf())
+    },
+    onFromPresetSelected(preset: PeriodPresetEnum) {
+      this.traceAggregatorStore.payload.logging_from_preset = preset.toString() as PeriodPresetEnum
+    },
   },
   watch: {
     'traceAggregatorGraphStore.showGraph'() {
@@ -302,6 +337,11 @@ export default defineComponent({
 
     if (!this.traceAggregatorTimestampFieldsStore.loaded) {
       this.traceAggregatorTimestampFieldsStore.findTimestampFields()
+    }
+
+
+    if (!this.traceAggregatorTimestampPeriodStore.loaded) {
+      this.traceAggregatorTimestampPeriodStore.findTimestampPeriods()
     }
   }
 })

@@ -387,6 +387,22 @@
                                     "all_traces_in_tree": {
                                         "type": "boolean"
                                     },
+                                    "logging_from_preset": {
+                                        "type": "string",
+                                        "enum": [
+                                            "custom",
+                                            "last_hour",
+                                            "last_2_hours",
+                                            "last_3_hours",
+                                            "last_6_hours",
+                                            "last_12_hours",
+                                            "last_day",
+                                            "last_3_days",
+                                            "last_week",
+                                            "last_2_weeks",
+                                            "last_month"
+                                        ]
+                                    },
                                     "logging_from": {
                                         "type": "string",
                                         "format": "date"
@@ -1743,6 +1759,22 @@
                                         "nullable": true,
                                         "minLength": 1
                                     },
+                                    "logging_from_preset": {
+                                        "type": "string",
+                                        "enum": [
+                                            "custom",
+                                            "last_hour",
+                                            "last_2_hours",
+                                            "last_3_hours",
+                                            "last_6_hours",
+                                            "last_12_hours",
+                                            "last_day",
+                                            "last_3_days",
+                                            "last_week",
+                                            "last_2_weeks",
+                                            "last_month"
+                                        ]
+                                    },
                                     "logging_from": {
                                         "type": "string",
                                         "format": "date"
@@ -1921,6 +1953,22 @@
                                         "items": {
                                             "type": "string"
                                         }
+                                    },
+                                    "logging_from_preset": {
+                                        "type": "string",
+                                        "enum": [
+                                            "custom",
+                                            "last_hour",
+                                            "last_2_hours",
+                                            "last_3_hours",
+                                            "last_6_hours",
+                                            "last_12_hours",
+                                            "last_day",
+                                            "last_3_days",
+                                            "last_week",
+                                            "last_2_weeks",
+                                            "last_month"
+                                        ]
                                     },
                                     "logging_from": {
                                         "type": "string",
@@ -2106,6 +2154,22 @@
                                         "items": {
                                             "type": "string"
                                         }
+                                    },
+                                    "logging_from_preset": {
+                                        "type": "string",
+                                        "enum": [
+                                            "custom",
+                                            "last_hour",
+                                            "last_2_hours",
+                                            "last_3_hours",
+                                            "last_6_hours",
+                                            "last_12_hours",
+                                            "last_day",
+                                            "last_3_days",
+                                            "last_week",
+                                            "last_2_weeks",
+                                            "last_month"
+                                        ]
                                     },
                                     "logging_from": {
                                         "type": "string",

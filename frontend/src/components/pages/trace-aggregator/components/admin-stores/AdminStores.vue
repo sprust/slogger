@@ -43,7 +43,7 @@
           <template #append>
             <el-tooltip content="Fill title" placement="top-start">
               <el-button
-                  :icon="FillTitleIvon"
+                  :icon="FillTitleIcon"
                   @click="fillTitle"
               />
             </el-tooltip>
@@ -51,7 +51,7 @@
         </el-input>
         <el-button
             :icon="PlusIcon"
-            @click="create(false)"
+            @click="create()"
             :disabled="!traceAdminStoresStore.createParameters.title"
         />
       </el-space>
@@ -113,14 +113,10 @@
 
 <script lang="ts">
 import {defineComponent} from "vue";
-import {CaretLeft as FillTitleIvon, Plus as PlusIcon, Search as SearchIcon} from '@element-plus/icons-vue'
-import {
-  convertDateStringToLocal,
-  makeGeneralFiltersTitles,
-  makeOtherFiltersTitles
-} from "../../../../../utils/helpers.ts";
+import {CaretLeft as FillTitleIcon, Plus as PlusIcon, Search as SearchIcon} from '@element-plus/icons-vue'
+import {convertDateStringToLocal} from "../../../../../utils/helpers.ts";
 import {AdminStore, useTraceAdminStoresStore} from "./store/traceAdminStoresStore.ts";
-import {TraceStateParameters, useTraceAggregatorStore} from "../traces/store/traceAggregatorStore.ts";
+import {useTraceAggregatorStore} from "../traces/store/traceAggregatorStore.ts";
 import TraceAggregatorProfilingNodeData from "../profiling/TraceAggregatorProfilingNodeData.vue";
 import {useTraceAggregatorServicesStore} from "../services/store/traceAggregatorServicesStore.ts";
 
@@ -129,7 +125,7 @@ export default defineComponent({
     TraceAggregatorProfilingNodeData,
     SearchIcon,
     PlusIcon,
-    FillTitleIvon,
+    FillTitleIcon,
   },
 
   data() {
@@ -154,32 +150,17 @@ export default defineComponent({
     PlusIcon() {
       return PlusIcon
     },
-    FillTitleIvon() {
-      return FillTitleIvon
+    FillTitleIcon() {
+      return FillTitleIcon
     },
   },
 
   methods: {
     update() {
-      this.traceAdminStoresStore.findParameters.version = this.traceAggregatorStore.version
-
       this.traceAdminStoresStore.findAdminStores()
     },
-    create(auto: boolean) {
-      if (auto) {
-        this.traceAdminStoresStore.createParameters.title = this.generateTitle()
-      }
-
-      if (!this.traceAdminStoresStore.createParameters.title) {
-        return
-      }
-
-      this.traceAdminStoresStore.createParameters.store_version = this.traceAggregatorStore.version
-      this.traceAdminStoresStore.createParameters.store_data = this.serializeTraceState()
-      this.traceAdminStoresStore.findParameters.auto = auto
-      this.traceAdminStoresStore.createParameters.auto = auto
-
-      this.traceAdminStoresStore.createAdminStore()
+    create() {
+      this.traceAdminStoresStore.create(false)
           .then(() => {
             this.traceAdminStoresStore.clearAdminStoreCreateParameters()
 
@@ -190,7 +171,7 @@ export default defineComponent({
       this.traceAdminStoresStore.deleteAdminStore(store.id)
     },
     restore(store: AdminStore) {
-      this.traceAggregatorStore.restoreTraceState(this.unSerializeTraceState(store))
+      this.traceAdminStoresStore.restoreTraceState(store)
 
       this.dialogVisible = false
 
@@ -202,29 +183,9 @@ export default defineComponent({
     makeDate(store: AdminStore): string {
       return convertDateStringToLocal(store.created_at, false)
     },
-    serializeTraceState() {
-      const state: TraceStateParameters = {
-        startOfDay: this.traceAggregatorStore.startOfDay,
-        payload: this.traceAggregatorStore.payload,
-        customFields: this.traceAggregatorStore.customFields,
-      }
-
-      return JSON.stringify(state)
-    },
-    unSerializeTraceState(store: AdminStore): TraceStateParameters {
-      return JSON.parse(store.store_data)
-    },
     fillTitle() {
-      this.traceAdminStoresStore.createParameters.title = this.generateTitle()
+      this.traceAdminStoresStore.createParameters.title = this.traceAdminStoresStore.generateStoreTitle()
     },
-    generateTitle(): string {
-      const titles: string[] = [
-        ...makeGeneralFiltersTitles(this.traceAggregatorStore, this.traceAggregatorServicesStore.items),
-        ...makeOtherFiltersTitles(this.traceAggregatorStore.payload),
-      ]
-
-      return titles.join(' | ')
-    }
   },
 
   mounted() {
