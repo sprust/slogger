@@ -40,7 +40,8 @@ class TracePipelineBuilder
         ?TraceDataFilterParameters $data = null,
         ?bool $hasProfiling = null,
         ?array $projectFields = null,
-        ?array $customMatch = null
+        ?array $customMatch = null,
+        ?string $parentTraceId = null,
     ): array {
         $match = [];
 
@@ -98,6 +99,9 @@ class TracePipelineBuilder
 
         if (!is_null($hasProfiling)) {
             $match['hpr'] = $hasProfiling;
+        }
+        if (!is_null($parentTraceId)) {
+            $match['ptid'] = $parentTraceId;
         }
 
         if (!is_null($customMatch)) {

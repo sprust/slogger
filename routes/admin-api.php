@@ -16,6 +16,7 @@ use App\Modules\Trace\Infrastructure\Http\Controllers\TraceDynamicIndexControlle
 use App\Modules\Trace\Infrastructure\Http\Controllers\TraceProfilingController;
 use App\Modules\Trace\Infrastructure\Http\Controllers\TraceTimestampPeriodsController;
 use App\Modules\Trace\Infrastructure\Http\Controllers\TraceTimestampsController;
+use App\Modules\Trace\Infrastructure\Http\Controllers\TraceTreeChildrenController;
 use App\Modules\Trace\Infrastructure\Http\Controllers\TraceTreeController;
 use Illuminate\Support\Facades\Route;
 
@@ -56,6 +57,8 @@ Route::prefix('/trace-aggregator')
                     ->group(function () {
                         Route::get('', [TraceController::class, 'show'])->name('show');
                         Route::get('/tree', [TraceTreeController::class, 'index'])->name('tree');
+                        Route::get('/tree/children', [TraceTreeChildrenController::class, 'index'])
+                            ->name('tree.children');
                         Route::post('/profiling', [TraceProfilingController::class, 'index'])->name('profiling');
                     });
             });

@@ -49,6 +49,7 @@ interface TraceRepositoryInterface
         ?float $cpuTo = null,
         ?TraceDataFilterParameters $data = null,
         ?bool $hasProfiling = null,
+        ?string $parentTraceId = null,
     ): array;
 
     /**
