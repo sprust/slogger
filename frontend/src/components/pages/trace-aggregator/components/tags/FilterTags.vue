@@ -211,6 +211,7 @@ export default defineComponent({
       this.traceAggregatorTagsStore.typesPayload = {
         text: text,
         service_ids: this.traceAggregatorStore.payload.service_ids,
+        logging_from_preset: this.traceAggregatorStore.payload.logging_from_preset,
         logging_from: this.traceAggregatorStore.payload.logging_from,
         logging_to: this.traceAggregatorStore.payload.logging_to,
         duration_from: this.traceAggregatorStore.payload.duration_from,
@@ -231,6 +232,7 @@ export default defineComponent({
       this.traceAggregatorTagsStore.tagsPayload = {
         text: text,
         service_ids: this.traceAggregatorStore.payload.service_ids,
+        logging_from_preset: this.traceAggregatorStore.payload.logging_from_preset,
         logging_from: this.traceAggregatorStore.payload.logging_from,
         logging_to: this.traceAggregatorStore.payload.logging_to,
         types: this.traceAggregatorStore.payload.types,
@@ -252,6 +254,7 @@ export default defineComponent({
       this.traceAggregatorTagsStore.statusesPayload = {
         text: text,
         service_ids: this.traceAggregatorStore.payload.service_ids,
+        logging_from_preset: this.traceAggregatorStore.payload.logging_from_preset,
         logging_from: this.traceAggregatorStore.payload.logging_from,
         logging_to: this.traceAggregatorStore.payload.logging_to,
         types: this.traceAggregatorStore.payload.types,

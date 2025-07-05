@@ -129,8 +129,6 @@ export default defineComponent({
 
       const {index} = elements[0]
 
-      this.traceAggregatorStore.startOfDay = false
-
       this.traceAggregatorStore.payload.logging_from = new Date(
           convertDateStringToLocalFull(this.traceAggregatorGraphStore.metrics[index].timestamp)
       ).toUTCString()

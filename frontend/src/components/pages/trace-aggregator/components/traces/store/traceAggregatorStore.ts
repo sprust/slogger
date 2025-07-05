@@ -23,6 +23,28 @@ export type TraceAggregatorCustomField = {
 }
 
 // TODO: get comp from scheme
+export enum PeriodPresetEnum {
+    Custom = 'custom',
+    LastHour = 'last_hour',
+    Last2Hour = 'last_2_hours',
+    Last3Hour = 'last_3_hours',
+    Last6Hour = 'last_6_hours',
+    Last12Hour = 'last_12_hours',
+    LastDay = 'last_day',
+    Last3Day = 'last_3_day',
+    LastWeek = 'last_week',
+    Last2Week = 'last_2_week',
+    LastMonth = 'last_month',
+}
+
+export function getPeriodPresetEnumByValue(value: string) {
+    return PeriodPresetEnum[
+        Object.entries(PeriodPresetEnum)
+            .find(([_, v]) => v === value)?.[0] as keyof typeof PeriodPresetEnum
+        ];
+}
+
+// TODO: get comp from scheme
 export type TraceAggregatorCustomFieldSearchParameter = {
     null: {
         enabled: boolean
@@ -57,7 +79,6 @@ interface State extends TraceStateParameters {
 }
 
 export interface TraceStateParameters {
-    startOfDay: boolean,
     payload: TraceAggregatorPayload,
     customFields: TraceAggregatorCustomField[],
 }
@@ -66,7 +87,6 @@ export const useTraceAggregatorStore = defineStore('traceAggregatorStore', {
     state: (): State => {
         return {
             loading: true,
-            startOfDay: true,
             payload: {
                 page: 1,
                 types: [],
@@ -78,6 +98,7 @@ export const useTraceAggregatorStore = defineStore('traceAggregatorStore', {
                 memory_to: null,
                 cpu_from: null,
                 cpu_to: null,
+                logging_from_preset: 'last_hour',
                 logging_from: '',
                 logging_to: '',
                 trace_id: null,
@@ -99,10 +120,6 @@ export const useTraceAggregatorStore = defineStore('traceAggregatorStore', {
     actions: {
         async fillTraceAggregator() {
             this.loading = true
-
-            if (this.startOfDay) {
-                this.payload.logging_from = makeStartOfDay().toUTCString()
-            }
 
             this.prepareCommonPayloadData()
 
@@ -128,8 +145,6 @@ export const useTraceAggregatorStore = defineStore('traceAggregatorStore', {
             this.traceAggregator = data
         },
         resetFilters() {
-            this.startOfDay = true
-
             this.payload = {
                 page: 1,
                 types: [],
@@ -141,6 +156,7 @@ export const useTraceAggregatorStore = defineStore('traceAggregatorStore', {
                 memory_to: null,
                 cpu_from: null,
                 cpu_to: null,
+                logging_from_preset: 'last_hour',
                 logging_from: makeStartOfDay().toUTCString(),
                 logging_to: '',
                 trace_id: null,

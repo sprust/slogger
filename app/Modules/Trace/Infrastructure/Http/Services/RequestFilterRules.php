@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Trace\Infrastructure\Http\Services;
 
-use App\Modules\Trace\Enums\PeriodicTraceStepEnum;
+use App\Modules\Trace\Enums\PeriodPresetEnum;
 use App\Modules\Trace\Enums\TraceDataFilterCompNumericTypeEnum;
 use App\Modules\Trace\Enums\TraceDataFilterCompStringTypeEnum;
 
@@ -39,8 +39,8 @@ class RequestFilterRules
                 'in:' . implode(
                     ',',
                     array_map(
-                        fn(PeriodicTraceStepEnum $enum) => $enum->value,
-                        PeriodicTraceStepEnum::cases()
+                        fn(PeriodPresetEnum $enum) => $enum->value,
+                        PeriodPresetEnum::cases()
                     )
                 ),
             ],

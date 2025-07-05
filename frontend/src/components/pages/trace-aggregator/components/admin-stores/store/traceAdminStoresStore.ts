@@ -169,7 +169,6 @@ export const useTraceAdminStoresStore = defineStore('traceAdminStoresStore', {
         serializeTraceState() {
             const state: StoreItemsInterface = {
                 traces: {
-                    startOfDay: this.traceAggregatorStore.startOfDay,
                     payload: this.traceAggregatorStore.payload,
                     customFields: this.traceAggregatorStore.customFields,
                 },
@@ -191,7 +190,6 @@ export const useTraceAdminStoresStore = defineStore('traceAdminStoresStore', {
             const state: StoreItemsInterface = JSON.parse(store.store_data)
 
             // traces
-            this.traceAggregatorStore.startOfDay = state.traces.startOfDay
             this.traceAggregatorStore.payload = state.traces.payload
             this.traceAggregatorStore.customFields = state.traces.customFields
 
