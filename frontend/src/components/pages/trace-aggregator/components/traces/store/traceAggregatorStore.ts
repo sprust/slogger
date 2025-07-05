@@ -26,14 +26,14 @@ export type TraceAggregatorCustomField = {
 export enum PeriodPresetEnum {
     Custom = 'custom',
     LastHour = 'last_hour',
-    Last2Hour = 'last_2_hours',
-    Last3Hour = 'last_3_hours',
-    Last6Hour = 'last_6_hours',
-    Last12Hour = 'last_12_hours',
+    Last2Hours = 'last_2_hours',
+    Last3Hours = 'last_3_hours',
+    Last6Hours = 'last_6_hours',
+    Last12Hours = 'last_12_hours',
     LastDay = 'last_day',
-    Last3Day = 'last_3_day',
+    Last3Days = 'last_3_days',
     LastWeek = 'last_week',
-    Last2Week = 'last_2_week',
+    Last2Weeks = 'last_2_weeks',
     LastMonth = 'last_month',
 }
 

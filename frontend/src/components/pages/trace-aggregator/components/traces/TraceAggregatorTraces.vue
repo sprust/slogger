@@ -264,7 +264,7 @@ export default defineComponent({
       return Object.values(PeriodPresetEnum)
     },
     isCustomFromPreset() {
-      return this.traceAggregatorStore.payload.logging_from_preset === 'custom'
+      return this.traceAggregatorStore.payload.logging_from_preset === PeriodPresetEnum.Custom
     },
   },
   methods: {

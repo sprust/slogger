@@ -252,9 +252,9 @@ export namespace AdminApi {
         | "last_6_hours"
         | "last_12_hours"
         | "last_day"
-        | "last_3_day"
+        | "last_3_days"
         | "last_week"
-        | "last_2_week"
+        | "last_2_weeks"
         | "last_month";
       /** @format date */
       logging_from?: string;
@@ -829,9 +829,9 @@ export namespace AdminApi {
         | "last_6_hours"
         | "last_12_hours"
         | "last_day"
-        | "last_3_day"
+        | "last_3_days"
         | "last_week"
-        | "last_2_week"
+        | "last_2_weeks"
         | "last_month";
       /** @format date */
       logging_from?: string;
@@ -906,9 +906,9 @@ export namespace AdminApi {
         | "last_6_hours"
         | "last_12_hours"
         | "last_day"
-        | "last_3_day"
+        | "last_3_days"
         | "last_week"
-        | "last_2_week"
+        | "last_2_weeks"
         | "last_month";
       /** @format date */
       logging_from?: string;
@@ -984,9 +984,9 @@ export namespace AdminApi {
         | "last_6_hours"
         | "last_12_hours"
         | "last_day"
-        | "last_3_day"
+        | "last_3_days"
         | "last_week"
-        | "last_2_week"
+        | "last_2_weeks"
         | "last_month";
       /** @format date */
       logging_from?: string;
@@ -2137,9 +2137,9 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
           | "last_6_hours"
           | "last_12_hours"
           | "last_day"
-          | "last_3_day"
+          | "last_3_days"
           | "last_week"
-          | "last_2_week"
+          | "last_2_weeks"
           | "last_month";
         /** @format date */
         logging_from?: string;
@@ -2747,9 +2747,9 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
           | "last_6_hours"
           | "last_12_hours"
           | "last_day"
-          | "last_3_day"
+          | "last_3_days"
           | "last_week"
-          | "last_2_week"
+          | "last_2_weeks"
           | "last_month";
         /** @format date */
         logging_from?: string;
@@ -2836,9 +2836,9 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
           | "last_6_hours"
           | "last_12_hours"
           | "last_day"
-          | "last_3_day"
+          | "last_3_days"
           | "last_week"
-          | "last_2_week"
+          | "last_2_weeks"
           | "last_month";
         /** @format date */
         logging_from?: string;
@@ -2926,9 +2926,9 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
           | "last_6_hours"
           | "last_12_hours"
           | "last_day"
-          | "last_3_day"
+          | "last_3_days"
           | "last_week"
-          | "last_2_week"
+          | "last_2_weeks"
           | "last_month";
         /** @format date */
         logging_from?: string;

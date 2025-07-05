@@ -1,6 +1,6 @@
 import {valueIsSelected} from "./valueWasSelected.ts";
 import {
-    getPeriodPresetEnumByValue,
+    getPeriodPresetEnumByValue, PeriodPresetEnum,
     TraceAggregatorPayload,
     TraceStateParameters
 } from "../components/pages/trace-aggregator/components/traces/store/traceAggregatorStore.ts";
@@ -111,7 +111,7 @@ export function makeGeneralFiltersTitles(
 
     const titles = new Array<string>()
 
-    const loggedAtFromSelected = payload.logging_from_preset !== 'custom'
+    const loggedAtFromSelected = payload.logging_from_preset !== PeriodPresetEnum.Custom
         || (payload.logging_from && valueIsSelected(payload.logging_from))
 
     const loggedAtToSelected = payload.logging_to && valueIsSelected(payload.logging_to)
@@ -119,7 +119,7 @@ export function makeGeneralFiltersTitles(
     if (loggedAtFromSelected || loggedAtToSelected) {
         let loggedAtFrom: string | null = null
 
-        if (payload.logging_from_preset === 'custom') {
+        if (payload.logging_from_preset === PeriodPresetEnum.Custom) {
             if (payload.logging_from) {
                 loggedAtFrom = convertDateStringToLocalFull(payload.logging_from)
             }
