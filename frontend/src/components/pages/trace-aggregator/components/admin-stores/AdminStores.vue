@@ -43,7 +43,7 @@
           <template #append>
             <el-tooltip content="Fill title" placement="top-start">
               <el-button
-                  :icon="FillTitleIvon"
+                  :icon="FillTitleIcon"
                   @click="fillTitle"
               />
             </el-tooltip>
@@ -113,7 +113,7 @@
 
 <script lang="ts">
 import {defineComponent} from "vue";
-import {CaretLeft as FillTitleIvon, Plus as PlusIcon, Search as SearchIcon} from '@element-plus/icons-vue'
+import {CaretLeft as FillTitleIcon, Plus as PlusIcon, Search as SearchIcon} from '@element-plus/icons-vue'
 import {convertDateStringToLocal} from "../../../../../utils/helpers.ts";
 import {AdminStore, useTraceAdminStoresStore} from "./store/traceAdminStoresStore.ts";
 import {useTraceAggregatorStore} from "../traces/store/traceAggregatorStore.ts";
@@ -125,7 +125,7 @@ export default defineComponent({
     TraceAggregatorProfilingNodeData,
     SearchIcon,
     PlusIcon,
-    FillTitleIvon,
+    FillTitleIcon,
   },
 
   data() {
@@ -150,8 +150,8 @@ export default defineComponent({
     PlusIcon() {
       return PlusIcon
     },
-    FillTitleIvon() {
-      return FillTitleIvon
+    FillTitleIcon() {
+      return FillTitleIcon
     },
   },
 

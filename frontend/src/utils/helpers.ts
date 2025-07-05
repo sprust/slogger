@@ -198,6 +198,39 @@ export function makeOtherFiltersTitles(payload: TraceAggregatorPayload): string[
     return titles
 }
 
+export function makeGraphTitles(
+    showGraph: boolean,
+    fields: Array<string>,
+    period: string,
+    step: string,
+): string[] {
+    if (!showGraph) {
+        return []
+    }
+
+    const titles: Array<string> = [
+        'Graph',
+        'Period: ' + period,
+        'Step: ' + step,
+    ]
+
+    if (!fields) {
+        return titles
+    }
+
+    const fieldsTitles: Array<string> = []
+
+    fields.forEach(
+        function (field: string) {
+            fieldsTitles.push(field)
+        }
+    )
+
+    titles.push('Fields: ' + fieldsTitles.join(','))
+
+    return titles
+}
+
 export function makeStartOfDay(): Date {
     const startOfDay = new Date()
     startOfDay.setUTCHours(Math.ceil(startOfDay.getTimezoneOffset() / 60), 0, 0, 0);

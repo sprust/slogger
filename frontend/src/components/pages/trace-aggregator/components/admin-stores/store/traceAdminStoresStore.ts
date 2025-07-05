@@ -3,7 +3,7 @@ import {AdminApi} from "../../../../../../api-schema/admin-api-schema.ts";
 import {defineStore} from "pinia";
 import {handleApiRequest} from "../../../../../../utils/handleApiRequest.ts";
 import {TraceStateParameters, useTraceAggregatorStore} from "../../traces/store/traceAggregatorStore.ts";
-import {makeGeneralFiltersTitles, makeOtherFiltersTitles} from "../../../../../../utils/helpers.ts";
+import {makeGeneralFiltersTitles, makeGraphTitles, makeOtherFiltersTitles} from "../../../../../../utils/helpers.ts";
 import {useTraceAggregatorServicesStore} from "../../services/store/traceAggregatorServicesStore.ts";
 import {useTraceAggregatorTagsStore} from "../../tags/store/traceAggregatorTagsStore.ts";
 import {
@@ -156,6 +156,12 @@ export const useTraceAdminStoresStore = defineStore('traceAdminStoresStore', {
             const titles: string[] = [
                 ...makeGeneralFiltersTitles(this.traceAggregatorStore, this.traceAggregatorServicesStore.items),
                 ...makeOtherFiltersTitles(this.traceAggregatorStore.payload),
+                ...makeGraphTitles(
+                    this.traceAggregatorGraphStore.showGraph,
+                    this.traceAggregatorTimestampFieldsStore.selectedFields,
+                    this.traceAggregatorTimestampPeriodStore.selectedTimestampPeriod,
+                    this.traceAggregatorTimestampPeriodStore.selectedTimestampStep,
+                ),
             ]
 
             return titles.join(' | ')
