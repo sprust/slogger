@@ -53,12 +53,13 @@ Route::prefix('/trace-aggregator')
             ->group(function () {
                 Route::post('', [TraceController::class, 'index'])->name('index');
 
+                Route::post('/tree/children', [TraceTreeChildrenController::class, 'children'])
+                    ->name('tree.children');
+
                 Route::prefix('{traceId}')
                     ->group(function () {
                         Route::get('', [TraceController::class, 'show'])->name('show');
                         Route::get('/tree', [TraceTreeController::class, 'index'])->name('tree');
-                        Route::get('/tree/children', [TraceTreeChildrenController::class, 'index'])
-                            ->name('tree.children');
                         Route::post('/profiling', [TraceProfilingController::class, 'index'])->name('profiling');
                     });
             });

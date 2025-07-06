@@ -70,7 +70,6 @@ readonly class FindTraceTreeChildrenAction implements FindTraceTreeChildrenActio
 
         $traces = array_map(
             static fn(TraceDto $trace) => new TraceTreeChildObject(
-                id: $trace->id,
                 service: $trace->serviceId
                     ? $services->getById($trace->serviceId)
                     : null,

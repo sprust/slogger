@@ -13,7 +13,6 @@ readonly class TraceTreeChildObject
      * @param string[] $tags
      */
     public function __construct(
-        public string $id,
         public ?TraceServiceObject $service,
         public string $traceId,
         public ?string $parentTraceId,

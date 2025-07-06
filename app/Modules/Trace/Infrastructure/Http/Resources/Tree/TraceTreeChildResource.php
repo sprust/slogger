@@ -11,7 +11,6 @@ use Ifksco\OpenApiGenerator\Attributes\OaListItemTypeAttribute;
 
 class TraceTreeChildResource extends AbstractApiResource
 {
-    private string $id;
     private ?TraceServiceResource $service;
     private string $trace_id;
     private ?string $parent_trace_id;
@@ -29,7 +28,6 @@ class TraceTreeChildResource extends AbstractApiResource
     {
         parent::__construct($resource);
 
-        $this->id              = $resource->id;
         $this->service         = TraceServiceResource::makeIfNotNull($resource->service);
         $this->trace_id        = $resource->traceId;
         $this->parent_trace_id = $resource->parentTraceId;

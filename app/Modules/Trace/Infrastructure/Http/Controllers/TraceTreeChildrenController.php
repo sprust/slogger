@@ -17,7 +17,22 @@ readonly class TraceTreeChildrenController
     ) {
     }
 
-    public function index(TraceTreeChildrenRequest $request): TraceTreeChildrenResource
+    public function root(TraceTreeChildrenRequest $request): TraceTreeChildrenResource
+    {
+        $validated = $request->validated();
+
+        $children = $this->findTraceTreeChildrenAction->handle(
+            new TraceFindTreeChildrenParameters(
+                page: ArrayValueGetter::int($validated, 'page'),
+                root: ArrayValueGetter::bool($validated, 'root'),
+                traceId: ArrayValueGetter::string($validated, 'trace_id'),
+            )
+        );
+
+        return new TraceTreeChildrenResource($children);
+    }
+
+    public function children(TraceTreeChildrenRequest $request): TraceTreeChildrenResource
     {
         $validated = $request->validated();
 
