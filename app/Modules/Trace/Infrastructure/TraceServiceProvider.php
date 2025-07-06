@@ -42,6 +42,7 @@ use App\Modules\Trace\Contracts\Repositories\TraceContentRepositoryInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceDynamicIndexRepositoryInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceRepositoryInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceTimestampsRepositoryInterface;
+use App\Modules\Trace\Contracts\Repositories\TraceTreeCacheRepositoryInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceTreeRepositoryInterface;
 use App\Modules\Trace\Domain\Actions\Buffer\StartTraceBufferHandlingAction;
 use App\Modules\Trace\Domain\Actions\Buffer\StopTraceBufferHandlingAction;
@@ -93,6 +94,7 @@ use App\Modules\Trace\Repositories\TraceContentRepository;
 use App\Modules\Trace\Repositories\TraceDynamicIndexRepository;
 use App\Modules\Trace\Repositories\TraceRepository;
 use App\Modules\Trace\Repositories\TraceTimestampsRepository;
+use App\Modules\Trace\Repositories\TraceTreeCacheRepository;
 use App\Modules\Trace\Repositories\TraceTreeRepository;
 use Illuminate\Contracts\Foundation\Application;
 use MongoDB\Client;
@@ -192,6 +194,7 @@ class TraceServiceProvider extends BaseServiceProvider
             TraceTimestampsRepositoryInterface::class             => TraceTimestampsRepository::class,
             TraceDynamicIndexRepositoryInterface::class           => TraceDynamicIndexRepository::class,
             TraceAdminStoreRepositoryInterface::class             => TraceAdminStoreRepository::class,
+            TraceTreeCacheRepositoryInterface::class              => TraceTreeCacheRepository::class,
             // actions
             MakeMetricIndicatorsActionInterface::class            => MakeMetricIndicatorsAction::class,
             MakeTraceTimestampPeriodsActionInterface::class       => MakeTraceTimestampPeriodsAction::class,
