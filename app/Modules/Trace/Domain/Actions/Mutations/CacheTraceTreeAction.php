@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\Trace\Domain\Services;
+namespace App\Modules\Trace\Domain\Actions\Mutations;
 
+use App\Modules\Trace\Contracts\Actions\Mutations\CacheTraceTreeActionInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceRepositoryInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceTreeCacheRepositoryInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceTreeRepositoryInterface;
@@ -12,7 +13,7 @@ use App\Modules\Trace\Entities\Trace\Tree\TraceTreeMapObject;
 use App\Modules\Trace\Parameters\CreateTraceTreeCacheParameters;
 use Illuminate\Support\Carbon;
 
-readonly class TraceTreeMapCollector
+readonly class CacheTraceTreeAction implements CacheTraceTreeActionInterface
 {
     public function __construct(
         private TraceRepositoryInterface $traceRepository,
@@ -21,7 +22,7 @@ readonly class TraceTreeMapCollector
     ) {
     }
 
-    public function collect(string $traceId): void
+    public function handle(string $traceId): void
     {
         $parentTraceId = $this->traceTreeRepository->findParentTraceId(
             traceId: $traceId
@@ -69,7 +70,7 @@ readonly class TraceTreeMapCollector
             $parentTree,
         ];
 
-        /** @var array<string, TraceTreeMapObject[]> $map */
+        /** @var TraceTreeMapObject $map */
         $map = [
             $parentTree->traceId => $parentTree,
         ];
