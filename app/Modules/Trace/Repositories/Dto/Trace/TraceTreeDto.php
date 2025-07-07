@@ -2,15 +2,14 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\Trace\Entities\Trace\Tree;
+namespace App\Modules\Trace\Repositories\Dto\Trace;
 
-use App\Modules\Trace\Entities\Trace\TraceServiceObject;
 use Illuminate\Support\Carbon;
 
-readonly class TraceTreeObject
+readonly class TraceTreeDto
 {
     public function __construct(
-        public ?TraceServiceObject $service,
+        public ?int $serviceId,
         public string $traceId,
         public ?string $parentTraceId,
         public string $type,

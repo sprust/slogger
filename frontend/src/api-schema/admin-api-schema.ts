@@ -450,7 +450,7 @@ export namespace AdminApi {
  * @secure
  * @response `200` `{
     data: {
-    tracesCount: number,
+    count: number,
     items: ({
     service?: {
     id: number,
@@ -458,90 +458,29 @@ export namespace AdminApi {
 
 },
     trace_id: string,
-    parent_trace_id?: string | null,
     type: string,
     status: string,
-    tags: (string)[],
     duration?: number | null,
     memory?: number | null,
     cpu?: number | null,
     logged_at: string,
-    children: ({
-    service?: {
-    id: number,
-    name: string,
-
-},
-    trace_id: string,
-    parent_trace_id?: string | null,
-    type: string,
-    status: string,
-    tags: (string)[],
-    duration?: number | null,
-    memory?: number | null,
-    cpu?: number | null,
-    logged_at: string,
-    children: ({
-    service?: {
-    id: number,
-    name: string,
-
-},
-    trace_id: string,
-    parent_trace_id?: string | null,
-    type: string,
-    status: string,
-    tags: (string)[],
-    duration?: number | null,
-    memory?: number | null,
-    cpu?: number | null,
-    logged_at: string,
-    children: ({
-    service?: {
-    id: number,
-    name: string,
-
-},
-    trace_id: string,
-    parent_trace_id?: string | null,
-    type: string,
-    status: string,
-    tags: (string)[],
-    duration?: number | null,
-    memory?: number | null,
-    cpu?: number | null,
-    logged_at: string,
-    children: ({
-    service?: {
-    id: number,
-    name: string,
-
-},
-    trace_id: string,
-    parent_trace_id?: string | null,
-    type: string,
-    status: string,
-  \** @maxItems 0 *\
-    tags: (string)[],
-    duration?: number | null,
-    memory?: number | null,
-    cpu?: number | null,
-    logged_at: string,
-  \** @maxItems 0 *\
-    children: (string)[],
     depth: number,
 
 })[],
-    depth: number,
+    services: ({
+    id: number,
+    name: string,
+    traces_count: number,
 
 })[],
-    depth: number,
+    types: ({
+    name: string,
+    traces_count: number,
 
 })[],
-    depth: number,
-
-})[],
-    depth: number,
+    statuses: ({
+    name: string,
+    traces_count: number,
 
 })[],
 
@@ -558,89 +497,33 @@ export namespace AdminApi {
     export type RequestHeaders = {};
     export type ResponseBody = {
       data: {
-        tracesCount: number;
+        count: number;
         items: {
           service?: {
             id: number;
             name: string;
           };
           trace_id: string;
-          parent_trace_id?: string | null;
           type: string;
           status: string;
-          tags: string[];
           duration?: number | null;
           memory?: number | null;
           cpu?: number | null;
           logged_at: string;
-          children: {
-            service?: {
-              id: number;
-              name: string;
-            };
-            trace_id: string;
-            parent_trace_id?: string | null;
-            type: string;
-            status: string;
-            tags: string[];
-            duration?: number | null;
-            memory?: number | null;
-            cpu?: number | null;
-            logged_at: string;
-            children: {
-              service?: {
-                id: number;
-                name: string;
-              };
-              trace_id: string;
-              parent_trace_id?: string | null;
-              type: string;
-              status: string;
-              tags: string[];
-              duration?: number | null;
-              memory?: number | null;
-              cpu?: number | null;
-              logged_at: string;
-              children: {
-                service?: {
-                  id: number;
-                  name: string;
-                };
-                trace_id: string;
-                parent_trace_id?: string | null;
-                type: string;
-                status: string;
-                tags: string[];
-                duration?: number | null;
-                memory?: number | null;
-                cpu?: number | null;
-                logged_at: string;
-                children: {
-                  service?: {
-                    id: number;
-                    name: string;
-                  };
-                  trace_id: string;
-                  parent_trace_id?: string | null;
-                  type: string;
-                  status: string;
-                  /** @maxItems 0 */
-                  tags: string[];
-                  duration?: number | null;
-                  memory?: number | null;
-                  cpu?: number | null;
-                  logged_at: string;
-                  /** @maxItems 0 */
-                  children: string[];
-                  depth: number;
-                }[];
-                depth: number;
-              }[];
-              depth: number;
-            }[];
-            depth: number;
-          }[];
           depth: number;
+        }[];
+        services: {
+          id: number;
+          name: string;
+          traces_count: number;
+        }[];
+        types: {
+          name: string;
+          traces_count: number;
+        }[];
+        statuses: {
+          name: string;
+          traces_count: number;
         }[];
       };
     };
@@ -2354,7 +2237,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
  * @secure
  * @response `200` `{
     data: {
-    tracesCount: number,
+    count: number,
     items: ({
     service?: {
     id: number,
@@ -2362,90 +2245,29 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
 
 },
     trace_id: string,
-    parent_trace_id?: string | null,
     type: string,
     status: string,
-    tags: (string)[],
     duration?: number | null,
     memory?: number | null,
     cpu?: number | null,
     logged_at: string,
-    children: ({
-    service?: {
-    id: number,
-    name: string,
-
-},
-    trace_id: string,
-    parent_trace_id?: string | null,
-    type: string,
-    status: string,
-    tags: (string)[],
-    duration?: number | null,
-    memory?: number | null,
-    cpu?: number | null,
-    logged_at: string,
-    children: ({
-    service?: {
-    id: number,
-    name: string,
-
-},
-    trace_id: string,
-    parent_trace_id?: string | null,
-    type: string,
-    status: string,
-    tags: (string)[],
-    duration?: number | null,
-    memory?: number | null,
-    cpu?: number | null,
-    logged_at: string,
-    children: ({
-    service?: {
-    id: number,
-    name: string,
-
-},
-    trace_id: string,
-    parent_trace_id?: string | null,
-    type: string,
-    status: string,
-    tags: (string)[],
-    duration?: number | null,
-    memory?: number | null,
-    cpu?: number | null,
-    logged_at: string,
-    children: ({
-    service?: {
-    id: number,
-    name: string,
-
-},
-    trace_id: string,
-    parent_trace_id?: string | null,
-    type: string,
-    status: string,
-  \** @maxItems 0 *\
-    tags: (string)[],
-    duration?: number | null,
-    memory?: number | null,
-    cpu?: number | null,
-    logged_at: string,
-  \** @maxItems 0 *\
-    children: (string)[],
     depth: number,
 
 })[],
-    depth: number,
+    services: ({
+    id: number,
+    name: string,
+    traces_count: number,
 
 })[],
-    depth: number,
+    types: ({
+    name: string,
+    traces_count: number,
 
 })[],
-    depth: number,
-
-})[],
-    depth: number,
+    statuses: ({
+    name: string,
+    traces_count: number,
 
 })[],
 
@@ -2457,89 +2279,33 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       this.request<
         {
           data: {
-            tracesCount: number;
+            count: number;
             items: {
               service?: {
                 id: number;
                 name: string;
               };
               trace_id: string;
-              parent_trace_id?: string | null;
               type: string;
               status: string;
-              tags: string[];
               duration?: number | null;
               memory?: number | null;
               cpu?: number | null;
               logged_at: string;
-              children: {
-                service?: {
-                  id: number;
-                  name: string;
-                };
-                trace_id: string;
-                parent_trace_id?: string | null;
-                type: string;
-                status: string;
-                tags: string[];
-                duration?: number | null;
-                memory?: number | null;
-                cpu?: number | null;
-                logged_at: string;
-                children: {
-                  service?: {
-                    id: number;
-                    name: string;
-                  };
-                  trace_id: string;
-                  parent_trace_id?: string | null;
-                  type: string;
-                  status: string;
-                  tags: string[];
-                  duration?: number | null;
-                  memory?: number | null;
-                  cpu?: number | null;
-                  logged_at: string;
-                  children: {
-                    service?: {
-                      id: number;
-                      name: string;
-                    };
-                    trace_id: string;
-                    parent_trace_id?: string | null;
-                    type: string;
-                    status: string;
-                    tags: string[];
-                    duration?: number | null;
-                    memory?: number | null;
-                    cpu?: number | null;
-                    logged_at: string;
-                    children: {
-                      service?: {
-                        id: number;
-                        name: string;
-                      };
-                      trace_id: string;
-                      parent_trace_id?: string | null;
-                      type: string;
-                      status: string;
-                      /** @maxItems 0 */
-                      tags: string[];
-                      duration?: number | null;
-                      memory?: number | null;
-                      cpu?: number | null;
-                      logged_at: string;
-                      /** @maxItems 0 */
-                      children: string[];
-                      depth: number;
-                    }[];
-                    depth: number;
-                  }[];
-                  depth: number;
-                }[];
-                depth: number;
-              }[];
               depth: number;
+            }[];
+            services: {
+              id: number;
+              name: string;
+              traces_count: number;
+            }[];
+            types: {
+              name: string;
+              traces_count: number;
+            }[];
+            statuses: {
+              name: string;
+              traces_count: number;
             }[];
           };
         },

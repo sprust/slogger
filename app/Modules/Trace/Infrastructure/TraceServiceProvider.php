@@ -8,7 +8,6 @@ use App\Modules\Common\Infrastructure\BaseServiceProvider;
 use App\Modules\Trace\Contracts\Actions\MakeMetricIndicatorsActionInterface;
 use App\Modules\Trace\Contracts\Actions\MakeTraceTimestampPeriodsActionInterface;
 use App\Modules\Trace\Contracts\Actions\MakeTraceTimestampsActionInterface;
-use App\Modules\Trace\Contracts\Actions\Mutations\CacheTraceTreeActionInterface;
 use App\Modules\Trace\Contracts\Actions\Mutations\ClearTracesActionInterface;
 use App\Modules\Trace\Contracts\Actions\Mutations\CreateTraceAdminStoreActionInterface;
 use App\Modules\Trace\Contracts\Actions\Mutations\CreateTraceManyActionInterface;
@@ -50,7 +49,6 @@ use App\Modules\Trace\Domain\Actions\Buffer\StopTraceBufferHandlingAction;
 use App\Modules\Trace\Domain\Actions\MakeMetricIndicatorsAction;
 use App\Modules\Trace\Domain\Actions\MakeTraceTimestampPeriodsAction;
 use App\Modules\Trace\Domain\Actions\MakeTraceTimestampsAction;
-use App\Modules\Trace\Domain\Actions\Mutations\CacheTraceTreeAction;
 use App\Modules\Trace\Domain\Actions\Mutations\ClearTracesAction;
 use App\Modules\Trace\Domain\Actions\Mutations\CreateTraceAdminStoreAction;
 use App\Modules\Trace\Domain\Actions\Mutations\CreateTraceManyAction;
@@ -216,7 +214,6 @@ class TraceServiceProvider extends BaseServiceProvider
             DeleteTraceAdminStoreActionInterface::class           => DeleteTraceAdminStoreAction::class,
             FreshTraceTreesActionInterface::class                 => FreshTraceTreesAction::class,
             DeleteOldEmptyCollectionsActionInterface::class       => DeleteOldEmptyCollectionsAction::class,
-            CacheTraceTreeActionInterface::class                  => CacheTraceTreeAction::class,
             // actions.queries
             FindStatusesActionInterface::class                    => FindStatusesAction::class,
             FindTagsActionInterface::class                        => FindTagsAction::class,
