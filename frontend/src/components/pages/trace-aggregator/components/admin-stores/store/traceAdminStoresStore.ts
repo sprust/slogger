@@ -135,7 +135,13 @@ export const useTraceAdminStoresStore = defineStore('traceAdminStoresStore', {
             this.createParameters.auto = auto
 
             return this.createAdminStore()
+                .then(
+                    (response) => {
+                        this.createParameters.title = ''
 
+                        return response
+                    }
+                )
         },
         async createAdminStore() {
             return await handleApiRequest(
