@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Trace\Infrastructure\Http\Controllers;
 
+use App\Modules\Common\Helpers\ArrayValueGetter;
 use App\Modules\Trace\Contracts\Actions\Queries\FindTraceTreeActionInterface;
+use App\Modules\Trace\Infrastructure\Http\Requests\TraceTreeIndexRequest;
 use App\Modules\Trace\Infrastructure\Http\Resources\Tree\TraceTreesResource;
 
 readonly class TraceTreeController
@@ -14,12 +16,14 @@ readonly class TraceTreeController
     ) {
     }
 
-    public function index(string $traceId): TraceTreesResource
+    public function index(TraceTreeIndexRequest $request): TraceTreesResource
     {
+        $validated = $request->validated();
+
         $traceTreeNodeObjects = $this->findTraceTreeAction->handle(
-            traceId: $traceId,
-            fresh: true, // TODO: to a request
-            page: 1
+            traceId: ArrayValueGetter::string($validated, 'trace_id'),
+            fresh: ArrayValueGetter::bool($validated, 'fresh'),
+            page: ArrayValueGetter::int($validated, 'page'),
         );
 
         return new TraceTreesResource($traceTreeNodeObjects);

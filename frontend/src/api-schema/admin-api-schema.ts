@@ -445,8 +445,8 @@ export namespace AdminApi {
     };
   } /**
  * No description
- * @name TraceAggregatorTracesTreeDetail
- * @request GET:/admin-api/trace-aggregator/traces/{traceId}/tree
+ * @name TraceAggregatorTracesTreeCreate
+ * @request POST:/admin-api/trace-aggregator/traces/{traceId}/tree
  * @secure
  * @response `200` `{
     data: {
@@ -493,12 +493,17 @@ export namespace AdminApi {
 
 }` description
 */
-  export namespace TraceAggregatorTracesTreeDetail {
+  export namespace TraceAggregatorTracesTreeCreate {
     export type RequestParams = {
       traceId: any;
     };
     export type RequestQuery = {};
-    export type RequestBody = never;
+    export type RequestBody = {
+      trace_id: string;
+      fresh: boolean;
+      /** @min 1 */
+      page: number;
+    };
     export type RequestHeaders = {};
     export type ResponseBody = {
       data: {
@@ -2241,8 +2246,8 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     /**
  * No description
  *
- * @name TraceAggregatorTracesTreeDetail
- * @request GET:/admin-api/trace-aggregator/traces/{traceId}/tree
+ * @name TraceAggregatorTracesTreeCreate
+ * @request POST:/admin-api/trace-aggregator/traces/{traceId}/tree
  * @secure
  * @response `200` `{
     data: {
@@ -2289,7 +2294,16 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
 
 }` description
  */
-    traceAggregatorTracesTreeDetail: (traceId: any, params: RequestParams = {}) =>
+    traceAggregatorTracesTreeCreate: (
+      traceId: any,
+      data: {
+        trace_id: string;
+        fresh: boolean;
+        /** @min 1 */
+        page: number;
+      },
+      params: RequestParams = {},
+    ) =>
       this.request<
         {
           data: {
@@ -2330,8 +2344,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         any
       >({
         path: `/admin-api/trace-aggregator/traces/${traceId}/tree`,
-        method: "GET",
+        method: "POST",
+        body: data,
         secure: true,
+        type: ContentType.Json,
         format: "json",
         ...params,
       }),

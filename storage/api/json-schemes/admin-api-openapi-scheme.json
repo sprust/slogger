@@ -951,7 +951,34 @@
             }
         },
         "/admin-api/trace-aggregator/traces/{traceId}/tree": {
-            "get": {
+            "post": {
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "trace_id": {
+                                        "type": "string"
+                                    },
+                                    "fresh": {
+                                        "type": "boolean"
+                                    },
+                                    "page": {
+                                        "type": "integer",
+                                        "minimum": 1
+                                    }
+                                },
+                                "required": [
+                                    "trace_id",
+                                    "fresh",
+                                    "page"
+                                ],
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
                 "parameters": [
                     {
                         "name": "traceId",
