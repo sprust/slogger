@@ -196,6 +196,8 @@ readonly class FindTraceTreeAction implements FindTraceTreeActionInterface
 
     private function cacheTree(TraceDto $parent): void
     {
+        // TODO: add tags
+
         $parentTraceId = $parent->traceId;
 
         $this->traceTreeCacheRepository->deleteByParentTraceId(
