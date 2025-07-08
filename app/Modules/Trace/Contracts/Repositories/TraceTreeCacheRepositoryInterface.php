@@ -44,6 +44,11 @@ interface TraceTreeCacheRepositoryInterface
     /**
      * @return TraceTreeStringableObject[]
      */
+    public function findTags(string $parentTraceId): array;
+
+    /**
+     * @return TraceTreeStringableObject[]
+     */
     public function findStatuses(string $parentTraceId): array;
 
     public function findCount(string $parentTraceId): int;

@@ -478,6 +478,11 @@ export namespace AdminApi {
     traces_count: number,
 
 })[],
+    tags: ({
+    name: string,
+    traces_count: number,
+
+})[],
     statuses: ({
     name: string,
     traces_count: number,
@@ -518,6 +523,10 @@ export namespace AdminApi {
           traces_count: number;
         }[];
         types: {
+          name: string;
+          traces_count: number;
+        }[];
+        tags: {
           name: string;
           traces_count: number;
         }[];
@@ -2265,6 +2274,11 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     traces_count: number,
 
 })[],
+    tags: ({
+    name: string,
+    traces_count: number,
+
+})[],
     statuses: ({
     name: string,
     traces_count: number,
@@ -2300,6 +2314,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
               traces_count: number;
             }[];
             types: {
+              name: string;
+              traces_count: number;
+            }[];
+            tags: {
               name: string;
               traces_count: number;
             }[];

@@ -43,6 +43,7 @@ class TraceTreeCacheRepository implements TraceTreeCacheRepositoryInterface
                         'traceId'       => $parameters->traceId,
                         'serviceId'     => $parameters->serviceId,
                         'type'          => $parameters->type,
+                        'tags'          => $parameters->tags,
                         'status'        => $parameters->status,
                         'duration'      => $parameters->duration,
                         'memory'        => $parameters->memory,
@@ -111,6 +112,7 @@ class TraceTreeCacheRepository implements TraceTreeCacheRepositoryInterface
                 traceId: $item['traceId'],
                 parentTraceId: $item['parentTraceId'],
                 type: $item['type'],
+                tags: (array) $item['tags'],
                 status: $item['status'],
                 duration: $item['duration'],
                 memory: $item['memory'],
@@ -178,6 +180,38 @@ class TraceTreeCacheRepository implements TraceTreeCacheRepositoryInterface
         }
 
         return $types;
+    }
+
+    public function findTags(string $parentTraceId): array
+    {
+        $results = TraceTreeCache::collection()
+            ->aggregate([
+                [
+                    '$match' => [
+                        'parentTraceId' => $parentTraceId,
+                    ],
+                ],
+                [
+                    '$unwind' => '$tags',
+                ],
+                [
+                    '$group' => [
+                        '_id'   => '$tags',
+                        'count' => ['$sum' => 1],
+                    ],
+                ],
+            ]);
+
+        $tags = [];
+
+        foreach ($results as $result) {
+            $tags[] = new TraceTreeStringableObject(
+                name: $result->_id,
+                tracesCount: $result->count,
+            );
+        }
+
+        return $tags;
     }
 
     public function findStatuses(string $parentTraceId): array

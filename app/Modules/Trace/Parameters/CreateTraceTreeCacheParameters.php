@@ -8,10 +8,14 @@ use Illuminate\Support\Carbon;
 
 readonly class CreateTraceTreeCacheParameters
 {
+    /**
+     * @param string[] $tags
+     */
     public function __construct(
         public ?int $serviceId,
         public ?string $traceId,
         public string $type,
+        public array $tags,
         public string $status,
         public ?float $duration,
         public ?float $memory,

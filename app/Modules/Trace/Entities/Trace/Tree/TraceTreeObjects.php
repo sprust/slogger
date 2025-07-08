@@ -9,6 +9,7 @@ readonly class TraceTreeObjects
     /**
      * @param TraceTreeObject[]           $items
      * @param TraceTreeServiceObject[]    $services
+     * @param TraceTreeStringableObject[] $tags
      * @param TraceTreeStringableObject[] $types
      * @param TraceTreeStringableObject[] $statuses
      */
@@ -17,6 +18,7 @@ readonly class TraceTreeObjects
         public array $items,
         public array $services,
         public array $types,
+        public array $tags,
         public array $statuses,
     ) {
     }

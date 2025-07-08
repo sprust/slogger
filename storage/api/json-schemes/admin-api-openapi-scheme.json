@@ -1082,6 +1082,26 @@
                                                         ]
                                                     }
                                                 },
+                                                "tags": {
+                                                    "type": "array",
+                                                    "nullable": false,
+                                                    "items": {
+                                                        "properties": {
+                                                            "name": {
+                                                                "type": "string",
+                                                                "nullable": false
+                                                            },
+                                                            "traces_count": {
+                                                                "type": "integer",
+                                                                "nullable": false
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "name",
+                                                            "traces_count"
+                                                        ]
+                                                    }
+                                                },
                                                 "statuses": {
                                                     "type": "array",
                                                     "nullable": false,
@@ -1108,6 +1128,7 @@
                                                 "items",
                                                 "services",
                                                 "types",
+                                                "tags",
                                                 "statuses"
                                             ]
                                         }

@@ -9,8 +9,6 @@ use App\Modules\Trace\Contracts\Actions\Queries\FindTraceTreeActionInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceRepositoryInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceTreeCacheRepositoryInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceTreeRepositoryInterface;
-use App\Modules\Trace\Entities\Trace\TraceItemObject;
-use App\Modules\Trace\Entities\Trace\TraceItemTraceObject;
 use App\Modules\Trace\Entities\Trace\TraceServiceObject;
 use App\Modules\Trace\Entities\Trace\TraceServicesObject;
 use App\Modules\Trace\Entities\Trace\Tree\TraceTreeMapObject;
@@ -19,7 +17,6 @@ use App\Modules\Trace\Entities\Trace\Tree\TraceTreeObjects;
 use App\Modules\Trace\Entities\Trace\Tree\TraceTreeServiceObject;
 use App\Modules\Trace\Entities\Trace\Tree\TraceTreeStringableObject;
 use App\Modules\Trace\Parameters\CreateTraceTreeCacheParameters;
-use App\Modules\Trace\Parameters\TraceFindTreeParameters;
 use App\Modules\Trace\Parameters\TraceTreeDepthParameters;
 use App\Modules\Trace\Repositories\Dto\Trace\TraceDto;
 use App\Modules\Trace\Repositories\Dto\Trace\TraceTreeDto;
@@ -46,10 +43,10 @@ readonly class FindTraceTreeAction implements FindTraceTreeActionInterface
     /**
      * @throws ContextCheckerException
      */
-    public function handle(TraceFindTreeParameters $parameters): TraceTreeObjects
+    public function handle(string $traceId, bool $fresh, int $page): TraceTreeObjects
     {
         $parentTraceId = $this->traceTreeRepository->findParentTraceId(
-            traceId: $parameters->traceId
+            traceId: $traceId
         );
 
         if (!$parentTraceId) {
@@ -58,6 +55,7 @@ readonly class FindTraceTreeAction implements FindTraceTreeActionInterface
                 items: [],
                 services: [],
                 types: [],
+                tags: [],
                 statuses: [],
             );
         }
@@ -72,11 +70,12 @@ readonly class FindTraceTreeAction implements FindTraceTreeActionInterface
                 items: [],
                 services: [],
                 types: [],
+                tags: [],
                 statuses: [],
             );
         }
 
-        $needCache = $parameters->fresh
+        $needCache = $fresh
             || !$this->traceTreeCacheRepository->has(
                 parentTraceId: $parentTraceId
             );
@@ -90,7 +89,7 @@ readonly class FindTraceTreeAction implements FindTraceTreeActionInterface
         $callbacks = [
             'items' => static fn(TraceTreeCacheRepositoryInterface $repository) => $repository
                 ->paginate(
-                    page: $parameters->page,
+                    page: $page,
                     perPage: $perPage,
                     parentTraceId: $parentTraceId
                 ),
@@ -101,6 +100,7 @@ readonly class FindTraceTreeAction implements FindTraceTreeActionInterface
          *     items: TraceTreeDto[],
          *     services: TraceTreeServiceDto[],
          *     types: TraceTreeStringableObject[],
+         *     tags: TraceTreeStringableObject[],
          *     statuses: TraceTreeStringableObject[],
          *     count: int
          * } $data
@@ -112,6 +112,8 @@ readonly class FindTraceTreeAction implements FindTraceTreeActionInterface
                 ->findServices(parentTraceId: $parentTraceId);
             $callbacks['types']    = static fn(TraceTreeCacheRepositoryInterface $repository) => $repository
                 ->findTypes(parentTraceId: $parentTraceId);
+            $callbacks['tags']     = static fn(TraceTreeCacheRepositoryInterface $repository) => $repository
+                ->findTags(parentTraceId: $parentTraceId);
             $callbacks['statuses'] = static fn(TraceTreeCacheRepositoryInterface $repository) => $repository
                 ->findStatuses(parentTraceId: $parentTraceId);
             $callbacks['count']    = static fn(TraceTreeCacheRepositoryInterface $repository) => $repository
@@ -119,6 +121,7 @@ readonly class FindTraceTreeAction implements FindTraceTreeActionInterface
         } else {
             $data['services'] = [];
             $data['types']    = [];
+            $data['tags']     = [];
             $data['statuses'] = [];
             $data['count']    = 0;
         }
@@ -162,6 +165,7 @@ readonly class FindTraceTreeAction implements FindTraceTreeActionInterface
                 traceId: $traceDto->traceId,
                 parentTraceId: $traceDto->parentTraceId,
                 type: $traceDto->type,
+                tags: $traceDto->tags,
                 status: $traceDto->status,
                 duration: $traceDto->duration,
                 memory: $traceDto->memory,
@@ -190,6 +194,7 @@ readonly class FindTraceTreeAction implements FindTraceTreeActionInterface
             items: $traces,
             services: $treeServices,
             types: $data['types'],
+            tags: $data['tags'],
             statuses: $data['statuses'],
         );
     }
@@ -217,6 +222,7 @@ readonly class FindTraceTreeAction implements FindTraceTreeActionInterface
                     serviceId: $parent->serviceId,
                     traceId: $parent->traceId,
                     type: $parent->type,
+                    tags: $parent->tags,
                     status: $parent->status,
                     duration: $parent->duration,
                     memory: $parent->memory,
@@ -268,6 +274,7 @@ readonly class FindTraceTreeAction implements FindTraceTreeActionInterface
                     serviceId: $foundTrace->serviceId,
                     traceId: $foundTrace->traceId,
                     type: $foundTrace->type,
+                    tags: $foundTrace->tags,
                     status: $foundTrace->status,
                     duration: $foundTrace->duration,
                     memory: $foundTrace->memory,
