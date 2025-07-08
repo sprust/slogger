@@ -337,14 +337,8 @@ export namespace AdminApi {
  * @request POST:/admin-api/trace-aggregator/traces/tree
  * @secure
  * @response `200` `{
-    data: {
-    count: number,
-    items: ({
-    service?: {
-    id: number,
-    name: string,
-
-},
+    data: ({
+    service_id: number,
     trace_id: string,
     type: string,
     tags: (string)[],
@@ -356,6 +350,39 @@ export namespace AdminApi {
     depth: number,
 
 })[],
+
+}` description
+*/
+  export namespace TraceAggregatorTracesTreeCreate {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = {
+      trace_id: string;
+      fresh: boolean;
+    };
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        service_id: number;
+        trace_id: string;
+        type: string;
+        tags: string[];
+        status: string;
+        duration?: number | null;
+        memory?: number | null;
+        cpu?: number | null;
+        logged_at: string;
+        depth: number;
+      }[];
+    };
+  } /**
+ * No description
+ * @name TraceAggregatorTracesTreeContentCreate
+ * @request POST:/admin-api/trace-aggregator/traces/tree/content
+ * @secure
+ * @response `200` `{
+    data: {
+    count: number,
     services: ({
     id: number,
     name: string,
@@ -382,34 +409,17 @@ export namespace AdminApi {
 
 }` description
 */
-  export namespace TraceAggregatorTracesTreeCreate {
+  export namespace TraceAggregatorTracesTreeContentCreate {
     export type RequestParams = {};
     export type RequestQuery = {};
     export type RequestBody = {
       trace_id: string;
       fresh: boolean;
-      /** @min 1 */
-      page: number;
     };
     export type RequestHeaders = {};
     export type ResponseBody = {
       data: {
         count: number;
-        items: {
-          service?: {
-            id: number;
-            name: string;
-          };
-          trace_id: string;
-          type: string;
-          tags: string[];
-          status: string;
-          duration?: number | null;
-          memory?: number | null;
-          cpu?: number | null;
-          logged_at: string;
-          depth: number;
-        }[];
         services: {
           id: number;
           name: string;
@@ -2133,14 +2143,8 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
  * @request POST:/admin-api/trace-aggregator/traces/tree
  * @secure
  * @response `200` `{
-    data: {
-    count: number,
-    items: ({
-    service?: {
-    id: number,
-    name: string,
-
-},
+    data: ({
+    service_id: number,
     trace_id: string,
     type: string,
     tags: (string)[],
@@ -2152,6 +2156,51 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     depth: number,
 
 })[],
+
+}` description
+ */
+    traceAggregatorTracesTreeCreate: (
+      data: {
+        trace_id: string;
+        fresh: boolean;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          data: {
+            service_id: number;
+            trace_id: string;
+            type: string;
+            tags: string[];
+            status: string;
+            duration?: number | null;
+            memory?: number | null;
+            cpu?: number | null;
+            logged_at: string;
+            depth: number;
+          }[];
+        },
+        any
+      >({
+        path: `/admin-api/trace-aggregator/traces/tree`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name TraceAggregatorTracesTreeContentCreate
+ * @request POST:/admin-api/trace-aggregator/traces/tree/content
+ * @secure
+ * @response `200` `{
+    data: {
+    count: number,
     services: ({
     id: number,
     name: string,
@@ -2178,12 +2227,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
 
 }` description
  */
-    traceAggregatorTracesTreeCreate: (
+    traceAggregatorTracesTreeContentCreate: (
       data: {
         trace_id: string;
         fresh: boolean;
-        /** @min 1 */
-        page: number;
       },
       params: RequestParams = {},
     ) =>
@@ -2191,21 +2238,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         {
           data: {
             count: number;
-            items: {
-              service?: {
-                id: number;
-                name: string;
-              };
-              trace_id: string;
-              type: string;
-              tags: string[];
-              status: string;
-              duration?: number | null;
-              memory?: number | null;
-              cpu?: number | null;
-              logged_at: string;
-              depth: number;
-            }[];
             services: {
               id: number;
               name: string;
@@ -2227,7 +2259,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         },
         any
       >({
-        path: `/admin-api/trace-aggregator/traces/tree`,
+        path: `/admin-api/trace-aggregator/traces/tree/content`,
         method: "POST",
         body: data,
         secure: true,

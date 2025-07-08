@@ -728,16 +728,118 @@
                                     },
                                     "fresh": {
                                         "type": "boolean"
-                                    },
-                                    "page": {
-                                        "type": "integer",
-                                        "minimum": 1
                                     }
                                 },
                                 "required": [
                                     "trace_id",
-                                    "fresh",
-                                    "page"
+                                    "fresh"
+                                ],
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "service_id": {
+                                                        "type": "integer",
+                                                        "nullable": false
+                                                    },
+                                                    "trace_id": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "type": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "tags": {
+                                                        "type": "array",
+                                                        "nullable": false,
+                                                        "items": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "status": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "duration": {
+                                                        "type": "number",
+                                                        "nullable": true
+                                                    },
+                                                    "memory": {
+                                                        "type": "number",
+                                                        "nullable": true
+                                                    },
+                                                    "cpu": {
+                                                        "type": "number",
+                                                        "nullable": true
+                                                    },
+                                                    "logged_at": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "depth": {
+                                                        "type": "integer",
+                                                        "nullable": false
+                                                    }
+                                                },
+                                                "required": [
+                                                    "service_id",
+                                                    "trace_id",
+                                                    "type",
+                                                    "tags",
+                                                    "status",
+                                                    "logged_at",
+                                                    "depth"
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/admin-api/trace-aggregator/traces/tree/content": {
+            "post": {
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "trace_id": {
+                                        "type": "string"
+                                    },
+                                    "fresh": {
+                                        "type": "boolean"
+                                    }
+                                },
+                                "required": [
+                                    "trace_id",
+                                    "fresh"
                                 ],
                                 "type": "object"
                             }
@@ -757,77 +859,6 @@
                                                 "count": {
                                                     "type": "integer",
                                                     "nullable": false
-                                                },
-                                                "items": {
-                                                    "type": "array",
-                                                    "nullable": false,
-                                                    "items": {
-                                                        "properties": {
-                                                            "service": {
-                                                                "properties": {
-                                                                    "id": {
-                                                                        "type": "integer",
-                                                                        "nullable": false
-                                                                    },
-                                                                    "name": {
-                                                                        "type": "string",
-                                                                        "nullable": false
-                                                                    }
-                                                                },
-                                                                "required": [
-                                                                    "id",
-                                                                    "name"
-                                                                ]
-                                                            },
-                                                            "trace_id": {
-                                                                "type": "string",
-                                                                "nullable": false
-                                                            },
-                                                            "type": {
-                                                                "type": "string",
-                                                                "nullable": false
-                                                            },
-                                                            "tags": {
-                                                                "type": "array",
-                                                                "nullable": false,
-                                                                "items": {
-                                                                    "type": "string"
-                                                                }
-                                                            },
-                                                            "status": {
-                                                                "type": "string",
-                                                                "nullable": false
-                                                            },
-                                                            "duration": {
-                                                                "type": "number",
-                                                                "nullable": true
-                                                            },
-                                                            "memory": {
-                                                                "type": "number",
-                                                                "nullable": true
-                                                            },
-                                                            "cpu": {
-                                                                "type": "number",
-                                                                "nullable": true
-                                                            },
-                                                            "logged_at": {
-                                                                "type": "string",
-                                                                "nullable": false
-                                                            },
-                                                            "depth": {
-                                                                "type": "integer",
-                                                                "nullable": false
-                                                            }
-                                                        },
-                                                        "required": [
-                                                            "trace_id",
-                                                            "type",
-                                                            "tags",
-                                                            "status",
-                                                            "logged_at",
-                                                            "depth"
-                                                        ]
-                                                    }
                                                 },
                                                 "services": {
                                                     "type": "array",
@@ -917,7 +948,6 @@
                                             },
                                             "required": [
                                                 "count",
-                                                "items",
                                                 "services",
                                                 "types",
                                                 "tags",

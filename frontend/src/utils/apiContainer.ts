@@ -24,6 +24,10 @@ export class ApiContainer {
     }
 
     public static get() {
+        return this.client().adminApi
+    }
+
+    public static client() {
         return new Api({
             baseUrl: import.meta.env.VITE_BACKEND_URL,
             baseApiParams: {
@@ -34,6 +38,6 @@ export class ApiContainer {
                     "Authorization": `Bearer ${ApiTokenStorage.getToken()}`,
                 }
             }
-        }).adminApi
+        })
     }
 }
