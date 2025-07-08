@@ -20,18 +20,18 @@ class TraceTreeResource extends AbstractApiResource
     private string $logged_at;
     private int $depth;
 
-    public function __construct(TraceTreeObject $tree)
+    public function __construct(TraceTreeObject $resource)
     {
-        parent::__construct($tree);
+        parent::__construct($resource);
 
-        $this->service   = TraceServiceResource::makeIfNotNull($tree->service);
-        $this->trace_id  = $tree->traceId;
-        $this->type      = $tree->type;
-        $this->status    = $tree->status;
-        $this->duration  = $tree->duration;
-        $this->memory    = $tree->memory;
-        $this->cpu       = $tree->cpu;
-        $this->logged_at = $tree->loggedAt->toDateTimeString('microsecond');
-        $this->depth     = $tree->depth;
+        $this->service   = TraceServiceResource::makeIfNotNull($resource->service);
+        $this->trace_id  = $resource->traceId;
+        $this->type      = $resource->type;
+        $this->status    = $resource->status;
+        $this->duration  = $resource->duration;
+        $this->memory    = $resource->memory;
+        $this->cpu       = $resource->cpu;
+        $this->logged_at = $resource->loggedAt->toDateTimeString('microsecond');
+        $this->depth     = $resource->depth;
     }
 }

@@ -20,12 +20,12 @@ readonly class TraceTreeController
     {
         $validated = $request->validated();
 
-        $traceTreeNodeObjects = $this->findTraceTreeAction->handle(
+        $traceTreeObjects = $this->findTraceTreeAction->handle(
             traceId: ArrayValueGetter::string($validated, 'trace_id'),
             fresh: ArrayValueGetter::bool($validated, 'fresh'),
             page: ArrayValueGetter::int($validated, 'page'),
         );
 
-        return new TraceTreesResource($traceTreeNodeObjects);
+        return new TraceTreesResource($traceTreeObjects);
     }
 }

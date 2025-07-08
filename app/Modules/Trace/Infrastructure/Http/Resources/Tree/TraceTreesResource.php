@@ -22,15 +22,15 @@ class TraceTreesResource extends AbstractApiResource
     #[OaListItemTypeAttribute(TraceTreeStringableResource::class)]
     private array $statuses;
 
-    public function __construct(TraceTreeObjects $trees)
+    public function __construct(TraceTreeObjects $resource)
     {
-        parent::__construct($trees);
+        parent::__construct($resource);
 
-        $this->count    = $trees->count;
-        $this->items    = TraceTreeResource::mapIntoMe($trees->items);
-        $this->services = TraceTreeServiceResource::mapIntoMe($trees->services);
-        $this->types    = TraceTreeStringableResource::mapIntoMe($trees->types);
-        $this->tags     = TraceTreeStringableResource::mapIntoMe($trees->tags);
-        $this->statuses = TraceTreeStringableResource::mapIntoMe($trees->statuses);
+        $this->count    = $resource->count;
+        $this->items    = TraceTreeResource::mapIntoMe($resource->items);
+        $this->services = TraceTreeServiceResource::mapIntoMe($resource->services);
+        $this->types    = TraceTreeStringableResource::mapIntoMe($resource->types);
+        $this->tags     = TraceTreeStringableResource::mapIntoMe($resource->tags);
+        $this->statuses = TraceTreeStringableResource::mapIntoMe($resource->statuses);
     }
 }
