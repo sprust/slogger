@@ -16,7 +16,7 @@
             Update
           </el-button>
           <div>
-            {{ traceAggregatorTreeStore.parameters.traceId }} ({{ traceAggregatorTreeStore.tracesCount }})
+            {{ traceAggregatorTreeStore.parameters.trace_id }} ({{ traceAggregatorTreeStore.tracesCount }})
           </div>
         </el-space>
       </el-row>
@@ -65,72 +65,48 @@
         <el-text type="info">
           status | logged at | memory | cpu | duration
         </el-text>
-
       </el-row>
       <el-row style="width: 100%; height: 100%; position: relative;">
         <div class="row-col" style="width: 100%;">
-          <el-tree
-              ref="traceTreeRef"
-              :data="tree"
-              :props="treeProps"
-              node-key="key"
-              default-expand-all
-              :expand-on-click-node="false"
-              :filter-node-method="filterTreeNode"
-          >
-            <template #default="{ data }">
-              <el-row
-                  class="tree-row"
-                  style="display: contents;"
-              >
-                <div class="trace-tree-metric-indicator" :style="makeTraceIndicatorStyle(data)"/>
-                <div class="trace-tree-select-indicator" :style="makeTreeNodeStyle(data)"/>
-                <el-space spacer=":" @click="onClickOnRow(treeNodeViewsMap[data.key])">
-                  <TraceService
-                      :name="treeNodeViewsMap[data.key].service?.name"
-                  />
-                  <div>
-                    <el-tag type="success">
-                      {{ treeNodeViewsMap[data.key].type }}
-                    </el-tag>
-                  </div>
-                  <div v-if="treeNodeViewsMap[data.key].tags.length">
-                    <el-tag v-for="tag in treeNodeViewsMap[data.key].tags" type="warning">
-                      {{ tag.slice(0, 100) }}
-                    </el-tag>
-                  </div>
-                </el-space>
-                <el-button
-                    v-if="treeNodeViewsMap[data.key].children.length"
-                    style="padding-left: 5px"
-                    @click="indicate(treeNodeViewsMap[data.key])"
-                    type="info"
-                    size="small"
-                    link
-                >
-                  indicate
-                </el-button>
-                <div class="flex-grow"/>
-                <el-space spacer="|">
-                  <div>
-                    {{ treeNodeViewsMap[data.key].status }}
-                  </div>
-                  <div>
-                    {{ convertDateStringToLocal(treeNodeViewsMap[data.key].logged_at) }}
-                  </div>
-                  <div>
-                    {{ treeNodeViewsMap[data.key].memory }}
-                  </div>
-                  <div>
-                    {{ treeNodeViewsMap[data.key].cpu }}
-                  </div>
-                  <div>
-                    {{ treeNodeViewsMap[data.key].duration }}
-                  </div>
-                </el-space>
-              </el-row>
-            </template>
-          </el-tree>
+          <el-row v-for="row in traceAggregatorTreeStore.treeNodes" style="width: 100%">
+            <div :style="{width: 20 * row.depth + 'px'}"/>
+
+            <div class="trace-tree-metric-indicator" :style="makeTraceIndicatorStyle(row)"/>
+            <div class="trace-tree-select-indicator" :style="makeTreeNodeStyle(row)"/>
+
+            <el-space spacer=":" @click="onClickOnRow(row)">
+              <TraceService :name="row.service?.name"/>
+              <div>
+                <el-tag type="success">
+                  {{ row.type }}
+                </el-tag>
+              </div>
+              <div v-if="row.tags.length">
+                <el-tag v-for="tag in row.tags" type="warning">
+                  {{ tag.slice(0, 100) }}
+                </el-tag>
+              </div>
+            </el-space>
+
+            <div class="flex-grow"/>
+            <el-space spacer="|">
+              <div>
+                {{ row.status }}
+              </div>
+              <div>
+                {{ convertDateStringToLocal(row.logged_at) }}
+              </div>
+              <div>
+                {{ row.memory }}
+              </div>
+              <div>
+                {{ row.cpu }}
+              </div>
+              <div>
+                {{ row.duration }}
+              </div>
+            </el-space>
+          </el-row>
         </div>
         <div
             v-if="showData"
@@ -162,7 +138,7 @@
 
 <script lang="ts">
 import {defineComponent} from "vue";
-import {TraceAggregatorTreeNode, useTraceAggregatorTreeStore} from "./store/traceAggregatorTreeStore.ts";
+import {TraceAggregatorTreeRow, useTraceAggregatorTreeStore} from "./store/traceAggregatorTreeStore.ts";
 import TraceMetrics from "../traces/TraceItemMetrics.vue";
 import TraceService from "../services/TraceService.vue";
 import TraceAggregatorTraceDataNode from "../trace/TraceAggregatorTraceDataNode.vue";
@@ -176,7 +152,7 @@ type TreeNodeView = {
 }
 
 interface TreeNodeViewsMap {
-  [key: string]: TraceAggregatorTreeNode;
+  [key: string]: TraceAggregatorTreeRow;
 }
 
 export default defineComponent({
@@ -211,17 +187,17 @@ export default defineComponent({
     update() {
       this.traceAggregatorTreeStore.refreshTree()
     },
-    treeNodeTitle(treeNode: TraceAggregatorTreeNode): string {
+    treeNodeTitle(treeNode: TraceAggregatorTreeRow): string {
       return treeNode.type + (treeNode.tags.length ? ` [${treeNode.tags.join(' | ')}]` : '')
     },
-    onClickOnRow(treeNode: TraceAggregatorTreeNode) {
+    onClickOnRow(treeNode: TraceAggregatorTreeRow) {
       this.traceAggregatorTreeStore.findData(treeNode.trace_id)
     },
     onClickCloseData() {
       this.traceAggregatorTreeStore.resetData()
     },
-    treeNodesToViews(treeNodes: Array<TraceAggregatorTreeNode>): Array<TreeNodeView> {
-      return treeNodes.map((treeNode: TraceAggregatorTreeNode) => {
+    treeNodesToViews(treeNodes: Array<TraceAggregatorTreeRow>): Array<TreeNodeView> {
+      return treeNodes.map((treeNode: TraceAggregatorTreeRow) => {
         this.treeNodeViewsMap[treeNode.trace_id] = treeNode
 
         return {
@@ -233,22 +209,20 @@ export default defineComponent({
         }
       })
     },
-    makeTreeNodeStyle(data: TreeNodeView) {
+    makeTreeNodeStyle(trace: TraceAggregatorTreeRow) {
       const style: { 'background-color'?: string, 'border'?: string } = {}
 
-      if (data.key === this.traceAggregatorTreeStore.selectedTrace.trace_id) {
+      if (trace.trace_id === this.traceAggregatorTreeStore.selectedTrace.trace_id) {
         style['background-color'] = 'red'
       }
 
-      if (data.key === this.traceAggregatorTreeStore.parameters.traceId) {
+      if (trace.trace_id === this.traceAggregatorTreeStore.parameters.trace_id) {
         style['border'] = '1px solid green'
       }
 
       return style
     },
-    makeTraceIndicatorStyle(data: TreeNodeView) {
-      const trace = this.treeNodeViewsMap[data.key]
-
+    makeTraceIndicatorStyle(trace: TraceAggregatorTreeRow) {
       let percent = 0
 
       if (trace.duration && this.traceAggregatorTreeStore.traceIndicatingIds.indexOf(trace.trace_id) !== -1) {
@@ -288,7 +262,7 @@ export default defineComponent({
 
       return true
     },
-    indicate(treeNode: TraceAggregatorTreeNode) {
+    indicate(treeNode: TraceAggregatorTreeRow) {
       this.traceAggregatorTreeStore.calcTraceIndicators([treeNode])
     }
   },

@@ -5,15 +5,15 @@ import {TraceAggregatorService} from "../../services/store/traceAggregatorServic
 import {defineStore} from "pinia";
 import {handleApiRequest} from "../../../../../../utils/handleApiRequest.ts";
 
-type TraceAggregatorTreeNodeParameters = AdminApi.TraceAggregatorTracesTreeDetail.RequestParams
-export type TraceAggregatorTree = AdminApi.TraceAggregatorTracesTreeDetail.ResponseBody['data']
-export type TraceAggregatorTreeNode = AdminApi.TraceAggregatorTracesTreeDetail.ResponseBody['data']['items'][number]
+type TraceAggregatorTreeNodeParameters = AdminApi.TraceAggregatorTracesTreeCreate.RequestBody
+export type TraceAggregatorTree = AdminApi.TraceAggregatorTracesTreeCreate.ResponseBody['data']
+export type TraceAggregatorTreeRow = AdminApi.TraceAggregatorTracesTreeCreate.ResponseBody['data']['items'][number]
 
 interface TraceAggregatorTreeStoreInterface {
     loading: boolean,
     parameters: TraceAggregatorTreeNodeParameters,
     tracesCount: number,
-    treeNodes: Array<TraceAggregatorTreeNode>,
+    treeNodes: Array<TraceAggregatorTreeRow>,
     dataLoading: boolean,
     selectedTrace: TraceAggregatorDetail,
     traceTypes: Array<string>,
@@ -30,7 +30,7 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
             loading: false,
             parameters: {} as TraceAggregatorTreeNodeParameters,
             tracesCount: 0,
-            treeNodes: new Array<TraceAggregatorTreeNode>,
+            treeNodes: new Array<TraceAggregatorTreeRow>,
             dataLoading: false,
             selectedTrace: {} as TraceAggregatorDetail,
             traceTypes: new Array<string>(),
@@ -50,11 +50,14 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
             this.treeNodes = []
 
             this.parameters = {
-                traceId: traceId
+                trace_id: traceId,
+                fresh: true,
+                page: 1
             }
 
             return await handleApiRequest(
-                ApiContainer.get().traceAggregatorTracesTreeDetail(this.parameters.traceId)
+                ApiContainer.get()
+                    .traceAggregatorTracesTreeCreate(this.parameters)
                     .then(response => {
                         this.setTreeNodes(response.data.data)
                     })
@@ -71,7 +74,7 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
             this.treeNodes = []
 
             return await handleApiRequest(
-                ApiContainer.get().traceAggregatorTracesTreeDetail(this.parameters.traceId)
+                ApiContainer.get().traceAggregatorTracesTreeCreate(this.parameters)
                     .then(response => {
                         this.setTreeNodes(response.data.data)
                     })
@@ -104,22 +107,11 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
             this.selectedTrace = {} as TraceAggregatorDetail
         },
         setTreeNodes(tree: TraceAggregatorTree) {
-            this.tracesCount = tree.tracesCount
+            this.tracesCount = tree.count
             this.treeNodes = tree.items
-
-            this.parseTree(this.treeNodes)
-            this.calcTraceIndicators(this.treeNodes)
         },
-        parseTree(treeNodes: Array<TraceAggregatorTreeNode>) {
-            this.traceTypes = []
-            this.selectedTraceTypes = []
-            this.traceServices = []
-            this.selectedTraceServiceIds = []
-
-            this.parseTreeRecursive(treeNodes)
-        },
-        parseTreeRecursive(treeNodes: Array<TraceAggregatorTreeNode>) {
-            treeNodes.forEach((treeNode: TraceAggregatorTreeNode) => {
+        parseTreeRecursive(treeNodes: Array<TraceAggregatorTreeRow>) {
+            treeNodes.forEach((treeNode: TraceAggregatorTreeRow) => {
                 if (treeNode.service?.id
                     && !this.traceServices.find(
                         (service: TraceAggregatorService) => treeNode.service?.id === service.id
@@ -136,14 +128,14 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
                 this.parseTreeRecursive(treeNode.children)
             })
         },
-        calcTraceIndicators(treeNodes: Array<TraceAggregatorTreeNode>) {
+        calcTraceIndicators(treeNodes: Array<TraceAggregatorTreeRow>) {
             this.traceTotalIndicatorsNumber = 0
             this.traceIndicatingIds = []
 
             this.calcTraceIndicatorsRecursive(treeNodes)
         },
-        calcTraceIndicatorsRecursive(treeNodes: Array<TraceAggregatorTreeNode>) {
-            treeNodes.forEach((treeNode: TraceAggregatorTreeNode) => {
+        calcTraceIndicatorsRecursive(treeNodes: Array<TraceAggregatorTreeRow>) {
+            treeNodes.forEach((treeNode: TraceAggregatorTreeRow) => {
                 this.traceIndicatingIds.push(treeNode.trace_id)
 
                 this.traceTotalIndicatorsNumber += (treeNode.duration ?? 0)
