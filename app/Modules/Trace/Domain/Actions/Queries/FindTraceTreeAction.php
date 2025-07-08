@@ -76,32 +76,52 @@ readonly class FindTraceTreeAction implements FindTraceTreeActionInterface
             );
         }
 
-        if ($parameters->fresh
+        $needCache = $parameters->fresh
             || !$this->traceTreeCacheRepository->has(
                 parentTraceId: $parentTraceId
-            )
-        ) {
+            );
+
+        if ($needCache) {
             $this->cacheTree(parent: $parent);
         }
 
         $perPage = $this->perPage;
 
         $callbacks = [
-            'items'    => static fn(TraceTreeCacheRepositoryInterface $repository) => $repository
+            'items' => static fn(TraceTreeCacheRepositoryInterface $repository) => $repository
                 ->paginate(
                     page: $parameters->page,
                     perPage: $perPage,
                     parentTraceId: $parentTraceId
                 ),
-            'services' => static fn(TraceTreeCacheRepositoryInterface $repository) => $repository
-                ->findServices(parentTraceId: $parentTraceId),
-            'types'    => static fn(TraceTreeCacheRepositoryInterface $repository) => $repository
-                ->findTypes(parentTraceId: $parentTraceId),
-            'statuses' => static fn(TraceTreeCacheRepositoryInterface $repository) => $repository
-                ->findStatuses(parentTraceId: $parentTraceId),
-            'count'    => static fn(TraceTreeCacheRepositoryInterface $repository) => $repository
-                ->findCount(parentTraceId: $parentTraceId),
         ];
+
+        /**
+         * @var array{
+         *     items: TraceTreeDto[],
+         *     services: TraceTreeServiceDto[],
+         *     types: TraceTreeStringableObject[],
+         *     statuses: TraceTreeStringableObject[],
+         *     count: int
+         * } $data
+         */
+        $data = [];
+
+        if ($needCache) {
+            $callbacks['services'] = static fn(TraceTreeCacheRepositoryInterface $repository) => $repository
+                ->findServices(parentTraceId: $parentTraceId);
+            $callbacks['types']    = static fn(TraceTreeCacheRepositoryInterface $repository) => $repository
+                ->findTypes(parentTraceId: $parentTraceId);
+            $callbacks['statuses'] = static fn(TraceTreeCacheRepositoryInterface $repository) => $repository
+                ->findStatuses(parentTraceId: $parentTraceId);
+            $callbacks['count']    = static fn(TraceTreeCacheRepositoryInterface $repository) => $repository
+                ->findCount(parentTraceId: $parentTraceId);
+        } else {
+            $data['services'] = [];
+            $data['types']    = [];
+            $data['statuses'] = [];
+            $data['count']    = 0;
+        }
 
         $results = $this->parallelWorkers->wait(
             callbacks: $callbacks,
@@ -115,17 +135,6 @@ readonly class FindTraceTreeAction implements FindTraceTreeActionInterface
             throw $failed[array_key_first($failed)]->exception
                 ?: new RuntimeException('Failed to get tree data');
         }
-
-        /**
-         * @var array{
-         *     items: TraceTreeDto[],
-         *     services: TraceTreeServiceDto[],
-         *     types: TraceTreeStringableObject[],
-         *     statuses: TraceTreeStringableObject[],
-         *     count: int
-         * } $data
-         */
-        $data = [];
 
         foreach ($results->getResults() as $result) {
             $data[$result->taskKey] = $result->result;
