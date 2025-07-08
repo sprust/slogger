@@ -51,7 +51,7 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
 
             this.parameters = {
                 trace_id: traceId,
-                fresh: true,
+                fresh: false, // TODO
                 page: 1
             }
 

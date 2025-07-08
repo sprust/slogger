@@ -68,46 +68,7 @@
       </el-row>
       <el-row style="width: 100%; height: 100%; position: relative;">
         <div class="row-col" style="width: 100%;">
-          <el-row v-for="row in traceAggregatorTreeStore.treeNodes" style="width: 100%">
-            <div :style="{width: 20 * row.depth + 'px'}"/>
-
-            <div class="trace-tree-metric-indicator" :style="makeTraceIndicatorStyle(row)"/>
-            <div class="trace-tree-select-indicator" :style="makeTreeNodeStyle(row)"/>
-
-            <el-space spacer=":" @click="onClickOnRow(row)">
-              <TraceService :name="row.service?.name"/>
-              <div>
-                <el-tag type="success">
-                  {{ row.type }}
-                </el-tag>
-              </div>
-              <div v-if="row.tags.length">
-                <el-tag v-for="tag in row.tags" type="warning">
-                  {{ tag.slice(0, 100) }}
-                </el-tag>
-              </div>
-            </el-space>
-
-            <div class="flex-grow"/>
-
-            <el-space spacer="|">
-              <div>
-                {{ row.status }}
-              </div>
-              <div>
-                {{ convertDateStringToLocal(row.logged_at) }}
-              </div>
-              <div>
-                {{ row.memory }}
-              </div>
-              <div>
-                {{ row.cpu }}
-              </div>
-              <div>
-                {{ row.duration }}
-              </div>
-            </el-space>
-          </el-row>
+          <TraceAggregatorTraceTreeVirtual :items="traceAggregatorTreeStore.treeNodes"/>
         </div>
         <div
             v-if="showData"
@@ -144,7 +105,7 @@ import TraceMetrics from "../traces/TraceItemMetrics.vue";
 import TraceService from "../services/TraceService.vue";
 import TraceAggregatorTraceDataNode from "../trace/TraceAggregatorTraceDataNode.vue";
 import TraceDetail from "../trace/TraceDetail.vue";
-import {convertDateStringToLocal} from "../../../../../utils/helpers.ts";
+import TraceAggregatorTraceTreeVirtual from "./TraceAggregatorTraceTreeVirtual.vue";
 
 type TreeNodeView = {
   key: string,
@@ -157,7 +118,14 @@ interface TreeNodeViewsMap {
 }
 
 export default defineComponent({
-  components: {TraceDetail, TraceAggregatorTraceDataNode, TraceService, TraceMetrics},
+  components: {
+    TraceDetail,
+    TraceAggregatorTraceDataNode,
+    TraceService,
+    TraceMetrics,
+    TraceAggregatorTraceTreeVirtual
+  },
+
   data() {
     return {
       treeProps: {
@@ -184,15 +152,11 @@ export default defineComponent({
     }
   },
   methods: {
-    convertDateStringToLocal,
     update() {
       this.traceAggregatorTreeStore.refreshTree()
     },
     treeNodeTitle(treeNode: TraceAggregatorTreeRow): string {
       return treeNode.type + (treeNode.tags.length ? ` [${treeNode.tags.join(' | ')}]` : '')
-    },
-    onClickOnRow(treeNode: TraceAggregatorTreeRow) {
-      this.traceAggregatorTreeStore.findData(treeNode.trace_id)
     },
     onClickCloseData() {
       this.traceAggregatorTreeStore.resetData()
@@ -209,30 +173,6 @@ export default defineComponent({
           disabled: false,
         }
       })
-    },
-    makeTreeNodeStyle(trace: TraceAggregatorTreeRow) {
-      const style: { 'background-color'?: string, 'border'?: string } = {}
-
-      if (trace.trace_id === this.traceAggregatorTreeStore.selectedTrace.trace_id) {
-        style['background-color'] = 'red'
-      }
-
-      if (trace.trace_id === this.traceAggregatorTreeStore.parameters.trace_id) {
-        style['border'] = '1px solid green'
-      }
-
-      return style
-    },
-    makeTraceIndicatorStyle(trace: TraceAggregatorTreeRow) {
-      let percent = 0
-
-      if (trace.duration && this.traceAggregatorTreeStore.traceIndicatingIds.indexOf(trace.trace_id) !== -1) {
-        percent = (trace.duration / this.traceAggregatorTreeStore.traceTotalIndicatorsNumber) * 50
-      }
-
-      return {
-        width: percent + 'vw',
-      }
     },
     filterTree() {
       // @ts-ignore
@@ -276,16 +216,8 @@ export default defineComponent({
 </script>
 
 <style scoped>
-.tree-row {
-  width: 100%;
-  border-bottom: 1px solid rgba(0, 0, 0, .1);;
-  padding: 2px;
-  cursor: pointer;
-}
-
 .row-col {
   height: 90%;
-  overflow-y: scroll;
 }
 
 .right-col {
@@ -295,20 +227,5 @@ export default defineComponent({
 
 .flex-grow {
   flex-grow: 1;
-}
-
-.trace-tree-select-indicator {
-  margin-right: 3px;
-  width: 10px;
-  height: 10px;
-  border-radius: 20px 20px 20px 20px;
-}
-
-.trace-tree-metric-indicator {
-  position: absolute;
-  display: flex;
-  background-color: rgb(139, 0, 0, 30%);
-  right: 0;
-  height: 20px;
 }
 </style>
