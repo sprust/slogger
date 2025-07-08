@@ -715,6 +715,231 @@
                 ]
             }
         },
+        "/admin-api/trace-aggregator/traces/tree": {
+            "post": {
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "trace_id": {
+                                        "type": "string"
+                                    },
+                                    "fresh": {
+                                        "type": "boolean"
+                                    },
+                                    "page": {
+                                        "type": "integer",
+                                        "minimum": 1
+                                    }
+                                },
+                                "required": [
+                                    "trace_id",
+                                    "fresh",
+                                    "page"
+                                ],
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "count": {
+                                                    "type": "integer",
+                                                    "nullable": false
+                                                },
+                                                "items": {
+                                                    "type": "array",
+                                                    "nullable": false,
+                                                    "items": {
+                                                        "properties": {
+                                                            "service": {
+                                                                "properties": {
+                                                                    "id": {
+                                                                        "type": "integer",
+                                                                        "nullable": false
+                                                                    },
+                                                                    "name": {
+                                                                        "type": "string",
+                                                                        "nullable": false
+                                                                    }
+                                                                },
+                                                                "required": [
+                                                                    "id",
+                                                                    "name"
+                                                                ]
+                                                            },
+                                                            "trace_id": {
+                                                                "type": "string",
+                                                                "nullable": false
+                                                            },
+                                                            "type": {
+                                                                "type": "string",
+                                                                "nullable": false
+                                                            },
+                                                            "tags": {
+                                                                "type": "array",
+                                                                "nullable": false,
+                                                                "items": {
+                                                                    "type": "string"
+                                                                }
+                                                            },
+                                                            "status": {
+                                                                "type": "string",
+                                                                "nullable": false
+                                                            },
+                                                            "duration": {
+                                                                "type": "number",
+                                                                "nullable": true
+                                                            },
+                                                            "memory": {
+                                                                "type": "number",
+                                                                "nullable": true
+                                                            },
+                                                            "cpu": {
+                                                                "type": "number",
+                                                                "nullable": true
+                                                            },
+                                                            "logged_at": {
+                                                                "type": "string",
+                                                                "nullable": false
+                                                            },
+                                                            "depth": {
+                                                                "type": "integer",
+                                                                "nullable": false
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "trace_id",
+                                                            "type",
+                                                            "tags",
+                                                            "status",
+                                                            "logged_at",
+                                                            "depth"
+                                                        ]
+                                                    }
+                                                },
+                                                "services": {
+                                                    "type": "array",
+                                                    "nullable": false,
+                                                    "items": {
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer",
+                                                                "nullable": false
+                                                            },
+                                                            "name": {
+                                                                "type": "string",
+                                                                "nullable": false
+                                                            },
+                                                            "traces_count": {
+                                                                "type": "integer",
+                                                                "nullable": false
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "id",
+                                                            "name",
+                                                            "traces_count"
+                                                        ]
+                                                    }
+                                                },
+                                                "types": {
+                                                    "type": "array",
+                                                    "nullable": false,
+                                                    "items": {
+                                                        "properties": {
+                                                            "name": {
+                                                                "type": "string",
+                                                                "nullable": false
+                                                            },
+                                                            "traces_count": {
+                                                                "type": "integer",
+                                                                "nullable": false
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "name",
+                                                            "traces_count"
+                                                        ]
+                                                    }
+                                                },
+                                                "tags": {
+                                                    "type": "array",
+                                                    "nullable": false,
+                                                    "items": {
+                                                        "properties": {
+                                                            "name": {
+                                                                "type": "string",
+                                                                "nullable": false
+                                                            },
+                                                            "traces_count": {
+                                                                "type": "integer",
+                                                                "nullable": false
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "name",
+                                                            "traces_count"
+                                                        ]
+                                                    }
+                                                },
+                                                "statuses": {
+                                                    "type": "array",
+                                                    "nullable": false,
+                                                    "items": {
+                                                        "properties": {
+                                                            "name": {
+                                                                "type": "string",
+                                                                "nullable": false
+                                                            },
+                                                            "traces_count": {
+                                                                "type": "integer",
+                                                                "nullable": false
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "name",
+                                                            "traces_count"
+                                                        ]
+                                                    }
+                                                }
+                                            },
+                                            "required": [
+                                                "count",
+                                                "items",
+                                                "services",
+                                                "types",
+                                                "tags",
+                                                "statuses"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/admin-api/trace-aggregator/traces/{traceId}": {
             "get": {
                 "parameters": [
@@ -932,231 +1157,6 @@
                                                 "logged_at",
                                                 "created_at",
                                                 "updated_at"
-                                            ]
-                                        }
-                                    },
-                                    "required": [
-                                        "data"
-                                    ]
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/admin-api/trace-aggregator/traces/{traceId}/tree": {
-            "post": {
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "properties": {
-                                    "trace_id": {
-                                        "type": "string"
-                                    },
-                                    "fresh": {
-                                        "type": "boolean"
-                                    },
-                                    "page": {
-                                        "type": "integer",
-                                        "minimum": 1
-                                    }
-                                },
-                                "required": [
-                                    "trace_id",
-                                    "fresh",
-                                    "page"
-                                ],
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "parameters": [
-                    {
-                        "name": "traceId",
-                        "required": true,
-                        "in": "path",
-                        "schema": {}
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "description",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "properties": {
-                                                "count": {
-                                                    "type": "integer",
-                                                    "nullable": false
-                                                },
-                                                "items": {
-                                                    "type": "array",
-                                                    "nullable": false,
-                                                    "items": {
-                                                        "properties": {
-                                                            "service": {
-                                                                "properties": {
-                                                                    "id": {
-                                                                        "type": "integer",
-                                                                        "nullable": false
-                                                                    },
-                                                                    "name": {
-                                                                        "type": "string",
-                                                                        "nullable": false
-                                                                    }
-                                                                },
-                                                                "required": [
-                                                                    "id",
-                                                                    "name"
-                                                                ]
-                                                            },
-                                                            "trace_id": {
-                                                                "type": "string",
-                                                                "nullable": false
-                                                            },
-                                                            "type": {
-                                                                "type": "string",
-                                                                "nullable": false
-                                                            },
-                                                            "status": {
-                                                                "type": "string",
-                                                                "nullable": false
-                                                            },
-                                                            "duration": {
-                                                                "type": "number",
-                                                                "nullable": true
-                                                            },
-                                                            "memory": {
-                                                                "type": "number",
-                                                                "nullable": true
-                                                            },
-                                                            "cpu": {
-                                                                "type": "number",
-                                                                "nullable": true
-                                                            },
-                                                            "logged_at": {
-                                                                "type": "string",
-                                                                "nullable": false
-                                                            },
-                                                            "depth": {
-                                                                "type": "integer",
-                                                                "nullable": false
-                                                            }
-                                                        },
-                                                        "required": [
-                                                            "trace_id",
-                                                            "type",
-                                                            "status",
-                                                            "logged_at",
-                                                            "depth"
-                                                        ]
-                                                    }
-                                                },
-                                                "services": {
-                                                    "type": "array",
-                                                    "nullable": false,
-                                                    "items": {
-                                                        "properties": {
-                                                            "id": {
-                                                                "type": "integer",
-                                                                "nullable": false
-                                                            },
-                                                            "name": {
-                                                                "type": "string",
-                                                                "nullable": false
-                                                            },
-                                                            "traces_count": {
-                                                                "type": "integer",
-                                                                "nullable": false
-                                                            }
-                                                        },
-                                                        "required": [
-                                                            "id",
-                                                            "name",
-                                                            "traces_count"
-                                                        ]
-                                                    }
-                                                },
-                                                "types": {
-                                                    "type": "array",
-                                                    "nullable": false,
-                                                    "items": {
-                                                        "properties": {
-                                                            "name": {
-                                                                "type": "string",
-                                                                "nullable": false
-                                                            },
-                                                            "traces_count": {
-                                                                "type": "integer",
-                                                                "nullable": false
-                                                            }
-                                                        },
-                                                        "required": [
-                                                            "name",
-                                                            "traces_count"
-                                                        ]
-                                                    }
-                                                },
-                                                "tags": {
-                                                    "type": "array",
-                                                    "nullable": false,
-                                                    "items": {
-                                                        "properties": {
-                                                            "name": {
-                                                                "type": "string",
-                                                                "nullable": false
-                                                            },
-                                                            "traces_count": {
-                                                                "type": "integer",
-                                                                "nullable": false
-                                                            }
-                                                        },
-                                                        "required": [
-                                                            "name",
-                                                            "traces_count"
-                                                        ]
-                                                    }
-                                                },
-                                                "statuses": {
-                                                    "type": "array",
-                                                    "nullable": false,
-                                                    "items": {
-                                                        "properties": {
-                                                            "name": {
-                                                                "type": "string",
-                                                                "nullable": false
-                                                            },
-                                                            "traces_count": {
-                                                                "type": "integer",
-                                                                "nullable": false
-                                                            }
-                                                        },
-                                                        "required": [
-                                                            "name",
-                                                            "traces_count"
-                                                        ]
-                                                    }
-                                                }
-                                            },
-                                            "required": [
-                                                "count",
-                                                "items",
-                                                "services",
-                                                "types",
-                                                "tags",
-                                                "statuses"
                                             ]
                                         }
                                     },
