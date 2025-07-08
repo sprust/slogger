@@ -89,6 +89,7 @@
             </el-space>
 
             <div class="flex-grow"/>
+
             <el-space spacer="|">
               <div>
                 {{ row.status }}
