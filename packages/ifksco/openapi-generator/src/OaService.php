@@ -12,7 +12,7 @@ use ReflectionException;
 class OaService
 {
     private static ?string $requestParentClass = null;
-    private static ?string $resourcesParentClass = null;
+    private static ?array $resourcesParentClasses = null;
 
     /**
      * @throws ReflectionException
@@ -50,26 +50,27 @@ class OaService
             ?: (self::$requestParentClass = config('oa-generator.classes.request_parent_class'));
     }
 
-    /**
-     * @return class-string<JsonResource>
-     */
-    public static function getResourcesParentClass(): string
-    {
-        return self::$resourcesParentClass
-            ?: (self::$resourcesParentClass = config('oa-generator.classes.resources_parent_class'));
-    }
-
-    public static function isClassRequest(mixed $class): bool
-    {
-        return is_string($class)
-            && class_exists($class)
-            && is_subclass_of($class, self::getRequestParentClass());
-    }
-
     public static function isClassResource(mixed $class): bool
     {
-        return is_string($class)
-            && class_exists($class)
-            && is_subclass_of($class, self::getResourcesParentClass());
+        if (!is_string($class) && !class_exists($class)) {
+            return false;
+        }
+
+        foreach (self::getResourcesParentClasses() as $resourcesParentClass) {
+            if (is_subclass_of($class, $resourcesParentClass)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+    
+    /**
+     * @return class-string<JsonResource>[]
+     */
+    private static function getResourcesParentClasses(): array
+    {
+        return self::$resourcesParentClasses
+            ?: (self::$resourcesParentClasses = config('oa-generator.classes.resources_parent_class'));
     }
 }

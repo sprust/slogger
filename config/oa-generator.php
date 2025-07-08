@@ -5,11 +5,12 @@ use Ifksco\OpenApiGenerator\Converters\Request\Rules\OaRuleAsStringConverter;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\ProhibitedIf;
 use Illuminate\Validation\Rules\RequiredIf;
+use App\Modules\Common\Infrastructure\Http\Resources\AbstractStreamedApiResource;
 
 return [
     'routes'               => [
         // name => ['routes-prefix']
-        'admin-api' => [
+        'admin-api'  => [
             'admin-api',
         ],
         'traces-api' => [
@@ -25,7 +26,10 @@ return [
     ],
     'classes'              => [
         'request_parent_class'   => FormRequest::class,
-        'resources_parent_class' => AbstractApiResource::class,
+        'resources_parent_class' => [
+            AbstractApiResource::class,
+            AbstractStreamedApiResource::class,
+        ],
     ],
     'custom'               => [
         'responses' => [
