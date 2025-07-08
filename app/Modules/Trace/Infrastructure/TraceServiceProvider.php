@@ -32,6 +32,7 @@ use App\Modules\Trace\Contracts\Actions\Queries\FindTracesActionInterface;
 use App\Modules\Trace\Contracts\Actions\Queries\FindTraceServicesActionInterface;
 use App\Modules\Trace\Contracts\Actions\Queries\FindTraceTimestampsActionInterface;
 use App\Modules\Trace\Contracts\Actions\Queries\FindTraceTreeActionInterface;
+use App\Modules\Trace\Contracts\Actions\Queries\FindTraceTreeContentActionInterface;
 use App\Modules\Trace\Contracts\Actions\Queries\FindTypesActionInterface;
 use App\Modules\Trace\Contracts\Actions\StartTraceBufferHandlingActionInterface;
 use App\Modules\Trace\Contracts\Actions\StopTraceBufferHandlingActionInterface;
@@ -73,6 +74,7 @@ use App\Modules\Trace\Domain\Actions\Queries\FindTracesAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceServicesAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceTimestampsAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceTreeAction;
+use App\Modules\Trace\Domain\Actions\Queries\FindTraceTreeContentAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTypesAction;
 use App\Modules\Trace\Domain\Services\TraceDynamicIndexInitializer;
 use App\Modules\Trace\Domain\Services\TraceFieldTitlesService;
@@ -228,6 +230,7 @@ class TraceServiceProvider extends BaseServiceProvider
             FindTraceAdminStoreActionInterface::class             => FindTraceAdminStoreAction::class,
             FindTraceIdsActionInterface::class                    => FindTraceIdsAction::class,
             FindTraceServicesActionInterface::class               => FindTraceServicesAction::class,
+            FindTraceTreeContentActionInterface::class            => FindTraceTreeContentAction::class,
         ];
     }
 

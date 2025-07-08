@@ -52,7 +52,8 @@ Route::prefix('/trace-aggregator')
             ->group(function () {
                 Route::post('', [TraceController::class, 'index'])->name('index');
 
-                Route::post('/tree', [TraceTreeController::class, 'index'])->name('tree');
+                Route::post('/tree', [TraceTreeController::class, 'tree'])->name('tree');
+                Route::post('/tree/content', [TraceTreeController::class, 'content'])->name('content');
 
                 Route::prefix('{traceId}')
                     ->group(function () {

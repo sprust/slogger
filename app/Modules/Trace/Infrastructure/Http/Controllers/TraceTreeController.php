@@ -6,26 +6,43 @@ namespace App\Modules\Trace\Infrastructure\Http\Controllers;
 
 use App\Modules\Common\Helpers\ArrayValueGetter;
 use App\Modules\Trace\Contracts\Actions\Queries\FindTraceTreeActionInterface;
-use App\Modules\Trace\Infrastructure\Http\Requests\TraceTreeIndexRequest;
-use App\Modules\Trace\Infrastructure\Http\Resources\Tree\TraceTreesResource;
+use App\Modules\Trace\Contracts\Actions\Queries\FindTraceTreeContentActionInterface;
+use App\Modules\Trace\Infrastructure\Http\Requests\TraceTreeContentRequest;
+use App\Modules\Trace\Infrastructure\Http\Requests\TraceTreeTreeRequest;
+use App\Modules\Trace\Infrastructure\Http\Resources\Tree\TraceTreeResource;
+use App\Modules\Trace\Infrastructure\Http\Resources\Tree\TraceTreeResponse;
+use App\Modules\Trace\Infrastructure\Http\Resources\Tree\TraceTreeContentResource;
+use Ifksco\OpenApiGenerator\Attributes\OaListItemTypeAttribute;
 
 readonly class TraceTreeController
 {
     public function __construct(
-        private FindTraceTreeActionInterface $findTraceTreeAction
+        private FindTraceTreeActionInterface $findTraceTreeAction,
+        private FindTraceTreeContentActionInterface $findTraceTreeContentAction,
     ) {
     }
 
-    public function index(TraceTreeIndexRequest $request): TraceTreesResource
+    #[OaListItemTypeAttribute(TraceTreeResource::class)]
+    public function tree(TraceTreeTreeRequest $request): TraceTreeResponse
     {
         $validated = $request->validated();
 
         $traceTreeObjects = $this->findTraceTreeAction->handle(
             traceId: ArrayValueGetter::string($validated, 'trace_id'),
             fresh: ArrayValueGetter::bool($validated, 'fresh'),
-            page: ArrayValueGetter::int($validated, 'page'),
         );
 
-        return new TraceTreesResource($traceTreeObjects);
+        return new TraceTreeResponse($traceTreeObjects);
+    }
+
+    public function content(TraceTreeContentRequest $request): TraceTreeContentResource
+    {
+        $validated = $request->validated();
+
+        $traceTreeObjects = $this->findTraceTreeContentAction->handle(
+            traceId: ArrayValueGetter::string($validated, 'trace_id'),
+        );
+
+        return new TraceTreeContentResource($traceTreeObjects);
     }
 }

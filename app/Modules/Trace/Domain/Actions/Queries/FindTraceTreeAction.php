@@ -4,60 +4,34 @@ declare(strict_types=1);
 
 namespace App\Modules\Trace\Domain\Actions\Queries;
 
-use App\Modules\Trace\Contracts\Actions\Queries\FindTraceServicesActionInterface;
 use App\Modules\Trace\Contracts\Actions\Queries\FindTraceTreeActionInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceRepositoryInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceTreeCacheRepositoryInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceTreeRepositoryInterface;
-use App\Modules\Trace\Entities\Trace\TraceServiceObject;
-use App\Modules\Trace\Entities\Trace\TraceServicesObject;
 use App\Modules\Trace\Entities\Trace\Tree\TraceTreeMapObject;
-use App\Modules\Trace\Entities\Trace\Tree\TraceTreeObject;
-use App\Modules\Trace\Entities\Trace\Tree\TraceTreeObjects;
-use App\Modules\Trace\Entities\Trace\Tree\TraceTreeServiceObject;
-use App\Modules\Trace\Entities\Trace\Tree\TraceTreeStringableObject;
+use App\Modules\Trace\Entities\Trace\Tree\TraceTreeRawIterator;
 use App\Modules\Trace\Parameters\CreateTraceTreeCacheParameters;
 use App\Modules\Trace\Parameters\TraceTreeDepthParameters;
 use App\Modules\Trace\Repositories\Dto\Trace\TraceDto;
-use App\Modules\Trace\Repositories\Dto\Trace\TraceTreeDto;
-use App\Modules\Trace\Repositories\Dto\Trace\TraceTreeServiceDto;
 use Illuminate\Support\Carbon;
-use RuntimeException;
-use SParallel\Exceptions\ContextCheckerException;
-use SParallel\SParallelWorkers;
 
 readonly class FindTraceTreeAction implements FindTraceTreeActionInterface
 {
-    private int $perPage;
-
     public function __construct(
         private TraceRepositoryInterface $traceRepository,
         private TraceTreeRepositoryInterface $traceTreeRepository,
         private TraceTreeCacheRepositoryInterface $traceTreeCacheRepository,
-        private SParallelWorkers $parallelWorkers,
-        private FindTraceServicesActionInterface $findTraceServicesAction
     ) {
-        $this->perPage = 100;
     }
 
-    /**
-     * @throws ContextCheckerException
-     */
-    public function handle(string $traceId, bool $fresh, int $page): TraceTreeObjects
+    public function handle(string $traceId, bool $fresh): ?TraceTreeRawIterator
     {
         $parentTraceId = $this->traceTreeRepository->findParentTraceId(
             traceId: $traceId
         );
 
         if (!$parentTraceId) {
-            return new TraceTreeObjects(
-                count: 0,
-                items: [],
-                services: [],
-                types: [],
-                tags: [],
-                statuses: [],
-            );
+            return null;
         }
 
         $parent = $this->traceRepository->findOneDetailByTraceId(
@@ -65,14 +39,7 @@ readonly class FindTraceTreeAction implements FindTraceTreeActionInterface
         );
 
         if (is_null($parent)) {
-            return new TraceTreeObjects(
-                count: 0,
-                items: [],
-                services: [],
-                types: [],
-                tags: [],
-                statuses: [],
-            );
+            return null;
         }
 
         $needCache = $fresh
@@ -84,125 +51,13 @@ readonly class FindTraceTreeAction implements FindTraceTreeActionInterface
             $this->cacheTree(parent: $parent);
         }
 
-        $perPage = $this->perPage;
-
-        $callbacks = [
-            'items' => static fn(TraceTreeCacheRepositoryInterface $repository) => $repository
-                ->paginate(
-                    page: $page,
-                    perPage: $perPage,
-                    parentTraceId: $parentTraceId
-                ),
-        ];
-
-        /**
-         * @var array{
-         *     items: TraceTreeDto[],
-         *     services: TraceTreeServiceDto[],
-         *     types: TraceTreeStringableObject[],
-         *     tags: TraceTreeStringableObject[],
-         *     statuses: TraceTreeStringableObject[],
-         *     count: int
-         * } $data
-         */
-        $data = [];
-
-        if ($needCache) {
-            $callbacks['services'] = static fn(TraceTreeCacheRepositoryInterface $repository) => $repository
-                ->findServices(parentTraceId: $parentTraceId);
-            $callbacks['types']    = static fn(TraceTreeCacheRepositoryInterface $repository) => $repository
-                ->findTypes(parentTraceId: $parentTraceId);
-            $callbacks['tags']     = static fn(TraceTreeCacheRepositoryInterface $repository) => $repository
-                ->findTags(parentTraceId: $parentTraceId);
-            $callbacks['statuses'] = static fn(TraceTreeCacheRepositoryInterface $repository) => $repository
-                ->findStatuses(parentTraceId: $parentTraceId);
-            $callbacks['count']    = static fn(TraceTreeCacheRepositoryInterface $repository) => $repository
-                ->findCount(parentTraceId: $parentTraceId);
-        } else {
-            $data['services'] = [];
-            $data['types']    = [];
-            $data['tags']     = [];
-            $data['statuses'] = [];
-            $data['count']    = 0;
-        }
-
-        $results = $this->parallelWorkers->wait(
-            callbacks: $callbacks,
-            timeoutSeconds: 25,
-            breakAtFirstError: true
-        );
-
-        if ($results->hasFailed()) {
-            $failed = $results->getFailed();
-
-            throw $failed[array_key_first($failed)]->exception
-                ?: new RuntimeException('Failed to get tree data');
-        }
-
-        foreach ($results->getResults() as $result) {
-            $data[$result->taskKey] = $result->result;
-        }
-
-        $services = $this->findServices(
-            traceTrees: $data['items'],
-            treeServices: $data['services'],
-        );
-
-        $traces = [];
-
-        foreach ($data['items'] as $traceDto) {
-            /** @var TraceTreeDto $traceDto */
-
-            $service = $services->getById($traceDto->serviceId);
-
-            $traces[] = new TraceTreeObject(
-                service: $service
-                    ? new TraceServiceObject(
-                        id: $service->id,
-                        name: $service->name,
-                    )
-                    : null,
-                traceId: $traceDto->traceId,
-                parentTraceId: $traceDto->parentTraceId,
-                type: $traceDto->type,
-                tags: $traceDto->tags,
-                status: $traceDto->status,
-                duration: $traceDto->duration,
-                memory: $traceDto->memory,
-                cpu: $traceDto->cpu,
-                loggedAt: $traceDto->loggedAt,
-                depth: $traceDto->depth,
-            );
-        }
-
-        $treeServices = [];
-
-        foreach ($data['services'] as $serviceDto) {
-            /** @var TraceTreeServiceObject $serviceDto */
-
-            $service = $services->getById($serviceDto->id);
-
-            $treeServices[] = new TraceTreeServiceObject(
-                id: $serviceDto->id,
-                name: $service?->name ?: 'UNKNOWN',
-                tracesCount: $serviceDto->tracesCount,
-            );
-        }
-
-        return new TraceTreeObjects(
-            count: $data['count'],
-            items: $traces,
-            services: $treeServices,
-            types: $data['types'],
-            tags: $data['tags'],
-            statuses: $data['statuses'],
+        return $this->traceTreeCacheRepository->findMany(
+            parentTraceId: $parentTraceId
         );
     }
 
     private function cacheTree(TraceDto $parent): void
     {
-        // TODO: add tags
-
         $parentTraceId = $parent->traceId;
 
         $this->traceTreeCacheRepository->deleteByParentTraceId(
@@ -363,29 +218,5 @@ readonly class FindTraceTreeAction implements FindTraceTreeActionInterface
                 depths: $depths
             );
         }
-    }
-
-    /**
-     * @param TraceTreeDto[]        $traceTrees
-     * @param TraceTreeServiceDto[] $treeServices
-     */
-    private function findServices(array $traceTrees, array $treeServices): TraceServicesObject
-    {
-        $serviceIds = array_unique(
-            [
-                ...array_map(
-                    fn(TraceTreeDto $item) => $item->serviceId,
-                    $traceTrees
-                ),
-                ...array_map(
-                    fn(TraceTreeServiceDto $item) => $item->id,
-                    $treeServices
-                ),
-            ]
-        );
-
-        return $this->findTraceServicesAction->handle(
-            serviceIds: $serviceIds
-        );
     }
 }

@@ -6,8 +6,9 @@ namespace App\Modules\Trace\Repositories;
 
 use App\Models\Traces\TraceTreeCache;
 use App\Modules\Trace\Contracts\Repositories\TraceTreeCacheRepositoryInterface;
+use App\Modules\Trace\Entities\Trace\Tree\TraceTreeRawIterator;
+use App\Modules\Trace\Entities\Trace\Tree\TraceTreeRawObject;
 use App\Modules\Trace\Entities\Trace\Tree\TraceTreeStringableObject;
-use App\Modules\Trace\Repositories\Dto\Trace\TraceTreeDto;
 use App\Modules\Trace\Repositories\Dto\Trace\TraceTreeServiceDto;
 use Illuminate\Support\Carbon;
 use MongoDB\BSON\UTCDateTime;
@@ -84,9 +85,9 @@ class TraceTreeCacheRepository implements TraceTreeCacheRepositoryInterface
         TraceTreeCache::collection()->bulkWrite($operations);
     }
 
-    public function paginate(int $page, int $perPage, string $parentTraceId): array
+    public function findMany(string $parentTraceId): TraceTreeRawIterator
     {
-        $results = TraceTreeCache::collection()
+        $cursor = TraceTreeCache::collection()
             ->aggregate([
                 [
                     '$match' => [
@@ -98,16 +99,10 @@ class TraceTreeCacheRepository implements TraceTreeCacheRepositoryInterface
                         'order' => 1,
                     ],
                 ],
-                [
-                    '$skip' => ($page - 1) * $perPage,
-                ],
-                [
-                    '$limit' => $perPage,
-                ],
             ]);
 
-        return array_map(
-            static fn(BSONDocument $item) => new TraceTreeDto(
+        return new TraceTreeRawIterator(
+            transport: static fn(BSONDocument $item): TraceTreeRawObject => new TraceTreeRawObject(
                 serviceId: $item['serviceId'],
                 traceId: $item['traceId'],
                 parentTraceId: $item['parentTraceId'],
@@ -120,7 +115,7 @@ class TraceTreeCacheRepository implements TraceTreeCacheRepositoryInterface
                 loggedAt: new Carbon($item['loggedAt']->toDateTime()),
                 depth: $item['depth'],
             ),
-            iterator_to_array($results)
+            iterator: $cursor
         );
     }
 

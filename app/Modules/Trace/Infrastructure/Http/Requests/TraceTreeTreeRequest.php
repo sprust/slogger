@@ -6,7 +6,7 @@ namespace App\Modules\Trace\Infrastructure\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class TraceTreeIndexRequest extends FormRequest
+class TraceTreeTreeRequest extends FormRequest
 {
     function rules(): array
     {
@@ -18,11 +18,6 @@ class TraceTreeIndexRequest extends FormRequest
             'fresh'    => [
                 'required',
                 'boolean',
-            ],
-            'page'     => [
-                'required',
-                'integer',
-                'min:1',
             ],
         ];
     }

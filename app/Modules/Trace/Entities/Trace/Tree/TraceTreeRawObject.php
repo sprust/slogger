@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\Trace\Repositories\Dto\Trace;
+namespace App\Modules\Trace\Entities\Trace\Tree;
 
 use Illuminate\Support\Carbon;
 
-readonly class TraceTreeDto
+readonly class TraceTreeRawObject
 {
     /**
      * @param string[] $tags
