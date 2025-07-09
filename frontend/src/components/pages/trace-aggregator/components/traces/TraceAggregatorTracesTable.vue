@@ -204,7 +204,7 @@ export default defineComponent({
       this.$emit("onCustomFieldClick", parameters)
     },
     onClickTraceIdTree(traceId: string) {
-      this.traceAggregatorTreeStore.findTreeNodes(traceId)
+      this.traceAggregatorTreeStore.findTreeNodes(traceId, true)
 
       this.traceAggregatorTabsStore.setCurrentTab(traceAggregatorTabs.tree)
     },

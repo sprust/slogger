@@ -832,14 +832,10 @@
                                 "properties": {
                                     "trace_id": {
                                         "type": "string"
-                                    },
-                                    "fresh": {
-                                        "type": "boolean"
                                     }
                                 },
                                 "required": [
-                                    "trace_id",
-                                    "fresh"
+                                    "trace_id"
                                 ],
                                 "type": "object"
                             }

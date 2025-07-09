@@ -6,15 +6,25 @@ import {defineStore} from "pinia";
 import {handleApiRequest} from "../../../../../../utils/handleApiRequest.ts";
 import {readStream} from "../../../../../../utils/helpers.ts";
 
-type TraceAggregatorTreeNodeParameters = AdminApi.TraceAggregatorTracesTreeCreate.RequestBody
+type TraceAggregatorTreeParameters = AdminApi.TraceAggregatorTracesTreeCreate.RequestBody
 export type TraceAggregatorTree = AdminApi.TraceAggregatorTracesTreeCreate.ResponseBody['data']
 export type TraceAggregatorTreeRow = AdminApi.TraceAggregatorTracesTreeCreate.ResponseBody['data'][number]
 
+type TraceAggregatorTreeContentParameters = AdminApi.TraceAggregatorTracesTreeContentCreate.RequestBody
+type TraceAggregatorTreeContent = AdminApi.TraceAggregatorTracesTreeContentCreate.ResponseBody['data']
+type TraceAggregatorTreeContentService = AdminApi.TraceAggregatorTracesTreeContentCreate.ResponseBody['data']['services'][number]
+
+interface ServicesMapInterface {
+    [key: number]: TraceAggregatorTreeContentService
+}
+
 interface TraceAggregatorTreeStoreInterface {
     loading: boolean,
-    parameters: TraceAggregatorTreeNodeParameters,
+    parameters: TraceAggregatorTreeParameters,
     tracesCount: number,
     treeNodes: Array<TraceAggregatorTreeRow>,
+    content: TraceAggregatorTreeContent,
+    servicesMap: ServicesMapInterface,
     dataLoading: boolean,
     selectedTrace: TraceAggregatorDetail,
     traceTypes: Array<string>,
@@ -29,9 +39,17 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
     state: (): TraceAggregatorTreeStoreInterface => {
         return {
             loading: false,
-            parameters: {} as TraceAggregatorTreeNodeParameters,
+            parameters: {} as TraceAggregatorTreeParameters,
             tracesCount: 0,
             treeNodes: new Array<TraceAggregatorTreeRow>,
+            content: {
+                count: 0,
+                services: [],
+                types: [],
+                tags: [],
+                statuses: [],
+            } as TraceAggregatorTreeContent,
+            servicesMap: {},
             dataLoading: false,
             selectedTrace: {} as TraceAggregatorDetail,
             traceTypes: new Array<string>(),
@@ -43,32 +61,35 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
         }
     },
     actions: {
-        async findTreeNodes(traceId: string) {
+        async findTreeNodes(traceId: string, fresh: boolean) {
             this.loading = true
 
-            this.resetData()
-
-            this.treeNodes = []
+            if (fresh) {
+                this.resetData()
+            }
 
             this.parameters = {
                 trace_id: traceId,
-                fresh: false, // TODO
+                fresh: fresh,
             }
 
             return handleApiRequest(
-                ApiContainer.client()
-                    .request(
+                ApiContainer.get()
+                    .traceAggregatorTracesTreeCreate(
+                        this.parameters,
                         {
-                            path: `/admin-api/trace-aggregator/traces/tree`,
-                            method: "POST",
-                            body: this.parameters,
-                            secure: true,
+                            type: undefined,
+                            format: undefined,
                         }
                     )
                     .then(response => {
                         readStream(response.body!)
                             .then(result => {
                                 this.setTreeNodes(JSON.parse(result))
+
+                                if (fresh) {
+                                    this.findTreeContent(traceId)
+                                }
                             })
                     })
                     .finally(() => {
@@ -76,22 +97,19 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
                     })
             )
         },
-        async refreshTree() {
-            this.loading = true
+        findTreeContent(traceId: string) {
+            const parameters: TraceAggregatorTreeContentParameters = {
+                trace_id: traceId
+            }
 
-            this.resetData()
-
-            this.treeNodes = []
-
-            return await handleApiRequest(
-                ApiContainer.get().traceAggregatorTracesTreeCreate(this.parameters)
+            return handleApiRequest(
+                ApiContainer.get().traceAggregatorTracesTreeContentCreate(parameters)
                     .then(response => {
-                        this.setTreeNodes(response.data.data)
-                    })
-                    .finally(() => {
-                        this.loading = false
-                    })
-            )
+                        this.setTreeContent(response.data.data)
+                    }))
+        },
+        async updateTree() {
+            return this.findTreeNodes(this.parameters.trace_id, false)
         },
         async findData(traceId: string) {
             if (traceId === this.selectedTrace.trace_id) {
@@ -114,11 +132,19 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
             )
         },
         resetData() {
-            this.selectedTrace = {} as TraceAggregatorDetail
+            this.$reset()
         },
         setTreeNodes(tree: TraceAggregatorTree) {
-            this.tracesCount = 0 // TODO
             this.treeNodes = tree
+        },
+        setTreeContent(content: TraceAggregatorTreeContent) {
+            this.content = content
+
+            this.servicesMap = {}
+
+            this.content.services.forEach((service: TraceAggregatorTreeContentService) => {
+                this.servicesMap[service.id] = service
+            })
         },
         calcTraceIndicators(treeNodes: Array<TraceAggregatorTreeRow>) {
             this.traceTotalIndicatorsNumber = 0

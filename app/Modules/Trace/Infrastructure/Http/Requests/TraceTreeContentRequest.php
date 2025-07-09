@@ -15,10 +15,6 @@ class TraceTreeContentRequest extends FormRequest
                 'required',
                 'string',
             ],
-            'fresh'    => [
-                'required',
-                'boolean',
-            ],
         ];
     }
 }

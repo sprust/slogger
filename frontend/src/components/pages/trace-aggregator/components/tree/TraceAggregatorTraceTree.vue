@@ -153,7 +153,7 @@ export default defineComponent({
   },
   methods: {
     update() {
-      this.traceAggregatorTreeStore.refreshTree()
+      this.traceAggregatorTreeStore.updateTree()
     },
     treeNodeTitle(treeNode: TraceAggregatorTreeRow): string {
       return treeNode.type + (treeNode.tags.length ? ` [${treeNode.tags.join(' | ')}]` : '')
@@ -186,11 +186,11 @@ export default defineComponent({
       const trace = this.treeNodeViewsMap[data.key]
 
       if (this.traceAggregatorTreeStore.selectedTraceServiceIds.length) {
-        if (!trace.service?.id) {
+        if (!trace?.service_id) {
           return false
         }
 
-        if (this.traceAggregatorTreeStore.selectedTraceServiceIds.indexOf(trace.service.id) === -1) {
+        if (this.traceAggregatorTreeStore.selectedTraceServiceIds.indexOf(trace.service_id) === -1) {
           return false
         }
       }

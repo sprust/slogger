@@ -414,7 +414,6 @@ export namespace AdminApi {
     export type RequestQuery = {};
     export type RequestBody = {
       trace_id: string;
-      fresh: boolean;
     };
     export type RequestHeaders = {};
     export type ResponseBody = {
@@ -2230,7 +2229,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     traceAggregatorTracesTreeContentCreate: (
       data: {
         trace_id: string;
-        fresh: boolean;
       },
       params: RequestParams = {},
     ) =>

@@ -14,7 +14,7 @@
         class="virtual-list-content"
         :style="{ transform: `translateY(${offsetY}px)` }"
     >
-      <el-row v-for="row in visibleItems" style="width: 100%; height: 30px">
+      <el-row v-for="row in visibleItems" style="width: 100%; height: 30px" class="current-tree-row">
         <TraceAggregatorTraceTreeRow :row="row"/>
       </el-row>
     </div>
@@ -114,5 +114,11 @@ export default {
   top: 0;
   will-change: transform;
   height: 100%;
+}
+
+:deep(.current-tree-row) {
+  &:hover {
+    background-color: rgb(139, 139, 139, 0.1);
+  }
 }
 </style>

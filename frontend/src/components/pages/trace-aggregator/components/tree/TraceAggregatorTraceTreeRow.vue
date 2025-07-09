@@ -50,6 +50,9 @@ export default defineComponent({
     onClickOnRow(treeNode: TraceAggregatorTreeRow) {
       this.traceAggregatorTreeStore.findData(treeNode.trace_id)
     },
+    getServiceName(treeNode: TraceAggregatorTreeRow) {
+      return this.traceAggregatorTreeStore.servicesMap[treeNode.service_id]?.name ?? 'NO LOAD'
+    }
   }
 })
 </script>
@@ -62,7 +65,7 @@ export default defineComponent({
   </el-space>
 
   <el-space spacer=":" @click="onClickOnRow(row)">
-    <TraceService :name="row.service?.name"/>
+    <TraceService :name="getServiceName(row)"/>
     <div>
       <el-tag type="success">
         {{ row.type }}

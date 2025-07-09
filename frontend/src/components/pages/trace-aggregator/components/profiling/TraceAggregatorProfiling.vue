@@ -101,7 +101,7 @@ export default defineComponent({
 
   methods: {
     onClickTraceIdTree(traceId: string) {
-      this.traceAggregatorTreeStore.findTreeNodes(traceId)
+      this.traceAggregatorTreeStore.findTreeNodes(traceId, true)
 
       this.traceAggregatorTabsStore.setCurrentTab(traceAggregatorTabs.tree)
     },
