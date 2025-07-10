@@ -164,21 +164,5 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
                 this.servicesMap[service.id] = service
             })
         },
-        calcTraceIndicators(treeNodes: Array<TraceAggregatorTreeRow>) {
-            this.traceTotalIndicatorsNumber = 0
-            this.traceIndicatingIds = []
-
-            this.calcTraceIndicatorsRecursive(treeNodes)
-        },
-        calcTraceIndicatorsRecursive(treeNodes: Array<TraceAggregatorTreeRow>) {
-            treeNodes.forEach((treeNode: TraceAggregatorTreeRow) => {
-                this.traceIndicatingIds.push(treeNode.trace_id)
-
-                this.traceTotalIndicatorsNumber += (treeNode.duration ?? 0)
-
-                // @ts-ignore recursion
-                this.calcTraceIndicatorsRecursive(treeNode.children)
-            })
-        }
     },
 })

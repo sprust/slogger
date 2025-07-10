@@ -114,6 +114,7 @@ export default defineComponent({
   right: 0;
   height: 20px;
 }
+
 .flex-grow {
   flex-grow: 1;
 }

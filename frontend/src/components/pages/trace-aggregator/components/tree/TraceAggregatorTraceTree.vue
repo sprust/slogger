@@ -26,12 +26,6 @@
         </el-button>
       </el-row>
       <el-row style="padding-bottom: 10px">
-        <el-input
-            v-model="filterTreeNodeText"
-            style="width: 400px; padding-right: 5px"
-            placeholder="Filter"
-            clearable
-        />
         <el-space style="padding-right: 5px">
           <el-select
               v-model="traceAggregatorTreeStore.selectedTraceServiceIds"
@@ -143,23 +137,13 @@
 
 <script lang="ts">
 import {defineComponent} from "vue";
-import {TraceAggregatorTreeRow, useTraceAggregatorTreeStore} from "./store/traceAggregatorTreeStore.ts";
+import {useTraceAggregatorTreeStore} from "./store/traceAggregatorTreeStore.ts";
 import TraceMetrics from "../traces/TraceItemMetrics.vue";
 import TraceService from "../services/TraceService.vue";
 import TraceAggregatorTraceDataNode from "../trace/TraceAggregatorTraceDataNode.vue";
 import TraceDetail from "../trace/TraceDetail.vue";
 import TraceAggregatorTraceTreeVirtual from "./TraceAggregatorTraceTreeVirtual.vue";
 import {Refresh as UpdateIcon} from '@element-plus/icons-vue'
-
-type TreeNodeView = {
-  key: string,
-  label: string,
-  children: null | Array<TreeNodeView>,
-}
-
-interface TreeNodeViewsMap {
-  [key: string]: TraceAggregatorTreeRow;
-}
 
 export default defineComponent({
   components: {
@@ -177,16 +161,11 @@ export default defineComponent({
         label: 'label',
         disabled: 'disabled',
       },
-      treeNodeViewsMap: {} as TreeNodeViewsMap,
-      filterTreeNodeText: '',
     }
   },
   computed: {
     traceAggregatorTreeStore() {
       return useTraceAggregatorTreeStore()
-    },
-    tree(): Array<TreeNodeView> {
-      return this.treeNodesToViews(this.traceAggregatorTreeStore.treeNodes)
     },
     showData() {
       return this.traceAggregatorTreeStore.selectedTrace.trace_id || this.traceAggregatorTreeStore.dataLoading
@@ -206,62 +185,9 @@ export default defineComponent({
     fresh() {
       this.traceAggregatorTreeStore.freshTree()
     },
-    treeNodeTitle(treeNode: TraceAggregatorTreeRow): string {
-      return treeNode.type + (treeNode.tags.length ? ` [${treeNode.tags.join(' | ')}]` : '')
-    },
     onClickCloseData() {
       this.traceAggregatorTreeStore.resetSelectedTrace()
     },
-    treeNodesToViews(treeNodes: Array<TraceAggregatorTreeRow>): Array<TreeNodeView> {
-      return treeNodes.map((treeNode: TraceAggregatorTreeRow) => {
-        this.treeNodeViewsMap[treeNode.trace_id] = treeNode
-
-        return {
-          key: treeNode.trace_id,
-          label: this.treeNodeTitle(treeNode),
-          // @ts-ignore
-          children: this.treeNodesToViews(treeNode.children),
-          disabled: false,
-        }
-      })
-    },
-    filterTree() {
-      // @ts-ignore
-      this.$refs.traceTreeRef!.filter(this.filterTreeNodeText)
-    },
-    filterTreeNode(value: string, data: TreeNodeView) {
-      if (value && !data.label.includes(value)) {
-        return false
-      }
-
-      const trace = this.treeNodeViewsMap[data.key]
-
-      if (this.traceAggregatorTreeStore.selectedTraceServiceIds.length) {
-        if (!trace?.service_id) {
-          return false
-        }
-
-        if (this.traceAggregatorTreeStore.selectedTraceServiceIds.indexOf(trace.service_id) === -1) {
-          return false
-        }
-      }
-
-      if (this.traceAggregatorTreeStore.selectedTraceTypes.length
-          && this.traceAggregatorTreeStore.selectedTraceTypes.indexOf(trace.type) === -1
-      ) {
-        return false
-      }
-
-      return true
-    },
-    indicate(treeNode: TraceAggregatorTreeRow) {
-      this.traceAggregatorTreeStore.calcTraceIndicators([treeNode])
-    }
-  },
-  watch: {
-    'filterTreeNodeText'() {
-      this.filterTree()
-    }
   },
 })
 </script>
