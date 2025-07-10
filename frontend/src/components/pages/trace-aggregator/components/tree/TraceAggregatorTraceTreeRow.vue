@@ -52,7 +52,19 @@ export default defineComponent({
     },
     getServiceName(treeNode: TraceAggregatorTreeRow) {
       return this.traceAggregatorTreeStore.servicesMap[treeNode.service_id]?.name ?? 'NO LOAD'
-    }
+    },
+    isServiceIdSelected(serviceId: number): boolean {
+      return this.traceAggregatorTreeStore.selectedTraceServiceIds.indexOf(serviceId) != -1
+    },
+    isTypeSelected(item: string): boolean {
+      return this.traceAggregatorTreeStore.selectedTraceTypes.indexOf(item) != -1
+    },
+    isTagSelected(item: string): boolean {
+      return this.traceAggregatorTreeStore.selectedTraceTags.indexOf(item) != -1
+    },
+    isStatusSelected(item: string): boolean {
+      return this.traceAggregatorTreeStore.selectedTraceStatuses.indexOf(item) != -1
+    },
   }
 })
 </script>
@@ -65,16 +77,20 @@ export default defineComponent({
   </el-space>
 
   <el-space spacer=":" @click="onClickOnRow(row)" style="cursor: pointer">
-    <TraceService :name="getServiceName(row)"/>
     <div>
-      <el-tag type="success">
+      <el-text :type="isServiceIdSelected(row.service_id) ? 'danger': 'primary'">
+        {{ getServiceName(row) }}
+      </el-text>
+    </div>
+    <div>
+      <el-text :type="isTypeSelected(row.type) ? 'danger': 'success'">
         {{ row.type }}
-      </el-tag>
+      </el-text>
     </div>
     <div v-if="row.tags.length">
-      <el-tag v-for="tag in row.tags" type="warning">
+      <el-text v-for="tag in row.tags" :type="isTagSelected(tag) ? 'danger': 'warning'">
         {{ tag.slice(0, 100) }}
-      </el-tag>
+      </el-text>
     </div>
   </el-space>
 
@@ -82,19 +98,29 @@ export default defineComponent({
 
   <el-space spacer="|">
     <div>
-      {{ row.status }}
+      <el-text :type="isStatusSelected(row.status) ? 'danger': ''">
+        {{ row.status }}
+      </el-text>
     </div>
     <div>
-      {{ convertDateStringToLocal(row.logged_at) }}
+      <el-text>
+        {{ convertDateStringToLocal(row.logged_at) }}
+      </el-text>
     </div>
     <div>
-      {{ row.memory }}
+      <el-text>
+        {{ row.memory }}
+      </el-text>
     </div>
     <div>
-      {{ row.cpu }}
+      <el-text>
+        {{ row.cpu }}
+      </el-text>
     </div>
     <div>
-      {{ row.duration }}
+      <el-text>
+        {{ row.duration }}
+      </el-text>
     </div>
   </el-space>
 </template>
