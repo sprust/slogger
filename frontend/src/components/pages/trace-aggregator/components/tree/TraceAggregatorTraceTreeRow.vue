@@ -1,6 +1,6 @@
 <script lang="ts">
 
-import {defineComponent, onBeforeUnmount, onMounted, PropType, ref} from "vue";
+import {defineComponent, PropType, ref} from "vue";
 import TraceService from "../services/TraceService.vue";
 import {TraceAggregatorTreeRow, useTraceAggregatorTreeStore} from "./store/traceAggregatorTreeStore.ts";
 import {convertDateStringToLocal} from "../../../../../utils/helpers.ts";
@@ -15,52 +15,21 @@ export default defineComponent({
     }
   },
 
-  setup() {
-    const isVisible = ref(false)
-    const traceTreeRowRef = ref<HTMLElement | null>(null)
-    const originalHeight = ref('30px') // Сохраняем оригинальную высоту
-    let observer: IntersectionObserver | null = null
-
-    onMounted(() => {
-      if (traceTreeRowRef.value) {
-        // Сохраняем реальную высоту элемента
-        originalHeight.value = `${traceTreeRowRef.value.offsetHeight}px`
-
-        observer = new IntersectionObserver(
-            (entries) => {
-              entries.forEach((entry) => {
-                isVisible.value = entry.isIntersecting
-              })
-            },
-            {
-              threshold: 0.1, // Порог видимости 10%
-              root: document.querySelector('.virtual-list'), // Родительский скролл-контейнер
-              rootMargin: '100px 0px' // Добавляем отступ для предзагрузки
-            }
-        )
-
-        observer.observe(traceTreeRowRef.value)
-      }
-    })
-
-    onBeforeUnmount(() => {
-      if (observer && traceTreeRowRef.value) {
-        observer.unobserve(traceTreeRowRef.value)
-        observer.disconnect()
-      }
-    })
-
-    return {
-      isVisible,
-      traceTreeRowRef,
-      originalHeight
-    }
-  },
-
-
   computed: {
     traceAggregatorTreeStore() {
       return useTraceAggregatorTreeStore()
+    },
+    isVisible() {
+      return ref(false)
+    },
+    traceTreeRowRef() {
+      return ref<HTMLElement | null>(null)
+    },
+    originalHeight() {
+      return ref('30px')
+    },
+    observer() {
+      return null as IntersectionObserver | null
     }
   },
 
@@ -108,16 +77,41 @@ export default defineComponent({
     isStatusSelected(item: string): boolean {
       return this.traceAggregatorTreeStore.selectedTraceStatuses.indexOf(item) != -1
     },
-  }
+  },
+
+  mounted() {
+    if (this.traceTreeRowRef.value) {
+      this.originalHeight.value = `${this.traceTreeRowRef.value.offsetHeight}px`
+
+      this.observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              this.isVisible.value = entry.isIntersecting
+            })
+          },
+          {
+            threshold: 0.1,
+            root: document.querySelector('.virtual-list'),
+            rootMargin: '100px 0px'
+          }
+      )
+
+      this.observer.observe(this.traceTreeRowRef.value)
+    }
+  },
+
+  beforeUnmount() {
+    if (this.observer && this.traceTreeRowRef.value) {
+      this.observer.unobserve(this.traceTreeRowRef.value)
+      this.observer.disconnect()
+    }
+  },
 })
 </script>
 
 <template>
-  <div
-      ref="traceTreeRowRef"
-      :style="{ height: originalHeight }"
-  >
-    <el-space v-if="isVisible">
+  <div ref="traceTreeRowRef" :style="{ height: originalHeight, width: '100%' }">
+    <el-row v-if="isVisible" style="width: 100%">
       <el-space>
         <div class="trace-tree-metric-indicator" :style="makeTraceIndicatorStyle(row)"/>
         <div class="trace-tree-select-indicator" :style="makeTreeNodeStyle(row)"/>
@@ -134,11 +128,15 @@ export default defineComponent({
             {{ row.type }}
           </el-text>
         </div>
-        <div v-if="row.tags.length">
-          <el-text v-for="tag in row.tags" :type="isTagSelected(tag) ? 'danger': 'warning'">
+        <el-space v-if="row.tags.length" spacer="+">
+          <el-text
+              v-for="tag in row.tags"
+              :type="isTagSelected(tag) ? 'danger': 'warning'"
+              style="padding-right: 3px"
+          >
             {{ tag.slice(0, 100) }}
           </el-text>
-        </div>
+        </el-space>
       </el-space>
 
       <div class="flex-grow"/>
@@ -170,7 +168,7 @@ export default defineComponent({
           </el-text>
         </div>
       </el-space>
-    </el-space>
+    </el-row>
   </div>
 </template>
 
