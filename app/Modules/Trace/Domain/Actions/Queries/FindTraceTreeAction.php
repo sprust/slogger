@@ -8,12 +8,9 @@ use App\Modules\Trace\Contracts\Actions\Queries\FindTraceTreeActionInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceRepositoryInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceTreeCacheRepositoryInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceTreeRepositoryInterface;
-use App\Modules\Trace\Entities\Trace\Tree\TraceTreeMapObject;
 use App\Modules\Trace\Entities\Trace\Tree\TraceTreeRawIterator;
 use App\Modules\Trace\Parameters\CreateTraceTreeCacheParameters;
-use App\Modules\Trace\Parameters\TraceTreeDepthParameters;
 use App\Modules\Trace\Repositories\Dto\Trace\TraceDto;
-use Illuminate\Support\Carbon;
 
 readonly class FindTraceTreeAction implements FindTraceTreeActionInterface
 {
@@ -26,78 +23,64 @@ readonly class FindTraceTreeAction implements FindTraceTreeActionInterface
 
     public function handle(string $traceId, bool $fresh): ?TraceTreeRawIterator
     {
-        $parentTraceId = $this->traceTreeRepository->findParentTraceId(
+        $rootTraceId = $this->traceTreeRepository->findParentTraceId(
             traceId: $traceId
         );
 
-        if (!$parentTraceId) {
+        if (!$rootTraceId) {
             return null;
         }
 
-        $parent = $this->traceRepository->findOneDetailByTraceId(
-            traceId: $parentTraceId
+        $rootTrace = $this->traceRepository->findOneDetailByTraceId(
+            traceId: $rootTraceId
         );
 
-        if (is_null($parent)) {
+        if (is_null($rootTrace)) {
             return null;
         }
 
         $needCache = $fresh
             || !$this->traceTreeCacheRepository->has(
-                parentTraceId: $parentTraceId
+                rootTraceId: $rootTraceId
             );
 
         if ($needCache) {
-            $this->cacheTree(parent: $parent);
+            $this->cacheTree(rootTrace: $rootTrace);
         }
 
         return $this->traceTreeCacheRepository->findMany(
-            parentTraceId: $parentTraceId
+            rootTraceId: $rootTraceId
         );
     }
 
-    private function cacheTree(TraceDto $parent): void
+    private function cacheTree(TraceDto $rootTrace): void
     {
-        $parentTraceId = $parent->traceId;
+        $rootTraceId = $rootTrace->traceId;
 
-        $this->traceTreeCacheRepository->deleteByParentTraceId(
-            parentTraceId: $parentTraceId
-        );
-
-        $parentTree = new TraceTreeMapObject(
-            traceId: $parent->traceId,
-            children: [],
-            loggedAt: $parent->loggedAt->toDateTimeString('microsecond'),
+        $this->traceTreeCacheRepository->delete(
+            rootTraceId: $rootTraceId
         );
 
         $this->traceTreeCacheRepository->createMany(
-            parentTraceId: $parentTraceId,
+            rootTraceId: $rootTraceId,
             parametersList: [
                 new CreateTraceTreeCacheParameters(
-                    serviceId: $parent->serviceId,
-                    traceId: $parent->traceId,
-                    type: $parent->type,
-                    tags: $parent->tags,
-                    status: $parent->status,
-                    duration: $parent->duration,
-                    memory: $parent->memory,
-                    cpu: $parent->cpu,
-                    loggedAt: $parent->loggedAt,
+                    serviceId: $rootTrace->serviceId,
+                    parentTraceId: $rootTrace->parentTraceId,
+                    traceId: $rootTrace->traceId,
+                    type: $rootTrace->type,
+                    tags: $rootTrace->tags,
+                    status: $rootTrace->status,
+                    duration: $rootTrace->duration,
+                    memory: $rootTrace->memory,
+                    cpu: $rootTrace->cpu,
+                    loggedAt: $rootTrace->loggedAt,
                 ),
             ]
         );
 
-        $tree = [
-            $parentTree,
-        ];
-
-        /** @var TraceTreeMapObject $map */
-        $map = [
-            $parentTree->traceId => $parentTree,
-        ];
-
         $childIds = $this->traceTreeRepository->findTraceIdsInTreeByParentTraceId(
-            traceId: $parentTraceId
+            traceId: $rootTraceId
         );
 
         foreach (array_chunk(array: $childIds, length: 500) as $childIdsChunk) {
@@ -109,24 +92,9 @@ readonly class FindTraceTreeAction implements FindTraceTreeActionInterface
             $cacheParametersList = [];
 
             foreach ($foundTraces as $foundTrace) {
-                $map[$foundTrace->traceId] ??= new TraceTreeMapObject(
-                    traceId: $foundTrace->traceId,
-                    children: [],
-                    loggedAt: null
-                );
-
-                $map[$foundTrace->traceId]->loggedAt = $foundTrace->loggedAt->toDateTimeString('microsecond');
-
-                $map[$foundTrace->parentTraceId] ??= new TraceTreeMapObject(
-                    traceId: $foundTrace->parentTraceId,
-                    children: [],
-                    loggedAt: null
-                );
-
-                $map[$foundTrace->parentTraceId]->children[] = $map[$foundTrace->traceId];
-
                 $cacheParametersList[] = new CreateTraceTreeCacheParameters(
                     serviceId: $foundTrace->serviceId,
+                    parentTraceId: $foundTrace->parentTraceId,
                     traceId: $foundTrace->traceId,
                     type: $foundTrace->type,
                     tags: $foundTrace->tags,
@@ -139,83 +107,8 @@ readonly class FindTraceTreeAction implements FindTraceTreeActionInterface
             }
 
             $this->traceTreeCacheRepository->createMany(
-                parentTraceId: $parentTraceId,
+                rootTraceId: $rootTraceId,
                 parametersList: $cacheParametersList
-            );
-        }
-
-        $treeOrder = 0;
-        $depth     = 0;
-        $depths    = [];
-
-        $this->freshDepthRecursive(
-            parentTraceId: $parentTraceId,
-            order: $treeOrder,
-            depth: $depth,
-            tree: $tree,
-            depths: $depths,
-        );
-
-        if (count($depths) > 0) {
-            $this->traceTreeCacheRepository->updateDepths(
-                parentTraceId: $parentTraceId,
-                depths: $depths
-            );
-        }
-    }
-
-    /**
-     * @param TraceTreeMapObject[]                    $tree
-     * @param array<string, TraceTreeDepthParameters> $depths
-     */
-    private function freshDepthRecursive(
-        string $parentTraceId,
-        int &$order,
-        int $depth,
-        array &$tree,
-        array &$depths
-    ): void {
-        ++$depth;
-
-        $tree = array_filter(
-            $tree,
-            static fn(TraceTreeMapObject $trace) => !is_null($trace->loggedAt),
-        );
-
-        usort($tree, static function (TraceTreeMapObject $a, TraceTreeMapObject $b) {
-            $aLoggedAt = Carbon::parse($a->loggedAt);
-            $bLoggedAt = Carbon::parse($b->loggedAt);
-
-            if ($aLoggedAt->eq($bLoggedAt)) {
-                return 0;
-            }
-
-            return $aLoggedAt->gt($bLoggedAt) ? 1 : -1;
-        });
-
-        while ($branch = array_shift($tree)) {
-            ++$order;
-
-            $depths[$branch->traceId] = new TraceTreeDepthParameters(
-                order: $order,
-                depth: $depth,
-            );
-
-            if (count($depths) > 1000) {
-                $this->traceTreeCacheRepository->updateDepths(
-                    parentTraceId: $parentTraceId,
-                    depths: $depths
-                );
-
-                $depths = [];
-            }
-
-            $this->freshDepthRecursive(
-                parentTraceId: $parentTraceId,
-                order: $order,
-                depth: $depth,
-                tree: $branch->children,
-                depths: $depths
             );
         }
     }

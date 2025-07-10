@@ -62,15 +62,15 @@ readonly class FindTraceTreeContentAction implements FindTraceTreeContentActionI
 
         $callbacks = [
             'services' => static fn(TraceTreeCacheRepositoryInterface $repository) => $repository
-                ->findServices(parentTraceId: $parentTraceId),
+                ->findServices(rootTraceId: $parentTraceId),
             'types'    => static fn(TraceTreeCacheRepositoryInterface $repository) => $repository
-                ->findTypes(parentTraceId: $parentTraceId),
+                ->findTypes(rootTraceId: $parentTraceId),
             'tags'     => static fn(TraceTreeCacheRepositoryInterface $repository) => $repository
-                ->findTags(parentTraceId: $parentTraceId),
+                ->findTags(rootTraceId: $parentTraceId),
             'statuses' => static fn(TraceTreeCacheRepositoryInterface $repository) => $repository
-                ->findStatuses(parentTraceId: $parentTraceId),
+                ->findStatuses(rootTraceId: $parentTraceId),
             'count'    => static fn(TraceTreeCacheRepositoryInterface $repository) => $repository
-                ->findCount(parentTraceId: $parentTraceId),
+                ->findCount(rootTraceId: $parentTraceId),
         ];
 
         $results = $this->parallelWorkers->wait(

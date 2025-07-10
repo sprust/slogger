@@ -22,7 +22,6 @@ readonly class TraceTreeRawObject
         public ?float $memory,
         public ?float $cpu,
         public Carbon $loggedAt,
-        public int $depth,
     ) {
     }
 }

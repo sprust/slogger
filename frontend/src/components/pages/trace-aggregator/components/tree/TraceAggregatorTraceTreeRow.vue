@@ -71,7 +71,6 @@ export default defineComponent({
 
 <template>
   <el-space>
-    <div :style="{width: 20 * row.depth + 'px'}"/>
     <div class="trace-tree-metric-indicator" :style="makeTraceIndicatorStyle(row)"/>
     <div class="trace-tree-select-indicator" :style="makeTreeNodeStyle(row)"/>
   </el-space>

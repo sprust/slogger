@@ -11,6 +11,7 @@ use Ifksco\OpenApiGenerator\Attributes\OaListItemTypeAttribute;
 class TraceTreeResource extends AbstractApiResource
 {
     private int $service_id;
+    private ?string $parent_trace_id;
     private string $trace_id;
     private string $type;
     #[OaListItemTypeAttribute('string')]
@@ -20,21 +21,20 @@ class TraceTreeResource extends AbstractApiResource
     private ?float $memory;
     private ?float $cpu;
     private string $logged_at;
-    private int $depth;
 
     public function __construct(TraceTreeRawObject $resource)
     {
         parent::__construct($resource);
 
-        $this->service_id = $resource->serviceId;
-        $this->trace_id   = $resource->traceId;
-        $this->type       = $resource->type;
-        $this->tags       = $resource->tags;
-        $this->status     = $resource->status;
-        $this->duration   = $resource->duration;
-        $this->memory     = $resource->memory;
-        $this->cpu        = $resource->cpu;
-        $this->logged_at  = $resource->loggedAt->toDateTimeString('microsecond');
-        $this->depth      = $resource->depth;
+        $this->service_id      = $resource->serviceId;
+        $this->parent_trace_id = $resource->parentTraceId;
+        $this->trace_id        = $resource->traceId;
+        $this->type            = $resource->type;
+        $this->tags            = $resource->tags;
+        $this->status          = $resource->status;
+        $this->duration        = $resource->duration;
+        $this->memory          = $resource->memory;
+        $this->cpu             = $resource->cpu;
+        $this->logged_at       = $resource->loggedAt->toDateTimeString('microsecond');
     }
 }

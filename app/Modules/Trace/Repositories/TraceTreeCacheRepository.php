@@ -16,21 +16,21 @@ use MongoDB\Model\BSONDocument;
 
 class TraceTreeCacheRepository implements TraceTreeCacheRepositoryInterface
 {
-    public function has(string $parentTraceId): bool
+    public function has(string $rootTraceId): bool
     {
         return TraceTreeCache::query()
-            ->where('parentTraceId', $parentTraceId)
+            ->where('rootTraceId', $rootTraceId)
             ->exists();
     }
 
-    public function deleteByParentTraceId(string $parentTraceId): void
+    public function delete(string $rootTraceId): void
     {
         TraceTreeCache::query()
-            ->where('parentTraceId', $parentTraceId)
+            ->where('rootTraceId', $rootTraceId)
             ->delete();
     }
 
-    public function createMany(string $parentTraceId, array $parametersList): void
+    public function createMany(string $rootTraceId, array $parametersList): void
     {
         $operations = [];
 
@@ -40,7 +40,8 @@ class TraceTreeCacheRepository implements TraceTreeCacheRepositoryInterface
             $operations[] = [
                 'insertOne' => [
                     [
-                        'parentTraceId' => $parentTraceId,
+                        'rootTraceId'   => $rootTraceId,
+                        'parentTraceId' => $parameters->parentTraceId,
                         'traceId'       => $parameters->traceId,
                         'serviceId'     => $parameters->serviceId,
                         'type'          => $parameters->type,
@@ -49,8 +50,6 @@ class TraceTreeCacheRepository implements TraceTreeCacheRepositoryInterface
                         'duration'      => $parameters->duration,
                         'memory'        => $parameters->memory,
                         'cpu'           => $parameters->cpu,
-                        'order'         => null,
-                        'depth'         => null,
                         'loggedAt'      => new UTCDateTime($parameters->loggedAt),
                         'createdAt'     => $createdAt,
                     ],
@@ -61,37 +60,13 @@ class TraceTreeCacheRepository implements TraceTreeCacheRepositoryInterface
         TraceTreeCache::collection()->bulkWrite($operations);
     }
 
-    public function updateDepths(string $parentTraceId, array $depths): void
-    {
-        $operations = [];
-
-        foreach ($depths as $traceId => $depth) {
-            $operations[] = [
-                'updateOne' => [
-                    [
-                        'parentTraceId' => $parentTraceId,
-                        'traceId'       => $traceId,
-                    ],
-                    [
-                        '$set' => [
-                            'order' => $depth->order,
-                            'depth' => $depth->depth,
-                        ],
-                    ],
-                ],
-            ];
-        }
-
-        TraceTreeCache::collection()->bulkWrite($operations);
-    }
-
-    public function findMany(string $parentTraceId): TraceTreeRawIterator
+    public function findMany(string $rootTraceId): TraceTreeRawIterator
     {
         $cursor = TraceTreeCache::collection()
             ->aggregate([
                 [
                     '$match' => [
-                        'parentTraceId' => $parentTraceId,
+                        'rootTraceId' => $rootTraceId,
                     ],
                 ],
                 [
@@ -113,19 +88,18 @@ class TraceTreeCacheRepository implements TraceTreeCacheRepositoryInterface
                 memory: $item['memory'],
                 cpu: $item['cpu'],
                 loggedAt: new Carbon($item['loggedAt']->toDateTime()),
-                depth: $item['depth'],
             ),
             iterator: $cursor
         );
     }
 
-    public function findServices(string $parentTraceId): array
+    public function findServices(string $rootTraceId): array
     {
         $results = TraceTreeCache::collection()
             ->aggregate([
                 [
                     '$match' => [
-                        'parentTraceId' => $parentTraceId,
+                        'rootTraceId' => $rootTraceId,
                     ],
                 ],
                 [
@@ -148,13 +122,13 @@ class TraceTreeCacheRepository implements TraceTreeCacheRepositoryInterface
         return $services;
     }
 
-    public function findTypes(string $parentTraceId): array
+    public function findTypes(string $rootTraceId): array
     {
         $results = TraceTreeCache::collection()
             ->aggregate([
                 [
                     '$match' => [
-                        'parentTraceId' => $parentTraceId,
+                        'rootTraceId' => $rootTraceId,
                     ],
                 ],
                 [
@@ -177,13 +151,13 @@ class TraceTreeCacheRepository implements TraceTreeCacheRepositoryInterface
         return $types;
     }
 
-    public function findTags(string $parentTraceId): array
+    public function findTags(string $rootTraceId): array
     {
         $results = TraceTreeCache::collection()
             ->aggregate([
                 [
                     '$match' => [
-                        'parentTraceId' => $parentTraceId,
+                        'rootTraceId' => $rootTraceId,
                     ],
                 ],
                 [
@@ -209,13 +183,13 @@ class TraceTreeCacheRepository implements TraceTreeCacheRepositoryInterface
         return $tags;
     }
 
-    public function findStatuses(string $parentTraceId): array
+    public function findStatuses(string $rootTraceId): array
     {
         $results = TraceTreeCache::collection()
             ->aggregate([
                 [
                     '$match' => [
-                        'parentTraceId' => $parentTraceId,
+                        'rootTraceId' => $rootTraceId,
                     ],
                 ],
                 [
@@ -238,10 +212,10 @@ class TraceTreeCacheRepository implements TraceTreeCacheRepositoryInterface
         return $statuses;
     }
 
-    public function findCount(string $parentTraceId): int
+    public function findCount(string $rootTraceId): int
     {
         return TraceTreeCache::query()
-            ->where('parentTraceId', $parentTraceId)
+            ->where('rootTraceId', $rootTraceId)
             ->count();
     }
 }

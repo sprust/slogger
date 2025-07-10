@@ -4,6 +4,7 @@ import {TraceAggregatorDetail} from "../../trace/store/traceAggregatorDataStore.
 import {defineStore} from "pinia";
 import {handleApiError, handleApiRequest} from "../../../../../../utils/handleApiRequest.ts";
 import {readStream} from "../../../../../../utils/helpers.ts";
+import {TreeBuilder} from "./TreeBuilder.ts";
 
 type TraceAggregatorTreeParameters = AdminApi.TraceAggregatorTracesTreeCreate.RequestBody
 export type TraceAggregatorTree = AdminApi.TraceAggregatorTracesTreeCreate.ResponseBody['data']
@@ -17,9 +18,16 @@ interface ServicesMapInterface {
     [key: number]: TraceAggregatorTreeContentService
 }
 
+export interface TraceTreeNode {
+    id: string,
+    children: Array<TraceTreeNode>,
+    primary: TraceAggregatorTreeRow,
+}
+
 interface TraceAggregatorTreeStoreInterface {
     loading: boolean,
     parameters: TraceAggregatorTreeParameters,
+    tree: Array<TraceTreeNode>,
     treeNodes: Array<TraceAggregatorTreeRow>,
     content: TraceAggregatorTreeContent,
     servicesMap: ServicesMapInterface,
@@ -38,6 +46,7 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
         return {
             loading: false,
             parameters: {} as TraceAggregatorTreeParameters,
+            tree: new Array<TraceTreeNode>,
             treeNodes: new Array<TraceAggregatorTreeRow>,
             content: {
                 count: 0,
@@ -93,14 +102,13 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
                     .then(response => {
                         readStream(response.body!)
                             .then(result => {
+                                this.setTreeNodes(JSON.parse(result))
+
                                 if (!freshContent) {
                                     this.loading = false
                                 } else {
                                     handleApiRequest(
                                         this.findTreeContent(traceId)
-                                            .then(() => {
-                                                this.setTreeNodes(JSON.parse(result))
-                                            })
                                             .finally(() => {
                                                 this.loading = false
                                             })
@@ -154,6 +162,8 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
         },
         setTreeNodes(tree: TraceAggregatorTree) {
             this.treeNodes = tree
+
+            this.tree = new TreeBuilder().build(this.treeNodes)
         },
         setTreeContent(content: TraceAggregatorTreeContent) {
             this.content = content

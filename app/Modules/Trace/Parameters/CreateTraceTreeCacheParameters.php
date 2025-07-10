@@ -13,7 +13,8 @@ readonly class CreateTraceTreeCacheParameters
      */
     public function __construct(
         public ?int $serviceId,
-        public ?string $traceId,
+        public ?string $parentTraceId,
+        public string $traceId,
         public string $type,
         public array $tags,
         public string $status,

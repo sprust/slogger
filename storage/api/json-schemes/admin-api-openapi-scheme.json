@@ -755,6 +755,10 @@
                                                         "type": "integer",
                                                         "nullable": false
                                                     },
+                                                    "parent_trace_id": {
+                                                        "type": "string",
+                                                        "nullable": true
+                                                    },
                                                     "trace_id": {
                                                         "type": "string",
                                                         "nullable": false
@@ -789,10 +793,6 @@
                                                     "logged_at": {
                                                         "type": "string",
                                                         "nullable": false
-                                                    },
-                                                    "depth": {
-                                                        "type": "integer",
-                                                        "nullable": false
                                                     }
                                                 },
                                                 "required": [
@@ -801,8 +801,7 @@
                                                     "type",
                                                     "tags",
                                                     "status",
-                                                    "logged_at",
-                                                    "depth"
+                                                    "logged_at"
                                                 ]
                                             }
                                         }

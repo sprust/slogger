@@ -339,6 +339,7 @@ export namespace AdminApi {
  * @response `200` `{
     data: ({
     service_id: number,
+    parent_trace_id?: string | null,
     trace_id: string,
     type: string,
     tags: (string)[],
@@ -347,7 +348,6 @@ export namespace AdminApi {
     memory?: number | null,
     cpu?: number | null,
     logged_at: string,
-    depth: number,
 
 })[],
 
@@ -364,6 +364,7 @@ export namespace AdminApi {
     export type ResponseBody = {
       data: {
         service_id: number;
+        parent_trace_id?: string | null;
         trace_id: string;
         type: string;
         tags: string[];
@@ -372,7 +373,6 @@ export namespace AdminApi {
         memory?: number | null;
         cpu?: number | null;
         logged_at: string;
-        depth: number;
       }[];
     };
   } /**
@@ -2144,6 +2144,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
  * @response `200` `{
     data: ({
     service_id: number,
+    parent_trace_id?: string | null,
     trace_id: string,
     type: string,
     tags: (string)[],
@@ -2152,7 +2153,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     memory?: number | null,
     cpu?: number | null,
     logged_at: string,
-    depth: number,
 
 })[],
 
@@ -2169,6 +2169,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         {
           data: {
             service_id: number;
+            parent_trace_id?: string | null;
             trace_id: string;
             type: string;
             tags: string[];
@@ -2177,7 +2178,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
             memory?: number | null;
             cpu?: number | null;
             logged_at: string;
-            depth: number;
           }[];
         },
         any
