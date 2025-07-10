@@ -64,7 +64,7 @@ export default defineComponent({
     <div class="trace-tree-select-indicator" :style="makeTreeNodeStyle(row)"/>
   </el-space>
 
-  <el-space spacer=":" @click="onClickOnRow(row)">
+  <el-space spacer=":" @click="onClickOnRow(row)" style="cursor: pointer">
     <TraceService :name="getServiceName(row)"/>
     <div>
       <el-tag type="success">

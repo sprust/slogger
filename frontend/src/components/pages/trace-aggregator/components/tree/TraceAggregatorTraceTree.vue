@@ -11,14 +11,19 @@
     />
     <div v-else-if="traceAggregatorTreeStore.treeNodes.length" class="height-100">
       <el-row style="width: 100%; padding-bottom: 10px">
-        <el-space>
-          <el-button @click="update">
-            Update
-          </el-button>
-          <div>
-            {{ traceAggregatorTreeStore.parameters.trace_id }} ({{ traceAggregatorTreeStore.tracesCount }})
-          </div>
-        </el-space>
+        <el-text>
+          {{ traceAggregatorTreeStore.parameters.trace_id }} ({{ traceAggregatorTreeStore.content.count }})
+        </el-text>
+        <div class="flex-grow"/>
+        <el-button @click="fresh" link>
+          Fresh
+        </el-button>
+        <el-button
+            @click="update"
+            :icon="UpdateIcon"
+        >
+          Update
+        </el-button>
       </el-row>
       <el-row style="padding-bottom: 10px">
         <el-input
@@ -30,16 +35,17 @@
         <el-space style="padding-right: 5px">
           <el-select
               v-model="traceAggregatorTreeStore.selectedTraceServiceIds"
-              placeholder="Services"
+              :placeholder="'Services ' + '(' + traceAggregatorTreeStore.content.services.length + ')'"
               style="min-width: 200px"
-              @change="filterTree"
+              collapse-tags
+              :max-collapse-tags="2"
               clearable
               multiple
           >
             <el-option
-                v-for="item in traceAggregatorTreeStore.traceServices"
+                v-for="item in traceAggregatorTreeStore.content.services"
                 :key="item.id"
-                :label="item.name"
+                :label="item.name + ' (' + item.traces_count + ')'"
                 :value="item.id"
             />
           </el-select>
@@ -47,17 +53,54 @@
         <el-space>
           <el-select
               v-model="traceAggregatorTreeStore.selectedTraceTypes"
-              placeholder="Types"
+              :placeholder="'Types ' + '(' + traceAggregatorTreeStore.content.types.length + ')'"
               style="min-width: 200px"
-              @change="filterTree"
+              collapse-tags
+              :max-collapse-tags="2"
               clearable
               multiple
           >
             <el-option
-                v-for="type in traceAggregatorTreeStore.traceTypes"
-                :key="type"
-                :label="type"
-                :value="type"
+                v-for="item in traceAggregatorTreeStore.content.types"
+                :key="item.name"
+                :label="item.name + ' (' + item.traces_count + ')'"
+                :value="item.name"
+            />
+          </el-select>
+        </el-space>
+        <el-space>
+          <el-select
+              v-model="traceAggregatorTreeStore.selectedTraceTags"
+              :placeholder="'Tags ' + '(' + traceAggregatorTreeStore.content.tags.length + ')'"
+              style="min-width: 200px"
+              collapse-tags
+              :max-collapse-tags="2"
+              clearable
+              multiple
+          >
+            <el-option
+                v-for="item in traceAggregatorTreeStore.content.tags"
+                :key="item.name"
+                :label="item.name + ' (' + item.traces_count + ')'"
+                :value="item.name"
+            />
+          </el-select>
+        </el-space>
+        <el-space>
+          <el-select
+              v-model="traceAggregatorTreeStore.selectedTraceStatuses"
+              :placeholder="'Statuses ' + '(' + traceAggregatorTreeStore.content.statuses.length + ')'"
+              style="min-width: 200px"
+              collapse-tags
+              :max-collapse-tags="2"
+              clearable
+              multiple
+          >
+            <el-option
+                v-for="item in traceAggregatorTreeStore.content.statuses"
+                :key="item.name"
+                :label="item.name + ' (' + item.traces_count + ')'"
+                :value="item.name"
             />
           </el-select>
         </el-space>
@@ -106,6 +149,7 @@ import TraceService from "../services/TraceService.vue";
 import TraceAggregatorTraceDataNode from "../trace/TraceAggregatorTraceDataNode.vue";
 import TraceDetail from "../trace/TraceDetail.vue";
 import TraceAggregatorTraceTreeVirtual from "./TraceAggregatorTraceTreeVirtual.vue";
+import {Refresh as UpdateIcon} from '@element-plus/icons-vue'
 
 type TreeNodeView = {
   key: string,
@@ -149,17 +193,24 @@ export default defineComponent({
     },
     leftSpan() {
       return this.showData ? 12 : 24
+    },
+    UpdateIcon() {
+      return UpdateIcon
     }
   },
+
   methods: {
     update() {
       this.traceAggregatorTreeStore.updateTree()
+    },
+    fresh() {
+      this.traceAggregatorTreeStore.freshTree()
     },
     treeNodeTitle(treeNode: TraceAggregatorTreeRow): string {
       return treeNode.type + (treeNode.tags.length ? ` [${treeNode.tags.join(' | ')}]` : '')
     },
     onClickCloseData() {
-      this.traceAggregatorTreeStore.resetData()
+      this.traceAggregatorTreeStore.resetSelectedTrace()
     },
     treeNodesToViews(treeNodes: Array<TraceAggregatorTreeRow>): Array<TreeNodeView> {
       return treeNodes.map((treeNode: TraceAggregatorTreeRow) => {
