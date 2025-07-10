@@ -7,54 +7,21 @@ export class TreeBuilder {
         const rootNodes: TraceTreeNode[] = [];
         const nodeMap = new Map<string, TraceTreeNode>();
 
-        const remainRows = rows.filter(row => {
+        rows.forEach(row => {
             const node = this.createNode(row);
-
             nodeMap.set(row.trace_id, node);
+        });
+
+        rows.forEach(row => {
+            const node = nodeMap.get(row.trace_id);
 
             if (!row.parent_trace_id) {
-                rootNodes.push(node);
-
-                return false
+                rootNodes.push(node!);
             } else {
                 const parentNode = nodeMap.get(row.parent_trace_id);
 
                 if (parentNode) {
-                    if (!parentNode.children) {
-                        parentNode.children = [];
-                    }
-
-                    parentNode.children.push(node);
-                    parentNode.children = parentNode.children.sort(
-                        (a, b) => new Date(a.primary.logged_at).getTime() - new Date(b.primary.logged_at).getTime()
-                    )
-
-                    return false
-                }
-
-                return true
-            }
-        })
-
-        remainRows.forEach(row => {
-            const node = this.createNode(row);
-
-            nodeMap.set(row.trace_id, node);
-
-            if (!row.parent_trace_id) {
-                rootNodes.push(node);
-            } else {
-                const parentNode = nodeMap.get(row.parent_trace_id);
-
-                if (parentNode) {
-                    if (!parentNode.children) {
-                        parentNode.children = [];
-                    }
-
-                    parentNode.children.push(node);
-                    parentNode.children = parentNode.children.sort(
-                        (a, b) => new Date(a.primary.logged_at).getTime() - new Date(b.primary.logged_at).getTime()
-                    )
+                    parentNode.children.push(node!);
                 }
             }
         })
