@@ -97,6 +97,9 @@
                 :value="item.name"
             />
           </el-select>
+          <el-button @click="applyFilters">
+            Apply
+          </el-button>
         </el-space>
         <div class="flex-grow"/>
         <el-text type="info">
@@ -105,7 +108,10 @@
       </el-row>
       <el-row style="width: 100%; height: 100%; position: relative;">
         <div class="row-col" style="width: 100%;">
-          <TraceAggregatorTraceTreeNodes :tree="traceAggregatorTreeStore.tree"/>
+          <TraceAggregatorTraceTreeNodes
+              ref="traceTreeNodes"
+              :tree="traceAggregatorTreeStore.tree"
+          />
         </div>
         <div
             v-if="showData"
@@ -188,6 +194,9 @@ export default defineComponent({
     onClickCloseData() {
       this.traceAggregatorTreeStore.resetSelectedTrace()
     },
+    applyFilters() {
+      this.$refs.traceTreeNodes!.filter()
+    }
   },
 })
 </script>
