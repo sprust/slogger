@@ -69,11 +69,6 @@ class TraceTreeCacheRepository implements TraceTreeCacheRepositoryInterface
                         'rootTraceId' => $rootTraceId,
                     ],
                 ],
-                [
-                    '$sort' => [
-                        'order' => 1,
-                    ],
-                ],
             ]);
 
         return new TraceTreeRawIterator(
@@ -108,6 +103,11 @@ class TraceTreeCacheRepository implements TraceTreeCacheRepositoryInterface
                         'count' => ['$sum' => 1],
                     ],
                 ],
+                [
+                    '$sort' => [
+                        'count' => -1,
+                    ],
+                ],
             ]);
 
         $services = [];
@@ -135,6 +135,11 @@ class TraceTreeCacheRepository implements TraceTreeCacheRepositoryInterface
                     '$group' => [
                         '_id'   => '$type',
                         'count' => ['$sum' => 1],
+                    ],
+                ],
+                [
+                    '$sort' => [
+                        'count' => -1,
                     ],
                 ],
             ]);
@@ -169,6 +174,11 @@ class TraceTreeCacheRepository implements TraceTreeCacheRepositoryInterface
                         'count' => ['$sum' => 1],
                     ],
                 ],
+                [
+                    '$sort' => [
+                        'count' => -1,
+                    ],
+                ],
             ]);
 
         $tags = [];
@@ -196,6 +206,11 @@ class TraceTreeCacheRepository implements TraceTreeCacheRepositoryInterface
                     '$group' => [
                         '_id'   => '$status',
                         'count' => ['$sum' => 1],
+                    ],
+                ],
+                [
+                    '$sort' => [
+                        'count' => -1,
                     ],
                 ],
             ]);

@@ -22,15 +22,7 @@ return new class extends Migration {
 
         $collection->createIndex(
             key: [
-                'parentTraceId' => 1,
-                'order'         => 1,
-            ],
-        );
-
-        $collection->createIndex(
-            key: [
-                'parentTraceId' => 1,
-                'traceId'       => 1,
+                'rootTraceId' => 1,
             ],
         );
 
