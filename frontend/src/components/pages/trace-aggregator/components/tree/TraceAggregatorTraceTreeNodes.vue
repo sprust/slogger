@@ -10,9 +10,6 @@
       :filter-node-method="filterNode"
   >
     <template #default="{ data }">
-      <el-row style="width: 100%">
-        <TraceAggregatorTraceTreeRow :row="data.primary"/>
-      </el-row>
     </template>
   </el-tree>
 </template>
@@ -22,6 +19,8 @@ import {TraceTreeNode, useTraceAggregatorTreeStore} from "./store/traceAggregato
 import TraceAggregatorTraceTreeRow from "./TraceAggregatorTraceTreeRow.vue";
 import {defineComponent, ref} from "vue";
 import {TreeInstance} from "element-plus";
+
+// TODO: delete
 
 export default defineComponent({
   components: {

@@ -15,14 +15,14 @@
         :style="{ transform: `translateY(${offsetY}px)` }"
     >
       <el-row v-for="row in visibleItems" style="width: 100%; height: 30px" class="current-tree-row">
-        <TraceAggregatorTraceTreeRow :row="row"/>
+        <TraceAggregatorTraceTreeRow :row="row" :depth="row.depth"/>
       </el-row>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import {TraceAggregatorTreeRow} from "./store/traceAggregatorTreeStore.ts";
+import {TraceTreeNode} from "./store/traceAggregatorTreeStore.ts";
 import TraceAggregatorTraceTreeRow from "./TraceAggregatorTraceTreeRow.vue";
 
 export default {
@@ -34,7 +34,7 @@ export default {
 
   props: {
     items: {
-      type: Array<TraceAggregatorTreeRow>,
+      type: Array<TraceTreeNode>,
       required: true
     },
     itemHeight: {
@@ -66,7 +66,7 @@ export default {
     offsetY(): number {
       return this.startIndex * this.itemHeight;
     },
-    visibleItems(): TraceAggregatorTreeRow[] {
+    visibleItems(): TraceTreeNode[] {
       return this.items.slice(this.startIndex, this.endIndex);
     }
   },

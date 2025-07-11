@@ -1,7 +1,5 @@
 import {TraceAggregatorTreeRow, TraceTreeNode} from "./traceAggregatorTreeStore.ts";
 
-// TODO: refactor for recursive
-
 export class TreeBuilder {
     public build(rows: TraceAggregatorTreeRow[]): TraceTreeNode[] {
         const rootNodes: TraceTreeNode[] = [];
@@ -26,14 +24,25 @@ export class TreeBuilder {
             }
         })
 
+        this.fillDepthRecursive(0, rootNodes);
+
         return rootNodes;
     }
 
     private createNode(row: TraceAggregatorTreeRow): TraceTreeNode {
         return {
             id: row.trace_id,
+            depth: 0,
             primary: row,
             children: []
         };
+    }
+
+    private fillDepthRecursive(depth: number, rows: TraceTreeNode[]) {
+        rows.forEach(row => {
+            row.depth = depth;
+
+            this.fillDepthRecursive(depth + 1, row.children);
+        })
     }
 }

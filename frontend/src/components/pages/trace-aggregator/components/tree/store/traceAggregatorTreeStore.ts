@@ -20,8 +20,9 @@ interface ServicesMapInterface {
 
 export interface TraceTreeNode {
     id: string,
-    children: Array<TraceTreeNode>,
+    depth: number,
     primary: TraceAggregatorTreeRow,
+    children: Array<TraceTreeNode>,
 }
 
 interface TraceAggregatorTreeStoreInterface {

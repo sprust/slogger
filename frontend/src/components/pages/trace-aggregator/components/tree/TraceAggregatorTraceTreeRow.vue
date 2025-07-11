@@ -2,7 +2,7 @@
 
 import {defineComponent, PropType, ref} from "vue";
 import TraceService from "../services/TraceService.vue";
-import {TraceAggregatorTreeRow, useTraceAggregatorTreeStore} from "./store/traceAggregatorTreeStore.ts";
+import {TraceAggregatorTreeRow, TraceTreeNode, useTraceAggregatorTreeStore} from "./store/traceAggregatorTreeStore.ts";
 import {convertDateStringToLocal} from "../../../../../utils/helpers.ts";
 
 export default defineComponent({
@@ -10,9 +10,9 @@ export default defineComponent({
 
   props: {
     row: {
-      type: Object as PropType<TraceAggregatorTreeRow>,
+      type: Object as PropType<TraceTreeNode>,
       required: true
-    }
+    },
   },
 
   computed: {
@@ -110,27 +110,27 @@ export default defineComponent({
 </script>
 
 <template>
-  <div ref="traceTreeRowRef" :style="{ height: originalHeight, width: '100%' }">
-    <el-row v-if="isVisible" style="width: 100%">
+  <el-row ref="traceTreeRowRef" :style="{ height: originalHeight, width: '100%' }">
+    <el-row v-if="isVisible" :style="{width: '100%', 'padding-left': row.depth * 10 + 'px'}">
       <el-space>
-        <div class="trace-tree-metric-indicator" :style="makeTraceIndicatorStyle(row)"/>
-        <div class="trace-tree-select-indicator" :style="makeTreeNodeStyle(row)"/>
+        <div class="trace-tree-metric-indicator" :style="makeTraceIndicatorStyle(row.primary)"/>
+        <div class="trace-tree-select-indicator" :style="makeTreeNodeStyle(row.primary)"/>
       </el-space>
 
-      <el-space spacer=":" @click="onClickOnRow(row)" style="cursor: pointer">
+      <el-space spacer=":" @click="onClickOnRow(row.primary)" style="cursor: pointer">
         <div>
-          <el-text :type="isServiceIdSelected(row.service_id) ? 'danger': 'primary'">
-            {{ getServiceName(row) }}
+          <el-text :type="isServiceIdSelected(row.primary.service_id) ? 'danger': 'primary'">
+            {{ getServiceName(row.primary) }}
           </el-text>
         </div>
         <div>
-          <el-text :type="isTypeSelected(row.type) ? 'danger': 'success'">
-            {{ row.type }}
+          <el-text :type="isTypeSelected(row.primary.type) ? 'danger': 'success'">
+            {{ row.primary.type }}
           </el-text>
         </div>
-        <el-space v-if="row.tags.length" spacer="+">
+        <el-space v-if="row.primary.tags.length" spacer="+">
           <el-text
-              v-for="tag in row.tags"
+              v-for="tag in row.primary.tags"
               :type="isTagSelected(tag) ? 'danger': 'warning'"
               style="padding-right: 3px"
           >
@@ -143,33 +143,33 @@ export default defineComponent({
 
       <el-space spacer="|">
         <div>
-          <el-text :type="isStatusSelected(row.status) ? 'danger': ''">
-            {{ row.status }}
+          <el-text :type="isStatusSelected(row.primary.status) ? 'danger': ''">
+            {{ row.primary.status }}
           </el-text>
         </div>
         <div>
           <el-text>
-            {{ convertDateStringToLocal(row.logged_at) }}
+            {{ convertDateStringToLocal(row.primary.logged_at) }}
           </el-text>
         </div>
         <div>
           <el-text>
-            {{ row.memory }}
+            {{ row.primary.memory }}
           </el-text>
         </div>
         <div>
           <el-text>
-            {{ row.cpu }}
+            {{ row.primary.cpu }}
           </el-text>
         </div>
         <div>
           <el-text>
-            {{ row.duration }}
+            {{ row.primary.duration }}
           </el-text>
         </div>
       </el-space>
     </el-row>
-  </div>
+  </el-row>
 </template>
 
 <style scoped>
