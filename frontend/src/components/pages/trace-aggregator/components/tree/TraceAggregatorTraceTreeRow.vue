@@ -128,7 +128,7 @@ export default defineComponent({
             {{ row.primary.type }}
           </el-text>
         </div>
-        <el-space v-if="row.primary.tags.length" spacer="+">
+        <el-space v-if="row.primary.tags.length" spacer="/">
           <el-text
               v-for="tag in row.primary.tags"
               :type="isTagSelected(tag) ? 'danger': 'warning'"
