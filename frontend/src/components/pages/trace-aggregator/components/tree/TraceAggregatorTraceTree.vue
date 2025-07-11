@@ -108,7 +108,7 @@
       </el-row>
       <el-row style="width: 100%; height: 100%; position: relative;">
         <div class="row-col" style="width: 100%;">
-          <TraceAggregatorTraceTreeRows :rows="traceAggregatorTreeStore.tree"/>
+          <TraceAggregatorTraceTreeVirtual :items="traceAggregatorTreeStore.tree"/>
         </div>
         <div
             v-if="showData"
@@ -147,11 +147,9 @@ import TraceAggregatorTraceDataNode from "../trace/TraceAggregatorTraceDataNode.
 import TraceDetail from "../trace/TraceDetail.vue";
 import TraceAggregatorTraceTreeVirtual from "./TraceAggregatorTraceTreeVirtual.vue";
 import {Refresh as UpdateIcon} from '@element-plus/icons-vue'
-import TraceAggregatorTraceTreeRows from "./TraceAggregatorTraceTreeRows.vue";
 
 export default defineComponent({
   components: {
-    TraceAggregatorTraceTreeRows,
     TraceDetail,
     TraceAggregatorTraceDataNode,
     TraceService,

@@ -15,7 +15,7 @@
         :style="{ transform: `translateY(${offsetY}px)` }"
     >
       <el-row v-for="row in visibleItems" style="width: 100%; height: 30px" class="current-tree-row">
-        <TraceAggregatorTraceTreeRow :row="row" :depth="row.depth"/>
+        <TraceAggregatorTraceTreeRow :row="row"/>
       </el-row>
     </div>
   </div>

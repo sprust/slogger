@@ -24,9 +24,11 @@ export class TreeBuilder {
             }
         })
 
-        this.fillDepthRecursive(0, rootNodes);
+        const nodes: TraceTreeNode[] = [];
 
-        return rootNodes;
+        this.fillDepthRecursive(nodes, 0, rootNodes);
+
+        return nodes;
     }
 
     private createNode(row: TraceAggregatorTreeRow): TraceTreeNode {
@@ -38,11 +40,17 @@ export class TreeBuilder {
         };
     }
 
-    private fillDepthRecursive(depth: number, rows: TraceTreeNode[]) {
+    private fillDepthRecursive(nodes: TraceTreeNode[], depth: number, rows: TraceTreeNode[]) {
+        rows.sort((a, b) => {
+            return new Date(a.primary.logged_at).getTime() - new Date(b.primary.logged_at).getTime()
+        })
+
         rows.forEach(row => {
             row.depth = depth;
 
-            this.fillDepthRecursive(depth + 1, row.children);
+            nodes.push(row);
+
+            this.fillDepthRecursive(nodes, depth + 1, row.children);
         })
     }
 }

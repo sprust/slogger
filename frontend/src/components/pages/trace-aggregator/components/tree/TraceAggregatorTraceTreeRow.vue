@@ -111,7 +111,7 @@ export default defineComponent({
 
 <template>
   <el-row ref="traceTreeRowRef" :style="{ height: originalHeight, width: '100%' }">
-    <el-row v-if="isVisible" :style="{width: '100%', 'padding-left': row.depth * 10 + 'px'}">
+    <el-row v-if="isVisible" :style="{width: '100%', 'padding-left': row.depth * 20 + 'px'}">
       <el-space>
         <div class="trace-tree-metric-indicator" :style="makeTraceIndicatorStyle(row.primary)"/>
         <div class="trace-tree-select-indicator" :style="makeTreeNodeStyle(row.primary)"/>
