@@ -108,7 +108,7 @@
       </el-row>
       <el-row style="width: 100%; height: 100%; position: relative;">
         <div class="row-col" style="width: 100%;">
-          <TraceAggregatorTraceTreeVirtual :items="traceAggregatorTreeStore.tree"/>
+          <TraceAggregatorTraceTreeVirtual :items="traceAggregatorTreeStore.filteredTree"/>
         </div>
         <div
             v-if="showData"
@@ -192,7 +192,7 @@ export default defineComponent({
       this.traceAggregatorTreeStore.resetSelectedTrace()
     },
     applyFilters() {
-      this.$refs.traceTreeNodes!.filter()
+      this.traceAggregatorTreeStore.applyFilters()
     }
   },
 })

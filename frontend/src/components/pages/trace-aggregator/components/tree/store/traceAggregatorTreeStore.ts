@@ -5,6 +5,7 @@ import {defineStore} from "pinia";
 import {handleApiError, handleApiRequest} from "../../../../../../utils/handleApiRequest.ts";
 import {readStream} from "../../../../../../utils/helpers.ts";
 import {TreeBuilder} from "./TreeBuilder.ts";
+import {TreeFilter} from "./TreeFilter.ts";
 
 type TraceAggregatorTreeParameters = AdminApi.TraceAggregatorTracesTreeCreate.RequestBody
 export type TraceAggregatorTree = AdminApi.TraceAggregatorTracesTreeCreate.ResponseBody['data']
@@ -67,6 +68,15 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
             selectedTraceServiceIds: new Array<number>(),
             traceTotalIndicatorsNumber: 0,
             traceIndicatingIds: []
+        }
+    },
+    getters: {
+        filteredTree(store: TraceAggregatorTreeStoreInterface) {
+            return store.tree.filter(
+                (node: TraceTreeNode) => {
+                    return !node.isHiddenByFilter
+                }
+            )
         }
     },
     actions: {
@@ -177,5 +187,13 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
                 this.servicesMap[service.id] = service
             })
         },
+        applyFilters() {
+            new TreeFilter(
+                this.selectedTraceServiceIds,
+                this.selectedTraceTypes,
+                this.selectedTraceTags,
+                this.selectedTraceStatuses,
+            ).apply(this.tree)
+        }
     },
 })
