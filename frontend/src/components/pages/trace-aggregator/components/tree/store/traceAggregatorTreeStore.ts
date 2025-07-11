@@ -23,6 +23,8 @@ export interface TraceTreeNode {
     depth: number,
     primary: TraceAggregatorTreeRow,
     children: Array<TraceTreeNode>,
+    collapsed: boolean,
+    isHiddenByFilter: boolean,
 }
 
 interface TraceAggregatorTreeStoreInterface {

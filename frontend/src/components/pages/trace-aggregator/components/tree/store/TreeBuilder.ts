@@ -36,7 +36,9 @@ export class TreeBuilder {
             id: row.trace_id,
             depth: 0,
             primary: row,
-            children: []
+            children: [],
+            collapsed: false,
+            isHiddenByFilter: false,
         };
     }
 
