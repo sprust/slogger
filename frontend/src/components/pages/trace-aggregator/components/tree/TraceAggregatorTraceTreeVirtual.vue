@@ -1,4 +1,3 @@
-// components/VirtualList.vue
 <template>
   <div
       class="virtual-list"
