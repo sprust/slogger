@@ -6,6 +6,7 @@ import {handleApiError, handleApiRequest} from "../../../../../../utils/handleAp
 import {readStream} from "../../../../../../utils/helpers.ts";
 import {TreeBuilder} from "./TreeBuilder.ts";
 import {TreeFilter} from "./TreeFilter.ts";
+import {IndicatorSetter} from "./IndicatorSetter.ts";
 
 type TraceAggregatorTreeParameters = AdminApi.TraceAggregatorTracesTreeCreate.RequestBody
 export type TraceAggregatorTree = AdminApi.TraceAggregatorTracesTreeCreate.ResponseBody['data']
@@ -26,6 +27,7 @@ export interface TraceTreeNode {
     children: Array<TraceTreeNode>,
     collapsed: boolean,
     isHiddenByFilter: boolean,
+    indicatorPercent: number,
 }
 
 interface TraceAggregatorTreeStoreInterface {
@@ -220,6 +222,13 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
             this.treeNodes = tree
 
             this.tree = new TreeBuilder().build(this.treeNodes)
+
+            if (this.tree.length > 0) {
+                this.fillTreeIndicatorsByRow(this.tree[0])
+            }
+        },
+        fillTreeIndicatorsByRow(row: TraceTreeNode) {
+            new IndicatorSetter(this.tree, row).fill()
         },
         setTreeContent(content: TraceAggregatorTreeContent) {
             this.content = content

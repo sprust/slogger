@@ -1,6 +1,6 @@
 <script lang="ts">
 
-import {defineComponent, PropType, ref} from "vue";
+import {defineComponent, PropType} from "vue";
 import TraceService from "../services/TraceService.vue";
 import {TraceAggregatorTreeRow, TraceTreeNode, useTraceAggregatorTreeStore} from "./store/traceAggregatorTreeStore.ts";
 import {convertDateStringToLocal} from "../../../../../utils/helpers.ts";
@@ -19,18 +19,6 @@ export default defineComponent({
     traceAggregatorTreeStore() {
       return useTraceAggregatorTreeStore()
     },
-    isVisible() {
-      return ref(false)
-    },
-    traceTreeRowRef() {
-      return ref<HTMLElement | null>(null)
-    },
-    originalHeight() {
-      return ref('30px')
-    },
-    observer() {
-      return null as IntersectionObserver | null
-    }
   },
 
   methods: {
@@ -80,41 +68,25 @@ export default defineComponent({
     findByRow() {
       this.traceAggregatorTreeStore.initTreeByRow(this.row)
     },
-  },
+    indicateByRow() {
+      this.traceAggregatorTreeStore.fillTreeIndicatorsByRow(this.row)
+    },
+    getIndicatorBackground() {
+      if (!this.row.indicatorPercent) {
+        return ''
+      }
 
-  mounted() {
-    if (this.traceTreeRowRef.value) {
-      this.originalHeight.value = `${this.traceTreeRowRef.value.offsetHeight}px`
+      const indicatorPercent = Math.round(this.row.indicatorPercent / 2)
 
-      this.observer = new IntersectionObserver(
-          (entries) => {
-            entries.forEach((entry) => {
-              this.isVisible.value = entry.isIntersecting
-            })
-          },
-          {
-            threshold: 0.1,
-            root: document.querySelector('.virtual-list'),
-            rootMargin: '100px 0px'
-          }
-      )
-
-      this.observer.observe(this.traceTreeRowRef.value)
-    }
-  },
-
-  beforeUnmount() {
-    if (this.observer && this.traceTreeRowRef.value) {
-      this.observer.unobserve(this.traceTreeRowRef.value)
-      this.observer.disconnect()
+      return `linear-gradient(to left, #ff000030 ${indicatorPercent}%, transparent ${indicatorPercent}%)`
     }
   },
 })
 </script>
 
 <template>
-  <el-row ref="traceTreeRowRef" :style="{ height: originalHeight, width: '100%' }">
-    <el-row v-if="isVisible" :style="{width: '100%', 'padding-left': row.depth * 20 + 'px'}">
+  <el-row :style="{height: '30px', width: '100%', background: getIndicatorBackground()}">
+    <el-row :style="{width: '100%', 'padding-left': row.depth * 20 + 'px'}">
       <el-space>
         <div class="trace-tree-metric-indicator" :style="makeTraceIndicatorStyle(row.primary)"/>
         <div class="trace-tree-select-indicator" :style="makeTreeNodeStyle(row.primary)"/>
@@ -147,6 +119,14 @@ export default defineComponent({
           link
       >
         tree
+      </el-button>
+      <el-button
+          v-if="row.children.length > 0"
+          type="info"
+          @click="indicateByRow"
+          link
+      >
+        indicate
       </el-button>
 
       <div class="flex-grow"/>

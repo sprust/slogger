@@ -39,6 +39,7 @@ export class TreeBuilder {
             children: [],
             collapsed: false,
             isHiddenByFilter: false,
+            indicatorPercent: 0,
         };
     }
 
