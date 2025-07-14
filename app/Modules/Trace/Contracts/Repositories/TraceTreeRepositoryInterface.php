@@ -11,5 +11,10 @@ interface TraceTreeRepositoryInterface
     /**
      * @return string[]
      */
+    public function findChainToParentTraceId(string $traceId): array;
+
+    /**
+     * @return string[]
+     */
     public function findTraceIdsInTreeByParentTraceId(string $traceId): array;
 }

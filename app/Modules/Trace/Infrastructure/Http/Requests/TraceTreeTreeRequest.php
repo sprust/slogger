@@ -19,6 +19,10 @@ class TraceTreeTreeRequest extends FormRequest
                 'required',
                 'boolean',
             ],
+            'is_child' => [
+                'required',
+                'boolean',
+            ],
         ];
     }
 }

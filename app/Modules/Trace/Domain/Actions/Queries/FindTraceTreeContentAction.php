@@ -30,13 +30,15 @@ readonly class FindTraceTreeContentAction implements FindTraceTreeContentActionI
     /**
      * @throws ContextCheckerException
      */
-    public function handle(string $traceId): TraceTreeContentObjects
+    public function handle(string $traceId, bool $isChild): TraceTreeContentObjects
     {
-        $parentTraceId = $this->traceTreeRepository->findParentTraceId(
-            traceId: $traceId
-        );
+        $rootTraceId = $isChild
+            ? $traceId
+            : $this->traceTreeRepository->findParentTraceId(
+                traceId: $traceId
+            );
 
-        if (!$parentTraceId) {
+        if (!$rootTraceId) {
             return new TraceTreeContentObjects(
                 count: 0,
                 services: [],
@@ -46,11 +48,11 @@ readonly class FindTraceTreeContentAction implements FindTraceTreeContentActionI
             );
         }
 
-        $parent = $this->traceRepository->findOneDetailByTraceId(
-            traceId: $parentTraceId
+        $rootTrace = $this->traceRepository->findOneDetailByTraceId(
+            traceId: $rootTraceId
         );
 
-        if (is_null($parent)) {
+        if (is_null($rootTrace)) {
             return new TraceTreeContentObjects(
                 count: 0,
                 services: [],
@@ -62,15 +64,15 @@ readonly class FindTraceTreeContentAction implements FindTraceTreeContentActionI
 
         $callbacks = [
             'services' => static fn(TraceTreeCacheRepositoryInterface $repository) => $repository
-                ->findServices(rootTraceId: $parentTraceId),
+                ->findServices(rootTraceId: $rootTraceId),
             'types'    => static fn(TraceTreeCacheRepositoryInterface $repository) => $repository
-                ->findTypes(rootTraceId: $parentTraceId),
+                ->findTypes(rootTraceId: $rootTraceId),
             'tags'     => static fn(TraceTreeCacheRepositoryInterface $repository) => $repository
-                ->findTags(rootTraceId: $parentTraceId),
+                ->findTags(rootTraceId: $rootTraceId),
             'statuses' => static fn(TraceTreeCacheRepositoryInterface $repository) => $repository
-                ->findStatuses(rootTraceId: $parentTraceId),
+                ->findStatuses(rootTraceId: $rootTraceId),
             'count'    => static fn(TraceTreeCacheRepositoryInterface $repository) => $repository
-                ->findCount(rootTraceId: $parentTraceId),
+                ->findCount(rootTraceId: $rootTraceId),
         ];
 
         $results = $this->parallelWorkers->wait(

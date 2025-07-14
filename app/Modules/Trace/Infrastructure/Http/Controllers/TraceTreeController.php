@@ -30,7 +30,12 @@ readonly class TraceTreeController
         $traceTreeObjects = $this->findTraceTreeAction->handle(
             traceId: ArrayValueGetter::string($validated, 'trace_id'),
             fresh: ArrayValueGetter::bool($validated, 'fresh'),
+            isChild: ArrayValueGetter::bool($validated, 'is_child'),
         );
+
+        if (is_null($traceTreeObjects)) {
+            abort(404, 'Trace not found');
+        }
 
         return new TraceTreeResponse($traceTreeObjects);
     }
@@ -41,6 +46,7 @@ readonly class TraceTreeController
 
         $traceTreeObjects = $this->findTraceTreeContentAction->handle(
             traceId: ArrayValueGetter::string($validated, 'trace_id'),
+            isChild: ArrayValueGetter::bool($validated, 'is_child'),
         );
 
         return new TraceTreeContentResource($traceTreeObjects);

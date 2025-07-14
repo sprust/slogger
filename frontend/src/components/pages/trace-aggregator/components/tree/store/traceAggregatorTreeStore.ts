@@ -83,24 +83,64 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
         async initTree(traceId: string) {
             this.$reset()
 
-            return this.findTreeNodes(traceId, false, true)
+            return this.findTreeNodes({
+                    traceId: traceId,
+                    fresh: false,
+                    freshContent: true,
+                    isChild: false,
+                }
+            )
+        },
+        async initTreeByRow(row: TraceTreeNode) {
+            this.$reset()
+
+            return this.findTreeNodes({
+                traceId: row.primary.trace_id,
+                fresh: false,
+                freshContent: true,
+                isChild: true,
+            })
         },
         async updateTree() {
-            return this.findTreeNodes(this.parameters.trace_id, false, false)
+            return this.findTreeNodes({
+                traceId: this.parameters.trace_id,
+                fresh: false,
+                freshContent: false,
+                isChild: this.parameters.is_child,
+            })
         },
         async freshTree() {
             const traceId = this.parameters.trace_id;
+            const isChild = this.parameters.is_child;
 
             this.$reset()
 
-            return this.findTreeNodes(traceId, true, true)
+            return this.findTreeNodes({
+                traceId: traceId,
+                fresh: true,
+                freshContent: true,
+                isChild: isChild,
+            })
         },
-        async findTreeNodes(traceId: string, fresh: boolean, freshContent: boolean) {
+        async findTreeNodes(
+            {
+                traceId,
+                fresh,
+                freshContent,
+                isChild
+            }: {
+                traceId: string,
+                fresh: boolean,
+                freshContent: boolean,
+                isChild: boolean
+            }
+        ) {
             this.loading = true
 
             this.parameters = {
                 trace_id: traceId,
                 fresh: fresh,
+                is_child: isChild
             }
 
             return handleApiRequest(
@@ -121,7 +161,7 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
                                     this.loading = false
                                 } else {
                                     handleApiRequest(
-                                        this.findTreeContent(traceId)
+                                        this.findTreeContent(traceId, isChild)
                                             .finally(() => {
                                                 this.loading = false
                                             })
@@ -134,14 +174,17 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
                                 this.loading = false
                             })
                     })
-                    .catch(() => {
+                    .catch((error) => {
+                        handleApiError(error)
+
                         this.loading = false
                     })
             )
         },
-        findTreeContent(traceId: string) {
+        findTreeContent(traceId: string, isChild: boolean) {
             const parameters: TraceAggregatorTreeContentParameters = {
-                trace_id: traceId
+                trace_id: traceId,
+                is_child: isChild
             }
 
             return handleApiRequest(

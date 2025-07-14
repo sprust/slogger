@@ -77,6 +77,9 @@ export default defineComponent({
     isStatusSelected(item: string): boolean {
       return this.traceAggregatorTreeStore.selectedTraceStatuses.indexOf(item) != -1
     },
+    findByRow() {
+      this.traceAggregatorTreeStore.initTreeByRow(this.row)
+    },
   },
 
   mounted() {
@@ -138,6 +141,13 @@ export default defineComponent({
           </el-text>
         </el-space>
       </el-space>
+      <el-button
+          type="info"
+          @click="findByRow"
+          link
+      >
+        tree
+      </el-button>
 
       <div class="flex-grow"/>
 

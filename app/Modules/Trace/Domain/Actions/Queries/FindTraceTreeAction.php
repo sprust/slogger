@@ -21,14 +21,18 @@ readonly class FindTraceTreeAction implements FindTraceTreeActionInterface
     ) {
     }
 
-    public function handle(string $traceId, bool $fresh): ?TraceTreeRawIterator
+    public function handle(string $traceId, bool $fresh, bool $isChild): ?TraceTreeRawIterator
     {
-        $rootTraceId = $this->traceTreeRepository->findParentTraceId(
-            traceId: $traceId
-        );
+        if ($isChild) {
+            $rootTraceId = $traceId;
+        } else {
+            $rootTraceId = $this->traceTreeRepository->findParentTraceId(
+                traceId: $traceId
+            );
 
-        if (!$rootTraceId) {
-            return null;
+            if (!$rootTraceId) {
+                return null;
+            }
         }
 
         $rootTrace = $this->traceRepository->findOneDetailByTraceId(
@@ -45,7 +49,16 @@ readonly class FindTraceTreeAction implements FindTraceTreeActionInterface
             );
 
         if ($needCache) {
-            $this->cacheTree(rootTrace: $rootTrace);
+            $additionalTraceIds = $isChild
+                ? $this->traceTreeRepository->findChainToParentTraceId(
+                    traceId: $traceId
+                )
+                : [];
+
+            $this->cacheTree(
+                rootTrace: $rootTrace,
+                additionalTraceIds: $additionalTraceIds
+            );
         }
 
         return $this->traceTreeCacheRepository->findMany(
@@ -53,7 +66,10 @@ readonly class FindTraceTreeAction implements FindTraceTreeActionInterface
         );
     }
 
-    private function cacheTree(TraceDto $rootTrace): void
+    /**
+     * @param string[] $additionalTraceIds
+     */
+    private function cacheTree(TraceDto $rootTrace, array $additionalTraceIds): void
     {
         $rootTraceId = $rootTrace->traceId;
 
@@ -82,6 +98,11 @@ readonly class FindTraceTreeAction implements FindTraceTreeActionInterface
         $childIds = $this->traceTreeRepository->findTraceIdsInTreeByParentTraceId(
             traceId: $rootTraceId
         );
+
+        $childIds = array_unique([
+            ...$childIds,
+            ...$additionalTraceIds,
+        ]);
 
         foreach (array_chunk(array: $childIds, length: 500) as $childIdsChunk) {
             $foundTraces = $this->traceRepository->findByTraceIds(

@@ -8,5 +8,5 @@ use App\Modules\Trace\Entities\Trace\Tree\TraceTreeRawIterator;
 
 interface FindTraceTreeActionInterface
 {
-    public function handle(string $traceId, bool $fresh): ?TraceTreeRawIterator;
+    public function handle(string $traceId, bool $fresh, bool $isChild): ?TraceTreeRawIterator;
 }

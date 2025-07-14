@@ -8,5 +8,5 @@ use App\Modules\Trace\Entities\Trace\Tree\TraceTreeContentObjects;
 
 interface FindTraceTreeContentActionInterface
 {
-    public function handle(string $traceId): TraceTreeContentObjects;
+    public function handle(string $traceId, bool $isChild): TraceTreeContentObjects;
 }
