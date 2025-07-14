@@ -728,11 +728,15 @@
                                     },
                                     "fresh": {
                                         "type": "boolean"
+                                    },
+                                    "is_child": {
+                                        "type": "boolean"
                                     }
                                 },
                                 "required": [
                                     "trace_id",
-                                    "fresh"
+                                    "fresh",
+                                    "is_child"
                                 ],
                                 "type": "object"
                             }
@@ -831,10 +835,14 @@
                                 "properties": {
                                     "trace_id": {
                                         "type": "string"
+                                    },
+                                    "is_child": {
+                                        "type": "boolean"
                                     }
                                 },
                                 "required": [
-                                    "trace_id"
+                                    "trace_id",
+                                    "is_child"
                                 ],
                                 "type": "object"
                             }
