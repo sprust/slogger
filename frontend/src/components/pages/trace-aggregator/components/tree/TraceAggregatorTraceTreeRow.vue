@@ -132,31 +132,21 @@ export default defineComponent({
       <div class="flex-grow"/>
 
       <el-space spacer="|">
-        <div>
           <el-text :type="isStatusSelected(row.primary.status) ? 'danger': ''">
             {{ row.primary.status }}
           </el-text>
-        </div>
-        <div>
           <el-text>
             {{ convertDateStringToLocal(row.primary.logged_at) }}
           </el-text>
-        </div>
-        <div>
           <el-text>
             {{ row.primary.memory }}
           </el-text>
-        </div>
-        <div>
           <el-text>
             {{ row.primary.cpu }}
           </el-text>
-        </div>
-        <div>
           <el-text>
             {{ row.primary.duration }}
           </el-text>
-        </div>
       </el-space>
     </el-row>
   </el-row>
