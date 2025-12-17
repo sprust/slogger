@@ -7,7 +7,6 @@ namespace App\Modules\Trace\Contracts\Repositories;
 use App\Modules\Trace\Parameters\TraceCreateParameters;
 use App\Modules\Trace\Parameters\TraceUpdateParameters;
 use App\Modules\Trace\Repositories\Dto\Trace\TraceBuffersDto;
-use Illuminate\Support\Carbon;
 
 interface TraceBufferRepositoryInterface
 {
@@ -15,7 +14,9 @@ interface TraceBufferRepositoryInterface
 
     public function update(TraceUpdateParameters $trace): bool;
 
-    public function findForHandling(int $page, int $perPage, Carbon $deadTimeLine): TraceBuffersDto;
+    public function findForHandling(int $page, int $perPage): TraceBuffersDto;
+
+    public function markAsHandled(array $traceIds): void;
 
     /**
      * @param string[] $traceIds

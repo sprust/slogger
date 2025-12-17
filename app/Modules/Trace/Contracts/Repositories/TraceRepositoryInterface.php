@@ -18,7 +18,7 @@ interface TraceRepositoryInterface
     /**
      * @param TraceBufferDto[] $traceBuffers
      */
-    public function createManyByBuffers(array $traceBuffers): void;
+    public function freshManyByBuffers(array $traceBuffers): void;
 
     public function findOneDetailByTraceId(string $traceId): ?TraceDto;
 

@@ -40,7 +40,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
     ) {
     }
 
-    public function createManyByBuffers(array $traceBuffers): void
+    public function freshManyByBuffers(array $traceBuffers): void
     {
         /**
          * @var array<string, TraceBufferDto[]> $collectionNameTraceBuffers
