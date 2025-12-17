@@ -16,6 +16,9 @@ interface TraceBufferRepositoryInterface
 
     public function findForHandling(int $page, int $perPage): TraceBuffersDto;
 
+    /**
+     * @param string[] $traceIds
+     */
     public function markAsHandled(array $traceIds): void;
 
     /**

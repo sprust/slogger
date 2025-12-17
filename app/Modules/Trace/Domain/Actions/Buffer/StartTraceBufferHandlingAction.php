@@ -8,16 +8,12 @@ use App\Modules\Trace\Contracts\Actions\StartTraceBufferHandlingActionInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceBufferInvalidRepositoryInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceBufferRepositoryInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceRepositoryInterface;
-use App\Modules\Trace\Domain\Services\Locker\TraceLocker;
 use App\Modules\Trace\Domain\Services\MonitorTraceBufferHandlingService;
-use App\Modules\Trace\Repositories\Dto\Trace\TraceBufferDto;
-use App\Modules\Trace\Repositories\Dto\Trace\TraceBufferInvalidDto;
 use Symfony\Component\Console\Output\OutputInterface;
 
 readonly class StartTraceBufferHandlingAction implements StartTraceBufferHandlingActionInterface
 {
     public function __construct(
-        private TraceLocker $traceLocker,
         private MonitorTraceBufferHandlingService $monitorTraceBufferHandlingService,
         private TraceBufferRepositoryInterface $traceBufferRepository,
         private TraceRepositoryInterface $traceRepository,
@@ -66,6 +62,8 @@ readonly class StartTraceBufferHandlingAction implements StartTraceBufferHandlin
             $totalCount        += $currentTotalCount;
             $totalInvalidCount += $currentInvalidCount;
 
+            $deletedCount = 0;
+
             $completedTraceIds  = [];
             $processingTraceIds = [];
 
@@ -83,7 +81,7 @@ readonly class StartTraceBufferHandlingAction implements StartTraceBufferHandlin
                 );
 
                 if (count($completedTraceIds)) {
-                    $this->traceBufferRepository->delete(
+                    $deletedCount = $this->traceBufferRepository->delete(
                         traceIds: $completedTraceIds
                     );
                 }
@@ -95,78 +93,11 @@ readonly class StartTraceBufferHandlingAction implements StartTraceBufferHandlin
                 }
             }
 
-            /** @var string[] $allTraceIds */
-            $allTraceIds = [];
-
-            /** @var TraceBufferInvalidDto[] $currentInvalidTraces */
-            $currentInvalidTraces = [];
-
-            if ($currentTracesCount > 0) {
-                array_map(
-                    static function (TraceBufferDto $trace) use (&$allTraceIds) {
-                        $allTraceIds[] = $trace->traceId;
-                    },
-                    $traces->traces
-                );
-
-                $insertedTraces = [];
-                $skippedTraces  = [];
-
-                foreach ($traces->traces as $trace) {
-                    if ($trace->inserted) {
-                        $insertedTraces[] = $trace;
-                    } else {
-                        $skippedTraces[] = $trace;
-                    }
-                }
-
-                $currentInsertedTracesCount = count($insertedTraces);
-                $currentSkippedTracesCount  = count($skippedTraces);
-
-                $totalInsertedCount += $currentInsertedTracesCount;
-
-                $this->traceRepository->freshManyByBuffers(
-                    traceBuffers: $traces->traces
-                );
-
-                if ($currentSkippedTracesCount) {
-                    $totalSkippedCount += $currentSkippedTracesCount;
-
-                    array_map(
-                        static function (TraceBufferDto $trace) use (&$currentInvalidTraces) {
-                            $currentInvalidTraces[] = new TraceBufferInvalidDto(
-                                traceId: $trace->traceId,
-                                document: (array) $trace,
-                                error: 'not inserted'
-                            );
-                        },
-                        $skippedTraces
-                    );
-                }
-
-                array_map(
-                    static function (TraceBufferInvalidDto $trace) use (&$currentInvalidTraces, &$allTraceIds) {
-                        $currentInvalidTraces[] = $trace;
-
-                        if (!$trace->traceId) {
-                            return;
-                        }
-
-                        $allTraceIds[] = $trace->traceId;
-                    },
-                    $traces->invalidTraces
-                );
-            }
-
-            if (count($currentInvalidTraces)) {
+            if (count($traces->invalidTraces) > 0) {
                 $this->traceBufferInvalidRepository->createMany(
-                    invalidTraceBuffers: $currentInvalidTraces
+                    invalidTraceBuffers: $traces->invalidTraces
                 );
             }
-
-            $deletedCount = $this->traceBufferRepository->delete(
-                traceIds: $allTraceIds
-            );
 
             // TODO: statistic
             $output->writeln(

@@ -107,7 +107,7 @@ readonly class TraceBufferRepository implements TraceBufferRepositoryInterface
                 'tp'     => null,
                 'st'     => $trace->status,
                 'tgs'    => $trace->tags ?: [],
-                'dt'     => $trace->data ?: new stdClass(),
+                'dt'     => $trace->data ?: '{}',
                 'dur'    => $trace->duration,
                 'mem'    => $trace->memory,
                 'cpu'    => $trace->cpu,
@@ -172,6 +172,10 @@ readonly class TraceBufferRepository implements TraceBufferRepositoryInterface
             [
                 '$match' => [
                     '$or' => [
+                        [
+                            '__ins' => true,
+                            '__upd' => true,
+                        ],
                         [
                             '__hand' => false,
                         ],
