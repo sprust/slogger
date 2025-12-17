@@ -4,16 +4,15 @@ declare(strict_types=1);
 
 namespace App\Modules\Trace\Entities\Trace\Tree;
 
-use App\Modules\Trace\Entities\Trace\TraceServiceObject;
 use Illuminate\Support\Carbon;
 
-readonly class TraceTreeObject
+readonly class TraceTreeRawObject
 {
     /**
      * @param string[] $tags
      */
     public function __construct(
-        public ?TraceServiceObject $service,
+        public ?int $serviceId,
         public string $traceId,
         public ?string $parentTraceId,
         public string $type,
@@ -23,7 +22,6 @@ readonly class TraceTreeObject
         public ?float $memory,
         public ?float $cpu,
         public Carbon $loggedAt,
-        public int $depth,
     ) {
     }
 }

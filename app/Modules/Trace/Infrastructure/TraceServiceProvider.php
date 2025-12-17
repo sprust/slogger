@@ -32,6 +32,7 @@ use App\Modules\Trace\Contracts\Actions\Queries\FindTracesActionInterface;
 use App\Modules\Trace\Contracts\Actions\Queries\FindTraceServicesActionInterface;
 use App\Modules\Trace\Contracts\Actions\Queries\FindTraceTimestampsActionInterface;
 use App\Modules\Trace\Contracts\Actions\Queries\FindTraceTreeActionInterface;
+use App\Modules\Trace\Contracts\Actions\Queries\FindTraceTreeContentActionInterface;
 use App\Modules\Trace\Contracts\Actions\Queries\FindTypesActionInterface;
 use App\Modules\Trace\Contracts\Actions\StartTraceBufferHandlingActionInterface;
 use App\Modules\Trace\Contracts\Actions\StopTraceBufferHandlingActionInterface;
@@ -42,6 +43,7 @@ use App\Modules\Trace\Contracts\Repositories\TraceContentRepositoryInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceDynamicIndexRepositoryInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceRepositoryInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceTimestampsRepositoryInterface;
+use App\Modules\Trace\Contracts\Repositories\TraceTreeCacheRepositoryInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceTreeRepositoryInterface;
 use App\Modules\Trace\Domain\Actions\Buffer\StartTraceBufferHandlingAction;
 use App\Modules\Trace\Domain\Actions\Buffer\StopTraceBufferHandlingAction;
@@ -72,6 +74,7 @@ use App\Modules\Trace\Domain\Actions\Queries\FindTracesAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceServicesAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceTimestampsAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceTreeAction;
+use App\Modules\Trace\Domain\Actions\Queries\FindTraceTreeContentAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTypesAction;
 use App\Modules\Trace\Domain\Services\TraceDynamicIndexInitializer;
 use App\Modules\Trace\Domain\Services\TraceFieldTitlesService;
@@ -93,6 +96,7 @@ use App\Modules\Trace\Repositories\TraceContentRepository;
 use App\Modules\Trace\Repositories\TraceDynamicIndexRepository;
 use App\Modules\Trace\Repositories\TraceRepository;
 use App\Modules\Trace\Repositories\TraceTimestampsRepository;
+use App\Modules\Trace\Repositories\TraceTreeCacheRepository;
 use App\Modules\Trace\Repositories\TraceTreeRepository;
 use Illuminate\Contracts\Foundation\Application;
 use MongoDB\Client;
@@ -192,6 +196,7 @@ class TraceServiceProvider extends BaseServiceProvider
             TraceTimestampsRepositoryInterface::class             => TraceTimestampsRepository::class,
             TraceDynamicIndexRepositoryInterface::class           => TraceDynamicIndexRepository::class,
             TraceAdminStoreRepositoryInterface::class             => TraceAdminStoreRepository::class,
+            TraceTreeCacheRepositoryInterface::class              => TraceTreeCacheRepository::class,
             // actions
             MakeMetricIndicatorsActionInterface::class            => MakeMetricIndicatorsAction::class,
             MakeTraceTimestampPeriodsActionInterface::class       => MakeTraceTimestampPeriodsAction::class,
@@ -225,6 +230,7 @@ class TraceServiceProvider extends BaseServiceProvider
             FindTraceAdminStoreActionInterface::class             => FindTraceAdminStoreAction::class,
             FindTraceIdsActionInterface::class                    => FindTraceIdsAction::class,
             FindTraceServicesActionInterface::class               => FindTraceServicesAction::class,
+            FindTraceTreeContentActionInterface::class            => FindTraceTreeContentAction::class,
         ];
     }
 

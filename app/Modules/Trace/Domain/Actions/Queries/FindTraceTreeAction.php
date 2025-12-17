@@ -4,113 +4,133 @@ declare(strict_types=1);
 
 namespace App\Modules\Trace\Domain\Actions\Queries;
 
-use App\Modules\Trace\Contracts\Actions\Queries\FindTraceServicesActionInterface;
 use App\Modules\Trace\Contracts\Actions\Queries\FindTraceTreeActionInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceRepositoryInterface;
+use App\Modules\Trace\Contracts\Repositories\TraceTreeCacheRepositoryInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceTreeRepositoryInterface;
-use App\Modules\Trace\Domain\Exceptions\TreeTooLongException;
-use App\Modules\Trace\Domain\Services\TraceTreeBuilder;
-use App\Modules\Trace\Entities\Trace\TraceObject;
-use App\Modules\Trace\Entities\Trace\Tree\TraceTreeObjects;
-use App\Modules\Trace\Parameters\TraceFindTreeParameters;
+use App\Modules\Trace\Entities\Trace\Tree\TraceTreeRawIterator;
+use App\Modules\Trace\Parameters\CreateTraceTreeCacheParameters;
 use App\Modules\Trace\Repositories\Dto\Trace\TraceDto;
-use Illuminate\Support\Arr;
 
 readonly class FindTraceTreeAction implements FindTraceTreeActionInterface
 {
-    private int $maxItemsCount;
-
     public function __construct(
         private TraceRepositoryInterface $traceRepository,
         private TraceTreeRepositoryInterface $traceTreeRepository,
-        private FindTraceServicesActionInterface $findTraceServicesAction
+        private TraceTreeCacheRepositoryInterface $traceTreeCacheRepository,
     ) {
-        $this->maxItemsCount = 5000;
     }
 
-    public function handle(TraceFindTreeParameters $parameters): TraceTreeObjects
+    public function handle(string $traceId, bool $fresh, bool $isChild): ?TraceTreeRawIterator
     {
-        $parentTraceId = $this->traceTreeRepository->findParentTraceId(
-            traceId: $parameters->traceId
-        );
-
-        if (!$parentTraceId) {
-            return new TraceTreeObjects(
-                tracesCount: 0,
-                items: []
+        if ($isChild) {
+            $rootTraceId = $traceId;
+        } else {
+            $rootTraceId = $this->traceTreeRepository->findParentTraceId(
+                traceId: $traceId
             );
+
+            if (!$rootTraceId) {
+                return null;
+            }
         }
 
-        $childrenIds = $this->traceTreeRepository->findTraceIdsInTreeByParentTraceId(
-            traceId: $parentTraceId
+        $rootTrace = $this->traceRepository->findOneDetailByTraceId(
+            traceId: $rootTraceId
         );
 
-        $tracesCount = count($childrenIds) + 1;
-
-        if ($tracesCount > $this->maxItemsCount) {
-            throw new TreeTooLongException(
-                limit: $this->maxItemsCount,
-                current: $tracesCount
-            );
+        if (is_null($rootTrace)) {
+            return null;
         }
 
-        $foundTraces = $this->traceRepository->findByTraceIds(
-            traceIds: [
-                $parentTraceId,
-                ...$childrenIds,
-            ]
-        );
+        $needCache = $fresh
+            || !$this->traceTreeCacheRepository->has(
+                rootTraceId: $rootTraceId
+            );
 
-        /** @var int[] $serviceIds */
-        $serviceIds = array_values(
-            array_unique(
-                array_filter(
-                    array_map(
-                        fn(TraceDto $trace) => $trace->serviceId,
-                        $foundTraces
-                    )
+        if ($needCache) {
+            $additionalTraceIds = $isChild
+                ? $this->traceTreeRepository->findChainToParentTraceId(
+                    traceId: $traceId
                 )
-            )
+                : [];
+
+            $this->cacheTree(
+                rootTrace: $rootTrace,
+                additionalTraceIds: $additionalTraceIds
+            );
+        }
+
+        return $this->traceTreeCacheRepository->findMany(
+            rootTraceId: $rootTraceId
+        );
+    }
+
+    /**
+     * @param string[] $additionalTraceIds
+     */
+    private function cacheTree(TraceDto $rootTrace, array $additionalTraceIds): void
+    {
+        $rootTraceId = $rootTrace->traceId;
+
+        $this->traceTreeCacheRepository->delete(
+            rootTraceId: $rootTraceId
         );
 
-        $services = $this->findTraceServicesAction->handle(
-            serviceIds: $serviceIds
-        );
-
-        $traces = array_map(
-            fn(TraceDto $trace) => new TraceObject(
-                id: $trace->id,
-                service: $trace->serviceId
-                    ? $services->getById($trace->serviceId)
-                    : null,
-                traceId: $trace->traceId,
-                parentTraceId: $trace->parentTraceId,
-                type: $trace->type,
-                status: $trace->status,
-                tags: $trace->tags,
-                duration: $trace->duration,
-                memory: $trace->memory,
-                cpu: $trace->cpu,
-                loggedAt: $trace->loggedAt,
-                createdAt: $trace->createdAt,
-                updatedAt: $trace->updatedAt,
-            ),
-            $foundTraces
-        );
-
-        $treeNodesBuilder = new TraceTreeBuilder(
-            parentTrace: Arr::first($traces, fn(TraceObject $trace) => $trace->traceId === $parentTraceId),
-            children: array_filter(
-                $traces,
-                static fn(TraceObject $trace) => $trace->traceId !== $parentTraceId
-            )
-        );
-
-        return new TraceTreeObjects(
-            tracesCount: $tracesCount,
-            items: [
-                $treeNodesBuilder->build(),
+        $this->traceTreeCacheRepository->createMany(
+            rootTraceId: $rootTraceId,
+            parametersList: [
+                new CreateTraceTreeCacheParameters(
+                    serviceId: $rootTrace->serviceId,
+                    parentTraceId: $rootTrace->parentTraceId,
+                    traceId: $rootTrace->traceId,
+                    type: $rootTrace->type,
+                    tags: $rootTrace->tags,
+                    status: $rootTrace->status,
+                    duration: $rootTrace->duration,
+                    memory: $rootTrace->memory,
+                    cpu: $rootTrace->cpu,
+                    loggedAt: $rootTrace->loggedAt,
+                ),
             ]
         );
+
+        $childIds = $this->traceTreeRepository->findTraceIdsInTreeByParentTraceId(
+            traceId: $rootTraceId
+        );
+
+        $childIds = array_unique([
+            ...$childIds,
+            ...$additionalTraceIds,
+        ]);
+
+        foreach (array_chunk(array: $childIds, length: 500) as $childIdsChunk) {
+            $foundTraces = $this->traceRepository->findByTraceIds(
+                traceIds: $childIdsChunk
+            );
+
+            /** @var CreateTraceTreeCacheParameters[] $cacheParametersList */
+            $cacheParametersList = [];
+
+            foreach ($foundTraces as $foundTrace) {
+                $cacheParametersList[] = new CreateTraceTreeCacheParameters(
+                    serviceId: $foundTrace->serviceId,
+                    parentTraceId: $foundTrace->parentTraceId,
+                    traceId: $foundTrace->traceId,
+                    type: $foundTrace->type,
+                    tags: $foundTrace->tags,
+                    status: $foundTrace->status,
+                    duration: $foundTrace->duration,
+                    memory: $foundTrace->memory,
+                    cpu: $foundTrace->cpu,
+                    loggedAt: $foundTrace->loggedAt,
+                );
+            }
+
+            $this->traceTreeCacheRepository->createMany(
+                rootTraceId: $rootTraceId,
+                parametersList: $cacheParametersList
+            );
+        }
     }
 }

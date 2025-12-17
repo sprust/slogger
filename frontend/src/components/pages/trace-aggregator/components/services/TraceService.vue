@@ -1,10 +1,10 @@
 <template>
-  <div v-if="name">
+  <el-text v-if="name" :type="isSelected ? 'primary' : ''">
     {{ name }}
-  </div>
-  <div v-else>
+  </el-text>
+  <el-text v-else>
     !! none !!
-  </div>
+  </el-text>
 </template>
 
 <script lang="ts">
@@ -16,6 +16,11 @@ export default defineComponent({
       type: String,
       required: false,
       default: null
+    },
+    isSelected: {
+      type: Boolean,
+      required: false,
+      default: false
     },
   },
 })

@@ -256,6 +256,27 @@ export function snackToTitle(text: string): string {
     return text.split('_')
         .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
         .join(' ')
-
-
 }
+
+export async function readStream(stream: ReadableStream<Uint8Array>): Promise<string> {
+    const reader = stream.getReader()
+    const decoder = new TextDecoder()
+    let result = ''
+
+    try {
+        while (true) {
+            const { done, value } = await reader.read()
+            if (done) {
+                break
+            }
+            result += decoder.decode(value, { stream: true })
+        }
+
+        result += decoder.decode()
+
+        return result
+    } finally {
+        reader.releaseLock()
+    }
+}
+

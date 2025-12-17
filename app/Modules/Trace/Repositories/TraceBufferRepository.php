@@ -51,21 +51,22 @@ readonly class TraceBufferRepository implements TraceBufferRepositoryInterface
             $filter,
             [
                 '$set' => [
-                    'ptid'  => $trace->parentTraceId,
-                    'tp'    => $trace->type,
-                    'st'    => ($existTrace['st'] ?? null) ?: $trace->status,
-                    'tgs'   => ($existTrace['tgs'] ?? null) ?: $trace->tags,
-                    'dt'    => ($existTrace['dt'] ?? null) ?: $trace->data,
-                    'dur'   => is_null($existTrace['dur'] ?? null) ? $trace->duration : $existTrace['dur'],
-                    'mem'   => is_null($existTrace['mem'] ?? null) ? $trace->memory : $existTrace['mem'],
-                    'cpu'   => is_null($existTrace['cpu'] ?? null) ? $trace->cpu : $existTrace['cpu'],
-                    'tss'   => $this->makeTimestampsData($trace->timestamps),
-                    'lat'   => new UTCDateTime($trace->loggedAt),
-                    'uat'   => $timestamp,
-                    'cat'   => $timestamp,
+                    'ptid'   => $trace->parentTraceId,
+                    'tp'     => $trace->type,
+                    'st'     => ($existTrace['st'] ?? null) ?: $trace->status,
+                    'tgs'    => ($existTrace['tgs'] ?? null) ?: $trace->tags,
+                    'dt'     => ($existTrace['dt'] ?? null) ?: $trace->data,
+                    'dur'    => is_null($existTrace['dur'] ?? null) ? $trace->duration : $existTrace['dur'],
+                    'mem'    => is_null($existTrace['mem'] ?? null) ? $trace->memory : $existTrace['mem'],
+                    'cpu'    => is_null($existTrace['cpu'] ?? null) ? $trace->cpu : $existTrace['cpu'],
+                    'tss'    => $this->makeTimestampsData($trace->timestamps),
+                    'lat'    => new UTCDateTime($trace->loggedAt),
+                    'uat'    => $timestamp,
+                    'cat'    => $timestamp,
                     ...$profiling,
-                    '__ins' => true,
-                    '__upd' => $hasExistsTrace || !$trace->isParent,
+                    '__ins'  => true,
+                    '__upd'  => $hasExistsTrace || !$trace->isParent,
+                    '__hand' => false,
                 ],
             ],
             [
@@ -102,21 +103,22 @@ readonly class TraceBufferRepository implements TraceBufferRepositoryInterface
         if (!$hasExistsTrace) {
             $this->collection->insertOne([
                 ...$filter,
-                'ptid'  => null,
-                'tp'    => null,
-                'st'    => $trace->status,
-                'tgs'   => $trace->tags ?: [],
-                'dt'    => $trace->data ?: new stdClass(),
-                'dur'   => $trace->duration,
-                'mem'   => $trace->memory,
-                'cpu'   => $trace->cpu,
-                'tss'   => new stdClass(),
-                'lat'   => $timestamp,
-                'uat'   => $timestamp,
-                'cat'   => $timestamp,
+                'ptid'   => null,
+                'tp'     => null,
+                'st'     => $trace->status,
+                'tgs'    => $trace->tags ?: [],
+                'dt'     => $trace->data ?: '{}',
+                'dur'    => $trace->duration,
+                'mem'    => $trace->memory,
+                'cpu'    => $trace->cpu,
+                'tss'    => new stdClass(),
+                'lat'    => $timestamp,
+                'uat'    => $timestamp,
+                'cat'    => $timestamp,
                 ...$profiling,
-                '__ins' => false,
-                '__upd' => true,
+                '__ins'  => false,
+                '__upd'  => true,
+                '__hand' => false,
             ]);
 
             return true;
@@ -126,7 +128,7 @@ readonly class TraceBufferRepository implements TraceBufferRepositoryInterface
             $filter,
             [
                 '$set' => [
-                    'st'    => $trace->status,
+                    'st'     => $trace->status,
                     ...(is_null($trace->tags)
                         ? []
                         : [
@@ -152,10 +154,11 @@ readonly class TraceBufferRepository implements TraceBufferRepositoryInterface
                         : [
                             'cpu' => $trace->cpu,
                         ]),
-                    'uat'   => $timestamp,
+                    'uat'    => $timestamp,
                     ...$profiling,
-                    '__ins' => true,
-                    '__upd' => true,
+                    '__ins'  => true,
+                    '__upd'  => true,
+                    '__hand' => false,
                 ],
             ]
         );
@@ -163,7 +166,7 @@ readonly class TraceBufferRepository implements TraceBufferRepositoryInterface
         return $result->getModifiedCount() > 0;
     }
 
-    public function findForHandling(int $page, int $perPage, Carbon $deadTimeLine): TraceBuffersDto
+    public function findForHandling(int $page, int $perPage): TraceBuffersDto
     {
         $pipeline = [
             [
@@ -174,9 +177,7 @@ readonly class TraceBufferRepository implements TraceBufferRepositoryInterface
                             '__upd' => true,
                         ],
                         [
-                            'lat' => [
-                                '$lte' => new UTCDateTime($deadTimeLine),
-                            ],
+                            '__hand' => false,
                         ],
                     ],
                 ],
@@ -204,6 +205,8 @@ readonly class TraceBufferRepository implements TraceBufferRepositoryInterface
 
         foreach ($cursor as $document) {
             try {
+                $loggedAt = $document['lat'] ?? new UTCDateTime();
+
                 $result[] = new TraceBufferDto(
                     id: (string) $document['_id'],
                     serviceId: $document['sid'],
@@ -219,11 +222,12 @@ readonly class TraceBufferRepository implements TraceBufferRepositoryInterface
                     hasProfiling: $document['hpr'] ?? false,
                     profiling: $document['pr'] ?? null,
                     timestamps: $document['tss'],
-                    loggedAt: new Carbon($document['lat']->toDateTime()),
+                    loggedAt: new Carbon($loggedAt->toDateTime()),
                     createdAt: new Carbon($document['cat']->toDateTime()),
                     updatedAt: new Carbon($document['uat']->toDateTime()),
                     inserted: $document['__ins'],
                     updated: $document['__upd'],
+                    handled: $document['__hand'] ?? false,
                 );
             } catch (Throwable $exception) {
                 $traceId = $document['tid'] ?? null;
@@ -243,6 +247,23 @@ readonly class TraceBufferRepository implements TraceBufferRepositoryInterface
         return new TraceBuffersDto(
             traces: $result,
             invalidTraces: $invalidTraces
+        );
+    }
+
+    public function markAsHandled(array $traceIds): void
+    {
+        $this->collection->updateMany(
+            [
+                'tid'    => [
+                    '$in' => $traceIds,
+                ],
+                '__hand' => false,
+            ],
+            [
+                '$set' => [
+                    '__hand' => true,
+                ],
+            ]
         );
     }
 

@@ -138,7 +138,7 @@ class JsonFileGenerator
     {
         $responses = [];
 
-        $wrap = OaService::getResourcesParentClass()::$wrap;
+        $wrap = 'data';
 
         foreach ($parsedRoute->responses ?: [200 => null] as $statusCode => $schema) {
             if ($isDeleteMethod && $schema) {

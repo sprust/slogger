@@ -333,6 +333,115 @@ export namespace AdminApi {
     };
   } /**
  * No description
+ * @name TraceAggregatorTracesTreeCreate
+ * @request POST:/admin-api/trace-aggregator/traces/tree
+ * @secure
+ * @response `200` `{
+    data: ({
+    service_id: number,
+    parent_trace_id?: string | null,
+    trace_id: string,
+    type: string,
+    tags: (string)[],
+    status: string,
+    duration?: number | null,
+    memory?: number | null,
+    cpu?: number | null,
+    logged_at: string,
+
+})[],
+
+}` description
+*/
+  export namespace TraceAggregatorTracesTreeCreate {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = {
+      trace_id: string;
+      fresh: boolean;
+      is_child: boolean;
+    };
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        service_id: number;
+        parent_trace_id?: string | null;
+        trace_id: string;
+        type: string;
+        tags: string[];
+        status: string;
+        duration?: number | null;
+        memory?: number | null;
+        cpu?: number | null;
+        logged_at: string;
+      }[];
+    };
+  } /**
+ * No description
+ * @name TraceAggregatorTracesTreeContentCreate
+ * @request POST:/admin-api/trace-aggregator/traces/tree/content
+ * @secure
+ * @response `200` `{
+    data: {
+    count: number,
+    services: ({
+    id: number,
+    name: string,
+    traces_count: number,
+
+})[],
+    types: ({
+    name: string,
+    traces_count: number,
+
+})[],
+    tags: ({
+    name: string,
+    traces_count: number,
+
+})[],
+    statuses: ({
+    name: string,
+    traces_count: number,
+
+})[],
+
+},
+
+}` description
+*/
+  export namespace TraceAggregatorTracesTreeContentCreate {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = {
+      trace_id: string;
+      is_child: boolean;
+    };
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        count: number;
+        services: {
+          id: number;
+          name: string;
+          traces_count: number;
+        }[];
+        types: {
+          name: string;
+          traces_count: number;
+        }[];
+        tags: {
+          name: string;
+          traces_count: number;
+        }[];
+        statuses: {
+          name: string;
+          traces_count: number;
+        }[];
+      };
+    };
+  } /**
+ * No description
  * @name TraceAggregatorTracesDetail
  * @request GET:/admin-api/trace-aggregator/traces/{traceId}
  * @secure
@@ -441,207 +550,6 @@ export namespace AdminApi {
         logged_at: string;
         created_at: string;
         updated_at: string;
-      };
-    };
-  } /**
- * No description
- * @name TraceAggregatorTracesTreeDetail
- * @request GET:/admin-api/trace-aggregator/traces/{traceId}/tree
- * @secure
- * @response `200` `{
-    data: {
-    tracesCount: number,
-    items: ({
-    service?: {
-    id: number,
-    name: string,
-
-},
-    trace_id: string,
-    parent_trace_id?: string | null,
-    type: string,
-    status: string,
-    tags: (string)[],
-    duration?: number | null,
-    memory?: number | null,
-    cpu?: number | null,
-    logged_at: string,
-    children: ({
-    service?: {
-    id: number,
-    name: string,
-
-},
-    trace_id: string,
-    parent_trace_id?: string | null,
-    type: string,
-    status: string,
-    tags: (string)[],
-    duration?: number | null,
-    memory?: number | null,
-    cpu?: number | null,
-    logged_at: string,
-    children: ({
-    service?: {
-    id: number,
-    name: string,
-
-},
-    trace_id: string,
-    parent_trace_id?: string | null,
-    type: string,
-    status: string,
-    tags: (string)[],
-    duration?: number | null,
-    memory?: number | null,
-    cpu?: number | null,
-    logged_at: string,
-    children: ({
-    service?: {
-    id: number,
-    name: string,
-
-},
-    trace_id: string,
-    parent_trace_id?: string | null,
-    type: string,
-    status: string,
-    tags: (string)[],
-    duration?: number | null,
-    memory?: number | null,
-    cpu?: number | null,
-    logged_at: string,
-    children: ({
-    service?: {
-    id: number,
-    name: string,
-
-},
-    trace_id: string,
-    parent_trace_id?: string | null,
-    type: string,
-    status: string,
-  \** @maxItems 0 *\
-    tags: (string)[],
-    duration?: number | null,
-    memory?: number | null,
-    cpu?: number | null,
-    logged_at: string,
-  \** @maxItems 0 *\
-    children: (string)[],
-    depth: number,
-
-})[],
-    depth: number,
-
-})[],
-    depth: number,
-
-})[],
-    depth: number,
-
-})[],
-    depth: number,
-
-})[],
-
-},
-
-}` description
-*/
-  export namespace TraceAggregatorTracesTreeDetail {
-    export type RequestParams = {
-      traceId: any;
-    };
-    export type RequestQuery = {};
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = {
-      data: {
-        tracesCount: number;
-        items: {
-          service?: {
-            id: number;
-            name: string;
-          };
-          trace_id: string;
-          parent_trace_id?: string | null;
-          type: string;
-          status: string;
-          tags: string[];
-          duration?: number | null;
-          memory?: number | null;
-          cpu?: number | null;
-          logged_at: string;
-          children: {
-            service?: {
-              id: number;
-              name: string;
-            };
-            trace_id: string;
-            parent_trace_id?: string | null;
-            type: string;
-            status: string;
-            tags: string[];
-            duration?: number | null;
-            memory?: number | null;
-            cpu?: number | null;
-            logged_at: string;
-            children: {
-              service?: {
-                id: number;
-                name: string;
-              };
-              trace_id: string;
-              parent_trace_id?: string | null;
-              type: string;
-              status: string;
-              tags: string[];
-              duration?: number | null;
-              memory?: number | null;
-              cpu?: number | null;
-              logged_at: string;
-              children: {
-                service?: {
-                  id: number;
-                  name: string;
-                };
-                trace_id: string;
-                parent_trace_id?: string | null;
-                type: string;
-                status: string;
-                tags: string[];
-                duration?: number | null;
-                memory?: number | null;
-                cpu?: number | null;
-                logged_at: string;
-                children: {
-                  service?: {
-                    id: number;
-                    name: string;
-                  };
-                  trace_id: string;
-                  parent_trace_id?: string | null;
-                  type: string;
-                  status: string;
-                  /** @maxItems 0 */
-                  tags: string[];
-                  duration?: number | null;
-                  memory?: number | null;
-                  cpu?: number | null;
-                  logged_at: string;
-                  /** @maxItems 0 */
-                  children: string[];
-                  depth: number;
-                }[];
-                depth: number;
-              }[];
-              depth: number;
-            }[];
-            depth: number;
-          }[];
-          depth: number;
-        }[];
       };
     };
   } /**
@@ -2232,6 +2140,139 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     /**
  * No description
  *
+ * @name TraceAggregatorTracesTreeCreate
+ * @request POST:/admin-api/trace-aggregator/traces/tree
+ * @secure
+ * @response `200` `{
+    data: ({
+    service_id: number,
+    parent_trace_id?: string | null,
+    trace_id: string,
+    type: string,
+    tags: (string)[],
+    status: string,
+    duration?: number | null,
+    memory?: number | null,
+    cpu?: number | null,
+    logged_at: string,
+
+})[],
+
+}` description
+ */
+    traceAggregatorTracesTreeCreate: (
+      data: {
+        trace_id: string;
+        fresh: boolean;
+        is_child: boolean;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          data: {
+            service_id: number;
+            parent_trace_id?: string | null;
+            trace_id: string;
+            type: string;
+            tags: string[];
+            status: string;
+            duration?: number | null;
+            memory?: number | null;
+            cpu?: number | null;
+            logged_at: string;
+          }[];
+        },
+        any
+      >({
+        path: `/admin-api/trace-aggregator/traces/tree`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name TraceAggregatorTracesTreeContentCreate
+ * @request POST:/admin-api/trace-aggregator/traces/tree/content
+ * @secure
+ * @response `200` `{
+    data: {
+    count: number,
+    services: ({
+    id: number,
+    name: string,
+    traces_count: number,
+
+})[],
+    types: ({
+    name: string,
+    traces_count: number,
+
+})[],
+    tags: ({
+    name: string,
+    traces_count: number,
+
+})[],
+    statuses: ({
+    name: string,
+    traces_count: number,
+
+})[],
+
+},
+
+}` description
+ */
+    traceAggregatorTracesTreeContentCreate: (
+      data: {
+        trace_id: string;
+        is_child: boolean;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          data: {
+            count: number;
+            services: {
+              id: number;
+              name: string;
+              traces_count: number;
+            }[];
+            types: {
+              name: string;
+              traces_count: number;
+            }[];
+            tags: {
+              name: string;
+              traces_count: number;
+            }[];
+            statuses: {
+              name: string;
+              traces_count: number;
+            }[];
+          };
+        },
+        any
+      >({
+        path: `/admin-api/trace-aggregator/traces/tree/content`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
  * @name TraceAggregatorTracesDetail
  * @request GET:/admin-api/trace-aggregator/traces/{traceId}
  * @secure
@@ -2340,212 +2381,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         any
       >({
         path: `/admin-api/trace-aggregator/traces/${traceId}`,
-        method: "GET",
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-
-    /**
- * No description
- *
- * @name TraceAggregatorTracesTreeDetail
- * @request GET:/admin-api/trace-aggregator/traces/{traceId}/tree
- * @secure
- * @response `200` `{
-    data: {
-    tracesCount: number,
-    items: ({
-    service?: {
-    id: number,
-    name: string,
-
-},
-    trace_id: string,
-    parent_trace_id?: string | null,
-    type: string,
-    status: string,
-    tags: (string)[],
-    duration?: number | null,
-    memory?: number | null,
-    cpu?: number | null,
-    logged_at: string,
-    children: ({
-    service?: {
-    id: number,
-    name: string,
-
-},
-    trace_id: string,
-    parent_trace_id?: string | null,
-    type: string,
-    status: string,
-    tags: (string)[],
-    duration?: number | null,
-    memory?: number | null,
-    cpu?: number | null,
-    logged_at: string,
-    children: ({
-    service?: {
-    id: number,
-    name: string,
-
-},
-    trace_id: string,
-    parent_trace_id?: string | null,
-    type: string,
-    status: string,
-    tags: (string)[],
-    duration?: number | null,
-    memory?: number | null,
-    cpu?: number | null,
-    logged_at: string,
-    children: ({
-    service?: {
-    id: number,
-    name: string,
-
-},
-    trace_id: string,
-    parent_trace_id?: string | null,
-    type: string,
-    status: string,
-    tags: (string)[],
-    duration?: number | null,
-    memory?: number | null,
-    cpu?: number | null,
-    logged_at: string,
-    children: ({
-    service?: {
-    id: number,
-    name: string,
-
-},
-    trace_id: string,
-    parent_trace_id?: string | null,
-    type: string,
-    status: string,
-  \** @maxItems 0 *\
-    tags: (string)[],
-    duration?: number | null,
-    memory?: number | null,
-    cpu?: number | null,
-    logged_at: string,
-  \** @maxItems 0 *\
-    children: (string)[],
-    depth: number,
-
-})[],
-    depth: number,
-
-})[],
-    depth: number,
-
-})[],
-    depth: number,
-
-})[],
-    depth: number,
-
-})[],
-
-},
-
-}` description
- */
-    traceAggregatorTracesTreeDetail: (traceId: any, params: RequestParams = {}) =>
-      this.request<
-        {
-          data: {
-            tracesCount: number;
-            items: {
-              service?: {
-                id: number;
-                name: string;
-              };
-              trace_id: string;
-              parent_trace_id?: string | null;
-              type: string;
-              status: string;
-              tags: string[];
-              duration?: number | null;
-              memory?: number | null;
-              cpu?: number | null;
-              logged_at: string;
-              children: {
-                service?: {
-                  id: number;
-                  name: string;
-                };
-                trace_id: string;
-                parent_trace_id?: string | null;
-                type: string;
-                status: string;
-                tags: string[];
-                duration?: number | null;
-                memory?: number | null;
-                cpu?: number | null;
-                logged_at: string;
-                children: {
-                  service?: {
-                    id: number;
-                    name: string;
-                  };
-                  trace_id: string;
-                  parent_trace_id?: string | null;
-                  type: string;
-                  status: string;
-                  tags: string[];
-                  duration?: number | null;
-                  memory?: number | null;
-                  cpu?: number | null;
-                  logged_at: string;
-                  children: {
-                    service?: {
-                      id: number;
-                      name: string;
-                    };
-                    trace_id: string;
-                    parent_trace_id?: string | null;
-                    type: string;
-                    status: string;
-                    tags: string[];
-                    duration?: number | null;
-                    memory?: number | null;
-                    cpu?: number | null;
-                    logged_at: string;
-                    children: {
-                      service?: {
-                        id: number;
-                        name: string;
-                      };
-                      trace_id: string;
-                      parent_trace_id?: string | null;
-                      type: string;
-                      status: string;
-                      /** @maxItems 0 */
-                      tags: string[];
-                      duration?: number | null;
-                      memory?: number | null;
-                      cpu?: number | null;
-                      logged_at: string;
-                      /** @maxItems 0 */
-                      children: string[];
-                      depth: number;
-                    }[];
-                    depth: number;
-                  }[];
-                  depth: number;
-                }[];
-                depth: number;
-              }[];
-              depth: number;
-            }[];
-          };
-        },
-        any
-      >({
-        path: `/admin-api/trace-aggregator/traces/${traceId}/tree`,
         method: "GET",
         secure: true,
         format: "json",

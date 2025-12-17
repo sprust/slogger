@@ -12,6 +12,104 @@ class TraceTreeRepository implements TraceTreeRepositoryInterface
 {
     private int $maxDepthForFindParent = 100;
 
+    public function findParentTraceId(string $traceId): ?string
+    {
+        /** @var array{tid: string, ptid: string|null}|null $trace */
+        $trace = TraceTree::query()
+            ->select([
+                'tid',
+                'ptid',
+            ])
+            ->where('tid', $traceId)
+            ->toBase()
+            ->first();
+
+        if (!$trace) {
+            return null;
+        }
+
+        $parentTrace = $trace;
+
+        if ($trace['ptid']) {
+            $index = 0;
+
+            while (++$index <= $this->maxDepthForFindParent) {
+                if (!$parentTrace['ptid']) {
+                    break;
+                }
+
+                /** @var array{tid: string, ptid: string|null}|null $currentParentTrace */
+                $currentParentTrace = TraceTree::query()
+                    ->select([
+                        'tid',
+                        'ptid',
+                    ])
+                    ->where('tid', $parentTrace['ptid'])
+                    ->toBase()
+                    ->first();
+
+                if (!$currentParentTrace) {
+                    break;
+                }
+
+                $parentTrace = $currentParentTrace;
+            }
+        }
+
+        return $parentTrace['tid'];
+    }
+
+    public function findChainToParentTraceId(string $traceId): array
+    {
+        /** @var array{tid: string, ptid: string|null}|null $trace */
+        $trace = TraceTree::query()
+            ->select([
+                'tid',
+                'ptid',
+            ])
+            ->where('tid', $traceId)
+            ->toBase()
+            ->first();
+
+        if (!$trace) {
+            return [];
+        }
+
+        $chain = [];
+
+        $parentTrace = $trace;
+
+        if ($trace['ptid']) {
+            $index = 0;
+
+            while (++$index <= $this->maxDepthForFindParent) {
+                if (!$parentTrace['ptid']) {
+                    break;
+                }
+
+                /** @var array{tid: string, ptid: string|null}|null $currentParentTrace */
+                $currentParentTrace = TraceTree::query()
+                    ->select([
+                        'tid',
+                        'ptid',
+                    ])
+                    ->where('tid', $parentTrace['ptid'])
+                    ->toBase()
+                    ->first();
+
+                if (!$currentParentTrace) {
+                    break;
+                }
+
+                $parentTrace = $currentParentTrace;
+
+                $chain[] = $parentTrace['tid'];
+            }
+        }
+
+        return $chain;
+    }
+
     public function findTraceIdsInTreeByParentTraceId(string $traceId): array
     {
         $traceTreesCollectionName = (new TraceTree())->getCollectionName();
@@ -72,52 +170,5 @@ class TraceTreeRepository implements TraceTreeRepositoryInterface
             fn(BSONDocument $item) => $item['childIds'],
             iterator_to_array($childrenAggregation)
         );
-    }
-
-    public function findParentTraceId(string $traceId): ?string
-    {
-        /** @var array{tid: string, ptid: string|null}|null $trace */
-        $trace = TraceTree::query()
-            ->select([
-                'tid',
-                'ptid',
-            ])
-            ->where('tid', $traceId)
-            ->toBase()
-            ->first();
-
-        if (!$trace) {
-            return null;
-        }
-
-        $parentTrace = $trace;
-
-        if ($trace['ptid']) {
-            $index = 0;
-
-            while (++$index <= $this->maxDepthForFindParent) {
-                if (!$parentTrace['ptid']) {
-                    break;
-                }
-
-                /** @var array{tid: string, ptid: string|null}|null $currentParentTrace */
-                $currentParentTrace = TraceTree::query()
-                    ->select([
-                        'tid',
-                        'ptid',
-                    ])
-                    ->where('tid', $parentTrace['ptid'])
-                    ->toBase()
-                    ->first();
-
-                if (!$currentParentTrace) {
-                    break;
-                }
-
-                $parentTrace = $currentParentTrace;
-            }
-        }
-
-        return $parentTrace['tid'];
     }
 }

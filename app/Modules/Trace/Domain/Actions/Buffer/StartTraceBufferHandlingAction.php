@@ -9,8 +9,6 @@ use App\Modules\Trace\Contracts\Repositories\TraceBufferInvalidRepositoryInterfa
 use App\Modules\Trace\Contracts\Repositories\TraceBufferRepositoryInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceRepositoryInterface;
 use App\Modules\Trace\Domain\Services\MonitorTraceBufferHandlingService;
-use App\Modules\Trace\Repositories\Dto\Trace\TraceBufferDto;
-use App\Modules\Trace\Repositories\Dto\Trace\TraceBufferInvalidDto;
 use Symfony\Component\Console\Output\OutputInterface;
 
 readonly class StartTraceBufferHandlingAction implements StartTraceBufferHandlingActionInterface
@@ -48,95 +46,58 @@ readonly class StartTraceBufferHandlingAction implements StartTraceBufferHandlin
             $traces = $this->traceBufferRepository->findForHandling(
                 page: 1,
                 perPage: 20,
-                deadTimeLine: now()->subMinutes(50) // TODO: move to config?
             );
 
-            $currentTracesCount        = count($traces->traces);
-            $currentInvalidTracesCount = count($traces->invalidTraces);
+            $currentTracesCount  = count($traces->traces);
+            $currentInvalidCount = count($traces->invalidTraces);
 
-            $currentAllTracesCount = $currentTracesCount + $currentInvalidTracesCount;
+            $currentTotalCount = $currentTracesCount + $currentInvalidCount;
 
-            if (!$currentAllTracesCount) {
+            if ($currentTotalCount === 0) {
                 usleep(100);
 
                 continue;
             }
 
-            $totalInvalidCount += $currentInvalidTracesCount;
+            $totalCount        += $currentTotalCount;
+            $totalInvalidCount += $currentInvalidCount;
 
-            $totalCount += $currentAllTracesCount;
+            $deletedCount = 0;
 
-            /** @var string[] $allTraceIds */
-            $allTraceIds = [];
+            $completedTraceIds  = [];
+            $processingTraceIds = [];
 
-            /** @var TraceBufferInvalidDto[] $currentInvalidTraces */
-            $currentInvalidTraces = [];
+            if (count($traces->traces) > 0) {
+                foreach ($traces->traces as $trace) {
+                    if ($trace->inserted && $trace->updated) {
+                        $completedTraceIds[] = $trace->traceId;
+                    } else {
+                        $processingTraceIds[] = $trace->traceId;
+                    }
+                }
 
-            if ($currentTracesCount) {
-                array_map(
-                    static function (TraceBufferDto $trace) use (&$allTraceIds) {
-                        $allTraceIds[] = $trace->traceId;
-                    },
-                    $traces->traces
+                $this->traceRepository->freshManyByBuffers(
+                    traceBuffers: $traces->traces
                 );
 
-                $insertedTraces = array_filter(
-                    $traces->traces,
-                    static fn(TraceBufferDto $trace) => $trace->inserted
-                );
-
-                $skippedTraces = array_filter(
-                    $traces->traces,
-                    static fn(TraceBufferDto $trace) => !$trace->inserted
-                );
-
-                $currentInsertedTracesCount = count($insertedTraces);
-                $currentSkippedTracesCount  = count($skippedTraces);
-
-                $totalInsertedCount += $currentInsertedTracesCount;
-
-                $this->traceRepository->createManyByBuffers(
-                    traceBuffers: $insertedTraces
-                );
-
-                if ($currentSkippedTracesCount) {
-                    $totalSkippedCount += $currentSkippedTracesCount;
-
-                    array_map(
-                        static function (TraceBufferDto $trace) use (&$currentInvalidTraces) {
-                            $currentInvalidTraces[] = new TraceBufferInvalidDto(
-                                traceId: $trace->traceId,
-                                document: (array) $trace,
-                                error: 'not inserted'
-                            );
-                        },
-                        $skippedTraces
+                if (count($completedTraceIds)) {
+                    $deletedCount = $this->traceBufferRepository->delete(
+                        traceIds: $completedTraceIds
                     );
                 }
 
-                array_map(
-                    static function (TraceBufferInvalidDto $trace) use (&$currentInvalidTraces, &$allTraceIds) {
-                        $currentInvalidTraces[] = $trace;
-
-                        if (!$trace->traceId) {
-                            return;
-                        }
-
-                        $allTraceIds[] = $trace->traceId;
-                    },
-                    $traces->invalidTraces
-                );
+                if (count($processingTraceIds)) {
+                    $this->traceBufferRepository->markAsHandled(
+                        traceIds: $processingTraceIds
+                    );
+                }
             }
 
-            if (count($currentInvalidTraces)) {
+            if (count($traces->invalidTraces) > 0) {
                 $this->traceBufferInvalidRepository->createMany(
-                    invalidTraceBuffers: $currentInvalidTraces
+                    invalidTraceBuffers: $traces->invalidTraces
                 );
             }
-
-            $deletedCount = $this->traceBufferRepository->delete(
-                traceIds: $allTraceIds
-            );
 
             // TODO: statistic
             $output->writeln(

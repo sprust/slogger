@@ -133,8 +133,21 @@ class RouterParser
         $isPagination = false;
 
         foreach ($returnedClassNames as $returnedClassName) {
-            if ($returnedClassName === AnonymousResourceCollection::class) {
-                if (count($returnedClassNames) !== 1) {
+            $listItemTypeAttribute = OaAttributeHelper::getListItemTypeAttribute(
+                reflection: $this->reflectionMethod
+            );
+
+            $isAnonymousResourceCollection = $returnedClassName === AnonymousResourceCollection::class;
+
+            if ($isAnonymousResourceCollection && !$listItemTypeAttribute) {
+                throw new RuntimeException(
+                    "Method: $this->methodView" . PHP_EOL .
+                    'For such method should be one return type: ' . AnonymousResourceCollection::class
+                );
+            }
+
+            if ($listItemTypeAttribute) {
+                if ($isAnonymousResourceCollection && count($returnedClassNames) !== 1) {
                     throw new RuntimeException(
                         "Method: $this->methodView" . PHP_EOL .
                         'For such method should be one return type: ' . AnonymousResourceCollection::class

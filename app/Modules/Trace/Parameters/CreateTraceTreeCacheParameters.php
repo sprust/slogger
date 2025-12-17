@@ -2,20 +2,19 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\Trace\Entities\Trace\Tree;
+namespace App\Modules\Trace\Parameters;
 
-use App\Modules\Trace\Entities\Trace\TraceServiceObject;
 use Illuminate\Support\Carbon;
 
-readonly class TraceTreeObject
+readonly class CreateTraceTreeCacheParameters
 {
     /**
      * @param string[] $tags
      */
     public function __construct(
-        public ?TraceServiceObject $service,
-        public string $traceId,
+        public ?int $serviceId,
         public ?string $parentTraceId,
+        public string $traceId,
         public string $type,
         public array $tags,
         public string $status,
@@ -23,7 +22,6 @@ readonly class TraceTreeObject
         public ?float $memory,
         public ?float $cpu,
         public Carbon $loggedAt,
-        public int $depth,
     ) {
     }
 }

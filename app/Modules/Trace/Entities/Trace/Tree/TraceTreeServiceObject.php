@@ -4,14 +4,12 @@ declare(strict_types=1);
 
 namespace App\Modules\Trace\Entities\Trace\Tree;
 
-readonly class TraceTreeObjects
+readonly class TraceTreeServiceObject
 {
-    /**
-     * @param TraceTreeObject[] $items
-     */
     public function __construct(
+        public int $id,
+        public string $name,
         public int $tracesCount,
-        public array $items
     ) {
     }
 }

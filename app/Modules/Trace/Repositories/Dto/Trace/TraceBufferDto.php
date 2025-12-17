@@ -34,6 +34,7 @@ readonly class TraceBufferDto
         public Carbon $updatedAt,
         public bool $inserted,
         public bool $updated,
+        public bool $handled,
     ) {
     }
 }
