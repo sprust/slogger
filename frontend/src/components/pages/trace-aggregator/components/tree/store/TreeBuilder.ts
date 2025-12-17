@@ -13,7 +13,7 @@ export class TreeBuilder {
         rows.forEach(row => {
             const node = nodeMap.get(row.trace_id);
 
-            if (!row.parent_trace_id) {
+            if (!row.parent_trace_id || nodeMap.get(row.parent_trace_id) === undefined) {
                 rootNodes.push(node!);
             } else {
                 const parentNode = nodeMap.get(row.parent_trace_id);
