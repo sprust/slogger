@@ -4360,10 +4360,12 @@
                 "reference": "c0b1047206857a9fe108cfe6caa84491af6f9c2c"
             },
             "require": {
-                "ext-grpc": "*",
-                "ext-protobuf": "*",
                 "grpc/grpc": "^1.57",
                 "spiral/roadrunner-grpc": "^3.3"
+            },
+            "suggest": {
+              "ext-grpc": "*",
+              "ext-protobuf": "*"
             },
             "type": "library",
             "autoload": {
