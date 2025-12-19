@@ -12,7 +12,7 @@ abstract class AbstractStreamedApiResource extends StreamedResponse
     public function __construct(callable $callback)
     {
         parent::__construct(
-            callback: $callback,
+            callbackOrChunks: $callback,
             status: Response::HTTP_OK,
             headers: [
                 'Content-Type' => 'application/json',
