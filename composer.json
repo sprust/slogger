@@ -30,7 +30,7 @@
         "vladimir-yuldashev/laravel-queue-rabbitmq": "^14.1"
     },
     "require-dev": {
-        "deptrac/deptrac": "^3.0",
+        "deptrac/deptrac": "^4",
         "fakerphp/faker": "^1.9.1",
         "larastan/larastan": "^3",
         "laravel/pint": "^1.0",
