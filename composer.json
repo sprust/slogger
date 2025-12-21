@@ -5,7 +5,7 @@
     "keywords": ["laravel", "framework"],
     "license": "MIT",
     "require": {
-        "php": "^8.2",
+        "php": "^8.4",
         "ext-grpc": "*",
         "ext-mongodb": "*",
         "ext-pdo": "*",
@@ -30,6 +30,7 @@
         "vladimir-yuldashev/laravel-queue-rabbitmq": "^14.1"
     },
     "require-dev": {
+        "deptrac/deptrac": "^3.0",
         "fakerphp/faker": "^1.9.1",
         "larastan/larastan": "^2.9",
         "laravel/pint": "^1.0",
@@ -37,7 +38,6 @@
         "mockery/mockery": "^1.4.4",
         "nunomaduro/collision": "^8.1",
         "phpunit/phpunit": "^10.1",
-        "qossmic/deptrac-shim": "^1.0",
         "spatie/laravel-ignition": "^2.0"
     },
     "repositories": [
