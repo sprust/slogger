@@ -9,10 +9,12 @@
         }
     ],
     "require": {
-        "ext-grpc": "*",
-        "ext-protobuf": "*",
         "grpc/grpc": "^1.57",
         "spiral/roadrunner-grpc": "^3.3"
+    },
+    "suggest": {
+      "ext-grpc": "*",
+      "ext-protobuf": "*"
     },
     "autoload": {
         "psr-4": {

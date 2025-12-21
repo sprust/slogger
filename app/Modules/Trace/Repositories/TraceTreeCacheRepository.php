@@ -113,9 +113,11 @@ class TraceTreeCacheRepository implements TraceTreeCacheRepositoryInterface
         $services = [];
 
         foreach ($results as $result) {
+            $result = (array) $result;
+
             $services[] = new TraceTreeServiceDto(
-                id: $result->_id,
-                tracesCount: $result->count,
+                id: $result['_id'],
+                tracesCount: $result['count'],
             );
         }
 
@@ -147,9 +149,11 @@ class TraceTreeCacheRepository implements TraceTreeCacheRepositoryInterface
         $types = [];
 
         foreach ($results as $result) {
+            $result = (array) $result;
+
             $types[] = new TraceTreeStringableObject(
-                name: $result->_id,
-                tracesCount: $result->count,
+                name: $result['_id'],
+                tracesCount: $result['count'],
             );
         }
 
@@ -184,9 +188,11 @@ class TraceTreeCacheRepository implements TraceTreeCacheRepositoryInterface
         $tags = [];
 
         foreach ($results as $result) {
+            $result = (array) $result;
+
             $tags[] = new TraceTreeStringableObject(
-                name: $result->_id,
-                tracesCount: $result->count,
+                name: $result['_id'],
+                tracesCount: $result['count'],
             );
         }
 
@@ -218,9 +224,11 @@ class TraceTreeCacheRepository implements TraceTreeCacheRepositoryInterface
         $statuses = [];
 
         foreach ($results as $result) {
+            $result = (array) $result;
+
             $statuses[] = new TraceTreeStringableObject(
-                name: $result->_id,
-                tracesCount: $result->count,
+                name: $result['_id'],
+                tracesCount: $result['count'],
             );
         }
 

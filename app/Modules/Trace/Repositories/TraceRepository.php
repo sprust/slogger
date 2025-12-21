@@ -497,7 +497,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
 
             $infoList[] = new TraceIndexInfoObject(
                 collectionName: $operation->command->createIndexes,
-                name: $operation->command->indexes[0]?->name ?? 'untitled',
+                name: ($operation->command->indexes[0] ?? null)?->name ?: 'untitled',
                 progress: $progressTotal ? round($progressDone / $progressTotal * 100, 2) : 0
             );
         }

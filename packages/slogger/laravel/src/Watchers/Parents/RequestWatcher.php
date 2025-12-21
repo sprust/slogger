@@ -152,13 +152,8 @@ class RequestWatcher extends AbstractWatcher
 
         $route = $request->route();
 
-        if ($route instanceof Route) {
-            $action      = $route->getActionName();
-            $middlewares = $route->gatherMiddleware();
-        } else {
-            $action      = is_string($route) ? $route : null;
-            $middlewares = null;
-        }
+        $action      = $route->getActionName();
+        $middlewares = $route->gatherMiddleware();
 
         return [
             'ip_address'  => $request->ip(),
@@ -187,20 +182,6 @@ class RequestWatcher extends AbstractWatcher
     protected function getPostTags(Request $request, Response $response): array
     {
         $route = $request->route();
-
-        if (!$route) {
-            return [];
-        }
-
-        if (is_string($route)) {
-            return [
-                $route,
-            ];
-        }
-
-        if (!$route instanceof Route) {
-            return [];
-        }
 
         return [
             $this->prepareUrl($route->uri()),

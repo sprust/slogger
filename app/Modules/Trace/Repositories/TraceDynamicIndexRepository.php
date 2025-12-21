@@ -143,9 +143,9 @@ readonly class TraceDynamicIndexRepository implements TraceDynamicIndexRepositor
         $stats = $cursor->toArray()[0] ?? null;
 
         return new TraceDynamicIndexStatsDto(
-            inProcessCount: $stats?->inProcess ?? 0,
-            errorsCount: $stats?->errors ?? 0,
-            totalCount: $stats?->total ?? 0,
+            inProcessCount: $stats?->inProcess ?: 0,
+            errorsCount: $stats?->errors ?: 0,
+            totalCount: $stats?->total ?: 0,
         );
     }
 

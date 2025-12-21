@@ -1,4 +1,4 @@
-FROM php:8.2.6-fpm as php_base
+FROM php:8.4.15-fpm AS php_base
 
 WORKDIR /app
 
@@ -47,14 +47,14 @@ RUN docker-php-ext-enable \
 
 # grpc
 RUN apt-get update && apt-get install -y protobuf-compiler zlib1g-dev \
-    && pecl install protobuf-4.27.2 grpc-1.64.1
+    && pecl install protobuf grpc
 
 # pcntl
 RUN pecl pcntl && docker-php-ext-install pcntl
 
 EXPOSE 9000
 
-FROM php_base as php_app
+FROM php_base AS php_app
 
 ARG APP_ENV
 
@@ -76,7 +76,7 @@ RUN getent passwd "$USER_ID" || adduser --disabled-password --gecos '' --uid "$U
 
 USER "$USER_ID"
 
-FROM php_base as php_workers
+FROM php_base AS php_workers
 
 RUN apt-get install -y supervisor
 

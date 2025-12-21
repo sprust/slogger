@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Contracts\Container\BindingResolutionException;
-use MongoDB\Laravel\Collection as MongoCollection;
+use MongoDB\Collection as MongoCollection;
 use MongoDB\Laravel\Eloquent\Model;
 
 abstract class AbstractMongoModel extends Model
