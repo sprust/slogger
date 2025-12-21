@@ -14,10 +14,10 @@
         "grpc/grpc": "^1.57",
         "guzzlehttp/guzzle": "^7.2",
         "ifksco/openapi-generator": "dev-master",
-        "laravel/framework": "^11",
+        "laravel/framework": "^12",
         "laravel/octane": "^2.3",
         "laravel/tinker": "^2.8",
-        "mongodb/laravel-mongodb": "^4.1",
+        "mongodb/laravel-mongodb": "^5.5",
         "mongodb/mongodb": "^1.17",
         "slogger/grpc": "dev-master",
         "slogger/laravel": "dev-master",
@@ -32,12 +32,12 @@
     "require-dev": {
         "deptrac/deptrac": "^3.0",
         "fakerphp/faker": "^1.9.1",
-        "larastan/larastan": "^2.9",
+        "larastan/larastan": "^3",
         "laravel/pint": "^1.0",
         "laravel/sail": "^1.18",
         "mockery/mockery": "^1.4.4",
-        "nunomaduro/collision": "^8.1",
-        "phpunit/phpunit": "^10.1",
+        "nunomaduro/collision": "^8.8",
+        "phpunit/phpunit": "^11",
         "spatie/laravel-ignition": "^2.0"
     },
     "repositories": [

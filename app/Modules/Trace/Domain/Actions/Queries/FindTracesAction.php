@@ -146,7 +146,7 @@ readonly class FindTracesAction implements FindTracesActionInterface
                     hasProfiling: $traceDto->hasProfiling,
                     additionalFields: $this->makeTraceAdditionalFields(
                         data: $traceDto->data,
-                        additionalFields: $parameters->data?->fields ?? []
+                        additionalFields: $parameters->data?->fields ?: []
                     ),
                     loggedAt: $traceDto->loggedAt,
                     createdAt: $traceDto->createdAt,

@@ -2,12 +2,16 @@ parameters:
     paths:
         - ../app
         - ../packages/slogger
+
     excludePaths:
         - ../app/Console/Commands/Local
         - ../app/Models
         - ../packages/slogger/grpc/generated
         - ../packages/slogger/laravel/src/Dispatcher/Items/Queue/ApiClients/Grpc
+        - ../packages/slogger/laravel/src/Dispatcher/Items/Queue/ApiClients/Grpc
+
     level: 6
+
     ignoreErrors:
         -
             message: '#Unsafe usage of new static#'
@@ -20,7 +24,7 @@ parameters:
                 - '#Property [\s\S]* is never read, only written#'
                 - '#Property [\s\S]* type has no value type specified in iterable type array#'
 
-            path: *Resource.php
+            path: "*Resource.php"
         -
             path: ../app/Modules/Trace/Infrastructure/Grpc/TraceCollectorService.php
             messages:
@@ -28,7 +32,7 @@ parameters:
                 - '#Using nullsafe method call on non-nullable type SLoggerGrpcDto\\TraceCollector\\TagsObject#'
         -
             message: '#return type has no value type specified in iterable type array#'
-            path: *Request.php
+            path: "*Request.php"
         -
             messages:
                 - '#Unable to resolve the template type TKey in call to function collect#'

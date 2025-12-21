@@ -28,6 +28,8 @@ class TraceTreeRepository implements TraceTreeRepositoryInterface
             return null;
         }
 
+        $trace = (array) $trace;
+
         $parentTrace = $trace;
 
         if ($trace['ptid']) {
@@ -52,6 +54,8 @@ class TraceTreeRepository implements TraceTreeRepositoryInterface
                     break;
                 }
 
+                $currentParentTrace = (array) $currentParentTrace;
+
                 $parentTrace = $currentParentTrace;
             }
         }
@@ -74,6 +78,8 @@ class TraceTreeRepository implements TraceTreeRepositoryInterface
         if (!$trace) {
             return [];
         }
+
+        $trace = (array) $trace;
 
         $chain = [];
 
@@ -100,6 +106,8 @@ class TraceTreeRepository implements TraceTreeRepositoryInterface
                 if (!$currentParentTrace) {
                     break;
                 }
+
+                $currentParentTrace = (array) $currentParentTrace;
 
                 $parentTrace = $currentParentTrace;
 
@@ -167,7 +175,7 @@ class TraceTreeRepository implements TraceTreeRepositoryInterface
             );
 
         return array_map(
-            fn(BSONDocument $item) => $item['childIds'],
+            static fn(BSONDocument $item) => $item['childIds'],
             iterator_to_array($childrenAggregation)
         );
     }
