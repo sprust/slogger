@@ -152,8 +152,15 @@ class RequestWatcher extends AbstractWatcher
 
         $route = $request->route();
 
-        $action      = $route->getActionName();
-        $middlewares = $route->gatherMiddleware();
+            /** @phpstan-ignore-next-line instanceof.alwaysTrue */
+        if ($route instanceof Route) {
+            $action      = $route->getActionName();
+            $middlewares = $route->gatherMiddleware();
+        } else {
+            /** @phpstan-ignore-next-line function.alreadyNarrowedType */
+            $action      = is_string($route) ? $route : null;
+            $middlewares = null;
+        }
 
         return [
             'ip_address'  => $request->ip(),
@@ -182,6 +189,23 @@ class RequestWatcher extends AbstractWatcher
     protected function getPostTags(Request $request, Response $response): array
     {
         $route = $request->route();
+
+        /** @phpstan-ignore-next-line booleanNot.alwaysFalse */
+        if (!$route) {
+            return [];
+        }
+
+        /** @phpstan-ignore-next-line function.impossibleType */
+        if (is_string($route)) {
+            return [
+                $route,
+            ];
+        }
+
+        /** @phpstan-ignore-next-line instanceof.alwaysTrue */
+        if (!$route instanceof Route) {
+            return [];
+        }
 
         return [
             $this->prepareUrl($route->uri()),
