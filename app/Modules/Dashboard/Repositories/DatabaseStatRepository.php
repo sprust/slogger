@@ -50,7 +50,7 @@ readonly class DatabaseStatRepository implements DatabaseStatRepositoryInterface
             }
 
             if (is_null($databaseSizes)) {
-                $databaseSizes = collect($connection->getMongoClient()->listDatabases())
+                $databaseSizes = collect($connection->getClient()->listDatabases())
                     ->keyBy(fn(DatabaseInfo $databaseInfo) => $databaseInfo->getName())
                     ->map(fn(DatabaseInfo $databaseInfo) => $databaseInfo->getSizeOnDisk())
                     ->toArray();
