@@ -187,7 +187,15 @@ class PeriodicTraceService
     {
         return iterator_to_array(
             $this->selectCollectionByName($collectionName)
-                ->findOne(['tid' => ['$in' => $traceIds]])
+                ->aggregate([
+                    [
+                        '$match' => [
+                            'tid' => [
+                                '$in' => $traceIds,
+                            ],
+                        ],
+                    ],
+                ])
         );
     }
 
@@ -211,20 +219,24 @@ class PeriodicTraceService
         $collectionNames = $this->detectCollectionNamesReverse();
 
         foreach ($collectionNames as $collectionName) {
-            $foundTraceIds = iterator_to_array(
-                $this->selectCollectionByName($collectionName)
-                    ->findOne(
-                        filter: ['tid' => ['$in' => $remainTraceIds]],
-                        projection: ['tid' => 1]
-                    )
-            );
+            $iterator = $this->selectCollectionByName($collectionName)
+                ->aggregate([
+                    [
+                        '$project' => ['tid' => 1],
+                    ],
+                    [
+                        '$match' => ['tid' => ['$in' => $remainTraceIds]],
+                    ],
+                ]);
+
+            $foundTraceIds = iterator_to_array($iterator);
 
             if (!count($foundTraceIds)) {
                 continue;
             }
 
             $foundTraceIds = array_map(
-                static fn(array $trace) => $trace['tid'],
+                static fn(array $traceId) => $traceId['tid'],
                 $foundTraceIds
             );
 
