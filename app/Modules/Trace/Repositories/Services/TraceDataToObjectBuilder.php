@@ -25,10 +25,7 @@ class TraceDataToObjectBuilder
         return $this->buildRecursive($this->data);
     }
 
-    /**
-     * @param array<string, mixed>|string|bool|int|float|null $data
-     */
-    private function buildRecursive(array|string|bool|int|float|null $data): TraceDataObject
+    private function buildRecursive(mixed $data): TraceDataObject
     {
         if (!is_array($data)) {
             return new TraceDataObject(
