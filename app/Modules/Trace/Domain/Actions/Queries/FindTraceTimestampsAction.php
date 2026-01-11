@@ -25,21 +25,19 @@ use App\Modules\Trace\Repositories\Dto\Trace\Timestamp\TraceTimestampFieldIndica
 use App\Modules\Trace\Repositories\Dto\Trace\Timestamp\TraceTimestampsDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Timestamp\TraceTimestampsListDto;
 use Illuminate\Support\Arr;
-use SParallel\Exceptions\ContextCheckerException;
-use SParallel\SParallelWorkers;
+use SConcur\WaitGroup;
 
 readonly class FindTraceTimestampsAction implements FindTraceTimestampsActionInterface
 {
     public function __construct(
         private TraceTimestampMetricsFactory $traceTimestampMetricsFactory,
         private TraceDynamicIndexInitializer $traceDynamicIndexInitializer,
-        private SParallelWorkers $parallelWorkers
+        private TraceTimestampsRepositoryInterface $timestampsRepository,
     ) {
     }
 
     /**
      * @throws TraceDynamicIndexErrorException
-     * @throws ContextCheckerException
      * @throws TraceDynamicIndexInProcessException
      * @throws TraceDynamicIndexNotInitException
      */
@@ -130,7 +128,9 @@ readonly class FindTraceTimestampsAction implements FindTraceTimestampsActionInt
 
         $stepInSeconds = (int) ceil($loggedAtFrom->diffInSeconds($loggedAtTo) / 10);
 
-        $callbacks = [];
+        $waitGroup = WaitGroup::create();
+
+        $timestampsRepository = $this->timestampsRepository;
 
         $dateCursor = $loggedAtFrom->clone();
 
@@ -142,50 +142,42 @@ readonly class FindTraceTimestampsAction implements FindTraceTimestampsActionInt
                 $to = $loggedAtTo->clone();
             }
 
-            $callbacks[] = static fn(
-                TraceTimestampsRepositoryInterface $timestampsRepository
-            ) => $timestampsRepository->find(
-                loggedAtFrom: $from,
-                loggedAtTo: $to,
-                timestamp: $parameters->timestampStep,
-                fields: $fieldsFilter,
-                dataFields: $dataFieldsFilter,
-                serviceIds: $parameters->serviceIds,
-                traceIds: $parameters->traceIds,
-                types: $parameters->types,
-                tags: $parameters->tags,
-                statuses: $parameters->statuses,
-                durationFrom: $parameters->durationFrom,
-                durationTo: $parameters->durationTo,
-                memoryFrom: $parameters->memoryFrom,
-                memoryTo: $parameters->memoryTo,
-                cpuFrom: $parameters->cpuFrom,
-                cpuTo: $parameters->cpuTo,
-                data: $data,
-                hasProfiling: $parameters->hasProfiling,
+            $waitGroup->add(
+                static fn() => $timestampsRepository->find(
+                    loggedAtFrom: $from,
+                    loggedAtTo: $to,
+                    timestamp: $parameters->timestampStep,
+                    fields: $fieldsFilter,
+                    dataFields: $dataFieldsFilter,
+                    serviceIds: $parameters->serviceIds,
+                    traceIds: $parameters->traceIds,
+                    types: $parameters->types,
+                    tags: $parameters->tags,
+                    statuses: $parameters->statuses,
+                    durationFrom: $parameters->durationFrom,
+                    durationTo: $parameters->durationTo,
+                    memoryFrom: $parameters->memoryFrom,
+                    memoryTo: $parameters->memoryTo,
+                    cpuFrom: $parameters->cpuFrom,
+                    cpuTo: $parameters->cpuTo,
+                    data: $data,
+                    hasProfiling: $parameters->hasProfiling,
+                )
             );
 
             $dateCursor = $to->clone()->addMicrosecond();
         }
-
-        $results = $this->parallelWorkers->run(
-            callbacks: $callbacks,
-            timeoutSeconds: 20,
-            breakAtFirstError: true
-        );
 
         /** @var TraceTimestampsDto[] $timestampsResult */
         $timestampsResult = [];
         /** @var TraceTimestampFieldDto[] $emptyIndicatorsResult */
         $emptyIndicatorsResult = [];
 
-        foreach ($results as $result) {
-            if ($result->exception) {
-                throw $result->exception;
-            }
+        $iterator = $waitGroup->iterate();
 
+        foreach ($iterator as $item) {
             /** @var TraceTimestampsListDto $timestampsList */
-            $timestampsList = $result->result;
+            $timestampsList = $item;
 
             foreach ($timestampsList->timestamps as $foundTimestamp) {
                 $existsTimestamp = Arr::first(

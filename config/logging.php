@@ -134,13 +134,6 @@ return [
             'days'   => 5,
         ],
 
-        'sparallel' => [
-            'driver' => 'daily',
-            'path'   => storage_path('logs/sparallel/sparallel.log'),
-            'days'   => 5,
-            'level'  => env('SPARALLEL_LOG_LEVEL', 'debug'),
-        ],
-
         'mongodb' => [
             'driver'  => 'monolog',
             'handler' => MongodbLogHandler::class,

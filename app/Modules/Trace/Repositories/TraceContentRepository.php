@@ -11,21 +11,16 @@ use App\Modules\Trace\Repositories\Services\PeriodicTraceService;
 use App\Modules\Trace\Repositories\Services\TracePipelineBuilder;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
-use SParallel\Exceptions\ContextCheckerException;
-use SParallel\SParallelWorkers;
+use SConcur\WaitGroup;
 
 readonly class TraceContentRepository implements TraceContentRepositoryInterface
 {
     public function __construct(
-        private SParallelWorkers $parallelWorkers,
         private TracePipelineBuilder $tracePipelineBuilder,
         private PeriodicTraceService $periodicTraceService
     ) {
     }
 
-    /**
-     * @throws ContextCheckerException
-     */
     public function findTypes(
         array $serviceIds = [],
         ?string $text = null,
@@ -94,9 +89,6 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
         );
     }
 
-    /**
-     * @throws ContextCheckerException
-     */
     public function findTags(
         array $serviceIds = [],
         ?string $text = null,
@@ -191,9 +183,6 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
         );
     }
 
-    /**
-     * @throws ContextCheckerException
-     */
     public function findStatuses(
         array $serviceIds = [],
         ?string $text = null,
@@ -271,53 +260,43 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
      * @param array<array<string, mixed>> $pipeline
      *
      * @return TraceStringFieldObject[]
-     *
-     * @throws ContextCheckerException
      */
     private function handleRequest(array $collectionNames, array $pipeline): array
     {
-        /** @var callable[] $callbacks */
-        $callbacks = [];
+        $waitGroup = WaitGroup::create();
+
+        $periodicTraceService = $this->periodicTraceService;
 
         foreach ($collectionNames as $collectionName) {
-            $callbacks[] = static function (
-                PeriodicTraceService $periodicTraceService
-            ) use ($collectionName, $pipeline) {
-                /** @var array<string, int> $groups */
-                $groups = [];
+            $waitGroup->add(
+                static function () use ($periodicTraceService, $collectionName, $pipeline) {
+                    /** @var array<string, int> $groups */
+                    $groups = [];
 
-                $cursor = $periodicTraceService->aggregate(
-                    collectionName: $collectionName,
-                    pipeline: $pipeline
-                );
+                    $cursor = $periodicTraceService->aggregate(
+                        collectionName: $collectionName,
+                        pipeline: $pipeline
+                    );
 
-                foreach ($cursor as $item) {
-                    $id = $item['_id'];
+                    foreach ($cursor as $item) {
+                        $id = $item['_id'];
 
-                    $groups[$id] ??= 0;
-                    $groups[$id] += $item['count'];
+                        $groups[$id] ??= 0;
+                        $groups[$id] += $item['count'];
+                    }
+
+                    return $groups;
                 }
-
-                return $groups;
-            };
+            );
         }
-
-        $results = $this->parallelWorkers->run(
-            callbacks: $callbacks,
-            timeoutSeconds: 20,
-            workersLimit: 20,
-            breakAtFirstError: true
-        );
 
         /** @var array<string|int, int> $groups */
         $groups = [];
 
-        foreach ($results as $result) {
-            if ($result->exception) {
-                throw $result->exception;
-            }
+        $iterator = $waitGroup->iterate();
 
-            foreach ($result->result as $type => $count) {
+        foreach ($iterator as $result) {
+            foreach ($result as $type => $count) {
                 $groups[$type] ??= 0;
                 $groups[$type] += $count;
             }
@@ -331,7 +310,7 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
         foreach ($groups as $name => $count) {
             $result[] = new TraceStringFieldObject(
                 name: (string) $name,
-                count: $count
+                count: (int) $count
             );
         }
 

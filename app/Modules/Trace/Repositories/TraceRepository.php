@@ -18,15 +18,13 @@ use App\Modules\Trace\Repositories\Services\PeriodicTraceCollectionNameService;
 use App\Modules\Trace\Repositories\Services\PeriodicTraceService;
 use App\Modules\Trace\Repositories\Services\TraceDataToObjectBuilder;
 use App\Modules\Trace\Repositories\Services\TracePipelineBuilder;
-use Closure;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
-use MongoDB\BSON\UTCDateTime;
 use MongoDB\Driver\Command;
 use MongoDB\Driver\Exception\Exception;
-use RuntimeException;
-use SParallel\Exceptions\ContextCheckerException;
-use SParallel\SParallelWorkers;
+use SConcur\Features\Mongodb\Types\ObjectId;
+use SConcur\Features\Mongodb\Types\UTCDateTime;
+use SConcur\WaitGroup;
 use stdClass;
 use Throwable;
 
@@ -36,7 +34,6 @@ readonly class TraceRepository implements TraceRepositoryInterface
         private PeriodicTraceCollectionNameService $periodicTraceCollectionNameService,
         private TracePipelineBuilder $tracePipelineBuilder,
         private PeriodicTraceService $periodicTraceService,
-        private SParallelWorkers $parallelWorkers
     ) {
     }
 
@@ -76,7 +73,12 @@ readonly class TraceRepository implements TraceRepositoryInterface
                                 'dur'  => $buffer->duration,
                                 'mem'  => $buffer->memory,
                                 'cpu'  => $buffer->cpu,
-                                'tss'  => $buffer->timestamps,
+                                'tss'  => array_map(
+                                    static function (\MongoDB\BSON\UTCDateTime $timestamp) {
+                                        return new UTCDateTime($timestamp->toDateTime());
+                                    },
+                                    $buffer->timestamps
+                                ),
                                 'lat'  => new UTCDateTime($buffer->loggedAt),
                                 'uat'  => new UTCDateTime($buffer->updatedAt),
                                 'cat'  => new UTCDateTime($buffer->createdAt),
@@ -346,7 +348,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
             ],
         );
 
-        return $result->getDeletedCount();
+        return $result->deletedCount;
     }
 
     public function clearTraces(
@@ -390,12 +392,9 @@ readonly class TraceRepository implements TraceRepositoryInterface
             ]
         );
 
-        return $result->getModifiedCount();
+        return $result->modifiedCount;
     }
 
-    /**
-     * @throws ContextCheckerException
-     */
     public function createIndex(string $name, array $collectionNames, array $fields): bool
     {
         if (empty($collectionNames) || empty($fields)) {
@@ -409,49 +408,37 @@ readonly class TraceRepository implements TraceRepositoryInterface
             $index[$field->fieldName] = 1;
         }
 
-        /** @var Closure[] $callbacks */
-        $callbacks = [];
+        $waitGroup = WaitGroup::create();
+
+        $periodicTraceService = $this->periodicTraceService;
 
         foreach ($collectionNames as $collectionName) {
-            $callbacks[] = static function (PeriodicTraceService $periodicTraceService) use (
-                $name,
-                $index,
-                $collectionName
-            ) {
-                try {
-                    $periodicTraceService->createIndex(
-                        indexName: $name,
-                        collectionName: $collectionName,
-                        index: $index
-                    );
-                } catch (Throwable $exception) {
-                    if (str_contains($exception->getMessage(), 'already exists')) {
-                        return;
+            $waitGroup->add(
+                static function () use (
+                    $periodicTraceService,
+                    $name,
+                    $index,
+                    $collectionName
+                ) {
+                    try {
+                        $periodicTraceService->createIndex(
+                            indexName: $name,
+                            collectionName: $collectionName,
+                            index: $index
+                        );
+                    } catch (Throwable $exception) {
+                        if (str_contains($exception->getMessage(), 'already exists')) {
+                            return;
+                        }
+
+                        throw $exception;
                     }
-
-                    throw $exception;
                 }
-            };
-        }
-
-        $results = $this->parallelWorkers->wait(
-            callbacks: $callbacks,
-            timeoutSeconds: 600, // 10 minutes // TODO: smart calculation
-            workersLimit: 6,
-            breakAtFirstError: true
-        );
-
-        if ($results->hasFailed()) {
-            $failedResult = $results->getFailed()[0] ?? null;
-
-            if ($failedResult?->exception) {
-                throw $failedResult->exception;
-            }
-
-            throw new RuntimeException(
-                message: 'unknown error',
             );
         }
+
+        // TODO: timeout?
+        $waitGroup->waitAll();
 
         return true;
     }
@@ -614,9 +601,12 @@ readonly class TraceRepository implements TraceRepositoryInterface
      */
     private function makeTraceDtoFromDocument(array $document): TraceDto
     {
+        /** @var ObjectId $objectId */
+        $objectId = $document['_id'];
+
         return new TraceDto(
-            id: (string) $document['_id'],
-            serviceId: $document['sid'],
+            id: $objectId->id,
+            serviceId: $document['sid'] ? ((int) $document['sid']) : null,
             traceId: $document['tid'],
             parentTraceId: $document['ptid'],
             type: $document['tp'],
@@ -625,14 +615,14 @@ readonly class TraceRepository implements TraceRepositoryInterface
                 static fn(array $tag) => $tag['nm'],
                 $document['tgs']
             ),
-            data: (new TraceDataToObjectBuilder($document['dt']))->build(),
+            data: new TraceDataToObjectBuilder($document['dt'])->build(),
             duration: $document['dur'],
             memory: $document['mem'],
             cpu: $document['cpu'],
             hasProfiling: $document['hpr'] ?? false,
-            loggedAt: new Carbon($document['lat']->toDateTime()),
-            createdAt: new Carbon($document['cat']->toDateTime()),
-            updatedAt: new Carbon($document['uat']->toDateTime())
+            loggedAt: new Carbon($document['lat']->dateTime),
+            createdAt: new Carbon($document['cat']->dateTime),
+            updatedAt: new Carbon($document['uat']->dateTime)
         );
     }
 }

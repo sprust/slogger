@@ -101,6 +101,7 @@ use App\Modules\Trace\Repositories\TraceTreeRepository;
 use Illuminate\Contracts\Foundation\Application;
 use MongoDB\Client;
 use MongoDB\Database;
+use SConcur\Features\Mongodb\Connection\Client as SconcurClient;
 
 class TraceServiceProvider extends BaseServiceProvider
 {
@@ -140,6 +141,8 @@ class TraceServiceProvider extends BaseServiceProvider
 
                 return new PeriodicTraceService(
                     database: $client->selectDatabase($database),
+                    sconcurDatabase: new SconcurClient($uri, socketTimeoutMs: $options['socketTimeoutMS'] ?? null)
+                        ->selectDatabase($database),
                     periodicTraceCollectionNameService: $app->make(PeriodicTraceCollectionNameService::class)
                 );
             }

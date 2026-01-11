@@ -9,10 +9,10 @@ use App\Modules\Trace\Entities\Trace\TraceCollectionNameObjects;
 use Closure;
 use Illuminate\Support\Carbon;
 use Iterator;
-use MongoDB\Collection;
 use MongoDB\Database;
-use MongoDB\Driver\CursorInterface;
 use RuntimeException;
+use SConcur\Features\Mongodb\Connection\Collection;
+use SConcur\Features\Mongodb\Connection\Database as SconcurDatabase;
 use Throwable;
 
 class PeriodicTraceService
@@ -24,6 +24,7 @@ class PeriodicTraceService
 
     public function __construct(
         private readonly Database $database,
+        private readonly SconcurDatabase $sconcurDatabase,
         private readonly PeriodicTraceCollectionNameService $periodicTraceCollectionNameService
     ) {
         $this->connectionsCachedAtSec = time();
@@ -31,7 +32,7 @@ class PeriodicTraceService
 
     public function selectCollectionByName(string $collectionName): Collection
     {
-        return $this->database->selectCollection($collectionName);
+        return $this->sconcurDatabase->selectCollection($collectionName);
     }
 
     /**
@@ -144,10 +145,8 @@ class PeriodicTraceService
     {
         $this->selectCollectionByName($collectionName)
             ->createIndex(
-                key: $index,
-                options: [
-                    'name' => $indexName,
-                ]
+                keys: $index,
+                name: $indexName,
             );
     }
 
@@ -164,7 +163,7 @@ class PeriodicTraceService
     /**
      * @param array<array<string, mixed>> $pipeline
      */
-    public function aggregate(string $collectionName, array $pipeline): CursorInterface&Iterator
+    public function aggregate(string $collectionName, array $pipeline): Iterator
     {
         return $this->selectCollectionByName($collectionName)
             ->aggregate($pipeline);
@@ -186,10 +185,24 @@ class PeriodicTraceService
      */
     public function findMany(string $collectionName, array $traceIds): array
     {
-        return iterator_to_array(
-            $this->selectCollectionByName($collectionName)
-                ->find(['tid' => ['$in' => $traceIds]])
-        );
+        $iterator = $this->selectCollectionByName($collectionName)
+            ->aggregate([
+                [
+                    '$match' => [
+                        'tid' => [
+                            '$in' => $traceIds,
+                        ],
+                    ],
+                ],
+            ]);
+
+        $traces = [];
+
+        foreach ($iterator as $item) {
+            $traces[] = $item;
+        }
+
+        return $traces;
     }
 
     public function findCollectionNameByTraceId(string $traceId): ?string
@@ -212,22 +225,25 @@ class PeriodicTraceService
         $collectionNames = $this->detectCollectionNamesReverse();
 
         foreach ($collectionNames as $collectionName) {
-            $foundTraceIds = iterator_to_array(
-                $this->selectCollectionByName($collectionName)
-                    ->find(
-                        ['tid' => ['$in' => $remainTraceIds]],
-                        ['projection' => ['tid' => 1]]
-                    )
-            );
+            $iterator = $this->selectCollectionByName($collectionName)
+                ->aggregate([
+                    [
+                        '$project' => ['tid' => 1],
+                    ],
+                    [
+                        '$match' => ['tid' => ['$in' => $remainTraceIds]],
+                    ],
+                ]);
+
+            $foundTraceIds = [];
+
+            foreach ($iterator as $item) {
+                $foundTraceIds[] = $item['tid'];
+            }
 
             if (!count($foundTraceIds)) {
                 continue;
             }
-
-            $foundTraceIds = array_map(
-                static fn(array $trace) => $trace['tid'],
-                $foundTraceIds
-            );
 
             $traceCollectionNames->add($collectionName, $foundTraceIds);
 
@@ -295,7 +311,11 @@ class PeriodicTraceService
                     pipeline: $collectionPipeline
                 );
 
-                $documents = iterator_to_array($cursor);
+                $documents = [];
+
+                foreach ($cursor as $item) {
+                    $documents[] = $item;
+                }
 
                 $documentsCount = count($documents);
 
@@ -377,7 +397,7 @@ class PeriodicTraceService
             ];
         }
 
-        $traceTreesCollectionName = (new TraceTree())->getCollectionName();
+        $traceTreesCollectionName = new TraceTree()->getCollectionName();
 
         $exists = iterator_count($this->database->listCollectionNames([
                 'filter' => [
