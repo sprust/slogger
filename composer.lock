@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "a1713ea26839ad8b3114b4ccfbef159d",
+    "content-hash": "3e601c07203c3ceda4d28fb60d95b8c5",
     "packages": [
         {
             "name": "brick/math",
@@ -4361,6 +4361,56 @@
                 }
             ],
             "time": "2025-11-06T13:03:11+00:00"
+        },
+        {
+            "name": "sconcur/sconcur",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/sprust/sconcur.git",
+                "reference": "f4bb1f07aacfa4ec49728be5d3bc17c12c187d3c"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/sprust/sconcur/zipball/f4bb1f07aacfa4ec49728be5d3bc17c12c187d3c",
+                "reference": "f4bb1f07aacfa4ec49728be5d3bc17c12c187d3c",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.4"
+            },
+            "require-dev": {
+                "ext-mongodb": "*",
+                "friendsofphp/php-cs-fixer": "^3.91",
+                "mongodb/mongodb": "^1.21",
+                "phpstan/phpstan": "^2.1",
+                "phpunit/phpunit": "^11.5",
+                "symfony/var-dumper": "^7.3",
+                "vlucas/phpdotenv": "^5.6"
+            },
+            "default-branch": true,
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "SConcur\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Pavel",
+                    "email": "sprust28@gmail.com"
+                }
+            ],
+            "description": "Concurrency PHP via external demon",
+            "support": {
+                "issues": "https://github.com/sprust/sconcur/issues",
+                "source": "https://github.com/sprust/sconcur/tree/master"
+            },
+            "time": "2026-01-10T16:44:44+00:00"
         },
         {
             "name": "slogger/grpc",
@@ -12233,6 +12283,7 @@
     "minimum-stability": "stable",
     "stability-flags": {
         "ifksco/openapi-generator": 20,
+        "sconcur/sconcur": 20,
         "slogger/grpc": 20,
         "slogger/laravel": 20,
         "sparallel/laravel": 20,

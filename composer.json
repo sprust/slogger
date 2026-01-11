@@ -19,6 +19,7 @@
         "laravel/tinker": "^2.8",
         "mongodb/laravel-mongodb": "^5.5",
         "mongodb/mongodb": "^1.17",
+        "sconcur/sconcur": "dev-master",
         "slogger/grpc": "dev-master",
         "slogger/laravel": "dev-master",
         "sparallel/laravel": "dev-master",
