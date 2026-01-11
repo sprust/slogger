@@ -9,10 +9,10 @@ use App\Modules\Trace\Entities\Trace\TraceCollectionNameObjects;
 use Closure;
 use Illuminate\Support\Carbon;
 use Iterator;
-use MongoDB\Collection;
 use MongoDB\Database;
-use MongoDB\Driver\CursorInterface;
 use RuntimeException;
+use SConcur\Features\Mongodb\Connection\Collection;
+use SConcur\Features\Mongodb\Connection\Database as SconcurDatabase;
 use Throwable;
 
 class PeriodicTraceService
@@ -24,6 +24,7 @@ class PeriodicTraceService
 
     public function __construct(
         private readonly Database $database,
+        private readonly SconcurDatabase $sconcurDatabase,
         private readonly PeriodicTraceCollectionNameService $periodicTraceCollectionNameService
     ) {
         $this->connectionsCachedAtSec = time();
@@ -31,7 +32,7 @@ class PeriodicTraceService
 
     public function selectCollectionByName(string $collectionName): Collection
     {
-        return $this->database->selectCollection($collectionName);
+        return $this->sconcurDatabase->selectCollection($collectionName);
     }
 
     /**
@@ -144,10 +145,8 @@ class PeriodicTraceService
     {
         $this->selectCollectionByName($collectionName)
             ->createIndex(
-                key: $index,
-                options: [
-                    'name' => $indexName,
-                ]
+                keys: $index,
+                name: $indexName,
             );
     }
 
@@ -164,7 +163,7 @@ class PeriodicTraceService
     /**
      * @param array<array<string, mixed>> $pipeline
      */
-    public function aggregate(string $collectionName, array $pipeline): CursorInterface&Iterator
+    public function aggregate(string $collectionName, array $pipeline): Iterator
     {
         return $this->selectCollectionByName($collectionName)
             ->aggregate($pipeline);
@@ -188,7 +187,7 @@ class PeriodicTraceService
     {
         return iterator_to_array(
             $this->selectCollectionByName($collectionName)
-                ->find(['tid' => ['$in' => $traceIds]])
+                ->findOne(['tid' => ['$in' => $traceIds]])
         );
     }
 
@@ -214,9 +213,9 @@ class PeriodicTraceService
         foreach ($collectionNames as $collectionName) {
             $foundTraceIds = iterator_to_array(
                 $this->selectCollectionByName($collectionName)
-                    ->find(
-                        ['tid' => ['$in' => $remainTraceIds]],
-                        ['projection' => ['tid' => 1]]
+                    ->findOne(
+                        filter: ['tid' => ['$in' => $remainTraceIds]],
+                        projection: ['tid' => 1]
                     )
             );
 
@@ -377,7 +376,7 @@ class PeriodicTraceService
             ];
         }
 
-        $traceTreesCollectionName = (new TraceTree())->getCollectionName();
+        $traceTreesCollectionName = new TraceTree()->getCollectionName();
 
         $exists = iterator_count($this->database->listCollectionNames([
                 'filter' => [
