@@ -3,7 +3,6 @@
 use App\Models\Users\User;
 use App\Modules\Trace\Infrastructure\Jobs\TraceCreateJob;
 use App\Modules\Trace\Infrastructure\Jobs\TraceUpdateJob;
-use App\Services\SLogger\SParallelWatcher;
 use RrMonitor\Events\MonitorWorkersCountSetEvent;
 use SLoggerLaravel\Dispatcher\Items\Queue\Jobs\TraceCreateJob as SLoggerTraceCreateJob;
 use SLoggerLaravel\Dispatcher\Items\Queue\Jobs\TraceUpdateJob as SLoggerTraceUpdateJob;
@@ -23,13 +22,6 @@ use SLoggerLaravel\Watchers\Children\ScheduleWatcher;
 use SLoggerLaravel\Watchers\Parents\CommandWatcher;
 use SLoggerLaravel\Watchers\Parents\JobWatcher;
 use SLoggerLaravel\Watchers\Parents\RequestWatcher;
-use SParallelLaravel\Events\TaskFinishedEvent;
-use SParallelLaravel\Events\TaskFailedEvent;
-use SParallelLaravel\Events\ServerGoneEvent;
-use SParallelLaravel\Events\TaskStartingEvent;
-use SParallelLaravel\Events\FlowFailedEvent;
-use SParallelLaravel\Events\FlowFinishedEvent;
-use SParallelLaravel\Events\FlowStartingEvent;
 
 $defaultQueueConnection = env('QUEUE_TRACES_CREATING_CONNECTION');
 
@@ -101,7 +93,6 @@ return [
 
     'data_completer' => [
         'excluded_file_masks' => [
-            '*SLogger/SParallelWatcher*',
         ],
     ],
 
@@ -174,7 +165,6 @@ return [
                 'trace-buffer:handle:start',
                 'slogger:dispatcher:start',
                 'trace-dynamic-indexes:monitor:start',
-                'sparallel:handle-serialized-closure',
             ],
         ],
 
@@ -203,19 +193,12 @@ return [
 
         'events' => [
             'ignore_events'    => [
-                FlowFailedEvent::class,
-                FlowFinishedEvent::class,
-                FlowStartingEvent::class,
-                TaskStartingEvent::class,
-                TaskFinishedEvent::class,
-                TaskFailedEvent::class,
             ],
             'serialize_events' => [
                 MonitorWorkersCountSetEvent::class,
             ],
             'can_be_orphan'    => [
                 MonitorWorkersCountSetEvent::class,
-                ServerGoneEvent::class,
             ],
         ],
     ],
@@ -276,10 +259,6 @@ return [
         [
             'class'   => HttpClientWatcher::class,
             'enabled' => env('SLOGGER_LOG_HTTP_ENABLED', false),
-        ],
-        [
-            'class'   => SParallelWatcher::class,
-            'enabled' => env('SLOGGER_SPARALLEL_ENABLED', false),
         ],
     ],
 ];

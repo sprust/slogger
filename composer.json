@@ -22,8 +22,6 @@
         "sconcur/sconcur": "dev-master",
         "slogger/grpc": "dev-master",
         "slogger/laravel": "dev-master",
-        "sparallel/laravel": "dev-master",
-        "sparallel/sparallel": "dev-master",
         "spiral/roadrunner-cli": "^2.7",
         "spiral/roadrunner-grpc": "^3.5",
         "spiral/roadrunner-http": "^3.5",
