@@ -10,7 +10,10 @@ use SConcur\Features\Mongodb\Connection\Collection as SconcurCollection;
 
 abstract class AbstractMongoModel extends Model
 {
-    private static ?SconcurCollection $sconcurCollection = null;
+    /**
+     * @var array<class-string<AbstractMongoModel>, SconcurCollection>
+     */
+    private static array $sconcurCollections = [];
 
     abstract function getCollectionName(): string;
 
@@ -29,8 +32,10 @@ abstract class AbstractMongoModel extends Model
 
     public static function sconcur(): SconcurCollection
     {
-        if (self::$sconcurCollection !== null) {
-            return self::$sconcurCollection;
+        $class = static::class;
+
+        if (array_key_exists($class, static::$sconcurCollections)) {
+            return static::$sconcurCollections[$class];
         }
 
         $instance = new static();
@@ -50,7 +55,7 @@ abstract class AbstractMongoModel extends Model
             ->selectDatabase($database)
             ->selectCollection($instance->getCollectionName());
 
-        return self::$sconcurCollection = $collection;
+        return static::$sconcurCollections[$class] = $collection;
     }
 
     /**
