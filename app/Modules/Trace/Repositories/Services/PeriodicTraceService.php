@@ -185,18 +185,24 @@ class PeriodicTraceService
      */
     public function findMany(string $collectionName, array $traceIds): array
     {
-        return iterator_to_array(
-            $this->selectCollectionByName($collectionName)
-                ->aggregate([
-                    [
-                        '$match' => [
-                            'tid' => [
-                                '$in' => $traceIds,
-                            ],
+        $iterator = $this->selectCollectionByName($collectionName)
+            ->aggregate([
+                [
+                    '$match' => [
+                        'tid' => [
+                            '$in' => $traceIds,
                         ],
                     ],
-                ])
-        );
+                ],
+            ]);
+
+        $traces = [];
+
+        foreach ($iterator as $item) {
+            $traces[] = $item;
+        }
+
+        return $traces;
     }
 
     public function findCollectionNameByTraceId(string $traceId): ?string
@@ -229,16 +235,15 @@ class PeriodicTraceService
                     ],
                 ]);
 
-            $foundTraceIds = iterator_to_array($iterator);
+            $foundTraceIds = [];
+
+            foreach ($iterator as $item) {
+                $foundTraceIds[] = $item['tid'];
+            }
 
             if (!count($foundTraceIds)) {
                 continue;
             }
-
-            $foundTraceIds = array_map(
-                static fn(array $traceId) => $traceId['tid'],
-                $foundTraceIds
-            );
 
             $traceCollectionNames->add($collectionName, $foundTraceIds);
 
@@ -306,7 +311,11 @@ class PeriodicTraceService
                     pipeline: $collectionPipeline
                 );
 
-                $documents = iterator_to_array($cursor);
+                $documents = [];
+
+                foreach ($cursor as $item) {
+                    $documents[] = $item;
+                }
 
                 $documentsCount = count($documents);
 
