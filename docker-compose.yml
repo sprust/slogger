@@ -127,7 +127,7 @@ services:
   mongo:
     container_name: sl-mongo
     restart: unless-stopped
-    image: mongo:6.0.5
+    image: mongo:8.0.5
     command: ["mongod", "--wiredTigerCacheSizeGB", "${MONGO_WIRED_TIGER_CACHE_SIZE_GB:-10}"]
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_ADMIN_USERNAME}
