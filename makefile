@@ -35,6 +35,9 @@ setup:
 	@make frontend-npm-build
 	@make restart
 
+build:
+	BUILD_TIME=$(shell date +%s) docker-compose build
+
 up:
 	@docker-compose up -d
 

@@ -21,6 +21,7 @@ services:
         - APP_ENV=${APP_ENV}
         - GROUP_ID=${DOCKER_GROUP_ID}
         - USER_ID=${DOCKER_USER_ID}
+        - BUILD_TIME=${BUILD_TIME:-1}
     depends_on:
       mysql:
         condition: service_started
@@ -48,6 +49,7 @@ services:
       args:
         - GROUP_ID=${DOCKER_GROUP_ID}
         - USER_ID=${DOCKER_USER_ID}
+        - BUILD_TIME=${BUILD_TIME:-1}
     depends_on:
       mysql:
         condition: service_started

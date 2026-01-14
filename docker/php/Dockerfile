@@ -53,6 +53,7 @@ RUN apt-get update && apt-get install -y protobuf-compiler zlib1g-dev \
 RUN pecl pcntl && docker-php-ext-install pcntl
 
 # sconcur
+ARG BUILD_TIME=1
 RUN curl -L https://github.com/sprust/sconcur/releases/download/latest/sconcur.so \
       -o $(php-config --extension-dir)/sconcur.so \
     && echo "extension=sconcur.so" > /usr/local/etc/php/conf.d/docker-php-ext-sconcur.ini
