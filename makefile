@@ -23,7 +23,7 @@ setup:
 	@make env-copy
 	@docker-compose stop
 	@docker-compose down
-	@docker-compose build
+	make build
 	@make up
 	@make composer c=install
 	@make art c=key:generate

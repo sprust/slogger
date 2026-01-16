@@ -4303,12 +4303,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/sprust/sconcur.git",
-                "reference": "95af40d3287cd0fc6e6bf2a5bb25b5a979dad137"
+                "reference": "eadfc148cae41d8d157638cc3a51b188966cde5f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sprust/sconcur/zipball/95af40d3287cd0fc6e6bf2a5bb25b5a979dad137",
-                "reference": "95af40d3287cd0fc6e6bf2a5bb25b5a979dad137",
+                "url": "https://api.github.com/repos/sprust/sconcur/zipball/eadfc148cae41d8d157638cc3a51b188966cde5f",
+                "reference": "eadfc148cae41d8d157638cc3a51b188966cde5f",
                 "shasum": ""
             },
             "require": {
@@ -4345,7 +4345,7 @@
                 "issues": "https://github.com/sprust/sconcur/issues",
                 "source": "https://github.com/sprust/sconcur/tree/master"
             },
-            "time": "2026-01-14T19:05:10+00:00"
+            "time": "2026-01-16T09:43:39+00:00"
         },
         {
             "name": "slogger/grpc",
