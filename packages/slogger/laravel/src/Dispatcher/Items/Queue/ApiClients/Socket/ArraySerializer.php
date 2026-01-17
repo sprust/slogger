@@ -164,7 +164,10 @@ readonly class ArraySerializer
         return $value;
     }
 
-    protected function decodeValue(string $encoded): string|int|float|bool|null
+    /**
+     * @return array<int|string, mixed>|string|int|float|bool|null
+     */
+    protected function decodeValue(string $encoded): array|string|int|float|bool|null
     {
         $type  = substr($encoded, 0, 2);
         $value = substr($encoded, 2);
