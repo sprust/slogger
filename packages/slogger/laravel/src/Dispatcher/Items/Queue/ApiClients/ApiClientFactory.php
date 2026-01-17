@@ -5,29 +5,33 @@ namespace SLoggerLaravel\Dispatcher\Items\Queue\ApiClients;
 use Exception;
 use Grpc\ChannelCredentials;
 use GuzzleHttp\Client;
+use Illuminate\Support\Facades\Log;
 use RuntimeException;
 use SLoggerGrpc\Services\TraceCollectorGrpcService;
 use SLoggerLaravel\Configs\DispatcherQueueConfig;
-use SLoggerLaravel\Configs\DispatcherTransporterConfig;
 use SLoggerLaravel\Configs\GeneralConfig;
 use SLoggerLaravel\Dispatcher\Items\Queue\ApiClients\Grpc\GrpcClient;
 use SLoggerLaravel\Dispatcher\Items\Queue\ApiClients\Http\HttpClient;
+use SLoggerLaravel\Dispatcher\Items\Queue\ApiClients\Socket\ArraySerializer;
+use SLoggerLaravel\Dispatcher\Items\Queue\ApiClients\Socket\Connection;
+use SLoggerLaravel\Dispatcher\Items\Queue\ApiClients\Socket\SocketClient;
 
 readonly class ApiClientFactory
 {
     private string $apiToken;
 
     public function __construct(
-        GeneralConfig $config,
+        private GeneralConfig $config,
         private DispatcherQueueConfig $queueConfig,
     ) {
-        $this->apiToken = $config->getToken();
+        $this->apiToken = $this->config->getToken();
     }
 
     public function create(string $apiClientName): ApiClientInterface
     {
         return match ($apiClientName) {
             'http' => $this->createHttp(),
+            'socket' => $this->createSocket(),
             'grpc' => $this->createGrpc(),
             default => throw new RuntimeException("Unknown api client [$apiClientName]"),
         };
@@ -47,6 +51,22 @@ readonly class ApiClientFactory
                 ],
                 'base_uri' => $url,
             ])
+        );
+    }
+
+    private function createSocket(): SocketClient
+    {
+        return new SocketClient(
+            apiToken: $this->apiToken,
+            connection: new Connection(
+                socketAddresses: [
+                    $this->queueConfig->getSocketClientUrl(),
+                ],
+                logger: Log::channel(
+                    $this->config->getLogChannel()
+                )
+            ),
+            serializer: new ArraySerializer(),
         );
     }
 

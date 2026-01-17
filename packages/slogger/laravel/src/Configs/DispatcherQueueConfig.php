@@ -29,6 +29,11 @@ class DispatcherQueueConfig
         return (string) config('slogger.dispatchers.queue.api_clients.http.url');
     }
 
+    public function getSocketClientUrl(): string
+    {
+        return (string) config('slogger.dispatchers.queue.api_clients.socket.url');
+    }
+
     public function getGrpcClientUrl(): string
     {
         return (string) config('slogger.dispatchers.queue.api_clients.grpc.url');

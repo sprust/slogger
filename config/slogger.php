@@ -45,6 +45,10 @@ return [
                     'url' => env('SLOGGER_DISPATCHER_QUEUE_HTTP_CLIENT_URL'),
                 ],
 
+                'socket' => [
+                    'url' => env('SLOGGER_DISPATCHER_QUEUE_SOCKET_CLIENT_URL'),
+                ],
+
                 'grpc' => [
                     'url' => env('SLOGGER_DISPATCHER_QUEUE_GRPC_CLIENT_URL'),
                 ],
