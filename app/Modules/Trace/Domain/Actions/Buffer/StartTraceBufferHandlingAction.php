@@ -64,10 +64,12 @@ readonly class StartTraceBufferHandlingAction implements StartTraceBufferHandlin
 
             $deletedCount = 0;
 
-            $completedTraceIds  = [];
-            $processingTraceIds = [];
+            // TODO: collision between insert, update and handling
 
             if (count($traces->traces) > 0) {
+                $completedTraceIds  = [];
+                $processingTraceIds = [];
+
                 foreach ($traces->traces as $trace) {
                     if ($trace->inserted && $trace->updated) {
                         $completedTraceIds[] = $trace->traceId;
@@ -81,7 +83,7 @@ readonly class StartTraceBufferHandlingAction implements StartTraceBufferHandlin
                 );
 
                 if (count($completedTraceIds)) {
-                    $deletedCount = $this->traceBufferRepository->delete(
+                    $deletedCount += $this->traceBufferRepository->delete(
                         traceIds: $completedTraceIds
                     );
                 }

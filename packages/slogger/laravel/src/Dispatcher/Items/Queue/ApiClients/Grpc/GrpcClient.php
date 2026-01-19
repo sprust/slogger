@@ -19,8 +19,7 @@ use SLoggerGrpcDto\TraceCollector\TraceProfilingItemsObject;
 use SLoggerGrpcDto\TraceCollector\TraceUpdateObject;
 use SLoggerGrpcDto\TraceCollector\TraceUpdateRequest;
 use SLoggerLaravel\Dispatcher\Items\Queue\ApiClients\ApiClientInterface;
-use SLoggerLaravel\Objects\TraceObjects;
-use SLoggerLaravel\Objects\TraceUpdateObjects;
+use SLoggerLaravel\Objects\TracesObject;
 use SLoggerLaravel\Profiling\Dto\ProfilingObjects;
 use Spiral\RoadRunner\GRPC\Context;
 
@@ -35,42 +34,55 @@ readonly class GrpcClient implements ApiClientInterface
     /**
      * @throws GrpcResponseException
      */
-    public function sendTraces(TraceObjects $traceObjects): void
+    public function sendTraces(TracesObject $traces): void
+    {
+        $this->createTraces($traces);
+        $this->updateTraces($traces);
+    }
+
+    /**
+     * @throws GrpcResponseException
+     */
+    protected function createTraces(TracesObject $traces): void
     {
         $objects = [];
 
-        foreach ($traceObjects->get() as $item) {
+        foreach ($traces->iterateCreating() as $trace) {
             $loggedAt = new Timestamp();
-            $loggedAt->fromDateTime($item->loggedAt->toDateTime());
+            $loggedAt->fromDateTime($trace->loggedAt->toDateTime());
 
             $objects[] = (new TraceCreateObject())
-                ->setTraceId($item->traceId)
+                ->setTraceId($trace->traceId)
                 ->setParentTraceId(
-                    is_null($item->parentTraceId)
+                    is_null($trace->parentTraceId)
                         ? null
-                        : new StringValue(['value' => $item->parentTraceId])
+                        : new StringValue(['value' => $trace->parentTraceId])
                 )
-                ->setType($item->type)
-                ->setStatus($item->status)
-                ->setTags($item->tags)
-                ->setData(json_encode($item->data))
+                ->setType($trace->type)
+                ->setStatus($trace->status)
+                ->setTags($trace->tags)
+                ->setData(json_encode($trace->data))
                 ->setDuration(
-                    is_null($item->duration)
+                    is_null($trace->duration)
                         ? null
-                        : new DoubleValue(['value' => $item->duration])
+                        : new DoubleValue(['value' => $trace->duration])
                 )
                 ->setMemory(
-                    is_null($item->memory)
+                    is_null($trace->memory)
                         ? null
-                        : new DoubleValue(['value' => $item->memory])
+                        : new DoubleValue(['value' => $trace->memory])
                 )
                 ->setCpu(
-                    is_null($item->cpu)
+                    is_null($trace->cpu)
                         ? null
-                        : new DoubleValue(['value' => $item->cpu])
+                        : new DoubleValue(['value' => $trace->cpu])
                 )
-                ->setIsParent(new BoolValue(['value' => $item->isParent]))
+                ->setIsParent(new BoolValue(['value' => $trace->isParent]))
                 ->setLoggedAt($loggedAt);
+        }
+
+        if (count($objects) == 0) {
+            return;
         }
 
         $this->grpcService->Create(
@@ -90,11 +102,11 @@ readonly class GrpcClient implements ApiClientInterface
     /**
      * @throws GrpcResponseException
      */
-    public function updateTraces(TraceUpdateObjects $traceObjects): void
+    protected function updateTraces(TracesObject $traces): void
     {
         $objects = [];
 
-        foreach ($traceObjects->get() as $item) {
+        foreach ($traces->iterateUpdating() as $item) {
             $loggedAt = new Timestamp();
             $loggedAt->fromDateTime(now('UTC'));
 
@@ -131,6 +143,10 @@ readonly class GrpcClient implements ApiClientInterface
                         ? null
                         : new DoubleValue(['value' => $item->cpu])
                 );
+        }
+
+        if (count($objects) == 0) {
+            return;
         }
 
         $this->grpcService->Update(

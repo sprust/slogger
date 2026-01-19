@@ -4,8 +4,7 @@ use App\Models\Users\User;
 use App\Modules\Trace\Infrastructure\Jobs\TraceCreateJob;
 use App\Modules\Trace\Infrastructure\Jobs\TraceUpdateJob;
 use RrMonitor\Events\MonitorWorkersCountSetEvent;
-use SLoggerLaravel\Dispatcher\Items\Queue\Jobs\TraceCreateJob as SLoggerTraceCreateJob;
-use SLoggerLaravel\Dispatcher\Items\Queue\Jobs\TraceUpdateJob as SLoggerTraceUpdateJob;
+use SLoggerLaravel\Dispatcher\Items\Queue\Jobs\SendTracesJob as SLoggerSendTracesJob;
 use SLoggerLaravel\Events\WatcherErrorEvent;
 use SLoggerLaravel\Listeners\WatcherErrorListener;
 use SLoggerLaravel\Watchers\Children\CacheWatcher;
@@ -174,8 +173,7 @@ return [
 
         'jobs' => [
             'excepted' => [
-                SLoggerTraceCreateJob::class,
-                SLoggerTraceUpdateJob::class,
+                SLoggerSendTracesJob::class,
                 TraceCreateJob::class,
                 TraceUpdateJob::class,
             ],

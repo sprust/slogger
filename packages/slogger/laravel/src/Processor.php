@@ -12,7 +12,7 @@ use SLoggerLaravel\Helpers\DataFormatter;
 use SLoggerLaravel\Helpers\MetricsHelper;
 use SLoggerLaravel\Helpers\TraceDataComplementer;
 use SLoggerLaravel\Helpers\TraceHelper;
-use SLoggerLaravel\Objects\TraceObject;
+use SLoggerLaravel\Objects\TraceCreateObject;
 use SLoggerLaravel\Objects\TraceUpdateObject;
 use SLoggerLaravel\Profiling\AbstractProfiling;
 use SLoggerLaravel\Traces\TraceIdContainer;
@@ -148,7 +148,7 @@ class Processor
         $this->traceDataComplementer->inject($data);
 
         $this->dispatchPushTrace(
-            new TraceObject(
+            new TraceCreateObject(
                 traceId: $traceId,
                 parentTraceId: $customParentTraceId ?? $parentTraceId,
                 type: $type,
@@ -202,7 +202,7 @@ class Processor
         $this->traceDataComplementer->inject($data);
 
         $this->dispatchPushTrace(
-            new TraceObject(
+            new TraceCreateObject(
                 traceId: $traceId,
                 parentTraceId: $parentTraceId,
                 type: $type,
@@ -271,7 +271,7 @@ class Processor
         );
     }
 
-    private function dispatchPushTrace(TraceObject $trace): void
+    private function dispatchPushTrace(TraceCreateObject $trace): void
     {
         $this->traceDispatcher->create($trace);
     }

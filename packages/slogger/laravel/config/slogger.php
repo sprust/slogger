@@ -1,7 +1,6 @@
 <?php
 
-use SLoggerLaravel\Dispatcher\Items\Queue\Jobs\TraceCreateJob;
-use SLoggerLaravel\Dispatcher\Items\Queue\Jobs\TraceUpdateJob;
+use SLoggerLaravel\Dispatcher\Items\Queue\Jobs\SendTracesJob;
 use SLoggerLaravel\Events\WatcherErrorEvent;
 use SLoggerLaravel\Listeners\WatcherErrorListener;
 use SLoggerLaravel\Watchers\Children\CacheWatcher;
@@ -161,8 +160,7 @@ return [
 
         'jobs' => [
             'excepted' => [
-                TraceCreateJob::class,
-                TraceUpdateJob::class,
+                SendTracesJob::class,
             ],
         ],
 

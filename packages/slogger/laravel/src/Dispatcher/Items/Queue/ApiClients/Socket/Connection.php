@@ -45,7 +45,7 @@ class Connection
     public function connect(string $apiToken): void
     {
         $payload = json_encode([
-            'token' => $apiToken,
+            't' => $apiToken,
         ]);
 
         foreach ($this->socketAddresses as $socketAddress) {
@@ -104,6 +104,10 @@ class Connection
             }
 
             if ($response !== 'ok') {
+                $this->logger->error(
+                    "failed to connect to [$socketAddress]: $response"
+                );
+
                 $this->disconnect();
 
                 continue;

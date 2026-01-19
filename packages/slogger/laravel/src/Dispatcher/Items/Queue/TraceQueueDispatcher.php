@@ -5,23 +5,21 @@ namespace SLoggerLaravel\Dispatcher\Items\Queue;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Foundation\Application;
 use SLoggerLaravel\Dispatcher\Items\DispatcherProcessorInterface;
-use SLoggerLaravel\Dispatcher\Items\Queue\Jobs\TraceCreateJob;
-use SLoggerLaravel\Dispatcher\Items\Queue\Jobs\TraceUpdateJob;
+use SLoggerLaravel\Dispatcher\Items\Queue\Jobs\SendTracesJob;
 use SLoggerLaravel\Dispatcher\Items\TraceDispatcherInterface;
-use SLoggerLaravel\Objects\TraceObject;
-use SLoggerLaravel\Objects\TraceObjects;
+use SLoggerLaravel\Objects\TraceCreateObject;
+use SLoggerLaravel\Objects\TracesObject;
 use SLoggerLaravel\Objects\TraceUpdateObject;
-use SLoggerLaravel\Objects\TraceUpdateObjects;
 
 class TraceQueueDispatcher implements TraceDispatcherInterface
 {
-    /** @var TraceObject[] */
-    private array $traces = [];
+    private TracesObject $traces;
 
     private int $maxBatchSize = 5;
 
     public function __construct(protected readonly Application $app)
     {
+        $this->traces = new TracesObject();
     }
 
     /**
@@ -32,48 +30,42 @@ class TraceQueueDispatcher implements TraceDispatcherInterface
         return $this->app->make(QueueDispatcherProcessor::class);
     }
 
-    public function create(TraceObject $parameters): void
+    public function create(TraceCreateObject $parameters): void
     {
-        $this->traces[] = $parameters;
+        $this->traces->addCreating($parameters);
 
-        if (count($this->traces) < $this->maxBatchSize) {
-            return;
-        }
-
-        $this->sendAndClearTraces();
+        $this->dispatchIfNeed();
     }
 
     public function update(TraceUpdateObject $parameters): void
     {
-        if (count($this->traces)) {
-            $this->sendAndClearTraces();
-        }
+        $this->traces->addUpdating($parameters);
 
-        $traceObjects = (new TraceUpdateObjects())
-            ->add($parameters);
-
-        dispatch(new TraceUpdateJob($traceObjects->toJson()));
+        $this->dispatchIfNeed();
     }
 
     public function terminate(): void
     {
-        if (!count($this->traces)) {
+        if ($this->traces->count() === 0) {
             return;
         }
 
-        $this->sendAndClearTraces();
+        $this->dispatch();
     }
 
-    protected function sendAndClearTraces(): void
+    protected function dispatchIfNeed(): void
     {
-        $traceObjects = new TraceObjects();
-
-        foreach ($this->traces as $trace) {
-            $traceObjects->add($trace);
+        if ($this->traces->count() <= $this->maxBatchSize) {
+            return;
         }
 
-        dispatch(new TraceCreateJob($traceObjects->toJson()));
+        $this->dispatch();
 
-        $this->traces = [];
+        $this->traces = new TracesObject();
+    }
+
+    protected function dispatch(): void
+    {
+        dispatch(new SendTracesJob($this->traces));
     }
 }

@@ -8,13 +8,13 @@ use Illuminate\Contracts\Foundation\Application;
 use SLoggerLaravel\Dispatcher\Items\DispatcherProcessorInterface;
 use SLoggerLaravel\Dispatcher\Items\TraceDispatcherInterface;
 use SLoggerLaravel\Dispatcher\Items\Transporter\Clients\TransporterClientInterface;
-use SLoggerLaravel\Objects\TraceObject;
+use SLoggerLaravel\Objects\TraceCreateObject;
 use SLoggerLaravel\Objects\TraceUpdateObject;
 use SLoggerLaravel\Profiling\Dto\ProfilingObjects;
 
 class TraceTransporterDispatcher implements TraceDispatcherInterface
 {
-    /** @var TraceObject[] */
+    /** @var TraceCreateObject[] */
     private array $traces = [];
 
     private int $maxBatchSize = 5;
@@ -36,7 +36,7 @@ class TraceTransporterDispatcher implements TraceDispatcherInterface
         return $this->app->make(TransporterDispatcherProcessor::class);
     }
 
-    public function create(TraceObject $parameters): void
+    public function create(TraceCreateObject $parameters): void
     {
         $this->traces[] = $parameters;
 
@@ -75,7 +75,7 @@ class TraceTransporterDispatcher implements TraceDispatcherInterface
     protected function makeAndClearCurrentTraceActions(): array
     {
         $actions = array_map(
-            fn(TraceObject $trace) => $this->makeCreateData($trace),
+            fn(TraceCreateObject $trace) => $this->makeCreateData($trace),
             $this->traces
         );
 
@@ -87,7 +87,7 @@ class TraceTransporterDispatcher implements TraceDispatcherInterface
     /**
      * @return array{tp: string, dt: string}
      */
-    private function makeCreateData(TraceObject $trace): array
+    private function makeCreateData(TraceCreateObject $trace): array
     {
         return $this->makeAction(
             type: 'cr',
@@ -106,7 +106,7 @@ class TraceTransporterDispatcher implements TraceDispatcherInterface
         );
     }
 
-    private function traceCreateToJson(TraceObject $trace): string
+    private function traceCreateToJson(TraceCreateObject $trace): string
     {
         return json_encode([
             'tid' => $trace->traceId,

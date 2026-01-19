@@ -125,8 +125,8 @@ readonly class TraceBufferRepository implements TraceBufferRepositoryInterface
         }
 
         $result = $this->collection->updateOne(
-            $filter,
-            [
+            filter: $filter,
+            update: [
                 '$set' => [
                     'st'     => $trace->status,
                     ...(is_null($trace->tags)

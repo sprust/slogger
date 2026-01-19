@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace SLoggerLaravel\Dispatcher\Items\Queue\ApiClients\Socket;
 
 use SLoggerLaravel\Dispatcher\Items\Queue\ApiClients\ApiClientInterface;
-use SLoggerLaravel\Objects\TraceObjects;
-use SLoggerLaravel\Objects\TraceUpdateObjects;
+use SLoggerLaravel\Objects\TracesObject;
 use SLoggerLaravel\Profiling\Dto\ProfilingObjects;
 
 class SocketClient implements ApiClientInterface
@@ -18,67 +17,65 @@ class SocketClient implements ApiClientInterface
     ) {
     }
 
-    public function sendTraces(TraceObjects $traceObjects): void
+    public function sendTraces(TracesObject $traces): void
     {
         $this->connectIfNeed();
 
-        $traces = [];
+        $iterator = $traces->iterateCreating();
 
-        foreach ($traceObjects->get() as $traceObject) {
-            $traces[] = [
-                'trace_id'        => $traceObject->traceId,
-                'parent_trace_id' => $traceObject->parentTraceId,
-                'type'            => $traceObject->type,
-                'status'          => $traceObject->status,
-                'tags'            => $traceObject->tags,
-                'data'            => $traceObject->data,
-                'duration'        => $traceObject->duration,
-                'memory'          => $traceObject->memory,
-                'cpu'             => $traceObject->cpu,
-                'is_parent'       => $traceObject->isParent,
-                'logged_at'       => $traceObject->loggedAt->toDateTimeString('microsecond'),
+        $creatableTraces = [];
+
+        foreach ($iterator as $trace) {
+            $creatableTraces[] = [
+                'trace_id'        => $trace->traceId,
+                'parent_trace_id' => $trace->parentTraceId,
+                'type'            => $trace->type,
+                'status'          => $trace->status,
+                'tags'            => $trace->tags,
+                'data'            => $trace->data,
+                'duration'        => $trace->duration,
+                'memory'          => $trace->memory,
+                'cpu'             => $trace->cpu,
+                'is_parent'       => $trace->isParent,
+                'logged_at'       => $trace->loggedAt->toDateTimeString('microsecond'),
             ];
         }
 
-        $data = $this->serializer->serialize($traces);
+        $updatableTraces = [];
 
-        $this->connection->write($data);
-    }
+        $iterator = $traces->iterateUpdating();
 
-    public function updateTraces(TraceUpdateObjects $traceObjects): void
-    {
-        $this->connectIfNeed();
-
-        $traces = [];
-
-        foreach ($traceObjects->get() as $traceObject) {
-            $traces[] = [
-                'trace_id' => $traceObject->traceId,
-                'status'   => $traceObject->status,
-                ...(is_null($traceObject->profiling)
+        foreach ($iterator as $trace) {
+            $updatableTraces[] = [
+                'trace_id' => $trace->traceId,
+                'status'   => $trace->status,
+                ...(is_null($trace->profiling)
                     ? []
-                    : ['profiling' => $this->prepareProfiling($traceObject->profiling)]),
-                ...(is_null($traceObject->tags)
+                    : ['profiling' => $this->prepareProfiling($trace->profiling)]),
+                ...(is_null($trace->tags)
                     ? []
-                    : ['tags' => $traceObject->tags]),
-                ...(is_null($traceObject->data)
+                    : ['tags' => $trace->tags]),
+                ...(is_null($trace->data)
                     ? []
-                    : ['data' => json_encode($traceObject->data)]),
-                ...(is_null($traceObject->duration)
+                    : ['data' => $trace->data]),
+                ...(is_null($trace->duration)
                     ? []
-                    : ['duration' => $traceObject->duration]),
-                ...(is_null($traceObject->memory)
+                    : ['duration' => $trace->duration]),
+                ...(is_null($trace->memory)
                     ? []
-                    : ['memory' => $traceObject->memory]),
-                ...(is_null($traceObject->cpu)
+                    : ['memory' => $trace->memory]),
+                ...(is_null($trace->cpu)
                     ? []
-                    : ['cpu' => $traceObject->cpu]),
+                    : ['cpu' => $trace->cpu]),
             ];
         }
 
-        $data = $this->serializer->serialize($traces);
-
-        $this->connection->write($data);
+        $this->connection->write(
+            json_encode([
+                'crt' => $this->serializer->serialize($creatableTraces),
+                'upd' => $this->serializer->serialize($updatableTraces),
+            ])
+        );
     }
 
     /**
