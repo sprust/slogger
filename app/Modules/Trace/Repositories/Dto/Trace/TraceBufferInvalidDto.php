@@ -10,6 +10,7 @@ readonly class TraceBufferInvalidDto
      * @param array<string, mixed> $document
      */
     public function __construct(
+        public string $id,
         public ?string $traceId,
         public array $document,
         public string $error,

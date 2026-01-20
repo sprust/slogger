@@ -17,12 +17,12 @@ interface TraceBufferRepositoryInterface
     public function findForHandling(int $page, int $perPage): TraceBuffersDto;
 
     /**
-     * @param string[] $traceIds
+     * @param string[] $ids
      */
-    public function markAsHandled(array $traceIds): void;
+    public function markAsHandled(array $ids): void;
 
     /**
-     * @param string[] $traceIds
+     * @param string[] $ids
      */
-    public function delete(array $traceIds): int;
+    public function delete(array $ids): int;
 }

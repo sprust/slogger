@@ -12,6 +12,7 @@ use App\Modules\Trace\Repositories\Dto\Trace\TraceBufferDto;
 use App\Modules\Trace\Repositories\Dto\Trace\TraceBufferInvalidDto;
 use App\Modules\Trace\Repositories\Dto\Trace\TraceBuffersDto;
 use Illuminate\Support\Carbon;
+use MongoDB\BSON\ObjectId;
 use MongoDB\BSON\UTCDateTime;
 use MongoDB\Collection;
 use stdClass;
@@ -237,6 +238,7 @@ readonly class TraceBufferRepository implements TraceBufferRepositoryInterface
                 }
 
                 $invalidTraces[] = new TraceBufferInvalidDto(
+                    id: (string) $document['_id'],
                     traceId: $traceId,
                     document: $document,
                     error: $exception->getMessage() . PHP_EOL . $exception->getTraceAsString(),
@@ -250,12 +252,21 @@ readonly class TraceBufferRepository implements TraceBufferRepositoryInterface
         );
     }
 
-    public function markAsHandled(array $traceIds): void
+    public function markAsHandled(array $ids): void
     {
+        if (count($ids) === 0) {
+            return;
+        }
+
+        $objectIds = array_map(
+            static fn (string $id) => new ObjectId($id),
+            $ids
+        );
+
         $this->collection->updateMany(
             [
-                'tid'    => [
-                    '$in' => $traceIds,
+                '_id'    => [
+                    '$in' => $objectIds,
                 ],
                 '__hand' => false,
             ],
@@ -267,11 +278,20 @@ readonly class TraceBufferRepository implements TraceBufferRepositoryInterface
         );
     }
 
-    public function delete(array $traceIds): int
+    public function delete(array $ids): int
     {
+        if (count($ids) === 0) {
+            return 0;
+        }
+
+        $objectIds = array_map(
+            static fn (string $id) => new ObjectId($id),
+            $ids
+        );
+
         $result = $this->collection->deleteMany([
-            'tid' => [
-                '$in' => $traceIds,
+            '_id' => [
+                '$in' => $objectIds,
             ],
         ]);
 

@@ -64,17 +64,15 @@ readonly class StartTraceBufferHandlingAction implements StartTraceBufferHandlin
 
             $deletedCount = 0;
 
-            // TODO: collision between insert, update and handling
+            $handledBufferIds    = [];
+            $processingBufferIds = [];
 
             if (count($traces->traces) > 0) {
-                $completedTraceIds  = [];
-                $processingTraceIds = [];
-
                 foreach ($traces->traces as $trace) {
                     if ($trace->inserted && $trace->updated) {
-                        $completedTraceIds[] = $trace->traceId;
+                        $handledBufferIds[] = $trace->id;
                     } else {
-                        $processingTraceIds[] = $trace->traceId;
+                        $processingBufferIds[] = $trace->id;
                     }
                 }
 
@@ -82,15 +80,9 @@ readonly class StartTraceBufferHandlingAction implements StartTraceBufferHandlin
                     traceBuffers: $traces->traces
                 );
 
-                if (count($completedTraceIds)) {
-                    $deletedCount += $this->traceBufferRepository->delete(
-                        traceIds: $completedTraceIds
-                    );
-                }
-
-                if (count($processingTraceIds)) {
+                if (count($processingBufferIds)) {
                     $this->traceBufferRepository->markAsHandled(
-                        traceIds: $processingTraceIds
+                        ids: $processingBufferIds
                     );
                 }
             }
@@ -98,6 +90,16 @@ readonly class StartTraceBufferHandlingAction implements StartTraceBufferHandlin
             if (count($traces->invalidTraces) > 0) {
                 $this->traceBufferInvalidRepository->createMany(
                     invalidTraceBuffers: $traces->invalidTraces
+                );
+
+                foreach ($traces->invalidTraces as $invalidTrace) {
+                    $handledBufferIds[] = $invalidTrace->id;
+                }
+            }
+
+            if (count($handledBufferIds)) {
+                $deletedCount += $this->traceBufferRepository->delete(
+                    ids: $handledBufferIds
                 );
             }
 
