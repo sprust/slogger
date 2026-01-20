@@ -84,7 +84,7 @@ readonly class TraceBufferRepository implements TraceBufferRepositoryInterface
             'tid' => $trace->traceId,
         ];
 
-        $existTrace = $this->collection->findOne($filter) ?? [];
+        $existTrace = $this->collection->findOne($filter) ?: [];
 
         $hasExistsTrace = count($existTrace) > 0;
 

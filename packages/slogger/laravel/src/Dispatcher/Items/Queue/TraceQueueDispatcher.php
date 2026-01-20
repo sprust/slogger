@@ -34,14 +34,14 @@ class TraceQueueDispatcher implements TraceDispatcherInterface
     {
         $this->traces->addCreating($parameters);
 
-        $this->dispatchIfNeed();
+        $this->dispatchAndClear($this->maxBatchSize);
     }
 
     public function update(TraceUpdateObject $parameters): void
     {
         $this->traces->addUpdating($parameters);
 
-        $this->dispatchIfNeed();
+        $this->dispatchAndClear($this->maxBatchSize);
     }
 
     public function terminate(): void
@@ -50,22 +50,17 @@ class TraceQueueDispatcher implements TraceDispatcherInterface
             return;
         }
 
-        $this->dispatch();
+        $this->dispatchAndClear(maxBatchSize: 0);
     }
 
-    protected function dispatchIfNeed(): void
+    protected function dispatchAndClear(int $maxBatchSize): void
     {
-        if ($this->traces->count() <= $this->maxBatchSize) {
+        if ($maxBatchSize > 0 && $this->traces->count() < $maxBatchSize) {
             return;
         }
 
-        $this->dispatch();
+        dispatch(new SendTracesJob($this->traces));
 
         $this->traces = new TracesObject();
-    }
-
-    protected function dispatch(): void
-    {
-        dispatch(new SendTracesJob($this->traces));
     }
 }
