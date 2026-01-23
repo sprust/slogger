@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SLoggerLaravel\Dispatcher\Items\Queue\ApiClients\Socket;
 
+// TODO: delete later. not using at the moment.
 readonly class ArraySerializer
 {
     /**

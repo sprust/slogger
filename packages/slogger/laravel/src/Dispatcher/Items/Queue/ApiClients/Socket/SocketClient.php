@@ -6,14 +6,12 @@ namespace SLoggerLaravel\Dispatcher\Items\Queue\ApiClients\Socket;
 
 use SLoggerLaravel\Dispatcher\Items\Queue\ApiClients\ApiClientInterface;
 use SLoggerLaravel\Objects\TracesObject;
-use SLoggerLaravel\Profiling\Dto\ProfilingObjects;
 
 class SocketClient implements ApiClientInterface
 {
     public function __construct(
         protected string $apiToken,
         protected Connection $connection,
-        protected ArraySerializer $serializer
     ) {
     }
 
@@ -27,17 +25,18 @@ class SocketClient implements ApiClientInterface
 
         foreach ($iterator as $trace) {
             $creatableTraces[] = [
-                'trace_id'        => $trace->traceId,
-                'parent_trace_id' => $trace->parentTraceId,
-                'type'            => $trace->type,
-                'status'          => $trace->status,
-                'tags'            => $trace->tags,
-                'data'            => $trace->data,
-                'duration'        => $trace->duration,
-                'memory'          => $trace->memory,
-                'cpu'             => $trace->cpu,
-                'is_parent'       => $trace->isParent,
-                'logged_at'       => $trace->loggedAt->toDateTimeString('microsecond'),
+                'tid' => $trace->traceId,
+                ...(is_null($trace->parentTraceId) ? [] : ['ptid' => $trace->parentTraceId]),
+                'tp'  => $trace->type,
+                'st'  => $trace->status,
+                ...(!count($trace->tags) ? [] : ['tgs' => $trace->tags]),
+                'dt'  => $trace->data,
+                ...(is_null($trace->duration) ? [] : ['dur' => $trace->duration]),
+                ...(is_null($trace->memory) ? [] : ['mem' => $trace->memory]),
+                ...(is_null($trace->cpu) ? [] : ['cpu' => $trace->cpu]),
+                ...(!$trace->isParent ? [] : ['isp' => $trace->isParent]),
+                'lat' => (float) ($trace->loggedAt->unix()
+                    . '.' . $trace->loggedAt->microsecond),
             ];
         }
 
@@ -47,85 +46,28 @@ class SocketClient implements ApiClientInterface
 
         foreach ($iterator as $trace) {
             $updatableTraces[] = [
-                'trace_id' => $trace->traceId,
-                'status'   => $trace->status,
-                ...(is_null($trace->profiling)
-                    ? []
-                    : ['profiling' => $this->prepareProfiling($trace->profiling)]),
-                ...(is_null($trace->tags)
-                    ? []
-                    : ['tags' => $trace->tags]),
-                ...(is_null($trace->data)
-                    ? []
-                    : ['data' => $trace->data]),
-                ...(is_null($trace->duration)
-                    ? []
-                    : ['duration' => $trace->duration]),
-                ...(is_null($trace->memory)
-                    ? []
-                    : ['memory' => $trace->memory]),
-                ...(is_null($trace->cpu)
-                    ? []
-                    : ['cpu' => $trace->cpu]),
+                'tid' => $trace->traceId,
+                'st'  => $trace->status,
+                ...(is_null($trace->tags) ? [] : ['tgs' => $trace->tags]),
+                ...(is_null($trace->data) ? [] : ['dt' => $trace->data]),
+                ...(is_null($trace->duration) ? [] : ['dur' => $trace->duration]),
+                ...(is_null($trace->memory) ? [] : ['mem' => $trace->memory]),
+                ...(is_null($trace->cpu) ? [] : ['cpu' => $trace->cpu]),
             ];
+        }
+
+        $payload = [
+            count($creatableTraces) ? ['crt' => $creatableTraces] : [],
+            count($updatableTraces) ? ['upd' => $updatableTraces] : [],
+        ];
+
+        if (count($payload) === 0) {
+            return;
         }
 
         $this->connection->write(
-            json_encode([
-                'crt' => $this->serializer->serialize($creatableTraces),
-                'upd' => $this->serializer->serialize($updatableTraces),
-            ])
+            json_encode($payload)
         );
-    }
-
-    /**
-     * @return array{
-     *     main_caller: string,
-     *     items: array{
-     *      raw: string,
-     *      calling: string,
-     *      callable: string,
-     *      data: array{
-     *          name: string,
-     *          value: int|float
-     *      }[]
-     *     }[]
-     * }
-     */
-    private function prepareProfiling(ProfilingObjects $profiling): array
-    {
-        $result = [];
-
-        foreach ($profiling->getItems() as $item) {
-            $result[] = [
-                'raw'      => $item->raw,
-                'calling'  => $item->calling,
-                'callable' => $item->callable,
-                'data'     => [
-                    $this->makeProfileDataItem('wait (us)', $item->data->waitTimeInUs),
-                    $this->makeProfileDataItem('calls', $item->data->numberOfCalls),
-                    $this->makeProfileDataItem('cpu', $item->data->cpuTime),
-                    $this->makeProfileDataItem('mem (b)', $item->data->memoryUsageInBytes),
-                    $this->makeProfileDataItem('mem peak (b)', $item->data->peakMemoryUsageInBytes),
-                ],
-            ];
-        }
-
-        return [
-            'main_caller' => $profiling->getMainCaller(),
-            'items'       => $result,
-        ];
-    }
-
-    /**
-     * @return array{name: string, value: int|float}
-     */
-    private function makeProfileDataItem(string $name, int|float $value): array
-    {
-        return [
-            'name'  => $name,
-            'value' => $value,
-        ];
     }
 
     protected function connectIfNeed(): void

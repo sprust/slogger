@@ -32,6 +32,17 @@ class TraceQueueDispatcher implements TraceDispatcherInterface
 
     public function create(TraceCreateObject $parameters): void
     {
+        if ($parameters->isParent) {
+            dispatch(
+                new SendTracesJob(
+                    (new TracesObject())
+                        ->addCreating($parameters)
+                )
+            );
+
+            return;
+        }
+
         $this->traces->addCreating($parameters);
 
         $this->dispatchAndClear($this->maxBatchSize);
