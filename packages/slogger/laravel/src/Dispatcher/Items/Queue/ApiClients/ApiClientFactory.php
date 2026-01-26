@@ -12,7 +12,6 @@ use SLoggerLaravel\Configs\DispatcherQueueConfig;
 use SLoggerLaravel\Configs\GeneralConfig;
 use SLoggerLaravel\Dispatcher\Items\Queue\ApiClients\Grpc\GrpcClient;
 use SLoggerLaravel\Dispatcher\Items\Queue\ApiClients\Http\HttpClient;
-use SLoggerLaravel\Dispatcher\Items\Queue\ApiClients\Socket\ArraySerializer;
 use SLoggerLaravel\Dispatcher\Items\Queue\ApiClients\Socket\Connection;
 use SLoggerLaravel\Dispatcher\Items\Queue\ApiClients\Socket\SocketClient;
 
@@ -66,7 +65,6 @@ readonly class ApiClientFactory
                     $this->config->getLogChannel()
                 )
             ),
-            serializer: new ArraySerializer(),
         );
     }
 

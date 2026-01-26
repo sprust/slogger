@@ -57,8 +57,8 @@ class SocketClient implements ApiClientInterface
         }
 
         $payload = [
-            ...(count($creatableTraces) ? ['c' => $creatableTraces] : []),
-            ...(count($updatableTraces) ? ['u' => $updatableTraces] : []),
+            ...(count($creatableTraces) ? ['c' => json_encode($creatableTraces)] : []),
+            ...(count($updatableTraces) ? ['u' => json_encode($updatableTraces)] : []),
         ];
 
         if (count($payload) === 0) {
