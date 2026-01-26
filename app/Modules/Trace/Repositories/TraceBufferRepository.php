@@ -208,21 +208,27 @@ readonly class TraceBufferRepository implements TraceBufferRepositoryInterface
             try {
                 $loggedAt = $document['lat'] ?? new UTCDateTime();
 
+                $dt = $document['dt'] ?? '{}';
+
+                if (is_array($dt)) {
+                    $dt = json_encode($dt);
+                }
+
                 $result[] = new TraceBufferDto(
                     id: (string) $document['_id'],
                     serviceId: $document['sid'],
                     traceId: $document['tid'],
-                    parentTraceId: $document['ptid'],
+                    parentTraceId: $document['ptid'] ?? null,
                     type: $document['tp'] ?? 'unknown',
                     status: $document['st'],
-                    tags: $document['tgs'],
-                    data: $document['dt'],
-                    duration: $document['dur'],
-                    memory: $document['mem'],
-                    cpu: $document['cpu'],
+                    tags: $document['tgs'] ?? [],
+                    data: $dt,
+                    duration: $document['dur'] ?? null,
+                    memory: $document['mem'] ?? null,
+                    cpu: $document['cpu'] ?? null,
                     hasProfiling: $document['hpr'] ?? false,
                     profiling: $document['pr'] ?? null,
-                    timestamps: $document['tss'],
+                    timestamps: $document['tss'] ?? [],
                     loggedAt: new Carbon($loggedAt->toDateTime()),
                     createdAt: new Carbon($document['cat']->toDateTime()),
                     updatedAt: new Carbon($document['uat']->toDateTime()),
@@ -259,7 +265,7 @@ readonly class TraceBufferRepository implements TraceBufferRepositoryInterface
         }
 
         $objectIds = array_map(
-            static fn (string $id) => new ObjectId($id),
+            static fn(string $id) => new ObjectId($id),
             $ids
         );
 
@@ -285,7 +291,7 @@ readonly class TraceBufferRepository implements TraceBufferRepositoryInterface
         }
 
         $objectIds = array_map(
-            static fn (string $id) => new ObjectId($id),
+            static fn(string $id) => new ObjectId($id),
             $ids
         );
 
