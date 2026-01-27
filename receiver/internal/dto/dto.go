@@ -19,16 +19,16 @@ type TraceCreating struct {
 	Duration      *float64      `json:"dur,omitempty"`
 	Memory        *float64      `json:"mem,omitempty"`
 	Cpu           *float64      `json:"cpu,omitempty"`
-	IsParent      *bool         `json:"isp,omitempty"`
-	LoggedAt      float64       `json:"lat"`
+	LoggedAt      string        `json:"lat"`
 }
 
 type TraceUpdating struct {
-	TraceId  string         `json:"tid"`
-	Status   string         `json:"st"`
-	Tags     *[]interface{} `json:"tgs,omitempty"`
-	Data     interface{}    `json:"dt"`
-	Duration *float64       `json:"dur,omitempty"`
-	Memory   *float64       `json:"mem,omitempty"`
-	Cpu      *float64       `json:"cpu,omitempty"`
+	TraceId        string         `json:"tid"`
+	Status         string         `json:"st"`
+	Tags           *[]interface{} `json:"tgs,omitempty"`
+	Data           interface{}    `json:"dt"`
+	Duration       *float64       `json:"dur,omitempty"`
+	Memory         *float64       `json:"mem,omitempty"`
+	Cpu            *float64       `json:"cpu,omitempty"`
+	ParentLoggedAt string         `json:"plat"`
 }
