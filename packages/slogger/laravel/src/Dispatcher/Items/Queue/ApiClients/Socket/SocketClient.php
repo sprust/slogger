@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SLoggerLaravel\Dispatcher\Items\Queue\ApiClients\Socket;
 
+use Illuminate\Support\Carbon;
 use SLoggerLaravel\Dispatcher\Items\Queue\ApiClients\ApiClientInterface;
 use SLoggerLaravel\Objects\TracesObject;
 
@@ -35,8 +36,7 @@ class SocketClient implements ApiClientInterface
                 ...(is_null($trace->memory) ? [] : ['mem' => $trace->memory]),
                 ...(is_null($trace->cpu) ? [] : ['cpu' => $trace->cpu]),
                 ...(!$trace->isParent ? [] : ['isp' => $trace->isParent]),
-                'lat' => (float) ($trace->loggedAt->unix()
-                    . '.' . $trace->loggedAt->microsecond),
+                'lat' => $this->prepareLoggedAt($trace->loggedAt),
             ];
         }
 
@@ -46,13 +46,14 @@ class SocketClient implements ApiClientInterface
 
         foreach ($iterator as $trace) {
             $updatableTraces[] = [
-                'tid' => $trace->traceId,
-                'st'  => $trace->status,
+                'tid'  => $trace->traceId,
+                'st'   => $trace->status,
                 ...(is_null($trace->tags) ? [] : ['tgs' => $trace->tags]),
                 ...(is_null($trace->data) ? [] : ['dt' => $trace->data]),
                 ...(is_null($trace->duration) ? [] : ['dur' => $trace->duration]),
                 ...(is_null($trace->memory) ? [] : ['mem' => $trace->memory]),
                 ...(is_null($trace->cpu) ? [] : ['cpu' => $trace->cpu]),
+                'plat' => $this->prepareLoggedAt($trace->parentLoggedAt),
             ];
         }
 
@@ -77,5 +78,10 @@ class SocketClient implements ApiClientInterface
                 apiToken: $this->apiToken
             );
         }
+    }
+
+    protected function prepareLoggedAt(Carbon $loggedAt): float
+    {
+        return (float) ($loggedAt->unix() . '.' . $loggedAt->microsecond);
     }
 }

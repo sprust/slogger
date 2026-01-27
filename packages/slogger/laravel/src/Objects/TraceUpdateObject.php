@@ -2,6 +2,7 @@
 
 namespace SLoggerLaravel\Objects;
 
+use Illuminate\Support\Carbon;
 use SLoggerLaravel\Profiling\Dto\ProfilingObjects;
 
 class TraceUpdateObject
@@ -13,12 +14,13 @@ class TraceUpdateObject
     public function __construct(
         public string $traceId,
         public string $status,
-        public ?ProfilingObjects $profiling = null,
-        public ?array $tags = null,
-        public ?array $data = null,
-        public ?float $duration = null,
-        public ?float $memory = null,
-        public ?float $cpu = null,
+        public ?ProfilingObjects $profiling,
+        public ?array $tags,
+        public ?array $data,
+        public ?float $duration,
+        public ?float $memory,
+        public ?float $cpu,
+        public Carbon $parentLoggedAt
     ) {
     }
 }
