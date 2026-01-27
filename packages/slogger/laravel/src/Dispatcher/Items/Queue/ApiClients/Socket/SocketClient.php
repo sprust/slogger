@@ -22,10 +22,10 @@ class SocketClient implements ApiClientInterface
 
         $iterator = $traces->iterateCreating();
 
-        $creatableTraces = [];
+        $creatingTraces = [];
 
         foreach ($iterator as $trace) {
-            $creatableTraces[] = [
+            $creatingTraces[] = [
                 'tid' => $trace->traceId,
                 ...(is_null($trace->parentTraceId) ? [] : ['ptid' => $trace->parentTraceId]),
                 'tp'  => $trace->type,
@@ -35,17 +35,16 @@ class SocketClient implements ApiClientInterface
                 ...(is_null($trace->duration) ? [] : ['dur' => $trace->duration]),
                 ...(is_null($trace->memory) ? [] : ['mem' => $trace->memory]),
                 ...(is_null($trace->cpu) ? [] : ['cpu' => $trace->cpu]),
-                ...(!$trace->isParent ? [] : ['isp' => $trace->isParent]),
                 'lat' => $this->prepareLoggedAt($trace->loggedAt),
             ];
         }
 
-        $updatableTraces = [];
+        $updatingTraces = [];
 
         $iterator = $traces->iterateUpdating();
 
         foreach ($iterator as $trace) {
-            $updatableTraces[] = [
+            $updatingTraces[] = [
                 'tid'  => $trace->traceId,
                 'st'   => $trace->status,
                 ...(is_null($trace->tags) ? [] : ['tgs' => $trace->tags]),
@@ -58,8 +57,8 @@ class SocketClient implements ApiClientInterface
         }
 
         $payload = [
-            ...(count($creatableTraces) ? ['c' => json_encode($creatableTraces)] : []),
-            ...(count($updatableTraces) ? ['u' => json_encode($updatableTraces)] : []),
+            ...(count($creatingTraces) ? ['c' => json_encode($creatingTraces)] : []),
+            ...(count($updatingTraces) ? ['u' => json_encode($updatingTraces)] : []),
         ];
 
         if (count($payload) === 0) {
@@ -80,8 +79,8 @@ class SocketClient implements ApiClientInterface
         }
     }
 
-    protected function prepareLoggedAt(Carbon $loggedAt): float
+    protected function prepareLoggedAt(Carbon $loggedAt): string
     {
-        return (float) ($loggedAt->unix() . '.' . $loggedAt->microsecond);
+        return $loggedAt->toDateTimeString('milliseconds');
     }
 }
