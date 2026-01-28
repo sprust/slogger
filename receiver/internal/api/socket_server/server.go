@@ -7,29 +7,45 @@ import (
 	"fmt"
 	"log/slog"
 	"net"
+	"runtime"
 	"slogger_receiver/internal/api/socket_server/transport"
 	"slogger_receiver/internal/dto"
 	"slogger_receiver/internal/repositories/service_repository"
 	"slogger_receiver/internal/services/buffer_service"
 	"slogger_receiver/pkg/foundation/errs"
 	"sync/atomic"
+	"time"
 )
 
 type Server struct {
-	network           string
-	address           string
-	listener          net.Listener
-	bufferService     *buffer_service.Service
-	serviceRepository *service_repository.Repository
-	closed            atomic.Bool
+	servContext            context.Context
+	servCancel             context.CancelFunc
+	network                string
+	address                string
+	listener               net.Listener
+	bufferService          *buffer_service.Service
+	serviceRepository      *service_repository.Repository
+	totalConnectionsCount  atomic.Uint64
+	activeConnectionsCount atomic.Int64
+	totalHandlingCount     atomic.Uint64
+	activeHandlingCount    atomic.Int64
+	closing                atomic.Bool
 }
 
 func NewServer(network string, address string) *Server {
+	ctx, cancel := context.WithCancel(context.Background())
+
 	return &Server{
-		network:           network,
-		address:           address,
-		serviceRepository: service_repository.Get(),
-		bufferService:     buffer_service.Get(),
+		servContext:            ctx,
+		servCancel:             cancel,
+		network:                network,
+		address:                address,
+		bufferService:          buffer_service.Get(),
+		serviceRepository:      service_repository.Get(),
+		totalConnectionsCount:  atomic.Uint64{},
+		activeConnectionsCount: atomic.Int64{},
+		totalHandlingCount:     atomic.Uint64{},
+		activeHandlingCount:    atomic.Int64{},
 	}
 }
 
@@ -44,20 +60,34 @@ func (s *Server) Run(ctx context.Context) error {
 
 	s.listener = listener
 
-	go func(ctx context.Context, s *Server) {
+	go func() {
 		select {
 		case <-ctx.Done():
 			slog.Warn("Shutting down [socket server] by context")
 
 			s.stop()
 		}
-	}(ctx, s)
+	}()
+
+	go func() {
+		for {
+			select {
+			case <-ctx.Done():
+				break
+			default:
+				s.showStat()
+
+				time.Sleep(1 * time.Second)
+			}
+
+		}
+	}()
 
 	for {
 		conn, err := listener.Accept()
 
 		if err != nil {
-			if s.closed.Load() {
+			if s.closing.Load() {
 				break
 			}
 
@@ -70,29 +100,30 @@ func (s *Server) Run(ctx context.Context) error {
 			return errs.Err(err)
 		}
 
-		go func(ctx context.Context, s *Server, conn net.Conn) {
-			err := s.handleConnection(ctx, conn)
+		s.totalConnectionsCount.Add(1)
+		s.activeConnectionsCount.Add(1)
+
+		go func() {
+			defer s.activeConnectionsCount.Add(-1)
+
+			err := s.handleConnection(conn)
 
 			if err != nil {
 				slog.Error(err.Error())
 			}
-		}(ctx, s, conn)
+		}()
 	}
+
+	for s.closing.Load() {
+		time.Sleep(1 * time.Second)
+	}
+
+	s.closing.Store(false)
 
 	return nil
 }
 
-func (s *Server) stop() {
-	s.closed.Store(true)
-
-	if s.listener != nil {
-		_ = s.listener.Close()
-	}
-
-	_ = s.serviceRepository.Close()
-}
-
-func (s *Server) handleConnection(ctx context.Context, conn net.Conn) error {
+func (s *Server) handleConnection(conn net.Conn) error {
 	tr := transport.NewTransport(conn)
 
 	defer func(tr *transport.Transport) {
@@ -100,8 +131,6 @@ func (s *Server) handleConnection(ctx context.Context, conn net.Conn) error {
 	}(tr)
 
 	authPayload, err := tr.Read()
-
-	slog.Debug(fmt.Sprintf("received authPayload: %s", authPayload))
 
 	var authMsg dto.AuthMessage
 
@@ -113,7 +142,7 @@ func (s *Server) handleConnection(ctx context.Context, conn net.Conn) error {
 		return errs.Err(err)
 	}
 
-	serviceId, err := s.serviceRepository.FindIdByApiToken(ctx, authMsg.ApiToken)
+	serviceId, err := s.serviceRepository.FindIdByApiToken(s.servContext, authMsg.ApiToken)
 
 	if err != nil {
 		err = tr.Write("error at service searching: " + err.Error())
@@ -137,12 +166,6 @@ func (s *Server) handleConnection(ctx context.Context, conn net.Conn) error {
 		return errs.Err(err)
 	}
 
-	tracesCounter := 0
-
-	defer func() {
-		fmt.Println("traces count: ", tracesCounter)
-	}()
-
 	for {
 		tracePayload, err := tr.Read()
 
@@ -151,27 +174,82 @@ func (s *Server) handleConnection(ctx context.Context, conn net.Conn) error {
 		}
 
 		if tracePayload == nil {
-			slog.Debug("received empty tracePayload, closing connection")
-
 			return nil
 		}
 
-		tracesCounter++
+		s.totalHandlingCount.Add(1)
+		s.activeHandlingCount.Add(1)
 
-		slog.Debug(fmt.Sprintf("received tracePayload: %s", tracePayload))
+		go func() {
+			defer s.activeHandlingCount.Add(-1)
 
-		var tracesMsg dto.TracesMessage
+			var tracesMsg dto.TracesMessage
 
-		err = json.Unmarshal(tracePayload, &tracesMsg)
+			err = json.Unmarshal(tracePayload, &tracesMsg)
 
-		if err != nil {
-			slog.Error(errs.Err(err).Error())
-		}
+			if err != nil {
+				slog.Error(errs.Err(err).Error())
+			}
 
-		err = s.bufferService.Save(ctx, serviceId, &tracesMsg)
+			err = s.bufferService.Save(s.servContext, serviceId, &tracesMsg)
 
-		if err != nil {
-			slog.Error(errs.Err(err).Error())
+			if err != nil {
+				slog.Error(errs.Err(err).Error())
+			}
+		}()
+	}
+}
+
+func (s *Server) showStat() {
+	var mem runtime.MemStats
+
+	runtime.ReadMemStats(&mem)
+
+	numGoroutine := uint64(runtime.NumGoroutine())
+	allocMiB := float32(mem.Alloc / 1024 / 1024)
+	totalAllocMiB := float32(mem.TotalAlloc / 1024 / 1024)
+	sysMiB := float32(mem.Sys / 1024 / 1024)
+	numGC := uint64(mem.NumGC)
+
+	slog.Info(
+		fmt.Sprintf(
+			"con[tot:%d,ac:%d]\thand[tot:%d,ac:%d]\talloc[tot:%.2f,ac:%.2f]MiB\tsys[%.2f]MiB\tNumGC[%d]\tgot[%d]",
+			s.totalConnectionsCount.Load(),
+			s.activeConnectionsCount.Load(),
+			s.totalHandlingCount.Load(),
+			s.activeHandlingCount.Load(),
+			totalAllocMiB,
+			allocMiB,
+			sysMiB,
+			numGC,
+			numGoroutine,
+		),
+	)
+}
+
+func (s *Server) stop() {
+	s.closing.Store(true)
+	defer s.closing.Store(false)
+
+	if s.listener != nil {
+		_ = s.listener.Close()
+	}
+
+	for {
+		activeHandlingCount := s.activeHandlingCount.Load()
+
+		if activeHandlingCount > 0 {
+			slog.Warn(fmt.Sprintf("Waiting for [%d] handling to finish...", activeHandlingCount))
+
+			time.Sleep(1 * time.Second)
+		} else {
+			break
 		}
 	}
+
+	s.servCancel()
+
+	_ = s.serviceRepository.Close()
+
+	slog.Warn("Socket server stopped")
 }

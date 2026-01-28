@@ -74,7 +74,7 @@ func main() {
 				}
 
 				slog.Warn("Completed successfully by signal")
-			case <-time.After(5 * time.Second):
+			case <-time.After(10 * time.Second):
 				slog.Error("shutdown by timeout")
 			}
 		}
