@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net"
+	"os"
 	"runtime"
 	"slogger_receiver/internal/api/socket_server/transport"
 	"slogger_receiver/internal/dto"
@@ -16,6 +17,8 @@ import (
 	"sync/atomic"
 	"time"
 )
+
+// TODO: graceful shutdown. check activeHandlingCount dont work.
 
 type Server struct {
 	servContext            context.Context
@@ -79,7 +82,6 @@ func (s *Server) Run(ctx context.Context) error {
 
 				time.Sleep(1 * time.Second)
 			}
-
 		}
 	}()
 
@@ -211,20 +213,64 @@ func (s *Server) showStat() {
 	sysMiB := float32(mem.Sys / 1024 / 1024)
 	numGC := uint64(mem.NumGC)
 
-	slog.Info(
-		fmt.Sprintf(
-			"con[tot:%d,ac:%d]\thand[tot:%d,ac:%d]\talloc[tot:%.2f,ac:%.2f]MiB\tsys[%.2f]MiB\tNumGC[%d]\tgot[%d]",
-			s.totalConnectionsCount.Load(),
-			s.activeConnectionsCount.Load(),
-			s.totalHandlingCount.Load(),
-			s.activeHandlingCount.Load(),
-			totalAllocMiB,
-			allocMiB,
-			sysMiB,
-			numGC,
-			numGoroutine,
-		),
-	)
+	statData := struct {
+		Date        string
+		Connections struct {
+			Total  uint64
+			Active int64
+		}
+		Handling struct {
+			Total  uint64
+			Active int64
+		}
+		Memory struct {
+			TotalAllocMiB float32
+			AllocMiB      float32
+			SysMiB        float32
+		}
+		NumGC        uint64
+		NumGoroutine uint64
+	}{
+		Date: time.Now().Format("2006-01-02 15:04:05.000"),
+		Connections: struct {
+			Total  uint64
+			Active int64
+		}{
+			Total:  s.totalConnectionsCount.Load(),
+			Active: s.activeConnectionsCount.Load(),
+		},
+		Handling: struct {
+			Total  uint64
+			Active int64
+		}{
+			Total:  s.totalHandlingCount.Load(),
+			Active: s.activeHandlingCount.Load(),
+		},
+		Memory: struct {
+			TotalAllocMiB float32
+			AllocMiB      float32
+			SysMiB        float32
+		}{
+			TotalAllocMiB: totalAllocMiB,
+			AllocMiB:      allocMiB,
+			SysMiB:        sysMiB,
+		},
+		NumGC:        numGC,
+		NumGoroutine: numGoroutine,
+	}
+
+	jsonData, err := json.MarshalIndent(statData, "", "  ")
+
+	if err != nil {
+		slog.Error("Failed to marshal stats to JSON: " + err.Error())
+		return
+	}
+
+	err = os.WriteFile("storage/stats.json", jsonData, 0644)
+
+	if err != nil {
+		slog.Error("Failed to write stats to storage/stats.json: " + err.Error())
+	}
 }
 
 func (s *Server) stop() {
