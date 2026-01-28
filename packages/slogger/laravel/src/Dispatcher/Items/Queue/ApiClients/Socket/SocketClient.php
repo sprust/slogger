@@ -7,6 +7,7 @@ namespace SLoggerLaravel\Dispatcher\Items\Queue\ApiClients\Socket;
 use Illuminate\Support\Carbon;
 use SLoggerLaravel\Dispatcher\Items\Queue\ApiClients\ApiClientInterface;
 use SLoggerLaravel\Objects\TracesObject;
+use Throwable;
 
 class SocketClient implements ApiClientInterface
 {
@@ -65,9 +66,17 @@ class SocketClient implements ApiClientInterface
             return;
         }
 
-        $this->connection->write(
-            json_encode($payload)
-        );
+        $payloadJson = json_encode($payload);
+
+        try {
+            $this->connection->write($payloadJson);
+        } catch (Throwable) {
+            $this->connection->connect(
+                apiToken: $this->apiToken
+            );
+
+            $this->connection->write($payloadJson);
+        }
     }
 
     protected function connectIfNeed(): void
