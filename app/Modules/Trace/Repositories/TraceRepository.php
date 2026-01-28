@@ -48,7 +48,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
      */
     public function freshManyByCreatingUpdatingBuffers(array $creating, array $updating): void
     {
-        if (count($creating) !== 0 && count($updating) !== 0) {
+        if (count($creating) === 0 && count($updating) === 0) {
             return;
         }
 
