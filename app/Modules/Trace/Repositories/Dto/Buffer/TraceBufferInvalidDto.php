@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\Trace\Repositories\Dto\Trace;
+namespace App\Modules\Trace\Repositories\Dto\Buffer;
 
 readonly class TraceBufferInvalidDto
 {

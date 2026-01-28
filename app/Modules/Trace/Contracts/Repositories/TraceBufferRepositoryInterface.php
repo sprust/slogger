@@ -6,7 +6,7 @@ namespace App\Modules\Trace\Contracts\Repositories;
 
 use App\Modules\Trace\Parameters\TraceCreateParameters;
 use App\Modules\Trace\Parameters\TraceUpdateParameters;
-use App\Modules\Trace\Repositories\Dto\Trace\TraceBuffersDto;
+use App\Modules\Trace\Repositories\Dto\Buffer\TraceBuffersDto;
 
 interface TraceBufferRepositoryInterface
 {

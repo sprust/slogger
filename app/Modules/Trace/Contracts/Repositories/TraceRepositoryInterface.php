@@ -7,14 +7,22 @@ namespace App\Modules\Trace\Contracts\Repositories;
 use App\Modules\Trace\Entities\Trace\TraceCollectionNameObjects;
 use App\Modules\Trace\Entities\Trace\TraceIndexInfoObject;
 use App\Modules\Trace\Parameters\Data\TraceDataFilterParameters;
+use App\Modules\Trace\Repositories\Dto\Buffer\CreatingTraceBufferDto;
+use App\Modules\Trace\Repositories\Dto\Buffer\TraceBufferDto;
+use App\Modules\Trace\Repositories\Dto\Buffer\UpdatingTraceBufferDto;
 use App\Modules\Trace\Repositories\Dto\DynamicIndex\TraceDynamicIndexFieldDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Profiling\TraceProfilingDto;
-use App\Modules\Trace\Repositories\Dto\Trace\TraceBufferDto;
 use App\Modules\Trace\Repositories\Dto\Trace\TraceDto;
 use Illuminate\Support\Carbon;
 
 interface TraceRepositoryInterface
 {
+    /**
+     * @param CreatingTraceBufferDto[] $creating
+     * @param UpdatingTraceBufferDto[] $updating
+     */
+    public function freshManyByCreatingUpdatingBuffers(array $creating, array $updating): void;
+
     /**
      * @param TraceBufferDto[] $traceBuffers
      */

@@ -25,10 +25,10 @@ readonly class StartTraceBufferHandlingAction implements StartTraceBufferHandlin
     {
         $output->writeln('Start trace buffer handling');
 
-        $totalCount         = 0;
-        $totalInsertedCount = 0;
-        $totalSkippedCount  = 0;
-        $totalInvalidCount  = 0;
+        $totalCount        = 0;
+        $totalHandledCount = 0;
+        $totalSkippedCount = 0;
+        $totalInvalidCount = 0;
 
         $processKey = $this->monitorTraceBufferHandlingService->startProcess();
 
@@ -45,16 +45,19 @@ readonly class StartTraceBufferHandlingAction implements StartTraceBufferHandlin
 
             $traces = $this->traceBufferRepository->findForHandling(
                 page: 1,
-                perPage: 20,
+                perPage: 100,
             );
 
-            $currentTracesCount  = count($traces->traces);
+            $currentTracesCount = count($traces->traces)
+                + count($traces->creatingTraces)
+                + count($traces->updatingTraces);
+
             $currentInvalidCount = count($traces->invalidTraces);
 
             $currentTotalCount = $currentTracesCount + $currentInvalidCount;
 
             if ($currentTotalCount === 0) {
-                usleep(100);
+                usleep(500);
 
                 continue;
             }
@@ -67,7 +70,7 @@ readonly class StartTraceBufferHandlingAction implements StartTraceBufferHandlin
             $handledBufferIds    = [];
             $processingBufferIds = [];
 
-            if (count($traces->traces) > 0) {
+            if ($currentTracesCount > 0) {
                 foreach ($traces->traces as $trace) {
                     if ($trace->inserted && $trace->updated) {
                         $handledBufferIds[] = $trace->id;
@@ -87,6 +90,15 @@ readonly class StartTraceBufferHandlingAction implements StartTraceBufferHandlin
                 }
             }
 
+            $this->traceRepository->freshManyByCreatingUpdatingBuffers(
+                creating: $traces->creatingTraces,
+                updating: $traces->updatingTraces,
+            );
+
+            foreach (array_merge($traces->creatingTraces, $traces->updatingTraces) as $trace) {
+                $handledBufferIds[] = $trace->id;
+            }
+
             if (count($traces->invalidTraces) > 0) {
                 $this->traceBufferInvalidRepository->createMany(
                     invalidTraceBuffers: $traces->invalidTraces
@@ -97,7 +109,11 @@ readonly class StartTraceBufferHandlingAction implements StartTraceBufferHandlin
                 }
             }
 
-            if (count($handledBufferIds)) {
+            $handledCount = count($handledBufferIds);
+
+            $totalHandledCount += $handledCount;
+
+            if ($handledCount) {
                 $deletedCount += $this->traceBufferRepository->delete(
                     ids: $handledBufferIds
                 );
@@ -106,9 +122,9 @@ readonly class StartTraceBufferHandlingAction implements StartTraceBufferHandlin
             // TODO: statistic
             $output->writeln(
                 sprintf(
-                    'tot: %d, ins: %d, sk: %d, inv: %d, del: %d',
+                    'tot: %d, hand: %d, sk: %d, inv: %d, del: %d',
                     $totalCount,
-                    $totalInsertedCount,
+                    $totalHandledCount,
                     $totalSkippedCount,
                     $totalInvalidCount,
                     $deletedCount

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\Trace\Repositories\Dto\Trace;
+namespace App\Modules\Trace\Repositories\Dto\Buffer;
 
 use Illuminate\Support\Carbon;
 use MongoDB\BSON\UTCDateTime;

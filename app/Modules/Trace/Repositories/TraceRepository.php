@@ -6,13 +6,16 @@ namespace App\Modules\Trace\Repositories;
 
 use App\Models\Traces\TraceDynamicIndex;
 use App\Modules\Trace\Contracts\Repositories\TraceRepositoryInterface;
+use App\Modules\Trace\Domain\Services\TraceTimestampMetricsFactory;
 use App\Modules\Trace\Entities\Trace\TraceCollectionNameObjects;
 use App\Modules\Trace\Entities\Trace\TraceIndexInfoObject;
 use App\Modules\Trace\Parameters\Data\TraceDataFilterParameters;
+use App\Modules\Trace\Repositories\Dto\Buffer\CreatingTraceBufferDto;
+use App\Modules\Trace\Repositories\Dto\Buffer\TraceBufferDto;
+use App\Modules\Trace\Repositories\Dto\Buffer\UpdatingTraceBufferDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Profiling\TraceProfilingDataDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Profiling\TraceProfilingDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Profiling\TraceProfilingItemDto;
-use App\Modules\Trace\Repositories\Dto\Trace\TraceBufferDto;
 use App\Modules\Trace\Repositories\Dto\Trace\TraceDto;
 use App\Modules\Trace\Repositories\Services\PeriodicTraceCollectionNameService;
 use App\Modules\Trace\Repositories\Services\PeriodicTraceService;
@@ -34,7 +37,167 @@ readonly class TraceRepository implements TraceRepositoryInterface
         private PeriodicTraceCollectionNameService $periodicTraceCollectionNameService,
         private TracePipelineBuilder $tracePipelineBuilder,
         private PeriodicTraceService $periodicTraceService,
-    ) {
+        private TraceTimestampMetricsFactory $timestampMetricsFactory, // TODO: layer corruption
+    )
+    {
+    }
+
+    /**
+     * @param CreatingTraceBufferDto[] $creating
+     * @param UpdatingTraceBufferDto[] $updating
+     */
+    public function freshManyByCreatingUpdatingBuffers(array $creating, array $updating): void
+    {
+        if (count($creating) !== 0 && count($updating) !== 0) {
+            return;
+        }
+
+        /**
+         * @var array<string, (CreatingTraceBufferDto|UpdatingTraceBufferDto)[]> $collectionNameBuffers
+         */
+        $collectionNameBuffers = [];
+
+        foreach (array_merge($creating, $updating) as $buffer) {
+            if ($buffer instanceof CreatingTraceBufferDto) {
+                $collectionName = $this->periodicTraceCollectionNameService->newByDatetime(
+                    datetime: $buffer->loggedAt
+                );
+            } else {
+                $collectionName = $this->periodicTraceCollectionNameService->newByDatetime(
+                    datetime: $buffer->parentLoggedAt
+                );
+            }
+
+            $collectionNameBuffers[$collectionName]   ??= [];
+            $collectionNameBuffers[$collectionName][] = $buffer;
+        }
+
+        $waitGroup = WaitGroup::create();
+
+        foreach ($collectionNameBuffers as $collectionName => $buffers) {
+            $buffersGroups = [];
+
+            foreach ($buffers as $buffer) {
+                $buffersGroups[$buffer->serviceId]                   ??= [];
+                $buffersGroups[$buffer->serviceId][$buffer->traceId] ??= [];
+
+                if ($buffer instanceof CreatingTraceBufferDto) {
+                    $buffersGroups[$buffer->serviceId][$buffer->traceId]['c'] = $buffer;
+                } else {
+                    $buffersGroups[$buffer->serviceId][$buffer->traceId]['u'] = $buffer;
+                }
+            }
+
+            $now = new UTCDateTime();
+
+            foreach ($buffersGroups as $serviceId => $buffersGroup) {
+                foreach ($buffersGroup as $traceId => $tracesData) {
+                    $waitGroup->add(
+                        function () use ($collectionName, $serviceId, $traceId, $tracesData, $now) {
+                            /** @var CreatingTraceBufferDto|null $creatingTraceBuffer */
+                            $creatingTraceBuffer = $tracesData['c'] ?? null;
+                            /** @var UpdatingTraceBufferDto|null $updatingTraceBuffer */
+                            $updatingTraceBuffer = $tracesData['u'] ?? null;
+
+                            if ($creatingTraceBuffer === null && $updatingTraceBuffer === null) {
+                                return;
+                            }
+
+                            $loggedAt = $updatingTraceBuffer?->parentLoggedAt ?: $creatingTraceBuffer->loggedAt;
+
+                            $collection = $this->periodicTraceService->initCollectionByName($collectionName);
+
+                            $filter = [
+                                'sid' => $serviceId,
+                                'tid' => $traceId,
+                            ];
+
+                            $existsTrace = $collection->findOne($filter) ?: [];
+
+                            // parent trace id
+                            $parentTraceId = $existsTrace['ptid'] ?? null;
+                            $parentTraceId = $parentTraceId ?: $creatingTraceBuffer?->parentTraceId;
+
+                            // type
+                            $type = $creatingTraceBuffer?->type ?: ($existsTrace['tp'] ?? '__UNKNOWN');
+
+                            // status
+                            $status = ($updatingTraceBuffer?->status !== null)
+                                ? $updatingTraceBuffer->status
+                                : ($existsTrace['st'] ?? $creatingTraceBuffer->status);
+
+                            // tags
+                            $tags = ($updatingTraceBuffer?->tags !== null)
+                                ? $this->prepareTagsForSave($updatingTraceBuffer->tags)
+                                : ($existsTrace['tgs'] ?? $this->prepareTagsForSave($creatingTraceBuffer?->tags ?: []));
+
+                            // data
+                            $data = ($updatingTraceBuffer?->data !== null)
+                                ? $this->prepareData($updatingTraceBuffer->data)
+                                : ($existsTrace['dt'] ?? $this->prepareData($creatingTraceBuffer?->data ?: []));
+
+                            // duration
+                            $duration = ($updatingTraceBuffer?->duration !== null)
+                                ? $updatingTraceBuffer->duration
+                                : ($existsTrace['dur'] ?? $creatingTraceBuffer?->duration);
+
+                            // memory
+                            $memory = ($updatingTraceBuffer?->memory !== null)
+                                ? $updatingTraceBuffer->memory
+                                : ($existsTrace['mem'] ?? $creatingTraceBuffer?->memory);
+
+                            // cpu
+                            $cpu = ($updatingTraceBuffer?->cpu !== null)
+                                ? $updatingTraceBuffer->cpu
+                                : ($existsTrace['cpu'] ?? $creatingTraceBuffer?->cpu);
+
+                            // timestamps
+                            $timestamps = $existsTrace['tss'] ?? null;
+
+                            if ($timestamps === null) {
+                                $timestamps = [];
+
+                                $timestampMetrics = $this->timestampMetricsFactory->makeMetricsByDate($loggedAt);
+
+                                foreach ($timestampMetrics as $timestamp) {
+                                    $timestamps[$timestamp->key] = new UTCDateTime($timestamp->value);
+                                }
+                            }
+
+                            $document = [
+                                ...$filter,
+                                'ptid' => $parentTraceId,
+                                'tp'   => $type,
+                                'st'   => $status,
+                                'tgs'  => $tags,
+                                'dt'   => $data,
+                                'dur'  => $duration,
+                                'mem'  => $memory,
+                                'cpu'  => $cpu,
+                                'tss'  => $timestamps,
+                                'lat'  => new UTCDateTime($loggedAt),
+                                'hpr'  => false,
+                                'pr'   => [],
+                                'uat'  => $now,
+                            ];
+
+                            $collection->updateOne(
+                                filter: $filter,
+                                update: [
+                                    '$set'         => $document,
+                                    '$setOnInsert' => [
+                                        'cat' => $now,
+                                    ],
+                                ],
+                                upsert: true
+                            );
+                        }
+                    );
+                }
+            }
+        }
+
+        $waitGroup->waitAll();
     }
 
     public function freshManyByBuffers(array $traceBuffers): void
