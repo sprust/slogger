@@ -11,6 +11,7 @@ use SConcur\Exceptions\ResponseIsNotJsonException;
 use SConcur\Exceptions\UnexpectedResponseFormatException;
 use Throwable;
 
+// TODO: reconnect
 class Connection
 {
     /**
@@ -22,20 +23,14 @@ class Connection
 
     protected bool $connected = false;
 
-    protected string $socketAddress = '';
-
     protected int $lengthPrefixLength = 4;
 
-    /**
-     * @param string[] $socketAddresses
-     */
+    protected int $timeoutSeconds = 5;
+
     public function __construct(
-        protected array $socketAddresses,
+        protected string $socketAddress,
         protected LoggerInterface $logger,
     ) {
-        if (count($socketAddresses) === 0) {
-            throw new RuntimeException('No socket addresses provided');
-        }
     }
 
     /**
@@ -48,77 +43,58 @@ class Connection
             't' => $apiToken,
         ]);
 
-        foreach ($this->socketAddresses as $socketAddress) {
-            $this->disconnect();
+        $this->disconnect();
 
-            $errorString = '';
+        $errorString = '';
 
-            try {
-                $socket = @stream_socket_client(
-                    address: $socketAddress,
-                    error_code: $errno,
-                    error_message: $errorString,
-                    timeout: 2.0,
-                );
-            } catch (Throwable $exception) {
-                $this->logger->error(
-                    sprintf(
-                        '%s: %s%s',
-                        $socketAddress,
-                        ($errorString ? "socket error: $errorString, message: " : ''),
-                        $exception->getMessage()
-                    )
-                );
-
-                continue;
-            }
-
-            if (!$socket) {
-                $this->logger->error(
-                    sprintf(
-                        '%s: %s',
-                        $socketAddress,
-                        ($errorString ? "socket error: $errorString" : 'unknown error')
-                    )
-                );
-
-                continue;
-            }
-
-            socket_set_blocking($socket, false);
-
-            $this->socket        = $socket;
-            $this->connected     = true;
-            $this->socketAddress = $socketAddress;
-
-            $this->write(
-                payload: $payload
+        try {
+            $socket = @stream_socket_client(
+                address: $this->socketAddress,
+                error_code: $errno,
+                error_message: $errorString,
+                timeout: 2.0,
             );
-
-            try {
-                $response = $this->read();
-            } catch (Throwable) {
-                $this->disconnect();
-
-                continue;
-            }
-
-            if ($response !== 'ok') {
-                $this->logger->error(
-                    "failed to connect to [$socketAddress]: $response"
-                );
-
-                $this->disconnect();
-
-                continue;
-            }
-
-            $this->logger->debug(
-                "connected to [$socketAddress]"
+        } catch (Throwable $exception) {
+            throw new RuntimeException(
+                sprintf(
+                    '%s: %s%s',
+                    $this->socketAddress,
+                    ($errorString ? "socket error: $errorString, message: " : ''),
+                    $exception->getMessage()
+                )
             );
-
-            return;
         }
+
+        if (!$socket) {
+            throw new RuntimeException(
+                sprintf(
+                    '%s: %s',
+                    $this->socketAddress,
+                    ($errorString ? "socket error: $errorString" : 'unknown error')
+                )
+            );
+        }
+
+        socket_set_blocking($socket, false);
+
+        $this->socket    = $socket;
+        $this->connected = true;
+
+        $this->write(
+            payload: $payload
+        );
+
+        $response = $this->read();
+
+        if ($response !== 'ok') {
+            throw new RuntimeException(
+                "auth failed to [$this->socketAddress]: $response"
+            );
+        }
+
+        $this->logger->debug(
+            "connected to [$this->socketAddress]"
+        );
     }
 
     public function disconnect(): void
@@ -127,9 +103,8 @@ class Connection
             fclose($this->socket);
         }
 
-        $this->socket        = null;
-        $this->connected     = false;
-        $this->socketAddress = '';
+        $this->socket    = null;
+        $this->connected = false;
     }
 
     public function isConnected(): bool
@@ -148,6 +123,8 @@ class Connection
         $sentBytes  = 0;
         $bufferSize = $this->socketBufferSize;
 
+        $timeout = null;
+
         while ($sentBytes < $bufferLength) {
             $chunk = substr($buffer, $sentBytes, $bufferSize);
 
@@ -164,9 +141,22 @@ class Connection
             }
 
             if ($bytes === false) {
-                // TODO: check timeout
-                continue;
+                if ($timeout === null) {
+                    $timeout = time();
+
+                    continue;
+                }
+
+                if ((time() - $timeout) < $this->timeoutSeconds) {
+                    continue;
+                }
+
+                throw new RuntimeException(
+                    'Failed to write to socket by timeout'
+                );
             }
+
+            $timeout = null;
 
             $sentBytes += $bytes;
         }
@@ -180,6 +170,8 @@ class Connection
 
         $lengthHeader = '';
 
+        $timeout = null;
+
         while (strlen($lengthHeader) < 4) {
             try {
                 $chunk = fread(
@@ -192,10 +184,23 @@ class Connection
                 );
             }
 
-            if ($chunk === false || $chunk === '') {
-                // TODO: check timeout
-                continue;
+            if (!$chunk) {
+                if ($timeout === null) {
+                    $timeout = time();
+
+                    continue;
+                }
+
+                if ((time() - $timeout) < $this->timeoutSeconds) {
+                    continue;
+                }
+
+                throw new RuntimeException(
+                    'Failed to read from socket by timeout'
+                );
             }
+
+            $timeout = null;
 
             $lengthHeader .= $chunk;
         }
@@ -204,17 +209,31 @@ class Connection
         $dataLength = unpack('N', $lengthHeader)[1];
         $bufferSize = $this->socketBufferSize;
 
+        $timeout = null;
+
         while (strlen($response) < $dataLength) {
             $chunk = fread(
                 stream: $socket,
                 length: min($bufferSize, $dataLength - strlen($response))
             );
 
-            if ($chunk === false || $chunk === '') {
-                // TODO: check timeout
+            if (!$chunk) {
+                if ($timeout === null) {
+                    $timeout = time();
 
-                continue;
+                    continue;
+                }
+
+                if ((time() - $timeout) < $this->timeoutSeconds) {
+                    continue;
+                }
+
+                throw new RuntimeException(
+                    'Failed to read from socket by timeout'
+                );
             }
+
+            $timeout = null;
 
             $response .= $chunk;
         }

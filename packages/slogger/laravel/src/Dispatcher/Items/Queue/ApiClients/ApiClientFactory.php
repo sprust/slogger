@@ -58,9 +58,7 @@ readonly class ApiClientFactory
         return new SocketClient(
             apiToken: $this->apiToken,
             connection: new Connection(
-                socketAddresses: [
-                    $this->queueConfig->getSocketClientUrl(),
-                ],
+                socketAddress: $this->queueConfig->getSocketClientUrl(),
                 logger: Log::channel(
                     $this->config->getLogChannel()
                 )
