@@ -4,6 +4,9 @@ PHP_FPM_CLI="docker-compose exec $(PHP_FPM_SERVICE) "
 WORKERS_SERVICE="workers"
 WORKERS_CLI="docker-compose exec $(WORKERS_SERVICE) "
 
+RECEIVER_SERVICE="receiver"
+RECEIVER_CLI="docker-compose exec $(RECEIVER_SERVICE) "
+
 FRONTEND_SERVICE="frontend"
 FRONTEND_CLI="docker-compose run --rm $(FRONTEND_SERVICE) "
 
@@ -17,6 +20,7 @@ endif
 
 env-copy:
 	cp -i .env.example .env
+	cp -i servers/receiver/.env.example servers/receiver/.env
 	cp -i frontend/.env.example frontend/.env
 
 setup:
@@ -67,6 +71,9 @@ code-analise:
 
 bash-workers:
 	@"$(WORKERS_CLI)"bash
+
+bash-receiver:
+	@"$(RECEIVER_CLI)"bash
 
 bash-frontend:
 	@"$(FRONTEND_CLI)"sh

@@ -76,6 +76,29 @@ services:
       - "host.docker.internal:host-gateway"
     command: supervisord -n
 
+  receiver:
+    container_name: sl-receiver
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: ./docker/receiver/Dockerfile
+      args:
+        - GROUP_ID=${DOCKER_GROUP_ID}
+        - USER_ID=${DOCKER_USER_ID}
+        - BUILD_TIME=${BUILD_TIME:-1}
+    depends_on:
+      mysql:
+        condition: service_started
+      mongo:
+        condition: service_started
+    ports:
+      - ${RECIEVER_SOCKET_DOCKER_PORT:-19040}:${RECIEVER_SOCKET_PORT:-9040}
+    volumes:
+      - ./servers/receiver/.env:/app/.env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    command: /app/bin/receiver
+
   mysql:
     container_name: sl-mysql
     restart: unless-stopped
