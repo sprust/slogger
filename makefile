@@ -134,3 +134,6 @@ frontend-npm-build:
 
 frontend-npm-generate:
 	"$(FRONTEND_CLI)"npm run generate
+
+receiver-monitor:
+	make art c=receiver:monitor

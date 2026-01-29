@@ -140,6 +140,7 @@ return [
                 'trace-buffer:handle:start',
                 'slogger:dispatcher:start',
                 'trace-dynamic-indexes:monitor:start',
+                'receiver:monitor'
             ],
         ],
 
