@@ -109,7 +109,7 @@ The queue dispatcher works like the Horizon (master and children processes of qu
 storage/slogger-dispatcher-state*
 ```
 
-## Profiling (only for a http client)
+## Profiling (only for an http client)
 
 bash
 ```bash
