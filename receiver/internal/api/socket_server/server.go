@@ -132,6 +132,16 @@ func (s *Server) handleConnection(conn net.Conn) error {
 		_ = tr.Close()
 	}(tr)
 
+	if s.closing.Load() {
+		err := tr.Write("server_is_closing")
+
+		if err != nil {
+			return errs.Err(err)
+		}
+
+		return nil
+	}
+
 	authPayload, err := tr.Read()
 
 	var authMsg dto.AuthMessage
@@ -179,6 +189,20 @@ func (s *Server) handleConnection(conn net.Conn) error {
 			return nil
 		}
 
+		slog.Debug(fmt.Sprintf("received message with len %d", len(tracePayload)))
+
+		if s.closing.Load() {
+			slog.Debug("closing socket server by request. message skipped.")
+
+			err = tr.Write("server_is_closing")
+
+			if err != nil {
+				return errs.Err(err)
+			}
+
+			continue
+		}
+
 		s.totalHandlingCount.Add(1)
 		s.activeHandlingCount.Add(1)
 
@@ -199,6 +223,12 @@ func (s *Server) handleConnection(conn net.Conn) error {
 				slog.Error(errs.Err(err).Error())
 			}
 		}()
+
+		err = tr.Write("received")
+
+		if err != nil {
+			return errs.Err(err)
+		}
 	}
 }
 
@@ -277,10 +307,6 @@ func (s *Server) stop() {
 	s.closing.Store(true)
 	defer s.closing.Store(false)
 
-	if s.listener != nil {
-		_ = s.listener.Close()
-	}
-
 	for {
 		activeHandlingCount := s.activeHandlingCount.Load()
 
@@ -291,6 +317,10 @@ func (s *Server) stop() {
 		} else {
 			break
 		}
+	}
+
+	if s.listener != nil {
+		_ = s.listener.Close()
 	}
 
 	s.servCancel()

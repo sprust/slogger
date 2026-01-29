@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SLoggerLaravel\Dispatcher\Items\Queue\ApiClients\Socket;
 
 use Illuminate\Support\Carbon;
+use RuntimeException;
 use SLoggerLaravel\Dispatcher\Items\Queue\ApiClients\ApiClientInterface;
 use SLoggerLaravel\Objects\TracesObject;
 use Throwable;
@@ -76,6 +77,14 @@ class SocketClient implements ApiClientInterface
             );
 
             $this->connection->write($payloadJson);
+        }
+
+        $response = $this->connection->read();
+
+        if ($response !== 'received') {
+            throw new RuntimeException(
+                'Unexpected response from socket server: ' . $response
+            );
         }
     }
 
