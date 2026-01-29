@@ -76,7 +76,7 @@ func (s *Server) Run(ctx context.Context) error {
 		for {
 			select {
 			case <-ctx.Done():
-				break
+				return
 			default:
 				s.showStat()
 
@@ -179,17 +179,17 @@ func (s *Server) handleConnection(conn net.Conn) error {
 	}
 
 	for {
-		tracePayload, err := tr.Read()
+		message, err := tr.Read()
 
 		if err != nil {
 			return errs.Err(err)
 		}
 
-		if tracePayload == nil {
+		if message == nil {
 			return nil
 		}
 
-		slog.Debug(fmt.Sprintf("received message with len %d", len(tracePayload)))
+		slog.Debug(fmt.Sprintf("received message with len %d", len(message)))
 
 		if s.closing.Load() {
 			slog.Debug("closing socket server by request. message skipped.")
@@ -206,12 +206,12 @@ func (s *Server) handleConnection(conn net.Conn) error {
 		s.totalHandlingCount.Add(1)
 		s.activeHandlingCount.Add(1)
 
-		go func() {
+		go func(msg []byte) {
 			defer s.activeHandlingCount.Add(-1)
 
 			var tracesMsg dto.TracesMessage
 
-			err = json.Unmarshal(tracePayload, &tracesMsg)
+			err = json.Unmarshal(msg, &tracesMsg)
 
 			if err != nil {
 				slog.Error(errs.Err(err).Error())
@@ -222,7 +222,7 @@ func (s *Server) handleConnection(conn net.Conn) error {
 			if err != nil {
 				slog.Error(errs.Err(err).Error())
 			}
-		}()
+		}(message)
 
 		err = tr.Write("received")
 
@@ -293,6 +293,7 @@ func (s *Server) showStat() {
 
 	if err != nil {
 		slog.Error("Failed to marshal stats to JSON: " + err.Error())
+
 		return
 	}
 
