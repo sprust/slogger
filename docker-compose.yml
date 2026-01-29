@@ -95,6 +95,7 @@ services:
       - ${RECIEVER_SOCKET_DOCKER_PORT:-19040}:${RECIEVER_SOCKET_PORT:-9040}
     volumes:
       - ./servers/receiver/.env:/app/.env
+      - ./servers/receiver/storage:/app/storage
     extra_hosts:
       - "host.docker.internal:host-gateway"
     command: /app/bin/receiver
