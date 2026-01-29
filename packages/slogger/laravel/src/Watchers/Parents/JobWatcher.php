@@ -57,6 +57,9 @@ class JobWatcher extends AbstractWatcher
 
         $jobClass = $payload['displayName'] ?? null;
 
+        // TODO: universal
+        $jobClass = str_replace("\\\\", "\\", $jobClass);
+
         if (in_array($jobClass, $this->exceptedJobs)) {
             return;
         }
