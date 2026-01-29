@@ -18,7 +18,7 @@ SLOGGER_ENABLED=false
 SLOGGER_TOKEN=
 
 ## slogger.dispatcher
-# one of: queue,file
+# one of: queue, file
 SLOGGER_DISPATCHER=queue
 
 ## slogger.dispatcher.queue
@@ -109,7 +109,7 @@ The queue dispatcher works like the Horizon (master and children processes of qu
 storage/slogger-dispatcher-state*
 ```
 
-## Profiling (only for an http client)
+## Profiling (only for a http client)
 
 bash
 ```bash
