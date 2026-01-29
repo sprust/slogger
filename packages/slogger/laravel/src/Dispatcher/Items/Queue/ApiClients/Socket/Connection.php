@@ -48,7 +48,7 @@ class Connection
         $errorString = '';
 
         try {
-            $socket = @stream_socket_client(
+            $socket = stream_socket_client(
                 address: $this->socketAddress,
                 error_code: $errno,
                 error_message: $errorString,
