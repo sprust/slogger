@@ -45,10 +45,6 @@ RUN docker-php-ext-enable \
         mongodb \
         zip
 
-# grpc
-RUN apt-get update && apt-get install -y protobuf-compiler zlib1g-dev \
-    && pecl install protobuf grpc
-
 # pcntl
 RUN pecl pcntl && docker-php-ext-install pcntl
 

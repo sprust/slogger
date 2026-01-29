@@ -6,12 +6,9 @@
     "license": "MIT",
     "require": {
         "php": "^8.4",
-        "ext-grpc": "*",
         "ext-mongodb": "*",
         "ext-pdo": "*",
-        "ext-protobuf": "*",
         "ext-xhprof": "*",
-        "grpc/grpc": "^1.57",
         "guzzlehttp/guzzle": "^7.2",
         "ifksco/openapi-generator": "dev-master",
         "laravel/framework": "^12",
@@ -20,10 +17,8 @@
         "mongodb/laravel-mongodb": "^5.5",
         "mongodb/mongodb": "^1.17",
         "sconcur/sconcur": "dev-master",
-        "slogger/grpc": "dev-master",
         "slogger/laravel": "dev-master",
         "spiral/roadrunner-cli": "^2.7",
-        "spiral/roadrunner-grpc": "^3.5",
         "spiral/roadrunner-http": "^3.5",
         "sprust/rr-monitor-laravel": "dev-master",
         "vladimir-yuldashev/laravel-queue-rabbitmq": "^14.1"
@@ -43,13 +38,6 @@
         {
             "type": "path",
             "url": "packages/slogger/laravel",
-            "options": {
-                "symlink": true
-            }
-        },
-        {
-            "type": "path",
-            "url": "packages/slogger/grpc",
             "options": {
                 "symlink": true
             }

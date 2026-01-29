@@ -3,14 +3,11 @@
 namespace SLoggerLaravel\Dispatcher\Items\Queue\ApiClients;
 
 use Exception;
-use Grpc\ChannelCredentials;
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Log;
 use RuntimeException;
-use SLoggerGrpc\Services\TraceCollectorGrpcService;
 use SLoggerLaravel\Configs\DispatcherQueueConfig;
 use SLoggerLaravel\Configs\GeneralConfig;
-use SLoggerLaravel\Dispatcher\Items\Queue\ApiClients\Grpc\GrpcClient;
 use SLoggerLaravel\Dispatcher\Items\Queue\ApiClients\Http\HttpClient;
 use SLoggerLaravel\Dispatcher\Items\Queue\ApiClients\Socket\Connection;
 use SLoggerLaravel\Dispatcher\Items\Queue\ApiClients\Socket\SocketClient;
@@ -31,7 +28,6 @@ readonly class ApiClientFactory
         return match ($apiClientName) {
             'http' => $this->createHttp(),
             'socket' => $this->createSocket(),
-            'grpc' => $this->createGrpc(),
             default => throw new RuntimeException("Unknown api client [$apiClientName]"),
         };
     }
@@ -64,30 +60,5 @@ readonly class ApiClientFactory
                 )
             ),
         );
-    }
-
-    private function createGrpc(): GrpcClient
-    {
-        if (!class_exists(TraceCollectorGrpcService::class)) {
-            throw new RuntimeException(
-                'The package slogger/grpc is not installed'
-            );
-        }
-
-        $url = $this->queueConfig->getGrpcClientUrl();
-
-        try {
-            return new GrpcClient(
-                apiToken: $this->apiToken,
-                grpcService: new TraceCollectorGrpcService(
-                    hostname: $url,
-                    opts: [
-                        'credentials' => ChannelCredentials::createInsecure(),
-                    ]
-                )
-            );
-        } catch (Exception $exception) {
-            throw new RuntimeException($exception->getMessage());
-        }
     }
 }

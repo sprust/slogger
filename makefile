@@ -91,7 +91,6 @@ workers-restart:
 	make workers-art c='queue:restart'
 	make workers-art c='cron:stop'
 	make workers-art c='octane:roadrunner:reload'
-	make workers-art c='rr-monitor:stop grpc'
 	make workers-art c='rr-monitor:stop jobs'
 	make workers-art c='slogger:dispatcher:stop'
 	make workers-art c='trace-dynamic-indexes:monitor:stop'
@@ -125,16 +124,7 @@ rr-get-binary:
 	"$(WORKERS_CLI)"./vendor/bin/rr get-binary
 
 rr-workers:
-	"$(WORKERS_CLI)"./rr workers -i -o rpc.listen=tcp://$(OCTANE_RR_RPC_HOST):$(OCTANE_RR_RPC_PORT) ${p}
-
-protoc-load:
-	"$(WORKERS_CLI)"./vendor/bin/rr download-protoc-binary
-
-protoc-compile:
-	"$(WORKERS_CLI)"protoc --plugin=protoc-gen-php-grpc \
-		--php_out=./packages/slogger/grpc/generated \
-		--php-grpc_out=./packages/slogger/grpc/generated \
-		./packages/slogger/grpc/proto/*.proto
+	"$(WORKERS_CLI)"./rr workers -i -o rpc.listen=tcp://$(OCTANE_RR_RPC_HOST):$(OCTANE_RR_RPC_PORT)
 
 frontend-npm-i:
 	"$(FRONTEND_CLI)"npm i

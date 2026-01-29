@@ -6,9 +6,6 @@ parameters:
     excludePaths:
         - ../app/Console/Commands/Local
         - ../app/Models
-        - ../packages/slogger/grpc/generated
-        - ../packages/slogger/laravel/src/Dispatcher/Items/Queue/ApiClients/Grpc
-        - ../packages/slogger/laravel/src/Dispatcher/Items/Queue/ApiClients/Grpc
 
     level: 6
 
@@ -25,11 +22,6 @@ parameters:
                 - '#Property [\s\S]* type has no value type specified in iterable type array#'
 
             path: "*Resource.php"
-        -
-            path: ../app/Modules/Trace/Infrastructure/Grpc/TraceCollectorService.php
-            messages:
-                - '#Using nullsafe method call on non\-nullable type Google\\Protobuf\\#'
-                - '#Using nullsafe method call on non-nullable type SLoggerGrpcDto\\TraceCollector\\TagsObject#'
         -
             message: '#return type has no value type specified in iterable type array#'
             path: "*Request.php"
