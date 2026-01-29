@@ -206,23 +206,21 @@ func (s *Server) handleConnection(conn net.Conn) error {
 		s.totalHandlingCount.Add(1)
 		s.activeHandlingCount.Add(1)
 
-		go func(msg []byte) {
+		go func(msg []byte, serviceId int) {
 			defer s.activeHandlingCount.Add(-1)
 
 			var tracesMsg dto.TracesMessage
 
-			err = json.Unmarshal(msg, &tracesMsg)
-
-			if err != nil {
+			if err := json.Unmarshal(msg, &tracesMsg); err != nil {
 				slog.Error(errs.Err(err).Error())
+
+				return
 			}
 
-			err = s.bufferService.Save(s.servContext, serviceId, &tracesMsg)
-
-			if err != nil {
+			if err := s.bufferService.Save(s.servContext, serviceId, &tracesMsg); err != nil {
 				slog.Error(errs.Err(err).Error())
 			}
-		}(message)
+		}(message, serviceId)
 
 		err = tr.Write("received")
 

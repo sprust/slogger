@@ -2,9 +2,17 @@ package transport
 
 import (
 	"encoding/binary"
+	"fmt"
 	"io"
 	"net"
 	"slogger_receiver/pkg/foundation/errs"
+	"time"
+)
+
+const (
+	maxPayloadSize = 10 * 1024 * 1024 // 10 mb
+	readTimeout    = 30 * time.Second
+	writeTimeout   = 30 * time.Second
 )
 
 type Transport struct {
@@ -20,6 +28,10 @@ func NewTransport(conn net.Conn) *Transport {
 func (t *Transport) Read() ([]byte, error) {
 	sizeBuf := make([]byte, 4)
 
+	if err := t.conn.SetReadDeadline(time.Now().Add(readTimeout)); err != nil {
+		return nil, errs.Err(err)
+	}
+
 	_, err := io.ReadFull(t.conn, sizeBuf)
 
 	if err != nil {
@@ -30,31 +42,25 @@ func (t *Transport) Read() ([]byte, error) {
 		return nil, errs.Err(err)
 	}
 
-	size := int(sizeBuf[0])<<24 | int(sizeBuf[1])<<16 | int(sizeBuf[2])<<8 | int(sizeBuf[3])
+	size := int(binary.BigEndian.Uint32(sizeBuf))
+
+	if size == 0 {
+		return []byte{}, nil
+	}
+
+	if size > maxPayloadSize {
+		return nil, errs.Err(fmt.Errorf("payload too large: %d > %d", size, maxPayloadSize))
+	}
+
+	if err := t.conn.SetReadDeadline(time.Now().Add(readTimeout)); err != nil {
+		return nil, errs.Err(err)
+	}
 
 	payload := make([]byte, size)
-	bytesRead := 0
+	_, err = io.ReadFull(t.conn, payload)
 
-	const bufferSize = 32 * 1024 // 32KB buffer
-	buffer := make([]byte, bufferSize)
-	bytesRemaining := int64(size)
-
-	for bytesRemaining > 0 {
-		bytesToRead := int64(bufferSize)
-
-		if bytesToRead > bytesRemaining {
-			bytesToRead = bytesRemaining
-		}
-
-		readBytes, err := t.conn.Read(buffer[:bytesToRead])
-
-		if err != nil {
-			return nil, errs.Err(err)
-		}
-
-		copy(payload[bytesRead:], buffer[:readBytes])
-		bytesRead += readBytes
-		bytesRemaining -= int64(readBytes)
+	if err != nil {
+		return nil, errs.Err(err)
 	}
 
 	return payload, nil
@@ -66,14 +72,30 @@ func (t *Transport) Write(payload string) error {
 	lengthBuf := make([]byte, 4)
 	binary.BigEndian.PutUint32(lengthBuf, dataLength)
 
-	_, err := t.conn.Write(
-		[]byte(
-			string(lengthBuf) + payload,
-		),
-	)
-
-	if err != nil {
+	if err := t.conn.SetWriteDeadline(time.Now().Add(writeTimeout)); err != nil {
 		return errs.Err(err)
+	}
+
+	if err := writeFull(t.conn, lengthBuf); err != nil {
+		return errs.Err(err)
+	}
+
+	if err := writeFull(t.conn, []byte(payload)); err != nil {
+		return errs.Err(err)
+	}
+
+	return nil
+}
+
+func writeFull(conn net.Conn, data []byte) error {
+	for len(data) > 0 {
+		n, err := conn.Write(data)
+
+		if err != nil {
+			return err
+		}
+
+		data = data[n:]
 	}
 
 	return nil
