@@ -6,7 +6,6 @@ namespace App\Modules\Trace\Repositories;
 
 use App\Models\Traces\TraceDynamicIndex;
 use App\Modules\Trace\Contracts\Repositories\TraceRepositoryInterface;
-use App\Modules\Trace\Domain\Services\TraceTimestampMetricsFactory;
 use App\Modules\Trace\Entities\Trace\TraceCollectionNameObjects;
 use App\Modules\Trace\Entities\Trace\TraceIndexInfoObject;
 use App\Modules\Trace\Parameters\Data\TraceDataFilterParameters;
@@ -21,6 +20,7 @@ use App\Modules\Trace\Repositories\Services\PeriodicTraceCollectionNameService;
 use App\Modules\Trace\Repositories\Services\PeriodicTraceService;
 use App\Modules\Trace\Repositories\Services\TraceDataToObjectBuilder;
 use App\Modules\Trace\Repositories\Services\TracePipelineBuilder;
+use App\Modules\Trace\Repositories\Services\TraceTimestampMetricsFactory;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use MongoDB\Driver\Command;

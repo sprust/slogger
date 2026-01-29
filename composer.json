@@ -7,6 +7,7 @@
     "require": {
         "php": "^8.4",
         "ext-mongodb": "*",
+        "ext-pcntl": "*",
         "ext-pdo": "*",
         "ext-xhprof": "*",
         "guzzlehttp/guzzle": "^7.2",

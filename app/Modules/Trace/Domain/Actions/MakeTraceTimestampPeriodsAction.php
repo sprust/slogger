@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace App\Modules\Trace\Domain\Actions;
 
 use App\Modules\Trace\Contracts\Actions\MakeTraceTimestampPeriodsActionInterface;
-use App\Modules\Trace\Domain\Services\TraceTimestampMetricsFactory;
 use App\Modules\Trace\Entities\Trace\Timestamp\TraceTimestampObject;
 use App\Modules\Trace\Entities\Trace\Timestamp\TraceTimestampPeriodObject;
 use App\Modules\Trace\Enums\TraceTimestampEnum;
 use App\Modules\Trace\Enums\TraceTimestampPeriodEnum;
+use App\Modules\Trace\Repositories\Services\TraceTimestampMetricsFactory;
 
 readonly class MakeTraceTimestampPeriodsAction implements MakeTraceTimestampPeriodsActionInterface
 {

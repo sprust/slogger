@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\Trace\Domain\Services;
+namespace App\Modules\Trace\Repositories\Services;
 
 use App\Modules\Trace\Entities\Trace\Timestamp\TraceTimestampFieldObject;
 use App\Modules\Trace\Entities\Trace\Timestamp\TraceTimestampMetricObject;

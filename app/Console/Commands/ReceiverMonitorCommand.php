@@ -20,14 +20,29 @@ class ReceiverMonitorCommand extends Command
      */
     protected $description = 'Monitor receiver';
 
+    private bool $shouldQuit = false;
+
     /**
      * Execute the console command.
      */
-    public function handle(): never
+    public function handle(): int
     {
         $fileStatsPath = base_path('servers/receiver/storage/stats.json');
 
-        while (true) {
+        pcntl_async_signals(true);
+
+        pcntl_signal(SIGINT, function () {
+            $this->warn('Received SIGINT signal, stopping receiver monitor');
+
+            $this->shouldQuit = true;
+        });
+        pcntl_signal(SIGTERM, function () {
+            $this->warn('Received SIGINT signal, stopping receiver monitor');
+
+            $this->shouldQuit = true;
+        });
+
+        while (!$this->shouldQuit) {
             system('clear');
 
             $this->info('Receiver monitor:');
@@ -43,5 +58,7 @@ class ReceiverMonitorCommand extends Command
 
             sleep(1);
         }
+
+        return self::SUCCESS;
     }
 }
