@@ -47,12 +47,6 @@ class QueuesDeclareCommand extends Command
             }
         }
 
-        if (config('slogger.dispatchers.default') === 'transporter') {
-            if (config('slogger.dispatchers.transporter.queue.connection') === 'rabbitmq') {
-                $rabbitmqQueueNames[] = config('slogger.dispatchers.transporter.queue.name');
-            }
-        }
-
         if (empty($rabbitmqQueueNames)) {
             $this->error('No queues found.');
 

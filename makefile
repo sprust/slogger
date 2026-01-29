@@ -24,20 +24,19 @@ env-copy:
 	cp -i frontend/.env.example frontend/.env
 
 setup:
-	@make env-copy
-	@docker-compose stop
-	@docker-compose down
+	make env-copy
+	docker-compose stop
+	docker-compose down
 	make build
-	@make up
-	@make composer c=install
-	@make art c=key:generate
-	@make art c="migrate --force"
-	@make workers-art c='queues-declare'
-	@make rr-get-binary
-	@make strans-load
-	@make frontend-npm-i
-	@make frontend-npm-build
-	@make restart
+	make up
+	make composer c=install
+	make art c=key:generate
+	make art c="migrate --force"
+	make workers-art c='queues-declare'
+	make rr-get-binary
+	make frontend-npm-i
+	make frontend-npm-build
+	make restart
 
 build:
 	BUILD_TIME=$(shell date +%s) docker-compose build
@@ -145,15 +144,3 @@ frontend-npm-build:
 
 frontend-npm-generate:
 	@"$(FRONTEND_CLI)"npm run generate
-
-strans-load:
-	@make workers-art c='slogger:transporter:load'
-
-strans-start:
-	@make workers-art c='slogger:transporter:start'
-
-strans-stat:
-	@make workers-art c='slogger:transporter:stat'
-
-strans-stop:
-	@make workers-art c='slogger:transporter:stop'
