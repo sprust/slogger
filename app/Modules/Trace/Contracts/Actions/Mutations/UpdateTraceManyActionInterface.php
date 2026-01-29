@@ -8,5 +8,5 @@ use App\Modules\Trace\Parameters\TraceUpdateParametersList;
 
 interface UpdateTraceManyActionInterface
 {
-    public function handle(TraceUpdateParametersList $parametersList): int;
+    public function handle(TraceUpdateParametersList $parametersList): void;
 }

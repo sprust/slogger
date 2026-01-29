@@ -15,11 +15,6 @@ class StartRoadRunnerCommand extends \Laravel\Octane\Commands\StartRoadRunnerCom
                     {--rpc-host= : The RPC IP address the server should bind to}
                     {--rpc-port= : The RPC port the server should be available on}
 
-                    {--grpc-host= : The GRPC IP address the server should bind to}
-                    {--grpc-port= : The GRPC port the server should be available on}
-                    {--grpc-workers= : The number of workers that should be available to handle requests}
-                    {--grpc-max-requests=500 : The number of requests to process before reloading the server}
-
                     {--workers=auto : The number of workers that should be available to handle requests}
                     {--max-requests=500 : The number of requests to process before reloading the server}
                     {--rr-config= : The path to the RoadRunner .rr.yaml file}
@@ -60,14 +55,6 @@ class StartRoadRunnerCommand extends \Laravel\Octane\Commands\StartRoadRunnerCom
             'http.pool.num_workers=' . $this->workerCount(),
             'http.pool.max_jobs=' . $this->option('max-requests'),
             'rpc.listen=tcp://' . $this->rpcHost() . ':' . $this->rpcPort(),
-
-            // Thx Taylor for good code
-            'grpc.listen=tcp://' . $this->grpcHost() . ':' . $this->grpcPort(),
-            'grpc.proto=' . base_path('packages/slogger/grpc/proto/*.proto'),
-            'grpc.pool.command=' . base_path('grpc/rr-grpc-worker.php'),
-            'grpc.pool.num_workers=' . $this->option('grpc-workers'),
-            'grpc.pool.max_jobs=' . $this->option('grpc-max-requests'),
-
             'http.pool.supervisor.exec_ttl=' . $this->maxExecutionTime(),
             'http.static.dir=' . public_path(),
             'http.middleware=' . config('octane.roadrunner.http_middleware', 'static'),
@@ -105,15 +92,5 @@ class StartRoadRunnerCommand extends \Laravel\Octane\Commands\StartRoadRunnerCom
         $serverStateFile->writeProcessId($process->getPid());
 
         return $this->runServer($process, $inspector, 'roadrunner');
-    }
-
-    protected function grpcHost(): string
-    {
-        return $this->option('grpc-host') ?: $this->getHost();
-    }
-
-    protected function grpcPort(): int
-    {
-        return ((int) $this->option('grpc-port')) ?: ((int) $this->getPort()) - 2999;
     }
 }

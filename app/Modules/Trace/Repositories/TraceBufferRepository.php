@@ -8,10 +8,13 @@ use App\Modules\Trace\Contracts\Repositories\TraceBufferRepositoryInterface;
 use App\Modules\Trace\Entities\Trace\Timestamp\TraceTimestampMetricObject;
 use App\Modules\Trace\Parameters\TraceCreateParameters;
 use App\Modules\Trace\Parameters\TraceUpdateParameters;
-use App\Modules\Trace\Repositories\Dto\Trace\TraceBufferDto;
-use App\Modules\Trace\Repositories\Dto\Trace\TraceBufferInvalidDto;
-use App\Modules\Trace\Repositories\Dto\Trace\TraceBuffersDto;
+use App\Modules\Trace\Repositories\Dto\Buffer\CreatingTraceBufferDto;
+use App\Modules\Trace\Repositories\Dto\Buffer\TraceBufferDto;
+use App\Modules\Trace\Repositories\Dto\Buffer\TraceBufferInvalidDto;
+use App\Modules\Trace\Repositories\Dto\Buffer\TraceBuffersDto;
+use App\Modules\Trace\Repositories\Dto\Buffer\UpdatingTraceBufferDto;
 use Illuminate\Support\Carbon;
+use MongoDB\BSON\ObjectId;
 use MongoDB\BSON\UTCDateTime;
 use MongoDB\Collection;
 use stdClass;
@@ -20,7 +23,7 @@ use Throwable;
 readonly class TraceBufferRepository implements TraceBufferRepositoryInterface
 {
     public function __construct(
-        private Collection $collection
+        private Collection $collection,
     ) {
     }
 
@@ -84,7 +87,7 @@ readonly class TraceBufferRepository implements TraceBufferRepositoryInterface
             'tid' => $trace->traceId,
         ];
 
-        $existTrace = $this->collection->findOne($filter) ?? [];
+        $existTrace = $this->collection->findOne($filter) ?: [];
 
         $hasExistsTrace = count($existTrace) > 0;
 
@@ -125,8 +128,8 @@ readonly class TraceBufferRepository implements TraceBufferRepositoryInterface
         }
 
         $result = $this->collection->updateOne(
-            $filter,
-            [
+            filter: $filter,
+            update: [
                 '$set' => [
                     'st'     => $trace->status,
                     ...(is_null($trace->tags)
@@ -173,6 +176,11 @@ readonly class TraceBufferRepository implements TraceBufferRepositoryInterface
                 '$match' => [
                     '$or' => [
                         [
+                            'op' => [
+                                '$in' => ['c', 'u'],
+                            ],
+                        ],
+                        [
                             '__ins' => true,
                             '__upd' => true,
                         ],
@@ -184,7 +192,7 @@ readonly class TraceBufferRepository implements TraceBufferRepositoryInterface
             ],
             [
                 '$sort' => [
-                    'lat' => 1,
+                    'cat' => 1,
                 ],
             ],
             [
@@ -199,35 +207,44 @@ readonly class TraceBufferRepository implements TraceBufferRepositoryInterface
 
         /** @var TraceBufferDto[] $result */
         $result = [];
-
+        /** @var CreatingTraceBufferDto[] $creatingTraces */
+        $creatingTraces = [];
+        /** @var UpdatingTraceBufferDto[] $updatingTraces */
+        $updatingTraces = [];
         /** @var TraceBufferInvalidDto[] $invalidTraces */
         $invalidTraces = [];
 
         foreach ($cursor as $document) {
             try {
-                $loggedAt = $document['lat'] ?? new UTCDateTime();
+                $traceBuffer = $this->documentToTraceBuffers($document);
 
-                $result[] = new TraceBufferDto(
+                if ($traceBuffer !== null) {
+                    $result[] = $traceBuffer;
+
+                    continue;
+                }
+
+                $creatingTrace = $this->documentToCreating($document);
+
+                if ($creatingTrace !== null) {
+                    $creatingTraces[] = $creatingTrace;
+
+                    continue;
+                }
+
+                $updatingTrace = $this->documentToUpdating($document);
+
+                if ($updatingTrace !== null) {
+                    $updatingTraces[] = $updatingTrace;
+
+                    continue;
+                }
+
+                $invalidTraces[] = new TraceBufferInvalidDto(
                     id: (string) $document['_id'],
-                    serviceId: $document['sid'],
-                    traceId: $document['tid'],
-                    parentTraceId: $document['ptid'],
-                    type: $document['tp'] ?? 'unknown',
-                    status: $document['st'],
-                    tags: $document['tgs'],
-                    data: $document['dt'],
-                    duration: $document['dur'],
-                    memory: $document['mem'],
-                    cpu: $document['cpu'],
-                    hasProfiling: $document['hpr'] ?? false,
-                    profiling: $document['pr'] ?? null,
-                    timestamps: $document['tss'],
-                    loggedAt: new Carbon($loggedAt->toDateTime()),
-                    createdAt: new Carbon($document['cat']->toDateTime()),
-                    updatedAt: new Carbon($document['uat']->toDateTime()),
-                    inserted: $document['__ins'],
-                    updated: $document['__upd'],
-                    handled: $document['__hand'] ?? false,
+                    traceId: $document['tid'] ?? null,
+                    document: $document,
+                    error: 'Unknown document type',
                 );
             } catch (Throwable $exception) {
                 $traceId = $document['tid'] ?? null;
@@ -237,6 +254,7 @@ readonly class TraceBufferRepository implements TraceBufferRepositoryInterface
                 }
 
                 $invalidTraces[] = new TraceBufferInvalidDto(
+                    id: (string) $document['_id'],
                     traceId: $traceId,
                     document: $document,
                     error: $exception->getMessage() . PHP_EOL . $exception->getTraceAsString(),
@@ -246,16 +264,27 @@ readonly class TraceBufferRepository implements TraceBufferRepositoryInterface
 
         return new TraceBuffersDto(
             traces: $result,
+            creatingTraces: $creatingTraces,
+            updatingTraces: $updatingTraces,
             invalidTraces: $invalidTraces
         );
     }
 
-    public function markAsHandled(array $traceIds): void
+    public function markAsHandled(array $ids): void
     {
+        if (count($ids) === 0) {
+            return;
+        }
+
+        $objectIds = array_map(
+            static fn(string $id) => new ObjectId($id),
+            $ids
+        );
+
         $this->collection->updateMany(
             [
-                'tid'    => [
-                    '$in' => $traceIds,
+                '_id'    => [
+                    '$in' => $objectIds,
                 ],
                 '__hand' => false,
             ],
@@ -267,15 +296,123 @@ readonly class TraceBufferRepository implements TraceBufferRepositoryInterface
         );
     }
 
-    public function delete(array $traceIds): int
+    public function delete(array $ids): int
     {
+        if (count($ids) === 0) {
+            return 0;
+        }
+
+        $objectIds = array_map(
+            static fn(string $id) => new ObjectId($id),
+            $ids
+        );
+
         $result = $this->collection->deleteMany([
-            'tid' => [
-                '$in' => $traceIds,
+            '_id' => [
+                '$in' => $objectIds,
             ],
         ]);
 
         return $result->getDeletedCount();
+    }
+
+    /**
+     * @param array<string, mixed> $document
+     */
+    private function documentToTraceBuffers(array $document): ?TraceBufferDto
+    {
+        if (
+            !array_key_exists('__ins', $document)
+            && !array_key_exists('__upd', $document)
+            && !array_key_exists('__hand', $document)
+        ) {
+            return null;
+        }
+
+        $loggedAt = $document['lat'] ?? new UTCDateTime();
+
+        $dt = $document['dt'] ?? '{}';
+
+        if (is_array($dt)) {
+            $dt = json_encode($dt);
+        }
+
+        return new TraceBufferDto(
+            id: (string) $document['_id'],
+            serviceId: $document['sid'],
+            traceId: $document['tid'],
+            parentTraceId: $document['ptid'] ?? null,
+            type: $document['tp'] ?? 'unknown',
+            status: $document['st'],
+            tags: $document['tgs'] ?? [],
+            data: $dt,
+            duration: $document['dur'] ?? null,
+            memory: $document['mem'] ?? null,
+            cpu: $document['cpu'] ?? null,
+            hasProfiling: $document['hpr'] ?? false,
+            profiling: $document['pr'] ?? null,
+            timestamps: $document['tss'] ?? [],
+            loggedAt: new Carbon($loggedAt->toDateTime()),
+            createdAt: new Carbon($document['cat']->toDateTime()),
+            updatedAt: new Carbon($document['uat']->toDateTime()),
+            inserted: $document['__ins'],
+            updated: $document['__upd'],
+            handled: $document['__hand'] ?? false,
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $document
+     */
+    private function documentToCreating(array $document): ?CreatingTraceBufferDto
+    {
+        if (($document['op'] ?? null) !== 'c') {
+            return null;
+        }
+
+        /** @var UTCDateTime $loggedAt */
+        $loggedAt = $document['lat'];
+
+        return new CreatingTraceBufferDto(
+            id: (string) $document['_id'],
+            serviceId: (int) $document['sid'],
+            traceId: $document['tid'],
+            parentTraceId: $document['ptid'] ?? null,
+            type: $document['tp'],
+            status: $document['st'],
+            tags: $document['tgs'],
+            data: $document['dt'],
+            duration: $document['dur'] ?? null,
+            memory: $document['mem'] ?? null,
+            cpu: $document['cpu'] ?? null,
+            loggedAt: new Carbon($loggedAt->toDateTime()),
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $document
+     */
+    private function documentToUpdating(array $document): ?UpdatingTraceBufferDto
+    {
+        if (($document['op'] ?? null) !== 'u') {
+            return null;
+        }
+
+        /** @var UTCDateTime $loggedAt */
+        $loggedAt = $document['plat'];
+
+        return new UpdatingTraceBufferDto(
+            id: (string) $document['_id'],
+            serviceId: (int) $document['sid'],
+            traceId: $document['tid'],
+            status: $document['st'],
+            tags: $document['tgs'] ?? null,
+            data: $document['dt'],
+            duration: $document['dur'] ?? null,
+            memory: $document['mem'] ?? null,
+            cpu: $document['cpu'] ?? null,
+            parentLoggedAt: new Carbon($loggedAt->toDateTime()),
+        );
     }
 
     /**

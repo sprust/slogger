@@ -4,8 +4,7 @@ use App\Models\Users\User;
 use App\Modules\Trace\Infrastructure\Jobs\TraceCreateJob;
 use App\Modules\Trace\Infrastructure\Jobs\TraceUpdateJob;
 use RrMonitor\Events\MonitorWorkersCountSetEvent;
-use SLoggerLaravel\Dispatcher\Items\Queue\Jobs\TraceCreateJob as SLoggerTraceCreateJob;
-use SLoggerLaravel\Dispatcher\Items\Queue\Jobs\TraceUpdateJob as SLoggerTraceUpdateJob;
+use SLoggerLaravel\Dispatcher\Items\Queue\Jobs\SendTracesJob as SLoggerSendTracesJob;
 use SLoggerLaravel\Events\WatcherErrorEvent;
 use SLoggerLaravel\Listeners\WatcherErrorListener;
 use SLoggerLaravel\Watchers\Children\CacheWatcher;
@@ -45,33 +44,9 @@ return [
                     'url' => env('SLOGGER_DISPATCHER_QUEUE_HTTP_CLIENT_URL'),
                 ],
 
-                'grpc' => [
-                    'url' => env('SLOGGER_DISPATCHER_QUEUE_GRPC_CLIENT_URL'),
+                'socket' => [
+                    'url' => env('SLOGGER_DISPATCHER_QUEUE_SOCKET_CLIENT_URL'),
                 ],
-            ],
-        ],
-
-        'transporter' => [
-            'queue' => [
-                'connection' => env('SLOGGER_DISPATCHER_TRANSPORTER_QUEUE_CONNECTION', $defaultQueueConnection),
-                'name'       => env('SLOGGER_DISPATCHER_TRANSPORTER_QUEUE_NAME', 'slogger-transporter'),
-            ],
-            'env'   => [
-                'GRPC_PORT'                           => env('SLOGGER_DISPATCHER_TRANSPORTER_GRPC_PORT'),
-                'LOG_DIR'                             => env('SLOGGER_DISPATCHER_TRANSPORTER_LOG_DIR'),
-                'LOG_LEVELS'                          => env('SLOGGER_DISPATCHER_TRANSPORTER_LOG_LEVELS'),
-                'LOG_KEEP_DAYS'                       => env('SLOGGER_DISPATCHER_TRANSPORTER_LOG_KEEP_DAYS'),
-                'SLOGGER_SERVER_GRPC_URL'             => env('SLOGGER_DISPATCHER_TRANSPORTER_SLOGGER_SERVER_GRPC_URL'),
-                'RABBITMQ_USER'                       => env('SLOGGER_DISPATCHER_TRANSPORTER_RABBITMQ_USER'),
-                'RABBITMQ_PASSWORD'                   => env('SLOGGER_DISPATCHER_TRANSPORTER_RABBITMQ_PASSWORD'),
-                'RABBITMQ_HOST'                       => env('SLOGGER_DISPATCHER_TRANSPORTER_RABBITMQ_HOST'),
-                'RABBITMQ_PORT'                       => env('SLOGGER_DISPATCHER_TRANSPORTER_RABBITMQ_PORT'),
-                'TRACE_TRANSPORTER_QUEUE_NAME'        => env(
-                    'SLOGGER_DISPATCHER_TRANSPORTER_TRACE_TRANSPORTER_QUEUE_NAME'
-                ),
-                'TRACE_TRANSPORTER_QUEUE_WORKERS_NUM' => env(
-                    'SLOGGER_DISPATCHER_TRANSPORTER_TRACE_TRANSPORTER_QUEUE_WORKERS_NUM'
-                ),
             ],
         ],
     ],
@@ -165,13 +140,13 @@ return [
                 'trace-buffer:handle:start',
                 'slogger:dispatcher:start',
                 'trace-dynamic-indexes:monitor:start',
+                'receiver:monitor'
             ],
         ],
 
         'jobs' => [
             'excepted' => [
-                SLoggerTraceCreateJob::class,
-                SLoggerTraceUpdateJob::class,
+                SLoggerSendTracesJob::class,
                 TraceCreateJob::class,
                 TraceUpdateJob::class,
             ],

@@ -67,7 +67,6 @@ services:
       QUEUE_TRACES_CLEANER_NAME: ${QUEUE_TRACES_CLEANER_NAME:-traces-clearing}
     ports:
       - ${OCTANE_RR_DOCKER_PORT:-10021}:${OCTANE_RR_PORT:-9020}
-      - ${OCTANE_RR_GRPC_DOCKER_PORT:-10031}:${OCTANE_RR_GRPC_PORT:-9030}
     volumes:
       - ./:/app
       - ./docker/php/conf/php-workers.ini:/usr/local/etc/php/conf.d/docker.ini
@@ -75,6 +74,30 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     command: supervisord -n
+
+  receiver:
+    container_name: sl-receiver
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: ./docker/receiver/Dockerfile
+      args:
+        - GROUP_ID=${DOCKER_GROUP_ID}
+        - USER_ID=${DOCKER_USER_ID}
+        - BUILD_TIME=${BUILD_TIME:-1}
+    depends_on:
+      mysql:
+        condition: service_started
+      mongo:
+        condition: service_started
+    ports:
+      - ${RECIEVER_SOCKET_DOCKER_PORT:-10031}:${RECIEVER_SOCKET_PORT:-9030}
+    volumes:
+      - ./servers/receiver/.env:/app/.env
+      - ./servers/receiver/storage:/app/storage
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    command: /app/bin/receiver
 
   mysql:
     container_name: sl-mysql
