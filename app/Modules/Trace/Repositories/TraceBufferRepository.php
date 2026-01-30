@@ -380,7 +380,7 @@ readonly class TraceBufferRepository implements TraceBufferRepositoryInterface
             parentTraceId: $document['ptid'] ?? null,
             type: $document['tp'],
             status: $document['st'],
-            tags: $document['tgs'],
+            tags: $document['tgs'] ?? [],
             data: $document['dt'],
             duration: $document['dur'] ?? null,
             memory: $document['mem'] ?? null,
