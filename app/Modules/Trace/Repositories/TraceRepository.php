@@ -155,13 +155,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
                             $timestamps = $existsTrace['tss'] ?? null;
 
                             if ($timestamps === null) {
-                                $timestamps = [];
-
-                                $timestampMetrics = $this->timestampMetricsFactory->makeMetricsByDate($loggedAt);
-
-                                foreach ($timestampMetrics as $timestamp) {
-                                    $timestamps[$timestamp->key] = new UTCDateTime($timestamp->value);
-                                }
+                                $timestamps = $this->makeTimestampsByLoggedAt($loggedAt);
                             }
 
                             $document = [
@@ -220,6 +214,10 @@ readonly class TraceRepository implements TraceRepositoryInterface
             $operations = [];
 
             foreach ($collectionNameTraceBuffer as $buffer) {
+                $loggedAt = $buffer->loggedAt;
+
+                $timestamps = $this->makeTimestampsByLoggedAt($loggedAt);
+
                 $operations[] = [
                     'updateOne' => [
                         [
@@ -236,13 +234,8 @@ readonly class TraceRepository implements TraceRepositoryInterface
                                 'dur'  => $buffer->duration,
                                 'mem'  => $buffer->memory,
                                 'cpu'  => $buffer->cpu,
-                                'tss'  => array_map(
-                                    static function (\MongoDB\BSON\UTCDateTime $timestamp) {
-                                        return new UTCDateTime($timestamp->toDateTime());
-                                    },
-                                    $buffer->timestamps
-                                ),
-                                'lat'  => new UTCDateTime($buffer->loggedAt),
+                                'tss'  => $timestamps,
+                                'lat'  => new UTCDateTime($loggedAt),
                                 'uat'  => new UTCDateTime($buffer->updatedAt),
                                 'cat'  => new UTCDateTime($buffer->createdAt),
                                 'hpr'  => $buffer->hasProfiling,
@@ -787,5 +780,20 @@ readonly class TraceRepository implements TraceRepositoryInterface
             createdAt: new Carbon($document['cat']->dateTime),
             updatedAt: new Carbon($document['uat']->dateTime)
         );
+    }
+
+    /**
+     * @return array<string, UTCDateTime>
+     */
+    private function makeTimestampsByLoggedAt(Carbon $loggedAt): array
+    {
+        $timestampMetrics = $this->timestampMetricsFactory->makeMetricsByDate($loggedAt);
+
+        $timestamps = [];
+        foreach ($timestampMetrics as $timestamp) {
+            $timestamps[$timestamp->key] = new UTCDateTime($timestamp->value);
+        }
+
+        return $timestamps;
     }
 }
