@@ -62,7 +62,7 @@ class TraceCollectorController
 
         $parametersList = new TraceCreateParametersList();
 
-        foreach ($validated['traces'] as $item) {
+        foreach ($validated['traces'] ?? [] as $item) {
             $loggedAt = new Carbon($item['logged_at']);
 
             $parametersList->add(
@@ -83,6 +83,10 @@ class TraceCollectorController
                     loggedAt: $loggedAt,
                 )
             );
+        }
+
+        if ($parametersList->count() === 0) {
+            return;
         }
 
         $this->queueDispatcher->createMany($parametersList);
@@ -112,7 +116,7 @@ class TraceCollectorController
 
         $parametersList = new TraceUpdateParametersList();
 
-        foreach ($validated['traces'] as $item) {
+        foreach ($validated['traces'] ?? [] as $item) {
             $profiling = null;
 
             if ($profilingData = $item['profiling'] ?? null) {
@@ -149,6 +153,10 @@ class TraceCollectorController
             );
 
             $parametersList->add($parameters);
+        }
+
+        if ($parametersList->count() === 0) {
+            return;
         }
 
         $this->queueDispatcher->updateMany($parametersList);

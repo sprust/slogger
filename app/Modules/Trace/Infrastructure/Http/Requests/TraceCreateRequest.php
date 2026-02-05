@@ -12,9 +12,10 @@ class TraceCreateRequest extends FormRequest
     {
         return [
             'traces'                   => [
-                'required',
+                'sometimes',
+                'nullable',
                 'array',
-                'min:1',
+                'min:0',
             ],
             'traces.*.trace_id'        => [
                 'required',
