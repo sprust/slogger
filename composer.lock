@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "58d53493d7373e927942cc1120120055",
+    "content-hash": "90c97502af6b71684291e8b61990e980",
     "packages": [
         {
             "name": "brick/math",
@@ -4243,48 +4243,6 @@
                 "source": "https://github.com/sprust/sconcur/tree/master"
             },
             "time": "2026-01-16T09:43:39+00:00"
-        },
-        {
-            "name": "slogger/laravel",
-            "version": "dev-master",
-            "dist": {
-                "type": "path",
-                "url": "packages/slogger/laravel",
-                "reference": "0dfd4fd0b59fb85d37a6f3430c4f4ef9f68f7fdf"
-            },
-            "require": {
-                "ext-pcntl": "*",
-                "ext-posix": "*",
-                "laravel/framework": "^9.0 | ^10.0 | ^11.0 | ^12.0",
-                "symfony/process": "^6.4|^7.0"
-            },
-            "type": "library",
-            "extra": {
-                "laravel": {
-                    "providers": [
-                        "SLoggerLaravel\\ServiceProvider"
-                    ]
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "SLoggerLaravel\\": "src/"
-                }
-            },
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Pavel",
-                    "email": "sppetrovich@mail.ru"
-                }
-            ],
-            "description": "SLogger for laravel",
-            "transport-options": {
-                "symlink": true,
-                "relative": true
-            }
         },
         {
             "name": "spiral/core",
@@ -11887,7 +11845,6 @@
     "stability-flags": {
         "ifksco/openapi-generator": 20,
         "sconcur/sconcur": 20,
-        "slogger/laravel": 20,
         "sprust/rr-monitor-laravel": 20
     },
     "prefer-stable": true,

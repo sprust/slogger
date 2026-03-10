@@ -30,12 +30,15 @@ class TraceCollectorController
     private ?Processor $processor = null;
 
     public function __construct(
-        GeneralConfig $config,
+        // TODO: slogger-pkg
+        //GeneralConfig $config,
         private readonly ServiceContainer $serviceContainer,
         private readonly QueueDispatcher $queueDispatcher,
         private readonly MakeTraceTimestampsActionInterface $makeTraceTimestampsAction,
     ) {
-        $this->sloggerEnabled = $config->isEnabled();
+        // TODO: slogger-pkg
+        //$this->sloggerEnabled = $config->isEnabled();
+        $this->sloggerEnabled = false;
     }
 
     /**

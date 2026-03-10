@@ -92,7 +92,8 @@ workers-restart:
 	make workers-art c='cron:stop'
 	make workers-art c='octane:roadrunner:reload'
 	make workers-art c='rr-monitor:stop jobs'
-	make workers-art c='slogger:dispatcher:stop'
+    #TODO: slogger-pkg
+	#make workers-art c='slogger:dispatcher:stop'
 	make workers-art c='trace-dynamic-indexes:monitor:stop'
 	make workers-art c='trace-buffer:handle:stop'
 

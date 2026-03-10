@@ -43,7 +43,8 @@ class RouteServiceProvider extends ServiceProvider
                 ->as('admin-api.')
                 ->middleware([
                     AuthMiddleware::class,
-                    SLoggerHttpMiddleware::class
+                    // TODO: slogger-pkg
+                    //SLoggerHttpMiddleware::class
                 ])
                 ->group(base_path('routes/admin-api.php'));
 
