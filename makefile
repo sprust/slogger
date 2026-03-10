@@ -4,6 +4,9 @@ PHP_FPM_CLI="docker-compose exec $(PHP_FPM_SERVICE) "
 WORKERS_SERVICE="workers"
 WORKERS_CLI="docker-compose exec $(WORKERS_SERVICE) "
 
+RECEIVER_SERVICE="receiver"
+RECEIVER_CLI="docker-compose exec $(RECEIVER_SERVICE) "
+
 FRONTEND_SERVICE="frontend"
 FRONTEND_CLI="docker-compose run --rm $(FRONTEND_SERVICE) "
 
@@ -17,48 +20,48 @@ endif
 
 env-copy:
 	cp -i .env.example .env
+	cp -i servers/receiver/.env.example servers/receiver/.env
 	cp -i frontend/.env.example frontend/.env
 
 setup:
-	@make env-copy
-	@docker-compose stop
-	@docker-compose down
+	make env-copy
+	docker-compose stop
+	docker-compose down
 	make build
-	@make up
-	@make composer c=install
-	@make art c=key:generate
-	@make art c="migrate --force"
-	@make workers-art c='queues-declare'
-	@make rr-get-binary
-	@make strans-load
-	@make frontend-npm-i
-	@make frontend-npm-build
-	@make restart
+	make up
+	make composer c=install
+	make art c=key:generate
+	make art c="migrate --force"
+	make workers-art c='queues-declare'
+	make rr-get-binary
+	make frontend-npm-i
+	make frontend-npm-build
+	make restart
 
 build:
 	BUILD_TIME=$(shell date +%s) docker-compose build
 
 up:
-	@docker-compose up -d
+	docker-compose up -d
 
 stop:
-	@docker-compose stop
+	docker-compose stop
 
 restart:
-	@make stop
-	@make up
+	make stop
+	make up
 
 bash-php-fpm:
-	@"$(PHP_FPM_CLI)"bash
+	"$(PHP_FPM_CLI)"bash
 
 code-analise-declare-strict-fix:
-	@docker-compose exec -e XDEBUG_MODE=off $(PHP_FPM_SERVICE) php artisan declare-strict-fix
+	docker-compose exec -e XDEBUG_MODE=off $(PHP_FPM_SERVICE) php artisan declare-strict-fix
 
 code-analise-stan:
-	@docker-compose exec -e XDEBUG_MODE=off $(PHP_FPM_SERVICE) ./vendor/bin/phpstan analyse -c ./code-analyse/phpstan.neon  --memory-limit=1G
+	docker-compose exec -e XDEBUG_MODE=off $(PHP_FPM_SERVICE) ./vendor/bin/phpstan analyse -c ./code-analyse/phpstan.neon  --memory-limit=1G
 
 code-analise-deptrac:
-	@docker-compose exec -e XDEBUG_MODE=off $(PHP_FPM_SERVICE) ./vendor/bin/deptrac analyse --config-file=./code-analyse/deptrac-layers.yaml
+	docker-compose exec -e XDEBUG_MODE=off $(PHP_FPM_SERVICE) ./vendor/bin/deptrac analyse --config-file=./code-analyse/deptrac-layers.yaml
 
 code-analise:
 	make code-analise-declare-strict-fix
@@ -66,87 +69,71 @@ code-analise:
 	make code-analise-deptrac
 
 bash-workers:
-	@"$(WORKERS_CLI)"bash
+	"$(WORKERS_CLI)"bash
+
+bash-receiver:
+	"$(RECEIVER_CLI)"bash
 
 bash-frontend:
-	@"$(FRONTEND_CLI)"sh
+	"$(FRONTEND_CLI)"sh
 
 art:
-	@"$(PHP_FPM_CLI)"php artisan ${c}
+	"$(PHP_FPM_CLI)"php artisan ${c}
 
 workers-art:
-	@"$(WORKERS_CLI)"php artisan ${c}
+	"$(WORKERS_CLI)"php artisan ${c}
 
 composer:
-	@docker-compose exec -e XDEBUG_MODE=off $(PHP_FPM_SERVICE) composer ${c}
+	docker-compose exec -e XDEBUG_MODE=off $(PHP_FPM_SERVICE) composer ${c}
 
 workers-restart:
-	@make workers-art c='queues-declare'
-	@make workers-art c='queue:restart'
-	@make workers-art c='cron:stop'
-	@make workers-art c='octane:roadrunner:reload'
-	@make workers-art c='rr-monitor:stop grpc'
-	@make workers-art c='rr-monitor:stop jobs'
-	@make workers-art c='slogger:dispatcher:stop'
-	@make workers-art c='trace-dynamic-indexes:monitor:stop'
-	@make workers-art c='trace-buffer:handle:stop'
+	make workers-art c='queues-declare'
+	make workers-art c='queue:restart'
+	make workers-art c='cron:stop'
+	make workers-art c='octane:roadrunner:reload'
+	make workers-art c='rr-monitor:stop jobs'
+	make workers-art c='slogger:dispatcher:stop'
+	make workers-art c='trace-dynamic-indexes:monitor:stop'
+	make workers-art c='trace-buffer:handle:stop'
 
 octane-stop:
-	@make workers-art c='octane:roadrunner:stop'
+	make workers-art c='octane:roadrunner:stop'
 
 oa-generate:
-	@make art c='oa:generate'
-	@make frontend-npm-generate
+	make art c='oa:generate'
+	make frontend-npm-generate
 
 deploy-prod:
 	git pull
-	@make composer c='i --no-dev'
-	@make art c='migrate --force'
-	@make workers-restart
-	@make frontend-npm-i
-	@make frontend-npm-build
-	@docker-compose restart $(FRONTEND_SERVICE)
+	make composer c='i --no-dev'
+	make art c='migrate --force'
+	make workers-restart
+	make frontend-npm-i
+	make frontend-npm-build
+	docker-compose restart $(FRONTEND_SERVICE)
 
 deploy-dev:
 	git pull
-	@make composer c='i'
-	@make art c='migrate --force'
-	@make frontend-npm-i
-	@make frontend-npm-build
-	@make restart
+	make composer c='i'
+	make art c='migrate --force'
+	make frontend-npm-i
+	make frontend-npm-build
+	make restart
 
 rr-get-binary:
-	@"$(WORKERS_CLI)"./vendor/bin/rr get-binary
+	"$(WORKERS_CLI)"./vendor/bin/rr get-binary
 
 rr-workers:
-	@"$(WORKERS_CLI)"./rr workers -i -o rpc.listen=tcp://$(OCTANE_RR_RPC_HOST):$(OCTANE_RR_RPC_PORT) ${p}
-
-protoc-load:
-	@"$(WORKERS_CLI)"./vendor/bin/rr download-protoc-binary
-
-protoc-compile:
-	@"$(WORKERS_CLI)"protoc --plugin=protoc-gen-php-grpc \
-		--php_out=./packages/slogger/grpc/generated \
-		--php-grpc_out=./packages/slogger/grpc/generated \
-		./packages/slogger/grpc/proto/*.proto
+	"$(WORKERS_CLI)"./rr workers -i -o rpc.listen=tcp://$(OCTANE_RR_RPC_HOST):$(OCTANE_RR_RPC_PORT)
 
 frontend-npm-i:
-	@"$(FRONTEND_CLI)"npm i
+	"$(FRONTEND_CLI)"npm i
 
 frontend-npm-build:
-	@"$(FRONTEND_CLI)"npm run build
+	"$(FRONTEND_CLI)"npm run build
 
 frontend-npm-generate:
-	@"$(FRONTEND_CLI)"npm run generate
+	"$(FRONTEND_CLI)"npm run generate
 
-strans-load:
-	@make workers-art c='slogger:transporter:load'
-
-strans-start:
-	@make workers-art c='slogger:transporter:start'
-
-strans-stat:
-	@make workers-art c='slogger:transporter:stat'
-
-strans-stop:
-	@make workers-art c='slogger:transporter:stop'
+receiver-monitor:
+	make art c=receiver:monitor

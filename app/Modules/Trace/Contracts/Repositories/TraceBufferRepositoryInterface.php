@@ -6,7 +6,7 @@ namespace App\Modules\Trace\Contracts\Repositories;
 
 use App\Modules\Trace\Parameters\TraceCreateParameters;
 use App\Modules\Trace\Parameters\TraceUpdateParameters;
-use App\Modules\Trace\Repositories\Dto\Trace\TraceBuffersDto;
+use App\Modules\Trace\Repositories\Dto\Buffer\TraceBuffersDto;
 
 interface TraceBufferRepositoryInterface
 {
@@ -17,12 +17,12 @@ interface TraceBufferRepositoryInterface
     public function findForHandling(int $page, int $perPage): TraceBuffersDto;
 
     /**
-     * @param string[] $traceIds
+     * @param string[] $ids
      */
-    public function markAsHandled(array $traceIds): void;
+    public function markAsHandled(array $ids): void;
 
     /**
-     * @param string[] $traceIds
+     * @param string[] $ids
      */
-    public function delete(array $traceIds): int;
+    public function delete(array $ids): int;
 }

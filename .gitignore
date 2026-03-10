@@ -24,9 +24,6 @@ rr
 
 app/Console/Commands/Local
 
-protoc-gen-php-grpc
-
 .deptrac.cache
 
-.env.strans.*
 storage/slogger

@@ -6,7 +6,6 @@ use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Foundation\Application;
 use RuntimeException;
 use SLoggerLaravel\Dispatcher\Items\Queue\TraceQueueDispatcher;
-use SLoggerLaravel\Dispatcher\Items\Transporter\TraceTransporterDispatcher;
 
 readonly class DispatcherFactory
 {
@@ -21,7 +20,6 @@ readonly class DispatcherFactory
     {
         return match ($dispatcher) {
             'queue' => $this->app->make(TraceQueueDispatcher::class),
-            'transporter' => $this->app->make(TraceTransporterDispatcher::class),
             default => throw new RuntimeException("Unknown dispatcher: $dispatcher"),
         };
     }

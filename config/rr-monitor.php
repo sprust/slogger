@@ -11,9 +11,9 @@ return [
         MonitorWorkersCountSetEvent::class => [],
     ],
     'plugins'   => [
-        'grpc' => [
-            'number'     => env('OCTANE_RR_GRPC_WORKERS', 5),
-            'max_number' => env('OCTANE_RR_GRPC_MAX_WORKERS', 10),
+        'http' => [
+            'number'     => env('OCTANE_RR_WORKERS', 5),
+            'max_number' => env('OCTANE_RR_MAX_WORKERS', 10),
         ],
     ],
 ];

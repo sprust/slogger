@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Trace\Domain\Actions;
 
 use App\Modules\Trace\Contracts\Actions\MakeTraceTimestampsActionInterface;
-use App\Modules\Trace\Domain\Services\TraceTimestampMetricsFactory;
+use App\Modules\Trace\Repositories\Services\TraceTimestampMetricsFactory;
 use Illuminate\Support\Carbon;
 
 readonly class MakeTraceTimestampsAction implements MakeTraceTimestampsActionInterface

@@ -10,7 +10,6 @@ use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexErrorException;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexInProcessException;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexNotInitException;
 use App\Modules\Trace\Domain\Services\TraceDynamicIndexInitializer;
-use App\Modules\Trace\Domain\Services\TraceTimestampMetricsFactory;
 use App\Modules\Trace\Entities\Trace\Timestamp\TraceTimestampFieldIndicatorObject;
 use App\Modules\Trace\Entities\Trace\Timestamp\TraceTimestampFieldObject;
 use App\Modules\Trace\Entities\Trace\Timestamp\TraceTimestampsObject;
@@ -24,14 +23,15 @@ use App\Modules\Trace\Repositories\Dto\Trace\Timestamp\TraceTimestampFieldDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Timestamp\TraceTimestampFieldIndicatorDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Timestamp\TraceTimestampsDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Timestamp\TraceTimestampsListDto;
+use App\Modules\Trace\Repositories\Services\TraceTimestampMetricsFactory;
 use Illuminate\Support\Arr;
 use SConcur\WaitGroup;
 
 readonly class FindTraceTimestampsAction implements FindTraceTimestampsActionInterface
 {
     public function __construct(
-        private TraceTimestampMetricsFactory $traceTimestampMetricsFactory,
         private TraceDynamicIndexInitializer $traceDynamicIndexInitializer,
+        private TraceTimestampMetricsFactory $traceTimestampMetricsFactory,
         private TraceTimestampsRepositoryInterface $timestampsRepository,
     ) {
     }

@@ -16,7 +16,7 @@ readonly class UpdateTraceManyAction implements UpdateTraceManyActionInterface
     ) {
     }
 
-    public function handle(TraceUpdateParametersList $parametersList): int
+    public function handle(TraceUpdateParametersList $parametersList): void
     {
         foreach ($parametersList->getItems() as $trace) {
             $this->traceLocker
@@ -28,7 +28,5 @@ readonly class UpdateTraceManyAction implements UpdateTraceManyActionInterface
                     trace: $trace
                 );
         }
-
-        return $parametersList->count(); // TODO: delete after release
     }
 }
