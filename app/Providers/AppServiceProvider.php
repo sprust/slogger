@@ -27,21 +27,20 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // TODO: slogger-pkg
-        //if ($this->app->make(GeneralConfig::class)->isEnabled()) {
-        //    $this->app->make(TraceDataComplementer::class)
-        //        ->add(
-        //            key: '__context',
-        //            value: static function (Processor $processor) {
-        //                return $processor->handleWithoutTracing(
-        //                    static fn() => [
-        //                        ...Log::sharedContext(),
-        //                        'pid' => getmypid(),
-        //                    ]
-        //                );
-        //            }
-        //        );
-        //}
+        if ($this->app->make(GeneralConfig::class)->isEnabled()) {
+            $this->app->make(TraceDataComplementer::class)
+                ->add(
+                    key: '__context',
+                    value: static function (Processor $processor) {
+                        return $processor->handleWithoutTracing(
+                            static fn() => [
+                                ...Log::sharedContext(),
+                                'pid' => getmypid(),
+                            ]
+                        );
+                    }
+                );
+        }
 
         $this->bootOctane();
     }

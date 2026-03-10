@@ -1,7 +1,6 @@
 parameters:
     paths:
         - ../app
-        - ../packages/slogger
 
     excludePaths:
         - ../app/Console/Commands/Local

@@ -1,5 +1,9 @@
 <?php
 
+use App\Models\Users\User;
+use App\Modules\Trace\Infrastructure\Jobs\TraceCreateJob;
+use App\Modules\Trace\Infrastructure\Jobs\TraceUpdateJob;
+use RrMonitor\Events\MonitorWorkersCountSetEvent;
 use SLoggerLaravel\Dispatcher\Items\Queue\Jobs\SendTracesJob;
 use SLoggerLaravel\Events\WatcherErrorEvent;
 use SLoggerLaravel\Listeners\WatcherErrorListener;
@@ -22,23 +26,23 @@ $defaultQueueConnection = env('QUEUE_CONNECTION');
 
 return [
     // global enable/disable.
-    'enabled' => env('SLOGGER_ENABLED', false),
+    'enabled'                         => env('SLOGGER_ENABLED', false),
 
     // api token for the backend.
-    'token' => env('SLOGGER_TOKEN'),
+    'token'                           => env('SLOGGER_TOKEN'),
 
     // trace id prefix. if empty, uses slugged app.name or "app".
-    'trace_id_prefix' => env('SLOGGER_TRACE_ID_PREFIX', ''),
+    'trace_id_prefix'                 => env('SLOGGER_TRACE_ID_PREFIX', ''),
 
     // dispatcher selection and configuration.
-    'dispatchers' => [
+    'dispatchers'                     => [
         // one of: queue, memory.
         'default' => env('SLOGGER_DISPATCHER', 'queue'),
 
         'queue' => [
             // queue worker connection and name.
-            'connection' => env('SLOGGER_DISPATCHER_QUEUE_CONNECTION', $defaultQueueConnection),
-            'name'       => env('SLOGGER_DISPATCHER_QUEUE_NAME', 'slogger'),
+            'connection'  => env('SLOGGER_DISPATCHER_QUEUE_CONNECTION', $defaultQueueConnection),
+            'name'        => env('SLOGGER_DISPATCHER_QUEUE_NAME', 'slogger'),
             // number of worker processes.
             'workers_num' => env('SLOGGER_DISPATCHER_QUEUE_WORKERS_COUNT', 3),
 
@@ -60,22 +64,22 @@ return [
     ],
 
     // profiling for http client traces (requires xhprof extension).
-    'profiling' => [
+    'profiling'                       => [
         'enabled' => env('SLOGGER_PROFILING_ENABLED', false),
     ],
 
     // channel for internal errors/logs.
-    'log_channel' => env('SLOGGER_LOG_CHANNEL', 'daily'),
+    'log_channel'                     => env('SLOGGER_LOG_CHANNEL', 'daily'),
 
     // internal listener for watcher errors.
-    'listeners' => [
+    'listeners'                       => [
         WatcherErrorEvent::class => [
             WatcherErrorListener::class,
         ],
     ],
 
     // exclude files from trace backtraces (supports wildcard masks).
-    'data_completer' => [
+    'data_completer'                  => [
         'excluded_file_masks' => [
             //
         ],
@@ -88,7 +92,7 @@ return [
     ),
 
     // watchers configuration (parents and children).
-    'watchers' => [
+    'watchers'                        => [
         /**
          * PARENTS
          */
@@ -99,9 +103,16 @@ return [
             'config'  => [
                 // command names to ignore.
                 'excepted' => [
+                    'cron:start',
+                    'schedule:run',
+                    'octane:roadrunner:start',
+                    'rr-monitor:start',
                     'queue:work',
                     'queue:listen',
-                    'schedule:run',
+                    'trace-buffer:handle:start',
+                    'slogger:dispatcher:start',
+                    'trace-dynamic-indexes:monitor:start',
+                    'receiver:monitor',
                 ],
             ],
         ],
@@ -110,28 +121,28 @@ return [
             'enabled' => env('SLOGGER_LOG_REQUESTS_ENABLED', false),
             'config'  => [
                 // log only these url patterns. empty means all.
-                'only_paths' => [
+                'only_paths'     => [
                     //
                 ],
 
                 // skip these url patterns.
                 'excepted_paths' => [
-                    //
+                    '/traces-api*',
                 ],
 
                 'input' => [
                     // apply input formatting only for these url patterns. empty means all.
-                    'only_paths' => [
+                    'only_paths'         => [
                         //
                     ],
 
                     // hide all request parameters for these url patterns.
-                    'hidden_paths' => [
-                        '*',
+                    'hidden_paths'       => [
+                        'admin-api/auth/login',
                     ],
 
                     // mask specific request headers by url pattern.
-                    'headers_masking' => [
+                    'headers_masking'    => [
                         '*' => [
                             'authorization',
                             'cookie',
@@ -150,13 +161,14 @@ return [
 
                 'output' => [
                     // apply response formatting only for these url patterns. empty means all.
-                    'only_paths' => [
+                    'only_paths'      => [
                         //
                     ],
 
                     // hide all response data for these url patterns.
-                    'hidden_paths' => [
-                        '*',
+                    'hidden_paths'    => [
+                        'admin-api/auth/*',
+                        'admin-api/trace-aggregator/trace-metrics',
                     ],
 
                     // mask specific response headers by url pattern.
@@ -167,7 +179,7 @@ return [
                     ],
 
                     // mask response fields by url pattern.
-                    'fields_masking' => [
+                    'fields_masking'  => [
                         '*' => [
                             '*token*',
                             '*password*',
@@ -183,6 +195,8 @@ return [
                 // job classes to ignore.
                 'excepted' => [
                     SendTracesJob::class,
+                    TraceCreateJob::class,
+                    TraceUpdateJob::class,
                 ],
             ],
         ],
@@ -208,20 +222,20 @@ return [
             'enabled' => env('SLOGGER_LOG_EVENT_ENABLED', false),
             'config'  => [
                 // track only these event names (empty means all).
-                'only_events' => [
+                'only_events'      => [
                     //
                 ],
                 // ignore these event names.
-                'ignore_events' => [
+                'ignore_events'    => [
                     //
                 ],
                 // events to serialize into payload.
                 'serialize_events' => [
-                    //
+                    MonitorWorkersCountSetEvent::class,
                 ],
                 // events that can be orphaned (no parent trace).
-                'can_be_orphan' => [
-                    //
+                'can_be_orphan'    => [
+                    MonitorWorkersCountSetEvent::class,
                 ],
             ],
         ],
@@ -247,9 +261,13 @@ return [
             'config'  => [
                 // model field masks by model class.
                 'masks' => [
-                    '*' => [
+                    '*'         => [
                         '*token*',
                         '*password*',
+                    ],
+                    User::class => [
+                        '*name*',
+                        '*email*',
                     ],
                 ],
             ],
