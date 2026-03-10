@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "58d53493d7373e927942cc1120120055",
+    "content-hash": "83a5137b3cc51e439e31c72d622af0d4",
     "packages": [
         {
             "name": "brick/math",
@@ -4246,17 +4246,31 @@
         },
         {
             "name": "slogger/laravel",
-            "version": "dev-master",
+            "version": "v1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/sprust/slogger-laravel.git",
+                "reference": "0d1cb1aa57783c77542277c411cbaa407d5da40c"
+            },
             "dist": {
-                "type": "path",
-                "url": "packages/slogger/laravel",
-                "reference": "0dfd4fd0b59fb85d37a6f3430c4f4ef9f68f7fdf"
+                "type": "zip",
+                "url": "https://api.github.com/repos/sprust/slogger-laravel/zipball/0d1cb1aa57783c77542277c411cbaa407d5da40c",
+                "reference": "0d1cb1aa57783c77542277c411cbaa407d5da40c",
+                "shasum": ""
             },
             "require": {
                 "ext-pcntl": "*",
                 "ext-posix": "*",
-                "laravel/framework": "^9.0 | ^10.0 | ^11.0 | ^12.0",
+                "laravel/framework": "^10.0 | ^11.0 | ^12.0",
+                "php": "^8.2",
                 "symfony/process": "^6.4|^7.0"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^3.94",
+                "guzzlehttp/guzzle": "^7.0",
+                "orchestra/testbench": "^8.0 | ^9.0 | ^10.0",
+                "phpstan/phpstan": "^2.1",
+                "phpunit/phpunit": "^10.5 | ^11.0"
             },
             "type": "library",
             "extra": {
@@ -4271,6 +4285,7 @@
                     "SLoggerLaravel\\": "src/"
                 }
             },
+            "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "MIT"
             ],
@@ -4280,11 +4295,21 @@
                     "email": "sppetrovich@mail.ru"
                 }
             ],
-            "description": "SLogger for laravel",
-            "transport-options": {
-                "symlink": true,
-                "relative": true
-            }
+            "description": "Tracing and observability for Laravel with dispatchers, masking, and profiling.",
+            "keywords": [
+                "debugging",
+                "laravel",
+                "logging",
+                "monitoring",
+                "observability",
+                "profiling",
+                "tracing"
+            ],
+            "support": {
+                "issues": "https://github.com/sprust/slogger-laravel/issues",
+                "source": "https://github.com/sprust/slogger-laravel/tree/v1.0.0"
+            },
+            "time": "2026-02-23T09:02:01+00:00"
         },
         {
             "name": "spiral/core",
@@ -11887,7 +11912,6 @@
     "stability-flags": {
         "ifksco/openapi-generator": 20,
         "sconcur/sconcur": 20,
-        "slogger/laravel": 20,
         "sprust/rr-monitor-laravel": 20
     },
     "prefer-stable": true,
