@@ -4246,16 +4246,16 @@
         },
         {
             "name": "slogger/laravel",
-            "version": "v1.0.0",
+            "version": "v1.0.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sprust/slogger-laravel.git",
-                "reference": "0d1cb1aa57783c77542277c411cbaa407d5da40c"
+                "reference": "fa32f2491a3bb451144c032931b3f14a91813576"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sprust/slogger-laravel/zipball/0d1cb1aa57783c77542277c411cbaa407d5da40c",
-                "reference": "0d1cb1aa57783c77542277c411cbaa407d5da40c",
+                "url": "https://api.github.com/repos/sprust/slogger-laravel/zipball/fa32f2491a3bb451144c032931b3f14a91813576",
+                "reference": "fa32f2491a3bb451144c032931b3f14a91813576",
                 "shasum": ""
             },
             "require": {
@@ -4307,9 +4307,9 @@
             ],
             "support": {
                 "issues": "https://github.com/sprust/slogger-laravel/issues",
-                "source": "https://github.com/sprust/slogger-laravel/tree/v1.0.0"
+                "source": "https://github.com/sprust/slogger-laravel/tree/v1.0.4"
             },
-            "time": "2026-02-23T09:02:01+00:00"
+            "time": "2026-03-18T14:45:46+00:00"
         },
         {
             "name": "spiral/core",
