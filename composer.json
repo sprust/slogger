@@ -18,7 +18,7 @@
         "mongodb/laravel-mongodb": "^5.5",
         "mongodb/mongodb": "^1.17",
         "sconcur/sconcur": "dev-master",
-        "slogger/laravel": "^1.0",
+        "slogger/laravel": "dev-master",
         "spiral/roadrunner-cli": "^2.7",
         "spiral/roadrunner-http": "^3.5",
         "sprust/rr-monitor-laravel": "dev-master",

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "83a5137b3cc51e439e31c72d622af0d4",
+    "content-hash": "8167d6de5dc39c85f3d0c45bd82de14d",
     "packages": [
         {
             "name": "brick/math",
@@ -4246,16 +4246,16 @@
         },
         {
             "name": "slogger/laravel",
-            "version": "v1.0.4",
+            "version": "dev-master",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sprust/slogger-laravel.git",
-                "reference": "fa32f2491a3bb451144c032931b3f14a91813576"
+                "reference": "1ced859293637828b09d757432a6e2395f5d57c7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sprust/slogger-laravel/zipball/fa32f2491a3bb451144c032931b3f14a91813576",
-                "reference": "fa32f2491a3bb451144c032931b3f14a91813576",
+                "url": "https://api.github.com/repos/sprust/slogger-laravel/zipball/1ced859293637828b09d757432a6e2395f5d57c7",
+                "reference": "1ced859293637828b09d757432a6e2395f5d57c7",
                 "shasum": ""
             },
             "require": {
@@ -4272,6 +4272,7 @@
                 "phpstan/phpstan": "^2.1",
                 "phpunit/phpunit": "^10.5 | ^11.0"
             },
+            "default-branch": true,
             "type": "library",
             "extra": {
                 "laravel": {
@@ -4307,9 +4308,9 @@
             ],
             "support": {
                 "issues": "https://github.com/sprust/slogger-laravel/issues",
-                "source": "https://github.com/sprust/slogger-laravel/tree/v1.0.4"
+                "source": "https://github.com/sprust/slogger-laravel/tree/master"
             },
-            "time": "2026-03-18T14:45:46+00:00"
+            "time": "2026-03-18T15:44:38+00:00"
         },
         {
             "name": "spiral/core",
@@ -11912,6 +11913,7 @@
     "stability-flags": {
         "ifksco/openapi-generator": 20,
         "sconcur/sconcur": 20,
+        "slogger/laravel": 20,
         "sprust/rr-monitor-laravel": 20
     },
     "prefer-stable": true,
