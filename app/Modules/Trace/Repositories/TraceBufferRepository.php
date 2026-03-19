@@ -202,7 +202,8 @@ readonly class TraceBufferRepository implements TraceBufferRepositoryInterface
             ],
         ];
 
-        $cursor = $this->collection->aggregate($pipeline);
+        // TODO: sconcur bug if batch size more than $perPage
+        $cursor = $this->collection->aggregate($pipeline, batchSize: $perPage);
 
         /** @var TraceBufferDto[] $result */
         $result = [];
