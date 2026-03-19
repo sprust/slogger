@@ -14,7 +14,7 @@ interface TraceBufferRepositoryInterface
 
     public function update(TraceUpdateParameters $trace): bool;
 
-    public function findForHandling(int $page, int $perPage): TraceBuffersDto;
+    public function findForHandling(int $page, int $perPage, int $serviceId): TraceBuffersDto;
 
     /**
      * @param string[] $ids
