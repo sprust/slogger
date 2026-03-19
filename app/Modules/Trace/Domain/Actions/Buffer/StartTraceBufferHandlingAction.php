@@ -77,7 +77,7 @@ readonly class StartTraceBufferHandlingAction implements StartTraceBufferHandlin
 
             foreach ($serviceIds as $serviceId) {
                 $waitGroup->add(
-                    function () use ($serviceId, $output, &$serviceCounts): int {
+                    function () use ($serviceId, $output, &$serviceCounts) {
                         $serviceCounts[$serviceId] ??= [
                             'total' => 0,
                             'handled' => 0,
@@ -86,7 +86,7 @@ readonly class StartTraceBufferHandlingAction implements StartTraceBufferHandlin
 
                         $traces = $this->traceBufferRepository->findForHandling(
                             page: 1,
-                            perPage: 300,
+                            perPage: 1000,
                             serviceId: $serviceId,
                         );
 
@@ -99,7 +99,7 @@ readonly class StartTraceBufferHandlingAction implements StartTraceBufferHandlin
                         $currentTotalCount = $currentTracesCount + $currentInvalidCount;
 
                         if ($currentTotalCount === 0) {
-                            return 0;
+                            return;
                         }
 
                         $serviceCounts[$serviceId]['total']   += $currentTotalCount;
@@ -170,21 +170,11 @@ readonly class StartTraceBufferHandlingAction implements StartTraceBufferHandlin
                                 $deletedCount
                             )
                         );
-
-                        return $currentTotalCount;
                     }
                 );
             }
 
-            $servicesTotalTracesCount = 0;
-
-            foreach ($waitGroup->waitResults() as $serviceTotalTracesCount) {
-                $servicesTotalTracesCount += $serviceTotalTracesCount;
-            }
-
-            if ($servicesTotalTracesCount === 0) {
-                usleep(100);
-            }
+            $waitGroup->waitAll();
         }
 
         $output->writeln('Stop trace buffer handling');
