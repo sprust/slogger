@@ -41,12 +41,12 @@ func main() {
 
 	socketPort := os.Getenv("SOCKET_PORT")
 
-	server := socket_server.NewServer("tcp", ":"+socketPort)
+	socketServer := socket_server.NewServer("tcp", ":"+socketPort)
 
 	done := make(chan error, 1)
 
 	go func(ctx context.Context) {
-		done <- server.Run(ctx)
+		done <- socketServer.Run(ctx)
 	}(ctx)
 
 	select {
