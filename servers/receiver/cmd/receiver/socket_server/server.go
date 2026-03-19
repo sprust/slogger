@@ -9,7 +9,7 @@ import (
 	"net"
 	"os"
 	"runtime"
-	"slogger_receiver/internal/api/socket_server/transport"
+	"slogger_receiver/cmd/receiver/socket_server/transport"
 	"slogger_receiver/internal/dto"
 	"slogger_receiver/internal/repositories/service_repository"
 	"slogger_receiver/internal/services/buffer_service"
@@ -78,7 +78,7 @@ func (s *Server) Run(ctx context.Context) error {
 			case <-ctx.Done():
 				return
 			default:
-				s.showStat()
+				s.saveStats()
 
 				time.Sleep(1 * time.Second)
 			}
@@ -230,7 +230,7 @@ func (s *Server) handleConnection(conn net.Conn) error {
 	}
 }
 
-func (s *Server) showStat() {
+func (s *Server) saveStats() {
 	var mem runtime.MemStats
 
 	runtime.ReadMemStats(&mem)

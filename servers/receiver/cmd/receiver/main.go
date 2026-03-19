@@ -5,7 +5,7 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
-	"slogger_receiver/internal/api/socket_server"
+	"slogger_receiver/cmd/receiver/socket_server"
 	"slogger_receiver/pkg/foundation/logging"
 	"syscall"
 	"time"
