@@ -6,7 +6,7 @@ namespace App\Modules\Trace\Repositories;
 
 use App\Modules\Trace\Contracts\Repositories\TraceBufferInvalidRepositoryInterface;
 use MongoDB\BSON\UTCDateTime;
-use SConcur\Features\Mongodb\Connection\Collection;
+use MongoDB\Collection;
 
 readonly class TraceBufferInvalidRepository implements TraceBufferInvalidRepositoryInterface
 {

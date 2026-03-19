@@ -4,21 +4,17 @@ declare(strict_types=1);
 
 namespace App\Modules\Trace\Domain\Actions\Buffer;
 
-use App\Modules\Service\Contracts\Actions\FindServicesActionInterface;
-use App\Modules\Service\Entities\ServiceObject;
 use App\Modules\Trace\Contracts\Actions\StartTraceBufferHandlingActionInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceBufferInvalidRepositoryInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceBufferRepositoryInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceRepositoryInterface;
 use App\Modules\Trace\Domain\Services\MonitorTraceBufferHandlingService;
-use SConcur\WaitGroup;
 use Symfony\Component\Console\Output\OutputInterface;
 
 readonly class StartTraceBufferHandlingAction implements StartTraceBufferHandlingActionInterface
 {
     public function __construct(
         private MonitorTraceBufferHandlingService $monitorTraceBufferHandlingService,
-        private FindServicesActionInterface $findServicesAction,
         private TraceBufferRepositoryInterface $traceBufferRepository,
         private TraceRepositoryInterface $traceRepository,
         private TraceBufferInvalidRepositoryInterface $traceBufferInvalidRepository,
@@ -29,42 +25,16 @@ readonly class StartTraceBufferHandlingAction implements StartTraceBufferHandlin
     {
         $output->writeln('Start trace buffer handling');
 
-        /**
-         * @var array{
-         *  total: int,
-         *  handled: int,
-         *  invalid: int,
-         * } $serviceCounts
-         */
-        $serviceCounts = [];
+        $totalCount        = 0;
+        $totalHandledCount = 0;
+        $totalSkippedCount = 0;
+        $totalInvalidCount = 0;
 
         $processKey = $this->monitorTraceBufferHandlingService->startProcess();
 
         $processMonitorTime = time();
-        $serviceUpdateTime  = time();
-
-        $serviceIds = null;
 
         while (true) {
-            if ($serviceIds === null || (time() - $serviceUpdateTime) > 5) {
-                $serviceIds = array_map(
-                    static fn(ServiceObject $service) => $service->id,
-                    $this->findServicesAction->handle(),
-                );
-
-                $serviceUpdateTime = time();
-            }
-
-            /** @var int[] $serviceIds */
-
-            if (count($serviceIds) === 0) {
-                $output->writeln('Service ids is empty');
-
-                sleep(1);
-
-                continue;
-            }
-
             if (time() - $processMonitorTime > 2) {
                 if (!$this->monitorTraceBufferHandlingService->isProcessKeyActual($processKey)) {
                     break;
@@ -73,108 +43,93 @@ readonly class StartTraceBufferHandlingAction implements StartTraceBufferHandlin
                 $processMonitorTime = time();
             }
 
-            $waitGroup = WaitGroup::create();
+            $traces = $this->traceBufferRepository->findForHandling(
+                page: 1,
+                perPage: 100,
+            );
 
-            foreach ($serviceIds as $serviceId) {
-                $waitGroup->add(
-                    function () use ($serviceId, $output, &$serviceCounts) {
-                        $serviceCounts[$serviceId] ??= [
-                            'total' => 0,
-                            'handled' => 0,
-                            'invalid' => 0,
-                        ];
+            $currentTracesCount = count($traces->traces)
+                + count($traces->creatingTraces)
+                + count($traces->updatingTraces);
 
-                        $traces = $this->traceBufferRepository->findForHandling(
-                            page: 1,
-                            perPage: 1000,
-                            serviceId: $serviceId,
-                        );
+            $currentInvalidCount = count($traces->invalidTraces);
 
-                        $currentTracesCount = count($traces->traces)
-                            + count($traces->creatingTraces)
-                            + count($traces->updatingTraces);
+            $currentTotalCount = $currentTracesCount + $currentInvalidCount;
 
-                        $currentInvalidCount = count($traces->invalidTraces);
+            if ($currentTotalCount === 0) {
+                usleep(500);
 
-                        $currentTotalCount = $currentTracesCount + $currentInvalidCount;
+                continue;
+            }
 
-                        if ($currentTotalCount === 0) {
-                            return;
-                        }
+            $totalCount        += $currentTotalCount;
+            $totalInvalidCount += $currentInvalidCount;
 
-                        $serviceCounts[$serviceId]['total']   += $currentTotalCount;
-                        $serviceCounts[$serviceId]['invalid'] += $currentInvalidCount;
+            $deletedCount = 0;
 
-                        $deletedCount = 0;
+            $handledBufferIds    = [];
+            $processingBufferIds = [];
 
-                        $handledBufferIds    = [];
-                        $processingBufferIds = [];
-
-                        if ($currentTracesCount > 0) {
-                            foreach ($traces->traces as $trace) {
-                                if ($trace->inserted && $trace->updated) {
-                                    $handledBufferIds[] = $trace->id;
-                                } else {
-                                    $processingBufferIds[] = $trace->id;
-                                }
-                            }
-
-                            $this->traceRepository->freshManyByBuffers(
-                                traceBuffers: $traces->traces
-                            );
-
-                            if (count($processingBufferIds)) {
-                                $this->traceBufferRepository->markAsHandled(
-                                    ids: $processingBufferIds
-                                );
-                            }
-                        }
-
-                        $this->traceRepository->freshManyByCreatingUpdatingBuffers(
-                            creating: $traces->creatingTraces,
-                            updating: $traces->updatingTraces,
-                        );
-
-                        foreach (array_merge($traces->creatingTraces, $traces->updatingTraces) as $trace) {
-                            $handledBufferIds[] = $trace->id;
-                        }
-
-                        if (count($traces->invalidTraces) > 0) {
-                            $this->traceBufferInvalidRepository->createMany(
-                                invalidTraceBuffers: $traces->invalidTraces
-                            );
-
-                            foreach ($traces->invalidTraces as $invalidTrace) {
-                                $handledBufferIds[] = $invalidTrace->id;
-                            }
-                        }
-
-                        $handledCount = count($handledBufferIds);
-
-                        $serviceCounts[$serviceId]['handled'] += $handledCount;
-
-                        if ($handledCount) {
-                            $deletedCount += $this->traceBufferRepository->delete(
-                                ids: $handledBufferIds
-                            );
-                        }
-
-                        // TODO: statistic
-                        $output->writeln(
-                            sprintf(
-                                'sid %d: tot: %d, hand: %d, inv: %d, del: %d',
-                                $serviceId,
-                                $serviceCounts[$serviceId]['total'],
-                                $serviceCounts[$serviceId]['handled'],
-                                $serviceCounts[$serviceId]['invalid'],
-                                $deletedCount
-                            )
-                        );
+            if ($currentTracesCount > 0) {
+                foreach ($traces->traces as $trace) {
+                    if ($trace->inserted && $trace->updated) {
+                        $handledBufferIds[] = $trace->id;
+                    } else {
+                        $processingBufferIds[] = $trace->id;
                     }
+                }
+
+                $this->traceRepository->freshManyByBuffers(
+                    traceBuffers: $traces->traces
+                );
+
+                if (count($processingBufferIds)) {
+                    $this->traceBufferRepository->markAsHandled(
+                        ids: $processingBufferIds
+                    );
+                }
+            }
+
+            $this->traceRepository->freshManyByCreatingUpdatingBuffers(
+                creating: $traces->creatingTraces,
+                updating: $traces->updatingTraces,
+            );
+
+            foreach (array_merge($traces->creatingTraces, $traces->updatingTraces) as $trace) {
+                $handledBufferIds[] = $trace->id;
+            }
+
+            if (count($traces->invalidTraces) > 0) {
+                $this->traceBufferInvalidRepository->createMany(
+                    invalidTraceBuffers: $traces->invalidTraces
+                );
+
+                foreach ($traces->invalidTraces as $invalidTrace) {
+                    $handledBufferIds[] = $invalidTrace->id;
+                }
+            }
+
+            $handledCount = count($handledBufferIds);
+
+            $totalHandledCount += $handledCount;
+
+            if ($handledCount) {
+                $deletedCount += $this->traceBufferRepository->delete(
+                    ids: $handledBufferIds
                 );
             }
 
-            $waitGroup->waitAll();
+            // TODO: statistic
+            $output->writeln(
+                sprintf(
+                    'tot: %d, hand: %d, sk: %d, inv: %d, del: %d',
+                    $totalCount,
+                    $totalHandledCount,
+                    $totalSkippedCount,
+                    $totalInvalidCount,
+                    $deletedCount
+                )
+            );
         }
 
         $output->writeln('Stop trace buffer handling');

@@ -100,8 +100,8 @@ use App\Modules\Trace\Repositories\TraceTreeCacheRepository;
 use App\Modules\Trace\Repositories\TraceTreeRepository;
 use Illuminate\Contracts\Foundation\Application;
 use MongoDB\Client;
+use MongoDB\Database;
 use SConcur\Features\Mongodb\Connection\Client as SconcurClient;
-use SConcur\Features\Mongodb\Connection\Database;
 
 class TraceServiceProvider extends BaseServiceProvider
 {
@@ -148,7 +148,7 @@ class TraceServiceProvider extends BaseServiceProvider
             }
         );
 
-        $tracesDatabase = $this->makeSconcurMongodbTracesClient();
+        $tracesDatabase = $this->makeMongodbTracesClient();
 
         $this->app->singleton(
             TraceBufferRepositoryInterface::class,
@@ -237,17 +237,24 @@ class TraceServiceProvider extends BaseServiceProvider
         ];
     }
 
-    private function makeSconcurMongodbTracesClient(): Database
+    private function makeMongodbTracesClient(): Database
     {
         $username = config('database.connections.mongodb.traces.username');
         $password = config('database.connections.mongodb.traces.password');
         $host     = config('database.connections.mongodb.traces.host');
         $port     = config('database.connections.mongodb.traces.port');
         $database = config('database.connections.mongodb.traces.database');
+        $options  = config('database.connections.mongodb.traces.options');
 
         $uri = "mongodb://$username:$password@$host:$port";
 
-        $client = new SconcurClient($uri);
+        $client = new Client($uri, $options, [
+            'typeMap' => [
+                'array'    => 'array',
+                'document' => 'array',
+                'root'     => 'array',
+            ],
+        ]);
 
         return $client->selectDatabase($database);
     }

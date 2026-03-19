@@ -28,8 +28,6 @@ class StartTraceBufferHandlingCommand extends Command
      */
     public function handle(StartTraceBufferHandlingActionInterface $action): int
     {
-        ini_set('memory_limit', '1G');
-
         $action->handle($this->output);
 
         return self::SUCCESS;
