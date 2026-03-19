@@ -86,7 +86,7 @@ readonly class StartTraceBufferHandlingAction implements StartTraceBufferHandlin
 
                         $traces = $this->traceBufferRepository->findForHandling(
                             page: 1,
-                            perPage: 100,
+                            perPage: 300,
                             serviceId: $serviceId,
                         );
 
