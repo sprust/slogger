@@ -41,7 +41,7 @@ func main() {
 
 	socketPort := os.Getenv("SOCKET_PORT")
 
-	socketServer := socket_server.NewServer("tcp", ":"+socketPort)
+	socketServer := socket_server.New("tcp", ":"+socketPort)
 
 	done := make(chan error, 1)
 
