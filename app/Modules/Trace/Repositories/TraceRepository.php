@@ -768,7 +768,7 @@ readonly class TraceRepository implements TraceRepositoryInterface
             type: $document['tp'],
             status: $document['st'],
             tags: array_map(
-                static fn(array $tag) => $tag['nm'],
+                static fn(string|array $tag) => is_array($tag) ? $tag['nm'] : $tag,
                 $document['tgs']
             ),
             data: new TraceDataToObjectBuilder($document['dt'])->build(),

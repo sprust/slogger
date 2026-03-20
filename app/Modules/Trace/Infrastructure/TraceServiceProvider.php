@@ -78,7 +78,6 @@ use App\Modules\Trace\Domain\Actions\Queries\FindTraceTreeContentAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTypesAction;
 use App\Modules\Trace\Domain\Services\TraceDynamicIndexInitializer;
 use App\Modules\Trace\Domain\Services\TraceFieldTitlesService;
-use App\Modules\Trace\Enums\PeriodicTraceStepEnum;
 use App\Modules\Trace\Infrastructure\Commands\DeleteOldEmptyCollectionsCommand;
 use App\Modules\Trace\Infrastructure\Commands\FlushDynamicIndexesCommand;
 use App\Modules\Trace\Infrastructure\Commands\StartMonitorTraceDynamicIndexesCommand;
@@ -110,12 +109,7 @@ class TraceServiceProvider extends BaseServiceProvider
         $this->app->singleton(
             PeriodicTraceCollectionNameService::class,
             fn() => new PeriodicTraceCollectionNameService(
-                hoursStep: match (PeriodicTraceStepEnum::from(config('module-trace.step_in_hours'))) {
-                    PeriodicTraceStepEnum::OneHour => 1,
-                    PeriodicTraceStepEnum::TwoHours => 2,
-                    PeriodicTraceStepEnum::FourHours => 4,
-                    PeriodicTraceStepEnum::SixHours => 6,
-                }
+                hoursStep: 1 // TODO: hard
             )
         );
 

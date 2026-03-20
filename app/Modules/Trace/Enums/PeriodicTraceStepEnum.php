@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Trace\Enums;
 
+// TODO: delete feature
 enum PeriodicTraceStepEnum: string
 {
     case OneHour = 'one_hour';

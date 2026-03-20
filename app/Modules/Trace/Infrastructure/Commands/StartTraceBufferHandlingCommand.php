@@ -7,6 +7,7 @@ namespace App\Modules\Trace\Infrastructure\Commands;
 use App\Modules\Trace\Contracts\Actions\StartTraceBufferHandlingActionInterface;
 use Illuminate\Console\Command;
 
+// TODO: replaced by receiver server. to delete
 class StartTraceBufferHandlingCommand extends Command
 {
     /**
