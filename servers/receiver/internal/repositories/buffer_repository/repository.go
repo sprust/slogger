@@ -69,6 +69,8 @@ func (r *Repository) InsertUpdatingTraces(ctx context.Context, serviceId int, tr
 }
 
 func (r *Repository) FindMany(ctx context.Context, limit int) (map[int]*dto.ServiceTraces, error) {
+	// TODO: collect invalid traces
+	
 	err := instance.connect(ctx)
 
 	if err != nil {

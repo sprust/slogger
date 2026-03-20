@@ -80,7 +80,7 @@ func (s *Transporter) Run(ctx context.Context) error {
 			wg.Add(1)
 
 			go func() {
-				wg.Done()
+				defer wg.Done()
 
 				count := s.periodicTraceService.Save(ctx, serviceId, traces)
 
@@ -132,5 +132,5 @@ func (s *Transporter) stop() {
 	s.closing.Store(true)
 	defer s.closing.Store(false)
 
-	slog.Warn("Socket server stopped")
+	slog.Warn("Trace transporter stopped")
 }

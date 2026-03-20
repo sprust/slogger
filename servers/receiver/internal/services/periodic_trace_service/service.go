@@ -9,6 +9,7 @@ import (
 	"slogger_receiver/internal/services/trace_sharding_service"
 	"slogger_receiver/pkg/foundation/errs"
 	"sync"
+	"sync/atomic"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -34,12 +35,12 @@ type Service struct {
 func (s *Service) Save(ctx context.Context, serviceId int, serviceTraces *dto.ServiceTraces) int {
 	wg := sync.WaitGroup{}
 
-	counter := 0
+	counter := atomic.Uint64{}
 
 	for traceId, traces := range serviceTraces.Items() {
 		wg.Add(1)
 
-		go func(serviceId int, traceId string, traces *dto.Traces, counter *int) {
+		go func(serviceId int, traceId string, traces *dto.Traces, counter *atomic.Uint64) {
 			defer wg.Done()
 
 			err := s.saveTraces(ctx, serviceId, traceId, traces)
@@ -50,13 +51,13 @@ func (s *Service) Save(ctx context.Context, serviceId int, serviceTraces *dto.Se
 				return
 			}
 
-			*counter++
+			counter.Add(1)
 		}(serviceId, traceId, traces, &counter)
 	}
 
 	wg.Wait()
 
-	return counter
+	return int(counter.Load())
 }
 
 func (s *Service) saveTraces(ctx context.Context, serviceId int, traceId string, traces *dto.Traces) error {
