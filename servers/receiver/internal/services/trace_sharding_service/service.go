@@ -20,6 +20,8 @@ const traceTreesViewName = "_traceTreesView"
 var once sync.Once
 var instance *TraceShardingService
 
+// TODO: collections TTL
+
 func Get() *TraceShardingService {
 	once.Do(func() {
 		instance = &TraceShardingService{

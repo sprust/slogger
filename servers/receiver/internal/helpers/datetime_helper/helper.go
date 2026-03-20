@@ -1,6 +1,7 @@
 package datetime_helper
 
 import (
+	"fmt"
 	"log/slog"
 	"time"
 
@@ -21,25 +22,26 @@ func ConvertLoggedAt(loggedAt interface{}) primitive.DateTime {
 
 	loggedAtString, ok := loggedAt.(string)
 
-	if !ok {
-		slog.Error("loggedAt is not a string: " + loggedAt.(string))
+	if ok {
+		layouts := []string{
+			time.RFC3339Nano,
+			time.RFC3339,
+			"2006-01-02 15:04:05.999999999",
+			"2006-01-02 15:04:05",
+		}
 
-		return primitive.NewDateTimeFromTime(Now().Time().UTC())
-	}
+		for _, layout := range layouts {
+			t, err := time.Parse(layout, loggedAtString)
 
-	t, err := time.Parse("2006-01-02T15:04:05.000Z", loggedAtString)
-
-	if err != nil {
-		t, err = time.Parse("2006-01-02 15:04:05.000", loggedAtString)
-
-		if err != nil {
-			slog.Error("failed to parse loggedAt: " + loggedAtString + ": " + err.Error())
-
-			t = Now().Time()
+			if err == nil {
+				return primitive.NewDateTimeFromTime(t.UTC())
+			}
 		}
 	}
 
-	return primitive.NewDateTimeFromTime(t.UTC())
+	slog.Error(fmt.Sprintf("failed to parse loggedAt: %v", loggedAtString))
+
+	return primitive.NewDateTimeFromTime(Now().Time().UTC())
 }
 
 func MakeTimestampsByLoggedAt(loggedAt primitive.DateTime) bson.M {
