@@ -61,3 +61,11 @@ func (s *Service) Save(ctx context.Context, serviceId int, traces *dto.TracesMes
 
 	return nil
 }
+
+func (s *Service) FindForTransporter(ctx context.Context) (map[int]*dto.ServiceTraces, error) {
+	return s.repository.FindMany(ctx, 1000)
+}
+
+func (s *Service) DeleteByTraceIds(ctx context.Context, serviceId int, traceIds []string) (int64, error) {
+	return s.repository.DeleteByTraceIds(ctx, serviceId, traceIds)
+}

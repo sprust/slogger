@@ -8,26 +8,38 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-var loggedAtFormat = "2006-01-02 15:04:05.000"
-
 func Now() primitive.DateTime {
 	return primitive.NewDateTimeFromTime(time.Now().UTC())
 }
 
-func ConvertLoggedAt(loggedAt string) primitive.DateTime {
-	t, err := time.Parse(time.RFC3339, loggedAt)
+func ConvertLoggedAt(loggedAt interface{}) primitive.DateTime {
+	loggedAtDt, ok := loggedAt.(primitive.DateTime)
+
+	if ok {
+		return loggedAtDt
+	}
+
+	loggedAtString, ok := loggedAt.(string)
+
+	if !ok {
+		slog.Error("loggedAt is not a string: " + loggedAt.(string))
+
+		return primitive.NewDateTimeFromTime(Now().Time().UTC())
+	}
+
+	t, err := time.Parse("2006-01-02T15:04:05.000Z", loggedAtString)
 
 	if err != nil {
-		t, err = time.ParseInLocation(loggedAtFormat, loggedAt, time.UTC)
+		t, err = time.Parse("2006-01-02 15:04:05.000", loggedAtString)
+
+		if err != nil {
+			slog.Error("failed to parse loggedAt: " + loggedAtString + ": " + err.Error())
+
+			t = Now().Time()
+		}
 	}
 
-	if err == nil {
-		return primitive.NewDateTimeFromTime(t)
-	}
-
-	slog.Error("failed to parse loggedAt: " + loggedAt + ": " + err.Error())
-
-	return Now()
+	return primitive.NewDateTimeFromTime(t.UTC())
 }
 
 func MakeTimestampsByLoggedAt(loggedAt primitive.DateTime) bson.M {

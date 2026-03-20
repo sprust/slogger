@@ -19,7 +19,7 @@ type TraceCreating struct {
 	Duration      *float64      `json:"dur,omitempty"`
 	Memory        *float64      `json:"mem,omitempty"`
 	Cpu           *float64      `json:"cpu,omitempty"`
-	LoggedAt      string        `json:"lat"`
+	LoggedAt      interface{}   `json:"lat"`
 }
 
 type TraceUpdating struct {
@@ -30,5 +30,60 @@ type TraceUpdating struct {
 	Duration       *float64       `json:"dur,omitempty"`
 	Memory         *float64       `json:"mem,omitempty"`
 	Cpu            *float64       `json:"cpu,omitempty"`
-	ParentLoggedAt string         `json:"plat"`
+	ParentLoggedAt interface{}    `json:"plat"`
+}
+
+type Traces struct {
+	Creating *TraceCreating
+	Updating *TraceUpdating
+}
+
+type ServiceTraces struct {
+	items map[string]*Traces
+}
+
+func (t *ServiceTraces) Items() map[string]*Traces {
+	return t.items
+}
+
+func (t *ServiceTraces) GetTraceIds() []string {
+	ids := make([]string, 0, len(t.items))
+
+	for traceId := range t.items {
+		ids = append(ids, traceId)
+	}
+
+	return ids
+}
+
+func (t *ServiceTraces) AddCreating(trace *TraceCreating) {
+	if t.items == nil {
+		t.items = make(map[string]*Traces)
+	}
+
+	items := t.items[trace.TraceId]
+
+	if items == nil {
+		t.items[trace.TraceId] = &Traces{}
+	}
+
+	t.items[trace.TraceId].Creating = trace
+}
+
+func (t *ServiceTraces) AddUpdating(trace *TraceUpdating) {
+	if t.items == nil {
+		t.items = make(map[string]*Traces)
+	}
+
+	items := t.items[trace.TraceId]
+
+	if items == nil {
+		t.items[trace.TraceId] = &Traces{}
+	}
+
+	t.items[trace.TraceId].Updating = trace
+}
+
+func (t *ServiceTraces) Count() int {
+	return len(t.items)
 }

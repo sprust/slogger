@@ -7,8 +7,6 @@ import (
 	"fmt"
 	"log/slog"
 	"net"
-	"os"
-	"runtime"
 	"slogger_receiver/cmd/receiver/socket_server/transport"
 	"slogger_receiver/internal/dto"
 	"slogger_receiver/internal/services/buffer_service"
@@ -33,6 +31,17 @@ type Server struct {
 	totalHandlingCount     atomic.Uint64
 	activeHandlingCount    atomic.Int64
 	closing                atomic.Bool
+}
+
+type Stats struct {
+	Connections struct {
+		Total  uint64
+		Active int64
+	}
+	Handling struct {
+		Total  uint64
+		Active int64
+	}
 }
 
 func New(network string, address string) *Server {
@@ -69,19 +78,6 @@ func (s *Server) Run(ctx context.Context) error {
 			slog.Warn("Shutting down [socket server] by context")
 
 			s.stop()
-		}
-	}()
-
-	go func() {
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			default:
-				s.saveStats()
-
-				time.Sleep(1 * time.Second)
-			}
 		}
 	}()
 
@@ -220,36 +216,8 @@ func (s *Server) handleConnection(conn net.Conn) error {
 	}
 }
 
-func (s *Server) saveStats() {
-	var mem runtime.MemStats
-
-	runtime.ReadMemStats(&mem)
-
-	numGoroutine := uint64(runtime.NumGoroutine())
-	allocMiB := float32(mem.Alloc / 1024 / 1024)
-	totalAllocMiB := float32(mem.TotalAlloc / 1024 / 1024)
-	sysMiB := float32(mem.Sys / 1024 / 1024)
-	numGC := uint64(mem.NumGC)
-
-	statData := struct {
-		Date        string
-		Connections struct {
-			Total  uint64
-			Active int64
-		}
-		Handling struct {
-			Total  uint64
-			Active int64
-		}
-		Memory struct {
-			TotalAllocMiB float32
-			AllocMiB      float32
-			SysMiB        float32
-		}
-		NumGC        uint64
-		NumGoroutine uint64
-	}{
-		Date: time.Now().Format("2006-01-02 15:04:05.000"),
+func (s *Server) GetStats() Stats {
+	return Stats{
 		Connections: struct {
 			Total  uint64
 			Active int64
@@ -264,31 +232,6 @@ func (s *Server) saveStats() {
 			Total:  s.totalHandlingCount.Load(),
 			Active: s.activeHandlingCount.Load(),
 		},
-		Memory: struct {
-			TotalAllocMiB float32
-			AllocMiB      float32
-			SysMiB        float32
-		}{
-			TotalAllocMiB: totalAllocMiB,
-			AllocMiB:      allocMiB,
-			SysMiB:        sysMiB,
-		},
-		NumGC:        numGC,
-		NumGoroutine: numGoroutine,
-	}
-
-	jsonData, err := json.MarshalIndent(statData, "", "  ")
-
-	if err != nil {
-		slog.Error("Failed to marshal stats to JSON: " + err.Error())
-
-		return
-	}
-
-	err = os.WriteFile("storage/stats.json", jsonData, 0644)
-
-	if err != nil {
-		slog.Error("Failed to write stats to storage/stats.json: " + err.Error())
 	}
 }
 
