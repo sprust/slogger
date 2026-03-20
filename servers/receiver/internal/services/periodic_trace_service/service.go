@@ -62,11 +62,21 @@ func (s *Service) Save(ctx context.Context, serviceId int, serviceTraces *dto.Se
 
 func (s *Service) saveTraces(ctx context.Context, serviceId int, traceId string, traces *dto.Traces) error {
 	var loggedAt primitive.DateTime
+	var creatingRawLoggedAt string
+	var updatingRawLoggedAt string
 
 	if traces.Creating != nil {
 		loggedAt = datetime_helper.ConvertLoggedAt(traces.Creating.LoggedAt)
+
+		if v, ok := traces.Creating.LoggedAt.(string); ok {
+			creatingRawLoggedAt = v
+		}
 	} else if traces.Updating != nil {
 		loggedAt = datetime_helper.ConvertLoggedAt(traces.Updating.ParentLoggedAt)
+
+		if v, ok := traces.Updating.ParentLoggedAt.(string); ok {
+			updatingRawLoggedAt = v
+		}
 	}
 
 	if loggedAt == 0 {
@@ -194,6 +204,14 @@ func (s *Service) saveTraces(ctx context.Context, serviceId int, traceId string,
 		"hpr":  false,
 		"pr":   []interface{}{},
 		"uat":  currentNow,
+	}
+
+	if creatingRawLoggedAt != "" {
+		document["rcLat"] = creatingRawLoggedAt
+	}
+
+	if updatingRawLoggedAt != "" {
+		document["ucLat"] = updatingRawLoggedAt
 	}
 
 	_, err = coll.UpdateOne(
