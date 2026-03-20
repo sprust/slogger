@@ -87,7 +87,7 @@ readonly class ClearTracesAction implements ClearTracesActionInterface
             while (true) {
                 try {
                     $traceCollectionNameObjects = $this->findTraceIdsAction->handle(
-                        limit: 1000,
+                        limit: 100,
                         loggedAtTo: $loggedAtTo,
                         type: $type,
                         excludedTypes: $excludedTypes,
