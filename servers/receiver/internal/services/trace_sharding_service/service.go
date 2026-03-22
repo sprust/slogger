@@ -8,6 +8,7 @@ import (
 	"slogger_receiver/pkg/foundation/errs"
 	"strings"
 	"sync"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -20,22 +21,25 @@ const traceTreesViewName = "_traceTreesView"
 var once sync.Once
 var instance *TraceShardingService
 
-// TODO: collections TTL
-
 func Get() *TraceShardingService {
 	once.Do(func() {
 		instance = &TraceShardingService{
-			collections: make(map[string]*mongo.Collection),
+			collections: make(map[string]*periodicColl),
 		}
 	})
 
 	return instance
 }
 
+type periodicColl struct {
+	mColl  *mongo.Collection
+	usedAt time.Time
+}
+
 type TraceShardingService struct {
 	database    *mongo.Database
 	mutex       sync.Mutex
-	collections map[string]*mongo.Collection
+	collections map[string]*periodicColl
 }
 
 func (s *TraceShardingService) InitCollection(ctx context.Context, loggedAt primitive.DateTime) (*mongo.Collection, error) {
@@ -47,18 +51,37 @@ func (s *TraceShardingService) InitCollection(ctx context.Context, loggedAt prim
 	coll := s.collections[collName]
 
 	if coll != nil {
-		return coll, nil
+		coll.usedAt = time.Now()
+
+		return coll.mColl, nil
 	}
 
-	coll, err := s.initColl(ctx, collName)
+	mColl, err := s.initColl(ctx, collName)
 
 	if err != nil {
 		return nil, errs.Err(err)
 	}
 
-	s.collections[collName] = coll
+	s.collections[collName] = &periodicColl{
+		mColl:  mColl,
+		usedAt: time.Now(),
+	}
 
-	return coll, nil
+	usedAtLe := time.Now().Add(-5 * time.Hour)
+
+	rottenCollNames := make([]string, 0)
+
+	for collName, coll := range s.collections {
+		if coll.usedAt.Before(usedAtLe) {
+			rottenCollNames = append(rottenCollNames, collName)
+		}
+	}
+
+	for _, collName := range rottenCollNames {
+		delete(s.collections, collName)
+	}
+
+	return mColl, nil
 }
 
 func (s *TraceShardingService) initColl(ctx context.Context, collName string) (*mongo.Collection, error) {
