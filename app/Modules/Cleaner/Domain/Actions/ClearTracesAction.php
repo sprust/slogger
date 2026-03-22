@@ -52,6 +52,18 @@ readonly class ClearTracesAction implements ClearTracesActionInterface
             //
         }
 
+        if (
+            $exception === null &&
+            $deletedTraces->collectionsCount === 0 &&
+            $deletedTraces->tracesCount === 0
+        ) {
+            $this->processRepository->deleteByProcessId(
+                processId: $process->id
+            );
+
+            return;
+        }
+
         $this->processRepository->update(
             processId: $process->id,
             clearedCollectionsCount: $deletedTraces?->collectionsCount ?: 0,
