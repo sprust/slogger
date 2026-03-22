@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Modules\Trace\Infrastructure\Http\Controllers;
 
 use App\Modules\Common\Helpers\ArrayValueGetter;
-use App\Modules\Trace\Contracts\Actions\Queries\FindTraceDetailActionInterface;
-use App\Modules\Trace\Contracts\Actions\Queries\FindTracesActionInterface;
+use App\Modules\Trace\Domain\Actions\Queries\FindTraceDetailAction;
+use App\Modules\Trace\Domain\Actions\Queries\FindTracesAction;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexNotInitException;
 use App\Modules\Trace\Entities\Trace\TraceItemObjects;
 use App\Modules\Trace\Infrastructure\Http\Controllers\Traits\MakeDataFilterParameterTrait;
@@ -23,8 +23,8 @@ readonly class TraceController
     use MakeDataFilterParameterTrait;
 
     public function __construct(
-        private FindTracesActionInterface $findTracesAction,
-        private FindTraceDetailActionInterface $findTraceDetailAction,
+        private FindTracesAction $findTracesAction,
+        private FindTraceDetailAction $findTraceDetailAction,
         private TraceDynamicIndexingActionService $traceDynamicIndexingActionService
     ) {
     }

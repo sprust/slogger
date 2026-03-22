@@ -16,6 +16,7 @@ export type TraceAggregatorAdditionalField = TraceAggregatorResponse['items'][nu
 
 export type TraceAggregatorCustomField = {
     field: string,
+    canBeFiltered: boolean,
     search: false,
     searchData: TraceAggregatorCustomFieldSearchParameter,
     addToTable: boolean,
@@ -66,6 +67,7 @@ export type TraceAggregatorCustomFieldSearchParameter = {
 export type TraceAggregatorCustomFieldParameter = {
     field: string,
     value: any,
+    canBeFiltered: boolean
 }
 
 export type TracesAddCustomFieldParameter = {
@@ -240,6 +242,7 @@ export const useTraceAggregatorStore = defineStore('traceAggregatorStore', {
 
                 this.customFields.push({
                     field: customField,
+                    canBeFiltered: parameters.canBeFiltered,
                     search: false,
                     searchData: searchData.data,
                     addToTable: false,

@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Trace\Domain\Actions\Mutations;
 
-use App\Modules\Trace\Contracts\Actions\Mutations\StopMonitorTraceDynamicIndexesActionInterface;
 use App\Modules\Trace\Domain\Services\MonitorTraceDynamicIndexesService;
 
-readonly class StopMonitorTraceDynamicIndexesAction implements StopMonitorTraceDynamicIndexesActionInterface
+readonly class StopMonitorTraceDynamicIndexesAction
 {
     public function __construct(
         private MonitorTraceDynamicIndexesService $monitorTraceDynamicIndexesService

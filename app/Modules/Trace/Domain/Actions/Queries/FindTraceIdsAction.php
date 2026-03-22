@@ -4,20 +4,19 @@ declare(strict_types=1);
 
 namespace App\Modules\Trace\Domain\Actions\Queries;
 
-use App\Modules\Trace\Contracts\Actions\Queries\FindTraceIdsActionInterface;
-use App\Modules\Trace\Contracts\Repositories\TraceRepositoryInterface;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexErrorException;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexInProcessException;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexNotInitException;
 use App\Modules\Trace\Domain\Services\TraceDynamicIndexInitializer;
 use App\Modules\Trace\Entities\Trace\TraceCollectionNameObjects;
+use App\Modules\Trace\Repositories\TraceRepository;
 use Illuminate\Support\Carbon;
 
-readonly class FindTraceIdsAction implements FindTraceIdsActionInterface
+readonly class FindTraceIdsAction
 {
     public function __construct(
         private TraceDynamicIndexInitializer $traceDynamicIndexInitializer,
-        private TraceRepositoryInterface $traceRepository
+        private TraceRepository $traceRepository
     ) {
     }
 

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\User\Infrastructure\Commands;
 
-use App\Modules\User\Contracts\Domain\CreateUserActionInterface;
+use App\Modules\User\Domain\Actions\CreateUserAction;
 use App\Modules\User\Parameters\UserCreateParameters;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Validator;
@@ -28,7 +28,7 @@ class CreateUserCommand extends Command
     /**
      * Execute the console command.
      */
-    public function handle(CreateUserActionInterface $createUserAction): int
+    public function handle(CreateUserAction $createUserAction): int
     {
         if (($firstName = $this->askAndCheck('First name *', true)) === false) {
             return self::FAILURE;

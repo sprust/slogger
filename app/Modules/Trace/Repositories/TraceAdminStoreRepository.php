@@ -6,12 +6,11 @@ namespace App\Modules\Trace\Repositories;
 
 use App\Models\Traces\TraceAdminStore;
 use App\Modules\Common\Entities\PaginationInfoObject;
-use App\Modules\Trace\Contracts\Repositories\TraceAdminStoreRepositoryInterface;
 use App\Modules\Trace\Entities\Store\TraceAdminStoreObject;
 use App\Modules\Trace\Entities\Store\TraceAdminStoresPaginationObject;
 use Illuminate\Database\Eloquent\Builder;
 
-class TraceAdminStoreRepository implements TraceAdminStoreRepositoryInterface
+class TraceAdminStoreRepository
 {
     public function create(
         string $title,

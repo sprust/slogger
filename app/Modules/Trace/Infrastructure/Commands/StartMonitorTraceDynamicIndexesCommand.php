@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Trace\Infrastructure\Commands;
 
-use App\Modules\Trace\Contracts\Actions\Mutations\StartMonitorTraceDynamicIndexesActionInterface;
+use App\Modules\Trace\Domain\Actions\Mutations\StartMonitorTraceDynamicIndexesAction;
 use Illuminate\Console\Command;
 
 class StartMonitorTraceDynamicIndexesCommand extends Command
@@ -26,7 +26,7 @@ class StartMonitorTraceDynamicIndexesCommand extends Command
     /**
      * Execute the console command.
      */
-    public function handle(StartMonitorTraceDynamicIndexesActionInterface $action): int
+    public function handle(StartMonitorTraceDynamicIndexesAction $action): int
     {
         $this->components->info('The monitor dynamic trace indexes is starting');
 

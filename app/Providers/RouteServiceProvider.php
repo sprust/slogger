@@ -3,7 +3,6 @@
 namespace App\Providers;
 
 use App\Modules\Auth\Infrastructure\Http\Middlewares\AuthMiddleware;
-use App\Modules\Service\Infrastructure\Http\Middlewares\AuthServiceMiddleware;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 use Illuminate\Http\Request;
@@ -46,11 +45,6 @@ class RouteServiceProvider extends ServiceProvider
                     SLoggerHttpMiddleware::class
                 ])
                 ->group(base_path('routes/admin-api.php'));
-
-            Route::middleware(AuthServiceMiddleware::class)
-                ->prefix('traces-api')
-                ->as('traces-api.')
-                ->group(base_path('routes/traces-api.php'));
         });
     }
 }

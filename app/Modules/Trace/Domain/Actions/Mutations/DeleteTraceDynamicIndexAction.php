@@ -4,15 +4,14 @@ declare(strict_types=1);
 
 namespace App\Modules\Trace\Domain\Actions\Mutations;
 
-use App\Modules\Trace\Contracts\Actions\Mutations\DeleteTraceDynamicIndexActionInterface;
-use App\Modules\Trace\Contracts\Repositories\TraceDynamicIndexRepositoryInterface;
-use App\Modules\Trace\Contracts\Repositories\TraceRepositoryInterface;
+use App\Modules\Trace\Repositories\TraceDynamicIndexRepository;
+use App\Modules\Trace\Repositories\TraceRepository;
 
-readonly class DeleteTraceDynamicIndexAction implements DeleteTraceDynamicIndexActionInterface
+readonly class DeleteTraceDynamicIndexAction
 {
     public function __construct(
-        private TraceRepositoryInterface $traceRepository,
-        private TraceDynamicIndexRepositoryInterface $traceDynamicIndexRepository
+        private TraceRepository $traceRepository,
+        private TraceDynamicIndexRepository $traceDynamicIndexRepository
     ) {
     }
 

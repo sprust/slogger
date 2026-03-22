@@ -10,8 +10,8 @@ readonly class ProcessObject
 {
     public function __construct(
         public string $id,
-        public int $settingId,
-        public int $clearedCount,
+        public int $clearedCollectionsCount,
+        public int $clearedTracesCount,
         public ?string $error,
         public ?Carbon $clearedAt,
         public Carbon $createdAt,

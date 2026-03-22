@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Modules\Trace\Repositories;
 
-use App\Modules\Trace\Contracts\Repositories\TraceTimestampsRepositoryInterface;
 use App\Modules\Trace\Enums\TraceMetricFieldAggregatorEnum;
 use App\Modules\Trace\Enums\TraceMetricFieldEnum;
 use App\Modules\Trace\Enums\TraceTimestampEnum;
 use App\Modules\Trace\Parameters\Data\TraceDataFilterParameters;
+use App\Modules\Trace\Repositories\Dto\Trace\Data\TraceMetricDataFieldsFilterDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Data\TraceMetricFieldsFilterDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Timestamp\TraceTimestampFieldDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Timestamp\TraceTimestampFieldIndicatorDto;
@@ -21,7 +21,7 @@ use Illuminate\Support\Str;
 use RuntimeException;
 use SConcur\Features\Mongodb\Types\UTCDateTime;
 
-readonly class TraceTimestampsRepository implements TraceTimestampsRepositoryInterface
+readonly class TraceTimestampsRepository
 {
     public function __construct(
         private TracePipelineBuilder $tracePipelineBuilder,
@@ -29,6 +29,15 @@ readonly class TraceTimestampsRepository implements TraceTimestampsRepositoryInt
     ) {
     }
 
+    /**
+     * @param int[]|null                            $serviceIds
+     * @param string[]|null                         $traceIds
+     * @param TraceMetricFieldsFilterDto[]          $fields
+     * @param TraceMetricDataFieldsFilterDto[]|null $dataFields
+     * @param string[]                              $types
+     * @param string[]                              $tags
+     * @param string[]                              $statuses
+     */
     public function find(
         Carbon $loggedAtFrom,
         Carbon $loggedAtTo,

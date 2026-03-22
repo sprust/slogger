@@ -4,20 +4,19 @@ declare(strict_types=1);
 
 namespace App\Modules\Trace\Domain\Actions\Queries;
 
-use App\Modules\Trace\Contracts\Actions\Queries\FindTraceTreeActionInterface;
-use App\Modules\Trace\Contracts\Repositories\TraceRepositoryInterface;
-use App\Modules\Trace\Contracts\Repositories\TraceTreeCacheRepositoryInterface;
-use App\Modules\Trace\Contracts\Repositories\TraceTreeRepositoryInterface;
 use App\Modules\Trace\Entities\Trace\Tree\TraceTreeRawIterator;
 use App\Modules\Trace\Parameters\CreateTraceTreeCacheParameters;
 use App\Modules\Trace\Repositories\Dto\Trace\TraceDto;
+use App\Modules\Trace\Repositories\TraceRepository;
+use App\Modules\Trace\Repositories\TraceTreeCacheRepository;
+use App\Modules\Trace\Repositories\TraceTreeRepository;
 
-readonly class FindTraceTreeAction implements FindTraceTreeActionInterface
+readonly class FindTraceTreeAction
 {
     public function __construct(
-        private TraceRepositoryInterface $traceRepository,
-        private TraceTreeRepositoryInterface $traceTreeRepository,
-        private TraceTreeCacheRepositoryInterface $traceTreeCacheRepository,
+        private TraceRepository $traceRepository,
+        private TraceTreeRepository $traceTreeRepository,
+        private TraceTreeCacheRepository $traceTreeCacheRepository,
     ) {
     }
 

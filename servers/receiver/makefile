@@ -1,8 +1,8 @@
 run:
-	go run ./cmd/server/main.go ${c}
+	go run ./cmd/receiver/main.go ${c}
 
 build:
-	CGO_ENABLED=0 GOOS=linux go build -v -a -o ./bin/receiver ./cmd/server/main.go \
+	CGO_ENABLED=0 GOOS=linux go build -v -a -o ./bin/receiver ./cmd/receiver/main.go \
 		&& chmod +x ./bin/receiver
 
 bin-start:

@@ -4,17 +4,16 @@ declare(strict_types=1);
 
 namespace App\Modules\Trace\Domain\Actions\Mutations;
 
-use App\Modules\Trace\Contracts\Actions\Mutations\StartMonitorTraceDynamicIndexesActionInterface;
-use App\Modules\Trace\Contracts\Repositories\TraceDynamicIndexRepositoryInterface;
-use App\Modules\Trace\Contracts\Repositories\TraceRepositoryInterface;
 use App\Modules\Trace\Domain\Services\MonitorTraceDynamicIndexesService;
+use App\Modules\Trace\Repositories\TraceDynamicIndexRepository;
+use App\Modules\Trace\Repositories\TraceRepository;
 use Throwable;
 
-readonly class StartMonitorTraceDynamicIndexesAction implements StartMonitorTraceDynamicIndexesActionInterface
+readonly class StartMonitorTraceDynamicIndexesAction
 {
     public function __construct(
-        private TraceDynamicIndexRepositoryInterface $traceDynamicIndexRepository,
-        private TraceRepositoryInterface $traceRepository,
+        private TraceDynamicIndexRepository $traceDynamicIndexRepository,
+        private TraceRepository $traceRepository,
         private MonitorTraceDynamicIndexesService $monitorTraceDynamicIndexesService
     ) {
     }
