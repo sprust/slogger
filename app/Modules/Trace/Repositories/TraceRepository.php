@@ -9,253 +9,27 @@ use App\Modules\Trace\Entities\Trace\DeletedTracesObject;
 use App\Modules\Trace\Entities\Trace\TraceCollectionNameObjects;
 use App\Modules\Trace\Entities\Trace\TraceIndexInfoObject;
 use App\Modules\Trace\Parameters\Data\TraceDataFilterParameters;
-use App\Modules\Trace\Repositories\Dto\Buffer\CreatingTraceBufferDto;
-use App\Modules\Trace\Repositories\Dto\Buffer\TraceBufferDto;
-use App\Modules\Trace\Repositories\Dto\Buffer\UpdatingTraceBufferDto;
 use App\Modules\Trace\Repositories\Dto\DynamicIndex\TraceDynamicIndexFieldDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Profiling\TraceProfilingDataDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Profiling\TraceProfilingDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Profiling\TraceProfilingItemDto;
 use App\Modules\Trace\Repositories\Dto\Trace\TraceDto;
-use App\Modules\Trace\Repositories\Services\PeriodicTraceCollectionNameService;
 use App\Modules\Trace\Repositories\Services\PeriodicTraceService;
 use App\Modules\Trace\Repositories\Services\TraceDataToObjectBuilder;
 use App\Modules\Trace\Repositories\Services\TracePipelineBuilder;
-use App\Modules\Trace\Repositories\Services\TraceTimestampMetricsFactory;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use MongoDB\Driver\Command;
 use MongoDB\Driver\Exception\Exception;
 use SConcur\Features\Mongodb\Types\ObjectId;
-use SConcur\Features\Mongodb\Types\UTCDateTime;
 use SConcur\WaitGroup;
-use stdClass;
 use Throwable;
 
 readonly class TraceRepository
 {
     public function __construct(
-        private PeriodicTraceCollectionNameService $periodicTraceCollectionNameService,
         private TracePipelineBuilder $tracePipelineBuilder,
         private PeriodicTraceService $periodicTraceService,
-        // TODO: layer corruption
-        private TraceTimestampMetricsFactory $timestampMetricsFactory,
     ) {
-    }
-
-    /**
-     * @param CreatingTraceBufferDto[] $creating
-     * @param UpdatingTraceBufferDto[] $updating
-     */
-    public function freshManyByCreatingUpdatingBuffers(array $creating, array $updating): void
-    {
-        if (count($creating) === 0 && count($updating) === 0) {
-            return;
-        }
-
-        /**
-         * @var array<string, (CreatingTraceBufferDto|UpdatingTraceBufferDto)[]> $collectionNameBuffers
-         */
-        $collectionNameBuffers = [];
-
-        foreach (array_merge($creating, $updating) as $buffer) {
-            if ($buffer instanceof CreatingTraceBufferDto) {
-                $collectionName = $this->periodicTraceCollectionNameService->newByDatetime(
-                    datetime: $buffer->loggedAt
-                );
-            } else {
-                $collectionName = $this->periodicTraceCollectionNameService->newByDatetime(
-                    datetime: $buffer->parentLoggedAt
-                );
-            }
-
-            $collectionNameBuffers[$collectionName]   ??= [];
-            $collectionNameBuffers[$collectionName][] = $buffer;
-        }
-
-        $waitGroup = WaitGroup::create();
-
-        foreach ($collectionNameBuffers as $collectionName => $buffers) {
-            $buffersGroups = [];
-
-            foreach ($buffers as $buffer) {
-                $buffersGroups[$buffer->serviceId]                   ??= [];
-                $buffersGroups[$buffer->serviceId][$buffer->traceId] ??= [];
-
-                if ($buffer instanceof CreatingTraceBufferDto) {
-                    $buffersGroups[$buffer->serviceId][$buffer->traceId]['c'] = $buffer;
-                } else {
-                    $buffersGroups[$buffer->serviceId][$buffer->traceId]['u'] = $buffer;
-                }
-            }
-
-            $now = new UTCDateTime();
-
-            foreach ($buffersGroups as $serviceId => $buffersGroup) {
-                foreach ($buffersGroup as $traceId => $tracesData) {
-                    $waitGroup->add(
-                        function () use ($collectionName, $serviceId, $traceId, $tracesData, $now) {
-                            /** @var CreatingTraceBufferDto|null $creatingTraceBuffer */
-                            $creatingTraceBuffer = $tracesData['c'] ?? null;
-                            /** @var UpdatingTraceBufferDto|null $updatingTraceBuffer */
-                            $updatingTraceBuffer = $tracesData['u'] ?? null;
-
-                            if ($creatingTraceBuffer === null && $updatingTraceBuffer === null) {
-                                return;
-                            }
-
-                            $loggedAt = $updatingTraceBuffer?->parentLoggedAt ?: $creatingTraceBuffer->loggedAt;
-
-                            $collection = $this->periodicTraceService->initCollectionByName($collectionName);
-
-                            $filter = [
-                                'sid' => $serviceId,
-                                'tid' => $traceId,
-                            ];
-
-                            $existsTrace = $collection->findOne($filter) ?: [];
-
-                            // parent trace id
-                            $parentTraceId = $existsTrace['ptid'] ?? null;
-                            $parentTraceId = $parentTraceId ?: $creatingTraceBuffer?->parentTraceId;
-
-                            // type
-                            $type = $creatingTraceBuffer?->type ?: ($existsTrace['tp'] ?? '__UNKNOWN');
-
-                            // status
-                            $status = ($updatingTraceBuffer?->status !== null)
-                                ? $updatingTraceBuffer->status
-                                : ($existsTrace['st'] ?? $creatingTraceBuffer->status);
-
-                            // tags
-                            $tags = ($updatingTraceBuffer?->tags !== null)
-                                ? $this->prepareTagsForSave($updatingTraceBuffer->tags)
-                                : ($existsTrace['tgs'] ?? $this->prepareTagsForSave($creatingTraceBuffer?->tags ?: []));
-
-                            // data
-                            $data = ($updatingTraceBuffer?->data !== null)
-                                ? $this->prepareData($updatingTraceBuffer->data)
-                                : ($existsTrace['dt'] ?? $this->prepareData($creatingTraceBuffer?->data ?: []));
-
-                            // duration
-                            $duration = ($updatingTraceBuffer?->duration !== null)
-                                ? $updatingTraceBuffer->duration
-                                : ($existsTrace['dur'] ?? $creatingTraceBuffer?->duration);
-
-                            // memory
-                            $memory = ($updatingTraceBuffer?->memory !== null)
-                                ? $updatingTraceBuffer->memory
-                                : ($existsTrace['mem'] ?? $creatingTraceBuffer?->memory);
-
-                            // cpu
-                            $cpu = ($updatingTraceBuffer?->cpu !== null)
-                                ? $updatingTraceBuffer->cpu
-                                : ($existsTrace['cpu'] ?? $creatingTraceBuffer?->cpu);
-
-                            // timestamps
-                            $timestamps = $existsTrace['tss'] ?? null;
-
-                            if ($timestamps === null) {
-                                $timestamps = $this->makeTimestampsByLoggedAt($loggedAt);
-                            }
-
-                            $document = [
-                                ...$filter,
-                                'ptid' => $parentTraceId,
-                                'tp'   => $type,
-                                'st'   => $status,
-                                'tgs'  => $tags,
-                                'dt'   => $data,
-                                'dur'  => $duration,
-                                'mem'  => $memory,
-                                'cpu'  => $cpu,
-                                'tss'  => $timestamps,
-                                'lat'  => new UTCDateTime($loggedAt),
-                                'hpr'  => false,
-                                'pr'   => [],
-                                'uat'  => $now,
-                            ];
-
-                            $collection->updateOne(
-                                filter: $filter,
-                                update: [
-                                    '$set'         => $document,
-                                    '$setOnInsert' => [
-                                        'cat' => $now,
-                                    ],
-                                ],
-                                upsert: true
-                            );
-                        }
-                    );
-                }
-            }
-        }
-
-        $waitGroup->waitAll();
-    }
-
-    /**
-     * @param TraceBufferDto[] $traceBuffers
-     */
-    public function freshManyByBuffers(array $traceBuffers): void
-    {
-        /**
-         * @var array<string, TraceBufferDto[]> $collectionNameTraceBuffers
-         */
-        $collectionNameTraceBuffers = [];
-
-        foreach ($traceBuffers as $traceBuffer) {
-            $collectionName = $this->periodicTraceCollectionNameService->newByDatetime(
-                datetime: $traceBuffer->loggedAt
-            );
-
-            $collectionNameTraceBuffers[$collectionName]   ??= [];
-            $collectionNameTraceBuffers[$collectionName][] = $traceBuffer;
-        }
-
-        foreach ($collectionNameTraceBuffers as $collectionName => $collectionNameTraceBuffer) {
-            $operations = [];
-
-            foreach ($collectionNameTraceBuffer as $buffer) {
-                $loggedAt = $buffer->loggedAt;
-
-                $timestamps = $this->makeTimestampsByLoggedAt($loggedAt);
-
-                $operations[] = [
-                    'updateOne' => [
-                        [
-                            'sid' => $buffer->serviceId,
-                            'tid' => $buffer->traceId,
-                        ],
-                        [
-                            '$set' => [
-                                'ptid' => $buffer->parentTraceId,
-                                'tp'   => $buffer->type,
-                                'st'   => $buffer->status,
-                                'tgs'  => $this->prepareTagsForSave($buffer->tags),
-                                'dt'   => $this->prepareData(json_decode($buffer->data, true)),
-                                'dur'  => $buffer->duration,
-                                'mem'  => $buffer->memory,
-                                'cpu'  => $buffer->cpu,
-                                'tss'  => $timestamps,
-                                'lat'  => new UTCDateTime($loggedAt),
-                                'uat'  => new UTCDateTime($buffer->updatedAt),
-                                'cat'  => new UTCDateTime($buffer->createdAt),
-                                'hpr'  => $buffer->hasProfiling,
-                                'pr'   => $buffer->profiling,
-                            ],
-                        ],
-                        [
-                            'upsert' => true,
-                        ],
-                    ],
-                ];
-            }
-
-            $this->periodicTraceService->initCollectionByName($collectionName)
-                ->bulkWrite($operations);
-        }
     }
 
     public function findOneDetailByTraceId(string $traceId): ?TraceDto
@@ -494,97 +268,6 @@ readonly class TraceRepository
     }
 
     /**
-     * @param string[]|null $traceIds
-     * @param string[]|null $excludedTypes
-     *
-     * @return int - number of deleted records
-     */
-    public function deleteTraces(
-        string $collectionName,
-        ?array $traceIds = null,
-        ?Carbon $loggedAtFrom = null,
-        ?Carbon $loggedAtTo = null,
-        ?string $type = null,
-        ?array $excludedTypes = null
-    ): int {
-        $collection = $this->periodicTraceService->selectCollectionByName($collectionName);
-
-        $lat = [];
-
-        if (!is_null($loggedAtFrom)) {
-            $lat['$gte'] = new UTCDateTime($loggedAtFrom);
-        }
-
-        if (!is_null($loggedAtTo)) {
-            $lat['$lte'] = new UTCDateTime($loggedAtTo);
-        }
-
-        $result = $collection->deleteMany(
-            [
-                ...(count($traceIds) ? ['tid' => ['$in' => $traceIds]] : []),
-                ...(count($lat) ? ['lat' => $lat] : []),
-                ...(is_null($type) ? [] : ['tp' => $type]),
-                ...((is_null($type) && !is_null($excludedTypes))
-                    ? ['tp' => ['$nin' => $excludedTypes]]
-                    : []
-                ),
-            ],
-        );
-
-        return $result->deletedCount;
-    }
-
-    /**
-     * @param string[]|null $traceIds
-     * @param string[]|null $excludedTypes
-     *
-     * @return int - number of cleared records
-     */
-    public function clearTraces(
-        string $collectionName,
-        ?array $traceIds = null,
-        ?Carbon $loggedAtFrom = null,
-        ?Carbon $loggedAtTo = null,
-        ?string $type = null,
-        ?array $excludedTypes = null
-    ): int {
-        $collection = $this->periodicTraceService->selectCollectionByName($collectionName);
-
-        $lat = [];
-
-        if (!is_null($loggedAtFrom)) {
-            $lat['$gte'] = new UTCDateTime($loggedAtFrom);
-        }
-
-        if (!is_null($loggedAtTo)) {
-            $lat['$lte'] = new UTCDateTime($loggedAtTo);
-        }
-
-        $result = $collection->updateMany(
-            [
-                ...(count($traceIds) ? ['tid' => ['$in' => $traceIds]] : []),
-                ...(count($lat) ? ['lat' => $lat] : []),
-                ...(is_null($type) ? [] : ['tp' => $type]),
-                ...((is_null($type) && !is_null($excludedTypes)) ? ['tp' => ['$nin' => $excludedTypes]] : []),
-                '$or' => [
-                    ['cl' => false],
-                    ['cl' => ['$exists' => false]],
-                ],
-            ],
-            [
-                '$set' => [
-                    'dt'  => new stdClass(),
-                    'pr'  => null,
-                    'hpr' => false,
-                    'cl'  => true,
-                ],
-            ]
-        );
-
-        return $result->modifiedCount;
-    }
-
-    /**
      * @param string[]                    $collectionNames
      * @param TraceDynamicIndexFieldDto[] $fields
      */
@@ -744,67 +427,6 @@ readonly class TraceRepository
     }
 
     /**
-     * @param string[] $tags
-     *
-     * @return array<string, string>[]
-     */
-    private function prepareTagsForSave(array $tags): array
-    {
-        return array_map(
-            fn(string $tag) => [
-                'nm' => $tag,
-            ],
-            $tags
-        );
-    }
-
-    /**
-     * @param array<string|int, mixed> $data
-     *
-     * @return array<string|int, mixed>
-     */
-    private function prepareData(array $data): array
-    {
-        $result = [];
-
-        foreach ($data as $key => $value) {
-            $this->prepareDataRecursive($result, $key, $value);
-        }
-
-        return $result;
-    }
-
-    /**
-     * @param array<string|int, mixed> $result
-     */
-    private function prepareDataRecursive(array &$result, mixed $key, mixed $value): void
-    {
-        if (!is_array($value)) {
-            $result[$key] = $value;
-
-            return;
-        }
-
-        if (!$value) {
-            $result[$key] = new stdClass();
-
-            return;
-        }
-
-        $result[$key] = [];
-
-        $isList = Arr::isList($value);
-
-        foreach ($value as $valueItemKey => $valueItem) {
-            $this->prepareDataRecursive(
-                result: $result[$key],
-                key: $isList ? "_$valueItemKey" : $valueItemKey,
-                value: $valueItem
-            );
-        }
-    }
-
-    /**
      * @param array<string, mixed> $document
      */
     private function makeTraceDtoFromDocument(array $document): TraceDto
@@ -832,20 +454,5 @@ readonly class TraceRepository
             createdAt: new Carbon($document['cat']->dateTime),
             updatedAt: new Carbon($document['uat']->dateTime)
         );
-    }
-
-    /**
-     * @return array<string, UTCDateTime>
-     */
-    private function makeTimestampsByLoggedAt(Carbon $loggedAt): array
-    {
-        $timestampMetrics = $this->timestampMetricsFactory->makeMetricsByDate($loggedAt);
-
-        $timestamps = [];
-        foreach ($timestampMetrics as $timestamp) {
-            $timestamps[$timestamp->key] = new UTCDateTime($timestamp->value);
-        }
-
-        return $timestamps;
     }
 }

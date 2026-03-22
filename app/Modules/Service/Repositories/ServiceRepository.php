@@ -48,18 +48,6 @@ class ServiceRepository
         return $this->makeObjectByModel($newService);
     }
 
-    public function findByToken(string $token): ?ServiceObject
-    {
-        /** @var Service|null $service */
-        $service = Service::query()->where('api_token', $token)->first();
-
-        if (!$service) {
-            return null;
-        }
-
-        return $this->makeObjectByModel($service);
-    }
-
     public function isExistByUniqueKey(string $uniqueKey): bool
     {
         return Service::query()->where('unique_key', $uniqueKey)->exists();

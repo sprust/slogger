@@ -109,7 +109,6 @@ return [
                     'rr-monitor:start',
                     'queue:work',
                     'queue:listen',
-                    'trace-buffer:handle:start',
                     'slogger:dispatcher:start',
                     'trace-dynamic-indexes:monitor:start',
                     'receiver:monitor',

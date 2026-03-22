@@ -37,10 +37,6 @@ class QueuesDeclareCommand extends Command
 
         $rabbitmqQueueNames = [];
 
-        if (config('queue.queues.creating.connection') === 'rabbitmq') {
-            $rabbitmqQueueNames[] = config('queue.queues.creating.name');
-        }
-
         if (config('slogger.dispatchers.default') === 'queue') {
             if (config('slogger.dispatchers.queue.connection') === 'rabbitmq') {
                 $rabbitmqQueueNames[] = config('slogger.dispatchers.queue.name');

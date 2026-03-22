@@ -5,23 +5,16 @@ declare(strict_types=1);
 namespace App\Modules\Trace\Infrastructure;
 
 use App\Modules\Common\Infrastructure\BaseServiceProvider;
-use App\Modules\Trace\Domain\Actions\Buffer\StartTraceBufferHandlingAction;
-use App\Modules\Trace\Domain\Actions\Buffer\StopTraceBufferHandlingAction;
 use App\Modules\Trace\Domain\Actions\MakeMetricIndicatorsAction;
 use App\Modules\Trace\Domain\Actions\MakeTraceTimestampPeriodsAction;
 use App\Modules\Trace\Domain\Actions\MakeTraceTimestampsAction;
-use App\Modules\Trace\Domain\Actions\Mutations\ClearTracesAction;
 use App\Modules\Trace\Domain\Actions\Mutations\CreateTraceAdminStoreAction;
-use App\Modules\Trace\Domain\Actions\Mutations\CreateTraceManyAction;
 use App\Modules\Trace\Domain\Actions\Mutations\DeleteCollectionsAction;
 use App\Modules\Trace\Domain\Actions\Mutations\DeleteTraceAdminStoreAction;
 use App\Modules\Trace\Domain\Actions\Mutations\DeleteTraceDynamicIndexAction;
-use App\Modules\Trace\Domain\Actions\Mutations\DeleteTracesAction;
 use App\Modules\Trace\Domain\Actions\Mutations\FlushDynamicIndexesAction;
-use App\Modules\Trace\Domain\Actions\Mutations\FreshTraceTreesAction;
 use App\Modules\Trace\Domain\Actions\Mutations\StartMonitorTraceDynamicIndexesAction;
 use App\Modules\Trace\Domain\Actions\Mutations\StopMonitorTraceDynamicIndexesAction;
-use App\Modules\Trace\Domain\Actions\Mutations\UpdateTraceManyAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindStatusesAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTagsAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceAdminStoreAction;
@@ -40,16 +33,12 @@ use App\Modules\Trace\Domain\Services\TraceDynamicIndexInitializer;
 use App\Modules\Trace\Domain\Services\TraceFieldTitlesService;
 use App\Modules\Trace\Infrastructure\Commands\FlushDynamicIndexesCommand;
 use App\Modules\Trace\Infrastructure\Commands\StartMonitorTraceDynamicIndexesCommand;
-use App\Modules\Trace\Infrastructure\Commands\StartTraceBufferHandlingCommand;
 use App\Modules\Trace\Infrastructure\Commands\StopMonitorTraceDynamicIndexesCommand;
-use App\Modules\Trace\Infrastructure\Commands\StopTraceBufferHandlingCommand;
 use App\Modules\Trace\Infrastructure\Http\Services\TraceDynamicIndexingActionService;
 use App\Modules\Trace\Repositories\Services\PeriodicTraceCollectionNameService;
 use App\Modules\Trace\Repositories\Services\PeriodicTraceService;
 use App\Modules\Trace\Repositories\Services\TracePipelineBuilder;
 use App\Modules\Trace\Repositories\TraceAdminStoreRepository;
-use App\Modules\Trace\Repositories\TraceBufferInvalidRepository;
-use App\Modules\Trace\Repositories\TraceBufferRepository;
 use App\Modules\Trace\Repositories\TraceContentRepository;
 use App\Modules\Trace\Repositories\TraceDynamicIndexRepository;
 use App\Modules\Trace\Repositories\TraceRepository;
@@ -59,19 +48,11 @@ use App\Modules\Trace\Repositories\TraceTreeRepository;
 use Illuminate\Contracts\Foundation\Application;
 use MongoDB\Client;
 use SConcur\Features\Mongodb\Connection\Client as SconcurClient;
-use SConcur\Features\Mongodb\Connection\Database;
 
 class TraceServiceProvider extends BaseServiceProvider
 {
     public function boot(): void
     {
-        $this->app->singleton(
-            PeriodicTraceCollectionNameService::class,
-            fn() => new PeriodicTraceCollectionNameService(
-                hoursStep: 1 // TODO: hard
-            )
-        );
-
         $this->app->singleton(
             PeriodicTraceService::class,
             static function (Application $app) {
@@ -101,30 +82,6 @@ class TraceServiceProvider extends BaseServiceProvider
             }
         );
 
-        $tracesDatabase = $this->makeSconcurMongodbTracesClient();
-
-        $this->app->singleton(
-            TraceBufferRepository::class,
-            static function () use ($tracesDatabase): TraceBufferRepository {
-                return new TraceBufferRepository(
-                    collection: $tracesDatabase->selectCollection(
-                        config('database.connections.mongodb.traces.databases.buffer')
-                    ),
-                );
-            }
-        );
-
-        $this->app->singleton(
-            TraceBufferInvalidRepository::class,
-            static function () use ($tracesDatabase): TraceBufferInvalidRepository {
-                return new TraceBufferInvalidRepository(
-                    collection: $tracesDatabase->selectCollection(
-                        config('database.connections.mongodb.traces.databases.bufferInvalid')
-                    ),
-                );
-            }
-        );
-
         $this->app->singleton(TraceFieldTitlesService::class);
         $this->app->singleton(TracePipelineBuilder::class);
         $this->app->singleton(TraceDynamicIndexInitializer::class);
@@ -133,8 +90,6 @@ class TraceServiceProvider extends BaseServiceProvider
         parent::boot();
 
         $this->commands([
-            StartTraceBufferHandlingCommand::class,
-            StopTraceBufferHandlingCommand::class,
             StartMonitorTraceDynamicIndexesCommand::class,
             StopMonitorTraceDynamicIndexesCommand::class,
             FlushDynamicIndexesCommand::class,
@@ -156,20 +111,13 @@ class TraceServiceProvider extends BaseServiceProvider
             MakeMetricIndicatorsAction::class,
             MakeTraceTimestampPeriodsAction::class,
             MakeTraceTimestampsAction::class,
-            StartTraceBufferHandlingAction::class,
-            StopTraceBufferHandlingAction::class,
             // actions.mutations
-            CreateTraceManyAction::class,
-            ClearTracesAction::class,
-            DeleteTracesAction::class,
-            UpdateTraceManyAction::class,
             StartMonitorTraceDynamicIndexesAction::class,
             StopMonitorTraceDynamicIndexesAction::class,
             FlushDynamicIndexesAction::class,
             DeleteTraceDynamicIndexAction::class,
             CreateTraceAdminStoreAction::class,
             DeleteTraceAdminStoreAction::class,
-            FreshTraceTreesAction::class,
             DeleteCollectionsAction::class,
             // actions.queries
             FindStatusesAction::class,
@@ -186,21 +134,8 @@ class TraceServiceProvider extends BaseServiceProvider
             FindTraceIdsAction::class,
             FindTraceServicesAction::class,
             FindTraceTreeContentAction::class,
+            // services
+            PeriodicTraceCollectionNameService::class
         ];
-    }
-
-    private function makeSconcurMongodbTracesClient(): Database
-    {
-        $username = config('database.connections.mongodb.traces.username');
-        $password = config('database.connections.mongodb.traces.password');
-        $host     = config('database.connections.mongodb.traces.host');
-        $port     = config('database.connections.mongodb.traces.port');
-        $database = config('database.connections.mongodb.traces.database');
-
-        $uri = "mongodb://$username:$password@$host:$port";
-
-        $client = new SconcurClient($uri);
-
-        return $client->selectDatabase($database);
     }
 }
