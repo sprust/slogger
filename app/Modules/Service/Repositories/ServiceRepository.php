@@ -5,15 +5,16 @@ declare(strict_types=1);
 namespace App\Modules\Service\Repositories;
 
 use App\Models\Services\Service;
-use App\Modules\Service\Contracts\Repositories\ServiceRepositoryInterface;
 use App\Modules\Service\Entities\ServiceObject;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
 
-class ServiceRepository implements ServiceRepositoryInterface
+class ServiceRepository
 {
     /**
      * @param int[]|null $ids
+     *
+     * @return ServiceObject[]
      */
     public function find(?array $ids = null): array
     {

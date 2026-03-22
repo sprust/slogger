@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Modules\Trace\Repositories;
 
 use App\Models\Traces\TraceDynamicIndex;
-use App\Modules\Trace\Contracts\Repositories\TraceRepositoryInterface;
 use App\Modules\Trace\Entities\Trace\DeletedTracesObject;
 use App\Modules\Trace\Entities\Trace\TraceCollectionNameObjects;
 use App\Modules\Trace\Entities\Trace\TraceIndexInfoObject;
@@ -13,6 +12,7 @@ use App\Modules\Trace\Parameters\Data\TraceDataFilterParameters;
 use App\Modules\Trace\Repositories\Dto\Buffer\CreatingTraceBufferDto;
 use App\Modules\Trace\Repositories\Dto\Buffer\TraceBufferDto;
 use App\Modules\Trace\Repositories\Dto\Buffer\UpdatingTraceBufferDto;
+use App\Modules\Trace\Repositories\Dto\DynamicIndex\TraceDynamicIndexFieldDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Profiling\TraceProfilingDataDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Profiling\TraceProfilingDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Profiling\TraceProfilingItemDto;
@@ -32,7 +32,7 @@ use SConcur\WaitGroup;
 use stdClass;
 use Throwable;
 
-readonly class TraceRepository implements TraceRepositoryInterface
+readonly class TraceRepository
 {
     public function __construct(
         private PeriodicTraceCollectionNameService $periodicTraceCollectionNameService,
@@ -195,6 +195,9 @@ readonly class TraceRepository implements TraceRepositoryInterface
         $waitGroup->waitAll();
     }
 
+    /**
+     * @param TraceBufferDto[] $traceBuffers
+     */
     public function freshManyByBuffers(array $traceBuffers): void
     {
         /**
@@ -275,6 +278,15 @@ readonly class TraceRepository implements TraceRepositoryInterface
         return $this->makeTraceDtoFromDocument($document);
     }
 
+    /**
+     * @param int[]|null    $serviceIds
+     * @param string[]|null $traceIds
+     * @param string[]      $types
+     * @param string[]      $tags
+     * @param string[]      $statuses
+     *
+     * @return TraceDto[]
+     */
     public function find(
         int $page = 1,
         int $perPage = 20,
@@ -339,6 +351,9 @@ readonly class TraceRepository implements TraceRepositoryInterface
         );
     }
 
+    /**
+     * @param string[]|null $excludedTypes
+     */
     public function findTraceIds(
         int $limit,
         ?Carbon $loggedAtTo = null,
@@ -419,6 +434,11 @@ readonly class TraceRepository implements TraceRepositoryInterface
         return $result;
     }
 
+    /**
+     * @param string[] $traceIds
+     *
+     * @return TraceDto[]
+     */
     public function findByTraceIds(array $traceIds): array
     {
         /** @var TraceDto[] $traces */
@@ -473,6 +493,12 @@ readonly class TraceRepository implements TraceRepositoryInterface
         );
     }
 
+    /**
+     * @param string[]|null $traceIds
+     * @param string[]|null $excludedTypes
+     *
+     * @return int - number of deleted records
+     */
     public function deleteTraces(
         string $collectionName,
         ?array $traceIds = null,
@@ -508,6 +534,12 @@ readonly class TraceRepository implements TraceRepositoryInterface
         return $result->deletedCount;
     }
 
+    /**
+     * @param string[]|null $traceIds
+     * @param string[]|null $excludedTypes
+     *
+     * @return int - number of cleared records
+     */
     public function clearTraces(
         string $collectionName,
         ?array $traceIds = null,
@@ -552,6 +584,10 @@ readonly class TraceRepository implements TraceRepositoryInterface
         return $result->modifiedCount;
     }
 
+    /**
+     * @param string[]                    $collectionNames
+     * @param TraceDynamicIndexFieldDto[] $fields
+     */
     public function createIndex(string $name, array $collectionNames, array $fields): bool
     {
         if (empty($collectionNames) || empty($fields)) {
@@ -602,6 +638,8 @@ readonly class TraceRepository implements TraceRepositoryInterface
 
     /**
      * @throws Exception
+     *
+     * @return TraceIndexInfoObject[]
      */
     public function getIndexProgressesInfo(): array
     {
@@ -649,6 +687,9 @@ readonly class TraceRepository implements TraceRepositoryInterface
         return $infoList;
     }
 
+    /**
+     * @param string[] $collectionNames
+     */
     public function deleteIndexByName(string $indexName, array $collectionNames): void
     {
         foreach ($collectionNames as $collectionName) {

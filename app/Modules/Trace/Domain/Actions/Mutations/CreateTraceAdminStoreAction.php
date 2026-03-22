@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 namespace App\Modules\Trace\Domain\Actions\Mutations;
 
-use App\Modules\Trace\Contracts\Actions\Mutations\CreateTraceAdminStoreActionInterface;
-use App\Modules\Trace\Contracts\Repositories\TraceAdminStoreRepositoryInterface;
 use App\Modules\Trace\Entities\Store\TraceAdminStoreObject;
+use App\Modules\Trace\Repositories\TraceAdminStoreRepository;
 
-readonly class CreateTraceAdminStoreAction implements CreateTraceAdminStoreActionInterface
+readonly class CreateTraceAdminStoreAction
 {
     public function __construct(
-        private TraceAdminStoreRepositoryInterface $traceAdminStoreRepository
+        private TraceAdminStoreRepository $traceAdminStoreRepository
     ) {
     }
 

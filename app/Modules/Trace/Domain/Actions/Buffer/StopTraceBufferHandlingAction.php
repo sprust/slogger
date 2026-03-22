@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace App\Modules\Trace\Domain\Actions\Buffer;
 
-use App\Modules\Trace\Contracts\Actions\StopTraceBufferHandlingActionInterface;
 use App\Modules\Trace\Domain\Services\MonitorTraceBufferHandlingService;
 use Symfony\Component\Console\Output\OutputInterface;
 
-readonly class StopTraceBufferHandlingAction implements StopTraceBufferHandlingActionInterface
+readonly class StopTraceBufferHandlingAction
 {
     public function __construct(
         private MonitorTraceBufferHandlingService $monitorTraceBufferHandlingService

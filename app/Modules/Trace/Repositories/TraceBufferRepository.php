@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Modules\Trace\Repositories;
 
-use App\Modules\Trace\Contracts\Repositories\TraceBufferRepositoryInterface;
 use App\Modules\Trace\Entities\Trace\Timestamp\TraceTimestampMetricObject;
 use App\Modules\Trace\Parameters\TraceCreateParameters;
 use App\Modules\Trace\Parameters\TraceUpdateParameters;
@@ -20,7 +19,7 @@ use SConcur\Features\Mongodb\Types\UTCDateTime;
 use stdClass;
 use Throwable;
 
-readonly class TraceBufferRepository implements TraceBufferRepositoryInterface
+readonly class TraceBufferRepository
 {
     public function __construct(
         private Collection $collection,
@@ -273,6 +272,9 @@ readonly class TraceBufferRepository implements TraceBufferRepositoryInterface
         );
     }
 
+    /**
+     * @param string[] $ids
+     */
     public function markAsHandled(array $ids): void
     {
         if (count($ids) === 0) {
@@ -299,6 +301,9 @@ readonly class TraceBufferRepository implements TraceBufferRepositoryInterface
         );
     }
 
+    /**
+     * @param string[] $ids
+     */
     public function delete(array $ids): int
     {
         if (count($ids) === 0) {

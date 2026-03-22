@@ -4,15 +4,14 @@ declare(strict_types=1);
 
 namespace App\Modules\Trace\Domain\Actions\Mutations;
 
-use App\Modules\Trace\Contracts\Actions\Mutations\DeleteCollectionsActionInterface;
-use App\Modules\Trace\Contracts\Repositories\TraceRepositoryInterface;
 use App\Modules\Trace\Entities\Trace\DeletedTracesObject;
+use App\Modules\Trace\Repositories\TraceRepository;
 use Illuminate\Support\Carbon;
 
-readonly class DeleteCollectionsAction implements DeleteCollectionsActionInterface
+readonly class DeleteCollectionsAction
 {
     public function __construct(
-        private TraceRepositoryInterface $traceRepository,
+        private TraceRepository $traceRepository,
     ) {
     }
 

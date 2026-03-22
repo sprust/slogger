@@ -4,17 +4,20 @@ declare(strict_types=1);
 
 namespace App\Modules\Trace\Repositories;
 
-use App\Modules\Trace\Contracts\Repositories\TraceBufferInvalidRepositoryInterface;
+use App\Modules\Trace\Repositories\Dto\Buffer\TraceBufferInvalidDto;
 use MongoDB\BSON\UTCDateTime;
 use SConcur\Features\Mongodb\Connection\Collection;
 
-readonly class TraceBufferInvalidRepository implements TraceBufferInvalidRepositoryInterface
+readonly class TraceBufferInvalidRepository
 {
     public function __construct(
         private Collection $collection
     ) {
     }
 
+    /**
+     * @param TraceBufferInvalidDto[] $invalidTraceBuffers
+     */
     public function createMany(array $invalidTraceBuffers): void
     {
         $createdAt = new UTCDateTime(now());

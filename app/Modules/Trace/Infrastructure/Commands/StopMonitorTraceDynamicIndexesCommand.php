@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Trace\Infrastructure\Commands;
 
-use App\Modules\Trace\Contracts\Actions\Mutations\StopMonitorTraceDynamicIndexesActionInterface;
+use App\Modules\Trace\Domain\Actions\Mutations\StopMonitorTraceDynamicIndexesAction;
 use Illuminate\Console\Command;
 
 class StopMonitorTraceDynamicIndexesCommand extends Command
@@ -26,7 +26,7 @@ class StopMonitorTraceDynamicIndexesCommand extends Command
     /**
      * Execute the console command.
      */
-    public function handle(StopMonitorTraceDynamicIndexesActionInterface $action): int
+    public function handle(StopMonitorTraceDynamicIndexesAction $action): int
     {
         $action->handle();
 

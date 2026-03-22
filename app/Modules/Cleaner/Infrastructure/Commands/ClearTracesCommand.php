@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Cleaner\Infrastructure\Commands;
 
-use App\Modules\Cleaner\Contracts\Actions\ClearTracesActionInterface;
+use App\Modules\Cleaner\Domain\Actions\ClearTracesAction;
 use Illuminate\Console\Command;
 
 class ClearTracesCommand extends Command
@@ -26,7 +26,7 @@ class ClearTracesCommand extends Command
     /**
      * Execute the console command.
      */
-    public function handle(ClearTracesActionInterface $clearTracesAction): int
+    public function handle(ClearTracesAction $clearTracesAction): int
     {
         $clearTracesAction->handle(
             config('cleaner.lifetime_days')

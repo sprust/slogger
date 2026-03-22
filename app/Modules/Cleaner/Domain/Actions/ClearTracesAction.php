@@ -4,18 +4,17 @@ declare(strict_types=1);
 
 namespace App\Modules\Cleaner\Domain\Actions;
 
-use App\Modules\Cleaner\Contracts\Actions\ClearTracesActionInterface;
-use App\Modules\Cleaner\Contracts\Repositories\ProcessRepositoryInterface;
-use App\Modules\Trace\Contracts\Actions\Mutations\DeleteCollectionsActionInterface;
+use App\Modules\Cleaner\Repositories\ProcessRepository;
+use App\Modules\Trace\Domain\Actions\Mutations\DeleteCollectionsAction;
 use InvalidArgumentException;
 use RuntimeException;
 use Throwable;
 
-readonly class ClearTracesAction implements ClearTracesActionInterface
+readonly class ClearTracesAction
 {
     public function __construct(
-        private ProcessRepositoryInterface $processRepository,
-        private DeleteCollectionsActionInterface $deleteCollectionsAction,
+        private ProcessRepository $processRepository,
+        private DeleteCollectionsAction $deleteCollectionsAction,
     ) {
     }
 

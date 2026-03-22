@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Cleaner\Infrastructure\Jobs;
 
-use App\Modules\Cleaner\Contracts\Actions\ClearTracesActionInterface;
+use App\Modules\Cleaner\Domain\Actions\ClearTracesAction;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -29,7 +29,7 @@ class ClearTracesJob implements ShouldQueue
     /**
      * Execute the job.
      */
-    public function handle(ClearTracesActionInterface $clearTracesAction): void
+    public function handle(ClearTracesAction $clearTracesAction): void
     {
         $clearTracesAction->handle(
             config('cleaner.lifetime_days')

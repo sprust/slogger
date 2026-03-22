@@ -4,16 +4,15 @@ declare(strict_types=1);
 
 namespace App\Modules\Trace\Domain\Actions\Queries;
 
-use App\Modules\Trace\Contracts\Actions\Queries\FindTraceDynamicIndexStatsActionInterface;
-use App\Modules\Trace\Contracts\Repositories\TraceDynamicIndexRepositoryInterface;
-use App\Modules\Trace\Contracts\Repositories\TraceRepositoryInterface;
 use App\Modules\Trace\Entities\DynamicIndex\TraceDynamicIndexStatsObject;
+use App\Modules\Trace\Repositories\TraceDynamicIndexRepository;
+use App\Modules\Trace\Repositories\TraceRepository;
 
-readonly class FindTraceDynamicIndexStatsAction implements FindTraceDynamicIndexStatsActionInterface
+readonly class FindTraceDynamicIndexStatsAction
 {
     public function __construct(
-        private TraceRepositoryInterface $traceRepository,
-        private TraceDynamicIndexRepositoryInterface $traceDynamicIndexRepository
+        private TraceRepository $traceRepository,
+        private TraceDynamicIndexRepository $traceDynamicIndexRepository
     ) {
     }
 

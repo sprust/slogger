@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace App\Modules\Cleaner\Infrastructure;
 
-use App\Modules\Cleaner\Contracts\Actions\ClearTracesActionInterface;
-use App\Modules\Cleaner\Contracts\Actions\FindProcessesActionInterface;
-use App\Modules\Cleaner\Contracts\Repositories\ProcessRepositoryInterface;
 use App\Modules\Cleaner\Domain\Actions\ClearTracesAction;
 use App\Modules\Cleaner\Domain\Actions\FindProcessesAction;
 use App\Modules\Cleaner\Infrastructure\Commands\ClearTracesCommand;
@@ -28,10 +25,10 @@ class CleanerServiceProvider extends BaseServiceProvider
     {
         return [
             // repositories
-            ProcessRepositoryInterface::class        => ProcessRepository::class,
+            ProcessRepository::class,
             // actions
-            ClearTracesActionInterface::class        => ClearTracesAction::class,
-            FindProcessesActionInterface::class      => FindProcessesAction::class,
+            ClearTracesAction::class,
+            FindProcessesAction::class,
         ];
     }
 }

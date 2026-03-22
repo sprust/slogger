@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace App\Modules\Auth\Domain\Actions;
 
-use App\Modules\Auth\Contracts\Actions\FindUserByTokenActionInterface;
 use App\Modules\Auth\Entities\LoggedUserObject;
-use App\Modules\User\Contracts\Domain\FindUserByTokenActionInterface as UserFindUserByTokenAction;
+use App\Modules\User\Domain\Actions\FindUserByTokenAction as UserFindUserByTokenAction;
 
-readonly class FindUserByTokenAction implements FindUserByTokenActionInterface
+readonly class FindUserByTokenAction
 {
     public function __construct(
         private UserFindUserByTokenAction $findUserByTokenAction

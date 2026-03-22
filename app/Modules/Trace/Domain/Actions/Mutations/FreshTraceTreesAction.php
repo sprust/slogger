@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Trace\Domain\Actions\Mutations;
 
-use App\Modules\Trace\Contracts\Actions\Mutations\FreshTraceTreesActionInterface;
 use App\Modules\Trace\Repositories\Services\PeriodicTraceService;
 
-readonly class FreshTraceTreesAction implements FreshTraceTreesActionInterface
+readonly class FreshTraceTreesAction
 {
     public function __construct(
         private PeriodicTraceService $periodicTraceService

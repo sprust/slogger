@@ -5,13 +5,12 @@ declare(strict_types=1);
 namespace App\Modules\User\Repositories;
 
 use App\Models\Users\User;
-use App\Modules\User\Contracts\Repositories\UserRepositoryInterface;
 use App\Modules\User\Entities\UserDetailObject;
 use App\Modules\User\Parameters\UserCreateParameters;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
-class UserRepository implements UserRepositoryInterface
+class UserRepository
 {
     public function create(UserCreateParameters $parameters): UserDetailObject
     {

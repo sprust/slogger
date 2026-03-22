@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Modules\Trace\Infrastructure\Http\Controllers;
 
 use App\Modules\Common\Helpers\ArrayValueGetter;
-use App\Modules\Trace\Contracts\Actions\MakeMetricIndicatorsActionInterface;
-use App\Modules\Trace\Contracts\Actions\Queries\FindTraceTimestampsActionInterface;
+use App\Modules\Trace\Domain\Actions\MakeMetricIndicatorsAction;
+use App\Modules\Trace\Domain\Actions\Queries\FindTraceTimestampsAction;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexNotInitException;
 use App\Modules\Trace\Enums\TraceMetricFieldEnum;
 use App\Modules\Trace\Enums\TraceTimestampEnum;
@@ -26,8 +26,8 @@ readonly class TraceTimestampsController
     use MakeDataFilterParameterTrait;
 
     public function __construct(
-        private FindTraceTimestampsActionInterface $findTraceTimestampsAction,
-        private MakeMetricIndicatorsActionInterface $makeMetricIndicatorsAction,
+        private FindTraceTimestampsAction $findTraceTimestampsAction,
+        private MakeMetricIndicatorsAction $makeMetricIndicatorsAction,
         private TraceDynamicIndexingActionService $traceDynamicIndexingActionService
     ) {
     }

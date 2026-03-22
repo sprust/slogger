@@ -6,7 +6,7 @@ namespace App\Modules\Trace\Infrastructure\Http\Controllers;
 
 use App\Modules\Common\Helpers\ArrayValueGetter;
 use App\Modules\Service\Infrastructure\Services\ServiceContainer;
-use App\Modules\Trace\Contracts\Actions\MakeTraceTimestampsActionInterface;
+use App\Modules\Trace\Domain\Actions\MakeTraceTimestampsAction;
 use App\Modules\Trace\Infrastructure\Http\Requests\TraceCreateRequest;
 use App\Modules\Trace\Infrastructure\Http\Requests\TraceUpdateRequest;
 use App\Modules\Trace\Infrastructure\Http\Services\QueueDispatcher;
@@ -33,7 +33,7 @@ class TraceCollectorController
         GeneralConfig $config,
         private readonly ServiceContainer $serviceContainer,
         private readonly QueueDispatcher $queueDispatcher,
-        private readonly MakeTraceTimestampsActionInterface $makeTraceTimestampsAction,
+        private readonly MakeTraceTimestampsAction $makeTraceTimestampsAction,
     ) {
         $this->sloggerEnabled = $config->isEnabled();
     }

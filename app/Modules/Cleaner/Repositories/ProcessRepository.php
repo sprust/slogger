@@ -5,15 +5,17 @@ declare(strict_types=1);
 namespace App\Modules\Cleaner\Repositories;
 
 use App\Models\Traces\TraceClearingProcess;
-use App\Modules\Cleaner\Contracts\Repositories\ProcessRepositoryInterface;
 use App\Modules\Cleaner\Entities\ProcessObject;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use MongoDB\BSON\UTCDateTime;
 use Throwable;
 
-class ProcessRepository implements ProcessRepositoryInterface
+class ProcessRepository
 {
+    /**
+     * @return ProcessObject[]
+     */
     public function find(int $page, int $perPage): array
     {
         return TraceClearingProcess::query()

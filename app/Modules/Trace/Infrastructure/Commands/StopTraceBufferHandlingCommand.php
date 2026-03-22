@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Trace\Infrastructure\Commands;
 
-use App\Modules\Trace\Contracts\Actions\StopTraceBufferHandlingActionInterface;
+use App\Modules\Trace\Domain\Actions\Buffer\StopTraceBufferHandlingAction;
 use Illuminate\Console\Command;
 
 class StopTraceBufferHandlingCommand extends Command
@@ -26,7 +26,7 @@ class StopTraceBufferHandlingCommand extends Command
     /**
      * Execute the console command.
      */
-    public function handle(StopTraceBufferHandlingActionInterface $action): int
+    public function handle(StopTraceBufferHandlingAction $action): int
     {
         $action->handle($this->output);
 

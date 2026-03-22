@@ -4,19 +4,18 @@ declare(strict_types=1);
 
 namespace App\Modules\Trace\Domain\Actions\Mutations;
 
-use App\Modules\Trace\Contracts\Actions\Mutations\ClearTracesActionInterface;
-use App\Modules\Trace\Contracts\Repositories\TraceRepositoryInterface;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexErrorException;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexInProcessException;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexNotInitException;
 use App\Modules\Trace\Domain\Services\TraceDynamicIndexingActionService;
 use App\Modules\Trace\Domain\Services\TraceDynamicIndexInitializer;
 use App\Modules\Trace\Parameters\ClearTracesParameters;
+use App\Modules\Trace\Repositories\TraceRepository;
 
-readonly class ClearTracesAction implements ClearTracesActionInterface
+readonly class ClearTracesAction
 {
     public function __construct(
-        private TraceRepositoryInterface $traceRepository,
+        private TraceRepository $traceRepository,
         private TraceDynamicIndexingActionService $traceDynamicIndexingActionService,
         private TraceDynamicIndexInitializer $traceDynamicIndexInitializer
     ) {

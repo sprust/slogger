@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Trace\Infrastructure\Commands;
 
-use App\Modules\Trace\Contracts\Actions\StartTraceBufferHandlingActionInterface;
+use App\Modules\Trace\Domain\Actions\Buffer\StartTraceBufferHandlingAction;
 use Illuminate\Console\Command;
 
 // TODO: replaced by receiver server. to delete
@@ -27,7 +27,7 @@ class StartTraceBufferHandlingCommand extends Command
     /**
      * Execute the console command.
      */
-    public function handle(StartTraceBufferHandlingActionInterface $action): int
+    public function handle(StartTraceBufferHandlingAction $action): int
     {
         $action->handle($this->output);
 

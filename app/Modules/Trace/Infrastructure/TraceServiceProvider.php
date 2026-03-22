@@ -5,46 +5,6 @@ declare(strict_types=1);
 namespace App\Modules\Trace\Infrastructure;
 
 use App\Modules\Common\Infrastructure\BaseServiceProvider;
-use App\Modules\Trace\Contracts\Actions\MakeMetricIndicatorsActionInterface;
-use App\Modules\Trace\Contracts\Actions\MakeTraceTimestampPeriodsActionInterface;
-use App\Modules\Trace\Contracts\Actions\MakeTraceTimestampsActionInterface;
-use App\Modules\Trace\Contracts\Actions\Mutations\ClearTracesActionInterface;
-use App\Modules\Trace\Contracts\Actions\Mutations\CreateTraceAdminStoreActionInterface;
-use App\Modules\Trace\Contracts\Actions\Mutations\CreateTraceManyActionInterface;
-use App\Modules\Trace\Contracts\Actions\Mutations\DeleteCollectionsActionInterface;
-use App\Modules\Trace\Contracts\Actions\Mutations\DeleteTraceAdminStoreActionInterface;
-use App\Modules\Trace\Contracts\Actions\Mutations\DeleteTraceDynamicIndexActionInterface;
-use App\Modules\Trace\Contracts\Actions\Mutations\DeleteTracesActionInterface;
-use App\Modules\Trace\Contracts\Actions\Mutations\FlushDynamicIndexesActionInterface;
-use App\Modules\Trace\Contracts\Actions\Mutations\FreshTraceTreesActionInterface;
-use App\Modules\Trace\Contracts\Actions\Mutations\StartMonitorTraceDynamicIndexesActionInterface;
-use App\Modules\Trace\Contracts\Actions\Mutations\StopMonitorTraceDynamicIndexesActionInterface;
-use App\Modules\Trace\Contracts\Actions\Mutations\UpdateTraceManyActionInterface;
-use App\Modules\Trace\Contracts\Actions\Queries\FindStatusesActionInterface;
-use App\Modules\Trace\Contracts\Actions\Queries\FindTagsActionInterface;
-use App\Modules\Trace\Contracts\Actions\Queries\FindTraceAdminStoreActionInterface;
-use App\Modules\Trace\Contracts\Actions\Queries\FindTraceDetailActionInterface;
-use App\Modules\Trace\Contracts\Actions\Queries\FindTraceDynamicIndexesActionInterface;
-use App\Modules\Trace\Contracts\Actions\Queries\FindTraceDynamicIndexStatsActionInterface;
-use App\Modules\Trace\Contracts\Actions\Queries\FindTraceIdsActionInterface;
-use App\Modules\Trace\Contracts\Actions\Queries\FindTraceProfilingActionInterface;
-use App\Modules\Trace\Contracts\Actions\Queries\FindTracesActionInterface;
-use App\Modules\Trace\Contracts\Actions\Queries\FindTraceServicesActionInterface;
-use App\Modules\Trace\Contracts\Actions\Queries\FindTraceTimestampsActionInterface;
-use App\Modules\Trace\Contracts\Actions\Queries\FindTraceTreeActionInterface;
-use App\Modules\Trace\Contracts\Actions\Queries\FindTraceTreeContentActionInterface;
-use App\Modules\Trace\Contracts\Actions\Queries\FindTypesActionInterface;
-use App\Modules\Trace\Contracts\Actions\StartTraceBufferHandlingActionInterface;
-use App\Modules\Trace\Contracts\Actions\StopTraceBufferHandlingActionInterface;
-use App\Modules\Trace\Contracts\Repositories\TraceAdminStoreRepositoryInterface;
-use App\Modules\Trace\Contracts\Repositories\TraceBufferInvalidRepositoryInterface;
-use App\Modules\Trace\Contracts\Repositories\TraceBufferRepositoryInterface;
-use App\Modules\Trace\Contracts\Repositories\TraceContentRepositoryInterface;
-use App\Modules\Trace\Contracts\Repositories\TraceDynamicIndexRepositoryInterface;
-use App\Modules\Trace\Contracts\Repositories\TraceRepositoryInterface;
-use App\Modules\Trace\Contracts\Repositories\TraceTimestampsRepositoryInterface;
-use App\Modules\Trace\Contracts\Repositories\TraceTreeCacheRepositoryInterface;
-use App\Modules\Trace\Contracts\Repositories\TraceTreeRepositoryInterface;
 use App\Modules\Trace\Domain\Actions\Buffer\StartTraceBufferHandlingAction;
 use App\Modules\Trace\Domain\Actions\Buffer\StopTraceBufferHandlingAction;
 use App\Modules\Trace\Domain\Actions\MakeMetricIndicatorsAction;
@@ -144,8 +104,8 @@ class TraceServiceProvider extends BaseServiceProvider
         $tracesDatabase = $this->makeSconcurMongodbTracesClient();
 
         $this->app->singleton(
-            TraceBufferRepositoryInterface::class,
-            static function () use ($tracesDatabase): TraceBufferRepositoryInterface {
+            TraceBufferRepository::class,
+            static function () use ($tracesDatabase): TraceBufferRepository {
                 return new TraceBufferRepository(
                     collection: $tracesDatabase->selectCollection(
                         config('database.connections.mongodb.traces.databases.buffer')
@@ -155,8 +115,8 @@ class TraceServiceProvider extends BaseServiceProvider
         );
 
         $this->app->singleton(
-            TraceBufferInvalidRepositoryInterface::class,
-            static function () use ($tracesDatabase): TraceBufferInvalidRepositoryInterface {
+            TraceBufferInvalidRepository::class,
+            static function () use ($tracesDatabase): TraceBufferInvalidRepository {
                 return new TraceBufferInvalidRepository(
                     collection: $tracesDatabase->selectCollection(
                         config('database.connections.mongodb.traces.databases.bufferInvalid')
@@ -185,47 +145,47 @@ class TraceServiceProvider extends BaseServiceProvider
     {
         return [
             // repositories
-            TraceRepositoryInterface::class                       => TraceRepository::class,
-            TraceContentRepositoryInterface::class                => TraceContentRepository::class,
-            TraceTreeRepositoryInterface::class                   => TraceTreeRepository::class,
-            TraceTimestampsRepositoryInterface::class             => TraceTimestampsRepository::class,
-            TraceDynamicIndexRepositoryInterface::class           => TraceDynamicIndexRepository::class,
-            TraceAdminStoreRepositoryInterface::class             => TraceAdminStoreRepository::class,
-            TraceTreeCacheRepositoryInterface::class              => TraceTreeCacheRepository::class,
+            TraceRepository::class,
+            TraceContentRepository::class,
+            TraceTreeRepository::class,
+            TraceTimestampsRepository::class,
+            TraceDynamicIndexRepository::class,
+            TraceAdminStoreRepository::class,
+            TraceTreeCacheRepository::class,
             // actions
-            MakeMetricIndicatorsActionInterface::class            => MakeMetricIndicatorsAction::class,
-            MakeTraceTimestampPeriodsActionInterface::class       => MakeTraceTimestampPeriodsAction::class,
-            MakeTraceTimestampsActionInterface::class             => MakeTraceTimestampsAction::class,
-            StartTraceBufferHandlingActionInterface::class        => StartTraceBufferHandlingAction::class,
-            StopTraceBufferHandlingActionInterface::class         => StopTraceBufferHandlingAction::class,
+            MakeMetricIndicatorsAction::class,
+            MakeTraceTimestampPeriodsAction::class,
+            MakeTraceTimestampsAction::class,
+            StartTraceBufferHandlingAction::class,
+            StopTraceBufferHandlingAction::class,
             // actions.mutations
-            CreateTraceManyActionInterface::class                 => CreateTraceManyAction::class,
-            ClearTracesActionInterface::class                     => ClearTracesAction::class,
-            DeleteTracesActionInterface::class                    => DeleteTracesAction::class,
-            UpdateTraceManyActionInterface::class                 => UpdateTraceManyAction::class,
-            StartMonitorTraceDynamicIndexesActionInterface::class => StartMonitorTraceDynamicIndexesAction::class,
-            StopMonitorTraceDynamicIndexesActionInterface::class  => StopMonitorTraceDynamicIndexesAction::class,
-            FlushDynamicIndexesActionInterface::class             => FlushDynamicIndexesAction::class,
-            DeleteTraceDynamicIndexActionInterface::class         => DeleteTraceDynamicIndexAction::class,
-            CreateTraceAdminStoreActionInterface::class           => CreateTraceAdminStoreAction::class,
-            DeleteTraceAdminStoreActionInterface::class           => DeleteTraceAdminStoreAction::class,
-            FreshTraceTreesActionInterface::class                 => FreshTraceTreesAction::class,
-            DeleteCollectionsActionInterface::class       => DeleteCollectionsAction::class,
+            CreateTraceManyAction::class,
+            ClearTracesAction::class,
+            DeleteTracesAction::class,
+            UpdateTraceManyAction::class,
+            StartMonitorTraceDynamicIndexesAction::class,
+            StopMonitorTraceDynamicIndexesAction::class,
+            FlushDynamicIndexesAction::class,
+            DeleteTraceDynamicIndexAction::class,
+            CreateTraceAdminStoreAction::class,
+            DeleteTraceAdminStoreAction::class,
+            FreshTraceTreesAction::class,
+            DeleteCollectionsAction::class,
             // actions.queries
-            FindStatusesActionInterface::class                    => FindStatusesAction::class,
-            FindTagsActionInterface::class                        => FindTagsAction::class,
-            FindTraceDetailActionInterface::class                 => FindTraceDetailAction::class,
-            FindTraceProfilingActionInterface::class              => FindTraceProfilingAction::class,
-            FindTracesActionInterface::class                      => FindTracesAction::class,
-            FindTraceTimestampsActionInterface::class             => FindTraceTimestampsAction::class,
-            FindTraceTreeActionInterface::class                   => FindTraceTreeAction::class,
-            FindTypesActionInterface::class                       => FindTypesAction::class,
-            FindTraceDynamicIndexesActionInterface::class         => FindTraceDynamicIndexesAction::class,
-            FindTraceDynamicIndexStatsActionInterface::class      => FindTraceDynamicIndexStatsAction::class,
-            FindTraceAdminStoreActionInterface::class             => FindTraceAdminStoreAction::class,
-            FindTraceIdsActionInterface::class                    => FindTraceIdsAction::class,
-            FindTraceServicesActionInterface::class               => FindTraceServicesAction::class,
-            FindTraceTreeContentActionInterface::class            => FindTraceTreeContentAction::class,
+            FindStatusesAction::class,
+            FindTagsAction::class,
+            FindTraceDetailAction::class,
+            FindTraceProfilingAction::class,
+            FindTracesAction::class,
+            FindTraceTimestampsAction::class,
+            FindTraceTreeAction::class,
+            FindTypesAction::class,
+            FindTraceDynamicIndexesAction::class,
+            FindTraceDynamicIndexStatsAction::class,
+            FindTraceAdminStoreAction::class,
+            FindTraceIdsAction::class,
+            FindTraceServicesAction::class,
+            FindTraceTreeContentAction::class,
         ];
     }
 

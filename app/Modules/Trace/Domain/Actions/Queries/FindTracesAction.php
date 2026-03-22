@@ -5,11 +5,8 @@ declare(strict_types=1);
 namespace App\Modules\Trace\Domain\Actions\Queries;
 
 use App\Modules\Common\Entities\PaginationInfoObject;
-use App\Modules\Trace\Contracts\Actions\Queries\FindTracesActionInterface;
-use App\Modules\Trace\Contracts\Actions\Queries\FindTraceServicesActionInterface;
-use App\Modules\Trace\Contracts\Repositories\TraceRepositoryInterface;
-use App\Modules\Trace\Contracts\Repositories\TraceTreeRepositoryInterface;
 use App\Modules\Trace\Domain\Services\TraceDynamicIndexInitializer;
+use App\Modules\Trace\Domain\Actions\Queries\FindTraceServicesAction;
 use App\Modules\Trace\Entities\Trace\Data\TraceDataAdditionalFieldObject;
 use App\Modules\Trace\Entities\Trace\Data\TraceDataObject;
 use App\Modules\Trace\Entities\Trace\TraceItemObject;
@@ -18,16 +15,18 @@ use App\Modules\Trace\Entities\Trace\TraceItemTraceObject;
 use App\Modules\Trace\Entities\Trace\TraceServiceObject;
 use App\Modules\Trace\Parameters\TraceFindParameters;
 use App\Modules\Trace\Repositories\Dto\Trace\TraceDto;
+use App\Modules\Trace\Repositories\TraceRepository;
+use App\Modules\Trace\Repositories\TraceTreeRepository;
 use Illuminate\Support\Arr;
 
-readonly class FindTracesAction implements FindTracesActionInterface
+readonly class FindTracesAction
 {
     private int $maxPerPage;
 
     public function __construct(
-        private TraceRepositoryInterface $traceRepository,
-        private TraceTreeRepositoryInterface $traceTreeRepository,
-        private FindTraceServicesActionInterface $findTraceServicesAction,
+        private TraceRepository $traceRepository,
+        private TraceTreeRepository $traceTreeRepository,
+        private FindTraceServicesAction $findTraceServicesAction,
         private TraceDynamicIndexInitializer $traceDynamicIndexInitializer
     ) {
         $this->maxPerPage = 20;

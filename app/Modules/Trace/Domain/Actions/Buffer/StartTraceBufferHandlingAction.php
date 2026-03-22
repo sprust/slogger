@@ -4,24 +4,23 @@ declare(strict_types=1);
 
 namespace App\Modules\Trace\Domain\Actions\Buffer;
 
-use App\Modules\Service\Contracts\Actions\FindServicesActionInterface;
+use App\Modules\Service\Domain\Actions\FindServicesAction;
 use App\Modules\Service\Entities\ServiceObject;
-use App\Modules\Trace\Contracts\Actions\StartTraceBufferHandlingActionInterface;
-use App\Modules\Trace\Contracts\Repositories\TraceBufferInvalidRepositoryInterface;
-use App\Modules\Trace\Contracts\Repositories\TraceBufferRepositoryInterface;
-use App\Modules\Trace\Contracts\Repositories\TraceRepositoryInterface;
 use App\Modules\Trace\Domain\Services\MonitorTraceBufferHandlingService;
+use App\Modules\Trace\Repositories\TraceBufferInvalidRepository;
+use App\Modules\Trace\Repositories\TraceBufferRepository;
+use App\Modules\Trace\Repositories\TraceRepository;
 use SConcur\WaitGroup;
 use Symfony\Component\Console\Output\OutputInterface;
 
-readonly class StartTraceBufferHandlingAction implements StartTraceBufferHandlingActionInterface
+readonly class StartTraceBufferHandlingAction
 {
     public function __construct(
         private MonitorTraceBufferHandlingService $monitorTraceBufferHandlingService,
-        private FindServicesActionInterface $findServicesAction,
-        private TraceBufferRepositoryInterface $traceBufferRepository,
-        private TraceRepositoryInterface $traceRepository,
-        private TraceBufferInvalidRepositoryInterface $traceBufferInvalidRepository,
+        private FindServicesAction $findServicesAction,
+        private TraceBufferRepository $traceBufferRepository,
+        private TraceRepository $traceRepository,
+        private TraceBufferInvalidRepository $traceBufferInvalidRepository,
     ) {
     }
 
