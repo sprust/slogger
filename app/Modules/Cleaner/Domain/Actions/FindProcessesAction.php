@@ -14,7 +14,7 @@ readonly class FindProcessesAction implements FindProcessesActionInterface
     public function __construct(
         private ProcessRepositoryInterface $processRepository
     ) {
-        $this->perPage = 20;
+        $this->perPage = 30;
     }
 
     public function handle(int $page): array

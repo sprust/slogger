@@ -1323,146 +1323,14 @@ export namespace AdminApi {
     export type ResponseBody = void;
   } /**
  * No description
- * @name TraceCleanerSettingsList
- * @request GET:/admin-api/trace-cleaner/settings
- * @secure
- * @response `200` `{
-    data: ({
-    id: number,
-    days_lifetime: number,
-    type?: string | null,
-    only_data: boolean,
-    deleted: boolean,
-    created_at: string,
-    updated_at: string,
-
-})[],
-
-}` description
-*/
-  export namespace TraceCleanerSettingsList {
-    export type RequestParams = {};
-    export type RequestQuery = {};
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = {
-      data: {
-        id: number;
-        days_lifetime: number;
-        type?: string | null;
-        only_data: boolean;
-        deleted: boolean;
-        created_at: string;
-        updated_at: string;
-      }[];
-    };
-  } /**
- * No description
- * @name TraceCleanerSettingsCreate
- * @request POST:/admin-api/trace-cleaner/settings
- * @secure
- * @response `200` `{
-    data: {
-    id: number,
-    days_lifetime: number,
-    type?: string | null,
-    only_data: boolean,
-    deleted: boolean,
-    created_at: string,
-    updated_at: string,
-
-},
-
-}` description
-*/
-  export namespace TraceCleanerSettingsCreate {
-    export type RequestParams = {};
-    export type RequestQuery = {};
-    export type RequestBody = {
-      /** @min 1 */
-      days_life_time: number;
-      type?: string | null;
-      only_data: boolean;
-    };
-    export type RequestHeaders = {};
-    export type ResponseBody = {
-      data: {
-        id: number;
-        days_lifetime: number;
-        type?: string | null;
-        only_data: boolean;
-        deleted: boolean;
-        created_at: string;
-        updated_at: string;
-      };
-    };
-  } /**
- * No description
- * @name TraceCleanerSettingsPartialUpdate
- * @request PATCH:/admin-api/trace-cleaner/settings/{settingId}
- * @secure
- * @response `200` `{
-    data: {
-    id: number,
-    days_lifetime: number,
-    type?: string | null,
-    only_data: boolean,
-    deleted: boolean,
-    created_at: string,
-    updated_at: string,
-
-},
-
-}` description
-*/
-  export namespace TraceCleanerSettingsPartialUpdate {
-    export type RequestParams = {
-      settingId: any;
-    };
-    export type RequestQuery = {};
-    export type RequestBody = {
-      /** @min 1 */
-      days_life_time: number;
-      only_data: boolean;
-    };
-    export type RequestHeaders = {};
-    export type ResponseBody = {
-      data: {
-        id: number;
-        days_lifetime: number;
-        type?: string | null;
-        only_data: boolean;
-        deleted: boolean;
-        created_at: string;
-        updated_at: string;
-      };
-    };
-  }
-  /**
-   * No description
-   * @name TraceCleanerSettingsDelete
-   * @request DELETE:/admin-api/trace-cleaner/settings/{settingId}
-   * @secure
-   * @response `200` `void` description
-   */
-  export namespace TraceCleanerSettingsDelete {
-    export type RequestParams = {
-      settingId: any;
-    };
-    export type RequestQuery = {};
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = void;
-  } /**
- * No description
- * @name TraceCleanerSettingsProcessesDetail
- * @request GET:/admin-api/trace-cleaner/settings/{settingId}/processes
+ * @name TraceCleanerProcessesList
+ * @request GET:/admin-api/trace-cleaner/processes
  * @secure
  * @response `200` `{
     data: ({
     id: string,
-    setting_id: number,
-    cleared_count: number,
+    cleared_collections_count: number,
+    cleared_traces_count: number,
     error?: string | null,
     cleared_at?: string | null,
     created_at: string,
@@ -1472,18 +1340,16 @@ export namespace AdminApi {
 
 }` description
 */
-  export namespace TraceCleanerSettingsProcessesDetail {
-    export type RequestParams = {
-      settingId: any;
-    };
+  export namespace TraceCleanerProcessesList {
+    export type RequestParams = {};
     export type RequestQuery = {};
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody = {
       data: {
         id: string;
-        setting_id: number;
-        cleared_count: number;
+        cleared_collections_count: number;
+        cleared_traces_count: number;
         error?: string | null;
         cleared_at?: string | null;
         created_at: string;
@@ -3269,176 +3135,14 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     /**
  * No description
  *
- * @name TraceCleanerSettingsList
- * @request GET:/admin-api/trace-cleaner/settings
- * @secure
- * @response `200` `{
-    data: ({
-    id: number,
-    days_lifetime: number,
-    type?: string | null,
-    only_data: boolean,
-    deleted: boolean,
-    created_at: string,
-    updated_at: string,
-
-})[],
-
-}` description
- */
-    traceCleanerSettingsList: (params: RequestParams = {}) =>
-      this.request<
-        {
-          data: {
-            id: number;
-            days_lifetime: number;
-            type?: string | null;
-            only_data: boolean;
-            deleted: boolean;
-            created_at: string;
-            updated_at: string;
-          }[];
-        },
-        any
-      >({
-        path: `/admin-api/trace-cleaner/settings`,
-        method: "GET",
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-
-    /**
- * No description
- *
- * @name TraceCleanerSettingsCreate
- * @request POST:/admin-api/trace-cleaner/settings
- * @secure
- * @response `200` `{
-    data: {
-    id: number,
-    days_lifetime: number,
-    type?: string | null,
-    only_data: boolean,
-    deleted: boolean,
-    created_at: string,
-    updated_at: string,
-
-},
-
-}` description
- */
-    traceCleanerSettingsCreate: (
-      data: {
-        /** @min 1 */
-        days_life_time: number;
-        type?: string | null;
-        only_data: boolean;
-      },
-      params: RequestParams = {},
-    ) =>
-      this.request<
-        {
-          data: {
-            id: number;
-            days_lifetime: number;
-            type?: string | null;
-            only_data: boolean;
-            deleted: boolean;
-            created_at: string;
-            updated_at: string;
-          };
-        },
-        any
-      >({
-        path: `/admin-api/trace-cleaner/settings`,
-        method: "POST",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
- * No description
- *
- * @name TraceCleanerSettingsPartialUpdate
- * @request PATCH:/admin-api/trace-cleaner/settings/{settingId}
- * @secure
- * @response `200` `{
-    data: {
-    id: number,
-    days_lifetime: number,
-    type?: string | null,
-    only_data: boolean,
-    deleted: boolean,
-    created_at: string,
-    updated_at: string,
-
-},
-
-}` description
- */
-    traceCleanerSettingsPartialUpdate: (
-      settingId: any,
-      data: {
-        /** @min 1 */
-        days_life_time: number;
-        only_data: boolean;
-      },
-      params: RequestParams = {},
-    ) =>
-      this.request<
-        {
-          data: {
-            id: number;
-            days_lifetime: number;
-            type?: string | null;
-            only_data: boolean;
-            deleted: boolean;
-            created_at: string;
-            updated_at: string;
-          };
-        },
-        any
-      >({
-        path: `/admin-api/trace-cleaner/settings/${settingId}`,
-        method: "PATCH",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @name TraceCleanerSettingsDelete
-     * @request DELETE:/admin-api/trace-cleaner/settings/{settingId}
-     * @secure
-     * @response `200` `void` description
-     */
-    traceCleanerSettingsDelete: (settingId: any, params: RequestParams = {}) =>
-      this.request<void, any>({
-        path: `/admin-api/trace-cleaner/settings/${settingId}`,
-        method: "DELETE",
-        secure: true,
-        ...params,
-      }),
-
-    /**
- * No description
- *
- * @name TraceCleanerSettingsProcessesDetail
- * @request GET:/admin-api/trace-cleaner/settings/{settingId}/processes
+ * @name TraceCleanerProcessesList
+ * @request GET:/admin-api/trace-cleaner/processes
  * @secure
  * @response `200` `{
     data: ({
     id: string,
-    setting_id: number,
-    cleared_count: number,
+    cleared_collections_count: number,
+    cleared_traces_count: number,
     error?: string | null,
     cleared_at?: string | null,
     created_at: string,
@@ -3448,13 +3152,13 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
 
 }` description
  */
-    traceCleanerSettingsProcessesDetail: (settingId: any, params: RequestParams = {}) =>
+    traceCleanerProcessesList: (params: RequestParams = {}) =>
       this.request<
         {
           data: {
             id: string;
-            setting_id: number;
-            cleared_count: number;
+            cleared_collections_count: number;
+            cleared_traces_count: number;
             error?: string | null;
             cleared_at?: string | null;
             created_at: string;
@@ -3463,7 +3167,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         },
         any
       >({
-        path: `/admin-api/trace-cleaner/settings/${settingId}/processes`,
+        path: `/admin-api/trace-cleaner/processes`,
         method: "GET",
         secure: true,
         format: "json",

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Modules\Trace\Domain\Services;
 
-use App\Modules\Cleaner\Contracts\Actions\FindMaxDaysSettingActionInterface;
 use App\Modules\Trace\Contracts\Repositories\TraceDynamicIndexRepositoryInterface;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexErrorException;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexInProcessException;
@@ -21,7 +20,6 @@ readonly class TraceDynamicIndexInitializer
 
     public function __construct(
         private TraceDynamicIndexRepositoryInterface $traceDynamicIndexRepository,
-        private FindMaxDaysSettingActionInterface $findMaxDaysSettingAction,
     ) {
         $this->shortTermTimeLifeIndexInDays = 5;
     }
@@ -150,13 +148,9 @@ readonly class TraceDynamicIndexInitializer
                 $this->shortTermTimeLifeIndexInDays
             );
         } else {
-            if ($maxDaysSetting = $this->findMaxDaysSettingAction->handle()) {
-                $actualUntilAt = now()->addDays($maxDaysSetting);
-            } else {
-                $actualUntilAt = now()->addDays(
-                    $this->shortTermTimeLifeIndexInDays
-                );
-            }
+            $actualUntilAt = now()->addDays(
+                $this->shortTermTimeLifeIndexInDays
+            );
         }
 
         $indexDto = $this->traceDynamicIndexRepository->findOneOrCreate(
