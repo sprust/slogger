@@ -55,7 +55,8 @@ type TreeNode = {
   key: string,
   label: string,
   children: null | Array<TreeNode>,
-  disabled: boolean
+  canBeFiltered: boolean,
+  disabled: boolean,
 }
 
 export default defineComponent({
@@ -98,7 +99,7 @@ export default defineComponent({
 
       return keyData[keyData.length - 1]
     },
-    isParentData(data: TraceAggregatorDetailData): boolean {
+    isParentData(data: TreeNode): boolean {
       return !!data.children
     },
     dataNodeToTree(data: TraceAggregatorDetailData, index: number, postNodeKey: string): TreeNode {
@@ -112,6 +113,7 @@ export default defineComponent({
           key: nodeKey,
           label: this.nodeEndKey(nodeKey) + ' ==> ' + data.value,
           children: null,
+          canBeFiltered: data.can_be_filtered,
           disabled: false,
         }
       }
@@ -127,10 +129,11 @@ export default defineComponent({
         key: nodeKey,
         label: data.key ? this.nodeEndKey(data.key) : 'root',
         children: children,
+        canBeFiltered: data.can_be_filtered,
         disabled: true,
       }
     },
-    onCustomFieldShow(data: TraceAggregatorDetailData) {
+    onCustomFieldShow(data: TreeNode) {
       if (this.isParentData(data)) {
         return
       }
@@ -138,7 +141,7 @@ export default defineComponent({
       this.dataDialog.data = this.dataValues[data.key]
       this.dataDialog.visible = true
     },
-    onCustomFieldCopy(data: TraceAggregatorDetailData) {
+    onCustomFieldCopy(data: TreeNode) {
       if (this.isParentData(data)) {
         return
       }
@@ -147,7 +150,7 @@ export default defineComponent({
 
       copyToClipboard(dataValue)
     },
-    onCustomFieldFilter(data: TraceAggregatorDetailData) {
+    onCustomFieldFilter(data: TreeNode) {
       if (this.isParentData(data)) {
         return
       }
@@ -157,6 +160,7 @@ export default defineComponent({
       const parameters: TraceAggregatorCustomFieldParameter = {
         field: this.dataKeys[data.key],
         value: dataValue,
+        canBeFiltered: data.canBeFiltered
       }
 
       this.$emit('onCustomFieldClick', parameters)

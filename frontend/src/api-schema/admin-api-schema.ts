@@ -477,16 +477,22 @@ export namespace AdminApi {
     value: string,
   \** @maxItems 0 *\
     children?: (string)[] | null,
+    can_be_filtered: boolean,
 
 })[],
+    can_be_filtered: boolean,
 
 })[],
+    can_be_filtered: boolean,
 
 })[],
+    can_be_filtered: boolean,
 
 })[],
+    can_be_filtered: boolean,
 
 })[],
+    can_be_filtered: boolean,
 
 },
     duration?: number | null,
@@ -538,11 +544,17 @@ export namespace AdminApi {
                     value: string;
                     /** @maxItems 0 */
                     children?: string[] | null;
+                    can_be_filtered: boolean;
                   }[];
+                  can_be_filtered: boolean;
                 }[];
+                can_be_filtered: boolean;
               }[];
+              can_be_filtered: boolean;
             }[];
+            can_be_filtered: boolean;
           }[];
+          can_be_filtered: boolean;
         };
         duration?: number | null;
         memory?: number | null;
@@ -2174,16 +2186,22 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     value: string,
   \** @maxItems 0 *\
     children?: (string)[] | null,
+    can_be_filtered: boolean,
 
 })[],
+    can_be_filtered: boolean,
 
 })[],
+    can_be_filtered: boolean,
 
 })[],
+    can_be_filtered: boolean,
 
 })[],
+    can_be_filtered: boolean,
 
 })[],
+    can_be_filtered: boolean,
 
 },
     duration?: number | null,
@@ -2230,11 +2248,17 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
                         value: string;
                         /** @maxItems 0 */
                         children?: string[] | null;
+                        can_be_filtered: boolean;
                       }[];
+                      can_be_filtered: boolean;
                     }[];
+                    can_be_filtered: boolean;
                   }[];
+                  can_be_filtered: boolean;
                 }[];
+                can_be_filtered: boolean;
               }[];
+              can_be_filtered: boolean;
             };
             duration?: number | null;
             memory?: number | null;

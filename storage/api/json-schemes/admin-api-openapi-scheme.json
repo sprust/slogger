@@ -1114,46 +1114,76 @@
                                                                                                                         "items": {
                                                                                                                             "type": "string"
                                                                                                                         }
+                                                                                                                    },
+                                                                                                                    "can_be_filtered": {
+                                                                                                                        "type": "boolean",
+                                                                                                                        "nullable": false
                                                                                                                     }
                                                                                                                 },
                                                                                                                 "required": [
                                                                                                                     "key",
-                                                                                                                    "value"
+                                                                                                                    "value",
+                                                                                                                    "can_be_filtered"
                                                                                                                 ]
                                                                                                             }
+                                                                                                        },
+                                                                                                        "can_be_filtered": {
+                                                                                                            "type": "boolean",
+                                                                                                            "nullable": false
                                                                                                         }
                                                                                                     },
                                                                                                     "required": [
                                                                                                         "key",
-                                                                                                        "value"
+                                                                                                        "value",
+                                                                                                        "can_be_filtered"
                                                                                                     ]
                                                                                                 }
+                                                                                            },
+                                                                                            "can_be_filtered": {
+                                                                                                "type": "boolean",
+                                                                                                "nullable": false
                                                                                             }
                                                                                         },
                                                                                         "required": [
                                                                                             "key",
-                                                                                            "value"
+                                                                                            "value",
+                                                                                            "can_be_filtered"
                                                                                         ]
                                                                                     }
+                                                                                },
+                                                                                "can_be_filtered": {
+                                                                                    "type": "boolean",
+                                                                                    "nullable": false
                                                                                 }
                                                                             },
                                                                             "required": [
                                                                                 "key",
-                                                                                "value"
+                                                                                "value",
+                                                                                "can_be_filtered"
                                                                             ]
                                                                         }
+                                                                    },
+                                                                    "can_be_filtered": {
+                                                                        "type": "boolean",
+                                                                        "nullable": false
                                                                     }
                                                                 },
                                                                 "required": [
                                                                     "key",
-                                                                    "value"
+                                                                    "value",
+                                                                    "can_be_filtered"
                                                                 ]
                                                             }
+                                                        },
+                                                        "can_be_filtered": {
+                                                            "type": "boolean",
+                                                            "nullable": false
                                                         }
                                                     },
                                                     "required": [
                                                         "key",
-                                                        "value"
+                                                        "value",
+                                                        "can_be_filtered"
                                                     ]
                                                 },
                                                 "duration": {

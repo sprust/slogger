@@ -68,6 +68,13 @@ code-analise:
 	make code-analise-stan
 	make code-analise-deptrac
 
+test:
+	"$(PHP_FPM_CLI)"php artisan test ${c}
+
+check:
+	make code-analise
+	make test
+
 bash-workers:
 	"$(WORKERS_CLI)"bash
 
