@@ -14,22 +14,19 @@ use Throwable;
 
 class ProcessRepository implements ProcessRepositoryInterface
 {
-    private int $perPage = 20;
-
-    public function find(int $page, ?int $settingId = null): array
+    public function find(int $page, int $perPage): array
     {
         return TraceClearingProcess::query()
-            ->when($settingId, fn(Builder $query) => $query->where('settingId', $settingId))
             ->orderByDesc('createdAt')
             ->forPage(
                 page: $page,
-                perPage: $this->perPage
+                perPage: $perPage
             )
             ->get()
             ->map(fn(TraceClearingProcess $process) => new ProcessObject(
                 id: $process->_id,
-                settingId: $process->settingId,
-                clearedCount: $process->clearedCount,
+                clearedCollectionsCount: $process->clearedCollectionsCount,
+                clearedTracesCount: $process->clearedTracesCount,
                 error: $process->error,
                 clearedAt: $process->clearedAt,
                 createdAt: $process->createdAt,
@@ -38,11 +35,10 @@ class ProcessRepository implements ProcessRepositoryInterface
             ->toArray();
     }
 
-    public function findFirstBySettingId(int $settingId, bool $clearedAtIsNull): ?ProcessObject
+    public function exists(bool $clearedAtIsNull): ?ProcessObject
     {
         /** @var TraceClearingProcess|null $process */
         $process = TraceClearingProcess::query()
-            ->where('settingId', $settingId)
             ->when(
                 value: $clearedAtIsNull,
                 callback: fn(Builder $query) => $query->whereNull('clearedAt'),
@@ -57,8 +53,8 @@ class ProcessRepository implements ProcessRepositoryInterface
 
         return new ProcessObject(
             id: $process->_id,
-            settingId: $process->settingId,
-            clearedCount: $process->clearedCount,
+            clearedCollectionsCount: $process->clearedCollectionsCount,
+            clearedTracesCount: $process->clearedTracesCount,
             error: $process->error,
             clearedAt: $process->clearedAt,
             createdAt: $process->createdAt,
@@ -66,21 +62,22 @@ class ProcessRepository implements ProcessRepositoryInterface
         );
     }
 
-    public function create(int $settingId, int $clearedCount, ?Carbon $clearedAt): ProcessObject
+    public function create(): ProcessObject
     {
         $newProgress = new TraceClearingProcess();
 
-        $newProgress->settingId    = $settingId;
-        $newProgress->clearedCount = $clearedCount;
-        $newProgress->error        = null;
-        $newProgress->clearedAt    = $clearedAt;
+        $newProgress->clearedCollectionsCount = 0;
+        $newProgress->clearedTracesCount = 0;
+        $newProgress->error = null;
+        $newProgress->errorTrace = null;
+        $newProgress->clearedAt = null;
 
         $newProgress->save();
 
         return new ProcessObject(
             id: $newProgress->_id,
-            settingId: $newProgress->settingId,
-            clearedCount: $newProgress->clearedCount,
+            clearedCollectionsCount: $newProgress->clearedCollectionsCount,
+            clearedTracesCount: $newProgress->clearedTracesCount,
             error: $newProgress->error,
             clearedAt: $newProgress->clearedAt,
             createdAt: $newProgress->createdAt,
@@ -90,14 +87,16 @@ class ProcessRepository implements ProcessRepositoryInterface
 
     public function update(
         string $processId,
-        int $clearedCount,
+        int $clearedCollectionsCount,
+        int $clearedTracesCount,
         ?Carbon $clearedAt,
-        ?Throwable $exception = null
+        ?Throwable $exception
     ): void {
         TraceClearingProcess::query()
             ->where('_id', $processId)
             ->update([
-                'clearedCount' => $clearedCount,
+                'clearedCollectionsCount' => $clearedCollectionsCount,
+                'clearedTracesCount' => $clearedTracesCount,
                 'error'        => $exception ? ($exception->getMessage() ?: $exception::class) : null,
                 'errorTrace'   => $exception ? ($exception->getTraceAsString()) : null,
                 'clearedAt'    => $clearedAt ? new UTCDateTime($clearedAt) : null,

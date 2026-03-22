@@ -13,17 +13,18 @@ interface ProcessRepositoryInterface
     /**
      * @return ProcessObject[]
      */
-    public function find(int $page, ?int $settingId = null): array;
+    public function find(int $page, int $perPage): array;
 
-    public function findFirstBySettingId(int $settingId, bool $clearedAtIsNull): ?ProcessObject;
+    public function exists(bool $clearedAtIsNull): ?ProcessObject;
 
-    public function create(int $settingId, int $clearedCount, ?Carbon $clearedAt): ProcessObject;
+    public function create(): ProcessObject;
 
     public function update(
         string $processId,
-        int $clearedCount,
+        int $clearedCollectionsCount,
+        int $clearedTracesCount,
         ?Carbon $clearedAt,
-        ?Throwable $exception = null
+        ?Throwable $exception
     ): void;
 
     public function deleteByProcessId(string $processId): void;

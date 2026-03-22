@@ -6,5 +6,5 @@ namespace App\Modules\Cleaner\Contracts\Actions;
 
 interface ClearTracesActionInterface
 {
-    public function handle(): void;
+    public function handle(int $lifetimeDays): void;
 }

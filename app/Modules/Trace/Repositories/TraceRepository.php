@@ -6,6 +6,7 @@ namespace App\Modules\Trace\Repositories;
 
 use App\Models\Traces\TraceDynamicIndex;
 use App\Modules\Trace\Contracts\Repositories\TraceRepositoryInterface;
+use App\Modules\Trace\Entities\Trace\DeletedTracesObject;
 use App\Modules\Trace\Entities\Trace\TraceCollectionNameObjects;
 use App\Modules\Trace\Entities\Trace\TraceIndexInfoObject;
 use App\Modules\Trace\Parameters\Data\TraceDataFilterParameters;
@@ -37,9 +38,9 @@ readonly class TraceRepository implements TraceRepositoryInterface
         private PeriodicTraceCollectionNameService $periodicTraceCollectionNameService,
         private TracePipelineBuilder $tracePipelineBuilder,
         private PeriodicTraceService $periodicTraceService,
-        private TraceTimestampMetricsFactory $timestampMetricsFactory, // TODO: layer corruption
-    )
-    {
+        // TODO: layer corruption
+        private TraceTimestampMetricsFactory $timestampMetricsFactory,
+    ) {
     }
 
     /**
@@ -658,15 +659,21 @@ readonly class TraceRepository implements TraceRepositoryInterface
         }
     }
 
-    public function deleteEmptyCollections(Carbon $loggedAtTo): void
+    public function deleteCollections(Carbon $loggedAtTo): DeletedTracesObject
     {
         $collectionNames = $this->periodicTraceService->detectCollectionNames(
             loggedAtTo: $loggedAtTo
         );
 
-        if (!count($collectionNames)) {
-            return;
+        if (count($collectionNames) === 0) {
+            return new DeletedTracesObject(
+                collectionsCount: 0,
+                tracesCount: 0,
+            );
         }
+
+        $collectionsCount = 0;
+        $tracesCount      = 0;
 
         foreach ($collectionNames as $collectionName) {
             $collection = $this->periodicTraceService->selectCollectionByName($collectionName);
@@ -683,12 +690,16 @@ readonly class TraceRepository implements TraceRepositoryInterface
 
             $documentsCount = $collStats['storageStats']['count'] ?? null;
 
-            if ($documentsCount) {
-                continue;
-            }
-
             $collection->drop();
+
+            ++$collectionsCount;
+            $tracesCount += $documentsCount;
         }
+
+        return new DeletedTracesObject(
+            collectionsCount: $collectionsCount,
+            tracesCount: $tracesCount,
+        );
     }
 
     /**

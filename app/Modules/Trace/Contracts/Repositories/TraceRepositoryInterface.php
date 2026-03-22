@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Trace\Contracts\Repositories;
 
+use App\Modules\Trace\Entities\Trace\DeletedTracesObject;
 use App\Modules\Trace\Entities\Trace\TraceCollectionNameObjects;
 use App\Modules\Trace\Entities\Trace\TraceIndexInfoObject;
 use App\Modules\Trace\Parameters\Data\TraceDataFilterParameters;
@@ -125,5 +126,5 @@ interface TraceRepositoryInterface
      */
     public function deleteIndexByName(string $indexName, array $collectionNames): void;
 
-    public function deleteEmptyCollections(Carbon $loggedAtTo): void;
+    public function deleteCollections(Carbon $loggedAtTo): DeletedTracesObject;
 }

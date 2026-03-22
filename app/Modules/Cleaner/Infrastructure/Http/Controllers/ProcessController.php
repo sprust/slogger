@@ -30,7 +30,6 @@ readonly class ProcessController
         return ProcessResource::collection(
             $this->findProcessesAction->handle(
                 page: 1,
-                settingId: $settingId
             )
         );
     }

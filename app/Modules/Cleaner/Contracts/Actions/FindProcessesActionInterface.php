@@ -11,5 +11,5 @@ interface FindProcessesActionInterface
     /**
      * @return ProcessObject[]
      */
-    public function handle(int $page, ?int $settingId = null): array;
+    public function handle(int $page): array;
 }
