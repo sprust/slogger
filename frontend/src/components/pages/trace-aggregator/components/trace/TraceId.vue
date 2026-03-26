@@ -45,10 +45,8 @@
 
 <script lang="ts">
 import {defineComponent} from 'vue'
-import {ArrowDown} from "@element-plus/icons-vue";
 
 export default defineComponent({
-  components: {ArrowDown},
   emits: ["onClickTraceIdTreeParent", "onClickTraceIdTreeCurrent", "onClickTraceIdFilter"],
   props: {
     title: {
