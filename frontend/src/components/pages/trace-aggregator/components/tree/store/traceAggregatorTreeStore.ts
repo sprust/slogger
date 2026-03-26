@@ -82,7 +82,7 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
         }
     },
     actions: {
-        async initTree(traceId: string) {
+        async initTreeParent(traceId: string) {
             this.$reset()
 
             return this.findTreeNodes({
@@ -90,6 +90,17 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
                     fresh: false,
                     freshContent: true,
                     isChild: false,
+                }
+            )
+        },
+        async initTreeCurrent(traceId: string) {
+            this.$reset()
+
+            return this.findTreeNodes({
+                    traceId: traceId,
+                    fresh: false,
+                    freshContent: true,
+                    isChild: true,
                 }
             )
         },

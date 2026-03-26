@@ -16,7 +16,8 @@
             title="Trace id"
             :trace-id="traceAggregatorProfilingStore.parameters.traceId"
             :show-filter-button="false"
-            @onClickTraceIdTree="onClickTraceIdTree"
+            @onClickTraceIdTreeParent="onClickTraceIdTreeParent"
+            @onClickTraceIdTreeCurrent="onClickTraceIdTreeCurrent"
         />
       </el-row>
       <el-row style="width: 100%; padding-bottom: 5px">
@@ -100,8 +101,13 @@ export default defineComponent({
   },
 
   methods: {
-    onClickTraceIdTree(traceId: string) {
-      this.traceAggregatorTreeStore.initTree(traceId)
+    onClickTraceIdTreeParent(traceId: string) {
+      this.traceAggregatorTreeStore.initTreeParent(traceId)
+
+      this.traceAggregatorTabsStore.setCurrentTab(traceAggregatorTabs.tree)
+    },
+    onClickTraceIdTreeCurrent(traceId: string) {
+      this.traceAggregatorTreeStore.initTreeCurrent(traceId)
 
       this.traceAggregatorTabsStore.setCurrentTab(traceAggregatorTabs.tree)
     },
