@@ -74,11 +74,29 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
     },
     getters: {
         filteredTree(store: TraceAggregatorTreeStoreInterface) {
-            return store.tree.filter(
-                (node: TraceTreeNode) => {
-                    return !node.isHiddenByFilter
+            const visibleNodes: TraceTreeNode[] = []
+            let collapsedDepth: number | null = null
+
+            store.tree.forEach((node: TraceTreeNode) => {
+                if (collapsedDepth !== null) {
+                    if (node.depth > collapsedDepth) {
+                        return
+                    }
+                    collapsedDepth = null
                 }
-            )
+
+                if (node.isHiddenByFilter) {
+                    return
+                }
+
+                visibleNodes.push(node)
+
+                if (node.collapsed) {
+                    collapsedDepth = node.depth
+                }
+            })
+
+            return visibleNodes
         }
     },
     actions: {
@@ -257,6 +275,9 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
                 this.selectedTraceTags,
                 this.selectedTraceStatuses,
             ).apply(this.tree)
+        },
+        toggleCollapse(row: TraceTreeNode) {
+            row.collapsed = !row.collapsed
         }
     },
 })
