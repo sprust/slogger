@@ -10,24 +10,17 @@ use Closure;
 use Illuminate\Support\Carbon;
 use Iterator;
 use MongoDB\Database;
-use RuntimeException;
 use SConcur\Features\Mongodb\Connection\Collection;
 use SConcur\Features\Mongodb\Connection\Database as SconcurDatabase;
 use Throwable;
 
-class PeriodicTraceService
+readonly class PeriodicTraceService
 {
-    /** @var array<string, Collection> */
-    private array $connectionsCache = [];
-    private int $connectionsCachedAtSec;
-    private int $connectionsCachedLifeTimeSec = 60;
-
     public function __construct(
-        private readonly Database $database,
-        private readonly SconcurDatabase $sconcurDatabase,
-        private readonly PeriodicTraceCollectionNameService $periodicTraceCollectionNameService
+        private Database $database,
+        private SconcurDatabase $sconcurDatabase,
+        private PeriodicTraceCollectionNameService $periodicTraceCollectionNameService
     ) {
-        $this->connectionsCachedAtSec = time();
     }
 
     public function selectCollectionByName(string $collectionName): Collection
@@ -60,82 +53,6 @@ class PeriodicTraceService
             from: $loggedAtFrom,
             to: $loggedAtTo
         );
-    }
-
-    public function initCollectionByName(string $collectionName): Collection
-    {
-        if ((time() - $this->connectionsCachedAtSec) > $this->connectionsCachedLifeTimeSec) {
-            $this->connectionsCache       = [];
-            $this->connectionsCachedAtSec = time();
-        } elseif ($collection = $this->connectionsCache[$collectionName] ?? null) {
-            return $collection;
-        }
-
-        $filtered = $this->database->listCollectionNames([
-            'filter' => [
-                'name' => $collectionName,
-            ],
-        ]);
-
-        if (iterator_count($filtered)) {
-            return $this->connectionsCache[$collectionName] = $this->selectCollectionByName($collectionName);
-        }
-
-        try {
-            $this->database->createCollection($collectionName);
-        } catch (Throwable $exception) {
-            if (!str_contains($exception->getMessage(), 'already exists')) {
-                throw new RuntimeException(
-                    message: $exception->getMessage(),
-                    code: $exception->getCode(),
-                    previous: $exception
-                );
-            }
-
-            return $this->connectionsCache[$collectionName] = $this->selectCollectionByName($collectionName);
-        }
-
-        $collection = $this->selectCollectionByName($collectionName);
-
-        $this->connectionsCache[$collectionName] = $collection;
-
-        $indexFields = [
-            'sid',
-            'tid',
-            'ptid',
-            'tp',
-            'st',
-            'tgs.nm',
-            'lat',
-        ];
-
-        try {
-            foreach ($indexFields as $indexField) {
-                $collection->createIndex([$indexField => 1]);
-            }
-
-            $collection->createIndex([
-                'lat' => -1,
-                '_id' => 1,
-            ]);
-
-            $collection->createIndex([
-                'sid' => 1,
-                'tid' => 1,
-            ]);
-        } catch (Throwable $exception) {
-            if (!str_contains($exception->getMessage(), 'already exists')) {
-                throw new RuntimeException(
-                    message: $exception->getMessage(),
-                    code: $exception->getCode(),
-                    previous: $exception
-                );
-            }
-        }
-
-        $this->freshTraceTrees();
-
-        return $collection;
     }
 
     /**
@@ -342,75 +259,5 @@ class PeriodicTraceService
         }
 
         return $result;
-    }
-
-    public function freshTraceTrees(): void
-    {
-        $collectionNames = $this->detectCollectionNames();
-
-        if (!count($collectionNames)) {
-            return;
-        }
-
-        $pipeline = [];
-
-        $project = [
-            'tid'  => 1,
-            'ptid' => 1,
-        ];
-
-        $first = true;
-
-        $mainCollectionName = null;
-
-        foreach ($collectionNames as $collectionName) {
-            $set = [
-                '$set' => [
-                    '__cn' => $collectionName,
-                ],
-            ];
-
-            if ($first) {
-                $mainCollectionName = $collectionName;
-
-                $pipeline[] = [
-                    '$project' => $project,
-                ];
-
-                $pipeline[] = $set;
-
-                $first = false;
-
-                continue;
-            }
-
-            $pipeline[] = [
-                '$unionWith' => [
-                    'coll'     => $collectionName,
-                    'pipeline' => [
-                        [
-                            '$project' => $project,
-                        ],
-                        $set,
-                    ],
-                ],
-            ];
-        }
-
-        $traceTreesCollectionName = new TraceTree()->getCollectionName();
-
-        $exists = iterator_count($this->database->listCollectionNames([
-                'filter' => [
-                    'name' => $traceTreesCollectionName,
-                ],
-            ])) > 0;
-
-        $operation = $exists ? 'collMod' : 'create';
-
-        $this->database->command([
-            $operation => $traceTreesCollectionName,
-            'viewOn'   => $mainCollectionName,
-            'pipeline' => $pipeline,
-        ]);
     }
 }

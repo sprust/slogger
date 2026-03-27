@@ -13,6 +13,7 @@
             v-model="scope.row.search"
             label="Search"
             class="content-right"
+            :disabled="!scope.row.canBeFiltered"
         />
       </template>
     </el-table-column>
@@ -135,7 +136,7 @@
         <el-button
             type="danger"
             :icon="Delete"
-            @click="onCustomFieldClick(scope.row.field, scope.row.value)"
+            @click="onCustomFieldClick(scope.row.field, scope.row.value, scope.row.canBeFiltered)"
             circle/>
       </template>
     </el-table-column>
@@ -180,10 +181,11 @@ export default defineComponent({
     isValueBool(searchData: TraceAggregatorCustomFieldSearchParameter): boolean {
       return !!searchData.boolean
     },
-    onCustomFieldClick(customField: string, value: any) {
+    onCustomFieldClick(customField: string, value: any, canBeFiltered: boolean) {
       const parameters: TraceAggregatorCustomFieldParameter = {
         field: customField,
-        value: value
+        value: value,
+        canBeFiltered: canBeFiltered,
       }
 
       this.$emit('onCustomFieldClick', parameters)

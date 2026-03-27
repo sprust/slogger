@@ -7,8 +7,8 @@ use Illuminate\Support\Carbon;
 
 /**
  * @property string      $_id
- * @property int         $settingId
- * @property int         $clearedCount
+ * @property int         $clearedCollectionsCount
+ * @property int         $clearedTracesCount
  * @property string|null $error
  * @property string|null $errorTrace
  * @property Carbon|null $clearedAt
@@ -17,8 +17,8 @@ use Illuminate\Support\Carbon;
  */
 class TraceClearingProcess extends AbstractTraceModel
 {
-    public const CREATED_AT = 'createdAt';
-    public const UPDATED_AT = 'updatedAt';
+    public const string CREATED_AT = 'createdAt';
+    public const string UPDATED_AT = 'updatedAt';
 
     protected $casts = [
         'clearedAt' => 'datetime',

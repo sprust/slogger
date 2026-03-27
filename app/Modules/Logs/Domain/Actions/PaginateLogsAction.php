@@ -4,15 +4,14 @@ declare(strict_types=1);
 
 namespace App\Modules\Logs\Domain\Actions;
 
-use App\Modules\Logs\Contracts\Actions\PaginateLogsActionInterface;
-use App\Modules\Logs\Contracts\Repositories\LogRepositoryInterface;
 use App\Modules\Logs\Entities\Log\LogsPaginationObject;
 use App\Modules\Logs\Parameters\FindLogsParameters;
+use App\Modules\Logs\Repositories\LogRepository;
 
-readonly class PaginateLogsAction implements PaginateLogsActionInterface
+readonly class PaginateLogsAction
 {
     public function __construct(
-        protected LogRepositoryInterface $logRepository
+        protected LogRepository $logRepository
     ) {
     }
 

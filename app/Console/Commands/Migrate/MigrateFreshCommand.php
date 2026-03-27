@@ -29,7 +29,13 @@ class MigrateFreshCommand extends Command
             /** @var Connection $connection */
             $connection = DB::connection("mongodb.$connectionName");
 
-            $collectionNames = iterator_to_array($connection->listCollectionNames());
+            $listCollectionNames = $connection->listCollectionNames();
+
+            $collectionNames = [];
+
+            foreach ($listCollectionNames as $listCollectionName) {
+                $collectionNames[] = $listCollectionName;
+            }
 
             for ($index = 0; $index < count($collectionNames); $index++) {
                 $collectionName = $collectionNames[$index];

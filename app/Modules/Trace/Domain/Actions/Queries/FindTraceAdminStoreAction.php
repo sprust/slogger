@@ -4,16 +4,15 @@ declare(strict_types=1);
 
 namespace App\Modules\Trace\Domain\Actions\Queries;
 
-use App\Modules\Trace\Contracts\Actions\Queries\FindTraceAdminStoreActionInterface;
-use App\Modules\Trace\Contracts\Repositories\TraceAdminStoreRepositoryInterface;
 use App\Modules\Trace\Entities\Store\TraceAdminStoresPaginationObject;
+use App\Modules\Trace\Repositories\TraceAdminStoreRepository;
 
-readonly class FindTraceAdminStoreAction implements FindTraceAdminStoreActionInterface
+readonly class FindTraceAdminStoreAction
 {
     private int $perPage;
 
     public function __construct(
-        private TraceAdminStoreRepositoryInterface $traceAdminStoreRepository
+        private TraceAdminStoreRepository $traceAdminStoreRepository
     ) {
         $this->perPage = 30;
     }

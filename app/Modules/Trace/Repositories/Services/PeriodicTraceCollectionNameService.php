@@ -9,23 +9,6 @@ use Illuminate\Support\Carbon;
 
 readonly class PeriodicTraceCollectionNameService
 {
-    public function __construct(private int $hoursStep)
-    {
-    }
-
-    public function newByDatetime(Carbon $datetime): string
-    {
-        $date = $this->makeDayString($datetime);
-
-        $hourFrom = (int) floor($datetime->hour / $this->hoursStep) * $this->hoursStep;
-        $hourTo   = $hourFrom + $this->hoursStep - 1;
-
-        $hourFromFormatted = sprintf('%02d', $hourFrom);
-        $hourToFormatted   = sprintf('%02d', $hourTo);
-
-        return "traces_{$date}_{$hourFromFormatted}_$hourToFormatted";
-    }
-
     /**
      * @param string[] $collectionNames
      *

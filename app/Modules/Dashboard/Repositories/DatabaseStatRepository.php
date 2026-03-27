@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Modules\Dashboard\Repositories;
 
-use App\Modules\Dashboard\Contracts\Repositories\DatabaseStatRepositoryInterface;
 use App\Modules\Dashboard\Entities\DatabaseCollectionIndexStatObject;
 use App\Modules\Dashboard\Entities\DatabaseCollectionStatObject;
 use App\Modules\Dashboard\Entities\DatabaseStatObject;
@@ -16,15 +15,16 @@ use MongoDB\Driver\Exception\Exception;
 use MongoDB\Laravel\Connection;
 use MongoDB\Model\BSONDocument;
 use MongoDB\Model\DatabaseInfo;
+use RuntimeException;
 
-readonly class DatabaseStatRepository implements DatabaseStatRepositoryInterface
+readonly class DatabaseStatRepository
 {
     public function __construct(private Application $app)
     {
     }
 
     /**
-     * @throws Exception
+     * @return DatabaseStatObject[]
      */
     public function find(): array
     {
@@ -39,14 +39,21 @@ readonly class DatabaseStatRepository implements DatabaseStatRepositoryInterface
             $connection = DB::connection("mongodb.$connectionName");
 
             if (is_null($memoryUsageSize)) {
-                $memoryUsageSize = $this->bitesToMb(
-                    $connection->getManager()
-                        ->executeCommand('admin', new Command(['serverStatus' => 1]))
-                        ->toArray()[0]
-                        ->tcmalloc
-                        ->generic
-                        ->heap_size
-                );
+                try {
+                    $memoryUsageSize = $this->bitesToMb(
+                        $connection->getManager()
+                            ->executeCommand('admin', new Command(['serverStatus' => 1]))
+                            ->toArray()[0]
+                            ->tcmalloc
+                            ->generic
+                            ->heap_size
+                    );
+                } catch (Exception $exception) {
+                    throw new RuntimeException(
+                        message: $exception->getMessage(),
+                        previous: $exception
+                    );
+                }
             }
 
             if (is_null($databaseSizes)) {

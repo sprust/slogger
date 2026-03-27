@@ -5,10 +5,9 @@ declare(strict_types=1);
 namespace App\Modules\Trace\Repositories;
 
 use App\Models\Traces\TraceTree;
-use App\Modules\Trace\Contracts\Repositories\TraceTreeRepositoryInterface;
 use MongoDB\Model\BSONDocument;
 
-class TraceTreeRepository implements TraceTreeRepositoryInterface
+class TraceTreeRepository
 {
     private int $maxDepthForFindParent = 100;
 
@@ -63,6 +62,9 @@ class TraceTreeRepository implements TraceTreeRepositoryInterface
         return $parentTrace['tid'];
     }
 
+    /**
+     * @return string[]
+     */
     public function findChainToParentTraceId(string $traceId): array
     {
         /** @var array{tid: string, ptid: string|null}|null $trace */
@@ -118,6 +120,9 @@ class TraceTreeRepository implements TraceTreeRepositoryInterface
         return $chain;
     }
 
+    /**
+     * @return string[]
+     */
     public function findTraceIdsInTreeByParentTraceId(string $traceId): array
     {
         $traceTreesCollectionName = (new TraceTree())->getCollectionName();

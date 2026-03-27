@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Modules\Trace\Infrastructure\Http\Controllers;
 
 use App\Modules\Common\Helpers\ArrayValueGetter;
-use App\Modules\Trace\Contracts\Actions\Queries\FindStatusesActionInterface;
-use App\Modules\Trace\Contracts\Actions\Queries\FindTagsActionInterface;
-use App\Modules\Trace\Contracts\Actions\Queries\FindTypesActionInterface;
+use App\Modules\Trace\Domain\Actions\Queries\FindStatusesAction;
+use App\Modules\Trace\Domain\Actions\Queries\FindTagsAction;
+use App\Modules\Trace\Domain\Actions\Queries\FindTypesAction;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexNotInitException;
 use App\Modules\Trace\Infrastructure\Http\Controllers\Traits\MakeDataFilterParameterTrait;
 use App\Modules\Trace\Infrastructure\Http\Requests\TraceFindStatusesRequest;
@@ -27,9 +27,9 @@ readonly class TraceContentController
     use MakeDataFilterParameterTrait;
 
     public function __construct(
-        private FindTypesActionInterface $findTypesAction,
-        private FindTagsActionInterface $findTagsAction,
-        private FindStatusesActionInterface $findStatusesAction,
+        private FindTypesAction $findTypesAction,
+        private FindTagsAction $findTagsAction,
+        private FindStatusesAction $findStatusesAction,
         private TraceDynamicIndexingActionService $traceDynamicIndexingActionService
     ) {
     }

@@ -4,23 +4,22 @@ declare(strict_types=1);
 
 namespace App\Modules\Trace\Domain\Actions\Queries;
 
-use App\Modules\Trace\Contracts\Actions\Queries\FindTraceServicesActionInterface;
-use App\Modules\Trace\Contracts\Actions\Queries\FindTraceTreeContentActionInterface;
-use App\Modules\Trace\Contracts\Repositories\TraceRepositoryInterface;
-use App\Modules\Trace\Contracts\Repositories\TraceTreeCacheRepositoryInterface;
-use App\Modules\Trace\Contracts\Repositories\TraceTreeRepositoryInterface;
+use App\Modules\Trace\Domain\Actions\Queries\FindTraceServicesAction;
+use App\Modules\Trace\Repositories\TraceRepository;
+use App\Modules\Trace\Repositories\TraceTreeCacheRepository;
+use App\Modules\Trace\Repositories\TraceTreeRepository;
 use App\Modules\Trace\Entities\Trace\Tree\TraceTreeContentObjects;
 use App\Modules\Trace\Entities\Trace\Tree\TraceTreeServiceObject;
 use App\Modules\Trace\Repositories\Dto\Trace\TraceTreeServiceDto;
 use SConcur\WaitGroup;
 
-readonly class FindTraceTreeContentAction implements FindTraceTreeContentActionInterface
+readonly class FindTraceTreeContentAction
 {
     public function __construct(
-        private TraceRepositoryInterface $traceRepository,
-        private TraceTreeRepositoryInterface $traceTreeRepository,
-        private FindTraceServicesActionInterface $findTraceServicesAction,
-        private TraceTreeCacheRepositoryInterface $traceTreeCacheRepository
+        private TraceRepository $traceRepository,
+        private TraceTreeRepository $traceTreeRepository,
+        private FindTraceServicesAction $findTraceServicesAction,
+        private TraceTreeCacheRepository $traceTreeCacheRepository
     ) {
     }
 

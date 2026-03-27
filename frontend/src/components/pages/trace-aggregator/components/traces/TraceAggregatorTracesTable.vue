@@ -52,7 +52,8 @@
           <TraceId
               title="id"
               :traceId="props.row.trace.trace_id"
-              @onClickTraceIdTree="onClickTraceIdTree"
+              @onClickTraceIdTreeParent="onClickTraceIdTreeParent"
+              @onClickTraceIdTreeCurrent="onClickTraceIdTreeCurrent"
               @onClickTraceIdFilter="onClickTraceIdFilter"
               :style="isTraceInPayload(props.row.trace.trace_id) ? {'color': 'green'} : {}"
           />
@@ -61,7 +62,8 @@
           <TraceId
               title="parent id"
               :trace-id="props.row.trace.parent_trace_id"
-              @onClickTraceIdTree="onClickTraceIdTree"
+              @onClickTraceIdTreeParent="onClickTraceIdTreeParent"
+              @onClickTraceIdTreeCurrent="onClickTraceIdTreeCurrent"
               @onClickTraceIdFilter="onClickTraceIdFilter"
               :style="isTraceInPayload(props.row.trace.parent_trace_id) ? {'color': 'green'} : {}"
           />
@@ -203,8 +205,13 @@ export default defineComponent({
     onCustomFieldClick(parameters: TraceAggregatorCustomFieldParameter) {
       this.$emit("onCustomFieldClick", parameters)
     },
-    onClickTraceIdTree(traceId: string) {
-      this.traceAggregatorTreeStore.initTree(traceId)
+    onClickTraceIdTreeParent(traceId: string) {
+      this.traceAggregatorTreeStore.initTreeParent(traceId)
+
+      this.traceAggregatorTabsStore.setCurrentTab(traceAggregatorTabs.tree)
+    },
+    onClickTraceIdTreeCurrent(traceId: string) {
+      this.traceAggregatorTreeStore.initTreeCurrent(traceId)
 
       this.traceAggregatorTabsStore.setCurrentTab(traceAggregatorTabs.tree)
     },

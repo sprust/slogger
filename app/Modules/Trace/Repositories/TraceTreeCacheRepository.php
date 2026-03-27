@@ -5,16 +5,16 @@ declare(strict_types=1);
 namespace App\Modules\Trace\Repositories;
 
 use App\Models\Traces\TraceTreeCache;
-use App\Modules\Trace\Contracts\Repositories\TraceTreeCacheRepositoryInterface;
 use App\Modules\Trace\Entities\Trace\Tree\TraceTreeRawIterator;
 use App\Modules\Trace\Entities\Trace\Tree\TraceTreeRawObject;
 use App\Modules\Trace\Entities\Trace\Tree\TraceTreeStringableObject;
+use App\Modules\Trace\Parameters\CreateTraceTreeCacheParameters;
 use App\Modules\Trace\Repositories\Dto\Trace\TraceTreeServiceDto;
 use Illuminate\Support\Carbon;
 use MongoDB\BSON\UTCDateTime;
 use MongoDB\Model\BSONDocument;
 
-class TraceTreeCacheRepository implements TraceTreeCacheRepositoryInterface
+class TraceTreeCacheRepository
 {
     public function has(string $rootTraceId): bool
     {
@@ -30,6 +30,9 @@ class TraceTreeCacheRepository implements TraceTreeCacheRepositoryInterface
             ->delete();
     }
 
+    /**
+     * @param CreateTraceTreeCacheParameters[] $parametersList
+     */
     public function createMany(string $rootTraceId, array $parametersList): void
     {
         $operations = [];
@@ -88,6 +91,9 @@ class TraceTreeCacheRepository implements TraceTreeCacheRepositoryInterface
         );
     }
 
+    /**
+     * @return TraceTreeServiceDto[]
+     */
     public function findServices(string $rootTraceId): array
     {
         $results = TraceTreeCache::sconcur()
@@ -122,6 +128,9 @@ class TraceTreeCacheRepository implements TraceTreeCacheRepositoryInterface
         return $services;
     }
 
+    /**
+     * @return TraceTreeStringableObject[]
+     */
     public function findTypes(string $rootTraceId): array
     {
         $results = TraceTreeCache::sconcur()
@@ -156,6 +165,9 @@ class TraceTreeCacheRepository implements TraceTreeCacheRepositoryInterface
         return $types;
     }
 
+    /**
+     * @return TraceTreeStringableObject[]
+     */
     public function findTags(string $rootTraceId): array
     {
         $results = TraceTreeCache::sconcur()
@@ -193,6 +205,9 @@ class TraceTreeCacheRepository implements TraceTreeCacheRepositoryInterface
         return $tags;
     }
 
+    /**
+     * @return TraceTreeStringableObject[]
+     */
     public function findStatuses(string $rootTraceId): array
     {
         $results = TraceTreeCache::sconcur()

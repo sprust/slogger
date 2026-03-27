@@ -20,8 +20,6 @@ DOCKER_GROUP_ID=1000
 
 FRONTEND_DOCKER_COMMAND=${FRONTEND_DOCKER_SERVER_COMMAND}# or ${FRONTEND_DOCKER_LOCAL_COMMAND}
 FRONTEND_DOCKER_PORT=3075# external port for web panel
-
-QUEUE_TRACES_CREATING_QUANTITY=10# for collector jobs
 ```
 frontend/.env
 ```dotenv
@@ -32,9 +30,6 @@ BACKEND_URL=https://localhost:10021# see port in .env.OCTANE_RR_DOCKER_PORT
 ```bash
 make setup
 ```
-
-## Rabbitmq
-### Add queue with name from env.QUEUE_TRACES_CREATING_NAME
 
 ## User creating
 ```bash

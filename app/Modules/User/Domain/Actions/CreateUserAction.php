@@ -4,15 +4,14 @@ declare(strict_types=1);
 
 namespace App\Modules\User\Domain\Actions;
 
-use App\Modules\User\Contracts\Domain\CreateUserActionInterface;
-use App\Modules\User\Contracts\Repositories\UserRepositoryInterface;
 use App\Modules\User\Entities\UserDetailObject;
 use App\Modules\User\Parameters\UserCreateParameters;
+use App\Modules\User\Repositories\UserRepository;
 
-readonly class CreateUserAction implements CreateUserActionInterface
+readonly class CreateUserAction
 {
     public function __construct(
-        private UserRepositoryInterface $userRepository
+        private UserRepository $userRepository
     ) {
     }
 

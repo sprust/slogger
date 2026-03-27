@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Modules\Trace\Repositories;
 
 use App\Models\Traces\TraceDynamicIndex;
-use App\Modules\Trace\Contracts\Repositories\TraceDynamicIndexRepositoryInterface;
 use App\Modules\Trace\Repositories\Dto\DynamicIndex\TraceDynamicIndexDataDto;
 use App\Modules\Trace\Repositories\Dto\DynamicIndex\TraceDynamicIndexDto;
 use App\Modules\Trace\Repositories\Dto\DynamicIndex\TraceDynamicIndexFieldDto;
@@ -16,7 +15,7 @@ use Illuminate\Support\Carbon;
 use MongoDB\BSON\UTCDateTime;
 use Throwable;
 
-readonly class TraceDynamicIndexRepository implements TraceDynamicIndexRepositoryInterface
+readonly class TraceDynamicIndexRepository
 {
     public function __construct(private PeriodicTraceService $periodicTraceService)
     {
@@ -87,6 +86,9 @@ readonly class TraceDynamicIndexRepository implements TraceDynamicIndexRepositor
         return $this->modelToDto($index);
     }
 
+    /**
+     * @return TraceDynamicIndexDto[]
+     */
     public function find(
         int $limit,
         ?bool $inProcess = null,

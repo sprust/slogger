@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace App\Modules\Trace\Domain\Actions\Mutations;
 
-use App\Modules\Trace\Contracts\Actions\Mutations\DeleteTraceAdminStoreActionInterface;
-use App\Modules\Trace\Contracts\Repositories\TraceAdminStoreRepositoryInterface;
+use App\Modules\Trace\Repositories\TraceAdminStoreRepository;
 
-readonly class DeleteTraceAdminStoreAction implements DeleteTraceAdminStoreActionInterface
+readonly class DeleteTraceAdminStoreAction
 {
     public function __construct(
-        private TraceAdminStoreRepositoryInterface $traceAdminStoreRepository
+        private TraceAdminStoreRepository $traceAdminStoreRepository
     ) {
     }
 

@@ -22,32 +22,43 @@ class TraceDataToObjectBuilder
     {
         $this->key = '';
 
-        return $this->buildRecursive($this->data);
+        return $this->buildRecursive(
+            data: $this->data,
+            canBeFiltered: true
+        );
     }
 
     /**
      * @param array<string, mixed>|string|bool|int|float|null $data
      */
-    private function buildRecursive(array|string|bool|int|float|object|null $data): TraceDataObject
-    {
+    private function buildRecursive(
+        array|string|bool|int|float|object|null $data,
+        bool $canBeFiltered
+    ): TraceDataObject {
         if ($data === null) {
             return new TraceDataObject(
                 key: $this->key,
-                value: null
+                value: null,
+                children: null,
+                canBeFiltered: $canBeFiltered
             );
         }
 
         if (is_object($data)) {
             return new TraceDataObject(
                 key: $this->key,
-                value: get_class($data)
+                value: get_class($data),
+                children: null,
+                canBeFiltered: $canBeFiltered
             );
         }
 
         if (!is_array($data)) {
             return new TraceDataObject(
                 key: $this->key,
-                value: $data
+                value: $data,
+                children: null,
+                canBeFiltered: $canBeFiltered
             );
         } else {
             $children = [];
@@ -57,20 +68,23 @@ class TraceDataToObjectBuilder
             foreach ($data as $dataKey => $dataValue) {
                 $currentKey = $this->key;
 
-                if ($isAssoc) {
-                    $key = $this->key ? "$this->key." : '';
+                $key = $this->key ? "$this->key." : '';
 
-                    $this->key = "$key$dataKey";
-                }
+                $this->key = "$key$dataKey";
 
-                $children[] = $this->buildRecursive($dataValue);
+                $children[] = $this->buildRecursive(
+                    data: $dataValue,
+                    canBeFiltered: $canBeFiltered && $isAssoc
+                );
 
                 $this->key = $currentKey;
             }
 
             return new TraceDataObject(
                 key: $this->key,
-                children: $children
+                value: null,
+                children: $children,
+                canBeFiltered: $canBeFiltered
             );
         }
     }

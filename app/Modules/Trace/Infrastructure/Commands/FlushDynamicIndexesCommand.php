@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Trace\Infrastructure\Commands;
 
-use App\Modules\Trace\Contracts\Actions\Mutations\FlushDynamicIndexesActionInterface;
+use App\Modules\Trace\Domain\Actions\Mutations\FlushDynamicIndexesAction;
 use Illuminate\Console\Command;
 
 class FlushDynamicIndexesCommand extends Command
@@ -26,7 +26,7 @@ class FlushDynamicIndexesCommand extends Command
     /**
      * Execute the console command.
      */
-    public function handle(FlushDynamicIndexesActionInterface $action): int
+    public function handle(FlushDynamicIndexesAction $action): int
     {
         $action->handle();
 
