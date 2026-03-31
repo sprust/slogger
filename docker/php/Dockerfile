@@ -80,7 +80,7 @@ USER "$USER_ID"
 
 FROM php_base AS php_workers
 
-RUN apt-get install -y supervisor
+RUN apt-get update && apt-get install -y supervisor
 
 RUN chmod 777 -R /var/log/supervisor
 
