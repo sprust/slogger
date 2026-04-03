@@ -195,7 +195,7 @@ readonly class TraceRepository
         $traceCollectionNames = [];
 
         foreach ($traceCollectionNamesRaw as $item) {
-            $traceCollectionNames[$item['cn']]   ??= [];
+            $traceCollectionNames[$item['cn']] ??= [];
             $traceCollectionNames[$item['cn']][] = $item['tid'];
         }
 
@@ -327,8 +327,8 @@ readonly class TraceRepository
 
     /**
      * @return TraceIndexInfoObject[]
-     * @throws Exception
      *
+     * @throws Exception
      */
     public function getIndexProgressesInfo(): array
     {

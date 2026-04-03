@@ -74,18 +74,6 @@ readonly class TraceDynamicIndexRepository
         return $this->modelToDto($index);
     }
 
-    private function findOneByName(string $name): ?TraceDynamicIndexDto
-    {
-        /** @var TraceDynamicIndex|null $index */
-        $index = TraceDynamicIndex::query()->where('name', $name)->first();
-
-        if (!$index) {
-            return null;
-        }
-
-        return $this->modelToDto($index);
-    }
-
     /**
      * @return TraceDynamicIndexDto[]
      */
@@ -169,6 +157,18 @@ readonly class TraceDynamicIndexRepository
         return (bool) TraceDynamicIndex::query()
             ->where('_id', $id)
             ->delete();
+    }
+
+    private function findOneByName(string $name): ?TraceDynamicIndexDto
+    {
+        /** @var TraceDynamicIndex|null $index */
+        $index = TraceDynamicIndex::query()->where('name', $name)->first();
+
+        if (!$index) {
+            return null;
+        }
+
+        return $this->modelToDto($index);
     }
 
     /**

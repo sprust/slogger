@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Modules\Trace\Domain\Actions\Queries;
 
 use App\Modules\Trace\Entities\Trace\TraceDetailObject;
-use App\Modules\Trace\Domain\Actions\Queries\FindTraceServicesAction;
 use App\Modules\Trace\Repositories\TraceRepository;
 
 readonly class FindTraceDetailAction

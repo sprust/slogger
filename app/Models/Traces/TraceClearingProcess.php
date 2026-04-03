@@ -24,7 +24,7 @@ class TraceClearingProcess extends AbstractTraceModel
         'clearedAt' => 'datetime',
     ];
 
-    function getCollectionName(): string
+    public function getCollectionName(): string
     {
         return 'traceClearingProcesses';
     }

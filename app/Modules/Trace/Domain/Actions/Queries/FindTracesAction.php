@@ -9,7 +9,6 @@ use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexErrorException;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexInProcessException;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexNotInitException;
 use App\Modules\Trace\Domain\Services\TraceDynamicIndexInitializer;
-use App\Modules\Trace\Domain\Actions\Queries\FindTraceServicesAction;
 use App\Modules\Trace\Entities\Trace\Data\TraceDataAdditionalFieldObject;
 use App\Modules\Trace\Entities\Trace\Data\TraceDataObject;
 use App\Modules\Trace\Entities\Trace\TraceItemObject;
@@ -184,9 +183,9 @@ readonly class FindTracesAction
         $additionalFieldValues = [];
 
         foreach ($additionalFields as $additionalField) {
-            $currentData = null;
+            $currentData     = null;
             $currentChildren = $data->children ?: [];
-            $currentKey = '';
+            $currentKey      = '';
 
             foreach (explode('.', $additionalField) as $key) {
                 $currentKey .= (($currentKey ? '.' : '') . $key);

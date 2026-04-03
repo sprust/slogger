@@ -15,7 +15,7 @@ abstract class AbstractMongoModel extends Model
      */
     private static array $sconcurCollections = [];
 
-    abstract function getCollectionName(): string;
+    abstract public function getCollectionName(): string;
 
     public function getTable()
     {

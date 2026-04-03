@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Modules\Trace\Domain\Actions\Queries;
 
-use App\Modules\Trace\Domain\Actions\Queries\FindTraceServicesAction;
 use App\Modules\Trace\Repositories\TraceRepository;
 use App\Modules\Trace\Repositories\TraceTreeCacheRepository;
 use App\Modules\Trace\Repositories\TraceTreeRepository;
@@ -112,7 +111,7 @@ readonly class FindTraceTreeContentAction
         return new TraceTreeContentObjects(
             count: $results[$countKey],
             services: $treeServices,
-            types: $results[$typesKey] ,
+            types: $results[$typesKey],
             tags: $results[$tagsKey],
             statuses: $results[$statusesKey],
         );

@@ -27,7 +27,7 @@ class TraceTreeCache extends AbstractTraceModel
     public const CREATED_AT = 'createdAt';
     public const UPDATED_AT = null;
 
-    function getCollectionName(): string
+    public function getCollectionName(): string
     {
         return 'traceTreeCache';
     }

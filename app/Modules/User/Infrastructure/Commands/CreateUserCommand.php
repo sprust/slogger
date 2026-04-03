@@ -35,8 +35,7 @@ class CreateUserCommand extends Command
     public function handle(
         CreateUserAction $createUserAction,
         FindUserByIdAction $findUserByIdAction
-    ): int
-    {
+    ): int {
         $firstName = $this->askAndCheck('First name *', true);
 
         if (!is_string($firstName) || !$firstName) {

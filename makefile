@@ -63,8 +63,15 @@ code-analise-stan:
 code-analise-deptrac:
 	docker-compose exec -e XDEBUG_MODE=off $(PHP_FPM_SERVICE) ./vendor/bin/deptrac analyse --config-file=./code-analyse/deptrac-layers.yaml
 
+code-analise-cs-fixer-check:
+	docker-compose exec -e XDEBUG_MODE=off $(PHP_FPM_SERVICE) ./vendor/bin/php-cs-fixer fix --config ./code-analyse/php-cs-fixer.dist.php --dry-run --diff --verbose
+
+code-analise-cs-fixer-fix:
+	docker-compose exec -e XDEBUG_MODE=off $(PHP_FPM_SERVICE) ./vendor/bin/php-cs-fixer fix --config ./code-analyse/php-cs-fixer.dist.php --verbose
+
 code-analise:
 	make code-analise-declare-strict-fix
+	make code-analise-cs-fixer-check
 	make code-analise-stan
 	make code-analise-deptrac
 

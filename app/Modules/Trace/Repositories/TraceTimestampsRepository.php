@@ -213,10 +213,10 @@ readonly class TraceTimestampsRepository
     private function injectAggregationToGroups(array &$groups, TraceMetricFieldsFilterDto $field): void
     {
         $fieldName = match ($field->field) {
-            TraceMetricFieldEnum::Count => 'count',
+            TraceMetricFieldEnum::Count    => 'count',
             TraceMetricFieldEnum::Duration => 'dur',
-            TraceMetricFieldEnum::Memory => 'mem',
-            TraceMetricFieldEnum::Cpu => 'cpu',
+            TraceMetricFieldEnum::Memory   => 'mem',
+            TraceMetricFieldEnum::Cpu      => 'cpu',
         };
 
         $aggregations = [];
@@ -231,7 +231,7 @@ readonly class TraceTimestampsRepository
     }
 
     /**
-     * @param array<string, int|string> $aggregations
+     * @param array<string, int|string>        $aggregations
      * @param TraceMetricFieldAggregatorEnum[] $fieldAggregations
      */
     private function injectAggregation(array &$aggregations, string $fieldName, array $fieldAggregations): void

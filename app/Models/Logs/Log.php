@@ -19,16 +19,15 @@ use Illuminate\Support\Carbon;
  */
 class Log extends AbstractMongoModel
 {
-    protected $connection = 'mongodb.logs';
-
     public const CREATED_AT = 'createdAt';
     public const UPDATED_AT = null;
+    protected $connection   = 'mongodb.logs';
 
     protected $casts = [
         'loggedAt' => 'datetime',
     ];
 
-    function getCollectionName(): string
+    public function getCollectionName(): string
     {
         return config('database.connections.mongodb.logs.database');
     }

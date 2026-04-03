@@ -14,7 +14,7 @@ class ClearTracesJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable;
 
-    public int $tries = 3;
+    public int $tries   = 3;
     public int $backoff = 2;
 
     /**

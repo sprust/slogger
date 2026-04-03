@@ -48,7 +48,6 @@ class UserRepository
         );
     }
 
-
     private function makeUserFullObjectByUserOrNull(?User $user): ?UserDetailObject
     {
         if (!$user) {

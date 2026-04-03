@@ -94,7 +94,7 @@ readonly class TraceContentRepository
     }
 
     /**
-     * @param int[] $serviceIds
+     * @param int[]    $serviceIds
      * @param string[] $types
      *
      * @return TraceStringFieldObject[]
@@ -194,7 +194,7 @@ readonly class TraceContentRepository
     }
 
     /**
-     * @param int[] $serviceIds
+     * @param int[]    $serviceIds
      * @param string[] $types
      * @param string[] $tags
      *

@@ -133,7 +133,7 @@ class TraceServiceProvider extends BaseServiceProvider
             FindTraceServicesAction::class,
             FindTraceTreeContentAction::class,
             // services
-            PeriodicTraceCollectionNameService::class
+            PeriodicTraceCollectionNameService::class,
         ];
     }
 }

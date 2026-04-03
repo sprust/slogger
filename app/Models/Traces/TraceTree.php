@@ -16,7 +16,7 @@ class TraceTree extends AbstractTraceModel
 
     protected $connection = 'mongodb.tracesPeriodic';
 
-    function getCollectionName(): string
+    public function getCollectionName(): string
     {
         return '_traceTreesView';
     }

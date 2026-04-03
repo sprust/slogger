@@ -69,10 +69,10 @@ class ProcessRepository
         $newProgress = new TraceClearingProcess();
 
         $newProgress->clearedCollectionsCount = 0;
-        $newProgress->clearedTracesCount = 0;
-        $newProgress->error = null;
-        $newProgress->errorTrace = null;
-        $newProgress->clearedAt = null;
+        $newProgress->clearedTracesCount      = 0;
+        $newProgress->error                   = null;
+        $newProgress->errorTrace              = null;
+        $newProgress->clearedAt               = null;
 
         $newProgress->save();
 
@@ -98,10 +98,10 @@ class ProcessRepository
             ->where('_id', $processId)
             ->update([
                 'clearedCollectionsCount' => $clearedCollectionsCount,
-                'clearedTracesCount' => $clearedTracesCount,
-                'error'        => $exception ? ($exception->getMessage() ?: $exception::class) : null,
-                'errorTrace'   => $exception ? ($exception->getTraceAsString()) : null,
-                'clearedAt'    => $clearedAt ? new UTCDateTime($clearedAt) : null,
+                'clearedTracesCount'      => $clearedTracesCount,
+                'error'                   => $exception ? ($exception->getMessage() ?: $exception::class) : null,
+                'errorTrace'              => $exception ? ($exception->getTraceAsString()) : null,
+                'clearedAt'               => $clearedAt ? new UTCDateTime($clearedAt) : null,
             ]);
     }
 

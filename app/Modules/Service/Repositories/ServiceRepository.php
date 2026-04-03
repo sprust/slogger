@@ -39,9 +39,9 @@ class ServiceRepository
     {
         $newService = new Service();
 
-        $newService->name = $name;
+        $newService->name       = $name;
         $newService->unique_key = $uniqueKey;
-        $newService->api_token = Str::random(50);
+        $newService->api_token  = Str::random(50);
 
         $newService->saveOrFail();
 
