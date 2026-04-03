@@ -17,11 +17,8 @@ export async function handleApiRequest<T>(request: Promise<T>): Promise<T> {
 }
 
 export function handleApiError(error: any) {
-    let message = '' + error?.error?.message
+    let message = '' + (error?.error?.message ?? error?.error.error ?? error.statusText)
 
-    if (!message) {
-        message = error.statusText
-    }
     if (!message) {
         message = 'Unknown error'
     }

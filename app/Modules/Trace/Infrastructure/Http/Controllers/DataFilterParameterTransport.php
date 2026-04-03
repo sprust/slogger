@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\Trace\Infrastructure\Http\Controllers\Traits;
+namespace App\Modules\Trace\Infrastructure\Http\Controllers;
 
 use App\Modules\Common\Helpers\ArrayValueGetter;
 use App\Modules\Trace\Enums\TraceDataFilterCompNumericTypeEnum;
@@ -13,12 +13,12 @@ use App\Modules\Trace\Parameters\Data\TraceDataFilterNumericParameters;
 use App\Modules\Trace\Parameters\Data\TraceDataFilterParameters;
 use App\Modules\Trace\Parameters\Data\TraceDataFilterStringParameters;
 
-trait MakeDataFilterParameterTrait
+class DataFilterParameterTransport
 {
     /**
      * @param array<string, mixed> $validated
      */
-    protected function makeDataFilterParameter(array $validated): TraceDataFilterParameters
+    public function make(array $validated): TraceDataFilterParameters
     {
         return new TraceDataFilterParameters(
             filter: array_map(

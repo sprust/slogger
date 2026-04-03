@@ -8,4 +8,10 @@ use Exception;
 
 class TraceDynamicIndexInProcessException extends Exception
 {
+    public function __construct()
+    {
+        parent::__construct(
+            'Trace dynamic index in process.'
+        );
+    }
 }
