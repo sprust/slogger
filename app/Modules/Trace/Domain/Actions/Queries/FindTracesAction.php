@@ -75,6 +75,8 @@ readonly class FindTracesAction
             }
         }
 
+        $traceIds = ($traceIds === null) ? null : array_filter($traceIds);
+
         $this->traceDynamicIndexInitializer->init(
             serviceIds: $parameters->serviceIds,
             traceIds: $traceIds,
@@ -183,7 +185,7 @@ readonly class FindTracesAction
 
         foreach ($additionalFields as $additionalField) {
             $currentData = null;
-            $currentChildren = $data->children;
+            $currentChildren = $data->children ?: [];
             $currentKey = '';
 
             foreach (explode('.', $additionalField) as $key) {

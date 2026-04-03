@@ -29,7 +29,9 @@ readonly class LoginController
             )
         );
 
-        abort_if(!$loggedUser, ResponseFoundation::HTTP_UNAUTHORIZED);
+        if ($loggedUser === null) {
+            abort(ResponseFoundation::HTTP_UNAUTHORIZED);
+        }
 
         return new LoggedUserResource($loggedUser);
     }

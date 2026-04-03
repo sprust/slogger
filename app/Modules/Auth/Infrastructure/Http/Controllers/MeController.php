@@ -24,7 +24,9 @@ readonly class MeController
             ? $this->findMeByTokenAction->handle($bearerToken)
             : null;
 
-        abort_if(!$me, ResponseFoundation::HTTP_UNAUTHORIZED);
+        if ($me === null) {
+            abort(ResponseFoundation::HTTP_UNAUTHORIZED);
+        }
 
         return new LoggedUserResource($me);
     }

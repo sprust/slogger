@@ -5,18 +5,17 @@ declare(strict_types=1);
 namespace App\Modules\User\Domain\Actions;
 
 use App\Modules\User\Entities\UserDetailObject;
-use App\Modules\User\Parameters\UserCreateParameters;
 use App\Modules\User\Repositories\UserRepository;
 
-readonly class CreateUserAction
+readonly class FindUserByIdAction
 {
     public function __construct(
         private UserRepository $userRepository
     ) {
     }
 
-    public function handle(UserCreateParameters $parameters): int
+    public function handle(int $id): ?UserDetailObject
     {
-        return $this->userRepository->create($parameters);
+        return $this->userRepository->findById(id: $id);
     }
 }

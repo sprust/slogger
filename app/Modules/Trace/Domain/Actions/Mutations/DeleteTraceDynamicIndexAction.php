@@ -19,7 +19,7 @@ readonly class DeleteTraceDynamicIndexAction
     {
         $index = $this->traceDynamicIndexRepository->findOneById($id);
 
-        if ($index->created) {
+        if ($index?->created) {
             $this->traceRepository->deleteIndexByName(
                 indexName: $index->indexName,
                 collectionNames: $index->collectionNames

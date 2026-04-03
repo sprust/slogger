@@ -125,7 +125,7 @@ class TraceTreeRepository
      */
     public function findTraceIdsInTreeByParentTraceId(string $traceId): array
     {
-        $traceTreesCollectionName = (new TraceTree())->getCollectionName();
+        $traceTreesCollectionName = new TraceTree()->getCollectionName();
 
         $childrenAggregation = TraceTree::collection()
             ->aggregate(
@@ -179,9 +179,12 @@ class TraceTreeRepository
                 ]
             );
 
+        /** @var BSONDocument[] $childrenAggregation */
+        $childrenAggregation = iterator_to_array($childrenAggregation);
+
         return array_map(
             static fn(BSONDocument $item) => $item['childIds'],
-            iterator_to_array($childrenAggregation)
+            $childrenAggregation
         );
     }
 }

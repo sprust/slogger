@@ -26,7 +26,7 @@ class TraceTreeResource extends AbstractApiResource
     {
         parent::__construct($resource);
 
-        $this->service_id      = $resource->serviceId;
+        $this->service_id      = $resource->serviceId ?: -1;
         $this->parent_trace_id = $resource->parentTraceId;
         $this->trace_id        = $resource->traceId;
         $this->type            = $resource->type;

@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
+use RuntimeException;
 
 class DeclareStrictFixCommand extends Command
 {
@@ -50,7 +51,8 @@ class DeclareStrictFixCommand extends Command
                 continue;
             }
 
-            $fileContent = file_get_contents($filePath);
+            $fileContent = file_get_contents($filePath)
+                ?: throw new RuntimeException("Failed to read file content for $filePath");
 
             $fileContent = str_replace("<?php\n\n", "<?php\n\ndeclare(strict_types=1);\n\n", $fileContent);
 

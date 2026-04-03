@@ -79,18 +79,22 @@ readonly class PeriodicTraceService
 
     /**
      * @param array<array<string, mixed>> $pipeline
+     *
+     * @return Iterator<int, array<string, mixed>>
      */
     public function aggregate(string $collectionName, array $pipeline): Iterator
     {
+        /** @var Iterator<int, array<string, mixed>> */
         return $this->selectCollectionByName($collectionName)
             ->aggregate($pipeline);
     }
 
     /**
-     * @return array<string, mixed>|null
+     * @return array<string, array<string, mixed>>|null
      */
     public function findOne(string $collectionName, string $traceId): ?array
     {
+        /** @var array<string, array<string, mixed>>|null */
         return $this->selectCollectionByName($collectionName)
             ->findOne(['tid' => $traceId]);
     }
@@ -98,7 +102,7 @@ readonly class PeriodicTraceService
     /**
      * @param string[] $traceIds
      *
-     * @return array<array<string, mixed>>
+     * @return array<int, array<string, mixed>>
      */
     public function findMany(string $collectionName, array $traceIds): array
     {
@@ -116,6 +120,8 @@ readonly class PeriodicTraceService
         $traces = [];
 
         foreach ($iterator as $item) {
+            /** @var array<string, mixed> $item */
+
             $traces[] = $item;
         }
 

@@ -12,7 +12,7 @@ use Illuminate\Support\Str;
 
 class UserRepository
 {
-    public function create(UserCreateParameters $parameters): UserDetailObject
+    public function create(UserCreateParameters $parameters): int
     {
         $newUser = new User();
 
@@ -24,7 +24,14 @@ class UserRepository
 
         $newUser->saveOrFail();
 
-        return $this->makeUserFullObjectByUserOrNull($newUser);
+        return $newUser->id;
+    }
+
+    public function findById(int $id): ?UserDetailObject
+    {
+        return $this->makeUserFullObjectByUserOrNull(
+            User::query()->where('id', $id)->first()
+        );
     }
 
     public function findByEmail(string $email): ?UserDetailObject

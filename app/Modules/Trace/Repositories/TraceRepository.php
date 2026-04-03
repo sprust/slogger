@@ -236,8 +236,14 @@ readonly class TraceRepository
 
     public function findProfilingByTraceId(string $traceId): ?TraceProfilingDto
     {
+        $collectionName = $this->periodicTraceService->findCollectionNameByTraceId($traceId);
+
+        if ($collectionName === null) {
+            return null;
+        }
+
         $trace = $this->periodicTraceService->findOne(
-            collectionName: $this->periodicTraceService->findCollectionNameByTraceId($traceId),
+            collectionName: $collectionName,
             traceId: $traceId
         );
 
@@ -320,9 +326,9 @@ readonly class TraceRepository
     }
 
     /**
+     * @return TraceIndexInfoObject[]
      * @throws Exception
      *
-     * @return TraceIndexInfoObject[]
      */
     public function getIndexProgressesInfo(): array
     {
@@ -357,13 +363,13 @@ readonly class TraceRepository
         $infoList = [];
 
         foreach ($operations as $operation) {
-            $progressTotal = $operation->progress?->total;
-            $progressDone  = $operation->progress?->done;
+            $progressTotal = $operation->progress->total ?? null;
+            $progressDone  = $operation->progress->done ?? null;
 
             $infoList[] = new TraceIndexInfoObject(
-                collectionName: $operation->command->createIndexes,
+                collectionName: $operation->command->createIndexes ?? 'undefined',
                 name: ($operation->command->indexes[0] ?? null)?->name ?: 'untitled',
-                progress: $progressTotal ? round($progressDone / $progressTotal * 100, 2) : 0
+                progress: ($progressTotal && $progressDone) ? round($progressDone / $progressTotal * 100, 2) : 0
             );
         }
 

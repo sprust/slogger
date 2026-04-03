@@ -166,7 +166,7 @@ readonly class TraceTimestampsRepository
                     foreach ($aggregators as $key => $aggregator) {
                         $indicators[] = new TraceTimestampFieldIndicatorDto(
                             name: $aggregator,
-                            value: round(is_numeric($item[$key]) ? $item[$key] : 0, 6),
+                            value: round((float) (is_numeric($item[$key]) ? $item[$key] : 0), 6),
                         );
                     }
 

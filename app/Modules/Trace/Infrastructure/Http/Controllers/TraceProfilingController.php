@@ -30,7 +30,9 @@ readonly class TraceProfilingController
             )
         );
 
-        abort_if(!$profiling, Response::HTTP_NOT_FOUND, 'Profiling not found');
+        if ($profiling === null) {
+            abort(Response::HTTP_NOT_FOUND, 'Profiling not found');
+        }
 
         return new TraceProfilingTreeResource($profiling);
     }

@@ -6,7 +6,7 @@ parameters:
         - ../app/Console/Commands/Local
         - ../app/Models
 
-    level: 6
+    level: 8
 
     ignoreErrors:
         -

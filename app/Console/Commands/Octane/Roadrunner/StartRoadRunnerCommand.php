@@ -4,6 +4,7 @@ namespace App\Console\Commands\Octane\Roadrunner;
 
 use Laravel\Octane\RoadRunner\ServerProcessInspector;
 use Laravel\Octane\RoadRunner\ServerStateFile;
+use RuntimeException;
 use Symfony\Component\Process\PhpExecutableFinder;
 use Symfony\Component\Process\Process;
 
@@ -46,20 +47,32 @@ class StartRoadRunnerCommand extends \Laravel\Octane\Commands\StartRoadRunnerCom
 
         $this->forgetEnvironmentVariables();
 
+        $logLevel = $this->option('log-level') ?: (app()->environment('local') ? 'debug' : 'warn');
+
+        if (!is_string($logLevel)) {
+            $logLevel = 'warn';
+        }
+
+        $host = $this->option('host');
+
+        if (!is_string($host)) {
+            throw new RuntimeException('The --host option must be a string.');
+        }
+
         $options = [
             'version=3',
-            'http.address=' . $this->option('host') . ':' . $this->getPort(),
+            'http.address=' . $host . ':' . $this->getPort(),
             'server.command=' . (new PhpExecutableFinder)->find() . ',' . base_path(
                 config('octane.roadrunner.command', 'vendor/bin/roadrunner-worker')
             ),
             'http.pool.num_workers=' . $this->workerCount(),
-            'http.pool.max_jobs=' . $this->option('max-requests'),
+            'http.pool.max_jobs=' . ((int) $this->option('max-requests')),
             'rpc.listen=tcp://' . $this->rpcHost() . ':' . $this->rpcPort(),
             'http.pool.supervisor.exec_ttl=' . $this->maxExecutionTime(),
             'http.static.dir=' . public_path(),
             'http.middleware=' . config('octane.roadrunner.http_middleware', 'static'),
             'logs.mode=production',
-            'logs.level=' . ($this->option('log-level') ?: (app()->environment('local') ? 'debug' : 'warn')),
+            'logs.level=' . $logLevel,
             'logs.output=stdout',
             'logs.encoding=json',
         ];
@@ -89,7 +102,9 @@ class StartRoadRunnerCommand extends \Laravel\Octane\Commands\StartRoadRunnerCom
 
         $process->start();
 
-        $serverStateFile->writeProcessId($process->getPid());
+        $serverStateFile->writeProcessId(
+            $process->getPid() ?? throw new RuntimeException('Unable to determine the process ID.')
+        );
 
         return $this->runServer($process, $inspector, 'roadrunner');
     }

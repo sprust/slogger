@@ -7,9 +7,9 @@ namespace App\Modules\Dashboard\Repositories;
 use App\Modules\Dashboard\Entities\DatabaseCollectionIndexStatObject;
 use App\Modules\Dashboard\Entities\DatabaseCollectionStatObject;
 use App\Modules\Dashboard\Entities\DatabaseStatObject;
-use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
+use MongoDB\Client;
 use MongoDB\Driver\Command;
 use MongoDB\Driver\Exception\Exception;
 use MongoDB\Laravel\Connection;
@@ -19,10 +19,6 @@ use RuntimeException;
 
 readonly class DatabaseStatRepository
 {
-    public function __construct(private Application $app)
-    {
-    }
-
     /**
      * @return DatabaseStatObject[]
      */
@@ -34,7 +30,9 @@ readonly class DatabaseStatRepository
 
         $memoryUsageSize = null;
 
-        foreach (array_keys($this->app['config']['database.connections.mongodb']) as $connectionName) {
+        $config = config('database.connections.mongodb');
+
+        foreach (array_keys($config) as $connectionName) {
             /** @var Connection $connection */
             $connection = DB::connection("mongodb.$connectionName");
 
@@ -57,7 +55,11 @@ readonly class DatabaseStatRepository
             }
 
             if (is_null($databaseSizes)) {
-                $databaseSizes = collect($connection->getClient()->listDatabases())
+                $client = $connection->getClient();
+
+                assert($client instanceof Client, 'client must be an instance of MongoDB\Client');
+
+                $databaseSizes = collect($client->listDatabases())
                     ->keyBy(fn(DatabaseInfo $databaseInfo) => $databaseInfo->getName())
                     ->map(fn(DatabaseInfo $databaseInfo) => $databaseInfo->getSizeOnDisk())
                     ->toArray();
@@ -100,6 +102,8 @@ readonly class DatabaseStatRepository
                         ],
                     ])
                 )[0];
+
+                assert(is_array($collStats), 'collStats must be an array');
 
                 $indexStatsKeyByName = Arr::keyBy(
                     iterator_to_array($collection->aggregate([

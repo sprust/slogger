@@ -70,7 +70,9 @@ readonly class TraceController
     {
         $traceObject = $this->findTraceDetailAction->handle($traceId);
 
-        abort_if(!$traceObject, Response::HTTP_NOT_FOUND);
+        if ($traceObject === null) {
+            abort(Response::HTTP_NOT_FOUND);
+        }
 
         return new TraceDetailResource($traceObject);
     }
