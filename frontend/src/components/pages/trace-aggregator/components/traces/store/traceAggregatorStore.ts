@@ -1,5 +1,5 @@
 import {ApiContainer} from "../../../../../../utils/apiContainer.ts";
-import {makeStartOfDay, TypesHelper} from "../../../../../../utils/helpers.ts";
+import {makeStartOfDay, normalizeUtcDateTime, TypesHelper} from "../../../../../../utils/helpers.ts";
 import {AdminApi} from "../../../../../../api-schema/admin-api-schema.ts";
 import {defineStore} from "pinia";
 import {handleApiRequest} from "../../../../../../utils/handleApiRequest.ts";
@@ -159,7 +159,7 @@ export const useTraceAggregatorStore = defineStore('traceAggregatorStore', {
                 cpu_from: null,
                 cpu_to: null,
                 logging_from_preset: 'last_hour',
-                logging_from: makeStartOfDay().toUTCString(),
+                logging_from: normalizeUtcDateTime(makeStartOfDay()) ?? '',
                 logging_to: '',
                 trace_id: null,
                 all_traces_in_tree: false,
@@ -253,10 +253,14 @@ export const useTraceAggregatorStore = defineStore('traceAggregatorStore', {
         prepareCommonPayloadData() {
             if (!this.payload.logging_from) {
                 delete this.payload.logging_from
+            } else {
+                this.payload.logging_from = normalizeUtcDateTime(this.payload.logging_from)
             }
 
             if (!this.payload.logging_to) {
                 delete this.payload.logging_to
+            } else {
+                this.payload.logging_to = normalizeUtcDateTime(this.payload.logging_to)
             }
 
             const data = this.payload.data!;

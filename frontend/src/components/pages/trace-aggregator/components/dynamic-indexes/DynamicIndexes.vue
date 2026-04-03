@@ -110,7 +110,6 @@ import {
   useTraceDynamicIndexesStore
 } from "./store/traceDynamicIndexesStore.ts";
 import {Refresh as IconRefreshList} from "@element-plus/icons-vue";
-import {convertDateStringToLocal} from "../../../../../utils/helpers.ts";
 
 interface DeletingIndexes {
   [key: string]: boolean,
@@ -151,7 +150,7 @@ export default defineComponent({
       return index.fields.map(index => index.title).join(', ')
     },
     makeCreatedAt(index: TraceDynamicIndex): string {
-      return convertDateStringToLocal(index.createdAt, false)
+      return index.createdAt
     },
     makeStatus(index: TraceDynamicIndex): string {
       if (index.error) {

@@ -55,7 +55,7 @@ readonly class TraceTimestampsController
                     dataFields: ArrayValueGetter::arrayStringNull($validated, 'data_fields'),
                     serviceIds: ArrayValueGetter::arrayIntNull($validated, 'service_ids'),
                     loggedAtTo: ($validated['logging_to'] ?? null)
-                        ? new Carbon($validated['logging_to'])
+                        ? new Carbon($validated['logging_to'])->setTimezone('UTC')
                         : null,
                     types: ArrayValueGetter::arrayStringNull($validated, 'types') ?? [],
                     tags: ArrayValueGetter::arrayStringNull($validated, 'tags') ?? [],

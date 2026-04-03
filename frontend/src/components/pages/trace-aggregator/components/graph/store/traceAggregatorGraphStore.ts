@@ -1,6 +1,5 @@
 import {AdminApi} from "../../../../../../api-schema/admin-api-schema.ts";
 import {ApiContainer} from "../../../../../../utils/apiContainer.ts";
-import {convertDateStringToLocal} from "../../../../../../utils/helpers.ts";
 import {ChartData, ChartDataset, ChartOptions} from 'chart.js'
 import {TraceAggregatorCustomField} from "../../traces/store/traceAggregatorStore.ts";
 import {defineStore} from "pinia";
@@ -131,9 +130,7 @@ export const useTraceAggregatorGraphStore = defineStore('traceAggregatorGraphSto
             } = {}
 
             this.metrics.forEach((item: TraceAggregatorTraceMetricItem) => {
-                labels.push(
-                    convertDateStringToLocal(item.timestamp, false)
-                )
+                labels.push(item.timestamp)
 
                 item.fields.forEach(field => {
                     if (fieldIndicators[field.field] === undefined) {

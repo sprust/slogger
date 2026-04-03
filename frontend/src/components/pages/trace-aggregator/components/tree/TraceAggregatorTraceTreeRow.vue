@@ -3,7 +3,6 @@
 import {defineComponent, PropType} from "vue";
 import TraceService from "../services/TraceService.vue";
 import {TraceAggregatorTreeRow, TraceTreeNode, useTraceAggregatorTreeStore} from "./store/traceAggregatorTreeStore.ts";
-import {convertDateStringToLocal} from "../../../../../utils/helpers.ts";
 import {CaretBottom, CaretRight} from "@element-plus/icons-vue";
 
 export default defineComponent({
@@ -23,7 +22,6 @@ export default defineComponent({
   },
 
   methods: {
-    convertDateStringToLocal,
     makeTreeNodeStyle(trace: TraceAggregatorTreeRow) {
       const style: { 'background-color'?: string, 'border'?: string } = {}
 
@@ -154,7 +152,7 @@ export default defineComponent({
             {{ row.primary.status }}
           </el-text>
           <el-text>
-            {{ convertDateStringToLocal(row.primary.logged_at) }}
+            {{ row.primary.logged_at }}
           </el-text>
           <el-text>
             {{ row.primary.memory }}

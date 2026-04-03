@@ -20,8 +20,8 @@ class PeriodParameters
         ?string $from,
         ?string $to
     ): ?static {
-        $from = $from ? (new Carbon($from))->setTimezone('UTC') : null;
-        $to   = $to ? (new Carbon($to))->setTimezone('UTC') : null;
+        $from = $from ? new Carbon($from)->setTimezone('UTC') : null;
+        $to   = $to ? new Carbon($to)->setTimezone('UTC') : null;
 
         if ($fromPreset) {
             $fromPreset = PeriodPresetEnum::from($fromPreset);

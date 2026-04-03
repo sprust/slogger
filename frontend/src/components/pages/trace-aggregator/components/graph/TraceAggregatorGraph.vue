@@ -30,7 +30,6 @@ import {Bar, getElementAtEvent} from 'vue-chartjs'
 import {useTraceAggregatorGraphStore} from "./store/traceAggregatorGraphStore.ts";
 import {useTraceAggregatorTimestampPeriodStore} from "./store/traceAggregatorTimestampPeriodsStore.ts";
 import {PeriodPresetEnum, useTraceAggregatorStore} from "../traces/store/traceAggregatorStore.ts";
-import {convertDateStringToLocalFull} from "../../../../../utils/helpers.ts";
 import {useTraceAggregatorTimestampFieldsStore} from "./store/traceAggregatorTimestampFieldsStore.ts";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
@@ -130,14 +129,8 @@ export default defineComponent({
       const {index} = elements[0]
 
       this.traceAggregatorStore.payload.logging_from_preset = PeriodPresetEnum.Custom
-
-      this.traceAggregatorStore.payload.logging_from = new Date(
-          convertDateStringToLocalFull(this.traceAggregatorGraphStore.metrics[index].timestamp)
-      ).toUTCString()
-
-      this.traceAggregatorStore.payload.logging_to = new Date(
-          convertDateStringToLocalFull(this.traceAggregatorGraphStore.metrics[index].timestamp_to)
-      ).toUTCString()
+      this.traceAggregatorStore.payload.logging_from = this.traceAggregatorGraphStore.metrics[index].timestamp
+      this.traceAggregatorStore.payload.logging_to = this.traceAggregatorGraphStore.metrics[index].timestamp_to
 
       this.traceAggregatorGraphStore.showGraph = false
     }

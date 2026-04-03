@@ -114,7 +114,6 @@
 <script lang="ts">
 import {defineComponent} from "vue";
 import {CaretLeft as FillTitleIcon, Plus as PlusIcon, Search as SearchIcon} from '@element-plus/icons-vue'
-import {convertDateStringToLocal} from "../../../../../utils/helpers.ts";
 import {AdminStore, useTraceAdminStoresStore} from "./store/traceAdminStoresStore.ts";
 import {useTraceAggregatorStore} from "../traces/store/traceAggregatorStore.ts";
 import TraceAggregatorProfilingNodeData from "../profiling/TraceAggregatorProfilingNodeData.vue";
@@ -181,7 +180,7 @@ export default defineComponent({
       return store.title
     },
     makeDate(store: AdminStore): string {
-      return convertDateStringToLocal(store.created_at, false)
+      return store.created_at
     },
     fillTitle() {
       this.traceAdminStoresStore.createParameters.title = this.traceAdminStoresStore.generateStoreTitle()

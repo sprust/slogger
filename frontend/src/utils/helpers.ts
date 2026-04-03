@@ -9,6 +9,41 @@ import {
 } from "../components/pages/trace-aggregator/components/services/store/traceAggregatorServicesStore.ts";
 import alerts from "./alerts.ts";
 
+function parseDateTimeAsUtc(value: string): Date | null {
+    const matched = value.trim().match(
+        /^(\d{4})-(\d{2})-(\d{2})(?:[T\s])(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{1,3}))?)?$/
+    )
+
+    if (!matched) {
+        return null
+    }
+
+    const [
+        ,
+        year,
+        month,
+        day,
+        hours,
+        minutes,
+        seconds = '0',
+        milliseconds = '0'
+    ] = matched
+
+    return new Date(Date.UTC(
+        Number(year),
+        Number(month) - 1,
+        Number(day),
+        Number(hours),
+        Number(minutes),
+        Number(seconds),
+        Number(milliseconds.padEnd(3, '0'))
+    ))
+}
+
+function zeroPad(value: number, size: number = 2): string {
+    return String(value).padStart(size, '0')
+}
+
 export class TypesHelper {
     public static isValueInt(value: any): boolean {
         return Number.isInteger(value)
@@ -47,60 +82,82 @@ export async function copyToClipboard(value: string) {
     }
 }
 
-const zeroPad = (num: number, places: number): string => String(num).padStart(places, '0')
+export function normalizeUtcDateTime(value: string | Date | undefined | null): string | undefined {
+    if (!value) {
+        return undefined
+    }
 
-export function convertDateStringToLocalFull(dateString: string | undefined | null) {
-    if (!dateString) {
+    if (value instanceof Date) {
+        return new Date(Date.UTC(
+            value.getFullYear(),
+            value.getMonth(),
+            value.getDate(),
+            value.getHours(),
+            value.getMinutes(),
+            value.getSeconds(),
+            value.getMilliseconds()
+        )).toISOString()
+    }
+
+    const parsedUtcDate = /(?:Z|[+-]\d{2}:\d{2})$/.test(value)
+        ? null
+        : parseDateTimeAsUtc(value)
+
+    const date = parsedUtcDate ?? new Date(value)
+
+    if (Number.isNaN(date.getTime())) {
+        return value
+    }
+
+    return date.toISOString()
+}
+
+export function makeUtcPickerDate(value: string | Date | undefined | null): Date | null {
+    if (!value) {
+        return null
+    }
+
+    const date = value instanceof Date ? value : new Date(value)
+
+    if (Number.isNaN(date.getTime())) {
+        return null
+    }
+
+    return new Date(
+        date.getUTCFullYear(),
+        date.getUTCMonth(),
+        date.getUTCDate(),
+        date.getUTCHours(),
+        date.getUTCMinutes(),
+        date.getUTCSeconds(),
+        date.getUTCMilliseconds()
+    )
+}
+
+export function formatUtcDateTime(value: string | Date | undefined | null): string {
+    if (!value) {
         return ''
     }
 
-    return convertDateStringToLocal(dateString, false, false)
-}
+    const parsedUtcDate = typeof value === 'string' && !/(?:Z|[+-]\d{2}:\d{2})$/.test(value)
+        ? parseDateTimeAsUtc(value)
+        : null
 
-export function convertDateStringToLocal(
-    dateString: string,
-    withMicroseconds: boolean = true,
-    collapseForCurrentDate: boolean = true,
-): string {
-    const date = new Date(dateString)
+    const date = value instanceof Date ? value : (parsedUtcDate ?? new Date(value))
 
-    const newDate = new Date(date.getTime() + date.getTimezoneOffset() * 60 * 1000);
-
-    const offset = date.getTimezoneOffset() / 60;
-
-    newDate.setHours(date.getHours() - offset);
-
-    const year = newDate.getFullYear().toString()
-    const month = zeroPad(newDate.getMonth() + 1, 2)
-    const day = zeroPad(newDate.getDate(), 2)
-    const hours = zeroPad(newDate.getHours(), 2)
-    const minutes = zeroPad(newDate.getMinutes(), 2)
-    const seconds = zeroPad(newDate.getSeconds(), 2)
-    const microseconds = newDate.getMilliseconds()
-
-    const currentDate = new Date()
-
-    let ymd: Array<string> = []
-
-    if (!collapseForCurrentDate || currentDate.getFullYear() !== newDate.getFullYear()) {
-        ymd = [year, month, day]
-    } else {
-        if (currentDate.getMonth() !== newDate.getMonth()) {
-            ymd = [month, day]
-        } else {
-            if (currentDate.getDate() !== newDate.getDate()) {
-                ymd = [month, day]
-            }
-        }
+    if (Number.isNaN(date.getTime())) {
+        return ''
     }
 
-    let dateResult = ymd.join('-') + ' ' + [hours, minutes, seconds.toLocaleString()].join(':')
-
-    if (withMicroseconds) {
-        dateResult += ('.' + microseconds)
-    }
-
-    return dateResult
+    return [
+        date.getUTCFullYear(),
+        zeroPad(date.getUTCMonth() + 1),
+        zeroPad(date.getUTCDate())
+    ].join('-') + ' ' + [
+        zeroPad(date.getUTCHours()),
+        zeroPad(date.getUTCMinutes()),
+        zeroPad(date.getUTCSeconds())
+    ].join(':')
 }
 
 export function makeGeneralFiltersTitles(
@@ -121,7 +178,7 @@ export function makeGeneralFiltersTitles(
 
         if (payload.logging_from_preset === PeriodPresetEnum.Custom) {
             if (payload.logging_from) {
-                loggedAtFrom = convertDateStringToLocalFull(payload.logging_from)
+                loggedAtFrom = payload.logging_from
             }
         } else {
             loggedAtFrom = snackToTitle(
@@ -131,7 +188,7 @@ export function makeGeneralFiltersTitles(
 
         titles.push(
             'Logged at: ' + (loggedAtFromSelected ? loggedAtFrom : '∞') + '-'
-            + (loggedAtToSelected ? convertDateStringToLocalFull(payload.logging_to) : '∞')
+            + (loggedAtToSelected ? payload.logging_to : '∞')
         )
     }
 
@@ -245,11 +302,18 @@ export function makeGraphTitles(
     return titles
 }
 
-export function makeStartOfDay(): Date {
-    const startOfDay = new Date()
-    startOfDay.setUTCHours(Math.ceil(startOfDay.getTimezoneOffset() / 60), 0, 0, 0);
+export function makeNow(): string {
+    return formatUtcDateTime(new Date())
+}
 
-    return startOfDay
+export function makeStartOfDay(): string {
+    const now = new Date()
+
+    return [
+        now.getUTCFullYear(),
+        zeroPad(now.getUTCMonth() + 1),
+        zeroPad(now.getUTCDate())
+    ].join('-') + ' 00:00:00'
 }
 
 export function snackToTitle(text: string): string {
@@ -279,4 +343,3 @@ export async function readStream(stream: ReadableStream<Uint8Array>): Promise<st
         reader.releaseLock()
     }
 }
-

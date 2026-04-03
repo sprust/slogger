@@ -22,14 +22,14 @@
     </el-table-column>
     <el-table-column label="Created/Updated at" prop="created_at">
       <template #default="scope">
-        {{ convertDateStringToLocal(scope.row.created_at, false) }}
+        {{ scope.row.created_at }}
         <br>
-        {{ convertDateStringToLocal(scope.row.updated_at, false) }}
+        {{ scope.row.updated_at }}
       </template>
     </el-table-column>
     <el-table-column label="Cleared at" prop="cleared_at">
       <template #default="scope">
-        {{ scope.row.cleared_at ? convertDateStringToLocal(scope.row.cleared_at, false) : '' }}
+        {{ scope.row.cleared_at ?? '' }}
       </template>
     </el-table-column>
     <el-table-column label="Error" prop="error"/>
@@ -52,7 +52,6 @@
 import {defineComponent} from 'vue'
 import {useTraceCleanerStore} from "./store/traceCleanerStore.ts";
 import {Refresh} from '@element-plus/icons-vue'
-import {convertDateStringToLocal} from "../../../utils/helpers.ts";
 
 export default defineComponent({
   data() {
@@ -71,7 +70,6 @@ export default defineComponent({
   },
 
   methods: {
-    convertDateStringToLocal,
     update() {
       this.traceCleanerStore.find()
     },
