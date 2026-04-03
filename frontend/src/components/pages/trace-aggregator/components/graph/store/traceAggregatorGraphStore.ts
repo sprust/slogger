@@ -103,7 +103,7 @@ export const useTraceAggregatorGraphStore = defineStore('traceAggregatorGraphSto
             })
 
             return await handleApiRequest(
-                ApiContainer.get().traceAggregatorTraceMetricsCreate(this.payload)
+                () => ApiContainer.get().traceAggregatorTraceMetricsCreate(this.payload)
                     .then(response => {
                         this.setMetrics(response.data)
                     })

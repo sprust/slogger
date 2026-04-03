@@ -175,7 +175,7 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
             }
 
             return handleApiRequest(
-                ApiContainer.get()
+                () => ApiContainer.get()
                     .traceAggregatorTracesTreeCreate(
                         this.parameters,
                         {
@@ -192,7 +192,7 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
                                     this.loading = false
                                 } else {
                                     handleApiRequest(
-                                        this.findTreeContent(traceId, isChild)
+                                        () => this.findTreeContent(traceId, isChild)
                                             .finally(() => {
                                                 this.loading = false
                                             })
@@ -219,7 +219,7 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
             }
 
             return handleApiRequest(
-                ApiContainer.get().traceAggregatorTracesTreeContentCreate(parameters)
+                () => ApiContainer.get().traceAggregatorTracesTreeContentCreate(parameters)
                     .then(response => {
                         this.setTreeContent(response.data.data)
                     }))
@@ -234,7 +234,7 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
             this.dataLoading = true
 
             return await handleApiRequest(
-                ApiContainer.get().traceAggregatorTracesDetail(traceId)
+                () => ApiContainer.get().traceAggregatorTracesDetail(traceId)
                     .then(response => {
                         // @ts-ignore TODO
                         this.selectedTrace = response.data

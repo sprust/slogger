@@ -134,7 +134,7 @@ export const useTraceAggregatorStore = defineStore('traceAggregatorStore', {
             this.setData({} as TraceAggregatorResponse)
 
             return await handleApiRequest(
-                ApiContainer.get().traceAggregatorTracesCreate(this.payload)
+                () => ApiContainer.get().traceAggregatorTracesCreate(this.payload)
                     .then((response) => {
                         this.setData(response.data.data)
                     })

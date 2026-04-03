@@ -22,7 +22,7 @@ export const useTraceAggregatorServicesStore = defineStore('traceAggregatorServi
             this.loading = true
 
             return await handleApiRequest(
-                ApiContainer.get().servicesList()
+                () => ApiContainer.get().servicesList()
                     .then(response => {
                         this.items = response.data.data
                     })

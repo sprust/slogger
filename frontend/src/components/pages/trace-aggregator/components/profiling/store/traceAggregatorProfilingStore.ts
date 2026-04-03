@@ -96,7 +96,7 @@ export const useTraceAggregatorProfilingStore = defineStore('traceAggregatorProf
             } as Body
 
             return await handleApiRequest(
-                ApiContainer.get().traceAggregatorTracesProfilingCreate(traceId, {})
+                () => ApiContainer.get().traceAggregatorTracesProfilingCreate(traceId, {})
                     .then(response => {
                         this.setProfiling(response.data.data)
                     })
@@ -113,7 +113,7 @@ export const useTraceAggregatorProfilingStore = defineStore('traceAggregatorProf
             }
 
             return await handleApiRequest(
-                ApiContainer.get()
+                () => ApiContainer.get()
                     .traceAggregatorTracesProfilingCreate(
                         this.parameters.traceId,
                         this.requestBody

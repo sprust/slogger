@@ -18,7 +18,7 @@ export const useAuthStore = defineStore('authStore', {
     actions: {
         async login(email: string, password: string) {
             return await handleApiRequest(
-                ApiContainer.get()
+                () => ApiContainer.get()
                     .authLoginCreate({
                         email: email,
                         password: password

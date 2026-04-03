@@ -22,7 +22,7 @@ export const useTraceCleanerStore = defineStore('traceCleanerStore', {
             this.loading = true
 
             return await handleApiRequest(
-                ApiContainer.get().traceCleanerProcessesList()
+                () => ApiContainer.get().traceCleanerProcessesList()
                     .then(response => {
                         this.processes = response.data.data
 

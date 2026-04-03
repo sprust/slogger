@@ -22,7 +22,7 @@ export const useDashboardDatabaseStore = defineStore('dashboardDatabase', {
             this.loading = true
 
             return await handleApiRequest(
-                ApiContainer.get().dashboardDatabaseList()
+                () => ApiContainer.get().dashboardDatabaseList()
                     .then(response => {
                         this.items = response.data.data
 
