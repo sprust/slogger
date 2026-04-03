@@ -16,7 +16,7 @@ use MongoDB\Model\BSONDocument;
 
 class TraceTreeCacheRepository
 {
-    public function has(string $rootTraceId): bool
+    public function exists(string $rootTraceId): bool
     {
         return TraceTreeCache::query()
             ->where('rootTraceId', $rootTraceId)

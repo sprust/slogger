@@ -43,7 +43,7 @@ readonly class FindTraceTreeAction
         }
 
         $needCache = $fresh
-            || !$this->traceTreeCacheRepository->has(
+            || !$this->traceTreeCacheRepository->exists(
                 rootTraceId: $rootTraceId
             );
 
