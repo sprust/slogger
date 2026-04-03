@@ -6,6 +6,7 @@ namespace App\Modules\Cleaner\Domain\Actions;
 
 use App\Modules\Cleaner\Repositories\ProcessRepository;
 use App\Modules\Trace\Domain\Actions\Mutations\DeleteCollectionsAction;
+use Illuminate\Support\Carbon;
 use InvalidArgumentException;
 use RuntimeException;
 use Throwable;
@@ -36,7 +37,7 @@ readonly class ClearTracesAction
             );
         }
 
-        $loggedAtTo = now()->clone()->subDays($lifetimeDays);
+        $loggedAtTo = Carbon::now()->clone()->subDays($lifetimeDays);
 
         $process = $this->processRepository->create();
 
@@ -67,7 +68,7 @@ readonly class ClearTracesAction
             processId: $process->id,
             clearedCollectionsCount: $deletedTraces?->collectionsCount ?: 0,
             clearedTracesCount: $deletedTraces?->tracesCount ?: 0,
-            clearedAt: now(),
+            clearedAt: Carbon::now(),
             exception: $exception
         );
     }

@@ -12,7 +12,7 @@ class TraceDataToObjectBuilder
     private string $key;
 
     /**
-     * @param array<string, mixed> $data
+     * @param array<array-key, mixed> $data
      */
     public function __construct(private readonly array $data)
     {
@@ -29,7 +29,7 @@ class TraceDataToObjectBuilder
     }
 
     /**
-     * @param array<string, mixed>|string|bool|int|float|null $data
+     * @param array<array-key, mixed>|string|bool|int|float|object|null $data
      */
     private function buildRecursive(
         array|string|bool|int|float|object|null $data,

@@ -7,6 +7,7 @@ namespace App\Modules\Trace\Domain\Actions\Mutations;
 use App\Modules\Trace\Domain\Services\MonitorTraceDynamicIndexesService;
 use App\Modules\Trace\Repositories\TraceDynamicIndexRepository;
 use App\Modules\Trace\Repositories\TraceRepository;
+use Illuminate\Support\Carbon;
 use Throwable;
 
 readonly class StartMonitorTraceDynamicIndexesAction
@@ -30,7 +31,7 @@ readonly class StartMonitorTraceDynamicIndexesAction
                     limit: 10,
                     inProcess: false,
                     sortByCreatedAtAsc: true,
-                    toActualUntilAt: now()
+                    toActualUntilAt: Carbon::now()
                 );
 
                 foreach ($indexes as $index) {

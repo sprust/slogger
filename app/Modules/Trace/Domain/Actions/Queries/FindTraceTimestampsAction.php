@@ -24,6 +24,7 @@ use App\Modules\Trace\Repositories\Dto\Trace\Timestamp\TraceTimestampsListDto;
 use App\Modules\Trace\Repositories\TraceTimestampsRepository;
 use App\Modules\Trace\Repositories\Services\TraceTimestampMetricsFactory;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Carbon;
 use SConcur\WaitGroup;
 
 readonly class FindTraceTimestampsAction
@@ -92,7 +93,7 @@ readonly class FindTraceTimestampsAction
             }
         }
 
-        $loggedAtTo = $parameters->loggedAtTo ?? now('UTC');
+        $loggedAtTo = $parameters->loggedAtTo ?? Carbon::now('UTC');
 
         $loggedAtFrom = $this->traceTimestampMetricsFactory->calcLoggedAtFrom(
             timestampPeriod: $parameters->timestampPeriod,

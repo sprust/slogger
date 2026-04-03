@@ -144,11 +144,11 @@ readonly class TraceDynamicIndexInitializer
             ->all();
 
         if ($isShortTermIndex) {
-            $actualUntilAt = now()->addDays(
+            $actualUntilAt = Carbon::now()->addDays(
                 $this->shortTermTimeLifeIndexInDays
             );
         } else {
-            $actualUntilAt = now()->addDays(
+            $actualUntilAt = Carbon::now()->addDays(
                 $this->shortTermTimeLifeIndexInDays
             );
         }
