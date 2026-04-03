@@ -165,7 +165,7 @@ services:
   frontend:
     container_name: sl-frontend
     restart: unless-stopped
-    image: node:18-alpine
+    image: node:22-alpine
     working_dir: /app
     ports:
       - ${FRONTEND_DOCKER_PORT}:3000
