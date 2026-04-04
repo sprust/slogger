@@ -5,11 +5,19 @@ declare(strict_types=1);
 namespace App\Modules\Trace\Repositories;
 
 use App\Models\Traces\TraceTree;
-use MongoDB\Model\BSONDocument;
+use Iterator;
+use SConcur\WaitGroup;
 
-class TraceTreeRepository
+readonly class TraceTreeRepository
 {
-    private int $maxDepthForFindParent = 100;
+    private int $maxDepthForFindParent;
+    private int $treeTraversalChunkSize;
+
+    public function __construct()
+    {
+        $this->maxDepthForFindParent  = 100;
+        $this->treeTraversalChunkSize = 1000;
+    }
 
     public function findParentTraceId(string $traceId): ?string
     {
@@ -125,66 +133,82 @@ class TraceTreeRepository
      */
     public function findTraceIdsInTreeByParentTraceId(string $traceId): array
     {
-        $traceTreesCollectionName = new TraceTree()->getCollectionName();
+        $visited = [
+            $traceId => true,
+        ];
 
-        $childrenAggregation = TraceTree::collection()
+        $frontier = [
+            $traceId,
+        ];
+
+        $childIds = [];
+        $depth    = 0;
+
+        while (count($frontier) > 0 && $depth < $this->maxDepthForFindParent) {
+            ++$depth;
+
+            $nextFrontier = [];
+
+            $waitGroup = WaitGroup::create();
+
+            foreach (array_chunk($frontier, $this->treeTraversalChunkSize) as $frontierChunk) {
+                $waitGroup->add(
+                    function () use ($frontierChunk, &$visited, &$childIds, &$nextFrontier) {
+                        foreach ($this->findDirectChildrenTraceIds($frontierChunk) as $childTraceId) {
+                            if (isset($visited[$childTraceId])) {
+                                continue;
+                            }
+
+                            $visited[$childTraceId] = true;
+
+                            $childIds[]     = $childTraceId;
+                            $nextFrontier[] = $childTraceId;
+                        }
+                    }
+                );
+            }
+
+            $waitGroup->waitAll();
+
+            $frontier = $nextFrontier;
+        }
+
+        return $childIds;
+    }
+
+    /**
+     * @param string[] $parentTraceIds
+     *
+     * @return string[]
+     */
+    private function findDirectChildrenTraceIds(array $parentTraceIds): array
+    {
+        /** @var Iterator<array{tid: string}> $childrenCursor */
+        $childrenCursor = TraceTree::sconcur()
             ->aggregate(
-                [
+                pipeline: [
                     [
-                        '$graphLookup' => [
-                            'from'             => $traceTreesCollectionName,
-                            'startWith'        => '$tid',
-                            'connectFromField' => 'tid',
-                            'connectToField'   => 'ptid',
-                            'as'               => 'children',
-                            'maxDepth'         => $this->maxDepthForFindParent,
+                        '$match' => [
+                            'ptid' => [
+                                '$in' => $parentTraceIds,
+                            ],
                         ],
                     ],
                     [
                         '$project' => [
-                            'tid'      => 1,
-                            'childIds' => [
-                                '$concatArrays' => [
-                                    [
-                                        '$tid',
-                                    ],
-                                    [
-                                        '$map' => [
-                                            'input' => '$children',
-                                            'as'    => 'children',
-                                            'in'    => '$$children.tid',
-                                        ],
-                                    ],
-                                ],
-                            ],
+                            'tid' => 1,
                         ],
                     ],
-                    [
-                        '$match' => [
-                            'tid' => $traceId,
-                        ],
-                    ],
-                    [
-                        '$unwind' => [
-                            'path' => '$childIds',
-                        ],
-                    ],
-                    [
-                        '$match' => [
-                            'childIds' => [
-                                '$ne' => $traceId,
-                            ],
-                        ],
-                    ],
-                ]
+                ],
+                batchSize: 500
             );
 
-        /** @var BSONDocument[] $childrenAggregation */
-        $childrenAggregation = iterator_to_array($childrenAggregation);
+        $childIds = [];
 
-        return array_map(
-            static fn(BSONDocument $item) => $item['childIds'],
-            $childrenAggregation
-        );
+        foreach ($childrenCursor as $item) {
+            $childIds[] = $item['tid'];
+        }
+
+        return $childIds;
     }
 }
