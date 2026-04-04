@@ -41,20 +41,29 @@ class TraceTreeCacheRepository
 
         foreach ($parametersList as $parameters) {
             $operations[] = [
-                'insertOne' => [
+                'updateOne' => [
                     [
-                        'rootTraceId'   => $rootTraceId,
-                        'parentTraceId' => $parameters->parentTraceId,
-                        'traceId'       => $parameters->traceId,
-                        'serviceId'     => $parameters->serviceId,
-                        'type'          => $parameters->type,
-                        'tags'          => $parameters->tags,
-                        'status'        => $parameters->status,
-                        'duration'      => $parameters->duration,
-                        'memory'        => $parameters->memory,
-                        'cpu'           => $parameters->cpu,
-                        'loggedAt'      => new UTCDateTime($parameters->loggedAt),
-                        'createdAt'     => $createdAt,
+                        'rootTraceId' => $rootTraceId,
+                        'traceId'     => $parameters->traceId,
+                    ],
+                    [
+                        '$set'         => [
+                            'parentTraceId' => $parameters->parentTraceId,
+                            'serviceId'     => $parameters->serviceId,
+                            'type'          => $parameters->type,
+                            'tags'          => $parameters->tags,
+                            'status'        => $parameters->status,
+                            'duration'      => $parameters->duration,
+                            'memory'        => $parameters->memory,
+                            'cpu'           => $parameters->cpu,
+                            'loggedAt'      => new UTCDateTime($parameters->loggedAt),
+                        ],
+                        '$setOnInsert' => [
+                            'createdAt' => $createdAt,
+                        ],
+                    ],
+                    [
+                        'upsert' => true,
                     ],
                 ],
             ];

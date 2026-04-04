@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Trace\Repositories;
 
 use App\Models\Traces\TraceTree;
+use InvalidArgumentException;
 use Iterator;
 use SConcur\WaitGroup;
 
@@ -133,34 +134,24 @@ readonly class TraceTreeRepository
      */
     public function findTraceIdsInTreeByParentTraceId(string $traceId, int $batchCount): iterable
     {
-        $visited = [
-            $traceId => true,
-        ];
-
+        if ($batchCount <= 0) {
+            throw new InvalidArgumentException('Batch count must be greater than 0');
+        }
         $frontier = [
             $traceId,
         ];
 
         $childIds = [];
-        $depth    = 0;
 
-        while (count($frontier) > 0 && $depth < $this->maxDepthForFindParent) {
-            ++$depth;
-
+        while (count($frontier) > 0) {
             $nextFrontier = [];
 
             $waitGroup = WaitGroup::create();
 
             foreach (array_chunk($frontier, $this->treeTraversalChunkSize) as $frontierChunk) {
                 $waitGroup->add(
-                    function () use ($frontierChunk, &$visited, &$childIds, &$nextFrontier) {
+                    function () use ($frontierChunk, &$childIds, &$nextFrontier) {
                         foreach ($this->findDirectChildrenTraceIds($frontierChunk) as $childTraceId) {
-                            if (isset($visited[$childTraceId])) {
-                                continue;
-                            }
-
-                            $visited[$childTraceId] = true;
-
                             $childIds[]     = $childTraceId;
                             $nextFrontier[] = $childTraceId;
                         }
@@ -173,7 +164,11 @@ readonly class TraceTreeRepository
             $frontier = $nextFrontier;
 
             if (count($childIds) >= $batchCount) {
-                yield $childIds;
+                foreach (array_chunk($childIds, $batchCount) as $childIdsChunk) {
+                    yield $childIdsChunk;
+                }
+
+                $childIds = [];
             }
         }
 
