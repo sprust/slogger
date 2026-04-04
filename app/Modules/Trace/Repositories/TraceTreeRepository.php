@@ -129,9 +129,9 @@ readonly class TraceTreeRepository
     }
 
     /**
-     * @return string[]
+     * @return iterable<int, string[]>
      */
-    public function findTraceIdsInTreeByParentTraceId(string $traceId): array
+    public function findTraceIdsInTreeByParentTraceId(string $traceId, int $batchCount): iterable
     {
         $visited = [
             $traceId => true,
@@ -171,9 +171,15 @@ readonly class TraceTreeRepository
             $waitGroup->waitAll();
 
             $frontier = $nextFrontier;
+
+            if (count($childIds) >= $batchCount) {
+                yield $childIds;
+            }
         }
 
-        return $childIds;
+        if (count($childIds) > 0) {
+            yield $childIds;
+        }
     }
 
     /**

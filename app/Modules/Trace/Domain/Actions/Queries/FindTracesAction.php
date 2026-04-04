@@ -66,11 +66,22 @@ readonly class FindTracesAction
             } else {
                 $parentTraceId = $this->traceTreeRepository->findParentTraceId($traceDto->traceId);
 
-                $traceIds = $parentTraceId
-                    ? $this->traceTreeRepository->findTraceIdsInTreeByParentTraceId($parentTraceId)
-                    : [];
+                if ($parentTraceId === null) {
+                    $traceIds = [];
+                } else {
+                    $traceIds[] = $parentTraceId;
 
-                $traceIds[] = $parentTraceId;
+                    $treeTraceIds = $this->traceTreeRepository->findTraceIdsInTreeByParentTraceId(
+                        traceId: $parentTraceId,
+                        batchCount: 300
+                    );
+
+                    foreach ($treeTraceIds as $treeTraceIdsChunk) {
+                        foreach ($treeTraceIdsChunk as $treeTraceId) {
+                            $traceIds[] = $treeTraceId;
+                        }
+                    }
+                }
             }
         }
 

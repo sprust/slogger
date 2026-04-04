@@ -94,42 +94,56 @@ readonly class FindTraceTreeAction
             ]
         );
 
-        $childIds = $this->traceTreeRepository->findTraceIdsInTreeByParentTraceId(
-            traceId: $rootTraceId
+        $treeChildIds = $this->traceTreeRepository->findTraceIdsInTreeByParentTraceId(
+            traceId: $rootTraceId,
+            batchCount: 3000
         );
 
-        $childIds = array_unique([
-            ...$childIds,
-            ...$additionalTraceIds,
-        ]);
-
-        foreach (array_chunk(array: $childIds, length: 500) as $childIdsChunk) {
-            $foundTraces = $this->traceRepository->findByTraceIds(
-                traceIds: $childIdsChunk
-            );
-
-            /** @var CreateTraceTreeCacheParameters[] $cacheParametersList */
-            $cacheParametersList = [];
-
-            foreach ($foundTraces as $foundTrace) {
-                $cacheParametersList[] = new CreateTraceTreeCacheParameters(
-                    serviceId: $foundTrace->serviceId,
-                    parentTraceId: $foundTrace->parentTraceId,
-                    traceId: $foundTrace->traceId,
-                    type: $foundTrace->type,
-                    tags: $foundTrace->tags,
-                    status: $foundTrace->status,
-                    duration: $foundTrace->duration,
-                    memory: $foundTrace->memory,
-                    cpu: $foundTrace->cpu,
-                    loggedAt: $foundTrace->loggedAt,
-                );
-            }
-
-            $this->traceTreeCacheRepository->createMany(
+        foreach ($treeChildIds as $treeTraceIdsChunk) {
+            $this->createTraceTree(
                 rootTraceId: $rootTraceId,
-                parametersList: $cacheParametersList
+                childIdsChunk: $treeTraceIdsChunk,
             );
         }
+
+        if (count($additionalTraceIds) > 0) {
+            $this->createTraceTree(
+                rootTraceId: $rootTraceId,
+                childIdsChunk: $additionalTraceIds,
+            );
+        }
+    }
+
+    /**
+     * @param string[] $childIdsChunk
+     */
+    private function createTraceTree(string $rootTraceId, array $childIdsChunk): void
+    {
+        $foundTraces = $this->traceRepository->findByTraceIds(
+            traceIds: $childIdsChunk
+        );
+
+        /** @var CreateTraceTreeCacheParameters[] $cacheParametersList */
+        $cacheParametersList = [];
+
+        foreach ($foundTraces as $foundTrace) {
+            $cacheParametersList[] = new CreateTraceTreeCacheParameters(
+                serviceId: $foundTrace->serviceId,
+                parentTraceId: $foundTrace->parentTraceId,
+                traceId: $foundTrace->traceId,
+                type: $foundTrace->type,
+                tags: $foundTrace->tags,
+                status: $foundTrace->status,
+                duration: $foundTrace->duration,
+                memory: $foundTrace->memory,
+                cpu: $foundTrace->cpu,
+                loggedAt: $foundTrace->loggedAt,
+            );
+        }
+
+        $this->traceTreeCacheRepository->createMany(
+            rootTraceId: $rootTraceId,
+            parametersList: $cacheParametersList
+        );
     }
 }
