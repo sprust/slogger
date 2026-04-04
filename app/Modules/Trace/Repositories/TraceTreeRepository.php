@@ -137,6 +137,7 @@ readonly class TraceTreeRepository
         if ($batchCount <= 0) {
             throw new InvalidArgumentException('Batch count must be greater than 0');
         }
+
         $frontier = [
             $traceId,
         ];
