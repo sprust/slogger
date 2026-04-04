@@ -20,6 +20,7 @@ use App\Modules\Trace\Repositories\Services\TracePipelineBuilder;
 use Illuminate\Support\Carbon;
 use MongoDB\Driver\Command;
 use MongoDB\Driver\Exception\Exception;
+use RuntimeException;
 use SConcur\Features\Mongodb\Types\ObjectId;
 use SConcur\WaitGroup;
 use Throwable;
@@ -327,35 +328,40 @@ readonly class TraceRepository
 
     /**
      * @return TraceIndexInfoObject[]
-     *
-     * @throws Exception
      */
     public function getIndexProgressesInfo(): array
     {
-        $operations = TraceDynamicIndex::collection()->getManager()
-            ->executeCommand(
-                'admin',
-                new Command(
-                    [
-                        'currentOp' => true,
-                        '$and'      => [
-                            [
-                                'op' => 'command',
-                            ],
-                            [
-                                'command.createIndexes' => [
-                                    '$exists' => true,
+        try {
+            $operations = TraceDynamicIndex::collection()->getManager()
+                ->executeCommand(
+                    'admin',
+                    new Command(
+                        [
+                            'currentOp' => true,
+                            '$and'      => [
+                                [
+                                    'op' => 'command',
+                                ],
+                                [
+                                    'command.createIndexes' => [
+                                        '$exists' => true,
+                                    ],
+                                ],
+                                [
+                                    'progress' => [
+                                        '$exists' => true,
+                                    ],
                                 ],
                             ],
-                            [
-                                'progress' => [
-                                    '$exists' => true,
-                                ],
-                            ],
-                        ],
-                    ]
-                )
+                        ]
+                    )
+                );
+        } catch (Exception $exception) {
+            throw new RuntimeException(
+                message: $exception->getMessage(),
+                previous: $exception
             );
+        }
 
         /** @var object[] $operations */
         $operations = iterator_to_array($operations)[0]->inprog ?? [];

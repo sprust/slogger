@@ -167,7 +167,9 @@ readonly class TraceDynamicIndexInitializer
         }
 
         if ($indexDto->inProcess) {
-            throw new TraceDynamicIndexInProcessException();
+            throw new TraceDynamicIndexInProcessException(
+                indexId: $indexDto->id
+            );
         }
 
         if ($indexDto->error) {

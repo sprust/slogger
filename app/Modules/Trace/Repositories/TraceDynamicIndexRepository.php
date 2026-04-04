@@ -80,7 +80,6 @@ readonly class TraceDynamicIndexRepository
     public function find(
         int $limit,
         ?bool $inProcess = null,
-        bool $sortByCreatedAtAsc = false,
         ?Carbon $toActualUntilAt = null,
         bool $orderByCreatedAtDesc = false,
     ): array {

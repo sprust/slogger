@@ -29,7 +29,7 @@ export async function handleApiRequest<T>(request: () => Promise<T>): Promise<T>
         return await request()
     } catch (error: any) {
         if (error?.status === 412) {
-            pendingRequestStore.open()
+            pendingRequestStore.open(error?.error?.data ?? null)
 
             try {
                 while (true) {
@@ -43,6 +43,7 @@ export async function handleApiRequest<T>(request: () => Promise<T>): Promise<T>
                         return await request()
                     } catch (retryError: any) {
                         if (retryError?.status === 412) {
+                            pendingRequestStore.setData(retryError?.error?.data ?? null)
                             continue
                         }
 

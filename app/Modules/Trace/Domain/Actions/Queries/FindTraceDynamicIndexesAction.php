@@ -27,7 +27,7 @@ readonly class FindTraceDynamicIndexesAction
      */
     public function handle(): array
     {
-        $traces = $this->traceDynamicIndexRepository->find(
+        $indexes = $this->traceDynamicIndexRepository->find(
             limit: $this->limit,
             orderByCreatedAtDesc: true
         );
@@ -51,7 +51,7 @@ readonly class FindTraceDynamicIndexesAction
                 actualUntilAt: $dto->actualUntilAt,
                 createdAt: $dto->createdAt,
             ),
-            $traces
+            $indexes
         );
     }
 }

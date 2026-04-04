@@ -2,20 +2,20 @@
   <el-dialog
       :model-value="pendingRequestStore.visible"
       title="Trace dynamic index in process."
-      width="420"
+      width="640"
       :close-on-click-modal="false"
       :close-on-press-escape="false"
       :show-close="false"
       :before-close="preventClose"
       align-center
   >
-    <el-progress
-        status="success"
-        :percentage="100"
-        :indeterminate="true"
-        :duration="5"
-        striped
+    <DynamicIndexCollections
+        v-if="pendingRequestStore.data"
+        :index="pendingRequestStore.data"
     />
+    <el-text v-else>
+      Waiting for dynamic index collections...
+    </el-text>
     <template #footer>
       <el-button
           type="danger"
@@ -28,10 +28,15 @@
 </template>
 
 <script lang="ts">
-import {defineComponent} from "vue";
+import {defineAsyncComponent, defineComponent} from "vue";
 import {usePendingRequestStore} from "../store/pendingRequestStore.ts";
 
+const DynamicIndexCollections = defineAsyncComponent(
+    () => import("./pages/trace-aggregator/components/dynamic-indexes/DynamicIndexCollections.vue")
+)
+
 export default defineComponent({
+  components: {DynamicIndexCollections},
   methods: {
     preventClose() {
       return false

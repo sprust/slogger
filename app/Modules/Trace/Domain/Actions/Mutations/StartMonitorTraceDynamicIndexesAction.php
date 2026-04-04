@@ -30,7 +30,6 @@ readonly class StartMonitorTraceDynamicIndexesAction
                 $indexes = $this->traceDynamicIndexRepository->find(
                     limit: 10,
                     inProcess: false,
-                    sortByCreatedAtAsc: true,
                     toActualUntilAt: Carbon::now()
                 );
 
@@ -53,7 +52,6 @@ readonly class StartMonitorTraceDynamicIndexesAction
             $indexes = $this->traceDynamicIndexRepository->find(
                 limit: 10,
                 inProcess: true,
-                sortByCreatedAtAsc: true,
             );
 
             if (empty($indexes)) {

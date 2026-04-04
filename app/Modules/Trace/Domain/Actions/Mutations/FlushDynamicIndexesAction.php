@@ -25,7 +25,6 @@ readonly class FlushDynamicIndexesAction
             $indexes = $this->traceDynamicIndexRepository->find(
                 limit: 20,
                 inProcess: false,
-                sortByCreatedAtAsc: true
             );
 
             if (empty($indexes)) {
