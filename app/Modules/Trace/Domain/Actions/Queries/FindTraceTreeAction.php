@@ -10,6 +10,7 @@ use App\Modules\Trace\Repositories\Dto\Trace\TraceDto;
 use App\Modules\Trace\Repositories\TraceRepository;
 use App\Modules\Trace\Repositories\TraceTreeCacheRepository;
 use App\Modules\Trace\Repositories\TraceTreeRepository;
+use SConcur\WaitGroup;
 
 readonly class FindTraceTreeAction
 {
@@ -96,14 +97,36 @@ readonly class FindTraceTreeAction
 
         $treeChildIds = $this->traceTreeRepository->findTraceIdsInTreeByParentTraceId(
             traceId: $rootTraceId,
-            batchCount: 3000
+            batchCount: 1000
         );
 
+        $waitGroup = null;
+
+        $tasksCount = 0;
+
         foreach ($treeChildIds as $treeTraceIdsChunk) {
-            $this->createTraceTree(
-                rootTraceId: $rootTraceId,
-                childIdsChunk: $treeTraceIdsChunk,
+            if ($waitGroup === null) {
+                $waitGroup = WaitGroup::create();
+            }
+
+            $waitGroup->add(
+                fn() => $this->createTraceTree(
+                    rootTraceId: $rootTraceId,
+                    childIdsChunk: $treeTraceIdsChunk,
+                )
             );
+
+            ++$tasksCount;
+
+            if ($tasksCount === 30) {
+                $waitGroup->waitAll();
+                $waitGroup  = null;
+                $tasksCount = 0;
+            }
+        }
+
+        if ($waitGroup !== null && $tasksCount > 0) {
+            $waitGroup->waitAll();
         }
 
         if (count($additionalTraceIds) > 0) {
