@@ -4,25 +4,27 @@ declare(strict_types=1);
 
 namespace App\Modules\Trace\Domain\Actions\Queries;
 
-use App\Modules\Trace\Repositories\TraceRepository;
-use App\Modules\Trace\Repositories\TraceTreeCacheRepository;
-use App\Modules\Trace\Repositories\TraceTreeRepository;
 use App\Modules\Trace\Entities\Trace\Tree\TraceTreeContentObjects;
+use App\Modules\Trace\Entities\Trace\Tree\TraceTreeContentResultObject;
 use App\Modules\Trace\Entities\Trace\Tree\TraceTreeServiceObject;
+use App\Modules\Trace\Enums\TraceTreeCacheStateStatusEnum;
 use App\Modules\Trace\Repositories\Dto\Trace\TraceTreeServiceDto;
+use App\Modules\Trace\Repositories\TraceTreeCacheRepository;
+use App\Modules\Trace\Repositories\TraceTreeCacheStateRepository;
+use App\Modules\Trace\Repositories\TraceTreeRepository;
 use SConcur\WaitGroup;
 
 readonly class FindTraceTreeContentAction
 {
     public function __construct(
-        private TraceRepository $traceRepository,
         private TraceTreeRepository $traceTreeRepository,
         private FindTraceServicesAction $findTraceServicesAction,
-        private TraceTreeCacheRepository $traceTreeCacheRepository
+        private TraceTreeCacheRepository $traceTreeCacheRepository,
+        private TraceTreeCacheStateRepository $traceTreeCacheStateRepository,
     ) {
     }
 
-    public function handle(string $traceId, bool $isChild): TraceTreeContentObjects
+    public function handle(string $traceId, bool $isChild): ?TraceTreeContentResultObject
     {
         $rootTraceId = $isChild
             ? $traceId
@@ -31,27 +33,15 @@ readonly class FindTraceTreeContentAction
             );
 
         if (!$rootTraceId) {
-            return new TraceTreeContentObjects(
-                count: 0,
-                services: [],
-                types: [],
-                tags: [],
-                statuses: [],
-            );
+            return null;
         }
 
-        $rootTrace = $this->traceRepository->findOneDetailByTraceId(
-            traceId: $rootTraceId
+        $state = $this->traceTreeCacheStateRepository->findOneByRootTraceId(
+            rootTraceId: $rootTraceId
         );
 
-        if (is_null($rootTrace)) {
-            return new TraceTreeContentObjects(
-                count: 0,
-                services: [],
-                types: [],
-                tags: [],
-                statuses: [],
-            );
+        if ($state?->status !== TraceTreeCacheStateStatusEnum::Finished) {
+            return null;
         }
 
         $waitGroup = WaitGroup::create();
@@ -108,12 +98,15 @@ readonly class FindTraceTreeContentAction
             );
         }
 
-        return new TraceTreeContentObjects(
-            count: $results[$countKey],
-            services: $treeServices,
-            types: $results[$typesKey],
-            tags: $results[$tagsKey],
-            statuses: $results[$statusesKey],
+        return new TraceTreeContentResultObject(
+            state: $state,
+            content: new TraceTreeContentObjects(
+                count: $results[$countKey],
+                services: $treeServices,
+                types: $results[$typesKey],
+                tags: $results[$tagsKey],
+                statuses: $results[$statusesKey],
+            ),
         );
     }
 }

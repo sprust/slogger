@@ -7,12 +7,12 @@ namespace App\Modules\Cleaner\Infrastructure\Jobs;
 use App\Modules\Cleaner\Domain\Actions\ClearTracesAction;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 
 class ClearTracesJob implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable;
+    use InteractsWithQueue;
+    use Queueable;
 
     public int $tries   = 3;
     public int $backoff = 2;

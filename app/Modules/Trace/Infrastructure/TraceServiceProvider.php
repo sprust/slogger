@@ -9,6 +9,8 @@ use App\Modules\Trace\Domain\Actions\MakeMetricIndicatorsAction;
 use App\Modules\Trace\Domain\Actions\MakeTraceTimestampPeriodsAction;
 use App\Modules\Trace\Domain\Actions\MakeTraceTimestampsAction;
 use App\Modules\Trace\Domain\Actions\Mutations\CreateTraceAdminStoreAction;
+use App\Modules\Trace\Domain\Actions\Mutations\BuildTraceTreeCacheAction;
+use App\Modules\Trace\Domain\Actions\Mutations\CancelTraceTreeCacheBuildAction;
 use App\Modules\Trace\Domain\Actions\Mutations\DeleteCollectionsAction;
 use App\Modules\Trace\Domain\Actions\Mutations\DeleteTraceAdminStoreAction;
 use App\Modules\Trace\Domain\Actions\Mutations\DeleteTraceDynamicIndexAction;
@@ -32,6 +34,7 @@ use App\Modules\Trace\Domain\Actions\Queries\FindTraceTreeContentAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTypesAction;
 use App\Modules\Trace\Domain\Services\TraceDynamicIndexInitializer;
 use App\Modules\Trace\Domain\Services\TraceFieldTitlesService;
+use App\Modules\Trace\Domain\Services\TraceTreeCacheBuilderService;
 use App\Modules\Trace\Infrastructure\Commands\FlushDynamicIndexesCommand;
 use App\Modules\Trace\Infrastructure\Commands\StartMonitorTraceDynamicIndexesCommand;
 use App\Modules\Trace\Infrastructure\Commands\StopMonitorTraceDynamicIndexesCommand;
@@ -44,6 +47,7 @@ use App\Modules\Trace\Repositories\TraceDynamicIndexRepository;
 use App\Modules\Trace\Repositories\TraceRepository;
 use App\Modules\Trace\Repositories\TraceTimestampsRepository;
 use App\Modules\Trace\Repositories\TraceTreeCacheRepository;
+use App\Modules\Trace\Repositories\TraceTreeCacheStateRepository;
 use App\Modules\Trace\Repositories\TraceTreeRepository;
 use Illuminate\Contracts\Foundation\Application;
 use MongoDB\Client;
@@ -106,6 +110,7 @@ class TraceServiceProvider extends BaseServiceProvider
             TraceDynamicIndexRepository::class,
             TraceAdminStoreRepository::class,
             TraceTreeCacheRepository::class,
+            TraceTreeCacheStateRepository::class,
             // actions
             MakeMetricIndicatorsAction::class,
             MakeTraceTimestampPeriodsAction::class,
@@ -118,6 +123,8 @@ class TraceServiceProvider extends BaseServiceProvider
             CreateTraceAdminStoreAction::class,
             DeleteTraceAdminStoreAction::class,
             DeleteCollectionsAction::class,
+            BuildTraceTreeCacheAction::class,
+            CancelTraceTreeCacheBuildAction::class,
             // actions.queries
             FindStatusesAction::class,
             FindTagsAction::class,
@@ -136,6 +143,7 @@ class TraceServiceProvider extends BaseServiceProvider
             FindTraceTreeContentAction::class,
             // services
             PeriodicTraceCollectionNameService::class,
+            TraceTreeCacheBuilderService::class,
         ];
     }
 }

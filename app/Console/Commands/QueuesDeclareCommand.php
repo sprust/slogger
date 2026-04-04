@@ -43,6 +43,10 @@ class QueuesDeclareCommand extends Command
             }
         }
 
+        if (config('module-trace.queue.connection') === 'rabbitmq') {
+            $rabbitmqQueueNames[] = config('module-trace.queue.name');
+        }
+
         if (empty($rabbitmqQueueNames)) {
             $this->error('No queues found.');
 

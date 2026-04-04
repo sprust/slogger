@@ -1,5 +1,8 @@
 <?php
 
 return [
-    'step_in_hours' => env('TRACES_COLLECTION_STEP_IN_HOURS', 'four_hours'),
+    'queue' => [
+        'connection' => env('QUEUE_TRACE_TREE_CONNECTION', env('QUEUE_CONNECTION')),
+        'name'       => env('QUEUE_TRACE_TREE_NAME', 'trace-tree'),
+    ],
 ];

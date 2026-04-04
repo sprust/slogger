@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace App\Modules\Trace\Domain\Actions\Queries;
 
-use App\Modules\Trace\Entities\Trace\Tree\TraceTreeRawIterator;
-use App\Modules\Trace\Parameters\CreateTraceTreeCacheParameters;
-use App\Modules\Trace\Repositories\Dto\Trace\TraceDto;
+use App\Modules\Trace\Domain\Events\TraceTreeCacheBuildRequestedEvent;
+use App\Modules\Trace\Entities\Trace\Tree\TraceTreeResultObject;
+use App\Modules\Trace\Enums\TraceTreeCacheStateStatusEnum;
 use App\Modules\Trace\Repositories\TraceRepository;
+use App\Modules\Trace\Repositories\TraceTreeCacheStateRepository;
 use App\Modules\Trace\Repositories\TraceTreeCacheRepository;
 use App\Modules\Trace\Repositories\TraceTreeRepository;
-use SConcur\WaitGroup;
+use Illuminate\Support\Str;
 
 readonly class FindTraceTreeAction
 {
@@ -18,155 +19,72 @@ readonly class FindTraceTreeAction
         private TraceRepository $traceRepository,
         private TraceTreeRepository $traceTreeRepository,
         private TraceTreeCacheRepository $traceTreeCacheRepository,
+        private TraceTreeCacheStateRepository $traceTreeCacheStateRepository,
     ) {
     }
 
-    public function handle(string $traceId, bool $fresh, bool $isChild): ?TraceTreeRawIterator
+    public function handle(string $traceId, bool $fresh, bool $isChild): ?TraceTreeResultObject
     {
-        if ($isChild) {
-            $rootTraceId = $traceId;
-        } else {
-            $rootTraceId = $this->traceTreeRepository->findParentTraceId(
+        $rootTraceId = $isChild
+            ? $traceId
+            : $this->traceTreeRepository->findParentTraceId(
                 traceId: $traceId
             );
 
-            if (!$rootTraceId) {
-                return null;
-            }
-        }
-
-        $rootTrace = $this->traceRepository->findOneDetailByTraceId(
-            traceId: $rootTraceId
-        );
-
-        if (is_null($rootTrace)) {
+        if (!$rootTraceId) {
             return null;
         }
 
-        $needCache = $fresh
-            || !$this->traceTreeCacheRepository->exists(
-                rootTraceId: $rootTraceId
-            );
-
-        if ($needCache) {
-            $additionalTraceIds = $isChild
-                ? $this->traceTreeRepository->findChainToParentTraceId(
-                    traceId: $traceId
-                )
-                : [];
-
-            $this->cacheTree(
-                rootTrace: $rootTrace,
-                additionalTraceIds: $additionalTraceIds
-            );
+        if ($this->traceRepository->findOneDetailByTraceId($rootTraceId) === null) {
+            return null;
         }
 
-        return $this->traceTreeCacheRepository->findMany(
-            rootTraceId: $rootTraceId
-        );
-    }
-
-    /**
-     * @param string[] $additionalTraceIds
-     */
-    private function cacheTree(TraceDto $rootTrace, array $additionalTraceIds): void
-    {
-        $rootTraceId = $rootTrace->traceId;
-
-        $this->traceTreeCacheRepository->delete(
+        $state = $this->traceTreeCacheStateRepository->findOneByRootTraceId(
             rootTraceId: $rootTraceId
         );
 
-        $this->traceTreeCacheRepository->createMany(
-            rootTraceId: $rootTraceId,
-            parametersList: [
-                new CreateTraceTreeCacheParameters(
-                    serviceId: $rootTrace->serviceId,
-                    parentTraceId: $rootTrace->parentTraceId,
-                    traceId: $rootTrace->traceId,
-                    type: $rootTrace->type,
-                    tags: $rootTrace->tags,
-                    status: $rootTrace->status,
-                    duration: $rootTrace->duration,
-                    memory: $rootTrace->memory,
-                    cpu: $rootTrace->cpu,
-                    loggedAt: $rootTrace->loggedAt,
-                ),
-            ]
-        );
-
-        $treeChildIds = $this->traceTreeRepository->findTraceIdsInTreeByParentTraceId(
-            traceId: $rootTraceId,
-            batchCount: 1000
-        );
-
-        $waitGroup = null;
-
-        $tasksCount = 0;
-
-        foreach ($treeChildIds as $treeTraceIdsChunk) {
-            if ($waitGroup === null) {
-                $waitGroup = WaitGroup::create();
-            }
-
-            $waitGroup->add(
-                fn() => $this->createTraceTree(
-                    rootTraceId: $rootTraceId,
-                    childIdsChunk: $treeTraceIdsChunk,
-                )
-            );
-
-            ++$tasksCount;
-
-            if ($tasksCount === 30) {
-                $waitGroup->waitAll();
-                $waitGroup  = null;
-                $tasksCount = 0;
-            }
-        }
-
-        if ($waitGroup !== null && $tasksCount > 0) {
-            $waitGroup->waitAll();
-        }
-
-        if (count($additionalTraceIds) > 0) {
-            $this->createTraceTree(
+        if ($fresh || $state === null) {
+            $state = $this->traceTreeCacheStateRepository->reset(
                 rootTraceId: $rootTraceId,
-                childIdsChunk: $additionalTraceIds,
+                version: (string) Str::ulid(),
+                status: TraceTreeCacheStateStatusEnum::InProcess,
             );
-        }
-    }
 
-    /**
-     * @param string[] $childIdsChunk
-     */
-    private function createTraceTree(string $rootTraceId, array $childIdsChunk): void
-    {
-        $foundTraces = $this->traceRepository->findByTraceIds(
-            traceIds: $childIdsChunk
-        );
+            event(
+                new TraceTreeCacheBuildRequestedEvent(
+                    rootTraceId: $state->rootTraceId,
+                    version: $state->version,
+                )
+            );
 
-        /** @var CreateTraceTreeCacheParameters[] $cacheParametersList */
-        $cacheParametersList = [];
-
-        foreach ($foundTraces as $foundTrace) {
-            $cacheParametersList[] = new CreateTraceTreeCacheParameters(
-                serviceId: $foundTrace->serviceId,
-                parentTraceId: $foundTrace->parentTraceId,
-                traceId: $foundTrace->traceId,
-                type: $foundTrace->type,
-                tags: $foundTrace->tags,
-                status: $foundTrace->status,
-                duration: $foundTrace->duration,
-                memory: $foundTrace->memory,
-                cpu: $foundTrace->cpu,
-                loggedAt: $foundTrace->loggedAt,
+            return new TraceTreeResultObject(
+                state: $state,
+                items: null,
             );
         }
 
-        $this->traceTreeCacheRepository->createMany(
-            rootTraceId: $rootTraceId,
-            parametersList: $cacheParametersList
+        if ($state->status === TraceTreeCacheStateStatusEnum::Finished) {
+            if ($state->count === 0) {
+                $state = $this->traceTreeCacheStateRepository->saveFinished(
+                    rootTraceId: $rootTraceId,
+                    version: $state->version,
+                    count: $this->traceTreeCacheRepository->findCount(
+                        rootTraceId: $rootTraceId
+                    ),
+                );
+            }
+
+            return new TraceTreeResultObject(
+                state: $state,
+                items: $this->traceTreeCacheRepository->findMany(
+                    rootTraceId: $rootTraceId
+                ),
+            );
+        }
+
+        return new TraceTreeResultObject(
+            state: $state,
+            items: null,
         );
     }
 }

@@ -66,7 +66,7 @@ abstract class AbstractMongoModel extends Model
         try {
             return app()->make($class);
         } catch (BindingResolutionException) {
-            return new $class;
+            return new $class();
         }
     }
 }

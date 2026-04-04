@@ -16,13 +16,6 @@ use SConcur\Features\Mongodb\Types\UTCDateTime;
 
 class TraceTreeCacheRepository
 {
-    public function exists(string $rootTraceId): bool
-    {
-        return TraceTreeCache::query()
-            ->where('rootTraceId', $rootTraceId)
-            ->exists();
-    }
-
     public function delete(string $rootTraceId): void
     {
         TraceTreeCache::query()

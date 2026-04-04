@@ -337,7 +337,20 @@ export namespace AdminApi {
  * @request POST:/admin-api/trace-aggregator/traces/tree
  * @secure
  * @response `200` `{
-    data: ({
+    data: {
+    state: {
+    root_trace_id: string,
+    version: string,
+    status: string,
+    count: number,
+    error?: string | null,
+    started_at?: string | null,
+    finished_at?: string | null,
+    created_at: string,
+    updated_at: string,
+
+},
+    items?: ({
     service_id: number,
     parent_trace_id?: string | null,
     trace_id: string,
@@ -349,7 +362,9 @@ export namespace AdminApi {
     cpu?: number | null,
     logged_at: string,
 
-})[],
+})[] | null,
+
+},
 
 }` description
 */
@@ -364,17 +379,30 @@ export namespace AdminApi {
     export type RequestHeaders = {};
     export type ResponseBody = {
       data: {
-        service_id: number;
-        parent_trace_id?: string | null;
-        trace_id: string;
-        type: string;
-        tags: string[];
-        status: string;
-        duration?: number | null;
-        memory?: number | null;
-        cpu?: number | null;
-        logged_at: string;
-      }[];
+        state: {
+          root_trace_id: string;
+          version: string;
+          status: string;
+          count: number;
+          error?: string | null;
+          started_at?: string | null;
+          finished_at?: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        items?: {
+          service_id: number;
+          parent_trace_id?: string | null;
+          trace_id: string;
+          type: string;
+          tags: string[];
+          status: string;
+          duration?: number | null;
+          memory?: number | null;
+          cpu?: number | null;
+          logged_at: string;
+        }[] | null;
+      };
     };
   } /**
  * No description
@@ -383,6 +411,19 @@ export namespace AdminApi {
  * @secure
  * @response `200` `{
     data: {
+    state: {
+    root_trace_id: string,
+    version: string,
+    status: string,
+    count: number,
+    error?: string | null,
+    started_at?: string | null,
+    finished_at?: string | null,
+    created_at: string,
+    updated_at: string,
+
+},
+    content?: {
     count: number,
     services: ({
     id: number,
@@ -406,6 +447,8 @@ export namespace AdminApi {
 
 })[],
 
+} | null,
+
 },
 
 }` description
@@ -420,24 +463,79 @@ export namespace AdminApi {
     export type RequestHeaders = {};
     export type ResponseBody = {
       data: {
+        state: {
+          root_trace_id: string;
+          version: string;
+          status: string;
+          count: number;
+          error?: string | null;
+          started_at?: string | null;
+          finished_at?: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        content?: {
+          count: number;
+          services: {
+            id: number;
+            name: string;
+            traces_count: number;
+          }[];
+          types: {
+            name: string;
+            traces_count: number;
+          }[];
+          tags: {
+            name: string;
+            traces_count: number;
+          }[];
+          statuses: {
+            name: string;
+            traces_count: number;
+          }[];
+        } | null;
+      };
+    };
+  } /**
+ * No description
+ * @name TraceAggregatorTracesTreeCancelCreate
+ * @request POST:/admin-api/trace-aggregator/traces/tree/cancel
+ * @secure
+ * @response `200` `{
+    data: {
+    root_trace_id: string,
+    version: string,
+    status: string,
+    count: number,
+    error?: string | null,
+    started_at?: string | null,
+    finished_at?: string | null,
+    created_at: string,
+    updated_at: string,
+
+},
+
+}` description
+*/
+  export namespace TraceAggregatorTracesTreeCancelCreate {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = {
+      trace_id: string;
+      is_child: boolean;
+    };
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        root_trace_id: string;
+        version: string;
+        status: string;
         count: number;
-        services: {
-          id: number;
-          name: string;
-          traces_count: number;
-        }[];
-        types: {
-          name: string;
-          traces_count: number;
-        }[];
-        tags: {
-          name: string;
-          traces_count: number;
-        }[];
-        statuses: {
-          name: string;
-          traces_count: number;
-        }[];
+        error?: string | null;
+        started_at?: string | null;
+        finished_at?: string | null;
+        created_at: string;
+        updated_at: string;
       };
     };
   } /**
@@ -2022,7 +2120,20 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
  * @request POST:/admin-api/trace-aggregator/traces/tree
  * @secure
  * @response `200` `{
-    data: ({
+    data: {
+    state: {
+    root_trace_id: string,
+    version: string,
+    status: string,
+    count: number,
+    error?: string | null,
+    started_at?: string | null,
+    finished_at?: string | null,
+    created_at: string,
+    updated_at: string,
+
+},
+    items?: ({
     service_id: number,
     parent_trace_id?: string | null,
     trace_id: string,
@@ -2034,7 +2145,9 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     cpu?: number | null,
     logged_at: string,
 
-})[],
+})[] | null,
+
+},
 
 }` description
  */
@@ -2049,17 +2162,30 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       this.request<
         {
           data: {
-            service_id: number;
-            parent_trace_id?: string | null;
-            trace_id: string;
-            type: string;
-            tags: string[];
-            status: string;
-            duration?: number | null;
-            memory?: number | null;
-            cpu?: number | null;
-            logged_at: string;
-          }[];
+            state: {
+              root_trace_id: string;
+              version: string;
+              status: string;
+              count: number;
+              error?: string | null;
+              started_at?: string | null;
+              finished_at?: string | null;
+              created_at: string;
+              updated_at: string;
+            };
+            items?: {
+              service_id: number;
+              parent_trace_id?: string | null;
+              trace_id: string;
+              type: string;
+              tags: string[];
+              status: string;
+              duration?: number | null;
+              memory?: number | null;
+              cpu?: number | null;
+              logged_at: string;
+            }[] | null;
+          };
         },
         any
       >({
@@ -2080,6 +2206,19 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
  * @secure
  * @response `200` `{
     data: {
+    state: {
+    root_trace_id: string,
+    version: string,
+    status: string,
+    count: number,
+    error?: string | null,
+    started_at?: string | null,
+    finished_at?: string | null,
+    created_at: string,
+    updated_at: string,
+
+},
+    content?: {
     count: number,
     services: ({
     id: number,
@@ -2103,6 +2242,8 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
 
 })[],
 
+} | null,
+
 },
 
 }` description
@@ -2117,29 +2258,96 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       this.request<
         {
           data: {
-            count: number;
-            services: {
-              id: number;
-              name: string;
-              traces_count: number;
-            }[];
-            types: {
-              name: string;
-              traces_count: number;
-            }[];
-            tags: {
-              name: string;
-              traces_count: number;
-            }[];
-            statuses: {
-              name: string;
-              traces_count: number;
-            }[];
+            state: {
+              root_trace_id: string;
+              version: string;
+              status: string;
+              count: number;
+              error?: string | null;
+              started_at?: string | null;
+              finished_at?: string | null;
+              created_at: string;
+              updated_at: string;
+            };
+            content?: {
+              count: number;
+              services: {
+                id: number;
+                name: string;
+                traces_count: number;
+              }[];
+              types: {
+                name: string;
+                traces_count: number;
+              }[];
+              tags: {
+                name: string;
+                traces_count: number;
+              }[];
+              statuses: {
+                name: string;
+                traces_count: number;
+              }[];
+            } | null;
           };
         },
         any
       >({
         path: `/admin-api/trace-aggregator/traces/tree/content`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name TraceAggregatorTracesTreeCancelCreate
+ * @request POST:/admin-api/trace-aggregator/traces/tree/cancel
+ * @secure
+ * @response `200` `{
+    data: {
+    root_trace_id: string,
+    version: string,
+    status: string,
+    count: number,
+    error?: string | null,
+    started_at?: string | null,
+    finished_at?: string | null,
+    created_at: string,
+    updated_at: string,
+
+},
+
+}` description
+ */
+    traceAggregatorTracesTreeCancelCreate: (
+      data: {
+        trace_id: string;
+        is_child: boolean;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          data: {
+            root_trace_id: string;
+            version: string;
+            status: string;
+            count: number;
+            error?: string | null;
+            started_at?: string | null;
+            finished_at?: string | null;
+            created_at: string;
+            updated_at: string;
+          };
+        },
+        any
+      >({
+        path: `/admin-api/trace-aggregator/traces/tree/cancel`,
         method: "POST",
         body: data,
         secure: true,

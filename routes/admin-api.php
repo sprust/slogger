@@ -53,6 +53,7 @@ Route::prefix('/trace-aggregator')
 
                 Route::post('/tree', [TraceTreeController::class, 'tree'])->name('tree');
                 Route::post('/tree/content', [TraceTreeController::class, 'content'])->name('content');
+                Route::post('/tree/cancel', [TraceTreeController::class, 'cancel'])->name('cancel');
 
                 Route::prefix('{traceId}')
                     ->group(function () {

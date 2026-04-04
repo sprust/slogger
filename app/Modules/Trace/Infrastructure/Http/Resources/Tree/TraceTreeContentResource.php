@@ -5,29 +5,20 @@ declare(strict_types=1);
 namespace App\Modules\Trace\Infrastructure\Http\Resources\Tree;
 
 use App\Modules\Common\Infrastructure\Http\Resources\AbstractApiResource;
-use App\Modules\Trace\Entities\Trace\Tree\TraceTreeContentObjects;
-use Ifksco\OpenApiGenerator\Attributes\OaListItemTypeAttribute;
+use App\Modules\Trace\Entities\Trace\Tree\TraceTreeContentResultObject;
 
 class TraceTreeContentResource extends AbstractApiResource
 {
-    private int $count;
-    #[OaListItemTypeAttribute(TraceTreeServiceResource::class)]
-    private array $services;
-    #[OaListItemTypeAttribute(TraceTreeStringableResource::class)]
-    private array $types;
-    #[OaListItemTypeAttribute(TraceTreeStringableResource::class)]
-    private array $tags;
-    #[OaListItemTypeAttribute(TraceTreeStringableResource::class)]
-    private array $statuses;
+    private TraceTreeStateResource $state;
+    private ?TraceTreeContentDataResource $content;
 
-    public function __construct(TraceTreeContentObjects $resource)
+    public function __construct(TraceTreeContentResultObject $resource)
     {
         parent::__construct($resource);
 
-        $this->count    = $resource->count;
-        $this->services = TraceTreeServiceResource::mapIntoMe($resource->services);
-        $this->types    = TraceTreeStringableResource::mapIntoMe($resource->types);
-        $this->tags     = TraceTreeStringableResource::mapIntoMe($resource->tags);
-        $this->statuses = TraceTreeStringableResource::mapIntoMe($resource->statuses);
+        $this->state   = new TraceTreeStateResource($resource->state);
+        $this->content = $resource->content
+            ? new TraceTreeContentDataResource($resource->content)
+            : null;
     }
 }

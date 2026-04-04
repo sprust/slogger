@@ -150,6 +150,9 @@ Notes:
 - If a module needs infrastructure code, place it inside a nested subdirectory of `Infrastructure`. Deptrac does not collect files directly under `app/Modules/<Module>/Infrastructure`.
 - Changes in backend business logic should usually stay inside the relevant module instead of leaking into controllers or unrelated services.
 - `frontend/src/api-schema` is generated code. Prefer regenerating it instead of editing it manually.
+- Domain events are domain logic. If a flow needs to trigger queues or other framework integrations, emit a domain event first and handle infrastructure side effects in listeners.
+- For Laravel jobs, prefer the `dispatch()` helper instead of static `::dispatch()`.
+- Use `PSR-12` formatting for PHP changes.
 
 ## Required Commands After Changes
 - Run post-change commands only after changes that can affect application behavior, generated artifacts, or runtime contracts.
