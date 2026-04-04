@@ -20,6 +20,8 @@ return $config
     // TODO: conflict with laravel/pint that needs for laravel-lang/models
     // ->setParallelConfig(PhpCsFixer\Runner\Parallel\ParallelConfigFactory::detect())
     ->setRules([
+        '@PSR12' => true,
+
         // General rules from .editorconfig
         'encoding'    => true, // charset = utf-8
         'line_ending' => true, // end_of_line = lf
