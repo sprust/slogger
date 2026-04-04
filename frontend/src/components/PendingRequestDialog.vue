@@ -2,11 +2,11 @@
   <el-dialog
       :model-value="pendingRequestStore.visible"
       title="Trace dynamic index in process."
-      width="640"
       :close-on-click-modal="false"
       :close-on-press-escape="false"
       :show-close="false"
       :before-close="preventClose"
+      style="width: 70%"
       align-center
   >
     <DynamicIndexCollections
