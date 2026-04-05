@@ -2,14 +2,24 @@ import {AdminApi} from "../../../../../../api-schema/admin-api-schema.ts";
 import {ApiContainer} from "../../../../../../utils/apiContainer.ts";
 import {defineStore} from "pinia";
 import {handleApiRequest} from "../../../../../../utils/handleApiRequest.ts";
+import {TraceAggregatorCommonPayload, TraceAggregatorDataPayload} from "../../traces/store/traceAggregatorStore.ts";
 
-type TraceAggregatorFindTypesPayload = AdminApi.TraceAggregatorTracesContentTypesCreate.RequestBody;
+type TraceAggregatorFindTypesPayload = TraceAggregatorCommonPayload & {
+    text?: string | null,
+    data?: TraceAggregatorDataPayload,
+};
 type TraceAggregatorFindType = AdminApi.TraceAggregatorTracesContentTypesCreate.ResponseBody['data'][number];
 
-type TraceAggregatorFindTagsPayload = AdminApi.TraceAggregatorTracesContentTagsCreate.RequestBody;
+type TraceAggregatorFindTagsPayload = TraceAggregatorCommonPayload & {
+    text?: string | null,
+    data?: TraceAggregatorDataPayload,
+};
 type TraceAggregatorFindTag = AdminApi.TraceAggregatorTracesContentTagsCreate.ResponseBody['data'][number];
 
-type TraceAggregatorFindStatusesPayload = AdminApi.TraceAggregatorTracesContentStatusesCreate.RequestBody;
+type TraceAggregatorFindStatusesPayload = TraceAggregatorCommonPayload & {
+    text?: string | null,
+    data?: TraceAggregatorDataPayload,
+};
 type TraceAggregatorFindStatus = AdminApi.TraceAggregatorTracesContentStatusesCreate.ResponseBody['data'][number];
 
 export interface TraceTag {
@@ -67,7 +77,9 @@ export const useTraceAggregatorTagsStore = defineStore('traceAggregatorTagsStore
             this.types = [];
 
             return await handleApiRequest(
-                () => ApiContainer.get().traceAggregatorTracesContentTypesCreate(this.typesPayload)
+                () => ApiContainer.get().traceAggregatorTracesContentTypesCreate(
+                    this.typesPayload as AdminApi.TraceAggregatorTracesContentTypesCreate.RequestBody
+                )
                     .then(response => {
                         this.setTypes(response.data.data)
                     })
@@ -81,7 +93,9 @@ export const useTraceAggregatorTagsStore = defineStore('traceAggregatorTagsStore
             this.tags = [];
 
             return await handleApiRequest(
-                () => ApiContainer.get().traceAggregatorTracesContentTagsCreate(this.tagsPayload)
+                () => ApiContainer.get().traceAggregatorTracesContentTagsCreate(
+                    this.tagsPayload as AdminApi.TraceAggregatorTracesContentTagsCreate.RequestBody
+                )
                     .then(response => {
                         this.setTags(response.data.data)
                     })
@@ -95,7 +109,9 @@ export const useTraceAggregatorTagsStore = defineStore('traceAggregatorTagsStore
             this.statuses = [];
 
             return await handleApiRequest(
-                () => ApiContainer.get().traceAggregatorTracesContentStatusesCreate(this.statusesPayload)
+                () => ApiContainer.get().traceAggregatorTracesContentStatusesCreate(
+                    this.statusesPayload as AdminApi.TraceAggregatorTracesContentStatusesCreate.RequestBody
+                )
                     .then(response => {
                         this.setStatuses(response.data.data)
                     })

@@ -35,7 +35,7 @@ export const useTraceAggregatorTreeProcessesStore = defineStore('traceAggregator
         },
         async cancelProcess(rootTraceId: string) {
             return await handleApiRequest(
-                () => ApiContainer.get().traceAggregatorTracesTreeProcessesCancelCreate({
+                () => ApiContainer.get().traceAggregatorTracesTreeProcessesCancelPartialUpdate({
                     root_trace_id: rootTraceId,
                 }).then(response => {
                     this.processes = this.processes.map(
@@ -50,7 +50,7 @@ export const useTraceAggregatorTreeProcessesStore = defineStore('traceAggregator
         },
         async deleteProcess(rootTraceId: string) {
             return await handleApiRequest(
-                () => ApiContainer.get().traceAggregatorTracesTreeProcessesDelete({
+                () => ApiContainer.get().traceAggregatorTracesTreeProcessesDeletePartialUpdate({
                     root_trace_id: rootTraceId,
                 }).then(response => {
                     this.processes = this.processes.filter(

@@ -11,7 +11,6 @@ use App\Modules\Trace\Domain\Actions\MakeTraceTimestampsAction;
 use App\Modules\Trace\Domain\Actions\Mutations\CreateTraceAdminStoreAction;
 use App\Modules\Trace\Domain\Actions\Mutations\BuildTraceTreeCacheAction;
 use App\Modules\Trace\Domain\Actions\Mutations\CancelTraceTreeCacheStateAction;
-use App\Modules\Trace\Domain\Actions\Mutations\CancelTraceTreeCacheStateByTraceAction;
 use App\Modules\Trace\Domain\Actions\Mutations\DeleteCollectionsAction;
 use App\Modules\Trace\Domain\Actions\Mutations\DeleteTraceTreeCacheStateAction;
 use App\Modules\Trace\Domain\Actions\Mutations\DeleteTraceAdminStoreAction;
@@ -128,7 +127,6 @@ class TraceServiceProvider extends BaseServiceProvider
             DeleteCollectionsAction::class,
             BuildTraceTreeCacheAction::class,
             CancelTraceTreeCacheStateAction::class,
-            CancelTraceTreeCacheStateByTraceAction::class,
             DeleteTraceTreeCacheStateAction::class,
             // actions.queries
             FindStatusesAction::class,

@@ -873,6 +873,10 @@
                                                             "type": "string",
                                                             "nullable": false
                                                         },
+                                                        "count": {
+                                                            "type": "integer",
+                                                            "nullable": false
+                                                        },
                                                         "error": {
                                                             "type": "string",
                                                             "nullable": true
@@ -898,6 +902,7 @@
                                                         "root_trace_id",
                                                         "version",
                                                         "status",
+                                                        "count",
                                                         "created_at",
                                                         "updated_at"
                                                     ]
@@ -1023,24 +1028,97 @@
                 ]
             }
         },
-        "/admin-api/trace-aggregator/traces/tree/cancel": {
-            "post": {
+        "/admin-api/trace-aggregator/traces/tree/processes": {
+            "get": {
+                "responses": {
+                    "200": {
+                        "description": "description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "root_trace_id": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "version": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "status": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "count": {
+                                                        "type": "integer",
+                                                        "nullable": false
+                                                    },
+                                                    "error": {
+                                                        "type": "string",
+                                                        "nullable": true
+                                                    },
+                                                    "started_at": {
+                                                        "type": "string",
+                                                        "nullable": true
+                                                    },
+                                                    "finished_at": {
+                                                        "type": "string",
+                                                        "nullable": true
+                                                    },
+                                                    "created_at": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "updated_at": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    }
+                                                },
+                                                "required": [
+                                                    "root_trace_id",
+                                                    "version",
+                                                    "status",
+                                                    "count",
+                                                    "created_at",
+                                                    "updated_at"
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/admin-api/trace-aggregator/traces/tree/processes/cancel": {
+            "patch": {
                 "requestBody": {
                     "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
                                 "properties": {
-                                    "trace_id": {
+                                    "root_trace_id": {
                                         "type": "string"
-                                    },
-                                    "is_child": {
-                                        "type": "boolean"
                                     }
                                 },
                                 "required": [
-                                    "trace_id",
-                                    "is_child"
+                                    "root_trace_id"
                                 ],
                                 "type": "object"
                             }
@@ -1069,6 +1147,10 @@
                                                     "type": "string",
                                                     "nullable": false
                                                 },
+                                                "count": {
+                                                    "type": "integer",
+                                                    "nullable": false
+                                                },
                                                 "error": {
                                                     "type": "string",
                                                     "nullable": true
@@ -1094,6 +1176,7 @@
                                                 "root_trace_id",
                                                 "version",
                                                 "status",
+                                                "count",
                                                 "created_at",
                                                 "updated_at"
                                             ]
@@ -1103,6 +1186,43 @@
                                         "data"
                                     ]
                                 }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/admin-api/trace-aggregator/traces/tree/processes/delete": {
+            "patch": {
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "root_trace_id": {
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "root_trace_id"
+                                ],
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "description",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
                             }
                         }
                     }

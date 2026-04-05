@@ -9,10 +9,13 @@ import {TreeFilter} from "./TreeFilter.ts";
 import {IndicatorSetter} from "./IndicatorSetter.ts";
 
 type TraceAggregatorTreeParameters = AdminApi.TraceAggregatorTracesTreeCreate.RequestBody
-type TraceAggregatorTreeResponse = AdminApi.TraceAggregatorTracesTreeCreate.ResponseBody['data']
-export type TraceAggregatorTree = NonNullable<TraceAggregatorTreeResponse['items']>
-export type TraceAggregatorTreeRow = TraceAggregatorTree[number]
-type TraceAggregatorTreeState = TraceAggregatorTreeResponse['state']
+export type TraceAggregatorTreeRow = AdminApi.TraceAggregatorTracesTreeCreate.ResponseBody['data'][number]
+export type TraceAggregatorTree = TraceAggregatorTreeRow[]
+type TraceAggregatorTreeState = AdminApi.TraceAggregatorTracesTreeProcessesCancelPartialUpdate.ResponseBody['data']
+type TraceAggregatorTreeStreamResponse = {
+    state: TraceAggregatorTreeState,
+    items?: TraceAggregatorTree,
+}
 
 type TraceAggregatorTreeContentParameters = AdminApi.TraceAggregatorTracesTreeContentCreate.RequestBody
 type TraceAggregatorTreeContent = NonNullable<AdminApi.TraceAggregatorTracesTreeContentCreate.ResponseBody['data']['content']>
@@ -208,8 +211,10 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
                     )
 
                 const result = await readStream(response.body!)
-                const body = JSON.parse(result) as AdminApi.TraceAggregatorTracesTreeCreate.ResponseBody | TraceAggregatorTreeResponse
-                const data = 'data' in body ? body.data : body
+                const body = JSON.parse(result) as {data?: TraceAggregatorTreeStreamResponse} | TraceAggregatorTreeStreamResponse
+                const data: TraceAggregatorTreeStreamResponse = 'data' in body
+                    ? body.data as TraceAggregatorTreeStreamResponse
+                    : body as TraceAggregatorTreeStreamResponse
 
                 this.setTreeState(data.state)
 
@@ -287,16 +292,16 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
         async cancelPolling() {
             this.stopPolling()
 
-            if (!this.parameters.trace_id) {
+            if (!this.state?.root_trace_id) {
                 return
             }
 
             this.loading = true
+            const rootTraceId = this.state.root_trace_id
 
             return handleApiRequest(
-                () => ApiContainer.get().traceAggregatorTracesTreeCancelCreate({
-                    trace_id: this.parameters.trace_id,
-                    is_child: this.parameters.is_child,
+                () => ApiContainer.get().traceAggregatorTracesTreeProcessesCancelPartialUpdate({
+                    root_trace_id: rootTraceId,
                 }).then(response => {
                     this.setTreeState(response.data.data)
                 }).finally(() => {

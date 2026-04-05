@@ -1,12 +1,22 @@
 import {AdminApi} from "../../../../../../api-schema/admin-api-schema.ts";
 import {ApiContainer} from "../../../../../../utils/apiContainer.ts";
 import {ChartData, ChartDataset, ChartOptions} from 'chart.js'
-import {TraceAggregatorCustomField} from "../../traces/store/traceAggregatorStore.ts";
+import {
+    TraceAggregatorCommonPayload,
+    TraceAggregatorCustomField,
+    TraceAggregatorDataPayload,
+} from "../../traces/store/traceAggregatorStore.ts";
 import {defineStore} from "pinia";
 import {handleApiRequest} from "../../../../../../utils/handleApiRequest.ts";
 
-export type TraceAggregatorTraceMetricsPayload = AdminApi.TraceAggregatorTraceMetricsCreate.RequestBody
-type TraceAggregatorTraceMetricField = AdminApi.TraceAggregatorTraceMetricsCreate.RequestBody['fields']
+export type TraceAggregatorTraceMetricsPayload = TraceAggregatorCommonPayload & {
+    timestamp_period?: AdminApi.TraceAggregatorTraceMetricsCreate.RequestBody['timestamp_period'],
+    timestamp_step?: AdminApi.TraceAggregatorTraceMetricsCreate.RequestBody['timestamp_step'],
+    fields?: AdminApi.TraceAggregatorTraceMetricsCreate.RequestBody['fields'],
+    data_fields?: string[],
+    data?: TraceAggregatorDataPayload,
+}
+type TraceAggregatorTraceMetricField = TraceAggregatorTraceMetricsPayload['fields']
 type TraceAggregatorTraceMetricResponse = AdminApi.TraceAggregatorTraceMetricsCreate.ResponseBody
 type TraceAggregatorTraceMetricItem = AdminApi.TraceAggregatorTraceMetricsCreate.ResponseBody['data']['items'][number]
 
@@ -102,7 +112,9 @@ export const useTraceAggregatorGraphStore = defineStore('traceAggregatorGraphSto
             })
 
             return await handleApiRequest(
-                () => ApiContainer.get().traceAggregatorTraceMetricsCreate(this.payload)
+                () => ApiContainer.get().traceAggregatorTraceMetricsCreate(
+                    this.payload as AdminApi.TraceAggregatorTraceMetricsCreate.RequestBody
+                )
                     .then(response => {
                         this.setMetrics(response.data)
                     })
