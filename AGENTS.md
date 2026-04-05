@@ -5,7 +5,7 @@
 - Prefer asking for approval with a scoped command prefix that matches the command being requested.
 - Do not skip these commands silently when relevant source code was changed. If approval is denied or execution fails, report that explicitly.
 
-## Project Overview~~~~
+## Project Overview
 - SLogger is an observability/logging application: it collects traces and logs, stores and aggregates trace data, exposes admin/API endpoints for browsing traces and logs, provides dashboard views, and includes cleanup tooling.
 - Backend is a Laravel 12 application on PHP 8.4.
 - Frontend lives in `frontend/` and is a separate Vue 3 + Vite + TypeScript app.
