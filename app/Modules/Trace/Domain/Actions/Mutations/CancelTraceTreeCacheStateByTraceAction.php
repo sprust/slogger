@@ -5,14 +5,13 @@ declare(strict_types=1);
 namespace App\Modules\Trace\Domain\Actions\Mutations;
 
 use App\Modules\Trace\Entities\Trace\Tree\TraceTreeCacheStateObject;
-use App\Modules\Trace\Repositories\TraceTreeCacheStateRepository;
 use App\Modules\Trace\Repositories\TraceTreeRepository;
 
-readonly class CancelTraceTreeCacheBuildAction
+readonly class CancelTraceTreeCacheStateByTraceAction
 {
     public function __construct(
         private TraceTreeRepository $traceTreeRepository,
-        private TraceTreeCacheStateRepository $traceTreeCacheStateRepository,
+        private CancelTraceTreeCacheStateAction $cancelTraceTreeCacheStateAction,
     ) {
     }
 
@@ -28,6 +27,6 @@ readonly class CancelTraceTreeCacheBuildAction
             return null;
         }
 
-        return $this->traceTreeCacheStateRepository->cancel($rootTraceId);
+        return $this->cancelTraceTreeCacheStateAction->handle($rootTraceId);
     }
 }

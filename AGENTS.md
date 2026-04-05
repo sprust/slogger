@@ -153,6 +153,9 @@ Notes:
 - Domain events are domain logic. If a flow needs to trigger queues or other framework integrations, emit a domain event first and handle infrastructure side effects in listeners.
 - For Laravel jobs, prefer the `dispatch()` helper instead of static `::dispatch()`.
 - Use `PSR-12` formatting for PHP changes.
+- If a class is an action, it should expose a single `handle(...)` method only.
+- Repositories should not contain business operations like `cancel*`; keep them as persistence primitives such as `updateStatus(...)`, and call them from actions like `Cancel*Action`.
+- Each entity should have its own dedicated controller. Do not mix state/controller methods into another entity controller.
 
 ## Required Commands After Changes
 - Run post-change commands only after changes that can affect application behavior, generated artifacts, or runtime contracts.

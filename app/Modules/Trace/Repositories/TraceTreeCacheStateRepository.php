@@ -7,11 +7,31 @@ namespace App\Modules\Trace\Repositories;
 use App\Models\Traces\TraceTreeCacheState;
 use App\Modules\Trace\Entities\Trace\Tree\TraceTreeCacheStateObject;
 use App\Modules\Trace\Enums\TraceTreeCacheStateStatusEnum;
+use Illuminate\Support\Carbon;
 use MongoDB\BSON\UTCDateTime;
 use RuntimeException;
 
 class TraceTreeCacheStateRepository
 {
+    /**
+     * @return TraceTreeCacheStateObject[]
+     */
+    public function findMany(
+        int $limit,
+        ?TraceTreeCacheStateStatusEnum $excludeStatus = null,
+    ): array {
+        return TraceTreeCacheState::query()
+            ->when(
+                $excludeStatus !== null,
+                static fn($query) => $query->where('status', '!=', $excludeStatus?->value)
+            )
+            ->orderByDesc('updatedAt')
+            ->take($limit)
+            ->get()
+            ->map(fn(TraceTreeCacheState $state) => $this->modelToObject($state))
+            ->all();
+    }
+
     public function findOneByRootTraceId(string $rootTraceId): ?TraceTreeCacheStateObject
     {
         /** @var TraceTreeCacheState|null $state */
@@ -85,19 +105,27 @@ class TraceTreeCacheStateRepository
         return $state;
     }
 
-    public function cancel(string $rootTraceId): ?TraceTreeCacheStateObject
-    {
-        $finishedAt = now();
-
-        TraceTreeCacheState::query()
+    public function updateStatus(
+        string $rootTraceId,
+        TraceTreeCacheStateStatusEnum $status,
+        ?Carbon $finishedAt = null,
+        ?string $error = null,
+    ): bool {
+        return (bool) TraceTreeCacheState::query()
             ->where('rootTraceId', $rootTraceId)
             ->update([
-                'status'     => TraceTreeCacheStateStatusEnum::Canceled->value,
-                'finishedAt' => new UTCDateTime($finishedAt),
-                'updatedAt'  => new UTCDateTime($finishedAt),
+                'status'     => $status->value,
+                'error'      => $error,
+                'finishedAt' => $finishedAt ? new UTCDateTime($finishedAt) : null,
+                'updatedAt'  => new UTCDateTime(now()),
             ]);
+    }
 
-        return $this->findOneByRootTraceId($rootTraceId);
+    public function deleteByRootTraceId(string $rootTraceId): bool
+    {
+        return (bool) TraceTreeCacheState::query()
+            ->where('rootTraceId', $rootTraceId)
+            ->delete();
     }
 
     public function markFinished(string $rootTraceId, string $version): bool

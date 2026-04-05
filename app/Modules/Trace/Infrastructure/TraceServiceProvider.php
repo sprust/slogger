@@ -10,8 +10,10 @@ use App\Modules\Trace\Domain\Actions\MakeTraceTimestampPeriodsAction;
 use App\Modules\Trace\Domain\Actions\MakeTraceTimestampsAction;
 use App\Modules\Trace\Domain\Actions\Mutations\CreateTraceAdminStoreAction;
 use App\Modules\Trace\Domain\Actions\Mutations\BuildTraceTreeCacheAction;
-use App\Modules\Trace\Domain\Actions\Mutations\CancelTraceTreeCacheBuildAction;
+use App\Modules\Trace\Domain\Actions\Mutations\CancelTraceTreeCacheStateAction;
+use App\Modules\Trace\Domain\Actions\Mutations\CancelTraceTreeCacheStateByTraceAction;
 use App\Modules\Trace\Domain\Actions\Mutations\DeleteCollectionsAction;
+use App\Modules\Trace\Domain\Actions\Mutations\DeleteTraceTreeCacheStateAction;
 use App\Modules\Trace\Domain\Actions\Mutations\DeleteTraceAdminStoreAction;
 use App\Modules\Trace\Domain\Actions\Mutations\DeleteTraceDynamicIndexAction;
 use App\Modules\Trace\Domain\Actions\Mutations\FlushDynamicIndexesAction;
@@ -30,6 +32,7 @@ use App\Modules\Trace\Domain\Actions\Queries\FindTracesAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceServicesAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceTimestampsAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceTreeAction;
+use App\Modules\Trace\Domain\Actions\Queries\FindTraceTreeCacheStatesAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceTreeContentAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTypesAction;
 use App\Modules\Trace\Domain\Services\TraceDynamicIndexInitializer;
@@ -124,7 +127,9 @@ class TraceServiceProvider extends BaseServiceProvider
             DeleteTraceAdminStoreAction::class,
             DeleteCollectionsAction::class,
             BuildTraceTreeCacheAction::class,
-            CancelTraceTreeCacheBuildAction::class,
+            CancelTraceTreeCacheStateAction::class,
+            CancelTraceTreeCacheStateByTraceAction::class,
+            DeleteTraceTreeCacheStateAction::class,
             // actions.queries
             FindStatusesAction::class,
             FindTagsAction::class,
@@ -133,6 +138,7 @@ class TraceServiceProvider extends BaseServiceProvider
             FindTracesAction::class,
             FindTraceTimestampsAction::class,
             FindTraceTreeAction::class,
+            FindTraceTreeCacheStatesAction::class,
             FindTypesAction::class,
             FindTraceDynamicIndexAction::class,
             FindTraceDynamicIndexesAction::class,

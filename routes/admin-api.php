@@ -16,6 +16,7 @@ use App\Modules\Trace\Infrastructure\Http\Controllers\TraceProfilingController;
 use App\Modules\Trace\Infrastructure\Http\Controllers\TraceTimestampPeriodsController;
 use App\Modules\Trace\Infrastructure\Http\Controllers\TraceTimestampsController;
 use App\Modules\Trace\Infrastructure\Http\Controllers\TraceTreeController;
+use App\Modules\Trace\Infrastructure\Http\Controllers\TraceTreeStateController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('/auth')
@@ -53,7 +54,10 @@ Route::prefix('/trace-aggregator')
 
                 Route::post('/tree', [TraceTreeController::class, 'tree'])->name('tree');
                 Route::post('/tree/content', [TraceTreeController::class, 'content'])->name('content');
-                Route::post('/tree/cancel', [TraceTreeController::class, 'cancel'])->name('cancel');
+                Route::post('/tree/cancel', [TraceTreeStateController::class, 'cancel'])->name('cancel');
+                Route::get('/tree/processes', [TraceTreeStateController::class, 'processes'])->name('processes');
+                Route::post('/tree/processes/cancel', [TraceTreeStateController::class, 'cancelProcess'])->name('processes.cancel');
+                Route::delete('/tree/processes', [TraceTreeStateController::class, 'deleteProcess'])->name('processes.delete');
 
                 Route::prefix('{traceId}')
                     ->group(function () {

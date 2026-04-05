@@ -540,6 +540,98 @@ export namespace AdminApi {
     };
   } /**
  * No description
+ * @name TraceAggregatorTracesTreeProcessesList
+ * @request GET:/admin-api/trace-aggregator/traces/tree/processes
+ * @secure
+ * @response `200` `({
+    root_trace_id: string,
+    version: string,
+    status: string,
+    count: number,
+    error?: string | null,
+    started_at?: string | null,
+    finished_at?: string | null,
+    created_at: string,
+    updated_at: string,
+
+})[]` description
+*/
+  export namespace TraceAggregatorTracesTreeProcessesList {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        root_trace_id: string;
+        version: string;
+        status: string;
+        count: number;
+        error?: string | null;
+        started_at?: string | null;
+        finished_at?: string | null;
+        created_at: string;
+        updated_at: string;
+      }[];
+    };
+  } /**
+ * No description
+ * @name TraceAggregatorTracesTreeProcessesCancelCreate
+ * @request POST:/admin-api/trace-aggregator/traces/tree/processes/cancel
+ * @secure
+ * @response `200` `{
+    data: {
+    root_trace_id: string,
+    version: string,
+    status: string,
+    count: number,
+    error?: string | null,
+    started_at?: string | null,
+    finished_at?: string | null,
+    created_at: string,
+    updated_at: string,
+
+},
+
+}` description
+*/
+  export namespace TraceAggregatorTracesTreeProcessesCancelCreate {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = {
+      root_trace_id: string;
+    };
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        root_trace_id: string;
+        version: string;
+        status: string;
+        count: number;
+        error?: string | null;
+        started_at?: string | null;
+        finished_at?: string | null;
+        created_at: string;
+        updated_at: string;
+      };
+    };
+  } /**
+ * No description
+ * @name TraceAggregatorTracesTreeProcessesDelete
+ * @request DELETE:/admin-api/trace-aggregator/traces/tree/processes
+ * @secure
+ * @response `200` `any` description
+*/
+  export namespace TraceAggregatorTracesTreeProcessesDelete {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = {
+      root_trace_id: string;
+    };
+    export type RequestHeaders = {};
+    export type ResponseBody = any;
+  } /**
+ * No description
  * @name TraceAggregatorTracesDetail
  * @request GET:/admin-api/trace-aggregator/traces/{traceId}
  * @secure
@@ -2349,6 +2441,126 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       >({
         path: `/admin-api/trace-aggregator/traces/tree/cancel`,
         method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name TraceAggregatorTracesTreeProcessesList
+ * @request GET:/admin-api/trace-aggregator/traces/tree/processes
+ * @secure
+ * @response `200` `({
+    root_trace_id: string,
+    version: string,
+    status: string,
+    count: number,
+    error?: string | null,
+    started_at?: string | null,
+    finished_at?: string | null,
+    created_at: string,
+    updated_at: string,
+
+})[]` description
+ */
+    traceAggregatorTracesTreeProcessesList: (params: RequestParams = {}) =>
+      this.request<
+        {
+          data: {
+            root_trace_id: string;
+            version: string;
+            status: string;
+            count: number;
+            error?: string | null;
+            started_at?: string | null;
+            finished_at?: string | null;
+            created_at: string;
+            updated_at: string;
+          }[];
+        },
+        any
+      >({
+        path: `/admin-api/trace-aggregator/traces/tree/processes`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name TraceAggregatorTracesTreeProcessesCancelCreate
+ * @request POST:/admin-api/trace-aggregator/traces/tree/processes/cancel
+ * @secure
+ * @response `200` `{
+    data: {
+    root_trace_id: string,
+    version: string,
+    status: string,
+    count: number,
+    error?: string | null,
+    started_at?: string | null,
+    finished_at?: string | null,
+    created_at: string,
+    updated_at: string,
+
+},
+
+}` description
+ */
+    traceAggregatorTracesTreeProcessesCancelCreate: (
+      data: {
+        root_trace_id: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          data: {
+            root_trace_id: string;
+            version: string;
+            status: string;
+            count: number;
+            error?: string | null;
+            started_at?: string | null;
+            finished_at?: string | null;
+            created_at: string;
+            updated_at: string;
+          };
+        },
+        any
+      >({
+        path: `/admin-api/trace-aggregator/traces/tree/processes/cancel`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name TraceAggregatorTracesTreeProcessesDelete
+ * @request DELETE:/admin-api/trace-aggregator/traces/tree/processes
+ * @secure
+ * @response `200` `any` description
+ */
+    traceAggregatorTracesTreeProcessesDelete: (
+      data: {
+        root_trace_id: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<any, any>({
+        path: `/admin-api/trace-aggregator/traces/tree/processes`,
+        method: "DELETE",
         body: data,
         secure: true,
         type: ContentType.Json,
