@@ -172,6 +172,6 @@ Notes:
 - If generated files are out of sync with source changes, regenerate them instead of patching around the drift.
 
 ## Permission Policy For Command Execution
-- Before running `make check`, `make frontend-npm-build`, or `make oa-generate`, request execution rights if they have not already been granted in the session.
+- At the start of work on a task, immediately request execution rights for `make check`, `make frontend-npm-build`, and `make oa-generate` if they have not already been granted in the session, even if it is not yet certain that each command will be needed. This is required so the agent can continue working unattended without pausing later for approval.
 - Prefer asking for approval with a scoped command prefix that matches the command being requested.
 - Do not skip these commands silently when relevant source code was changed. If approval is denied or execution fails, report that explicitly.
