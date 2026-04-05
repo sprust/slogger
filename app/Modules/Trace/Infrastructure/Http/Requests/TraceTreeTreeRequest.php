@@ -8,7 +8,7 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class TraceTreeTreeRequest extends FormRequest
 {
-    function rules(): array
+    public function rules(): array
     {
         return [
             'trace_id' => [

@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Modules\Trace\Repositories;
 
-use App\Modules\Trace\Contracts\Repositories\TraceTimestampsRepositoryInterface;
 use App\Modules\Trace\Enums\TraceMetricFieldAggregatorEnum;
 use App\Modules\Trace\Enums\TraceMetricFieldEnum;
 use App\Modules\Trace\Enums\TraceTimestampEnum;
 use App\Modules\Trace\Parameters\Data\TraceDataFilterParameters;
+use App\Modules\Trace\Repositories\Dto\Trace\Data\TraceMetricDataFieldsFilterDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Data\TraceMetricFieldsFilterDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Timestamp\TraceTimestampFieldDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Timestamp\TraceTimestampFieldIndicatorDto;
@@ -21,7 +21,7 @@ use Illuminate\Support\Str;
 use RuntimeException;
 use SConcur\Features\Mongodb\Types\UTCDateTime;
 
-readonly class TraceTimestampsRepository implements TraceTimestampsRepositoryInterface
+readonly class TraceTimestampsRepository
 {
     public function __construct(
         private TracePipelineBuilder $tracePipelineBuilder,
@@ -29,6 +29,15 @@ readonly class TraceTimestampsRepository implements TraceTimestampsRepositoryInt
     ) {
     }
 
+    /**
+     * @param int[]|null                            $serviceIds
+     * @param string[]|null                         $traceIds
+     * @param TraceMetricFieldsFilterDto[]          $fields
+     * @param TraceMetricDataFieldsFilterDto[]|null $dataFields
+     * @param string[]                              $types
+     * @param string[]                              $tags
+     * @param string[]                              $statuses
+     */
     public function find(
         Carbon $loggedAtFrom,
         Carbon $loggedAtTo,
@@ -157,7 +166,7 @@ readonly class TraceTimestampsRepository implements TraceTimestampsRepositoryInt
                     foreach ($aggregators as $key => $aggregator) {
                         $indicators[] = new TraceTimestampFieldIndicatorDto(
                             name: $aggregator,
-                            value: round(is_numeric($item[$key]) ? $item[$key] : 0, 6),
+                            value: round((float) (is_numeric($item[$key]) ? $item[$key] : 0), 6),
                         );
                     }
 
@@ -204,10 +213,10 @@ readonly class TraceTimestampsRepository implements TraceTimestampsRepositoryInt
     private function injectAggregationToGroups(array &$groups, TraceMetricFieldsFilterDto $field): void
     {
         $fieldName = match ($field->field) {
-            TraceMetricFieldEnum::Count => 'count',
+            TraceMetricFieldEnum::Count    => 'count',
             TraceMetricFieldEnum::Duration => 'dur',
-            TraceMetricFieldEnum::Memory => 'mem',
-            TraceMetricFieldEnum::Cpu => 'cpu',
+            TraceMetricFieldEnum::Memory   => 'mem',
+            TraceMetricFieldEnum::Cpu      => 'cpu',
         };
 
         $aggregations = [];
@@ -222,7 +231,7 @@ readonly class TraceTimestampsRepository implements TraceTimestampsRepositoryInt
     }
 
     /**
-     * @param array<string, int|string> $aggregations
+     * @param array<string, int|string>        $aggregations
      * @param TraceMetricFieldAggregatorEnum[] $fieldAggregations
      */
     private function injectAggregation(array &$aggregations, string $fieldName, array $fieldAggregations): void

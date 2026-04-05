@@ -29,7 +29,7 @@ export const useTraceAggregatorTimestampPeriodStore = defineStore('traceAggregat
     actions: {
         async findTimestampPeriods() {
             return await handleApiRequest(
-                ApiContainer.get().traceAggregatorTraceTimestampPeriodsList()
+                () => ApiContainer.get().traceAggregatorTraceTimestampPeriodsList()
                     .then(response => {
                         this.setPeriods(response.data.data)
                         this.freshTimestampSteps()

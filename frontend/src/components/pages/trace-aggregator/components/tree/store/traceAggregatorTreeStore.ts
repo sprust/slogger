@@ -9,12 +9,17 @@ import {TreeFilter} from "./TreeFilter.ts";
 import {IndicatorSetter} from "./IndicatorSetter.ts";
 
 type TraceAggregatorTreeParameters = AdminApi.TraceAggregatorTracesTreeCreate.RequestBody
-export type TraceAggregatorTree = AdminApi.TraceAggregatorTracesTreeCreate.ResponseBody['data']
 export type TraceAggregatorTreeRow = AdminApi.TraceAggregatorTracesTreeCreate.ResponseBody['data'][number]
+export type TraceAggregatorTree = TraceAggregatorTreeRow[]
+type TraceAggregatorTreeState = AdminApi.TraceAggregatorTracesTreeProcessesCancelPartialUpdate.ResponseBody['data']
+type TraceAggregatorTreeStreamResponse = {
+    state: TraceAggregatorTreeState,
+    items?: TraceAggregatorTree,
+}
 
 type TraceAggregatorTreeContentParameters = AdminApi.TraceAggregatorTracesTreeContentCreate.RequestBody
-type TraceAggregatorTreeContent = AdminApi.TraceAggregatorTracesTreeContentCreate.ResponseBody['data']
-type TraceAggregatorTreeContentService = AdminApi.TraceAggregatorTracesTreeContentCreate.ResponseBody['data']['services'][number]
+type TraceAggregatorTreeContent = NonNullable<AdminApi.TraceAggregatorTracesTreeContentCreate.ResponseBody['data']['content']>
+type TraceAggregatorTreeContentService = TraceAggregatorTreeContent['services'][number]
 
 interface ServicesMapInterface {
     [key: number]: TraceAggregatorTreeContentService
@@ -32,7 +37,10 @@ export interface TraceTreeNode {
 
 interface TraceAggregatorTreeStoreInterface {
     loading: boolean,
+    polling: boolean,
+    pollingTimeoutId: null | number,
     parameters: TraceAggregatorTreeParameters,
+    state: null | TraceAggregatorTreeState,
     tree: Array<TraceTreeNode>,
     treeNodes: Array<TraceAggregatorTreeRow>,
     content: TraceAggregatorTreeContent,
@@ -51,7 +59,10 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
     state: (): TraceAggregatorTreeStoreInterface => {
         return {
             loading: false,
+            polling: false,
+            pollingTimeoutId: null,
             parameters: {} as TraceAggregatorTreeParameters,
+            state: null,
             tree: new Array<TraceTreeNode>,
             treeNodes: new Array<TraceAggregatorTreeRow>,
             content: {
@@ -74,15 +85,34 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
     },
     getters: {
         filteredTree(store: TraceAggregatorTreeStoreInterface) {
-            return store.tree.filter(
-                (node: TraceTreeNode) => {
-                    return !node.isHiddenByFilter
+            const visibleNodes: TraceTreeNode[] = []
+            let collapsedDepth: number | null = null
+
+            store.tree.forEach((node: TraceTreeNode) => {
+                if (collapsedDepth !== null) {
+                    if (node.depth > collapsedDepth) {
+                        return
+                    }
+                    collapsedDepth = null
                 }
-            )
+
+                if (node.isHiddenByFilter) {
+                    return
+                }
+
+                visibleNodes.push(node)
+
+                if (node.collapsed) {
+                    collapsedDepth = node.depth
+                }
+            })
+
+            return visibleNodes
         }
     },
     actions: {
-        async initTree(traceId: string) {
+        async initTreeParent(traceId: string) {
+            this.stopPolling()
             this.$reset()
 
             return this.findTreeNodes({
@@ -93,7 +123,20 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
                 }
             )
         },
+        async initTreeCurrent(traceId: string) {
+            this.stopPolling()
+            this.$reset()
+
+            return this.findTreeNodes({
+                    traceId: traceId,
+                    fresh: false,
+                    freshContent: true,
+                    isChild: true,
+                }
+            )
+        },
         async initTreeByRow(row: TraceTreeNode) {
+            this.stopPolling()
             this.$reset()
 
             return this.findTreeNodes({
@@ -104,6 +147,7 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
             })
         },
         async updateTree() {
+            this.stopPolling()
             return this.findTreeNodes({
                 traceId: this.parameters.trace_id,
                 fresh: false,
@@ -112,10 +156,10 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
             })
         },
         async freshTree() {
-            const traceId = this.parameters.trace_id;
-            const isChild = this.parameters.is_child;
+            const traceId = this.parameters.trace_id
+            const isChild = this.parameters.is_child
 
-            this.$reset()
+            this.stopPolling()
 
             return this.findTreeNodes({
                 traceId: traceId,
@@ -138,6 +182,7 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
             }
         ) {
             this.loading = true
+            this.treeNodes = []
 
             this.parameters = {
                 trace_id: traceId,
@@ -145,8 +190,18 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
                 is_child: isChild
             }
 
-            return handleApiRequest(
-                ApiContainer.get()
+            if (fresh) {
+                this.content = {
+                    count: 0,
+                    services: [],
+                    types: [],
+                    tags: [],
+                    statuses: [],
+                }
+            }
+
+            return await handleApiRequest(async () => {
+                const response = await ApiContainer.get()
                     .traceAggregatorTracesTreeCreate(
                         this.parameters,
                         {
@@ -154,34 +209,42 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
                             format: undefined,
                         }
                     )
-                    .then(response => {
-                        readStream(response.body!)
-                            .then(result => {
-                                this.setTreeNodes(JSON.parse(result))
 
-                                if (!freshContent) {
-                                    this.loading = false
-                                } else {
-                                    handleApiRequest(
-                                        this.findTreeContent(traceId, isChild)
-                                            .finally(() => {
-                                                this.loading = false
-                                            })
-                                    )
-                                }
-                            })
-                            .catch((error) => {
-                                handleApiError(error)
+                const result = await readStream(response.body!)
+                const body = JSON.parse(result) as {data?: TraceAggregatorTreeStreamResponse} | TraceAggregatorTreeStreamResponse
+                const data: TraceAggregatorTreeStreamResponse = 'data' in body
+                    ? body.data as TraceAggregatorTreeStreamResponse
+                    : body as TraceAggregatorTreeStreamResponse
 
-                                this.loading = false
-                            })
-                    })
-                    .catch((error) => {
-                        handleApiError(error)
+                this.setTreeState(data.state)
 
-                        this.loading = false
-                    })
-            )
+                if (data.items) {
+                    this.setTreeNodes(data.items)
+                }
+
+                if (data.state.status === 'inProcess') {
+                    this.schedulePolling()
+                    this.loading = false
+
+                    return response
+                }
+
+                this.stopPolling()
+
+                if (freshContent) {
+                    await this.findTreeContent(traceId, isChild)
+                }
+
+                this.loading = false
+
+                return response
+            }).catch((error) => {
+                handleApiError(error)
+                this.stopPolling()
+                this.loading = false
+
+                return undefined
+            })
         },
         findTreeContent(traceId: string, isChild: boolean) {
             const parameters: TraceAggregatorTreeContentParameters = {
@@ -190,10 +253,61 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
             }
 
             return handleApiRequest(
-                ApiContainer.get().traceAggregatorTracesTreeContentCreate(parameters)
+                () => ApiContainer.get().traceAggregatorTracesTreeContentCreate(parameters)
                     .then(response => {
-                        this.setTreeContent(response.data.data)
+                        this.setTreeState(response.data.data.state)
+
+                        if (response.data.data.content) {
+                            this.setTreeContent(response.data.data.content)
+                        }
                     }))
+        },
+        schedulePolling() {
+            this.polling = true
+            this.clearPollingTimeout()
+
+            this.pollingTimeoutId = window.setTimeout(async () => {
+                if (!this.polling) {
+                    return
+                }
+
+                await this.findTreeNodes({
+                    traceId: this.parameters.trace_id,
+                    fresh: false,
+                    freshContent: true,
+                    isChild: this.parameters.is_child,
+                })
+            }, 1000)
+        },
+        clearPollingTimeout() {
+            if (this.pollingTimeoutId !== null) {
+                window.clearTimeout(this.pollingTimeoutId)
+                this.pollingTimeoutId = null
+            }
+        },
+        stopPolling() {
+            this.polling = false
+            this.clearPollingTimeout()
+        },
+        async cancelPolling() {
+            this.stopPolling()
+
+            if (!this.state?.root_trace_id) {
+                return
+            }
+
+            this.loading = true
+            const rootTraceId = this.state.root_trace_id
+
+            return handleApiRequest(
+                () => ApiContainer.get().traceAggregatorTracesTreeProcessesCancelPartialUpdate({
+                    root_trace_id: rootTraceId,
+                }).then(response => {
+                    this.setTreeState(response.data.data)
+                }).finally(() => {
+                    this.loading = false
+                })
+            )
         },
         async findData(traceId: string) {
             if (traceId === this.selectedTrace.trace_id) {
@@ -205,7 +319,7 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
             this.dataLoading = true
 
             return await handleApiRequest(
-                ApiContainer.get().traceAggregatorTracesDetail(traceId)
+                () => ApiContainer.get().traceAggregatorTracesDetail(traceId)
                     .then(response => {
                         // @ts-ignore TODO
                         this.selectedTrace = response.data
@@ -217,6 +331,9 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
         },
         resetSelectedTrace() {
             this.selectedTrace = {} as TraceAggregatorDetail
+        },
+        setTreeState(state: TraceAggregatorTreeState) {
+            this.state = state
         },
         setTreeNodes(tree: TraceAggregatorTree) {
             this.treeNodes = tree
@@ -246,6 +363,9 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
                 this.selectedTraceTags,
                 this.selectedTraceStatuses,
             ).apply(this.tree)
+        },
+        toggleCollapse(row: TraceTreeNode) {
+            row.collapsed = !row.collapsed
         }
     },
 })

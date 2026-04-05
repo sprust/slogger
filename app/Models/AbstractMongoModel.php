@@ -15,7 +15,7 @@ abstract class AbstractMongoModel extends Model
      */
     private static array $sconcurCollections = [];
 
-    abstract function getCollectionName(): string;
+    abstract public function getCollectionName(): string;
 
     public function getTable()
     {
@@ -66,7 +66,7 @@ abstract class AbstractMongoModel extends Model
         try {
             return app()->make($class);
         } catch (BindingResolutionException) {
-            return new $class;
+            return new $class();
         }
     }
 }

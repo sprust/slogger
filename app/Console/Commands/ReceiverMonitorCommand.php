@@ -53,7 +53,7 @@ class ReceiverMonitorCommand extends Command
             } else {
                 $content = file_get_contents($fileStatsPath);
 
-                $this->warn($content);
+                $this->warn($content ?: 'Receiver stats file is empty');
             }
 
             sleep(1);

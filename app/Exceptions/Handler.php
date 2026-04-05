@@ -2,7 +2,11 @@
 
 namespace App\Exceptions;
 
+use App\Modules\Trace\Domain\Actions\Queries\FindTraceDynamicIndexAction;
+use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexInProcessException;
+use App\Modules\Trace\Infrastructure\Http\Resources\TraceDynamicIndexResource;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -23,8 +27,32 @@ class Handler extends ExceptionHandler
      */
     public function register(): void
     {
-        $this->reportable(function (Throwable $e) {
-            //
+        $this->reportable(function (Throwable $exception) {
+            if ($exception instanceof TraceDynamicIndexInProcessException) {
+                return false;
+            }
+
+            return true;
+        });
+
+        $this->renderable(function (Throwable $exception) {
+            if ($exception instanceof TraceDynamicIndexInProcessException) {
+                $index = app(FindTraceDynamicIndexAction::class)->handle(
+                    indexId: $exception->indexId
+                );
+
+                return response()->json(
+                    data: [
+                        'error' => 'Trace dynamic index is in process.',
+                        'data'  => ($index === null)
+                            ? null
+                            : new TraceDynamicIndexResource($index)->toArray(),
+                    ],
+                    status: Response::HTTP_PRECONDITION_FAILED
+                );
+            }
+
+            return null;
         });
     }
 }

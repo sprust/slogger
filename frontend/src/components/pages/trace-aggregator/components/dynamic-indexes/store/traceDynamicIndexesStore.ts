@@ -28,7 +28,7 @@ export const useTraceDynamicIndexesStore = defineStore('traceDynamicIndexesStore
             this.loading = true
 
             return await handleApiRequest(
-                ApiContainer.get().traceAggregatorDynamicIndexesList()
+                () => ApiContainer.get().traceAggregatorDynamicIndexesList()
                     .then(response => {
                         this.traceDynamicIndexes = response.data.data
                     })
@@ -41,7 +41,7 @@ export const useTraceDynamicIndexesStore = defineStore('traceDynamicIndexesStore
             this.started = true
 
             return await handleApiRequest(
-                ApiContainer.get().traceAggregatorDynamicIndexesStatsList()
+                () => ApiContainer.get().traceAggregatorDynamicIndexesStatsList()
                     .then(response => {
                         this.traceDynamicIndexStats = response.data.data
                     })
@@ -49,7 +49,7 @@ export const useTraceDynamicIndexesStore = defineStore('traceDynamicIndexesStore
         },
         async deleteTraceDynamicIndex(id: string) {
             return await handleApiRequest(
-                ApiContainer.get().traceAggregatorDynamicIndexesDelete(id)
+                () => ApiContainer.get().traceAggregatorDynamicIndexesDelete(id)
                     .then(() => {
                         this.traceDynamicIndexes = this.traceDynamicIndexes.filter(
                             (index: TraceDynamicIndex) => index.id !== id

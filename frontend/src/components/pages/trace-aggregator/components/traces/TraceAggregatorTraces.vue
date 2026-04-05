@@ -28,27 +28,27 @@
             </el-text>
             <el-date-picker
                 v-else
-                v-model="traceAggregatorStore.payload.logging_from"
+                v-model="loggingFromModel"
                 type="datetime"
                 placeholder="From"
                 format="YYYY-MM-DD HH:mm:ss"
-                date-format="YYYY-MM-DD"
-                time-format="HH:mm:ss"
+                value-format="YYYY-MM-DD HH:mm:ss"
                 :shortcuts="dateTimeShortcuts"
                 style="width: 200px"
+                :show-now="false"
             />
           </el-space>
         </el-space>
         <el-space style="padding-right: 5px">
           <el-date-picker
-              v-model="traceAggregatorStore.payload.logging_to"
+              v-model="loggingToModel"
               type="datetime"
               placeholder="To"
               format="YYYY-MM-DD HH:mm:ss"
-              date-format="YYYY-MM-DD"
-              time-format="HH:mm:ss"
+              value-format="YYYY-MM-DD HH:mm:ss"
               :shortcuts="dateTimeShortcuts"
               style="width: 200px"
+              :show-now="false"
           />
         </el-space>
         <el-space>
@@ -188,7 +188,7 @@ import {useTraceAggregatorGraphStore} from "../graph/store/traceAggregatorGraphS
 import {useTraceAggregatorTimestampPeriodStore} from "../graph/store/traceAggregatorTimestampPeriodsStore.ts";
 import {useTraceAggregatorTimestampFieldsStore} from "../graph/store/traceAggregatorTimestampFieldsStore.ts";
 import {useTraceAggregatorDataStore} from "../trace/store/traceAggregatorDataStore.ts";
-import {makeStartOfDay, snackToTitle} from "../../../../../utils/helpers.ts";
+import {formatUtcDateTime, makeNow, makeStartOfDay, normalizeUtcDateTime, snackToTitle} from "../../../../../utils/helpers.ts";
 import {useTraceAdminStoresStore} from "../admin-stores/store/traceAdminStoresStore.ts";
 
 export default defineComponent({
@@ -210,6 +210,10 @@ export default defineComponent({
   data() {
     return {
       dateTimeShortcuts: [
+        {
+          text: 'Now',
+          value: () => this.setNow(),
+        },
         {
           text: 'Start of day',
           value: () => this.setStartOfDay(),
@@ -267,9 +271,29 @@ export default defineComponent({
     isCustomFromPreset() {
       return this.traceAggregatorStore.payload.logging_from_preset === PeriodPresetEnum.Custom
     },
+    loggingFromModel: {
+      get(): string {
+        return formatUtcDateTime(this.traceAggregatorStore.payload.logging_from)
+      },
+      set(value: string | null) {
+        this.traceAggregatorStore.payload.logging_from_preset = PeriodPresetEnum.Custom
+        this.traceAggregatorStore.payload.logging_from = normalizeUtcDateTime(value) ?? ''
+      }
+    },
+    loggingToModel: {
+      get(): string {
+        return formatUtcDateTime(this.traceAggregatorStore.payload.logging_to)
+      },
+      set(value: string | null) {
+        this.traceAggregatorStore.payload.logging_to = normalizeUtcDateTime(value) ?? ''
+      }
+    },
   },
   methods: {
-    setStartOfDay(): Date {
+    setNow(): string {
+      return makeNow()
+    },
+    setStartOfDay(): string {
       return makeStartOfDay()
     },
     onButtonSearchClick() {

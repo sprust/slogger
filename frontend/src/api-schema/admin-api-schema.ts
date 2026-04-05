@@ -1,5 +1,6 @@
 /* eslint-disable */
 /* tslint:disable */
+// @ts-nocheck
 /*
  * ---------------------------------------------------------------
  * ## THIS FILE WAS GENERATED VIA SWAGGER-TYPESCRIPT-API        ##
@@ -8,6 +9,180 @@
  * ## SOURCE: https://github.com/acacode/swagger-typescript-api ##
  * ---------------------------------------------------------------
  */
+
+export enum LoggingFromPresetEnum {
+  Custom = "custom",
+  LastHour = "last_hour",
+  Last2Hours = "last_2_hours",
+  Last3Hours = "last_3_hours",
+  Last6Hours = "last_6_hours",
+  Last12Hours = "last_12_hours",
+  LastDay = "last_day",
+  Last3Days = "last_3_days",
+  LastWeek = "last_week",
+  Last2Weeks = "last_2_weeks",
+  LastMonth = "last_month",
+}
+
+export enum DataCompEnum {
+  Value = "=",
+  Value1 = "!=",
+  Value2 = ">",
+  Value3 = ">=",
+  Value4 = "<",
+  Value5 = "<=",
+}
+
+export enum DataCompEnum1 {
+  Equals = "equals",
+  Contains = "contains",
+  Starts = "starts",
+  Ends = "ends",
+}
+
+export enum LoggingFromPresetEnum1 {
+  Custom = "custom",
+  LastHour = "last_hour",
+  Last2Hours = "last_2_hours",
+  Last3Hours = "last_3_hours",
+  Last6Hours = "last_6_hours",
+  Last12Hours = "last_12_hours",
+  LastDay = "last_day",
+  Last3Days = "last_3_days",
+  LastWeek = "last_week",
+  Last2Weeks = "last_2_weeks",
+  LastMonth = "last_month",
+}
+
+export enum DataCompEnum2 {
+  Value = "=",
+  Value1 = "!=",
+  Value2 = ">",
+  Value3 = ">=",
+  Value4 = "<",
+  Value5 = "<=",
+}
+
+export enum DataCompEnum3 {
+  Equals = "equals",
+  Contains = "contains",
+  Starts = "starts",
+  Ends = "ends",
+}
+
+export enum LoggingFromPresetEnum2 {
+  Custom = "custom",
+  LastHour = "last_hour",
+  Last2Hours = "last_2_hours",
+  Last3Hours = "last_3_hours",
+  Last6Hours = "last_6_hours",
+  Last12Hours = "last_12_hours",
+  LastDay = "last_day",
+  Last3Days = "last_3_days",
+  LastWeek = "last_week",
+  Last2Weeks = "last_2_weeks",
+  LastMonth = "last_month",
+}
+
+export enum DataCompEnum4 {
+  Value = "=",
+  Value1 = "!=",
+  Value2 = ">",
+  Value3 = ">=",
+  Value4 = "<",
+  Value5 = "<=",
+}
+
+export enum DataCompEnum5 {
+  Equals = "equals",
+  Contains = "contains",
+  Starts = "starts",
+  Ends = "ends",
+}
+
+export enum LoggingFromPresetEnum3 {
+  Custom = "custom",
+  LastHour = "last_hour",
+  Last2Hours = "last_2_hours",
+  Last3Hours = "last_3_hours",
+  Last6Hours = "last_6_hours",
+  Last12Hours = "last_12_hours",
+  LastDay = "last_day",
+  Last3Days = "last_3_days",
+  LastWeek = "last_week",
+  Last2Weeks = "last_2_weeks",
+  LastMonth = "last_month",
+}
+
+export enum DataCompEnum6 {
+  Value = "=",
+  Value1 = "!=",
+  Value2 = ">",
+  Value3 = ">=",
+  Value4 = "<",
+  Value5 = "<=",
+}
+
+export enum DataCompEnum7 {
+  Equals = "equals",
+  Contains = "contains",
+  Starts = "starts",
+  Ends = "ends",
+}
+
+export enum TimestampPeriodEnum {
+  Value5Minutes = "5 minutes",
+  Value30Minutes = "30 minutes",
+  Value1Hour = "1 hour",
+  Value4Hours = "4 hours",
+  Value12Hours = "12 hours",
+  Value1Day = "1 day",
+  Value3Days = "3 days",
+  Value7Days = "7 days",
+  Value15Days = "15 days",
+  Value1Month = "1 month",
+  Value3Months = "3 months",
+  Value6Month = "6 month",
+  Value1Year = "1 year",
+}
+
+export enum TimestampStepEnum {
+  S5 = "s5",
+  S10 = "s10",
+  S30 = "s30",
+  Min = "min",
+  Min5 = "min5",
+  Min10 = "min10",
+  Min30 = "min30",
+  H = "h",
+  H4 = "h4",
+  H12 = "h12",
+  D = "d",
+  M = "m",
+}
+
+export enum FieldsEnum {
+  Count = "count",
+  Duration = "duration",
+  Memory = "memory",
+  Cpu = "cpu",
+}
+
+export enum DataCompEnum8 {
+  Value = "=",
+  Value1 = "!=",
+  Value2 = ">",
+  Value3 = ">=",
+  Value4 = "<",
+  Value5 = "<=",
+}
+
+export enum DataCompEnum9 {
+  Equals = "equals",
+  Contains = "contains",
+  Starts = "starts",
+  Ends = "ends",
+}
 
 export namespace AdminApi {
   /**
@@ -41,7 +216,9 @@ export namespace AdminApi {
         api_token: string;
       };
     };
-  } /**
+  }
+
+  /**
  * No description
  * @name AuthLoginCreate
  * @request POST:/admin-api/auth/login
@@ -79,7 +256,9 @@ export namespace AdminApi {
         api_token: string;
       };
     };
-  } /**
+  }
+
+  /**
  * No description
  * @name DashboardDatabaseList
  * @request GET:/admin-api/dashboard/database
@@ -136,7 +315,9 @@ export namespace AdminApi {
         }[];
       }[];
     };
-  } /**
+  }
+
+  /**
  * No description
  * @name ToolsLinksList
  * @request GET:/admin-api/tools/links
@@ -161,7 +342,9 @@ export namespace AdminApi {
         url: string;
       }[];
     };
-  } /**
+  }
+
+  /**
  * No description
  * @name ServicesList
  * @request GET:/admin-api/services
@@ -186,7 +369,9 @@ export namespace AdminApi {
         name: string;
       }[];
     };
-  } /**
+  }
+
+  /**
  * No description
  * @name TraceAggregatorTracesCreate
  * @request POST:/admin-api/trace-aggregator/traces
@@ -244,18 +429,7 @@ export namespace AdminApi {
       service_ids?: number[];
       trace_id?: string | null;
       all_traces_in_tree?: boolean;
-      logging_from_preset?:
-        | "custom"
-        | "last_hour"
-        | "last_2_hours"
-        | "last_3_hours"
-        | "last_6_hours"
-        | "last_12_hours"
-        | "last_day"
-        | "last_3_days"
-        | "last_week"
-        | "last_2_weeks"
-        | "last_month";
+      logging_from_preset?: LoggingFromPresetEnum;
       /** @format date */
       logging_from?: string;
       /** @format date */
@@ -282,11 +456,11 @@ export namespace AdminApi {
           numeric?: {
             /** @format float */
             value?: number;
-            comp?: "=" | "!=" | ">" | ">=" | "<" | "<=";
+            comp?: DataCompEnum;
           };
           string?: {
             value?: string;
-            comp?: "equals" | "contains" | "starts" | "ends";
+            comp?: DataCompEnum1;
           };
           boolean?: {
             value?: boolean;
@@ -331,7 +505,9 @@ export namespace AdminApi {
         };
       };
     };
-  } /**
+  }
+
+  /**
  * No description
  * @name TraceAggregatorTracesTreeCreate
  * @request POST:/admin-api/trace-aggregator/traces/tree
@@ -376,13 +552,28 @@ export namespace AdminApi {
         logged_at: string;
       }[];
     };
-  } /**
+  }
+
+  /**
  * No description
  * @name TraceAggregatorTracesTreeContentCreate
  * @request POST:/admin-api/trace-aggregator/traces/tree/content
  * @secure
  * @response `200` `{
     data: {
+    state: {
+    root_trace_id: string,
+    version: string,
+    status: string,
+    count: number,
+    error?: string | null,
+    started_at?: string | null,
+    finished_at?: string | null,
+    created_at: string,
+    updated_at: string,
+
+},
+    content?: {
     count: number,
     services: ({
     id: number,
@@ -408,6 +599,8 @@ export namespace AdminApi {
 
 },
 
+},
+
 }` description
 */
   export namespace TraceAggregatorTracesTreeContentCreate {
@@ -420,27 +613,143 @@ export namespace AdminApi {
     export type RequestHeaders = {};
     export type ResponseBody = {
       data: {
-        count: number;
-        services: {
-          id: number;
-          name: string;
-          traces_count: number;
-        }[];
-        types: {
-          name: string;
-          traces_count: number;
-        }[];
-        tags: {
-          name: string;
-          traces_count: number;
-        }[];
-        statuses: {
-          name: string;
-          traces_count: number;
-        }[];
+        state: {
+          root_trace_id: string;
+          version: string;
+          status: string;
+          count: number;
+          error?: string | null;
+          started_at?: string | null;
+          finished_at?: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        content?: {
+          count: number;
+          services: {
+            id: number;
+            name: string;
+            traces_count: number;
+          }[];
+          types: {
+            name: string;
+            traces_count: number;
+          }[];
+          tags: {
+            name: string;
+            traces_count: number;
+          }[];
+          statuses: {
+            name: string;
+            traces_count: number;
+          }[];
+        };
       };
     };
-  } /**
+  }
+
+  /**
+ * No description
+ * @name TraceAggregatorTracesTreeProcessesList
+ * @request GET:/admin-api/trace-aggregator/traces/tree/processes
+ * @secure
+ * @response `200` `{
+    data: ({
+    root_trace_id: string,
+    version: string,
+    status: string,
+    count: number,
+    error?: string | null,
+    started_at?: string | null,
+    finished_at?: string | null,
+    created_at: string,
+    updated_at: string,
+
+})[],
+
+}` description
+*/
+  export namespace TraceAggregatorTracesTreeProcessesList {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        root_trace_id: string;
+        version: string;
+        status: string;
+        count: number;
+        error?: string | null;
+        started_at?: string | null;
+        finished_at?: string | null;
+        created_at: string;
+        updated_at: string;
+      }[];
+    };
+  }
+
+  /**
+ * No description
+ * @name TraceAggregatorTracesTreeProcessesCancelPartialUpdate
+ * @request PATCH:/admin-api/trace-aggregator/traces/tree/processes/cancel
+ * @secure
+ * @response `200` `{
+    data: {
+    root_trace_id: string,
+    version: string,
+    status: string,
+    count: number,
+    error?: string | null,
+    started_at?: string | null,
+    finished_at?: string | null,
+    created_at: string,
+    updated_at: string,
+
+},
+
+}` description
+*/
+  export namespace TraceAggregatorTracesTreeProcessesCancelPartialUpdate {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = {
+      root_trace_id: string;
+    };
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        root_trace_id: string;
+        version: string;
+        status: string;
+        count: number;
+        error?: string | null;
+        started_at?: string | null;
+        finished_at?: string | null;
+        created_at: string;
+        updated_at: string;
+      };
+    };
+  }
+
+  /**
+   * No description
+   * @name TraceAggregatorTracesTreeProcessesDeletePartialUpdate
+   * @request PATCH:/admin-api/trace-aggregator/traces/tree/processes/delete
+   * @secure
+   * @response `200` `any` description
+   */
+  export namespace TraceAggregatorTracesTreeProcessesDeletePartialUpdate {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = {
+      root_trace_id: string;
+    };
+    export type RequestHeaders = {};
+    export type ResponseBody = any;
+  }
+
+  /**
  * No description
  * @name TraceAggregatorTracesDetail
  * @request GET:/admin-api/trace-aggregator/traces/{traceId}
@@ -475,18 +784,24 @@ export namespace AdminApi {
     children?: ({
     key: string,
     value: string,
-  \** @maxItems 0 *\
+  /** @maxItems 0 *\/
     children?: (string)[] | null,
+    can_be_filtered: boolean,
 
 })[],
+    can_be_filtered: boolean,
 
 })[],
+    can_be_filtered: boolean,
 
 })[],
+    can_be_filtered: boolean,
 
 })[],
+    can_be_filtered: boolean,
 
 })[],
+    can_be_filtered: boolean,
 
 },
     duration?: number | null,
@@ -538,11 +853,17 @@ export namespace AdminApi {
                     value: string;
                     /** @maxItems 0 */
                     children?: string[] | null;
+                    can_be_filtered: boolean;
                   }[];
+                  can_be_filtered: boolean;
                 }[];
+                can_be_filtered: boolean;
               }[];
+              can_be_filtered: boolean;
             }[];
+            can_be_filtered: boolean;
           }[];
+          can_be_filtered: boolean;
         };
         duration?: number | null;
         memory?: number | null;
@@ -552,7 +873,9 @@ export namespace AdminApi {
         updated_at: string;
       };
     };
-  } /**
+  }
+
+  /**
  * No description
  * @name TraceAggregatorTracesProfilingCreate
  * @request POST:/admin-api/trace-aggregator/traces/{traceId}/profiling
@@ -612,10 +935,10 @@ export namespace AdminApi {
     children?: ({
     id: number,
     calling: string,
-  \** @maxItems 0 *\
+  /** @maxItems 0 *\/
     data: (string)[],
     recursionNodeId?: number | null,
-  \** @maxItems 0 *\
+  /** @maxItems 0 *\/
     children?: (string)[] | null,
 
 })[],
@@ -708,7 +1031,9 @@ export namespace AdminApi {
         }[];
       };
     };
-  } /**
+  }
+
+  /**
  * No description
  * @name TraceAggregatorTracesContentTypesCreate
  * @request POST:/admin-api/trace-aggregator/traces-content/types
@@ -729,18 +1054,7 @@ export namespace AdminApi {
       service_ids?: number[];
       /** @minLength 1 */
       text?: string | null;
-      logging_from_preset?:
-        | "custom"
-        | "last_hour"
-        | "last_2_hours"
-        | "last_3_hours"
-        | "last_6_hours"
-        | "last_12_hours"
-        | "last_day"
-        | "last_3_days"
-        | "last_week"
-        | "last_2_weeks"
-        | "last_month";
+      logging_from_preset?: LoggingFromPresetEnum1;
       /** @format date */
       logging_from?: string;
       /** @format date */
@@ -764,11 +1078,11 @@ export namespace AdminApi {
           numeric?: {
             /** @format float */
             value?: number;
-            comp?: "=" | "!=" | ">" | ">=" | "<" | "<=";
+            comp?: DataCompEnum2;
           };
           string?: {
             value?: string;
-            comp?: "equals" | "contains" | "starts" | "ends";
+            comp?: DataCompEnum3;
           };
           boolean?: {
             value?: boolean;
@@ -784,7 +1098,9 @@ export namespace AdminApi {
         count: number;
       }[];
     };
-  } /**
+  }
+
+  /**
  * No description
  * @name TraceAggregatorTracesContentTagsCreate
  * @request POST:/admin-api/trace-aggregator/traces-content/tags
@@ -806,18 +1122,7 @@ export namespace AdminApi {
       /** @minLength 1 */
       text?: string | null;
       types?: string[];
-      logging_from_preset?:
-        | "custom"
-        | "last_hour"
-        | "last_2_hours"
-        | "last_3_hours"
-        | "last_6_hours"
-        | "last_12_hours"
-        | "last_day"
-        | "last_3_days"
-        | "last_week"
-        | "last_2_weeks"
-        | "last_month";
+      logging_from_preset?: LoggingFromPresetEnum2;
       /** @format date */
       logging_from?: string;
       /** @format date */
@@ -841,11 +1146,11 @@ export namespace AdminApi {
           numeric?: {
             /** @format float */
             value?: number;
-            comp?: "=" | "!=" | ">" | ">=" | "<" | "<=";
+            comp?: DataCompEnum4;
           };
           string?: {
             value?: string;
-            comp?: "equals" | "contains" | "starts" | "ends";
+            comp?: DataCompEnum5;
           };
           boolean?: {
             value?: boolean;
@@ -861,7 +1166,9 @@ export namespace AdminApi {
         count: number;
       }[];
     };
-  } /**
+  }
+
+  /**
  * No description
  * @name TraceAggregatorTracesContentStatusesCreate
  * @request POST:/admin-api/trace-aggregator/traces-content/statuses
@@ -884,18 +1191,7 @@ export namespace AdminApi {
       text?: string | null;
       types?: string[];
       tags?: string[];
-      logging_from_preset?:
-        | "custom"
-        | "last_hour"
-        | "last_2_hours"
-        | "last_3_hours"
-        | "last_6_hours"
-        | "last_12_hours"
-        | "last_day"
-        | "last_3_days"
-        | "last_week"
-        | "last_2_weeks"
-        | "last_month";
+      logging_from_preset?: LoggingFromPresetEnum3;
       /** @format date */
       logging_from?: string;
       /** @format date */
@@ -919,11 +1215,11 @@ export namespace AdminApi {
           numeric?: {
             /** @format float */
             value?: number;
-            comp?: "=" | "!=" | ">" | ">=" | "<" | "<=";
+            comp?: DataCompEnum6;
           };
           string?: {
             value?: string;
-            comp?: "equals" | "contains" | "starts" | "ends";
+            comp?: DataCompEnum7;
           };
           boolean?: {
             value?: boolean;
@@ -939,7 +1235,9 @@ export namespace AdminApi {
         count: number;
       }[];
     };
-  } /**
+  }
+
+  /**
  * No description
  * @name TraceAggregatorTraceMetricsCreate
  * @request POST:/admin-api/trace-aggregator/trace-metrics
@@ -970,22 +1268,9 @@ export namespace AdminApi {
     export type RequestParams = {};
     export type RequestQuery = {};
     export type RequestBody = {
-      timestamp_period:
-        | "5 minutes"
-        | "30 minutes"
-        | "1 hour"
-        | "4 hours"
-        | "12 hours"
-        | "1 day"
-        | "3 days"
-        | "7 days"
-        | "15 days"
-        | "1 month"
-        | "3 months"
-        | "6 month"
-        | "1 year";
-      timestamp_step: "s5" | "s10" | "s30" | "min" | "min5" | "min10" | "min30" | "h" | "h4" | "h12" | "d" | "m";
-      fields?: ("count" | "duration" | "memory" | "cpu")[];
+      timestamp_period: TimestampPeriodEnum;
+      timestamp_step: TimestampStepEnum;
+      fields?: FieldsEnum[];
       data_fields?: string[];
       service_ids?: number[];
       /** @format date */
@@ -1012,11 +1297,11 @@ export namespace AdminApi {
           numeric?: {
             /** @format float */
             value?: number;
-            comp?: "=" | "!=" | ">" | ">=" | "<" | "<=";
+            comp?: DataCompEnum8;
           };
           string?: {
             value?: string;
-            comp?: "equals" | "contains" | "starts" | "ends";
+            comp?: DataCompEnum9;
           };
           boolean?: {
             value?: boolean;
@@ -1042,7 +1327,9 @@ export namespace AdminApi {
         }[];
       };
     };
-  } /**
+  }
+
+  /**
  * No description
  * @name TraceAggregatorTraceMetricsFieldsList
  * @request GET:/admin-api/trace-aggregator/trace-metrics/fields
@@ -1067,7 +1354,9 @@ export namespace AdminApi {
         value: string;
       }[];
     };
-  } /**
+  }
+
+  /**
  * No description
  * @name TraceAggregatorTraceTimestampPeriodsList
  * @request GET:/admin-api/trace-aggregator/trace-timestamp-periods
@@ -1106,7 +1395,9 @@ export namespace AdminApi {
         }[];
       }[];
     };
-  } /**
+  }
+
+  /**
  * No description
  * @name TraceAggregatorDynamicIndexesList
  * @request GET:/admin-api/trace-aggregator/dynamic-indexes
@@ -1154,7 +1445,9 @@ export namespace AdminApi {
         createdAt: string;
       }[];
     };
-  } /**
+  }
+
+  /**
  * No description
  * @name TraceAggregatorDynamicIndexesStatsList
  * @request GET:/admin-api/trace-aggregator/dynamic-indexes/stats
@@ -1193,6 +1486,7 @@ export namespace AdminApi {
       };
     };
   }
+
   /**
    * No description
    * @name TraceAggregatorDynamicIndexesDelete
@@ -1208,7 +1502,9 @@ export namespace AdminApi {
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody = void;
-  } /**
+  }
+
+  /**
  * No description
  * @name TraceAggregatorStatesList
  * @request GET:/admin-api/trace-aggregator/states
@@ -1264,7 +1560,9 @@ export namespace AdminApi {
         };
       };
     };
-  } /**
+  }
+
+  /**
  * No description
  * @name TraceAggregatorStatesCreate
  * @request POST:/admin-api/trace-aggregator/states
@@ -1306,6 +1604,7 @@ export namespace AdminApi {
       };
     };
   }
+
   /**
    * No description
    * @name TraceAggregatorStatesDelete
@@ -1321,148 +1620,18 @@ export namespace AdminApi {
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody = void;
-  } /**
- * No description
- * @name TraceCleanerSettingsList
- * @request GET:/admin-api/trace-cleaner/settings
- * @secure
- * @response `200` `{
-    data: ({
-    id: number,
-    days_lifetime: number,
-    type?: string | null,
-    only_data: boolean,
-    deleted: boolean,
-    created_at: string,
-    updated_at: string,
-
-})[],
-
-}` description
-*/
-  export namespace TraceCleanerSettingsList {
-    export type RequestParams = {};
-    export type RequestQuery = {};
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = {
-      data: {
-        id: number;
-        days_lifetime: number;
-        type?: string | null;
-        only_data: boolean;
-        deleted: boolean;
-        created_at: string;
-        updated_at: string;
-      }[];
-    };
-  } /**
- * No description
- * @name TraceCleanerSettingsCreate
- * @request POST:/admin-api/trace-cleaner/settings
- * @secure
- * @response `200` `{
-    data: {
-    id: number,
-    days_lifetime: number,
-    type?: string | null,
-    only_data: boolean,
-    deleted: boolean,
-    created_at: string,
-    updated_at: string,
-
-},
-
-}` description
-*/
-  export namespace TraceCleanerSettingsCreate {
-    export type RequestParams = {};
-    export type RequestQuery = {};
-    export type RequestBody = {
-      /** @min 1 */
-      days_life_time: number;
-      type?: string | null;
-      only_data: boolean;
-    };
-    export type RequestHeaders = {};
-    export type ResponseBody = {
-      data: {
-        id: number;
-        days_lifetime: number;
-        type?: string | null;
-        only_data: boolean;
-        deleted: boolean;
-        created_at: string;
-        updated_at: string;
-      };
-    };
-  } /**
- * No description
- * @name TraceCleanerSettingsPartialUpdate
- * @request PATCH:/admin-api/trace-cleaner/settings/{settingId}
- * @secure
- * @response `200` `{
-    data: {
-    id: number,
-    days_lifetime: number,
-    type?: string | null,
-    only_data: boolean,
-    deleted: boolean,
-    created_at: string,
-    updated_at: string,
-
-},
-
-}` description
-*/
-  export namespace TraceCleanerSettingsPartialUpdate {
-    export type RequestParams = {
-      settingId: any;
-    };
-    export type RequestQuery = {};
-    export type RequestBody = {
-      /** @min 1 */
-      days_life_time: number;
-      only_data: boolean;
-    };
-    export type RequestHeaders = {};
-    export type ResponseBody = {
-      data: {
-        id: number;
-        days_lifetime: number;
-        type?: string | null;
-        only_data: boolean;
-        deleted: boolean;
-        created_at: string;
-        updated_at: string;
-      };
-    };
   }
+
   /**
-   * No description
-   * @name TraceCleanerSettingsDelete
-   * @request DELETE:/admin-api/trace-cleaner/settings/{settingId}
-   * @secure
-   * @response `200` `void` description
-   */
-  export namespace TraceCleanerSettingsDelete {
-    export type RequestParams = {
-      settingId: any;
-    };
-    export type RequestQuery = {};
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = void;
-  } /**
  * No description
- * @name TraceCleanerSettingsProcessesDetail
- * @request GET:/admin-api/trace-cleaner/settings/{settingId}/processes
+ * @name TraceCleanerProcessesList
+ * @request GET:/admin-api/trace-cleaner/processes
  * @secure
  * @response `200` `{
     data: ({
     id: string,
-    setting_id: number,
-    cleared_count: number,
+    cleared_collections_count: number,
+    cleared_traces_count: number,
     error?: string | null,
     cleared_at?: string | null,
     created_at: string,
@@ -1472,25 +1641,25 @@ export namespace AdminApi {
 
 }` description
 */
-  export namespace TraceCleanerSettingsProcessesDetail {
-    export type RequestParams = {
-      settingId: any;
-    };
+  export namespace TraceCleanerProcessesList {
+    export type RequestParams = {};
     export type RequestQuery = {};
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody = {
       data: {
         id: string;
-        setting_id: number;
-        cleared_count: number;
+        cleared_collections_count: number;
+        cleared_traces_count: number;
         error?: string | null;
         cleared_at?: string | null;
         created_at: string;
         updated_at: string;
       }[];
     };
-  } /**
+  }
+
+  /**
  * No description
  * @name LogsList
  * @request GET:/admin-api/logs
@@ -1571,16 +1740,22 @@ export interface FullRequestParams extends Omit<RequestInit, "body"> {
   cancelToken?: CancelToken;
 }
 
-export type RequestParams = Omit<FullRequestParams, "body" | "method" | "query" | "path">;
+export type RequestParams = Omit<
+  FullRequestParams,
+  "body" | "method" | "query" | "path"
+>;
 
 export interface ApiConfig<SecurityDataType = unknown> {
   baseUrl?: string;
   baseApiParams?: Omit<RequestParams, "baseUrl" | "cancelToken" | "signal">;
-  securityWorker?: (securityData: SecurityDataType | null) => Promise<RequestParams | void> | RequestParams | void;
+  securityWorker?: (
+    securityData: SecurityDataType | null,
+  ) => Promise<RequestParams | void> | RequestParams | void;
   customFetch?: typeof fetch;
 }
 
-export interface HttpResponse<D extends unknown, E extends unknown = unknown> extends Response {
+export interface HttpResponse<D extends unknown, E extends unknown = unknown>
+  extends Response {
   data: D;
   error: E;
 }
@@ -1589,6 +1764,7 @@ type CancelToken = Symbol | string | number;
 
 export enum ContentType {
   Json = "application/json",
+  JsonApi = "application/vnd.api+json",
   FormData = "multipart/form-data",
   UrlEncoded = "application/x-www-form-urlencoded",
   Text = "text/plain",
@@ -1599,7 +1775,8 @@ export class HttpClient<SecurityDataType = unknown> {
   private securityData: SecurityDataType | null = null;
   private securityWorker?: ApiConfig<SecurityDataType>["securityWorker"];
   private abortControllers = new Map<CancelToken, AbortController>();
-  private customFetch = (...fetchParams: Parameters<typeof fetch>) => fetch(...fetchParams);
+  private customFetch = (...fetchParams: Parameters<typeof fetch>) =>
+    fetch(...fetchParams);
 
   private baseApiParams: RequestParams = {
     credentials: "same-origin",
@@ -1632,9 +1809,15 @@ export class HttpClient<SecurityDataType = unknown> {
 
   protected toQueryString(rawQuery?: QueryParamsType): string {
     const query = rawQuery || {};
-    const keys = Object.keys(query).filter((key) => "undefined" !== typeof query[key]);
+    const keys = Object.keys(query).filter(
+      (key) => "undefined" !== typeof query[key],
+    );
     return keys
-      .map((key) => (Array.isArray(query[key]) ? this.addArrayQueryParam(query, key) : this.addQueryParam(query, key)))
+      .map((key) =>
+        Array.isArray(query[key])
+          ? this.addArrayQueryParam(query, key)
+          : this.addQueryParam(query, key),
+      )
       .join("&");
   }
 
@@ -1645,25 +1828,42 @@ export class HttpClient<SecurityDataType = unknown> {
 
   private contentFormatters: Record<ContentType, (input: any) => any> = {
     [ContentType.Json]: (input: any) =>
-      input !== null && (typeof input === "object" || typeof input === "string") ? JSON.stringify(input) : input,
-    [ContentType.Text]: (input: any) => (input !== null && typeof input !== "string" ? JSON.stringify(input) : input),
-    [ContentType.FormData]: (input: any) =>
-      Object.keys(input || {}).reduce((formData, key) => {
+      input !== null && (typeof input === "object" || typeof input === "string")
+        ? JSON.stringify(input)
+        : input,
+    [ContentType.JsonApi]: (input: any) =>
+      input !== null && (typeof input === "object" || typeof input === "string")
+        ? JSON.stringify(input)
+        : input,
+    [ContentType.Text]: (input: any) =>
+      input !== null && typeof input !== "string"
+        ? JSON.stringify(input)
+        : input,
+    [ContentType.FormData]: (input: any) => {
+      if (input instanceof FormData) {
+        return input;
+      }
+
+      return Object.keys(input || {}).reduce((formData, key) => {
         const property = input[key];
         formData.append(
           key,
           property instanceof Blob
             ? property
             : typeof property === "object" && property !== null
-            ? JSON.stringify(property)
-            : `${property}`,
+              ? JSON.stringify(property)
+              : `${property}`,
         );
         return formData;
-      }, new FormData()),
+      }, new FormData());
+    },
     [ContentType.UrlEncoded]: (input: any) => this.toQueryString(input),
   };
 
-  protected mergeRequestParams(params1: RequestParams, params2?: RequestParams): RequestParams {
+  protected mergeRequestParams(
+    params1: RequestParams,
+    params2?: RequestParams,
+  ): RequestParams {
     return {
       ...this.baseApiParams,
       ...params1,
@@ -1676,7 +1876,9 @@ export class HttpClient<SecurityDataType = unknown> {
     };
   }
 
-  protected createAbortSignal = (cancelToken: CancelToken): AbortSignal | undefined => {
+  protected createAbortSignal = (
+    cancelToken: CancelToken,
+  ): AbortSignal | undefined => {
     if (this.abortControllers.has(cancelToken)) {
       const abortController = this.abortControllers.get(cancelToken);
       if (abortController) {
@@ -1720,22 +1922,34 @@ export class HttpClient<SecurityDataType = unknown> {
     const payloadFormatter = this.contentFormatters[type || ContentType.Json];
     const responseFormat = format || requestParams.format;
 
-    return this.customFetch(`${baseUrl || this.baseUrl || ""}${path}${queryString ? `?${queryString}` : ""}`, {
-      ...requestParams,
-      headers: {
-        ...(requestParams.headers || {}),
-        ...(type && type !== ContentType.FormData ? { "Content-Type": type } : {}),
+    return this.customFetch(
+      `${baseUrl || this.baseUrl || ""}${path}${queryString ? `?${queryString}` : ""}`,
+      {
+        ...requestParams,
+        headers: {
+          ...(requestParams.headers || {}),
+          ...(type && type !== ContentType.FormData
+            ? { "Content-Type": type }
+            : {}),
+        },
+        signal:
+          (cancelToken
+            ? this.createAbortSignal(cancelToken)
+            : requestParams.signal) || null,
+        body:
+          typeof body === "undefined" || body === null
+            ? null
+            : payloadFormatter(body),
       },
-      signal: cancelToken ? this.createAbortSignal(cancelToken) : requestParams.signal,
-      body: typeof body === "undefined" || body === null ? null : payloadFormatter(body),
-    }).then(async (response) => {
+    ).then(async (response) => {
       const r = response as HttpResponse<T, E>;
       r.data = null as unknown as T;
       r.error = null as unknown as E;
 
+      const responseToParse = responseFormat ? response.clone() : response;
       const data = !responseFormat
         ? r
-        : await response[responseFormat]()
+        : await responseToParse[responseFormat]()
             .then((data) => {
               if (r.ok) {
                 r.data = data;
@@ -1763,7 +1977,9 @@ export class HttpClient<SecurityDataType = unknown> {
  * @title slogger-api-scheme
  * @version 0.1
  */
-export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
+export class Api<
+  SecurityDataType extends unknown,
+> extends HttpClient<SecurityDataType> {
   adminApi = {
     /**
  * No description
@@ -2037,18 +2253,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         service_ids?: number[];
         trace_id?: string | null;
         all_traces_in_tree?: boolean;
-        logging_from_preset?:
-          | "custom"
-          | "last_hour"
-          | "last_2_hours"
-          | "last_3_hours"
-          | "last_6_hours"
-          | "last_12_hours"
-          | "last_day"
-          | "last_3_days"
-          | "last_week"
-          | "last_2_weeks"
-          | "last_month";
+        logging_from_preset?: LoggingFromPresetEnum;
         /** @format date */
         logging_from?: string;
         /** @format date */
@@ -2075,11 +2280,11 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
             numeric?: {
               /** @format float */
               value?: number;
-              comp?: "=" | "!=" | ">" | ">=" | "<" | "<=";
+              comp?: DataCompEnum;
             };
             string?: {
               value?: string;
-              comp?: "equals" | "contains" | "starts" | "ends";
+              comp?: DataCompEnum1;
             };
             boolean?: {
               value?: boolean;
@@ -2202,6 +2407,19 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
  * @secure
  * @response `200` `{
     data: {
+    state: {
+    root_trace_id: string,
+    version: string,
+    status: string,
+    count: number,
+    error?: string | null,
+    started_at?: string | null,
+    finished_at?: string | null,
+    created_at: string,
+    updated_at: string,
+
+},
+    content?: {
     count: number,
     services: ({
     id: number,
@@ -2227,6 +2445,8 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
 
 },
 
+},
+
 }` description
  */
     traceAggregatorTracesTreeContentCreate: (
@@ -2239,30 +2459,166 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       this.request<
         {
           data: {
-            count: number;
-            services: {
-              id: number;
-              name: string;
-              traces_count: number;
-            }[];
-            types: {
-              name: string;
-              traces_count: number;
-            }[];
-            tags: {
-              name: string;
-              traces_count: number;
-            }[];
-            statuses: {
-              name: string;
-              traces_count: number;
-            }[];
+            state: {
+              root_trace_id: string;
+              version: string;
+              status: string;
+              count: number;
+              error?: string | null;
+              started_at?: string | null;
+              finished_at?: string | null;
+              created_at: string;
+              updated_at: string;
+            };
+            content?: {
+              count: number;
+              services: {
+                id: number;
+                name: string;
+                traces_count: number;
+              }[];
+              types: {
+                name: string;
+                traces_count: number;
+              }[];
+              tags: {
+                name: string;
+                traces_count: number;
+              }[];
+              statuses: {
+                name: string;
+                traces_count: number;
+              }[];
+            };
           };
         },
         any
       >({
         path: `/admin-api/trace-aggregator/traces/tree/content`,
         method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name TraceAggregatorTracesTreeProcessesList
+ * @request GET:/admin-api/trace-aggregator/traces/tree/processes
+ * @secure
+ * @response `200` `{
+    data: ({
+    root_trace_id: string,
+    version: string,
+    status: string,
+    count: number,
+    error?: string | null,
+    started_at?: string | null,
+    finished_at?: string | null,
+    created_at: string,
+    updated_at: string,
+
+})[],
+
+}` description
+ */
+    traceAggregatorTracesTreeProcessesList: (params: RequestParams = {}) =>
+      this.request<
+        {
+          data: {
+            root_trace_id: string;
+            version: string;
+            status: string;
+            count: number;
+            error?: string | null;
+            started_at?: string | null;
+            finished_at?: string | null;
+            created_at: string;
+            updated_at: string;
+          }[];
+        },
+        any
+      >({
+        path: `/admin-api/trace-aggregator/traces/tree/processes`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name TraceAggregatorTracesTreeProcessesCancelPartialUpdate
+ * @request PATCH:/admin-api/trace-aggregator/traces/tree/processes/cancel
+ * @secure
+ * @response `200` `{
+    data: {
+    root_trace_id: string,
+    version: string,
+    status: string,
+    count: number,
+    error?: string | null,
+    started_at?: string | null,
+    finished_at?: string | null,
+    created_at: string,
+    updated_at: string,
+
+},
+
+}` description
+ */
+    traceAggregatorTracesTreeProcessesCancelPartialUpdate: (
+      data: {
+        root_trace_id: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          data: {
+            root_trace_id: string;
+            version: string;
+            status: string;
+            count: number;
+            error?: string | null;
+            started_at?: string | null;
+            finished_at?: string | null;
+            created_at: string;
+            updated_at: string;
+          };
+        },
+        any
+      >({
+        path: `/admin-api/trace-aggregator/traces/tree/processes/cancel`,
+        method: "PATCH",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @name TraceAggregatorTracesTreeProcessesDeletePartialUpdate
+     * @request PATCH:/admin-api/trace-aggregator/traces/tree/processes/delete
+     * @secure
+     * @response `200` `any` description
+     */
+    traceAggregatorTracesTreeProcessesDeletePartialUpdate: (
+      data: {
+        root_trace_id: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<any, any>({
+        path: `/admin-api/trace-aggregator/traces/tree/processes/delete`,
+        method: "PATCH",
         body: data,
         secure: true,
         type: ContentType.Json,
@@ -2306,18 +2662,24 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     children?: ({
     key: string,
     value: string,
-  \** @maxItems 0 *\
+  /** @maxItems 0 *\/
     children?: (string)[] | null,
+    can_be_filtered: boolean,
 
 })[],
+    can_be_filtered: boolean,
 
 })[],
+    can_be_filtered: boolean,
 
 })[],
+    can_be_filtered: boolean,
 
 })[],
+    can_be_filtered: boolean,
 
 })[],
+    can_be_filtered: boolean,
 
 },
     duration?: number | null,
@@ -2364,11 +2726,17 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
                         value: string;
                         /** @maxItems 0 */
                         children?: string[] | null;
+                        can_be_filtered: boolean;
                       }[];
+                      can_be_filtered: boolean;
                     }[];
+                    can_be_filtered: boolean;
                   }[];
+                  can_be_filtered: boolean;
                 }[];
+                can_be_filtered: boolean;
               }[];
+              can_be_filtered: boolean;
             };
             duration?: number | null;
             memory?: number | null;
@@ -2448,10 +2816,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     children?: ({
     id: number,
     calling: string,
-  \** @maxItems 0 *\
+  /** @maxItems 0 *\/
     data: (string)[],
     recursionNodeId?: number | null,
-  \** @maxItems 0 *\
+  /** @maxItems 0 *\/
     children?: (string)[] | null,
 
 })[],
@@ -2574,18 +2942,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         service_ids?: number[];
         /** @minLength 1 */
         text?: string | null;
-        logging_from_preset?:
-          | "custom"
-          | "last_hour"
-          | "last_2_hours"
-          | "last_3_hours"
-          | "last_6_hours"
-          | "last_12_hours"
-          | "last_day"
-          | "last_3_days"
-          | "last_week"
-          | "last_2_weeks"
-          | "last_month";
+        logging_from_preset?: LoggingFromPresetEnum1;
         /** @format date */
         logging_from?: string;
         /** @format date */
@@ -2609,11 +2966,11 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
             numeric?: {
               /** @format float */
               value?: number;
-              comp?: "=" | "!=" | ">" | ">=" | "<" | "<=";
+              comp?: DataCompEnum2;
             };
             string?: {
               value?: string;
-              comp?: "equals" | "contains" | "starts" | "ends";
+              comp?: DataCompEnum3;
             };
             boolean?: {
               value?: boolean;
@@ -2663,18 +3020,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         /** @minLength 1 */
         text?: string | null;
         types?: string[];
-        logging_from_preset?:
-          | "custom"
-          | "last_hour"
-          | "last_2_hours"
-          | "last_3_hours"
-          | "last_6_hours"
-          | "last_12_hours"
-          | "last_day"
-          | "last_3_days"
-          | "last_week"
-          | "last_2_weeks"
-          | "last_month";
+        logging_from_preset?: LoggingFromPresetEnum2;
         /** @format date */
         logging_from?: string;
         /** @format date */
@@ -2698,11 +3044,11 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
             numeric?: {
               /** @format float */
               value?: number;
-              comp?: "=" | "!=" | ">" | ">=" | "<" | "<=";
+              comp?: DataCompEnum4;
             };
             string?: {
               value?: string;
-              comp?: "equals" | "contains" | "starts" | "ends";
+              comp?: DataCompEnum5;
             };
             boolean?: {
               value?: boolean;
@@ -2753,18 +3099,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         text?: string | null;
         types?: string[];
         tags?: string[];
-        logging_from_preset?:
-          | "custom"
-          | "last_hour"
-          | "last_2_hours"
-          | "last_3_hours"
-          | "last_6_hours"
-          | "last_12_hours"
-          | "last_day"
-          | "last_3_days"
-          | "last_week"
-          | "last_2_weeks"
-          | "last_month";
+        logging_from_preset?: LoggingFromPresetEnum3;
         /** @format date */
         logging_from?: string;
         /** @format date */
@@ -2788,11 +3123,11 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
             numeric?: {
               /** @format float */
               value?: number;
-              comp?: "=" | "!=" | ">" | ">=" | "<" | "<=";
+              comp?: DataCompEnum6;
             };
             string?: {
               value?: string;
-              comp?: "equals" | "contains" | "starts" | "ends";
+              comp?: DataCompEnum7;
             };
             boolean?: {
               value?: boolean;
@@ -2851,22 +3186,9 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
  */
     traceAggregatorTraceMetricsCreate: (
       data: {
-        timestamp_period:
-          | "5 minutes"
-          | "30 minutes"
-          | "1 hour"
-          | "4 hours"
-          | "12 hours"
-          | "1 day"
-          | "3 days"
-          | "7 days"
-          | "15 days"
-          | "1 month"
-          | "3 months"
-          | "6 month"
-          | "1 year";
-        timestamp_step: "s5" | "s10" | "s30" | "min" | "min5" | "min10" | "min30" | "h" | "h4" | "h12" | "d" | "m";
-        fields?: ("count" | "duration" | "memory" | "cpu")[];
+        timestamp_period: TimestampPeriodEnum;
+        timestamp_step: TimestampStepEnum;
+        fields?: FieldsEnum[];
         data_fields?: string[];
         service_ids?: number[];
         /** @format date */
@@ -2893,11 +3215,11 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
             numeric?: {
               /** @format float */
               value?: number;
-              comp?: "=" | "!=" | ">" | ">=" | "<" | "<=";
+              comp?: DataCompEnum8;
             };
             string?: {
               value?: string;
-              comp?: "equals" | "contains" | "starts" | "ends";
+              comp?: DataCompEnum9;
             };
             boolean?: {
               value?: boolean;
@@ -3122,7 +3444,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @secure
      * @response `200` `void` description
      */
-    traceAggregatorDynamicIndexesDelete: (id: any, params: RequestParams = {}) =>
+    traceAggregatorDynamicIndexesDelete: (
+      id: any,
+      params: RequestParams = {},
+    ) =>
       this.request<void, any>({
         path: `/admin-api/trace-aggregator/dynamic-indexes/${id}`,
         method: "DELETE",
@@ -3269,176 +3594,14 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     /**
  * No description
  *
- * @name TraceCleanerSettingsList
- * @request GET:/admin-api/trace-cleaner/settings
- * @secure
- * @response `200` `{
-    data: ({
-    id: number,
-    days_lifetime: number,
-    type?: string | null,
-    only_data: boolean,
-    deleted: boolean,
-    created_at: string,
-    updated_at: string,
-
-})[],
-
-}` description
- */
-    traceCleanerSettingsList: (params: RequestParams = {}) =>
-      this.request<
-        {
-          data: {
-            id: number;
-            days_lifetime: number;
-            type?: string | null;
-            only_data: boolean;
-            deleted: boolean;
-            created_at: string;
-            updated_at: string;
-          }[];
-        },
-        any
-      >({
-        path: `/admin-api/trace-cleaner/settings`,
-        method: "GET",
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-
-    /**
- * No description
- *
- * @name TraceCleanerSettingsCreate
- * @request POST:/admin-api/trace-cleaner/settings
- * @secure
- * @response `200` `{
-    data: {
-    id: number,
-    days_lifetime: number,
-    type?: string | null,
-    only_data: boolean,
-    deleted: boolean,
-    created_at: string,
-    updated_at: string,
-
-},
-
-}` description
- */
-    traceCleanerSettingsCreate: (
-      data: {
-        /** @min 1 */
-        days_life_time: number;
-        type?: string | null;
-        only_data: boolean;
-      },
-      params: RequestParams = {},
-    ) =>
-      this.request<
-        {
-          data: {
-            id: number;
-            days_lifetime: number;
-            type?: string | null;
-            only_data: boolean;
-            deleted: boolean;
-            created_at: string;
-            updated_at: string;
-          };
-        },
-        any
-      >({
-        path: `/admin-api/trace-cleaner/settings`,
-        method: "POST",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
- * No description
- *
- * @name TraceCleanerSettingsPartialUpdate
- * @request PATCH:/admin-api/trace-cleaner/settings/{settingId}
- * @secure
- * @response `200` `{
-    data: {
-    id: number,
-    days_lifetime: number,
-    type?: string | null,
-    only_data: boolean,
-    deleted: boolean,
-    created_at: string,
-    updated_at: string,
-
-},
-
-}` description
- */
-    traceCleanerSettingsPartialUpdate: (
-      settingId: any,
-      data: {
-        /** @min 1 */
-        days_life_time: number;
-        only_data: boolean;
-      },
-      params: RequestParams = {},
-    ) =>
-      this.request<
-        {
-          data: {
-            id: number;
-            days_lifetime: number;
-            type?: string | null;
-            only_data: boolean;
-            deleted: boolean;
-            created_at: string;
-            updated_at: string;
-          };
-        },
-        any
-      >({
-        path: `/admin-api/trace-cleaner/settings/${settingId}`,
-        method: "PATCH",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @name TraceCleanerSettingsDelete
-     * @request DELETE:/admin-api/trace-cleaner/settings/{settingId}
-     * @secure
-     * @response `200` `void` description
-     */
-    traceCleanerSettingsDelete: (settingId: any, params: RequestParams = {}) =>
-      this.request<void, any>({
-        path: `/admin-api/trace-cleaner/settings/${settingId}`,
-        method: "DELETE",
-        secure: true,
-        ...params,
-      }),
-
-    /**
- * No description
- *
- * @name TraceCleanerSettingsProcessesDetail
- * @request GET:/admin-api/trace-cleaner/settings/{settingId}/processes
+ * @name TraceCleanerProcessesList
+ * @request GET:/admin-api/trace-cleaner/processes
  * @secure
  * @response `200` `{
     data: ({
     id: string,
-    setting_id: number,
-    cleared_count: number,
+    cleared_collections_count: number,
+    cleared_traces_count: number,
     error?: string | null,
     cleared_at?: string | null,
     created_at: string,
@@ -3448,13 +3611,13 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
 
 }` description
  */
-    traceCleanerSettingsProcessesDetail: (settingId: any, params: RequestParams = {}) =>
+    traceCleanerProcessesList: (params: RequestParams = {}) =>
       this.request<
         {
           data: {
             id: string;
-            setting_id: number;
-            cleared_count: number;
+            cleared_collections_count: number;
+            cleared_traces_count: number;
             error?: string | null;
             cleared_at?: string | null;
             created_at: string;
@@ -3463,7 +3626,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         },
         any
       >({
-        path: `/admin-api/trace-cleaner/settings/${settingId}/processes`,
+        path: `/admin-api/trace-cleaner/processes`,
         method: "GET",
         secure: true,
         format: "json",

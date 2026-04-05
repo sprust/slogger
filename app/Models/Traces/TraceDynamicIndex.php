@@ -28,7 +28,7 @@ class TraceDynamicIndex extends AbstractTraceModel
         'actualUntilAt' => 'datetime',
     ];
 
-    function getCollectionName(): string
+    public function getCollectionName(): string
     {
         return 'traceDynamicIndexes';
     }

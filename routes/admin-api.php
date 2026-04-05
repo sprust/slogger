@@ -4,7 +4,6 @@ use App\Modules\Auth\Infrastructure\Http\Controllers\LoginController;
 use App\Modules\Auth\Infrastructure\Http\Controllers\MeController;
 use App\Modules\Auth\Infrastructure\Http\Middlewares\AuthMiddleware;
 use App\Modules\Cleaner\Infrastructure\Http\Controllers\ProcessController;
-use App\Modules\Cleaner\Infrastructure\Http\Controllers\SettingController;
 use App\Modules\Dashboard\Infrastructure\Http\Controllers\DatabaseStatController;
 use App\Modules\Logs\Infrastructure\Http\Controllers\LogController;
 use App\Modules\Service\Infrastructure\Http\Controllers\ServiceController;
@@ -17,6 +16,7 @@ use App\Modules\Trace\Infrastructure\Http\Controllers\TraceProfilingController;
 use App\Modules\Trace\Infrastructure\Http\Controllers\TraceTimestampPeriodsController;
 use App\Modules\Trace\Infrastructure\Http\Controllers\TraceTimestampsController;
 use App\Modules\Trace\Infrastructure\Http\Controllers\TraceTreeController;
+use App\Modules\Trace\Infrastructure\Http\Controllers\TraceTreeStateController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('/auth')
@@ -54,6 +54,9 @@ Route::prefix('/trace-aggregator')
 
                 Route::post('/tree', [TraceTreeController::class, 'tree'])->name('tree');
                 Route::post('/tree/content', [TraceTreeController::class, 'content'])->name('content');
+                Route::get('/tree/processes', [TraceTreeStateController::class, 'processes'])->name('processes');
+                Route::patch('/tree/processes/cancel', [TraceTreeStateController::class, 'cancelProcess'])->name('processes.cancel');
+                Route::patch('/tree/processes/delete', [TraceTreeStateController::class, 'deleteProcess'])->name('processes.delete');
 
                 Route::prefix('{traceId}')
                     ->group(function () {
@@ -103,20 +106,8 @@ Route::prefix('/trace-aggregator')
 Route::prefix('/trace-cleaner')
     ->as('trace-cleaner.')
     ->group(function () {
-        Route::prefix('/settings')
-            ->as('settings.')
-            ->group(function () {
-                Route::get('/', [SettingController::class, 'index'])
-                    ->name('index');
-                Route::post('/', [SettingController::class, 'store'])
-                    ->name('store');
-                Route::patch('/{settingId}', [SettingController::class, 'update'])
-                    ->name('update');
-                Route::delete('/{settingId}', [SettingController::class, 'destroy'])
-                    ->name('destroy');
-                Route::get('/{settingId}/processes', [ProcessController::class, 'index'])
-                    ->name('processes');
-            });
+        Route::get('/processes', [ProcessController::class, 'index'])
+            ->name('processes');
     });
 
 Route::prefix('/logs')

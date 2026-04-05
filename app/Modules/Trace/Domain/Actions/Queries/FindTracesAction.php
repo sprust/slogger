@@ -5,10 +5,9 @@ declare(strict_types=1);
 namespace App\Modules\Trace\Domain\Actions\Queries;
 
 use App\Modules\Common\Entities\PaginationInfoObject;
-use App\Modules\Trace\Contracts\Actions\Queries\FindTracesActionInterface;
-use App\Modules\Trace\Contracts\Actions\Queries\FindTraceServicesActionInterface;
-use App\Modules\Trace\Contracts\Repositories\TraceRepositoryInterface;
-use App\Modules\Trace\Contracts\Repositories\TraceTreeRepositoryInterface;
+use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexErrorException;
+use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexInProcessException;
+use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexNotInitException;
 use App\Modules\Trace\Domain\Services\TraceDynamicIndexInitializer;
 use App\Modules\Trace\Entities\Trace\Data\TraceDataAdditionalFieldObject;
 use App\Modules\Trace\Entities\Trace\Data\TraceDataObject;
@@ -18,21 +17,28 @@ use App\Modules\Trace\Entities\Trace\TraceItemTraceObject;
 use App\Modules\Trace\Entities\Trace\TraceServiceObject;
 use App\Modules\Trace\Parameters\TraceFindParameters;
 use App\Modules\Trace\Repositories\Dto\Trace\TraceDto;
+use App\Modules\Trace\Repositories\TraceRepository;
+use App\Modules\Trace\Repositories\TraceTreeRepository;
 use Illuminate\Support\Arr;
 
-readonly class FindTracesAction implements FindTracesActionInterface
+readonly class FindTracesAction
 {
     private int $maxPerPage;
 
     public function __construct(
-        private TraceRepositoryInterface $traceRepository,
-        private TraceTreeRepositoryInterface $traceTreeRepository,
-        private FindTraceServicesActionInterface $findTraceServicesAction,
+        private TraceRepository $traceRepository,
+        private TraceTreeRepository $traceTreeRepository,
+        private FindTraceServicesAction $findTraceServicesAction,
         private TraceDynamicIndexInitializer $traceDynamicIndexInitializer
     ) {
         $this->maxPerPage = 20;
     }
 
+    /**
+     * @throws TraceDynamicIndexErrorException
+     * @throws TraceDynamicIndexInProcessException
+     * @throws TraceDynamicIndexNotInitException
+     */
     public function handle(TraceFindParameters $parameters): TraceItemObjects
     {
         $perPage = min($parameters->perPage ?: $this->maxPerPage, $this->maxPerPage);
@@ -60,13 +66,26 @@ readonly class FindTracesAction implements FindTracesActionInterface
             } else {
                 $parentTraceId = $this->traceTreeRepository->findParentTraceId($traceDto->traceId);
 
-                $traceIds = $parentTraceId
-                    ? $this->traceTreeRepository->findTraceIdsInTreeByParentTraceId($parentTraceId)
-                    : [];
+                if ($parentTraceId === null) {
+                    $traceIds = [];
+                } else {
+                    $traceIds[] = $parentTraceId;
 
-                $traceIds[] = $parentTraceId;
+                    $treeTraceIds = $this->traceTreeRepository->findTraceIdsInTreeByParentTraceId(
+                        traceId: $parentTraceId,
+                        batchCount: 300
+                    );
+
+                    foreach ($treeTraceIds as $treeTraceIdsChunk) {
+                        foreach ($treeTraceIdsChunk as $treeTraceId) {
+                            $traceIds[] = $treeTraceId;
+                        }
+                    }
+                }
             }
         }
+
+        $traceIds = ($traceIds === null) ? null : array_filter($traceIds);
 
         $this->traceDynamicIndexInitializer->init(
             serviceIds: $parameters->serviceIds,
@@ -175,9 +194,9 @@ readonly class FindTracesAction implements FindTracesActionInterface
         $additionalFieldValues = [];
 
         foreach ($additionalFields as $additionalField) {
-            $currentData = null;
-            $currentChildren = $data->children;
-            $currentKey = '';
+            $currentData     = null;
+            $currentChildren = $data->children ?: [];
+            $currentKey      = '';
 
             foreach (explode('.', $additionalField) as $key) {
                 $currentKey .= (($currentKey ? '.' : '') . $key);

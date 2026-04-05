@@ -102,7 +102,7 @@ export const useTraceAdminStoresStore = defineStore('traceAdminStoresStore', {
             this.findParameters.version = stateVersion
 
             return await handleApiRequest(
-                ApiContainer.get().traceAggregatorStatesList(this.findParameters)
+                () => ApiContainer.get().traceAggregatorStatesList(this.findParameters)
                     .then(response => {
                         this.deletedIds = {}
                         this.adminStores = response.data.data
@@ -145,12 +145,12 @@ export const useTraceAdminStoresStore = defineStore('traceAdminStoresStore', {
         },
         async createAdminStore() {
             return await handleApiRequest(
-                ApiContainer.get().traceAggregatorStatesCreate(this.createParameters)
+                () => ApiContainer.get().traceAggregatorStatesCreate(this.createParameters)
             )
         },
         async deleteAdminStore(id: string) {
             return await handleApiRequest(
-                ApiContainer.get().traceAggregatorStatesDelete(id)
+                () => ApiContainer.get().traceAggregatorStatesDelete(id)
                     .then(() => {
                         this.deletedIds[id] = true
 

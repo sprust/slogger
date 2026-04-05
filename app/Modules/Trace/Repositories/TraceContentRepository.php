@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Modules\Trace\Repositories;
 
-use App\Modules\Trace\Contracts\Repositories\TraceContentRepositoryInterface;
 use App\Modules\Trace\Entities\Trace\TraceStringFieldObject;
 use App\Modules\Trace\Parameters\Data\TraceDataFilterParameters;
 use App\Modules\Trace\Repositories\Services\PeriodicTraceService;
@@ -13,7 +12,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use SConcur\WaitGroup;
 
-readonly class TraceContentRepository implements TraceContentRepositoryInterface
+readonly class TraceContentRepository
 {
     public function __construct(
         private TracePipelineBuilder $tracePipelineBuilder,
@@ -21,6 +20,11 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
     ) {
     }
 
+    /**
+     * @param int[] $serviceIds
+     *
+     * @return TraceStringFieldObject[]
+     */
     public function findTypes(
         array $serviceIds = [],
         ?string $text = null,
@@ -89,6 +93,12 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
         );
     }
 
+    /**
+     * @param int[]    $serviceIds
+     * @param string[] $types
+     *
+     * @return TraceStringFieldObject[]
+     */
     public function findTags(
         array $serviceIds = [],
         ?string $text = null,
@@ -183,6 +193,13 @@ readonly class TraceContentRepository implements TraceContentRepositoryInterface
         );
     }
 
+    /**
+     * @param int[]    $serviceIds
+     * @param string[] $types
+     * @param string[] $tags
+     *
+     * @return TraceStringFieldObject[]
+     */
     public function findStatuses(
         array $serviceIds = [],
         ?string $text = null,

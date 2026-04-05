@@ -4,7 +4,7 @@
       label-position="left"
   >
     <el-form-item label="Logged at">
-      {{ convertDateStringToLocal(trace.logged_at) }}
+      {{ trace.logged_at }}
     </el-form-item>
     <el-form-item label="Id">
       {{ trace.trace_id }}
@@ -36,7 +36,6 @@
 import {defineComponent, PropType} from 'vue'
 import {TraceAggregatorDetail} from "./store/traceAggregatorDataStore.ts";
 import TraceAggregatorTraceDataNode from "./TraceAggregatorTraceDataNode.vue";
-import {convertDateStringToLocal} from "../../../../../utils/helpers.ts";
 
 export default defineComponent({
   components: {TraceAggregatorTraceDataNode},
@@ -47,8 +46,6 @@ export default defineComponent({
       required: true,
     },
   },
-
-  methods: {convertDateStringToLocal},
 })
 </script>
 

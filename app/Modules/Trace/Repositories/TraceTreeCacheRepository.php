@@ -5,24 +5,17 @@ declare(strict_types=1);
 namespace App\Modules\Trace\Repositories;
 
 use App\Models\Traces\TraceTreeCache;
-use App\Modules\Trace\Contracts\Repositories\TraceTreeCacheRepositoryInterface;
 use App\Modules\Trace\Entities\Trace\Tree\TraceTreeRawIterator;
 use App\Modules\Trace\Entities\Trace\Tree\TraceTreeRawObject;
 use App\Modules\Trace\Entities\Trace\Tree\TraceTreeStringableObject;
+use App\Modules\Trace\Parameters\CreateTraceTreeCacheParameters;
 use App\Modules\Trace\Repositories\Dto\Trace\TraceTreeServiceDto;
 use Illuminate\Support\Carbon;
-use MongoDB\BSON\UTCDateTime;
 use MongoDB\Model\BSONDocument;
+use SConcur\Features\Mongodb\Types\UTCDateTime;
 
-class TraceTreeCacheRepository implements TraceTreeCacheRepositoryInterface
+class TraceTreeCacheRepository
 {
-    public function has(string $rootTraceId): bool
-    {
-        return TraceTreeCache::query()
-            ->where('rootTraceId', $rootTraceId)
-            ->exists();
-    }
-
     public function delete(string $rootTraceId): void
     {
         TraceTreeCache::query()
@@ -30,34 +23,46 @@ class TraceTreeCacheRepository implements TraceTreeCacheRepositoryInterface
             ->delete();
     }
 
+    /**
+     * @param CreateTraceTreeCacheParameters[] $parametersList
+     */
     public function createMany(string $rootTraceId, array $parametersList): void
     {
         $operations = [];
 
-        $createdAt = new UTCDateTime(now());
+        $createdAt = new UTCDateTime();
 
         foreach ($parametersList as $parameters) {
             $operations[] = [
-                'insertOne' => [
+                'updateOne' => [
                     [
-                        'rootTraceId'   => $rootTraceId,
-                        'parentTraceId' => $parameters->parentTraceId,
-                        'traceId'       => $parameters->traceId,
-                        'serviceId'     => $parameters->serviceId,
-                        'type'          => $parameters->type,
-                        'tags'          => $parameters->tags,
-                        'status'        => $parameters->status,
-                        'duration'      => $parameters->duration,
-                        'memory'        => $parameters->memory,
-                        'cpu'           => $parameters->cpu,
-                        'loggedAt'      => new UTCDateTime($parameters->loggedAt),
-                        'createdAt'     => $createdAt,
+                        'rootTraceId' => $rootTraceId,
+                        'traceId'     => $parameters->traceId,
+                    ],
+                    [
+                        '$set'         => [
+                            'parentTraceId' => $parameters->parentTraceId,
+                            'serviceId'     => $parameters->serviceId,
+                            'type'          => $parameters->type,
+                            'tags'          => $parameters->tags,
+                            'status'        => $parameters->status,
+                            'duration'      => $parameters->duration,
+                            'memory'        => $parameters->memory,
+                            'cpu'           => $parameters->cpu,
+                            'loggedAt'      => new UTCDateTime($parameters->loggedAt),
+                        ],
+                        '$setOnInsert' => [
+                            'createdAt' => $createdAt,
+                        ],
+                    ],
+                    [
+                        'upsert' => true,
                     ],
                 ],
             ];
         }
 
-        TraceTreeCache::collection()->bulkWrite($operations);
+        TraceTreeCache::sconcur()->bulkWrite($operations);
     }
 
     public function findMany(string $rootTraceId): TraceTreeRawIterator
@@ -88,6 +93,9 @@ class TraceTreeCacheRepository implements TraceTreeCacheRepositoryInterface
         );
     }
 
+    /**
+     * @return TraceTreeServiceDto[]
+     */
     public function findServices(string $rootTraceId): array
     {
         $results = TraceTreeCache::sconcur()
@@ -122,6 +130,9 @@ class TraceTreeCacheRepository implements TraceTreeCacheRepositoryInterface
         return $services;
     }
 
+    /**
+     * @return TraceTreeStringableObject[]
+     */
     public function findTypes(string $rootTraceId): array
     {
         $results = TraceTreeCache::sconcur()
@@ -156,6 +167,9 @@ class TraceTreeCacheRepository implements TraceTreeCacheRepositoryInterface
         return $types;
     }
 
+    /**
+     * @return TraceTreeStringableObject[]
+     */
     public function findTags(string $rootTraceId): array
     {
         $results = TraceTreeCache::sconcur()
@@ -193,6 +207,9 @@ class TraceTreeCacheRepository implements TraceTreeCacheRepositoryInterface
         return $tags;
     }
 
+    /**
+     * @return TraceTreeStringableObject[]
+     */
     public function findStatuses(string $rootTraceId): array
     {
         $results = TraceTreeCache::sconcur()

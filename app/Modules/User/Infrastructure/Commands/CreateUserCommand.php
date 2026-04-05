@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Modules\User\Infrastructure\Commands;
 
-use App\Modules\User\Contracts\Domain\CreateUserActionInterface;
+use App\Modules\User\Domain\Actions\CreateUserAction;
+use App\Modules\User\Domain\Actions\FindUserByIdAction;
 use App\Modules\User\Parameters\UserCreateParameters;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Validator;
+use JsonException;
 
 class CreateUserCommand extends Command
 {
@@ -27,21 +29,31 @@ class CreateUserCommand extends Command
 
     /**
      * Execute the console command.
+     *
+     * @throws JsonException
      */
-    public function handle(CreateUserActionInterface $createUserAction): int
-    {
-        if (($firstName = $this->askAndCheck('First name *', true)) === false) {
+    public function handle(
+        CreateUserAction $createUserAction,
+        FindUserByIdAction $findUserByIdAction
+    ): int {
+        $firstName = $this->askAndCheck('First name *', true);
+
+        if (!is_string($firstName) || !$firstName) {
             return self::FAILURE;
         }
 
         $lastName = $this->askAndCheck('Last name', false);
+
+        if (!is_string($lastName) || $lastName != null) {
+            return self::FAILURE;
+        }
 
         $email = $this->askAndCheck('Email *', true, [
             'email',
             'unique:users,email',
         ]);
 
-        if ($email === false) {
+        if (!is_string($email) || !$email) {
             return self::FAILURE;
         }
 
@@ -51,11 +63,11 @@ class CreateUserCommand extends Command
             'max:10',
         ]);
 
-        if ($password === false) {
+        if (!is_string($password) || !$password) {
             return self::FAILURE;
         }
 
-        $newUser = $createUserAction->handle(
+        $newUserId = $createUserAction->handle(
             new UserCreateParameters(
                 firstName: $firstName,
                 lastName: $lastName,
@@ -63,6 +75,14 @@ class CreateUserCommand extends Command
                 password: $password
             )
         );
+
+        $newUser = $findUserByIdAction->handle($newUserId);
+
+        if ($newUser === null) {
+            $this->error('Created user not found');
+
+            return self::FAILURE;
+        }
 
         $this->table(
             [
@@ -82,6 +102,8 @@ class CreateUserCommand extends Command
 
     /**
      * @param string[] $rules
+     *
+     * @throws JsonException
      */
     private function askAndCheck(string $title, bool $required, array $rules = []): bool|string|null
     {
@@ -104,7 +126,7 @@ class CreateUserCommand extends Command
             );
 
             if ($validator->fails()) {
-                $this->error(json_encode($validator->errors()->all(), JSON_PRETTY_PRINT));
+                $this->error(json_encode($validator->errors()->all(), JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR));
 
                 return false;
             }

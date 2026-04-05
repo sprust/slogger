@@ -42,7 +42,7 @@
         </el-table-column>
         <el-table-column label="Logged at" prop="logged_at">
           <template #default="scope">
-            {{ convertDateStringToLocal(scope.row.logged_at, false) }}
+            {{ scope.row.logged_at }}
           </template>
         </el-table-column>
         <el-table-column label="Message" prop="message"/>
@@ -54,7 +54,6 @@
 
 <script lang="ts">
 import {defineComponent} from 'vue'
-import {convertDateStringToLocal} from "../../../utils/helpers.ts";
 import {Search as SearchIcon} from '@element-plus/icons-vue'
 import {useLogsViewerStore} from "./store/logsViewerStore.ts";
 
@@ -71,7 +70,6 @@ export default defineComponent({
   },
 
   methods: {
-    convertDateStringToLocal,
     update() {
       this.logsViewerStore.findLogs()
     },

@@ -5,10 +5,6 @@ declare(strict_types=1);
 namespace App\Modules\User\Infrastructure;
 
 use App\Modules\Common\Infrastructure\BaseServiceProvider;
-use App\Modules\User\Contracts\Domain\CreateUserActionInterface;
-use App\Modules\User\Contracts\Domain\FindUserByEmailActionInterface;
-use App\Modules\User\Contracts\Domain\FindUserByTokenActionInterface;
-use App\Modules\User\Contracts\Repositories\UserRepositoryInterface;
 use App\Modules\User\Domain\Actions\CreateUserAction;
 use App\Modules\User\Domain\Actions\FindUserByEmailAction;
 use App\Modules\User\Domain\Actions\FindUserByTokenAction;
@@ -30,11 +26,11 @@ class UserServiceProvider extends BaseServiceProvider
     {
         return [
             // repositories
-            UserRepositoryInterface::class        => UserRepository::class,
+            UserRepository::class,
             // actions
-            CreateUserActionInterface::class      => CreateUserAction::class,
-            FindUserByEmailActionInterface::class => FindUserByEmailAction::class,
-            FindUserByTokenActionInterface::class => FindUserByTokenAction::class,
+            CreateUserAction::class,
+            FindUserByEmailAction::class,
+            FindUserByTokenAction::class,
         ];
     }
 }

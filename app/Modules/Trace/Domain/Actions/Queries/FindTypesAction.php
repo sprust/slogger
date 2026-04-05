@@ -4,19 +4,29 @@ declare(strict_types=1);
 
 namespace App\Modules\Trace\Domain\Actions\Queries;
 
-use App\Modules\Trace\Contracts\Actions\Queries\FindTypesActionInterface;
-use App\Modules\Trace\Contracts\Repositories\TraceContentRepositoryInterface;
+use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexErrorException;
+use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexInProcessException;
+use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexNotInitException;
 use App\Modules\Trace\Domain\Services\TraceDynamicIndexInitializer;
+use App\Modules\Trace\Entities\Trace\TraceStringFieldObject;
 use App\Modules\Trace\Parameters\TraceFindTypesParameters;
+use App\Modules\Trace\Repositories\TraceContentRepository;
 
-readonly class FindTypesAction implements FindTypesActionInterface
+readonly class FindTypesAction
 {
     public function __construct(
-        private TraceContentRepositoryInterface $traceContentRepository,
+        private TraceContentRepository $traceContentRepository,
         private TraceDynamicIndexInitializer $traceDynamicIndexInitializer
     ) {
     }
 
+    /**
+     * @return TraceStringFieldObject[]
+     *
+     * @throws TraceDynamicIndexErrorException
+     * @throws TraceDynamicIndexInProcessException
+     * @throws TraceDynamicIndexNotInitException
+     */
     public function handle(TraceFindTypesParameters $parameters): array
     {
         $this->traceDynamicIndexInitializer->init(

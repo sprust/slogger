@@ -118,10 +118,10 @@ class TracePipelineBuilder
 
                 if (!is_null($filterItem->numeric)) {
                     $operator = match ($filterItem->numeric->comp) {
-                        TraceDataFilterCompNumericTypeEnum::Eq => '$eq',
-                        TraceDataFilterCompNumericTypeEnum::Gt => '$gt',
+                        TraceDataFilterCompNumericTypeEnum::Eq  => '$eq',
+                        TraceDataFilterCompNumericTypeEnum::Gt  => '$gt',
                         TraceDataFilterCompNumericTypeEnum::Gte => '$gte',
-                        TraceDataFilterCompNumericTypeEnum::Lt => '$lt',
+                        TraceDataFilterCompNumericTypeEnum::Lt  => '$lt',
                         TraceDataFilterCompNumericTypeEnum::Lte => '$lte',
                         TraceDataFilterCompNumericTypeEnum::Neq => '$ne',
                     };
@@ -133,10 +133,10 @@ class TracePipelineBuilder
 
                 if (!is_null($filterItem->string)) {
                     $regex = match ($filterItem->string->comp) {
-                        TraceDataFilterCompStringTypeEnum::Con => ".*{$filterItem->string->value}.*",
+                        TraceDataFilterCompStringTypeEnum::Con    => ".*{$filterItem->string->value}.*",
                         TraceDataFilterCompStringTypeEnum::Starts => "^{$filterItem->string->value}.*",
-                        TraceDataFilterCompStringTypeEnum::Ends => ".*{$filterItem->string->value}$",
-                        default => $filterItem->string->value,
+                        TraceDataFilterCompStringTypeEnum::Ends   => ".*{$filterItem->string->value}$",
+                        default                                   => $filterItem->string->value,
                     };
 
                     $match[$field] = ['$regex' => $regex];

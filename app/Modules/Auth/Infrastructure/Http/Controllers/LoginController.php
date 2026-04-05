@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Auth\Infrastructure\Http\Controllers;
 
-use App\Modules\Auth\Contracts\Actions\LoginActionInterface;
+use App\Modules\Auth\Domain\Actions\LoginAction;
 use App\Modules\Auth\Infrastructure\Http\Requests\LoginRequest;
 use App\Modules\Auth\Infrastructure\Http\Resources\LoggedUserResource;
 use App\Modules\Auth\Parameters\LoginParameters;
@@ -14,7 +14,7 @@ use Symfony\Component\HttpFoundation\Response as ResponseFoundation;
 readonly class LoginController
 {
     public function __construct(
-        private LoginActionInterface $loginAction
+        private LoginAction $loginAction
     ) {
     }
 
@@ -29,7 +29,9 @@ readonly class LoginController
             )
         );
 
-        abort_if(!$loggedUser, ResponseFoundation::HTTP_UNAUTHORIZED);
+        if ($loggedUser === null) {
+            abort(ResponseFoundation::HTTP_UNAUTHORIZED);
+        }
 
         return new LoggedUserResource($loggedUser);
     }

@@ -1,8 +1,6 @@
 <?php
 
 use App\Models\Users\User;
-use App\Modules\Trace\Infrastructure\Jobs\TraceCreateJob;
-use App\Modules\Trace\Infrastructure\Jobs\TraceUpdateJob;
 use RrMonitor\Events\MonitorWorkersCountSetEvent;
 use SLoggerLaravel\Dispatcher\Items\Queue\Jobs\SendTracesJob;
 use SLoggerLaravel\Events\WatcherErrorEvent;
@@ -109,7 +107,6 @@ return [
                     'rr-monitor:start',
                     'queue:work',
                     'queue:listen',
-                    'trace-buffer:handle:start',
                     'slogger:dispatcher:start',
                     'trace-dynamic-indexes:monitor:start',
                     'receiver:monitor',
@@ -195,8 +192,6 @@ return [
                 // job classes to ignore.
                 'excepted' => [
                     SendTracesJob::class,
-                    TraceCreateJob::class,
-                    TraceUpdateJob::class,
                 ],
             ],
         ],

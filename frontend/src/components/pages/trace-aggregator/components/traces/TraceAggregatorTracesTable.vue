@@ -36,7 +36,7 @@
         <el-row style="font-weight: bold">
           <el-space>
             <el-text>
-              {{ convertDateStringToLocal(props.row.trace.logged_at) }}
+              {{ props.row.trace.logged_at }}
             </el-text>
             <el-button
                 v-if="props.row.trace.has_profiling"
@@ -52,7 +52,8 @@
           <TraceId
               title="id"
               :traceId="props.row.trace.trace_id"
-              @onClickTraceIdTree="onClickTraceIdTree"
+              @onClickTraceIdTreeParent="onClickTraceIdTreeParent"
+              @onClickTraceIdTreeCurrent="onClickTraceIdTreeCurrent"
               @onClickTraceIdFilter="onClickTraceIdFilter"
               :style="isTraceInPayload(props.row.trace.trace_id) ? {'color': 'green'} : {}"
           />
@@ -61,7 +62,8 @@
           <TraceId
               title="parent id"
               :trace-id="props.row.trace.parent_trace_id"
-              @onClickTraceIdTree="onClickTraceIdTree"
+              @onClickTraceIdTreeParent="onClickTraceIdTreeParent"
+              @onClickTraceIdTreeCurrent="onClickTraceIdTreeCurrent"
               @onClickTraceIdFilter="onClickTraceIdFilter"
               :style="isTraceInPayload(props.row.trace.parent_trace_id) ? {'color': 'green'} : {}"
           />
@@ -154,7 +156,6 @@ import {useTraceAggregatorTreeStore} from "../tree/store/traceAggregatorTreeStor
 import {useTraceAggregatorDataStore} from "../trace/store/traceAggregatorDataStore.ts";
 import TraceService from "../services/TraceService.vue";
 import TraceId from "../trace/TraceId.vue";
-import {convertDateStringToLocal} from "../../../../../utils/helpers.ts";
 import {useTraceAggregatorProfilingStore} from "../profiling/store/traceAggregatorProfilingStore.ts";
 
 export default defineComponent({
@@ -189,7 +190,6 @@ export default defineComponent({
   },
 
   methods: {
-    convertDateStringToLocal,
     dataExpandChange(trace: TraceAggregatorItem) {
       if (this.isTraceDataLoaded(trace.trace.trace_id)) {
         return
@@ -203,8 +203,13 @@ export default defineComponent({
     onCustomFieldClick(parameters: TraceAggregatorCustomFieldParameter) {
       this.$emit("onCustomFieldClick", parameters)
     },
-    onClickTraceIdTree(traceId: string) {
-      this.traceAggregatorTreeStore.initTree(traceId)
+    onClickTraceIdTreeParent(traceId: string) {
+      this.traceAggregatorTreeStore.initTreeParent(traceId)
+
+      this.traceAggregatorTabsStore.setCurrentTab(traceAggregatorTabs.tree)
+    },
+    onClickTraceIdTreeCurrent(traceId: string) {
+      this.traceAggregatorTreeStore.initTreeCurrent(traceId)
 
       this.traceAggregatorTabsStore.setCurrentTab(traceAggregatorTabs.tree)
     },

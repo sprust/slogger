@@ -1,11 +1,10 @@
 import {ApiContainer} from "../../../../../../utils/apiContainer.ts";
-import {makeStartOfDay, TypesHelper} from "../../../../../../utils/helpers.ts";
+import {makeStartOfDay, normalizeUtcDateTime, TypesHelper} from "../../../../../../utils/helpers.ts";
 import {AdminApi} from "../../../../../../api-schema/admin-api-schema.ts";
 import {defineStore} from "pinia";
 import {handleApiRequest} from "../../../../../../utils/handleApiRequest.ts";
 import {useTraceAggregatorServicesStore} from "../../services/store/traceAggregatorServicesStore.ts";
 
-type TraceAggregatorRequest = AdminApi.TraceAggregatorTracesCreate.RequestBody;
 type TraceAggregatorResponse = AdminApi.TraceAggregatorTracesCreate.ResponseBody['data'];
 
 export type TraceAggregatorPayload = TraceAggregatorRequest
@@ -16,6 +15,7 @@ export type TraceAggregatorAdditionalField = TraceAggregatorResponse['items'][nu
 
 export type TraceAggregatorCustomField = {
     field: string,
+    canBeFiltered: boolean,
     search: false,
     searchData: TraceAggregatorCustomFieldSearchParameter,
     addToTable: boolean,
@@ -44,6 +44,52 @@ export function getPeriodPresetEnumByValue(value: string) {
         ];
 }
 
+export type TraceAggregatorDataFilter = {
+    field?: string,
+    null?: boolean,
+    numeric?: {
+        value?: number,
+        comp?: "=" | "!=" | ">" | ">=" | "<" | "<="
+    },
+    string?: {
+        value?: string,
+        comp?: "equals" | "contains" | "starts" | "ends"
+    },
+    boolean?: {
+        value?: boolean,
+    },
+}
+
+export type TraceAggregatorDataPayload = {
+    filter?: TraceAggregatorDataFilter[],
+    fields?: string[],
+}
+
+export interface TraceAggregatorCommonPayload {
+    service_ids?: number[],
+    trace_id?: string | null,
+    all_traces_in_tree?: boolean,
+    logging_from_preset?: PeriodPresetEnum,
+    logging_from?: string,
+    logging_to?: string,
+    types?: string[],
+    tags?: string[],
+    statuses?: string[],
+    duration_from?: number | null,
+    duration_to?: number | null,
+    memory_from?: number | null,
+    memory_to?: number | null,
+    cpu_from?: number | null,
+    cpu_to?: number | null,
+    data?: TraceAggregatorDataPayload,
+    has_profiling?: boolean,
+}
+
+type TraceAggregatorRequest = TraceAggregatorCommonPayload & {
+    page: number,
+    per_page?: number,
+}
+
 // TODO: get comp from scheme
 export type TraceAggregatorCustomFieldSearchParameter = {
     null: {
@@ -66,6 +112,7 @@ export type TraceAggregatorCustomFieldSearchParameter = {
 export type TraceAggregatorCustomFieldParameter = {
     field: string,
     value: any,
+    canBeFiltered: boolean
 }
 
 export type TracesAddCustomFieldParameter = {
@@ -98,7 +145,7 @@ export const useTraceAggregatorStore = defineStore('traceAggregatorStore', {
                 memory_to: null,
                 cpu_from: null,
                 cpu_to: null,
-                logging_from_preset: 'last_hour',
+                logging_from_preset: PeriodPresetEnum.LastHour,
                 logging_from: '',
                 logging_to: '',
                 trace_id: null,
@@ -132,7 +179,9 @@ export const useTraceAggregatorStore = defineStore('traceAggregatorStore', {
             this.setData({} as TraceAggregatorResponse)
 
             return await handleApiRequest(
-                ApiContainer.get().traceAggregatorTracesCreate(this.payload)
+                () => ApiContainer.get().traceAggregatorTracesCreate(
+                    this.payload as AdminApi.TraceAggregatorTracesCreate.RequestBody
+                )
                     .then((response) => {
                         this.setData(response.data.data)
                     })
@@ -156,8 +205,8 @@ export const useTraceAggregatorStore = defineStore('traceAggregatorStore', {
                 memory_to: null,
                 cpu_from: null,
                 cpu_to: null,
-                logging_from_preset: 'last_hour',
-                logging_from: makeStartOfDay().toUTCString(),
+                logging_from_preset: PeriodPresetEnum.LastHour,
+                logging_from: normalizeUtcDateTime(makeStartOfDay()) ?? '',
                 logging_to: '',
                 trace_id: null,
                 all_traces_in_tree: false,
@@ -240,6 +289,7 @@ export const useTraceAggregatorStore = defineStore('traceAggregatorStore', {
 
                 this.customFields.push({
                     field: customField,
+                    canBeFiltered: parameters.canBeFiltered,
                     search: false,
                     searchData: searchData.data,
                     addToTable: false,
@@ -250,10 +300,14 @@ export const useTraceAggregatorStore = defineStore('traceAggregatorStore', {
         prepareCommonPayloadData() {
             if (!this.payload.logging_from) {
                 delete this.payload.logging_from
+            } else {
+                this.payload.logging_from = normalizeUtcDateTime(this.payload.logging_from)
             }
 
             if (!this.payload.logging_to) {
                 delete this.payload.logging_to
+            } else {
+                this.payload.logging_to = normalizeUtcDateTime(this.payload.logging_to)
             }
 
             const data = this.payload.data!;

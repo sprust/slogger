@@ -6,6 +6,7 @@
     <div class="height-100" style="padding: 0 20px 20px 20px; overflow-y: auto">
       <router-view/>
     </div>
+    <PendingRequestDialog/>
   </el-container>
 </template>
 
@@ -14,9 +15,10 @@
 import {defineComponent} from "vue";
 import {useAuthStore} from "./store/authStore.ts";
 import Header from "./components/Header.vue";
+import PendingRequestDialog from "./components/PendingRequestDialog.vue";
 
 export default defineComponent({
-  components: {Header},
+  components: {Header, PendingRequestDialog},
 
   data() {
     return {

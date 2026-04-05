@@ -21,7 +21,7 @@ class LogResource extends AbstractApiResource
 
         $this->level     = $resource->level;
         $this->message   = $resource->message;
-        $this->context   = json_encode($resource->context);
+        $this->context   = json_encode($resource->context) ?: '{}';
         $this->channel   = $resource->channel;
         $this->logged_at = $resource->loggedAt->toDateTimeString();
     }

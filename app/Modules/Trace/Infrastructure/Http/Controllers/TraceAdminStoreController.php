@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Modules\Trace\Infrastructure\Http\Controllers;
 
 use App\Modules\Common\Helpers\ArrayValueGetter;
-use App\Modules\Trace\Contracts\Actions\Mutations\CreateTraceAdminStoreActionInterface;
-use App\Modules\Trace\Contracts\Actions\Mutations\DeleteTraceAdminStoreActionInterface;
-use App\Modules\Trace\Contracts\Actions\Queries\FindTraceAdminStoreActionInterface;
+use App\Modules\Trace\Domain\Actions\Mutations\CreateTraceAdminStoreAction;
+use App\Modules\Trace\Domain\Actions\Mutations\DeleteTraceAdminStoreAction;
+use App\Modules\Trace\Domain\Actions\Queries\FindTraceAdminStoreAction;
 use App\Modules\Trace\Infrastructure\Http\Requests\TraceAdminStoreCreateRequest;
 use App\Modules\Trace\Infrastructure\Http\Requests\TraceAdminStoreIndexRequest;
 use App\Modules\Trace\Infrastructure\Http\Resources\TraceAdminStoreResource;
@@ -16,9 +16,9 @@ use App\Modules\Trace\Infrastructure\Http\Resources\TraceAdminStoresResource;
 readonly class TraceAdminStoreController
 {
     public function __construct(
-        private FindTraceAdminStoreActionInterface $findTraceAdminStoreAction,
-        private CreateTraceAdminStoreActionInterface $createTraceAdminStoreAction,
-        private DeleteTraceAdminStoreActionInterface $deleteTraceAdminStoreAction
+        private FindTraceAdminStoreAction $findTraceAdminStoreAction,
+        private CreateTraceAdminStoreAction $createTraceAdminStoreAction,
+        private DeleteTraceAdminStoreAction $deleteTraceAdminStoreAction
     ) {
     }
 

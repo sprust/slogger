@@ -105,10 +105,6 @@ return [
                     'appname'    => env('APP_NAME'),
                     'authSource' => env('MONGO_DATABASE_ADMIN', 'admin'),
                 ],
-                'databases' => [
-                    'buffer'        => 'buffer',
-                    'bufferInvalid' => 'bufferInvalid',
-                ],
             ],
             'tracesPeriodic' => [
                 'driver'   => 'mongodb', // not using

@@ -10,8 +10,8 @@ use App\Modules\Common\Infrastructure\Http\Resources\AbstractApiResource;
 class ProcessResource extends AbstractApiResource
 {
     private string $id;
-    private int $setting_id;
-    private int $cleared_count;
+    private int $cleared_collections_count;
+    private int $cleared_traces_count;
     private ?string $error;
     private ?string $cleared_at;
     private string $created_at;
@@ -21,12 +21,12 @@ class ProcessResource extends AbstractApiResource
     {
         parent::__construct($resource);
 
-        $this->id            = $resource->id;
-        $this->setting_id    = $resource->settingId;
-        $this->cleared_count = $resource->clearedCount;
-        $this->error         = $resource->error;
-        $this->cleared_at    = $resource->clearedAt?->toDateTimeString();
-        $this->created_at    = $resource->createdAt->toDateTimeString();
-        $this->updated_at    = $resource->updatedAt->toDateTimeString();
+        $this->id                        = $resource->id;
+        $this->cleared_collections_count = $resource->clearedCollectionsCount;
+        $this->cleared_traces_count      = $resource->clearedTracesCount;
+        $this->error                     = $resource->error;
+        $this->cleared_at                = $resource->clearedAt?->toDateTimeString();
+        $this->created_at                = $resource->createdAt->toDateTimeString();
+        $this->updated_at                = $resource->updatedAt->toDateTimeString();
     }
 }

@@ -5,15 +5,14 @@ declare(strict_types=1);
 namespace App\Modules\User\Repositories;
 
 use App\Models\Users\User;
-use App\Modules\User\Contracts\Repositories\UserRepositoryInterface;
 use App\Modules\User\Entities\UserDetailObject;
 use App\Modules\User\Parameters\UserCreateParameters;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
-class UserRepository implements UserRepositoryInterface
+class UserRepository
 {
-    public function create(UserCreateParameters $parameters): UserDetailObject
+    public function create(UserCreateParameters $parameters): int
     {
         $newUser = new User();
 
@@ -25,7 +24,14 @@ class UserRepository implements UserRepositoryInterface
 
         $newUser->saveOrFail();
 
-        return $this->makeUserFullObjectByUserOrNull($newUser);
+        return $newUser->id;
+    }
+
+    public function findById(int $id): ?UserDetailObject
+    {
+        return $this->makeUserFullObjectByUserOrNull(
+            User::query()->where('id', $id)->first()
+        );
     }
 
     public function findByEmail(string $email): ?UserDetailObject
@@ -41,7 +47,6 @@ class UserRepository implements UserRepositoryInterface
             User::query()->where('api_token', $token)->first()
         );
     }
-
 
     private function makeUserFullObjectByUserOrNull(?User $user): ?UserDetailObject
     {

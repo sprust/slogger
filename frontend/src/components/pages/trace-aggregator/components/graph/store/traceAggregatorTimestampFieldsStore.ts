@@ -22,7 +22,7 @@ export const useTraceAggregatorTimestampFieldsStore = defineStore('traceAggregat
     actions: {
         async findTimestampFields() {
             return await handleApiRequest(
-                ApiContainer.get().traceAggregatorTraceMetricsFieldsList()
+                () => ApiContainer.get().traceAggregatorTraceMetricsFieldsList()
                     .then(response => {
                         this.fields = response.data.data
                         this.selectedFields = [this.fields[0].value]

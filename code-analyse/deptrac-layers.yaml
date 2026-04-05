@@ -7,7 +7,7 @@ parameters:
     - name: Domain
       collectors:
         - type: directory
-          value: (/app/Modules/\w+/Domain/|/app/Modules/\w+/Contracts/Domain/)
+          value: /app/Modules/\w+/Domain/
     - name: Entities
       collectors:
         - type: directory
@@ -19,7 +19,7 @@ parameters:
     - name: Repositories
       collectors:
         - type: directory
-          value: (/app/Modules/\w+/Repositories/|/app/Modules/\w+/Contracts/Repositories/)
+          value: /app/Modules/\w+/Repositories/
     # only dirs inside Infrastructure
     - name: Infrastructure
       collectors:

@@ -10,7 +10,7 @@ use ReflectionProperty;
 abstract class AbstractApiResource extends JsonResource
 {
     /**
-     * @var ReflectionProperty[]|null $reflectionProperties
+     * @var ReflectionProperty[]|null
      */
     protected ?array $reflectionProperties = null;
 

@@ -3,10 +3,10 @@
 import {defineComponent, PropType} from "vue";
 import TraceService from "../services/TraceService.vue";
 import {TraceAggregatorTreeRow, TraceTreeNode, useTraceAggregatorTreeStore} from "./store/traceAggregatorTreeStore.ts";
-import {convertDateStringToLocal} from "../../../../../utils/helpers.ts";
+import {CaretBottom, CaretRight} from "@element-plus/icons-vue";
 
 export default defineComponent({
-  components: {TraceService},
+  components: {CaretBottom, CaretRight, TraceService},
 
   props: {
     row: {
@@ -22,7 +22,6 @@ export default defineComponent({
   },
 
   methods: {
-    convertDateStringToLocal,
     makeTreeNodeStyle(trace: TraceAggregatorTreeRow) {
       const style: { 'background-color'?: string, 'border'?: string } = {}
 
@@ -71,6 +70,9 @@ export default defineComponent({
     indicateByRow() {
       this.traceAggregatorTreeStore.fillTreeIndicatorsByRow(this.row)
     },
+    toggleCollapse() {
+      this.traceAggregatorTreeStore.toggleCollapse(this.row)
+    },
     getIndicatorBackground() {
       if (!this.row.indicatorPercent) {
         return ''
@@ -88,6 +90,20 @@ export default defineComponent({
   <el-row :style="{height: '30px', width: '100%', background: getIndicatorBackground()}">
     <el-row :style="{width: '100%', 'padding-left': row.depth * 20 + 'px'}">
       <el-space>
+        <el-button
+            v-if="row.children.length > 0"
+            type="info"
+            size="small"
+            @click.stop="toggleCollapse"
+            link
+            class="collapse-toggle"
+        >
+          <el-icon>
+            <CaretRight v-if="row.collapsed"/>
+            <CaretBottom v-else/>
+          </el-icon>
+        </el-button>
+        <span v-else class="collapse-placeholder"/>
         <div class="trace-tree-metric-indicator" :style="makeTraceIndicatorStyle(row.primary)"/>
         <div class="trace-tree-select-indicator" :style="makeTreeNodeStyle(row.primary)"/>
       </el-space>
@@ -136,7 +152,7 @@ export default defineComponent({
             {{ row.primary.status }}
           </el-text>
           <el-text>
-            {{ convertDateStringToLocal(row.primary.logged_at) }}
+            {{ row.primary.logged_at }}
           </el-text>
           <el-text>
             {{ row.primary.memory }}
@@ -170,5 +186,15 @@ export default defineComponent({
 
 .flex-grow {
   flex-grow: 1;
+}
+
+.collapse-toggle {
+  width: 20px;
+  padding: 0;
+}
+
+.collapse-placeholder {
+  width: 20px;
+  display: inline-block;
 }
 </style>

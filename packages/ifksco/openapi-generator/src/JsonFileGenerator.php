@@ -87,7 +87,9 @@ class JsonFileGenerator
             $paths[$uri][$method]['responses'] = (object) $this->defineResponses($parsedRoute, $isDeleteMethod);
 
             if ($isDeleteMethod && ($paths[$uri][$method]['requestBody'] ?? false)) {
-                throw new RuntimeException('DELETE operations cannot have a requestBody.');
+                throw new RuntimeException(
+                    "DELETE operations cannot have a requestBody for [$uri]"
+                );
             }
 
             if ($this->hasSecurityMiddleware($parsedRoute)) {

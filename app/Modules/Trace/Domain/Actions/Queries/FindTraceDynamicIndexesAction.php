@@ -4,28 +4,30 @@ declare(strict_types=1);
 
 namespace App\Modules\Trace\Domain\Actions\Queries;
 
-use App\Modules\Trace\Contracts\Actions\Queries\FindTraceDynamicIndexesActionInterface;
-use App\Modules\Trace\Contracts\Repositories\TraceDynamicIndexRepositoryInterface;
 use App\Modules\Trace\Domain\Services\TraceFieldTitlesService;
 use App\Modules\Trace\Entities\DynamicIndex\TraceDynamicIndexFieldObject;
 use App\Modules\Trace\Entities\DynamicIndex\TraceDynamicIndexObject;
 use App\Modules\Trace\Repositories\Dto\DynamicIndex\TraceDynamicIndexDto;
 use App\Modules\Trace\Repositories\Dto\DynamicIndex\TraceDynamicIndexFieldDto;
+use App\Modules\Trace\Repositories\TraceDynamicIndexRepository;
 
-readonly class FindTraceDynamicIndexesAction implements FindTraceDynamicIndexesActionInterface
+readonly class FindTraceDynamicIndexesAction
 {
     private int $limit;
 
     public function __construct(
         private TraceFieldTitlesService $traceFieldTitlesService,
-        private TraceDynamicIndexRepositoryInterface $traceDynamicIndexRepository
+        private TraceDynamicIndexRepository $traceDynamicIndexRepository
     ) {
         $this->limit = 100;
     }
 
+    /**
+     * @return TraceDynamicIndexObject[]
+     */
     public function handle(): array
     {
-        $traces = $this->traceDynamicIndexRepository->find(
+        $indexes = $this->traceDynamicIndexRepository->find(
             limit: $this->limit,
             orderByCreatedAtDesc: true
         );
@@ -49,7 +51,7 @@ readonly class FindTraceDynamicIndexesAction implements FindTraceDynamicIndexesA
                 actualUntilAt: $dto->actualUntilAt,
                 createdAt: $dto->createdAt,
             ),
-            $traces
+            $indexes
         );
     }
 }

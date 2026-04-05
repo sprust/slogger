@@ -51,7 +51,7 @@ export const useLogsViewerStore = defineStore('logsViewerStore', {
             }
 
             return await handleApiRequest(
-                ApiContainer.get()
+                () => ApiContainer.get()
                     .logsList(parameters)
                     .then((response) => {
                         this.logs = response.data.data

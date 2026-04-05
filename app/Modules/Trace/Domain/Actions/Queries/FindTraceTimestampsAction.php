@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Modules\Trace\Domain\Actions\Queries;
 
-use App\Modules\Trace\Contracts\Actions\Queries\FindTraceTimestampsActionInterface;
-use App\Modules\Trace\Contracts\Repositories\TraceTimestampsRepositoryInterface;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexErrorException;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexInProcessException;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexNotInitException;
@@ -23,16 +21,18 @@ use App\Modules\Trace\Repositories\Dto\Trace\Timestamp\TraceTimestampFieldDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Timestamp\TraceTimestampFieldIndicatorDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Timestamp\TraceTimestampsDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Timestamp\TraceTimestampsListDto;
+use App\Modules\Trace\Repositories\TraceTimestampsRepository;
 use App\Modules\Trace\Repositories\Services\TraceTimestampMetricsFactory;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Carbon;
 use SConcur\WaitGroup;
 
-readonly class FindTraceTimestampsAction implements FindTraceTimestampsActionInterface
+readonly class FindTraceTimestampsAction
 {
     public function __construct(
         private TraceDynamicIndexInitializer $traceDynamicIndexInitializer,
         private TraceTimestampMetricsFactory $traceTimestampMetricsFactory,
-        private TraceTimestampsRepositoryInterface $timestampsRepository,
+        private TraceTimestampsRepository $timestampsRepository,
     ) {
     }
 
@@ -93,7 +93,7 @@ readonly class FindTraceTimestampsAction implements FindTraceTimestampsActionInt
             }
         }
 
-        $loggedAtTo = $parameters->loggedAtTo ?? now('UTC');
+        $loggedAtTo = $parameters->loggedAtTo ?? Carbon::now('UTC');
 
         $loggedAtFrom = $this->traceTimestampMetricsFactory->calcLoggedAtFrom(
             timestampPeriod: $parameters->timestampPeriod,

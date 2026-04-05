@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Auth\Infrastructure\Http\Controllers;
 
-use App\Modules\Auth\Contracts\Actions\FindUserByTokenActionInterface;
+use App\Modules\Auth\Domain\Actions\FindUserByTokenAction;
 use App\Modules\Auth\Infrastructure\Http\Resources\LoggedUserResource;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response as ResponseFoundation;
@@ -12,7 +12,7 @@ use Symfony\Component\HttpFoundation\Response as ResponseFoundation;
 readonly class MeController
 {
     public function __construct(
-        private FindUserByTokenActionInterface $findMeByTokenAction
+        private FindUserByTokenAction $findMeByTokenAction
     ) {
     }
 
@@ -24,7 +24,9 @@ readonly class MeController
             ? $this->findMeByTokenAction->handle($bearerToken)
             : null;
 
-        abort_if(!$me, ResponseFoundation::HTTP_UNAUTHORIZED);
+        if ($me === null) {
+            abort(ResponseFoundation::HTTP_UNAUTHORIZED);
+        }
 
         return new LoggedUserResource($me);
     }

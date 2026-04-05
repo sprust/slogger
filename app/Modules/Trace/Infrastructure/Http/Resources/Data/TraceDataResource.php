@@ -14,15 +14,19 @@ class TraceDataResource extends AbstractApiResource
     private string|bool|int|float|null $value;
     #[OaListItemTypeAttribute(TraceDataResource::class, isRecursive: true)]
     private ?array $children;
+    private bool $can_be_filtered;
 
     public function __construct(TraceDataObject $data)
     {
         parent::__construct($data);
 
-        $this->key      = $data->key;
-        $this->value    = $data->value;
-        $this->children = $data->children
+        $this->key   = $data->key;
+        $this->value = $data->value;
+
+        $this->children = ($data->children !== null)
             ? TraceDataResource::mapIntoMe($data->children)
             : null;
+
+        $this->can_be_filtered = $data->canBeFiltered;
     }
 }

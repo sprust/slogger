@@ -48,15 +48,7 @@
     >
       <el-table-column type="expand">
         <template #default="props">
-          <el-row>
-            <el-tag
-                v-for="collectionName in props.row.collectionNames"
-                :type="isCollectionNameInProcess(props.row, collectionName) ? 'warning' : 'info'"
-                style="margin: 2px"
-            >
-              {{ collectionName }}
-            </el-tag>
-          </el-row>
+          <DynamicIndexCollections :index="props.row"/>
         </template>
       </el-table-column>
       <el-table-column label="Fields">
@@ -103,20 +95,22 @@
 </template>
 
 <script lang="ts">
-import {defineComponent} from "vue";
+import {defineAsyncComponent, defineComponent} from "vue";
 import {
   TraceDynamicIndex,
-  TraceDynamicIndexInfo,
   useTraceDynamicIndexesStore
 } from "./store/traceDynamicIndexesStore.ts";
 import {Refresh as IconRefreshList} from "@element-plus/icons-vue";
-import {convertDateStringToLocal} from "../../../../../utils/helpers.ts";
+
+const DynamicIndexCollections = defineAsyncComponent(() => import("./DynamicIndexCollections.vue"))
 
 interface DeletingIndexes {
   [key: string]: boolean,
 }
 
 export default defineComponent({
+  components: {DynamicIndexCollections},
+
   data() {
     return {
       dialogVisible: false,
@@ -151,7 +145,7 @@ export default defineComponent({
       return index.fields.map(index => index.title).join(', ')
     },
     makeCreatedAt(index: TraceDynamicIndex): string {
-      return convertDateStringToLocal(index.createdAt, false)
+      return index.createdAt
     },
     makeStatus(index: TraceDynamicIndex): string {
       if (index.error) {
@@ -174,17 +168,6 @@ export default defineComponent({
       }
 
       return 'info'
-    },
-    isCollectionNameInProcess(index: TraceDynamicIndex, collectionName: string): boolean {
-      const indexes = this.traceDynamicIndexesStore.traceDynamicIndexStats.indexes_in_process.filter(
-          (item: TraceDynamicIndexInfo) => item.name === index.indexName
-      )
-
-      if (!indexes.length) {
-        return false
-      }
-
-      return indexes.map((item: TraceDynamicIndexInfo) => item.collectionName).flat().includes(collectionName)
     }
   },
 
@@ -216,7 +199,7 @@ export default defineComponent({
       }
 
       const percents: number[] = this.traceDynamicIndexesStore.traceDynamicIndexStats.indexes_in_process.map(
-          (item: TraceDynamicIndexInfo) => item.progress
+          item => item.progress
       );
 
       return Math.max(...percents)

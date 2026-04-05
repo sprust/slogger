@@ -28,7 +28,7 @@ export const useTraceAggregatorDataStore = defineStore('traceAggregatorDataStore
     actions: {
         async findTraceData(traceId: string) {
             return await handleApiRequest(
-                ApiContainer.get().traceAggregatorTracesDetail(traceId)
+                () => ApiContainer.get().traceAggregatorTracesDetail(traceId)
                     .then(response => {
                         // @ts-ignore recursion
                         this.setData(traceId, response.data)
