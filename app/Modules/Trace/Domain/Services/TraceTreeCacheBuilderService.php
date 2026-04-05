@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Trace\Domain\Services;
 
+use App\Modules\Trace\Domain\Actions\Queries\IsShouldContinueBuildTraceTreeCacheAction;
 use App\Modules\Trace\Parameters\CreateTraceTreeCacheParameters;
 use App\Modules\Trace\Repositories\TraceRepository;
 use App\Modules\Trace\Repositories\TraceTreeCacheRepository;
@@ -18,14 +19,11 @@ readonly class TraceTreeCacheBuilderService
         private TraceTreeRepository $traceTreeRepository,
         private TraceTreeCacheRepository $traceTreeCacheRepository,
         private TraceTreeCacheStateRepository $traceTreeCacheStateRepository,
+        private IsShouldContinueBuildTraceTreeCacheAction $isShouldContinueBuildTraceTreeCacheAction,
     ) {
     }
 
-    /**
-     * @param callable(): bool $shouldContinue
-     */
-    // TODO: refactor $shouldContinue to action
-    public function handle(string $rootTraceId, string $version, callable $shouldContinue): bool
+    public function handle(string $rootTraceId, string $version): bool
     {
         $rootTrace = $this->traceRepository->findOneDetailByTraceId(
             traceId: $rootTraceId
@@ -35,7 +33,10 @@ readonly class TraceTreeCacheBuilderService
             throw new RuntimeException('Root trace not found.');
         }
 
-        $canContinue = $shouldContinue();
+        $canContinue = $this->isShouldContinueBuildTraceTreeCacheAction->handle(
+            rootTraceId: $rootTraceId,
+            version: $version
+        );
 
         if ($canContinue === false) {
             return false;
@@ -45,9 +46,8 @@ readonly class TraceTreeCacheBuilderService
             rootTraceId: $rootTraceId
         );
 
-        $canContinue = $shouldContinue();
+        $canContinue = $this->isShouldContinueBuildTraceTreeCacheAction->handle($rootTraceId, $version);
 
-        // @phpstan-ignore identical.alwaysFalse
         if ($canContinue === false) {
             return false;
         }
@@ -77,9 +77,11 @@ readonly class TraceTreeCacheBuilderService
         );
 
         foreach ($this->traceTreeRepository->findTraceIdsInTreeByParentTraceId($rootTraceId, 1000) as $childIdsChunk) {
-            $canContinue = $shouldContinue();
+            $canContinue = $this->isShouldContinueBuildTraceTreeCacheAction->handle(
+                rootTraceId: $rootTraceId,
+                version: $version
+            );
 
-            // @phpstan-ignore identical.alwaysFalse
             if ($canContinue === false) {
                 return false;
             }
@@ -96,9 +98,11 @@ readonly class TraceTreeCacheBuilderService
         );
 
         if ($additionalTraceIds !== []) {
-            $canContinue = $shouldContinue();
+            $canContinue = $this->isShouldContinueBuildTraceTreeCacheAction->handle(
+                $rootTraceId,
+                $version
+            );
 
-            // @phpstan-ignore identical.alwaysFalse
             if ($canContinue === false) {
                 return false;
             }
@@ -110,7 +114,10 @@ readonly class TraceTreeCacheBuilderService
             );
         }
 
-        return $shouldContinue();
+        return $this->isShouldContinueBuildTraceTreeCacheAction->handle(
+            rootTraceId: $rootTraceId,
+            version: $version
+        );
     }
 
     /**
