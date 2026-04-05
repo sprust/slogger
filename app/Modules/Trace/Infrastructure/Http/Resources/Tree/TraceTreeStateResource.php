@@ -28,9 +28,9 @@ class TraceTreeStateResource extends AbstractApiResource
         $this->status        = $resource->status->value;
         $this->count         = $resource->count;
         $this->error         = $resource->error;
-        $this->started_at    = $resource->startedAt?->toIso8601String();
-        $this->finished_at   = $resource->finishedAt?->toIso8601String();
-        $this->created_at    = $resource->createdAt->toIso8601String();
-        $this->updated_at    = $resource->updatedAt->toIso8601String();
+        $this->started_at    = $resource->startedAt?->toDateTimeString();
+        $this->finished_at   = $resource->finishedAt?->toDateTimeString();
+        $this->created_at    = $resource->createdAt->toDateTimeString();
+        $this->updated_at    = $resource->updatedAt->toDateTimeString();
     }
 }

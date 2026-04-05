@@ -205,6 +205,9 @@
         <el-table-column label="Root trace id" prop="root_trace_id" min-width="220"/>
         <el-table-column label="Count" prop="count" min-width="80"/>
         <el-table-column label="Error" prop="error" min-width="220"/>
+        <el-table-column label="Created at" prop="created_at" min-width="180"/>
+        <el-table-column label="Started at" prop="started_at" min-width="180"/>
+        <el-table-column label="Finished at" prop="finished_at" min-width="180"/>
         <el-table-column label="Status" min-width="120">
           <template #default="props">
             <el-text :type="makeProcessStatusType(props.row.status)">
@@ -212,9 +215,6 @@
             </el-text>
           </template>
         </el-table-column>
-        <el-table-column label="Created at" prop="created_at" min-width="180"/>
-        <el-table-column label="Started at" prop="started_at" min-width="180"/>
-        <el-table-column label="Finished at" prop="finished_at" min-width="180"/>
         <el-table-column fixed="right" min-width="150">
           <template #default="props">
             <el-space>
