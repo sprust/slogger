@@ -103,7 +103,7 @@ readonly class DatabaseStatRepository
                     ])
                 )[0];
 
-                assert(is_array($collStats), 'collStats must be an array');
+                assert($collStats instanceof BSONDocument, 'collStats must be a BSONDocument');
 
                 $indexStatsKeyByName = Arr::keyBy(
                     iterator_to_array($collection->aggregate([
