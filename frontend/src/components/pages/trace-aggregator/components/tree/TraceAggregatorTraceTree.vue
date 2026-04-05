@@ -14,19 +14,19 @@
         >
           Cancel
         </el-button>
-        <el-button @click="fresh" link :disabled="isBusy">
+        <el-button @click="fresh" link :disabled="inProcess">
           Fresh
         </el-button>
         <el-button
             @click="update"
             :icon="UpdateIcon"
-            :disabled="isBusy"
+            :disabled="inProcess"
         >
           Update
         </el-button>
       </el-row>
       <el-progress
-          v-if="isBusy"
+          v-if="inProcess"
           :stroke-width="10"
           status="success"
           percentage="100"
@@ -37,7 +37,7 @@
       >
         {{ traceAggregatorTreeStore.state?.count ?? 0 }}
       </el-progress>
-      <el-row v-if="traceAggregatorTreeStore.treeNodes.length" style="padding-bottom: 10px">
+      <el-row v-else style="padding-bottom: 10px">
         <el-space style="padding-right: 5px">
           <el-select
               v-model="traceAggregatorTreeStore.selectedTraceServiceIds"
@@ -118,7 +118,7 @@
           status | logged at | memory | cpu | duration
         </el-text>
       </el-row>
-      <el-row style="width: 100%; height: 100%; position: relative;">
+      <el-row v-if="!inProcess" style="width: 100%; height: 100%; position: relative;">
         <div v-if="traceAggregatorTreeStore.treeNodes.length" class="row-col" style="width: 100%;">
           <TraceAggregatorTraceTreeVirtual :items="traceAggregatorTreeStore.filteredTree"/>
         </div>
@@ -151,9 +151,7 @@
               :indeterminate="true"
               :duration="5"
               striped
-          >
-            {{ traceAggregatorTreeStore.state?.count ?? 0 }}
-          </el-progress>
+          />
           <div v-else style="padding: 10px">
             <el-row>
               <el-button @click="onClickCloseData">
@@ -203,7 +201,7 @@ export default defineComponent({
     showData() {
       return this.traceAggregatorTreeStore.selectedTrace.trace_id || this.traceAggregatorTreeStore.dataLoading
     },
-    isBusy() {
+    inProcess() {
       return this.traceAggregatorTreeStore.loading || this.traceAggregatorTreeStore.polling
     },
     leftSpan() {
