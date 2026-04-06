@@ -1,5 +1,9 @@
 # AGENTS.md
 
+## Approval Policy
+- Before making any changes (even trivial ones), show the user a plan describing what files and lines will be modified.
+- Wait for explicit user approval before proceeding with the implementation.
+
 ## Permission Policy For Command Execution
 - At the start of work on a task, immediately request execution rights for `make check`, `make frontend-npm-build`, and `make oa-generate` if they have not already been granted in the session, even if it is not yet certain that each command will be needed. This is required so the agent can continue working unattended without pausing later for approval.
 - Prefer asking for approval with a scoped command prefix that matches the command being requested.
