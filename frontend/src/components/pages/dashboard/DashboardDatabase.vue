@@ -42,9 +42,12 @@ export default defineComponent({
   <div style="width: 100%">
     <el-row>
       <el-space>
-        <div>
+        <el-text>
           Databases
-        </div>
+        </el-text>
+        <el-text v-if="dashboardDatabaseStore.cachedAt">
+          {{ dashboardDatabaseStore.cachedAt }}
+        </el-text>
         <el-button
             :loading="dashboardDatabaseStore.loading"
             :icon="dashboardDatabaseStore.loading ? IconLoading : IconRefresh"

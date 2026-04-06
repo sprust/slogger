@@ -264,7 +264,9 @@ export namespace AdminApi {
  * @request GET:/admin-api/dashboard/database
  * @secure
  * @response `200` `{
-    data: ({
+    data: {
+    cached_at: string,
+    items: ({
     name: string,
     size: number,
     total_documents_count: number,
@@ -287,6 +289,8 @@ export namespace AdminApi {
 
 })[],
 
+},
+
 }` description
 */
   export namespace DashboardDatabaseList {
@@ -296,24 +300,27 @@ export namespace AdminApi {
     export type RequestHeaders = {};
     export type ResponseBody = {
       data: {
-        name: string;
-        size: number;
-        total_documents_count: number;
-        memory_usage: number;
-        collections: {
+        cached_at: string;
+        items: {
           name: string;
           size: number;
-          indexes_size: number;
-          total_size: number;
-          count: number;
-          avg_obj_size: number;
-          indexes: {
+          total_documents_count: number;
+          memory_usage: number;
+          collections: {
             name: string;
             size: number;
-            usage: number;
+            indexes_size: number;
+            total_size: number;
+            count: number;
+            avg_obj_size: number;
+            indexes: {
+              name: string;
+              size: number;
+              usage: number;
+            }[];
           }[];
         }[];
-      }[];
+      };
     };
   }
 
@@ -2075,7 +2082,9 @@ export class Api<
  * @request GET:/admin-api/dashboard/database
  * @secure
  * @response `200` `{
-    data: ({
+    data: {
+    cached_at: string,
+    items: ({
     name: string,
     size: number,
     total_documents_count: number,
@@ -2098,30 +2107,35 @@ export class Api<
 
 })[],
 
+},
+
 }` description
  */
     dashboardDatabaseList: (params: RequestParams = {}) =>
       this.request<
         {
           data: {
-            name: string;
-            size: number;
-            total_documents_count: number;
-            memory_usage: number;
-            collections: {
+            cached_at: string;
+            items: {
               name: string;
               size: number;
-              indexes_size: number;
-              total_size: number;
-              count: number;
-              avg_obj_size: number;
-              indexes: {
+              total_documents_count: number;
+              memory_usage: number;
+              collections: {
                 name: string;
                 size: number;
-                usage: number;
+                indexes_size: number;
+                total_size: number;
+                count: number;
+                avg_obj_size: number;
+                indexes: {
+                  name: string;
+                  size: number;
+                  usage: number;
+                }[];
               }[];
             }[];
-          }[];
+          };
         },
         any
       >({

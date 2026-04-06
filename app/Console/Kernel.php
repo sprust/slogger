@@ -15,7 +15,7 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule): void
     {
         $schedule->job(ClearTracesJob::class)->hourly();
-        $schedule->job(RefreshDatabaseStatCacheJob::class)->everyMinute();
+        $schedule->job(RefreshDatabaseStatCacheJob::class)->everyFiveMinutes();
     }
 
     /**

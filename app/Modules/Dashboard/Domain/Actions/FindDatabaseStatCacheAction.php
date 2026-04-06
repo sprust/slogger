@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Dashboard\Domain\Actions;
 
 use App\Modules\Dashboard\Domain\Exceptions\DatabaseStatCacheNotFoundException;
-use App\Modules\Dashboard\Entities\DatabaseStatObject;
+use App\Modules\Dashboard\Entities\DatabaseStatCacheObject;
 use App\Modules\Dashboard\Repositories\DatabaseStatCacheRepository;
 
 readonly class FindDatabaseStatCacheAction
@@ -16,18 +16,16 @@ readonly class FindDatabaseStatCacheAction
     }
 
     /**
-     * @return DatabaseStatObject[]
-     *
      * @throws DatabaseStatCacheNotFoundException
      */
-    public function handle(): array
+    public function handle(): DatabaseStatCacheObject
     {
-        $stats = $this->cacheRepository->find();
+        $result = $this->cacheRepository->find();
 
-        if (is_null($stats)) {
+        if (is_null($result)) {
             throw new DatabaseStatCacheNotFoundException();
         }
 
-        return $stats;
+        return $result;
     }
 }

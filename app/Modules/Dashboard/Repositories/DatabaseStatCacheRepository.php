@@ -6,8 +6,10 @@ namespace App\Modules\Dashboard\Repositories;
 
 use App\Modules\Dashboard\Entities\DatabaseCollectionIndexStatObject;
 use App\Modules\Dashboard\Entities\DatabaseCollectionStatObject;
+use App\Modules\Dashboard\Entities\DatabaseStatCacheObject;
 use App\Modules\Dashboard\Entities\DatabaseStatObject;
 use Illuminate\Contracts\Cache\Repository as CacheRepository;
+use Illuminate\Support\Carbon;
 use Throwable;
 
 class DatabaseStatCacheRepository
@@ -26,8 +28,9 @@ class DatabaseStatCacheRepository
     {
         $this->cache->put(
             key: $this->cacheKey,
-            value: json_encode(
-                array_map(
+            value: json_encode([
+                'cached_at' => Carbon::now()->toDateTimeString(),
+                'stats'     => array_map(
                     fn(DatabaseStatObject $stat) => [
                         'name'                => $stat->name,
                         'size'                => $stat->size,
@@ -54,16 +57,13 @@ class DatabaseStatCacheRepository
                         ),
                     ],
                     $stats
-                )
-            ),
+                ),
+            ]),
             ttl: 90,
         );
     }
 
-    /**
-     * @return DatabaseStatObject[]|null
-     */
-    public function find(): ?array
+    public function find(): ?DatabaseStatCacheObject
     {
         try {
             $raw = $this->cache->get($this->cacheKey);
@@ -74,7 +74,7 @@ class DatabaseStatCacheRepository
 
             $data = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
 
-            return array_map(
+            $stats = array_map(
                 fn(array $item) => new DatabaseStatObject(
                     name: $item['name'],
                     size: $item['size'],
@@ -100,7 +100,12 @@ class DatabaseStatCacheRepository
                         $item['collections']
                     ),
                 ),
-                $data
+                $data['stats']
+            );
+
+            return new DatabaseStatCacheObject(
+                cachedAt: $data['cached_at'],
+                stats: $stats,
             );
         } catch (Throwable) {
             $this->cache->forget($this->cacheKey);
