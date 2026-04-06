@@ -59,7 +59,6 @@ class DatabaseStatCacheRepository
                     $stats
                 ),
             ]),
-            ttl: 90,
         );
     }
 
