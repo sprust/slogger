@@ -31,6 +31,14 @@ export type TagLoading = {
     loading: boolean
 }
 
+export type TraceTagHistoryType = 'types' | 'tags' | 'statuses'
+
+interface TraceTagHistoryState {
+    types: string[],
+    tags: string[],
+    statuses: string[],
+}
+
 interface TraceAggregatorTagsStoreInterface {
     types: Array<TraceTag>,
     typesPayload: TraceAggregatorFindTypesPayload,
@@ -44,7 +52,43 @@ interface TraceAggregatorTagsStoreInterface {
     statusesPayload: TraceAggregatorFindStatusesPayload,
     statusesLoading: TagLoading,
 
-    showDialog: boolean
+    showDialog: boolean,
+    recentSelections: TraceTagHistoryState,
+}
+
+const RECENT_SELECTIONS_STORAGE_KEY = 'trace-aggregator-tag-recent-selections'
+const RECENT_SELECTIONS_LIMIT = 10
+
+function getDefaultRecentSelections(): TraceTagHistoryState {
+    return {
+        types: [],
+        tags: [],
+        statuses: [],
+    }
+}
+
+function loadRecentSelections(): TraceTagHistoryState {
+    if (typeof localStorage === 'undefined') {
+        return getDefaultRecentSelections()
+    }
+
+    const savedSelections = localStorage.getItem(RECENT_SELECTIONS_STORAGE_KEY)
+
+    if (!savedSelections) {
+        return getDefaultRecentSelections()
+    }
+
+    try {
+        const parsedSelections = JSON.parse(savedSelections) as Partial<TraceTagHistoryState>
+
+        return {
+            types: Array.isArray(parsedSelections.types) ? parsedSelections.types.filter(Boolean).slice(0, RECENT_SELECTIONS_LIMIT) : [],
+            tags: Array.isArray(parsedSelections.tags) ? parsedSelections.tags.filter(Boolean).slice(0, RECENT_SELECTIONS_LIMIT) : [],
+            statuses: Array.isArray(parsedSelections.statuses) ? parsedSelections.statuses.filter(Boolean).slice(0, RECENT_SELECTIONS_LIMIT) : [],
+        }
+    } catch {
+        return getDefaultRecentSelections()
+    }
 }
 
 export const useTraceAggregatorTagsStore = defineStore('traceAggregatorTagsStore', {
@@ -69,6 +113,7 @@ export const useTraceAggregatorTagsStore = defineStore('traceAggregatorTagsStore
             },
 
             showDialog: false,
+            recentSelections: loadRecentSelections(),
         }
     },
     actions: {
@@ -128,6 +173,30 @@ export const useTraceAggregatorTagsStore = defineStore('traceAggregatorTagsStore
         },
         setStatuses(statuses: Array<TraceAggregatorFindStatus>) {
             this.statuses = statuses
+        },
+        addRecentSelection(type: TraceTagHistoryType, value: string) {
+            const normalizedValue = value.trim()
+
+            if (!normalizedValue) {
+                return
+            }
+
+            this.recentSelections[type] = [
+                normalizedValue,
+                ...this.recentSelections[type].filter((item: string) => item !== normalizedValue),
+            ].slice(0, RECENT_SELECTIONS_LIMIT)
+
+            this.saveRecentSelections()
+        },
+        saveRecentSelections() {
+            if (typeof localStorage === 'undefined') {
+                return
+            }
+
+            localStorage.setItem(
+                RECENT_SELECTIONS_STORAGE_KEY,
+                JSON.stringify(this.recentSelections)
+            )
         },
     },
 })

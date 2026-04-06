@@ -3,14 +3,41 @@
     <el-form-item :label="title">
     </el-form-item>
     <el-form-item>
-      <el-input v-model="searchQuery" clearable>
-        <template #prepend>
-          <el-button :icon="TagAddIcon" @click="onAddTagClick" :disabled="!searchQuery"/>
-        </template>
-        <template #append>
-          <el-button :icon="SearchIcon" @click="findTags" :loading="loading.loading"/>
-        </template>
-      </el-input>
+      <div class="search-actions"  style="margin: 3px">
+        <el-space>
+          <el-dropdown
+              trigger="click"
+              :disabled="recentTags.length === 0"
+              @command="onHistorySelect"
+          >
+            <el-button
+                :icon="ArrowDownIcon"
+                :disabled="recentTags.length === 0"
+                style="width: 30px"
+            />
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item
+                    v-for="tag in recentTags"
+                    :key="tag"
+                    :command="tag"
+                >
+                  {{ tag }}
+                </el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
+        </el-space>
+        <el-button
+            :icon="TagAddIcon"
+            @click="onAddTagClick"
+            :disabled="!searchQuery"
+        />
+
+        <el-input v-model="searchQuery" clearable class="search-input"/>
+
+        <el-button :icon="SearchIcon" @click="findTags" :loading="loading.loading"/>
+      </div>
     </el-form-item>
     <el-form-item>
       <el-row>
@@ -30,7 +57,7 @@
 
 <script lang="ts">
 import {defineComponent, PropType, shallowRef} from "vue";
-import {Plus as TagAddIcon, Search as SearchIcon} from '@element-plus/icons-vue'
+import {ArrowDown, Plus as TagAddIcon, Search as SearchIcon} from '@element-plus/icons-vue'
 import {TagLoading, TraceTag} from "./store/traceAggregatorTagsStore.ts";
 
 export default defineComponent({
@@ -56,10 +83,15 @@ export default defineComponent({
       type: Object as PropType<TagLoading>,
       required: true,
     },
+    recentTags: {
+      type: Array as PropType<string[]>,
+      required: true,
+    },
   },
   data() {
     return {
       searchQuery: '',
+      ArrowDownIcon: shallowRef(ArrowDown),
       TagAddIcon: shallowRef(TagAddIcon),
       SearchIcon: shallowRef(SearchIcon),
     }
@@ -77,6 +109,9 @@ export default defineComponent({
     findTags() {
       this.$emit('findTags', this.searchQuery)
     },
+    onHistorySelect(tag: string) {
+      this.$emit('onTagClick', tag)
+    },
     onTagClick(tag: string) {
       this.$emit('onTagClick', tag)
     }
@@ -85,5 +120,14 @@ export default defineComponent({
 </script>
 
 <style scoped>
+.search-actions {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  gap: 8px;
+}
 
+.search-input {
+  flex: 1;
+}
 </style>
