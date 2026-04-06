@@ -45,7 +45,18 @@
             {{ scope.row.logged_at }}
           </template>
         </el-table-column>
-        <el-table-column label="Message" prop="message"/>
+        <el-table-column label="Message" prop="message" min-width="200">
+          <template #default="scope">
+            <el-tooltip
+                :content="scope.row.message"
+                placement="top"
+                :show-after="300"
+                :disabled="scope.row.message.length <= 120"
+            >
+              <span class="message-cell">{{ scope.row.message }}</span>
+            </el-tooltip>
+          </template>
+        </el-table-column>
         <el-table-column label="Level" prop="level"/>
       </el-table>
     </el-scrollbar>
@@ -90,4 +101,12 @@ export default defineComponent({
 </script>
 
 <style scoped>
+.message-cell {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-all;
+  cursor: default;
+}
 </style>
