@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(make *)"
+    ]
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if git diff --name-only HEAD 2>/dev/null | grep -qE '^app/|^packages/|^routes/|^database/'; then echo '[hook] Обнаружены изменения в backend-коде. Не забудь запустить code-reviewer перед коммитом.'; fi"
+          }
+        ]
+      }
+    ]
+  }
+}
