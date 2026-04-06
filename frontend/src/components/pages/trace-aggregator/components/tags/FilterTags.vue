@@ -57,6 +57,7 @@
             tagType="success"
             :tags="types"
             :selectedTags="traceAggregatorStore.payload.types!"
+            :recentTags="traceAggregatorTagsStore.recentSelections.types"
             :loading="traceAggregatorTagsStore.typesLoading"
             @findTags="findTypes"
             @onTagClick="onTypeClick"
@@ -68,6 +69,7 @@
             tagType="warning"
             :tags="tags"
             :selectedTags="traceAggregatorStore.payload.tags!"
+            :recentTags="traceAggregatorTagsStore.recentSelections.tags"
             :loading="traceAggregatorTagsStore.tagsLoading"
             @findTags="findTags"
             @onTagClick="onTagClick"
@@ -79,6 +81,7 @@
             tagType="primary"
             :tags="statuses"
             :selectedTags="traceAggregatorStore.payload.statuses!"
+            :recentTags="traceAggregatorTagsStore.recentSelections.statuses"
             :loading="traceAggregatorTagsStore.statusesLoading"
             @findTags="findStatuses"
             @onTagClick="onStatusClick"
@@ -272,13 +275,31 @@ export default defineComponent({
       this.traceAggregatorTagsStore.findStatuses()
     },
     onTypeClick(type: string) {
+      const wasSelected = this.traceAggregatorStore.payload.types?.includes(type) ?? false
+
       this.traceAggregatorStore.addOrDeleteType(type)
+
+      if (!wasSelected) {
+        this.traceAggregatorTagsStore.addRecentSelection('types', type)
+      }
     },
     onTagClick(tag: string) {
+      const wasSelected = this.traceAggregatorStore.payload.tags?.includes(tag) ?? false
+
       this.traceAggregatorStore.addOrDeleteTag(tag)
+
+      if (!wasSelected) {
+        this.traceAggregatorTagsStore.addRecentSelection('tags', tag)
+      }
     },
     onStatusClick(status: string) {
+      const wasSelected = this.traceAggregatorStore.payload.statuses?.includes(status) ?? false
+
       this.traceAggregatorStore.addOrDeleteStatus(status)
+
+      if (!wasSelected) {
+        this.traceAggregatorTagsStore.addRecentSelection('statuses', status)
+      }
     },
   },
 })
