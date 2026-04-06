@@ -2,6 +2,7 @@
 
 namespace App\Exceptions;
 
+use App\Modules\Dashboard\Domain\Exceptions\DatabaseStatCacheNotFoundException;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceDynamicIndexAction;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexInProcessException;
 use App\Modules\Trace\Infrastructure\Http\Resources\TraceDynamicIndexResource;
@@ -32,10 +33,23 @@ class Handler extends ExceptionHandler
                 return false;
             }
 
+            if ($exception instanceof DatabaseStatCacheNotFoundException) {
+                return false;
+            }
+
+
             return true;
         });
 
         $this->renderable(function (Throwable $exception) {
+            if ($exception instanceof DatabaseStatCacheNotFoundException) {
+                return response()->json(
+                    data: ['error' => 'No data yet. Please wait for the first cache refresh.'],
+                    status: Response::HTTP_SERVICE_UNAVAILABLE
+                );
+            }
+
+
             if ($exception instanceof TraceDynamicIndexInProcessException) {
                 $index = app(FindTraceDynamicIndexAction::class)->handle(
                     indexId: $exception->indexId
