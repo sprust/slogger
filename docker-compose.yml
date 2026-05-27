@@ -140,9 +140,9 @@ services:
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
     healthcheck:
       test: rabbitmq-diagnostics -q check_port_connectivity
-      interval: 5s
-      timeout: 5s
-      retries: 3
+      interval: 3s
+      timeout: 3s
+      retries: 10
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq
     ports:
