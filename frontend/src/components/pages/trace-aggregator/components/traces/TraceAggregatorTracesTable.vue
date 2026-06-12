@@ -73,38 +73,59 @@
 
     <el-table-column prop="trace.type" label="Type">
       <template #default="scope">
-        <el-check-tag
-            type="success"
-            :checked="payload.types && payload.types?.indexOf(scope.row.trace.type) !== -1"
-            @click="$emit('onTraceTypeClick', scope.row.trace.type)"
+        <el-tooltip
+            :disabled="scope.row.trace.type.length <= 45"
+            :content="scope.row.trace.type"
+            placement="top"
         >
-          {{ scope.row.trace.type }}
-        </el-check-tag>
+          <el-check-tag
+              type="success"
+              style="white-space: pre-line"
+              :checked="payload.types && payload.types?.indexOf(scope.row.trace.type) !== -1"
+              @click="$emit('onTraceTypeClick', scope.row.trace.type)"
+          >
+            {{ formatLabel(scope.row.trace.type) }}
+          </el-check-tag>
+        </el-tooltip>
       </template>
     </el-table-column>
 
     <el-table-column label="Tags">
       <template #default="scope">
-        <el-check-tag
+        <el-tooltip
             v-for="tag in scope.row.trace.tags"
-            type="warning"
-            :checked="payload.tags && payload.tags?.indexOf(tag) !== -1"
-            @click="$emit('onTraceTagClick', tag)"
+            :disabled="tag.length <= 45"
+            :content="tag"
+            placement="top"
         >
-          {{ tag.slice(0, 40) }}
-        </el-check-tag>
+          <el-check-tag
+              type="warning"
+              style="white-space: pre-line"
+              :checked="payload.tags && payload.tags?.indexOf(tag) !== -1"
+              @click="$emit('onTraceTagClick', tag)"
+          >
+            {{ formatLabel(tag) }}
+          </el-check-tag>
+        </el-tooltip>
       </template>
     </el-table-column>
 
     <el-table-column label="Status">
       <template #default="scope">
-        <el-check-tag
-            type="primary"
-            :checked="payload.statuses && payload.statuses?.indexOf(scope.row.trace.status) !== -1"
-            @click="$emit('onTraceStatusClick', scope.row.trace.status)"
+        <el-tooltip
+            :disabled="scope.row.trace.status.length <= 45"
+            :content="scope.row.trace.status"
+            placement="top"
         >
-          {{ scope.row.trace.status }}
-        </el-check-tag>
+          <el-check-tag
+              type="primary"
+              style="white-space: pre-line"
+              :checked="payload.statuses && payload.statuses?.indexOf(scope.row.trace.status) !== -1"
+              @click="$emit('onTraceStatusClick', scope.row.trace.status)"
+          >
+            {{ formatLabel(scope.row.trace.status) }}
+          </el-check-tag>
+        </el-tooltip>
       </template>
     </el-table-column>
 
@@ -190,6 +211,16 @@ export default defineComponent({
   },
 
   methods: {
+    formatLabel(value: string, limit: number = 45): string {
+      if (value.length <= limit) {
+        return value
+      }
+
+      const rest: string = value.slice(limit)
+      const secondLine: string = rest.length > limit ? rest.slice(0, limit) + '…' : rest
+
+      return value.slice(0, limit) + '\n' + secondLine
+    },
     dataExpandChange(trace: TraceAggregatorItem) {
       if (this.isTraceDataLoaded(trace.trace.trace_id)) {
         return
