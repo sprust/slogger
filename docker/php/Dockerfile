@@ -17,39 +17,31 @@ RUN apt-get update \
         pkg-config \
         libssl-dev
 
-RUN pecl install \
-        redis \
-        imagick \
-        mongodb-1.21.0 \
-        zstd \
-        zip \
-        xhprof
+# PIE (PHP Installer for Extensions) — replacement for PECL
+RUN curl -fSL --connect-timeout 10 --retry 3 \
+        https://github.com/php/pie/releases/latest/download/pie.phar \
+        -o /usr/local/bin/pie \
+    && chmod +x /usr/local/bin/pie
+
+# Third-party extensions via PIE (installs and enables them)
+RUN pie install phpredis/phpredis \
+    && pie install imagick/imagick \
+    && pie install mongodb/mongodb-extension:^1.21 \
+    && pie install msgpack/msgpack-php \
+    && pie install kjdev/zstd
 
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg
 
+# Bundled (core) extensions
 RUN docker-php-ext-install \
         gd \
         pdo \
         pdo_mysql \
         bcmath \
         exif \
-        sockets
-
-RUN docker-php-ext-enable \
-        redis \
-        imagick \
-        zstd \
-        bcmath \
-        exif \
         sockets \
-        mongodb \
-        zip
-
-# pcntl
-RUN pecl pcntl && docker-php-ext-install pcntl
-
-# msgpack
-RUN pecl install msgpack && docker-php-ext-enable msgpack
+        zip \
+        pcntl
 
 # sconcur
 ARG BUILD_TIME=1
@@ -65,12 +57,7 @@ FROM php_base AS php_app
 ARG APP_ENV
 
 RUN if [ "$APP_ENV" = "local" ] ; then \
-    curl -fSL --connect-timeout 10 --retry 3 \
-        https://xdebug.org/files/xdebug-3.5.3.tgz \
-        -o /tmp/xdebug.tgz \
-    && pecl install /tmp/xdebug.tgz \
-    && rm /tmp/xdebug.tgz \
-    && docker-php-ext-enable xdebug \
+    pie install xdebug/xdebug:^3.5 \
 ; fi
 
 # Install composer
