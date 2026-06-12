@@ -18,10 +18,11 @@ use App\Modules\Trace\Repositories\Services\PeriodicTraceService;
 use App\Modules\Trace\Repositories\Services\TraceDataToObjectBuilder;
 use App\Modules\Trace\Repositories\Services\TracePipelineBuilder;
 use Illuminate\Support\Carbon;
+use MongoDB\BSON\ObjectId;
+use MongoDB\BSON\UTCDateTime;
 use MongoDB\Driver\Command;
 use MongoDB\Driver\Exception\Exception;
 use RuntimeException;
-use SConcur\Features\Mongodb\Types\ObjectId;
 use SConcur\WaitGroup;
 use Throwable;
 
@@ -446,8 +447,17 @@ readonly class TraceRepository
         /** @var ObjectId $objectId */
         $objectId = $document['_id'];
 
+        /** @var UTCDateTime $loggedAt */
+        $loggedAt = $document['lat'];
+
+        /** @var UTCDateTime $createdAt */
+        $createdAt = $document['cat'];
+
+        /** @var UTCDateTime $updatedAt */
+        $updatedAt = $document['uat'];
+
         return new TraceDto(
-            id: $objectId->id,
+            id: (string) $objectId,
             serviceId: $document['sid'] ? ((int) $document['sid']) : null,
             traceId: $document['tid'],
             parentTraceId: $document['ptid'],
@@ -462,9 +472,9 @@ readonly class TraceRepository
             memory: $document['mem'],
             cpu: $document['cpu'],
             hasProfiling: $document['hpr'] ?? false,
-            loggedAt: new Carbon($document['lat']->dateTime),
-            createdAt: new Carbon($document['cat']->dateTime),
-            updatedAt: new Carbon($document['uat']->dateTime)
+            loggedAt: new Carbon($loggedAt->toDateTime()),
+            createdAt: new Carbon($createdAt->toDateTime()),
+            updatedAt: new Carbon($updatedAt->toDateTime())
         );
     }
 }

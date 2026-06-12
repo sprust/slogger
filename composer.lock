@@ -4202,20 +4202,20 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/sprust/sconcur.git",
-                "reference": "f79a69768a2424602e9784f36afececfa855327a"
+                "reference": "51f0bf82320834b661a288dbe8ba434a0486de90"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sprust/sconcur/zipball/f79a69768a2424602e9784f36afececfa855327a",
-                "reference": "f79a69768a2424602e9784f36afececfa855327a",
+                "url": "https://api.github.com/repos/sprust/sconcur/zipball/51f0bf82320834b661a288dbe8ba434a0486de90",
+                "reference": "51f0bf82320834b661a288dbe8ba434a0486de90",
                 "shasum": ""
             },
             "require": {
+                "ext-mongodb": "^1.21",
                 "ext-msgpack": "*",
                 "php": "^8.4"
             },
             "require-dev": {
-                "ext-mongodb": "*",
                 "friendsofphp/php-cs-fixer": "^3.91",
                 "mongodb/mongodb": "^1.21",
                 "phpstan/phpstan": "^2.1",
@@ -4245,7 +4245,7 @@
                 "issues": "https://github.com/sprust/sconcur/issues",
                 "source": "https://github.com/sprust/sconcur/tree/master"
             },
-            "time": "2026-06-12T06:40:21+00:00"
+            "time": "2026-06-12T09:48:03+00:00"
         },
         {
             "name": "slogger/laravel",

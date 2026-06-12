@@ -8,7 +8,7 @@ use App\Modules\Trace\Enums\TraceDataFilterCompNumericTypeEnum;
 use App\Modules\Trace\Enums\TraceDataFilterCompStringTypeEnum;
 use App\Modules\Trace\Parameters\Data\TraceDataFilterParameters;
 use Illuminate\Support\Carbon;
-use SConcur\Features\Mongodb\Types\UTCDateTime;
+use MongoDB\BSON\UTCDateTime;
 
 class TracePipelineBuilder
 {

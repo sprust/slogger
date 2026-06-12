@@ -11,8 +11,8 @@ use App\Modules\Trace\Entities\Trace\Tree\TraceTreeStringableObject;
 use App\Modules\Trace\Parameters\CreateTraceTreeCacheParameters;
 use App\Modules\Trace\Repositories\Dto\Trace\TraceTreeServiceDto;
 use Illuminate\Support\Carbon;
+use MongoDB\BSON\UTCDateTime;
 use MongoDB\Model\BSONDocument;
-use SConcur\Features\Mongodb\Types\UTCDateTime;
 
 class TraceTreeCacheRepository
 {
