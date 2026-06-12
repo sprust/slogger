@@ -32,10 +32,13 @@ type Service struct {
 	mColl *mongo.Collection
 }
 
-func (s *Service) Save(ctx context.Context, serviceId int, serviceTraces *dto.ServiceTraces) int {
+func (s *Service) Save(ctx context.Context, serviceId int, serviceTraces *dto.ServiceTraces) (int, []string) {
 	wg := sync.WaitGroup{}
 
 	counter := atomic.Uint64{}
+
+	var mu sync.Mutex
+	failedTraceIds := make([]string, 0)
 
 	for traceId, traces := range serviceTraces.Items() {
 		wg.Add(1)
@@ -48,6 +51,10 @@ func (s *Service) Save(ctx context.Context, serviceId int, serviceTraces *dto.Se
 			if err != nil {
 				slog.Error("failed to save traces" + err.Error())
 
+				mu.Lock()
+				failedTraceIds = append(failedTraceIds, traceId)
+				mu.Unlock()
+
 				return
 			}
 
@@ -57,7 +64,7 @@ func (s *Service) Save(ctx context.Context, serviceId int, serviceTraces *dto.Se
 
 	wg.Wait()
 
-	return int(counter.Load())
+	return int(counter.Load()), failedTraceIds
 }
 
 func (s *Service) saveTraces(ctx context.Context, serviceId int, traceId string, traces *dto.Traces) error {
