@@ -48,6 +48,9 @@ RUN docker-php-ext-enable \
 # pcntl
 RUN pecl pcntl && docker-php-ext-install pcntl
 
+# msgpack
+RUN pecl install msgpack && docker-php-ext-enable msgpack
+
 # sconcur
 ARG BUILD_TIME=1
 RUN curl -L https://github.com/sprust/sconcur/releases/download/latest/sconcur.so \
