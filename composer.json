@@ -9,7 +9,6 @@
         "ext-mongodb": "*",
         "ext-pcntl": "*",
         "ext-pdo": "*",
-        "ext-xhprof": "*",
         "guzzlehttp/guzzle": "^7.2",
         "ifksco/openapi-generator": "dev-master",
         "laravel/framework": "^12",
@@ -35,6 +34,9 @@
         "nunomaduro/collision": "^8.8",
         "phpunit/phpunit": "^11",
         "spatie/laravel-ignition": "^2.0"
+    },
+    "suggest": {
+        "ext-xhprof": "Enables XHProf profiling; install the xhprof PHP extension manually"
     },
     "repositories": [
         {
