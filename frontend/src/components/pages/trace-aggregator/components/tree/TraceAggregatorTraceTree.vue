@@ -154,7 +154,7 @@
         />
         <div
             v-if="showData"
-            class="row-col right-col"
+            class="right-col"
             style="position: absolute; right: 0; width: 50%;"
         >
           <el-progress
@@ -165,14 +165,13 @@
               :duration="5"
               striped
           />
-          <div v-else style="padding: 10px">
-            <el-row>
+          <TraceDetail v-else :trace="traceAggregatorTreeStore.selectedTrace">
+            <template #actions>
               <el-button @click="onClickCloseData">
                 Close
               </el-button>
-            </el-row>
-            <TraceDetail :trace="traceAggregatorTreeStore.selectedTrace"/>
-          </div>
+            </template>
+          </TraceDetail>
         </div>
       </el-row>
     </div>
@@ -358,6 +357,10 @@ export default defineComponent({
 }
 
 .right-col {
+  height: 90%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
   background-color: var(--el-drawer-bg-color);
   --el-drawer-bg-color: var(--el-dialog-bg-color, var(--el-bg-color));
 }
