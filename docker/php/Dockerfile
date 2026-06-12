@@ -53,8 +53,9 @@ RUN pecl install msgpack && docker-php-ext-enable msgpack
 
 # sconcur
 ARG BUILD_TIME=1
-RUN curl -L https://github.com/sprust/sconcur/releases/download/latest/sconcur.so \
-      -o $(php-config --extension-dir)/sconcur.so \
+RUN curl -fSL --connect-timeout 10 --retry 3 -4 \
+    https://github.com/sprust/sconcur/releases/latest/download/sconcur.so \
+    -o $(php-config --extension-dir)/sconcur.so \
     && echo "extension=sconcur.so" > /usr/local/etc/php/conf.d/docker-php-ext-sconcur.ini
 
 EXPOSE 9000

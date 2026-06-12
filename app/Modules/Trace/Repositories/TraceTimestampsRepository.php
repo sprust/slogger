@@ -18,8 +18,8 @@ use App\Modules\Trace\Repositories\Services\PeriodicTraceService;
 use App\Modules\Trace\Repositories\Services\TracePipelineBuilder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
+use MongoDB\BSON\UTCDateTime;
 use RuntimeException;
-use SConcur\Features\Mongodb\Types\UTCDateTime;
 
 readonly class TraceTimestampsRepository
 {
@@ -176,8 +176,11 @@ readonly class TraceTimestampsRepository
                     );
                 }
 
+                /** @var UTCDateTime $metricTimestamp */
+                $metricTimestamp = $item['_id']['timestamp'];
+
                 $metrics[] = new TraceTimestampsDto(
-                    timestamp: new Carbon($item['_id']['timestamp']->dateTime),
+                    timestamp: new Carbon($metricTimestamp->toDateTime()),
                     indicators: $groupIndicatorsDtoList
                 );
             }

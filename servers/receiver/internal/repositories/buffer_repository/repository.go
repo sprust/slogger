@@ -68,13 +68,13 @@ func (r *Repository) InsertUpdatingTraces(ctx context.Context, serviceId int, tr
 	return nil
 }
 
-func (r *Repository) FindMany(ctx context.Context, limit int) (map[int]*dto.ServiceTraces, error) {
+func (r *Repository) FindMany(ctx context.Context, limit int) (map[int]*dto.ServiceTraces, map[int][]primitive.ObjectID, error) {
 	// TODO: collect invalid traces
 
 	err := instance.connect(ctx)
 
 	if err != nil {
-		return nil, errs.Err(err)
+		return nil, nil, errs.Err(err)
 	}
 
 	cursor, err := r.mColl.Find(
@@ -90,7 +90,7 @@ func (r *Repository) FindMany(ctx context.Context, limit int) (map[int]*dto.Serv
 	)
 
 	if err != nil {
-		return nil, errs.Err(err)
+		return nil, nil, errs.Err(err)
 	}
 
 	defer func(cursor *mongo.Cursor, ctx context.Context) {
@@ -103,12 +103,13 @@ func (r *Repository) FindMany(ctx context.Context, limit int) (map[int]*dto.Serv
 	}(cursor, ctx)
 
 	result := make(map[int]*dto.ServiceTraces)
+	ids := make(map[int][]primitive.ObjectID)
 
 	for cursor.Next(ctx) {
 		var doc bson.M
 
 		if err := cursor.Decode(&doc); err != nil {
-			return nil, errs.Err(err)
+			return nil, nil, errs.Err(err)
 		}
 
 		serviceId := int(doc["sid"].(int32))
@@ -116,6 +117,10 @@ func (r *Repository) FindMany(ctx context.Context, limit int) (map[int]*dto.Serv
 
 		if result[serviceId] == nil {
 			result[serviceId] = &dto.ServiceTraces{}
+		}
+
+		if id, ok := doc["_id"].(primitive.ObjectID); ok {
+			ids[serviceId] = append(ids[serviceId], id)
 		}
 
 		if op == "c" {
@@ -182,20 +187,24 @@ func (r *Repository) FindMany(ctx context.Context, limit int) (map[int]*dto.Serv
 	}
 
 	if err := cursor.Err(); err != nil {
-		return nil, errs.Err(err)
+		return nil, nil, errs.Err(err)
 	}
 
-	return result, nil
+	return result, ids, nil
 }
 
-func (r *Repository) DeleteByTraceIds(ctx context.Context, serviceId int, traceIds []string) (int64, error) {
+func (r *Repository) DeleteByIds(ctx context.Context, ids []primitive.ObjectID) (int64, error) {
+	if len(ids) == 0 {
+		return 0, nil
+	}
+
 	err := instance.connect(ctx)
 
 	if err != nil {
 		return 0, errs.Err(err)
 	}
 
-	many, err := r.mColl.DeleteMany(ctx, bson.M{"sid": serviceId, "tid": bson.M{"$in": traceIds}})
+	many, err := r.mColl.DeleteMany(ctx, bson.M{"_id": bson.M{"$in": ids}})
 
 	if err != nil {
 		return 0, errs.Err(err)
