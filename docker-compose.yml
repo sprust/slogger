@@ -93,6 +93,7 @@ services:
     ports:
       - ${RECIEVER_SOCKET_DOCKER_PORT:-10031}:${RECIEVER_SOCKET_PORT:-9030}
     volumes:
+      - ./servers/receiver:/app
       - ./servers/receiver/.env:/app/.env
       - ./servers/receiver/storage:/app/storage
     extra_hosts:

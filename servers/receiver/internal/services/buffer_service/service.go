@@ -64,10 +64,14 @@ func (s *Service) Save(ctx context.Context, serviceId int, traces *dto.TracesMes
 	return nil
 }
 
-func (s *Service) FindForTransporter(ctx context.Context) (map[int]*dto.ServiceTraces, map[int][]primitive.ObjectID, error) {
+func (s *Service) FindForTransporter(ctx context.Context) (map[int]*dto.ServiceTraces, error) {
 	return s.repository.FindMany(ctx, 1000)
 }
 
 func (s *Service) DeleteByIds(ctx context.Context, ids []primitive.ObjectID) (int64, error) {
 	return s.repository.DeleteByIds(ctx, ids)
+}
+
+func (s *Service) MarkFailed(ctx context.Context, ids []primitive.ObjectID, maxAttempts int) error {
+	return s.repository.MarkFailed(ctx, ids, maxAttempts)
 }

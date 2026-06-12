@@ -9,7 +9,11 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
+
+const maxSaveAttempts = 5
 
 type Transporter struct {
 	ctx                     context.Context
@@ -50,7 +54,7 @@ func (s *Transporter) Run(ctx context.Context) error {
 	}()
 
 	for !s.closing.Load() {
-		serviceTracesMap, bufferIds, err := s.bufferService.FindForTransporter(ctx)
+		serviceTracesMap, err := s.bufferService.FindForTransporter(ctx)
 
 		if err != nil {
 			slog.Error("Failed to find traces for transporter: " + err.Error())
@@ -66,6 +70,10 @@ func (s *Transporter) Run(ctx context.Context) error {
 			continue
 		}
 
+		var mu sync.Mutex
+		savedIds := make([]primitive.ObjectID, 0)
+		failedIds := make([]primitive.ObjectID, 0)
+
 		wg := sync.WaitGroup{}
 
 		for serviceId, traces := range serviceTracesMap {
@@ -74,35 +82,51 @@ func (s *Transporter) Run(ctx context.Context) error {
 			go func() {
 				defer wg.Done()
 
-				count := s.periodicTraceService.Save(ctx, serviceId, traces)
+				count, failedTraceIds := s.periodicTraceService.Save(ctx, serviceId, traces)
 
 				go s.totalHandledBufferCount.Add(uint64(count))
-			}()
-		}
 
-		wg.Wait()
+				failedSet := make(map[string]bool, len(failedTraceIds))
 
-		wg = sync.WaitGroup{}
-
-		for _, ids := range bufferIds {
-			wg.Add(1)
-
-			go func() {
-				defer wg.Done()
-
-				deletedCount, err := s.bufferService.DeleteByIds(ctx, ids)
-
-				if err != nil {
-					slog.Error(errs.Err(err).Error())
-
-					return
+				for _, traceId := range failedTraceIds {
+					failedSet[traceId] = true
 				}
 
-				go s.totalDeletedBufferCount.Add(uint64(deletedCount))
+				localSaved := make([]primitive.ObjectID, 0)
+				localFailed := make([]primitive.ObjectID, 0)
+
+				for traceId, trace := range traces.Items() {
+					if failedSet[traceId] {
+						localFailed = append(localFailed, trace.Ids...)
+					} else {
+						localSaved = append(localSaved, trace.Ids...)
+					}
+				}
+
+				mu.Lock()
+				savedIds = append(savedIds, localSaved...)
+				failedIds = append(failedIds, localFailed...)
+				mu.Unlock()
 			}()
 		}
 
 		wg.Wait()
+
+		if len(savedIds) > 0 {
+			deletedCount, err := s.bufferService.DeleteByIds(ctx, savedIds)
+
+			if err != nil {
+				slog.Error(errs.Err(err).Error())
+			} else {
+				go s.totalDeletedBufferCount.Add(uint64(deletedCount))
+			}
+		}
+
+		if len(failedIds) > 0 {
+			if err := s.bufferService.MarkFailed(ctx, failedIds, maxSaveAttempts); err != nil {
+				slog.Error(errs.Err(err).Error())
+			}
+		}
 	}
 
 	for s.closing.Load() {

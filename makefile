@@ -150,3 +150,7 @@ frontend-npm-generate:
 
 receiver-monitor:
 	make art c=receiver:monitor
+
+receiver-build:
+	docker-compose run --rm --no-deps $(RECEIVER_SERVICE) make build stats-build
+	docker-compose up -d --force-recreate $(RECEIVER_SERVICE)

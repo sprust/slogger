@@ -29,7 +29,8 @@ func Get() *Repository {
 }
 
 type Repository struct {
-	mColl *mongo.Collection
+	mColl        *mongo.Collection
+	mInvalidColl *mongo.Collection
 }
 
 func (r *Repository) InsertCreatingTraces(ctx context.Context, serviceId int, traces []dto.TraceCreating) error {
@@ -68,13 +69,11 @@ func (r *Repository) InsertUpdatingTraces(ctx context.Context, serviceId int, tr
 	return nil
 }
 
-func (r *Repository) FindMany(ctx context.Context, limit int) (map[int]*dto.ServiceTraces, map[int][]primitive.ObjectID, error) {
-	// TODO: collect invalid traces
-
+func (r *Repository) FindMany(ctx context.Context, limit int) (map[int]*dto.ServiceTraces, error) {
 	err := instance.connect(ctx)
 
 	if err != nil {
-		return nil, nil, errs.Err(err)
+		return nil, errs.Err(err)
 	}
 
 	cursor, err := r.mColl.Find(
@@ -90,7 +89,7 @@ func (r *Repository) FindMany(ctx context.Context, limit int) (map[int]*dto.Serv
 	)
 
 	if err != nil {
-		return nil, nil, errs.Err(err)
+		return nil, errs.Err(err)
 	}
 
 	defer func(cursor *mongo.Cursor, ctx context.Context) {
@@ -103,24 +102,20 @@ func (r *Repository) FindMany(ctx context.Context, limit int) (map[int]*dto.Serv
 	}(cursor, ctx)
 
 	result := make(map[int]*dto.ServiceTraces)
-	ids := make(map[int][]primitive.ObjectID)
 
 	for cursor.Next(ctx) {
 		var doc bson.M
 
 		if err := cursor.Decode(&doc); err != nil {
-			return nil, nil, errs.Err(err)
+			return nil, errs.Err(err)
 		}
 
 		serviceId := int(doc["sid"].(int32))
 		op := doc["op"].(string)
+		traceId := asString(doc["tid"])
 
 		if result[serviceId] == nil {
 			result[serviceId] = &dto.ServiceTraces{}
-		}
-
-		if id, ok := doc["_id"].(primitive.ObjectID); ok {
-			ids[serviceId] = append(ids[serviceId], id)
 		}
 
 		if op == "c" {
@@ -154,6 +149,10 @@ func (r *Repository) FindMany(ctx context.Context, limit int) (map[int]*dto.Serv
 			}
 
 			result[serviceId].AddCreating(trace)
+
+			if id, ok := doc["_id"].(primitive.ObjectID); ok {
+				result[serviceId].AddId(traceId, id)
+			}
 		} else if op == "u" {
 			trace := &dto.TraceUpdating{
 				TraceId:        asString(doc["tid"]),
@@ -183,14 +182,18 @@ func (r *Repository) FindMany(ctx context.Context, limit int) (map[int]*dto.Serv
 			}
 
 			result[serviceId].AddUpdating(trace)
+
+			if id, ok := doc["_id"].(primitive.ObjectID); ok {
+				result[serviceId].AddId(traceId, id)
+			}
 		}
 	}
 
 	if err := cursor.Err(); err != nil {
-		return nil, nil, errs.Err(err)
+		return nil, errs.Err(err)
 	}
 
-	return result, ids, nil
+	return result, nil
 }
 
 func (r *Repository) DeleteByIds(ctx context.Context, ids []primitive.ObjectID) (int64, error) {
@@ -211,6 +214,87 @@ func (r *Repository) DeleteByIds(ctx context.Context, ids []primitive.ObjectID) 
 	}
 
 	return many.DeletedCount, nil
+}
+
+// MarkFailed increments the save-attempt counter for the given buffer documents
+// and moves to the invalid-buffer collection those that reached maxAttempts.
+func (r *Repository) MarkFailed(ctx context.Context, ids []primitive.ObjectID, maxAttempts int) error {
+	if len(ids) == 0 {
+		return nil
+	}
+
+	err := instance.connect(ctx)
+
+	if err != nil {
+		return errs.Err(err)
+	}
+
+	_, err = r.mColl.UpdateMany(
+		ctx,
+		bson.M{"_id": bson.M{"$in": ids}},
+		bson.M{"$inc": bson.M{"att": 1}},
+	)
+
+	if err != nil {
+		return errs.Err(err)
+	}
+
+	cursor, err := r.mColl.Find(
+		ctx,
+		bson.M{
+			"_id": bson.M{"$in": ids},
+			"att": bson.M{"$gte": maxAttempts},
+		},
+	)
+
+	if err != nil {
+		return errs.Err(err)
+	}
+
+	defer func(cursor *mongo.Cursor, ctx context.Context) {
+		if err := cursor.Close(ctx); err != nil {
+			slog.Error(errs.Err(err).Error())
+		}
+	}(cursor, ctx)
+
+	invalidDocs := make([]interface{}, 0)
+	invalidIds := make([]primitive.ObjectID, 0)
+
+	for cursor.Next(ctx) {
+		var doc bson.M
+
+		if err := cursor.Decode(&doc); err != nil {
+			return errs.Err(err)
+		}
+
+		if id, ok := doc["_id"].(primitive.ObjectID); ok {
+			invalidIds = append(invalidIds, id)
+		}
+
+		doc["iat"] = datetime_helper.Now()
+
+		invalidDocs = append(invalidDocs, doc)
+	}
+
+	if err := cursor.Err(); err != nil {
+		return errs.Err(err)
+	}
+
+	if len(invalidDocs) == 0 {
+		return nil
+	}
+
+	if _, err := r.mInvalidColl.InsertMany(ctx, invalidDocs); err != nil {
+		return errs.Err(err)
+	}
+
+	if _, err := r.mColl.DeleteMany(ctx, bson.M{"_id": bson.M{"$in": invalidIds}}); err != nil {
+		return errs.Err(err)
+	}
+
+	slog.Warn(fmt.Sprintf("moved %d buffer docs to invalid buffer after %d failed attempts", len(invalidIds), maxAttempts))
+
+	return nil
 }
 
 func (r *Repository) insertCreatingTrace(ctx context.Context, serviceId int, trace dto.TraceCreating) error {
@@ -310,9 +394,10 @@ func (r *Repository) connect(ctx context.Context) error {
 		return errs.Err(err)
 	}
 
-	r.mColl = client.
-		Database(os.Getenv("MONGODB_DB_TRACES")).
-		Collection(os.Getenv("MONGODB_COLL_BUFFER"))
+	database := client.Database(os.Getenv("MONGODB_DB_TRACES"))
+
+	r.mColl = database.Collection(os.Getenv("MONGODB_COLL_BUFFER"))
+	r.mInvalidColl = database.Collection(os.Getenv("MONGODB_COLL_INVALID_BUFFER"))
 
 	return nil
 }

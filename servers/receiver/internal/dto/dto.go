@@ -1,5 +1,7 @@
 package dto
 
+import "go.mongodb.org/mongo-driver/bson/primitive"
+
 type AuthMessage struct {
 	ApiToken string `json:"t"`
 }
@@ -36,6 +38,7 @@ type TraceUpdating struct {
 type Traces struct {
 	Creating *TraceCreating
 	Updating *TraceUpdating
+	Ids      []primitive.ObjectID
 }
 
 type ServiceTraces struct {
@@ -72,6 +75,18 @@ func (t *ServiceTraces) AddUpdating(trace *TraceUpdating) {
 	}
 
 	t.items[trace.TraceId].Updating = trace
+}
+
+func (t *ServiceTraces) AddId(traceId string, id primitive.ObjectID) {
+	if t.items == nil {
+		t.items = make(map[string]*Traces)
+	}
+
+	if t.items[traceId] == nil {
+		t.items[traceId] = &Traces{}
+	}
+
+	t.items[traceId].Ids = append(t.items[traceId].Ids, id)
 }
 
 func (t *ServiceTraces) Count() int {
