@@ -65,7 +65,12 @@ FROM php_base AS php_app
 ARG APP_ENV
 
 RUN if [ "$APP_ENV" = "local" ] ; then \
-    pecl install xdebug && docker-php-ext-enable xdebug \
+    curl -fSL --connect-timeout 10 --retry 3 \
+        https://xdebug.org/files/xdebug-3.5.3.tgz \
+        -o /tmp/xdebug.tgz \
+    && pecl install /tmp/xdebug.tgz \
+    && rm /tmp/xdebug.tgz \
+    && docker-php-ext-enable xdebug \
 ; fi
 
 # Install composer
