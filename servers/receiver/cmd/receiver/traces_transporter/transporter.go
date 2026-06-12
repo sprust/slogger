@@ -50,7 +50,7 @@ func (s *Transporter) Run(ctx context.Context) error {
 	}()
 
 	for !s.closing.Load() {
-		serviceTracesMap, err := s.bufferService.FindForTransporter(ctx)
+		serviceTracesMap, bufferIds, err := s.bufferService.FindForTransporter(ctx)
 
 		if err != nil {
 			slog.Error("Failed to find traces for transporter: " + err.Error())
@@ -66,17 +66,9 @@ func (s *Transporter) Run(ctx context.Context) error {
 			continue
 		}
 
-		traceIds := map[int][]string{}
-
 		wg := sync.WaitGroup{}
 
 		for serviceId, traces := range serviceTracesMap {
-			if traceIds[serviceId] == nil {
-				traceIds[serviceId] = make([]string, 0)
-			}
-
-			traceIds[serviceId] = append(traceIds[serviceId], traces.GetTraceIds()...)
-
 			wg.Add(1)
 
 			go func() {
@@ -92,13 +84,13 @@ func (s *Transporter) Run(ctx context.Context) error {
 
 		wg = sync.WaitGroup{}
 
-		for serviceId, traceIds := range traceIds {
+		for _, ids := range bufferIds {
 			wg.Add(1)
 
 			go func() {
 				defer wg.Done()
 
-				deletedCount, err := s.bufferService.DeleteByTraceIds(ctx, serviceId, traceIds)
+				deletedCount, err := s.bufferService.DeleteByIds(ctx, ids)
 
 				if err != nil {
 					slog.Error(errs.Err(err).Error())

@@ -46,16 +46,6 @@ func (t *ServiceTraces) Items() map[string]*Traces {
 	return t.items
 }
 
-func (t *ServiceTraces) GetTraceIds() []string {
-	ids := make([]string, 0, len(t.items))
-
-	for traceId := range t.items {
-		ids = append(ids, traceId)
-	}
-
-	return ids
-}
-
 func (t *ServiceTraces) AddCreating(trace *TraceCreating) {
 	if t.items == nil {
 		t.items = make(map[string]*Traces)
