@@ -157,3 +157,11 @@ receiver-monitor:
 receiver-build:
 	docker-compose run --rm --no-deps $(RECEIVER_SERVICE) make build stats-build
 	docker-compose up -d --force-recreate $(RECEIVER_SERVICE)
+
+sconcur-update:
+	make stop
+	make build
+	docker-compose up -d php-fpm
+	make make composer c='update sconcur/sconcur'
+	make restart
+
