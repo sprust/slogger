@@ -4202,12 +4202,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/sprust/sconcur.git",
-                "reference": "de4972d00c86c930578bfe4d985f6cdb4e001274"
+                "reference": "b73fbe45b5e7705db9f29db645cef0dbf1c2ca3f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sprust/sconcur/zipball/de4972d00c86c930578bfe4d985f6cdb4e001274",
-                "reference": "de4972d00c86c930578bfe4d985f6cdb4e001274",
+                "url": "https://api.github.com/repos/sprust/sconcur/zipball/b73fbe45b5e7705db9f29db645cef0dbf1c2ca3f",
+                "reference": "b73fbe45b5e7705db9f29db645cef0dbf1c2ca3f",
                 "shasum": ""
             },
             "require": {
@@ -4240,12 +4240,12 @@
                     "email": "sprust28@gmail.com"
                 }
             ],
-            "description": "Concurrency PHP via external demon",
+            "description": "PHP concurrency library backed by an extension written in Go",
             "support": {
                 "issues": "https://github.com/sprust/sconcur/issues",
                 "source": "https://github.com/sprust/sconcur/tree/master"
             },
-            "time": "2026-06-12T14:41:58+00:00"
+            "time": "2026-06-13T16:25:55+00:00"
         },
         {
             "name": "slogger/laravel",
