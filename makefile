@@ -162,6 +162,6 @@ sconcur-update:
 	make stop
 	make build
 	docker-compose up -d php-fpm
-	make make composer c='update sconcur/sconcur'
+	make composer c='update sconcur/sconcur'
 	make restart
 

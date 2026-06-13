@@ -81,7 +81,7 @@ class TraceServiceProvider extends BaseServiceProvider
 
                 return new PeriodicTraceService(
                     database: $client->selectDatabase($database),
-                    sconcurDatabase: new SconcurClient($uri, socketTimeoutMs: $options['socketTimeoutMS'] ?? null)
+                    sconcurDatabase: new SconcurClient($uri, timeoutMs: $options['socketTimeoutMS'] ?? null)
                         ->selectDatabase($database),
                     periodicTraceCollectionNameService: $app->make(PeriodicTraceCollectionNameService::class)
                 );
