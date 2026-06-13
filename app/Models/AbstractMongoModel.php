@@ -51,7 +51,7 @@ abstract class AbstractMongoModel extends Model
 
         $uri = "mongodb://$username:$password@$host:$port";
 
-        $collection = new SconcurClient($uri, socketTimeoutMs: $options['socketTimeoutMS'] ?? null)
+        $collection = new SconcurClient($uri, timeoutMs: $options['socketTimeoutMS'] ?? null)
             ->selectDatabase($database)
             ->selectCollection($instance->getCollectionName());
 
