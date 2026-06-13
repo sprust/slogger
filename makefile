@@ -121,6 +121,7 @@ deploy-prod:
 	make composer c='i --no-dev'
 	make art c='migrate --force'
 	make workers-restart
+	make receiver-build
 	make frontend-npm-i
 	make frontend-npm-build
 	docker-compose restart $(FRONTEND_SERVICE)
@@ -129,8 +130,10 @@ deploy-dev:
 	git pull
 	make composer c='i'
 	make art c='migrate --force'
+	make receiver-build
 	make frontend-npm-i
 	make frontend-npm-build
+	make receiver-build
 	make restart
 
 rr-get-binary:
