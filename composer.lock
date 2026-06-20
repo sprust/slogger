@@ -4202,22 +4202,26 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/sprust/sconcur.git",
-                "reference": "5afe833828d07329d817d9d6057e96272273f0cf"
+                "reference": "6ff3d2c4cd345d8847cf402e60f9077fce4827db"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sprust/sconcur/zipball/5afe833828d07329d817d9d6057e96272273f0cf",
-                "reference": "5afe833828d07329d817d9d6057e96272273f0cf",
+                "url": "https://api.github.com/repos/sprust/sconcur/zipball/6ff3d2c4cd345d8847cf402e60f9077fce4827db",
+                "reference": "6ff3d2c4cd345d8847cf402e60f9077fce4827db",
                 "shasum": ""
             },
             "require": {
                 "ext-mongodb": "^1.21",
                 "ext-msgpack": "*",
-                "php": "^8.4"
+                "php": "^8.4",
+                "psr/http-client": "^1.0",
+                "psr/http-factory": "^1.0",
+                "psr/http-message": "^2.0"
             },
             "require-dev": {
                 "friendsofphp/php-cs-fixer": "^3.91",
                 "mongodb/mongodb": "^1.21",
+                "nyholm/psr7": "^1.8",
                 "phpstan/phpstan": "^2.1",
                 "phpunit/phpunit": "^11.5",
                 "symfony/var-dumper": "^7.3",
@@ -4227,6 +4231,9 @@
                 "ext-pcntl": "Required for graceful shutdown of the HTTP server (SIGTERM/SIGINT handling); the server otherwise runs until the process is killed"
             },
             "default-branch": true,
+            "bin": [
+                "bin/sconcur-server"
+            ],
             "type": "library",
             "autoload": {
                 "psr-4": {
@@ -4248,7 +4255,7 @@
                 "issues": "https://github.com/sprust/sconcur/issues",
                 "source": "https://github.com/sprust/sconcur/tree/master"
             },
-            "time": "2026-06-14T19:00:15+00:00"
+            "time": "2026-06-20T10:48:58+00:00"
         },
         {
             "name": "slogger/laravel",
