@@ -1,279 +1,281 @@
+**English** | [Русский](README.ru.md)
+
 # SLogger
 
-**SLogger** — платформа observability для приёма, хранения и анализа трейсов и логов из ваших приложений и микросервисов.
+**SLogger** is an observability platform for ingesting, storing, and analyzing traces and logs from your applications and microservices.
 
-Сервис собирает данные о выполнении кода (запросы, очереди, события, команды и любые пользовательские операции), складывает их в распределённое по времени хранилище и предоставляет веб-панель для поиска, построения дерева вызовов, гибкой фильтрации и графиков по показателям.
-
----
-
-## Возможности
-
-- **Сбор трейсов и логов** из любых приложений по простому сокет-протоколу (язык/стек источника не важен).
-- **Дерево вызовов** — иерархия «родитель → потомки» с произвольной глубиной вложенности.
-- **Объединение запросов разных сервисов/микросервисов** в одно сквозное дерево (distributed tracing).
-- **Гибкая фильтрация** по любым полям полезной нагрузки трейса (`data`): числа, строки, булевы значения, проверка на наличие поля.
-- **Графики-таймлайны** по показателям трейсов: **количество**, **длительность**, **память**, **CPU** — с агрегациями и той же фильтрацией, что и в поиске.
-- **Дашборд состояния хранилища** — размеры коллекций, использование памяти и индексов.
-- **Автоматическая очистка** устаревших данных.
+It collects data about code execution (HTTP requests, queues, events, commands, and any custom operations), stores it in a time-distributed storage, and provides a web panel for search, call-tree building, flexible filtering, and metric charts.
 
 ---
 
-## Архитектура
+## Features
 
-### Поток данных
+- **Trace & log collection** from any application over a simple socket protocol (the source language/stack does not matter).
+- **Call tree** — a `parent → children` hierarchy with arbitrary nesting depth.
+- **Joining requests across services/microservices** into a single end-to-end tree (distributed tracing).
+- **Flexible filtering** by any field of the trace payload (`data`): numbers, strings, booleans, field-presence checks.
+- **Timeline charts** for trace metrics: **count**, **duration**, **memory**, **CPU** — with aggregations and the same filtering as in search.
+- **Storage dashboard** — collection sizes, memory and index usage.
+- **Automatic cleanup** of stale data.
+
+---
+
+## Architecture
+
+### Data flow
 
 ```
 ┌───────────────────────────┐
-│  Источник данных           │   любой клиент, умеющий писать в TCP-сокет
-│  (одно или много           │   (напр. библиотека для Laravel)
-│   приложений/сервисов)     │   старт трейса → … → финиш трейса
+│  Data source               │   any client able to write to a TCP socket
+│  (one or many              │   (e.g. the Laravel library)
+│   applications/services)   │   trace start → … → trace finish
 └─────────────┬─────────────┘
-              │  TCP-сокет (формат ниже)
+              │  TCP socket (format below)
               ▼
 ┌───────────────────────────┐
-│  Receiver (Go, TCP-сокет)  │   приём полезной нагрузки
+│  Receiver (Go, TCP socket) │   payload intake
 └─────────────┬─────────────┘
-              │  запись в буфер
+              │  write to buffer
               ▼
 ┌───────────────────────────┐
-│  Буфер (коллекция MongoDB) │   операции «создать» (c) и «обновить» (u)
+│  Buffer (MongoDB collection)│  "create" (c) and "update" (u) operations
 └─────────────┬─────────────┘
-              │  транспортер: батч раз в секунду, upsert-merge
+              │  transporter: batch once per second, upsert-merge
               ▼
 ┌───────────────────────────┐
-│  Почасовые шарды (MongoDB) │   traces_YYYY_MM_DD_HH_HH
-│  + View _traceTreesView    │   объединяющее представление по всем шардам
+│  Hourly shards (MongoDB)   │   traces_YYYY_MM_DD_HH_HH
+│  + View _traceTreesView    │   unifying view across all shards
 └─────────────┬─────────────┘
-              │  чтение (агрегации)
+              │  reads (aggregations)
               ▼
 ┌───────────────────────────┐
-│  Backend (Laravel/Octane)  │   API → веб-панель (Vue 3)
+│  Backend (Laravel/Octane)  │   API → web panel (Vue 3)
 └───────────────────────────┘
 ```
 
-### Компоненты
+### Components
 
-- **Backend** — Laravel 12 / PHP 8.4 поверх [RoadRunner](https://roadrunner.dev/) через [Laravel Octane](https://laravel.com/docs/octane). Приложение держится в памяти между запросами, что убирает накладные расходы на бутстрап фреймворка и даёт высокую пропускную способность при приёме и чтении большого объёма трейсов. Тяжёлые параллельные запросы к шардам распараллеливаются через `SConcur\WaitGroup`.
-- **Receiver** — отдельный Go-сервис (`servers/receiver/`), принимающий полезную нагрузку трейсов по TCP-сокету и складывающий её в буфер.
-- **Хранилища** — MongoDB (трейсы/логи), MySQL (пользователи/сервисы/авторизация), Redis/RabbitMQ (очереди).
+- **Backend** — Laravel 12 / PHP 8.4 on [RoadRunner](https://roadrunner.dev/) via [Laravel Octane](https://laravel.com/docs/octane). The application stays in memory between requests, removing framework-bootstrap overhead and giving high throughput when ingesting and reading large volumes of traces. Heavy parallel shard queries are parallelized through `SConcur\WaitGroup`.
+- **Receiver** — a standalone Go service (`servers/receiver/`) that accepts trace payloads over a TCP socket and writes them into the buffer.
+- **Storage** — MongoDB (traces/logs), MySQL (users/services/auth), Redis/RabbitMQ (queues).
 - **Frontend** — Vue 3 + Vite + TypeScript (`frontend/`).
 
-Бизнес-логика разнесена по модулям в `app/Modules/<ModuleName>/` со строгим разделением слоёв (Deptrac).
+Business logic is split into modules under `app/Modules/<ModuleName>/` with strict layer separation (Deptrac).
 
 ---
 
-## Техническое исполнение
+## Technical implementation
 
-### Почасовое шардирование БД
+### Hourly database sharding
 
-Трейсы хранятся не в одной коллекции, а в **периодических коллекциях-шардах с разбивкой по часам**:
+Traces are stored not in a single collection, but in **periodic shard collections split by hour**:
 
 ```
-traces_YYYY_MM_DD_HH_HH      пример: traces_2026_06_21_14_15  (час 14:00–15:00)
+traces_YYYY_MM_DD_HH_HH      example: traces_2026_06_21_14_15  (hour 14:00–15:00)
 ```
 
-При первом обращении к конкретному часу шард создаётся «на лету», на нём заводится набор базовых индексов (`sid` — сервис, `tid` — трейс, `ptid` — родитель, `tp` — тип, `st` — статус, теги, `lat` — время логирования, а также составные индексы). Имена активных шардов кэшируются в памяти.
+On the first access to a given hour, the shard is created on the fly and a set of base indexes is set up on it (`sid` — service, `tid` — trace, `ptid` — parent, `tp` — type, `st` — status, tags, `lat` — logged-at time, plus composite indexes). Active shard names are cached in memory.
 
-Почасовая нарезка даёт три ключевых преимущества:
+Hourly slicing gives three key advantages:
 
-1. **Запросы за период читают только нужные шарды.** Поиск за последний час не сканирует данные недельной давности — он обращается к одной-двум коллекциям вместо одной гигантской.
-2. **Удаление старых данных — это удаление целых коллекций.** Очистка не выполняет дорогой `delete` по миллионам документов, а просто дропает шарды, которые вышли за период хранения (см. «Автоочистка»). Это мгновенно и не нагружает БД.
-3. **Динамические индексы живут вместе со своими шардами** и удаляются вместе с ними, не накапливаясь бесконечно (см. «Автоиндексирование под запрос»).
+1. **Period queries read only the relevant shards.** A search over the last hour does not scan week-old data — it touches one or two collections instead of a single giant one.
+2. **Deleting old data means dropping whole collections.** Cleanup does not run an expensive `delete` over millions of documents — it simply drops the shards that fell out of the retention window (see "Automatic cleanup"). This is instant and does not load the database.
+3. **Dynamic indexes live together with their shards** and are removed along with them, so they do not accumulate indefinitely (see "Per-query auto-indexing").
 
-Поверх всех шардов MongoDB создаётся объединяющее представление **`_traceTreesView`** — оно «склеивает» все периодические коллекции в один логический набор и добавляет к каждому документу имя его коллекции. Через это представление строится дерево вызовов, даже если родитель и потомки попали в разные часовые шарды.
+On top of all shards, MongoDB exposes a unifying view **`_traceTreesView`** — it "glues" all periodic collections into a single logical set and adds the collection name to every document. The call tree is built through this view even when a parent and its children landed in different hourly shards.
 
-### Буфер → запись в шард
+### Buffer → write to shard
 
-Приём и запись разделены, чтобы выдерживать всплески нагрузки:
+Intake and write are decoupled to absorb load spikes:
 
-1. **Приём.** Receiver принимает полезную нагрузку по TCP и кладёт её в **буферную коллекцию** MongoDB как набор операций двух видов: «создать» (`c`) и «обновить» (`u`).
-2. **Транспортировка.** Фоновый транспортер раз в секунду забирает из буфера батч (до ~1000 записей в порядке FIFO) и записывает их в соответствующие часовые шарды.
-3. **Слияние (upsert-merge).** Запись в шард выполняется как `upsert` по ключу «сервис + трейс»: операции «создать» и «обновить» одного и того же трейса сливаются в **один итоговый документ**.
-4. **Надёжность.** После успешной записи запись удаляется из буфера; при ошибке — помечается на повтор (с ограничением числа попыток).
+1. **Intake.** The receiver accepts the payload over TCP and puts it into a **buffer collection** in MongoDB as a set of two kinds of operations: "create" (`c`) and "update" (`u`).
+2. **Transport.** A background transporter once per second pulls a batch from the buffer (up to ~1000 records in FIFO order) and writes them into the corresponding hourly shards.
+3. **Merge (upsert-merge).** Writing to a shard is an `upsert` keyed by "service + trace": the "create" and "update" operations of the same trace are merged into **a single resulting document**.
+4. **Reliability.** After a successful write the record is removed from the buffer; on error it is marked for retry (with a limited number of attempts).
 
-Буфер сглаживает пики: клиент отдаёт данные быстро и не ждёт записи в основное хранилище.
+The buffer smooths out peaks: the client hands off data quickly and does not wait for the write into the main storage.
 
-### Таймлайн трейса: старт отдельно → финиш отдельно
+### Trace timeline: start separately → finish separately
 
-Трейс **может** писаться в два этапа, когда в момент старта операции её итог ещё неизвестен (типичный случай для трейса-родителя):
+A trace **may** be written in two stages, when the operation's outcome is not yet known at start time (the typical case for a parent trace):
 
-1. **Старт** — отправляется объект создания трейса:
-   - присваивается `traceId` и фиксируется `parentTraceId` (текущий родитель из контекста);
-   - `status = started`, `duration = null` (длительность ещё неизвестна);
-   - фиксируются тип, теги, данные, время логирования, моментальные значения памяти и CPU;
-   - запущенный трейс становится **текущим родителем** — все трейсы, стартовавшие до его финиша, автоматически становятся его потомками.
+1. **Start** — a trace-creation object is sent:
+   - a `traceId` is assigned and the `parentTraceId` is captured (the current parent from context);
+   - `status = started`, `duration = null` (the duration is not yet known);
+   - type, tags, data, logged-at time, and snapshot memory/CPU values are recorded;
+   - the started trace becomes the **current parent** — every trace that starts before its finish automatically becomes its child.
 
-2. **Финиш** — отправляется объект обновления того же трейса:
-   - проставляется итоговый `status` (`success` / `failed` / пользовательский);
-   - заполняется `duration` (фактическая длительность);
-   - обновляются память и CPU, при необходимости дополняются теги и данные;
-   - предыдущий родитель восстанавливается из стека.
+2. **Finish** — an update object for the same trace is sent:
+   - the final `status` is set (`success` / `failed` / custom);
+   - `duration` (actual elapsed time) is filled in;
+   - memory and CPU are updated, and tags/data are supplemented if needed;
+   - the previous parent is restored from the stack.
 
-На стороне хранилища создание и финиш **сливаются в один документ** (upsert по `tid`). Такой двухэтапный механизм формирует **таймлайн вложенных операций**: по связке «родитель → потомок» и по времени старта/длительности восстанавливается, что и в какой последовательности выполнялось внутри запроса, какие операции вложены друг в друга и сколько каждая заняла. Незавершённые трейсы (есть старт, но нет финиша) видны со статусом `started` — это позволяет ловить «зависшие» или упавшие без финиша операции.
+On the storage side, the creation and the finish are **merged into one document** (upsert by `tid`). This two-stage mechanism forms a **timeline of nested operations**: from the `parent → child` links and the start time / duration you can reconstruct what ran inside a request and in what order, which operations were nested into one another, and how long each took. Unfinished traces (a start with no finish) are visible with status `started` — this lets you catch "hung" operations or ones that crashed without a finish.
 
-**Обновление не обязательно.** Два этапа — это лишь один из сценариев, а не требование. Трейс можно записать **одним сообщением создания** — например, когда это не родитель, а единичная операция, итог которой известен сразу (запрос в БД, HTTP-вызов наружу, отправка письма и т. п.). В этом случае в создании сразу указываются финальные `status`, `duration`, `memory`, `cpu`, а обновление не отправляется вовсе. Точно так же необязателен и `ptid`: трейс без родителя — это корневой трейс (вершина дерева). То есть минимально достаточно одного объекта создания с заполненными полями; родитель и/или последующее обновление добавляются только тогда, когда они действительно нужны.
+**Update is not mandatory.** Two stages are just one scenario, not a requirement. A trace can be written with **a single creation message** — for example, when it is not a parent but a single operation whose outcome is known immediately (a database query, an outbound HTTP call, sending an email, etc.). In that case the final `status`, `duration`, `memory`, `cpu` are set right in the creation, and no update is sent at all. Likewise, `ptid` is optional: a trace with no parent is a root trace (the top of the tree). So the minimum is a single creation object with its fields filled in; a parent and/or a subsequent update are added only when they are actually needed.
 
-### Объединение запросов разных сервисов/микросервисов
+### Joining requests across services/microservices
 
-Связь «родитель → потомок» строится по идентификаторам `parentTraceId` / `traceId` и **не привязана к конкретному сервису**. Если сервис A при запуске операции передаёт свой `traceId` сервису B как родительский, то трейсы сервиса B встанут в дерево как потомки трейса сервиса A.
+The `parent → child` link is built on the `parentTraceId` / `traceId` identifiers and is **not tied to a specific service**. If service A passes its `traceId` to service B as the parent when starting an operation, then service B's traces will appear in the tree as children of service A's trace.
 
-Так формируется **сквозное (end-to-end) дерево вызовов через границы микросервисов**: один HTTP-запрос на входе может развернуться в цепочку обращений к нескольким сервисам, и всё это собирается в единое дерево через `_traceTreesView`. Поиск, дерево и графики могут фильтроваться сразу по нескольким сервисам (`serviceIds`) — или строиться без привязки к сервису вовсе.
+This forms an **end-to-end call tree across microservice boundaries**: a single inbound HTTP request can fan out into a chain of calls to several services, and all of it is assembled into one tree through `_traceTreesView`. Search, tree, and charts can be filtered by several services at once (`serviceIds`) — or built with no service binding at all.
 
-### Автоиндексирование под запрос (динамические индексы)
+### Per-query auto-indexing (dynamic indexes)
 
-Трейсы фильтруются по произвольным полям `data`, и заранее проиндексировать все возможные комбинации полей невозможно. Поэтому индексы создаются **автоматически под конкретный запрос**:
+Traces are filtered by arbitrary `data` fields, and it is impossible to index all possible field combinations in advance. Therefore indexes are created **automatically for a specific query**:
 
-- перед поиском система анализирует набор фильтров (сервисы, типы, теги, статусы, диапазоны длительности/памяти/CPU, произвольные поля `data`) и определяет нужный набор полей индекса;
-- если подходящего индекса ещё нет — он создаётся (асинхронно, с отметкой «в процессе»), а запрос дожидается его готовности;
-- следующие такие же запросы используют уже готовый индекс и выполняются быстро.
+- before a search, the system analyzes the set of filters (services, types, tags, statuses, duration/memory/CPU ranges, arbitrary `data` fields) and determines the required set of index fields;
+- if a suitable index does not exist yet, it is created (asynchronously, marked "in progress"), and the query waits for it to become ready;
+- subsequent identical queries use the ready index and run fast.
 
-**Почему именно динамические, а не постоянные индексы.** Индексы занимают место на диске и замедляют запись — держать индекс под каждое мыслимое поле `data` дорого и расточительно. Поэтому динамические индексы делаются **временными (short-term, TTL порядка нескольких дней)** и **автоматически удаляются**, когда перестают использоваться. Здесь снова работает почасовое шардирование: индекс привязан к своим шардам и **уходит вместе с ними при очистке**, не накапливаясь бесконечно. В итоге быстрый поиск по произвольным полям сочетается с экономией места — система платит за индекс только пока он реально нужен.
+**Why dynamic indexes rather than permanent ones.** Indexes take up disk space and slow down writes — keeping an index for every conceivable `data` field is expensive and wasteful. That is why dynamic indexes are made **temporary (short-term, with a TTL on the order of a few days)** and are **deleted automatically** once they stop being used. Hourly sharding works in tandem here: an index is bound to its shards and **goes away with them during cleanup**, so it never accumulates indefinitely. The result is fast search over arbitrary fields combined with space savings — the system pays for an index only while it is actually needed.
 
-### Гибкая фильтрация по данным трейса
+### Flexible filtering by trace data
 
-Фильтровать можно по любому полю полезной нагрузки, включая вложенные (`user.id`, `request.path` и т.п.):
+You can filter by any payload field, including nested ones (`user.id`, `request.path`, etc.):
 
-- **числа** — `=`, `≠`, `>`, `≥`, `<`, `≤`;
-- **строки** — равно, содержит, начинается с, заканчивается на;
-- **булевы** — `true` / `false`;
-- **наличие поля** — есть значение / отсутствует.
+- **numbers** — `=`, `≠`, `>`, `≥`, `<`, `≤`;
+- **strings** — equals, contains, starts with, ends with;
+- **booleans** — `true` / `false`;
+- **field presence** — has a value / is absent.
 
-Эти фильтры собираются в aggregation pipeline MongoDB и работают вместе с базовыми фильтрами (сервис, тип, теги, статус, диапазоны длительности/памяти/CPU, период времени). Под выбранный набор полей автоматически поднимается динамический индекс.
+These filters are assembled into a MongoDB aggregation pipeline and work together with the base filters (service, type, tags, status, duration/memory/CPU ranges, time period). A dynamic index is automatically raised for the selected set of fields.
 
-### Графики по показателям трейсов
+### Trace metric charts
 
-Помимо постраничного поиска, по трейсам строятся **таймлайн-графики**. Выбирается период (от 5 минут до года) и шаг (гранулярность корзины), данные раскладываются по временным интервалам, и в каждом интервале считаются показатели:
+Besides paginated search, **timeline charts** are built over traces. You pick a period (from 5 minutes to a year) and a step (bucket granularity); the data is laid out across time intervals, and within each interval the metrics are computed:
 
-- **количество** трейсов (`count`, агрегация — сумма);
-- **длительность** (`duration`);
-- **память** (`memory`);
+- **count** of traces (`count`, aggregation — sum);
+- **duration** (`duration`);
+- **memory** (`memory`);
 - **CPU** (`cpu`);
 
-для длительности/памяти/CPU считаются **среднее, минимум и максимум**. Дополнительно можно строить графики по числовым полям из `data`. К графикам применяется **тот же набор фильтров**, что и к поиску, поэтому можно смотреть динамику показателей по конкретному сервису, типу операции, тегу или произвольному условию по данным. Сбор по интервалам распараллеливается, что позволяет быстро строить графики даже на больших периодах.
+for duration/memory/CPU the **average, minimum, and maximum** are computed. Charts can additionally be built over numeric fields from `data`. **The same set of filters** as in search applies to charts, so you can watch metric dynamics for a specific service, operation type, tag, or an arbitrary condition on the data. Interval collection is parallelized, which makes charts fast to build even over large periods.
 
-### Автоочистка
+### Automatic cleanup
 
-Устаревшие трейсы удаляются автоматически. Период хранения задаётся переменной `TRACES_LIFETIME_DAYS` (по умолчанию **3 дня**). Очистка оформлена как job в очереди (`ClearTracesJob`) и, благодаря почасовому шардированию, **дропает целые коллекции-шарды**, вышедшие за период хранения, вместо удаления отдельных документов. Это быстро, не фрагментирует хранилище и заодно убирает связанные с этими шардами динамические индексы.
-
----
-
-## Технологический стек
-
-- **PHP 8.4**, **Laravel 12**, стиль PSR-12 (PHP CS Fixer)
-- **Laravel Octane + RoadRunner** — постоянно работающее приложение
-- **MongoDB** (`mongodb/laravel-mongodb`) — трейсы и логи
-- **MySQL** — пользователи, сервисы, авторизация
-- **Redis / RabbitMQ** — очереди
-- **Go** — сервис-приёмник трейсов (`servers/receiver/`)
-- **Vue 3 + Vite + TypeScript** — веб-панель
-- Статический анализ: **PHPStan**, границы слоёв: **Deptrac**
+Stale traces are removed automatically. The retention period is set by the `TRACES_LIFETIME_DAYS` variable (default **3 days**). Cleanup is a queued job (`ClearTracesJob`) and, thanks to hourly sharding, **drops whole shard collections** that fell out of the retention window instead of deleting individual documents. This is fast, does not fragment storage, and also removes the dynamic indexes associated with those shards.
 
 ---
 
-## Источник данных и формат
+## Tech stack
 
-SLogger **не привязан к конкретному клиенту**. Источником данных может быть **любое приложение на любом языке**, умеющее писать в TCP-сокет receiver'а. Набор данных универсален — важно лишь, чтобы полезная нагрузка соответствовала ожидаемому формату.
+- **PHP 8.4**, **Laravel 12**, PSR-12 style (PHP CS Fixer)
+- **Laravel Octane + RoadRunner** — long-running application
+- **MongoDB** (`mongodb/laravel-mongodb`) — traces and logs
+- **MySQL** — users, services, auth
+- **Redis / RabbitMQ** — queues
+- **Go** — trace receiver service (`servers/receiver/`)
+- **Vue 3 + Vite + TypeScript** — web panel
+- Static analysis: **PHPStan**, layer boundaries: **Deptrac**
 
-Для приложений на Laravel есть готовая библиотека, которая берёт на себя старт/финиш трейсов, проброс родительского контекста (в том числе между сервисами), буферизацию и отправку данных:
+---
+
+## Data source and format
+
+SLogger is **not tied to a specific client**. The data source can be **any application in any language** capable of writing to the receiver's TCP socket. The dataset is universal — the only requirement is that the payload conforms to the expected format.
+
+For Laravel applications there is a ready-made library that handles trace start/finish, parent-context propagation (including across services), buffering, and sending data:
 
 **slogger/laravel** → https://github.com/sprust/slogger-laravel
 
-Но это лишь один из возможных источников — точно так же данные может слать ваш собственный клиент, реализующий протокол ниже.
+But this is just one of the possible sources — your own client implementing the protocol below can send data just as well.
 
-### Протокол сокета
+### Socket protocol
 
-Обмен идёт по TCP. Каждое сообщение в обе стороны передаётся с **4-байтовым префиксом длины** (big-endian `uint32`), за которым следует тело (UTF-8 JSON). Максимальный размер тела — 10 МБ.
+Communication is over TCP. Every message, in both directions, is sent with a **4-byte length prefix** (big-endian `uint32`) followed by the body (UTF-8 JSON). The maximum body size is 10 MB.
 
-1. **Авторизация.** Сразу после подключения клиент отправляет сообщение с API-токеном сервиса:
+1. **Authentication.** Right after connecting, the client sends a message with the service API token:
 
    ```json
    { "t": "<api_token>" }
    ```
 
-   Токен определяет, к какому сервису относятся трейсы (создаётся через `make art c=service:create`). Сервер отвечает `ok` либо текстом ошибки.
+   The token determines which service the traces belong to (created via `make art c=service:create`). The server replies with `ok` or an error text.
 
-2. **Отправка трейсов.** Далее в рамках того же соединения клиент в цикле шлёт сообщения с трейсами; на каждое сервер отвечает `received`.
+2. **Sending traces.** Then, within the same connection, the client sends trace messages in a loop; the server replies `received` to each one.
 
-### Формат сообщения с трейсами
+### Trace message format
 
-Сообщение содержит два необязательных поля — пакет создаваемых трейсов (`c`) и пакет обновлений (`u`). **Значения `c` и `u` — это JSON-строки** (сериализованные массивы объектов), а не вложенные массивы:
+A message contains two optional fields — a batch of traces to create (`c`) and a batch of updates (`u`). **The values of `c` and `u` are JSON strings** (serialized arrays of objects), not nested arrays:
 
 ```json
 {
-  "c": "[ <создаваемые трейсы> ]",
-  "u": "[ <обновления трейсов> ]"
+  "c": "[ <traces to create> ]",
+  "u": "[ <trace updates> ]"
 }
 ```
 
-**Создаваемый трейс** (этап «старт»):
+**Trace to create** (the "start" stage):
 
 ```json
 {
-  "tid":  "9f1c…",          // ID трейса (обязательно)
-  "ptid": "0b8a…",          // ID родительского трейса (опционально; связывает в дерево, в т.ч. между сервисами)
-  "tp":   "request",        // тип операции (request, job, command, event, …)
-  "st":   "started",        // статус
-  "tgs":  ["api", "v2"],    // теги (массив)
-  "dt":   { "path": "/x" }, // произвольные данные (только JSON, любая структура)
-  "dur":  null,             // длительность (на старте обычно ещё неизвестна)
-  "mem":  41.5,             // память, % (опционально)
-  "cpu":  12.3,             // CPU, % (опционально)
-  "lat":  "2026-06-21 14:00:00.000000"  // время логирования
+  "tid":  "9f1c…",          // trace ID (required)
+  "ptid": "0b8a…",          // parent trace ID (optional; links into the tree, incl. across services)
+  "tp":   "request",        // operation type (request, job, command, event, …)
+  "st":   "started",        // status
+  "tgs":  ["api", "v2"],    // tags (array)
+  "dt":   { "path": "/x" }, // arbitrary data (JSON only, any structure)
+  "dur":  null,             // duration (usually not yet known at start)
+  "mem":  41.5,             // memory, % (optional)
+  "cpu":  12.3,             // CPU, % (optional)
+  "lat":  "2026-06-21 14:00:00.000000"  // logged-at time
 }
 ```
 
-**Обновление трейса** (этап «финиш»):
+**Trace update** (the "finish" stage):
 
 ```json
 {
-  "tid":  "9f1c…",          // тот же ID трейса
-  "st":   "success",        // итоговый статус (success / failed / пользовательский)
-  "tgs":  ["api", "v2"],    // теги — перезаписывают существующие, если присутствуют (не дополняют)
-  "dt":   { "code": 200 },  // данные (JSON) — перезаписывают существующие, если присутствуют (не дополняют)
-  "dur":  0.137,            // фактическая длительность
-  "mem":  43.1,             // память, %
+  "tid":  "9f1c…",          // the same trace ID
+  "st":   "success",        // final status (success / failed / custom)
+  "tgs":  ["api", "v2"],    // tags — overwrite existing ones if present (do not append)
+  "dt":   { "code": 200 },  // data (JSON) — overwrites existing if present (does not append)
+  "dur":  0.137,            // actual duration
+  "mem":  43.1,             // memory, %
   "cpu":  15.0,             // CPU, %
-  "plat": "2026-06-21 14:00:00.000000"  // время логирования родителя
+  "plat": "2026-06-21 14:00:00.000000"  // parent's logged-at time
 }
 ```
 
-Поля намеренно короткие (`tid`, `ptid`, `tp`, …) — это снижает объём передаваемых и хранимых данных.
+The field names are intentionally short (`tid`, `ptid`, `tp`, …) — this reduces the volume of transmitted and stored data.
 
-**Слияние создания и обновления.** На стороне receiver'а создание и обновление с одинаковым `tid` сливаются в один документ (см. «Буфер → запись в шард» и «Таймлайн трейса»). При этом обновление **перезаписывает** поля (`st`, `tgs`, `dt`, `dur`, `mem`, `cpu`), а не дополняет их — но только те, что фактически присутствуют в обновлении; отсутствующие поля остаются из создания. Порядок применения значения каждого поля: **обновление → уже сохранённый документ → создание**. Поэтому если обновление зафиксировалось в хранилище **раньше** создания, приоритетными считаются данные из обновления: пришедшее позже создание не затрёт их, а лишь дозаполнит недостающие поля (например, тип `tp`).
+**Merging create and update.** On the receiver side, a create and an update with the same `tid` are merged into one document (see "Buffer → write to shard" and "Trace timeline"). The update **overwrites** fields (`st`, `tgs`, `dt`, `dur`, `mem`, `cpu`) rather than appending to them — but only those that are actually present in the update; missing fields keep their values from the create. The order in which each field's value is taken: **update → already-stored document → create**. Therefore, if an update is persisted **before** the create, the update's data takes priority: a create that arrives later does not overwrite it, only backfills the missing fields (for example, the type `tp`).
 
 ---
 
-## Установка
+## Installation
 
-### Копирование env-файлов
+### Copy env files
 
 ```bash
 make env-copy
 ```
 
-### Настройка переменных окружения
+### Configure environment variables
 
 `.env`:
 
 ```dotenv
-APP_ENV=production        # или local
-APP_DEBUG=false           # true для local
+APP_ENV=production        # or local
+APP_DEBUG=false           # true for local
 
-# по умолчанию выставлен root-пользователь
-# узнать user id и group id в linux: `id -u` и `id -g`
+# the root user is set by default
+# to find user id and group id on linux: `id -u` and `id -g`
 DOCKER_USER_ID=1000
 DOCKER_GROUP_ID=1000
 
-FRONTEND_DOCKER_COMMAND=${FRONTEND_DOCKER_SERVER_COMMAND}  # или ${FRONTEND_DOCKER_LOCAL_COMMAND}
-FRONTEND_DOCKER_PORT=3075                                  # внешний порт веб-панели
+FRONTEND_DOCKER_COMMAND=${FRONTEND_DOCKER_SERVER_COMMAND}  # or ${FRONTEND_DOCKER_LOCAL_COMMAND}
+FRONTEND_DOCKER_PORT=3075                                  # external port of the web panel
 
-TRACES_LIFETIME_DAYS=3    # срок хранения трейсов в днях
+TRACES_LIFETIME_DAYS=3    # trace retention period in days
 ```
 
 `frontend/.env`:
 
 ```dotenv
-BACKEND_URL=https://localhost:10021  # порт см. в .env → OCTANE_RR_DOCKER_PORT
+BACKEND_URL=https://localhost:10021  # see the port in .env → OCTANE_RR_DOCKER_PORT
 ```
 
 ### Setup
@@ -282,19 +284,19 @@ BACKEND_URL=https://localhost:10021  # порт см. в .env → OCTANE_RR_DOCK
 make setup
 ```
 
-### Создание пользователя
+### Create a user
 
 ```bash
 make art c=user:create
 ```
 
-### Создание сервиса
+### Create a service
 
 ```bash
 make art c=service:create
 ```
 
-### OpenAPI-схема
+### OpenAPI schema
 
 ```text
 storage/api/json-schemes/traces-api-openapi-scheme.json

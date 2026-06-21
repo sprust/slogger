@@ -250,6 +250,7 @@ Notes:
 - If a class is an action, it should expose a single `handle(...)` method only.
 - Repositories should not contain business operations like `cancel*`; keep them as persistence primitives such as `updateStatus(...)`, and call them from actions like `Cancel*Action`.
 - Each entity should have its own dedicated controller. Do not mix state/controller methods into another entity controller.
+- The main README is bilingual: `README.md` (English) and `README.ru.md` (Russian), kept in sync via the language switcher line at the top of each. Always edit both language versions together — any change to one must be mirrored in the other so they never drift.
 
 ## Required Commands After Changes
 
