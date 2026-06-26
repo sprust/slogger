@@ -1,0 +1,7 @@
+# Keep the Docker build context small. The php image only needs composer.lock,
+# the receiver image only needs servers/receiver — none of the below.
+.git
+.idea
+vendor/
+**/node_modules/
+**/.gocache/
