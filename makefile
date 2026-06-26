@@ -39,7 +39,7 @@ setup:
 	make restart
 
 build:
-	BUILD_TIME=$(shell date +%s) docker-compose build
+	docker-compose build
 
 up:
 	docker-compose up -d
@@ -159,9 +159,16 @@ receiver-build:
 	docker-compose up -d --force-recreate $(RECEIVER_SERVICE)
 
 sconcur-update:
-	make stop
-	make build
-	docker-compose up -d php-fpm
+	docker-compose up -d $(PHP_FPM_SERVICE) $(WORKERS_SERVICE)
 	make composer c='update sconcur/sconcur'
+	make sconcur-load
 	make restart
+	make sconcur-status
+
+sconcur-load:
+	docker-compose exec -u root -e XDEBUG_MODE=off $(PHP_FPM_SERVICE) sh -c './vendor/bin/sconcur-load "$$(php-config --extension-dir)/sconcur.so"'
+	docker-compose exec -u root -e XDEBUG_MODE=off $(WORKERS_SERVICE) sh -c './vendor/bin/sconcur-load "$$(php-config --extension-dir)/sconcur.so"'
+
+sconcur-status:
+	docker-compose exec -e XDEBUG_MODE=off $(PHP_FPM_SERVICE) ./vendor/bin/sconcur-status
 

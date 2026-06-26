@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "faffeb7d6029b99693d9f66c80f6843c",
+    "content-hash": "da3540e48278f8e05b4c3279d40ae05f",
     "packages": [
         {
             "name": "brick/math",
@@ -4198,16 +4198,16 @@
         },
         {
             "name": "sconcur/sconcur",
-            "version": "dev-master",
+            "version": "0.4.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sprust/sconcur.git",
-                "reference": "6ff3d2c4cd345d8847cf402e60f9077fce4827db"
+                "reference": "33e260cbdc889cf97f4d08ee25c1b092f8bca9f6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sprust/sconcur/zipball/6ff3d2c4cd345d8847cf402e60f9077fce4827db",
-                "reference": "6ff3d2c4cd345d8847cf402e60f9077fce4827db",
+                "url": "https://api.github.com/repos/sprust/sconcur/zipball/33e260cbdc889cf97f4d08ee25c1b092f8bca9f6",
+                "reference": "33e260cbdc889cf97f4d08ee25c1b092f8bca9f6",
                 "shasum": ""
             },
             "require": {
@@ -4230,9 +4230,10 @@
             "suggest": {
                 "ext-pcntl": "Required for graceful shutdown of the HTTP server (SIGTERM/SIGINT handling); the server otherwise runs until the process is killed"
             },
-            "default-branch": true,
             "bin": [
-                "bin/sconcur-server"
+                "bin/sconcur-load",
+                "bin/sconcur-server",
+                "bin/sconcur-status"
             ],
             "type": "library",
             "autoload": {
@@ -4253,9 +4254,9 @@
             "description": "PHP concurrency library backed by an extension written in Go",
             "support": {
                 "issues": "https://github.com/sprust/sconcur/issues",
-                "source": "https://github.com/sprust/sconcur/tree/master"
+                "source": "https://github.com/sprust/sconcur/tree/v0.4.0"
             },
-            "time": "2026-06-20T10:48:58+00:00"
+            "time": "2026-06-26T20:39:26+00:00"
         },
         {
             "name": "slogger/laravel",
@@ -12950,7 +12951,6 @@
     "minimum-stability": "stable",
     "stability-flags": {
         "ifksco/openapi-generator": 20,
-        "sconcur/sconcur": 20,
         "slogger/laravel": 20,
         "sprust/rr-monitor-laravel": 20
     },

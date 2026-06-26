@@ -1,7 +1,5 @@
 FROM golang:1.26
 
-ARG BUILD_TIME=1
-
 RUN mkdir /app
 
 WORKDIR /app

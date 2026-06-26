@@ -7,6 +7,7 @@ RUN apt-get update \
         zsh \
         git \
         curl \
+        jq \
         zip \
         unzip \
         wget \
@@ -43,12 +44,14 @@ RUN docker-php-ext-install \
         zip \
         pcntl
 
-# sconcur
-ARG BUILD_TIME=1
-RUN curl -fSL --connect-timeout 10 --retry 3 -4 \
-    https://github.com/sprust/sconcur/releases/latest/download/sconcur.so \
-    -o $(php-config --extension-dir)/sconcur.so \
-    && echo "extension=sconcur.so" > /usr/local/etc/php/conf.d/docker-php-ext-sconcur.ini
+# sconcur — extension .so pinned to the composer.lock version (build context is the repo root)
+COPY composer.lock ./
+RUN set -eux; \
+    version="$(jq -r '.packages[] | select(.name=="sconcur/sconcur") | .version' composer.lock | sed 's/^v//')"; \
+    curl -fSL --retry 3 -4 \
+        "https://github.com/sprust/sconcur/releases/download/v${version}/sconcur.so" \
+        -o "$(php-config --extension-dir)/sconcur.so"; \
+    echo "extension=sconcur.so" > /usr/local/etc/php/conf.d/docker-php-ext-sconcur.ini
 
 EXPOSE 9000
 
