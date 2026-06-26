@@ -232,6 +232,27 @@ Notes:
 - Put persistence DTOs and mapping helpers near repositories.
 - Use `Common` only for genuinely shared cross-module code, not as a default dump folder.
 
+## Documentation Style
+
+- Verify every technical claim against the code before writing it — class and
+  method names/signatures, option names and defaults, enum cases, CLI flags, file
+  paths, behavioral claims. Fix inaccuracies; never guess.
+- Minimal bold. Use **bold** only for a genuinely critical warning or a couple of
+  key terms — not one highlight per paragraph (heavy bolding is the top
+  "AI-generated" tell).
+- Dry, factual tone. Short sentences; drop gratuitous decorative quotes around
+  terms and marketing metaphors.
+- Diagrams in Mermaid (GitHub renders them). Rules to keep them rendering
+  everywhere, including PhpStorm:
+    - No `<br/>` anywhere — some renderers print it literally. Use single-line
+      node labels (combine ideas with ` — ` or `(...)`); in `sequenceDiagram` use
+      separate `Note over` lines.
+    - For a request+response between two components use one bidirectional edge
+      `A <-->|"..."| B`, never two opposing edges — a 2-cycle makes the layout
+      engine place the blocks side-by-side / reversed.
+    - In `flowchart TB` declare the caller first so it renders on top.
+    - Label edges with the real call/method names from the code.
+
 ## Test Navigation
 
 - Module-oriented tests live under `tests/Modules`.
