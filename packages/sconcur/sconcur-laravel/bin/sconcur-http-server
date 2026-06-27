@@ -1,0 +1,150 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+use Illuminate\Contracts\Events\Dispatcher;
+use Laminas\Diactoros\ResponseFactory;
+use Laminas\Diactoros\ServerRequestFactory;
+use Laminas\Diactoros\StreamFactory;
+use Laminas\Diactoros\UploadedFileFactory;
+use Laravel\Octane\ApplicationFactory;
+use Laravel\Octane\ApplicationGateway;
+use Laravel\Octane\CurrentApplication;
+use Laravel\Octane\Events\WorkerErrorOccurred;
+use Laravel\Octane\Events\WorkerStarting;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use SConcur\Features\HttpServer\HttpServer;
+use Symfony\Bridge\PsrHttpMessage\Factory\HttpFoundationFactory;
+use Symfony\Bridge\PsrHttpMessage\Factory\PsrHttpFactory;
+use Symfony\Component\HttpFoundation\Response as HttpFoundationResponse;
+
+$autoloads = [
+    __DIR__ . '/../vendor/autoload.php',  // running from the repo
+    __DIR__ . '/../../../autoload.php',   // installed as a dependency (vendor/bin)
+    // TODO: delete after release to separate package
+    __DIR__ . '/../../../../vendor/autoload.php',  // running from the local repo (packages)
+];
+
+foreach ($autoloads as $autoload) {
+    if (is_file($autoload)) {
+        require $autoload;
+
+        break;
+    }
+}
+
+$bootstraps = [
+    __DIR__ . '/../vendor/laravel/octane/bin/bootstrap.php',  // running from the repo
+    __DIR__ . '/../../../laravel/octane/bin/bootstrap.php',   // installed as a dependency (vendor/bin)
+    // TODO: delete after release to separate package
+    __DIR__ . '/../../../../vendor/laravel/octane/bin/bootstrap.php',  // running from the local repo (packages)
+];
+
+$basePath = null;
+
+foreach ($bootstraps as $bootstrap) {
+    if (is_file($bootstrap)) {
+        $basePath = $bootstrap;
+    }
+}
+
+if (!$basePath) {
+    throw new RuntimeException('Laravel Octane bootstrap not found');
+}
+
+require $basePath;
+
+$applicationFactory = new ApplicationFactory($basePath);
+
+$app = $applicationFactory->createApplication();
+
+/** @var Dispatcher $dispatcher */
+$dispatcher = $app[Dispatcher::class];
+
+$server = HttpServer::fromArgs($SERVER['argv'] ?? []);
+
+$dispatcher->dispatch(new WorkerStarting($app));
+
+// Прямой мост: PSR-7 ServerRequestInterface -> Symfony/Laravel Request.
+$httpFoundationFactory = new HttpFoundationFactory();
+
+// Обратный мост: Symfony/Laravel Response -> PSR-7 ResponseInterface. Те же
+// Laminas Diactoros фабрики, что использует Octane. StreamedResponse/BinaryFileResponse
+// мост сам прогоняет через php://temp (ob_start), поэтому тело уже материализовано
+// к моменту возврата — и очистка песочницы в finally безопасна.
+$psrHttpFactory = new PsrHttpFactory(
+    new ServerRequestFactory(),
+    new StreamFactory(),
+    new UploadedFileFactory(),
+    new ResponseFactory(),
+);
+
+$server->serve(function (ServerRequestInterface $request) use ($app, $httpFoundationFactory, $psrHttpFactory): ResponseInterface {
+    try {
+        $currentApp = clone $app;
+
+        CurrentApplication::set($currentApp);
+
+        $gateway = new ApplicationGateway(
+            app: $app,
+            sandbox: $currentApp
+        );
+    } catch (Throwable $exception) {
+        echo $exception . PHP_EOL;
+
+        return $psrHttpFactory->createResponse(
+            new HttpFoundationResponse('Http server error', 500)
+        );
+    }
+
+    // Ловим «левый» прямой вывод приложения (echo / var_dump / dd / warning'и): в тело
+    // PSR-7 ответа он не попадёт, а в долгоживущем воркере утёк бы в stdout процесса.
+    // Буфер гасим в finally — содержимое отбрасываем (discard).
+    $obLevel = ob_get_level();
+
+    ob_start();
+
+    try {
+        $laravelRequest = \Illuminate\Http\Request::createFromBase(
+            $httpFoundationFactory->createRequest($request)
+        );
+
+        $response = $gateway->handle($laravelRequest);
+
+        $gateway->terminate(
+            request: $laravelRequest,
+            response: $response
+        );
+
+        return $psrHttpFactory->createResponse($response);
+    } catch (Throwable $exception) {
+        $gateway->dispatchEvent(
+            app: $app,
+            event: new WorkerErrorOccurred(
+                exception: $exception,
+                sandbox: $app
+            )
+        );
+
+        return $psrHttpFactory->createResponse(
+            new HttpFoundationResponse('Http server error', 500)
+        );
+    } finally {
+        // Гасим все буферы, открытые в этой итерации (включая незакрытые приложением),
+        // до исходного уровня — отброшенный вывод не уйдёт в stdout воркера.
+        while (ob_get_level() > $obLevel) {
+            ob_end_clean();
+        }
+
+        $currentApp->flush();
+
+        $this->app->make('view.engine.resolver')->forget('blade');
+        $this->app->make('view.engine.resolver')->forget('php');
+
+        unset($gateway, $currentApp, $laravelRequest, $response);
+
+        CurrentApplication::set($app);
+    }
+});
