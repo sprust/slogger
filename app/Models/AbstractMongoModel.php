@@ -22,6 +22,7 @@ abstract class AbstractMongoModel extends Model
         return $this->getCollectionName();
     }
 
+    // TODO: delete after migration to sconcur
     public static function collection(): MongoCollection
     {
         /** @var MongoCollection $collection */

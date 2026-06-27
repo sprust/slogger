@@ -35,12 +35,12 @@ readonly class TraceDynamicIndexRepository
 
         $createdAt = now();
 
-        TraceDynamicIndex::collection()
+        TraceDynamicIndex::sconcur()
             ->updateOne(
-                [
+                filter: [
                     'name' => $indexName,
                 ],
-                [
+                update: [
                     '$set'         => [
                         'actualUntilAt' => new UTCDateTime($actualUntilAt),
                     ],
@@ -54,9 +54,7 @@ readonly class TraceDynamicIndexRepository
                         'createdAt'       => new UTCDateTime($createdAt),
                     ],
                 ],
-                [
-                    'upsert' => true,
-                ]
+                upsert: true,
             );
 
         return $this->findOneByName($indexName);
@@ -105,7 +103,7 @@ readonly class TraceDynamicIndexRepository
 
     public function findStats(): TraceDynamicIndexStatsDto
     {
-        $cursor = TraceDynamicIndex::collection()
+        $cursor = TraceDynamicIndex::sconcur()
             ->aggregate(
                 [
                     [
@@ -129,12 +127,12 @@ readonly class TraceDynamicIndexRepository
                 ]
             );
 
-        $stats = $cursor->toArray()[0] ?? null;
+        $stats = iterator_to_array($cursor)[0] ?? null;
 
         return new TraceDynamicIndexStatsDto(
-            inProcessCount: $stats?->inProcess ?: 0,
-            errorsCount: $stats?->errors ?: 0,
-            totalCount: $stats?->total ?: 0,
+            inProcessCount: $stats['inProcess'] ?? 0,
+            errorsCount: $stats['errors'] ?? 0,
+            totalCount: $stats['total'] ?? 0,
         );
     }
 

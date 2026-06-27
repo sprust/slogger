@@ -12,7 +12,6 @@ use App\Modules\Trace\Parameters\CreateTraceTreeCacheParameters;
 use App\Modules\Trace\Repositories\Dto\Trace\TraceTreeServiceDto;
 use Illuminate\Support\Carbon;
 use MongoDB\BSON\UTCDateTime;
-use MongoDB\Model\BSONDocument;
 
 class TraceTreeCacheRepository
 {
@@ -67,17 +66,19 @@ class TraceTreeCacheRepository
 
     public function findMany(string $rootTraceId): TraceTreeRawIterator
     {
-        $cursor = TraceTreeCache::collection()
-            ->aggregate([
+        $cursor = TraceTreeCache::sconcur()
+            ->aggregate(
                 [
-                    '$match' => [
-                        'rootTraceId' => $rootTraceId,
+                    [
+                        '$match' => [
+                            'rootTraceId' => $rootTraceId,
+                        ],
                     ],
-                ],
-            ]);
+                ]
+            );
 
         return new TraceTreeRawIterator(
-            transport: static fn(BSONDocument $item): TraceTreeRawObject => new TraceTreeRawObject(
+            transport: static fn(array $item): TraceTreeRawObject => new TraceTreeRawObject(
                 serviceId: $item['serviceId'],
                 traceId: $item['traceId'],
                 parentTraceId: $item['parentTraceId'],
