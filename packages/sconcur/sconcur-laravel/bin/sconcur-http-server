@@ -20,65 +20,96 @@ use Symfony\Bridge\PsrHttpMessage\Factory\HttpFoundationFactory;
 use Symfony\Bridge\PsrHttpMessage\Factory\PsrHttpFactory;
 use Symfony\Component\HttpFoundation\Response as HttpFoundationResponse;
 
-$autoloads = [
-    __DIR__ . '/../vendor/autoload.php',  // running from the repo
+$autoloadPaths = [
     __DIR__ . '/../../../autoload.php',   // installed as a dependency (vendor/bin)
     // TODO: delete after release to separate package
     __DIR__ . '/../../../../vendor/autoload.php',  // running from the local repo (packages)
 ];
 
-foreach ($autoloads as $autoload) {
+$autoloadPath = null;
+
+foreach ($autoloadPaths as $autoload) {
     if (is_file($autoload)) {
-        require $autoload;
+        $autoloadPath = $autoload;
 
         break;
     }
 }
 
-$bootstraps = [
-    __DIR__ . '/../vendor/laravel/octane/bin/bootstrap.php',  // running from the repo
+if (!$autoloadPath) {
+    throw new RuntimeException('Composer autoload not found');
+}
+
+require $autoloadPath;
+
+
+$appBasePaths = [
+    // TODO: delete after release to separate package
+    __DIR__ . '/../../../../',  // running from the local repo (packages)
+];
+
+$appBasePath = null;
+
+foreach ($appBasePaths as $appBase) {
+    if (is_dir($appBase) && is_file($appBase . '/artisan')) {
+        $appBasePath = $appBase;
+
+        $_SERVER['APP_BASE_PATH'] = $appBasePath;
+
+        echo realpath($appBase) . PHP_EOL;
+
+        break;
+    }
+}
+
+if (!$appBasePath) {
+    throw new RuntimeException('Laravel Octane app base path not found');
+}
+
+$bootstrapPaths = [
     __DIR__ . '/../../../laravel/octane/bin/bootstrap.php',   // installed as a dependency (vendor/bin)
     // TODO: delete after release to separate package
     __DIR__ . '/../../../../vendor/laravel/octane/bin/bootstrap.php',  // running from the local repo (packages)
 ];
 
-$basePath = null;
+$bootstrapPath = null;
 
-foreach ($bootstraps as $bootstrap) {
+foreach ($bootstrapPaths as $bootstrap) {
     if (is_file($bootstrap)) {
-        $basePath = $bootstrap;
+        $bootstrapPath = $bootstrap;
+
+        break;
     }
 }
 
-if (!$basePath) {
+if (!$bootstrapPath) {
     throw new RuntimeException('Laravel Octane bootstrap not found');
 }
 
-require $basePath;
+require $bootstrapPath;
 
-$applicationFactory = new ApplicationFactory($basePath);
+$httpFoundationFactory = new HttpFoundationFactory();
+
+$serverRequestFactory = new ServerRequestFactory();
+$responseFactory = new ResponseFactory();
+
+$psrHttpFactory = new PsrHttpFactory(
+    serverRequestFactory: $serverRequestFactory,
+    streamFactory: new StreamFactory(),
+    uploadedFileFactory: new UploadedFileFactory(),
+    responseFactory: $responseFactory,
+);
+
+$applicationFactory = new ApplicationFactory($appBasePath);
 
 $app = $applicationFactory->createApplication();
 
-/** @var Dispatcher $dispatcher */
-$dispatcher = $app[Dispatcher::class];
+$app[Dispatcher::class]->dispatch(new WorkerStarting($app));
 
-$server = HttpServer::fromArgs($SERVER['argv'] ?? []);
-
-$dispatcher->dispatch(new WorkerStarting($app));
-
-// Прямой мост: PSR-7 ServerRequestInterface -> Symfony/Laravel Request.
-$httpFoundationFactory = new HttpFoundationFactory();
-
-// Обратный мост: Symfony/Laravel Response -> PSR-7 ResponseInterface. Те же
-// Laminas Diactoros фабрики, что использует Octane. StreamedResponse/BinaryFileResponse
-// мост сам прогоняет через php://temp (ob_start), поэтому тело уже материализовано
-// к моменту возврата — и очистка песочницы в finally безопасна.
-$psrHttpFactory = new PsrHttpFactory(
-    new ServerRequestFactory(),
-    new StreamFactory(),
-    new UploadedFileFactory(),
-    new ResponseFactory(),
+$server = HttpServer::fromArgs(
+    argv: $SERVER['argv'] ?? [],
+    serverRequestFactory: $serverRequestFactory,
+    responseFactory: $responseFactory,
 );
 
 $server->serve(function (ServerRequestInterface $request) use ($app, $httpFoundationFactory, $psrHttpFactory): ResponseInterface {
@@ -140,8 +171,8 @@ $server->serve(function (ServerRequestInterface $request) use ($app, $httpFounda
 
         $currentApp->flush();
 
-        $this->app->make('view.engine.resolver')->forget('blade');
-        $this->app->make('view.engine.resolver')->forget('php');
+        $app->make('view.engine.resolver')->forget('blade');
+        $app->make('view.engine.resolver')->forget('php');
 
         unset($gateway, $currentApp, $laravelRequest, $response);
 
