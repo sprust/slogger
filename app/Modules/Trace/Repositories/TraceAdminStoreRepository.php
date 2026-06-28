@@ -8,7 +8,9 @@ use App\Models\Traces\TraceAdminStore;
 use App\Modules\Common\Entities\PaginationInfoObject;
 use App\Modules\Trace\Entities\Store\TraceAdminStoreObject;
 use App\Modules\Trace\Entities\Store\TraceAdminStoresPaginationObject;
-use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Carbon;
+use MongoDB\BSON\ObjectId;
+use MongoDB\BSON\UTCDateTime;
 
 class TraceAdminStoreRepository
 {
@@ -19,17 +21,25 @@ class TraceAdminStoreRepository
         string $storeData,
         bool $auto
     ): TraceAdminStoreObject {
-        $store = new TraceAdminStore();
+        $createdAt = Carbon::now();
 
-        $store->title         = $title;
-        $store->storeVersion  = $storeVersion;
-        $store->storeDataHash = $storeDataHash;
-        $store->storeData     = $storeData;
-        $store->auto          = $auto;
+        $result = TraceAdminStore::sconcur()->insertOne([
+            'title'         => $title,
+            'storeVersion'  => $storeVersion,
+            'storeDataHash' => $storeDataHash,
+            'storeData'     => $storeData,
+            'auto'          => $auto,
+            'createdAt'     => new UTCDateTime($createdAt),
+        ]);
 
-        $store->save();
-
-        return $this->modelToObject($store);
+        return new TraceAdminStoreObject(
+            id: (string) $result->insertedId,
+            title: $title,
+            storeVersion: $storeVersion,
+            storeDataHash: $storeDataHash,
+            storeData: $storeData,
+            createdAt: $createdAt,
+        );
     }
 
     public function find(
@@ -39,43 +49,62 @@ class TraceAdminStoreRepository
         ?string $searchQuery,
         bool $auto
     ): TraceAdminStoresPaginationObject {
-        $pagination = TraceAdminStore::query()
-            ->where('storeVersion', $version)
-            ->where('auto', $auto)
-            ->when(
-                $searchQuery,
-                fn(Builder $builder) => $builder->where('title', 'like', "%$searchQuery%")
-            )
-            ->orderByDesc('createdAt')
-            ->paginate(perPage: $perPage, page: $page);
+        $filter = [
+            'storeVersion' => $version,
+            'auto'         => $auto,
+        ];
+
+        if ($searchQuery) {
+            $filter['title'] = [
+                '$regex'   => preg_quote($searchQuery, '/'),
+                '$options' => 'i',
+            ];
+        }
+
+        $total = TraceAdminStore::sconcur()->countDocuments($filter);
+
+        $cursor = TraceAdminStore::sconcur()->find(
+            filter: $filter,
+            sort: ['createdAt' => -1],
+            limit: $perPage,
+            skip: ($page - 1) * $perPage,
+        );
+
+        $items = [];
+
+        foreach ($cursor as $document) {
+            $items[] = $this->documentToObject($document);
+        }
 
         return new TraceAdminStoresPaginationObject(
-            items: array_map(
-                fn(TraceAdminStore $store) => $this->modelToObject($store),
-                $pagination->items()
-            ),
+            items: $items,
             paginationInfo: new PaginationInfoObject(
-                total: $pagination->total(),
-                perPage: $pagination->perPage(),
-                currentPage: $pagination->currentPage()
+                total: $total,
+                perPage: $perPage,
+                currentPage: $page
             )
         );
     }
 
     public function delete(string $id): bool
     {
-        return (bool) TraceAdminStore::query()->where('_id', $id)->delete();
+        return TraceAdminStore::sconcur()
+            ->deleteOne(['_id' => new ObjectId($id)])
+            ->deletedCount > 0;
     }
 
-    private function modelToObject(TraceAdminStore $store): TraceAdminStoreObject
+    /**
+     * @param array<int|string, mixed> $document
+     */
+    private function documentToObject(array $document): TraceAdminStoreObject
     {
         return new TraceAdminStoreObject(
-            id: $store->_id,
-            title: $store->title,
-            storeVersion: $store->storeVersion,
-            storeDataHash: $store->storeDataHash,
-            storeData: $store->storeData,
-            createdAt: $store->createdAt,
+            id: (string) $document['_id'],
+            title: $document['title'],
+            storeVersion: $document['storeVersion'],
+            storeDataHash: $document['storeDataHash'],
+            storeData: $document['storeData'],
+            createdAt: new Carbon($document['createdAt']->toDateTime()),
         );
     }
 }

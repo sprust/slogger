@@ -6,8 +6,8 @@ namespace App\Modules\Cleaner\Repositories;
 
 use App\Models\Traces\TraceClearingProcess;
 use App\Modules\Cleaner\Entities\ProcessObject;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
+use MongoDB\BSON\ObjectId;
 use MongoDB\BSON\UTCDateTime;
 use Throwable;
 
@@ -18,72 +18,63 @@ class ProcessRepository
      */
     public function find(int $page, int $perPage): array
     {
-        return TraceClearingProcess::query()
-            ->orderByDesc('createdAt')
-            ->forPage(
-                page: $page,
-                perPage: $perPage
-            )
-            ->get()
-            ->map(fn(TraceClearingProcess $process) => new ProcessObject(
-                id: $process->_id,
-                clearedCollectionsCount: $process->clearedCollectionsCount,
-                clearedTracesCount: $process->clearedTracesCount,
-                error: $process->error,
-                clearedAt: $process->clearedAt,
-                createdAt: $process->createdAt,
-                updatedAt: $process->updatedAt
-            ))
-            ->toArray();
+        $cursor = TraceClearingProcess::sconcur()->find(
+            filter: [],
+            sort: ['createdAt' => -1],
+            limit: $perPage,
+            skip: ($page - 1) * $perPage,
+        );
+
+        $processes = [];
+
+        foreach ($cursor as $document) {
+            $processes[] = $this->documentToObject($document);
+        }
+
+        return $processes;
     }
 
     public function exists(bool $clearedAtIsNull): ?ProcessObject
     {
-        /** @var TraceClearingProcess|null $process */
-        $process = TraceClearingProcess::query()
-            ->when(
-                value: $clearedAtIsNull,
-                callback: fn(Builder $query) => $query->whereNull('clearedAt'),
-                default: fn(Builder $query) => $query->whereNotNull('clearedAt')
-            )
-            ->orderByDesc('createdAt')
-            ->first();
+        $cursor = TraceClearingProcess::sconcur()->find(
+            filter: [
+                'clearedAt' => $clearedAtIsNull
+                    ? null
+                    : ['$ne' => null],
+            ],
+            sort: ['createdAt' => -1],
+            limit: 1,
+        );
 
-        if (!$process) {
-            return null;
+        foreach ($cursor as $document) {
+            return $this->documentToObject($document);
         }
 
-        return new ProcessObject(
-            id: $process->_id,
-            clearedCollectionsCount: $process->clearedCollectionsCount,
-            clearedTracesCount: $process->clearedTracesCount,
-            error: $process->error,
-            clearedAt: $process->clearedAt,
-            createdAt: $process->createdAt,
-            updatedAt: $process->updatedAt
-        );
+        return null;
     }
 
     public function create(): ProcessObject
     {
-        $newProgress = new TraceClearingProcess();
+        $createdAt = Carbon::now();
 
-        $newProgress->clearedCollectionsCount = 0;
-        $newProgress->clearedTracesCount      = 0;
-        $newProgress->error                   = null;
-        $newProgress->errorTrace              = null;
-        $newProgress->clearedAt               = null;
-
-        $newProgress->save();
+        $result = TraceClearingProcess::sconcur()->insertOne([
+            'clearedCollectionsCount' => 0,
+            'clearedTracesCount'      => 0,
+            'error'                   => null,
+            'errorTrace'              => null,
+            'clearedAt'               => null,
+            'createdAt'               => new UTCDateTime($createdAt),
+            'updatedAt'               => new UTCDateTime($createdAt),
+        ]);
 
         return new ProcessObject(
-            id: $newProgress->_id,
-            clearedCollectionsCount: $newProgress->clearedCollectionsCount,
-            clearedTracesCount: $newProgress->clearedTracesCount,
-            error: $newProgress->error,
-            clearedAt: $newProgress->clearedAt,
-            createdAt: $newProgress->createdAt,
-            updatedAt: $newProgress->updatedAt
+            id: (string) $result->insertedId,
+            clearedCollectionsCount: 0,
+            clearedTracesCount: 0,
+            error: null,
+            clearedAt: null,
+            createdAt: $createdAt,
+            updatedAt: $createdAt
         );
     }
 
@@ -94,21 +85,41 @@ class ProcessRepository
         ?Carbon $clearedAt,
         ?Throwable $exception
     ): void {
-        TraceClearingProcess::query()
-            ->where('_id', $processId)
-            ->update([
-                'clearedCollectionsCount' => $clearedCollectionsCount,
-                'clearedTracesCount'      => $clearedTracesCount,
-                'error'                   => $exception ? ($exception->getMessage() ?: $exception::class) : null,
-                'errorTrace'              => $exception ? ($exception->getTraceAsString()) : null,
-                'clearedAt'               => $clearedAt ? new UTCDateTime($clearedAt) : null,
-            ]);
+        TraceClearingProcess::sconcur()->updateOne(
+            filter: ['_id' => new ObjectId($processId)],
+            update: [
+                '$set' => [
+                    'clearedCollectionsCount' => $clearedCollectionsCount,
+                    'clearedTracesCount'      => $clearedTracesCount,
+                    'error'                   => $exception ? ($exception->getMessage() ?: $exception::class) : null,
+                    'errorTrace'              => $exception ? ($exception->getTraceAsString()) : null,
+                    'clearedAt'               => $clearedAt ? new UTCDateTime($clearedAt) : null,
+                    'updatedAt'               => new UTCDateTime(now()),
+                ],
+            ],
+        );
     }
 
     public function deleteByProcessId(string $processId): void
     {
-        TraceClearingProcess::query()
-            ->where('_id', $processId)
-            ->delete();
+        TraceClearingProcess::sconcur()->deleteOne(['_id' => new ObjectId($processId)]);
+    }
+
+    /**
+     * @param array<int|string, mixed> $document
+     */
+    private function documentToObject(array $document): ProcessObject
+    {
+        return new ProcessObject(
+            id: (string) $document['_id'],
+            clearedCollectionsCount: $document['clearedCollectionsCount'],
+            clearedTracesCount: $document['clearedTracesCount'],
+            error: $document['error'],
+            clearedAt: isset($document['clearedAt'])
+                ? new Carbon($document['clearedAt']->toDateTime())
+                : null,
+            createdAt: new Carbon($document['createdAt']->toDateTime()),
+            updatedAt: new Carbon($document['updatedAt']->toDateTime())
+        );
     }
 }

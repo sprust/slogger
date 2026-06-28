@@ -17,9 +17,7 @@ class TraceTreeCacheRepository
 {
     public function delete(string $rootTraceId): void
     {
-        TraceTreeCache::query()
-            ->where('rootTraceId', $rootTraceId)
-            ->delete();
+        TraceTreeCache::sconcur()->deleteMany(['rootTraceId' => $rootTraceId]);
     }
 
     /**

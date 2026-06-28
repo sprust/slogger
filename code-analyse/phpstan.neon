@@ -13,8 +13,6 @@ parameters:
         -
             message: '#Unsafe usage of new static#'
         -
-            message: '#Call to an undefined method Illuminate\\Database\\Query\\Builder::toBase#'
-        -
             message: '#Access to an undefined property MongoDB\\Model\\BSONDocument#'
         -
             messages:

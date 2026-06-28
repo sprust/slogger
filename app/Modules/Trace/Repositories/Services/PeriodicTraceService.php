@@ -130,10 +130,12 @@ readonly class PeriodicTraceService
 
     public function findCollectionNameByTraceId(string $traceId): ?string
     {
-        /** @var TraceTree|null $traceTree */
-        $traceTree = TraceTree::query()->where('tid', $traceId)->first();
+        $traceTree = TraceTree::sconcur()->findOne(
+            filter: ['tid' => $traceId],
+            projection: ['__cn' => 1],
+        );
 
-        return $traceTree?->__cn;
+        return $traceTree['__cn'] ?? null;
     }
 
     /**
