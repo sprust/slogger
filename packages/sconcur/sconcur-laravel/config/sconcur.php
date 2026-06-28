@@ -14,16 +14,6 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Diagnostic test routes
-    |--------------------------------------------------------------------------
-    | Exposes /sconcur-test/* endpoints that stress the async stack (request /
-    | config / locale isolation across a coroutine yield, MySQL transactions,
-    | MongoDB). Off by default; never enable in production.
-    */
-    'test_routes' => env('SCONCUR_TEST_ROUTES', false),
-
-    /*
-    |--------------------------------------------------------------------------
     | Scoped services
     |--------------------------------------------------------------------------
     | Extra container aliases that must be resolved per-coroutine (in addition to

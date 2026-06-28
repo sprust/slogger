@@ -33,8 +33,6 @@ src/Events/               — AsyncDispatcher (defer() per-coroutine)
 src/Routing/              — AsyncRouter (current route/request per-coroutine)
 src/Translation/          — AsyncTranslator (локаль per-coroutine)
 src/View/                 — AsyncViewFactory (View::share per-coroutine)
-src/Http/Test/            — SconcurTestController (диагностические ручки)
-routes/test.php           — /sconcur-test/* (под флагом sconcur.test_routes)
 docs/                     — ТЗ и план
 ```
 
@@ -127,12 +125,6 @@ php artisan vendor:publish --tag=sconcur-laravel
   (`CoroutineTransactions`) давал ложную безопасность и удалён. Антипаттерн `await` **внутри**
   транзакции ломает общий физический PDO — что counter-scoping не чинит. **Правило: не делать
   sconcur-await внутри MySQL-транзакции** (для async-работы класть запрос в очередь/после commit).
-- [x] **Нагрузочная проверка** под реальной конкуренцией (ручки `/sconcur-test/*`):
-  изоляция request/locale/config 30/30; Mongo через sconcur 12/12 изолированы; антипаттерн
-  подтверждён.
-
-## Диагностические ручки
-
-Под флагом `SCONCUR_TEST_ROUTES=true` поднимаются `/sconcur-test/*` для стресса под конкуренцией:
-`isolation` (request/locale/config через yield), `mongo` (MongoDB через sconcur), `pdo-tx`
-(вложенные транзакции), `pdo-tx-await` (демо антипаттерна). В проде не включать.
+- [x] **Нагрузочная проверка** под реальной конкуренцией: изоляция request/locale/config 30/30;
+  MongoDB через sconcur 12/12 изолированы; вложенные MySQL-транзакции 30/30; антипаттерн
+  `await`-в-транзакции воспроизведён.

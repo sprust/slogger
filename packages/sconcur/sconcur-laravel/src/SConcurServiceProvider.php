@@ -70,12 +70,6 @@ class SConcurServiceProvider extends ServiceProvider
                 'sconcur-laravel',
             ]
         );
-
-        // Diagnostic routes for hammering the async stack under concurrency.
-        // Off by default — set SCONCUR_TEST_ROUTES=true to expose them.
-        if (config('sconcur.test_routes')) {
-            $this->loadRoutesFrom(__DIR__ . '/../routes/test.php');
-        }
     }
 
     /** True only for the spawned HTTP worker process. */
