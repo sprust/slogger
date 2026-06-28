@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Dashboard\Entities;
 
-class SconcurStatObject
+readonly class SconcurStatObject
 {
     /**
      * @param SconcurWorkerObject[] $workers

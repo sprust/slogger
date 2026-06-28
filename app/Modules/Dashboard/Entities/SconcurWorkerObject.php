@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Dashboard\Entities;
 
-class SconcurWorkerObject
+readonly class SconcurWorkerObject
 {
     public function __construct(
         public int $pid,
