@@ -39,7 +39,7 @@ export default defineComponent({
   data() {
     return {
       autoUpdate: false,
-      selectedMetrics: ['requests_in_flight', 'rps'] as string[],
+      selectedMetrics: ['rps', 'cpu_percent'] as string[],
       history: [] as HistoryPoint[],
       timer: null as number | null,
       prevCompleted: null as number | null,
