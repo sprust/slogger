@@ -10,6 +10,7 @@ use Laminas\Diactoros\ServerRequestFactory;
 use Laminas\Diactoros\StreamFactory;
 use Laminas\Diactoros\UploadedFileFactory;
 use SConcur\Features\HttpServer\HttpServer;
+use SConcur\Laravel\Foundation\AsyncApplication;
 use Symfony\Bridge\PsrHttpMessage\Factory\HttpFoundationFactory;
 use Symfony\Bridge\PsrHttpMessage\Factory\PsrHttpFactory;
 
@@ -31,6 +32,11 @@ readonly class HttpServerRunner
 
     public function run(Application $app): void
     {
+        // Turn on coroutine-scoped resolution for the lifetime of this worker.
+        if ($app instanceof AsyncApplication) {
+            $app->enableAsyncMode();
+        }
+
         $serverRequestFactory = new ServerRequestFactory();
         $responseFactory      = new ResponseFactory();
 

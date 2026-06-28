@@ -10,15 +10,18 @@ use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Http\Request;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use SConcur\Context\Context;
+use SConcur\Laravel\Foundation\ScopedService;
 use Symfony\Bridge\PsrHttpMessage\Factory\HttpFoundationFactory;
 use Symfony\Bridge\PsrHttpMessage\Factory\PsrHttpFactory;
 
 /**
  * PSR-7 request handler that bridges to the Laravel HTTP kernel.
  *
- * Dev-grade: handles requests against the single application instance, so it is
- * NOT yet coroutine-safe — run with maxConcurrency=1 until the AsyncApplication
- * model lands (see docs/fiber-safe-laravel-bridge.ru.md).
+ * The request is published into the coroutine context, so AsyncApplication
+ * resolves 'request' per-fiber and concurrent requests do not share it. Full
+ * isolation of auth/session/router lands in later stages
+ * (see docs/fiber-safe-laravel-bridge.ru.md).
  */
 readonly class LaravelHttpHandler
 {
@@ -37,6 +40,10 @@ readonly class LaravelHttpHandler
         $laravelRequest = Request::createFromBase(
             $this->httpFoundationFactory->createRequest($request)
         );
+
+        // Publish the request into this coroutine's context; AsyncApplication
+        // resolves 'request' from here instead of the shared container binding.
+        Context::current()->set(ScopedService::REQUEST->value, $laravelRequest, replace: true);
 
         /** @var Kernel $kernel */
         $kernel = $this->app->make(Kernel::class);

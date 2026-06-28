@@ -65,7 +65,7 @@ class AsyncApplication extends Application
      */
     public function bound($abstract): bool
     {
-        if ($this->getAlias($abstract) === 'request') {
+        if ($this->asyncMode && $this->getAlias($abstract) === 'request') {
             return true;
         }
 
@@ -74,14 +74,16 @@ class AsyncApplication extends Application
 
     public function offsetGet($key): mixed
     {
-        $alias = $this->getAlias($key);
+        if ($this->asyncMode) {
+            $alias = $this->getAlias($key);
 
-        if ($this->asyncMode && isset(self::FACADE_PROXIED_MAP[$alias])) {
-            return new ScopedServiceProxy(fn() => $this->tryResolveScoped($alias));
-        }
+            if (isset(self::FACADE_PROXIED_MAP[$alias])) {
+                return new ScopedServiceProxy(fn() => $this->tryResolveScoped($alias));
+            }
 
-        if ($alias === 'request') {
-            return $this->resolveRequest();
+            if ($alias === 'request') {
+                return $this->resolveRequest();
+            }
         }
 
         return parent::offsetGet($key);
@@ -89,13 +91,13 @@ class AsyncApplication extends Application
 
     protected function resolve($abstract, $parameters = [], $raiseEvents = true)
     {
-        $alias = $this->getAlias($abstract);
-
-        if ($alias === 'request') {
-            return $this->resolveRequest();
-        }
-
         if ($this->asyncMode) {
+            $alias = $this->getAlias($abstract);
+
+            if ($alias === 'request') {
+                return $this->resolveRequest();
+            }
+
             $instance = $this->tryResolveScoped($alias);
 
             if ($instance !== null) {

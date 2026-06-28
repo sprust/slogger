@@ -16,7 +16,10 @@ use SConcur\Laravel\Http\HttpServerRunner;
  */
 class HttpStartCommand extends AbstractSconcurCommand
 {
-    protected $signature = 'sconcur:servers:http:start
+    /** Artisan name; used by the provider to gate async wiring to the worker process. */
+    public const string NAME = 'sconcur:servers:http:start';
+
+    protected $signature = self::NAME . '
         {--masterPid= : Master pid, injected by the supervisor for orphan self-termination}';
 
     protected $description = 'Run a SConcur HTTP server in the foreground';

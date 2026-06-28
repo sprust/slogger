@@ -11,7 +11,11 @@
 |
 */
 
-$app = new Illuminate\Foundation\Application(
+// Coroutine-scoped application for the SConcur HTTP worker. It is a drop-in
+// subclass of Illuminate\Foundation\Application: with async mode off (the default
+// for web/Octane/CLI/queue) it behaves identically; the scoped resolution only
+// activates when the worker calls enableAsyncMode().
+$app = new SConcur\Laravel\Foundation\AsyncApplication(
     $_ENV['APP_BASE_PATH'] ?? dirname(__DIR__)
 );
 
