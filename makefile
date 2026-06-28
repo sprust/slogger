@@ -163,13 +163,9 @@ receiver-build:
 sconcur-update:
 	docker-compose up -d $(PHP_FPM_SERVICE) $(WORKERS_SERVICE)
 	make composer c='require sconcur/sconcur:*'
-	make sconcur-load
+	make build
 	make restart
 	make sconcur-status
-
-sconcur-load:
-	docker-compose exec -u root -e XDEBUG_MODE=off $(PHP_FPM_SERVICE) sh -c './vendor/bin/sconcur-load "$$(php-config --extension-dir)/sconcur.so"'
-	docker-compose exec -u root -e XDEBUG_MODE=off $(WORKERS_SERVICE) sh -c './vendor/bin/sconcur-load "$$(php-config --extension-dir)/sconcur.so"'
 
 sconcur-status:
 	docker-compose exec -e XDEBUG_MODE=off $(PHP_FPM_SERVICE) ./vendor/bin/sconcur-status
