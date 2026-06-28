@@ -17,7 +17,7 @@ import {Loading as IconLoading, Refresh as IconRefresh} from "@element-plus/icon
 
 ChartJS.register(Title, Tooltip, Legend, LineElement, PointElement, CategoryScale, LinearScale, Filler);
 
-const WINDOW_MS = 60_000; // rolling window: the last minute
+const WINDOW_MS = 300_000; // rolling window: the last 5 minutes
 const COLORS = ['#409EFF', '#67C23A', '#E6A23C', '#F56C6C', '#909399', '#9B59B6'];
 
 interface MetricDef {
@@ -88,7 +88,7 @@ export default defineComponent({
       return {
         responsive: true,
         maintainAspectRatio: false,
-        animation: {duration: 250},
+        animation: false as const,
         interaction: {intersect: false, mode: 'index' as const},
         plugins: {
           legend: {display: true},
@@ -132,7 +132,7 @@ export default defineComponent({
         requests_avg_ms: Math.round(stat.requests_avg_ms * 100) / 100,
       })
 
-      // keep only the last minute
+      // keep only the last 5 minutes
       const cutoff = now - WINDOW_MS
 
       while (this.history.length > 0 && (this.history[0].ts as number) < cutoff) {
