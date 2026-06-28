@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "00b14007e90d26846a9aacc86faf6408",
+    "content-hash": "8558fbf3dd54c6281051549fc19cac1a",
     "packages": [
         {
             "name": "brick/math",
@@ -4203,16 +4203,16 @@
         },
         {
             "name": "sconcur/sconcur",
-            "version": "0.5.0",
+            "version": "0.6.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sprust/sconcur.git",
-                "reference": "ccf106a9097fec3787e7bee4a4451cf836f8820f"
+                "reference": "6f41139ae237b879e70317f54d0ed8bbeb7f5bd6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sprust/sconcur/zipball/ccf106a9097fec3787e7bee4a4451cf836f8820f",
-                "reference": "ccf106a9097fec3787e7bee4a4451cf836f8820f",
+                "url": "https://api.github.com/repos/sprust/sconcur/zipball/6f41139ae237b879e70317f54d0ed8bbeb7f5bd6",
+                "reference": "6f41139ae237b879e70317f54d0ed8bbeb7f5bd6",
                 "shasum": ""
             },
             "require": {
@@ -4259,9 +4259,52 @@
             "description": "PHP concurrency library backed by an extension written in Go",
             "support": {
                 "issues": "https://github.com/sprust/sconcur/issues",
-                "source": "https://github.com/sprust/sconcur/tree/v0.5.0"
+                "source": "https://github.com/sprust/sconcur/tree/v0.6.0"
             },
-            "time": "2026-06-27T18:14:12+00:00"
+            "time": "2026-06-28T06:56:14+00:00"
+        },
+        {
+            "name": "sconcur/sconcur-laravel",
+            "version": "dev-master",
+            "dist": {
+                "type": "path",
+                "url": "packages/sconcur/sconcur-laravel",
+                "reference": "4575019bc381f6b080733649befa0f42feb363da"
+            },
+            "require": {
+                "laravel/framework": "^10.0 | ^11.0 | ^12.0",
+                "sconcur/sconcur": "*"
+            },
+            "bin": [
+                "bin/sconcur-http-server"
+            ],
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "SConcur\\Laravel\\SConcurServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "SConcur\\Laravel\\": "src/"
+                }
+            },
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Pavel",
+                    "email": "sppetrovich@mail.ru"
+                }
+            ],
+            "description": "Laravel integration for SConcur: concurrent HTTP worker and coroutine-scoped application",
+            "transport-options": {
+                "symlink": true,
+                "relative": true
+            }
         },
         {
             "name": "slogger/laravel",
@@ -13140,6 +13183,7 @@
     "minimum-stability": "stable",
     "stability-flags": {
         "ifksco/openapi-generator": 20,
+        "sconcur/sconcur-laravel": 20,
         "slogger/laravel": 20,
         "sprust/rr-monitor-laravel": 20
     },

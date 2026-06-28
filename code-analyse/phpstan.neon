@@ -5,6 +5,7 @@ parameters:
     excludePaths:
         - ../app/Console/Commands/Local
         - ../app/Models
+        - ../packages/sconcur
 
     level: 8
 
