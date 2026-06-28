@@ -5,12 +5,13 @@ declare(strict_types=1);
 return [
     /*
     |--------------------------------------------------------------------------
-    | Async mode
+    | Telemetry panel stats endpoint
     |--------------------------------------------------------------------------
-    | Enables the coroutine-scoped application (AsyncApplication). Turned on by
-    | the HTTP worker; CLI / queue / Octane keep the stock Application.
+    | Full URL of the master telemetry panel stats endpoint as reachable from the
+    | app (master runs in the workers container, the app in php-fpm). The dashboard
+    | client GETs this URL with the adminToken bearer.
     */
-    'async' => env('SCONCUR_ASYNC', false),
+    'panel_host' => env('SCONCUR_PANEL_HOST', 'http://127.0.0.1:28081/api/stats'),
 
     /*
     |--------------------------------------------------------------------------
