@@ -275,6 +275,7 @@ Notes:
 
 ### PHP Coding Conventions
 
+- All traits must be named with a `Trait` postfix (e.g. `HasSqlSconcurConnectionTrait`), and the file name must match the trait name (PSR-4).
 - Do not use the `final` keyword on classes. Keep classes extendable.
 - Do not declare global/namespaced helper functions (no `function current_context()` style API). Expose behavior through classes and static entry points instead (e.g. `SConcur\Context\Context::current()`).
 - For SConcur coroutine state, use the library's `SConcur\Context\Context` (`Context::current()->find/has/set/forget`) — do not reimplement a context store. Working-with-context semantics: `vendor/sconcur/sconcur/docs/coroutine-context.ru.md`.
