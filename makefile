@@ -1,3 +1,5 @@
+MAKEFLAGS += --no-print-directory
+
 PHP_FPM_SERVICE="php-fpm"
 PHP_FPM_CLI="docker-compose exec $(PHP_FPM_SERVICE) "
 
@@ -160,7 +162,7 @@ receiver-build:
 
 sconcur-update:
 	docker-compose up -d $(PHP_FPM_SERVICE) $(WORKERS_SERVICE)
-	make composer c='update sconcur/sconcur'
+	make composer c='require sconcur/sconcur:*'
 	make sconcur-load
 	make restart
 	make sconcur-status

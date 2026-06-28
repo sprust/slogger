@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "da3540e48278f8e05b4c3279d40ae05f",
+    "content-hash": "00b14007e90d26846a9aacc86faf6408",
     "packages": [
         {
             "name": "brick/math",
@@ -4203,16 +4203,16 @@
         },
         {
             "name": "sconcur/sconcur",
-            "version": "0.4.0",
+            "version": "0.5.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sprust/sconcur.git",
-                "reference": "33e260cbdc889cf97f4d08ee25c1b092f8bca9f6"
+                "reference": "ccf106a9097fec3787e7bee4a4451cf836f8820f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sprust/sconcur/zipball/33e260cbdc889cf97f4d08ee25c1b092f8bca9f6",
-                "reference": "33e260cbdc889cf97f4d08ee25c1b092f8bca9f6",
+                "url": "https://api.github.com/repos/sprust/sconcur/zipball/ccf106a9097fec3787e7bee4a4451cf836f8820f",
+                "reference": "ccf106a9097fec3787e7bee4a4451cf836f8820f",
                 "shasum": ""
             },
             "require": {
@@ -4259,9 +4259,9 @@
             "description": "PHP concurrency library backed by an extension written in Go",
             "support": {
                 "issues": "https://github.com/sprust/sconcur/issues",
-                "source": "https://github.com/sprust/sconcur/tree/v0.4.0"
+                "source": "https://github.com/sprust/sconcur/tree/v0.5.0"
             },
-            "time": "2026-06-26T20:39:26+00:00"
+            "time": "2026-06-27T18:14:12+00:00"
         },
         {
             "name": "slogger/laravel",
