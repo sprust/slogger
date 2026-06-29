@@ -16,7 +16,8 @@
         "laravel/tinker": "^2.8",
         "mongodb/laravel-mongodb": "^5.5",
         "mongodb/mongodb": "^1.17",
-        "sconcur/sconcur": "^0.4.0",
+        "sconcur/sconcur": "*",
+        "sconcur/sconcur-laravel": "dev-master",
         "slogger/laravel": "dev-master",
         "spiral/roadrunner-cli": "^2.7",
         "spiral/roadrunner-http": "^3.5",
@@ -49,6 +50,13 @@
         {
             "type": "path",
             "url": "packages/sprust/rr-monitor-laravel",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "packages/sconcur/sconcur-laravel",
             "options": {
                 "symlink": true
             }

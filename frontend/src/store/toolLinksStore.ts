@@ -1,6 +1,7 @@
 import {ApiContainer} from "../utils/apiContainer.ts";
 import {AdminApi} from "../api-schema/admin-api-schema.ts";
 import {defineStore} from "pinia";
+import {handleApiRequest} from "../utils/handleApiRequest.ts";
 
 export type ToolsLink = AdminApi.ToolsLinksList.ResponseBody['data'][number];
 
@@ -20,13 +21,13 @@ export const useToolLinksStore = defineStore('toolLinksStore', {
         async findToolLinks() {
             this.loaded = false
 
-            return await ApiContainer.get().toolsLinksList()
-                .then(response => {
-                    this.toolLinks = response.data.data
-                })
-                .finally(() => {
-                    this.loaded = true
-                })
+            await handleApiRequest(async () => {
+                const response = await ApiContainer.get().toolsLinksList()
+
+                this.toolLinks = response.data.data
+            })
+
+            this.loaded = true
         }
     },
 })

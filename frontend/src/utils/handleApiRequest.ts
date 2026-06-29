@@ -72,7 +72,17 @@ export async function handleApiRequest<T>(request: () => Promise<T>): Promise<T>
 }
 
 export function handleApiError(error: any) {
-    let message = '' + (error?.error?.message ?? error?.error.error ?? error.statusText)
+    if (error?.name === 'AbortError') {
+        return
+    }
+
+    let message = '' + (
+        error?.error?.message
+        ?? error?.error?.error
+        ?? error?.statusText
+        ?? error?.message
+        ?? ''
+    )
 
     if (!message) {
         message = 'Unknown error'

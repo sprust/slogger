@@ -2,7 +2,7 @@ import {ApiContainer} from "../../../../../../utils/apiContainer.ts";
 import {AdminApi} from "../../../../../../api-schema/admin-api-schema.ts";
 import {TraceAggregatorDetail} from "../../trace/store/traceAggregatorDataStore.ts";
 import {defineStore} from "pinia";
-import {handleApiError, handleApiRequest} from "../../../../../../utils/handleApiRequest.ts";
+import {handleApiRequest} from "../../../../../../utils/handleApiRequest.ts";
 import {readStream} from "../../../../../../utils/helpers.ts";
 import {TreeBuilder} from "./TreeBuilder.ts";
 import {TreeFilter} from "./TreeFilter.ts";
@@ -200,7 +200,7 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
                 }
             }
 
-            return await handleApiRequest(async () => {
+            const response = await handleApiRequest(async () => {
                 const response = await ApiContainer.get()
                     .traceAggregatorTracesTreeCreate(
                         this.parameters,
@@ -238,13 +238,14 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
                 this.loading = false
 
                 return response
-            }).catch((error) => {
-                handleApiError(error)
+            })
+
+            if (!response) {
                 this.stopPolling()
                 this.loading = false
+            }
 
-                return undefined
-            })
+            return response
         },
         findTreeContent(traceId: string, isChild: boolean) {
             const parameters: TraceAggregatorTreeContentParameters = {

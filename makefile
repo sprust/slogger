@@ -1,3 +1,5 @@
+MAKEFLAGS += --no-print-directory
+
 PHP_FPM_SERVICE="php-fpm"
 PHP_FPM_CLI="docker-compose exec $(PHP_FPM_SERVICE) "
 
@@ -105,6 +107,7 @@ workers-restart:
 	make workers-art c='queue:restart'
 	make workers-art c='cron:stop'
 	make workers-art c='octane:roadrunner:reload'
+	make sconcur-restart
 	make workers-art c='rr-monitor:stop jobs'
 	make workers-art c='slogger:dispatcher:stop'
 	make workers-art c='trace-dynamic-indexes:monitor:stop'
@@ -160,14 +163,13 @@ receiver-build:
 
 sconcur-update:
 	docker-compose up -d $(PHP_FPM_SERVICE) $(WORKERS_SERVICE)
-	make composer c='update sconcur/sconcur'
-	make sconcur-load
+	make composer c='require sconcur/sconcur:*'
+	make build
 	make restart
 	make sconcur-status
 
-sconcur-load:
-	docker-compose exec -u root -e XDEBUG_MODE=off $(PHP_FPM_SERVICE) sh -c './vendor/bin/sconcur-load "$$(php-config --extension-dir)/sconcur.so"'
-	docker-compose exec -u root -e XDEBUG_MODE=off $(WORKERS_SERVICE) sh -c './vendor/bin/sconcur-load "$$(php-config --extension-dir)/sconcur.so"'
+sconcur-restart:
+	make workers-art c=sconcur:servers:master:stop
 
 sconcur-status:
 	docker-compose exec -e XDEBUG_MODE=off $(PHP_FPM_SERVICE) ./vendor/bin/sconcur-status

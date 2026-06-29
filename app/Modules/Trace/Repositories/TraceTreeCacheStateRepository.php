@@ -20,26 +20,32 @@ class TraceTreeCacheStateRepository
         int $limit,
         ?TraceTreeCacheStateStatusEnum $excludeStatus = null,
     ): array {
-        return TraceTreeCacheState::query()
-            ->when(
-                $excludeStatus !== null,
-                static fn($query) => $query->where('status', '!=', $excludeStatus?->value)
-            )
-            ->orderByDesc('updatedAt')
-            ->take($limit)
-            ->get()
-            ->map(fn(TraceTreeCacheState $state) => $this->modelToObject($state))
-            ->all();
+        $filter = [];
+
+        if ($excludeStatus !== null) {
+            $filter['status'] = ['$ne' => $excludeStatus->value];
+        }
+
+        $cursor = TraceTreeCacheState::sconcur()->find(
+            filter: $filter,
+            sort: ['updatedAt' => -1],
+            limit: $limit,
+        );
+
+        $states = [];
+
+        foreach ($cursor as $document) {
+            $states[] = $this->documentToObject($document);
+        }
+
+        return $states;
     }
 
     public function findOneByRootTraceId(string $rootTraceId): ?TraceTreeCacheStateObject
     {
-        /** @var TraceTreeCacheState|null $state */
-        $state = TraceTreeCacheState::query()
-            ->where('rootTraceId', $rootTraceId)
-            ->first();
+        $document = TraceTreeCacheState::sconcur()->findOne(['rootTraceId' => $rootTraceId]);
 
-        return $state ? $this->modelToObject($state) : null;
+        return $document ? $this->documentToObject($document) : null;
     }
 
     public function reset(
@@ -49,22 +55,22 @@ class TraceTreeCacheStateRepository
     ): TraceTreeCacheStateObject {
         $startedAt = now();
 
-        TraceTreeCacheState::query()
-            ->updateOrInsert(
-                [
-                    'rootTraceId' => $rootTraceId,
-                ],
-                [
+        TraceTreeCacheState::sconcur()->updateOne(
+            filter: ['rootTraceId' => $rootTraceId],
+            update: [
+                '$set' => [
                     'version'    => $version,
-                    'status'     => $status,
+                    'status'     => $status->value,
                     'count'      => 0,
                     'error'      => null,
                     'startedAt'  => new UTCDateTime($startedAt),
                     'finishedAt' => null,
                     'updatedAt'  => new UTCDateTime($startedAt),
                     'createdAt'  => new UTCDateTime($startedAt),
-                ]
-            );
+                ],
+            ],
+            upsert: true,
+        );
 
         $state = $this->findOneByRootTraceId($rootTraceId);
 
@@ -79,12 +85,10 @@ class TraceTreeCacheStateRepository
     {
         $finishedAt = now();
 
-        TraceTreeCacheState::query()
-            ->updateOrInsert(
-                [
-                    'rootTraceId' => $rootTraceId,
-                ],
-                [
+        TraceTreeCacheState::sconcur()->updateOne(
+            filter: ['rootTraceId' => $rootTraceId],
+            update: [
+                '$set' => [
                     'version'    => $version,
                     'status'     => TraceTreeCacheStateStatusEnum::Finished->value,
                     'count'      => $count,
@@ -93,8 +97,10 @@ class TraceTreeCacheStateRepository
                     'finishedAt' => new UTCDateTime($finishedAt),
                     'updatedAt'  => new UTCDateTime($finishedAt),
                     'createdAt'  => new UTCDateTime($finishedAt),
-                ]
-            );
+                ],
+            ],
+            upsert: true,
+        );
 
         $state = $this->findOneByRootTraceId($rootTraceId);
 
@@ -111,37 +117,49 @@ class TraceTreeCacheStateRepository
         ?Carbon $finishedAt = null,
         ?string $error = null,
     ): bool {
-        return (bool) TraceTreeCacheState::query()
-            ->where('rootTraceId', $rootTraceId)
-            ->update([
-                'status'     => $status->value,
-                'error'      => $error,
-                'finishedAt' => $finishedAt ? new UTCDateTime($finishedAt) : null,
-                'updatedAt'  => new UTCDateTime(now()),
-            ]);
+        return TraceTreeCacheState::sconcur()
+            ->updateMany(
+                filter: ['rootTraceId' => $rootTraceId],
+                update: [
+                    '$set' => [
+                        'status'     => $status->value,
+                        'error'      => $error,
+                        'finishedAt' => $finishedAt ? new UTCDateTime($finishedAt) : null,
+                        'updatedAt'  => new UTCDateTime(now()),
+                    ],
+                ],
+            )
+            ->matchedCount > 0;
     }
 
     public function deleteByRootTraceId(string $rootTraceId): bool
     {
-        return (bool) TraceTreeCacheState::query()
-            ->where('rootTraceId', $rootTraceId)
-            ->delete();
+        return TraceTreeCacheState::sconcur()
+            ->deleteMany(['rootTraceId' => $rootTraceId])
+            ->deletedCount > 0;
     }
 
     public function markFinished(string $rootTraceId, string $version): bool
     {
         $finishedAt = now();
 
-        return (bool) TraceTreeCacheState::query()
-            ->where('rootTraceId', $rootTraceId)
-            ->where('version', $version)
-            ->where('status', TraceTreeCacheStateStatusEnum::InProcess->value)
-            ->update([
-                'status'     => TraceTreeCacheStateStatusEnum::Finished->value,
-                'error'      => null,
-                'finishedAt' => new UTCDateTime($finishedAt),
-                'updatedAt'  => new UTCDateTime($finishedAt),
-            ]);
+        return TraceTreeCacheState::sconcur()
+            ->updateMany(
+                filter: [
+                    'rootTraceId' => $rootTraceId,
+                    'version'     => $version,
+                    'status'      => TraceTreeCacheStateStatusEnum::InProcess->value,
+                ],
+                update: [
+                    '$set' => [
+                        'status'     => TraceTreeCacheStateStatusEnum::Finished->value,
+                        'error'      => null,
+                        'finishedAt' => new UTCDateTime($finishedAt),
+                        'updatedAt'  => new UTCDateTime($finishedAt),
+                    ],
+                ],
+            )
+            ->matchedCount > 0;
     }
 
     public function incrementCount(string $rootTraceId, string $version, int $count): bool
@@ -150,46 +168,66 @@ class TraceTreeCacheStateRepository
             return false;
         }
 
-        return (bool) TraceTreeCacheState::query()
-            ->where('rootTraceId', $rootTraceId)
-            ->where('version', $version)
-            ->where('status', TraceTreeCacheStateStatusEnum::InProcess->value)
-            ->increment(
-                column: 'count',
-                amount: $count,
-                extra: [
-                    'updatedAt' => new UTCDateTime(now()),
-                ]
-            );
+        return TraceTreeCacheState::sconcur()
+            ->updateMany(
+                filter: [
+                    'rootTraceId' => $rootTraceId,
+                    'version'     => $version,
+                    'status'      => TraceTreeCacheStateStatusEnum::InProcess->value,
+                ],
+                update: [
+                    '$inc' => [
+                        'count' => $count,
+                    ],
+                    '$set' => [
+                        'updatedAt' => new UTCDateTime(now()),
+                    ],
+                ],
+            )
+            ->matchedCount > 0;
     }
 
     public function markFailed(string $rootTraceId, string $version, string $error): bool
     {
         $finishedAt = now();
 
-        return (bool) TraceTreeCacheState::query()
-            ->where('rootTraceId', $rootTraceId)
-            ->where('version', $version)
-            ->update([
-                'status'     => TraceTreeCacheStateStatusEnum::Failed->value,
-                'error'      => $error,
-                'finishedAt' => new UTCDateTime($finishedAt),
-                'updatedAt'  => new UTCDateTime($finishedAt),
-            ]);
+        return TraceTreeCacheState::sconcur()
+            ->updateMany(
+                filter: [
+                    'rootTraceId' => $rootTraceId,
+                    'version'     => $version,
+                ],
+                update: [
+                    '$set' => [
+                        'status'     => TraceTreeCacheStateStatusEnum::Failed->value,
+                        'error'      => $error,
+                        'finishedAt' => new UTCDateTime($finishedAt),
+                        'updatedAt'  => new UTCDateTime($finishedAt),
+                    ],
+                ],
+            )
+            ->matchedCount > 0;
     }
 
-    private function modelToObject(TraceTreeCacheState $state): TraceTreeCacheStateObject
+    /**
+     * @param array<int|string, mixed> $document
+     */
+    private function documentToObject(array $document): TraceTreeCacheStateObject
     {
         return new TraceTreeCacheStateObject(
-            rootTraceId: $state->rootTraceId,
-            version: $state->version,
-            status: $state->status,
-            count: $state->count,
-            error: $state->error,
-            startedAt: $state->startedAt,
-            finishedAt: $state->finishedAt,
-            createdAt: $state->createdAt,
-            updatedAt: $state->updatedAt,
+            rootTraceId: $document['rootTraceId'],
+            version: $document['version'],
+            status: TraceTreeCacheStateStatusEnum::from($document['status']),
+            count: $document['count'],
+            error: $document['error'] ?? null,
+            startedAt: isset($document['startedAt'])
+                ? new Carbon($document['startedAt']->toDateTime())
+                : null,
+            finishedAt: isset($document['finishedAt'])
+                ? new Carbon($document['finishedAt']->toDateTime())
+                : null,
+            createdAt: new Carbon($document['createdAt']->toDateTime()),
+            updatedAt: new Carbon($document['updatedAt']->toDateTime()),
         );
     }
 }

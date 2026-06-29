@@ -273,6 +273,13 @@ Notes:
 - Each entity should have its own dedicated controller. Do not mix state/controller methods into another entity controller.
 - The main README is bilingual: `README.md` (English) and `README.ru.md` (Russian), kept in sync via the language switcher line at the top of each. Always edit both language versions together — any change to one must be mirrored in the other so they never drift.
 
+### PHP Coding Conventions
+
+- All traits must be named with a `Trait` postfix (e.g. `HasSqlSconcurConnectionTrait`), and the file name must match the trait name (PSR-4).
+- Do not use the `final` keyword on classes. Keep classes extendable.
+- Do not declare global/namespaced helper functions (no `function current_context()` style API). Expose behavior through classes and static entry points instead (e.g. `SConcur\Context\Context::current()`).
+- For SConcur coroutine state, use the library's `SConcur\Context\Context` (`Context::current()->find/has/set/forget`) — do not reimplement a context store. Working-with-context semantics: `vendor/sconcur/sconcur/docs/coroutine-context.ru.md`.
+
 ## Required Commands After Changes
 
 - Run post-change commands only after changes that can affect application behavior, generated artifacts, or runtime contracts.

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Dashboard\Entities;
 
-class DatabaseCollectionStatObject
+readonly class DatabaseCollectionStatObject
 {
     /**
      * @param DatabaseCollectionIndexStatObject[] $indexes

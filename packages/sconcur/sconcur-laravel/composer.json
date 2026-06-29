@@ -1,0 +1,33 @@
+{
+    "name": "sconcur/sconcur-laravel",
+    "description": "Laravel integration for SConcur: concurrent HTTP worker and coroutine-scoped application",
+    "version": "dev-master",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Pavel",
+            "email": "sppetrovich@mail.ru"
+        }
+    ],
+    "require": {
+        "laravel/framework": "^10.0 | ^11.0 | ^12.0",
+        "sconcur/sconcur": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "SConcur\\Laravel\\": "src/"
+        }
+    },
+    "bin": [
+        "bin/sconcur-http-server"
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [
+                "SConcur\\Laravel\\SConcurServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

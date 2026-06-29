@@ -67,6 +67,8 @@ services:
       QUEUE_TRACE_TREE_WORKERS_COUNT: ${QUEUE_TRACE_TREE_WORKERS_COUNT:-1}
     ports:
       - ${OCTANE_RR_DOCKER_PORT:-10021}:${OCTANE_RR_PORT:-9020}
+      - ${SCONCUR_HTTP_DOCKER_PORT:-17832}:${SCONCUR_HTTP_PORT:-28080}
+      - ${SCONCUR_PANEL_DOCKER_PORT:-17833}:${SCONCUR_HTTP_PANEL_PORT:-28081}
     volumes:
       - ./:/app
       - ./docker/php/conf/php-workers.ini:/usr/local/etc/php/conf.d/docker.ini

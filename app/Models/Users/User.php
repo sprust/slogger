@@ -2,6 +2,7 @@
 
 namespace App\Models\Users;
 
+use App\Models\Concerns\HasSqlSconcurConnectionTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Support\Carbon;
@@ -20,6 +21,7 @@ use Illuminate\Support\Carbon;
 class User extends Authenticatable
 {
     use HasFactory;
+    use HasSqlSconcurConnectionTrait;
 
     protected $hidden = [
         'password',

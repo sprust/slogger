@@ -6,7 +6,6 @@ namespace App\Modules\Service\Repositories;
 
 use App\Models\Services\Service;
 use App\Modules\Service\Entities\ServiceObject;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
 
 class ServiceRepository
@@ -18,47 +17,66 @@ class ServiceRepository
      */
     public function find(?array $ids = null): array
     {
-        return Service::query()
-            ->when(
-                !is_null($ids),
-                fn(Builder $query) => $query->whereIn('id', $ids)
-            )
-            ->select([
-                'id',
-                'name',
-                'api_token',
-            ])
-            ->get()
-            ->map(
-                fn(Service $service) => $this->makeObjectByModel($service)
-            )
-            ->toArray();
+        $sql      = 'SELECT id, name, api_token FROM services';
+        $bindings = [];
+
+        if (!is_null($ids)) {
+            if (count($ids) === 0) {
+                return [];
+            }
+
+            $placeholders = implode(', ', array_fill(0, count($ids), '?'));
+
+            $sql .= " WHERE id IN ($placeholders)";
+
+            $bindings = array_values($ids);
+        }
+
+        $rows = Service::sconcur()->fetchAll($sql, $bindings);
+
+        return array_map(
+            fn(array $row) => $this->makeObjectByRow($row),
+            $rows
+        );
     }
 
     public function create(string $name, string $uniqueKey): ServiceObject
     {
-        $newService = new Service();
+        $apiToken = Str::random(50);
 
-        $newService->name       = $name;
-        $newService->unique_key = $uniqueKey;
-        $newService->api_token  = Str::random(50);
+        $now = now()->toDateTimeString();
 
-        $newService->saveOrFail();
+        $result = Service::sconcur()->exec(
+            'INSERT INTO services (name, unique_key, api_token, created_at, updated_at) VALUES (?, ?, ?, ?, ?)',
+            [$name, $uniqueKey, $apiToken, $now, $now]
+        );
 
-        return $this->makeObjectByModel($newService);
+        return new ServiceObject(
+            id: $result->lastInsertId,
+            name: $name,
+            apiToken: $apiToken
+        );
     }
 
     public function isExistByUniqueKey(string $uniqueKey): bool
     {
-        return Service::query()->where('unique_key', $uniqueKey)->exists();
+        $rows = Service::sconcur()->fetchAll(
+            'SELECT 1 FROM services WHERE unique_key = ? LIMIT 1',
+            [$uniqueKey]
+        );
+
+        return count($rows) > 0;
     }
 
-    private function makeObjectByModel(Service $service): ServiceObject
+    /**
+     * @param array<string, mixed> $row
+     */
+    private function makeObjectByRow(array $row): ServiceObject
     {
         return new ServiceObject(
-            id: $service->id,
-            name: $service->name,
-            apiToken: $service->api_token
+            id: (int) $row['id'],
+            name: (string) $row['name'],
+            apiToken: (string) $row['api_token']
         );
     }
 }

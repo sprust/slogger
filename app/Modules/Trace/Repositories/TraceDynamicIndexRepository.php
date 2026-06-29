@@ -10,8 +10,8 @@ use App\Modules\Trace\Repositories\Dto\DynamicIndex\TraceDynamicIndexDto;
 use App\Modules\Trace\Repositories\Dto\DynamicIndex\TraceDynamicIndexFieldDto;
 use App\Modules\Trace\Repositories\Dto\Trace\TraceDynamicIndexStatsDto;
 use App\Modules\Trace\Repositories\Services\PeriodicTraceService;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
+use MongoDB\BSON\ObjectId;
 use MongoDB\BSON\UTCDateTime;
 use Throwable;
 
@@ -35,12 +35,12 @@ readonly class TraceDynamicIndexRepository
 
         $createdAt = now();
 
-        TraceDynamicIndex::collection()
+        TraceDynamicIndex::sconcur()
             ->updateOne(
-                [
+                filter: [
                     'name' => $indexName,
                 ],
-                [
+                update: [
                     '$set'         => [
                         'actualUntilAt' => new UTCDateTime($actualUntilAt),
                     ],
@@ -54,9 +54,7 @@ readonly class TraceDynamicIndexRepository
                         'createdAt'       => new UTCDateTime($createdAt),
                     ],
                 ],
-                [
-                    'upsert' => true,
-                ]
+                upsert: true,
             );
 
         return $this->findOneByName($indexName);
@@ -64,14 +62,13 @@ readonly class TraceDynamicIndexRepository
 
     public function findOneById(string $id): ?TraceDynamicIndexDto
     {
-        /** @var TraceDynamicIndex|null $index */
-        $index = TraceDynamicIndex::query()->find($id);
+        $document = TraceDynamicIndex::sconcur()->findOne(['_id' => new ObjectId($id)]);
 
-        if (!$index) {
+        if (!$document) {
             return null;
         }
 
-        return $this->modelToDto($index);
+        return $this->documentToDto($document);
     }
 
     /**
@@ -83,29 +80,34 @@ readonly class TraceDynamicIndexRepository
         ?Carbon $toActualUntilAt = null,
         bool $orderByCreatedAtDesc = false,
     ): array {
-        return TraceDynamicIndex::query()
-            ->when(
-                !is_null($inProcess),
-                fn(Builder $builder) => $builder->where('inProcess', $inProcess)
-            )
-            ->when(
-                !is_null($toActualUntilAt),
-                fn(Builder $builder) => $builder->where('actualUntilAt', '<', $toActualUntilAt)
-            )
-            ->when(
-                value: $orderByCreatedAtDesc,
-                callback: fn(Builder $builder) => $builder->orderByDesc('createdAt'),
-                default: fn(Builder $builder) => $builder->orderBy('createdAt'),
-            )
-            ->take($limit)
-            ->get()
-            ->map(fn(TraceDynamicIndex $index) => $this->modelToDto($index))
-            ->all();
+        $filter = [];
+
+        if (!is_null($inProcess)) {
+            $filter['inProcess'] = $inProcess;
+        }
+
+        if (!is_null($toActualUntilAt)) {
+            $filter['actualUntilAt'] = ['$lt' => new UTCDateTime($toActualUntilAt)];
+        }
+
+        $cursor = TraceDynamicIndex::sconcur()->find(
+            filter: $filter,
+            sort: ['createdAt' => $orderByCreatedAtDesc ? -1 : 1],
+            limit: $limit,
+        );
+
+        $result = [];
+
+        foreach ($cursor as $document) {
+            $result[] = $this->documentToDto($document);
+        }
+
+        return $result;
     }
 
     public function findStats(): TraceDynamicIndexStatsDto
     {
-        $cursor = TraceDynamicIndex::collection()
+        $cursor = TraceDynamicIndex::sconcur()
             ->aggregate(
                 [
                     [
@@ -129,45 +131,49 @@ readonly class TraceDynamicIndexRepository
                 ]
             );
 
-        $stats = $cursor->toArray()[0] ?? null;
+        $stats = iterator_to_array($cursor)[0] ?? null;
 
         return new TraceDynamicIndexStatsDto(
-            inProcessCount: $stats?->inProcess ?: 0,
-            errorsCount: $stats?->errors ?: 0,
-            totalCount: $stats?->total ?: 0,
+            inProcessCount: $stats['inProcess'] ?? 0,
+            errorsCount: $stats['errors'] ?? 0,
+            totalCount: $stats['total'] ?? 0,
         );
     }
 
     public function updateByName(string $name, bool $inProcess, bool $created, ?Throwable $exception): bool
     {
-        return (bool) TraceDynamicIndex::query()
-            ->where('name', $name)
-            ->update([
-                'inProcess' => $inProcess,
-                'created'   => $created,
-                'error'     => $exception
-                    ? $exception::class . ": {$exception->getMessage()}"
-                    : null,
-            ]);
+        return TraceDynamicIndex::sconcur()
+            ->updateMany(
+                filter: ['name' => $name],
+                update: [
+                    '$set' => [
+                        'inProcess' => $inProcess,
+                        'created'   => $created,
+                        'error'     => $exception
+                            ? $exception::class . ": {$exception->getMessage()}"
+                            : null,
+                    ],
+                ],
+            )
+            ->matchedCount > 0;
     }
 
     public function deleteById(string $id): bool
     {
-        return (bool) TraceDynamicIndex::query()
-            ->where('_id', $id)
-            ->delete();
+        return TraceDynamicIndex::sconcur()
+            ->deleteOne(['_id' => new ObjectId($id)])
+            ->deletedCount > 0;
     }
 
     private function findOneByName(string $name): ?TraceDynamicIndexDto
     {
-        /** @var TraceDynamicIndex|null $index */
-        $index = TraceDynamicIndex::query()->where('name', $name)->first();
+        $document = TraceDynamicIndex::sconcur()->findOne(['name' => $name]);
 
-        if (!$index) {
+        if (!$document) {
             return null;
         }
 
-        return $this->modelToDto($index);
+        return $this->documentToDto($document);
     }
 
     /**
@@ -192,24 +198,27 @@ readonly class TraceDynamicIndexRepository
         return implode('__', $collectionNames);
     }
 
-    private function modelToDto(TraceDynamicIndex $index): TraceDynamicIndexDto
+    /**
+     * @param array<int|string, mixed> $document
+     */
+    private function documentToDto(array $document): TraceDynamicIndexDto
     {
         return new TraceDynamicIndexDto(
-            id: $index->_id,
-            name: $index->name,
-            indexName: $index->indexName,
-            collectionNames: $index->collectionNames,
+            id: (string) $document['_id'],
+            name: $document['name'],
+            indexName: $document['indexName'],
+            collectionNames: (array) $document['collectionNames'],
             fields: array_map(
                 static fn(array $field) => new TraceDynamicIndexFieldDto(
                     fieldName: $field['fieldName']
                 ),
-                $index->fields
+                (array) $document['fields']
             ),
-            inProcess: $index->inProcess,
-            created: $index->created,
-            error: $index->error,
-            actualUntilAt: $index->actualUntilAt,
-            createdAt: $index->createdAt
+            inProcess: $document['inProcess'],
+            created: $document['created'],
+            error: $document['error'],
+            actualUntilAt: new Carbon($document['actualUntilAt']->toDateTime()),
+            createdAt: new Carbon($document['createdAt']->toDateTime()),
         );
     }
 }

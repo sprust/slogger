@@ -281,6 +281,154 @@
                 ]
             }
         },
+        "/admin-api/dashboard/sconcur": {
+            "get": {
+                "responses": {
+                    "200": {
+                        "description": "description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "available": {
+                                                    "type": "boolean",
+                                                    "nullable": false
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "nullable": false
+                                                },
+                                                "workers_total": {
+                                                    "type": "integer",
+                                                    "nullable": false
+                                                },
+                                                "workers_hung": {
+                                                    "type": "integer",
+                                                    "nullable": false
+                                                },
+                                                "cpu_percent": {
+                                                    "type": "number",
+                                                    "nullable": false
+                                                },
+                                                "memory_rss_bytes": {
+                                                    "type": "integer",
+                                                    "nullable": false
+                                                },
+                                                "goroutines": {
+                                                    "type": "integer",
+                                                    "nullable": false
+                                                },
+                                                "requests_completed": {
+                                                    "type": "integer",
+                                                    "nullable": false
+                                                },
+                                                "requests_avg_ms": {
+                                                    "type": "number",
+                                                    "nullable": false
+                                                },
+                                                "requests_in_flight": {
+                                                    "type": "integer",
+                                                    "nullable": false
+                                                },
+                                                "master_cpu_percent": {
+                                                    "type": "number",
+                                                    "nullable": false
+                                                },
+                                                "master_memory_rss_bytes": {
+                                                    "type": "integer",
+                                                    "nullable": false
+                                                },
+                                                "workers": {
+                                                    "type": "array",
+                                                    "nullable": false,
+                                                    "items": {
+                                                        "properties": {
+                                                            "pid": {
+                                                                "type": "integer",
+                                                                "nullable": false
+                                                            },
+                                                            "hung": {
+                                                                "type": "boolean",
+                                                                "nullable": false
+                                                            },
+                                                            "uptime_seconds": {
+                                                                "type": "number",
+                                                                "nullable": false
+                                                            },
+                                                            "cpu_percent": {
+                                                                "type": "number",
+                                                                "nullable": false
+                                                            },
+                                                            "memory_rss_bytes": {
+                                                                "type": "integer",
+                                                                "nullable": false
+                                                            },
+                                                            "goroutines": {
+                                                                "type": "integer",
+                                                                "nullable": false
+                                                            },
+                                                            "requests_in_flight": {
+                                                                "type": "integer",
+                                                                "nullable": false
+                                                            },
+                                                            "requests_completed": {
+                                                                "type": "integer",
+                                                                "nullable": false
+                                                            },
+                                                            "requests_avg_ms": {
+                                                                "type": "number",
+                                                                "nullable": false
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "pid",
+                                                            "hung",
+                                                            "uptime_seconds",
+                                                            "cpu_percent",
+                                                            "memory_rss_bytes",
+                                                            "goroutines",
+                                                            "requests_in_flight",
+                                                            "requests_completed",
+                                                            "requests_avg_ms"
+                                                        ]
+                                                    }
+                                                }
+                                            },
+                                            "required": [
+                                                "available",
+                                                "name",
+                                                "workers_total",
+                                                "workers_hung",
+                                                "cpu_percent",
+                                                "memory_rss_bytes",
+                                                "goroutines",
+                                                "requests_completed",
+                                                "requests_avg_ms",
+                                                "requests_in_flight",
+                                                "master_cpu_percent",
+                                                "master_memory_rss_bytes",
+                                                "workers"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/admin-api/tools/links": {
             "get": {
                 "responses": {

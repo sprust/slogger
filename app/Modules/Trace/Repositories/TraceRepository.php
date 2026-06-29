@@ -20,8 +20,6 @@ use App\Modules\Trace\Repositories\Services\TracePipelineBuilder;
 use Illuminate\Support\Carbon;
 use MongoDB\BSON\ObjectId;
 use MongoDB\BSON\UTCDateTime;
-use MongoDB\Driver\Command;
-use MongoDB\Driver\Exception\Exception;
 use RuntimeException;
 use SConcur\WaitGroup;
 use Throwable;
@@ -333,31 +331,31 @@ readonly class TraceRepository
     public function getIndexProgressesInfo(): array
     {
         try {
-            $operations = TraceDynamicIndex::collection()->getManager()
-                ->executeCommand(
-                    'admin',
-                    new Command(
-                        [
-                            'currentOp' => true,
-                            '$and'      => [
-                                [
-                                    'op' => 'command',
-                                ],
-                                [
-                                    'command.createIndexes' => [
-                                        '$exists' => true,
-                                    ],
-                                ],
-                                [
-                                    'progress' => [
-                                        '$exists' => true,
-                                    ],
+            $operations = TraceDynamicIndex::sconcur()
+                ->database
+                ->client
+                ->selectDatabase('admin')
+                ->command(
+                    [
+                        'currentOp' => true,
+                        '$and'      => [
+                            [
+                                'op' => 'command',
+                            ],
+                            [
+                                'command.createIndexes' => [
+                                    '$exists' => true,
                                 ],
                             ],
-                        ]
-                    )
+                            [
+                                'progress' => [
+                                    '$exists' => true,
+                                ],
+                            ],
+                        ],
+                    ]
                 );
-        } catch (Exception $exception) {
+        } catch (Throwable $exception) {
             throw new RuntimeException(
                 message: $exception->getMessage(),
                 previous: $exception
