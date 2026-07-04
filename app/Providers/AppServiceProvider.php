@@ -5,7 +5,6 @@ namespace App\Providers;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
-use Laravel\Octane\RoadRunner\ServerStateFile as RoadRunnerServerStateFile;
 use SLoggerLaravel\Configs\GeneralConfig;
 use SLoggerLaravel\Helpers\TraceDataComplementer;
 use SLoggerLaravel\Processor;
@@ -41,16 +40,5 @@ class AppServiceProvider extends ServiceProvider
                     }
                 );
         }
-
-        $this->bootOctane();
-    }
-
-    private function bootOctane(): void
-    {
-        $this->app->bind(RoadRunnerServerStateFile::class, function () {
-            return new RoadRunnerServerStateFile(
-                storage_path('logs/octane-roadrunner-server-state.json')
-            );
-        });
     }
 }

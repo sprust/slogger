@@ -10,17 +10,17 @@
         }
     ],
     "require": {
+        "php": "^8.4",
+        "laminas/laminas-diactoros": "^3.0",
         "laravel/framework": "^10.0 | ^11.0 | ^12.0",
-        "sconcur/sconcur": "*"
+        "sconcur/sconcur": "*",
+        "symfony/psr-http-message-bridge": "^7.0 | ^8.0"
     },
     "autoload": {
         "psr-4": {
             "SConcur\\Laravel\\": "src/"
         }
     },
-    "bin": [
-        "bin/sconcur-http-server"
-    ],
     "extra": {
         "laravel": {
             "providers": [

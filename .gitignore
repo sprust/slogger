@@ -18,8 +18,6 @@ yarn-error.log
 /.idea
 /.vscode
 
-rr
-.rr.yaml
 .pid
 
 app/Console/Commands/Local

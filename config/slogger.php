@@ -1,7 +1,6 @@
 <?php
 
 use App\Models\Users\User;
-use RrMonitor\Events\MonitorWorkersCountSetEvent;
 use SLoggerLaravel\Dispatcher\Items\Queue\Jobs\SendTracesJob;
 use SLoggerLaravel\Events\WatcherErrorEvent;
 use SLoggerLaravel\Listeners\WatcherErrorListener;
@@ -103,8 +102,6 @@ return [
                 'excepted' => [
                     'cron:start',
                     'schedule:run',
-                    'octane:roadrunner:start',
-                    'rr-monitor:start',
                     'queue:work',
                     'queue:listen',
                     'slogger:dispatcher:start',
@@ -226,11 +223,11 @@ return [
                 ],
                 // events to serialize into payload.
                 'serialize_events' => [
-                    MonitorWorkersCountSetEvent::class,
+                    //
                 ],
                 // events that can be orphaned (no parent trace).
                 'can_be_orphan'    => [
-                    MonitorWorkersCountSetEvent::class,
+                    //
                 ],
             ],
         ],

@@ -30,7 +30,7 @@ flowchart TB
     receiver["Receiver (Go, TCP socket) — payload intake"]
     buffer["Buffer (MongoDB collection) — create (c) and update (u) operations"]
     shards["Hourly shards (MongoDB) traces_YYYY_MM_DD_HH_HH + view _traceTreesView"]
-    backend["Backend (Laravel/Octane) — API and web panel (Vue 3)"]
+    backend["Backend (Laravel/SConcur) — API and web panel (Vue 3)"]
     src -->|"TCP socket: 4-byte length prefix + JSON"| receiver
     receiver -->|"write to buffer"| buffer
     buffer -->|"transporter: continuous batches, upsert-merge"| shards
@@ -39,7 +39,7 @@ flowchart TB
 
 ### Components
 
-- Backend — Laravel 12 / PHP 8.4 on [RoadRunner](https://roadrunner.dev/) via [Laravel Octane](https://laravel.com/docs/octane). The application stays in memory between requests, removing framework-bootstrap overhead and giving high throughput when ingesting and reading large volumes of traces. Heavy parallel shard queries are parallelized through `SConcur\WaitGroup`.
+- Backend — Laravel 12 / PHP 8.4 on [SConcur](https://github.com/sprust/sconcur), a concurrent coroutine HTTP runtime that executes each request in its own PHP Fiber inside a single long-lived process. The application stays in memory between requests, removing framework-bootstrap overhead and giving high throughput when ingesting and reading large volumes of traces. Heavy parallel shard queries are parallelized through `SConcur\WaitGroup`.
 - Receiver — a standalone Go service (`servers/receiver/`) that accepts trace payloads over a TCP socket and writes them into the buffer.
 - Storage — MongoDB (traces/logs), MySQL (users/services/auth), Redis/RabbitMQ (queues).
 - Frontend — Vue 3 + Vite + TypeScript (`frontend/`).
@@ -146,7 +146,7 @@ Stale traces are removed automatically. The retention period is set by the `TRAC
 ## Tech stack
 
 - PHP 8.4, Laravel 12, PSR-12 style (PHP CS Fixer)
-- Laravel Octane + RoadRunner — long-running application
+- SConcur — concurrent coroutine HTTP runtime (long-running application)
 - MongoDB (`mongodb/laravel-mongodb`) — traces and logs
 - MySQL — users, services, auth
 - Redis / RabbitMQ — queues
@@ -259,7 +259,7 @@ TRACES_LIFETIME_DAYS=3    # trace retention period in days
 `frontend/.env`:
 
 ```dotenv
-BACKEND_URL=http://localhost:10021  # see the port in .env → OCTANE_RR_DOCKER_PORT
+BACKEND_URL=http://localhost:10021  # see the port in .env → SCONCUR_HTTP_DOCKER_PORT
 ```
 
 ### Setup

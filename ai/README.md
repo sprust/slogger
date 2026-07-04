@@ -60,7 +60,7 @@ make stop
 ## Project Overview
 
 - SLogger is an observability/logging application: it collects traces and logs, stores and aggregates trace data, exposes admin/API endpoints for browsing traces and logs, provides dashboard views, and includes cleanup tooling.
-- Backend is a Laravel 12 application on PHP 8.4, running on RoadRunner via Laravel Octane.
+- Backend is a Laravel 12 application on PHP 8.4, running on SConcur — a concurrent coroutine HTTP runtime that executes each request in its own PHP Fiber inside a single long-lived process.
 - Frontend lives in `frontend/` and is a separate Vue 3 + Vite + TypeScript app.
 - Receiver is a standalone Go service in `servers/receiver/` that accepts trace payloads over TCP.
 - Storage: MongoDB (traces/logs) + MySQL (users/services/auth) + Redis/RabbitMQ (queues).
@@ -75,7 +75,7 @@ Domain events are emitted for flows that trigger queues or framework side effect
 
 ## Directory Structure
 
-- `app/Console` — artisan commands, cron commands, local utilities, make-style generators, migration helpers, Octane commands.
+- `app/Console` — artisan commands, cron commands, local utilities, make-style generators, migration helpers.
 - `app/Http` — HTTP controllers and middleware.
 - `app/Models` — Laravel/MongoDB models grouped by bounded area such as `Logs`, `Services`, `Traces`, `Users`.
 - `app/Modules` — modular business code. Current modules include `Auth`, `Cleaner`, `Dashboard`, `Logs`, `Service`, `Trace`, `User`, plus shared/support modules such as `Common` and `Tools`.

@@ -35,7 +35,6 @@ setup:
 	make art c=key:generate
 	make art c="migrate --force"
 	make workers-art c='queues-declare'
-	make rr-get-binary
 	make frontend-npm-i
 	make frontend-npm-build
 	make restart
@@ -106,14 +105,9 @@ workers-restart:
 	make workers-art c='queues-declare'
 	make workers-art c='queue:restart'
 	make workers-art c='cron:stop'
-	make workers-art c='octane:roadrunner:reload'
 	make sconcur-restart
-	make workers-art c='rr-monitor:stop jobs'
 	make workers-art c='slogger:dispatcher:stop'
 	make workers-art c='trace-dynamic-indexes:monitor:stop'
-
-octane-stop:
-	make workers-art c='octane:roadrunner:stop'
 
 oa-generate:
 	make art c='oa:generate'
@@ -138,12 +132,6 @@ deploy-dev:
 	make frontend-npm-build
 	make receiver-build
 	make restart
-
-rr-get-binary:
-	"$(WORKERS_CLI)"./vendor/bin/rr get-binary
-
-rr-workers:
-	"$(WORKERS_CLI)"./rr workers -i -o rpc.listen=tcp://$(OCTANE_RR_RPC_HOST):$(OCTANE_RR_RPC_PORT)
 
 frontend-npm-i:
 	"$(FRONTEND_CLI)"npm i

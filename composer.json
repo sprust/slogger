@@ -12,16 +12,12 @@
         "guzzlehttp/guzzle": "^7.2",
         "ifksco/openapi-generator": "dev-master",
         "laravel/framework": "^12",
-        "laravel/octane": "^2.3",
         "laravel/tinker": "^2.8",
         "mongodb/laravel-mongodb": "^5.5",
         "mongodb/mongodb": "^1.17",
         "sconcur/sconcur": "*",
         "sconcur/sconcur-laravel": "dev-master",
         "slogger/laravel": "dev-master",
-        "spiral/roadrunner-cli": "^2.7",
-        "spiral/roadrunner-http": "^3.5",
-        "sprust/rr-monitor-laravel": "dev-master",
         "vladimir-yuldashev/laravel-queue-rabbitmq": "^14.1"
     },
     "require-dev": {
@@ -43,13 +39,6 @@
         {
             "type": "path",
             "url": "packages/ifksco/openapi-generator",
-            "options": {
-                "symlink": true
-            }
-        },
-        {
-            "type": "path",
-            "url": "packages/sprust/rr-monitor-laravel",
             "options": {
                 "symlink": true
             }

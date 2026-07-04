@@ -30,7 +30,7 @@ flowchart TB
     receiver["Receiver (Go, TCP-сокет) — приём полезной нагрузки"]
     buffer["Буфер (коллекция MongoDB) — операции создать (c) и обновить (u)"]
     shards["Почасовые шарды (MongoDB) traces_YYYY_MM_DD_HH_HH + view _traceTreesView"]
-    backend["Backend (Laravel/Octane) — API и веб-панель (Vue 3)"]
+    backend["Backend (Laravel/SConcur) — API и веб-панель (Vue 3)"]
     src -->|"TCP-сокет: 4-байтный префикс длины + JSON"| receiver
     receiver -->|"запись в буфер"| buffer
     buffer -->|"транспортер: непрерывно батчами, upsert-merge"| shards
@@ -39,7 +39,7 @@ flowchart TB
 
 ### Компоненты
 
-- Backend — Laravel 12 / PHP 8.4 поверх [RoadRunner](https://roadrunner.dev/) через [Laravel Octane](https://laravel.com/docs/octane). Приложение держится в памяти между запросами, что убирает накладные расходы на бутстрап фреймворка и даёт высокую пропускную способность при приёме и чтении большого объёма трейсов. Тяжёлые параллельные запросы к шардам распараллеливаются через `SConcur\WaitGroup`.
+- Backend — Laravel 12 / PHP 8.4 поверх [SConcur](https://github.com/sprust/sconcur) — конкурентного корутинного HTTP-рантайма, исполняющего каждый запрос в отдельном PHP-Fiber в рамках одного постоянно живущего процесса. Приложение держится в памяти между запросами, что убирает накладные расходы на бутстрап фреймворка и даёт высокую пропускную способность при приёме и чтении большого объёма трейсов. Тяжёлые параллельные запросы к шардам распараллеливаются через `SConcur\WaitGroup`.
 - Receiver — отдельный Go-сервис (`servers/receiver/`), принимающий полезную нагрузку трейсов по TCP-сокету и складывающий её в буфер.
 - Хранилища — MongoDB (трейсы/логи), MySQL (пользователи/сервисы/авторизация), Redis/RabbitMQ (очереди).
 - Frontend — Vue 3 + Vite + TypeScript (`frontend/`).
@@ -146,7 +146,7 @@ traces_YYYY_MM_DD_HH_HH      пример: traces_2026_06_21_14_15  (час 14:0
 ## Технологический стек
 
 - PHP 8.4, Laravel 12, стиль PSR-12 (PHP CS Fixer)
-- Laravel Octane + RoadRunner — постоянно работающее приложение
+- SConcur — конкурентный корутинный HTTP-рантайм (постоянно работающее приложение)
 - MongoDB (`mongodb/laravel-mongodb`) — трейсы и логи
 - MySQL — пользователи, сервисы, авторизация
 - Redis / RabbitMQ — очереди
@@ -259,7 +259,7 @@ TRACES_LIFETIME_DAYS=3    # срок хранения трейсов в днях
 `frontend/.env`:
 
 ```dotenv
-BACKEND_URL=http://localhost:10021  # порт см. в .env → OCTANE_RR_DOCKER_PORT
+BACKEND_URL=http://localhost:10021  # порт см. в .env → SCONCUR_HTTP_DOCKER_PORT
 ```
 
 ### Setup
