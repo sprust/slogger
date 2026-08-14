@@ -31,46 +31,63 @@ func Get() *Repository {
 type Repository struct {
 	mColl        *mongo.Collection
 	mInvalidColl *mongo.Collection
+	connectMutex sync.Mutex
 }
 
 func (r *Repository) InsertCreatingTraces(ctx context.Context, serviceId int, traces []dto.TraceCreating) error {
-	err := instance.connect(ctx)
+	if len(traces) == 0 {
+		return nil
+	}
+
+	err := r.connect(ctx)
 
 	if err != nil {
 		return errs.Err(err)
 	}
 
-	for _, trace := range traces {
-		err := r.insertCreatingTrace(ctx, serviceId, trace)
+	docs := make([]interface{}, 0, len(traces))
 
-		if err != nil {
-			return errs.Err(err)
-		}
+	for _, trace := range traces {
+		docs = append(docs, r.makeCreatingTraceDoc(serviceId, trace))
+	}
+
+	_, err = r.mColl.InsertMany(ctx, docs, options.InsertMany().SetOrdered(false))
+
+	if err != nil {
+		return errs.Err(err)
 	}
 
 	return nil
 }
 
 func (r *Repository) InsertUpdatingTraces(ctx context.Context, serviceId int, traces []dto.TraceUpdating) error {
-	err := instance.connect(ctx)
+	if len(traces) == 0 {
+		return nil
+	}
+
+	err := r.connect(ctx)
 
 	if err != nil {
 		return errs.Err(err)
 	}
 
-	for _, trace := range traces {
-		err := r.insertUpdatingTrace(ctx, serviceId, trace)
+	docs := make([]interface{}, 0, len(traces))
 
-		if err != nil {
-			return errs.Err(err)
-		}
+	for _, trace := range traces {
+		docs = append(docs, r.makeUpdatingTraceDoc(serviceId, trace))
+	}
+
+	_, err = r.mColl.InsertMany(ctx, docs, options.InsertMany().SetOrdered(false))
+
+	if err != nil {
+		return errs.Err(err)
 	}
 
 	return nil
 }
 
 func (r *Repository) FindMany(ctx context.Context, limit int) (map[int]*dto.ServiceTraces, error) {
-	err := instance.connect(ctx)
+	err := r.connect(ctx)
 
 	if err != nil {
 		return nil, errs.Err(err)
@@ -85,7 +102,7 @@ func (r *Repository) FindMany(ctx context.Context, limit int) (map[int]*dto.Serv
 		},
 		options.Find().
 			SetLimit(int64(limit)).
-			SetSort(bson.D{{"cat", 1}}),
+			SetSort(bson.D{{Key: "cat", Value: 1}}),
 	)
 
 	if err != nil {
@@ -201,7 +218,7 @@ func (r *Repository) DeleteByIds(ctx context.Context, ids []primitive.ObjectID) 
 		return 0, nil
 	}
 
-	err := instance.connect(ctx)
+	err := r.connect(ctx)
 
 	if err != nil {
 		return 0, errs.Err(err)
@@ -223,7 +240,7 @@ func (r *Repository) MarkFailed(ctx context.Context, ids []primitive.ObjectID, m
 		return nil
 	}
 
-	err := instance.connect(ctx)
+	err := r.connect(ctx)
 
 	if err != nil {
 		return errs.Err(err)
@@ -297,7 +314,7 @@ func (r *Repository) MarkFailed(ctx context.Context, ids []primitive.ObjectID, m
 	return nil
 }
 
-func (r *Repository) insertCreatingTrace(ctx context.Context, serviceId int, trace dto.TraceCreating) error {
+func (r *Repository) makeCreatingTraceDoc(serviceId int, trace dto.TraceCreating) bson.M {
 	doc := bson.M{
 		"op":  "c",
 		"sid": serviceId,
@@ -326,16 +343,10 @@ func (r *Repository) insertCreatingTrace(ctx context.Context, serviceId int, tra
 		doc["cpu"] = *trace.Cpu
 	}
 
-	_, err := r.mColl.InsertOne(ctx, doc)
-
-	if err != nil {
-		return errs.Err(err)
-	}
-
-	return nil
+	return doc
 }
 
-func (r *Repository) insertUpdatingTrace(ctx context.Context, serviceId int, trace dto.TraceUpdating) error {
+func (r *Repository) makeUpdatingTraceDoc(serviceId int, trace dto.TraceUpdating) bson.M {
 	doc := bson.M{
 		"op":   "u",
 		"sid":  serviceId,
@@ -362,16 +373,13 @@ func (r *Repository) insertUpdatingTrace(ctx context.Context, serviceId int, tra
 		doc["cpu"] = *trace.Cpu
 	}
 
-	_, err := r.mColl.InsertOne(ctx, doc)
-
-	if err != nil {
-		return errs.Err(err)
-	}
-
-	return nil
+	return doc
 }
 
 func (r *Repository) connect(ctx context.Context) error {
+	r.connectMutex.Lock()
+	defer r.connectMutex.Unlock()
+
 	if r.mColl != nil {
 		return nil
 	}

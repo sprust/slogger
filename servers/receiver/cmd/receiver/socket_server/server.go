@@ -18,6 +18,11 @@ import (
 
 // TODO: graceful shutdown. check activeHandlingCount dont work.
 
+// maxConcurrentHandlings bounds message-handling goroutines: when the limit is
+// reached, connection loops block before reading the next message, creating
+// natural backpressure instead of unbounded goroutine growth.
+const maxConcurrentHandlings = 512
+
 type Server struct {
 	servContext            context.Context
 	servCancel             context.CancelFunc
@@ -30,6 +35,7 @@ type Server struct {
 	activeConnectionsCount atomic.Int64
 	totalHandlingCount     atomic.Uint64
 	activeHandlingCount    atomic.Int64
+	handlingSemaphore      chan struct{}
 	closing                atomic.Bool
 }
 
@@ -58,6 +64,7 @@ func New(network string, address string) *Server {
 		activeConnectionsCount: atomic.Int64{},
 		totalHandlingCount:     atomic.Uint64{},
 		activeHandlingCount:    atomic.Int64{},
+		handlingSemaphore:      make(chan struct{}, maxConcurrentHandlings),
 	}
 }
 
@@ -140,6 +147,14 @@ func (s *Server) handleConnection(conn net.Conn) error {
 
 	authPayload, err := tr.Read()
 
+	if err != nil {
+		return errs.Err(err)
+	}
+
+	if authPayload == nil {
+		return nil
+	}
+
 	var authMsg dto.AuthMessage
 
 	err = json.Unmarshal(authPayload, &authMsg)
@@ -189,11 +204,17 @@ func (s *Server) handleConnection(conn net.Conn) error {
 			continue
 		}
 
+		s.handlingSemaphore <- struct{}{}
+
 		s.totalHandlingCount.Add(1)
 		s.activeHandlingCount.Add(1)
 
 		go func(msg []byte, serviceId int) {
-			defer s.activeHandlingCount.Add(-1)
+			defer func() {
+				s.activeHandlingCount.Add(-1)
+
+				<-s.handlingSemaphore
+			}()
 
 			var tracesMsg dto.TracesMessage
 
