@@ -117,7 +117,8 @@ deploy-prod:
 	git pull
 	make composer c='i --no-dev'
 	make art c='migrate --force'
-	make workers-restart
+	make build
+	make restart
 	make receiver-build
 	make frontend-npm-i
 	make frontend-npm-build
