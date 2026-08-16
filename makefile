@@ -126,12 +126,13 @@ deploy-prod:
 
 deploy-dev:
 	git pull
+	make build
+	make restart
 	make composer c='i'
 	make art c='migrate --force'
 	make receiver-build
 	make frontend-npm-i
 	make frontend-npm-build
-	make receiver-build
 	make restart
 
 frontend-npm-i:
