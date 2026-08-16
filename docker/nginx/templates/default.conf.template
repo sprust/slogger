@@ -1,34 +1,35 @@
+upstream sconcur {
+    server workers:${SCONCUR_HTTP_PORT};
+
+    # Reuse connections to the worker instead of opening one per request.
+    keepalive 64;
+}
+
 server {
     listen 80;
     listen [::]:80;
 
-    root /app/public;
+    charset utf-8;
 
     add_header X-Frame-Options "SAMEORIGIN";
     add_header X-Content-Type-Options "nosniff";
 
-    index index.php;
-
-    charset utf-8;
+    client_max_body_size 100M;
 
     location / {
-        try_files $uri $uri/ /index.php?$query_string;
+        proxy_pass http://sconcur;
+
+        # nginx proxies with HTTP/1.0 by default, which disables upstream keepalive.
+        proxy_http_version 1.1;
+        proxy_set_header Connection "";
+
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # Trace aggregations and tree building can outlive the 60s default.
+        proxy_read_timeout 300s;
+        proxy_send_timeout 300s;
     }
-
-    location = /favicon.ico { access_log off; log_not_found off; }
-    location = /robots.txt  { access_log off; log_not_found off; }
-
-    error_page 404 /index.php;
-
-    location ~ \.php$ {
-        fastcgi_pass php-fpm:9000;
-        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
-        include fastcgi_params;
-    }
-
-    location ~ /\.(?!well-known).* {
-        deny all;
-    }
-
-    client_max_body_size 100M;
 }

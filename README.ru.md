@@ -259,7 +259,7 @@ TRACES_LIFETIME_DAYS=3    # срок хранения трейсов в днях
 `frontend/.env`:
 
 ```dotenv
-BACKEND_URL=http://localhost:10021  # порт см. в .env → SCONCUR_HTTP_DOCKER_PORT
+BACKEND_URL=http://localhost:8097  # nginx перед SConcur HTTP-сервером; порт см. в .env → APP_PORT
 ```
 
 ### Setup

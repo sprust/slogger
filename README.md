@@ -259,7 +259,7 @@ TRACES_LIFETIME_DAYS=3    # trace retention period in days
 `frontend/.env`:
 
 ```dotenv
-BACKEND_URL=http://localhost:10021  # see the port in .env → SCONCUR_HTTP_DOCKER_PORT
+BACKEND_URL=http://localhost:8097  # nginx in front of the SConcur HTTP server; see the port in .env → APP_PORT
 ```
 
 ### Setup
