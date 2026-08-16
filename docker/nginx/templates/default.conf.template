@@ -1,10 +1,3 @@
-upstream sconcur {
-    server workers:${SCONCUR_HTTP_PORT};
-
-    # Reuse connections to the worker instead of opening one per request.
-    keepalive 64;
-}
-
 server {
     listen 80;
     listen [::]:80;
@@ -16,12 +9,27 @@ server {
 
     client_max_body_size 100M;
 
-    location / {
-        proxy_pass http://sconcur;
+    # Docker's embedded DNS. Needed because the upstream is resolved per request
+    # (see below) rather than once at startup.
+    resolver 127.0.0.11 valid=10s ipv6=off;
 
-        # nginx proxies with HTTP/1.0 by default, which disables upstream keepalive.
+    location / {
+        # The host goes through a variable on purpose. An `upstream` block — or a
+        # literal name here — is resolved once when the config loads and cached for
+        # the life of the process, so recreating the workers container hands it a
+        # new IP and nginx keeps dialling the old one until it is restarted. With a
+        # variable, nginx resolves per request and follows the container.
+        #
+        # The trade-off is the upstream keepalive pool, which only works with an
+        # `upstream` block. On a local bridge network at this request rate that
+        # costs far less than 502s after every container recreation.
+        set $sconcur workers:${SCONCUR_HTTP_PORT};
+
+        proxy_pass http://$sconcur;
+
+        # 1.0 is the default and cannot carry a chunked response — the trace tree
+        # endpoint streams one.
         proxy_http_version 1.1;
-        proxy_set_header Connection "";
 
         proxy_set_header Host              $host;
         proxy_set_header X-Real-IP         $remote_addr;

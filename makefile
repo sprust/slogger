@@ -101,6 +101,12 @@ workers-art:
 composer:
 	docker-compose exec -e XDEBUG_MODE=off $(PHP_FPM_SERVICE) composer ${c}
 
+# Composer in a throwaway container off the freshly built image, so it runs with
+# the sconcur.so that matches composer.lock while the old containers keep serving.
+# vendor is a bind mount, so what it writes is what the recreated containers get.
+composer-fresh:
+	docker-compose run --rm --no-deps -e XDEBUG_MODE=off $(PHP_FPM_SERVICE) composer ${c}
+
 workers-restart:
 	make workers-art c='queues-declare'
 	make workers-art c='queue:restart'
@@ -113,15 +119,17 @@ oa-generate:
 	make art c='oa:generate'
 	make frontend-npm-generate
 
-# Order matters: sconcur.so is baked into the image from composer.lock, so the
-# containers must run the rebuilt image before anything boots the framework.
-# composer install itself does (post-autoload-dump runs package:discover), so it
-# has to come after build+restart, and artisan after both.
+# Order matters: sconcur.so is baked into the image from composer.lock, so vendor
+# and the extension have to be brought into step before any long-lived process
+# starts on them. Installing from the new image first (composer-fresh) and only
+# then swapping containers keeps the old ones serving until the moment they are
+# replaced. `up` recreates just what the rebuild changed — php-fpm and workers —
+# and leaves mysql, mongo, redis and rabbitmq running.
 deploy-prod:
 	git pull
 	make build
-	make restart
-	make composer c='i --no-dev'
+	make composer-fresh c='i --no-dev'
+	make up
 	make art c='migrate --force'
 	make receiver-build
 	make frontend-npm-i
@@ -131,8 +139,8 @@ deploy-prod:
 deploy-dev:
 	git pull
 	make build
-	make restart
-	make composer c='i'
+	make composer-fresh c='i'
+	make up
 	make art c='migrate --force'
 	make receiver-build
 	make frontend-npm-i
@@ -155,15 +163,16 @@ receiver-build:
 	docker-compose run --rm --no-deps $(RECEIVER_SERVICE) make build stats-build
 	docker-compose up -d --force-recreate $(RECEIVER_SERVICE)
 
-# --no-scripts keeps composer from booting the framework on the new library while
-# the old sconcur.so is still in the image; package:discover runs from
-# dump-autoload once the rebuilt containers carry the matching extension.
+# require has to come first — it is what writes the version the image build reads
+# from composer.lock — so --no-scripts keeps it from booting the framework on the
+# new library while the old sconcur.so is still in place. package:discover then
+# runs from dump-autoload against the rebuilt image.
 sconcur-update:
 	docker-compose up -d $(PHP_FPM_SERVICE) $(WORKERS_SERVICE)
 	make composer c='require sconcur/sconcur:* --no-scripts'
 	make build
-	make restart
-	make composer c='dump-autoload'
+	make composer-fresh c='dump-autoload'
+	make up
 	make sconcur-status
 
 sconcur-restart:
