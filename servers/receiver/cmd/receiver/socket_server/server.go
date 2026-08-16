@@ -23,6 +23,11 @@ import (
 // natural backpressure instead of unbounded goroutine growth.
 const maxConcurrentHandlings = 512
 
+// keepAlivePeriod reaps peers that vanished without closing the connection. The
+// transport no longer applies a read deadline to idle connections, so this is
+// what keeps dead ones from accumulating.
+const keepAlivePeriod = 30 * time.Second
+
 type Server struct {
 	servContext            context.Context
 	servCancel             context.CancelFunc
@@ -103,6 +108,14 @@ func (s *Server) Run(ctx context.Context) error {
 			}
 
 			return errs.Err(err)
+		}
+
+		if tcpConn, ok := conn.(*net.TCPConn); ok {
+			if err := tcpConn.SetKeepAlive(true); err != nil {
+				slog.Warn("failed to enable keep-alive: " + err.Error())
+			} else if err := tcpConn.SetKeepAlivePeriod(keepAlivePeriod); err != nil {
+				slog.Warn("failed to set keep-alive period: " + err.Error())
+			}
 		}
 
 		s.totalConnectionsCount.Add(1)
@@ -204,6 +217,16 @@ func (s *Server) handleConnection(conn net.Conn) error {
 			continue
 		}
 
+		err = tr.Write("received")
+
+		if err != nil {
+			return errs.Err(err)
+		}
+
+		// Acquire after the ack, not before it: the cap still bounds handler
+		// goroutines, but a full pool now delays reading the next message instead
+		// of withholding the response to one already read, which is what senders
+		// are waiting on.
 		s.handlingSemaphore <- struct{}{}
 
 		s.totalHandlingCount.Add(1)
@@ -228,12 +251,6 @@ func (s *Server) handleConnection(conn net.Conn) error {
 				slog.Error(errs.Err(err).Error())
 			}
 		}(message, serviceId)
-
-		err = tr.Write("received")
-
-		if err != nil {
-			return errs.Err(err)
-		}
 	}
 }
 
