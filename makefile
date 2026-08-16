@@ -113,12 +113,16 @@ oa-generate:
 	make art c='oa:generate'
 	make frontend-npm-generate
 
+# Order matters: sconcur.so is baked into the image from composer.lock, so the
+# containers must run the rebuilt image before anything boots the framework.
+# composer install itself does (post-autoload-dump runs package:discover), so it
+# has to come after build+restart, and artisan after both.
 deploy-prod:
 	git pull
-	make composer c='i --no-dev'
-	make art c='migrate --force'
 	make build
 	make restart
+	make composer c='i --no-dev'
+	make art c='migrate --force'
 	make receiver-build
 	make frontend-npm-i
 	make frontend-npm-build
@@ -133,7 +137,7 @@ deploy-dev:
 	make receiver-build
 	make frontend-npm-i
 	make frontend-npm-build
-	make restart
+	docker-compose restart $(FRONTEND_SERVICE)
 
 frontend-npm-i:
 	"$(FRONTEND_CLI)"npm i
@@ -151,11 +155,15 @@ receiver-build:
 	docker-compose run --rm --no-deps $(RECEIVER_SERVICE) make build stats-build
 	docker-compose up -d --force-recreate $(RECEIVER_SERVICE)
 
+# --no-scripts keeps composer from booting the framework on the new library while
+# the old sconcur.so is still in the image; package:discover runs from
+# dump-autoload once the rebuilt containers carry the matching extension.
 sconcur-update:
 	docker-compose up -d $(PHP_FPM_SERVICE) $(WORKERS_SERVICE)
-	make composer c='require sconcur/sconcur:*'
+	make composer c='require sconcur/sconcur:* --no-scripts'
 	make build
 	make restart
+	make composer c='dump-autoload'
 	make sconcur-status
 
 sconcur-restart:
