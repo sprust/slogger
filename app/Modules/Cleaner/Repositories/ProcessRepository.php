@@ -7,8 +7,8 @@ namespace App\Modules\Cleaner\Repositories;
 use App\Models\Traces\TraceClearingProcess;
 use App\Modules\Cleaner\Entities\ProcessObject;
 use Illuminate\Support\Carbon;
-use MongoDB\BSON\ObjectId;
-use MongoDB\BSON\UTCDateTime;
+use SConcur\Bson\ObjectId;
+use SConcur\Bson\UTCDateTime;
 use Throwable;
 
 class ProcessRepository

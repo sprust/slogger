@@ -9,8 +9,8 @@ use App\Modules\Common\Entities\PaginationInfoObject;
 use App\Modules\Trace\Entities\Store\TraceAdminStoreObject;
 use App\Modules\Trace\Entities\Store\TraceAdminStoresPaginationObject;
 use Illuminate\Support\Carbon;
-use MongoDB\BSON\ObjectId;
-use MongoDB\BSON\UTCDateTime;
+use SConcur\Bson\ObjectId;
+use SConcur\Bson\UTCDateTime;
 
 class TraceAdminStoreRepository
 {

@@ -11,8 +11,8 @@ use App\Modules\Trace\Repositories\Dto\DynamicIndex\TraceDynamicIndexFieldDto;
 use App\Modules\Trace\Repositories\Dto\Trace\TraceDynamicIndexStatsDto;
 use App\Modules\Trace\Repositories\Services\PeriodicTraceService;
 use Illuminate\Support\Carbon;
-use MongoDB\BSON\ObjectId;
-use MongoDB\BSON\UTCDateTime;
+use SConcur\Bson\ObjectId;
+use SConcur\Bson\UTCDateTime;
 use Throwable;
 
 readonly class TraceDynamicIndexRepository
@@ -47,7 +47,7 @@ readonly class TraceDynamicIndexRepository
                     '$setOnInsert' => [
                         'indexName'       => "dyn_$fieldsName",
                         'collectionNames' => $collectionsNames,
-                        'fields'          => $indexData->fields,
+                        'fields'          => $this->makeFieldsDocuments($indexData->fields),
                         'inProcess'       => true,
                         'created'         => false,
                         'error'           => null,
@@ -185,6 +185,23 @@ readonly class TraceDynamicIndexRepository
             '__',
             array_map(
                 fn(TraceDynamicIndexFieldDto $dto) => $dto->fieldName,
+                $fields
+            )
+        );
+    }
+
+    /**
+     * @param TraceDynamicIndexFieldDto[] $fields
+     *
+     * @return array<int, array<string, string>>
+     */
+    private function makeFieldsDocuments(array $fields): array
+    {
+        return array_values(
+            array_map(
+                static fn(TraceDynamicIndexFieldDto $dto) => [
+                    'fieldName' => $dto->fieldName,
+                ],
                 $fields
             )
         );

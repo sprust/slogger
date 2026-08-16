@@ -8,7 +8,7 @@ use App\Models\Traces\TraceTreeCacheState;
 use App\Modules\Trace\Entities\Trace\Tree\TraceTreeCacheStateObject;
 use App\Modules\Trace\Enums\TraceTreeCacheStateStatusEnum;
 use Illuminate\Support\Carbon;
-use MongoDB\BSON\UTCDateTime;
+use SConcur\Bson\UTCDateTime;
 use RuntimeException;
 
 class TraceTreeCacheStateRepository
