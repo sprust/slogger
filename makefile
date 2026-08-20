@@ -134,7 +134,7 @@ deploy-prod:
 	make receiver-build
 	make frontend-npm-i
 	make frontend-npm-build
-	docker-compose restart $(FRONTEND_SERVICE)
+	make frontend-restart
 
 deploy-dev:
 	git pull
@@ -145,13 +145,16 @@ deploy-dev:
 	make receiver-build
 	make frontend-npm-i
 	make frontend-npm-build
-	docker-compose restart $(FRONTEND_SERVICE)
+	make frontend-restart
 
 frontend-npm-i:
 	"$(FRONTEND_CLI)"npm i
 
 frontend-npm-build:
 	"$(FRONTEND_CLI)"npm run build
+
+frontend-restart:
+	docker-compose restart $(FRONTEND_SERVICE)
 
 frontend-npm-generate:
 	"$(FRONTEND_CLI)"npm run generate
