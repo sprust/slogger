@@ -121,7 +121,9 @@ export type TracesAddCustomFieldParameter = {
 }
 
 interface State extends TraceStateParameters {
+    initialized: boolean,
     loading: boolean,
+    loaded: boolean,
     traceAggregator: TraceAggregatorResponse
 }
 
@@ -133,7 +135,9 @@ export interface TraceStateParameters {
 export const useTraceAggregatorStore = defineStore('traceAggregatorStore', {
     state: (): State => {
         return {
-            loading: true,
+            initialized: false,
+            loading: false,
+            loaded: false,
             payload: {
                 page: 1,
                 types: [],
@@ -184,6 +188,8 @@ export const useTraceAggregatorStore = defineStore('traceAggregatorStore', {
                 )
                     .then((response) => {
                         this.setData(response.data.data)
+
+                        this.loaded = true
                     })
                     .finally(() => {
                         this.loading = false

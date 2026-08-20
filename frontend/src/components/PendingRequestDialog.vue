@@ -18,10 +18,9 @@
     </el-text>
     <template #footer>
       <el-button
-          type="danger"
           @click="pendingRequestStore.requestCancel()"
       >
-        Cancel
+        Close
       </el-button>
     </template>
   </el-dialog>

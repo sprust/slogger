@@ -16,12 +16,12 @@ use Illuminate\Support\Carbon;
 
 readonly class TraceDynamicIndexInitializer
 {
-    private int $shortTermTimeLifeIndexInDays;
+    private int $timeLifeIndexInHours;
 
     public function __construct(
         private TraceDynamicIndexRepository $traceDynamicIndexRepository,
     ) {
-        $this->shortTermTimeLifeIndexInDays = 5;
+        $this->timeLifeIndexInHours = 12;
     }
 
     /**
@@ -61,15 +61,11 @@ readonly class TraceDynamicIndexInitializer
     ): void {
         $indexFields = [];
 
-        $isShortTermIndex = false;
-
         if (!empty($serviceIds)) {
             $indexFields[] = new TraceDynamicIndexFieldDto('sid');
         }
 
         if (!is_null($timestampStep)) {
-            $isShortTermIndex = true;
-
             $indexFields[] = new TraceDynamicIndexFieldDto("tss.$timestampStep->value");
         }
 
@@ -86,38 +82,26 @@ readonly class TraceDynamicIndexInitializer
         }
 
         if ($tags) {
-            $isShortTermIndex = true;
-
             $indexFields[] = new TraceDynamicIndexFieldDto('tgs.nm');
         }
 
         if ($statuses) {
-            $isShortTermIndex = true;
-
             $indexFields[] = new TraceDynamicIndexFieldDto('st');
         }
 
         if (!is_null($durationFrom) || !is_null($durationTo)) {
-            $isShortTermIndex = true;
-
             $indexFields[] = new TraceDynamicIndexFieldDto('dur');
         }
 
         if (!is_null($memoryFrom) || !is_null($memoryTo)) {
-            $isShortTermIndex = true;
-
             $indexFields[] = new TraceDynamicIndexFieldDto('mem');
         }
 
         if (!is_null($cpuFrom) || !is_null($cpuTo)) {
-            $isShortTermIndex = true;
-
             $indexFields[] = new TraceDynamicIndexFieldDto('cpu');
         }
 
         if (!is_null($hasProfiling)) {
-            $isShortTermIndex = true;
-
             $indexFields[] = new TraceDynamicIndexFieldDto('hpr');
         }
 
@@ -126,8 +110,6 @@ readonly class TraceDynamicIndexInitializer
         }
 
         foreach ($data->filter ?? [] as $dataFilterItem) {
-            $isShortTermIndex = true;
-
             $indexFields[] = new TraceDynamicIndexFieldDto(
                 fieldName: $dataFilterItem->field
             );
@@ -143,15 +125,9 @@ readonly class TraceDynamicIndexInitializer
             )
             ->all();
 
-        if ($isShortTermIndex) {
-            $actualUntilAt = Carbon::now()->addDays(
-                $this->shortTermTimeLifeIndexInDays
-            );
-        } else {
-            $actualUntilAt = Carbon::now()->addDays(
-                $this->shortTermTimeLifeIndexInDays
-            );
-        }
+        $actualUntilAt = Carbon::now()->addHours(
+            $this->timeLifeIndexInHours
+        );
 
         $indexDto = $this->traceDynamicIndexRepository->findOneOrCreate(
             indexData: new TraceDynamicIndexDataDto(
