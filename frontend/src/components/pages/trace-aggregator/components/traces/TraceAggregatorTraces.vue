@@ -126,7 +126,7 @@
     <div v-show="!traceAggregatorGraphStore.showGraph" class="height-100">
       <TraceAggregatorTracesPagination
           style="padding-bottom: 5px"
-          :disabled="traceAggregatorStore.loading"
+          :disabled="traceAggregatorStore.loading || !traceAggregatorStore.loaded"
           :currentPage="currentPage"
           @on-next-page="onNextPage"
           @on-prev-page="onPrevPage"
@@ -142,6 +142,11 @@
           striped
       />
 
+      <el-empty
+          v-else-if="!traceAggregatorStore.loaded"
+          description="Set filters and press Search to load traces"
+      />
+
       <div v-else>
         <TraceAggregatorTracesTable
             :items="traceAggregatorStore.traceAggregator.items"
@@ -154,7 +159,7 @@
 
         <TraceAggregatorTracesPagination
             style="padding-top: 5px"
-            :disabled="traceAggregatorStore.loading"
+            :disabled="traceAggregatorStore.loading || !traceAggregatorStore.loaded"
             :currentPage="currentPage"
             @on-next-page="onNextPage"
             @on-prev-page="onPrevPage"
@@ -353,10 +358,10 @@ export default defineComponent({
     }
   },
   mounted() {
-    if (this.traceAggregatorStore.loading) {
-      this.reset()
+    if (!this.traceAggregatorStore.initialized) {
+      this.traceAggregatorStore.initialized = true
 
-      this.update()
+      this.reset()
     }
 
     if (!this.traceAggregatorTimestampFieldsStore.loaded) {
