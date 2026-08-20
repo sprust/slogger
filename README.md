@@ -16,6 +16,7 @@ It collects data about code execution (HTTP requests, queues, events, commands, 
 - Flexible filtering by any field of the trace payload (`data`): numbers, strings, booleans, field-presence checks.
 - Timeline charts for trace metrics — count, duration, memory, CPU — with aggregations and the same filtering as in search.
 - Storage dashboard — collection sizes, memory and index usage.
+- Runtime dashboard — live stats of the SConcur HTTP server: worker pool, RPS, CPU, memory, in-flight requests.
 - Automatic cleanup of stale data.
 
 ---
@@ -30,18 +31,24 @@ flowchart TB
     receiver["Receiver (Go, TCP socket) — payload intake"]
     buffer["Buffer (MongoDB collection) — create (c) and update (u) operations"]
     shards["Hourly shards (MongoDB) traces_YYYY_MM_DD_HH_HH + view _traceTreesView"]
-    backend["Backend (Laravel/Octane) — API and web panel (Vue 3)"]
+    backend["Backend (Laravel/SConcur) — master + HTTP workers, a request per fiber"]
+    nginx["nginx (APP_PORT) — reverse proxy"]
+    ui["Web panel (Vue 3) / API clients"]
     src -->|"TCP socket: 4-byte length prefix + JSON"| receiver
     receiver -->|"write to buffer"| buffer
     buffer -->|"transporter: continuous batches, upsert-merge"| shards
     shards -->|"reads (aggregations)"| backend
+    ui -->|"HTTP"| nginx
+    nginx -->|"proxy_pass → workers:SCONCUR_HTTP_PORT"| backend
 ```
 
 ### Components
 
-- Backend — Laravel 12 / PHP 8.4 on [RoadRunner](https://roadrunner.dev/) via [Laravel Octane](https://laravel.com/docs/octane). The application stays in memory between requests, removing framework-bootstrap overhead and giving high throughput when ingesting and reading large volumes of traces. Heavy parallel shard queries are parallelized through `SConcur\WaitGroup`.
+- Backend — Laravel 12 / PHP 8.4 on [SConcur](https://github.com/sprust/sconcur), a concurrent coroutine HTTP runtime that executes each request in its own PHP Fiber inside a single long-lived process. The application stays in memory between requests, removing framework-bootstrap overhead and giving high throughput when ingesting and reading large volumes of traces. Heavy parallel shard queries are parallelized through `SConcur\WaitGroup`. See "SConcur runtime" below.
+- sconcur-laravel — a bundled package (`packages/sconcur/sconcur-laravel/`, connected as a path repository) that binds Laravel to SConcur: the coroutine-scoped application, the HTTP worker, and the `sconcur:*` artisan commands.
+- nginx — a reverse proxy in front of the HTTP workers; it is the only externally published port (`APP_PORT`, 8097 by default). The upstream host is resolved per request, so recreating the workers container does not require an nginx restart.
 - Receiver — a standalone Go service (`servers/receiver/`) that accepts trace payloads over a TCP socket and writes them into the buffer.
-- Storage — MongoDB (traces/logs), MySQL (users/services/auth), Redis/RabbitMQ (queues).
+- Storage — MongoDB (traces/logs), MySQL (users/services/auth), Redis/RabbitMQ (queues). Reads and writes from the HTTP workers go through SConcur's non-blocking Mongo and MySQL drivers.
 - Frontend — Vue 3 + Vite + TypeScript (`frontend/`).
 
 Business logic is split into modules under `app/Modules/<ModuleName>/` with strict layer separation (Deptrac).
@@ -49,6 +56,21 @@ Business logic is split into modules under `app/Modules/<ModuleName>/` with stri
 ---
 
 ## Technical implementation
+
+### SConcur runtime: a request per fiber
+
+The backend does not run under php-fpm or Octane. HTTP requests are served by SConcur — a coroutine runtime in which every request gets its own PHP Fiber inside one long-lived process:
+
+- Master and workers. `sconcur:servers:master:start` (started by supervisor in the `workers` container) is a supervisor over the worker pool: it spawns `SCONCUR_HTTP_WORKER_COUNT` processes as `php artisan sconcur:servers:http:start --masterPid=N`, restarts crashed and hung ones, and exposes a telemetry panel. All workers listen on the same port via `SO_REUSEPORT`; nginx proxies to them without knowing about the pool. A single worker can also be run standalone by the same `sconcur:servers:http:start` command.
+- Coroutine-scoped application. Under concurrent fibers, the Octane model (clone the app + swap the global container) is unsafe: neighbouring requests would see each other's state. Instead, `bootstrap/app.php` builds `SConcur\Laravel\Foundation\AsyncApplication` — a drop-in subclass of `Illuminate\Foundation\Application` that moves per-request state into the coroutine context: `request`, `auth`, `session`, `cookie`, the config overlay (`config()->set`), the current route, the locale, `View::share`, and `defer`. Async mode is enabled only inside the HTTP worker; for CLI, queues, and cron the application behaves exactly as a stock Laravel one.
+- Non-blocking I/O. Queries to MongoDB and MySQL go through SConcur drivers (`Model::sconcur()`), so a fiber waiting on the database yields the process to other requests instead of blocking it. Where a single request needs several shard queries at once, they are run in parallel through `SConcur\WaitGroup` (search, charts, tree building).
+- Transaction caveat. Do not perform sconcur-async work (Mongo, sconcur-SQL, HTTP client, `Sleeper`) inside an open MySQL transaction: the blocking PDO connection is shared by the process, so while one fiber awaits, another can end up inside its transaction. Do async work before `beginTransaction` or after `commit` (or push it into a queue).
+
+Details on the bridge and the coroutine context: `packages/sconcur/sconcur-laravel/README.md` and its `docs/`.
+
+### Runtime dashboard (SConcur stats)
+
+The master's telemetry panel (`SCONCUR_HTTP_PANEL_PORT`, protected by `SCONCUR_HTTP_ADMIN_TOKEN`) is polled by the backend and rendered on the "Sconcur" dashboard tab: the pool totals (workers, hung workers, CPU, RSS, goroutines, in-flight and completed requests, average duration), a per-worker breakdown, and a chart with a rolling 5-minute window — RPS and CPU by default. RPS is derived on the client from the delta of completed requests between polls. If the panel host or the token is not configured, or the master is down, the tab shows the runtime as unavailable instead of erroring.
 
 ### Hourly database sharding
 
@@ -72,12 +94,14 @@ On top of all shards, MongoDB exposes a unifying view `_traceTreesView` — it c
 
 Intake and write are decoupled to absorb load spikes:
 
-1. Intake. The receiver accepts the payload over TCP and puts it into a buffer collection in MongoDB as a set of two kinds of operations: create (`c`) and update (`u`).
+1. Intake. The receiver accepts the payload over TCP and puts it into a buffer collection in MongoDB as a set of two kinds of operations: create (`c`) and update (`u`). A whole message batch is written with a single unordered `InsertMany` rather than a call per trace.
 2. Transport. A background transporter continuously pulls batches from the buffer (up to ~1000 records in FIFO order) and writes them into the corresponding hourly shards. It pauses for one second only when the buffer is empty (or after a read error), then checks again.
 3. Merge (upsert-merge). Writing to a shard is an `upsert` keyed by service + trace: the create and update operations of the same trace are merged into one resulting document.
 4. Reliability. After a successful write the record is removed from the buffer; on error it is marked for retry (with a limited number of attempts).
 
 The buffer smooths out peaks: the client hands off data quickly and does not wait for the write into the main storage.
+
+Concurrency in the receiver is bounded rather than unlimited: at most 512 messages are handled at once, and at most 64 shard writes run in parallel in the transporter. When the limits are reached, the next socket read is simply delayed — backpressure reaches the sender instead of the process piling up a multi-gigabyte backlog, and the transporter does not starve the intake path of Mongo connections.
 
 ### Trace timeline: start separately → finish separately
 
@@ -146,8 +170,9 @@ Stale traces are removed automatically. The retention period is set by the `TRAC
 ## Tech stack
 
 - PHP 8.4, Laravel 12, PSR-12 style (PHP CS Fixer)
-- Laravel Octane + RoadRunner — long-running application
-- MongoDB (`mongodb/laravel-mongodb`) — traces and logs
+- SConcur — concurrent coroutine HTTP runtime (long-running application), plus the bundled `sconcur/sconcur-laravel` bridge
+- nginx — reverse proxy in front of the HTTP workers
+- MongoDB (`mongodb/laravel-mongodb`, non-blocking SConcur driver) — traces and logs
 - MySQL — users, services, auth
 - Redis / RabbitMQ — queues
 - Go — trace receiver service (`servers/receiver/`)
@@ -179,6 +204,8 @@ Communication is over TCP. Every message, in both directions, is sent with a 4-b
    The token determines which service the traces belong to (created via `make art c=service:create`). The server replies with `ok` or an error text.
 
 2. Sending traces. Then, within the same connection, the client sends trace messages in a loop; the server replies `received` to each one.
+
+The connection is long-lived: the server does not close it while it is idle, so a client may hold an authenticated socket open between bursts of traces without reconnecting. A read timeout (30 s) applies only from the moment the first byte of a message arrives and covers the rest of the length prefix and the body — a sender stalling in the middle of a message still cannot hold the connection forever. Peers that vanish without closing the socket are reaped by TCP keep-alive (30 s).
 
 ### Trace message format
 
@@ -250,16 +277,25 @@ APP_DEBUG=false           # true for local
 DOCKER_USER_ID=1000
 DOCKER_GROUP_ID=1000
 
+APP_PORT=8097             # external port of nginx in front of the SConcur HTTP workers
+
 FRONTEND_DOCKER_COMMAND=${FRONTEND_DOCKER_SERVER_COMMAND}  # or ${FRONTEND_DOCKER_LOCAL_COMMAND}
 FRONTEND_DOCKER_PORT=3075                                  # external port of the web panel
 
 TRACES_LIFETIME_DAYS=3    # trace retention period in days
+
+# SConcur HTTP runtime (the full set of knobs is in .env.example)
+SCONCUR_HTTP_WORKER_COUNT=1    # number of HTTP workers (0 = one per CPU core)
+SCONCUR_HTTP_PORT=28080        # internal port the workers listen on (nginx upstream)
+SCONCUR_HTTP_PANEL_PORT=28081  # master telemetry panel (0 = off)
+SCONCUR_HTTP_ADMIN_TOKEN=      # panel bearer token; empty = panel off and no runtime dashboard
+SCONCUR_PANEL_HOST=http://workers:28081/api/stats  # panel stats URL as seen from the app
 ```
 
 `frontend/.env`:
 
 ```dotenv
-BACKEND_URL=http://localhost:10021  # see the port in .env → OCTANE_RR_DOCKER_PORT
+BACKEND_URL=http://localhost:8097  # nginx in front of the SConcur HTTP server; see the port in .env → APP_PORT
 ```
 
 ### Setup
@@ -280,8 +316,20 @@ make art c=user:create
 make art c=service:create
 ```
 
+### Runtime commands
+
+```bash
+make sconcur-status   # status of the sconcur PHP extension
+make sconcur-restart  # stop the master; supervisor starts it back up with the fresh code
+make sconcur-update   # update sconcur/sconcur: require → rebuild the image → dump-autoload → recreate containers
+make deploy-prod      # pull, rebuild, install dependencies, migrate, rebuild the receiver and the frontend
+```
+
+The `sconcur.so` extension is baked into the image from `composer.lock`, so `vendor/` and the extension must be brought into step before any long-lived process starts on them. That is why both the deploy and the update targets build the image first, install dependencies from it, and only then recreate the containers — the old ones keep serving until the moment they are replaced.
+
 ### OpenAPI schema
 
 ```text
-storage/api/json-schemes/traces-api-openapi-scheme.json
+storage/api/json-schemes/traces-api-openapi-scheme.json   # trace ingestion/reading API
+storage/api/json-schemes/admin-api-openapi-scheme.json    # web-panel API (search, tree, charts, dashboards)
 ```

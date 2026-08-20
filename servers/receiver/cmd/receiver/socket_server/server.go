@@ -18,6 +18,16 @@ import (
 
 // TODO: graceful shutdown. check activeHandlingCount dont work.
 
+// maxConcurrentHandlings bounds message-handling goroutines: when the limit is
+// reached, connection loops block before reading the next message, creating
+// natural backpressure instead of unbounded goroutine growth.
+const maxConcurrentHandlings = 512
+
+// keepAlivePeriod reaps peers that vanished without closing the connection. The
+// transport no longer applies a read deadline to idle connections, so this is
+// what keeps dead ones from accumulating.
+const keepAlivePeriod = 30 * time.Second
+
 type Server struct {
 	servContext            context.Context
 	servCancel             context.CancelFunc
@@ -30,6 +40,7 @@ type Server struct {
 	activeConnectionsCount atomic.Int64
 	totalHandlingCount     atomic.Uint64
 	activeHandlingCount    atomic.Int64
+	handlingSemaphore      chan struct{}
 	closing                atomic.Bool
 }
 
@@ -58,6 +69,7 @@ func New(network string, address string) *Server {
 		activeConnectionsCount: atomic.Int64{},
 		totalHandlingCount:     atomic.Uint64{},
 		activeHandlingCount:    atomic.Int64{},
+		handlingSemaphore:      make(chan struct{}, maxConcurrentHandlings),
 	}
 }
 
@@ -96,6 +108,14 @@ func (s *Server) Run(ctx context.Context) error {
 			}
 
 			return errs.Err(err)
+		}
+
+		if tcpConn, ok := conn.(*net.TCPConn); ok {
+			if err := tcpConn.SetKeepAlive(true); err != nil {
+				slog.Warn("failed to enable keep-alive: " + err.Error())
+			} else if err := tcpConn.SetKeepAlivePeriod(keepAlivePeriod); err != nil {
+				slog.Warn("failed to set keep-alive period: " + err.Error())
+			}
 		}
 
 		s.totalConnectionsCount.Add(1)
@@ -139,6 +159,14 @@ func (s *Server) handleConnection(conn net.Conn) error {
 	}
 
 	authPayload, err := tr.Read()
+
+	if err != nil {
+		return errs.Err(err)
+	}
+
+	if authPayload == nil {
+		return nil
+	}
 
 	var authMsg dto.AuthMessage
 
@@ -189,11 +217,27 @@ func (s *Server) handleConnection(conn net.Conn) error {
 			continue
 		}
 
+		err = tr.Write("received")
+
+		if err != nil {
+			return errs.Err(err)
+		}
+
+		// Acquire after the ack, not before it: the cap still bounds handler
+		// goroutines, but a full pool now delays reading the next message instead
+		// of withholding the response to one already read, which is what senders
+		// are waiting on.
+		s.handlingSemaphore <- struct{}{}
+
 		s.totalHandlingCount.Add(1)
 		s.activeHandlingCount.Add(1)
 
 		go func(msg []byte, serviceId int) {
-			defer s.activeHandlingCount.Add(-1)
+			defer func() {
+				s.activeHandlingCount.Add(-1)
+
+				<-s.handlingSemaphore
+			}()
 
 			var tracesMsg dto.TracesMessage
 
@@ -207,12 +251,6 @@ func (s *Server) handleConnection(conn net.Conn) error {
 				slog.Error(errs.Err(err).Error())
 			}
 		}(message, serviceId)
-
-		err = tr.Write("received")
-
-		if err != nil {
-			return errs.Err(err)
-		}
 	}
 }
 

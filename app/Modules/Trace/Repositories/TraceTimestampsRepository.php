@@ -18,7 +18,7 @@ use App\Modules\Trace\Repositories\Services\PeriodicTraceService;
 use App\Modules\Trace\Repositories\Services\TracePipelineBuilder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
-use MongoDB\BSON\UTCDateTime;
+use SConcur\Bson\UTCDateTime;
 use RuntimeException;
 
 readonly class TraceTimestampsRepository

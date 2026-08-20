@@ -5,6 +5,7 @@ use App\Modules\Auth\Infrastructure\Http\Controllers\MeController;
 use App\Modules\Auth\Infrastructure\Http\Middlewares\AuthMiddleware;
 use App\Modules\Cleaner\Infrastructure\Http\Controllers\ProcessController;
 use App\Modules\Dashboard\Infrastructure\Http\Controllers\DatabaseStatController;
+use App\Modules\Dashboard\Infrastructure\Http\Controllers\SconcurStatController;
 use App\Modules\Logs\Infrastructure\Http\Controllers\LogController;
 use App\Modules\Service\Infrastructure\Http\Controllers\ServiceController;
 use App\Modules\Tools\Infrastructure\Http\Controllers\ToolLinksController;
@@ -30,6 +31,7 @@ Route::prefix('/dashboard')
     ->as('dashboard.')
     ->group(function () {
         Route::get('/database', [DatabaseStatController::class, 'index'])->name('index');
+        Route::get('/sconcur', [SconcurStatController::class, 'index'])->name('sconcur');
     });
 
 Route::prefix('/tools')

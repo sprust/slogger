@@ -6,7 +6,9 @@ namespace App\Modules\Dashboard\Infrastructure;
 
 use App\Modules\Common\Infrastructure\BaseServiceProvider;
 use App\Modules\Dashboard\Domain\Actions\FindDatabaseStatCacheAction;
+use App\Modules\Dashboard\Domain\Actions\FindSconcurStatAction;
 use App\Modules\Dashboard\Domain\Actions\RefreshDatabaseStatCacheAction;
+use App\Modules\Dashboard\Domain\Services\SconcurStatClient;
 use App\Modules\Dashboard\Repositories\DatabaseStatCacheRepository;
 use App\Modules\Dashboard\Repositories\DatabaseStatRepository;
 
@@ -18,9 +20,12 @@ class DashboardProvider extends BaseServiceProvider
             // repositories
             DatabaseStatRepository::class,
             DatabaseStatCacheRepository::class,
+            // services
+            SconcurStatClient::class,
             // actions
             FindDatabaseStatCacheAction::class,
             RefreshDatabaseStatCacheAction::class,
+            FindSconcurStatAction::class,
         ];
     }
 }

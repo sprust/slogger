@@ -22,6 +22,7 @@ abstract class AbstractMongoModel extends Model
         return $this->getCollectionName();
     }
 
+    // TODO: delete after migration to sconcur
     public static function collection(): MongoCollection
     {
         /** @var MongoCollection $collection */
@@ -49,7 +50,7 @@ abstract class AbstractMongoModel extends Model
         $database = $config['database'];
         $options  = $config['options'];
 
-        $uri = "mongodb://$username:$password@$host:$port";
+        $uri = "mongodb://$username:$password@$host:$port/?maxPoolSize=20&maxIdleTimeMS=30000";
 
         $collection = new SconcurClient($uri, timeoutMs: $options['socketTimeoutMS'] ?? null)
             ->selectDatabase($database)

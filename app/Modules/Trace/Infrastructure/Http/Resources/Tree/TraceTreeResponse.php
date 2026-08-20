@@ -25,15 +25,7 @@ class TraceTreeResponse extends AbstractStreamedApiResource
 
                 $first = true;
 
-                while (true) {
-                    $resource->items->next();
-
-                    $item = $resource->items->current();
-
-                    if (is_null($item)) {
-                        break;
-                    }
-
+                foreach ($resource->items as $item) {
                     $comma = $first ? '' : ',';
 
                     $first = false;

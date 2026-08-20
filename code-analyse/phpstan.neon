@@ -5,14 +5,13 @@ parameters:
     excludePaths:
         - ../app/Console/Commands/Local
         - ../app/Models
+        - ../packages/sconcur
 
     level: 8
 
     ignoreErrors:
         -
             message: '#Unsafe usage of new static#'
-        -
-            message: '#Call to an undefined method Illuminate\\Database\\Query\\Builder::toBase#'
         -
             message: '#Access to an undefined property MongoDB\\Model\\BSONDocument#'
         -

@@ -4,11 +4,13 @@ services:
     restart: unless-stopped
     image: nginx:alpine
     depends_on:
-      - php-fpm
+      - workers
+    environment:
+      # substituted into docker/nginx/templates/default.conf.template on startup
+      SCONCUR_HTTP_PORT: ${SCONCUR_HTTP_PORT:-28080}
     ports:
       - ${APP_PORT:-80}:80
     volumes:
-      - ./:/app
       - ./docker/nginx/templates:/etc/nginx/templates
 
   php-fpm:
@@ -65,8 +67,6 @@ services:
       QUEUE_TRACE_TREE_CONNECTION: ${QUEUE_TRACE_TREE_CONNECTION:-redis}
       QUEUE_TRACE_TREE_NAME: ${QUEUE_TRACE_TREE_NAME:-trace-tree}
       QUEUE_TRACE_TREE_WORKERS_COUNT: ${QUEUE_TRACE_TREE_WORKERS_COUNT:-1}
-    ports:
-      - ${OCTANE_RR_DOCKER_PORT:-10021}:${OCTANE_RR_PORT:-9020}
     volumes:
       - ./:/app
       - ./docker/php/conf/php-workers.ini:/usr/local/etc/php/conf.d/docker.ini

@@ -2,6 +2,7 @@ package transport
 
 import (
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -11,8 +12,12 @@ import (
 
 const (
 	maxPayloadSize = 10 * 1024 * 1024 // 10 mb
-	readTimeout    = 30 * time.Second
-	writeTimeout   = 30 * time.Second
+	// readTimeout bounds a message that has already started arriving. It is
+	// deliberately not applied while the connection is idle: senders keep the
+	// connection open between batches, and closing an idle one makes the sender
+	// fail on its next message with a misleading read timeout of its own.
+	readTimeout  = 30 * time.Second
+	writeTimeout = 30 * time.Second
 )
 
 type Transport struct {
@@ -28,17 +33,27 @@ func NewTransport(conn net.Conn) *Transport {
 func (t *Transport) Read() ([]byte, error) {
 	sizeBuf := make([]byte, 4)
 
+	// Wait for the next message without a deadline — an idle connection is not a
+	// stuck one. Dead peers are reaped by TCP keep-alive, not here.
+	if err := t.conn.SetReadDeadline(time.Time{}); err != nil {
+		return nil, errs.Err(err)
+	}
+
+	if _, err := io.ReadFull(t.conn, sizeBuf[:1]); err != nil {
+		if errors.Is(err, io.EOF) {
+			return nil, nil
+		}
+
+		return nil, errs.Err(err)
+	}
+
+	// A message has started: every read from here on is bounded, so a sender that
+	// stalls mid-message cannot hold the connection forever.
 	if err := t.conn.SetReadDeadline(time.Now().Add(readTimeout)); err != nil {
 		return nil, errs.Err(err)
 	}
 
-	_, err := io.ReadFull(t.conn, sizeBuf)
-
-	if err != nil {
-		if err == io.EOF {
-			return nil, nil
-		}
-
+	if _, err := io.ReadFull(t.conn, sizeBuf[1:]); err != nil {
 		return nil, errs.Err(err)
 	}
 
@@ -52,14 +67,9 @@ func (t *Transport) Read() ([]byte, error) {
 		return nil, errs.Err(fmt.Errorf("payload too large: %d > %d", size, maxPayloadSize))
 	}
 
-	if err := t.conn.SetReadDeadline(time.Now().Add(readTimeout)); err != nil {
-		return nil, errs.Err(err)
-	}
-
 	payload := make([]byte, size)
-	_, err = io.ReadFull(t.conn, payload)
 
-	if err != nil {
+	if _, err := io.ReadFull(t.conn, payload); err != nil {
 		return nil, errs.Err(err)
 	}
 

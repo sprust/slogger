@@ -22,47 +22,33 @@ readonly class TraceTreeRepository
 
     public function findParentTraceId(string $traceId): ?string
     {
-        /** @var array{tid: string, ptid: string|null}|null $trace */
-        $trace = TraceTree::query()
-            ->select([
-                'tid',
-                'ptid',
-            ])
-            ->where('tid', $traceId)
-            ->toBase()
-            ->first();
+        $trace = TraceTree::sconcur()->findOne(
+            filter: ['tid' => $traceId],
+            projection: ['tid' => 1, 'ptid' => 1],
+        );
 
         if (!$trace) {
             return null;
         }
 
-        $trace = (array) $trace;
-
         $parentTrace = $trace;
 
-        if ($trace['ptid']) {
+        if ($trace['ptid'] ?? null) {
             $index = 0;
 
             while (++$index <= $this->maxDepthForFindParent) {
-                if (!$parentTrace['ptid']) {
+                if (!($parentTrace['ptid'] ?? null)) {
                     break;
                 }
 
-                /** @var array{tid: string, ptid: string|null}|null $currentParentTrace */
-                $currentParentTrace = TraceTree::query()
-                    ->select([
-                        'tid',
-                        'ptid',
-                    ])
-                    ->where('tid', $parentTrace['ptid'])
-                    ->toBase()
-                    ->first();
+                $currentParentTrace = TraceTree::sconcur()->findOne(
+                    filter: ['tid' => $parentTrace['ptid']],
+                    projection: ['tid' => 1, 'ptid' => 1],
+                );
 
                 if (!$currentParentTrace) {
                     break;
                 }
-
-                $currentParentTrace = (array) $currentParentTrace;
 
                 $parentTrace = $currentParentTrace;
             }
@@ -76,49 +62,35 @@ readonly class TraceTreeRepository
      */
     public function findChainToParentTraceId(string $traceId): array
     {
-        /** @var array{tid: string, ptid: string|null}|null $trace */
-        $trace = TraceTree::query()
-            ->select([
-                'tid',
-                'ptid',
-            ])
-            ->where('tid', $traceId)
-            ->toBase()
-            ->first();
+        $trace = TraceTree::sconcur()->findOne(
+            filter: ['tid' => $traceId],
+            projection: ['tid' => 1, 'ptid' => 1],
+        );
 
         if (!$trace) {
             return [];
         }
 
-        $trace = (array) $trace;
-
         $chain = [];
 
         $parentTrace = $trace;
 
-        if ($trace['ptid']) {
+        if ($trace['ptid'] ?? null) {
             $index = 0;
 
             while (++$index <= $this->maxDepthForFindParent) {
-                if (!$parentTrace['ptid']) {
+                if (!($parentTrace['ptid'] ?? null)) {
                     break;
                 }
 
-                /** @var array{tid: string, ptid: string|null}|null $currentParentTrace */
-                $currentParentTrace = TraceTree::query()
-                    ->select([
-                        'tid',
-                        'ptid',
-                    ])
-                    ->where('tid', $parentTrace['ptid'])
-                    ->toBase()
-                    ->first();
+                $currentParentTrace = TraceTree::sconcur()->findOne(
+                    filter: ['tid' => $parentTrace['ptid']],
+                    projection: ['tid' => 1, 'ptid' => 1],
+                );
 
                 if (!$currentParentTrace) {
                     break;
                 }
-
-                $currentParentTrace = (array) $currentParentTrace;
 
                 $parentTrace = $currentParentTrace;
 

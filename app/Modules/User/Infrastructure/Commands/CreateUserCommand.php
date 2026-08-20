@@ -44,7 +44,7 @@ class CreateUserCommand extends Command
 
         $lastName = $this->askAndCheck('Last name', false);
 
-        if (!is_string($lastName) || $lastName != null) {
+        if (!is_string($lastName) && !is_null($lastName)) {
             return self::FAILURE;
         }
 

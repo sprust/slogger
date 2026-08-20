@@ -18,10 +18,8 @@ use App\Modules\Trace\Repositories\Services\PeriodicTraceService;
 use App\Modules\Trace\Repositories\Services\TraceDataToObjectBuilder;
 use App\Modules\Trace\Repositories\Services\TracePipelineBuilder;
 use Illuminate\Support\Carbon;
-use MongoDB\BSON\ObjectId;
-use MongoDB\BSON\UTCDateTime;
-use MongoDB\Driver\Command;
-use MongoDB\Driver\Exception\Exception;
+use SConcur\Bson\ObjectId;
+use SConcur\Bson\UTCDateTime;
 use RuntimeException;
 use SConcur\WaitGroup;
 use Throwable;
@@ -333,49 +331,49 @@ readonly class TraceRepository
     public function getIndexProgressesInfo(): array
     {
         try {
-            $operations = TraceDynamicIndex::collection()->getManager()
-                ->executeCommand(
-                    'admin',
-                    new Command(
-                        [
-                            'currentOp' => true,
-                            '$and'      => [
-                                [
-                                    'op' => 'command',
-                                ],
-                                [
-                                    'command.createIndexes' => [
-                                        '$exists' => true,
-                                    ],
-                                ],
-                                [
-                                    'progress' => [
-                                        '$exists' => true,
-                                    ],
+            $commandResult = TraceDynamicIndex::sconcur()
+                ->database
+                ->client
+                ->selectDatabase('admin')
+                ->command(
+                    [
+                        'currentOp' => true,
+                        '$and'      => [
+                            [
+                                'op' => 'command',
+                            ],
+                            [
+                                'command.createIndexes' => [
+                                    '$exists' => true,
                                 ],
                             ],
-                        ]
-                    )
+                            [
+                                'progress' => [
+                                    '$exists' => true,
+                                ],
+                            ],
+                        ],
+                    ]
                 );
-        } catch (Exception $exception) {
+        } catch (Throwable $exception) {
             throw new RuntimeException(
                 message: $exception->getMessage(),
                 previous: $exception
             );
         }
 
-        /** @var object[] $operations */
-        $operations = iterator_to_array($operations)[0]->inprog ?? [];
+        /** @var array<int, array<string, mixed>> $operations */
+        $operations = $commandResult['inprog'] ?? [];
 
         $infoList = [];
 
         foreach ($operations as $operation) {
-            $progressTotal = $operation->progress->total ?? null;
-            $progressDone  = $operation->progress->done ?? null;
+            $progressTotal = $operation['progress']['total'] ?? null;
+            $progressDone  = $operation['progress']['done'] ?? null;
 
             $infoList[] = new TraceIndexInfoObject(
-                collectionName: $operation->command->createIndexes ?? 'undefined',
-                name: ($operation->command->indexes[0] ?? null)?->name ?: 'untitled',
+                collectionName: $operation['command']['createIndexes'] ?? 'undefined',
+                name: ($operation['command']['indexes'][0]['name'] ?? null) ?: 'untitled',
                 progress: ($progressTotal && $progressDone) ? round($progressDone / $progressTotal * 100, 2) : 0
             );
         }

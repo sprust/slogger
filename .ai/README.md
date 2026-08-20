@@ -60,7 +60,7 @@ make stop
 ## Project Overview
 
 - SLogger is an observability/logging application: it collects traces and logs, stores and aggregates trace data, exposes admin/API endpoints for browsing traces and logs, provides dashboard views, and includes cleanup tooling.
-- Backend is a Laravel 12 application on PHP 8.4, running on RoadRunner via Laravel Octane.
+- Backend is a Laravel 12 application on PHP 8.4, running on SConcur — a concurrent coroutine HTTP runtime that executes each request in its own PHP Fiber inside a single long-lived process.
 - Frontend lives in `frontend/` and is a separate Vue 3 + Vite + TypeScript app.
 - Receiver is a standalone Go service in `servers/receiver/` that accepts trace payloads over TCP.
 - Storage: MongoDB (traces/logs) + MySQL (users/services/auth) + Redis/RabbitMQ (queues).
@@ -75,7 +75,7 @@ Domain events are emitted for flows that trigger queues or framework side effect
 
 ## Directory Structure
 
-- `app/Console` — artisan commands, cron commands, local utilities, make-style generators, migration helpers, Octane commands.
+- `app/Console` — artisan commands, cron commands, local utilities, make-style generators, migration helpers.
 - `app/Http` — HTTP controllers and middleware.
 - `app/Models` — Laravel/MongoDB models grouped by bounded area such as `Logs`, `Services`, `Traces`, `Users`.
 - `app/Modules` — modular business code. Current modules include `Auth`, `Cleaner`, `Dashboard`, `Logs`, `Service`, `Trace`, `User`, plus shared/support modules such as `Common` and `Tools`.
@@ -272,6 +272,13 @@ Notes:
 - Repositories should not contain business operations like `cancel*`; keep them as persistence primitives such as `updateStatus(...)`, and call them from actions like `Cancel*Action`.
 - Each entity should have its own dedicated controller. Do not mix state/controller methods into another entity controller.
 - The main README is bilingual: `README.md` (English) and `README.ru.md` (Russian), kept in sync via the language switcher line at the top of each. Always edit both language versions together — any change to one must be mirrored in the other so they never drift.
+
+### PHP Coding Conventions
+
+- All traits must be named with a `Trait` postfix (e.g. `HasSqlSconcurConnectionTrait`), and the file name must match the trait name (PSR-4).
+- Do not use the `final` keyword on classes. Keep classes extendable.
+- Do not declare global/namespaced helper functions (no `function current_context()` style API). Expose behavior through classes and static entry points instead (e.g. `SConcur\Context\Context::current()`).
+- For SConcur coroutine state, use the library's `SConcur\Context\Context` (`Context::current()->find/has/set/forget`) — do not reimplement a context store. Working-with-context semantics: `vendor/sconcur/sconcur/docs/coroutine-context.ru.md`.
 
 ## Required Commands After Changes
 

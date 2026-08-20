@@ -326,6 +326,76 @@ export namespace AdminApi {
 
   /**
  * No description
+ * @name DashboardSconcurList
+ * @request GET:/admin-api/dashboard/sconcur
+ * @secure
+ * @response `200` `{
+    data: {
+    available: boolean,
+    name: string,
+    workers_total: number,
+    workers_hung: number,
+    cpu_percent: number,
+    memory_rss_bytes: number,
+    goroutines: number,
+    requests_completed: number,
+    requests_avg_ms: number,
+    requests_in_flight: number,
+    master_cpu_percent: number,
+    master_memory_rss_bytes: number,
+    workers: ({
+    pid: number,
+    hung: boolean,
+    uptime_seconds: number,
+    cpu_percent: number,
+    memory_rss_bytes: number,
+    goroutines: number,
+    requests_in_flight: number,
+    requests_completed: number,
+    requests_avg_ms: number,
+
+})[],
+
+},
+
+}` description
+*/
+  export namespace DashboardSconcurList {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        available: boolean;
+        name: string;
+        workers_total: number;
+        workers_hung: number;
+        cpu_percent: number;
+        memory_rss_bytes: number;
+        goroutines: number;
+        requests_completed: number;
+        requests_avg_ms: number;
+        requests_in_flight: number;
+        master_cpu_percent: number;
+        master_memory_rss_bytes: number;
+        workers: {
+          pid: number;
+          hung: boolean;
+          uptime_seconds: number;
+          cpu_percent: number;
+          memory_rss_bytes: number;
+          goroutines: number;
+          requests_in_flight: number;
+          requests_completed: number;
+          requests_avg_ms: number;
+        }[];
+      };
+    };
+  }
+
+  /**
+ * No description
  * @name ToolsLinksList
  * @request GET:/admin-api/tools/links
  * @secure
@@ -2140,6 +2210,81 @@ export class Api<
         any
       >({
         path: `/admin-api/dashboard/database`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name DashboardSconcurList
+ * @request GET:/admin-api/dashboard/sconcur
+ * @secure
+ * @response `200` `{
+    data: {
+    available: boolean,
+    name: string,
+    workers_total: number,
+    workers_hung: number,
+    cpu_percent: number,
+    memory_rss_bytes: number,
+    goroutines: number,
+    requests_completed: number,
+    requests_avg_ms: number,
+    requests_in_flight: number,
+    master_cpu_percent: number,
+    master_memory_rss_bytes: number,
+    workers: ({
+    pid: number,
+    hung: boolean,
+    uptime_seconds: number,
+    cpu_percent: number,
+    memory_rss_bytes: number,
+    goroutines: number,
+    requests_in_flight: number,
+    requests_completed: number,
+    requests_avg_ms: number,
+
+})[],
+
+},
+
+}` description
+ */
+    dashboardSconcurList: (params: RequestParams = {}) =>
+      this.request<
+        {
+          data: {
+            available: boolean;
+            name: string;
+            workers_total: number;
+            workers_hung: number;
+            cpu_percent: number;
+            memory_rss_bytes: number;
+            goroutines: number;
+            requests_completed: number;
+            requests_avg_ms: number;
+            requests_in_flight: number;
+            master_cpu_percent: number;
+            master_memory_rss_bytes: number;
+            workers: {
+              pid: number;
+              hung: boolean;
+              uptime_seconds: number;
+              cpu_percent: number;
+              memory_rss_bytes: number;
+              goroutines: number;
+              requests_in_flight: number;
+              requests_completed: number;
+              requests_avg_ms: number;
+            }[];
+          };
+        },
+        any
+      >({
+        path: `/admin-api/dashboard/sconcur`,
         method: "GET",
         secure: true,
         format: "json",

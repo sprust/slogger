@@ -1,3 +1,5 @@
+MAKEFLAGS += --no-print-directory
+
 PHP_FPM_SERVICE="php-fpm"
 PHP_FPM_CLI="docker-compose exec $(PHP_FPM_SERVICE) "
 
@@ -33,7 +35,6 @@ setup:
 	make art c=key:generate
 	make art c="migrate --force"
 	make workers-art c='queues-declare'
-	make rr-get-binary
 	make frontend-npm-i
 	make frontend-npm-build
 	make restart
@@ -100,27 +101,36 @@ workers-art:
 composer:
 	docker-compose exec -e XDEBUG_MODE=off $(PHP_FPM_SERVICE) composer ${c}
 
+# Composer in a throwaway container off the freshly built image, so it runs with
+# the sconcur.so that matches composer.lock while the old containers keep serving.
+# vendor is a bind mount, so what it writes is what the recreated containers get.
+composer-fresh:
+	docker-compose run --rm --no-deps -e XDEBUG_MODE=off $(PHP_FPM_SERVICE) composer ${c}
+
 workers-restart:
 	make workers-art c='queues-declare'
 	make workers-art c='queue:restart'
 	make workers-art c='cron:stop'
-	make workers-art c='octane:roadrunner:reload'
-	make workers-art c='rr-monitor:stop jobs'
+	make sconcur-restart
 	make workers-art c='slogger:dispatcher:stop'
 	make workers-art c='trace-dynamic-indexes:monitor:stop'
-
-octane-stop:
-	make workers-art c='octane:roadrunner:stop'
 
 oa-generate:
 	make art c='oa:generate'
 	make frontend-npm-generate
 
+# Order matters: sconcur.so is baked into the image from composer.lock, so vendor
+# and the extension have to be brought into step before any long-lived process
+# starts on them. Installing from the new image first (composer-fresh) and only
+# then swapping containers keeps the old ones serving until the moment they are
+# replaced. `up` recreates just what the rebuild changed — php-fpm and workers —
+# and leaves mysql, mongo, redis and rabbitmq running.
 deploy-prod:
 	git pull
-	make composer c='i --no-dev'
+	make build
+	make composer-fresh c='i --no-dev'
+	make up
 	make art c='migrate --force'
-	make workers-restart
 	make receiver-build
 	make frontend-npm-i
 	make frontend-npm-build
@@ -128,19 +138,14 @@ deploy-prod:
 
 deploy-dev:
 	git pull
-	make composer c='i'
+	make build
+	make composer-fresh c='i'
+	make up
 	make art c='migrate --force'
 	make receiver-build
 	make frontend-npm-i
 	make frontend-npm-build
-	make receiver-build
-	make restart
-
-rr-get-binary:
-	"$(WORKERS_CLI)"./vendor/bin/rr get-binary
-
-rr-workers:
-	"$(WORKERS_CLI)"./rr workers -i -o rpc.listen=tcp://$(OCTANE_RR_RPC_HOST):$(OCTANE_RR_RPC_PORT)
+	docker-compose restart $(FRONTEND_SERVICE)
 
 frontend-npm-i:
 	"$(FRONTEND_CLI)"npm i
@@ -158,16 +163,20 @@ receiver-build:
 	docker-compose run --rm --no-deps $(RECEIVER_SERVICE) make build stats-build
 	docker-compose up -d --force-recreate $(RECEIVER_SERVICE)
 
+# require has to come first — it is what writes the version the image build reads
+# from composer.lock — so --no-scripts keeps it from booting the framework on the
+# new library while the old sconcur.so is still in place. package:discover then
+# runs from dump-autoload against the rebuilt image.
 sconcur-update:
 	docker-compose up -d $(PHP_FPM_SERVICE) $(WORKERS_SERVICE)
-	make composer c='update sconcur/sconcur'
-	make sconcur-load
-	make restart
+	make composer c='require sconcur/sconcur:* --no-scripts'
+	make build
+	make composer-fresh c='dump-autoload'
+	make up
 	make sconcur-status
 
-sconcur-load:
-	docker-compose exec -u root -e XDEBUG_MODE=off $(PHP_FPM_SERVICE) sh -c './vendor/bin/sconcur-load "$$(php-config --extension-dir)/sconcur.so"'
-	docker-compose exec -u root -e XDEBUG_MODE=off $(WORKERS_SERVICE) sh -c './vendor/bin/sconcur-load "$$(php-config --extension-dir)/sconcur.so"'
+sconcur-restart:
+	make workers-art c=sconcur:servers:master:stop
 
 sconcur-status:
 	docker-compose exec -e XDEBUG_MODE=off $(PHP_FPM_SERVICE) ./vendor/bin/sconcur-status

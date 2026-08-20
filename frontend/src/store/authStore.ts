@@ -40,15 +40,13 @@ export const useAuthStore = defineStore('authStore', {
 
                 this.setUser(response.data.data)
             } catch (error: any) {
-                if ('status' in error) {
-                    if (error.status === 401) {
-                        this.setUser(null)
-                    }
+                if (error?.status === 401) {
+                    this.setUser(null)
 
-                    handleApiError(error)
-                } else {
-                    throw error
+                    return
                 }
+
+                handleApiError(error)
             }
         },
         async logout() {

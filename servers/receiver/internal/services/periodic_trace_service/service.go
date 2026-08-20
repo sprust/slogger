@@ -17,19 +17,26 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+// maxConcurrentSaves bounds trace-saving goroutines so the transporter does not
+// monopolize the MongoDB connection pool under a large buffered backlog.
+const maxConcurrentSaves = 64
+
 var instance *Service
 var once sync.Once
 
 func Get() *Service {
 	once.Do(func() {
-		instance = &Service{}
+		instance = &Service{
+			saveSemaphore: make(chan struct{}, maxConcurrentSaves),
+		}
 	})
 
 	return instance
 }
 
 type Service struct {
-	mColl *mongo.Collection
+	mColl         *mongo.Collection
+	saveSemaphore chan struct{}
 }
 
 func (s *Service) Save(ctx context.Context, serviceId int, serviceTraces *dto.ServiceTraces) (int, []string) {
@@ -43,8 +50,14 @@ func (s *Service) Save(ctx context.Context, serviceId int, serviceTraces *dto.Se
 	for traceId, traces := range serviceTraces.Items() {
 		wg.Add(1)
 
+		s.saveSemaphore <- struct{}{}
+
 		go func(serviceId int, traceId string, traces *dto.Traces, counter *atomic.Uint64) {
-			defer wg.Done()
+			defer func() {
+				wg.Done()
+
+				<-s.saveSemaphore
+			}()
 
 			err := s.saveTraces(ctx, serviceId, traceId, traces)
 
@@ -142,7 +155,7 @@ func (s *Service) saveTraces(ctx context.Context, serviceId int, traceId string,
 	var tags interface{}
 	if traces.Updating != nil && traces.Updating.Tags != nil {
 		tags = s.convertTags(*traces.Updating.Tags)
-	} else if existingTags, ok := existsTrace["tgs"]; ok {
+	} else if existingTags, ok := existsTrace["tgs"]; ok && !isEmptyTags(existingTags) {
 		tags = existingTags
 	} else if traces.Creating != nil && len(traces.Creating.Tags) > 0 {
 		tags = s.convertTags(traces.Creating.Tags)
@@ -240,6 +253,22 @@ func (s *Service) saveTraces(ctx context.Context, serviceId int, traceId string,
 	slog.Debug("saved trace: " + traceId + " for service: " + string(rune(serviceId)) + " to collection: " + coll.Name())
 
 	return nil
+}
+
+// isEmptyTags reports whether a stored tgs value holds no tags, so that an
+// empty array written by an out-of-order updating does not shadow the tags
+// of a creating that arrives later.
+func isEmptyTags(value interface{}) bool {
+	switch v := value.(type) {
+	case nil:
+		return true
+	case []interface{}:
+		return len(v) == 0
+	case primitive.A:
+		return len(v) == 0
+	default:
+		return false
+	}
 }
 
 func (s *Service) convertTags(tags []interface{}) []interface{} {
