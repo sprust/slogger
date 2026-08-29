@@ -67,7 +67,12 @@ return [
                 // i.e. `php artisan sconcur:servers:http:start --masterPid=N`.
                 'name'         => 'http',
                 'workerScript' => base_path('artisan'),
-                'workerCount'  => (int) env('SCONCUR_HTTP_WORKER_COUNT', 1),
+                // Two, not one, so that a rolling reload has somewhere to send traffic:
+                // reload takes a slot down and only then starts its replacement, and
+                // SO_REUSEPORT hands new connections to the workers still listening. A
+                // single worker leaves nobody listening for the ~100 ms that takes, and
+                // whoever knocks in that window gets a refused connection.
+                'workerCount'  => (int) env('SCONCUR_HTTP_WORKER_COUNT', 2),
                 'workerArgs'   => ['sconcur:servers:http:start'],
                 // Forwarded to the worker's argv verbatim, which is where
                 // HttpServer::fromArgs reads it back.
