@@ -113,6 +113,13 @@ return [
                             'name'           => env('QUEUE_TRACES_CLEANER_NAME', 'traces-clearing'),
                             'coroutineCount' => (int) env('SCONCUR_RABBITMQ_CLEANER_CONSUMERS', 1),
                         ],
+                        [
+                            // The trace queue. slogger:dispatcher:start used to spawn
+                            // queue:work processes for it and supervise them itself; the
+                            // count it carried is the consumer weight here.
+                            'name'           => env('SLOGGER_DISPATCHER_QUEUE_NAME', 'slogger'),
+                            'coroutineCount' => (int) env('SLOGGER_DISPATCHER_QUEUE_WORKERS_COUNT', 5),
+                        ],
                     ],
                     // One is the right answer for a coroutine pool: the next message
                     // goes to a free coroutine rather than into a busy one's buffer.
@@ -156,6 +163,9 @@ return [
                 'default',
                 env('QUEUE_TRACE_TREE_NAME', 'trace-tree'),
                 env('QUEUE_TRACES_CLEANER_NAME', 'traces-clearing'),
+                // SendTracesJob releases itself on failure, so this one needs its wait
+                // queues as much as the others do.
+                env('SLOGGER_DISPATCHER_QUEUE_NAME', 'slogger'),
             ],
 
             // Attempts before Worker::process() writes the job to failed_jobs, and the

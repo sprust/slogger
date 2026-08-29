@@ -153,19 +153,23 @@ class Queue extends BaseQueue implements QueueContract
 
         $amqpQueue = $this->amqpQueue($queue);
 
-        if (!$this->confirmPublishes) {
-            $amqpQueue->publish($message, delayMs: $delayMs);
+        // A delayed publish is always confirmed, whatever the connection asked for.
+        // It addresses a wait queue rather than the queue itself, and a wait queue is
+        // the easy one to forget to declare: an unconfirmed publish to a routing key
+        // nothing is bound to is dropped by the broker without a word, so a job whose
+        // handler released it would disappear. Confirmed publishing is mandatory by
+        // default, so the same case throws UnroutableMessageException instead.
+        if ($delayMs > 0 || $this->confirmPublishes) {
+            $amqpQueue->publishConfirmed(
+                message: $message,
+                timeoutSeconds: $this->confirmTimeoutSeconds,
+                delayMs: $delayMs,
+            );
 
             return;
         }
 
-        // Confirmed publishing is mandatory by default, so a delay nobody serves throws
-        // instead of dropping the message — worth having while a topology is settling.
-        $amqpQueue->publishConfirmed(
-            message: $message,
-            timeoutSeconds: $this->confirmTimeoutSeconds,
-            delayMs: $delayMs,
-        );
+        $amqpQueue->publish($message);
     }
 
     public function getConnection(): Connection
