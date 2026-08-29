@@ -239,6 +239,15 @@ return [
         // what a task holding a MySQL transaction on the shared connection would need.
         'preemption_quantum_ms' => (int) env('SCONCUR_TASKS_PREEMPTION_QUANTUM_MS', 1000),
 
+        // The tick counters that fill the panel's "In-flight / Handled / Refused"
+        // columns for this pool, sent as the snapshot's `consumers` section — a tick is
+        // to a task what a delivery is to a consumer. The catch is one level up: the
+        // master sums that section across every worker, so its master-wide deliveries
+        // per second and average duration will count ticks alongside the AMQP pool's
+        // real deliveries. Per-group numbers stay clean either way; turn this off to
+        // keep the pool out of the master's totals.
+        'report_ticks' => (bool) env('SCONCUR_TASKS_REPORT_TICKS', true),
+
         // How long a stop waits for the running ticks before the group is unwound. Must
         // stay below the supervisor's stopwaitsecs for the pool's program (30 s), or the
         // process is always killed before this can happen and the graceful path never

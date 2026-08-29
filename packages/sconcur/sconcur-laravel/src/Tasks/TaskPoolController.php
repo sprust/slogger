@@ -37,6 +37,7 @@ class TaskPoolController
         protected TaskPoolOptions $options,
         protected TaskPoolLogger $logger,
         protected int $masterPid = 0,
+        protected ?TaskPoolTelemetry $telemetry = null,
     ) {
         $this->handledUpTo = $state->startedAt();
     }
@@ -56,6 +57,11 @@ class TaskPoolController
             $this->readChannel();
             $this->checkMemory();
             $this->checkMaster();
+
+            // Reported from here because this is the one coroutine that wakes on a fixed
+            // interval no matter what the tasks are doing; the sender itself decides
+            // whether a snapshot is due.
+            $this->telemetry?->push();
 
             if ($this->finished($group)) {
                 return;

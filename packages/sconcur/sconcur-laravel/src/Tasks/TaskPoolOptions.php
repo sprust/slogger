@@ -17,6 +17,7 @@ readonly class TaskPoolOptions
         public int $sleepChunkMs,
         public int $preemptionQuantumMs,
         public int $shutdownTimeoutSeconds,
+        public bool $reportTicks = true,
     ) {
     }
 
@@ -32,6 +33,7 @@ readonly class TaskPoolOptions
             sleepChunkMs: max(1, (int) ($config['sleep_chunk_ms'] ?? 250)),
             preemptionQuantumMs: (int) ($config['preemption_quantum_ms'] ?? 1000),
             shutdownTimeoutSeconds: (int) ($config['shutdown_timeout_seconds'] ?? 20),
+            reportTicks: (bool) ($config['report_ticks'] ?? true),
         );
     }
 

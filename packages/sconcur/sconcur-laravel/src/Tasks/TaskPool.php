@@ -69,6 +69,8 @@ class TaskPool
     protected function serve(array $names, int $masterPid = 0): int
     {
         $state      = new TaskPoolState($names);
+        $metrics    = $this->options->reportTicks ? new TaskPoolMetrics(count($names)) : null;
+        $telemetry  = TaskPoolTelemetry::fromEnvironment($metrics);
         $controller = new TaskPoolController(
             state: $state,
             registry: $this->registry,
@@ -77,6 +79,7 @@ class TaskPool
             options: $this->options,
             logger: $this->logger,
             masterPid: $masterPid,
+            telemetry: $telemetry,
         );
 
         $restoreSignals = $this->installSignalHandlers($controller);
@@ -94,7 +97,7 @@ class TaskPool
             });
 
             foreach ($names as $name) {
-                $group->add($this->loop($state, $name));
+                $group->add($this->loop($state, $name, $metrics));
             }
 
             $group->waitAll();
@@ -105,6 +108,10 @@ class TaskPool
             if ($preemption) {
                 Scheduler::get()->disablePreemption();
             }
+
+            // Closing the socket is how the collector learns the worker went away, so it
+            // happens on the way out rather than being left to the process ending.
+            $telemetry?->close();
 
             $restoreSignals();
         }
@@ -122,12 +129,12 @@ class TaskPool
      * task throwing would take the others down with it — the reason a failed tick is
      * reported and turned into a backoff rather than left to propagate.
      */
-    protected function loop(TaskPoolState $state, string $name): Closure
+    protected function loop(TaskPoolState $state, string $name, ?TaskPoolMetrics $metrics = null): Closure
     {
         $definition = $this->registry->definition($name);
         $interrupt  = $state->interruptFor($name);
 
-        return function () use ($state, $name, $definition, $interrupt): void {
+        return function () use ($state, $name, $definition, $interrupt, $metrics): void {
             // Yield before the first tick so WaitGroup::add() returns to the caller and
             // the remaining tasks get added: add() runs a callback up to its first
             // suspend on the adder's stack.
@@ -135,7 +142,11 @@ class TaskPool
 
             try {
                 while ($state->isActive($name)) {
+                    $metrics?->tickStarted($name);
+
                     $result = $this->tick($name);
+
+                    $metrics?->tickFinished($name, $result);
 
                     if ($state->takeRelaunch($name)) {
                         $this->registry->forget($name);
