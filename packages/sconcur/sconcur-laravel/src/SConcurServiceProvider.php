@@ -13,6 +13,7 @@ use Illuminate\Support\ServiceProvider;
 use SConcur\Laravel\Config\AsyncConfig;
 use SConcur\Laravel\Console\ExtensionLoadCommand;
 use SConcur\Laravel\Console\ExtensionStatusCommand;
+use Illuminate\Database\DatabaseManager;
 use Illuminate\Queue\QueueManager;
 use SConcur\Laravel\Console\HttpStartCommand;
 use SConcur\Laravel\Console\MasterReloadCommand;
@@ -25,6 +26,8 @@ use SConcur\Laravel\Console\RabbitmqDeclareCommand;
 use SConcur\Laravel\Console\TasksRestartCommand;
 use SConcur\Laravel\Console\TasksStartCommand;
 use SConcur\Laravel\Console\TasksStopCommand;
+use SConcur\Laravel\Database\Mysql\Connection as SconcurMysqlConnection;
+use SConcur\Laravel\Database\Mysql\Connector as SconcurMysqlConnector;
 use SConcur\Laravel\Foundation\AsyncApplication;
 use SConcur\Laravel\Queue\Rabbitmq\Connector;
 use SConcur\Laravel\Routing\AsyncRouter;
@@ -39,7 +42,8 @@ use SConcur\Laravel\View\AsyncViewFactory;
 /**
  * Laravel service provider for the SConcur integration.
  *
- * Always: registers the artisan commands and the `sconcur_rabbitmq` queue connector.
+ * Always: registers the artisan commands, the `sconcur_rabbitmq` queue connector and the
+ * `sconcur_mysql` database driver.
  *
  * The config is published, not merged. Merging would leave the package's own defaults
  * standing behind the application's file, so a value the application deleted would
@@ -52,6 +56,9 @@ use SConcur\Laravel\View\AsyncViewFactory;
  * resolution and swaps config/events/router/
  * translator/view for their coroutine-safe adapters. This gating keeps
  * web/Octane/CLI/queue completely untouched.
+ *
+ * In every coroutine process, the task pool included, database.default is pointed at
+ * the connection named by config('sconcur.database.default_connection').
  *
  * See docs/fiber-safe-laravel-bridge.ru.md.
  */
@@ -81,10 +88,17 @@ class SConcurServiceProvider extends ServiceProvider
         ]);
 
         $this->registerQueueConnector();
+        $this->registerDatabaseDriver();
         $this->registerTaskPool();
 
         if ($this->isCoroutineWorker()) {
             $this->registerAsyncAdapters();
+        }
+
+        // After the config adapter, so the write lands in the shared base rather
+        // than in the overlay of whichever coroutine happens to be current.
+        if ($this->isCoroutineRuntime()) {
+            $this->useCoroutineDatabaseConnection();
         }
     }
 
@@ -103,6 +117,10 @@ class SConcurServiceProvider extends ServiceProvider
     /**
      * True only in a spawned worker whose handlers run concurrently — the HTTP server
      * and the queue-consumer pool. Everything else (web, CLI, queue:work) is untouched.
+     *
+     * Narrower than isCoroutineRuntime() on purpose: this gates the per-request
+     * adapters (request/session/auth, config, router, locale, view), which the task
+     * pool has no use for.
      */
     private function isCoroutineWorker(): bool
     {
@@ -111,6 +129,18 @@ class SConcurServiceProvider extends ServiceProvider
             [HttpStartCommand::NAME, RabbitmqConsumerStartCommand::NAME],
             true,
         );
+    }
+
+    /**
+     * True in every process that runs application code as coroutines, the task pool
+     * included: TaskPool::run() drives each task as a coroutine of a WaitGroup, so a
+     * blocking PDO handle shared between them is exactly as wrong there as in the
+     * HTTP worker.
+     */
+    private function isCoroutineRuntime(): bool
+    {
+        return $this->isCoroutineWorker()
+            || ($_SERVER['argv'][1] ?? null) === TasksStartCommand::NAME;
     }
 
     /**
@@ -164,6 +194,47 @@ class SConcurServiceProvider extends ServiceProvider
         );
 
         $this->app->singleton(TaskPoolLogger::class, static fn(): TaskPoolLogger => new TaskPoolLogger());
+    }
+
+    /**
+     * Registers the `sconcur_mysql` database driver.
+     *
+     * DatabaseManager::makeConnection() looks its extensions up by connection name
+     * first and by driver name second, both before it reaches ConnectionFactory —
+     * so registering by driver keeps the PDO connectors out of it entirely.
+     *
+     * Unconditional, unlike the async adapters: the feature works synchronously
+     * outside a coroutine too, and gating this would mean `artisan tinker` could
+     * not open the connection the runtime uses.
+     */
+    private function registerDatabaseDriver(): void
+    {
+        $this->app->resolving('db', static function (DatabaseManager $db): void {
+            $db->extend(
+                'sconcur_mysql',
+                static fn(array $config, string $name): SconcurMysqlConnection => (new SconcurMysqlConnector())->connect($config, $name),
+            );
+        });
+    }
+
+    /**
+     * Points database.default at the coroutine-safe connection for the length of
+     * this process, so models, Auth and failed_jobs land on it without a single
+     * change in the application. Outside these processes — migrations, tinker,
+     * anything on php-fpm — the configured default is left alone.
+     *
+     * The value is a connection name rather than a flag so an application can name
+     * its own; null turns the swap off.
+     */
+    private function useCoroutineDatabaseConnection(): void
+    {
+        $connection = config('sconcur.database.default_connection');
+
+        if (!is_string($connection) || $connection === '') {
+            return;
+        }
+
+        config()->set('database.default', $connection);
     }
 
     /**

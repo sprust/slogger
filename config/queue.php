@@ -143,7 +143,9 @@ return [
     */
 
     'batching' => [
-        'database' => env('DB_CONNECTION', 'mysql'),
+        // null follows database.default, so a coroutine process writes these
+        // through the coroutine-safe connection instead of blocking PDO.
+        'database' => null,
         'table'    => 'job_batches',
     ],
 
@@ -160,7 +162,9 @@ return [
 
     'failed' => [
         'driver'   => env('QUEUE_FAILED_DRIVER', 'database-uuids'),
-        'database' => env('DB_CONNECTION', 'mysql'),
+        // null follows database.default, so a coroutine process writes these
+        // through the coroutine-safe connection instead of blocking PDO.
+        'database' => null,
         'table'    => 'failed_jobs',
     ],
 ];

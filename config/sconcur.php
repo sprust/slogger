@@ -30,6 +30,22 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Database
+    |--------------------------------------------------------------------------
+    | The connection from config/database.php that database.default is pointed at
+    | inside every coroutine process — the HTTP worker, the queue-consumer pool and
+    | the task pool. Elsewhere (migrations, tinker, php-fpm) the configured default
+    | is left alone.
+    |
+    | It is a connection name rather than a flag so an application can name its own;
+    | null turns the swap off and leaves every model on whatever it already used.
+    */
+    'database' => [
+        'default_connection' => env('SCONCUR_DB_CONNECTION', 'sconcur_mysql'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Master config
     |--------------------------------------------------------------------------
     | Full mirror of vendor/sconcur/sconcur/config/sconcur.servers.config.json.
