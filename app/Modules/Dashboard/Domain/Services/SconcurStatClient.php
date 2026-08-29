@@ -93,14 +93,10 @@ readonly class SconcurStatClient
      * Adds the configured groups the panel says nothing about, with their numbers at
      * zero.
      *
-     * The panel only knows a worker that pushes telemetry to it. A configured group can
-     * be missing from its answer for two reasons: nothing of it is running, or it runs
-     * something that does not report. Either way, dropping the group from the dashboard
-     * would read as "there is no such pool"; zeros read as "no measurements", which is
-     * the truth.
-     *
-     * The periodic task pool used to be the second case and now reports for itself
-     * (TaskPoolTelemetry), so in practice this covers a pool that is down.
+     * The panel only knows a worker that pushes telemetry to it, so a configured group is
+     * missing from its answer whenever nothing of it is running. Dropping such a group
+     * from the dashboard would read as "there is no such pool"; zeros read as "no
+     * measurements", which is the truth.
      *
      * @param list<SconcurGroupObject> $groups
      *

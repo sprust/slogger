@@ -221,17 +221,16 @@ return [
         'sleep_chunk_ms' => (int) env('SCONCUR_TASKS_SLEEP_CHUNK_MS', 250),
 
         // Automatic coroutine switching, so a tick busy with pure computation cannot
-        // starve the controller that carries the shutdown. Off by default, and that is a
-        // measurement rather than caution — docs/task-pool.ru.md records it: on a pool of
-        // two tasks where one is continuously in Mongo, a preempted coroutine did not get
-        // the thread back for as long as the pool ran, and a five-second pause took
-        // seventy-five. That is exactly the shape of this pool (cron beside the index
-        // builder), so the measured value is the one that stands here.
+        // starve the controller that carries the shutdown — it is the controller's tick
+        // that delivers a signal and reads the control channel. Coarser than the
+        // library's 5 ms default on purpose: this is not a server with dozens of
+        // handlers sharing the thread and nobody here waits on a response, so the worst
+        // reaction to SIGTERM is this quantum plus a sleep chunk against a 20 s deadline.
         //
-        // Turn it on for a task with a long computational stretch, and check on your own
-        // set that its neighbours do not starve. A native blocking call is not preempted
-        // either way; the shutdown deadline is what covers that.
-        'preemption_quantum_ms' => (int) env('SCONCUR_TASKS_PREEMPTION_QUANTUM_MS', 0),
+        // 0 turns it off, which is what a task holding a MySQL transaction on the shared
+        // connection needs: without per-coroutine connections, preemption lets another
+        // task's query land inside that transaction.
+        'preemption_quantum_ms' => (int) env('SCONCUR_TASKS_PREEMPTION_QUANTUM_MS', 1000),
 
         // The tick counters that fill the panel's "In-flight / Handled / Refused"
         // columns for this pool, sent as the snapshot's `consumers` section — a tick is
