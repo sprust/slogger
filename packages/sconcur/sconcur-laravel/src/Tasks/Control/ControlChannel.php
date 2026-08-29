@@ -14,7 +14,7 @@ use Illuminate\Contracts\Cache\Repository as CacheRepository;
  *
  * Signals cannot do this job: stopping one task from php-fpm or from `make art` means
  * finding the pool's pid first. A cache key is reachable from anywhere the application
- * runs, which is exactly what the cron and monitor stop commands used it for before.
+ * runs.
  */
 readonly class ControlChannel
 {
