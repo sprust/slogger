@@ -23,6 +23,10 @@ use SConcur\Laravel\Queue\Rabbitmq\ConsumerRunner;
  * over: fromArgs refuses an argument it does not know, and --connection, --tries and
  * --backoff are ours rather than the runtime's. So the runtime's flags are rebuilt
  * from the parsed options and the rest is kept on this side.
+ *
+ * Run standalone there is no master to forward anything, so the flags are taken from the
+ * group's own `server` block instead — the same values, by the same path the master
+ * would have used.
  */
 class RabbitmqConsumerStartCommand extends Command
 {
@@ -93,7 +97,49 @@ class RabbitmqConsumerStartCommand extends Command
             $args[] = sprintf('--%s=%s', $name, $value);
         }
 
+        return $args === [] ? $this->configuredServerArgs() : $args;
+    }
+
+    /**
+     * The `server` block of the group this command is the worker script of, for a run
+     * with no master to forward it.
+     *
+     * The group is found by what it runs rather than by name, so renaming it in the
+     * config does not quietly leave a standalone consumer on library defaults. Anything
+     * structured — the queue list — travels as JSON, exactly as the master encodes it.
+     *
+     * @return list<string>
+     */
+    protected function configuredServerArgs(): array
+    {
+        $args = [];
+
+        foreach ((array) config('sconcur.http_server.groups', []) as $group) {
+            if (!is_array($group) || !in_array(self::NAME, (array) ($group['workerArgs'] ?? []), true)) {
+                continue;
+            }
+
+            foreach ((array) ($group['server'] ?? []) as $key => $value) {
+                $args[] = sprintf('--%s=%s', $key, static::flagValue($value));
+            }
+
+            break;
+        }
+
         return $args;
+    }
+
+    protected static function flagValue(mixed $value): string
+    {
+        if (is_bool($value)) {
+            return $value ? '1' : '0';
+        }
+
+        if (is_scalar($value)) {
+            return (string) $value;
+        }
+
+        return (string) json_encode($value, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     }
 
     /**

@@ -30,14 +30,9 @@ abstract class AbstractSconcurCommand extends Command
     /**
      * The master config as the library reads it.
      *
-     * The top-level `server` is dropped, because it is not a master key at all: it is
-     * the HTTP group's server tuning, kept beside `groups` precisely so the master does
-     * not forward it to artisan, which would reject flags its command does not declare.
-     * HttpServerRunner reads it from config instead.
-     *
-     * A group's own `server` block is left alone. The consumer group needs it: that is
-     * exactly what the master forwards to its argv and what QueueConsumer::fromArgs
-     * reads back out, and its command declares those flags.
+     * Every group keeps its `server` block: the master forwards it to the worker's argv
+     * verbatim, which is where HttpServer::fromArgs and QueueConsumer::fromArgs read it
+     * back, and both commands declare those flags so artisan accepts them.
      *
      * @return array<string, mixed>
      */
@@ -45,7 +40,16 @@ abstract class AbstractSconcurCommand extends Command
     {
         $config = (array) config('sconcur.http_server', []);
 
-        unset($config['server']);
+        if ($config === []) {
+            // The package does not merge its config, so an unpublished one is empty
+            // rather than defaulted. Saying that beats a "groups must be a non-empty
+            // list" from the library, which reads like a broken config rather than a
+            // missing one.
+            throw new RuntimeException(
+                'sconcur: config("sconcur.http_server") is empty — publish the config with'
+                . ' `php artisan vendor:publish --tag=sconcur-laravel`',
+            );
+        }
 
         return $config;
     }

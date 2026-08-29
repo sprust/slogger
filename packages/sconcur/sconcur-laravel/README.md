@@ -46,7 +46,7 @@ docs/                     — ТЗ и план
 
 ## Артизан-команды
 
-Мастер и HTTP-сервер инстанцируются прямо в командах из `config('sconcur.http_server')`
+Мастер инстанцируется прямо в командах из `config('sconcur.http_server')`
 (через `MasterConfig::fromArray`), без прокидывания JSON-пути.
 
 ```
@@ -54,7 +54,7 @@ sconcur:servers:master:start|stop                 # MasterRunner (supervisor, с
 sconcur:servers:master:status [--group=NAME]      # статус: все пулы или один
 sconcur:servers:master:reload [--group=NAME]      # rolling restart: все пулы или один
 sconcur:servers:http:start                        # один HTTP-сервер в foreground (build + serve)
-sconcur:servers:rabbitmq:start                     # пул консьюмеров очереди в foreground
+sconcur:servers:rabbitmq:start                    # пул консьюмеров очереди в foreground
 sconcur:rabbitmq:declare                          # объявить очереди и их очереди ожидания
 sconcur:extension:load                            # скачать .so (запускает downloader)
 sconcur:extension:status                          # статус расширения (in-process)
@@ -90,15 +90,26 @@ MySQL-транзакции**. Блокирующий PDO общий на про�
 
 ## Установка
 
-Подключён через path-репозиторий в корневом `composer.json`. Публикация конфига:
+Подключён через path-репозиторий в корневом `composer.json`. Конфиг обязателен:
 
 ```bash
 php artisan vendor:publish --tag=sconcur-laravel
 ```
 
+Пакет не мержит свой конфиг в приложение, поэтому опубликованный файл — это весь
+`config('sconcur')`: приложение владеет каждым значением, включая дефолты. Мерж оставлял
+бы за спиной приложения пакетные значения, и удалённый ключ тихо возвращался бы к
+пакетному дефолту; а ещё пакету пришлось бы держать дефолты для того, чего он знать не
+может, — какие очереди читать и с каким весом. Без публикации команды говорят об этом
+прямо, а не падают на пустом конфиге.
+
+В пакете лежит каркас: то, что верно для любого приложения. Детали — свои очереди, их
+веса и число процессов — живут в опубликованном файле.
+
 ## Конфигурация (ENV)
 
-Все значения `config/sconcur.php` берутся из ENV; дефолты — для dev/проекта.
+Все значения `config/sconcur.php` берутся из ENV. Дефолты ниже — пакетные, из каркаса;
+в опубликованном файле приложение ставит свои.
 
 ### Общие
 
@@ -122,7 +133,7 @@ php artisan vendor:publish --tag=sconcur-laravel
 | `SCONCUR_HTTP_RESTART_BACKOFF_MS` | `200` | стартовый backoff рестарта, мс |
 | `SCONCUR_HTTP_MAX_RESTART_BACKOFF_MS` | `30000` | макс. backoff рестарта, мс |
 
-### HTTP-сервер (`server`)
+### HTTP-сервер (блок `server` группы `http`)
 
 | ENV | Дефолт | Назначение |
 |---|---|---|
@@ -145,13 +156,17 @@ php artisan vendor:publish --tag=sconcur-laravel
 
 Один мастер супервизит несколько непохожих пулов под одним локом и одним журналом,
 поэтому `workerScript`, `workerCount`, `workerArgs` и `server` живут не на верхнем
-уровне конфига, а в элементе списка `groups`. Здесь группа одна — `http`.
+уровне конфига, а в элементе списка `groups`.
 
-Блок `server` — исключение: мастер форвардит его в argv воркеров как есть, а воркер
-здесь — artisan, который падает на флагах, не объявленных командой. Поэтому `server`
-лежит рядом с `groups`, вычищается перед сборкой мастера
-(`AbstractSconcurCommand::masterConfigArray`), а воркер читает его из этого же конфига
-сам (`HttpServerRunner::makeServer`).
+Блок `server` группы мастер форвардит в argv её воркеров как есть, поэтому обе команды —
+`http:start` и `rabbitmq:start` — объявляют эти флаги: artisan отвергает то, чего не
+объявлено. Читают их `HttpServer::fromArgs` и `QueueConsumer::fromArgs`. Всё, что не
+скаляр (список очередей), мастер кодирует в JSON по дороге.
+
+Запуск без мастера форвардить некому, поэтому команда в этом случае берёт тот же блок
+`server` из конфига своей группы. Группа ищется по тому, что она запускает, а не по
+имени, — иначе переименование группы тихо оставило бы standalone-запуск на дефолтах
+библиотеки.
 
 ## Очередь (`sconcur_rabbitmq`)
 
@@ -213,9 +228,9 @@ php artisan sconcur:servers:rabbitmq:start --queues='[{"name":"default","corouti
 | ENV | Дефолт | Назначение |
 |---|---|---|
 | `SCONCUR_RABBITMQ_WORKER_COUNT` | `0` | процессов в пуле; меньше `1` — группа не попадает в конфиг мастера вовсе |
-| `SCONCUR_RABBITMQ_QUEUES` | `[{"name":"default","coroutineCount":4}]` | очереди и их веса, JSON |
+| `SCONCUR_RABBITMQ_QUEUES` | `[{"name":"default","coroutineCount":1}]` | очереди и их веса, JSON |
 | `SCONCUR_RABBITMQ_PREFETCH_COUNT` | `1` | неподтверждённых сообщений на консьюмера |
-| `SCONCUR_RABBITMQ_HANDLER_TIMEOUT_MS` | `60000` | предел на одно сообщение в обработчике |
+| `SCONCUR_RABBITMQ_HANDLER_TIMEOUT_MS` | `0` | предел на одно сообщение в обработчике; `0` — без предела |
 | `SCONCUR_RABBITMQ_REQUEUE_ON_FAILURE` | `false` | вернуть упавшее сообщение в очередь вместо dead-letter |
 | `SCONCUR_RABBITMQ_MAX_MESSAGES` | `0` | дренировать и выйти после N сообщений |
 | `SCONCUR_RABBITMQ_MAX_RUNTIME_SECONDS` | `0` | дренировать и выйти через N секунд |
@@ -225,9 +240,16 @@ php artisan sconcur:servers:rabbitmq:start --queues='[{"name":"default","corouti
 | `SCONCUR_RABBITMQ_TRIES` | `1` | попыток до `failed_jobs` |
 | `SCONCUR_RABBITMQ_BACKOFF` | `0` | задержка перед повтором, секунд |
 
-Ноль в этой переменной не значит «ни одного воркера»: для мастера `workerCount: 0` —
-это воркер на ядро (`WorkerGroup`, `Cpu::count()`). Поэтому пул выключается не нулём в
-группе, а тем, что группы в конфиге не оказывается.
+Ноль в `SCONCUR_RABBITMQ_WORKER_COUNT` не значит «ни одного воркера»: для мастера
+`workerCount: 0` — это воркер на ядро (`WorkerGroup`, `Cpu::count()`). Поэтому пул
+выключается не нулём в группе, а тем, что группы в конфиге не оказывается.
+
+Вес очереди — это то, чем в схеме с `queue:work` было число процессов на неё: сколько
+консьюмеров она получает, каждый на своём канале. Обработчик при этом всё равно
+выполняется в отдельной корутине на сообщение.
+
+`handlerTimeoutMs` нулевой по умолчанию, потому что предел не замедляет джобу, которую
+поймал, а отклоняет её, — решать это приложению, знающему свои джобы.
 
 `handlerTimeoutMs` разматывает зависший обработчик и отклоняет его сообщение; воркер
 берёт следующее. `WorkerOptions::$timeout` при этом ноль намеренно: `SIGALRM` воркера

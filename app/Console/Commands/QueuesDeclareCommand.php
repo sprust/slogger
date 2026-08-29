@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
+use SConcur\Laravel\Console\RabbitmqDeclareCommand;
 use VladimirYuldashev\LaravelQueueRabbitMQ\Console\QueueDeclareCommand;
 
 class QueuesDeclareCommand extends Command
@@ -26,11 +27,29 @@ class QueuesDeclareCommand extends Command
      */
     public function handle(): int
     {
+        $this->declareSconcurRabbitmq();
         $this->declareRabbitmq();
 
         return self::SUCCESS;
     }
 
+    /**
+     * The queues the sconcur consumer pool reads, and the wait queues their delays go
+     * through. Nothing else declares them — the consumer runtime declares nothing — so a
+     * pool started before this would spin on 404.
+     */
+    private function declareSconcurRabbitmq(): void
+    {
+        $this->warn('[SCONCUR RABBITMQ]');
+
+        $this->call(RabbitmqDeclareCommand::class);
+    }
+
+    /**
+     * The queues still served by the php-amqplib driver: the `slogger` dispatcher queue,
+     * which belongs to the external slogger/laravel package, and anything else left on
+     * the `rabbitmq` connection.
+     */
     private function declareRabbitmq(): void
     {
         $this->warn('[RABBITMQ]');
@@ -48,7 +67,7 @@ class QueuesDeclareCommand extends Command
         }
 
         if (empty($rabbitmqQueueNames)) {
-            $this->error('No queues found.');
+            $this->line('No queues on the php-amqplib connection.');
 
             return;
         }

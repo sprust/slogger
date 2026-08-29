@@ -2,8 +2,6 @@
 
 declare(strict_types=1);
 
-// Published into the application (`vendor:publish --tag=sconcur-laravel`) and read from
-// there, not from here. See the package README.
 return [
     /*
     |--------------------------------------------------------------------------
@@ -84,36 +82,45 @@ return [
             ],
 
             /*
-            | The queue-consumer pool. Its `server` block travels the same way the http
-            | group's does: forwarded to the worker's argv verbatim, read back by
-            | QueueConsumer::fromArgs, with the command declaring those flags so artisan
-            | accepts them.
-            |
-            | Off unless asked for: a worker count below one leaves the group out of the
-            | master config entirely. Setting workerCount to 0 would not do it — to the
-            | master that means one worker per CPU, not none.
+            | The queue-consumer pool. A worker count below one leaves the group out of
+            | the master config entirely, which is how the pool is turned off: setting
+            | workerCount to 0 would not do it — to the master that means one worker per
+            | CPU, not none.
             */
-            (int) env('SCONCUR_RABBITMQ_WORKER_COUNT', 0) < 1 ? null : [
+            (int) env('SCONCUR_RABBITMQ_WORKER_COUNT', 1) < 1 ? null : [
                 'name'         => 'rabbitmq',
                 'workerScript' => base_path('artisan'),
-                'workerCount'  => (int) env('SCONCUR_RABBITMQ_WORKER_COUNT'),
+                'workerCount'  => (int) env('SCONCUR_RABBITMQ_WORKER_COUNT', 1),
                 'workerArgs'   => ['sconcur:servers:rabbitmq:start'],
                 'server'       => [
                     // Queues and their weights: how many consumers each gets, every
                     // one on its own channel. A handler still runs in its own coroutine
                     // per message. The master JSON-encodes it on the way to argv.
+                    //
+                    // The weights are what the supervisor used to carry as process
+                    // counts: five `queue:work` for the default queue, one each for the
+                    // other two.
                     'queues'           => [
                         [
-                            'name'           => env('SCONCUR_RABBITMQ_QUEUE', 'default'),
-                            'coroutineCount' => (int) env('SCONCUR_RABBITMQ_QUEUE_CONSUMERS', 1),
+                            'name'           => 'default',
+                            'coroutineCount' => (int) env('SCONCUR_RABBITMQ_DEFAULT_CONSUMERS', 5),
+                        ],
+                        [
+                            'name'           => env('QUEUE_TRACE_TREE_NAME', 'trace-tree'),
+                            'coroutineCount' => (int) env('QUEUE_TRACE_TREE_WORKERS_COUNT', 1),
+                        ],
+                        [
+                            'name'           => env('QUEUE_TRACES_CLEANER_NAME', 'traces-clearing'),
+                            'coroutineCount' => (int) env('SCONCUR_RABBITMQ_CLEANER_CONSUMERS', 1),
                         ],
                     ],
                     // One is the right answer for a coroutine pool: the next message
                     // goes to a free coroutine rather than into a busy one's buffer.
                     'prefetchCount'    => (int) env('SCONCUR_RABBITMQ_PREFETCH_COUNT', 1),
-                    // No deadline unless one is asked for. A deadline refuses the job it
-                    // catches rather than slowing it down, so the application decides
-                    // whether its jobs have one.
+                    // No deadline by default: trace-tree and traces-clearing ran under
+                    // `queue:work --timeout=0` before this pool replaced them, and a tree
+                    // build is legitimately long. A deadline here would refuse the job,
+                    // not slow it down.
                     'handlerTimeoutMs' => (int) env('SCONCUR_RABBITMQ_HANDLER_TIMEOUT_MS', 0),
                     // False dead-letters a failed message (or drops it where the queue
                     // names no exchange); true loops forever on one that always fails.
@@ -125,6 +132,7 @@ return [
                 ],
             ],
         ]),
+
     ],
 
     /*
@@ -142,8 +150,12 @@ return [
         'rabbitmq' => [
             'connection' => env('SCONCUR_RABBITMQ_CONNECTION', 'sconcur_rabbitmq'),
 
+            // The same names the application publishes to, so the topology cannot
+            // drift from where the jobs actually go.
             'queues' => [
-                env('SCONCUR_RABBITMQ_QUEUE', 'default'),
+                'default',
+                env('QUEUE_TRACE_TREE_NAME', 'trace-tree'),
+                env('QUEUE_TRACES_CLEANER_NAME', 'traces-clearing'),
             ],
 
             // Attempts before Worker::process() writes the job to failed_jobs, and the

@@ -48,7 +48,7 @@ flowchart TB
 - sconcur-laravel — a bundled package (`packages/sconcur/sconcur-laravel/`, connected as a path repository) that binds Laravel to SConcur: the coroutine-scoped application, the HTTP worker, and the `sconcur:*` artisan commands.
 - nginx — a reverse proxy in front of the HTTP workers; it is the only externally published port (`APP_PORT`, 8097 by default). The upstream host is resolved per request, so recreating the workers container does not require an nginx restart.
 - Receiver — a standalone Go service (`servers/receiver/`) that accepts trace payloads over a TCP socket and writes them into the buffer.
-- Storage — MongoDB (traces/logs), MySQL (users/services/auth), Redis/RabbitMQ (queues). Reads and writes from the HTTP workers go through SConcur's non-blocking Mongo and MySQL drivers.
+- Storage — MongoDB (traces/logs), MySQL (users/services/auth), RabbitMQ (queues), Redis (cache). Reads and writes from the HTTP workers go through SConcur's non-blocking Mongo and MySQL drivers.
 - Frontend — Vue 3 + Vite + TypeScript (`frontend/`).
 
 Business logic is split into modules under `app/Modules/<ModuleName>/` with strict layer separation (Deptrac).
@@ -65,12 +65,11 @@ The backend does not run under php-fpm or Octane. HTTP requests are served by SC
 - Coroutine-scoped application. Under concurrent fibers, the Octane model (clone the app + swap the global container) is unsafe: neighbouring requests would see each other's state. Instead, `bootstrap/app.php` builds `SConcur\Laravel\Foundation\AsyncApplication` — a drop-in subclass of `Illuminate\Foundation\Application` that moves per-request state into the coroutine context: `request`, `auth`, `session`, `cookie`, the config overlay (`config()->set`), the current route, the locale, `View::share`, and `defer`. Async mode is enabled only inside the HTTP worker; for CLI, queues, and cron the application behaves exactly as a stock Laravel one.
 - Non-blocking I/O. Queries to MongoDB and MySQL go through SConcur drivers (`Model::sconcur()`), so a fiber waiting on the database yields the process to other requests instead of blocking it. Where a single request needs several shard queries at once, they are run in parallel through `SConcur\WaitGroup` (search, charts, tree building).
 - Transaction caveat. Do not perform sconcur-async work (Mongo, sconcur-SQL, HTTP client, `Sleeper`) inside an open MySQL transaction: the blocking PDO connection is shared by the process, so while one fiber awaits, another can end up inside its transaction. Do async work before `beginTransaction` or after `commit` (or push it into a queue).
+- Queues on the same runtime. `QUEUE_CONNECTION` defaults to `sconcur_rabbitmq`: a Laravel queue driver over the SConcur AMQP feature, plus a consumer pool that runs as another group of the same master. The `default`, `trace-tree` and `traces-clearing` queues used to be three supervisor programs — five, one and one processes, each blocked on its own queue; they are now one process reading all three at once with a coroutine per delivery, and the former process counts became per-queue weights in `SCONCUR_RABBITMQ_QUEUES`. A slow job costs one message rather than the worker. The wire format is the one `vladimir-yuldashev/laravel-queue-rabbitmq` writes — same body, same message properties, same `laravel.attempts` header — so a job published by either driver is readable and runnable by the other. The `slogger` queue stays on php-amqplib: it is served by `slogger:dispatcher:start` from the external `slogger/laravel` package, a supervisor of its own that spawns its own `queue:work` processes. See `packages/sconcur/sconcur-laravel/README.md`.
 
 Details on the bridge and the coroutine context: `packages/sconcur/sconcur-laravel/README.md` and its `docs/`.
 
 ### Runtime dashboard (SConcur stats)
-
-The package also ships a queue transport of its own, `sconcur_rabbitmq`: a Laravel queue driver over the SConcur AMQP feature, plus a consumer pool that runs as another group of the same master and reads its queues with a coroutine per delivery rather than one blocking `queue:work` process per worker. Its wire format is the one `vladimir-yuldashev/laravel-queue-rabbitmq` writes — same body, same message properties, same `laravel.attempts` header — so a job published by either driver is readable and runnable by the other. It is available but not in use: this application's own queues are still served by Redis and `queue:work`, and nothing is routed to the transport until a job or a queue names that connection. See `packages/sconcur/sconcur-laravel/README.md`.
 
 The master's telemetry panel (`SCONCUR_HTTP_PANEL_PORT`, protected by `SCONCUR_HTTP_ADMIN_TOKEN`) is polled by the backend and rendered on the "Sconcur" dashboard tab: the master totals (workers, hung workers, CPU, RSS, goroutines, in-flight and completed requests, average duration), a per-group breakdown, a per-worker breakdown carrying the group each worker belongs to, and a chart with a rolling 5-minute window — RPS and CPU by default. A pool consuming a broker queue reports deliveries instead of requests, so its counters (delivered, acked, refused, in-flight) take the place of the request ones in its row and add their own chart metrics; an HTTP pool omits that section. RPS is derived on the client from the delta of completed requests between polls. If the panel host or the token is not configured, or the master is down, the tab shows the runtime as unavailable instead of erroring.
 
@@ -176,7 +175,7 @@ Stale traces are removed automatically. The retention period is set by the `TRAC
 - nginx — reverse proxy in front of the HTTP workers
 - MongoDB (`mongodb/laravel-mongodb`, non-blocking SConcur driver) — traces and logs
 - MySQL — users, services, auth
-- Redis / RabbitMQ — queues
+- RabbitMQ — queues; Redis — cache
 - Go — trace receiver service (`servers/receiver/`)
 - Vue 3 + Vite + TypeScript — web panel
 - Static analysis: PHPStan; layer boundaries: Deptrac

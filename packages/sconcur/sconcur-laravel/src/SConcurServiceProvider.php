@@ -29,8 +29,14 @@ use SConcur\Laravel\View\AsyncViewFactory;
 /**
  * Laravel service provider for the SConcur integration.
  *
- * Always: merges config, registers the artisan commands and the `sconcur_rabbitmq`
- * queue connector.
+ * Always: registers the artisan commands and the `sconcur_rabbitmq` queue connector.
+ *
+ * The config is published, not merged. Merging would leave the package's own defaults
+ * standing behind the application's file, so a value the application deleted would
+ * quietly come back — and the package would have to carry defaults for things only the
+ * application knows, such as which queues to consume. Publish it with
+ * `vendor:publish --tag=sconcur-laravel`; without it config('sconcur') is empty and the
+ * commands say so rather than running on someone else's numbers.
  * Only inside a coroutine worker process (argv = `artisan sconcur:servers:http:start`
  * or `artisan sconcur:servers:rabbitmq:start`): enables AsyncApplication scoped
  * resolution and swaps config/events/router/
@@ -49,8 +55,6 @@ class SConcurServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->mergeConfigFrom(__DIR__ . '/../config/sconcur.php', 'sconcur');
-
         $this->commands([
             MasterStartCommand::class,
             MasterStopCommand::class,
