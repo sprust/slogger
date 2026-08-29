@@ -7,7 +7,6 @@ namespace App\Modules\User\Repositories;
 use App\Models\Users\User;
 use App\Modules\User\Entities\UserDetailObject;
 use App\Modules\User\Parameters\UserCreateParameters;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
@@ -15,69 +14,55 @@ class UserRepository
 {
     public function create(UserCreateParameters $parameters): int
     {
-        $now = now()->toDateTimeString();
+        $newUser = new User();
 
-        $result = User::sconcur()->exec(
-            'INSERT INTO users (first_name, last_name, email, password, api_token, created_at, updated_at)'
-            . ' VALUES (?, ?, ?, ?, ?, ?, ?)',
-            [
-                $parameters->firstName,
-                $parameters->lastName,
-                $parameters->email,
-                Hash::make($parameters->password),
-                Str::random(50),
-                $now,
-                $now,
-            ]
-        );
+        $newUser->first_name = $parameters->firstName;
+        $newUser->last_name  = $parameters->lastName;
+        $newUser->email      = $parameters->email;
+        $newUser->password   = Hash::make($parameters->password);
+        $newUser->api_token  = Str::random(50);
 
-        return $result->lastInsertId;
+        $newUser->saveOrFail();
+
+        return $newUser->id;
     }
 
     public function findById(int $id): ?UserDetailObject
     {
-        return $this->findOneBy('id', $id);
+        return $this->makeUserFullObjectByUserOrNull(
+            User::query()->where('id', $id)->first()
+        );
     }
 
     public function findByEmail(string $email): ?UserDetailObject
     {
-        return $this->findOneBy('email', $email);
+        return $this->makeUserFullObjectByUserOrNull(
+            User::query()->where('email', $email)->first()
+        );
     }
 
     public function findByToken(string $token): ?UserDetailObject
     {
-        return $this->findOneBy('api_token', $token);
+        return $this->makeUserFullObjectByUserOrNull(
+            User::query()->where('api_token', $token)->first()
+        );
     }
 
-    private function findOneBy(string $column, int|string $value): ?UserDetailObject
+    private function makeUserFullObjectByUserOrNull(?User $user): ?UserDetailObject
     {
-        $rows = User::sconcur()->fetchAll(
-            "SELECT id, first_name, last_name, email, password, api_token, created_at, updated_at"
-            . " FROM users WHERE $column = ? LIMIT 1",
-            [$value]
-        );
-
-        if (count($rows) === 0) {
+        if (!$user) {
             return null;
         }
 
-        return $this->makeUserObjectByRow($rows[0]);
-    }
-
-    /**
-     * @param array<string, mixed> $row
-     */
-    private function makeUserObjectByRow(array $row): UserDetailObject
-    {
         return new UserDetailObject(
-            id: (int) $row['id'],
-            firstName: (string) $row['first_name'],
-            lastName: $row['last_name'] !== null ? (string) $row['last_name'] : null,
-            email: (string) $row['email'],
-            password: (string) $row['password'],
-            apiToken: (string) $row['api_token'],
-            createdAt: new Carbon((string) $row['created_at']),
-            updatedAt: new Carbon((string) $row['updated_at']),
+            id: $user->id,
+            firstName: $user->first_name,
+            lastName: $user->last_name,
+            email: $user->email,
+            password: $user->password,
+            apiToken: $user->api_token,
+            createdAt: $user->created_at,
+            updatedAt: $user->updated_at,
         );
     }
 }
