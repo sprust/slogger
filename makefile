@@ -107,29 +107,9 @@ composer:
 composer-fresh:
 	docker-compose run --rm --no-deps -e XDEBUG_MODE=off $(PHP_FPM_SERVICE) composer ${c}
 
-# Picks up new PHP code without dropping a request: a reload rolls the workers one slot
-# at a time, and the ones still listening keep the port served through it. Stopping the
-# master instead leaves nobody on the port until the supervisor has started it again,
-# which is a refused connection for anyone knocking in that window.
-#
-# What a reload does not replace is the master process itself. A new sconcur.so or a new
-# version of the library reaches the workers but not their supervisor, so that still
-# calls for `make sconcur-restart` — or for a deploy, which recreates the container
-# outright. A changed config does land: the master re-reads it from disk on every roll.
-#
-# The cron and the index monitor used to be stopped here by name. They are tasks of the
-# coroutine pool now, which the master supervises, so rolling the master rolls them too
-# — and calling the old commands would abort this target before it ever got that far,
-# since make stops at the first non-zero exit and both were deleted with them.
-#
-# `queue:restart` and `slogger:dispatcher:stop` are gone for the same reason: both spoke
-# to processes that no longer exist. The first raises a cache flag a `queue:work` daemon
-# reads between jobs, and the queues are served by the consumer pool, which does not run
-# Worker::daemon() and never looks at it. The second stopped the dispatcher's own pool of
-# `queue:work` processes, and its queue is one of the consumer pool's now — it had been
-# answering "Dispatcher not started" for a while.
-#
-# What is left is what still does something: declare the topology, then roll the workers.
+# Rolling reload, not a stop: the workers still listening keep the port served while the
+# others are replaced. A new extension or library reaches the workers but not the master
+# above them — that one needs sconcur-restart.
 workers-restart:
 	make workers-art c='queues-declare'
 	make sconcur-reload
@@ -204,14 +184,11 @@ sconcur-update:
 	make up
 	make sconcur-status
 
-# Rolls every group of the master, replacing each worker with a fresh process on the
-# current code and config. The master keeps running and its pid does not change.
+# Fresh worker processes on the current code and config; the master keeps running.
 sconcur-reload:
 	make workers-art c=sconcur:servers:master:reload
 
-# The heavier one: the master itself goes down and the supervisor starts it again. Needed
-# when what changed is the library or the extension under the master, not the application
-# code above it. The port is unserved in between.
+# Takes the master down too, leaving the port unserved until the supervisor starts it.
 sconcur-restart:
 	make workers-art c=sconcur:servers:master:stop
 
