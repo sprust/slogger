@@ -77,6 +77,9 @@ return [
          */
         'sconcur_mysql' => [
             'driver' => 'sconcur_mysql',
+            // Same key as above so the two connections cannot drift: DatabaseManager
+            // expands it through ConfigurationUrlParser before the driver sees it.
+            'url' => env('DATABASE_URL'),
             'host' => env('DB_HOST', '127.0.0.1'),
             'port' => env('DB_PORT', '3306'),
             'database' => env('DB_DATABASE', 'forge'),

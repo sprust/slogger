@@ -85,6 +85,14 @@ class Job extends BaseJob implements JobContract
             payload: $this->getRawBody(),
             queue: $this->queue,
             attempts: $this->attempts(),
+            // The channel the consumer runtime lent this handler, which no other handler
+            // holds. Without it the republish would go out on a channel shared with every
+            // coroutine in the process, and a delayed publish waits for a confirmation —
+            // which is channel-wide, so neighbours would collect each other's answers and
+            // a released job could be reported as delivered while the broker dropped it.
+            // Outside a handler this is the channel the basic.get arrived on; null once
+            // the loan is over, and then laterRaw leases one.
+            channel: $this->delivery->channel(),
         );
 
         if (!$this->delivery->isSettled()) {

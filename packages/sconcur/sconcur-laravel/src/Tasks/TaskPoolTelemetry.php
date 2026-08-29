@@ -41,6 +41,9 @@ class TaskPoolTelemetry
     /** The master flags a worker hung after 15 s without a snapshot; report well inside that. */
     protected const int INTERVAL_MS = 1000;
 
+    /** The kernel clock tick, read once per process; see clockTicksPerSecond(). */
+    protected static ?float $clockTicks = null;
+
     /** @var resource|null */
     protected mixed $socket = null;
 
@@ -102,11 +105,20 @@ class TaskPoolTelemetry
             return;
         }
 
+        $frame = pack('N', strlen($body)) . $body;
+
         // Non-blocking on purpose: a collector that stopped reading must slow the pool
-        // down by nothing at all. A short write is a dropped snapshot, which the
-        // at-most-once contract allows, so it is not retried — but a broken pipe means
-        // the collector is gone, and the next push reconnects.
-        if (@fwrite($handle, pack('N', strlen($body)) . $body) === false) {
+        // down by nothing at all. But a short write cannot be shrugged off as a dropped
+        // snapshot — the stream is length-prefixed, so half a frame left in the socket
+        // makes the collector read the next frame's header as the tail of this body and
+        // mis-frame everything after it. Depending on what the bytes decode to, the pool
+        // either disappears from the panel for the life of the process or the collector
+        // drops the connection on an absurd length. Dropping it here is the way back:
+        // the next push reconnects, and only this snapshot is lost.
+        //
+        // Compared against the length rather than `=== false` because a non-blocking
+        // write reports the bytes it managed, and a partial one is a number, not false.
+        if (@fwrite($handle, $frame) !== strlen($frame)) {
             $this->close();
         }
     }
@@ -240,8 +252,27 @@ class TaskPoolTelemetry
             return null;
         }
 
+        $hertz = $this->clockTicksPerSecond();
+
+        return ((float) $fields[11] + (float) $fields[12]) / $hertz;
+    }
+
+    /**
+     * The kernel's clock tick, asked for once.
+     *
+     * It cannot change while the process runs, and reading it costs a fork and an exec —
+     * which on the one-second reporting interval would be some eighty thousand of them a
+     * day, inside a runtime whose whole point is not to block. 100 is the Linux default
+     * and the fallback for a host where shell_exec is disabled.
+     */
+    protected function clockTicksPerSecond(): float
+    {
+        if (self::$clockTicks !== null) {
+            return self::$clockTicks;
+        }
+
         $hertz = (float) (@shell_exec('getconf CLK_TCK') ?: 100);
 
-        return ((float) $fields[11] + (float) $fields[12]) / ($hertz > 0 ? $hertz : 100);
+        return self::$clockTicks = $hertz > 0 ? $hertz : 100.0;
     }
 }

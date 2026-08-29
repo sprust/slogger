@@ -40,8 +40,9 @@ src/View/                 — AsyncViewFactory (View::share per-coroutine)
 docs/                     — ТЗ и план
 ```
 
-Адаптеры подключаются **только** в воркере (`isHttpWorker()` по argv) — web/Octane/CLI/queue
-не затронуты. Все per-request состояния (`request`/`auth`/`session`/`cookie`, config-overlay,
+Адаптеры подключаются **только** в воркере (`isCoroutineWorker()` по argv: `http:start`
+и `rabbitmq:start`) — web/Octane/CLI/queue не затронуты. Соединение с БД подменяется по
+более широкому `isCoroutineRuntime()`, куда входит ещё и пул задач. Все per-request состояния (`request`/`auth`/`session`/`cookie`, config-overlay,
 текущий маршрут, локаль, `View::share`, defer) живут в контексте корутины.
 
 Контекст корутины берётся из библиотеки: `SConcur\Context\Context::current()`
@@ -183,8 +184,13 @@ PDO.
 транзакции, и следующая команда любой корутины в ней будет его ждать. При фан-ауте внутри
 транзакции пользуйся `fetchAll`/`select`.
 
-`afterCommit` и `dispatchAfterCommit` под конкуренцией пока некорректны:
-`DatabaseTransactionsManager` — синглтон на процесс. Корутинная версия — отдельная работа.
+`afterCommit` и `dispatchAfterCommit` корректны под конкуренцией: в корутинных процессах
+`db.transactions` — это `CoroutineTransactionsManager`, который держит по менеджеру
+фреймворка на корутину и только маршрутизирует к нужному. Без него один синглтон на
+процесс ключевал бы записи именем соединения, а не тем, кто открыл транзакцию, и коммит
+одной корутины выполнял бы `afterCommit` соседней при ещё открытой у той транзакции.
+Это не теория: `Model::saveOrFail()` — это транзакция, так что обычное создание модели
+уже туда попадает.
 
 ### Отличия от PDO
 
@@ -200,6 +206,14 @@ PDO.
 - `pretend()` держит флаг в общем объекте: в корутинном рантайме им пользоваться нельзя.
 - Миграции и `schema:dump` остаются на `mysql`: `db:dump` зовёт `mysqldump` мимо
   соединения.
+- Драйвер очереди `database` (`Illuminate\Queue\DatabaseQueue`) на этом соединении не
+  работает: он спрашивает у PDO имя и версию драйвера. Очереди здесь на AMQP, так что это
+  замечание, а не преграда, — но соединение для `jobs` пришлось бы назвать явно.
+
+Всё остальное соединение по имени не называет и потому едет за `database.default`:
+`failed_jobs` и `job_batches` (после того как в `config/queue.php` они стали `null`),
+`Auth` через eloquent-провайдер, модели без `protected $connection`. Mongo-модели и
+mongo-миграции называют `mongodb.*` явно — и должны.
 
 ## Установка
 
@@ -228,7 +242,10 @@ php artisan vendor:publish --tag=sconcur-laravel
 
 | ENV | Дефолт | Назначение |
 |---|---|---|
-| `SCONCUR_ASYNC` | `false` | включить coroutine-scoped приложение (`AsyncApplication`) |
+| `SCONCUR_PANEL_HOST` | `http://127.0.0.1:28081/api/stats` | откуда дашборд читает статистику мастера |
+
+Переключателя у coroutine-scoped приложения нет: адаптеры включает сам провайдер,
+когда видит в argv команду корутинного воркера.
 
 ### Мастер (supervisor)
 
@@ -348,7 +365,8 @@ php artisan sconcur:servers:rabbitmq:start --queues='[{"name":"default","corouti
 | ENV | Дефолт | Назначение |
 |---|---|---|
 | `SCONCUR_RABBITMQ_WORKER_COUNT` | `0` | процессов в пуле; меньше `1` — группа не попадает в конфиг мастера вовсе |
-| `SCONCUR_RABBITMQ_QUEUES` | `[{"name":"default","coroutineCount":1}]` | очереди и их веса, JSON |
+| `SCONCUR_RABBITMQ_QUEUE` | `default` | очередь, которую читает пул |
+| `SCONCUR_RABBITMQ_QUEUE_CONSUMERS` | `1` | вес этой очереди — сколько консьюмеров она получает |
 | `SCONCUR_RABBITMQ_PREFETCH_COUNT` | `1` | неподтверждённых сообщений на консьюмера |
 | `SCONCUR_RABBITMQ_HANDLER_TIMEOUT_MS` | `0` | предел на одно сообщение в обработчике; `0` — без предела |
 | `SCONCUR_RABBITMQ_REQUEUE_ON_FAILURE` | `false` | вернуть упавшее сообщение в очередь вместо dead-letter |
@@ -356,13 +374,18 @@ php artisan sconcur:servers:rabbitmq:start --queues='[{"name":"default","corouti
 | `SCONCUR_RABBITMQ_MAX_RUNTIME_SECONDS` | `0` | дренировать и выйти через N секунд |
 | `SCONCUR_RABBITMQ_MAX_MEMORY_BYTES` | `0` | дренировать и выйти по размеру кучи |
 | `SCONCUR_RABBITMQ_CONNECTION` | `sconcur_rabbitmq` | соединение `config/queue.php` для джоб |
-| `SCONCUR_RABBITMQ_DECLARE_QUEUES` | `default` | что объявляет `sconcur:rabbitmq:declare`, через запятую |
+| `SCONCUR_RABBITMQ_MEMORY_MB` | `128` | предел памяти воркера, МиБ |
 | `SCONCUR_RABBITMQ_TRIES` | `1` | попыток до `failed_jobs` |
 | `SCONCUR_RABBITMQ_BACKOFF` | `0` | задержка перед повтором, секунд |
 
 Ноль в `SCONCUR_RABBITMQ_WORKER_COUNT` не значит «ни одного воркера»: для мастера
 `workerCount: 0` — это воркер на ядро (`WorkerGroup`, `Cpu::count()`). Поэтому пул
 выключается не нулём в группе, а тем, что группы в конфиге не оказывается.
+
+Каркас описывает одну очередь, потому что больше он знать не может: список очередей и
+их веса — то, что приложение ставит в опубликованном файле, где `queues` может быть
+списком любой длины. Он же и объявляется командой `sconcur:rabbitmq:declare`, которая
+читает `sconcur.queue.rabbitmq.queues`.
 
 Вес очереди — это то, чем в схеме с `queue:work` было число процессов на неё: сколько
 консьюмеров она получает, каждый на своём канале. Обработчик при этом всё равно
@@ -374,6 +397,26 @@ php artisan sconcur:servers:rabbitmq:start --queues='[{"name":"default","corouti
 `handlerTimeoutMs` разматывает зависший обработчик и отклоняет его сообщение; воркер
 берёт следующее. `WorkerOptions::$timeout` при этом ноль намеренно: `SIGALRM` воркера
 Laravel убил бы процесс вместе со всеми обработчиками, работающими рядом.
+
+## Пул задач (`sconcur:tasks:start`)
+
+Третий рантайм пакета: один процесс, каждая настроенная задача — своя корутина
+`WaitGroup`. Задача реализует `tick()` и больше ничего; цикл, паузы, отчётность и
+остановка принадлежат пулу. Подробно — [docs/task-pool.ru.md](docs/task-pool.ru.md).
+
+| ENV | Дефолт | Назначение |
+|---|---|---|
+| `SCONCUR_TASKS_CONTROL_KEY` | `sconcur:tasks:control` | ключ кэша, через который до пула доходят `stop` и `restart` |
+| `SCONCUR_TASKS_LOCK_PATH` | `storage/sconcur/runtime/tasks.lock` | flock, не даёт подняться второму пулу |
+| `SCONCUR_TASKS_MEMORY_MB` | `256` | предел памяти процесса; за ним — выход с `EXIT_RESTART` |
+| `SCONCUR_TASKS_SLEEP_CHUNK_MS` | `250` | на какие кванты дробится пауза, то есть как быстро пул замечает сигнал |
+| `SCONCUR_TASKS_PREEMPTION_QUANTUM_MS` | `0` | автоматическое переключение корутин; `0` — выключено (см. docs) |
+| `SCONCUR_TASKS_REPORT_TICKS` | `true` | показывать тики в секции `consumers` панели |
+| `SCONCUR_TASKS_SHUTDOWN_TIMEOUT_SECONDS` | `20` | сколько ждать текущие тики перед разматыванием группы |
+
+Группа пула объявляет `restartPolicy: on-failure`, а не наследует мастерское `always`:
+`sconcur:tasks:stop` выходит с нулём, и под `always` мастер поднял бы замену через
+секунду. Единственный выход, которому замена нужна, — предел памяти, и он не нулевой.
 
 ## Этапы (план B3)
 
@@ -391,6 +434,9 @@ Laravel убил бы процесс вместе со всеми обработ
   открытая транзакция в контексте корутины, подмена `database.default` в корутинных процессах.
   Ограничение этапа 4 на нём не действует: транзакция закреплена за отдельным физическим
   соединением пула Go. См. «База данных».
+- [x] **Этап 6 — `CoroutineTransactionsManager`.** `db.transactions` в корутинных
+  процессах держит по менеджеру на корутину, поэтому `afterCommit` не срабатывает у
+  соседа.
 - [x] **Нагрузочная проверка** под реальной конкуренцией: изоляция request/locale/config 30/30;
   MongoDB через sconcur 12/12 изолированы; вложенные MySQL-транзакции 30/30; антипаттерн
   `await`-в-транзакции воспроизведён.

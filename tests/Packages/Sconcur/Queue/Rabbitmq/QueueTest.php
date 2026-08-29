@@ -3,8 +3,12 @@
 namespace Tests\Packages\Sconcur\Queue\Rabbitmq;
 
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
+use SConcur\Features\Amqp\Channel;
 use SConcur\Features\Amqp\Connection;
+use SConcur\Features\Amqp\Message;
 use SConcur\Laravel\Queue\Rabbitmq\Queue;
+use Throwable;
 
 /**
  * A delay has to be one the topology serves: RetryTopology declares one wait queue per
@@ -96,6 +100,101 @@ class QueueTest extends TestCase
     }
 
     /**
+     * A queue instance is shared by every coroutine in the process, so a publish may not
+     * run on a channel a property holds: channel commands are serialized, and publisher
+     * confirms are channel-wide, so neighbours would read each other's answers.
+     */
+    public function testAPublishRunsOnALeasedChannelAndGivesItBack(): void
+    {
+        $queue = $this->channelRecordingQueue();
+
+        $queue->pushRaw('{"id":"1"}', 'some-queue');
+
+        $this->assertSame(1, $queue->leases, 'the publish leased a channel of its own');
+        $this->assertSame([$queue->lent], $queue->returned, 'and gave that same one back');
+        $this->assertSame($queue->lent, $queue->publishedOnChannel);
+    }
+
+    public function testTheChannelGoesBackEvenWhenThePublishThrows(): void
+    {
+        $queue = $this->channelRecordingQueue();
+
+        $queue->publishThrows = new RuntimeException('broker said no');
+
+        try {
+            $queue->pushRaw('{"id":"1"}', 'some-queue');
+
+            $this->fail('the failure should have been rethrown');
+        } catch (RuntimeException) {
+            // expected
+        }
+
+        $this->assertSame([$queue->lent], $queue->returned, 'a failed publish still returns its channel');
+    }
+
+    /**
+     * Inside a message handler the runtime has already lent a channel nobody else holds.
+     * Leasing a second one would be waste; publishing on the shared one would be the bug.
+     */
+    public function testAChannelHandedInIsUsedAndNotLeasedOrReturned(): void
+    {
+        $queue = $this->channelRecordingQueue();
+
+        $given = new Channel(new Connection('amqp://guest:guest@127.0.0.1:5672/%2f'), 'lent-by-the-runtime', 7);
+
+        $queue->publish(queue: 'some-queue', payload: '{"id":"1"}', attempts: 1, delayMs: 0, channel: $given);
+
+        $this->assertSame(0, $queue->leases, 'nothing was leased');
+        $this->assertSame([], $queue->returned, 'and nothing was handed to the pool');
+        $this->assertSame($given, $queue->publishedOnChannel);
+    }
+
+    /**
+     * Records which channel a publish ran on, with the pool and the broker both stubbed
+     * out. The connection is lazy, so constructing one opens no socket.
+     */
+    private function channelRecordingQueue(): Queue
+    {
+        $connection = new Connection('amqp://guest:guest@127.0.0.1:5672/%2f');
+
+        return new class($connection, 'default', []) extends Queue {
+            public int $leases = 0;
+
+            public ?Channel $lent = null;
+
+            /** @var list<Channel> */
+            public array $returned = [];
+
+            public ?Channel $publishedOnChannel = null;
+
+            public ?Throwable $publishThrows = null;
+
+            protected function lendChannel(): Channel
+            {
+                $this->leases++;
+
+                return $this->lent ??= new Channel($this->connection, 'leased-from-the-pool', 1);
+            }
+
+            protected function returnChannel(Channel $channel): void
+            {
+                $this->returned[] = $channel;
+            }
+
+            protected function publishOn(Channel $channel, string $queue, Message $message, int $delayMs): null
+            {
+                $this->publishedOnChannel = $channel;
+
+                if ($this->publishThrows !== null) {
+                    throw $this->publishThrows;
+                }
+
+                return null;
+            }
+        };
+    }
+
+    /**
      * @param list<int> $delaysMs
      */
     private function queue(array $delaysMs): Queue
@@ -107,10 +206,18 @@ class QueueTest extends TestCase
 
             public ?int $publishedAttempts = null;
 
-            public function publish(string $queue, string $payload, int $attempts, int $delayMs): void
-            {
+            public ?Channel $publishedOn = null;
+
+            public function publish(
+                string $queue,
+                string $payload,
+                int $attempts,
+                int $delayMs,
+                ?Channel $channel = null,
+            ): void {
                 $this->publishedDelayMs  = $delayMs;
                 $this->publishedAttempts = $attempts;
+                $this->publishedOn       = $channel;
             }
         };
     }

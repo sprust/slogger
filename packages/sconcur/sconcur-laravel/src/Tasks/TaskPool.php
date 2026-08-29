@@ -24,6 +24,16 @@ use Throwable;
  */
 class TaskPool
 {
+    /**
+     * The exit code of a stop that wants a fresh process — today only the memory limit.
+     *
+     * It has to be non-zero, and the group's restartPolicy has to be `on-failure`, for
+     * the two kinds of stop to be told apart at all: under `always` a supervised pool
+     * comes back from every exit, so `sconcur:tasks:stop` would drain the tasks, exit
+     * cleanly and be replaced within the second — a stop that does not stop.
+     */
+    public const int EXIT_RESTART = 75;
+
     public function __construct(
         protected TaskRegistry $registry,
         protected ControlChannel $channel,
@@ -118,7 +128,22 @@ class TaskPool
 
         $this->logger->log('pool', 'stopped');
 
-        return 0;
+        return $controller->restartWanted() ? self::EXIT_RESTART : 0;
+    }
+
+    /**
+     * Drops the task instance when a relaunch has been asked for, so the next tick is
+     * built fresh. A no-op when none is pending; the state hands the request over once.
+     */
+    protected function takeRelaunch(TaskPoolState $state, string $name): void
+    {
+        if (!$state->takeRelaunch($name)) {
+            return;
+        }
+
+        $this->registry->forget($name);
+
+        $this->logger->log($name, 'rebuilt');
     }
 
     /**
@@ -142,16 +167,21 @@ class TaskPool
 
             try {
                 while ($state->isActive($name)) {
+                    // Before the tick as well as after it. A relaunch posted while the
+                    // task was paused ends the pause, and taking it only afterwards
+                    // would spend one more tick on the very instance the operator asked
+                    // to be replaced — with whatever state made them ask.
+                    $this->takeRelaunch($state, $name);
+
                     $metrics?->tickStarted($name);
 
                     $result = $this->tick($name);
 
                     $metrics?->tickFinished($name, $result);
 
-                    if ($state->takeRelaunch($name)) {
-                        $this->registry->forget($name);
-                        $this->logger->log($name, 'rebuilt');
-                    }
+                    // And after it, so a relaunch that arrived during the tick is acted
+                    // on before the pause rather than after it.
+                    $this->takeRelaunch($state, $name);
 
                     $this->sleeper->sleep($definition->intervalFor($result), $interrupt);
                 }

@@ -29,6 +29,9 @@ class TaskPoolController
     /** Handled commands are never replayed; this is the floor for the next one. */
     protected float $handledUpTo;
 
+    /** Whether the stop was one a fresh process should follow. */
+    protected bool $restartWanted = false;
+
     public function __construct(
         protected TaskPoolState $state,
         protected TaskRegistry $registry,
@@ -40,6 +43,19 @@ class TaskPoolController
         protected ?TaskPoolTelemetry $telemetry = null,
     ) {
         $this->handledUpTo = $state->startedAt();
+    }
+
+    /**
+     * True when the pool stopped because it hit its memory limit — the one stop that
+     * wants a fresh process after it.
+     *
+     * Every other stop is deliberate: an operator ran sconcur:tasks:stop, a signal
+     * arrived, or the master went away. Restarting after those would undo them, which is
+     * why the pool answers this question at all rather than always exiting the same way.
+     */
+    public function restartWanted(): bool
+    {
+        return $this->restartWanted;
     }
 
     /** Called from the signal handler, so it does the least it can get away with. */
@@ -94,13 +110,14 @@ class TaskPoolController
 
     protected function readChannel(): void
     {
-        $command = $this->channel->take($this->handledUpTo);
-
-        if ($command === null) {
-            return;
+        foreach ($this->channel->takeAll($this->handledUpTo) as $command) {
+            $this->handleCommand($command);
         }
+    }
 
-        $this->handledUpTo = $command->at;
+    protected function handleCommand(ControlCommandDto $command): void
+    {
+        $this->handledUpTo = max($this->handledUpTo, $command->at);
 
         $this->log('command: ' . $command->describe());
 
@@ -161,6 +178,9 @@ class TaskPoolController
         }
 
         $this->log(sprintf('memory limit reached (%d MiB) — stopping', intdiv($used, 1024 * 1024)));
+
+        $this->restartWanted = true;
+
         $this->requestStop();
     }
 

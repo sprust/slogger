@@ -26,6 +26,7 @@ use SConcur\Laravel\Console\RabbitmqDeclareCommand;
 use SConcur\Laravel\Console\TasksRestartCommand;
 use SConcur\Laravel\Console\TasksStartCommand;
 use SConcur\Laravel\Console\TasksStopCommand;
+use SConcur\Laravel\Database\CoroutineTransactionsManager;
 use SConcur\Laravel\Database\Mysql\Connection as SconcurMysqlConnection;
 use SConcur\Laravel\Database\Mysql\Connector as SconcurMysqlConnector;
 use SConcur\Laravel\Foundation\AsyncApplication;
@@ -99,6 +100,7 @@ class SConcurServiceProvider extends ServiceProvider
         // than in the overlay of whichever coroutine happens to be current.
         if ($this->isCoroutineRuntime()) {
             $this->useCoroutineDatabaseConnection();
+            $this->registerCoroutineTransactionsManager();
         }
     }
 
@@ -235,6 +237,23 @@ class SConcurServiceProvider extends ServiceProvider
         }
 
         config()->set('database.default', $connection);
+    }
+
+    /**
+     * Replaces the process-wide transactions manager with one that keeps a manager per
+     * coroutine.
+     *
+     * DatabaseManager::configure() hands every connection whatever `db.transactions`
+     * resolves to, once, so this has to be in place before the first connection is built
+     * — which register() is. Model::saveOrFail() opens a transaction, so this is on the
+     * path of an ordinary create, not only of an explicit DB::transaction().
+     */
+    private function registerCoroutineTransactionsManager(): void
+    {
+        $this->app->singleton(
+            'db.transactions',
+            static fn(): CoroutineTransactionsManager => new CoroutineTransactionsManager(),
+        );
     }
 
     /**

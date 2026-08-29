@@ -107,18 +107,25 @@ composer:
 composer-fresh:
 	docker-compose run --rm --no-deps -e XDEBUG_MODE=off $(PHP_FPM_SERVICE) composer ${c}
 
+# The cron and the index monitor used to be stopped here by name. They are tasks of the
+# coroutine pool now, which the master supervises, so restarting the master restarts them
+# — and calling the old commands would abort this target before it ever got that far,
+# since make stops at the first non-zero exit and both were deleted with them.
 workers-restart:
 	make workers-art c='queues-declare'
 	make workers-art c='queue:restart'
-	make workers-art c='cron:stop'
-	make sconcur-restart
 	make workers-art c='slogger:dispatcher:stop'
-	make workers-art c='trace-dynamic-indexes:monitor:stop'
+	make sconcur-restart
 
 oa-generate:
 	make art c='oa:generate'
 	make frontend-npm-generate
 
+# queues-declare is on the deploy path because the application's queues moved from Redis,
+# which creates a queue on first use, to AMQP, which does not: publishing to a routing key
+# nothing is bound to is dropped by the broker without an error, and the consumer runtime
+# declares nothing of its own. A deploy that skipped it would lose jobs silently.
+#
 # Order matters: sconcur.so is baked into the image from composer.lock, so vendor
 # and the extension have to be brought into step before any long-lived process
 # starts on them. Installing from the new image first (composer-fresh) and only
@@ -131,6 +138,7 @@ deploy-prod:
 	make composer-fresh c='i --no-dev'
 	make up
 	make art c='migrate --force'
+	make workers-art c='queues-declare'
 	make receiver-build
 	make frontend-npm-i
 	make frontend-npm-build
@@ -142,6 +150,7 @@ deploy-dev:
 	make composer-fresh c='i'
 	make up
 	make art c='migrate --force'
+	make workers-art c='queues-declare'
 	make receiver-build
 	make frontend-npm-i
 	make frontend-npm-build

@@ -24,10 +24,16 @@ class CronTask implements TaskInterface
 {
     public const string NAME = 'cron';
 
-    private ?int $previousMinute = null;
+    private int $previousMinute;
 
     public function __construct(private readonly TaskPoolLogger $logger)
     {
+        // The minute already in progress counts as run, which is what the cron command
+        // this replaces did before entering its loop. Starting from "no minute has run"
+        // would fire schedule:run again for a minute the previous process already
+        // served, and every restart — deploy, memory limit, sconcur:tasks:restart —
+        // would dispatch that minute's due jobs a second time.
+        $this->previousMinute = (int) date('i');
     }
 
     public function name(): string

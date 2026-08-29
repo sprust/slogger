@@ -25,11 +25,11 @@ class ControlChannelTest extends TestCase
         // Anchored to the command rather than to the clock: two microtime() calls in a
         // row can return the same value, and "newer than the pool's start" is a strict
         // comparison.
-        $command = $channel->take($sent->at - 0.001);
+        $commands = $channel->takeAll($sent->at - 0.001);
 
-        $this->assertNotNull($command);
-        $this->assertSame(ControlActionEnum::Stop, $command->action);
-        $this->assertTrue($command->targetsAll());
+        $this->assertCount(1, $commands);
+        $this->assertSame(ControlActionEnum::Stop, $commands[0]->action);
+        $this->assertTrue($commands[0]->targetsAll());
     }
 
     public function testACommandOlderThanTheGivenMomentIsIgnored(): void
@@ -40,7 +40,7 @@ class ControlChannelTest extends TestCase
 
         // Everything posted before the pool started belongs to the pool that came
         // before it — including the stop that ended that one.
-        $this->assertNull($channel->take($sent->at + 0.001));
+        $this->assertSame([], $channel->takeAll($sent->at + 0.001));
     }
 
     public function testTakingClearsTheKeySoOneCommandActsOnce(): void
@@ -49,8 +49,8 @@ class ControlChannelTest extends TestCase
 
         $sent = $channel->send(ControlActionEnum::Restart, 'cron');
 
-        $this->assertNotNull($channel->take($sent->at - 0.001));
-        $this->assertNull($channel->take($sent->at - 0.001));
+        $this->assertCount(1, $channel->takeAll($sent->at - 0.001));
+        $this->assertSame([], $channel->takeAll($sent->at - 0.001));
     }
 
     public function testAStaleCommandIsClearedToo(): void
@@ -59,7 +59,7 @@ class ControlChannelTest extends TestCase
         $channel = new ControlChannel($cache, 'tasks:control');
 
         $sent = $channel->send(ControlActionEnum::Stop);
-        $channel->take($sent->at + 0.001);
+        $channel->takeAll($sent->at + 0.001);
 
         $this->assertNull($cache->get('tasks:control'));
     }
@@ -69,7 +69,27 @@ class ControlChannelTest extends TestCase
         $cache = new Repository(new ArrayStore());
         $cache->forever('tasks:control', ['action' => 'explode', 'target' => '*', 'at' => microtime(true)]);
 
-        $this->assertNull(new ControlChannel($cache, 'tasks:control')->take(0));
+        // Written the way an older build wrote it — one command, not a list — so this
+        // also covers a pool reading a key left by the version before it.
+        $this->assertSame([], new ControlChannel($cache, 'tasks:control')->takeAll(0));
+    }
+
+    /**
+     * The pool reads the key on its poll interval, so two commands sent inside one of
+     * those windows arrive together. Overwriting would drop the first without a trace.
+     */
+    public function testTwoCommandsSentBeforeAPollAreBothDelivered(): void
+    {
+        $channel = $this->channel();
+
+        $first = $channel->send(ControlActionEnum::Stop, 'cron');
+        $channel->send(ControlActionEnum::Stop, 'trace-dynamic-indexes');
+
+        $commands = $channel->takeAll($first->at - 0.001);
+
+        $this->assertCount(2, $commands);
+        $this->assertSame('cron', $commands[0]->target);
+        $this->assertSame('trace-dynamic-indexes', $commands[1]->target);
     }
 
     public function testATargetedCommandOnlyTargetsThatTask(): void

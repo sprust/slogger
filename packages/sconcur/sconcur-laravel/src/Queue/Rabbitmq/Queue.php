@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace SConcur\Laravel\Queue\Rabbitmq;
 
+use Closure;
 use Illuminate\Contracts\Queue\Queue as QueueContract;
 use Illuminate\Queue\Queue as BaseQueue;
 use SConcur\Features\Amqp\Channel;
 use SConcur\Features\Amqp\Connection;
+use SConcur\Features\Amqp\Consumer\PublishChannelPool;
 use SConcur\Features\Amqp\Message;
-use SConcur\Features\Amqp\Queue as AmqpQueue;
 
 /**
  * A Laravel queue over the SConcur AMQP feature.
@@ -22,13 +23,34 @@ use SConcur\Features\Amqp\Queue as AmqpQueue;
  * Publishing goes to the default exchange with the queue name as the routing key —
  * straight into the queue — which is what that package does with its own default
  * configuration.
+ *
+ * One instance of this serves every coroutine in the process: QueueManager caches a
+ * queue per connection name. A channel therefore cannot be kept in a property. Its
+ * commands are serialized, so sharing one would turn concurrent publishes back into a
+ * line — and, worse, publisher confirms are channel-wide, so two coroutines waiting on
+ * one channel read each other's answers: one job reported unroutable that published
+ * fine, another reported published that the broker dropped. Every publish therefore
+ * runs on a channel nobody else holds, leased from PublishChannelPool, and a publish
+ * from inside a message handler uses the channel the runtime already lent that handler.
  */
 class Queue extends BaseQueue implements QueueContract
 {
     /** The header the attempt counter lives in, nested as `laravel.attempts`. */
     public const string ATTEMPTS_HEADER = 'laravel';
 
-    protected ?Channel $sharedChannel = null;
+    /** Channels lent out one at a time, so no two coroutines publish on the same one. */
+    protected ?PublishChannelPool $publishChannels = null;
+
+    /**
+     * The channel pop() gets its deliveries on.
+     *
+     * Kept rather than leased because a delivery outlives the call that fetched it: its
+     * acknowledgement goes to the channel it arrived on, so that channel cannot go back
+     * to the pool while the job is still running. pop() is the plain single-consumer
+     * queue:work path — the coroutine pool takes its deliveries through ConsumerRunner
+     * and never comes here.
+     */
+    protected ?Channel $popChannel = null;
 
     /**
      * @param list<int> $delaysMs the declared wait-queue delays a later() may address
@@ -44,7 +66,13 @@ class Queue extends BaseQueue implements QueueContract
 
     public function size($queue = null): int
     {
-        return $this->amqpQueue($this->getQueue($queue))->declarePassive()->messageCount;
+        // On a leased channel like everything else, and for one reason beyond the
+        // shared-state one: the broker answers declarePassive() for a queue that does
+        // not exist by closing the channel. On a shared channel a single queue:size
+        // against a typo took publishing down for every coroutine in the process.
+        return $this->onChannel(
+            fn(Channel $channel): int => $channel->queue($this->getQueue($queue))->declarePassive()->messageCount,
+        );
     }
 
     public function push($job, $data = '', $queue = null): mixed
@@ -92,13 +120,19 @@ class Queue extends BaseQueue implements QueueContract
      * than one queue with a per-message TTL, since a classic queue expires only from
      * its head.
      */
-    public function laterRaw(mixed $delay, string $payload, ?string $queue = null, int $attempts = 0): mixed
-    {
+    public function laterRaw(
+        mixed $delay,
+        string $payload,
+        ?string $queue = null,
+        int $attempts = 0,
+        ?Channel $channel = null,
+    ): mixed {
         $this->publish(
             queue: $this->getQueue($queue),
             payload: $payload,
             attempts: $attempts,
             delayMs: $this->delayMsFor($delay),
+            channel: $channel,
         );
 
         return $this->correlationId($payload);
@@ -122,7 +156,7 @@ class Queue extends BaseQueue implements QueueContract
     {
         $name = $this->getQueue($queue);
 
-        $delivery = $this->amqpQueue($name)->get();
+        $delivery = $this->popChannel()->queue($name)->get();
 
         if ($delivery === null) {
             return null;
@@ -140,9 +174,19 @@ class Queue extends BaseQueue implements QueueContract
     /**
      * Publish a raw payload, keeping the attempt counter where the other package's
      * consumer reads it.
+     *
+     * @param null|Channel $channel a channel the caller already holds alone — what a
+     *                              message handler passes, since the consumer runtime
+     *                              lends it one for exactly this. Without it the publish
+     *                              leases one for the length of the call.
      */
-    public function publish(string $queue, string $payload, int $attempts, int $delayMs): void
-    {
+    public function publish(
+        string $queue,
+        string $payload,
+        int $attempts,
+        int $delayMs,
+        ?Channel $channel = null,
+    ): void {
         $message = new Message(
             body: $payload,
             contentType: 'application/json',
@@ -151,25 +195,15 @@ class Queue extends BaseQueue implements QueueContract
             headers: [self::ATTEMPTS_HEADER => ['attempts' => $attempts]],
         );
 
-        $amqpQueue = $this->amqpQueue($queue);
-
-        // A delayed publish is always confirmed, whatever the connection asked for.
-        // It addresses a wait queue rather than the queue itself, and a wait queue is
-        // the easy one to forget to declare: an unconfirmed publish to a routing key
-        // nothing is bound to is dropped by the broker without a word, so a job whose
-        // handler released it would disappear. Confirmed publishing is mandatory by
-        // default, so the same case throws UnroutableMessageException instead.
-        if ($delayMs > 0 || $this->confirmPublishes) {
-            $amqpQueue->publishConfirmed(
-                message: $message,
-                timeoutSeconds: $this->confirmTimeoutSeconds,
-                delayMs: $delayMs,
-            );
+        if ($channel !== null) {
+            $this->publishOn($channel, $queue, $message, $delayMs);
 
             return;
         }
 
-        $amqpQueue->publish($message);
+        $this->onChannel(
+            fn(Channel $on): null => $this->publishOn($on, $queue, $message, $delayMs),
+        );
     }
 
     public function getConnection(): Connection
@@ -190,22 +224,89 @@ class Queue extends BaseQueue implements QueueContract
         return (string) ($queue ?: $this->default);
     }
 
-    protected function amqpQueue(string $name): AmqpQueue
+    /**
+     * The publish itself, on the channel it was given.
+     *
+     * A delayed publish is always confirmed, whatever the connection asked for. It
+     * addresses a wait queue rather than the queue itself, and a wait queue is the easy
+     * one to forget to declare: an unconfirmed publish to a routing key nothing is bound
+     * to is dropped by the broker without a word, so a job whose handler released it
+     * would disappear. Confirmed publishing is mandatory by default, so the same case
+     * throws UnroutableMessageException instead.
+     *
+     * That is also the second reason the channel must be the caller's own: enableConfirms
+     * puts a channel into confirm mode for good, and a wait collects every answer the
+     * channel holds, whoever published it.
+     */
+    protected function publishOn(Channel $channel, string $queue, Message $message, int $delayMs): null
     {
-        return $this->channel()->queue($name);
+        $amqpQueue = $channel->queue($queue);
+
+        if ($delayMs > 0 || $this->confirmPublishes) {
+            $amqpQueue->publishConfirmed(
+                message: $message,
+                timeoutSeconds: $this->confirmTimeoutSeconds,
+                delayMs: $delayMs,
+            );
+
+            return null;
+        }
+
+        $amqpQueue->publish($message);
+
+        return null;
     }
 
     /**
-     * One channel for this queue instance: a channel is a handle, and opening one per
-     * publish would cost a round trip per message for nothing.
+     * Runs the callback on a channel nobody else holds, and gives it back afterwards.
+     *
+     * Leased rather than opened: a channel is a handle and a round trip, so opening one
+     * per publish would pay for the guarantee twice over. The pool keeps a channel warm
+     * between publishes and gives it up once nothing has wanted it for a while.
+     *
+     * @template TReturn
+     *
+     * @param Closure(Channel): TReturn $work
+     *
+     * @return TReturn
      */
-    protected function channel(): Channel
+    protected function onChannel(Closure $work): mixed
     {
-        if ($this->sharedChannel === null || !$this->sharedChannel->isOpen()) {
-            $this->sharedChannel = $this->connection->channel();
+        $channel = $this->lendChannel();
+
+        try {
+            return $work($channel);
+        } finally {
+            $this->returnChannel($channel);
+        }
+    }
+
+    protected function lendChannel(): Channel
+    {
+        return $this->publishChannels()->lease();
+    }
+
+    protected function returnChannel(Channel $channel): void
+    {
+        $this->publishChannels()->release($channel);
+    }
+
+    /**
+     * The pool opens connections of its own from the same options, so publishing never
+     * competes with a consumer for the delivery connection's channel numbers.
+     */
+    protected function publishChannels(): PublishChannelPool
+    {
+        return $this->publishChannels ??= new PublishChannelPool($this->connection->options);
+    }
+
+    protected function popChannel(): Channel
+    {
+        if ($this->popChannel === null || !$this->popChannel->isOpen()) {
+            $this->popChannel = $this->connection->channel();
         }
 
-        return $this->sharedChannel;
+        return $this->popChannel;
     }
 
     /**

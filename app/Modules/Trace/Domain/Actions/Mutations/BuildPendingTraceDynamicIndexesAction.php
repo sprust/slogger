@@ -6,6 +6,8 @@ namespace App\Modules\Trace\Domain\Actions\Mutations;
 
 use App\Modules\Trace\Repositories\TraceDynamicIndexRepository;
 use App\Modules\Trace\Repositories\TraceRepository;
+use SConcur\Exceptions\CoroutineTimeoutException;
+use SConcur\Exceptions\FlowStoppedException;
 use Throwable;
 
 /**
@@ -42,6 +44,14 @@ readonly class BuildPendingTraceDynamicIndexesAction
                     collectionNames: $index->collectionNames,
                     fields: $index->fields
                 );
+            } catch (FlowStoppedException | CoroutineTimeoutException $exception) {
+                // The runtime is unwinding this coroutine — the pool's shutdown deadline
+                // or a timeout. Recording a failure here would need another repository
+                // call on a coroutine that has nothing left to await on, and would brand
+                // an index whose build the server may well have finished as failed, with
+                // a shutdown as its stated cause. Left in process, it is picked up whole
+                // on the next pass.
+                throw $exception;
             } catch (Throwable $exception) {
                 $indexCreated = false;
             }
