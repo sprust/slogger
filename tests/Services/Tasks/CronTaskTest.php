@@ -3,6 +3,7 @@
 namespace Tests\Services\Tasks;
 
 use App\Services\Tasks\CronTask;
+use Illuminate\Support\Carbon;
 use PHPUnit\Framework\TestCase;
 use SConcur\Laravel\Tasks\TickResultEnum;
 
@@ -20,13 +21,23 @@ class CronTaskTest extends TestCase
      */
     public function testTheMinuteInProgressCountsAsAlreadyRun(): void
     {
-        $task = new CronTask(new SilentLogger());
+        // The clock is frozen for the length of the test. Without that, a minute rolling
+        // over between the constructor and the tick would not merely fail the assertion:
+        // the tick would reach Artisan::call() with no application bound, and the test
+        // would die rather than report.
+        Carbon::setTestNow(Carbon::create(2026, 8, 29, 11, 0, 20));
 
-        $this->assertSame(
-            TickResultEnum::Idle,
-            $task->tick(),
-            'a fresh task does not run the schedule for the minute it started in'
-        );
+        try {
+            $task = new CronTask(new SilentLogger());
+
+            $this->assertSame(
+                TickResultEnum::Idle,
+                $task->tick(),
+                'a fresh task does not run the schedule for the minute it started in'
+            );
+        } finally {
+            Carbon::setTestNow();
+        }
     }
 
     public function testTheTaskIsNamedCron(): void

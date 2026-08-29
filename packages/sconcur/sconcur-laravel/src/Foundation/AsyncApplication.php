@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SConcur\Laravel\Foundation;
 
 use Closure;
+use Fiber;
 use Illuminate\Contracts\Config\Repository as ConfigRepository;
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
@@ -21,9 +22,10 @@ use SConcur\Context\Context;
  * that stopped matching the moment the master began passing a group's flags ahead of the
  * command name. Nothing detects anything now.
  *
- * Outside a coroutine this costs nothing: Context::current() resolves to the process root,
- * so every scoped service is a single instance for a single caller — which is what the
- * container would have given anyway.
+ * Outside a coroutine this costs nothing: there is one caller, so a scoped service is a
+ * single instance — which is what the container would have given anyway. It is kept in a
+ * store of this object's own rather than in the coroutine context, because the context
+ * outside a fiber is the process root, and every coroutine reads through to that.
  *
  * Ported from yangusik/laravel-spawn (AsyncApplication), adapted to SConcur's
  * Context::current(). See docs/fiber-safe-laravel-bridge.ru.md §4.
@@ -37,10 +39,32 @@ class AsyncApplication extends Application
     private const array FACADE_PROXIED_MAP = [
         'auth'    => true,
         'session' => true,
+        // Cookie's facade accessor too: a facade caches the instance it resolved in a
+        // static shared by the whole process, so without the proxy the first coroutine to
+        // touch Cookie:: would pin its own CookieJar there for every later one, and a
+        // queued cookie would be flushed onto somebody else's response.
+        'cookie'  => true,
     ];
 
     /** @var array<string, Closure> user-registered scoped factories */
     private array $scopedBindings = [];
+
+    /**
+     * Scoped instances for callers that are not in a coroutine at all.
+     *
+     * Held here rather than in the coroutine context, which outside a fiber is the process
+     * root — and the root is never released, while every coroutine reads through to it. An
+     * instance built during bootstrap or in a start command's own body would therefore be
+     * shared by every request, message and task in the process: one AuthManager, one
+     * SessionGuard, one $user. Which is the failure this class exists to prevent, entered
+     * through the back door.
+     *
+     * Outside a coroutine there is a single caller, so a single instance is right — and
+     * that is exactly what this is.
+     *
+     * @var array<string, mixed>
+     */
+    private array $rootScoped = [];
 
     /**
      * config('sconcur.scoped_services') as alias => 1, read once the config repository
@@ -103,7 +127,7 @@ class AsyncApplication extends Application
 
     private function resolveRequest(): object
     {
-        $fromContext = Context::current()->find(ScopedService::REQUEST->value);
+        $fromContext = $this->scopedFind(ScopedService::REQUEST->value);
 
         if ($fromContext !== null) {
             return $fromContext;
@@ -130,10 +154,9 @@ class AsyncApplication extends Application
             return null;
         }
 
-        $ctx    = Context::current();
         $ctxKey = $key?->value ?? $alias;
 
-        $instance = $ctx->find($ctxKey);
+        $instance = $this->scopedFind($ctxKey);
 
         if ($instance !== null) {
             return $instance;
@@ -152,9 +175,31 @@ class AsyncApplication extends Application
             $instance = $concrete instanceof Closure ? $concrete($this) : $this->build($concrete);
         }
 
-        $ctx->set($ctxKey, $instance);
+        $this->scopedStore($ctxKey, $instance);
 
         return $instance;
+    }
+
+    /**
+     * A scoped instance of the caller: the coroutine's own, or the process's when there is
+     * no coroutine. See $rootScoped for why the two are not the same store.
+     */
+    private function scopedFind(string $key): mixed
+    {
+        return Fiber::getCurrent() === null
+            ? ($this->rootScoped[$key] ?? null)
+            : Context::current()->find($key);
+    }
+
+    private function scopedStore(string $key, mixed $instance): void
+    {
+        if (Fiber::getCurrent() === null) {
+            $this->rootScoped[$key] = $instance;
+
+            return;
+        }
+
+        Context::current()->set($key, $instance);
     }
 
     /**

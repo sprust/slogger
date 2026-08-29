@@ -6,6 +6,7 @@ namespace SConcur\Laravel\Tasks\Control;
 
 use Closure;
 use Illuminate\Contracts\Cache\LockProvider;
+use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Contracts\Cache\Repository as CacheRepository;
 
 /**
@@ -63,13 +64,23 @@ readonly class ControlChannel
      */
     public function takeAll(float $notBefore): array
     {
-        $pending = $this->pending();
+        $pending = [];
+
+        // Under the same lock the append takes, and for the same reason: reading and then
+        // clearing are two round trips, and a command appended between them would be
+        // deleted without ever having been seen — the loss this queue was written to
+        // remove, moved from the writer's side to the reader's.
+        $this->locked(function () use (&$pending): void {
+            $pending = $this->pending();
+
+            if ($pending !== []) {
+                $this->cache->forget($this->key);
+            }
+        });
 
         if ($pending === []) {
             return [];
         }
-
-        $this->cache->forget($this->key);
 
         $commands = [];
 
@@ -102,7 +113,15 @@ readonly class ControlChannel
             return;
         }
 
-        $store->lock($this->key . ':lock', 5)->block(3, $work);
+        try {
+            $store->lock($this->key . ':lock', 5)->block(3, $work);
+        } catch (LockTimeoutException) {
+            // Someone else is mid-append and did not finish within three seconds. Doing
+            // the work unlocked is the lesser evil on both sides: a reader that gave up
+            // would leave the pool deaf until the lock expired, and a writer that gave up
+            // would fail a stop command outright — which is how a deploy script dies.
+            $work();
+        }
     }
 
     /**

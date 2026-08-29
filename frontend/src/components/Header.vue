@@ -37,7 +37,6 @@ import {useToggle} from '@vueuse/shared'
 import {useDark} from '@vueuse/core'
 import {Moon, Sunny} from '@element-plus/icons-vue'
 import {useToolLinksStore} from "../store/toolLinksStore.ts";
-import {useSconcurStore} from "./pages/sconcur/store/sconcurStore.ts";
 
 export default defineComponent({
   data() {
@@ -72,11 +71,6 @@ export default defineComponent({
       this.toggleDarkUsing()
     },
     logout() {
-      // The Sconcur page's polling loop lives in its store so it survives navigation;
-      // logging out is where it has to be told to stop, or it would keep asking the
-      // panel once a second from the login screen with a token that is gone.
-      useSconcurStore().setAutoUpdate(false)
-
       this.authStore.logout()
 
       this.router.push(this.routes.login)

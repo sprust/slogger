@@ -25,7 +25,7 @@ use SConcur\Laravel\Http\HttpServerRunner;
  */
 class HttpStartCommand extends Command
 {
-    /** Artisan name; used by the provider to gate async wiring to the worker process. */
+    /** Artisan name, used by the master when it spawns this group's workers. */
     public const string NAME = 'sconcur:servers:http:start';
 
     /** Options that belong to HttpServer rather than to this command. */

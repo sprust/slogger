@@ -31,6 +31,8 @@ class FakeConnection extends Connection
 
     public ?Throwable $execThrows = null;
 
+    public ?Throwable $fetchThrows = null;
+
     public ?FakeTransaction $openedTransaction = null;
 
     public static function make(): self
@@ -59,6 +61,10 @@ class FakeConnection extends Connection
             'bindings' => array_values($bindings),
             'target'   => $this->target(),
         ];
+
+        if ($this->fetchThrows !== null) {
+            throw $this->fetchThrows;
+        }
 
         return $this->rows;
     }

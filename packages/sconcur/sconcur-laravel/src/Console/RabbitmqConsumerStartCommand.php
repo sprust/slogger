@@ -30,7 +30,7 @@ use SConcur\Laravel\Queue\Rabbitmq\ConsumerRunner;
  */
 class RabbitmqConsumerStartCommand extends Command
 {
-    /** Artisan name; used by the provider to gate async wiring to the worker process. */
+    /** Artisan name, used by the master when it spawns this group's workers. */
     public const string NAME = 'sconcur:servers:rabbitmq:start';
 
     /** Options that belong to QueueConsumer rather than to this command. */

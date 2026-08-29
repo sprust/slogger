@@ -58,18 +58,35 @@ class TaskPool
             return 0;
         }
 
-        $lock = new TaskPoolLock($this->options->lockPath);
+        // A lock per task rather than one for the pool. What must not happen twice is a
+        // task, not a process: two copies of the cron would run schedule:run twice a
+        // minute. One lock for everything also meant the two single-task entry points
+        // excluded each other, which is precisely when you want them side by side —
+        // `cron:start` in one terminal, the index monitor in another.
+        $locks = [];
 
-        if (!$lock->acquire()) {
-            $this->logger->log('pool', 'another pool holds ' . $lock->path() . ' — not starting');
+        foreach ($names as $name) {
+            $lock = new TaskPoolLock($this->options->lockPath . '.' . $name);
 
-            return 1;
+            if (!$lock->acquire()) {
+                $this->logger->log($name, 'not starting: ' . $lock->failure());
+
+                foreach ($locks as $acquired) {
+                    $acquired->release();
+                }
+
+                return 1;
+            }
+
+            $locks[] = $lock;
         }
 
         try {
             return $this->serve($names, $masterPid);
         } finally {
-            $lock->release();
+            foreach ($locks as $lock) {
+                $lock->release();
+            }
         }
     }
 

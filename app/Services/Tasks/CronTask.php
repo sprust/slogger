@@ -6,6 +6,7 @@ namespace App\Services\Tasks;
 
 use Illuminate\Support\Facades\Artisan;
 use SConcur\Laravel\Tasks\TaskInterface;
+use Illuminate\Support\Carbon;
 use SConcur\Laravel\Tasks\TaskPoolLogger;
 use SConcur\Laravel\Tasks\TickResultEnum;
 use Symfony\Component\Console\Output\BufferedOutput;
@@ -33,7 +34,16 @@ class CronTask implements TaskInterface
         // would fire schedule:run again for a minute the previous process already
         // served, and every restart — deploy, memory limit, sconcur:tasks:restart —
         // would dispatch that minute's due jobs a second time.
-        $this->previousMinute = (int) date('i');
+        $this->previousMinute = $this->currentMinute();
+    }
+
+    /**
+     * Carbon rather than date(), so the clock can be frozen: a test that has to catch the
+     * constructor and the first tick inside one minute cannot race the real one.
+     */
+    private function currentMinute(): int
+    {
+        return Carbon::now()->minute;
     }
 
     public function name(): string
@@ -43,7 +53,7 @@ class CronTask implements TaskInterface
 
     public function tick(): TickResultEnum
     {
-        $minute = (int) date('i');
+        $minute = $this->currentMinute();
 
         if ($minute === $this->previousMinute) {
             return TickResultEnum::Idle;

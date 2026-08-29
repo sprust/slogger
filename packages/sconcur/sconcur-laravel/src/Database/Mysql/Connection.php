@@ -11,6 +11,7 @@ use Illuminate\Database\DeadlockException;
 use Illuminate\Database\MySqlConnection;
 use Illuminate\Database\QueryException;
 use RuntimeException;
+use SConcur\Exceptions\FlowStoppedException;
 use SConcur\Laravel\Database\TransactionStore;
 use SConcur\Features\Sql\Connection as SqlConnection;
 use SConcur\Features\Sql\Results\ExecResult;
@@ -371,6 +372,38 @@ class Connection extends MySqlConnection
     public function isMaria()
     {
         return str_contains($this->getServerVersion(), 'MariaDB');
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * A statement parked in the extension can be unwound by the runtime — a shutdown, a
+     * handler deadline — and that arrives here as an exception like any other. Illuminate
+     * catches Exception and wraps it in a QueryException, and FlowStoppedException
+     * extends RuntimeException, so the unwind would lose its identity on the way out:
+     * every `catch (FlowStoppedException)` guard in the pool, the task loop and the
+     * actions would stop recognising it, and each would go on to do more work on a
+     * coroutine that has none left.
+     *
+     * So it is let through untouched. Everything else is handed to the parent, which does
+     * the wrapping — through a callback that rethrows what already happened, so the
+     * statement is not run a second time.
+     */
+    protected function runQueryCallback($query, $bindings, Closure $callback)
+    {
+        try {
+            return $callback($query, $bindings);
+        } catch (FlowStoppedException $exception) {
+            throw $exception;
+        } catch (Exception $exception) {
+            return parent::runQueryCallback(
+                $query,
+                $bindings,
+                static function () use ($exception): never {
+                    throw $exception;
+                },
+            );
+        }
     }
 
     /**

@@ -134,9 +134,31 @@ class TaskPoolControllerTest extends TestCase
 
         // A leak in one task takes the process down with it, so the limit belongs to
         // the pool and passing it goes through the same graceful stop as a signal.
-        $this->controller($state, $this->channel(), memoryMb: 0)->run(WaitGroup::create());
+        $controller = $this->controller($state, $this->channel(), memoryMb: 0);
+
+        $controller->run(WaitGroup::create());
 
         $this->assertTrue($state->isStopRequested());
+
+        // And it is the one stop that wants a replacement, which the pool says by exiting
+        // non-zero. The group's restartPolicy is `on-failure`, so this bit is the whole
+        // difference between a leaking pool that comes back and a stop that stops.
+        $this->assertTrue($controller->restartWanted());
+    }
+
+    public function testAStopAskedForDoesNotWantAReplacement(): void
+    {
+        $state = $this->drainedState();
+
+        $controller = $this->controller($state, $this->channel(ControlActionEnum::Stop));
+
+        $controller->run(WaitGroup::create());
+
+        $this->assertTrue($state->isStopRequested());
+        $this->assertFalse(
+            $controller->restartWanted(),
+            'a stop the operator asked for must exit cleanly, or the master puts a new pool up'
+        );
     }
 
     /** Both tasks are configured, and neither is inside a tick any more. */
@@ -150,9 +172,15 @@ class TaskPoolControllerTest extends TestCase
         return $state;
     }
 
-    private function channel(): ControlChannel
+    private function channel(?ControlActionEnum $pending = null): ControlChannel
     {
-        return new ControlChannel(new Repository(new ArrayStore()), 'tasks:control');
+        $channel = new ControlChannel(new Repository(new ArrayStore()), 'tasks:control');
+
+        if ($pending !== null) {
+            $channel->send($pending);
+        }
+
+        return $channel;
     }
 
     private function controller(

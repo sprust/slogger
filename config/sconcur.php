@@ -268,9 +268,10 @@ return [
         'report_ticks' => (bool) env('SCONCUR_TASKS_REPORT_TICKS', true),
 
         // How long a stop waits for the running ticks before the group is unwound. Must
-        // stay below the supervisor's stopwaitsecs for the pool's program (30 s), or the
+        // stay below the master's shutdownTimeoutMs for the tasks group (30 s), or the
         // process is always killed before this can happen and the graceful path never
-        // runs at all.
+        // runs at all. The pool has no supervisor program of its own — the master spawns
+        // it — so supervisor's stopwaitsecs (40 s, on the master) only has to exceed that.
         'shutdown_timeout_seconds' => (int) env('SCONCUR_TASKS_SHUTDOWN_TIMEOUT_SECONDS', 20),
 
         /*

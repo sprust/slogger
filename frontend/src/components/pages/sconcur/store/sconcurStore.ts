@@ -60,6 +60,7 @@ interface SconcurStoreInterface {
     selectedSource: string
     autoUpdate: boolean
     timer: number | null
+    ticking: boolean
 }
 
 /**
@@ -83,6 +84,7 @@ export const useSconcurStore = defineStore('sconcur', {
             selectedSource: MASTER_SOURCE,
             autoUpdate: false,
             timer: null,
+            ticking: false,
         }
     },
     actions: {
@@ -104,6 +106,24 @@ export const useSconcurStore = defineStore('sconcur', {
 
         /** Fetches a snapshot and records one sample of every source in it. */
         async tick() {
+            // One at a time. The interval does not wait for the previous request, and
+            // mounted() fires one of its own, so two could otherwise land milliseconds
+            // apart and divide a whole second of work by that gap — a rate spike out of
+            // nowhere every time the page is opened with the loop running.
+            if (this.ticking) {
+                return
+            }
+
+            this.ticking = true
+
+            try {
+                await this.collect()
+            } finally {
+                this.ticking = false
+            }
+        },
+
+        async collect() {
             await this.findSconcurStat()
 
             const stat = this.stat
@@ -150,6 +170,15 @@ export const useSconcurStore = defineStore('sconcur', {
             while (this.history.length > 0 && this.history[0].ts < cutoff) {
                 this.history.shift()
             }
+
+            // And a ceiling on the count, because the trim above trusts the clock: a
+            // backwards correction would make the head never expire and the array grow
+            // for the life of the tab.
+            const maxSamples = Math.ceil(WINDOW_MS / 1000) + 1
+
+            if (this.history.length > maxSamples) {
+                this.history.splice(0, this.history.length - maxSamples)
+            }
         },
 
         /**
@@ -184,6 +213,11 @@ export const useSconcurStore = defineStore('sconcur', {
             }
 
             return {
+                // The counters go into the sample beside the averages: an average over the
+                // window is the difference of two cumulative totals, not the mean of a
+                // cumulative average.
+                requests_completed: requests?.completed ?? null,
+                consumers_handled: consumers?.acked ?? null,
                 requests_in_flight: requests?.in_flight ?? null,
                 rps: rps === null ? null : Math.round(rps * 100) / 100,
                 cpu_percent: Math.round(row.cpu_percent * 10) / 10,
@@ -220,6 +254,25 @@ export const useSconcurStore = defineStore('sconcur', {
                 clearInterval(this.timer)
                 this.timer = null
             }
+        },
+
+        /**
+         * Stops the loop and drops what was collected.
+         *
+         * Called when the session ends, from wherever it ends — the button, a 401, the
+         * router guard. The loop outlives navigation by design, so without this it would
+         * outlive the session too and poll the login screen once a second with a token
+         * that is gone; and the next person to sign in on the same tab would open the page
+         * onto the previous one's fifteen minutes.
+         */
+        reset() {
+            this.stopTimer()
+
+            this.autoUpdate = false
+            this.stat = null
+            this.history = []
+            this.prevCounters = {}
+            this.prevAt = null
         },
     },
 })

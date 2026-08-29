@@ -5,14 +5,18 @@ namespace Tests\Packages\Sconcur\Database;
 use DateTimeImmutable;
 use Fiber;
 use Illuminate\Database\Events\QueryExecuted;
+use Illuminate\Database\QueryException;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Events\Dispatcher;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use SConcur\Context\Context;
+use SConcur\Exceptions\CoroutineTimeoutException;
+use SConcur\Exceptions\FlowStoppedException;
 use SConcur\Exceptions\TaskErrorException;
 use SConcur\Features\Sql\Results\ExecResult;
 use SConcur\State;
+use Throwable;
 
 class ConnectionTest extends TestCase
 {
@@ -268,6 +272,40 @@ class ConnectionTest extends TestCase
         $this->expectException(UniqueConstraintViolationException::class);
 
         $connection->insert('insert into users (email) values (?)', ['ann@example.com']);
+    }
+
+    /**
+     * Illuminate wraps anything a statement throws in a QueryException. The runtime's own
+     * unwind must not be wrapped: every `catch (FlowStoppedException)` in the consumer,
+     * the task loop and the trace actions would stop recognising it and go on to do more
+     * work — a failed_jobs write, a republish — on a coroutine that has no flow left.
+     */
+    public function testTheRuntimesUnwindIsNotWrappedInAQueryException(): void
+    {
+        foreach ([new FlowStoppedException('stopped'), new CoroutineTimeoutException('late')] as $unwind) {
+            $connection = FakeConnection::make();
+
+            $connection->fetchThrows = $unwind;
+
+            try {
+                $connection->select('select 1');
+
+                $this->fail('the unwind should have been rethrown');
+            } catch (Throwable $thrown) {
+                $this->assertSame($unwind, $thrown, get_class($unwind) . ' came out as ' . get_class($thrown));
+            }
+        }
+    }
+
+    public function testAnOrdinaryFailureIsStillAQueryException(): void
+    {
+        $connection = FakeConnection::make();
+
+        $connection->fetchThrows = new RuntimeException('syntax error');
+
+        $this->expectException(QueryException::class);
+
+        $connection->select('select 1');
     }
 
     public function testThereIsNoPdoHandle(): void

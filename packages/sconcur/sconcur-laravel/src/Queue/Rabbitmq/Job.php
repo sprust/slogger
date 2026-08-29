@@ -27,16 +27,19 @@ class Job extends BaseJob implements JobContract
     /**
      * The runtime's own unwind, when one reached this job.
      *
-     * Illuminate\Queue\Worker::process() catches every Throwable, so a
-     * FlowStoppedException or a CoroutineTimeoutException — the runtime telling this
-     * coroutine to stop — arrives at handleJobException() like any other failure, and it
-     * would write failed_jobs and republish on a coroutine that has no flow left to await
-     * on. Both would throw a second exception that replaced the first, and the consumer
-     * would then read a deliberate unwind as a refused message and dead-letter it.
+     * Illuminate\Queue\Worker::process() routes any Throwable through
+     * handleJobException(), so a FlowStoppedException or a CoroutineTimeoutException —
+     * the runtime telling this coroutine to stop — is treated there like any other
+     * failure: failed_jobs is written and the job republished, both on a coroutine that
+     * has no flow left to await on. Each would throw a second exception that replaced the
+     * first, and the consumer would then read a deliberate unwind as a refusal.
      *
-     * So the unwind is remembered here, every way of settling the job is short-circuited
-     * while it stands, and ConsumerRunner rethrows it once process() has returned. The
-     * runtime then leaves the delivery unsettled and the broker redelivers it once.
+     * So the unwind is remembered here and every way of settling the job is short-
+     * circuited while it stands. What happens to the message is then the runtime's to
+     * decide, and it decides differently for the two: a shutdown leaves the delivery
+     * unsettled, so the broker redelivers it once, while a handler past its deadline has
+     * its message refused. ConsumerRunner reports the second, since nothing else records
+     * it.
      */
     protected ?Throwable $unwind = null;
 

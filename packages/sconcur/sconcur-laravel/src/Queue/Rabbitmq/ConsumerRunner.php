@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SConcur\Laravel\Queue\Rabbitmq;
 
+use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Container\Container;
 use Illuminate\Contracts\Foundation\Application;
@@ -12,8 +13,11 @@ use Illuminate\Queue\Failed\FailedJobProviderInterface;
 use Illuminate\Queue\QueueManager;
 use Illuminate\Queue\Worker;
 use Illuminate\Queue\WorkerOptions;
+use SConcur\Exceptions\CoroutineTimeoutException;
+use SConcur\Exceptions\FlowStoppedException;
 use SConcur\Features\Amqp\Consumer\QueueConsumer;
 use SConcur\Features\Amqp\Delivery;
+use Throwable;
 
 /**
  * Runs a queue-consumer pool in the current process, the way HttpServerRunner runs an
@@ -24,7 +28,10 @@ use SConcur\Features\Amqp\Delivery;
  * sequential loop — getNextJob() -> pop() -> runJob() -> sleep() — one job at a time,
  * and its sleep() blocks the process, so a coroutine runtime would buy nothing.
  * process() is the half worth having: it raises the job events, honours maxTries and
- * backoff, and writes failed_jobs.
+ * backoff, and settles the job — releasing it or marking it failed. Writing failed_jobs
+ * is not part of it; that lives in queue:work, and logFailedJobs() below puts it back. What it does not do
+ * is what runJob() wraps around it: report the exception and then swallow it. Both are
+ * this class's job, and it does them itself (see the handler).
  */
 readonly class ConsumerRunner
 {
@@ -49,11 +56,14 @@ readonly class ConsumerRunner
         /** @var Worker $worker */
         $worker = $app->make('queue.worker');
 
+        /** @var ExceptionHandler $exceptions */
+        $exceptions = $app->make(ExceptionHandler::class);
+
         $this->logFailedJobs($app);
 
         return $this->consumer->consume(
             connection: $queue->getConnection(),
-            handler: function (Delivery $delivery) use ($queue, $worker): void {
+            handler: function (Delivery $delivery) use ($queue, $worker, $exceptions): void {
                 $job = new Job(
                     // The contract's Application is not the concrete Container the base
                     // job stores; the running one always is, and this is where it is said.
@@ -69,18 +79,40 @@ readonly class ConsumerRunner
                     queue: $delivery->routingKey,
                 );
 
-                $worker->process($this->connectionName, $job, $this->options);
+                try {
+                    $worker->process($this->connectionName, $job, $this->options);
+                } catch (FlowStoppedException $exception) {
+                    // The runtime is unwinding this coroutine, and it knows what to do
+                    // with that, so the exception goes straight back out. The two cases
+                    // are settled differently on the way: a shutdown leaves the delivery
+                    // untouched and the broker redelivers it once, while a handler that
+                    // ran past its deadline has its message refused.
+                    //
+                    // The deadline is reported first. Nothing else would record it — the
+                    // job never reached Laravel's failure path — so a job dropped for
+                    // running long would otherwise leave no trace outside the runtime's
+                    // own line.
+                    if ($exception instanceof CoroutineTimeoutException) {
+                        $exceptions->report($exception);
+                    }
 
-                // Worker::process() catches every Throwable, so the runtime's own unwind
-                // — a shutdown, or handlerTimeoutMs firing — would be read as a job that
-                // failed. The job records it instead of settling itself, and it is put
-                // back here: QueueConsumer knows an unwind and leaves the delivery
-                // unsettled, so the broker redelivers it once rather than dead-lettering
-                // a job whose only fault was running long.
-                $unwind = $job->unwind();
+                    throw $exception;
+                } catch (Throwable $exception) {
+                    // Worker::process() does not swallow: handleJobException() ends in
+                    // `throw $e`. What swallows is runJob(), the wrapper queue:work uses
+                    // and this pool does not — and it is also where the exception gets
+                    // reported. Both halves belong here, or a failing job leaves no trace
+                    // anywhere but failed_jobs, and every ordinary failure escapes into
+                    // the runtime, which counts it as a refused message.
+                    //
+                    // Only once the delivery is settled, though. If it is not, the job
+                    // was not released and not failed — the republish itself threw, say —
+                    // and swallowing would acknowledge a message nobody handled.
+                    if (!$delivery->isSettled()) {
+                        throw $exception;
+                    }
 
-                if ($unwind !== null) {
-                    throw $unwind;
+                    $exceptions->report($exception);
                 }
             },
         );

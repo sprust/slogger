@@ -75,8 +75,18 @@ export default defineComponent({
     windowLabel(): string {
       return `${Math.round(WINDOW_MS / 60_000)}m`
     },
+    /**
+     * Whether anything at all reports the section — groups as well as workers, so the two
+     * tables and the header cards above them show and hide together. Computed from the
+     * workers alone, the Groups table kept three permanently dashed columns on a
+     * deployment that consumes no queue.
+     */
     hasConsumers(): boolean {
-      return this.store.stat?.workers.some(worker => worker.consumers) ?? false
+      return this.reports(row => row.consumers !== undefined && row.consumers !== null)
+    },
+
+    hasRequests(): boolean {
+      return this.reports(row => row.requests !== undefined && row.requests !== null)
     },
     /**
      * What the chart can be pointed at: the master as a whole, one of its pools, or one
@@ -156,24 +166,56 @@ export default defineComponent({
 
   methods: {
     /**
-     * The average of one metric of one source over the samples held right now — the same
-     * window the chart draws, so a number in the table and the line above it agree.
-     * Null when the source reports nothing for it.
+     * The average duration over the samples held right now — the same window the chart
+     * draws, so a number in the table and the line above it agree.
+     *
+     * Taken from the two ends of the window rather than by averaging the samples between
+     * them. The panel's avg_ms is cumulative since the worker booted, so the mean of a
+     * few hundred of those is just the cumulative figure again — the column would show
+     * the same number twice and say nothing. Total time is avg × count at each end; what
+     * happened in between is the difference of the two, over the work done in between.
+     *
+     * Null when the window holds no finished work: nothing is a truthful answer, and a
+     * dash says it.
      */
-    windowAverage(sourceKey: string, metricKey: string): number | null {
-      let sum = 0
-      let count = 0
+    windowAverage(sourceKey: string, avgKey: string, countKey: string): number | null {
+      let first: { avg: number, count: number } | null = null
+      let last: { avg: number, count: number } | null = null
 
       for (const sample of this.store.history) {
-        const value = sample.values[sourceKey]?.[metricKey]
+        const avg = sample.values[sourceKey]?.[avgKey]
+        const count = sample.values[sourceKey]?.[countKey]
 
-        if (typeof value === 'number') {
-          sum += value
-          count++
+        if (typeof avg !== 'number' || typeof count !== 'number') {
+          continue
         }
+
+        first ??= {avg, count}
+        last = {avg, count}
       }
 
-      return count === 0 ? null : sum / count
+      if (first === null || last === null) {
+        return null
+      }
+
+      const done = last.count - first.count
+
+      if (done <= 0) {
+        return null
+      }
+
+      return (last.avg * last.count - first.avg * first.count) / done
+    },
+
+    /** @param check whether a row reports the section in question */
+    reports(check: (row: StatRow) => boolean): boolean {
+      const stat = this.store.stat
+
+      if (!stat) {
+        return false
+      }
+
+      return stat.groups.some(check) || stat.workers.some(check)
     },
 
     rssMb(bytes: number): number {
@@ -206,27 +248,31 @@ export default defineComponent({
       return row.consumers?.acked ?? DASH
     },
 
-    avgMs(row: StatRow): string {
-      const value = row.consumers?.avg_ms ?? row.requests?.avg_ms
+    requestsAvgMs(row: StatRow): string {
+      return row.requests === undefined || row.requests === null ? DASH : row.requests.avg_ms.toFixed(2)
+    },
 
-      return value === undefined ? DASH : value.toFixed(2)
+    handledAvgMs(row: StatRow): string {
+      return row.consumers === undefined || row.consumers === null ? DASH : row.consumers.avg_ms.toFixed(2)
     },
 
     /**
-     * The same average over the chart's window rather than at this instant.
+     * The same two averages over the chart's window rather than since the worker booted.
      *
-     * The panel's own avg_ms is cumulative since the worker started, so a pool that was
-     * busy an hour ago keeps reporting that hour. This is what the last fifteen minutes
-     * actually looked like, which is the question the chart beside it answers.
+     * Split like the counts beside them, and for the same reason: one column holding a
+     * request duration for one pool and a message duration for another sits under a
+     * header that can only name one of them.
      */
-    avgMsOverWindow(row: StatRow): string {
-      const metric = row.consumers ? 'consumers_avg_ms' : (row.requests ? 'requests_avg_ms' : null)
+    requestsAvgMsOverWindow(row: StatRow): string {
+      return this.formatWindowAverage(row, 'requests_avg_ms', 'requests_completed')
+    },
 
-      if (metric === null) {
-        return DASH
-      }
+    handledAvgMsOverWindow(row: StatRow): string {
+      return this.formatWindowAverage(row, 'consumers_avg_ms', 'consumers_handled')
+    },
 
-      const average = this.windowAverage(this.rowKey(row), metric)
+    formatWindowAverage(row: StatRow, avgKey: string, countKey: string): string {
+      const average = this.windowAverage(this.rowKey(row), avgKey, countKey)
 
       return average === null ? DASH : average.toFixed(2)
     },
@@ -250,6 +296,18 @@ export default defineComponent({
       }
 
       return `${Math.floor(minutes / 60)}h ${minutes % 60}m`
+    },
+  },
+
+  watch: {
+    /**
+     * A worker the master replaced leaves the dropdown showing a key nothing answers to,
+     * while the chart has already fallen back to the master. Put the two back together.
+     */
+    sources(list: SourceDef[]) {
+      if (!list.some(source => source.key === this.store.selectedSource)) {
+        this.store.selectedSource = MASTER_SOURCE
+      }
     },
   },
 
@@ -363,25 +421,25 @@ export default defineComponent({
           <template #default="{ row }">{{ rssMb(row.memory_rss_bytes) }}</template>
         </el-table-column>
         <el-table-column prop="goroutines" label="Goroutines" width="110"/>
-        <el-table-column label="In-flight" width="100">
+        <el-table-column v-if="hasRequests" label="In-flight" width="100">
           <template #default="{ row }">{{ requestsInFlight(row) }}</template>
         </el-table-column>
-        <el-table-column label="Completed" width="110">
+        <el-table-column v-if="hasRequests" label="Completed" width="110">
           <template #default="{ row }">{{ completed(row) }}</template>
         </el-table-column>
-        <el-table-column label="Handling" width="100">
+        <el-table-column v-if="hasConsumers" label="Handling" width="100">
           <template #default="{ row }">{{ handling(row) }}</template>
         </el-table-column>
-        <el-table-column label="Handled">
+        <el-table-column v-if="hasConsumers" label="Handled">
           <template #default="{ row }">{{ handled(row) }}</template>
         </el-table-column>
-        <el-table-column label="Refused" width="100">
+        <el-table-column v-if="hasConsumers" label="Refused" width="100">
           <template #default="{ row }">{{ row.consumers ? row.consumers.refused : DASH }}</template>
         </el-table-column>
-        <el-table-column label="Avg, ms" width="170">
+        <el-table-column v-if="hasRequests" label="Avg, ms" width="170">
           <template #header>
             <el-tooltip
-                content="Left: cumulative since the worker started, as the panel reports it. Right: the average over the chart's window."
+                content="Request duration. Left: cumulative since the worker started, as the panel reports it. Right: over the chart's window."
                 placement="top"
             >
               <div class="avg-header">
@@ -391,8 +449,25 @@ export default defineComponent({
             </el-tooltip>
           </template>
           <template #default="{ row }">
-            {{ avgMs(row) }}
-            <span class="avg-window">/ {{ avgMsOverWindow(row) }}</span>
+            {{ requestsAvgMs(row) }}
+            <span class="avg-window">/ {{ requestsAvgMsOverWindow(row) }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column v-if="hasConsumers" label="Handled avg, ms" width="180">
+          <template #header>
+            <el-tooltip
+                content="Handling duration. Left: cumulative since the worker started, as the panel reports it. Right: over the chart's window."
+                placement="top"
+            >
+              <div class="avg-header">
+                <div>Handled avg, ms</div>
+                <div class="avg-header-legend">since start / {{ windowLabel }}</div>
+              </div>
+            </el-tooltip>
+          </template>
+          <template #default="{ row }">
+            {{ handledAvgMs(row) }}
+            <span class="avg-window">/ {{ handledAvgMsOverWindow(row) }}</span>
           </template>
         </el-table-column>
       </el-table>
@@ -423,10 +498,10 @@ export default defineComponent({
           <template #default="{ row }">{{ rssMb(row.memory_rss_bytes) }}</template>
         </el-table-column>
         <el-table-column prop="goroutines" label="Goroutines"/>
-        <el-table-column label="In-flight">
+        <el-table-column v-if="hasRequests" label="In-flight">
           <template #default="{ row }">{{ requestsInFlight(row) }}</template>
         </el-table-column>
-        <el-table-column label="Completed">
+        <el-table-column v-if="hasRequests" label="Completed">
           <template #default="{ row }">{{ completed(row) }}</template>
         </el-table-column>
         <el-table-column v-if="hasConsumers" label="Handling">
@@ -438,10 +513,10 @@ export default defineComponent({
         <el-table-column v-if="hasConsumers" label="Refused">
           <template #default="{ row }">{{ row.consumers ? row.consumers.refused : DASH }}</template>
         </el-table-column>
-        <el-table-column label="Avg, ms" width="170">
+        <el-table-column v-if="hasRequests" label="Avg, ms" width="170">
           <template #header>
             <el-tooltip
-                content="Left: cumulative since the worker started, as the panel reports it. Right: the average over the chart's window."
+                content="Request duration. Left: cumulative since the worker started, as the panel reports it. Right: over the chart's window."
                 placement="top"
             >
               <div class="avg-header">
@@ -451,8 +526,25 @@ export default defineComponent({
             </el-tooltip>
           </template>
           <template #default="{ row }">
-            {{ avgMs(row) }}
-            <span class="avg-window">/ {{ avgMsOverWindow(row) }}</span>
+            {{ requestsAvgMs(row) }}
+            <span class="avg-window">/ {{ requestsAvgMsOverWindow(row) }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column v-if="hasConsumers" label="Handled avg, ms" width="180">
+          <template #header>
+            <el-tooltip
+                content="Handling duration. Left: cumulative since the worker started, as the panel reports it. Right: over the chart's window."
+                placement="top"
+            >
+              <div class="avg-header">
+                <div>Handled avg, ms</div>
+                <div class="avg-header-legend">since start / {{ windowLabel }}</div>
+              </div>
+            </el-tooltip>
+          </template>
+          <template #default="{ row }">
+            {{ handledAvgMs(row) }}
+            <span class="avg-window">/ {{ handledAvgMsOverWindow(row) }}</span>
           </template>
         </el-table-column>
       </el-table>

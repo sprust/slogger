@@ -73,9 +73,8 @@ return [
 
         /*
          * The SConcur AMQP transport: the consumer pool reads it with coroutines under
-         * the sconcur master instead of one blocking queue:work per worker. Available
-         * but not the default — nothing is routed here until a job or a queue names
-         * this connection.
+         * the sconcur master instead of one blocking queue:work per worker. It is what
+         * QUEUE_CONNECTION names, so this is where a job goes unless it says otherwise.
          *
          * The wire format matches the `rabbitmq` connection below, so a job published
          * by either one is readable and runnable by the other's consumer.

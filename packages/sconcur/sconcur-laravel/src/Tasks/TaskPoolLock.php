@@ -21,6 +21,9 @@ class TaskPoolLock
     /** @var resource|null */
     protected mixed $handle = null;
 
+    /** Why the last acquire() failed, for a caller that has to explain it. */
+    protected string $failure = '';
+
     public function __construct(protected string $path)
     {
     }
@@ -30,24 +33,34 @@ class TaskPoolLock
         $directory = dirname($this->path);
 
         if (!is_dir($directory) && !mkdir($directory, 0o775, true) && !is_dir($directory)) {
-            return false;
+            return $this->failed('cannot create ' . $directory);
         }
 
-        $handle = fopen($this->path, 'c');
+        $handle = @fopen($this->path, 'c');
 
         if ($handle === false) {
-            return false;
+            // Told apart from a held lock deliberately. Both used to answer "another pool
+            // holds it", so an unwritable path had the supervisor restarting for ever
+            // while every log line blamed a pool that did not exist.
+            return $this->failed('cannot open ' . $this->path);
         }
 
         if (!flock($handle, LOCK_EX | LOCK_NB)) {
             fclose($handle);
 
-            return false;
+            return $this->failed('another process holds ' . $this->path);
         }
 
-        $this->handle = $handle;
+        $this->handle  = $handle;
+        $this->failure = '';
 
         return true;
+    }
+
+    /** What went wrong the last time acquire() said no. */
+    public function failure(): string
+    {
+        return $this->failure;
     }
 
     public function release(): void
@@ -65,5 +78,12 @@ class TaskPoolLock
     public function path(): string
     {
         return $this->path;
+    }
+
+    protected function failed(string $reason): bool
+    {
+        $this->failure = $reason;
+
+        return false;
     }
 }

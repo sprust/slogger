@@ -2,6 +2,7 @@ import {AdminApi} from "../api-schema/admin-api-schema.ts";
 import {ApiContainer, ApiTokenStorage} from "../utils/apiContainer.ts";
 import {defineStore} from "pinia";
 import {handleApiError, handleApiRequest} from "../utils/handleApiRequest.ts";
+import {useSconcurStore} from "../components/pages/sconcur/store/sconcurStore.ts";
 
 type AuthUser = AdminApi.AuthMeList.ResponseBody['data']
 
@@ -50,6 +51,11 @@ export const useAuthStore = defineStore('authStore', {
             }
         },
         async logout() {
+            // The Sconcur page's polling loop and its history live in a store of their own
+            // so they survive navigation. This is where a session ends — the button, a
+            // 401, the router guard all come through here — so this is where they stop.
+            useSconcurStore().reset()
+
             this.setUser(null)
         },
         setUser(user: AuthUser | null) {

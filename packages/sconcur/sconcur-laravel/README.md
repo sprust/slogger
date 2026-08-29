@@ -4,8 +4,7 @@ Laravel-интеграция для [SConcur](../../../vendor/sconcur/sconcur): 
 coroutine-scoped приложение.
 
 > Статус: **реализовано и проверено (план B3)**. `AsyncApplication` подключён глобально в
-> `bootstrap/app.php` (drop-in subclass; при async=off — обычное поведение, прод/Octane/CLI/queue
-> не затронуты). В воркере per-fiber изолированы `request`/`auth`/`session`/`cookie`, config-overlay,
+> `bootstrap/app.php` (drop-in subclass; вне корутины поведение обычное — один вызывающий, один экземпляр). В воркере per-fiber изолированы `request`/`auth`/`session`/`cookie`, config-overlay,
 > текущий маршрут, локаль, `View::share`, defer. Проверено под конкуренцией.
 > DB: соединение `sconcur_mysql` даёт ORM неблокирующий MySQL и транзакции per-coroutine
 > (см. «База данных»); соединение `mysql` на PDO осталось со своим ограничением.
@@ -23,7 +22,7 @@ fiber-safe. Этот пакет переносит per-request состояни�
 ## Структура
 
 ```
-config/sconcur.php        — конфиг (panel_host, scoped_services, database, master + groups, queue, tasks)
+config/sconcur.php        — конфиг (panel_host, scoped_services, master + groups, queue, tasks)
 src/SConcurServiceProvider — провайдер (команды + проводка адаптеров в воркере)
 src/Console/              — артизан-команды
 src/Servers/              — MasterRunner (обёртка над SConcur\Worker\MasterCli)
@@ -264,8 +263,8 @@ php artisan vendor:publish --tag=sconcur-laravel
 |---|---|---|
 | `SCONCUR_PANEL_HOST` | `http://127.0.0.1:28081/api/stats` | откуда дашборд читает статистику мастера |
 
-Переключателя у coroutine-scoped приложения нет: адаптеры включает сам провайдер,
-когда видит в argv команду корутинного воркера.
+Переключателя у coroutine-scoped приложения нет и определения режима тоже: провайдер
+ставит адаптеры в любом процессе.
 
 ### Мастер (supervisor)
 
@@ -450,7 +449,7 @@ Laravel убил бы процесс вместе со всеми обработ
 
 ## Этапы (план B3)
 
-- [x] **Этап 1** — `AsyncApplication` активен в воркере; `request` per-fiber из контекста.
+- [x] **Этап 1** — `AsyncApplication` активен всегда; `request` per-fiber из контекста.
 - [x] **Этап 2** — `auth`/`session`/`cookie` scoped через `AsyncApplication` + `ScopedServiceProxy`
   (session-драйвер `file` → отдельный handler не нужен; контекст per-fiber, сброс не требуется).
 - [x] **Этап 3** — адаптеры `AsyncConfig`/`AsyncDispatcher`/`AsyncRouter`/`AsyncTranslator`/`AsyncViewFactory`.
@@ -463,10 +462,11 @@ Laravel убил бы процесс вместе со всеми обработ
 - [x] **Этап 5 — соединение `sconcur_mysql`.** Драйвер поверх SQL-фичи, уровень вложенности и
   открытая транзакция в контексте корутины, подмена `database.default` в корутинных процессах.
   Ограничение этапа 4 на нём не действует: транзакция закреплена за отдельным физическим
-  соединением пула Go. См. «База данных».
-- [x] **Этап 6 — `CoroutineTransactionsManager`.** `db.transactions` в корутинных
-  процессах держит по менеджеру на корутину, поэтому `afterCommit` не срабатывает у
-  соседа.
+  соединением пула Go. Соединение выбирается через `DB_CONNECTION`, как в любом
+  ларавел-приложении. См. «База данных».
+- [x] **Этап 6 — `CoroutineTransactionsManager`.** `db.transactions` держит по менеджеру
+  на корутину, поэтому `afterCommit` не срабатывает у соседа. Регистрируется всегда: вне
+  корутины у него один собственный менеджер и поведение штатное.
 - [x] **Нагрузочная проверка** под реальной конкуренцией: изоляция request/locale/config 30/30;
   MongoDB через sconcur 12/12 изолированы; вложенные MySQL-транзакции 30/30; антипаттерн
   `await`-в-транзакции воспроизведён.
