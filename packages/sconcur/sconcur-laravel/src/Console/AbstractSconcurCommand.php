@@ -11,7 +11,7 @@ use SConcur\Worker\MasterConfig;
 /**
  * Shared base for the SConcur artisan commands.
  *
- * The master configuration is taken from config('sconcur.http_server') and turned
+ * The master configuration is taken from config('sconcur.master') and turned
  * into a MasterConfig in-process, so start/stop/status need no JSON file at all.
  *
  * Reload is the exception: the master re-reads the config from disk to pick the
@@ -38,7 +38,7 @@ abstract class AbstractSconcurCommand extends Command
      */
     protected function masterConfigArray(): array
     {
-        $config = (array) config('sconcur.http_server', []);
+        $config = (array) config('sconcur.master', []);
 
         if ($config === []) {
             // The package does not merge its config, so an unpublished one is empty
@@ -46,7 +46,7 @@ abstract class AbstractSconcurCommand extends Command
             // list" from the library, which reads like a broken config rather than a
             // missing one.
             throw new RuntimeException(
-                'sconcur: config("sconcur.http_server") is empty — publish the config with'
+                'sconcur: config("sconcur.master") is empty — publish the config with'
                 . ' `php artisan vendor:publish --tag=sconcur-laravel`',
             );
         }
@@ -80,7 +80,7 @@ abstract class AbstractSconcurCommand extends Command
         $runtimeDir = (string) ($config['runtimeDir'] ?? '');
 
         if ($runtimeDir === '') {
-            throw new RuntimeException('sconcur: config("sconcur.http_server.runtimeDir") is empty');
+            throw new RuntimeException('sconcur: config("sconcur.master.runtimeDir") is empty');
         }
 
         if (!is_dir($runtimeDir) && !mkdir($runtimeDir, 0o775, true) && !is_dir($runtimeDir)) {

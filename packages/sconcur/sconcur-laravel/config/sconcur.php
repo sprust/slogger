@@ -41,7 +41,7 @@ return [
     | workerCount, workerArgs and server there — one master now runs several
     | unlike pools under one lock and one journal).
     */
-    'http_server' => [
+    'master' => [
         'phpBinary'           => env('SCONCUR_HTTP_PHP_BINARY', 'php'),
         'phpArgs'             => [],
         'panelPort'           => (int) env('SCONCUR_HTTP_PANEL_PORT', 28081),
@@ -124,6 +124,30 @@ return [
                     'maxMemoryBytes'    => (int) env('SCONCUR_RABBITMQ_MAX_MEMORY_BYTES', 0),
                 ],
             ],
+            /*
+            | The periodic task pool. Exactly one worker, always: a second one would tick
+            | the cron twice a minute, and workerCount 0 does not mean none — to the
+            | master it means one worker per CPU. Set SCONCUR_TASKS_ENABLED=false to
+            | leave the group out.
+            |
+            | No `server` block: the pool reads nothing from argv but the master's pid,
+            | which the master appends by itself.
+            |
+            | It reports no telemetry — the panel is fed by the Go side of the server and
+            | consumer runtimes, and this pool runs neither — so it shows up in
+            | `master:status` but not in the panel's numbers. The dashboard fills it in
+            | with zeros rather than dropping it (SconcurStatClient).
+            */
+            (bool) env('SCONCUR_TASKS_ENABLED', true) ? [
+                'name'         => 'tasks',
+                'workerScript' => base_path('artisan'),
+                'workerCount'  => 1,
+                'workerArgs'   => ['sconcur:tasks:start'],
+                // Must exceed the pool's own shutdown deadline (20 s), or the master
+                // kills it before the graceful stop can finish; and the supervisor's
+                // stopwaitsecs for the master must in turn exceed this.
+                'shutdownTimeoutMs' => (int) env('SCONCUR_TASKS_SHUTDOWN_TIMEOUT_MS', 30000),
+            ] : null,
         ]),
     ],
 
@@ -153,5 +177,57 @@ return [
             'backoff'   => (int) env('SCONCUR_RABBITMQ_BACKOFF', 0),
             'memory_mb' => (int) env('SCONCUR_RABBITMQ_MEMORY_MB', 128),
         ],
+    ],
+    /*
+    |--------------------------------------------------------------------------
+    | Periodic task pool
+    |--------------------------------------------------------------------------
+    | The third runtime of this package, beside the HTTP server and the queue-consumer
+    | pool: one process running every task below as its own coroutine of a WaitGroup.
+    |
+    | A task implements tick() and nothing else — the loop, the pauses, the reporting and
+    | the stop belong to the pool. `sconcur:tasks:stop` and `sconcur:tasks:restart` reach
+    | a running pool through `control_key`, which is what lets another container manage
+    | it. See the package's docs/task-pool.ru.md.
+    */
+    'tasks' => [
+        'control_key' => env('SCONCUR_TASKS_CONTROL_KEY', 'sconcur:tasks:control'),
+
+        // flock, not a cache lock: the kernel releases it when the process dies, SIGKILL
+        // included, so a second pool cannot start beside the first and there is no stale
+        // lock to clean up.
+        'lock_path'   => env('SCONCUR_TASKS_LOCK_PATH', storage_path('sconcur/runtime/tasks.lock')),
+
+        // A leak anywhere in the process takes every task down with it, so the limit is
+        // the pool's. Passing it is a graceful stop, and the supervisor starts a fresh one.
+        'memory_mb'   => (int) env('SCONCUR_TASKS_MEMORY_MB', 256),
+
+        // How finely a pause is cut, which is how fast the pool notices a signal: a
+        // pcntl handler only runs while PHP does, and a process whose coroutines are all
+        // parked in Go executes none. The library's own servers poll on the same 250 ms.
+        'sleep_chunk_ms' => (int) env('SCONCUR_TASKS_SLEEP_CHUNK_MS', 250),
+
+        // Automatic coroutine switching, so a tick busy with computation cannot starve
+        // the controller that carries the shutdown. Coarser than the library's 5 ms
+        // default on purpose: this is not an HTTP server with dozens of handlers sharing
+        // the thread, and nobody here is waiting on a response. 0 turns it off, which is
+        // what a task holding a MySQL transaction on the shared connection would need.
+        'preemption_quantum_ms' => (int) env('SCONCUR_TASKS_PREEMPTION_QUANTUM_MS', 1000),
+
+        // How long a stop waits for the running ticks before the group is unwound. Must
+        // stay below the supervisor's stopwaitsecs for the pool's program (30 s), or the
+        // process is always killed before this can happen and the graceful path never
+        // runs at all.
+        'shutdown_timeout_seconds' => (int) env('SCONCUR_TASKS_SHUTDOWN_TIMEOUT_SECONDS', 20),
+
+        /*
+        | The tasks themselves, each naming a class that implements TaskInterface:
+        |
+        |     ['name' => 'cron', 'task' => CronTask::class, 'idle' => 5, 'busy' => 5, 'backoff' => 5]
+        |
+        | Empty here because the package ships no tasks of its own — they belong to the
+        | application that publishes this file.
+        */
+        'list' => [],
     ],
 ];

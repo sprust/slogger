@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace SConcur\Laravel;
 
+use Illuminate\Contracts\Cache\Repository as CacheRepository;
 use Illuminate\Contracts\Container\BindingResolutionException;
+use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\ServiceProvider;
@@ -20,9 +22,17 @@ use SConcur\Laravel\Console\MasterStopCommand;
 use SConcur\Laravel\Events\AsyncDispatcher;
 use SConcur\Laravel\Console\RabbitmqConsumerStartCommand;
 use SConcur\Laravel\Console\RabbitmqDeclareCommand;
+use SConcur\Laravel\Console\TasksRestartCommand;
+use SConcur\Laravel\Console\TasksStartCommand;
+use SConcur\Laravel\Console\TasksStopCommand;
 use SConcur\Laravel\Foundation\AsyncApplication;
 use SConcur\Laravel\Queue\Rabbitmq\Connector;
 use SConcur\Laravel\Routing\AsyncRouter;
+use SConcur\Laravel\Tasks\Control\ControlChannel;
+use SConcur\Laravel\Tasks\CooperativeSleeper;
+use SConcur\Laravel\Tasks\TaskPoolLogger;
+use SConcur\Laravel\Tasks\TaskPoolOptions;
+use SConcur\Laravel\Tasks\TaskRegistry;
 use SConcur\Laravel\Translation\AsyncTranslator;
 use SConcur\Laravel\View\AsyncViewFactory;
 
@@ -63,11 +73,15 @@ class SConcurServiceProvider extends ServiceProvider
             HttpStartCommand::class,
             RabbitmqConsumerStartCommand::class,
             RabbitmqDeclareCommand::class,
+            TasksStartCommand::class,
+            TasksStopCommand::class,
+            TasksRestartCommand::class,
             ExtensionLoadCommand::class,
             ExtensionStatusCommand::class,
         ]);
 
         $this->registerQueueConnector();
+        $this->registerTaskPool();
 
         if ($this->isCoroutineWorker()) {
             $this->registerAsyncAdapters();
@@ -110,6 +124,46 @@ class SConcurServiceProvider extends ServiceProvider
         $this->app->resolving('queue', static function (QueueManager $manager): void {
             $manager->addConnector('sconcur_rabbitmq', static fn(): Connector => new Connector());
         });
+    }
+
+    /**
+     * Bindings of the periodic task pool.
+     *
+     * Everything is read from config('sconcur.tasks'), including the task list: the
+     * registry resolves the classes named there out of the container, so a task is an
+     * ordinary injectable service and the pool itself needs no knowledge of what it runs.
+     */
+    private function registerTaskPool(): void
+    {
+        $this->app->singleton(
+            TaskPoolOptions::class,
+            static fn(): TaskPoolOptions => TaskPoolOptions::fromArray((array) config('sconcur.tasks', [])),
+        );
+
+        $this->app->singleton(
+            TaskRegistry::class,
+            static fn(Container $app): TaskRegistry => new TaskRegistry(
+                container: $app,
+                list: (array) config('sconcur.tasks.list', []),
+            ),
+        );
+
+        $this->app->singleton(
+            CooperativeSleeper::class,
+            static fn(Container $app): CooperativeSleeper => new CooperativeSleeper(
+                chunkMs: $app->make(TaskPoolOptions::class)->sleepChunkMs,
+            ),
+        );
+
+        $this->app->singleton(
+            ControlChannel::class,
+            static fn(Container $app): ControlChannel => new ControlChannel(
+                cache: $app->make(CacheRepository::class),
+                key: $app->make(TaskPoolOptions::class)->controlKey,
+            ),
+        );
+
+        $this->app->singleton(TaskPoolLogger::class, static fn(): TaskPoolLogger => new TaskPoolLogger());
     }
 
     /**

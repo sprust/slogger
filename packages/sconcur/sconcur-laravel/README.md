@@ -22,11 +22,12 @@ fiber-safe. Этот пакет переносит per-request состояни�
 ## Структура
 
 ```
-config/sconcur.php        — конфиг (panel_host, scoped_services, http_server + groups)
+config/sconcur.php        — конфиг (panel_host, scoped_services, master + groups, queue, tasks)
 src/SConcurServiceProvider — провайдер (команды + проводка адаптеров в воркере)
 src/Console/              — артизан-команды
 src/Servers/              — MasterRunner (обёртка над SConcur\Worker\MasterCli)
 src/Queue/Rabbitmq/       — драйвер очереди и консьюмер-пул (Connector, Queue, Job, ConsumerRunner)
+src/Tasks/                — пул периодических задач (TaskPool, TaskPoolController, TaskRegistry)
 src/Http/                 — HttpServerRunner + LaravelHttpHandler (build + serve)
 src/Foundation/           — AsyncApplication, ScopedService, ScopedServiceProxy
 src/Config/               — AsyncConfig (overlay config()->set per-coroutine)
@@ -46,7 +47,7 @@ docs/                     — ТЗ и план
 
 ## Артизан-команды
 
-Мастер инстанцируется прямо в командах из `config('sconcur.http_server')`
+Мастер инстанцируется прямо в командах из `config('sconcur.master')`
 (через `MasterConfig::fromArray`), без прокидывания JSON-пути.
 
 ```

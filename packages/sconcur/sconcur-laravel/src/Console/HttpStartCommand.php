@@ -109,7 +109,7 @@ class HttpStartCommand extends Command
     {
         $args = [];
 
-        foreach ((array) config('sconcur.http_server.groups', []) as $group) {
+        foreach ((array) config('sconcur.master.groups', []) as $group) {
             if (!is_array($group) || !in_array(self::NAME, (array) ($group['workerArgs'] ?? []), true)) {
                 continue;
             }

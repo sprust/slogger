@@ -27,7 +27,7 @@ readonly class SconcurStatClient
     public function find(): SconcurStatObject
     {
         $url   = (string) config('sconcur.panel_host');
-        $token = (string) config('sconcur.http_server.adminToken');
+        $token = (string) config('sconcur.master.adminToken');
 
         if ($url === '' || $token === '') {
             return $this->unavailable();
@@ -81,10 +81,52 @@ readonly class SconcurStatClient
             requests: $this->mapRequests($totals['requests'] ?? null),
             masterCpuPercent: (float) ($master['cpuPercent'] ?? 0),
             masterMemoryRssBytes: (int) ($master['memory']['rssBytes'] ?? 0),
-            groups: array_map($this->mapGroup(...), array_values((array) ($data['groups'] ?? []))),
+            groups: $this->withSilentGroups(
+                array_map($this->mapGroup(...), array_values((array) ($data['groups'] ?? []))),
+            ),
             workers: array_map($this->mapWorker(...), array_values((array) ($data['workers'] ?? []))),
             consumers: $this->mapConsumers($totals['consumers'] ?? null),
         );
+    }
+
+    /**
+     * Adds the configured groups the panel says nothing about, with their numbers at
+     * zero.
+     *
+     * The panel only knows a worker that pushes telemetry to it, and pushing is done by
+     * the Go side of the server and consumer runtimes. A group of plain artisan workers
+     * — the periodic task pool — runs neither, so it is configured and supervised and
+     * simply absent from these numbers. Dropping it from the dashboard would read as
+     * "there is no such pool"; zeros read as "no measurements", which is the truth.
+     *
+     * @param list<SconcurGroupObject> $groups
+     *
+     * @return list<SconcurGroupObject>
+     */
+    private function withSilentGroups(array $groups): array
+    {
+        $reported = array_map(static fn(SconcurGroupObject $group): string => $group->name, $groups);
+
+        foreach ((array) config('sconcur.master.groups', []) as $group) {
+            $name = is_array($group) ? (string) ($group['name'] ?? '') : '';
+
+            if ($name === '' || in_array($name, $reported, true)) {
+                continue;
+            }
+
+            $groups[] = new SconcurGroupObject(
+                name: $name,
+                workersTotal: 0,
+                workersHung: 0,
+                cpuPercent: 0,
+                memoryRssBytes: 0,
+                goroutines: 0,
+                requests: null,
+                consumers: null,
+            );
+        }
+
+        return $groups;
     }
 
     /**
