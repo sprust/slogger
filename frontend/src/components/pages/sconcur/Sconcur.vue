@@ -12,13 +12,19 @@ import {
   Title,
   Tooltip,
 } from "chart.js";
-import {type SconcurStat, useDashboardSconcurStore} from "./store/dashboardSconcurStore.ts";
+import {
+  groupKey,
+  MASTER_SOURCE,
+  type StatRow,
+  useSconcurStore,
+  WINDOW_MS,
+  workerKey,
+} from "./store/sconcurStore.ts";
 import {Loading as IconLoading, Refresh as IconRefresh} from "@element-plus/icons-vue";
 
 ChartJS.register(Title, Tooltip, Legend, LineElement, PointElement, CategoryScale, LinearScale, Filler);
 
 const DASH = '—'; // what a section the pool does not report reads as
-const WINDOW_MS = 300_000; // rolling window: the last 5 minutes
 const COLORS = ['#409EFF', '#67C23A', '#E6A23C', '#F56C6C', '#909399', '#9B59B6'];
 
 interface MetricDef {
@@ -26,19 +32,9 @@ interface MetricDef {
   label: string
 }
 
-type SconcurStatData = SconcurStat extends null ? never : SconcurStat
-
-/** A group or a worker: both carry the same optional counter sections. */
-type StatRow = NonNullable<SconcurStatData>['groups'][number]
-  | NonNullable<SconcurStatData>['workers'][number]
-
-interface HistoryPoint {
+interface SourceDef {
+  key: string
   label: string
-
-  // null is a gap in the series, not a zero: Chart.js skips such a point with
-  // spanGaps false, which is how a section the master does not report reads as absent
-  // rather than as an idle one.
-  [key: string]: string | number | null
 }
 
 export default defineComponent({
@@ -48,15 +44,6 @@ export default defineComponent({
 
   data() {
     return {
-      autoUpdate: false,
-      selectedMetrics: ['rps', 'cpu_percent'] as string[],
-      history: [] as HistoryPoint[],
-      timer: null as number | null,
-      prevCompleted: null as number | null,
-      prevDelivered: null as number | null,
-      // When the previous sample was taken, so a rate can be per elapsed second rather
-      // than per poll: samples are not evenly spaced when auto-update is off.
-      prevAt: null as number | null,
       metrics: [
         {key: 'requests_in_flight', label: 'In-flight requests'},
         {key: 'rps', label: 'RPS (requests/sec)'},
@@ -64,16 +51,16 @@ export default defineComponent({
         {key: 'memory_rss_mb', label: 'Memory RSS, MB'},
         {key: 'goroutines', label: 'Goroutines'},
         {key: 'requests_avg_ms', label: 'Avg duration, ms'},
-        {key: 'consumers_in_flight', label: 'In-flight deliveries'},
-        {key: 'consumers_rate', label: 'Deliveries/sec'},
-        {key: 'consumers_avg_ms', label: 'Delivery avg duration, ms'},
+        {key: 'consumers_in_flight', label: 'In-flight handling'},
+        {key: 'consumers_rate', label: 'Handled/sec'},
+        {key: 'consumers_avg_ms', label: 'Handled avg duration, ms'},
       ] as MetricDef[],
     }
   },
 
   computed: {
     store() {
-      return useDashboardSconcurStore()
+      return useSconcurStore()
     },
     IconLoading() {
       return IconLoading
@@ -84,19 +71,58 @@ export default defineComponent({
     DASH() {
       return DASH
     },
+    /** How long the chart's window is, said in the header the column shares with it. */
+    windowLabel(): string {
+      return `${Math.round(WINDOW_MS / 60_000)}m`
+    },
     hasConsumers(): boolean {
       return this.store.stat?.workers.some(worker => worker.consumers) ?? false
     },
+    /**
+     * What the chart can be pointed at: the master as a whole, one of its pools, or one
+     * worker. Built from the current snapshot, so a worker the master replaced disappears
+     * from the list as soon as it is gone.
+     */
+    sources(): SourceDef[] {
+      const stat = this.store.stat
+
+      const list: SourceDef[] = [{key: MASTER_SOURCE, label: 'Master (totals)'}]
+
+      if (!stat) {
+        return list
+      }
+
+      for (const group of stat.groups) {
+        list.push({key: groupKey(group.name), label: `Group: ${group.name}`})
+      }
+
+      for (const worker of stat.workers) {
+        list.push({key: workerKey(worker.pid), label: `Worker ${worker.pid} · ${worker.group}`})
+      }
+
+      return list
+    },
+    /**
+     * The source actually charted. A worker that went away falls back to the master
+     * rather than leaving the chart empty with no explanation.
+     */
+    chartedSource(): string {
+      return this.sources.some(source => source.key === this.store.selectedSource)
+        ? this.store.selectedSource
+        : MASTER_SOURCE
+    },
     chartData() {
+      const source = this.chartedSource
+
       return {
-        labels: this.history.map(p => p.label),
-        datasets: this.selectedMetrics.map((key, index) => {
+        labels: this.store.history.map(p => p.label),
+        datasets: this.store.selectedMetrics.map((key, index) => {
           const metric = this.metrics.find(m => m.key === key)
           const color = COLORS[index % COLORS.length]
 
           return {
             label: metric?.label ?? key,
-            data: this.history.map(p => p[key] as number | null),
+            data: this.store.history.map(p => p.values[source]?.[key] ?? null),
             borderColor: color,
             backgroundColor: color,
             fill: false,
@@ -129,81 +155,25 @@ export default defineComponent({
   },
 
   methods: {
-    async tick() {
-      await this.store.findSconcurStat()
+    /**
+     * The average of one metric of one source over the samples held right now — the same
+     * window the chart draws, so a number in the table and the line above it agree.
+     * Null when the source reports nothing for it.
+     */
+    windowAverage(sourceKey: string, metricKey: string): number | null {
+      let sum = 0
+      let count = 0
 
-      const stat = this.store.stat
+      for (const sample of this.store.history) {
+        const value = sample.values[sourceKey]?.[metricKey]
 
-      if (!stat || !stat.available) {
-        return
+        if (typeof value === 'number') {
+          sum += value
+          count++
+        }
       }
 
-      // Both sections are optional: a master serving no requests omits `requests`, one
-      // consuming no queue omits `consumers`. Absent is not zero, so nothing is charted
-      // for a section that is not there.
-      const now = Date.now()
-
-      // Per second, and per *elapsed* second. Samples are not evenly spaced: auto-update
-      // is off by default, and a manual refresh after two idle minutes would otherwise
-      // plot two minutes of work as one second of it.
-      const elapsedSeconds = this.prevAt === null ? 0 : Math.max(0.001, (now - this.prevAt) / 1000)
-
-      const requests = stat.requests
-      let rps: number | null = null
-
-      if (requests && this.prevCompleted !== null && elapsedSeconds > 0) {
-        rps = Math.max(0, requests.completed - this.prevCompleted) / elapsedSeconds
-      }
-
-      this.prevCompleted = requests ? requests.completed : null
-
-      // Only a pool consuming a queue reports this section; an HTTP-only master omits it.
-      const consumers = stat.consumers
-      let consumersRate: number | null = null
-
-      if (consumers && this.prevDelivered !== null && elapsedSeconds > 0) {
-        consumersRate = Math.max(0, consumers.delivered - this.prevDelivered) / elapsedSeconds
-      }
-
-      this.prevDelivered = consumers ? consumers.delivered : null
-      this.prevAt = now
-
-      this.history.push({
-        ts: now,
-        label: new Date(now).toLocaleTimeString(),
-        requests_in_flight: requests?.in_flight ?? null,
-        rps: rps === null ? null : Math.round(rps * 100) / 100,
-        cpu_percent: Math.round(stat.cpu_percent * 10) / 10,
-        memory_rss_mb: Math.round(stat.memory_rss_bytes / 1048576),
-        goroutines: stat.goroutines,
-        requests_avg_ms: requests ? Math.round(requests.avg_ms * 100) / 100 : null,
-        consumers_in_flight: consumers?.in_flight ?? null,
-        consumers_rate: consumersRate === null ? null : Math.round(consumersRate * 100) / 100,
-        consumers_avg_ms: consumers ? Math.round(consumers.avg_ms * 100) / 100 : null,
-      })
-
-      // keep only the last 5 minutes
-      const cutoff = now - WINDOW_MS
-
-      while (this.history.length > 0 && (this.history[0].ts as number) < cutoff) {
-        this.history.shift()
-      }
-    },
-
-    onToggle(value: boolean) {
-      this.stopTimer()
-
-      if (value) {
-        this.tick()
-        this.timer = window.setInterval(() => this.tick(), 1000)
-      }
-    },
-
-    stopTimer() {
-      if (this.timer !== null) {
-        clearInterval(this.timer)
-        this.timer = null
-      }
+      return count === 0 ? null : sum / count
     },
 
     rssMb(bytes: number): number {
@@ -212,21 +182,58 @@ export default defineComponent({
 
     /**
      * A row reports one of the two sections, never both: a server pool counts requests,
-     * a consumer pool counts deliveries. The missing one is absent rather than zero —
+     * a consumer pool counts queue messages. The missing one is absent rather than zero —
      * the panel omits it — so it reads as a dash instead of a count nobody keeps.
+     *
+     * The two are kept in columns of their own rather than merged into one. Merged, the
+     * column read as "work done" but summed to something no card above it shows: requests
+     * and messages added together. Split, every count column adds up to the card that
+     * carries its name.
      */
-    inFlight(row: StatRow): number | string {
-      return row.consumers?.in_flight ?? row.requests?.in_flight ?? DASH
+    requestsInFlight(row: StatRow): number | string {
+      return row.requests?.in_flight ?? DASH
+    },
+
+    completed(row: StatRow): number | string {
+      return row.requests?.completed ?? DASH
+    },
+
+    handling(row: StatRow): number | string {
+      return row.consumers?.in_flight ?? DASH
     },
 
     handled(row: StatRow): number | string {
-      return row.consumers?.acked ?? row.requests?.completed ?? DASH
+      return row.consumers?.acked ?? DASH
     },
 
     avgMs(row: StatRow): string {
       const value = row.consumers?.avg_ms ?? row.requests?.avg_ms
 
       return value === undefined ? DASH : value.toFixed(2)
+    },
+
+    /**
+     * The same average over the chart's window rather than at this instant.
+     *
+     * The panel's own avg_ms is cumulative since the worker started, so a pool that was
+     * busy an hour ago keeps reporting that hour. This is what the last fifteen minutes
+     * actually looked like, which is the question the chart beside it answers.
+     */
+    avgMsOverWindow(row: StatRow): string {
+      const metric = row.consumers ? 'consumers_avg_ms' : (row.requests ? 'requests_avg_ms' : null)
+
+      if (metric === null) {
+        return DASH
+      }
+
+      const average = this.windowAverage(this.rowKey(row), metric)
+
+      return average === null ? DASH : average.toFixed(2)
+    },
+
+    /** Which sampled source a table row is. Workers carry a pid; groups carry a name. */
+    rowKey(row: StatRow): string {
+      return 'pid' in row ? workerKey(row.pid) : groupKey((row as { name: string }).name)
     },
 
     formatUptime(seconds: number): string {
@@ -247,11 +254,10 @@ export default defineComponent({
   },
 
   mounted() {
-    this.tick()
-  },
-
-  beforeUnmount() {
-    this.stopTimer()
+    // A refresh on arrival, so the page is never blank — but the history and the loop are
+    // the store's, so what was collected before is still here and a running loop kept
+    // running while the page was elsewhere.
+    this.store.tick()
   },
 })
 </script>
@@ -265,7 +271,7 @@ export default defineComponent({
             :loading="store.loading"
             :icon="store.loading ? IconLoading : IconRefresh"
             link
-            @click="tick"
+            @click="store.tick"
         />
         <el-tag v-if="store.stat && store.stat.available" type="success" size="small">
           {{ store.stat.name }}
@@ -274,7 +280,7 @@ export default defineComponent({
       </el-space>
       <el-space>
         <el-text size="small">auto-refresh 1s</el-text>
-        <el-switch v-model="autoUpdate" @change="onToggle"/>
+        <el-switch :model-value="store.autoUpdate" @change="store.setAutoUpdate($event as boolean)"/>
       </el-space>
     </el-row>
 
@@ -302,6 +308,9 @@ export default defineComponent({
         <el-col :span="3">
           <el-statistic title="RSS, MB" :value="rssMb(store.stat.memory_rss_bytes)"/>
         </el-col>
+        <el-col :span="3">
+          <el-statistic title="Goroutines" :value="store.stat.goroutines"/>
+        </el-col>
         <template v-if="store.stat.requests">
           <el-col :span="3">
             <el-statistic title="In-flight" :value="store.stat.requests.in_flight"/>
@@ -315,15 +324,19 @@ export default defineComponent({
         </template>
         <template v-if="store.stat.consumers">
           <el-col :span="3">
-            <el-statistic title="Delivering" :value="store.stat.consumers.in_flight"/>
+            <el-statistic title="Handling" :value="store.stat.consumers.in_flight"/>
           </el-col>
           <el-col :span="3">
-            <!-- delivered, not acked: the chart series below counts the same thing, and
-                 a queue whose jobs all fail would otherwise read "Delivered 0". -->
-            <el-statistic title="Delivered" :value="store.stat.consumers.delivered"/>
+            <!-- acked, the same number the tables below call Handled and the same one
+                 the chart's Handled/sec is a rate of. Refused sits beside it, so a queue
+                 whose jobs all fail is visible rather than hidden behind a throughput. -->
+            <el-statistic title="Handled" :value="store.stat.consumers.acked"/>
           </el-col>
           <el-col :span="3">
-            <el-statistic title="Delivery avg, ms" :value="store.stat.consumers.avg_ms" :precision="2"/>
+            <el-statistic title="Refused" :value="store.stat.consumers.refused"/>
+          </el-col>
+          <el-col :span="3">
+            <el-statistic title="Handled avg, ms" :value="store.stat.consumers.avg_ms" :precision="2"/>
           </el-col>
         </template>
       </el-row>
@@ -351,7 +364,13 @@ export default defineComponent({
         </el-table-column>
         <el-table-column prop="goroutines" label="Goroutines" width="110"/>
         <el-table-column label="In-flight" width="100">
-          <template #default="{ row }">{{ inFlight(row) }}</template>
+          <template #default="{ row }">{{ requestsInFlight(row) }}</template>
+        </el-table-column>
+        <el-table-column label="Completed" width="110">
+          <template #default="{ row }">{{ completed(row) }}</template>
+        </el-table-column>
+        <el-table-column label="Handling" width="100">
+          <template #default="{ row }">{{ handling(row) }}</template>
         </el-table-column>
         <el-table-column label="Handled">
           <template #default="{ row }">{{ handled(row) }}</template>
@@ -359,8 +378,22 @@ export default defineComponent({
         <el-table-column label="Refused" width="100">
           <template #default="{ row }">{{ row.consumers ? row.consumers.refused : DASH }}</template>
         </el-table-column>
-        <el-table-column label="Avg, ms" width="100">
-          <template #default="{ row }">{{ avgMs(row) }}</template>
+        <el-table-column label="Avg, ms" width="170">
+          <template #header>
+            <el-tooltip
+                content="Left: cumulative since the worker started, as the panel reports it. Right: the average over the chart's window."
+                placement="top"
+            >
+              <div class="avg-header">
+                <div>Avg, ms</div>
+                <div class="avg-header-legend">since start / {{ windowLabel }}</div>
+              </div>
+            </el-tooltip>
+          </template>
+          <template #default="{ row }">
+            {{ avgMs(row) }}
+            <span class="avg-window">/ {{ avgMsOverWindow(row) }}</span>
+          </template>
         </el-table-column>
       </el-table>
 
@@ -391,23 +424,58 @@ export default defineComponent({
         </el-table-column>
         <el-table-column prop="goroutines" label="Goroutines"/>
         <el-table-column label="In-flight">
-          <template #default="{ row }">{{ inFlight(row) }}</template>
+          <template #default="{ row }">{{ requestsInFlight(row) }}</template>
         </el-table-column>
-        <el-table-column label="Handled">
+        <el-table-column label="Completed">
+          <template #default="{ row }">{{ completed(row) }}</template>
+        </el-table-column>
+        <el-table-column v-if="hasConsumers" label="Handling">
+          <template #default="{ row }">{{ handling(row) }}</template>
+        </el-table-column>
+        <el-table-column v-if="hasConsumers" label="Handled">
           <template #default="{ row }">{{ handled(row) }}</template>
         </el-table-column>
         <el-table-column v-if="hasConsumers" label="Refused">
           <template #default="{ row }">{{ row.consumers ? row.consumers.refused : DASH }}</template>
         </el-table-column>
-        <el-table-column label="Avg, ms">
-          <template #default="{ row }">{{ avgMs(row) }}</template>
+        <el-table-column label="Avg, ms" width="170">
+          <template #header>
+            <el-tooltip
+                content="Left: cumulative since the worker started, as the panel reports it. Right: the average over the chart's window."
+                placement="top"
+            >
+              <div class="avg-header">
+                <div>Avg, ms</div>
+                <div class="avg-header-legend">since start / {{ windowLabel }}</div>
+              </div>
+            </el-tooltip>
+          </template>
+          <template #default="{ row }">
+            {{ avgMs(row) }}
+            <span class="avg-window">/ {{ avgMsOverWindow(row) }}</span>
+          </template>
         </el-table-column>
       </el-table>
 
       <el-row align="middle" :gutter="12" style="margin-bottom: 10px">
+        <el-col :span="7">
+          <el-select
+              v-model="store.selectedSource"
+              filterable
+              placeholder="Source"
+              style="width: 100%"
+          >
+            <el-option
+                v-for="source in sources"
+                :key="source.key"
+                :label="source.label"
+                :value="source.key"
+            />
+          </el-select>
+        </el-col>
         <el-col :span="10">
           <el-select
-              v-model="selectedMetrics"
+              v-model="store.selectedMetrics"
               multiple
               collapse-tags
               collapse-tags-tooltip
@@ -422,6 +490,12 @@ export default defineComponent({
             />
           </el-select>
         </el-col>
+        <el-col :span="7">
+          <el-text size="small" type="info">
+            Last 15 minutes. Every group and worker is sampled, so switching the source
+            keeps the history already collected.
+          </el-text>
+        </el-col>
       </el-row>
 
       <div style="height: 320px; width: 100%">
@@ -430,3 +504,19 @@ export default defineComponent({
     </template>
   </div>
 </template>
+
+<style scoped>
+.avg-header {
+  line-height: 1.2;
+}
+
+.avg-header-legend {
+  color: var(--el-text-color-secondary);
+  font-weight: normal;
+}
+
+.avg-window {
+  color: var(--el-text-color-secondary);
+  margin-left: 2px;
+}
+</style>

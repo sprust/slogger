@@ -14,7 +14,6 @@ use Illuminate\Queue\Worker;
 use Illuminate\Queue\WorkerOptions;
 use SConcur\Features\Amqp\Consumer\QueueConsumer;
 use SConcur\Features\Amqp\Delivery;
-use SConcur\Laravel\Foundation\AsyncApplication;
 
 /**
  * Runs a queue-consumer pool in the current process, the way HttpServerRunner runs an
@@ -38,13 +37,6 @@ readonly class ConsumerRunner
 
     public function run(Application $app): int
     {
-        // Turn on coroutine-scoped resolution for the lifetime of this worker: handlers
-        // run concurrently, so auth, session, cookie, the config overlay, the dispatcher
-        // and the translator have to be per-coroutine rather than per-process.
-        if ($app instanceof AsyncApplication) {
-            $app->enableAsyncMode();
-        }
-
         /** @var QueueManager $manager */
         $manager = $app->make(QueueManager::class);
 

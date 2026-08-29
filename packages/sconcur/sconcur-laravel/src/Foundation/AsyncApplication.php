@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SConcur\Laravel\Foundation;
 
 use Closure;
+use Illuminate\Contracts\Config\Repository as ConfigRepository;
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
 use SConcur\Context\Context;
@@ -14,11 +15,18 @@ use SConcur\Context\Context;
  * services are resolved from the current coroutine's context instead of being
  * cloned/swapped per request.
  *
- * SKELETON. Ported from yangusik/laravel-spawn (AsyncApplication), adapted to
- * SConcur's Context::current(). Not wired into the app yet. The DB resolver and
- * the per-adapter scoping (router/translator/config/view/events) are still TODO.
+ * There is no mode to turn on. It used to have one, and the switch was the bug: it had to
+ * be thrown by whoever knew the process would run coroutines, which meant three call
+ * sites, one of which (the task pool) never did it — and before that, a check on argv
+ * that stopped matching the moment the master began passing a group's flags ahead of the
+ * command name. Nothing detects anything now.
  *
- * See docs/fiber-safe-laravel-bridge.ru.md §4.
+ * Outside a coroutine this costs nothing: Context::current() resolves to the process root,
+ * so every scoped service is a single instance for a single caller — which is what the
+ * container would have given anyway.
+ *
+ * Ported from yangusik/laravel-spawn (AsyncApplication), adapted to SConcur's
+ * Context::current(). See docs/fiber-safe-laravel-bridge.ru.md §4.
  */
 class AsyncApplication extends Application
 {
@@ -31,28 +39,17 @@ class AsyncApplication extends Application
         'session' => true,
     ];
 
-    private bool $asyncMode = false;
-
     /** @var array<string, Closure> user-registered scoped factories */
     private array $scopedBindings = [];
 
-    /** @var array<string, int> config('sconcur.scoped_services') as alias => 1 */
-    private array $scopedServiceCache = [];
-
-    public function isAsyncModeEnabled(): bool
-    {
-        return $this->asyncMode;
-    }
-
-    public function enableAsyncMode(): void
-    {
-        $this->asyncMode = true;
-
-        if ($this->resolved('config')) {
-            $scoped                   = $this->make('config')->get('sconcur.scoped_services', []);
-            $this->scopedServiceCache = array_flip($scoped);
-        }
-    }
+    /**
+     * config('sconcur.scoped_services') as alias => 1, read once the config repository
+     * exists. Null until then — a resolve during bootstrap must not freeze an empty list
+     * for the life of the process.
+     *
+     * @var array<string, int>|null
+     */
+    private ?array $scopedServices = null;
 
     public function scopedSingleton(string $abstract, Closure $factory): void
     {
@@ -65,7 +62,7 @@ class AsyncApplication extends Application
      */
     public function bound($abstract): bool
     {
-        if ($this->asyncMode && $this->getAlias($abstract) === 'request') {
+        if ($this->getAlias($abstract) === 'request') {
             return true;
         }
 
@@ -74,16 +71,14 @@ class AsyncApplication extends Application
 
     public function offsetGet($key): mixed
     {
-        if ($this->asyncMode) {
-            $alias = $this->getAlias($key);
+        $alias = $this->getAlias($key);
 
-            if (isset(self::FACADE_PROXIED_MAP[$alias])) {
-                return new ScopedServiceProxy(fn() => $this->tryResolveScoped($alias));
-            }
+        if (isset(self::FACADE_PROXIED_MAP[$alias])) {
+            return new ScopedServiceProxy(fn() => $this->tryResolveScoped($alias));
+        }
 
-            if ($alias === 'request') {
-                return $this->resolveRequest();
-            }
+        if ($alias === 'request') {
+            return $this->resolveRequest();
         }
 
         return parent::offsetGet($key);
@@ -91,18 +86,16 @@ class AsyncApplication extends Application
 
     protected function resolve($abstract, $parameters = [], $raiseEvents = true)
     {
-        if ($this->asyncMode) {
-            $alias = $this->getAlias($abstract);
+        $alias = $this->getAlias($abstract);
 
-            if ($alias === 'request') {
-                return $this->resolveRequest();
-            }
+        if ($alias === 'request') {
+            return $this->resolveRequest();
+        }
 
-            $instance = $this->tryResolveScoped($alias);
+        $instance = $this->tryResolveScoped($alias);
 
-            if ($instance !== null) {
-                return $instance;
-            }
+        if ($instance !== null) {
+            return $instance;
         }
 
         return parent::resolve($abstract, $parameters, $raiseEvents);
@@ -110,12 +103,10 @@ class AsyncApplication extends Application
 
     private function resolveRequest(): object
     {
-        if ($this->asyncMode) {
-            $fromContext = Context::current()->find(ScopedService::REQUEST->value);
+        $fromContext = Context::current()->find(ScopedService::REQUEST->value);
 
-            if ($fromContext !== null) {
-                return $fromContext;
-            }
+        if ($fromContext !== null) {
+            return $fromContext;
         }
 
         return $this->instances['request'] ?? Request::createFromGlobals();
@@ -134,7 +125,7 @@ class AsyncApplication extends Application
 
         if ($key === null
             && !isset($this->scopedBindings[$alias])
-            && !isset($this->scopedServiceCache[$alias])
+            && !$this->isConfiguredScoped($alias)
         ) {
             return null;
         }
@@ -164,5 +155,28 @@ class AsyncApplication extends Application
         $ctx->set($ctxKey, $instance);
 
         return $instance;
+    }
+
+    /**
+     * Whether the application asked for this alias to be scoped, in
+     * config('sconcur.scoped_services').
+     *
+     * Read straight from the stored instance rather than through make(): resolving the
+     * config repository goes through resolve(), which asks this question, which would
+     * ask for the repository again.
+     */
+    private function isConfiguredScoped(string $alias): bool
+    {
+        if ($this->scopedServices === null) {
+            $config = $this->instances['config'] ?? null;
+
+            if (!$config instanceof ConfigRepository) {
+                return false;
+            }
+
+            $this->scopedServices = array_flip((array) $config->get('sconcur.scoped_services', []));
+        }
+
+        return isset($this->scopedServices[$alias]);
     }
 }

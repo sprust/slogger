@@ -3,9 +3,11 @@
     <el-header>
       <Header v-if="authStore.user"/>
     </el-header>
-    <div class="height-100" style="padding: 0 20px 20px 20px; overflow-y: auto">
+    <!-- el-scrollbar rather than the browser's own overflow, so the main area scrolls
+         with the same bar the pages inside it already use (Logs, the trace list). -->
+    <el-scrollbar class="height-100" style="padding: 0 20px 20px 20px">
       <router-view/>
-    </div>
+    </el-scrollbar>
     <PendingRequestDialog/>
   </el-container>
 </template>

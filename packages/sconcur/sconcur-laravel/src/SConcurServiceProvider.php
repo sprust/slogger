@@ -29,7 +29,6 @@ use SConcur\Laravel\Console\TasksStopCommand;
 use SConcur\Laravel\Database\CoroutineTransactionsManager;
 use SConcur\Laravel\Database\Mysql\Connection as SconcurMysqlConnection;
 use SConcur\Laravel\Database\Mysql\Connector as SconcurMysqlConnector;
-use SConcur\Laravel\Foundation\AsyncApplication;
 use SConcur\Laravel\Queue\Rabbitmq\Connector;
 use SConcur\Laravel\Routing\AsyncRouter;
 use SConcur\Laravel\Tasks\Control\ControlChannel;
@@ -55,11 +54,12 @@ use SConcur\Laravel\View\AsyncViewFactory;
  * application knows, such as which queues to consume. Publish it with
  * `vendor:publish --tag=sconcur-laravel`; without it config('sconcur') is empty and the
  * commands say so rather than running on someone else's numbers.
- * Only inside a coroutine worker process (argv = `artisan sconcur:servers:http:start`
- * or `artisan sconcur:servers:rabbitmq:start`): enables AsyncApplication scoped
- * resolution and swaps config/events/router/
- * translator/view for their coroutine-safe adapters. This gating keeps
- * web/Octane/CLI/queue completely untouched.
+ * The application is coroutine-scoped in every process, with nothing to turn on and
+ * nothing to detect: config, events, router, translator and view are swapped for their
+ * coroutine-safe adapters, and the container resolves request/session/auth/cookie per
+ * coroutine. Each of them keeps its state in the coroutine context, which outside a
+ * coroutine is the process root — a single store for a single caller, which is exactly
+ * what the stock implementations are.
  *
  * See docs/fiber-safe-laravel-bridge.ru.md.
  */
@@ -92,10 +92,7 @@ class SConcurServiceProvider extends ServiceProvider
         $this->registerDatabaseDriver();
         $this->registerCoroutineTransactionsManager();
         $this->registerTaskPool();
-
-        if ($this->isCoroutineWorker()) {
-            $this->registerAsyncAdapters();
-        }
+        $this->registerAsyncAdapters();
     }
 
     public function boot(): void
@@ -107,22 +104,6 @@ class SConcurServiceProvider extends ServiceProvider
             groups: [
                 'sconcur-laravel',
             ]
-        );
-    }
-
-    /**
-     * True only in a spawned worker whose handlers run concurrently — the HTTP server
-     * and the queue-consumer pool. Everything else (web, CLI, queue:work) is untouched.
-     *
-     * This gates the per-request adapters only — request/session/auth, config, router,
-     * locale, view — which the task pool has no use for.
-     */
-    private function isCoroutineWorker(): bool
-    {
-        return in_array(
-            $_SERVER['argv'][1] ?? null,
-            [HttpStartCommand::NAME, RabbitmqConsumerStartCommand::NAME],
-            true,
         );
     }
 
@@ -222,16 +203,29 @@ class SConcurServiceProvider extends ServiceProvider
     }
 
     /**
+     * Swaps config, events, router, translator and view for their coroutine-safe
+     * adapters. Always, without asking what kind of process this is.
+     *
+     * There used to be a check on argv here, and it was wrong: once the master began
+     * forwarding a group's server block to its workers, the command name stopped being
+     * argv[1] — a worker is spawned as `artisan --address=… sconcur:servers:http:start
+     * --masterPid=N` — so the check quietly answered no in the very processes it existed
+     * for, and every adapter was inert in production. Guessing the mode from a command
+     * line is not something to fix, it is something to stop doing.
+     *
+     * Nothing is lost by installing them everywhere. Each keeps its state in the
+     * coroutine context, and outside a coroutine that resolves to the process root — one
+     * store, one caller, which is what the stock implementations are.
+     *
+     * The container's scoped resolution needs nothing here at all any more:
+     * AsyncApplication has no mode to enter. It used to, and the switch was the bug —
+     * three call sites for it, one of which (the task pool) never threw it.
+     *
      * @throws BindingResolutionException
      */
     private function registerAsyncAdapters(): void
     {
         $this->registerConfigAdapter();
-
-        if ($this->app instanceof AsyncApplication) {
-            $this->app->enableAsyncMode();
-        }
-
         $this->registerEventDispatcherAdapter();
         $this->registerRouterAdapter();
         $this->registerTranslatorAdapter();

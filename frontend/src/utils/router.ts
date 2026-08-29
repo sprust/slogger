@@ -5,6 +5,7 @@ import Dashboard from "../components/pages/dashboard/Dashboard.vue";
 import TraceAggregator from "../components/pages/trace-aggregator/TraceAggregator.vue";
 import TraceCleaner from "../components/pages/trace-cleaner/TraceCleaner.vue";
 import Logs from "../components/pages/logs-viewer/Logs.vue";
+import Sconcur from "../components/pages/sconcur/Sconcur.vue";
 
 export const routes = {
     login: {
@@ -26,6 +27,10 @@ export const routes = {
     logs: {
         path: '/logs',
         name: 'logs',
+    },
+    sconcur: {
+        path: '/sconcur',
+        name: 'sconcur',
     },
 }
 
@@ -56,6 +61,11 @@ export const router = createRouter({
             path: routes.logs.path,
             component: Logs,
             name: routes.logs.name
+        },
+        {
+            path: routes.sconcur.path,
+            component: Sconcur,
+            name: routes.sconcur.name
         },
     ],
 });
