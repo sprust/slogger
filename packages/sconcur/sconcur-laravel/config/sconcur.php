@@ -127,18 +127,16 @@ return [
             /*
             | The periodic task pool. Exactly one worker, always: a second one would tick
             | the cron twice a minute, and workerCount 0 does not mean none — to the
-            | master it means one worker per CPU. Set SCONCUR_TASKS_ENABLED=false to
-            | leave the group out.
+            | master it means one worker per CPU.
             |
             | No `server` block: the pool reads nothing from argv but the master's pid,
             | which the master appends by itself.
             |
-            | It reports no telemetry — the panel is fed by the Go side of the server and
-            | consumer runtimes, and this pool runs neither — so it shows up in
-            | `master:status` but not in the panel's numbers. The dashboard fills it in
-            | with zeros rather than dropping it (SconcurStatClient).
+            | Unlike the pools above, it reports to the panel from PHP rather than from a
+            | runtime's Go side, because it runs no such runtime — see TaskPoolTelemetry
+            | and the `tasks` section further down.
             */
-            (bool) env('SCONCUR_TASKS_ENABLED', true) ? [
+            [
                 'name'         => 'tasks',
                 'workerScript' => base_path('artisan'),
                 'workerCount'  => 1,
@@ -147,7 +145,7 @@ return [
                 // kills it before the graceful stop can finish; and the supervisor's
                 // stopwaitsecs for the master must in turn exceed this.
                 'shutdownTimeoutMs' => (int) env('SCONCUR_TASKS_SHUTDOWN_TIMEOUT_MS', 30000),
-            ] : null,
+            ],
         ]),
     ],
 
