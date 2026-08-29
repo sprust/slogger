@@ -321,17 +321,41 @@
                                                     "type": "integer",
                                                     "nullable": false
                                                 },
-                                                "requests_completed": {
-                                                    "type": "integer",
-                                                    "nullable": false
-                                                },
-                                                "requests_avg_ms": {
-                                                    "type": "number",
-                                                    "nullable": false
-                                                },
-                                                "requests_in_flight": {
-                                                    "type": "integer",
-                                                    "nullable": false
+                                                "requests": {
+                                                    "properties": {
+                                                        "completed": {
+                                                            "type": "integer",
+                                                            "nullable": false
+                                                        },
+                                                        "avg_ms": {
+                                                            "type": "number",
+                                                            "nullable": false
+                                                        },
+                                                        "in_flight": {
+                                                            "type": "integer",
+                                                            "nullable": false
+                                                        },
+                                                        "in_flight_1_to_5s": {
+                                                            "type": "integer",
+                                                            "nullable": false
+                                                        },
+                                                        "in_flight_5_to_15s": {
+                                                            "type": "integer",
+                                                            "nullable": false
+                                                        },
+                                                        "in_flight_over_15s": {
+                                                            "type": "integer",
+                                                            "nullable": false
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "completed",
+                                                        "avg_ms",
+                                                        "in_flight",
+                                                        "in_flight_1_to_5s",
+                                                        "in_flight_5_to_15s",
+                                                        "in_flight_over_15s"
+                                                    ]
                                                 },
                                                 "master_cpu_percent": {
                                                     "type": "number",
@@ -370,17 +394,41 @@
                                                                 "type": "integer",
                                                                 "nullable": false
                                                             },
-                                                            "requests_completed": {
-                                                                "type": "integer",
-                                                                "nullable": false
-                                                            },
-                                                            "requests_avg_ms": {
-                                                                "type": "number",
-                                                                "nullable": false
-                                                            },
-                                                            "requests_in_flight": {
-                                                                "type": "integer",
-                                                                "nullable": false
+                                                            "requests": {
+                                                                "properties": {
+                                                                    "completed": {
+                                                                        "type": "integer",
+                                                                        "nullable": false
+                                                                    },
+                                                                    "avg_ms": {
+                                                                        "type": "number",
+                                                                        "nullable": false
+                                                                    },
+                                                                    "in_flight": {
+                                                                        "type": "integer",
+                                                                        "nullable": false
+                                                                    },
+                                                                    "in_flight_1_to_5s": {
+                                                                        "type": "integer",
+                                                                        "nullable": false
+                                                                    },
+                                                                    "in_flight_5_to_15s": {
+                                                                        "type": "integer",
+                                                                        "nullable": false
+                                                                    },
+                                                                    "in_flight_over_15s": {
+                                                                        "type": "integer",
+                                                                        "nullable": false
+                                                                    }
+                                                                },
+                                                                "required": [
+                                                                    "completed",
+                                                                    "avg_ms",
+                                                                    "in_flight",
+                                                                    "in_flight_1_to_5s",
+                                                                    "in_flight_5_to_15s",
+                                                                    "in_flight_over_15s"
+                                                                ]
                                                             },
                                                             "consumers": {
                                                                 "properties": {
@@ -445,10 +493,7 @@
                                                             "workers_hung",
                                                             "cpu_percent",
                                                             "memory_rss_bytes",
-                                                            "goroutines",
-                                                            "requests_completed",
-                                                            "requests_avg_ms",
-                                                            "requests_in_flight"
+                                                            "goroutines"
                                                         ]
                                                     }
                                                 },
@@ -485,17 +530,41 @@
                                                                 "type": "integer",
                                                                 "nullable": false
                                                             },
-                                                            "requests_in_flight": {
-                                                                "type": "integer",
-                                                                "nullable": false
-                                                            },
-                                                            "requests_completed": {
-                                                                "type": "integer",
-                                                                "nullable": false
-                                                            },
-                                                            "requests_avg_ms": {
-                                                                "type": "number",
-                                                                "nullable": false
+                                                            "requests": {
+                                                                "properties": {
+                                                                    "completed": {
+                                                                        "type": "integer",
+                                                                        "nullable": false
+                                                                    },
+                                                                    "avg_ms": {
+                                                                        "type": "number",
+                                                                        "nullable": false
+                                                                    },
+                                                                    "in_flight": {
+                                                                        "type": "integer",
+                                                                        "nullable": false
+                                                                    },
+                                                                    "in_flight_1_to_5s": {
+                                                                        "type": "integer",
+                                                                        "nullable": false
+                                                                    },
+                                                                    "in_flight_5_to_15s": {
+                                                                        "type": "integer",
+                                                                        "nullable": false
+                                                                    },
+                                                                    "in_flight_over_15s": {
+                                                                        "type": "integer",
+                                                                        "nullable": false
+                                                                    }
+                                                                },
+                                                                "required": [
+                                                                    "completed",
+                                                                    "avg_ms",
+                                                                    "in_flight",
+                                                                    "in_flight_1_to_5s",
+                                                                    "in_flight_5_to_15s",
+                                                                    "in_flight_over_15s"
+                                                                ]
                                                             },
                                                             "consumers": {
                                                                 "properties": {
@@ -561,10 +630,7 @@
                                                             "uptime_seconds",
                                                             "cpu_percent",
                                                             "memory_rss_bytes",
-                                                            "goroutines",
-                                                            "requests_in_flight",
-                                                            "requests_completed",
-                                                            "requests_avg_ms"
+                                                            "goroutines"
                                                         ]
                                                     }
                                                 },
@@ -633,9 +699,6 @@
                                                 "cpu_percent",
                                                 "memory_rss_bytes",
                                                 "goroutines",
-                                                "requests_completed",
-                                                "requests_avg_ms",
-                                                "requests_in_flight",
                                                 "master_cpu_percent",
                                                 "master_memory_rss_bytes",
                                                 "groups",

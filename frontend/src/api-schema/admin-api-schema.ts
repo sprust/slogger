@@ -338,9 +338,15 @@ export namespace AdminApi {
     cpu_percent: number,
     memory_rss_bytes: number,
     goroutines: number,
-    requests_completed: number,
-    requests_avg_ms: number,
-    requests_in_flight: number,
+    requests?: {
+    completed: number,
+    avg_ms: number,
+    in_flight: number,
+    "in_flight_1_to_5s": number,
+    "in_flight_5_to_15s": number,
+    "in_flight_over_15s": number,
+
+},
     master_cpu_percent: number,
     master_memory_rss_bytes: number,
     groups: ({
@@ -350,9 +356,15 @@ export namespace AdminApi {
     cpu_percent: number,
     memory_rss_bytes: number,
     goroutines: number,
-    requests_completed: number,
-    requests_avg_ms: number,
-    requests_in_flight: number,
+    requests?: {
+    completed: number,
+    avg_ms: number,
+    in_flight: number,
+    "in_flight_1_to_5s": number,
+    "in_flight_5_to_15s": number,
+    "in_flight_over_15s": number,
+
+},
     consumers?: {
     coroutines: number,
     delivered: number,
@@ -376,9 +388,15 @@ export namespace AdminApi {
     cpu_percent: number,
     memory_rss_bytes: number,
     goroutines: number,
-    requests_in_flight: number,
-    requests_completed: number,
-    requests_avg_ms: number,
+    requests?: {
+    completed: number,
+    avg_ms: number,
+    in_flight: number,
+    "in_flight_1_to_5s": number,
+    "in_flight_5_to_15s": number,
+    "in_flight_over_15s": number,
+
+},
     consumers?: {
     coroutines: number,
     delivered: number,
@@ -426,9 +444,14 @@ export namespace AdminApi {
         cpu_percent: number;
         memory_rss_bytes: number;
         goroutines: number;
-        requests_completed: number;
-        requests_avg_ms: number;
-        requests_in_flight: number;
+        requests?: {
+          completed: number;
+          avg_ms: number;
+          in_flight: number;
+          in_flight_1_to_5s: number;
+          in_flight_5_to_15s: number;
+          in_flight_over_15s: number;
+        };
         master_cpu_percent: number;
         master_memory_rss_bytes: number;
         groups: {
@@ -438,9 +461,14 @@ export namespace AdminApi {
           cpu_percent: number;
           memory_rss_bytes: number;
           goroutines: number;
-          requests_completed: number;
-          requests_avg_ms: number;
-          requests_in_flight: number;
+          requests?: {
+            completed: number;
+            avg_ms: number;
+            in_flight: number;
+            in_flight_1_to_5s: number;
+            in_flight_5_to_15s: number;
+            in_flight_over_15s: number;
+          };
           consumers?: {
             coroutines: number;
             delivered: number;
@@ -462,9 +490,14 @@ export namespace AdminApi {
           cpu_percent: number;
           memory_rss_bytes: number;
           goroutines: number;
-          requests_in_flight: number;
-          requests_completed: number;
-          requests_avg_ms: number;
+          requests?: {
+            completed: number;
+            avg_ms: number;
+            in_flight: number;
+            in_flight_1_to_5s: number;
+            in_flight_5_to_15s: number;
+            in_flight_over_15s: number;
+          };
           consumers?: {
             coroutines: number;
             delivered: number;
@@ -2331,9 +2364,15 @@ export class Api<
     cpu_percent: number,
     memory_rss_bytes: number,
     goroutines: number,
-    requests_completed: number,
-    requests_avg_ms: number,
-    requests_in_flight: number,
+    requests?: {
+    completed: number,
+    avg_ms: number,
+    in_flight: number,
+    "in_flight_1_to_5s": number,
+    "in_flight_5_to_15s": number,
+    "in_flight_over_15s": number,
+
+},
     master_cpu_percent: number,
     master_memory_rss_bytes: number,
     groups: ({
@@ -2343,9 +2382,15 @@ export class Api<
     cpu_percent: number,
     memory_rss_bytes: number,
     goroutines: number,
-    requests_completed: number,
-    requests_avg_ms: number,
-    requests_in_flight: number,
+    requests?: {
+    completed: number,
+    avg_ms: number,
+    in_flight: number,
+    "in_flight_1_to_5s": number,
+    "in_flight_5_to_15s": number,
+    "in_flight_over_15s": number,
+
+},
     consumers?: {
     coroutines: number,
     delivered: number,
@@ -2369,9 +2414,15 @@ export class Api<
     cpu_percent: number,
     memory_rss_bytes: number,
     goroutines: number,
-    requests_in_flight: number,
-    requests_completed: number,
-    requests_avg_ms: number,
+    requests?: {
+    completed: number,
+    avg_ms: number,
+    in_flight: number,
+    "in_flight_1_to_5s": number,
+    "in_flight_5_to_15s": number,
+    "in_flight_over_15s": number,
+
+},
     consumers?: {
     coroutines: number,
     delivered: number,
@@ -2416,9 +2467,14 @@ export class Api<
             cpu_percent: number;
             memory_rss_bytes: number;
             goroutines: number;
-            requests_completed: number;
-            requests_avg_ms: number;
-            requests_in_flight: number;
+            requests?: {
+              completed: number;
+              avg_ms: number;
+              in_flight: number;
+              in_flight_1_to_5s: number;
+              in_flight_5_to_15s: number;
+              in_flight_over_15s: number;
+            };
             master_cpu_percent: number;
             master_memory_rss_bytes: number;
             groups: {
@@ -2428,9 +2484,14 @@ export class Api<
               cpu_percent: number;
               memory_rss_bytes: number;
               goroutines: number;
-              requests_completed: number;
-              requests_avg_ms: number;
-              requests_in_flight: number;
+              requests?: {
+                completed: number;
+                avg_ms: number;
+                in_flight: number;
+                in_flight_1_to_5s: number;
+                in_flight_5_to_15s: number;
+                in_flight_over_15s: number;
+              };
               consumers?: {
                 coroutines: number;
                 delivered: number;
@@ -2452,9 +2513,14 @@ export class Api<
               cpu_percent: number;
               memory_rss_bytes: number;
               goroutines: number;
-              requests_in_flight: number;
-              requests_completed: number;
-              requests_avg_ms: number;
+              requests?: {
+                completed: number;
+                avg_ms: number;
+                in_flight: number;
+                in_flight_1_to_5s: number;
+                in_flight_5_to_15s: number;
+                in_flight_over_15s: number;
+              };
               consumers?: {
                 coroutines: number;
                 delivered: number;

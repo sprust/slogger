@@ -20,9 +20,7 @@ readonly class SconcurGroupObject
         public float $cpuPercent,
         public int $memoryRssBytes,
         public int $goroutines,
-        public int $requestsCompleted,
-        public float $requestsAvgMs,
-        public int $requestsInFlight,
+        public ?SconcurRequestsObject $requests,
         public ?SconcurConsumersObject $consumers,
     ) {
     }

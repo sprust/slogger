@@ -17,9 +17,7 @@ class SconcurStatResource extends AbstractApiResource
     private float $cpu_percent;
     private int $memory_rss_bytes;
     private int $goroutines;
-    private int $requests_completed;
-    private float $requests_avg_ms;
-    private int $requests_in_flight;
+    private ?SconcurRequestsResource $requests;
     private float $master_cpu_percent;
     private int $master_memory_rss_bytes;
     #[OaListItemTypeAttribute(SconcurGroupResource::class)]
@@ -39,9 +37,7 @@ class SconcurStatResource extends AbstractApiResource
         $this->cpu_percent             = $stat->cpuPercent;
         $this->memory_rss_bytes        = $stat->memoryRssBytes;
         $this->goroutines              = $stat->goroutines;
-        $this->requests_completed      = $stat->requestsCompleted;
-        $this->requests_avg_ms         = $stat->requestsAvgMs;
-        $this->requests_in_flight      = $stat->requestsInFlight;
+        $this->requests                = SconcurRequestsResource::makeIfNotNull($stat->requests);
         $this->master_cpu_percent      = $stat->masterCpuPercent;
         $this->master_memory_rss_bytes = $stat->masterMemoryRssBytes;
         $this->groups                  = SconcurGroupResource::mapIntoMe($stat->groups);

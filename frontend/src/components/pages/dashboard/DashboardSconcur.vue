@@ -12,11 +12,12 @@ import {
   Title,
   Tooltip,
 } from "chart.js";
-import {useDashboardSconcurStore} from "./store/dashboardSconcurStore.ts";
+import {type SconcurStat, useDashboardSconcurStore} from "./store/dashboardSconcurStore.ts";
 import {Loading as IconLoading, Refresh as IconRefresh} from "@element-plus/icons-vue";
 
 ChartJS.register(Title, Tooltip, Legend, LineElement, PointElement, CategoryScale, LinearScale, Filler);
 
+const DASH = '—'; // what a section the pool does not report reads as
 const WINDOW_MS = 300_000; // rolling window: the last 5 minutes
 const COLORS = ['#409EFF', '#67C23A', '#E6A23C', '#F56C6C', '#909399', '#9B59B6'];
 
@@ -24,6 +25,12 @@ interface MetricDef {
   key: string
   label: string
 }
+
+type SconcurStatData = SconcurStat extends null ? never : SconcurStat
+
+/** A group or a worker: both carry the same optional counter sections. */
+type StatRow = NonNullable<SconcurStatData>['groups'][number]
+  | NonNullable<SconcurStatData>['workers'][number]
 
 interface HistoryPoint {
   label: string
@@ -67,6 +74,9 @@ export default defineComponent({
     },
     IconRefresh() {
       return IconRefresh
+    },
+    DASH() {
+      return DASH
     },
     hasConsumers(): boolean {
       return this.store.stat?.workers.some(worker => worker.consumers) ?? false
@@ -118,13 +128,17 @@ export default defineComponent({
         return
       }
 
+      // Both sections are optional: a master serving no requests omits `requests`, one
+      // consuming no queue omits `consumers`. Absent is not zero, so nothing is charted
+      // for a section that is not there.
+      const requests = stat.requests
       let rps = 0
 
-      if (this.prevCompleted !== null) {
-        rps = Math.max(0, stat.requests_completed - this.prevCompleted)
+      if (requests && this.prevCompleted !== null) {
+        rps = Math.max(0, requests.completed - this.prevCompleted)
       }
 
-      this.prevCompleted = stat.requests_completed
+      this.prevCompleted = requests ? requests.completed : null
 
       // Only a pool consuming a queue reports this section; an HTTP-only master omits it.
       const consumers = stat.consumers
@@ -141,12 +155,12 @@ export default defineComponent({
       this.history.push({
         ts: now,
         label: new Date(now).toLocaleTimeString(),
-        requests_in_flight: stat.requests_in_flight,
+        requests_in_flight: requests?.in_flight ?? 0,
         rps: rps,
         cpu_percent: Math.round(stat.cpu_percent * 10) / 10,
         memory_rss_mb: Math.round(stat.memory_rss_bytes / 1048576),
         goroutines: stat.goroutines,
-        requests_avg_ms: Math.round(stat.requests_avg_ms * 100) / 100,
+        requests_avg_ms: Math.round((requests?.avg_ms ?? 0) * 100) / 100,
         consumers_in_flight: consumers?.in_flight ?? 0,
         consumers_rate: consumersRate,
         consumers_avg_ms: Math.round((consumers?.avg_ms ?? 0) * 100) / 100,
@@ -178,6 +192,25 @@ export default defineComponent({
 
     rssMb(bytes: number): number {
       return Math.round(bytes / 1048576)
+    },
+
+    /**
+     * A row reports one of the two sections, never both: a server pool counts requests,
+     * a consumer pool counts deliveries. The missing one is absent rather than zero —
+     * the panel omits it — so it reads as a dash instead of a count nobody keeps.
+     */
+    inFlight(row: StatRow): number | string {
+      return row.consumers?.in_flight ?? row.requests?.in_flight ?? DASH
+    },
+
+    handled(row: StatRow): number | string {
+      return row.consumers?.acked ?? row.requests?.completed ?? DASH
+    },
+
+    avgMs(row: StatRow): string {
+      const value = row.consumers?.avg_ms ?? row.requests?.avg_ms
+
+      return value === undefined ? DASH : value.toFixed(2)
     },
 
     formatUptime(seconds: number): string {
@@ -248,20 +281,33 @@ export default defineComponent({
           <el-statistic title="Hung" :value="store.stat.workers_hung"/>
         </el-col>
         <el-col :span="3">
-          <el-statistic title="In-flight" :value="store.stat.requests_in_flight"/>
-        </el-col>
-        <el-col :span="4">
-          <el-statistic title="Completed" :value="store.stat.requests_completed"/>
-        </el-col>
-        <el-col :span="3">
           <el-statistic title="CPU, %" :value="store.stat.cpu_percent" :precision="1"/>
         </el-col>
-        <el-col :span="4">
+        <el-col :span="3">
           <el-statistic title="RSS, MB" :value="rssMb(store.stat.memory_rss_bytes)"/>
         </el-col>
-        <el-col :span="4">
-          <el-statistic title="Avg, ms" :value="store.stat.requests_avg_ms" :precision="2"/>
-        </el-col>
+        <template v-if="store.stat.requests">
+          <el-col :span="3">
+            <el-statistic title="In-flight" :value="store.stat.requests.in_flight"/>
+          </el-col>
+          <el-col :span="3">
+            <el-statistic title="Completed" :value="store.stat.requests.completed"/>
+          </el-col>
+          <el-col :span="3">
+            <el-statistic title="Avg, ms" :value="store.stat.requests.avg_ms" :precision="2"/>
+          </el-col>
+        </template>
+        <template v-if="store.stat.consumers">
+          <el-col :span="3">
+            <el-statistic title="Delivering" :value="store.stat.consumers.in_flight"/>
+          </el-col>
+          <el-col :span="3">
+            <el-statistic title="Delivered" :value="store.stat.consumers.acked"/>
+          </el-col>
+          <el-col :span="3">
+            <el-statistic title="Delivery avg, ms" :value="store.stat.consumers.avg_ms" :precision="2"/>
+          </el-col>
+        </template>
       </el-row>
 
       <el-divider/>
@@ -287,24 +333,16 @@ export default defineComponent({
         </el-table-column>
         <el-table-column prop="goroutines" label="Goroutines" width="110"/>
         <el-table-column label="In-flight" width="100">
-          <template #default="{ row }">
-            {{ row.consumers ? row.consumers.in_flight : row.requests_in_flight }}
-          </template>
+          <template #default="{ row }">{{ inFlight(row) }}</template>
         </el-table-column>
         <el-table-column label="Handled">
-          <template #default="{ row }">
-            {{ row.consumers ? row.consumers.acked : row.requests_completed }}
-          </template>
+          <template #default="{ row }">{{ handled(row) }}</template>
         </el-table-column>
         <el-table-column label="Refused" width="100">
-          <template #default="{ row }">
-            {{ row.consumers ? row.consumers.refused : '—' }}
-          </template>
+          <template #default="{ row }">{{ row.consumers ? row.consumers.refused : DASH }}</template>
         </el-table-column>
         <el-table-column label="Avg, ms" width="100">
-          <template #default="{ row }">
-            {{ (row.consumers ? row.consumers.avg_ms : row.requests_avg_ms).toFixed(2) }}
-          </template>
+          <template #default="{ row }">{{ avgMs(row) }}</template>
         </el-table-column>
       </el-table>
 
@@ -334,18 +372,17 @@ export default defineComponent({
           <template #default="{ row }">{{ rssMb(row.memory_rss_bytes) }}</template>
         </el-table-column>
         <el-table-column prop="goroutines" label="Goroutines"/>
-        <el-table-column prop="requests_in_flight" label="In-flight"/>
-        <el-table-column prop="requests_completed" label="Completed"/>
-        <el-table-column label="Avg, ms">
-          <template #default="{ row }">{{ row.requests_avg_ms.toFixed(2) }}</template>
+        <el-table-column label="In-flight">
+          <template #default="{ row }">{{ inFlight(row) }}</template>
         </el-table-column>
-        <el-table-column v-if="hasConsumers" label="Deliveries">
-          <template #default="{ row }">
-            {{ row.consumers ? `${row.consumers.acked} / ${row.consumers.delivered}` : '—' }}
-          </template>
+        <el-table-column label="Handled">
+          <template #default="{ row }">{{ handled(row) }}</template>
         </el-table-column>
         <el-table-column v-if="hasConsumers" label="Refused">
-          <template #default="{ row }">{{ row.consumers ? row.consumers.refused : '—' }}</template>
+          <template #default="{ row }">{{ row.consumers ? row.consumers.refused : DASH }}</template>
+        </el-table-column>
+        <el-table-column label="Avg, ms">
+          <template #default="{ row }">{{ avgMs(row) }}</template>
         </el-table-column>
       </el-table>
 

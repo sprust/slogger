@@ -6,6 +6,7 @@ namespace App\Modules\Dashboard\Domain\Services;
 
 use App\Modules\Dashboard\Entities\SconcurConsumersObject;
 use App\Modules\Dashboard\Entities\SconcurGroupObject;
+use App\Modules\Dashboard\Entities\SconcurRequestsObject;
 use App\Modules\Dashboard\Entities\SconcurStatObject;
 use App\Modules\Dashboard\Entities\SconcurWorkerObject;
 use GuzzleHttp\Client;
@@ -66,9 +67,8 @@ readonly class SconcurStatClient
      */
     private function map(array $data): SconcurStatObject
     {
-        $totals   = (array) ($data['totals'] ?? []);
-        $requests = (array) ($totals['requests'] ?? []);
-        $master   = (array) ($data['master'] ?? []);
+        $totals = (array) ($data['totals'] ?? []);
+        $master = (array) ($data['master'] ?? []);
 
         return new SconcurStatObject(
             available: true,
@@ -78,9 +78,7 @@ readonly class SconcurStatClient
             cpuPercent: (float) ($totals['cpuPercent'] ?? 0),
             memoryRssBytes: (int) ($totals['memory']['rssBytes'] ?? 0),
             goroutines: (int) ($totals['goroutines'] ?? 0),
-            requestsCompleted: (int) ($requests['completed'] ?? 0),
-            requestsAvgMs: (float) ($requests['avgMs'] ?? 0),
-            requestsInFlight: (int) ($requests['inFlight'] ?? 0),
+            requests: $this->mapRequests($totals['requests'] ?? null),
             masterCpuPercent: (float) ($master['cpuPercent'] ?? 0),
             masterMemoryRssBytes: (int) ($master['memory']['rssBytes'] ?? 0),
             groups: array_map($this->mapGroup(...), array_values((array) ($data['groups'] ?? []))),
@@ -94,8 +92,7 @@ readonly class SconcurStatClient
      */
     private function mapGroup(array $group): SconcurGroupObject
     {
-        $totals   = (array) ($group['totals'] ?? []);
-        $requests = (array) ($totals['requests'] ?? []);
+        $totals = (array) ($group['totals'] ?? []);
 
         return new SconcurGroupObject(
             name: (string) ($group['name'] ?? ''),
@@ -104,9 +101,7 @@ readonly class SconcurStatClient
             cpuPercent: (float) ($totals['cpuPercent'] ?? 0),
             memoryRssBytes: (int) ($totals['memory']['rssBytes'] ?? 0),
             goroutines: (int) ($totals['goroutines'] ?? 0),
-            requestsCompleted: (int) ($requests['completed'] ?? 0),
-            requestsAvgMs: (float) ($requests['avgMs'] ?? 0),
-            requestsInFlight: (int) ($requests['inFlight'] ?? 0),
+            requests: $this->mapRequests($totals['requests'] ?? null),
             consumers: $this->mapConsumers($totals['consumers'] ?? null),
         );
     }
@@ -116,8 +111,6 @@ readonly class SconcurStatClient
      */
     private function mapWorker(array $worker): SconcurWorkerObject
     {
-        $requests = (array) ($worker['requests'] ?? []);
-
         return new SconcurWorkerObject(
             pid: (int) ($worker['pid'] ?? 0),
             group: (string) ($worker['group'] ?? ''),
@@ -126,10 +119,29 @@ readonly class SconcurStatClient
             cpuPercent: (float) ($worker['cpuPercent'] ?? 0),
             memoryRssBytes: (int) ($worker['memory']['rssBytes'] ?? 0),
             goroutines: (int) ($worker['goroutines'] ?? 0),
-            requestsInFlight: (int) ($requests['inFlight'] ?? 0),
-            requestsCompleted: (int) ($requests['completed'] ?? 0),
-            requestsAvgMs: (float) ($requests['avgMs'] ?? 0),
+            requests: $this->mapRequests($worker['requests'] ?? null),
             consumers: $this->mapConsumers($worker['consumers'] ?? null),
+        );
+    }
+
+    /**
+     * Only a pool serving requests reports this section; a consumer pool omits it, and
+     * the omission is kept as null rather than flattened into zeroes — a counter that
+     * does not exist reads differently from one that stands at nothing.
+     */
+    private function mapRequests(mixed $requests): ?SconcurRequestsObject
+    {
+        if (!is_array($requests)) {
+            return null;
+        }
+
+        return new SconcurRequestsObject(
+            completed: (int) ($requests['completed'] ?? 0),
+            avgMs: (float) ($requests['avgMs'] ?? 0),
+            inFlight: (int) ($requests['inFlight'] ?? 0),
+            inFlight1to5s: (int) ($requests['inFlight1to5s'] ?? 0),
+            inFlight5to15s: (int) ($requests['inFlight5to15s'] ?? 0),
+            inFlightOver15s: (int) ($requests['inFlightOver15s'] ?? 0),
         );
     }
 
@@ -166,9 +178,7 @@ readonly class SconcurStatClient
             cpuPercent: 0.0,
             memoryRssBytes: 0,
             goroutines: 0,
-            requestsCompleted: 0,
-            requestsAvgMs: 0.0,
-            requestsInFlight: 0,
+            requests: null,
             masterCpuPercent: 0.0,
             masterMemoryRssBytes: 0,
             groups: [],

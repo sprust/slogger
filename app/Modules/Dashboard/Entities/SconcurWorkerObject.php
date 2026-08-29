@@ -14,9 +14,7 @@ readonly class SconcurWorkerObject
         public float $cpuPercent,
         public int $memoryRssBytes,
         public int $goroutines,
-        public int $requestsInFlight,
-        public int $requestsCompleted,
-        public float $requestsAvgMs,
+        public ?SconcurRequestsObject $requests = null,
         public ?SconcurConsumersObject $consumers = null,
     ) {
     }
