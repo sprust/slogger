@@ -26,6 +26,7 @@ config/sconcur.php        — конфиг (panel_host, scoped_services, http_se
 src/SConcurServiceProvider — провайдер (команды + проводка адаптеров в воркере)
 src/Console/              — артизан-команды
 src/Servers/              — MasterRunner (обёртка над SConcur\Worker\MasterCli)
+src/Queue/Rabbitmq/       — драйвер очереди и консьюмер-пул (Connector, Queue, Job, ConsumerRunner)
 src/Http/                 — HttpServerRunner + LaravelHttpHandler (build + serve)
 src/Foundation/           — AsyncApplication, ScopedService, ScopedServiceProxy
 src/Config/               — AsyncConfig (overlay config()->set per-coroutine)
@@ -53,6 +54,8 @@ sconcur:servers:master:start|stop                 # MasterRunner (supervisor, с
 sconcur:servers:master:status [--group=NAME]      # статус: все пулы или один
 sconcur:servers:master:reload [--group=NAME]      # rolling restart: все пулы или один
 sconcur:servers:http:start                        # один HTTP-сервер в foreground (build + serve)
+sconcur:servers:rabbitmq:start                     # пул консьюмеров очереди в foreground
+sconcur:rabbitmq:declare                          # объявить очереди и их очереди ожидания
 sconcur:extension:load                            # скачать .so (запускает downloader)
 sconcur:extension:status                          # статус расширения (in-process)
 ```
@@ -149,6 +152,86 @@ php artisan vendor:publish --tag=sconcur-laravel
 лежит рядом с `groups`, вычищается перед сборкой мастера
 (`AbstractSconcurCommand::masterConfigArray`), а воркер читает его из этого же конфига
 сам (`HttpServerRunner::makeServer`).
+
+## Очередь (`sconcur_rabbitmq`)
+
+Драйвер очереди Laravel поверх AMQP-фичи SConcur плюс пул консьюмеров, который читает
+очереди корутинами в одном процессе вместо одного блокирующего `queue:work` на воркера.
+Выигрыш — на стороне консьюмера: и `ext-amqp`, и `php-amqplib` держат PHP-поток на
+чтении очереди, а здесь подвешивается только своя корутина, поэтому один процесс тянет
+несколько очередей, а медленная джоба стоит одного сообщения, а не воркера.
+
+### Совместимость
+
+Формат на проводе — не наш: тело, свойства сообщения и заголовок попыток ровно те, что
+пишет `vladimir-yuldashev/laravel-queue-rabbitmq`. Джоба, отправленная любым из двух
+драйверов, читается и выполняется другим — проверено в обе стороны.
+
+Держится это на трёх вещах, и менять их нельзя в одностороннем порядке:
+
+- счётчик попыток живёт в заголовке `laravel.attempts`, а не в `x-death`; на нём
+  `Worker::process()` строит `maxTries` и запись в `failed_jobs`;
+- очередь объявляется теми же флагами — `durable`, не `exclusive`, не `autoDelete`, без
+  аргументов; расхождение даёт `406`, который закрывает канал;
+- публикация идёт в дефолтный обменник с routing key, равным имени очереди.
+
+### Соединение
+
+```php
+// config/queue.php
+'sconcur_rabbitmq' => [
+    'driver'    => 'sconcur_rabbitmq',
+    'queue'     => env('RABBITMQ_QUEUE', 'default'),
+    'dsn'       => env('SCONCUR_RABBITMQ_DSN'),   // amqp://user:pass@host:5672/%2f
+    'delays_ms' => [1000, 5000, 30000, 300000],
+],
+```
+
+`delays_ms` — лестница очередей ожидания, которую объявляет `sconcur:rabbitmq:declare`.
+В AMQP нет отложенной публикации: `later()` и `release()` ходят через очередь, которую
+никто не читает и которая по TTL отправляет сообщение обратно. Очередь на задержку, а не
+одна с per-message TTL, потому что классическая очередь протухает только с головы.
+Произвольная задержка округляется вверх до ближайшей объявленной.
+
+### Консьюмер
+
+Пул — это группа мастера, поэтому он живёт под тем же супервизором, что и HTTP, и
+отчитывается в ту же панель телеметрии (секция `consumers`).
+
+```
+php artisan sconcur:rabbitmq:declare
+php artisan sconcur:servers:rabbitmq:start --queues='[{"name":"default","coroutineCount":8}]' --prefetchCount=1
+```
+
+Обработка идёт через `Illuminate\Queue\Worker::process()` — события джобы, `maxTries`,
+`backoff` и `failed_jobs` достаются готовыми. `Worker::daemon()` не используется: это
+строго последовательный цикл, одна джоба за раз, и его `sleep()` блокирует процесс.
+
+Запись в `failed_jobs` делает не `Worker`, а команда `queue:work`, которую пул заменяет,
+— поэтому `ConsumerRunner` вешает тот же слушатель `JobFailed` сам.
+
+| ENV | Дефолт | Назначение |
+|---|---|---|
+| `SCONCUR_RABBITMQ_WORKER_COUNT` | `0` | процессов в пуле; меньше `1` — группа не попадает в конфиг мастера вовсе |
+| `SCONCUR_RABBITMQ_QUEUES` | `[{"name":"default","coroutineCount":4}]` | очереди и их веса, JSON |
+| `SCONCUR_RABBITMQ_PREFETCH_COUNT` | `1` | неподтверждённых сообщений на консьюмера |
+| `SCONCUR_RABBITMQ_HANDLER_TIMEOUT_MS` | `60000` | предел на одно сообщение в обработчике |
+| `SCONCUR_RABBITMQ_REQUEUE_ON_FAILURE` | `false` | вернуть упавшее сообщение в очередь вместо dead-letter |
+| `SCONCUR_RABBITMQ_MAX_MESSAGES` | `0` | дренировать и выйти после N сообщений |
+| `SCONCUR_RABBITMQ_MAX_RUNTIME_SECONDS` | `0` | дренировать и выйти через N секунд |
+| `SCONCUR_RABBITMQ_MAX_MEMORY_BYTES` | `0` | дренировать и выйти по размеру кучи |
+| `SCONCUR_RABBITMQ_CONNECTION` | `sconcur_rabbitmq` | соединение `config/queue.php` для джоб |
+| `SCONCUR_RABBITMQ_DECLARE_QUEUES` | `default` | что объявляет `sconcur:rabbitmq:declare`, через запятую |
+| `SCONCUR_RABBITMQ_TRIES` | `1` | попыток до `failed_jobs` |
+| `SCONCUR_RABBITMQ_BACKOFF` | `0` | задержка перед повтором, секунд |
+
+Ноль в этой переменной не значит «ни одного воркера»: для мастера `workerCount: 0` —
+это воркер на ядро (`WorkerGroup`, `Cpu::count()`). Поэтому пул выключается не нулём в
+группе, а тем, что группы в конфиге не оказывается.
+
+`handlerTimeoutMs` разматывает зависший обработчик и отклоняет его сообщение; воркер
+берёт следующее. `WorkerOptions::$timeout` при этом ноль намеренно: `SIGALRM` воркера
+Laravel убил бы процесс вместе со всеми обработчиками, работающими рядом.
 
 ## Этапы (план B3)
 

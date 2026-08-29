@@ -11,13 +11,17 @@ use Illuminate\Support\ServiceProvider;
 use SConcur\Laravel\Config\AsyncConfig;
 use SConcur\Laravel\Console\ExtensionLoadCommand;
 use SConcur\Laravel\Console\ExtensionStatusCommand;
+use Illuminate\Queue\QueueManager;
 use SConcur\Laravel\Console\HttpStartCommand;
 use SConcur\Laravel\Console\MasterReloadCommand;
 use SConcur\Laravel\Console\MasterStartCommand;
 use SConcur\Laravel\Console\MasterStatusCommand;
 use SConcur\Laravel\Console\MasterStopCommand;
 use SConcur\Laravel\Events\AsyncDispatcher;
+use SConcur\Laravel\Console\RabbitmqConsumerStartCommand;
+use SConcur\Laravel\Console\RabbitmqDeclareCommand;
 use SConcur\Laravel\Foundation\AsyncApplication;
+use SConcur\Laravel\Queue\Rabbitmq\Connector;
 use SConcur\Laravel\Routing\AsyncRouter;
 use SConcur\Laravel\Translation\AsyncTranslator;
 use SConcur\Laravel\View\AsyncViewFactory;
@@ -25,9 +29,11 @@ use SConcur\Laravel\View\AsyncViewFactory;
 /**
  * Laravel service provider for the SConcur integration.
  *
- * Always: merges config and registers the artisan commands.
- * Only inside the HTTP worker process (argv = `artisan sconcur:servers:http:start`):
- * enables AsyncApplication scoped resolution and swaps config/events/router/
+ * Always: merges config, registers the artisan commands and the `sconcur_rabbitmq`
+ * queue connector.
+ * Only inside a coroutine worker process (argv = `artisan sconcur:servers:http:start`
+ * or `artisan sconcur:servers:rabbitmq:start`): enables AsyncApplication scoped
+ * resolution and swaps config/events/router/
  * translator/view for their coroutine-safe adapters. This gating keeps
  * web/Octane/CLI/queue completely untouched.
  *
@@ -51,11 +57,15 @@ class SConcurServiceProvider extends ServiceProvider
             MasterStatusCommand::class,
             MasterReloadCommand::class,
             HttpStartCommand::class,
+            RabbitmqConsumerStartCommand::class,
+            RabbitmqDeclareCommand::class,
             ExtensionLoadCommand::class,
             ExtensionStatusCommand::class,
         ]);
 
-        if ($this->isHttpWorker()) {
+        $this->registerQueueConnector();
+
+        if ($this->isCoroutineWorker()) {
             $this->registerAsyncAdapters();
         }
     }
@@ -72,10 +82,30 @@ class SConcurServiceProvider extends ServiceProvider
         );
     }
 
-    /** True only for the spawned HTTP worker process. */
-    private function isHttpWorker(): bool
+    /**
+     * True only in a spawned worker whose handlers run concurrently — the HTTP server
+     * and the queue-consumer pool. Everything else (web, CLI, queue:work) is untouched.
+     */
+    private function isCoroutineWorker(): bool
     {
-        return ($_SERVER['argv'][1] ?? null) === HttpStartCommand::NAME;
+        return in_array(
+            $_SERVER['argv'][1] ?? null,
+            [HttpStartCommand::NAME, RabbitmqConsumerStartCommand::NAME],
+            true,
+        );
+    }
+
+    /**
+     * Registers the `sconcur_rabbitmq` queue driver.
+     *
+     * resolving() rather than resolving the manager here, so a request that never
+     * touches a queue does not pay for building one.
+     */
+    private function registerQueueConnector(): void
+    {
+        $this->app->resolving('queue', static function (QueueManager $manager): void {
+            $manager->addConnector('sconcur_rabbitmq', static fn(): Connector => new Connector());
+        });
     }
 
     /**

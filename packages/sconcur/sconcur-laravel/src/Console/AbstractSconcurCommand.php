@@ -30,10 +30,14 @@ abstract class AbstractSconcurCommand extends Command
     /**
      * The master config as the library reads it.
      *
-     * `server` is dropped: the master forwards a group's server block to its
-     * workers' argv, and the worker here is artisan, which fails on flags its
-     * command does not declare. Per-request server tuning is read by the worker
-     * (HttpServerRunner) from config instead.
+     * The top-level `server` is dropped, because it is not a master key at all: it is
+     * the HTTP group's server tuning, kept beside `groups` precisely so the master does
+     * not forward it to artisan, which would reject flags its command does not declare.
+     * HttpServerRunner reads it from config instead.
+     *
+     * A group's own `server` block is left alone. The consumer group needs it: that is
+     * exactly what the master forwards to its argv and what QueueConsumer::fromArgs
+     * reads back out, and its command declares those flags.
      *
      * @return array<string, mixed>
      */
@@ -42,10 +46,6 @@ abstract class AbstractSconcurCommand extends Command
         $config = (array) config('sconcur.http_server', []);
 
         unset($config['server']);
-
-        foreach ($config['groups'] ?? [] as $index => $group) {
-            unset($config['groups'][$index]['server']);
-        }
 
         return $config;
     }

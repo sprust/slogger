@@ -8,10 +8,14 @@
         <testsuite name="Modules">
             <directory>tests/Modules</directory>
         </testsuite>
+        <testsuite name="Packages">
+            <directory>tests/Packages</directory>
+        </testsuite>
     </testsuites>
     <source>
         <include>
             <directory>app</directory>
+            <directory>packages</directory>
         </include>
     </source>
     <php>

@@ -54,7 +54,9 @@ return [
         'restartBackoffMs'    => (int) env('SCONCUR_HTTP_RESTART_BACKOFF_MS', 200),
         'maxRestartBackoffMs' => (int) env('SCONCUR_HTTP_MAX_RESTART_BACKOFF_MS', 30000),
 
-        'groups' => [
+        // array_filter keeps this a list because the http group above it is
+        // unconditional; a conditional group added before it would need array_values.
+        'groups' => array_filter([
             [
                 // The master spawns workers as: phpBinary phpArgs workerScript workerArgs --masterPid=N
                 // i.e. `php artisan sconcur:servers:http:start --masterPid=N`.
@@ -63,7 +65,42 @@ return [
                 'workerCount'  => (int) env('SCONCUR_HTTP_WORKER_COUNT', 1),
                 'workerArgs'   => ['sconcur:servers:http:start'],
             ],
-        ],
+
+            /*
+            | The queue-consumer pool. Unlike the http group above, this one keeps its
+            | `server` block: the master forwards it to the worker's argv verbatim, which
+            | is where QueueConsumer::fromArgs reads it back — and the command declares
+            | those flags, so artisan accepts them.
+            |
+            | The group is left out entirely unless a worker count is asked for, which is
+            | the default: the queues of this application are still served by queue:work.
+            | Leaving it in with workerCount 0 would not do — to the master that means one
+            | worker per CPU, not none.
+            */
+            (int) env('SCONCUR_RABBITMQ_WORKER_COUNT', 0) < 1 ? null : [
+                'name'         => 'rabbitmq',
+                'workerScript' => base_path('artisan'),
+                'workerCount'  => (int) env('SCONCUR_RABBITMQ_WORKER_COUNT'),
+                'workerArgs'   => ['sconcur:servers:rabbitmq:start'],
+                'server'       => [
+                    // Queues and their weights: how many consumers each gets, every one
+                    // on its own channel. A handler still runs in its own coroutine per
+                    // message. JSON, because a queue name may contain almost any UTF-8.
+                    'queues'           => env('SCONCUR_RABBITMQ_QUEUES', '[{"name":"default","coroutineCount":4}]'),
+                    // One is the right answer for a coroutine pool: the next message
+                    // goes to a free coroutine rather than into a busy one's buffer.
+                    'prefetchCount'    => (int) env('SCONCUR_RABBITMQ_PREFETCH_COUNT', 1),
+                    'handlerTimeoutMs' => (int) env('SCONCUR_RABBITMQ_HANDLER_TIMEOUT_MS', 60000),
+                    // False dead-letters a failed message (or drops it where the queue
+                    // names no exchange); true loops forever on one that always fails.
+                    // Retries are the job's own business, through release().
+                    'requeueOnFailure'  => (bool) env('SCONCUR_RABBITMQ_REQUEUE_ON_FAILURE', false),
+                    'maxMessages'       => (int) env('SCONCUR_RABBITMQ_MAX_MESSAGES', 0),
+                    'maxRuntimeSeconds' => (int) env('SCONCUR_RABBITMQ_MAX_RUNTIME_SECONDS', 0),
+                    'maxMemoryBytes'    => (int) env('SCONCUR_RABBITMQ_MAX_MEMORY_BYTES', 0),
+                ],
+            ],
+        ]),
 
         /*
         | Not part of the master config: a group's `server` block is forwarded to
@@ -84,6 +121,35 @@ return [
             'idleTimeoutMs'       => (int) env('SCONCUR_HTTP_IDLE_TIMEOUT_MS', 60000),
             'handlerTimeoutMs'    => (int) env('SCONCUR_HTTP_HANDLER_TIMEOUT_MS', 60000),
             'shutdownTimeoutMs'   => (int) env('SCONCUR_HTTP_SERVER_SHUTDOWN_TIMEOUT_MS', 5000),
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Queue transports
+    |--------------------------------------------------------------------------
+    | One section per transport, the same split as src/Queue/<Transport>.
+    |
+    | `connection` names the config/queue.php entry the consumer runs jobs on; it is
+    | expected to use the `sconcur_rabbitmq` driver. `queues` is what
+    | sconcur:rabbitmq:declare declares — it must list every queue the pool above
+    | consumes, since the consumer runtime declares nothing itself.
+    */
+    'queue' => [
+        'rabbitmq' => [
+            'connection' => env('SCONCUR_RABBITMQ_CONNECTION', 'sconcur_rabbitmq'),
+
+            'queues' => array_values(array_filter(array_map(
+                trim(...),
+                explode(',', (string) env('SCONCUR_RABBITMQ_DECLARE_QUEUES', 'default')),
+            ))),
+
+            // Attempts before Worker::process() writes the job to failed_jobs, and the
+            // delay it releases with. Both are the defaults; a job's own $tries and
+            // $backoff win over them.
+            'tries'     => (int) env('SCONCUR_RABBITMQ_TRIES', 1),
+            'backoff'   => (int) env('SCONCUR_RABBITMQ_BACKOFF', 0),
+            'memory_mb' => (int) env('SCONCUR_RABBITMQ_MEMORY_MB', 128),
         ],
     ],
 ];

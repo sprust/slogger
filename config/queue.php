@@ -71,6 +71,35 @@ return [
             'after_commit' => false,
         ],
 
+        /*
+         * The SConcur AMQP transport: the consumer pool reads it with coroutines under
+         * the sconcur master instead of one blocking queue:work per worker. Available
+         * but not the default — nothing is routed here until a job or a queue names
+         * this connection.
+         *
+         * The wire format matches the `rabbitmq` connection below, so a job published
+         * by either one is readable and runnable by the other's consumer.
+         */
+        'sconcur_rabbitmq' => [
+            'driver'    => 'sconcur_rabbitmq',
+            'queue'     => env('RABBITMQ_QUEUE', 'default'),
+            'dsn'       => env(
+                'SCONCUR_RABBITMQ_DSN',
+                sprintf(
+                    'amqp://%s:%s@%s:%s/%s',
+                    env('RABBITMQ_USER', 'guest'),
+                    env('RABBITMQ_PASSWORD', 'guest'),
+                    env('RABBITMQ_HOST', '127.0.0.1'),
+                    env('RABBITMQ_PORT', 5672),
+                    rawurlencode((string) env('RABBITMQ_VHOST', '/')),
+                ),
+            ),
+            // The wait queues a later() or a release() may address; a delay is rounded
+            // up to the nearest of these. Declared by sconcur:rabbitmq:declare.
+            'delays_ms' => [1000, 5000, 30000, 300000],
+            'after_commit' => false,
+        ],
+
         'rabbitmq' => [
             'driver'     => 'rabbitmq',
             'queue'      => env('RABBITMQ_QUEUE', 'default'),
