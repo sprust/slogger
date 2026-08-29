@@ -22,8 +22,11 @@ class SconcurStatResource extends AbstractApiResource
     private int $requests_in_flight;
     private float $master_cpu_percent;
     private int $master_memory_rss_bytes;
+    #[OaListItemTypeAttribute(SconcurGroupResource::class)]
+    private array $groups;
     #[OaListItemTypeAttribute(SconcurWorkerResource::class)]
     private array $workers;
+    private ?SconcurConsumersResource $consumers;
 
     public function __construct(SconcurStatObject $stat)
     {
@@ -41,6 +44,8 @@ class SconcurStatResource extends AbstractApiResource
         $this->requests_in_flight      = $stat->requestsInFlight;
         $this->master_cpu_percent      = $stat->masterCpuPercent;
         $this->master_memory_rss_bytes = $stat->masterMemoryRssBytes;
+        $this->groups                  = SconcurGroupResource::mapIntoMe($stat->groups);
         $this->workers                 = SconcurWorkerResource::mapIntoMe($stat->workers);
+        $this->consumers               = SconcurConsumersResource::makeIfNotNull($stat->consumers);
     }
 }

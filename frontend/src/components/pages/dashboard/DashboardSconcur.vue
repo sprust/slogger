@@ -43,6 +43,7 @@ export default defineComponent({
       history: [] as HistoryPoint[],
       timer: null as number | null,
       prevCompleted: null as number | null,
+      prevDelivered: null as number | null,
       metrics: [
         {key: 'requests_in_flight', label: 'In-flight requests'},
         {key: 'rps', label: 'RPS (requests/sec)'},
@@ -50,6 +51,9 @@ export default defineComponent({
         {key: 'memory_rss_mb', label: 'Memory RSS, MB'},
         {key: 'goroutines', label: 'Goroutines'},
         {key: 'requests_avg_ms', label: 'Avg duration, ms'},
+        {key: 'consumers_in_flight', label: 'In-flight deliveries'},
+        {key: 'consumers_rate', label: 'Deliveries/sec'},
+        {key: 'consumers_avg_ms', label: 'Delivery avg duration, ms'},
       ] as MetricDef[],
     }
   },
@@ -63,6 +67,9 @@ export default defineComponent({
     },
     IconRefresh() {
       return IconRefresh
+    },
+    hasConsumers(): boolean {
+      return this.store.stat?.workers.some(worker => worker.consumers) ?? false
     },
     chartData() {
       return {
@@ -119,6 +126,16 @@ export default defineComponent({
 
       this.prevCompleted = stat.requests_completed
 
+      // Only a pool consuming a queue reports this section; an HTTP-only master omits it.
+      const consumers = stat.consumers
+      let consumersRate = 0
+
+      if (consumers && this.prevDelivered !== null) {
+        consumersRate = Math.max(0, consumers.delivered - this.prevDelivered)
+      }
+
+      this.prevDelivered = consumers ? consumers.delivered : null
+
       const now = Date.now()
 
       this.history.push({
@@ -130,6 +147,9 @@ export default defineComponent({
         memory_rss_mb: Math.round(stat.memory_rss_bytes / 1048576),
         goroutines: stat.goroutines,
         requests_avg_ms: Math.round(stat.requests_avg_ms * 100) / 100,
+        consumers_in_flight: consumers?.in_flight ?? 0,
+        consumers_rate: consumersRate,
+        consumers_avg_ms: Math.round((consumers?.avg_ms ?? 0) * 100) / 100,
       })
 
       // keep only the last 5 minutes
@@ -246,6 +266,48 @@ export default defineComponent({
 
       <el-divider/>
 
+      <el-text size="small" tag="b">Groups ({{ store.stat.groups.length }})</el-text>
+      <el-table
+          :data="store.stat.groups"
+          size="small"
+          border
+          style="width: 100%; margin: 8px 0 14px"
+      >
+        <el-table-column prop="name" label="Group" width="140"/>
+        <el-table-column label="Workers" width="100">
+          <template #default="{ row }">
+            {{ row.workers_hung ? `${row.workers_total} (${row.workers_hung} hung)` : row.workers_total }}
+          </template>
+        </el-table-column>
+        <el-table-column label="CPU, %" width="100">
+          <template #default="{ row }">{{ row.cpu_percent.toFixed(1) }}</template>
+        </el-table-column>
+        <el-table-column label="RSS, MB" width="100">
+          <template #default="{ row }">{{ rssMb(row.memory_rss_bytes) }}</template>
+        </el-table-column>
+        <el-table-column prop="goroutines" label="Goroutines" width="110"/>
+        <el-table-column label="In-flight" width="100">
+          <template #default="{ row }">
+            {{ row.consumers ? row.consumers.in_flight : row.requests_in_flight }}
+          </template>
+        </el-table-column>
+        <el-table-column label="Handled">
+          <template #default="{ row }">
+            {{ row.consumers ? row.consumers.acked : row.requests_completed }}
+          </template>
+        </el-table-column>
+        <el-table-column label="Refused" width="100">
+          <template #default="{ row }">
+            {{ row.consumers ? row.consumers.refused : '—' }}
+          </template>
+        </el-table-column>
+        <el-table-column label="Avg, ms" width="100">
+          <template #default="{ row }">
+            {{ (row.consumers ? row.consumers.avg_ms : row.requests_avg_ms).toFixed(2) }}
+          </template>
+        </el-table-column>
+      </el-table>
+
       <el-text size="small" tag="b">Workers ({{ store.stat.workers.length }})</el-text>
       <el-table
           :data="store.stat.workers"
@@ -254,6 +316,7 @@ export default defineComponent({
           style="width: 100%; margin: 8px 0 14px"
       >
         <el-table-column prop="pid" label="PID" width="90"/>
+        <el-table-column prop="group" label="Group" width="110"/>
         <el-table-column label="Status" width="90">
           <template #default="{ row }">
             <el-tag :type="row.hung ? 'danger' : 'success'" size="small">
@@ -275,6 +338,14 @@ export default defineComponent({
         <el-table-column prop="requests_completed" label="Completed"/>
         <el-table-column label="Avg, ms">
           <template #default="{ row }">{{ row.requests_avg_ms.toFixed(2) }}</template>
+        </el-table-column>
+        <el-table-column v-if="hasConsumers" label="Deliveries">
+          <template #default="{ row }">
+            {{ row.consumers ? `${row.consumers.acked} / ${row.consumers.delivered}` : '—' }}
+          </template>
+        </el-table-column>
+        <el-table-column v-if="hasConsumers" label="Refused">
+          <template #default="{ row }">{{ row.consumers ? row.consumers.refused : '—' }}</template>
         </el-table-column>
       </el-table>
 

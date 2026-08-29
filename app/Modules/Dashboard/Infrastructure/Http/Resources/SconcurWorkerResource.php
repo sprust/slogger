@@ -10,6 +10,7 @@ use App\Modules\Dashboard\Entities\SconcurWorkerObject;
 class SconcurWorkerResource extends AbstractApiResource
 {
     private int $pid;
+    private string $group;
     private bool $hung;
     private float $uptime_seconds;
     private float $cpu_percent;
@@ -18,12 +19,14 @@ class SconcurWorkerResource extends AbstractApiResource
     private int $requests_in_flight;
     private int $requests_completed;
     private float $requests_avg_ms;
+    private ?SconcurConsumersResource $consumers;
 
     public function __construct(SconcurWorkerObject $worker)
     {
         parent::__construct($worker);
 
         $this->pid                = $worker->pid;
+        $this->group              = $worker->group;
         $this->hung               = $worker->hung;
         $this->uptime_seconds     = $worker->uptimeSeconds;
         $this->cpu_percent        = $worker->cpuPercent;
@@ -32,5 +35,6 @@ class SconcurWorkerResource extends AbstractApiResource
         $this->requests_in_flight = $worker->requestsInFlight;
         $this->requests_completed = $worker->requestsCompleted;
         $this->requests_avg_ms    = $worker->requestsAvgMs;
+        $this->consumers          = SconcurConsumersResource::makeIfNotNull($worker->consumers);
     }
 }

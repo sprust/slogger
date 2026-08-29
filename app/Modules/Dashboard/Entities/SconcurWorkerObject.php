@@ -8,6 +8,7 @@ readonly class SconcurWorkerObject
 {
     public function __construct(
         public int $pid,
+        public string $group,
         public bool $hung,
         public float $uptimeSeconds,
         public float $cpuPercent,
@@ -16,6 +17,7 @@ readonly class SconcurWorkerObject
         public int $requestsInFlight,
         public int $requestsCompleted,
         public float $requestsAvgMs,
+        public ?SconcurConsumersObject $consumers = null,
     ) {
     }
 }

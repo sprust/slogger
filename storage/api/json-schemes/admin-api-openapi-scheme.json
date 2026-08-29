@@ -341,6 +341,117 @@
                                                     "type": "integer",
                                                     "nullable": false
                                                 },
+                                                "groups": {
+                                                    "type": "array",
+                                                    "nullable": false,
+                                                    "items": {
+                                                        "properties": {
+                                                            "name": {
+                                                                "type": "string",
+                                                                "nullable": false
+                                                            },
+                                                            "workers_total": {
+                                                                "type": "integer",
+                                                                "nullable": false
+                                                            },
+                                                            "workers_hung": {
+                                                                "type": "integer",
+                                                                "nullable": false
+                                                            },
+                                                            "cpu_percent": {
+                                                                "type": "number",
+                                                                "nullable": false
+                                                            },
+                                                            "memory_rss_bytes": {
+                                                                "type": "integer",
+                                                                "nullable": false
+                                                            },
+                                                            "goroutines": {
+                                                                "type": "integer",
+                                                                "nullable": false
+                                                            },
+                                                            "requests_completed": {
+                                                                "type": "integer",
+                                                                "nullable": false
+                                                            },
+                                                            "requests_avg_ms": {
+                                                                "type": "number",
+                                                                "nullable": false
+                                                            },
+                                                            "requests_in_flight": {
+                                                                "type": "integer",
+                                                                "nullable": false
+                                                            },
+                                                            "consumers": {
+                                                                "properties": {
+                                                                    "coroutines": {
+                                                                        "type": "integer",
+                                                                        "nullable": false
+                                                                    },
+                                                                    "delivered": {
+                                                                        "type": "integer",
+                                                                        "nullable": false
+                                                                    },
+                                                                    "acked": {
+                                                                        "type": "integer",
+                                                                        "nullable": false
+                                                                    },
+                                                                    "refused": {
+                                                                        "type": "integer",
+                                                                        "nullable": false
+                                                                    },
+                                                                    "timed": {
+                                                                        "type": "integer",
+                                                                        "nullable": false
+                                                                    },
+                                                                    "avg_ms": {
+                                                                        "type": "number",
+                                                                        "nullable": false
+                                                                    },
+                                                                    "in_flight": {
+                                                                        "type": "integer",
+                                                                        "nullable": false
+                                                                    },
+                                                                    "in_flight_1_to_5s": {
+                                                                        "type": "integer",
+                                                                        "nullable": false
+                                                                    },
+                                                                    "in_flight_5_to_15s": {
+                                                                        "type": "integer",
+                                                                        "nullable": false
+                                                                    },
+                                                                    "in_flight_over_15s": {
+                                                                        "type": "integer",
+                                                                        "nullable": false
+                                                                    }
+                                                                },
+                                                                "required": [
+                                                                    "coroutines",
+                                                                    "delivered",
+                                                                    "acked",
+                                                                    "refused",
+                                                                    "timed",
+                                                                    "avg_ms",
+                                                                    "in_flight",
+                                                                    "in_flight_1_to_5s",
+                                                                    "in_flight_5_to_15s",
+                                                                    "in_flight_over_15s"
+                                                                ]
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "name",
+                                                            "workers_total",
+                                                            "workers_hung",
+                                                            "cpu_percent",
+                                                            "memory_rss_bytes",
+                                                            "goroutines",
+                                                            "requests_completed",
+                                                            "requests_avg_ms",
+                                                            "requests_in_flight"
+                                                        ]
+                                                    }
+                                                },
                                                 "workers": {
                                                     "type": "array",
                                                     "nullable": false,
@@ -348,6 +459,10 @@
                                                         "properties": {
                                                             "pid": {
                                                                 "type": "integer",
+                                                                "nullable": false
+                                                            },
+                                                            "group": {
+                                                                "type": "string",
                                                                 "nullable": false
                                                             },
                                                             "hung": {
@@ -381,10 +496,67 @@
                                                             "requests_avg_ms": {
                                                                 "type": "number",
                                                                 "nullable": false
+                                                            },
+                                                            "consumers": {
+                                                                "properties": {
+                                                                    "coroutines": {
+                                                                        "type": "integer",
+                                                                        "nullable": false
+                                                                    },
+                                                                    "delivered": {
+                                                                        "type": "integer",
+                                                                        "nullable": false
+                                                                    },
+                                                                    "acked": {
+                                                                        "type": "integer",
+                                                                        "nullable": false
+                                                                    },
+                                                                    "refused": {
+                                                                        "type": "integer",
+                                                                        "nullable": false
+                                                                    },
+                                                                    "timed": {
+                                                                        "type": "integer",
+                                                                        "nullable": false
+                                                                    },
+                                                                    "avg_ms": {
+                                                                        "type": "number",
+                                                                        "nullable": false
+                                                                    },
+                                                                    "in_flight": {
+                                                                        "type": "integer",
+                                                                        "nullable": false
+                                                                    },
+                                                                    "in_flight_1_to_5s": {
+                                                                        "type": "integer",
+                                                                        "nullable": false
+                                                                    },
+                                                                    "in_flight_5_to_15s": {
+                                                                        "type": "integer",
+                                                                        "nullable": false
+                                                                    },
+                                                                    "in_flight_over_15s": {
+                                                                        "type": "integer",
+                                                                        "nullable": false
+                                                                    }
+                                                                },
+                                                                "required": [
+                                                                    "coroutines",
+                                                                    "delivered",
+                                                                    "acked",
+                                                                    "refused",
+                                                                    "timed",
+                                                                    "avg_ms",
+                                                                    "in_flight",
+                                                                    "in_flight_1_to_5s",
+                                                                    "in_flight_5_to_15s",
+                                                                    "in_flight_over_15s"
+                                                                ]
                                                             }
                                                         },
                                                         "required": [
                                                             "pid",
+                                                            "group",
                                                             "hung",
                                                             "uptime_seconds",
                                                             "cpu_percent",
@@ -395,6 +567,62 @@
                                                             "requests_avg_ms"
                                                         ]
                                                     }
+                                                },
+                                                "consumers": {
+                                                    "properties": {
+                                                        "coroutines": {
+                                                            "type": "integer",
+                                                            "nullable": false
+                                                        },
+                                                        "delivered": {
+                                                            "type": "integer",
+                                                            "nullable": false
+                                                        },
+                                                        "acked": {
+                                                            "type": "integer",
+                                                            "nullable": false
+                                                        },
+                                                        "refused": {
+                                                            "type": "integer",
+                                                            "nullable": false
+                                                        },
+                                                        "timed": {
+                                                            "type": "integer",
+                                                            "nullable": false
+                                                        },
+                                                        "avg_ms": {
+                                                            "type": "number",
+                                                            "nullable": false
+                                                        },
+                                                        "in_flight": {
+                                                            "type": "integer",
+                                                            "nullable": false
+                                                        },
+                                                        "in_flight_1_to_5s": {
+                                                            "type": "integer",
+                                                            "nullable": false
+                                                        },
+                                                        "in_flight_5_to_15s": {
+                                                            "type": "integer",
+                                                            "nullable": false
+                                                        },
+                                                        "in_flight_over_15s": {
+                                                            "type": "integer",
+                                                            "nullable": false
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "coroutines",
+                                                        "delivered",
+                                                        "acked",
+                                                        "refused",
+                                                        "timed",
+                                                        "avg_ms",
+                                                        "in_flight",
+                                                        "in_flight_1_to_5s",
+                                                        "in_flight_5_to_15s",
+                                                        "in_flight_over_15s"
+                                                    ]
                                                 }
                                             },
                                             "required": [
@@ -410,6 +638,7 @@
                                                 "requests_in_flight",
                                                 "master_cpu_percent",
                                                 "master_memory_rss_bytes",
+                                                "groups",
                                                 "workers"
                                             ]
                                         }

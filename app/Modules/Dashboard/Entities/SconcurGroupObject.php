@@ -4,14 +4,16 @@ declare(strict_types=1);
 
 namespace App\Modules\Dashboard\Entities;
 
-readonly class SconcurStatObject
+/**
+ * One worker pool of the SConcur master, summed on its own.
+ *
+ * Since SConcur 0.11 a single master supervises several unlike pools — an HTTP
+ * server pool and queue-consumer pools — and their numbers are not comparable, so
+ * the totals that matter are per group rather than per master.
+ */
+readonly class SconcurGroupObject
 {
-    /**
-     * @param SconcurGroupObject[]  $groups
-     * @param SconcurWorkerObject[] $workers
-     */
     public function __construct(
-        public bool $available,
         public string $name,
         public int $workersTotal,
         public int $workersHung,
@@ -21,11 +23,7 @@ readonly class SconcurStatObject
         public int $requestsCompleted,
         public float $requestsAvgMs,
         public int $requestsInFlight,
-        public float $masterCpuPercent,
-        public int $masterMemoryRssBytes,
-        public array $groups,
-        public array $workers,
-        public ?SconcurConsumersObject $consumers = null,
+        public ?SconcurConsumersObject $consumers,
     ) {
     }
 }
