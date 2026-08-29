@@ -22,14 +22,9 @@ readonly class Connector implements ConnectorInterface
      */
     public function connect(array $config): Queue
     {
-        $delays = array_map(intval(...), (array) ($config['delays_ms'] ?? []));
-
-        sort($delays);
-
         return new Queue(
             connection: new Connection((string) ($config['dsn'] ?? '')),
             default: (string) ($config['queue'] ?? 'default'),
-            delaysMs: $delays,
             confirmPublishes: (bool) ($config['confirm_publishes'] ?? false),
             confirmTimeoutSeconds: (float) ($config['confirm_timeout_seconds'] ?? 5.0),
         );

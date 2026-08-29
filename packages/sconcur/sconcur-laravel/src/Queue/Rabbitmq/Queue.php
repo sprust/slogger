@@ -11,6 +11,7 @@ use SConcur\Features\Amqp\Channel;
 use SConcur\Features\Amqp\Connection;
 use SConcur\Features\Amqp\Consumer\PublishChannelPool;
 use SConcur\Features\Amqp\Message;
+use SConcur\Features\Amqp\RetryTopology;
 
 /**
  * A Laravel queue over the SConcur AMQP feature.
@@ -52,13 +53,9 @@ class Queue extends BaseQueue implements QueueContract
      */
     protected ?Channel $popChannel = null;
 
-    /**
-     * @param list<int> $delaysMs the declared wait-queue delays a later() may address
-     */
     public function __construct(
         protected Connection $connection,
         protected string $default = 'default',
-        protected array $delaysMs = [],
         protected bool $confirmPublishes = false,
         protected float $confirmTimeoutSeconds = 5.0,
     ) {
@@ -121,10 +118,8 @@ class Queue extends BaseQueue implements QueueContract
     }
 
     /**
-     * The delay is rounded up to the nearest declared wait queue, because a delay must
-     * be one the topology serves: RetryTopology declares one queue per delay rather
-     * than one queue with a per-message TTL, since a classic queue expires only from
-     * its head.
+     * The wait queue for the exact delay is declared on the spot, so any delay is served
+     * as asked for.
      */
     public function laterRaw(
         mixed $delay,
@@ -217,14 +212,6 @@ class Queue extends BaseQueue implements QueueContract
         return $this->connection;
     }
 
-    /**
-     * @return list<int>
-     */
-    public function delaysMs(): array
-    {
-        return $this->delaysMs;
-    }
-
     public function getQueue(mixed $queue = null): string
     {
         return (string) ($queue ?: $this->default);
@@ -246,6 +233,10 @@ class Queue extends BaseQueue implements QueueContract
      */
     protected function publishOn(Channel $channel, string $queue, Message $message, int $delayMs): null
     {
+        if ($delayMs > 0) {
+            $this->declareWaitQueue($channel, $queue, $delayMs);
+        }
+
         $amqpQueue = $channel->queue($queue);
 
         if ($delayMs > 0 || $this->confirmPublishes) {
@@ -261,6 +252,37 @@ class Queue extends BaseQueue implements QueueContract
         $amqpQueue->publish($message);
 
         return null;
+    }
+
+    /**
+     * Declares the wait queue a delayed publish is addressed to, immediately before
+     * publishing into it.
+     *
+     * On demand rather than from a declared ladder, which is what
+     * vladimir-yuldashev/laravel-queue-rabbitmq does and what makes an arbitrary delay
+     * work: a ladder can only serve the rungs someone thought of, so a release(3) waited
+     * five seconds and a release(600) waited three hundred — a backoff silently shortened
+     * to whatever the topology happened to offer.
+     *
+     * The queue holds the message for exactly its delay and dead-letters it back. Nothing
+     * has to clean it up: x-expires tells the broker to drop a wait queue that has gone
+     * unused for twice its delay, and redeclaring it here on every retry is what keeps a
+     * queue still in use alive.
+     *
+     * A queue is only unused when it has no consumers and nothing declares it — which a
+     * wait queue never has and this always does while retries are happening.
+     */
+    protected function declareWaitQueue(Channel $channel, string $queue, int $delayMs): void
+    {
+        $channel->queue(RetryTopology::waitQueueName(queue: $queue, delayMs: $delayMs))->declare(
+            durable: true,
+            arguments: [
+                'x-message-ttl'             => $delayMs,
+                'x-dead-letter-exchange'    => '',
+                'x-dead-letter-routing-key' => $queue,
+                'x-expires'                 => $delayMs * 2,
+            ],
+        );
     }
 
     /**
@@ -315,31 +337,10 @@ class Queue extends BaseQueue implements QueueContract
         return $this->popChannel;
     }
 
-    /**
-     * The nearest declared delay at or above the requested one. Without a ladder the
-     * delay is passed through, which addresses a wait queue that must already exist.
-     */
+    /** The delay as asked for, in milliseconds; anything at or below zero is no delay. */
     protected function delayMsFor(mixed $delay): int
     {
-        $requestedMs = $this->secondsUntil($delay) * 1000;
-
-        if ($requestedMs <= 0) {
-            return 0;
-        }
-
-        $candidates = $this->delaysMs;
-
-        sort($candidates);
-
-        foreach ($candidates as $declared) {
-            if ($declared >= $requestedMs) {
-                return $declared;
-            }
-        }
-
-        // Past the top of the ladder the longest declared delay is the closest thing to
-        // what was asked for; the alternative is losing the job to an unroutable delay.
-        return $candidates === [] ? $requestedMs : (int) end($candidates);
+        return max(0, $this->secondsUntil($delay) * 1000);
     }
 
     protected function correlationId(string $payload): ?string

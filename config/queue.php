@@ -95,7 +95,6 @@ return [
             ),
             // The wait queues a later() or a release() may address; a delay is rounded
             // up to the nearest of these. Declared by sconcur:rabbitmq:declare.
-            'delays_ms' => [1000, 5000, 30000, 300000],
             'after_commit' => false,
         ],
 

@@ -6,13 +6,17 @@ namespace SConcur\Laravel\Console;
 
 use Illuminate\Console\Command;
 use Illuminate\Queue\QueueManager;
-use SConcur\Features\Amqp\RetryTopology;
 use SConcur\Laravel\Queue\Rabbitmq\Queue;
 
 /**
- * Declare the queues the consumer pool reads, and the wait queues its delays go
- * through. Nothing else declares them: the consumer runtime declares nothing at all, so
- * a pool started before its topology exists would spin on 404.
+ * Declare the queues the consumer pool reads. Nothing else declares them: the consumer
+ * runtime declares nothing at all, so a pool started before its topology exists would
+ * spin on 404.
+ *
+ * Wait queues are not declared here. They are created by the delayed publish that needs
+ * one, named after its exact delay, and the broker removes each again once it has gone
+ * unused — so there is no ladder to keep in step with the delays the application asks
+ * for. See Queue::declareWaitQueue().
  *
  * The flags match what vladimir-yuldashev/laravel-queue-rabbitmq declares with —
  * durable, not exclusive, not auto-delete, no arguments — because a queue re-declared
@@ -24,7 +28,7 @@ class RabbitmqDeclareCommand extends Command
     protected $signature = 'sconcur:rabbitmq:declare
         {--connection= : The config/queue.php connection to declare on}';
 
-    protected $description = 'Declare the SConcur AMQP queues and their wait queues';
+    protected $description = 'Declare the SConcur AMQP queues the consumer pool reads';
 
     public function handle(QueueManager $manager): int
     {
@@ -56,23 +60,11 @@ class RabbitmqDeclareCommand extends Command
         }
 
         $channel = $queue->getConnection()->channel();
-        $delays  = $queue->delaysMs();
 
         foreach ($queueNames as $name) {
             $channel->queue($name)->declare(durable: true, exclusive: false, autoDelete: false);
 
             $this->info(sprintf('Declared [%s].', $name));
-
-            if ($delays === []) {
-                continue;
-            }
-
-            RetryTopology::declare(channel: $channel, queue: $name, delaysMs: $delays);
-
-            $this->line(sprintf('  wait queues: %s', implode(', ', array_map(
-                static fn(int $ms): string => $name . '.wait.' . $ms,
-                $delays,
-            ))));
         }
 
         return self::SUCCESS;

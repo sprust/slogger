@@ -17,68 +17,47 @@ use Throwable;
  */
 class QueueTest extends TestCase
 {
-    public function testADelayIsRoundedUpToTheNearestDeclaredOne(): void
+    public function testADelayIsPassedThroughAsAsked(): void
     {
-        $queue = $this->queue([1000, 5000, 30000]);
-
-        $queue->laterRaw(1, '{"id":"1"}', 'some-queue');
-
-        $this->assertSame(1000, $queue->publishedDelayMs);
-    }
-
-    public function testADelayBetweenTwoRungsTakesTheHigherOne(): void
-    {
-        $queue = $this->queue([1000, 5000, 30000]);
+        $queue = $this->queue();
 
         $queue->laterRaw(3, '{"id":"1"}', 'some-queue');
 
-        $this->assertSame(5000, $queue->publishedDelayMs);
+        // Three seconds, not the nearest rung of a ladder: the wait queue for the exact
+        // delay is declared when it is needed, so there are no rungs to round to.
+        $this->assertSame(3000, $queue->publishedDelayMs);
     }
 
-    public function testADelayThatMatchesARungExactlyTakesIt(): void
+    public function testALongDelayIsNotShortened(): void
     {
-        $queue = $this->queue([1000, 5000, 30000]);
+        $queue = $this->queue();
 
-        $queue->laterRaw(5, '{"id":"1"}', 'some-queue');
+        $queue->laterRaw(600, '{"id":"1"}', 'some-queue');
 
-        $this->assertSame(5000, $queue->publishedDelayMs);
-    }
-
-    /**
-     * Past the top of the ladder the longest declared delay is the closest thing to what
-     * was asked for. The alternative — passing the delay through — would address a wait
-     * queue nobody declared and lose the job.
-     */
-    public function testADelayPastTheTopOfTheLadderTakesTheLongestRung(): void
-    {
-        $queue = $this->queue([1000, 5000, 30000]);
-
-        $queue->laterRaw(120, '{"id":"1"}', 'some-queue');
-
-        $this->assertSame(30000, $queue->publishedDelayMs);
+        $this->assertSame(600_000, $queue->publishedDelayMs);
     }
 
     public function testNoDelayPublishesStraightIntoTheQueue(): void
     {
-        $queue = $this->queue([1000, 5000]);
+        $queue = $this->queue();
 
         $queue->laterRaw(0, '{"id":"1"}', 'some-queue');
 
         $this->assertSame(0, $queue->publishedDelayMs);
     }
 
-    public function testAnUnorderedLadderStillRoundsUpCorrectly(): void
+    public function testANegativeDelayIsNoDelay(): void
     {
-        $queue = $this->queue([30000, 1000, 5000]);
+        $queue = $this->queue();
 
-        $queue->laterRaw(2, '{"id":"1"}', 'some-queue');
+        $queue->laterRaw(-5, '{"id":"1"}', 'some-queue');
 
-        $this->assertSame(5000, $queue->publishedDelayMs);
+        $this->assertSame(0, $queue->publishedDelayMs);
     }
 
     public function testTheAttemptCounterTravelsWithAReleasedJob(): void
     {
-        $queue = $this->queue([1000]);
+        $queue = $this->queue();
 
         $queue->laterRaw(1, '{"id":"1"}', 'some-queue', attempts: 3);
 
@@ -87,14 +66,14 @@ class QueueTest extends TestCase
 
     public function testTheCorrelationIdIsThePayloadId(): void
     {
-        $queue = $this->queue([]);
+        $queue = $this->queue();
 
         $this->assertSame('job-7', $queue->pushRaw('{"id":"job-7"}', 'some-queue'));
     }
 
     public function testAPayloadWithoutAnIdHasNoCorrelationId(): void
     {
-        $queue = $this->queue([]);
+        $queue = $this->queue();
 
         $this->assertNull($queue->pushRaw('{"data":[]}', 'some-queue'));
     }
@@ -150,6 +129,37 @@ class QueueTest extends TestCase
     }
 
     /**
+     * The wait queue has to exist before the publish addressed to it, and with exactly
+     * these arguments: the ttl holds the message, the dead-letter route sends it back, and
+     * x-expires is what removes a wait queue nobody needs any more without anyone having
+     * to remember it.
+     */
+    public function testADelayedPublishDeclaresItsWaitQueueFirst(): void
+    {
+        $queue = $this->declareRecordingQueue();
+
+        $queue->publish(queue: 'some-queue', payload: '{"id":"1"}', attempts: 1, delayMs: 3000);
+
+        $this->assertSame(['some-queue.wait.3000'], array_column($queue->declared, 'queue'));
+        $this->assertSame([
+            'x-message-ttl'             => 3000,
+            'x-dead-letter-exchange'    => '',
+            'x-dead-letter-routing-key' => 'some-queue',
+            'x-expires'                 => 6000,
+        ], $queue->declared[0]['arguments']);
+        $this->assertTrue($queue->declaredBeforePublish, 'declared before the publish, not after');
+    }
+
+    public function testAnImmediatePublishDeclaresNothing(): void
+    {
+        $queue = $this->declareRecordingQueue();
+
+        $queue->publish(queue: 'some-queue', payload: '{"id":"1"}', attempts: 0, delayMs: 0);
+
+        $this->assertSame([], $queue->declared);
+    }
+
+    /**
      * Records which channel a publish ran on, with the pool and the broker both stubbed
      * out. The connection is lazy, so constructing one opens no socket.
      */
@@ -157,7 +167,7 @@ class QueueTest extends TestCase
     {
         $connection = new Connection('amqp://guest:guest@127.0.0.1:5672/%2f');
 
-        return new class($connection, 'default', []) extends Queue {
+        return new class($connection, 'default') extends Queue {
             public int $leases = 0;
 
             public ?Channel $lent = null;
@@ -194,14 +204,55 @@ class QueueTest extends TestCase
         };
     }
 
-    /**
-     * @param list<int> $delaysMs
-     */
-    private function queue(array $delaysMs): Queue
+    /** Records the wait-queue declaration without touching a broker. */
+    private function declareRecordingQueue(): Queue
+    {
+        return new class(new Connection('amqp://guest:guest@127.0.0.1:5672/%2f'), 'default') extends Queue {
+            /** @var list<array{queue: string, arguments: array<string, mixed>}> */
+            public array $declared = [];
+
+            public bool $declaredBeforePublish = false;
+
+            protected function declareWaitQueue(Channel $channel, string $queue, int $delayMs): void
+            {
+                $this->declared[] = [
+                    'queue'     => $queue . '.wait.' . $delayMs,
+                    'arguments' => [
+                        'x-message-ttl'             => $delayMs,
+                        'x-dead-letter-exchange'    => '',
+                        'x-dead-letter-routing-key' => $queue,
+                        'x-expires'                 => $delayMs * 2,
+                    ],
+                ];
+            }
+
+            protected function publishOn(Channel $channel, string $queue, Message $message, int $delayMs): null
+            {
+                if ($delayMs > 0) {
+                    $this->declareWaitQueue($channel, $queue, $delayMs);
+
+                    $this->declaredBeforePublish = $this->declared !== [];
+                }
+
+                return null;
+            }
+
+            protected function lendChannel(): Channel
+            {
+                return new Channel($this->connection, 'leased', 1);
+            }
+
+            protected function returnChannel(Channel $channel): void
+            {
+            }
+        };
+    }
+
+    private function queue(): Queue
     {
         // The connection is lazy — the constructor touches nothing — so this opens no
         // socket, and publish() is intercepted below before anything would.
-        return new class(new Connection('amqp://guest:guest@127.0.0.1:5672/%2f'), 'default', $delaysMs) extends Queue {
+        return new class(new Connection('amqp://guest:guest@127.0.0.1:5672/%2f'), 'default') extends Queue {
             public ?int $publishedDelayMs = null;
 
             public ?int $publishedAttempts = null;
