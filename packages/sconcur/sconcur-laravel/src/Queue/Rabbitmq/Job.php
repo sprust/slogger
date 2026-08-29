@@ -7,7 +7,10 @@ namespace SConcur\Laravel\Queue\Rabbitmq;
 use Illuminate\Container\Container;
 use Illuminate\Contracts\Queue\Job as JobContract;
 use Illuminate\Queue\Jobs\Job as BaseJob;
+use SConcur\Exceptions\CoroutineTimeoutException;
+use SConcur\Exceptions\FlowStoppedException;
 use SConcur\Features\Amqp\Delivery;
+use Throwable;
 
 /**
  * One AMQP delivery as a Laravel job, which is what Illuminate\Queue\Worker::process()
@@ -21,6 +24,22 @@ use SConcur\Features\Amqp\Delivery;
  */
 class Job extends BaseJob implements JobContract
 {
+    /**
+     * The runtime's own unwind, when one reached this job.
+     *
+     * Illuminate\Queue\Worker::process() catches every Throwable, so a
+     * FlowStoppedException or a CoroutineTimeoutException — the runtime telling this
+     * coroutine to stop — arrives at handleJobException() like any other failure, and it
+     * would write failed_jobs and republish on a coroutine that has no flow left to await
+     * on. Both would throw a second exception that replaced the first, and the consumer
+     * would then read a deliberate unwind as a refused message and dead-letter it.
+     *
+     * So the unwind is remembered here, every way of settling the job is short-circuited
+     * while it stands, and ConsumerRunner rethrows it once process() has returned. The
+     * runtime then leaves the delivery unsettled and the broker redelivers it once.
+     */
+    protected ?Throwable $unwind = null;
+
     public function __construct(
         Container $container,
         protected Queue $rabbitmq,
@@ -31,6 +50,24 @@ class Job extends BaseJob implements JobContract
         $this->container      = $container;
         $this->connectionName = $connectionName;
         $this->queue          = $queue;
+    }
+
+    /** {@inheritDoc} */
+    public function fire()
+    {
+        try {
+            parent::fire();
+        } catch (FlowStoppedException | CoroutineTimeoutException $exception) {
+            $this->unwind = $exception;
+
+            throw $exception;
+        }
+    }
+
+    /** The unwind that reached this job, for the caller to rethrow. */
+    public function unwind(): ?Throwable
+    {
+        return $this->unwind;
     }
 
     public function getRawBody(): string
@@ -59,6 +96,10 @@ class Job extends BaseJob implements JobContract
      */
     public function delete(): void
     {
+        if ($this->unwind !== null) {
+            return;
+        }
+
         parent::delete();
 
         if (!$this->delivery->isSettled()) {
@@ -78,7 +119,14 @@ class Job extends BaseJob implements JobContract
      */
     public function release($delay = 0): void
     {
-        parent::release($delay);
+        if ($this->unwind !== null) {
+            return;
+        }
+
+        // Republish first, mark released after. The other way round, a publish that threw
+        // — an unroutable wait queue, say — would leave the job both unsettled and
+        // ineligible for Worker's own release in its finally, and the message would be
+        // dead-lettered instead of retried.
 
         $this->rabbitmq->laterRaw(
             delay: $delay,
@@ -95,9 +143,27 @@ class Job extends BaseJob implements JobContract
             channel: $this->delivery->channel(),
         );
 
+        parent::release($delay);
+
         if (!$this->delivery->isSettled()) {
             $this->delivery->ack();
         }
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * Short-circuited during an unwind for the same reason as delete() and release():
+     * failing writes failed_jobs and acknowledges, and neither can be done on a coroutine
+     * the runtime has already let go of.
+     */
+    public function fail($e = null)
+    {
+        if ($this->unwind !== null) {
+            return;
+        }
+
+        parent::fail($e);
     }
 
     public function getDelivery(): Delivery

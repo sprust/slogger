@@ -18,8 +18,10 @@ class ExtensionLoadCommand extends AbstractSconcurCommand
 
     public function handle(): int
     {
-        $bin    = base_path('vendor/bin/sconcur-load');
-        $target = (string) ($this->argument('path') ?: base_path('servers/sconcur'));
+        $bin  = base_path('vendor/bin/sconcur-load');
+        $path = $this->argument('path');
+
+        $target = is_string($path) && $path !== '' ? $path : base_path('servers/sconcur');
 
         $command = sprintf(
             '%s %s %s',

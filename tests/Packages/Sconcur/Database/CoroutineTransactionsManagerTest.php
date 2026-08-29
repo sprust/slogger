@@ -4,7 +4,6 @@ namespace Tests\Packages\Sconcur\Database;
 
 use Fiber;
 use PHPUnit\Framework\TestCase;
-use SConcur\Context\Context;
 use SConcur\Laravel\Database\CoroutineTransactionsManager;
 use SConcur\State;
 
@@ -16,13 +15,6 @@ use SConcur\State;
  */
 class CoroutineTransactionsManagerTest extends TestCase
 {
-    protected function tearDown(): void
-    {
-        Context::current()->forget('sconcur.db.transactions');
-
-        parent::tearDown();
-    }
-
     public function testACommitOnlyRunsTheCallbacksOfItsOwnCoroutine(): void
     {
         $manager = new CoroutineTransactionsManager();
@@ -30,25 +22,21 @@ class CoroutineTransactionsManagerTest extends TestCase
         $ran = [];
 
         foreach (['first', 'second'] as $name) {
-            $coroutine = $this->coroutine(function () use ($manager, &$ran, $name): void {
+            $this->runCoroutine(function () use ($manager, &$ran, $name): void {
                 $manager->begin('mysql', 1);
                 $manager->addCallback(function () use (&$ran, $name): void {
                     $ran[] = $name;
                 });
             });
-
-            $coroutine->start();
         }
 
         // A third coroutine opens and commits its own transaction on the same connection
         // name. On the shared manager this commit would find both neighbours' records
         // staged under 'mysql' and run their callbacks here.
-        $committer = $this->coroutine(static function () use ($manager): void {
+        $this->runCoroutine(static function () use ($manager): void {
             $manager->begin('mysql', 1);
             $manager->commit('mysql', 1, 0);
         });
-
-        $committer->start();
 
         $this->assertSame([], $ran, 'nobody else\'s afterCommit callbacks were executed');
     }
@@ -60,15 +48,13 @@ class CoroutineTransactionsManagerTest extends TestCase
         $counts = [];
 
         foreach ([1, 3] as $index => $levels) {
-            $coroutine = $this->coroutine(function () use ($manager, &$counts, $index, $levels): void {
+            $this->runCoroutine(function () use ($manager, &$counts, $index, $levels): void {
                 for ($level = 1; $level <= $levels; $level++) {
                     $manager->begin('mysql', $level);
                 }
 
                 $counts[$index] = $manager->getPendingTransactions()->count();
             });
-
-            $coroutine->start();
         }
 
         $this->assertSame([1, 3], $counts);
@@ -83,28 +69,61 @@ class CoroutineTransactionsManagerTest extends TestCase
     {
         $manager = new CoroutineTransactionsManager();
 
-        $manager->begin('mysql', 1);
-
         $seen = null;
 
-        $child = $this->coroutine(function () use ($manager, &$seen): void {
-            $seen = $manager->getPendingTransactions()->count();
-        }, parentFiberId: State::currentContextFiberId());
+        $this->runCoroutine(function () use ($manager, &$seen): void {
+            $manager->begin('mysql', 1);
 
-        $child->start();
+            $this->runCoroutine(function () use ($manager, &$seen): void {
+                $seen = $manager->getPendingTransactions()->count();
+            }, parentFiberId: State::currentContextFiberId());
+        });
 
         $this->assertSame(1, $seen);
     }
 
-    private function coroutine(callable $body, ?int $parentFiberId = null): Fiber
+    /**
+     * A caller with no fiber around it gets a manager of this object's own rather than one
+     * in the root context — which every coroutine reads through, and would therefore all
+     * share. It also means the class is safe to register in a process that never starts a
+     * coroutine: there it behaves exactly like the framework's own.
+     */
+    public function testACallerOutsideACoroutineDoesNotShareWithCoroutines(): void
+    {
+        $manager = new CoroutineTransactionsManager();
+
+        $manager->begin('mysql', 1);
+
+        $seen = null;
+
+        $this->runCoroutine(function () use ($manager, &$seen): void {
+            $seen = $manager->getPendingTransactions()->count();
+        });
+
+        $this->assertSame(0, $seen, 'the coroutine did not inherit the synchronous caller\'s transaction');
+        $this->assertSame(1, $manager->getPendingTransactions()->count(), 'and the caller kept its own');
+    }
+
+    /**
+     * Runs the body as a coroutine, with its context parent registered the way the runtime
+     * does when it spawns one — and released the way the runtime releases it.
+     *
+     * The release matters here: a context is keyed by the fiber's spl_object_id, and PHP
+     * reuses those once a fiber is collected. A helper that only registered would let one
+     * test's state reappear under another test's coroutine.
+     */
+    private function runCoroutine(callable $body, ?int $parentFiberId = null): void
     {
         $fiber = new Fiber($body);
 
-        State::registerCoroutineContext(
-            spl_object_id($fiber),
-            $parentFiberId ?? State::currentContextFiberId(),
-        );
+        $fiberId = spl_object_id($fiber);
 
-        return $fiber;
+        State::registerCoroutineContext($fiberId, $parentFiberId ?? State::currentContextFiberId());
+
+        try {
+            $fiber->start();
+        } finally {
+            State::unRegisterFiber($fiberId);
+        }
     }
 }

@@ -137,8 +137,8 @@ deploy-prod:
 	make build
 	make composer-fresh c='i --no-dev'
 	make up
-	make art c='migrate --force'
 	make workers-art c='queues-declare'
+	make art c='migrate --force'
 	make receiver-build
 	make frontend-npm-i
 	make frontend-npm-build
@@ -149,8 +149,8 @@ deploy-dev:
 	make build
 	make composer-fresh c='i'
 	make up
-	make art c='migrate --force'
 	make workers-art c='queues-declare'
+	make art c='migrate --force'
 	make receiver-build
 	make frontend-npm-i
 	make frontend-npm-build

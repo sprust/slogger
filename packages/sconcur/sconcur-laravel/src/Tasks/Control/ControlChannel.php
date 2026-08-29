@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace SConcur\Laravel\Tasks\Control;
 
+use Closure;
+use Illuminate\Contracts\Cache\LockProvider;
 use Illuminate\Contracts\Cache\Repository as CacheRepository;
 
 /**
@@ -33,10 +35,16 @@ readonly class ControlChannel
         // interval, so two sent inside one of those windows — `stop --task=cron` then
         // `stop --task=indexes`, or a script issuing both — would otherwise leave only
         // the second, and the first would be silently lost.
-        $pending   = $this->pending();
-        $pending[] = $command->toArray();
+        //
+        // Under a lock, because the append is a read and a write with a round trip
+        // between them: two artisan processes started together would both read an empty
+        // key and both write a list of one, which is the same loss again.
+        $this->locked(function () use ($command): void {
+            $pending   = $this->pending();
+            $pending[] = $command->toArray();
 
-        $this->cache->forever($this->key, $pending);
+            $this->cache->forever($this->key, $pending);
+        });
 
         return $command;
     }
@@ -76,6 +84,25 @@ readonly class ControlChannel
         }
 
         return $commands;
+    }
+
+    /**
+     * Runs the callback with the key held, where the cache store can lend a lock.
+     *
+     * A store without one — the array store a test uses — runs it as it is: there is no
+     * second process there to race with.
+     */
+    protected function locked(Closure $work): void
+    {
+        $store = $this->cache->getStore();
+
+        if (!$store instanceof LockProvider) {
+            $work();
+
+            return;
+        }
+
+        $store->lock($this->key . ':lock', 5)->block(3, $work);
     }
 
     /**

@@ -5,8 +5,8 @@ namespace Tests\Packages\Sconcur\Database;
 use Fiber;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
-use SConcur\Context\Context;
 use SConcur\Laravel\Database\Mysql\TransactionStack;
+use SConcur\Laravel\Database\TransactionStore;
 use SConcur\State;
 
 /**
@@ -20,17 +20,23 @@ use SConcur\State;
  */
 class TransactionStackTest extends TestCase
 {
-    protected function tearDown(): void
-    {
-        // The root context (fiber id 0) outlives the process, unlike a coroutine's.
-        Context::current()->forget('sconcur.db.tx.mysql');
+    /**
+     * One store per test, shared by every stack it makes — the way a Connection owns one
+     * store for its own name. Nothing leaks between tests, and the synchronous path is
+     * not the root context, so a stack opened outside a fiber cannot be inherited.
+     */
+    private ?TransactionStore $store = null;
 
-        parent::tearDown();
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->store = new TransactionStore();
     }
 
     public function testThereIsNoLevelUntilSomethingBegins(): void
     {
-        $stack = new TransactionStack('mysql');
+        $stack = $this->stack();
 
         $this->assertSame(0, $stack->level());
         $this->assertNull($stack->transaction());
@@ -38,7 +44,7 @@ class TransactionStackTest extends TestCase
 
     public function testBeginOpensTheRootLevel(): void
     {
-        $stack       = new TransactionStack('mysql');
+        $stack       = $this->stack();
         $transaction = new FakeTransaction();
 
         $stack->begin($transaction);
@@ -50,7 +56,7 @@ class TransactionStackTest extends TestCase
 
     public function testNestedLevelsRememberTheirSavepoint(): void
     {
-        $stack = new TransactionStack('mysql');
+        $stack = $this->stack();
         $stack->begin(new FakeTransaction());
 
         $stack->pushSavepoint($stack->nextSavepointName());
@@ -63,7 +69,7 @@ class TransactionStackTest extends TestCase
 
     public function testTruncatingDropsEveryLevelAboveTheGivenOne(): void
     {
-        $stack = new TransactionStack('mysql');
+        $stack = $this->stack();
         $stack->begin(new FakeTransaction());
         $stack->pushSavepoint($stack->nextSavepointName());
         $stack->pushSavepoint($stack->nextSavepointName());
@@ -75,7 +81,7 @@ class TransactionStackTest extends TestCase
 
     public function testPoppingTheLastLevelClearsTheEntry(): void
     {
-        $stack = new TransactionStack('mysql');
+        $stack = $this->stack();
         $stack->begin(new FakeTransaction());
 
         $stack->pop();
@@ -92,23 +98,20 @@ class TransactionStackTest extends TestCase
     {
         $seen = [];
 
-        $first = $this->coroutine(function () use (&$seen): void {
-            $stack = new TransactionStack('mysql');
+        $this->runCoroutine(function () use (&$seen): void {
+            $stack = $this->stack();
             $stack->begin(new FakeTransaction());
 
             $seen['first'] = $stack->level();
         });
 
-        $second = $this->coroutine(function () use (&$seen): void {
-            $seen['second'] = (new TransactionStack('mysql'))->level();
+        $this->runCoroutine(function () use (&$seen): void {
+            $seen['second'] = $this->stack()->level();
         });
-
-        $first->start();
-        $second->start();
 
         $this->assertSame(1, $seen['first']);
         $this->assertSame(0, $seen['second']);
-        $this->assertSame(0, (new TransactionStack('mysql'))->level(), 'the root context stays clean');
+        $this->assertSame(0, $this->stack()->level(), 'and nothing was left behind for the caller');
     }
 
     /**
@@ -118,17 +121,17 @@ class TransactionStackTest extends TestCase
      */
     public function testAChildCoroutineInheritsTheTransaction(): void
     {
-        $stack       = new TransactionStack('mysql');
         $transaction = new FakeTransaction();
-        $stack->begin($transaction);
 
         $seen = null;
 
-        $child = $this->coroutine(function () use (&$seen): void {
-            $seen = (new TransactionStack('mysql'))->transaction();
-        }, parentFiberId: State::currentContextFiberId());
+        $this->runCoroutine(function () use ($transaction, &$seen): void {
+            $this->stack()->begin($transaction);
 
-        $child->start();
+            $this->runCoroutine(function () use (&$seen): void {
+                $seen = $this->stack()->transaction();
+            }, parentFiberId: State::currentContextFiberId());
+        });
 
         $this->assertSame($transaction, $seen);
     }
@@ -140,20 +143,19 @@ class TransactionStackTest extends TestCase
      */
     public function testAChildCoroutineCannotCloseTheInheritedTransaction(): void
     {
-        $stack = new TransactionStack('mysql');
-        $stack->begin(new FakeTransaction());
-
         $caught = null;
 
-        $child = $this->coroutine(function () use (&$caught): void {
-            try {
-                (new TransactionStack('mysql'))->assertOwner('commit');
-            } catch (RuntimeException $exception) {
-                $caught = $exception;
-            }
-        }, parentFiberId: State::currentContextFiberId());
+        $this->runCoroutine(function () use (&$caught): void {
+            $this->stack()->begin(new FakeTransaction());
 
-        $child->start();
+            $this->runCoroutine(function () use (&$caught): void {
+                try {
+                    $this->stack()->assertOwner('commit');
+                } catch (RuntimeException $exception) {
+                    $caught = $exception;
+                }
+            }, parentFiberId: State::currentContextFiberId());
+        });
 
         $this->assertInstanceOf(RuntimeException::class, $caught);
         $this->assertStringContainsString('did not open it', $caught->getMessage());
@@ -161,10 +163,12 @@ class TransactionStackTest extends TestCase
 
     public function testTheOwnerMayCloseItsOwnTransaction(): void
     {
-        $stack = new TransactionStack('mysql');
-        $stack->begin(new FakeTransaction());
+        $this->runCoroutine(function (): void {
+            $stack = $this->stack();
+            $stack->begin(new FakeTransaction());
 
-        $stack->assertOwner('commit');
+            $stack->assertOwner('commit');
+        });
 
         $this->addToAssertionCount(1);
     }
@@ -175,18 +179,22 @@ class TransactionStackTest extends TestCase
      */
     public function testANestedLevelInAChildDoesNotChangeTheParentsLevel(): void
     {
-        $stack = new TransactionStack('mysql');
-        $stack->begin(new FakeTransaction());
+        $parentLevel = null;
 
-        $child = $this->coroutine(function (): void {
-            $childStack = new TransactionStack('mysql');
+        $this->runCoroutine(function () use (&$parentLevel): void {
+            $stack = $this->stack();
+            $stack->begin(new FakeTransaction());
 
-            $childStack->pushSavepoint($childStack->nextSavepointName());
-        }, parentFiberId: State::currentContextFiberId());
+            $this->runCoroutine(function (): void {
+                $childStack = $this->stack();
 
-        $child->start();
+                $childStack->pushSavepoint($childStack->nextSavepointName());
+            }, parentFiberId: State::currentContextFiberId());
 
-        $this->assertSame(1, $stack->level());
+            $parentLevel = $stack->level();
+        });
+
+        $this->assertSame(1, $parentLevel);
     }
 
     /**
@@ -197,38 +205,49 @@ class TransactionStackTest extends TestCase
      */
     public function testSavepointNamesDoNotCollideBetweenSiblingCoroutines(): void
     {
-        $stack = new TransactionStack('mysql');
-        $stack->begin(new FakeTransaction());
-
-        $parentFiberId = State::currentContextFiberId();
-
         $names = [];
 
-        foreach (['first', 'second'] as $key) {
-            $child = $this->coroutine(function () use (&$names, $key): void {
-                $names[$key] = (new TransactionStack('mysql'))->nextSavepointName();
-            }, parentFiberId: $parentFiberId);
+        $this->runCoroutine(function () use (&$names): void {
+            $this->stack()->begin(new FakeTransaction());
 
-            $child->start();
-        }
+            $parentFiberId = State::currentContextFiberId();
+
+            foreach (['first', 'second'] as $key) {
+                $this->runCoroutine(function () use (&$names, $key): void {
+                    $names[$key] = $this->stack()->nextSavepointName();
+                }, parentFiberId: $parentFiberId);
+            }
+        });
 
         $this->assertSame('sc_sp_1', $names['first']);
         $this->assertSame('sc_sp_2', $names['second']);
     }
 
+    private function stack(): TransactionStack
+    {
+        return new TransactionStack('mysql', $this->store);
+    }
+
     /**
-     * Registers the context parent the way the runtime does when it spawns a
-     * coroutine, so reads walk up the chain exactly as they would in a WaitGroup.
+     * Runs the body as a coroutine, with its context parent registered the way the runtime
+     * does when it spawns one — and released the way the runtime releases it.
+     *
+     * The release matters here: a context is keyed by the fiber's spl_object_id, and PHP
+     * reuses those once a fiber is collected. A helper that only registered would let one
+     * test's state reappear under another test's coroutine.
      */
-    private function coroutine(callable $body, ?int $parentFiberId = null): Fiber
+    private function runCoroutine(callable $body, ?int $parentFiberId = null): void
     {
         $fiber = new Fiber($body);
 
-        State::registerCoroutineContext(
-            spl_object_id($fiber),
-            $parentFiberId ?? State::currentContextFiberId(),
-        );
+        $fiberId = spl_object_id($fiber);
 
-        return $fiber;
+        State::registerCoroutineContext($fiberId, $parentFiberId ?? State::currentContextFiberId());
+
+        try {
+            $fiber->start();
+        } finally {
+            State::unRegisterFiber($fiberId);
+        }
     }
 }

@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace SConcur\Laravel\Database\Mysql;
 
 use RuntimeException;
-use SConcur\Context\Context;
 use SConcur\Features\Sql\Transaction;
+use SConcur\Laravel\Database\TransactionStore;
 use SConcur\State;
 
 /**
@@ -14,8 +14,10 @@ use SConcur\State;
  *
  * Illuminate keeps the nesting depth in Connection::$transactions, a property of
  * an object that here serves every coroutine in the process, so it cannot stay
- * there. The context is the right place: reads walk up the chain of spawning
- * coroutines, writes land in the caller's own map.
+ * there. TransactionStore is the right place: inside a coroutine it is the coroutine
+ * context, where reads walk up the chain of spawning coroutines and writes land in the
+ * caller's own map; outside one it is a plain array, so a synchronous caller cannot leave
+ * a transaction behind for every future coroutine to inherit.
  *
  * That gives two properties for free. Sibling coroutines — concurrent HTTP
  * requests, concurrent jobs — never see each other's transaction, because they
@@ -34,6 +36,7 @@ class TransactionStack
 
     public function __construct(
         protected string $connectionName,
+        protected TransactionStore $store,
     ) {
     }
 
@@ -128,7 +131,7 @@ class TransactionStack
 
     public function clear(): void
     {
-        Context::current()->forget($this->key());
+        $this->store->forget($this->key());
     }
 
     /**
@@ -158,7 +161,7 @@ class TransactionStack
      */
     protected function read(): ?array
     {
-        $frame = Context::current()->find($this->key());
+        $frame = $this->store->find($this->key());
 
         if (!is_array($frame)) {
             return null;
@@ -189,7 +192,7 @@ class TransactionStack
      */
     protected function write(array $frame): void
     {
-        Context::current()->set($this->key(), $frame, replace: true);
+        $this->store->set($this->key(), $frame);
     }
 
     protected function key(): string

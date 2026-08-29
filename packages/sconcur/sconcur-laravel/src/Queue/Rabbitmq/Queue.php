@@ -39,7 +39,7 @@ class Queue extends BaseQueue implements QueueContract
     public const string ATTEMPTS_HEADER = 'laravel';
 
     /** Channels lent out one at a time, so no two coroutines publish on the same one. */
-    protected ?PublishChannelPool $publishChannels = null;
+    protected PublishChannelPool $publishChannels;
 
     /**
      * The channel pop() gets its deliveries on.
@@ -62,6 +62,12 @@ class Queue extends BaseQueue implements QueueContract
         protected bool $confirmPublishes = false,
         protected float $confirmTimeoutSeconds = 5.0,
     ) {
+        // Built here rather than on first use: a lazy `??=` on an object every coroutine
+        // shares is a check and an assignment with a gap between them, and two first
+        // publishes in the same slice would each build a pool and one would be dropped
+        // with its connection. The constructor opens nothing — the pool dials only when a
+        // lease finds no free channel — so there is nothing to defer.
+        $this->publishChannels = new PublishChannelPool($connection->options);
     }
 
     public function size($queue = null): int
@@ -283,23 +289,23 @@ class Queue extends BaseQueue implements QueueContract
 
     protected function lendChannel(): Channel
     {
-        return $this->publishChannels()->lease();
+        return $this->publishChannels->lease();
     }
 
     protected function returnChannel(Channel $channel): void
     {
-        $this->publishChannels()->release($channel);
+        $this->publishChannels->release($channel);
     }
 
     /**
-     * The pool opens connections of its own from the same options, so publishing never
-     * competes with a consumer for the delivery connection's channel numbers.
+     * The channel pop() reads on, opened once.
+     *
+     * Unlike the pool this is a check followed by an assignment across a broker round
+     * trip, which two coroutines could both enter. It is left that way deliberately:
+     * pop() is the single-consumer queue:work path, where a second coroutine would
+     * already be interleaving basic.get and ack on one channel — the concurrency this
+     * driver answers with the consumer pool, not with pop().
      */
-    protected function publishChannels(): PublishChannelPool
-    {
-        return $this->publishChannels ??= new PublishChannelPool($this->connection->options);
-    }
-
     protected function popChannel(): Channel
     {
         if ($this->popChannel === null || !$this->popChannel->isOpen()) {

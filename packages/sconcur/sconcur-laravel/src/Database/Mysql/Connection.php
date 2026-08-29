@@ -11,7 +11,7 @@ use Illuminate\Database\DeadlockException;
 use Illuminate\Database\MySqlConnection;
 use Illuminate\Database\QueryException;
 use RuntimeException;
-use SConcur\Context\Context;
+use SConcur\Laravel\Database\TransactionStore;
 use SConcur\Features\Sql\Connection as SqlConnection;
 use SConcur\Features\Sql\Results\ExecResult;
 use SConcur\Features\Sql\Transaction;
@@ -41,6 +41,9 @@ class Connection extends MySqlConnection
 
     protected ?string $serverVersion = null;
 
+    /** Per-caller state — the open transaction, the last insert id — for this connection. */
+    protected TransactionStore $store;
+
     /**
      * @param array<string, mixed> $config
      */
@@ -58,6 +61,8 @@ class Connection extends MySqlConnection
             tablePrefix: $tablePrefix,
             config: $config,
         );
+
+        $this->store = new TransactionStore();
     }
 
     // ---------------------------------------------------------------- statements
@@ -147,7 +152,7 @@ class Connection extends MySqlConnection
 
             $this->recordsHaveBeenModified();
 
-            Context::current()->set($this->lastInsertIdKey(), $result->lastInsertId, replace: true);
+            $this->store->set($this->lastInsertIdKey(), $result->lastInsertId);
 
             return true;
         });
@@ -172,7 +177,7 @@ class Connection extends MySqlConnection
     /** {@inheritDoc} */
     public function getLastInsertId()
     {
-        return Context::current()->find($this->lastInsertIdKey());
+        return $this->store->find($this->lastInsertIdKey());
     }
 
     /**
@@ -240,7 +245,7 @@ class Connection extends MySqlConnection
             $stack->pushSavepoint($name);
         }
 
-        $this->transactionsManager?->begin($this->getName(), $stack->level());
+        $this->transactionsManager?->begin($this->connectionName(), $stack->level());
 
         $this->fireConnectionEvent('beganTransaction');
     }
@@ -266,7 +271,7 @@ class Connection extends MySqlConnection
             $stack->pop();
         }
 
-        $this->transactionsManager?->commit($this->getName(), $levelBeingCommitted, $stack->level());
+        $this->transactionsManager?->commit($this->connectionName(), $levelBeingCommitted, $stack->level());
 
         $this->fireConnectionEvent('committed');
     }
@@ -305,7 +310,7 @@ class Connection extends MySqlConnection
             $stack->truncateTo($toLevel);
         }
 
-        $this->transactionsManager?->rollback($this->getName(), $toLevel);
+        $this->transactionsManager?->rollback($this->connectionName(), $toLevel);
 
         $this->fireConnectionEvent('rollingBack');
     }
@@ -395,7 +400,7 @@ class Connection extends MySqlConnection
         if ($this->causedByConcurrencyError($e) && $stack->level() > 1) {
             $stack->pop();
 
-            $this->transactionsManager?->rollback($this->getName(), $stack->level());
+            $this->transactionsManager?->rollback($this->connectionName(), $stack->level());
 
             throw new DeadlockException($e->getMessage(), is_int($e->getCode()) ? $e->getCode() : 0, $e);
         }
@@ -502,11 +507,20 @@ class Connection extends MySqlConnection
 
     protected function transactionStack(): TransactionStack
     {
-        return new TransactionStack($this->getName());
+        return new TransactionStack($this->connectionName(), $this->store);
     }
 
     protected function lastInsertIdKey(): string
     {
-        return self::LAST_INSERT_ID_KEY_PREFIX . $this->getName();
+        return self::LAST_INSERT_ID_KEY_PREFIX . $this->connectionName();
+    }
+
+    /**
+     * The connection's name. Connection::getName() reads it out of the config array and
+     * is therefore nullable to the framework; the connector always sets it.
+     */
+    protected function connectionName(): string
+    {
+        return (string) $this->getName();
     }
 }

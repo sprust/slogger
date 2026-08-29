@@ -82,6 +82,98 @@ class SconcurStatClientTest extends TestCase
     }
 
     /**
+     * The counters the panel does report have to arrive intact. Everything above only
+     * exercises the absent case, so a renamed panel key would leave the dashboard showing
+     * zeroes while the null-vs-absent tests still passed.
+     */
+    public function testAReportedGroupCarriesItsRequestAndConsumerCounters(): void
+    {
+        $stat = $this->client([
+            'groups' => [
+                [
+                    'name'         => 'http',
+                    'workersTotal' => 2,
+                    'totals'       => [
+                        'requests' => [
+                            'completed'       => 120,
+                            'avgMs'           => 12.5,
+                            'inFlight'        => 3,
+                            'inFlight1to5s'   => 2,
+                            'inFlight5to15s'  => 1,
+                            'inFlightOver15s' => 0,
+                        ],
+                    ],
+                ],
+                [
+                    'name'         => 'rabbitmq',
+                    'workersTotal' => 1,
+                    'totals'       => [
+                        'consumers' => [
+                            'coroutines' => 8,
+                            'delivered'  => 50,
+                            'acked'      => 47,
+                            'refused'    => 3,
+                            'timed'      => 1,
+                            'avgMs'      => 4.25,
+                            'inFlight'   => 2,
+                        ],
+                    ],
+                ],
+            ],
+        ])->find();
+
+        $requests = $stat->groups[0]->requests;
+
+        $this->assertNotNull($requests);
+        $this->assertSame(120, $requests->completed);
+        $this->assertSame(12.5, $requests->avgMs);
+        $this->assertSame(3, $requests->inFlight);
+        $this->assertSame(2, $requests->inFlight1to5s);
+        $this->assertSame(1, $requests->inFlight5to15s);
+        $this->assertNull($stat->groups[0]->consumers, 'an http pool reports no consumers');
+
+        $consumers = $stat->groups[1]->consumers;
+
+        $this->assertNotNull($consumers);
+        $this->assertSame(8, $consumers->coroutines);
+        $this->assertSame(50, $consumers->delivered);
+        $this->assertSame(47, $consumers->acked);
+        $this->assertSame(3, $consumers->refused);
+        $this->assertSame(1, $consumers->timed);
+        $this->assertSame(4.25, $consumers->avgMs);
+        $this->assertNull($stat->groups[1]->requests, 'a consumer pool reports no requests');
+    }
+
+    /**
+     * A worker's counters are not nested under `totals` the way a group's are — the one
+     * asymmetry in the panel's payload, and the easiest thing to get wrong.
+     */
+    public function testAWorkersCountersAreReadFromTheWorkerItself(): void
+    {
+        $stat = $this->client([
+            'groups'  => [['name' => 'http', 'workersTotal' => 1]],
+            'workers' => [
+                [
+                    'pid'      => 4242,
+                    'group'    => 'http',
+                    'memory'   => ['rssBytes' => 1048576],
+                    'requests' => ['completed' => 9, 'inFlight' => 1],
+                ],
+            ],
+        ])->find();
+
+        $worker = $stat->workers[0];
+
+        $this->assertSame(4242, $worker->pid);
+        $this->assertSame('http', $worker->group);
+        $this->assertSame(1048576, $worker->memoryRssBytes);
+        $this->assertNotNull($worker->requests);
+        $this->assertSame(9, $worker->requests->completed);
+        $this->assertSame(1, $worker->requests->inFlight);
+        $this->assertNull($worker->consumers);
+    }
+
+    /**
      * @param array<string, mixed> $payload
      */
     private function client(array $payload): SconcurStatClient

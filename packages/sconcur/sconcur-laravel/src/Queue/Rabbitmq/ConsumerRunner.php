@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SConcur\Laravel\Queue\Rabbitmq;
 
 use Illuminate\Contracts\Events\Dispatcher;
+use Illuminate\Container\Container;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Queue\Failed\FailedJobProviderInterface;
@@ -60,24 +61,35 @@ readonly class ConsumerRunner
 
         return $this->consumer->consume(
             connection: $queue->getConnection(),
-            handler: function (Delivery $delivery) use ($app, $queue, $worker): void {
-                $worker->process(
-                    $this->connectionName,
-                    new Job(
-                        container: $app,
-                        rabbitmq: $queue,
-                        delivery: $delivery,
-                        connectionName: $this->connectionName,
-                        // A delivery does not carry the queue it came from, and the
-                        // routing key is what stands in for it: publishing into the
-                        // default exchange routes by queue name, which is what this
-                        // driver does and what laravel-queue-rabbitmq does by default.
-                        // The two agree, and a release() therefore goes back where the
-                        // job came from.
-                        queue: $delivery->routingKey,
-                    ),
-                    $this->options,
+            handler: function (Delivery $delivery) use ($queue, $worker): void {
+                $job = new Job(
+                    // The contract's Application is not the concrete Container the base
+                    // job stores; the running one always is, and this is where it is said.
+                    container: Container::getInstance(),
+                    rabbitmq: $queue,
+                    delivery: $delivery,
+                    connectionName: $this->connectionName,
+                    // A delivery does not carry the queue it came from, and the routing
+                    // key is what stands in for it: publishing into the default exchange
+                    // routes by queue name, which is what this driver does and what
+                    // laravel-queue-rabbitmq does by default. The two agree, and a
+                    // release() therefore goes back where the job came from.
+                    queue: $delivery->routingKey,
                 );
+
+                $worker->process($this->connectionName, $job, $this->options);
+
+                // Worker::process() catches every Throwable, so the runtime's own unwind
+                // — a shutdown, or handlerTimeoutMs firing — would be read as a job that
+                // failed. The job records it instead of settling itself, and it is put
+                // back here: QueueConsumer knows an unwind and leaves the delivery
+                // unsettled, so the broker redelivers it once rather than dead-lettering
+                // a job whose only fault was running long.
+                $unwind = $job->unwind();
+
+                if ($unwind !== null) {
+                    throw $unwind;
+                }
             },
         );
     }

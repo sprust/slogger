@@ -35,7 +35,10 @@ type StatRow = NonNullable<SconcurStatData>['groups'][number]
 interface HistoryPoint {
   label: string
 
-  [key: string]: string | number
+  // null is a gap in the series, not a zero: Chart.js skips such a point with
+  // spanGaps false, which is how a section the master does not report reads as absent
+  // rather than as an idle one.
+  [key: string]: string | number | null
 }
 
 export default defineComponent({
@@ -51,6 +54,9 @@ export default defineComponent({
       timer: null as number | null,
       prevCompleted: null as number | null,
       prevDelivered: null as number | null,
+      // When the previous sample was taken, so a rate can be per elapsed second rather
+      // than per poll: samples are not evenly spaced when auto-update is off.
+      prevAt: null as number | null,
       metrics: [
         {key: 'requests_in_flight', label: 'In-flight requests'},
         {key: 'rps', label: 'RPS (requests/sec)'},
@@ -90,10 +96,14 @@ export default defineComponent({
 
           return {
             label: metric?.label ?? key,
-            data: this.history.map(p => p[key] as number),
+            data: this.history.map(p => p[key] as number | null),
             borderColor: color,
             backgroundColor: color,
             fill: false,
+            // A sample the master did not report is a gap, not a zero. Bridging it would
+            // draw a flat line at zero for a pool that is absent, which reads exactly like
+            // a pool that is idle.
+            spanGaps: false,
             tension: 0.3,
             pointRadius: 0,
             borderWidth: 2,
@@ -131,39 +141,45 @@ export default defineComponent({
       // Both sections are optional: a master serving no requests omits `requests`, one
       // consuming no queue omits `consumers`. Absent is not zero, so nothing is charted
       // for a section that is not there.
-      const requests = stat.requests
-      let rps = 0
+      const now = Date.now()
 
-      if (requests && this.prevCompleted !== null) {
-        rps = Math.max(0, requests.completed - this.prevCompleted)
+      // Per second, and per *elapsed* second. Samples are not evenly spaced: auto-update
+      // is off by default, and a manual refresh after two idle minutes would otherwise
+      // plot two minutes of work as one second of it.
+      const elapsedSeconds = this.prevAt === null ? 0 : Math.max(0.001, (now - this.prevAt) / 1000)
+
+      const requests = stat.requests
+      let rps: number | null = null
+
+      if (requests && this.prevCompleted !== null && elapsedSeconds > 0) {
+        rps = Math.max(0, requests.completed - this.prevCompleted) / elapsedSeconds
       }
 
       this.prevCompleted = requests ? requests.completed : null
 
       // Only a pool consuming a queue reports this section; an HTTP-only master omits it.
       const consumers = stat.consumers
-      let consumersRate = 0
+      let consumersRate: number | null = null
 
-      if (consumers && this.prevDelivered !== null) {
-        consumersRate = Math.max(0, consumers.delivered - this.prevDelivered)
+      if (consumers && this.prevDelivered !== null && elapsedSeconds > 0) {
+        consumersRate = Math.max(0, consumers.delivered - this.prevDelivered) / elapsedSeconds
       }
 
       this.prevDelivered = consumers ? consumers.delivered : null
-
-      const now = Date.now()
+      this.prevAt = now
 
       this.history.push({
         ts: now,
         label: new Date(now).toLocaleTimeString(),
-        requests_in_flight: requests?.in_flight ?? 0,
-        rps: rps,
+        requests_in_flight: requests?.in_flight ?? null,
+        rps: rps === null ? null : Math.round(rps * 100) / 100,
         cpu_percent: Math.round(stat.cpu_percent * 10) / 10,
         memory_rss_mb: Math.round(stat.memory_rss_bytes / 1048576),
         goroutines: stat.goroutines,
-        requests_avg_ms: Math.round((requests?.avg_ms ?? 0) * 100) / 100,
-        consumers_in_flight: consumers?.in_flight ?? 0,
-        consumers_rate: consumersRate,
-        consumers_avg_ms: Math.round((consumers?.avg_ms ?? 0) * 100) / 100,
+        requests_avg_ms: requests ? Math.round(requests.avg_ms * 100) / 100 : null,
+        consumers_in_flight: consumers?.in_flight ?? null,
+        consumers_rate: consumersRate === null ? null : Math.round(consumersRate * 100) / 100,
+        consumers_avg_ms: consumers ? Math.round(consumers.avg_ms * 100) / 100 : null,
       })
 
       // keep only the last 5 minutes
@@ -302,7 +318,9 @@ export default defineComponent({
             <el-statistic title="Delivering" :value="store.stat.consumers.in_flight"/>
           </el-col>
           <el-col :span="3">
-            <el-statistic title="Delivered" :value="store.stat.consumers.acked"/>
+            <!-- delivered, not acked: the chart series below counts the same thing, and
+                 a queue whose jobs all fail would otherwise read "Delivered 0". -->
+            <el-statistic title="Delivered" :value="store.stat.consumers.delivered"/>
           </el-col>
           <el-col :span="3">
             <el-statistic title="Delivery avg, ms" :value="store.stat.consumers.avg_ms" :precision="2"/>

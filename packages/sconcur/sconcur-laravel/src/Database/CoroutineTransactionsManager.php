@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SConcur\Laravel\Database;
 
+use Fiber;
 use Illuminate\Database\DatabaseTransactionsManager;
 use Illuminate\Support\Collection;
 use SConcur\Context\Context;
@@ -34,6 +35,17 @@ use SConcur\Context\Context;
 class CoroutineTransactionsManager extends DatabaseTransactionsManager
 {
     protected const string CONTEXT_KEY = 'sconcur.db.transactions';
+
+    /**
+     * The manager for callers that are not in a coroutine at all.
+     *
+     * Held here rather than in the root context, which every coroutine reads through: a
+     * manager left there before the first fiber existed would be shared by all of them,
+     * which is the failure this class exists to prevent. Without fibers there is one
+     * caller, so one manager is exactly right — and it makes the class safe to register
+     * in a process that never starts a coroutine.
+     */
+    protected ?DatabaseTransactionsManager $outsideCoroutine = null;
 
     /** @inheritDoc */
     public function begin($connection, $level)
@@ -116,6 +128,10 @@ class CoroutineTransactionsManager extends DatabaseTransactionsManager
      */
     protected function delegate(): DatabaseTransactionsManager
     {
+        if (Fiber::getCurrent() === null) {
+            return $this->outsideCoroutine ??= new DatabaseTransactionsManager();
+        }
+
         $context = Context::current();
 
         $manager = $context->find(static::CONTEXT_KEY);

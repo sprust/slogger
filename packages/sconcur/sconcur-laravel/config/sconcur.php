@@ -29,22 +29,6 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Database
-    |--------------------------------------------------------------------------
-    | The connection from config/database.php that database.default is pointed at
-    | inside every coroutine process — the HTTP worker, the queue-consumer pool and
-    | the task pool. Elsewhere (migrations, tinker, php-fpm) the configured default
-    | is left alone.
-    |
-    | It is a connection name rather than a flag so an application can name its own;
-    | null turns the swap off and leaves every model on whatever it already used.
-    */
-    'database' => [
-        'default_connection' => env('SCONCUR_DB_CONNECTION', 'sconcur_mysql'),
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
     | Master config
     |--------------------------------------------------------------------------
     | Full mirror of vendor/sconcur/sconcur/config/sconcur.servers.config.json.
@@ -72,9 +56,12 @@ return [
         'restartBackoffMs'    => (int) env('SCONCUR_HTTP_RESTART_BACKOFF_MS', 200),
         'maxRestartBackoffMs' => (int) env('SCONCUR_HTTP_MAX_RESTART_BACKOFF_MS', 30000),
 
-        // array_filter keeps this a list because the http group above it is
-        // unconditional; a conditional group added before it would need array_values.
-        'groups' => array_filter([
+        // array_values, and not for tidiness: array_filter preserves keys, so dropping
+        // the conditional rabbitmq group out of the middle leaves [0 => http, 2 => tasks]
+        // — and MasterConfig::parseGroups refuses anything that is not a list. Without
+        // this, SCONCUR_RABBITMQ_WORKER_COUNT=0 — the documented way to turn the consumer
+        // pool off — stops the master from starting at all, HTTP and tasks included.
+        'groups' => array_values(array_filter([
             [
                 // The master spawns workers as: phpBinary phpArgs workerScript workerArgs --masterPid=N
                 // i.e. `php artisan sconcur:servers:http:start --masterPid=N`.
@@ -164,11 +151,12 @@ return [
                 // limit, is non-zero on purpose (TaskPool::EXIT_RESTART).
                 'restartPolicy' => 'on-failure',
                 // Must exceed the pool's own shutdown deadline (20 s), or the master
-                // kills it before the graceful stop can finish; and the supervisor's
-                // stopwaitsecs for the master must in turn exceed this.
+                // kills it before the graceful stop can finish; and supervisor's
+                // stopwaitsecs for the master (40 s) must in turn exceed this. There is
+                // no supervisor program for the pool itself — the master spawns it.
                 'shutdownTimeoutMs' => (int) env('SCONCUR_TASKS_SHUTDOWN_TIMEOUT_MS', 30000),
             ],
-        ]),
+        ])),
     ],
 
     /*

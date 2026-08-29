@@ -43,8 +43,11 @@ use SConcur\Laravel\View\AsyncViewFactory;
 /**
  * Laravel service provider for the SConcur integration.
  *
- * Always: registers the artisan commands, the `sconcur_rabbitmq` queue connector and the
- * `sconcur_mysql` database driver.
+ * Always: registers the artisan commands, the `sconcur_rabbitmq` queue connector, the
+ * `sconcur_mysql` database driver and the coroutine-scoped transactions manager. None of
+ * them depends on the process being a coroutine one — the SQL feature works synchronously
+ * too, so which connection an application uses is its own choice, made in
+ * config/database.php like any other.
  *
  * The config is published, not merged. Merging would leave the package's own defaults
  * standing behind the application's file, so a value the application deleted would
@@ -57,9 +60,6 @@ use SConcur\Laravel\View\AsyncViewFactory;
  * resolution and swaps config/events/router/
  * translator/view for their coroutine-safe adapters. This gating keeps
  * web/Octane/CLI/queue completely untouched.
- *
- * In every coroutine process, the task pool included, database.default is pointed at
- * the connection named by config('sconcur.database.default_connection').
  *
  * See docs/fiber-safe-laravel-bridge.ru.md.
  */
@@ -90,17 +90,11 @@ class SConcurServiceProvider extends ServiceProvider
 
         $this->registerQueueConnector();
         $this->registerDatabaseDriver();
+        $this->registerCoroutineTransactionsManager();
         $this->registerTaskPool();
 
         if ($this->isCoroutineWorker()) {
             $this->registerAsyncAdapters();
-        }
-
-        // After the config adapter, so the write lands in the shared base rather
-        // than in the overlay of whichever coroutine happens to be current.
-        if ($this->isCoroutineRuntime()) {
-            $this->useCoroutineDatabaseConnection();
-            $this->registerCoroutineTransactionsManager();
         }
     }
 
@@ -120,9 +114,8 @@ class SConcurServiceProvider extends ServiceProvider
      * True only in a spawned worker whose handlers run concurrently — the HTTP server
      * and the queue-consumer pool. Everything else (web, CLI, queue:work) is untouched.
      *
-     * Narrower than isCoroutineRuntime() on purpose: this gates the per-request
-     * adapters (request/session/auth, config, router, locale, view), which the task
-     * pool has no use for.
+     * This gates the per-request adapters only — request/session/auth, config, router,
+     * locale, view — which the task pool has no use for.
      */
     private function isCoroutineWorker(): bool
     {
@@ -131,18 +124,6 @@ class SConcurServiceProvider extends ServiceProvider
             [HttpStartCommand::NAME, RabbitmqConsumerStartCommand::NAME],
             true,
         );
-    }
-
-    /**
-     * True in every process that runs application code as coroutines, the task pool
-     * included: TaskPool::run() drives each task as a coroutine of a WaitGroup, so a
-     * blocking PDO handle shared between them is exactly as wrong there as in the
-     * HTTP worker.
-     */
-    private function isCoroutineRuntime(): bool
-    {
-        return $this->isCoroutineWorker()
-            || ($_SERVER['argv'][1] ?? null) === TasksStartCommand::NAME;
     }
 
     /**
@@ -220,28 +201,12 @@ class SConcurServiceProvider extends ServiceProvider
     }
 
     /**
-     * Points database.default at the coroutine-safe connection for the length of
-     * this process, so models, Auth and failed_jobs land on it without a single
-     * change in the application. Outside these processes — migrations, tinker,
-     * anything on php-fpm — the configured default is left alone.
-     *
-     * The value is a connection name rather than a flag so an application can name
-     * its own; null turns the swap off.
-     */
-    private function useCoroutineDatabaseConnection(): void
-    {
-        $connection = config('sconcur.database.default_connection');
-
-        if (!is_string($connection) || $connection === '') {
-            return;
-        }
-
-        config()->set('database.default', $connection);
-    }
-
-    /**
      * Replaces the process-wide transactions manager with one that keeps a manager per
      * coroutine.
+     *
+     * Unconditional, like the driver: outside a coroutine the replacement keeps one
+     * manager of its own and behaves exactly as the framework's does, so a process with
+     * no fibers in it cannot tell the difference.
      *
      * DatabaseManager::configure() hands every connection whatever `db.transactions`
      * resolves to, once, so this has to be in place before the first connection is built
@@ -278,7 +243,7 @@ class SConcurServiceProvider extends ServiceProvider
             foreach (self::BOOT_COMPLETED_ADAPTERS as $abstract) {
                 $instance = $app->make($abstract);
 
-                if (method_exists($instance, 'bootCompleted')) {
+                if (is_object($instance) && method_exists($instance, 'bootCompleted')) {
                     $instance->bootCompleted();
                 }
             }

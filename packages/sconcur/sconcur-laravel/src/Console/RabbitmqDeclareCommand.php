@@ -30,8 +30,11 @@ class RabbitmqDeclareCommand extends Command
     {
         $config = (array) config('sconcur.queue.rabbitmq', []);
 
-        $connectionName = $this->option('connection')
-            ?: (string) ($config['connection'] ?? 'sconcur_rabbitmq');
+        $option = $this->option('connection');
+
+        $connectionName = is_string($option) && $option !== ''
+            ? $option
+            : (string) ($config['connection'] ?? 'sconcur_rabbitmq');
 
         $queueNames = array_values(array_unique(array_map(
             strval(...),

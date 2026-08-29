@@ -67,8 +67,8 @@ return [
          * The same MySQL server as above, reached through the SConcur SQL feature
          * instead of PDO: a statement runs in the Go extension while the calling
          * coroutine suspends, so concurrent handlers in one process no longer queue
-         * behind one blocking handle. In coroutine processes this is what
-         * database.default points at (config/sconcur.php, `database`).
+         * behind one blocking handle. Outside a coroutine the same calls are synchronous,
+         * so this is simply DB_CONNECTION — nothing picks it at runtime.
          *
          * charset, collation, timezone and strict end up in the DSN rather than in
          * SET statements after connecting — the Go driver applies them itself.

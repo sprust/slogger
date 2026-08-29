@@ -104,9 +104,17 @@ class ConnectionTest extends TestCase
                 $seen[$index] = $connection->getLastInsertId();
             });
 
-            State::registerCoroutineContext(spl_object_id($fiber), State::currentContextFiberId());
+            $fiberId = spl_object_id($fiber);
 
-            $fiber->start();
+            State::registerCoroutineContext($fiberId, State::currentContextFiberId());
+
+            try {
+                $fiber->start();
+            } finally {
+                // Released as the runtime would: contexts are keyed by spl_object_id, and
+                // PHP reuses those, so a leftover would surface under the next coroutine.
+                State::unRegisterFiber($fiberId);
+            }
         }
 
         $this->assertSame([7, 8], $seen);

@@ -20,10 +20,10 @@ namespace SConcur\Laravel\Tasks;
  *    whole group.
  * 2. A tick must not mutate process-global state — config()->set, Auth, Request, static
  *    properties. Ticks of different tasks interleave, and with preemption on they
- *    interleave at any opcode boundary. For the same reason a tick must not hold a
- *    MySQL transaction on a shared connection: another task's query would join it.
- *    A task that needs one takes its own connection, or the pool runs with
- *    `preemption_quantum_ms` at 0.
+ *    interleave at any opcode boundary. A transaction is not in that category on the
+ *    sconcur_mysql connection: its nesting level is kept per coroutine and the Go side
+ *    pins it to a physical connection of its own, so a neighbouring task cannot join it.
+ *    On a PDO connection it still is — there the handle is one per process.
  */
 interface TaskInterface
 {
