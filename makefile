@@ -122,13 +122,16 @@ composer-fresh:
 # — and calling the old commands would abort this target before it ever got that far,
 # since make stops at the first non-zero exit and both were deleted with them.
 #
-# `queue:restart` is gone for the same reason it stopped doing anything: it raises a cache
-# flag that a `queue:work` daemon checks between jobs, and there are no such daemons left.
-# The queues are read by the consumer pool, which does not run Worker::daemon() and never
-# looks at the flag; all the call did was leave the key behind.
+# `queue:restart` and `slogger:dispatcher:stop` are gone for the same reason: both spoke
+# to processes that no longer exist. The first raises a cache flag a `queue:work` daemon
+# reads between jobs, and the queues are served by the consumer pool, which does not run
+# Worker::daemon() and never looks at it. The second stopped the dispatcher's own pool of
+# `queue:work` processes, and its queue is one of the consumer pool's now — it had been
+# answering "Dispatcher not started" for a while.
+#
+# What is left is what still does something: declare the topology, then roll the workers.
 workers-restart:
 	make workers-art c='queues-declare'
-	make workers-art c='slogger:dispatcher:stop'
 	make sconcur-reload
 
 oa-generate:
