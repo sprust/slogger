@@ -3926,16 +3926,16 @@
         },
         {
             "name": "sconcur/sconcur",
-            "version": "0.10.0",
+            "version": "0.11.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sprust/sconcur.git",
-                "reference": "903dc9cf86eb6e8f1dacc35cecb9a5665c9e8301"
+                "reference": "8af32c3367e497bc611ed2f0522f4b0030f96c3b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sprust/sconcur/zipball/903dc9cf86eb6e8f1dacc35cecb9a5665c9e8301",
-                "reference": "903dc9cf86eb6e8f1dacc35cecb9a5665c9e8301",
+                "url": "https://api.github.com/repos/sprust/sconcur/zipball/8af32c3367e497bc611ed2f0522f4b0030f96c3b",
+                "reference": "8af32c3367e497bc611ed2f0522f4b0030f96c3b",
                 "shasum": ""
             },
             "require": {
@@ -3946,6 +3946,7 @@
                 "psr/http-message": "^2.0"
             },
             "require-dev": {
+                "ext-amqp": "2.2.0",
                 "ext-mongodb": "^1.21",
                 "friendsofphp/php-cs-fixer": "^3.91",
                 "mongodb/mongodb": "^1.21",
@@ -3984,9 +3985,9 @@
             "description": "PHP concurrency library backed by an extension written in Go",
             "support": {
                 "issues": "https://github.com/sprust/sconcur/issues",
-                "source": "https://github.com/sprust/sconcur/tree/v0.10.0"
+                "source": "https://github.com/sprust/sconcur/tree/v0.11.0"
             },
-            "time": "2026-08-15T20:02:00+00:00"
+            "time": "2026-08-28T17:49:33+00:00"
         },
         {
             "name": "sconcur/sconcur-laravel",

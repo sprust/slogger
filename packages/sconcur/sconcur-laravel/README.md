@@ -22,7 +22,7 @@ fiber-safe. Этот пакет переносит per-request состояни�
 ## Структура
 
 ```
-config/sconcur.php        — конфиг (async, scoped_services, http_server)
+config/sconcur.php        — конфиг (panel_host, scoped_services, http_server + groups)
 src/SConcurServiceProvider — провайдер (команды + проводка адаптеров в воркере)
 src/Console/              — артизан-команды
 src/Servers/              — MasterRunner (обёртка над SConcur\Worker\MasterCli)
@@ -49,11 +49,19 @@ docs/                     — ТЗ и план
 (через `MasterConfig::fromArray`), без прокидывания JSON-пути.
 
 ```
-sconcur:servers:master:start|stop|status|reload   # MasterRunner (supervisor, спавнит воркеры)
+sconcur:servers:master:start|stop                 # MasterRunner (supervisor, спавнит воркеры)
+sconcur:servers:master:status [--group=NAME]      # статус: все пулы или один
+sconcur:servers:master:reload [--group=NAME]      # rolling restart: все пулы или один
 sconcur:servers:http:start                        # один HTTP-сервер в foreground (build + serve)
 sconcur:extension:load                            # скачать .so (запускает downloader)
 sconcur:extension:status                          # статус расширения (in-process)
 ```
+
+`reload` — единственная команда, которой нужен файл: мастер перечитывает конфиг с диска
+в своём процессе, поэтому in-memory объект до него не доходит. `masterConfigPath()`
+сериализует тот же самый массив в `{runtimeDir}/{name}.config.json` и отдаёт путь —
+так файл, из которого мастер перезагружается, и конфиг, которым его супервизят,
+не расходятся.
 
 Мастер спавнит воркеры как `php artisan sconcur:servers:http:start --masterPid=N`
 (`workerScript=artisan`, `workerArgs=[команда]`). Тот же `http:start` запускается и
@@ -129,6 +137,18 @@ php artisan vendor:publish --tag=sconcur-laravel
 
 Не из ENV: `workerScript=base_path('artisan')`, `workerArgs=['sconcur:servers:http:start']`,
 `phpArgs=[]`, `runtimeDir`/`logDir`=`storage_path('sconcur/runtime'|'sconcur/logs')`.
+
+### Группы (SConcur 0.11)
+
+Один мастер супервизит несколько непохожих пулов под одним локом и одним журналом,
+поэтому `workerScript`, `workerCount`, `workerArgs` и `server` живут не на верхнем
+уровне конфига, а в элементе списка `groups`. Здесь группа одна — `http`.
+
+Блок `server` — исключение: мастер форвардит его в argv воркеров как есть, а воркер
+здесь — artisan, который падает на флагах, не объявленных командой. Поэтому `server`
+лежит рядом с `groups`, вычищается перед сборкой мастера
+(`AbstractSconcurCommand::masterConfigArray`), а воркер читает его из этого же конфига
+сам (`HttpServerRunner::makeServer`).
 
 ## Этапы (план B3)
 

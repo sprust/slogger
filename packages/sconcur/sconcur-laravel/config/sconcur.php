@@ -27,21 +27,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | HTTP server master config
+    | Master config
     |--------------------------------------------------------------------------
-    | Full mirror of vendor/sconcur/sconcur/config/sconcur.http-server.config.json.
+    | Full mirror of vendor/sconcur/sconcur/config/sconcur.servers.config.json.
     | Keys are kept verbatim (camelCase) so this array can be serialized straight
     | into the JSON master config consumed by bin/sconcur-server (MasterCli).
     | Values are env-driven with project defaults (cf. servers/sconcur/...).
+    |
+    | The top level is what belongs to the master as a whole; the pools it
+    | supervises are the `groups` list (SConcur 0.11 moved workerScript,
+    | workerCount, workerArgs and server there — one master now runs several
+    | unlike pools under one lock and one journal).
     */
     'http_server' => [
-        // The master spawns workers as: phpBinary phpArgs workerScript workerArgs --masterPid=N
-        // i.e. `php artisan sconcur:servers:http:start --masterPid=N`.
-        'workerScript'        => base_path('artisan'),
-        'workerCount'         => (int) env('SCONCUR_HTTP_WORKER_COUNT', 1),
         'phpBinary'           => env('SCONCUR_HTTP_PHP_BINARY', 'php'),
         'phpArgs'             => [],
-        'workerArgs'          => ['sconcur:servers:http:start'],
         'panelPort'           => (int) env('SCONCUR_HTTP_PANEL_PORT', 28081),
         'adminToken'          => env('SCONCUR_HTTP_ADMIN_TOKEN', ''),
         'runtimeDir'          => storage_path('sconcur/runtime'),
@@ -53,7 +53,26 @@ return [
         'shutdownTimeoutMs'   => (int) env('SCONCUR_HTTP_SHUTDOWN_TIMEOUT_MS', 10000),
         'restartBackoffMs'    => (int) env('SCONCUR_HTTP_RESTART_BACKOFF_MS', 200),
         'maxRestartBackoffMs' => (int) env('SCONCUR_HTTP_MAX_RESTART_BACKOFF_MS', 30000),
-        'server'              => [
+
+        'groups' => [
+            [
+                // The master spawns workers as: phpBinary phpArgs workerScript workerArgs --masterPid=N
+                // i.e. `php artisan sconcur:servers:http:start --masterPid=N`.
+                'name'         => 'http',
+                'workerScript' => base_path('artisan'),
+                'workerCount'  => (int) env('SCONCUR_HTTP_WORKER_COUNT', 1),
+                'workerArgs'   => ['sconcur:servers:http:start'],
+            ],
+        ],
+
+        /*
+        | Not part of the master config: a group's `server` block is forwarded to
+        | its workers' argv verbatim, and artisan rejects flags its command does
+        | not declare. So this block is stripped before the master is built
+        | (AbstractSconcurCommand::masterConfigArray) and the worker reads it from
+        | this same config instead (HttpServerRunner::makeServer).
+        */
+        'server' => [
             'address'             => env('SCONCUR_HTTP_ADDRESS', '0.0.0.0:28080'),
             'reusePort'           => (bool) env('SCONCUR_HTTP_REUSE_PORT', true),
             'maxRequests'         => (int) env('SCONCUR_HTTP_MAX_REQUESTS', 0),

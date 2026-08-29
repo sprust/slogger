@@ -72,7 +72,7 @@ class AsyncDispatcher extends Dispatcher
         return parent::dispatch($event, $payload, $halt);
     }
 
-    private function shouldDeferForContext($event): bool
+    private function shouldDeferForContext(string|object $event): bool
     {
         $state = Context::current()->find(self::CTX_KEY);
 
@@ -84,7 +84,7 @@ class AsyncDispatcher extends Dispatcher
             return true;
         }
 
-        $eventName = is_object($event) ? $event::class : (string) $event;
+        $eventName = is_object($event) ? $event::class : $event;
 
         return in_array($eventName, $state['events'], true);
     }

@@ -1,15 +1,36 @@
 parameters:
     paths:
         - ../app
+        - ../packages/sconcur
 
     excludePaths:
         - ../app/Console/Commands/Local
         - ../app/Models
-        - ../packages/sconcur
 
     level: 8
 
     ignoreErrors:
+        # The sconcur-laravel package overrides Laravel contracts whose own
+        # signatures are untyped (Repository::set, Translator::get, Container::build,
+        # ...). Overriding them faithfully means inheriting their untyped arrays and
+        # their loose container types, so these say nothing about the package's own
+        # correctness. Incompatible declarations are NOT among them: catching those
+        # is why the package is analysed at all.
+        -
+            identifier: missingType.iterableValue
+            path: ../packages/sconcur/*
+        -
+            identifiers:
+                - cast.string
+                - nullsafe.neverNull
+                - argument.type
+                - argument.templateType
+                - method.nonObject
+
+            path: ../packages/sconcur/*
+        -
+            message: '#Call to an undefined method Illuminate\\Contracts\\Foundation\\Application::forgetInstance\(\)#'
+            path: ../packages/sconcur/sconcur-laravel/src/SConcurServiceProvider.php
         -
             message: '#Unsafe usage of new static#'
         -
