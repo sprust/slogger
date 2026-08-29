@@ -48,7 +48,10 @@ RUN docker-php-ext-install \
 COPY composer.lock ./
 RUN set -eux; \
     version="$(jq -r '.packages[] | select(.name=="sconcur/sconcur") | .version' composer.lock | sed 's/^v//')"; \
-    curl -fSL --retry 3 -4 \
+    curl -fSL -4 \
+        --connect-timeout 10 --max-time 300 \
+        --speed-limit 10240 --speed-time 30 \
+        --retry 5 --retry-delay 3 --retry-all-errors \
         "https://github.com/sprust/sconcur/releases/download/v${version}/sconcur.so" \
         -o "$(php-config --extension-dir)/sconcur.so"; \
     echo "extension=sconcur.so" > /usr/local/etc/php/conf.d/docker-php-ext-sconcur.ini
