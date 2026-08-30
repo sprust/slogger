@@ -1,6 +1,6 @@
 # AI Guide for SLogger
 
-Centralized source of instructions for AI assistants (Claude Code and others) working with this repository. It merges the previously separate `CLAUDE.md`, `AGENTS.md`, and the helper agent definitions. The root `CLAUDE.md` and `AGENTS.md` now point to this file.
+Centralized source of instructions for AI assistants (Claude Code and others) working with this repository. It holds the project guidance and the helper agent definitions; the root `CLAUDE.md` and `AGENTS.md` point here.
 
 > **IMPORTANT:** These instructions override default behavior — follow them exactly.
 

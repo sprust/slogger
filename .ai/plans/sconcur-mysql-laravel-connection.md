@@ -122,7 +122,7 @@ $this->app->resolving('db', static function (DatabaseManager $db): void {
 у существующего `registerQueueConnector()`: запрос, который не ходит в базу, не
 должен платить за построение менеджера.
 
-Регистрация безусловная, вне гейта корутинного рантайма. Драйвер сам по себе
+Регистрация безусловная, без проверки на корутинный рантайм. Драйвер сам по себе
 ничего не ломает в обычном процессе — синхронный путь SConcur работает и там, —
 а условная регистрация означала бы, что `artisan tinker` не может открыть то же
 соединение, что рантайм.
@@ -348,7 +348,7 @@ Eloquent тоже разберёт, но уже через запасной пу
 попадают на него без единой правки, а `artisan migrate` и всё остальное в
 обычном процессе продолжают ходить через PDO.
 
-Гейт. Существующий `SConcurServiceProvider::isCoroutineWorker()` перечисляет
+Проверка режима. Существующий `SConcurServiceProvider::isCoroutineWorker()` перечисляет
 только `sconcur:servers:http:start` и `sconcur:servers:rabbitmq:start` — он про
 async-адаптеры (`request`/`session`/`auth`/config/роутер/локаль), которые пулу
 задач не нужны. Пулу задач нужна подмена соединения: `TaskPool::run()` крутит
@@ -492,8 +492,8 @@ packages/sconcur/sconcur-laravel/src/Database/Mysql/
   Пока они продолжают ходить через `Model::sconcur()` мимо ORM; на них подмена
   default никак не влияет, DSN трейт собирает сам.
 - Миграции и `schema:dump`. Формально `MySqlBuilder` ходит через те же
-  `select`/`statement` и на `sconcur_mysql` работать будет, но `db:dump` и
-  `MySqlSchemaState` вызывают `mysqldump` мимо соединения. `DB_CONNECTION` в
+  `select`/`statement` и на `sconcur_mysql` работать будет, но `schema:dump` через
+  `MySqlSchemaState` вызывает `mysqldump` мимо соединения. `DB_CONNECTION` в
   `.env` остаётся `mysql`, подмена действует только внутри корутинных процессов.
 - PostgreSQL. Ядро SQL-фичи от драйвера не зависит и `Pgsql\Connection` в
   библиотеке есть, но сейчас он не нужен.
