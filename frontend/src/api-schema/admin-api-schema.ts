@@ -338,13 +338,15 @@ export namespace AdminApi {
     cpu_percent: number,
     memory_rss_bytes: number,
     goroutines: number,
-    requests?: {
-    completed: number,
+    work?: {
+    in_process: number,
+    "in_process_1_to_5s": number,
+    "in_process_5_to_15s": number,
+    "in_process_over_15s": number,
+    finished: number,
+    refused: number,
+    measured: number,
     avg_ms: number,
-    in_flight: number,
-    "in_flight_1_to_5s": number,
-    "in_flight_5_to_15s": number,
-    "in_flight_over_15s": number,
 
 },
     master_cpu_percent: number,
@@ -356,26 +358,15 @@ export namespace AdminApi {
     cpu_percent: number,
     memory_rss_bytes: number,
     goroutines: number,
-    requests?: {
-    completed: number,
-    avg_ms: number,
-    in_flight: number,
-    "in_flight_1_to_5s": number,
-    "in_flight_5_to_15s": number,
-    "in_flight_over_15s": number,
-
-},
-    consumers?: {
-    coroutines: number,
-    delivered: number,
-    acked: number,
+    work?: {
+    in_process: number,
+    "in_process_1_to_5s": number,
+    "in_process_5_to_15s": number,
+    "in_process_over_15s": number,
+    finished: number,
     refused: number,
-    timed: number,
+    measured: number,
     avg_ms: number,
-    in_flight: number,
-    "in_flight_1_to_5s": number,
-    "in_flight_5_to_15s": number,
-    "in_flight_over_15s": number,
 
 },
 
@@ -388,43 +379,19 @@ export namespace AdminApi {
     cpu_percent: number,
     memory_rss_bytes: number,
     goroutines: number,
-    requests?: {
-    completed: number,
-    avg_ms: number,
-    in_flight: number,
-    "in_flight_1_to_5s": number,
-    "in_flight_5_to_15s": number,
-    "in_flight_over_15s": number,
-
-},
-    consumers?: {
-    coroutines: number,
-    delivered: number,
-    acked: number,
+    work?: {
+    in_process: number,
+    "in_process_1_to_5s": number,
+    "in_process_5_to_15s": number,
+    "in_process_over_15s": number,
+    finished: number,
     refused: number,
-    timed: number,
+    measured: number,
     avg_ms: number,
-    in_flight: number,
-    "in_flight_1_to_5s": number,
-    "in_flight_5_to_15s": number,
-    "in_flight_over_15s": number,
 
 },
 
 })[],
-    consumers?: {
-    coroutines: number,
-    delivered: number,
-    acked: number,
-    refused: number,
-    timed: number,
-    avg_ms: number,
-    in_flight: number,
-    "in_flight_1_to_5s": number,
-    "in_flight_5_to_15s": number,
-    "in_flight_over_15s": number,
-
-},
 
 },
 
@@ -444,13 +411,15 @@ export namespace AdminApi {
         cpu_percent: number;
         memory_rss_bytes: number;
         goroutines: number;
-        requests?: {
-          completed: number;
+        work?: {
+          in_process: number;
+          in_process_1_to_5s: number;
+          in_process_5_to_15s: number;
+          in_process_over_15s: number;
+          finished: number;
+          refused: number;
+          measured: number;
           avg_ms: number;
-          in_flight: number;
-          in_flight_1_to_5s: number;
-          in_flight_5_to_15s: number;
-          in_flight_over_15s: number;
         };
         master_cpu_percent: number;
         master_memory_rss_bytes: number;
@@ -461,25 +430,15 @@ export namespace AdminApi {
           cpu_percent: number;
           memory_rss_bytes: number;
           goroutines: number;
-          requests?: {
-            completed: number;
-            avg_ms: number;
-            in_flight: number;
-            in_flight_1_to_5s: number;
-            in_flight_5_to_15s: number;
-            in_flight_over_15s: number;
-          };
-          consumers?: {
-            coroutines: number;
-            delivered: number;
-            acked: number;
+          work?: {
+            in_process: number;
+            in_process_1_to_5s: number;
+            in_process_5_to_15s: number;
+            in_process_over_15s: number;
+            finished: number;
             refused: number;
-            timed: number;
+            measured: number;
             avg_ms: number;
-            in_flight: number;
-            in_flight_1_to_5s: number;
-            in_flight_5_to_15s: number;
-            in_flight_over_15s: number;
           };
         }[];
         workers: {
@@ -490,39 +449,17 @@ export namespace AdminApi {
           cpu_percent: number;
           memory_rss_bytes: number;
           goroutines: number;
-          requests?: {
-            completed: number;
-            avg_ms: number;
-            in_flight: number;
-            in_flight_1_to_5s: number;
-            in_flight_5_to_15s: number;
-            in_flight_over_15s: number;
-          };
-          consumers?: {
-            coroutines: number;
-            delivered: number;
-            acked: number;
+          work?: {
+            in_process: number;
+            in_process_1_to_5s: number;
+            in_process_5_to_15s: number;
+            in_process_over_15s: number;
+            finished: number;
             refused: number;
-            timed: number;
+            measured: number;
             avg_ms: number;
-            in_flight: number;
-            in_flight_1_to_5s: number;
-            in_flight_5_to_15s: number;
-            in_flight_over_15s: number;
           };
         }[];
-        consumers?: {
-          coroutines: number;
-          delivered: number;
-          acked: number;
-          refused: number;
-          timed: number;
-          avg_ms: number;
-          in_flight: number;
-          in_flight_1_to_5s: number;
-          in_flight_5_to_15s: number;
-          in_flight_over_15s: number;
-        };
       };
     };
   }
@@ -2364,13 +2301,15 @@ export class Api<
     cpu_percent: number,
     memory_rss_bytes: number,
     goroutines: number,
-    requests?: {
-    completed: number,
+    work?: {
+    in_process: number,
+    "in_process_1_to_5s": number,
+    "in_process_5_to_15s": number,
+    "in_process_over_15s": number,
+    finished: number,
+    refused: number,
+    measured: number,
     avg_ms: number,
-    in_flight: number,
-    "in_flight_1_to_5s": number,
-    "in_flight_5_to_15s": number,
-    "in_flight_over_15s": number,
 
 },
     master_cpu_percent: number,
@@ -2382,26 +2321,15 @@ export class Api<
     cpu_percent: number,
     memory_rss_bytes: number,
     goroutines: number,
-    requests?: {
-    completed: number,
-    avg_ms: number,
-    in_flight: number,
-    "in_flight_1_to_5s": number,
-    "in_flight_5_to_15s": number,
-    "in_flight_over_15s": number,
-
-},
-    consumers?: {
-    coroutines: number,
-    delivered: number,
-    acked: number,
+    work?: {
+    in_process: number,
+    "in_process_1_to_5s": number,
+    "in_process_5_to_15s": number,
+    "in_process_over_15s": number,
+    finished: number,
     refused: number,
-    timed: number,
+    measured: number,
     avg_ms: number,
-    in_flight: number,
-    "in_flight_1_to_5s": number,
-    "in_flight_5_to_15s": number,
-    "in_flight_over_15s": number,
 
 },
 
@@ -2414,43 +2342,19 @@ export class Api<
     cpu_percent: number,
     memory_rss_bytes: number,
     goroutines: number,
-    requests?: {
-    completed: number,
-    avg_ms: number,
-    in_flight: number,
-    "in_flight_1_to_5s": number,
-    "in_flight_5_to_15s": number,
-    "in_flight_over_15s": number,
-
-},
-    consumers?: {
-    coroutines: number,
-    delivered: number,
-    acked: number,
+    work?: {
+    in_process: number,
+    "in_process_1_to_5s": number,
+    "in_process_5_to_15s": number,
+    "in_process_over_15s": number,
+    finished: number,
     refused: number,
-    timed: number,
+    measured: number,
     avg_ms: number,
-    in_flight: number,
-    "in_flight_1_to_5s": number,
-    "in_flight_5_to_15s": number,
-    "in_flight_over_15s": number,
 
 },
 
 })[],
-    consumers?: {
-    coroutines: number,
-    delivered: number,
-    acked: number,
-    refused: number,
-    timed: number,
-    avg_ms: number,
-    in_flight: number,
-    "in_flight_1_to_5s": number,
-    "in_flight_5_to_15s": number,
-    "in_flight_over_15s": number,
-
-},
 
 },
 
@@ -2467,13 +2371,15 @@ export class Api<
             cpu_percent: number;
             memory_rss_bytes: number;
             goroutines: number;
-            requests?: {
-              completed: number;
+            work?: {
+              in_process: number;
+              in_process_1_to_5s: number;
+              in_process_5_to_15s: number;
+              in_process_over_15s: number;
+              finished: number;
+              refused: number;
+              measured: number;
               avg_ms: number;
-              in_flight: number;
-              in_flight_1_to_5s: number;
-              in_flight_5_to_15s: number;
-              in_flight_over_15s: number;
             };
             master_cpu_percent: number;
             master_memory_rss_bytes: number;
@@ -2484,25 +2390,15 @@ export class Api<
               cpu_percent: number;
               memory_rss_bytes: number;
               goroutines: number;
-              requests?: {
-                completed: number;
-                avg_ms: number;
-                in_flight: number;
-                in_flight_1_to_5s: number;
-                in_flight_5_to_15s: number;
-                in_flight_over_15s: number;
-              };
-              consumers?: {
-                coroutines: number;
-                delivered: number;
-                acked: number;
+              work?: {
+                in_process: number;
+                in_process_1_to_5s: number;
+                in_process_5_to_15s: number;
+                in_process_over_15s: number;
+                finished: number;
                 refused: number;
-                timed: number;
+                measured: number;
                 avg_ms: number;
-                in_flight: number;
-                in_flight_1_to_5s: number;
-                in_flight_5_to_15s: number;
-                in_flight_over_15s: number;
               };
             }[];
             workers: {
@@ -2513,39 +2409,17 @@ export class Api<
               cpu_percent: number;
               memory_rss_bytes: number;
               goroutines: number;
-              requests?: {
-                completed: number;
-                avg_ms: number;
-                in_flight: number;
-                in_flight_1_to_5s: number;
-                in_flight_5_to_15s: number;
-                in_flight_over_15s: number;
-              };
-              consumers?: {
-                coroutines: number;
-                delivered: number;
-                acked: number;
+              work?: {
+                in_process: number;
+                in_process_1_to_5s: number;
+                in_process_5_to_15s: number;
+                in_process_over_15s: number;
+                finished: number;
                 refused: number;
-                timed: number;
+                measured: number;
                 avg_ms: number;
-                in_flight: number;
-                in_flight_1_to_5s: number;
-                in_flight_5_to_15s: number;
-                in_flight_over_15s: number;
               };
             }[];
-            consumers?: {
-              coroutines: number;
-              delivered: number;
-              acked: number;
-              refused: number;
-              timed: number;
-              avg_ms: number;
-              in_flight: number;
-              in_flight_1_to_5s: number;
-              in_flight_5_to_15s: number;
-              in_flight_over_15s: number;
-            };
           };
         },
         any

@@ -15,8 +15,7 @@ class SconcurGroupResource extends AbstractApiResource
     private float $cpu_percent;
     private int $memory_rss_bytes;
     private int $goroutines;
-    private ?SconcurRequestsResource $requests;
-    private ?SconcurConsumersResource $consumers;
+    private ?SconcurWorkResource $work;
 
     public function __construct(SconcurGroupObject $group)
     {
@@ -28,7 +27,6 @@ class SconcurGroupResource extends AbstractApiResource
         $this->cpu_percent      = $group->cpuPercent;
         $this->memory_rss_bytes = $group->memoryRssBytes;
         $this->goroutines       = $group->goroutines;
-        $this->requests         = SconcurRequestsResource::makeIfNotNull($group->requests);
-        $this->consumers        = SconcurConsumersResource::makeIfNotNull($group->consumers);
+        $this->work             = SconcurWorkResource::makeIfNotNull($group->work);
     }
 }

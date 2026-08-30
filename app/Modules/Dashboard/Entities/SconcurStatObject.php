@@ -18,12 +18,11 @@ readonly class SconcurStatObject
         public float $cpuPercent,
         public int $memoryRssBytes,
         public int $goroutines,
-        public ?SconcurRequestsObject $requests,
+        public ?SconcurWorkObject $work,
         public float $masterCpuPercent,
         public int $masterMemoryRssBytes,
         public array $groups,
         public array $workers,
-        public ?SconcurConsumersObject $consumers = null,
     ) {
     }
 }

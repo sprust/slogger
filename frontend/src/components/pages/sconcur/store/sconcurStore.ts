@@ -13,8 +13,8 @@ export const MASTER_SOURCE = 'master';
 
 /**
  * The master, a group or a worker. All three carry the same counter shape — the same
- * optional requests/consumers sections beside cpu, memory and goroutines — which is what
- * lets one sampler serve every source.
+ * optional `work` section beside cpu, memory and goroutines — which is what lets one
+ * sampler serve every source.
  */
 export type StatRow = NonNullable<SconcurStat>
     | NonNullable<SconcurStat>['groups'][number]
@@ -36,10 +36,9 @@ export interface Sample {
     values: Record<string, SourceMetrics>
 }
 
-/** The counters a rate is a difference of, kept per source between samples. */
+/** The counter a rate is a difference of, kept per source between samples. */
 interface Counters {
-    completed: number | null
-    handled: number | null
+    finished: number | null
 }
 
 export function groupKey(name: string): string {
@@ -80,7 +79,7 @@ export const useSconcurStore = defineStore('sconcur', {
             history: [],
             prevCounters: {},
             prevAt: null,
-            selectedMetrics: ['rps', 'cpu_percent'],
+            selectedMetrics: ['finished_rate', 'cpu_percent'],
             selectedSource: MASTER_SOURCE,
             autoUpdate: false,
             timer: null,
@@ -183,50 +182,36 @@ export const useSconcurStore = defineStore('sconcur', {
 
         /**
          * One source's metrics at this moment, and its counters remembered for the next
-         * sample. Both sections are optional — a pool serving no requests omits
-         * `requests`, one consuming no queue omits `consumers` — and absent stays absent.
+         * sample. The `work` section is optional — a pool that counts nothing omits it —
+         * and absent stays absent.
          */
         sample(key: string, row: StatRow, elapsedSeconds: number, counters: Record<string, Counters>): SourceMetrics {
-            const requests = row.requests ?? null
-            const consumers = row.consumers ?? null
+            const work = row.work ?? null
             const previous = this.prevCounters[key]
 
-            let rps: number | null = null
+            let rate: number | null = null
 
-            if (requests && previous && previous.completed !== null && elapsedSeconds > 0) {
-                rps = Math.max(0, requests.completed - previous.completed) / elapsedSeconds
-            }
-
-            let handled: number | null = null
-
-            // Of `acked`, because that is what the tables and the header both call
-            // "Handled". `delivered` counts a message the moment it reaches PHP, so a
-            // queue whose jobs all fail would show throughput where nothing succeeded;
-            // Refused stands beside it for those.
-            if (consumers && previous && previous.handled !== null && elapsedSeconds > 0) {
-                handled = Math.max(0, consumers.acked - previous.handled) / elapsedSeconds
+            if (work && previous && previous.finished !== null && elapsedSeconds > 0) {
+                rate = Math.max(0, work.finished - previous.finished) / elapsedSeconds
             }
 
             counters[key] = {
-                completed: requests ? requests.completed : null,
-                handled: consumers ? consumers.acked : null,
+                finished: work ? work.finished : null,
             }
 
             return {
-                // The counters go into the sample beside the averages: an average over the
+                // The counters go into the sample beside the average: an average over the
                 // window is the difference of two cumulative totals, not the mean of a
-                // cumulative average.
-                requests_completed: requests?.completed ?? null,
-                consumers_handled: consumers?.acked ?? null,
-                requests_in_flight: requests?.in_flight ?? null,
-                rps: rps === null ? null : Math.round(rps * 100) / 100,
+                // cumulative average. `measured` and not `finished`, because that is what
+                // the panel's avg_ms is a mean over.
+                finished: work?.finished ?? null,
+                measured: work?.measured ?? null,
+                in_process: work?.in_process ?? null,
+                finished_rate: rate === null ? null : Math.round(rate * 100) / 100,
+                avg_ms: work ? Math.round(work.avg_ms * 100) / 100 : null,
                 cpu_percent: Math.round(row.cpu_percent * 10) / 10,
                 memory_rss_mb: Math.round(row.memory_rss_bytes / 1048576),
                 goroutines: row.goroutines,
-                requests_avg_ms: requests ? Math.round(requests.avg_ms * 100) / 100 : null,
-                consumers_in_flight: consumers?.in_flight ?? null,
-                consumers_rate: handled === null ? null : Math.round(handled * 100) / 100,
-                consumers_avg_ms: consumers ? Math.round(consumers.avg_ms * 100) / 100 : null,
             }
         },
 

@@ -20,12 +20,40 @@ import {
   WINDOW_MS,
   workerKey,
 } from "./store/sconcurStore.ts";
+import StatTitle from "./components/StatTitle.vue";
 import {Loading as IconLoading, Refresh as IconRefresh} from "@element-plus/icons-vue";
 
 ChartJS.register(Title, Tooltip, Legend, LineElement, PointElement, CategoryScale, LinearScale, Filler);
 
-const DASH = '—'; // what a section the pool does not report reads as
+const DASH = '—'; // what a pool that counts nothing reads as
 const COLORS = ['#409EFF', '#67C23A', '#E6A23C', '#F56C6C', '#909399', '#9B59B6'];
+
+/**
+ * What every name on the page means, kept in one place because most of them appear three
+ * times — once in the summary, once per table — and an explanation that drifts between
+ * the two tables is worse than none.
+ *
+ * The counter ones are worded without saying whose numbers they are, so the same sentence
+ * is true of the master's totals, of one pool and of one worker.
+ */
+const TIPS = {
+  workers: 'Worker processes the master supervises right now, over every group.',
+  hung: 'Alive but silent: the master last heard from them over 15 s ago. It catches a jammed worker runtime, not a slow handler — the sender runs beside PHP rather than inside it. The tasks pool is the exception, reporting from PHP itself.',
+  cpu: 'CPU as a percentage of one core, so several busy cores put it over 100. Summed over the worker processes it covers; the master\'s own process is not in it.',
+  rss: 'Resident memory of the worker processes it covers, the PHP side and the Go runtime together.',
+  goroutines: 'Goroutines on the Go side of the workers. The tasks pool runs no Go runtime and reports zero.',
+  inProcess: 'Units of work handed to PHP and not finished yet: requests being served, queue deliveries being handled, task ticks running.',
+  finished: 'Units of work that ended, however they ended: requests completed plus deliveries acked or refused. A tick that found nothing to do is not one.',
+  refused: 'How many of the finished ones failed — a delivery nacked or rejected, a task tick that threw. A request answered with a 500 is not here: the runtime does not count it as a failure.',
+  avgSince: 'How long one unit of work spent in the handler, over everything finished since the workers started.',
+  avgSplit: 'How long one unit of work spent in the handler. Left: since the worker started, as the panel reports it. Right: over the chart\'s window, which is empty until something finishes inside it.',
+  group: 'The worker pool. The order is the one config/sconcur.php declares the groups in, not the order the panel happens to answer in.',
+  groupWorkers: 'Workers of this pool, and how many of them are hung.',
+  pid: 'Process id of the worker. A worker the master replaces comes back with a new one.',
+  workerGroup: 'The pool this worker belongs to.',
+  status: 'ok, or hung when the master last heard from this worker over 15 s ago.',
+  uptime: 'Since this worker started serving, not since the master started — a rolling reload puts it back to zero.',
+};
 
 interface MetricDef {
   key: string
@@ -40,20 +68,18 @@ interface SourceDef {
 export default defineComponent({
   components: {
     Line,
+    StatTitle,
   },
 
   data() {
     return {
       metrics: [
-        {key: 'requests_in_flight', label: 'In-flight requests'},
-        {key: 'rps', label: 'RPS (requests/sec)'},
+        {key: 'in_process', label: 'In process'},
+        {key: 'finished_rate', label: 'Finished/sec'},
+        {key: 'avg_ms', label: 'Avg duration, ms'},
         {key: 'cpu_percent', label: 'CPU, %'},
         {key: 'memory_rss_mb', label: 'Memory RSS, MB'},
         {key: 'goroutines', label: 'Goroutines'},
-        {key: 'requests_avg_ms', label: 'Avg duration, ms'},
-        {key: 'consumers_in_flight', label: 'In-flight handling'},
-        {key: 'consumers_rate', label: 'Handled/sec'},
-        {key: 'consumers_avg_ms', label: 'Handled avg duration, ms'},
       ] as MetricDef[],
     }
   },
@@ -71,22 +97,33 @@ export default defineComponent({
     DASH() {
       return DASH
     },
+    tips() {
+      return TIPS
+    },
     /** How long the chart's window is, said in the header the column shares with it. */
     windowLabel(): string {
       return `${Math.round(WINDOW_MS / 60_000)}m`
     },
-    /**
-     * Whether anything at all reports the section — groups as well as workers, so the two
-     * tables and the header cards above them show and hide together. Computed from the
-     * workers alone, the Groups table kept three permanently dashed columns on a
-     * deployment that consumes no queue.
-     */
-    hasConsumers(): boolean {
-      return this.reports(row => row.consumers !== undefined && row.consumers !== null)
+    /** The second line of the Avg column's header, naming the two numbers under it. */
+    avgLegend(): string {
+      return `since start / ${this.windowLabel}`
     },
+    /**
+     * Whether anything at all counts its work — groups as well as workers, so the two
+     * tables and the header cards above them show and hide together. Computed from the
+     * workers alone, the Groups table kept permanently dashed columns on a deployment
+     * whose pools report nothing.
+     */
+    hasWork(): boolean {
+      const stat = this.store.stat
 
-    hasRequests(): boolean {
-      return this.reports(row => row.requests !== undefined && row.requests !== null)
+      if (!stat) {
+        return false
+      }
+
+      const counts = (row: StatRow) => row.work !== undefined && row.work !== null
+
+      return stat.groups.some(counts) || stat.workers.some(counts)
     },
     /**
      * What the chart can be pointed at: the master as a whole, one of its pools, or one
@@ -175,16 +212,20 @@ export default defineComponent({
      * the same number twice and say nothing. Total time is avg × count at each end; what
      * happened in between is the difference of the two, over the work done in between.
      *
-     * Null when the window holds no finished work: nothing is a truthful answer, and a
+     * The count is `measured` rather than `finished`, because that is what the panel's
+     * average is a mean over: a delivery settled without a measured duration adds to the
+     * one and not to the other, and dividing by the wrong one would inflate the result.
+     *
+     * Null when the window holds no measured work: nothing is a truthful answer, and a
      * dash says it.
      */
-    windowAverage(sourceKey: string, avgKey: string, countKey: string): number | null {
+    windowAverage(sourceKey: string): number | null {
       let first: { avg: number, count: number } | null = null
       let last: { avg: number, count: number } | null = null
 
       for (const sample of this.store.history) {
-        const avg = sample.values[sourceKey]?.[avgKey]
-        const count = sample.values[sourceKey]?.[countKey]
+        const avg = sample.values[sourceKey]?.avg_ms
+        const count = sample.values[sourceKey]?.measured
 
         if (typeof avg !== 'number' || typeof count !== 'number') {
           continue
@@ -207,72 +248,42 @@ export default defineComponent({
       return (last.avg * last.count - first.avg * first.count) / done
     },
 
-    /** @param check whether a row reports the section in question */
-    reports(check: (row: StatRow) => boolean): boolean {
-      const stat = this.store.stat
-
-      if (!stat) {
-        return false
-      }
-
-      return stat.groups.some(check) || stat.workers.some(check)
-    },
-
     rssMb(bytes: number): number {
       return Math.round(bytes / 1048576)
     },
 
     /**
-     * A row reports one of the two sections, never both: a server pool counts requests,
-     * a consumer pool counts queue messages. The missing one is absent rather than zero —
-     * the panel omits it — so it reads as a dash instead of a count nobody keeps.
+     * The one work section every pool reports, whatever it runs.
      *
-     * The two are kept in columns of their own rather than merged into one. Merged, the
-     * column read as "work done" but summed to something no card above it shows: requests
-     * and messages added together. Split, every count column adds up to the card that
-     * carries its name.
-     */
-    requestsInFlight(row: StatRow): number | string {
-      return row.requests?.in_flight ?? DASH
-    },
-
-    completed(row: StatRow): number | string {
-      return row.requests?.completed ?? DASH
-    },
-
-    handling(row: StatRow): number | string {
-      return row.consumers?.in_flight ?? DASH
-    },
-
-    handled(row: StatRow): number | string {
-      return row.consumers?.acked ?? DASH
-    },
-
-    requestsAvgMs(row: StatRow): string {
-      return row.requests === undefined || row.requests === null ? DASH : row.requests.avg_ms.toFixed(2)
-    },
-
-    handledAvgMs(row: StatRow): string {
-      return row.consumers === undefined || row.consumers === null ? DASH : row.consumers.avg_ms.toFixed(2)
-    },
-
-    /**
-     * The same two averages over the chart's window rather than since the worker booted.
+     * A server pool counts requests and a consumer pool counts queue deliveries — the
+     * task pool counts its ticks as deliveries — and the two are the same quantity under
+     * two names, so the backend folds them into one section and the table carries one
+     * column apiece instead of two, each of them a dash for half the rows. See
+     * SconcurWorkObject for why each pair matches.
      *
-     * Split like the counts beside them, and for the same reason: one column holding a
-     * request duration for one pool and a message duration for another sits under a
-     * header that can only name one of them.
+     * A pool that counts nothing at all has no section, and that reads as a dash: it
+     * says "not counted here" rather than "none happened".
      */
-    requestsAvgMsOverWindow(row: StatRow): string {
-      return this.formatWindowAverage(row, 'requests_avg_ms', 'requests_completed')
+    inProcess(row: StatRow): number | string {
+      return row.work?.in_process ?? DASH
     },
 
-    handledAvgMsOverWindow(row: StatRow): string {
-      return this.formatWindowAverage(row, 'consumers_avg_ms', 'consumers_handled')
+    finished(row: StatRow): number | string {
+      return row.work?.finished ?? DASH
     },
 
-    formatWindowAverage(row: StatRow, avgKey: string, countKey: string): string {
-      const average = this.windowAverage(this.rowKey(row), avgKey, countKey)
+    refused(row: StatRow): number | string {
+      return row.work?.refused ?? DASH
+    },
+
+    /** Cumulative since the worker started, as the panel reports it. */
+    avgMs(row: StatRow): string {
+      return row.work === undefined || row.work === null ? DASH : row.work.avg_ms.toFixed(2)
+    },
+
+    /** The same average over the chart's window rather than since the worker booted. */
+    avgMsOverWindow(row: StatRow): string {
+      const average = this.windowAverage(this.rowKey(row))
 
       return average === null ? DASH : average.toFixed(2)
     },
@@ -355,46 +366,72 @@ export default defineComponent({
     <template v-else-if="store.stat">
       <el-row :gutter="12">
         <el-col :span="3">
-          <el-statistic title="Workers" :value="store.stat.workers_total"/>
+          <el-statistic :value="store.stat.workers_total">
+            <template #title>
+              <StatTitle label="Workers" :tip="tips.workers"/>
+            </template>
+          </el-statistic>
         </el-col>
         <el-col :span="3">
-          <el-statistic title="Hung" :value="store.stat.workers_hung"/>
+          <el-statistic :value="store.stat.workers_hung">
+            <template #title>
+              <StatTitle label="Hung" :tip="tips.hung"/>
+            </template>
+          </el-statistic>
         </el-col>
         <el-col :span="3">
-          <el-statistic title="CPU, %" :value="store.stat.cpu_percent" :precision="1"/>
+          <el-statistic :value="store.stat.cpu_percent" :precision="1">
+            <template #title>
+              <StatTitle label="CPU, %" :tip="tips.cpu"/>
+            </template>
+          </el-statistic>
         </el-col>
         <el-col :span="3">
-          <el-statistic title="RSS, MB" :value="rssMb(store.stat.memory_rss_bytes)"/>
+          <el-statistic :value="rssMb(store.stat.memory_rss_bytes)">
+            <template #title>
+              <StatTitle label="RSS, MB" :tip="tips.rss"/>
+            </template>
+          </el-statistic>
         </el-col>
         <el-col :span="3">
-          <el-statistic title="Goroutines" :value="store.stat.goroutines"/>
+          <el-statistic :value="store.stat.goroutines">
+            <template #title>
+              <StatTitle label="Goroutines" :tip="tips.goroutines"/>
+            </template>
+          </el-statistic>
         </el-col>
-        <template v-if="store.stat.requests">
+        <template v-if="store.stat.work">
           <el-col :span="3">
-            <el-statistic title="In-flight" :value="store.stat.requests.in_flight"/>
+            <el-statistic :value="store.stat.work.in_process">
+              <template #title>
+                <StatTitle label="In process" :tip="tips.inProcess"/>
+              </template>
+            </el-statistic>
           </el-col>
           <el-col :span="3">
-            <el-statistic title="Completed" :value="store.stat.requests.completed"/>
+            <!-- Everything that ended, whatever came of it — the same number the tables
+                 below call Finished and the same one the chart's Finished/sec is a rate
+                 of. Refused sits beside it, so a queue whose jobs all fail is visible
+                 rather than hidden inside a throughput. -->
+            <el-statistic :value="store.stat.work.finished">
+              <template #title>
+                <StatTitle label="Finished" :tip="tips.finished"/>
+              </template>
+            </el-statistic>
           </el-col>
           <el-col :span="3">
-            <el-statistic title="Avg, ms" :value="store.stat.requests.avg_ms" :precision="2"/>
-          </el-col>
-        </template>
-        <template v-if="store.stat.consumers">
-          <el-col :span="3">
-            <el-statistic title="Handling" :value="store.stat.consumers.in_flight"/>
-          </el-col>
-          <el-col :span="3">
-            <!-- acked, the same number the tables below call Handled and the same one
-                 the chart's Handled/sec is a rate of. Refused sits beside it, so a queue
-                 whose jobs all fail is visible rather than hidden behind a throughput. -->
-            <el-statistic title="Handled" :value="store.stat.consumers.acked"/>
+            <el-statistic :value="store.stat.work.refused">
+              <template #title>
+                <StatTitle label="Refused" :tip="tips.refused"/>
+              </template>
+            </el-statistic>
           </el-col>
           <el-col :span="3">
-            <el-statistic title="Refused" :value="store.stat.consumers.refused"/>
-          </el-col>
-          <el-col :span="3">
-            <el-statistic title="Handled avg, ms" :value="store.stat.consumers.avg_ms" :precision="2"/>
+            <el-statistic :value="store.stat.work.avg_ms" :precision="2">
+              <template #title>
+                <StatTitle label="Avg, ms" :tip="tips.avgSince"/>
+              </template>
+            </el-statistic>
           </el-col>
         </template>
       </el-row>
@@ -408,66 +445,61 @@ export default defineComponent({
           border
           style="width: 100%; margin: 8px 0 14px"
       >
-        <el-table-column prop="name" label="Group" width="140"/>
+        <el-table-column prop="name" label="Group" width="140">
+          <template #header>
+            <StatTitle label="Group" :tip="tips.group"/>
+          </template>
+        </el-table-column>
         <el-table-column label="Workers" width="100">
+          <template #header>
+            <StatTitle label="Workers" :tip="tips.groupWorkers"/>
+          </template>
           <template #default="{ row }">
             {{ row.workers_hung ? `${row.workers_total} (${row.workers_hung} hung)` : row.workers_total }}
           </template>
         </el-table-column>
         <el-table-column label="CPU, %" width="100">
+          <template #header>
+            <StatTitle label="CPU, %" :tip="tips.cpu"/>
+          </template>
           <template #default="{ row }">{{ row.cpu_percent.toFixed(1) }}</template>
         </el-table-column>
         <el-table-column label="RSS, MB" width="100">
+          <template #header>
+            <StatTitle label="RSS, MB" :tip="tips.rss"/>
+          </template>
           <template #default="{ row }">{{ rssMb(row.memory_rss_bytes) }}</template>
         </el-table-column>
-        <el-table-column prop="goroutines" label="Goroutines" width="110"/>
-        <el-table-column v-if="hasRequests" label="In-flight" width="100">
-          <template #default="{ row }">{{ requestsInFlight(row) }}</template>
-        </el-table-column>
-        <el-table-column v-if="hasRequests" label="Completed" width="110">
-          <template #default="{ row }">{{ completed(row) }}</template>
-        </el-table-column>
-        <el-table-column v-if="hasConsumers" label="Handling" width="100">
-          <template #default="{ row }">{{ handling(row) }}</template>
-        </el-table-column>
-        <el-table-column v-if="hasConsumers" label="Handled">
-          <template #default="{ row }">{{ handled(row) }}</template>
-        </el-table-column>
-        <el-table-column v-if="hasConsumers" label="Refused" width="100">
-          <template #default="{ row }">{{ row.consumers ? row.consumers.refused : DASH }}</template>
-        </el-table-column>
-        <el-table-column v-if="hasRequests" label="Avg, ms" width="170">
+        <el-table-column prop="goroutines" label="Goroutines" width="110">
           <template #header>
-            <el-tooltip
-                content="Request duration. Left: cumulative since the worker started, as the panel reports it. Right: over the chart's window."
-                placement="top"
-            >
-              <div class="avg-header">
-                <div>Avg, ms</div>
-                <div class="avg-header-legend">since start / {{ windowLabel }}</div>
-              </div>
-            </el-tooltip>
+            <StatTitle label="Goroutines" :tip="tips.goroutines"/>
+          </template>
+        </el-table-column>
+        <el-table-column v-if="hasWork" label="In process" width="110">
+          <template #header>
+            <StatTitle label="In process" :tip="tips.inProcess"/>
+          </template>
+          <template #default="{ row }">{{ inProcess(row) }}</template>
+        </el-table-column>
+        <el-table-column v-if="hasWork" label="Finished">
+          <template #header>
+            <StatTitle label="Finished" :tip="tips.finished"/>
+          </template>
+          <template #default="{ row }">{{ finished(row) }}</template>
+        </el-table-column>
+        <el-table-column v-if="hasWork" label="Refused" width="100">
+          <template #header>
+            <StatTitle label="Refused" :tip="tips.refused"/>
+          </template>
+          <template #default="{ row }">{{ refused(row) }}</template>
+        </el-table-column>
+        <el-table-column v-if="hasWork" label="Avg, ms" width="170">
+          <template #header>
+            <StatTitle label="Avg, ms" :legend="avgLegend" :tip="tips.avgSplit"/>
           </template>
           <template #default="{ row }">
-            {{ requestsAvgMs(row) }}
-            <span class="avg-window">/ {{ requestsAvgMsOverWindow(row) }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column v-if="hasConsumers" label="Handled avg, ms" width="180">
-          <template #header>
-            <el-tooltip
-                content="Handling duration. Left: cumulative since the worker started, as the panel reports it. Right: over the chart's window."
-                placement="top"
-            >
-              <div class="avg-header">
-                <div>Handled avg, ms</div>
-                <div class="avg-header-legend">since start / {{ windowLabel }}</div>
-              </div>
-            </el-tooltip>
-          </template>
-          <template #default="{ row }">
-            {{ handledAvgMs(row) }}
-            <span class="avg-window">/ {{ handledAvgMsOverWindow(row) }}</span>
+            {{ avgMs(row) }}
+            <span class="avg-window">/ {{ avgMsOverWindow(row) }}</span>
           </template>
         </el-table-column>
       </el-table>
@@ -479,9 +511,20 @@ export default defineComponent({
           border
           style="width: 100%; margin: 8px 0 14px"
       >
-        <el-table-column prop="pid" label="PID" width="90"/>
-        <el-table-column prop="group" label="Group" width="110"/>
+        <el-table-column prop="pid" label="PID" width="90">
+          <template #header>
+            <StatTitle label="PID" :tip="tips.pid"/>
+          </template>
+        </el-table-column>
+        <el-table-column prop="group" label="Group" width="110">
+          <template #header>
+            <StatTitle label="Group" :tip="tips.workerGroup"/>
+          </template>
+        </el-table-column>
         <el-table-column label="Status" width="90">
+          <template #header>
+            <StatTitle label="Status" :tip="tips.status"/>
+          </template>
           <template #default="{ row }">
             <el-tag :type="row.hung ? 'danger' : 'success'" size="small">
               {{ row.hung ? 'hung' : 'ok' }}
@@ -489,62 +532,53 @@ export default defineComponent({
           </template>
         </el-table-column>
         <el-table-column label="Uptime" width="110">
+          <template #header>
+            <StatTitle label="Uptime" :tip="tips.uptime"/>
+          </template>
           <template #default="{ row }">{{ formatUptime(row.uptime_seconds) }}</template>
         </el-table-column>
         <el-table-column label="CPU, %">
+          <template #header>
+            <StatTitle label="CPU, %" :tip="tips.cpu"/>
+          </template>
           <template #default="{ row }">{{ row.cpu_percent.toFixed(1) }}</template>
         </el-table-column>
         <el-table-column label="RSS, MB">
+          <template #header>
+            <StatTitle label="RSS, MB" :tip="tips.rss"/>
+          </template>
           <template #default="{ row }">{{ rssMb(row.memory_rss_bytes) }}</template>
         </el-table-column>
-        <el-table-column prop="goroutines" label="Goroutines"/>
-        <el-table-column v-if="hasRequests" label="In-flight">
-          <template #default="{ row }">{{ requestsInFlight(row) }}</template>
-        </el-table-column>
-        <el-table-column v-if="hasRequests" label="Completed">
-          <template #default="{ row }">{{ completed(row) }}</template>
-        </el-table-column>
-        <el-table-column v-if="hasConsumers" label="Handling">
-          <template #default="{ row }">{{ handling(row) }}</template>
-        </el-table-column>
-        <el-table-column v-if="hasConsumers" label="Handled">
-          <template #default="{ row }">{{ handled(row) }}</template>
-        </el-table-column>
-        <el-table-column v-if="hasConsumers" label="Refused">
-          <template #default="{ row }">{{ row.consumers ? row.consumers.refused : DASH }}</template>
-        </el-table-column>
-        <el-table-column v-if="hasRequests" label="Avg, ms" width="170">
+        <el-table-column prop="goroutines" label="Goroutines">
           <template #header>
-            <el-tooltip
-                content="Request duration. Left: cumulative since the worker started, as the panel reports it. Right: over the chart's window."
-                placement="top"
-            >
-              <div class="avg-header">
-                <div>Avg, ms</div>
-                <div class="avg-header-legend">since start / {{ windowLabel }}</div>
-              </div>
-            </el-tooltip>
+            <StatTitle label="Goroutines" :tip="tips.goroutines"/>
+          </template>
+        </el-table-column>
+        <el-table-column v-if="hasWork" label="In process">
+          <template #header>
+            <StatTitle label="In process" :tip="tips.inProcess"/>
+          </template>
+          <template #default="{ row }">{{ inProcess(row) }}</template>
+        </el-table-column>
+        <el-table-column v-if="hasWork" label="Finished">
+          <template #header>
+            <StatTitle label="Finished" :tip="tips.finished"/>
+          </template>
+          <template #default="{ row }">{{ finished(row) }}</template>
+        </el-table-column>
+        <el-table-column v-if="hasWork" label="Refused">
+          <template #header>
+            <StatTitle label="Refused" :tip="tips.refused"/>
+          </template>
+          <template #default="{ row }">{{ refused(row) }}</template>
+        </el-table-column>
+        <el-table-column v-if="hasWork" label="Avg, ms" width="170">
+          <template #header>
+            <StatTitle label="Avg, ms" :legend="avgLegend" :tip="tips.avgSplit"/>
           </template>
           <template #default="{ row }">
-            {{ requestsAvgMs(row) }}
-            <span class="avg-window">/ {{ requestsAvgMsOverWindow(row) }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column v-if="hasConsumers" label="Handled avg, ms" width="180">
-          <template #header>
-            <el-tooltip
-                content="Handling duration. Left: cumulative since the worker started, as the panel reports it. Right: over the chart's window."
-                placement="top"
-            >
-              <div class="avg-header">
-                <div>Handled avg, ms</div>
-                <div class="avg-header-legend">since start / {{ windowLabel }}</div>
-              </div>
-            </el-tooltip>
-          </template>
-          <template #default="{ row }">
-            {{ handledAvgMs(row) }}
-            <span class="avg-window">/ {{ handledAvgMsOverWindow(row) }}</span>
+            {{ avgMs(row) }}
+            <span class="avg-window">/ {{ avgMsOverWindow(row) }}</span>
           </template>
         </el-table-column>
       </el-table>
@@ -598,15 +632,6 @@ export default defineComponent({
 </template>
 
 <style scoped>
-.avg-header {
-  line-height: 1.2;
-}
-
-.avg-header-legend {
-  color: var(--el-text-color-secondary);
-  font-weight: normal;
-}
-
 .avg-window {
   color: var(--el-text-color-secondary);
   margin-left: 2px;
