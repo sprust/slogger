@@ -4034,16 +4034,16 @@
         },
         {
             "name": "slogger/laravel",
-            "version": "2.1.0",
+            "version": "2.1.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sprust/slogger-laravel.git",
-                "reference": "afb21cd92eb3c06b74732f304cb37a3c57e2de4f"
+                "reference": "cf1a0c0a21ca26d44aacadec91c5bd08152ca43a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sprust/slogger-laravel/zipball/afb21cd92eb3c06b74732f304cb37a3c57e2de4f",
-                "reference": "afb21cd92eb3c06b74732f304cb37a3c57e2de4f",
+                "url": "https://api.github.com/repos/sprust/slogger-laravel/zipball/cf1a0c0a21ca26d44aacadec91c5bd08152ca43a",
+                "reference": "cf1a0c0a21ca26d44aacadec91c5bd08152ca43a",
                 "shasum": ""
             },
             "require": {
@@ -4095,9 +4095,9 @@
             ],
             "support": {
                 "issues": "https://github.com/sprust/slogger-laravel/issues",
-                "source": "https://github.com/sprust/slogger-laravel/tree/v2.1.0"
+                "source": "https://github.com/sprust/slogger-laravel/tree/v2.1.1"
             },
-            "time": "2026-08-30T16:45:57+00:00"
+            "time": "2026-08-30T19:36:16+00:00"
         },
         {
             "name": "symfony/clock",
