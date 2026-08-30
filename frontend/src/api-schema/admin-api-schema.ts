@@ -935,19 +935,19 @@ export namespace AdminApi {
     children?: (string)[] | null,
     can_be_filtered: boolean,
 
-})[],
+})[] | null,
     can_be_filtered: boolean,
 
-})[],
+})[] | null,
     can_be_filtered: boolean,
 
-})[],
+})[] | null,
     can_be_filtered: boolean,
 
-})[],
+})[] | null,
     can_be_filtered: boolean,
 
-})[],
+})[] | null,
     can_be_filtered: boolean,
 
 },
@@ -983,33 +983,43 @@ export namespace AdminApi {
         data: {
           key: string;
           value: string;
-          children?: {
-            key: string;
-            value: string;
-            children?: {
-              key: string;
-              value: string;
-              children?: {
+          children?:
+            | {
                 key: string;
                 value: string;
-                children?: {
-                  key: string;
-                  value: string;
-                  children?: {
-                    key: string;
-                    value: string;
-                    /** @maxItems 0 */
-                    children?: string[] | null;
-                    can_be_filtered: boolean;
-                  }[];
-                  can_be_filtered: boolean;
-                }[];
+                children?:
+                  | {
+                      key: string;
+                      value: string;
+                      children?:
+                        | {
+                            key: string;
+                            value: string;
+                            children?:
+                              | {
+                                  key: string;
+                                  value: string;
+                                  children?:
+                                    | {
+                                        key: string;
+                                        value: string;
+                                        /** @maxItems 0 */
+                                        children?: string[] | null;
+                                        can_be_filtered: boolean;
+                                      }[]
+                                    | null;
+                                  can_be_filtered: boolean;
+                                }[]
+                              | null;
+                            can_be_filtered: boolean;
+                          }[]
+                        | null;
+                      can_be_filtered: boolean;
+                    }[]
+                  | null;
                 can_be_filtered: boolean;
-              }[];
-              can_be_filtered: boolean;
-            }[];
-            can_be_filtered: boolean;
-          }[];
+              }[]
+            | null;
           can_be_filtered: boolean;
         };
         duration?: number | null;
@@ -1088,15 +1098,15 @@ export namespace AdminApi {
   /** @maxItems 0 *\/
     children?: (string)[] | null,
 
-})[],
+})[] | null,
 
-})[],
+})[] | null,
 
-})[],
+})[] | null,
 
-})[],
+})[] | null,
 
-})[],
+})[] | null,
 
 })[],
 
@@ -1126,25 +1136,8 @@ export namespace AdminApi {
             weight_percent: number;
           }[];
           recursionNodeId?: number | null;
-          children?: {
-            id: number;
-            calling: string;
-            data: {
-              name: string;
-              value: number;
-              weight_percent: number;
-            }[];
-            recursionNodeId?: number | null;
-            children?: {
-              id: number;
-              calling: string;
-              data: {
-                name: string;
-                value: number;
-                weight_percent: number;
-              }[];
-              recursionNodeId?: number | null;
-              children?: {
+          children?:
+            | {
                 id: number;
                 calling: string;
                 data: {
@@ -1153,28 +1146,55 @@ export namespace AdminApi {
                   weight_percent: number;
                 }[];
                 recursionNodeId?: number | null;
-                children?: {
-                  id: number;
-                  calling: string;
-                  data: {
-                    name: string;
-                    value: number;
-                    weight_percent: number;
-                  }[];
-                  recursionNodeId?: number | null;
-                  children?: {
-                    id: number;
-                    calling: string;
-                    /** @maxItems 0 */
-                    data: string[];
-                    recursionNodeId?: number | null;
-                    /** @maxItems 0 */
-                    children?: string[] | null;
-                  }[];
-                }[];
-              }[];
-            }[];
-          }[];
+                children?:
+                  | {
+                      id: number;
+                      calling: string;
+                      data: {
+                        name: string;
+                        value: number;
+                        weight_percent: number;
+                      }[];
+                      recursionNodeId?: number | null;
+                      children?:
+                        | {
+                            id: number;
+                            calling: string;
+                            data: {
+                              name: string;
+                              value: number;
+                              weight_percent: number;
+                            }[];
+                            recursionNodeId?: number | null;
+                            children?:
+                              | {
+                                  id: number;
+                                  calling: string;
+                                  data: {
+                                    name: string;
+                                    value: number;
+                                    weight_percent: number;
+                                  }[];
+                                  recursionNodeId?: number | null;
+                                  children?:
+                                    | {
+                                        id: number;
+                                        calling: string;
+                                        /** @maxItems 0 */
+                                        data: string[];
+                                        recursionNodeId?: number | null;
+                                        /** @maxItems 0 */
+                                        children?: string[] | null;
+                                      }[]
+                                    | null;
+                                }[]
+                              | null;
+                          }[]
+                        | null;
+                    }[]
+                  | null;
+              }[]
+            | null;
         }[];
       };
     };
@@ -2965,19 +2985,19 @@ export class Api<
     children?: (string)[] | null,
     can_be_filtered: boolean,
 
-})[],
+})[] | null,
     can_be_filtered: boolean,
 
-})[],
+})[] | null,
     can_be_filtered: boolean,
 
-})[],
+})[] | null,
     can_be_filtered: boolean,
 
-})[],
+})[] | null,
     can_be_filtered: boolean,
 
-})[],
+})[] | null,
     can_be_filtered: boolean,
 
 },
@@ -3008,33 +3028,43 @@ export class Api<
             data: {
               key: string;
               value: string;
-              children?: {
-                key: string;
-                value: string;
-                children?: {
-                  key: string;
-                  value: string;
-                  children?: {
+              children?:
+                | {
                     key: string;
                     value: string;
-                    children?: {
-                      key: string;
-                      value: string;
-                      children?: {
-                        key: string;
-                        value: string;
-                        /** @maxItems 0 */
-                        children?: string[] | null;
-                        can_be_filtered: boolean;
-                      }[];
-                      can_be_filtered: boolean;
-                    }[];
+                    children?:
+                      | {
+                          key: string;
+                          value: string;
+                          children?:
+                            | {
+                                key: string;
+                                value: string;
+                                children?:
+                                  | {
+                                      key: string;
+                                      value: string;
+                                      children?:
+                                        | {
+                                            key: string;
+                                            value: string;
+                                            /** @maxItems 0 */
+                                            children?: string[] | null;
+                                            can_be_filtered: boolean;
+                                          }[]
+                                        | null;
+                                      can_be_filtered: boolean;
+                                    }[]
+                                  | null;
+                                can_be_filtered: boolean;
+                              }[]
+                            | null;
+                          can_be_filtered: boolean;
+                        }[]
+                      | null;
                     can_be_filtered: boolean;
-                  }[];
-                  can_be_filtered: boolean;
-                }[];
-                can_be_filtered: boolean;
-              }[];
+                  }[]
+                | null;
               can_be_filtered: boolean;
             };
             duration?: number | null;
@@ -3121,15 +3151,15 @@ export class Api<
   /** @maxItems 0 *\/
     children?: (string)[] | null,
 
-})[],
+})[] | null,
 
-})[],
+})[] | null,
 
-})[],
+})[] | null,
 
-})[],
+})[] | null,
 
-})[],
+})[] | null,
 
 })[],
 
@@ -3158,25 +3188,8 @@ export class Api<
                 weight_percent: number;
               }[];
               recursionNodeId?: number | null;
-              children?: {
-                id: number;
-                calling: string;
-                data: {
-                  name: string;
-                  value: number;
-                  weight_percent: number;
-                }[];
-                recursionNodeId?: number | null;
-                children?: {
-                  id: number;
-                  calling: string;
-                  data: {
-                    name: string;
-                    value: number;
-                    weight_percent: number;
-                  }[];
-                  recursionNodeId?: number | null;
-                  children?: {
+              children?:
+                | {
                     id: number;
                     calling: string;
                     data: {
@@ -3185,28 +3198,55 @@ export class Api<
                       weight_percent: number;
                     }[];
                     recursionNodeId?: number | null;
-                    children?: {
-                      id: number;
-                      calling: string;
-                      data: {
-                        name: string;
-                        value: number;
-                        weight_percent: number;
-                      }[];
-                      recursionNodeId?: number | null;
-                      children?: {
-                        id: number;
-                        calling: string;
-                        /** @maxItems 0 */
-                        data: string[];
-                        recursionNodeId?: number | null;
-                        /** @maxItems 0 */
-                        children?: string[] | null;
-                      }[];
-                    }[];
-                  }[];
-                }[];
-              }[];
+                    children?:
+                      | {
+                          id: number;
+                          calling: string;
+                          data: {
+                            name: string;
+                            value: number;
+                            weight_percent: number;
+                          }[];
+                          recursionNodeId?: number | null;
+                          children?:
+                            | {
+                                id: number;
+                                calling: string;
+                                data: {
+                                  name: string;
+                                  value: number;
+                                  weight_percent: number;
+                                }[];
+                                recursionNodeId?: number | null;
+                                children?:
+                                  | {
+                                      id: number;
+                                      calling: string;
+                                      data: {
+                                        name: string;
+                                        value: number;
+                                        weight_percent: number;
+                                      }[];
+                                      recursionNodeId?: number | null;
+                                      children?:
+                                        | {
+                                            id: number;
+                                            calling: string;
+                                            /** @maxItems 0 */
+                                            data: string[];
+                                            recursionNodeId?: number | null;
+                                            /** @maxItems 0 */
+                                            children?: string[] | null;
+                                          }[]
+                                        | null;
+                                    }[]
+                                  | null;
+                              }[]
+                            | null;
+                        }[]
+                      | null;
+                  }[]
+                | null;
             }[];
           };
         },
