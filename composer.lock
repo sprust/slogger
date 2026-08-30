@@ -4034,16 +4034,16 @@
         },
         {
             "name": "slogger/laravel",
-            "version": "2.1.1",
+            "version": "2.1.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sprust/slogger-laravel.git",
-                "reference": "cf1a0c0a21ca26d44aacadec91c5bd08152ca43a"
+                "reference": "e93f76b0193f661a96331d271dd0fd0714eb968a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sprust/slogger-laravel/zipball/cf1a0c0a21ca26d44aacadec91c5bd08152ca43a",
-                "reference": "cf1a0c0a21ca26d44aacadec91c5bd08152ca43a",
+                "url": "https://api.github.com/repos/sprust/slogger-laravel/zipball/e93f76b0193f661a96331d271dd0fd0714eb968a",
+                "reference": "e93f76b0193f661a96331d271dd0fd0714eb968a",
                 "shasum": ""
             },
             "require": {
@@ -4095,9 +4095,9 @@
             ],
             "support": {
                 "issues": "https://github.com/sprust/slogger-laravel/issues",
-                "source": "https://github.com/sprust/slogger-laravel/tree/v2.1.1"
+                "source": "https://github.com/sprust/slogger-laravel/tree/v2.1.2"
             },
-            "time": "2026-08-30T19:36:16+00:00"
+            "time": "2026-08-30T20:04:39+00:00"
         },
         {
             "name": "symfony/clock",
@@ -6172,16 +6172,16 @@
         },
         {
             "name": "symfony/service-contracts",
-            "version": "v3.7.1",
+            "version": "v3.7.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/service-contracts.git",
-                "reference": "c0a284bab1ed8aa0417e3d69250ab437739563a0"
+                "reference": "15e6a07ec2a2c75ceb1b21dd98105ee8456d2257"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/service-contracts/zipball/c0a284bab1ed8aa0417e3d69250ab437739563a0",
-                "reference": "c0a284bab1ed8aa0417e3d69250ab437739563a0",
+                "url": "https://api.github.com/repos/symfony/service-contracts/zipball/15e6a07ec2a2c75ceb1b21dd98105ee8456d2257",
+                "reference": "15e6a07ec2a2c75ceb1b21dd98105ee8456d2257",
                 "shasum": ""
             },
             "require": {
@@ -6235,7 +6235,7 @@
                 "standards"
             ],
             "support": {
-                "source": "https://github.com/symfony/service-contracts/tree/v3.7.1"
+                "source": "https://github.com/symfony/service-contracts/tree/v3.7.3"
             },
             "funding": [
                 {
@@ -6255,7 +6255,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-06-16T09:55:08+00:00"
+            "time": "2026-07-27T15:39:01+00:00"
         },
         {
             "name": "symfony/string",
