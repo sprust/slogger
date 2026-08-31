@@ -122,22 +122,38 @@ class TraceTimestampMetricsFactory
         };
     }
 
+    /**
+     * The last instant the bucket holds, not the start of its last unit.
+     *
+     * A trace joins a bucket by the truncated timestamp stored in its `tss` map, so the
+     * bucket is half-open - [start, start + step). A click on it opens a search that
+     * filters `lat` inclusively, which makes the end it needs one tick before the next
+     * bucket begins. That tick is a microsecond: Mongo stores milliseconds today, but the
+     * boundary should not have to be revisited if the traces ever move to a store that
+     * keeps more.
+     */
     public function makeNextTimestamp(Carbon $date, TraceTimestampEnum $timestamp): Carbon
     {
-        return match ($timestamp) {
-            TraceTimestampEnum::M     => $date->clone()->endOfMonth(),
-            TraceTimestampEnum::D     => $date->clone()->endOfDay(),
-            TraceTimestampEnum::H12   => $this->sliceHours($date->clone(), 12, true),
-            TraceTimestampEnum::H4    => $this->sliceHours($date->clone(), 4, true),
-            TraceTimestampEnum::H     => $date->clone()->endOfHour(),
-            TraceTimestampEnum::Min30 => $this->sliceMinutes($date->clone(), 30, true),
-            TraceTimestampEnum::Min10 => $this->sliceMinutes($date->clone(), 10, true),
-            TraceTimestampEnum::Min5  => $this->sliceMinutes($date->clone(), 5, true),
-            TraceTimestampEnum::Min   => $date->clone()->endOfMinute(),
-            TraceTimestampEnum::S30   => $this->sliceSeconds($date->clone(), 30, true),
-            TraceTimestampEnum::S10   => $this->sliceSeconds($date->clone(), 10, true),
-            TraceTimestampEnum::S5    => $this->sliceSeconds($date->clone(), 5, true),
+        // Carbon is mutable and the caller keeps the date it passes - in
+        // FindTraceTimestampsAction it is the very object stored as the bucket's start.
+        $start = $this->prepareDateByTimestamp($date->clone(), $timestamp);
+
+        $next = match ($timestamp) {
+            TraceTimestampEnum::M     => $start->addMonth(),
+            TraceTimestampEnum::D     => $start->addDay(),
+            TraceTimestampEnum::H12   => $start->addHours(12),
+            TraceTimestampEnum::H4    => $start->addHours(4),
+            TraceTimestampEnum::H     => $start->addHour(),
+            TraceTimestampEnum::Min30 => $start->addMinutes(30),
+            TraceTimestampEnum::Min10 => $start->addMinutes(10),
+            TraceTimestampEnum::Min5  => $start->addMinutes(5),
+            TraceTimestampEnum::Min   => $start->addMinute(),
+            TraceTimestampEnum::S30   => $start->addSeconds(30),
+            TraceTimestampEnum::S10   => $start->addSeconds(10),
+            TraceTimestampEnum::S5    => $start->addSeconds(5),
         };
+
+        return $next->subMicrosecond();
     }
 
     /**
@@ -201,37 +217,35 @@ class TraceTimestampMetricsFactory
         };
     }
 
-    private function sliceHours(Carbon $date, int $slice, bool $next = false): Carbon
+    private function sliceHours(Carbon $date, int $slice): Carbon
     {
         return $date
             ->setHours(
-                $this->sliceValue($date->hour, $slice, $next)
+                $this->sliceValue($date->hour, $slice)
             )
             ->startOfHour();
     }
 
-    private function sliceMinutes(Carbon $date, int $slice, bool $next = false): Carbon
+    private function sliceMinutes(Carbon $date, int $slice): Carbon
     {
         return $date
             ->setMinutes(
-                $this->sliceValue($date->minute, $slice, $next)
+                $this->sliceValue($date->minute, $slice)
             )
             ->startOfMinute();
     }
 
-    private function sliceSeconds(Carbon $date, int $slice, bool $next = false): Carbon
+    private function sliceSeconds(Carbon $date, int $slice): Carbon
     {
         return $date
             ->setSeconds(
-                $this->sliceValue($date->second, $slice, $next)
+                $this->sliceValue($date->second, $slice)
             )
             ->startOfSecond();
     }
 
-    private function sliceValue(int $value, int $slice, bool $next = false): int
+    private function sliceValue(int $value, int $slice): int
     {
-        $result = $value - ($value % $slice);
-
-        return $next ? ($result + $slice - 1) : $result;
+        return $value - ($value % $slice);
     }
 }
