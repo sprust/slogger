@@ -19,8 +19,11 @@ class TraceTimestampResource extends AbstractApiResource
     {
         parent::__construct($resource);
 
-        $this->timestamp    = $resource->timestamp->toDateTimeString();
-        $this->timestamp_to = $resource->timestampTo->toDateTimeString();
+        $this->timestamp = $resource->timestamp->toDateTimeString();
+        // With microseconds, and not for decoration: the end of a bucket is a microsecond
+        // before the next one starts, so cutting it back to whole seconds would hand the
+        // search a bound that drops everything logged inside the bucket's last second.
+        $this->timestamp_to = $resource->timestampTo->format('Y-m-d H:i:s.u');
         $this->fields       = TraceTimestampFieldResource::mapIntoMe($resource->fields);
     }
 }

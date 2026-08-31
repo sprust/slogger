@@ -9,10 +9,13 @@ import {
 } from "../components/pages/trace-aggregator/components/services/store/traceAggregatorServicesStore.ts";
 import alerts from "./alerts.ts";
 
+// Up to six fractional digits, because the end of a graph bucket is a microsecond before
+// the next bucket starts. A shorter fraction still matches, so ordinary values are unaffected.
+const plainDateTimePattern =
+    /^(\d{4})-(\d{2})-(\d{2})(?:[T\s])(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{1,6}))?)?$/
+
 function parseDateTimeAsUtc(value: string): Date | null {
-    const matched = value.trim().match(
-        /^(\d{4})-(\d{2})-(\d{2})(?:[T\s])(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{1,3}))?)?$/
-    )
+    const matched = value.trim().match(plainDateTimePattern)
 
     if (!matched) {
         return null
@@ -26,7 +29,7 @@ function parseDateTimeAsUtc(value: string): Date | null {
         hours,
         minutes,
         seconds = '0',
-        milliseconds = '0'
+        fraction = '0'
     ] = matched
 
     return new Date(Date.UTC(
@@ -36,7 +39,9 @@ function parseDateTimeAsUtc(value: string): Date | null {
         Number(hours),
         Number(minutes),
         Number(seconds),
-        Number(milliseconds.padEnd(3, '0'))
+        // A Date holds milliseconds and nothing finer, so the rest is cut here. What goes
+        // to the backend keeps every digit - see normalizeUtcDateTime.
+        Number(fraction.padEnd(3, '0').slice(0, 3))
     ))
 }
 
@@ -97,6 +102,17 @@ export function normalizeUtcDateTime(value: string | Date | undefined | null): s
             value.getSeconds(),
             value.getMilliseconds()
         )).toISOString()
+    }
+
+    const matched = value.trim().match(plainDateTimePattern)
+    const fraction = matched?.[7]
+
+    // A bucket end carries microseconds, and a Date would round them away. Mark the text
+    // as UTC instead of parsing it, so the bound reaches the backend with every digit.
+    if (matched && fraction && fraction.length > 3) {
+        const [, year, month, day, hours, minutes, seconds = '00'] = matched
+
+        return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.${fraction}Z`
     }
 
     const parsedUtcDate = /(?:Z|[+-]\d{2}:\d{2})$/.test(value)

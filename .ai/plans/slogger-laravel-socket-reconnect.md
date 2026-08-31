@@ -1,5 +1,12 @@
 # Prompt: teach the slogger-laravel socket client to survive a closed connection
 
+> **Done.** Shipped in `slogger/laravel` 2.1.0, which is what is installed here — the
+> `bugfix/socket-reconnect` branch is an ancestor of the `v2.1.0` tag. What follows is a
+> record of the problem and the reasoning behind the fix, not a description of current
+> behaviour; the `857f5401` revision it was verified against is no longer the one
+> installed. For how the client works now see
+> `vendor/slogger/laravel/src/Dispatcher/ApiClients/Socket/`.
+
 Target repository: `https://github.com/sprust/slogger-laravel` (installed here as
 `slogger/laravel`). This file is a task brief — it belongs to the client package,
 not to `slogger.back`. Everything below was verified against the code at

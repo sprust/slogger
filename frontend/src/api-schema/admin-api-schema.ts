@@ -338,21 +338,58 @@ export namespace AdminApi {
     cpu_percent: number,
     memory_rss_bytes: number,
     goroutines: number,
-    requests_completed: number,
-    requests_avg_ms: number,
-    requests_in_flight: number,
+    work?: {
+    in_process: number,
+    "in_process_1_to_5s": number,
+    "in_process_5_to_15s": number,
+    "in_process_over_15s": number,
+    finished: number,
+    refused: number,
+    measured: number,
+    avg_ms: number,
+
+},
     master_cpu_percent: number,
     master_memory_rss_bytes: number,
+    groups: ({
+    name: string,
+    workers_total: number,
+    workers_hung: number,
+    cpu_percent: number,
+    memory_rss_bytes: number,
+    goroutines: number,
+    work?: {
+    in_process: number,
+    "in_process_1_to_5s": number,
+    "in_process_5_to_15s": number,
+    "in_process_over_15s": number,
+    finished: number,
+    refused: number,
+    measured: number,
+    avg_ms: number,
+
+},
+
+})[],
     workers: ({
     pid: number,
+    group: string,
     hung: boolean,
     uptime_seconds: number,
     cpu_percent: number,
     memory_rss_bytes: number,
     goroutines: number,
-    requests_in_flight: number,
-    requests_completed: number,
-    requests_avg_ms: number,
+    work?: {
+    in_process: number,
+    "in_process_1_to_5s": number,
+    "in_process_5_to_15s": number,
+    "in_process_over_15s": number,
+    finished: number,
+    refused: number,
+    measured: number,
+    avg_ms: number,
+
+},
 
 })[],
 
@@ -374,21 +411,54 @@ export namespace AdminApi {
         cpu_percent: number;
         memory_rss_bytes: number;
         goroutines: number;
-        requests_completed: number;
-        requests_avg_ms: number;
-        requests_in_flight: number;
+        work?: {
+          in_process: number;
+          in_process_1_to_5s: number;
+          in_process_5_to_15s: number;
+          in_process_over_15s: number;
+          finished: number;
+          refused: number;
+          measured: number;
+          avg_ms: number;
+        };
         master_cpu_percent: number;
         master_memory_rss_bytes: number;
+        groups: {
+          name: string;
+          workers_total: number;
+          workers_hung: number;
+          cpu_percent: number;
+          memory_rss_bytes: number;
+          goroutines: number;
+          work?: {
+            in_process: number;
+            in_process_1_to_5s: number;
+            in_process_5_to_15s: number;
+            in_process_over_15s: number;
+            finished: number;
+            refused: number;
+            measured: number;
+            avg_ms: number;
+          };
+        }[];
         workers: {
           pid: number;
+          group: string;
           hung: boolean;
           uptime_seconds: number;
           cpu_percent: number;
           memory_rss_bytes: number;
           goroutines: number;
-          requests_in_flight: number;
-          requests_completed: number;
-          requests_avg_ms: number;
+          work?: {
+            in_process: number;
+            in_process_1_to_5s: number;
+            in_process_5_to_15s: number;
+            in_process_over_15s: number;
+            finished: number;
+            refused: number;
+            measured: number;
+            avg_ms: number;
+          };
         }[];
       };
     };
@@ -865,19 +935,19 @@ export namespace AdminApi {
     children?: (string)[] | null,
     can_be_filtered: boolean,
 
-})[],
+})[] | null,
     can_be_filtered: boolean,
 
-})[],
+})[] | null,
     can_be_filtered: boolean,
 
-})[],
+})[] | null,
     can_be_filtered: boolean,
 
-})[],
+})[] | null,
     can_be_filtered: boolean,
 
-})[],
+})[] | null,
     can_be_filtered: boolean,
 
 },
@@ -913,33 +983,43 @@ export namespace AdminApi {
         data: {
           key: string;
           value: string;
-          children?: {
-            key: string;
-            value: string;
-            children?: {
-              key: string;
-              value: string;
-              children?: {
+          children?:
+            | {
                 key: string;
                 value: string;
-                children?: {
-                  key: string;
-                  value: string;
-                  children?: {
-                    key: string;
-                    value: string;
-                    /** @maxItems 0 */
-                    children?: string[] | null;
-                    can_be_filtered: boolean;
-                  }[];
-                  can_be_filtered: boolean;
-                }[];
+                children?:
+                  | {
+                      key: string;
+                      value: string;
+                      children?:
+                        | {
+                            key: string;
+                            value: string;
+                            children?:
+                              | {
+                                  key: string;
+                                  value: string;
+                                  children?:
+                                    | {
+                                        key: string;
+                                        value: string;
+                                        /** @maxItems 0 */
+                                        children?: string[] | null;
+                                        can_be_filtered: boolean;
+                                      }[]
+                                    | null;
+                                  can_be_filtered: boolean;
+                                }[]
+                              | null;
+                            can_be_filtered: boolean;
+                          }[]
+                        | null;
+                      can_be_filtered: boolean;
+                    }[]
+                  | null;
                 can_be_filtered: boolean;
-              }[];
-              can_be_filtered: boolean;
-            }[];
-            can_be_filtered: boolean;
-          }[];
+              }[]
+            | null;
           can_be_filtered: boolean;
         };
         duration?: number | null;
@@ -1018,15 +1098,15 @@ export namespace AdminApi {
   /** @maxItems 0 *\/
     children?: (string)[] | null,
 
-})[],
+})[] | null,
 
-})[],
+})[] | null,
 
-})[],
+})[] | null,
 
-})[],
+})[] | null,
 
-})[],
+})[] | null,
 
 })[],
 
@@ -1056,25 +1136,8 @@ export namespace AdminApi {
             weight_percent: number;
           }[];
           recursionNodeId?: number | null;
-          children?: {
-            id: number;
-            calling: string;
-            data: {
-              name: string;
-              value: number;
-              weight_percent: number;
-            }[];
-            recursionNodeId?: number | null;
-            children?: {
-              id: number;
-              calling: string;
-              data: {
-                name: string;
-                value: number;
-                weight_percent: number;
-              }[];
-              recursionNodeId?: number | null;
-              children?: {
+          children?:
+            | {
                 id: number;
                 calling: string;
                 data: {
@@ -1083,28 +1146,55 @@ export namespace AdminApi {
                   weight_percent: number;
                 }[];
                 recursionNodeId?: number | null;
-                children?: {
-                  id: number;
-                  calling: string;
-                  data: {
-                    name: string;
-                    value: number;
-                    weight_percent: number;
-                  }[];
-                  recursionNodeId?: number | null;
-                  children?: {
-                    id: number;
-                    calling: string;
-                    /** @maxItems 0 */
-                    data: string[];
-                    recursionNodeId?: number | null;
-                    /** @maxItems 0 */
-                    children?: string[] | null;
-                  }[];
-                }[];
-              }[];
-            }[];
-          }[];
+                children?:
+                  | {
+                      id: number;
+                      calling: string;
+                      data: {
+                        name: string;
+                        value: number;
+                        weight_percent: number;
+                      }[];
+                      recursionNodeId?: number | null;
+                      children?:
+                        | {
+                            id: number;
+                            calling: string;
+                            data: {
+                              name: string;
+                              value: number;
+                              weight_percent: number;
+                            }[];
+                            recursionNodeId?: number | null;
+                            children?:
+                              | {
+                                  id: number;
+                                  calling: string;
+                                  data: {
+                                    name: string;
+                                    value: number;
+                                    weight_percent: number;
+                                  }[];
+                                  recursionNodeId?: number | null;
+                                  children?:
+                                    | {
+                                        id: number;
+                                        calling: string;
+                                        /** @maxItems 0 */
+                                        data: string[];
+                                        recursionNodeId?: number | null;
+                                        /** @maxItems 0 */
+                                        children?: string[] | null;
+                                      }[]
+                                    | null;
+                                }[]
+                              | null;
+                          }[]
+                        | null;
+                    }[]
+                  | null;
+              }[]
+            | null;
         }[];
       };
     };
@@ -2231,21 +2321,58 @@ export class Api<
     cpu_percent: number,
     memory_rss_bytes: number,
     goroutines: number,
-    requests_completed: number,
-    requests_avg_ms: number,
-    requests_in_flight: number,
+    work?: {
+    in_process: number,
+    "in_process_1_to_5s": number,
+    "in_process_5_to_15s": number,
+    "in_process_over_15s": number,
+    finished: number,
+    refused: number,
+    measured: number,
+    avg_ms: number,
+
+},
     master_cpu_percent: number,
     master_memory_rss_bytes: number,
+    groups: ({
+    name: string,
+    workers_total: number,
+    workers_hung: number,
+    cpu_percent: number,
+    memory_rss_bytes: number,
+    goroutines: number,
+    work?: {
+    in_process: number,
+    "in_process_1_to_5s": number,
+    "in_process_5_to_15s": number,
+    "in_process_over_15s": number,
+    finished: number,
+    refused: number,
+    measured: number,
+    avg_ms: number,
+
+},
+
+})[],
     workers: ({
     pid: number,
+    group: string,
     hung: boolean,
     uptime_seconds: number,
     cpu_percent: number,
     memory_rss_bytes: number,
     goroutines: number,
-    requests_in_flight: number,
-    requests_completed: number,
-    requests_avg_ms: number,
+    work?: {
+    in_process: number,
+    "in_process_1_to_5s": number,
+    "in_process_5_to_15s": number,
+    "in_process_over_15s": number,
+    finished: number,
+    refused: number,
+    measured: number,
+    avg_ms: number,
+
+},
 
 })[],
 
@@ -2264,21 +2391,54 @@ export class Api<
             cpu_percent: number;
             memory_rss_bytes: number;
             goroutines: number;
-            requests_completed: number;
-            requests_avg_ms: number;
-            requests_in_flight: number;
+            work?: {
+              in_process: number;
+              in_process_1_to_5s: number;
+              in_process_5_to_15s: number;
+              in_process_over_15s: number;
+              finished: number;
+              refused: number;
+              measured: number;
+              avg_ms: number;
+            };
             master_cpu_percent: number;
             master_memory_rss_bytes: number;
+            groups: {
+              name: string;
+              workers_total: number;
+              workers_hung: number;
+              cpu_percent: number;
+              memory_rss_bytes: number;
+              goroutines: number;
+              work?: {
+                in_process: number;
+                in_process_1_to_5s: number;
+                in_process_5_to_15s: number;
+                in_process_over_15s: number;
+                finished: number;
+                refused: number;
+                measured: number;
+                avg_ms: number;
+              };
+            }[];
             workers: {
               pid: number;
+              group: string;
               hung: boolean;
               uptime_seconds: number;
               cpu_percent: number;
               memory_rss_bytes: number;
               goroutines: number;
-              requests_in_flight: number;
-              requests_completed: number;
-              requests_avg_ms: number;
+              work?: {
+                in_process: number;
+                in_process_1_to_5s: number;
+                in_process_5_to_15s: number;
+                in_process_over_15s: number;
+                finished: number;
+                refused: number;
+                measured: number;
+                avg_ms: number;
+              };
             }[];
           };
         },
@@ -2825,19 +2985,19 @@ export class Api<
     children?: (string)[] | null,
     can_be_filtered: boolean,
 
-})[],
+})[] | null,
     can_be_filtered: boolean,
 
-})[],
+})[] | null,
     can_be_filtered: boolean,
 
-})[],
+})[] | null,
     can_be_filtered: boolean,
 
-})[],
+})[] | null,
     can_be_filtered: boolean,
 
-})[],
+})[] | null,
     can_be_filtered: boolean,
 
 },
@@ -2868,33 +3028,43 @@ export class Api<
             data: {
               key: string;
               value: string;
-              children?: {
-                key: string;
-                value: string;
-                children?: {
-                  key: string;
-                  value: string;
-                  children?: {
+              children?:
+                | {
                     key: string;
                     value: string;
-                    children?: {
-                      key: string;
-                      value: string;
-                      children?: {
-                        key: string;
-                        value: string;
-                        /** @maxItems 0 */
-                        children?: string[] | null;
-                        can_be_filtered: boolean;
-                      }[];
-                      can_be_filtered: boolean;
-                    }[];
+                    children?:
+                      | {
+                          key: string;
+                          value: string;
+                          children?:
+                            | {
+                                key: string;
+                                value: string;
+                                children?:
+                                  | {
+                                      key: string;
+                                      value: string;
+                                      children?:
+                                        | {
+                                            key: string;
+                                            value: string;
+                                            /** @maxItems 0 */
+                                            children?: string[] | null;
+                                            can_be_filtered: boolean;
+                                          }[]
+                                        | null;
+                                      can_be_filtered: boolean;
+                                    }[]
+                                  | null;
+                                can_be_filtered: boolean;
+                              }[]
+                            | null;
+                          can_be_filtered: boolean;
+                        }[]
+                      | null;
                     can_be_filtered: boolean;
-                  }[];
-                  can_be_filtered: boolean;
-                }[];
-                can_be_filtered: boolean;
-              }[];
+                  }[]
+                | null;
               can_be_filtered: boolean;
             };
             duration?: number | null;
@@ -2981,15 +3151,15 @@ export class Api<
   /** @maxItems 0 *\/
     children?: (string)[] | null,
 
-})[],
+})[] | null,
 
-})[],
+})[] | null,
 
-})[],
+})[] | null,
 
-})[],
+})[] | null,
 
-})[],
+})[] | null,
 
 })[],
 
@@ -3018,25 +3188,8 @@ export class Api<
                 weight_percent: number;
               }[];
               recursionNodeId?: number | null;
-              children?: {
-                id: number;
-                calling: string;
-                data: {
-                  name: string;
-                  value: number;
-                  weight_percent: number;
-                }[];
-                recursionNodeId?: number | null;
-                children?: {
-                  id: number;
-                  calling: string;
-                  data: {
-                    name: string;
-                    value: number;
-                    weight_percent: number;
-                  }[];
-                  recursionNodeId?: number | null;
-                  children?: {
+              children?:
+                | {
                     id: number;
                     calling: string;
                     data: {
@@ -3045,28 +3198,55 @@ export class Api<
                       weight_percent: number;
                     }[];
                     recursionNodeId?: number | null;
-                    children?: {
-                      id: number;
-                      calling: string;
-                      data: {
-                        name: string;
-                        value: number;
-                        weight_percent: number;
-                      }[];
-                      recursionNodeId?: number | null;
-                      children?: {
-                        id: number;
-                        calling: string;
-                        /** @maxItems 0 */
-                        data: string[];
-                        recursionNodeId?: number | null;
-                        /** @maxItems 0 */
-                        children?: string[] | null;
-                      }[];
-                    }[];
-                  }[];
-                }[];
-              }[];
+                    children?:
+                      | {
+                          id: number;
+                          calling: string;
+                          data: {
+                            name: string;
+                            value: number;
+                            weight_percent: number;
+                          }[];
+                          recursionNodeId?: number | null;
+                          children?:
+                            | {
+                                id: number;
+                                calling: string;
+                                data: {
+                                  name: string;
+                                  value: number;
+                                  weight_percent: number;
+                                }[];
+                                recursionNodeId?: number | null;
+                                children?:
+                                  | {
+                                      id: number;
+                                      calling: string;
+                                      data: {
+                                        name: string;
+                                        value: number;
+                                        weight_percent: number;
+                                      }[];
+                                      recursionNodeId?: number | null;
+                                      children?:
+                                        | {
+                                            id: number;
+                                            calling: string;
+                                            /** @maxItems 0 */
+                                            data: string[];
+                                            recursionNodeId?: number | null;
+                                            /** @maxItems 0 */
+                                            children?: string[] | null;
+                                          }[]
+                                        | null;
+                                    }[]
+                                  | null;
+                              }[]
+                            | null;
+                        }[]
+                      | null;
+                  }[]
+                | null;
             }[];
           };
         },

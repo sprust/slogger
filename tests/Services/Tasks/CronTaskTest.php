@@ -1,0 +1,47 @@
+<?php
+
+namespace Tests\Services\Tasks;
+
+use App\Services\Tasks\CronTask;
+use Illuminate\Support\Carbon;
+use PHPUnit\Framework\TestCase;
+use SConcur\Laravel\Tasks\TickResultEnum;
+
+/**
+ * The task keeps one thing: the minute it last ran the schedule for. What that starts as
+ * decides whether a restart re-runs a minute the process before it already served.
+ */
+class CronTaskTest extends TestCase
+{
+    /**
+     * The cron command this replaced read the clock before entering its loop. Starting
+     * from "no minute has run" instead would fire schedule:run for the minute already in
+     * progress, so a restart at 11:00:20 would dispatch the 11:00 jobs a second time —
+     * and restarts are ordinary here: a deploy, the memory limit, sconcur:tasks:restart.
+     */
+    public function testTheMinuteInProgressCountsAsAlreadyRun(): void
+    {
+        // The clock is frozen for the length of the test. Without that, a minute rolling
+        // over between the constructor and the tick would not merely fail the assertion:
+        // the tick would reach Artisan::call() with no application bound, and the test
+        // would die rather than report.
+        Carbon::setTestNow(Carbon::create(2026, 8, 29, 11, 0, 20));
+
+        try {
+            $task = new CronTask(new SilentLogger());
+
+            $this->assertSame(
+                TickResultEnum::Idle,
+                $task->tick(),
+                'a fresh task does not run the schedule for the minute it started in'
+            );
+        } finally {
+            Carbon::setTestNow();
+        }
+    }
+
+    public function testTheTaskIsNamedCron(): void
+    {
+        $this->assertSame('cron', new CronTask(new SilentLogger())->name());
+    }
+}

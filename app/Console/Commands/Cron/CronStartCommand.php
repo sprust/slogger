@@ -1,57 +1,28 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Console\Commands\Cron;
 
-use Illuminate\Support\Facades\Artisan;
+use App\Services\Tasks\CronTask;
+use Illuminate\Console\Command;
+use SConcur\Laravel\Tasks\TaskPool;
 
-class CronStartCommand extends BaseCronCommand
+/**
+ * Runs the cron on its own.
+ *
+ * Kept as a familiar entry point for local work; in production the same task runs inside
+ * the pool alongside the others. Either way it is the pool's loop that drives it, so
+ * there is one implementation of the loop and no second behaviour to keep in step.
+ */
+class CronStartCommand extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
     protected $signature = 'cron:start';
 
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
-    protected $description = 'Start the cron';
+    protected $description = 'Start the cron (the cron task alone, as sconcur:tasks:start --only=cron)';
 
-    /**
-     * Execute the console command.
-     */
-    public function handle(): int
+    public function handle(TaskPool $pool): int
     {
-        $this->components->info('Cron start');
-
-        $sessionKey = $this->setSessionKey();
-
-        $previousMinute = $this->getCurrentMinute();
-
-        while (true) {
-            sleep(5);
-
-            if (!$this->isSessionKeyActive($sessionKey)) {
-                break;
-            }
-
-            if ($previousMinute === $this->getCurrentMinute()) {
-                continue;
-            }
-
-            $previousMinute = $this->getCurrentMinute();
-
-            Artisan::call('schedule:run', outputBuffer: $this->output);
-        }
-
-        return self::SUCCESS;
-    }
-
-    private function getCurrentMinute(): int
-    {
-        return (int) date('i');
+        return $pool->run([CronTask::NAME]);
     }
 }

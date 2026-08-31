@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\Users\User;
 use SLoggerLaravel\Dispatcher\Items\Queue\Jobs\SendTracesJob;
 use SLoggerLaravel\Events\WatcherErrorEvent;
 use SLoggerLaravel\Listeners\WatcherErrorListener;
@@ -31,6 +30,12 @@ return [
     // trace id prefix. if empty, uses slugged app.name or "app".
     'trace_id_prefix'                 => env('SLOGGER_TRACE_ID_PREFIX', ''),
 
+    // where the state of one unit of work - one request, one job, one command - is kept.
+    // one of: array, fiber - or the class name of your own TraceContextInterface.
+    //   array: a single map for the whole process.
+    //   fiber: a map per running fiber, which is what sconcur gives each request.
+    'context'                         => env('SLOGGER_CONTEXT', 'array'),
+
     // dispatcher selection and configuration.
     'dispatchers'                     => [
         // one of: queue, memory.
@@ -44,17 +49,15 @@ return [
             'workers_num' => env('SLOGGER_DISPATCHER_QUEUE_WORKERS_COUNT', 3),
 
             'api_clients' => [
-                // default api client: http or socket.
-                'default' => env('SLOGGER_DISPATCHER_QUEUE_API_CLIENT', 'http'),
-
-                'http' => [
-                    // base url for http backend.
-                    'url' => env('SLOGGER_DISPATCHER_QUEUE_HTTP_CLIENT_URL'),
-                ],
+                // socket is the only client the package ships since 2.0 - anything
+                // else makes ApiClientFactory throw on every trace job.
+                'default' => env('SLOGGER_DISPATCHER_QUEUE_API_CLIENT', 'socket'),
 
                 'socket' => [
                     // socket address for socket backend (e.g. tcp://host:port).
-                    'url' => env('SLOGGER_DISPATCHER_QUEUE_SOCKET_CLIENT_URL'),
+                    'url'             => env('SLOGGER_DISPATCHER_QUEUE_SOCKET_CLIENT_URL'),
+                    // read/write timeout in seconds (connect timeout is separate).
+                    'timeout_seconds' => env('SLOGGER_DISPATCHER_QUEUE_SOCKET_CLIENT_TIMEOUT', 10),
                 ],
             ],
         ],
@@ -74,6 +77,110 @@ return [
             WatcherErrorListener::class,
         ],
     ],
+
+    'masking'                         => [
+        // the value under a matching key is replaced whole, and everything below it.
+        // matched case-insensitively against the whole key and each of its components.
+        'full_keys' => [
+            // a word, so `auth` covers `php-auth-pw` and not `author`
+            'auth',
+            'authentication',
+            'authorization',
+            'oauth',
+            'passwd',
+            'pass',
+            'passcode',
+            'passphrase',
+            'pw',
+            // not bare `signed`: it would take `signed_at` and `signed_by` too
+            'signed_payload',
+            'signed_request',
+            'signed_url',
+            'private',
+            'privatekey',
+            'session',
+            'sessionid',
+            'csrf',
+            'jwt',
+            'bearer',
+            'otp',
+            'totp',
+            'cvv',
+            'cvc',
+            'pin',
+            'pincode',
+            'iban',
+            'ssn',
+            'recovery',
+            // spelled out: a bare `card` would take `card_type` with it
+            'cardnumber',
+            'creditcard',
+            'credit_card',
+            // not covered by `pass`, `passwd` or `pw`: `user_pwd` splits to `pwd`
+            'pwd',
+
+            // a wildcard matches the whole key, and the bare form with it - so a
+            // word listed here is not repeated above
+            '*token*',
+            '*password*',
+            '*secret*',
+            '*api_key*',
+            '*apikey*',
+            '*api-key*',
+            '*credential*',
+            '*cookie*',
+            '*signature*',
+            '*session_id*',
+            '*card_number*',
+            '*recovery_code*',
+        ],
+
+        // two characters kept at each end, so two records still look different.
+        // these identify a person rather than authenticate one - never a secret here.
+        //
+        // no bare `name`: it is matched as a word component, and `job.name` holds a
+        // job class, `listeners[].name` a listener class, a file's `name` its filename
+        'partial_keys' => [
+            'username',
+            'user_name',
+            'nickname',
+            'surname',
+            'middlename',
+            'middle_name',
+            'fullname',
+            'full_name',
+
+            '*email*',
+            '*phone*',
+            '*recipient*',
+            '*firstname*',
+            '*first_name*',
+            '*lastname*',
+            '*last_name*',
+        ],
+
+        // matched against the value and masked in place, for what no key name points
+        // at - an address in a log line. an invalid pattern is ignored, not fatal.
+        //
+        // order matters: first match wins, so narrow before broad. a capture group
+        // masks the group and keeps the rest.
+        'value_patterns' => [
+            // postgres://app:secret@db. a scheme is required, so `//assets:v2@2x.png`
+            // is left alone; the group runs to the last `@`
+            'url_credentials' => '/\b[a-z][a-z0-9+.-]*:\/\/[^\/\s:@]+:([^\/\s]+)@/i',
+
+            // a secret in a url, wherever it turns up. the parameter name is a word,
+            // not a substring: unbounded, it took `?author=` and `?country_code=`
+            'url_secret' => '/[?&](?:[\w.-]*[_-])?(?:token|apikey|api_key|api-key|secret|password|passwd|auth|authorization|signature|credential|session|sessionid)(?:[_-][\w.-]*)?=([^&\s"\'<>]+)/i',
+
+            // whole parameter name only, or it takes `country_code` and `zip_code`
+            'url_oauth_code' => '/[?&]code=([^&\s"\'<>]+)/i',
+
+            'email' => '/[\w.+-]+@[\w-]+\.[\w.-]*[\w-]/u',
+        ],
+    ],
+
+    // exclude files from trace backtraces (supports wildcard masks).
 
     // exclude files from trace backtraces (supports wildcard masks).
     'data_completer'                  => [
@@ -135,22 +242,9 @@ return [
                         'admin-api/auth/login',
                     ],
 
-                    // mask specific request headers by url pattern.
-                    'headers_masking'    => [
-                        '*' => [
-                            'authorization',
-                            'cookie',
-                            'x-xsrf-token',
-                        ],
-                    ],
-
-                    // mask request parameters by url pattern.
-                    'parameters_masking' => [
-                        '*' => [
-                            '*token*',
-                            '*password*',
-                        ],
-                    ],
+                    // above this the parameters are not recorded at all. a value
+                    // larger than the masker reads records nothing, not something raw
+                    'max_content_length' => 1000000,
                 ],
 
                 'output' => [
@@ -160,25 +254,13 @@ return [
                     ],
 
                     // hide all response data for these url patterns.
-                    'hidden_paths'    => [
+                    'hidden_paths'       => [
                         'admin-api/auth/*',
                         'admin-api/trace-aggregator/trace-metrics',
                     ],
 
-                    // mask specific response headers by url pattern.
-                    'headers_masking' => [
-                        '*' => [
-                            'set-cookie',
-                        ],
-                    ],
-
-                    // mask response fields by url pattern.
-                    'fields_masking'  => [
-                        '*' => [
-                            '*token*',
-                            '*password*',
-                        ],
-                    ],
+                    // the same for the response body
+                    'max_content_length' => 1000000,
                 ],
             ],
         ],
@@ -250,19 +332,6 @@ return [
         [
             'class'   => ModelWatcher::class,
             'enabled' => env('SLOGGER_LOG_MODEL_ENABLED', false),
-            'config'  => [
-                // model field masks by model class.
-                'masks' => [
-                    '*'         => [
-                        '*token*',
-                        '*password*',
-                    ],
-                    User::class => [
-                        '*name*',
-                        '*email*',
-                    ],
-                ],
-            ],
         ],
         [
             'class'   => NotificationWatcher::class,
@@ -270,7 +339,7 @@ return [
         ],
         [
             'class'   => ScheduleWatcher::class,
-            'enabled' => env('SLOGGER_LOG_LOG_ENABLED', false),
+            'enabled' => env('SLOGGER_LOG_SCHEDULE_ENABLED', false),
         ],
     ],
 ];

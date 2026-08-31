@@ -9,15 +9,15 @@ use App\Modules\Trace\Domain\Actions\MakeMetricIndicatorsAction;
 use App\Modules\Trace\Domain\Actions\MakeTraceTimestampPeriodsAction;
 use App\Modules\Trace\Domain\Actions\MakeTraceTimestampsAction;
 use App\Modules\Trace\Domain\Actions\Mutations\CreateTraceAdminStoreAction;
+use App\Modules\Trace\Domain\Actions\Mutations\BuildPendingTraceDynamicIndexesAction;
 use App\Modules\Trace\Domain\Actions\Mutations\BuildTraceTreeCacheAction;
 use App\Modules\Trace\Domain\Actions\Mutations\CancelTraceTreeCacheStateAction;
 use App\Modules\Trace\Domain\Actions\Mutations\DeleteCollectionsAction;
+use App\Modules\Trace\Domain\Actions\Mutations\DeleteExpiredTraceDynamicIndexesAction;
 use App\Modules\Trace\Domain\Actions\Mutations\DeleteTraceTreeCacheStateAction;
 use App\Modules\Trace\Domain\Actions\Mutations\DeleteTraceAdminStoreAction;
 use App\Modules\Trace\Domain\Actions\Mutations\DeleteTraceDynamicIndexAction;
 use App\Modules\Trace\Domain\Actions\Mutations\FlushDynamicIndexesAction;
-use App\Modules\Trace\Domain\Actions\Mutations\StartMonitorTraceDynamicIndexesAction;
-use App\Modules\Trace\Domain\Actions\Mutations\StopMonitorTraceDynamicIndexesAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindStatusesAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTagsAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceAdminStoreAction;
@@ -39,7 +39,6 @@ use App\Modules\Trace\Domain\Services\TraceFieldTitlesService;
 use App\Modules\Trace\Domain\Services\TraceTreeCacheBuilderService;
 use App\Modules\Trace\Infrastructure\Commands\FlushDynamicIndexesCommand;
 use App\Modules\Trace\Infrastructure\Commands\StartMonitorTraceDynamicIndexesCommand;
-use App\Modules\Trace\Infrastructure\Commands\StopMonitorTraceDynamicIndexesCommand;
 use App\Modules\Trace\Repositories\Services\PeriodicTraceCollectionNameService;
 use App\Modules\Trace\Repositories\Services\PeriodicTraceService;
 use App\Modules\Trace\Repositories\Services\TracePipelineBuilder;
@@ -96,7 +95,6 @@ class TraceServiceProvider extends BaseServiceProvider
 
         $this->commands([
             StartMonitorTraceDynamicIndexesCommand::class,
-            StopMonitorTraceDynamicIndexesCommand::class,
             FlushDynamicIndexesCommand::class,
         ]);
     }
@@ -118,8 +116,8 @@ class TraceServiceProvider extends BaseServiceProvider
             MakeTraceTimestampPeriodsAction::class,
             MakeTraceTimestampsAction::class,
             // actions.mutations
-            StartMonitorTraceDynamicIndexesAction::class,
-            StopMonitorTraceDynamicIndexesAction::class,
+            BuildPendingTraceDynamicIndexesAction::class,
+            DeleteExpiredTraceDynamicIndexesAction::class,
             FlushDynamicIndexesAction::class,
             DeleteTraceDynamicIndexAction::class,
             CreateTraceAdminStoreAction::class,

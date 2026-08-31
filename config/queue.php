@@ -71,6 +71,33 @@ return [
             'after_commit' => false,
         ],
 
+        /*
+         * The SConcur AMQP transport: the consumer pool reads it with coroutines under
+         * the sconcur master instead of one blocking queue:work per worker. It is what
+         * QUEUE_CONNECTION names, so this is where a job goes unless it says otherwise.
+         *
+         * The wire format matches the `rabbitmq` connection below, so a job published
+         * by either one is readable and runnable by the other's consumer.
+         */
+        'sconcur_rabbitmq' => [
+            'driver'    => 'sconcur_rabbitmq',
+            'queue'     => env('RABBITMQ_QUEUE', 'default'),
+            'dsn'       => env(
+                'SCONCUR_RABBITMQ_DSN',
+                sprintf(
+                    'amqp://%s:%s@%s:%s/%s',
+                    env('RABBITMQ_USER', 'guest'),
+                    env('RABBITMQ_PASSWORD', 'guest'),
+                    env('RABBITMQ_HOST', '127.0.0.1'),
+                    env('RABBITMQ_PORT', 5672),
+                    rawurlencode((string) env('RABBITMQ_VHOST', '/')),
+                ),
+            ),
+            // The wait queues a later() or a release() may address; a delay is rounded
+            // up to the nearest of these. Declared by sconcur:rabbitmq:declare.
+            'after_commit' => false,
+        ],
+
         'rabbitmq' => [
             'driver'     => 'rabbitmq',
             'queue'      => env('RABBITMQ_QUEUE', 'default'),
@@ -114,7 +141,9 @@ return [
     */
 
     'batching' => [
-        'database' => env('DB_CONNECTION', 'mysql'),
+        // null follows database.default, so a coroutine process writes these
+        // through the coroutine-safe connection instead of blocking PDO.
+        'database' => null,
         'table'    => 'job_batches',
     ],
 
@@ -131,7 +160,9 @@ return [
 
     'failed' => [
         'driver'   => env('QUEUE_FAILED_DRIVER', 'database-uuids'),
-        'database' => env('DB_CONNECTION', 'mysql'),
+        // null follows database.default, so a coroutine process writes these
+        // through the coroutine-safe connection instead of blocking PDO.
+        'database' => null,
         'table'    => 'failed_jobs',
     ],
 ];

@@ -321,17 +321,51 @@
                                                     "type": "integer",
                                                     "nullable": false
                                                 },
-                                                "requests_completed": {
-                                                    "type": "integer",
-                                                    "nullable": false
-                                                },
-                                                "requests_avg_ms": {
-                                                    "type": "number",
-                                                    "nullable": false
-                                                },
-                                                "requests_in_flight": {
-                                                    "type": "integer",
-                                                    "nullable": false
+                                                "work": {
+                                                    "properties": {
+                                                        "in_process": {
+                                                            "type": "integer",
+                                                            "nullable": false
+                                                        },
+                                                        "in_process_1_to_5s": {
+                                                            "type": "integer",
+                                                            "nullable": false
+                                                        },
+                                                        "in_process_5_to_15s": {
+                                                            "type": "integer",
+                                                            "nullable": false
+                                                        },
+                                                        "in_process_over_15s": {
+                                                            "type": "integer",
+                                                            "nullable": false
+                                                        },
+                                                        "finished": {
+                                                            "type": "integer",
+                                                            "nullable": false
+                                                        },
+                                                        "refused": {
+                                                            "type": "integer",
+                                                            "nullable": false
+                                                        },
+                                                        "measured": {
+                                                            "type": "integer",
+                                                            "nullable": false
+                                                        },
+                                                        "avg_ms": {
+                                                            "type": "number",
+                                                            "nullable": false
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "in_process",
+                                                        "in_process_1_to_5s",
+                                                        "in_process_5_to_15s",
+                                                        "in_process_over_15s",
+                                                        "finished",
+                                                        "refused",
+                                                        "measured",
+                                                        "avg_ms"
+                                                    ]
                                                 },
                                                 "master_cpu_percent": {
                                                     "type": "number",
@@ -341,6 +375,92 @@
                                                     "type": "integer",
                                                     "nullable": false
                                                 },
+                                                "groups": {
+                                                    "type": "array",
+                                                    "nullable": false,
+                                                    "items": {
+                                                        "properties": {
+                                                            "name": {
+                                                                "type": "string",
+                                                                "nullable": false
+                                                            },
+                                                            "workers_total": {
+                                                                "type": "integer",
+                                                                "nullable": false
+                                                            },
+                                                            "workers_hung": {
+                                                                "type": "integer",
+                                                                "nullable": false
+                                                            },
+                                                            "cpu_percent": {
+                                                                "type": "number",
+                                                                "nullable": false
+                                                            },
+                                                            "memory_rss_bytes": {
+                                                                "type": "integer",
+                                                                "nullable": false
+                                                            },
+                                                            "goroutines": {
+                                                                "type": "integer",
+                                                                "nullable": false
+                                                            },
+                                                            "work": {
+                                                                "properties": {
+                                                                    "in_process": {
+                                                                        "type": "integer",
+                                                                        "nullable": false
+                                                                    },
+                                                                    "in_process_1_to_5s": {
+                                                                        "type": "integer",
+                                                                        "nullable": false
+                                                                    },
+                                                                    "in_process_5_to_15s": {
+                                                                        "type": "integer",
+                                                                        "nullable": false
+                                                                    },
+                                                                    "in_process_over_15s": {
+                                                                        "type": "integer",
+                                                                        "nullable": false
+                                                                    },
+                                                                    "finished": {
+                                                                        "type": "integer",
+                                                                        "nullable": false
+                                                                    },
+                                                                    "refused": {
+                                                                        "type": "integer",
+                                                                        "nullable": false
+                                                                    },
+                                                                    "measured": {
+                                                                        "type": "integer",
+                                                                        "nullable": false
+                                                                    },
+                                                                    "avg_ms": {
+                                                                        "type": "number",
+                                                                        "nullable": false
+                                                                    }
+                                                                },
+                                                                "required": [
+                                                                    "in_process",
+                                                                    "in_process_1_to_5s",
+                                                                    "in_process_5_to_15s",
+                                                                    "in_process_over_15s",
+                                                                    "finished",
+                                                                    "refused",
+                                                                    "measured",
+                                                                    "avg_ms"
+                                                                ]
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "name",
+                                                            "workers_total",
+                                                            "workers_hung",
+                                                            "cpu_percent",
+                                                            "memory_rss_bytes",
+                                                            "goroutines"
+                                                        ]
+                                                    }
+                                                },
                                                 "workers": {
                                                     "type": "array",
                                                     "nullable": false,
@@ -348,6 +468,10 @@
                                                         "properties": {
                                                             "pid": {
                                                                 "type": "integer",
+                                                                "nullable": false
+                                                            },
+                                                            "group": {
+                                                                "type": "string",
                                                                 "nullable": false
                                                             },
                                                             "hung": {
@@ -370,29 +494,61 @@
                                                                 "type": "integer",
                                                                 "nullable": false
                                                             },
-                                                            "requests_in_flight": {
-                                                                "type": "integer",
-                                                                "nullable": false
-                                                            },
-                                                            "requests_completed": {
-                                                                "type": "integer",
-                                                                "nullable": false
-                                                            },
-                                                            "requests_avg_ms": {
-                                                                "type": "number",
-                                                                "nullable": false
+                                                            "work": {
+                                                                "properties": {
+                                                                    "in_process": {
+                                                                        "type": "integer",
+                                                                        "nullable": false
+                                                                    },
+                                                                    "in_process_1_to_5s": {
+                                                                        "type": "integer",
+                                                                        "nullable": false
+                                                                    },
+                                                                    "in_process_5_to_15s": {
+                                                                        "type": "integer",
+                                                                        "nullable": false
+                                                                    },
+                                                                    "in_process_over_15s": {
+                                                                        "type": "integer",
+                                                                        "nullable": false
+                                                                    },
+                                                                    "finished": {
+                                                                        "type": "integer",
+                                                                        "nullable": false
+                                                                    },
+                                                                    "refused": {
+                                                                        "type": "integer",
+                                                                        "nullable": false
+                                                                    },
+                                                                    "measured": {
+                                                                        "type": "integer",
+                                                                        "nullable": false
+                                                                    },
+                                                                    "avg_ms": {
+                                                                        "type": "number",
+                                                                        "nullable": false
+                                                                    }
+                                                                },
+                                                                "required": [
+                                                                    "in_process",
+                                                                    "in_process_1_to_5s",
+                                                                    "in_process_5_to_15s",
+                                                                    "in_process_over_15s",
+                                                                    "finished",
+                                                                    "refused",
+                                                                    "measured",
+                                                                    "avg_ms"
+                                                                ]
                                                             }
                                                         },
                                                         "required": [
                                                             "pid",
+                                                            "group",
                                                             "hung",
                                                             "uptime_seconds",
                                                             "cpu_percent",
                                                             "memory_rss_bytes",
-                                                            "goroutines",
-                                                            "requests_in_flight",
-                                                            "requests_completed",
-                                                            "requests_avg_ms"
+                                                            "goroutines"
                                                         ]
                                                     }
                                                 }
@@ -405,11 +561,9 @@
                                                 "cpu_percent",
                                                 "memory_rss_bytes",
                                                 "goroutines",
-                                                "requests_completed",
-                                                "requests_avg_ms",
-                                                "requests_in_flight",
                                                 "master_cpu_percent",
                                                 "master_memory_rss_bytes",
+                                                "groups",
                                                 "workers"
                                             ]
                                         }

@@ -8,7 +8,7 @@ use SConcur\Laravel\Servers\MasterRunner;
 
 /**
  * Start the SConcur master supervisor in the foreground. Builds the master from
- * config('sconcur.http_server') and runs it (it spawns and supervises workers).
+ * config('sconcur.master') and runs it (it spawns and supervises workers).
  */
 class MasterStartCommand extends AbstractSconcurCommand
 {

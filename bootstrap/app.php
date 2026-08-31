@@ -11,10 +11,10 @@
 |
 */
 
-// Coroutine-scoped application for the SConcur HTTP worker. It is a drop-in
-// subclass of Illuminate\Foundation\Application: with async mode off (the default
-// for web/CLI/queue) it behaves identically; the scoped resolution only
-// activates when the worker calls enableAsyncMode().
+// Coroutine-scoped application: a drop-in subclass of Illuminate\Foundation\Application
+// that resolves request/session/auth/cookie from the current coroutine's context. There
+// is nothing to switch on and no mode to be in — outside a coroutine the context is the
+// process root, so each of those is one instance for one caller, exactly as before.
 $app = new SConcur\Laravel\Foundation\AsyncApplication(
     $_ENV['APP_BASE_PATH'] ?? dirname(__DIR__)
 );

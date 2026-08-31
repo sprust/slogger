@@ -7,6 +7,7 @@ namespace App\Modules\Dashboard\Entities;
 readonly class SconcurStatObject
 {
     /**
+     * @param SconcurGroupObject[]  $groups
      * @param SconcurWorkerObject[] $workers
      */
     public function __construct(
@@ -17,11 +18,10 @@ readonly class SconcurStatObject
         public float $cpuPercent,
         public int $memoryRssBytes,
         public int $goroutines,
-        public int $requestsCompleted,
-        public float $requestsAvgMs,
-        public int $requestsInFlight,
+        public ?SconcurWorkObject $work,
         public float $masterCpuPercent,
         public int $masterMemoryRssBytes,
+        public array $groups,
         public array $workers,
     ) {
     }

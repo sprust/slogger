@@ -16,6 +16,10 @@ use SConcur\Worker\MasterConfig;
  * supervision logic — are protected. We drive the master from an in-memory
  * MasterConfig (built from Laravel config, no JSON), so this subclass widens
  * those four methods to public. It adds no logic of its own.
+ *
+ * The signatures mirror MasterCli's, `$group` and `$configPath` included: a master
+ * supervises several pools since SConcur 0.11, and status and reload can be scoped
+ * to one of them by name ('' means all of them).
  */
 class MasterRunner extends MasterCli
 {
@@ -29,13 +33,13 @@ class MasterRunner extends MasterCli
         return parent::stop($config);
     }
 
-    public function status(MasterConfig $config): int
+    public function status(MasterConfig $config, string $group = ''): int
     {
-        return parent::status($config);
+        return parent::status($config, $group);
     }
 
-    public function reload(MasterConfig $config): int
+    public function reload(MasterConfig $config, string $configPath, string $group = ''): int
     {
-        return parent::reload($config);
+        return parent::reload($config, $configPath, $group);
     }
 }

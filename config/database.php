@@ -63,6 +63,41 @@ return [
             ]) : [],
         ],
 
+        /*
+         * The same MySQL server as above, reached through the SConcur SQL feature
+         * instead of PDO: a statement runs in the Go extension while the calling
+         * coroutine suspends, so concurrent handlers in one process no longer queue
+         * behind one blocking handle. Outside a coroutine the same calls are synchronous,
+         * so this is simply DB_CONNECTION — nothing picks it at runtime.
+         *
+         * charset, collation, timezone and strict end up in the DSN rather than in
+         * SET statements after connecting — the Go driver applies them itself.
+         * max_open_conns has a ceiling on purpose: each concurrent statement takes
+         * its own connection, so an unbounded pool walks into max_connections.
+         */
+        'sconcur_mysql' => [
+            'driver' => 'sconcur_mysql',
+            // Same key as above so the two connections cannot drift: DatabaseManager
+            // expands it through ConfigurationUrlParser before the driver sees it.
+            'url' => env('DATABASE_URL'),
+            'host' => env('DB_HOST', '127.0.0.1'),
+            'port' => env('DB_PORT', '3306'),
+            'database' => env('DB_DATABASE', 'forge'),
+            'username' => env('DB_USERNAME', 'forge'),
+            'password' => env('DB_PASSWORD', ''),
+            'unix_socket' => env('DB_SOCKET', ''),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => true,
+            'engine' => null,
+            'timeout_ms' => (int) env('SCONCUR_DB_TIMEOUT_MS', 30000),
+            'max_open_conns' => (int) env('SCONCUR_DB_MAX_OPEN_CONNS', 20),
+            'max_idle_conns' => (int) env('SCONCUR_DB_MAX_IDLE_CONNS', 0),
+            'conn_max_lifetime_ms' => (int) env('SCONCUR_DB_CONN_MAX_LIFETIME_MS', 0),
+        ],
+
         'pgsql' => [
             'driver' => 'pgsql',
             'url' => env('DATABASE_URL'),

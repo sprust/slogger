@@ -3,9 +3,20 @@
     <el-header>
       <Header v-if="authStore.user"/>
     </el-header>
-    <div class="height-100" style="padding: 0 20px 20px 20px; overflow-y: auto">
+    <!-- el-scrollbar rather than the browser's own overflow, so the main area scrolls
+         with the same bar the pages inside it already use (Logs, the trace list).
+
+         view-style is not decoration: el-scrollbar puts the slot inside a __view element
+         of its own, and that element carries no height. A page asking for `height: 100%`
+         then measures itself against something auto and gets auto back — which is how the
+         trace tree came to render nothing at all, its virtual list being a box whose only
+         children are positioned absolutely. Height on the view restores what the plain
+         div this replaced always gave: a definite height to size against. Content taller
+         than it still scrolls, since the view does not clip and the overflow reaches the
+         __wrap above it. -->
+    <el-scrollbar class="height-100" style="padding: 0 20px 20px 20px" view-style="height: 100%">
       <router-view/>
-    </div>
+    </el-scrollbar>
     <PendingRequestDialog/>
   </el-container>
 </template>
