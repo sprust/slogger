@@ -9,7 +9,6 @@ use App\Modules\Trace\Entities\Trace\TraceCollectionNameObjects;
 use Closure;
 use Illuminate\Support\Carbon;
 use Iterator;
-use MongoDB\Database;
 use SConcur\Features\Mongodb\Connection\Collection;
 use SConcur\Features\Mongodb\Connection\Database as SconcurDatabase;
 use Throwable;
@@ -17,7 +16,6 @@ use Throwable;
 readonly class PeriodicTraceService
 {
     public function __construct(
-        private Database $database,
         private SconcurDatabase $sconcurDatabase,
         private PeriodicTraceCollectionNameService $periodicTraceCollectionNameService
     ) {
@@ -49,7 +47,7 @@ readonly class PeriodicTraceService
     public function detectCollectionNames(?Carbon $loggedAtFrom = null, ?Carbon $loggedAtTo = null): array
     {
         return $this->periodicTraceCollectionNameService->filterCollectionNamesByPeriod(
-            collectionNames: iterator_to_array($this->database->listCollectionNames()),
+            collectionNames: $this->sconcurDatabase->listCollections(),
             from: $loggedAtFrom,
             to: $loggedAtTo
         );

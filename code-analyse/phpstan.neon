@@ -12,8 +12,6 @@ parameters:
         -
             message: '#Unsafe usage of new static#'
         -
-            message: '#Access to an undefined property MongoDB\\Model\\BSONDocument#'
-        -
             messages:
                 - '#Property [\s\S]* is never read, only written#'
                 - '#Property [\s\S]* type has no value type specified in iterable type array#'

@@ -1,24 +1,30 @@
 <?php
 
+use App\Services\Mongo\MongoSchema;
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Support\Facades\DB;
-use MongoDB\Laravel\Connection;
 
 return new class extends Migration {
-    protected $connection = 'mongodb.traces';
+    // Not Migration::$connection: that one is resolved through the database manager,
+    // which has no Mongo driver. This names a `database.connections.mongodb.*` entry
+    // MongoSchema reads as plain configuration.
+    protected string $connectionName = 'mongodb.traces';
     protected string $collectionName = 'traceClearingProcesses';
+
+    // Nothing here is transactional, and the transaction the migrator would open is on
+    // the default MySQL connection, which none of this touches.
+    public $withinTransaction = false;
 
     /**
      * Run the migrations.
      */
     public function up(): void
     {
-        /** @var Connection $connection */
-        $connection = DB::connection($this->connection);
+        $schema = app(MongoSchema::class);
 
-        $connection->dropCollection($this->collectionName);
+        $schema->dropCollection($this->connectionName, $this->collectionName);
 
-        $connection->createCollection(
+        $schema->createCollection(
+            $this->connectionName,
             $this->collectionName,
             [
                 'validator' => [
@@ -59,12 +65,12 @@ return new class extends Migration {
             ]
         );
 
-        $collection = $connection->selectCollection($this->collectionName);
-
         $secondsPerHour = 60 * 60;
 
-        $collection->createIndex(
-            key: [
+        $schema->createIndex(
+            $this->connectionName,
+            $this->collectionName,
+            keys: [
                 'createdAt' => 1,
             ],
             options: [
@@ -78,12 +84,12 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        /** @var Connection $connection */
-        $connection = DB::connection($this->connection);
+        $schema = app(MongoSchema::class);
 
-        $connection->dropCollection($this->collectionName);
+        $schema->dropCollection($this->connectionName, $this->collectionName);
 
-        $connection->createCollection(
+        $schema->createCollection(
+            $this->connectionName,
             $this->collectionName,
             [
                 'validator' => [
@@ -118,12 +124,12 @@ return new class extends Migration {
             ]
         );
 
-        $collection = $connection->selectCollection($this->collectionName);
-
         $secondsPerHour = 60 * 60;
 
-        $collection->createIndex(
-            key: [
+        $schema->createIndex(
+            $this->connectionName,
+            $this->collectionName,
+            keys: [
                 'createdAt' => 1,
             ],
             options: [

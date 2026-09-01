@@ -12,8 +12,6 @@ RUN apt-get update \
         unzip \
         wget \
         libzip-dev \
-        libpng-dev \
-        libmagickwand-dev \
         libcurl4-openssl-dev \
         pkg-config \
         libssl-dev
@@ -25,21 +23,22 @@ RUN curl -fSL --connect-timeout 10 --retry 3 \
     && chmod +x /usr/local/bin/pie
 
 # Third-party extensions via PIE (installs and enables them)
+#
+# msgpack is what every payload crossing the PHP-Go boundary is encoded with, and
+# sconcur/sconcur requires it. redis is the cache client named by REDIS_CLIENT.
 RUN pie install phpredis/phpredis \
-    && pie install imagick/imagick \
-    && pie install mongodb/mongodb-extension:^1.21 \
-    && pie install msgpack/msgpack-php \
-    && pie install kjdev/zstd
-
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg
+    && pie install msgpack/msgpack-php
 
 # Bundled (core) extensions
+#
+# pdo carries no traffic — DB_CONNECTION is sconcur_mysql, whose statements run in the Go
+# extension — but Illuminate\Database\Connection defaults a property to PDO::FETCH_OBJ,
+# so the class the connection extends cannot even be instantiated without it. pdo_mysql
+# is for the PDO `mysql` connection that stays configured for schema:dump and db:show.
 RUN docker-php-ext-install \
-        gd \
         pdo \
         pdo_mysql \
         bcmath \
-        exif \
         sockets \
         zip \
         pcntl

@@ -50,9 +50,8 @@ use App\Modules\Trace\Repositories\TraceTimestampsRepository;
 use App\Modules\Trace\Repositories\TraceTreeCacheRepository;
 use App\Modules\Trace\Repositories\TraceTreeCacheStateRepository;
 use App\Modules\Trace\Repositories\TraceTreeRepository;
+use App\Services\Mongo\MongoConnectionFactory;
 use Illuminate\Contracts\Foundation\Application;
-use MongoDB\Client;
-use SConcur\Features\Mongodb\Connection\Client as SconcurClient;
 
 class TraceServiceProvider extends BaseServiceProvider
 {
@@ -61,27 +60,12 @@ class TraceServiceProvider extends BaseServiceProvider
         $this->app->singleton(
             PeriodicTraceService::class,
             static function (Application $app) {
-                $username = config('database.connections.mongodb.tracesPeriodic.username');
-                $password = config('database.connections.mongodb.tracesPeriodic.password');
-                $host     = config('database.connections.mongodb.tracesPeriodic.host');
-                $port     = config('database.connections.mongodb.tracesPeriodic.port');
-                $database = config('database.connections.mongodb.tracesPeriodic.database');
-                $options  = config('database.connections.mongodb.tracesPeriodic.options');
-
-                $uri = "mongodb://$username:$password@$host:$port";
-
-                $client = new Client($uri, $options, [
-                    'typeMap' => [
-                        'array'    => 'array',
-                        'document' => 'array',
-                        'root'     => 'array',
-                    ],
-                ]);
-
                 return new PeriodicTraceService(
-                    database: $client->selectDatabase($database),
-                    sconcurDatabase: new SconcurClient($uri, timeoutMs: $options['socketTimeoutMS'] ?? null)
-                        ->selectDatabase($database),
+                    // No pool ceiling on this one, as before: its shard collections are
+                    // queried in parallel through a WaitGroup, and a cap would serialise
+                    // the fan-out.
+                    sconcurDatabase: $app->make(MongoConnectionFactory::class)
+                        ->database('mongodb.tracesPeriodic', uriOptions: []),
                     periodicTraceCollectionNameService: $app->make(PeriodicTraceCollectionNameService::class)
                 );
             }

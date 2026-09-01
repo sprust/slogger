@@ -10,52 +10,65 @@ use App\Modules\Logs\Entities\Log\LogObject;
 use App\Modules\Logs\Entities\Log\LogsPaginationObject;
 use App\Modules\Logs\Parameters\CreateLogParameters;
 use App\Modules\Logs\Parameters\FindLogsParameters;
+use Illuminate\Support\Carbon;
+use SConcur\Bson\Regex;
+use SConcur\Bson\UTCDateTime;
 
 readonly class LogRepository
 {
     public function create(CreateLogParameters $parameters): string
     {
-        $log = new Log();
+        $result = Log::sconcur()->insertOne([
+            'level'     => $parameters->level,
+            'message'   => $parameters->message,
+            'context'   => $parameters->context,
+            'channel'   => $parameters->channel,
+            'loggedAt'  => new UTCDateTime($parameters->loggedAt),
+            // Eloquent filled this from Log::CREATED_AT; without it writing the document
+            // is what the repository does, so the timestamp is written here.
+            'createdAt' => new UTCDateTime(now()),
+        ]);
 
-        $log->level    = $parameters->level;
-        $log->message  = $parameters->message;
-        $log->context  = $parameters->context;
-        $log->channel  = $parameters->channel;
-        $log->loggedAt = $parameters->loggedAt;
-
-        $log->save();
-
-        return $log->_id;
+        return (string) $result->insertedId;
     }
 
     public function paginate(int $page, int $perPage, FindLogsParameters $parameters): LogsPaginationObject
     {
-        $builder = Log::query();
+        $collection = Log::sconcur();
+
+        $filter = [];
 
         if ($parameters->searchQuery) {
-            $builder->where('message', 'like', "%{$parameters->searchQuery}%");
+            // The search was a `like` between two wildcards, which the ORM turned into
+            // exactly this: the term quoted so its own regex characters match themselves,
+            // unanchored, case-insensitive.
+            $filter['message'] = new Regex(preg_quote($parameters->searchQuery), 'i');
         }
 
         if ($parameters->level) {
-            $builder->where('level', $parameters->level);
+            $filter['level'] = $parameters->level;
         }
 
-        $total = $builder->count();
+        $total = $collection->countDocuments($filter);
 
-        $items = $builder
-            ->orderBy('loggedAt', 'desc')
-            ->forPage(page: $page, perPage: $perPage)
-            ->get()
-            ->map(static function (Log $log) {
-                return new LogObject(
-                    level: $log->level,
-                    message: $log->message,
-                    context: $log->context,
-                    channel: $log->channel,
-                    loggedAt: $log->loggedAt
-                );
-            })
-            ->all();
+        $items = [];
+
+        foreach (
+            $collection->find(
+                filter: $filter,
+                sort: ['loggedAt' => -1],
+                limit: $perPage,
+                skip: ($page - 1) * $perPage,
+            ) as $document
+        ) {
+            $items[] = new LogObject(
+                level: $document['level'],
+                message: $document['message'],
+                context: (array) $document['context'],
+                channel: $document['channel'],
+                loggedAt: new Carbon($document['loggedAt']->toDateTime())
+            );
+        }
 
         return new LogsPaginationObject(
             items: $items,

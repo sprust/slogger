@@ -1,24 +1,29 @@
 <?php
 
+use App\Services\Mongo\MongoSchema;
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Support\Facades\DB;
-use MongoDB\Laravel\Connection;
 
 return new class extends Migration {
-    protected $connection = 'mongodb.traces';
+    // Not Migration::$connection: that one is resolved through the database manager,
+    // which has no Mongo driver. This names a `database.connections.mongodb.*` entry
+    // MongoSchema reads as plain configuration.
+    protected string $connectionName = 'mongodb.traces';
     protected string $collectionName = 'traceTreeCacheStates';
+
+    // Nothing here is transactional, and the transaction the migrator would open is on
+    // the default MySQL connection, which none of this touches.
+    public $withinTransaction = false;
 
     public function up(): void
     {
-        /** @var Connection $connection */
-        $connection = DB::connection($this->connection);
+        $schema = app(MongoSchema::class);
 
-        $connection->createCollection($this->collectionName);
+        $schema->createCollection($this->connectionName, $this->collectionName);
 
-        $collection = $connection->selectCollection($this->collectionName);
-
-        $collection->createIndex(
-            key: [
+        $schema->createIndex(
+            $this->connectionName,
+            $this->collectionName,
+            keys: [
                 'rootTraceId' => 1,
             ],
             options: [
@@ -26,8 +31,10 @@ return new class extends Migration {
             ]
         );
 
-        $collection->createIndex(
-            key: [
+        $schema->createIndex(
+            $this->connectionName,
+            $this->collectionName,
+            keys: [
                 'updatedAt' => 1,
             ],
             options: [
@@ -38,9 +45,6 @@ return new class extends Migration {
 
     public function down(): void
     {
-        /** @var Connection $connection */
-        $connection = DB::connection($this->connection);
-
-        $connection->dropCollection($this->collectionName);
+        app(MongoSchema::class)->dropCollection($this->connectionName, $this->collectionName);
     }
 };

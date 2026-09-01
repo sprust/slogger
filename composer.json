@@ -6,15 +6,14 @@
     "license": "MIT",
     "require": {
         "php": "^8.4",
-        "ext-mongodb": "*",
         "ext-pcntl": "*",
         "ext-pdo": "*",
+        "ext-redis": "*",
+        "ext-sockets": "*",
         "guzzlehttp/guzzle": "^7.2",
         "ifksco/openapi-generator": "dev-master",
         "laravel/framework": "^12",
         "laravel/tinker": "^2.8",
-        "mongodb/laravel-mongodb": "^5.5",
-        "mongodb/mongodb": "^1.17",
         "sconcur/laravel": "^0.1",
         "slogger/laravel": "^2.1",
         "vladimir-yuldashev/laravel-queue-rabbitmq": "^14.1"

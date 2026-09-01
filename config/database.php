@@ -128,9 +128,16 @@ return [
             // 'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'false'),
         ],
 
+        /*
+         * Not connections of the database manager: there is no Mongo driver registered
+         * for it, and DB::connection() on one of these would fail. They are read as plain
+         * configuration by App\Services\Mongo\MongoConnectionFactory, which builds the
+         * URI of the non-blocking SConcur client every read and write goes through.
+         *
+         * The nesting is what AbstractMongoModel names in $connection, as `mongodb.<key>`.
+         */
         'mongodb' => [
             'traces' => [
-                'driver'   => 'mongodb',
                 'host'     => env('MONGO_HOST'),
                 'port'     => env('MONGO_PORT'),
                 'username' => env('MONGO_ADMIN_USERNAME'),
@@ -142,7 +149,6 @@ return [
                 ],
             ],
             'tracesPeriodic' => [
-                'driver'   => 'mongodb', // not using
                 'host'     => env('MONGO_HOST'),
                 'port'     => env('MONGO_PORT'),
                 'username' => env('MONGO_ADMIN_USERNAME'),
@@ -155,7 +161,6 @@ return [
                 ],
             ],
             'logs' => [
-                'driver'   => 'mongodb',
                 'host'     => env('MONGO_HOST'),
                 'port'     => env('MONGO_PORT'),
                 'username' => env('MONGO_ADMIN_USERNAME'),

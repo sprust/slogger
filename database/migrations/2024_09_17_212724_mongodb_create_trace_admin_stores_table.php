@@ -1,23 +1,25 @@
 <?php
 
+use App\Services\Mongo\MongoSchema;
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Support\Facades\DB;
-use MongoDB\Laravel\Connection;
 
-return new class extends Migration
-{
-    protected $connection = 'mongodb.traces';
+return new class extends Migration {
+    // Not Migration::$connection: that one is resolved through the database manager,
+    // which has no Mongo driver. This names a `database.connections.mongodb.*` entry
+    // MongoSchema reads as plain configuration.
+    protected string $connectionName = 'mongodb.traces';
     protected string $collectionName = 'traceAdminStores';
+
+    // Nothing here is transactional, and the transaction the migrator would open is on
+    // the default MySQL connection, which none of this touches.
+    public $withinTransaction = false;
 
     /**
      * Run the migrations.
      */
     public function up(): void
     {
-        /** @var Connection $connection */
-        $connection = DB::connection($this->connection);
-
-        $connection->createCollection($this->collectionName);
+        app(MongoSchema::class)->createCollection($this->connectionName, $this->collectionName);
     }
 
     /**
@@ -25,12 +27,9 @@ return new class extends Migration
      */
     public function down(): void
     {
-        /** @var Connection $connection */
-        $connection = DB::connection($this->connection);
+        $schema = app(MongoSchema::class);
 
-        $collection = $connection->selectCollection($this->collectionName);
-
-        $collection->dropIndexes();
-        $collection->drop();
+        $schema->dropIndexes($this->connectionName, $this->collectionName);
+        $schema->dropCollection($this->connectionName, $this->collectionName);
     }
 };

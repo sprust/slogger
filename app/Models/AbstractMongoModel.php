@@ -2,12 +2,26 @@
 
 namespace App\Models;
 
-use Illuminate\Contracts\Container\BindingResolutionException;
-use MongoDB\Collection as MongoCollection;
-use MongoDB\Laravel\Eloquent\Model;
-use SConcur\Features\Mongodb\Connection\Client as SconcurClient;
+use App\Services\Mongo\MongoConnectionFactory;
+use Illuminate\Database\Eloquent\Model;
 use SConcur\Features\Mongodb\Connection\Collection as SconcurCollection;
 
+/**
+ * A facade over a Mongo collection, not an active record.
+ *
+ * Nothing here is ever hydrated, saved or queried through Eloquent: every read and write
+ * goes through sconcur(), which hands back the collection of the non-blocking SConcur
+ * driver. What the model still is, is the one named place that declares where a document
+ * lives — the collection, the connection it is on — and what it holds, in the property
+ * annotations of each subclass, so a repository points at a class instead of at a string.
+ *
+ * The casts of the subclasses are documentation for the same reason. None of them runs:
+ * no attribute is ever set on an instance.
+ *
+ * The Eloquent base is kept for the declarations it already carries. It is not a
+ * connection to Mongo — the ORM has no driver for it here, and resolving the connection
+ * this model names would fail.
+ */
 abstract class AbstractMongoModel extends Model
 {
     /**
@@ -22,15 +36,6 @@ abstract class AbstractMongoModel extends Model
         return $this->getCollectionName();
     }
 
-    // TODO: delete after migration to sconcur
-    public static function collection(): MongoCollection
-    {
-        /** @var MongoCollection $collection */
-        $collection = (new static())->newQuery()->raw(null);
-
-        return $collection;
-    }
-
     public static function sconcur(): SconcurCollection
     {
         $class = static::class;
@@ -41,33 +46,10 @@ abstract class AbstractMongoModel extends Model
 
         $instance = new static();
 
-        $config = config("database.connections.$instance->connection");
-
-        $username = $config['username'];
-        $password = $config['password'];
-        $host     = $config['host'];
-        $port     = $config['port'];
-        $database = $config['database'];
-        $options  = $config['options'];
-
-        $uri = "mongodb://$username:$password@$host:$port/?maxPoolSize=20&maxIdleTimeMS=30000";
-
-        $collection = new SconcurClient($uri, timeoutMs: $options['socketTimeoutMS'] ?? null)
-            ->selectDatabase($database)
+        $collection = new MongoConnectionFactory()
+            ->database($instance->connection)
             ->selectCollection($instance->getCollectionName());
 
         return static::$sconcurCollections[$class] = $collection;
-    }
-
-    /**
-     * For relation mongo -> mysql
-     */
-    protected function newRelatedInstance($class)
-    {
-        try {
-            return app()->make($class);
-        } catch (BindingResolutionException) {
-            return new $class();
-        }
     }
 }
