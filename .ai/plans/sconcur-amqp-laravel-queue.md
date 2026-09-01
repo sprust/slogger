@@ -1,7 +1,8 @@
 # План: нативная очередь SConcur AMQP для Laravel в `packages/sconcur/sconcur-laravel`
 
 > **Сделано.** Очередь работает: группа `rabbitmq` мастера, драйвер
-> `sconcur_rabbitmq`, код — в `packages/sconcur/sconcur-laravel/src/Queue/Rabbitmq/`.
+> `sconcur_rabbitmq`, код — в `vendor/sconcur/laravel/src/Queue/Rabbitmq/` (пакет
+> `sconcur/laravel`, с packagist).
 > Всё ниже — запись проектных решений, а не описание текущего поведения: с момента
 > реализации часть деталей изменилась. Источник истины — сам код пакета и секция
 > `queue` в `config/sconcur.php`.

@@ -3,11 +3,12 @@
 > **Сделано.** Это запись проектных решений и того, чем они обоснованы, а не описание
 > текущего поведения: с момента реализации часть деталей изменилась — лок стал на задачу,
 > канал управления стал очередью команд, появились коды выхода. Как пул устроен сейчас,
-> смотри `packages/sconcur/sconcur-laravel/docs/task-pool.ru.md`; он и есть источник
+> смотри `vendor/sconcur/laravel/docs/task-pool.ru.md`; он и есть источник
 > истины.
 
 Всё ниже сверено с кодом этой ветки: `docker/supervisor/conf/supervisor.conf`,
-`app/Console/Commands/Cron/*`, `app/Modules/Trace/**`, `packages/sconcur/sconcur-laravel/**`,
+`app/Console/Commands/Cron/*`, `app/Modules/Trace/**`, `packages/sconcur/sconcur-laravel/**`
+(с тех пор вынесен в пакет `sconcur/laravel`),
 `vendor/sconcur/sconcur` (0.11).
 
 ## 1. Цель

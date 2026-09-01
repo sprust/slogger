@@ -5,7 +5,6 @@ $finder = PhpCsFixer\Finder::create()
         __DIR__ . '/../app/Modules',
         __DIR__ . '/../app/Models',
         __DIR__ . '/../tests',
-        __DIR__ . '/../packages/sconcur',
     ])
     ->name('*.php')
     ->notName([

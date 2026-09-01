@@ -8,9 +8,6 @@
         <testsuite name="Modules">
             <directory>tests/Modules</directory>
         </testsuite>
-        <testsuite name="Packages">
-            <directory>tests/Packages</directory>
-        </testsuite>
         <testsuite name="Services">
             <directory>tests/Services</directory>
         </testsuite>

@@ -175,13 +175,17 @@ receiver-build:
 	docker-compose run --rm --no-deps $(RECEIVER_SERVICE) make build stats-build
 	docker-compose up -d --force-recreate $(RECEIVER_SERVICE)
 
-# require has to come first — it is what writes the version the image build reads
+# sconcur/sconcur is not required directly: sconcur/laravel pins it to an exact
+# version, because the .so and the PHP side cross a protocol boundary that changes
+# with the version. So the bridge is what gets updated, and the library follows it.
+#
+# The update has to come first — it is what writes the version the image build reads
 # from composer.lock — so --no-scripts keeps it from booting the framework on the
 # new library while the old sconcur.so is still in place. package:discover then
 # runs from dump-autoload against the rebuilt image.
 sconcur-update:
 	docker-compose up -d $(PHP_FPM_SERVICE) $(WORKERS_SERVICE)
-	make composer c='require sconcur/sconcur:* --no-scripts'
+	make composer c='update sconcur/laravel --with-all-dependencies --no-scripts'
 	make build
 	make composer-fresh c='dump-autoload'
 	make up

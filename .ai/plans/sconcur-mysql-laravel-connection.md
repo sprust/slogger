@@ -1,7 +1,8 @@
 # План: соединение `sconcur_mysql` — Eloquent поверх SQL-фичи SConcur
 
 > **Сделано.** Соединение работает и является основным: `DB_CONNECTION=sconcur_mysql`,
-> код — в `packages/sconcur/sconcur-laravel/src/Database/Mysql/`. Всё ниже — запись
+> код — в `vendor/sconcur/laravel/src/Database/Mysql/`
+> (пакет `sconcur/laravel`, с packagist). Всё ниже — запись
 > проектных решений, а не описание текущего поведения. Источник истины — сам код пакета
 > и `config/database.php`.
 
