@@ -73,11 +73,13 @@ return [
 
         /*
          * The SConcur AMQP transport: the consumer pool reads it with coroutines under
-         * the sconcur master instead of one blocking queue:work per worker. It is what
-         * QUEUE_CONNECTION names, so this is where a job goes unless it says otherwise.
+         * the sconcur master instead of one blocking queue:work per worker. It is the
+         * only way to RabbitMQ here — QUEUE_CONNECTION names it, and so does the slogger
+         * dispatcher — so this is where a job goes unless it says otherwise.
          *
-         * The wire format matches the `rabbitmq` connection below, so a job published
-         * by either one is readable and runnable by the other's consumer.
+         * The wire format is the one vladimir-yuldashev/laravel-queue-rabbitmq writes:
+         * the same body, the same message properties, the same laravel.attempts header.
+         * The package is gone, but a message it left in a queue still reads.
          */
         'sconcur_rabbitmq' => [
             'driver'    => 'sconcur_rabbitmq',
@@ -96,35 +98,6 @@ return [
             // The wait queues a later() or a release() may address; a delay is rounded
             // up to the nearest of these. Declared by sconcur:rabbitmq:declare.
             'after_commit' => false,
-        ],
-
-        'rabbitmq' => [
-            'driver'     => 'rabbitmq',
-            'queue'      => env('RABBITMQ_QUEUE', 'default'),
-            'connection' => PhpAmqpLib\Connection\AMQPLazyConnection::class,
-
-            'hosts' => [
-                [
-                    'host'     => env('RABBITMQ_HOST', '127.0.0.1'),
-                    'port'     => env('RABBITMQ_PORT', 5672),
-                    'user'     => env('RABBITMQ_USER'),
-                    'password' => env('RABBITMQ_PASSWORD'),
-                    'vhost'    => env('RABBITMQ_VHOST', '/'),
-                ],
-            ],
-
-            'options' => [
-                'ssl_options' => [
-                    'cafile'      => env('RABBITMQ_SSL_CAFILE'),
-                    'local_cert'  => env('RABBITMQ_SSL_LOCALCERT'),
-                    'local_key'   => env('RABBITMQ_SSL_LOCALKEY'),
-                    'verify_peer' => env('RABBITMQ_SSL_VERIFY_PEER', true),
-                    'passphrase'  => env('RABBITMQ_SSL_PASSPHRASE'),
-                ],
-                'queue'       => [
-                    'job' => VladimirYuldashev\LaravelQueueRabbitMQ\Queue\Jobs\RabbitMQJob::class,
-                ],
-            ],
         ],
 
     ],
