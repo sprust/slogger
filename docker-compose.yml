@@ -134,6 +134,12 @@ services:
   rabbitmq:
     image: rabbitmq:4.0-management-alpine
     container_name: sl-rabbitmq
+    # Pins the node name. RabbitMQ calls its node rabbit@$(hostname) and keeps its
+    # database under mnesia/rabbit@$(hostname); without this, Docker hands a recreated
+    # container a fresh hostname, so the broker comes up as a brand new empty node and
+    # the previous one's queues are simply left behind in the volume — which is how the
+    # consumer pool ended up on 404 NOT_FOUND after a plain `make restart`.
+    hostname: sl-rabbitmq
     restart: unless-stopped
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}

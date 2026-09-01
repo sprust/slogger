@@ -48,9 +48,14 @@ up:
 stop:
 	docker-compose stop
 
+# queues-declare belongs here for the same reason it belongs in setup and deploy: the
+# broker holds the topology, and a recreated one holds nothing. `hostname` on the
+# rabbitmq service keeps the node from changing identity, so this is now a no-op on a
+# broker that kept its data — and still the thing that saves a broker that did not.
 restart:
 	make stop
 	make up
+	make queues-declare
 
 bash-php-fpm:
 	"$(PHP_FPM_CLI)"bash
