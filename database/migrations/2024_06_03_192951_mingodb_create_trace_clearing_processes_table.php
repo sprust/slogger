@@ -1,17 +1,17 @@
 <?php
 
-use App\Services\Mongo\MongoSchema;
 use Illuminate\Database\Migrations\Migration;
+use SConcur\Features\Mongodb\Connection\Client;
+use SConcur\Features\Mongodb\Connection\Database;
 
 return new class extends Migration {
-    // Not Migration::$connection: that one is resolved through the database manager,
-    // which has no Mongo driver. This names a `database.connections.mongodb.*` entry
-    // MongoSchema reads as plain configuration.
+    // Not Migration::$connection: the database manager has no Mongo driver registered.
+    // This names a `database.connections.mongodb.*` entry, read below as plain config.
     protected string $connectionName = 'mongodb.traces';
     protected string $collectionName = 'traceClearingProcesses';
 
-    // Nothing here is transactional, and the transaction the migrator would open is on
-    // the default MySQL connection, which none of this touches.
+    // Nothing here is transactional, and the transaction the migrator would otherwise
+    // open is on the default MySQL connection, which none of this touches.
     public $withinTransaction = false;
 
     /**
@@ -19,56 +19,53 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        $schema = app(MongoSchema::class);
+        $database = $this->database();
 
-        $schema->createCollection(
-            $this->connectionName,
-            $this->collectionName,
-            [
-                'validator' => [
-                    '$jsonSchema' => [
-                        'bsonType'   => 'object',
-                        'required'   => [
-                            'settingId',
-                            'clearedCount',
-                            'clearedAt',
-                            'createdAt',
-                            'updatedAt',
+        $database->command([
+            'create' => $this->collectionName,
+            'validator' => [
+                '$jsonSchema' => [
+                    'bsonType'   => 'object',
+                    'required'   => [
+                        'settingId',
+                        'clearedCount',
+                        'clearedAt',
+                        'createdAt',
+                        'updatedAt',
+                    ],
+                    'properties' => [
+                        'settingId'    => [
+                            'bsonType' => 'number',
                         ],
-                        'properties' => [
-                            'settingId'    => [
-                                'bsonType' => 'number',
-                            ],
-                            'clearedCount' => [
-                                'bsonType' => 'number',
-                            ],
-                            'clearedAt'    => [
-                                'bsonType' => ['date', 'null'],
-                            ],
-                            'createdAt'    => [
-                                'bsonType' => 'date',
-                            ],
-                            'updatedAt'    => [
-                                'bsonType' => 'date',
-                            ],
+                        'clearedCount' => [
+                            'bsonType' => 'number',
+                        ],
+                        'clearedAt'    => [
+                            'bsonType' => ['date', 'null'],
+                        ],
+                        'createdAt'    => [
+                            'bsonType' => 'date',
+                        ],
+                        'updatedAt'    => [
+                            'bsonType' => 'date',
                         ],
                     ],
                 ],
-            ]
-        );
+            ],
+        ]);
 
         $secondsPerHour = 60 * 60;
 
-        $schema->createIndex(
-            $this->connectionName,
-            $this->collectionName,
-            keys: [
-                'createdAt' => 1,
+        $database->command([
+            'createIndexes' => $this->collectionName,
+            'indexes'       => [
+                [
+                    'key'                => ['createdAt' => 1],
+                    'name'               => 'createdAt_1',
+                    'expireAfterSeconds' => $secondsPerHour * 24, // 24 hours
+                ],
             ],
-            options: [
-                'expireAfterSeconds' => $secondsPerHour * 24, // 24 hours
-            ]
-        );
+        ]);
     }
 
     /**
@@ -76,9 +73,31 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        $schema = app(MongoSchema::class);
+        $database = $this->database();
 
-        $schema->dropIndexes($this->connectionName, $this->collectionName);
-        $schema->dropCollection($this->connectionName, $this->collectionName);
+        $database->command([
+            'dropIndexes' => $this->collectionName,
+            'index'       => '*',
+        ]);
+
+        $database->command(['drop' => $this->collectionName]);
+    }
+
+    /**
+     * The connection, built here rather than taken from an application service.
+     *
+     * A migration has to keep meaning what it meant on the day it ran, and application
+     * code moves on. What it may lean on is what does not: the configuration keys and the
+     * driver. Index names are spelled out for the same reason — they are what the
+     * collection actually carries, not what a helper would derive today.
+     */
+    private function database(): Database
+    {
+        $config = config("database.connections.$this->connectionName");
+
+        return new Client(
+            "mongodb://{$config['username']}:{$config['password']}@{$config['host']}:{$config['port']}",
+            timeoutMs: $config['options']['socketTimeoutMS'] ?? null,
+        )->selectDatabase($config['database']);
     }
 };

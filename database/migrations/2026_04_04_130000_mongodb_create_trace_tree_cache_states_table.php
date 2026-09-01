@@ -1,50 +1,62 @@
 <?php
 
-use App\Services\Mongo\MongoSchema;
 use Illuminate\Database\Migrations\Migration;
+use SConcur\Features\Mongodb\Connection\Client;
+use SConcur\Features\Mongodb\Connection\Database;
 
 return new class extends Migration {
-    // Not Migration::$connection: that one is resolved through the database manager,
-    // which has no Mongo driver. This names a `database.connections.mongodb.*` entry
-    // MongoSchema reads as plain configuration.
+    // Not Migration::$connection: the database manager has no Mongo driver registered.
+    // This names a `database.connections.mongodb.*` entry, read below as plain config.
     protected string $connectionName = 'mongodb.traces';
     protected string $collectionName = 'traceTreeCacheStates';
 
-    // Nothing here is transactional, and the transaction the migrator would open is on
-    // the default MySQL connection, which none of this touches.
+    // Nothing here is transactional, and the transaction the migrator would otherwise
+    // open is on the default MySQL connection, which none of this touches.
     public $withinTransaction = false;
 
     public function up(): void
     {
-        $schema = app(MongoSchema::class);
+        $database = $this->database();
 
-        $schema->createCollection($this->connectionName, $this->collectionName);
+        $database->command(['create' => $this->collectionName]);
 
-        $schema->createIndex(
-            $this->connectionName,
-            $this->collectionName,
-            keys: [
-                'rootTraceId' => 1,
+        $database->command([
+            'createIndexes' => $this->collectionName,
+            'indexes'       => [
+                [
+                    'key'    => ['rootTraceId' => 1],
+                    'name'   => 'rootTraceId_1',
+                    'unique' => true,
+                ],
+                [
+                    'key'                => ['updatedAt' => 1],
+                    'name'               => 'updatedAt_1',
+                    'expireAfterSeconds' => 60 * 60,
+                ],
             ],
-            options: [
-                'unique' => true,
-            ]
-        );
-
-        $schema->createIndex(
-            $this->connectionName,
-            $this->collectionName,
-            keys: [
-                'updatedAt' => 1,
-            ],
-            options: [
-                'expireAfterSeconds' => 60 * 60,
-            ]
-        );
+        ]);
     }
 
     public function down(): void
     {
-        app(MongoSchema::class)->dropCollection($this->connectionName, $this->collectionName);
+        $this->database()->command(['drop' => $this->collectionName]);
+    }
+
+    /**
+     * The connection, built here rather than taken from an application service.
+     *
+     * A migration has to keep meaning what it meant on the day it ran, and application
+     * code moves on. What it may lean on is what does not: the configuration keys and the
+     * driver. Index names are spelled out for the same reason — they are what the
+     * collection actually carries, not what a helper would derive today.
+     */
+    private function database(): Database
+    {
+        $config = config("database.connections.$this->connectionName");
+
+        return new Client(
+            "mongodb://{$config['username']}:{$config['password']}@{$config['host']}:{$config['port']}",
+            timeoutMs: $config['options']['socketTimeoutMS'] ?? null,
+        )->selectDatabase($config['database']);
     }
 };

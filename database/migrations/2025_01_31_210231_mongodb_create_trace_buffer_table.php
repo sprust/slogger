@@ -1,17 +1,17 @@
 <?php
 
-use App\Services\Mongo\MongoSchema;
 use Illuminate\Database\Migrations\Migration;
+use SConcur\Features\Mongodb\Connection\Client;
+use SConcur\Features\Mongodb\Connection\Database;
 
 return new class extends Migration {
-    // Not Migration::$connection: that one is resolved through the database manager,
-    // which has no Mongo driver. This names a `database.connections.mongodb.*` entry
-    // MongoSchema reads as plain configuration.
+    // Not Migration::$connection: the database manager has no Mongo driver registered.
+    // This names a `database.connections.mongodb.*` entry, read below as plain config.
     protected string $connectionName = 'mongodb.traces';
     protected string $collectionName = 'buffer';
 
-    // Nothing here is transactional, and the transaction the migrator would open is on
-    // the default MySQL connection, which none of this touches.
+    // Nothing here is transactional, and the transaction the migrator would otherwise
+    // open is on the default MySQL connection, which none of this touches.
     public $withinTransaction = false;
 
     /**
@@ -19,49 +19,41 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        $schema = app(MongoSchema::class);
+        $database = $this->database();
 
-        $schema->createCollection($this->connectionName, $this->collectionName);
+        $database->command(['create' => $this->collectionName]);
 
         $secondsPerHour = 60 * 60;
 
-        $schema->createIndex(
-            $this->connectionName,
-            $this->collectionName,
-            keys: [
-                'tid' => 1,
-            ]
-        );
-
-        $schema->createIndex(
-            $this->connectionName,
-            $this->collectionName,
-            keys: [
-                'sid' => 1,
-                'tid' => 1,
-            ]
-        );
-
-        $schema->createIndex(
-            $this->connectionName,
-            $this->collectionName,
-            keys: [
-                'lat'   => 1,
-                '__ins' => 1,
-                '__upd' => 1,
-            ]
-        );
-
-        $schema->createIndex(
-            $this->connectionName,
-            $this->collectionName,
-            keys: [
-                'lat' => 1,
+        $database->command([
+            'createIndexes' => $this->collectionName,
+            'indexes'       => [
+                [
+                    'key'  => ['tid' => 1],
+                    'name' => 'tid_1',
+                ],
+                [
+                    'key'  => [
+                        'sid' => 1,
+                        'tid' => 1,
+                    ],
+                    'name' => 'sid_1_tid_1',
+                ],
+                [
+                    'key'  => [
+                        'lat'   => 1,
+                        '__ins' => 1,
+                        '__upd' => 1,
+                    ],
+                    'name' => 'lat_1___ins_1___upd_1',
+                ],
+                [
+                    'key'                => ['lat' => 1],
+                    'name'               => 'lat_1',
+                    'expireAfterSeconds' => $secondsPerHour, // 1 hour
+                ],
             ],
-            options: [
-                'expireAfterSeconds' => $secondsPerHour, // 1 hour
-            ]
-        );
+        ]);
     }
 
     /**
@@ -69,9 +61,31 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        $schema = app(MongoSchema::class);
+        $database = $this->database();
 
-        $schema->dropIndexes($this->connectionName, $this->collectionName);
-        $schema->dropCollection($this->connectionName, $this->collectionName);
+        $database->command([
+            'dropIndexes' => $this->collectionName,
+            'index'       => '*',
+        ]);
+
+        $database->command(['drop' => $this->collectionName]);
+    }
+
+    /**
+     * The connection, built here rather than taken from an application service.
+     *
+     * A migration has to keep meaning what it meant on the day it ran, and application
+     * code moves on. What it may lean on is what does not: the configuration keys and the
+     * driver. Index names are spelled out for the same reason — they are what the
+     * collection actually carries, not what a helper would derive today.
+     */
+    private function database(): Database
+    {
+        $config = config("database.connections.$this->connectionName");
+
+        return new Client(
+            "mongodb://{$config['username']}:{$config['password']}@{$config['host']}:{$config['port']}",
+            timeoutMs: $config['options']['socketTimeoutMS'] ?? null,
+        )->selectDatabase($config['database']);
     }
 };
