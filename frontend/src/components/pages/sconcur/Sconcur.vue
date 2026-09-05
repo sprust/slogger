@@ -40,8 +40,8 @@ const TIPS = {
   workers: 'Worker processes the master supervises right now, over every group.',
   hung: 'Alive but silent: the master last heard from them over 15 s ago. It catches a jammed worker runtime, not a slow handler — the sender runs beside PHP rather than inside it. The tasks pool is the exception, reporting from PHP itself.',
   cpu: 'CPU as a percentage of one core, so several busy cores put it over 100. Summed over the worker processes it covers; the master\'s own process is not in it.',
-  rss: 'Resident memory of the worker processes it covers, the PHP side and the Go runtime together.',
-  goroutines: 'Goroutines on the Go side of the workers. The tasks pool runs no Go runtime and reports zero.',
+  rss: 'Resident memory of the worker processes it covers, the PHP side and the extension together.',
+  runtimeTasks: 'Live tasks in the extension runtime of the workers. The tasks pool runs no such runtime and reports zero.',
   inProcess: 'Units of work handed to PHP and not finished yet: requests being served, queue deliveries being handled, task ticks running.',
   finished: 'Units of work that ended, however they ended: requests completed plus deliveries acked or refused. A tick that found nothing to do is not one.',
   refused: 'How many of the finished ones failed — a delivery nacked or rejected, a task tick that threw. A request answered with a 500 is not here: the runtime does not count it as a failure.',
@@ -79,7 +79,7 @@ export default defineComponent({
         {key: 'avg_ms', label: 'Avg duration, ms'},
         {key: 'cpu_percent', label: 'CPU, %'},
         {key: 'memory_rss_mb', label: 'Memory RSS, MB'},
-        {key: 'goroutines', label: 'Goroutines'},
+        {key: 'runtime_tasks', label: 'Ext tasks'},
       ] as MetricDef[],
     }
   },
@@ -394,9 +394,9 @@ export default defineComponent({
           </el-statistic>
         </el-col>
         <el-col :span="3">
-          <el-statistic :value="store.stat.goroutines">
+          <el-statistic :value="store.stat.runtime_tasks">
             <template #title>
-              <StatTitle label="Goroutines" :tip="tips.goroutines"/>
+              <StatTitle label="Ext tasks" :tip="tips.runtimeTasks"/>
             </template>
           </el-statistic>
         </el-col>
@@ -470,9 +470,9 @@ export default defineComponent({
           </template>
           <template #default="{ row }">{{ rssMb(row.memory_rss_bytes) }}</template>
         </el-table-column>
-        <el-table-column prop="goroutines" label="Goroutines" width="110">
+        <el-table-column prop="runtime_tasks" label="Ext tasks" width="110">
           <template #header>
-            <StatTitle label="Goroutines" :tip="tips.goroutines"/>
+            <StatTitle label="Ext tasks" :tip="tips.runtimeTasks"/>
           </template>
         </el-table-column>
         <el-table-column v-if="hasWork" label="In process" width="110">
@@ -549,9 +549,9 @@ export default defineComponent({
           </template>
           <template #default="{ row }">{{ rssMb(row.memory_rss_bytes) }}</template>
         </el-table-column>
-        <el-table-column prop="goroutines" label="Goroutines">
+        <el-table-column prop="runtime_tasks" label="Ext tasks">
           <template #header>
-            <StatTitle label="Goroutines" :tip="tips.goroutines"/>
+            <StatTitle label="Ext tasks" :tip="tips.runtimeTasks"/>
           </template>
         </el-table-column>
         <el-table-column v-if="hasWork" label="In process">

@@ -24,17 +24,18 @@ RUN curl -fSL --connect-timeout 10 --retry 3 \
 
 # Third-party extensions via PIE (installs and enables them)
 #
-# msgpack is what every payload crossing the PHP-Go boundary is encoded with, and
+# msgpack is what every payload crossing the PHP-extension boundary is encoded with, and
 # sconcur/sconcur requires it. redis is the cache client named by REDIS_CLIENT.
 RUN pie install phpredis/phpredis \
     && pie install msgpack/msgpack-php
 
 # Bundled (core) extensions
 #
-# pdo carries no traffic — DB_CONNECTION is sconcur_mysql, whose statements run in the Go
-# extension — but Illuminate\Database\Connection defaults a property to PDO::FETCH_OBJ,
-# so the class the connection extends cannot even be instantiated without it. pdo_mysql
-# is for the PDO `mysql` connection that stays configured for schema:dump and db:show.
+# pdo carries no traffic — DB_CONNECTION is sconcur_mysql, whose statements run in the
+# sconcur extension — but Illuminate\Database\Connection defaults a property to
+# PDO::FETCH_OBJ, so the class the connection extends cannot even be instantiated without
+# it. pdo_mysql is for the PDO `mysql` connection that stays configured for schema:dump
+# and db:show.
 RUN docker-php-ext-install \
         pdo \
         pdo_mysql \

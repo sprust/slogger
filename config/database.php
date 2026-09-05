@@ -65,15 +65,22 @@ return [
 
         /*
          * The same MySQL server as above, reached through the SConcur SQL feature
-         * instead of PDO: a statement runs in the Go extension while the calling
+         * instead of PDO: a statement runs in the extension while the calling
          * coroutine suspends, so concurrent handlers in one process no longer queue
          * behind one blocking handle. Outside a coroutine the same calls are synchronous,
          * so this is simply DB_CONNECTION — nothing picks it at runtime.
          *
          * charset, collation, timezone and strict end up in the DSN rather than in
-         * SET statements after connecting — the Go driver applies them itself.
-         * max_open_conns has a ceiling on purpose: each concurrent statement takes
-         * its own connection, so an unbounded pool walks into max_connections.
+         * SET statements after connecting — the first three are connect options the
+         * extension knows by name, and sql_mode goes out as a session variable it sets
+         * on every connection the pool opens.
+         *
+         * max_open_conns is stated rather than left out: 0 is not "no limit" there, it
+         * is the extension's own built-in 32. The ceiling is the point — each concurrent
+         * statement takes its own connection, so an unbounded pool walks into
+         * max_connections. max_idle_conns is accepted and no longer applied (the pool
+         * keeps every idle connection up to the cap since sconcur 0.12.1); it still keys
+         * the pool, so two values would mean two pools.
          */
         'sconcur_mysql' => [
             'driver' => 'sconcur_mysql',

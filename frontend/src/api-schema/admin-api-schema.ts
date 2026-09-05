@@ -337,7 +337,7 @@ export namespace AdminApi {
     workers_hung: number,
     cpu_percent: number,
     memory_rss_bytes: number,
-    goroutines: number,
+    runtime_tasks: number,
     work?: {
     in_process: number,
     "in_process_1_to_5s": number,
@@ -357,7 +357,7 @@ export namespace AdminApi {
     workers_hung: number,
     cpu_percent: number,
     memory_rss_bytes: number,
-    goroutines: number,
+    runtime_tasks: number,
     work?: {
     in_process: number,
     "in_process_1_to_5s": number,
@@ -378,7 +378,7 @@ export namespace AdminApi {
     uptime_seconds: number,
     cpu_percent: number,
     memory_rss_bytes: number,
-    goroutines: number,
+    runtime_tasks: number,
     work?: {
     in_process: number,
     "in_process_1_to_5s": number,
@@ -410,7 +410,7 @@ export namespace AdminApi {
         workers_hung: number;
         cpu_percent: number;
         memory_rss_bytes: number;
-        goroutines: number;
+        runtime_tasks: number;
         work?: {
           in_process: number;
           in_process_1_to_5s: number;
@@ -429,7 +429,7 @@ export namespace AdminApi {
           workers_hung: number;
           cpu_percent: number;
           memory_rss_bytes: number;
-          goroutines: number;
+          runtime_tasks: number;
           work?: {
             in_process: number;
             in_process_1_to_5s: number;
@@ -448,7 +448,7 @@ export namespace AdminApi {
           uptime_seconds: number;
           cpu_percent: number;
           memory_rss_bytes: number;
-          goroutines: number;
+          runtime_tasks: number;
           work?: {
             in_process: number;
             in_process_1_to_5s: number;
@@ -2320,7 +2320,7 @@ export class Api<
     workers_hung: number,
     cpu_percent: number,
     memory_rss_bytes: number,
-    goroutines: number,
+    runtime_tasks: number,
     work?: {
     in_process: number,
     "in_process_1_to_5s": number,
@@ -2340,7 +2340,7 @@ export class Api<
     workers_hung: number,
     cpu_percent: number,
     memory_rss_bytes: number,
-    goroutines: number,
+    runtime_tasks: number,
     work?: {
     in_process: number,
     "in_process_1_to_5s": number,
@@ -2361,7 +2361,7 @@ export class Api<
     uptime_seconds: number,
     cpu_percent: number,
     memory_rss_bytes: number,
-    goroutines: number,
+    runtime_tasks: number,
     work?: {
     in_process: number,
     "in_process_1_to_5s": number,
@@ -2390,7 +2390,7 @@ export class Api<
             workers_hung: number;
             cpu_percent: number;
             memory_rss_bytes: number;
-            goroutines: number;
+            runtime_tasks: number;
             work?: {
               in_process: number;
               in_process_1_to_5s: number;
@@ -2409,7 +2409,7 @@ export class Api<
               workers_hung: number;
               cpu_percent: number;
               memory_rss_bytes: number;
-              goroutines: number;
+              runtime_tasks: number;
               work?: {
                 in_process: number;
                 in_process_1_to_5s: number;
@@ -2428,7 +2428,7 @@ export class Api<
               uptime_seconds: number;
               cpu_percent: number;
               memory_rss_bytes: number;
-              goroutines: number;
+              runtime_tasks: number;
               work?: {
                 in_process: number;
                 in_process_1_to_5s: number;

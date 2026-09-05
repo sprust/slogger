@@ -13,8 +13,8 @@ export const MASTER_SOURCE = 'master';
 
 /**
  * The master, a group or a worker. All three carry the same counter shape — the same
- * optional `work` section beside cpu, memory and goroutines — which is what lets one
- * sampler serve every source.
+ * optional `work` section beside cpu, memory and the extension's task count — which is
+ * what lets one sampler serve every source.
  */
 export type StatRow = NonNullable<SconcurStat>
     | NonNullable<SconcurStat>['groups'][number]
@@ -211,7 +211,7 @@ export const useSconcurStore = defineStore('sconcur', {
                 avg_ms: work ? Math.round(work.avg_ms * 100) / 100 : null,
                 cpu_percent: Math.round(row.cpu_percent * 10) / 10,
                 memory_rss_mb: Math.round(row.memory_rss_bytes / 1048576),
-                goroutines: row.goroutines,
+                runtime_tasks: row.runtime_tasks,
             }
         },
 

@@ -317,7 +317,7 @@
                                                     "type": "integer",
                                                     "nullable": false
                                                 },
-                                                "goroutines": {
+                                                "runtime_tasks": {
                                                     "type": "integer",
                                                     "nullable": false
                                                 },
@@ -400,7 +400,7 @@
                                                                 "type": "integer",
                                                                 "nullable": false
                                                             },
-                                                            "goroutines": {
+                                                            "runtime_tasks": {
                                                                 "type": "integer",
                                                                 "nullable": false
                                                             },
@@ -457,7 +457,7 @@
                                                             "workers_hung",
                                                             "cpu_percent",
                                                             "memory_rss_bytes",
-                                                            "goroutines"
+                                                            "runtime_tasks"
                                                         ]
                                                     }
                                                 },
@@ -490,7 +490,7 @@
                                                                 "type": "integer",
                                                                 "nullable": false
                                                             },
-                                                            "goroutines": {
+                                                            "runtime_tasks": {
                                                                 "type": "integer",
                                                                 "nullable": false
                                                             },
@@ -548,7 +548,7 @@
                                                             "uptime_seconds",
                                                             "cpu_percent",
                                                             "memory_rss_bytes",
-                                                            "goroutines"
+                                                            "runtime_tasks"
                                                         ]
                                                     }
                                                 }
@@ -560,7 +560,7 @@
                                                 "workers_hung",
                                                 "cpu_percent",
                                                 "memory_rss_bytes",
-                                                "goroutines",
+                                                "runtime_tasks",
                                                 "master_cpu_percent",
                                                 "master_memory_rss_bytes",
                                                 "groups",

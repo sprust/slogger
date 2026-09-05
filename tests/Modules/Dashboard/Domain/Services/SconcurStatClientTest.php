@@ -12,9 +12,9 @@ use Illuminate\Container\Container;
 use PHPUnit\Framework\TestCase;
 
 /**
- * The panel only knows workers that push telemetry to it, and pushing is done by the Go
- * side of the server and consumer runtimes. A group of plain artisan workers — the
- * periodic task pool — reports nothing, so it is configured, supervised, and missing
+ * The panel only knows workers that push telemetry to it, and pushing is done by the
+ * extension side of the server and consumer runtimes. A group of plain artisan workers —
+ * the periodic task pool — reports nothing, so it is configured, supervised, and missing
  * from the panel's answer. Dropping it from the dashboard would read as "there is no
  * such pool".
  */
@@ -60,7 +60,7 @@ class SconcurStatClientTest extends TestCase
         $this->assertSame(0, $tasks->workersTotal);
         $this->assertSame(0.0, $tasks->cpuPercent);
         $this->assertSame(0, $tasks->memoryRssBytes);
-        $this->assertSame(0, $tasks->goroutines);
+        $this->assertSame(0, $tasks->runtimeTasks);
 
         // Absent rather than zeroed: the dashboard renders a dash for it, which says
         // "this pool does not count that" instead of "none happened".

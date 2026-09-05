@@ -17,7 +17,7 @@ readonly class SconcurStatObject
         public int $workersHung,
         public float $cpuPercent,
         public int $memoryRssBytes,
-        public int $goroutines,
+        public int $runtimeTasks,
         public ?SconcurWorkObject $work,
         public float $masterCpuPercent,
         public int $masterMemoryRssBytes,

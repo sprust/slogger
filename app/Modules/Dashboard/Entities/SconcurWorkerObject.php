@@ -13,7 +13,7 @@ readonly class SconcurWorkerObject
         public float $uptimeSeconds,
         public float $cpuPercent,
         public int $memoryRssBytes,
-        public int $goroutines,
+        public int $runtimeTasks,
         public ?SconcurWorkObject $work = null,
     ) {
     }
