@@ -112,10 +112,14 @@ workers-art:
 queues-declare:
 	make workers-art c='queues-declare'
 
-# The ws pool is on by default and refuses to start without these, so setup generates
-# a pair. Existing credentials are kept unless c=--force is passed.
+# The ws pool is on by default and refuses to start without these, so setup and both
+# deploys generate a pair. Existing credentials are kept unless c=--force is passed.
+#
+# `run`, not `exec`, for the same reason as composer-fresh: the deploys call this before
+# `up`, so that the workers come up with the key already in place instead of restarting
+# until somebody notices.
 ws-keys-generate:
-	make art c="ws-keys-generate ${c}"
+	docker-compose run --rm --no-deps -e XDEBUG_MODE=off $(PHP_FPM_SERVICE) php artisan ws-keys-generate ${c}
 
 composer:
 	docker-compose exec -e XDEBUG_MODE=off $(PHP_FPM_SERVICE) composer ${c}
@@ -147,6 +151,7 @@ deploy-prod:
 	git pull
 	make build
 	make composer-fresh c='i --no-dev'
+	make ws-keys-generate
 	make up
 	make queues-declare
 	make art c='migrate --force'
@@ -159,6 +164,7 @@ deploy-dev:
 	git pull
 	make build
 	make composer-fresh c='i'
+	make ws-keys-generate
 	make up
 	make queues-declare
 	make art c='migrate --force'
