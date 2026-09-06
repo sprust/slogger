@@ -58,6 +58,19 @@ export const useAuthStore = defineStore('authStore', {
             }
         },
         async logout() {
+            // Told to the server first, while the token is still here to say it with.
+            // Called directly rather than through handleApiRequest: that one answers a 401
+            // by calling this, and a session the server has already dropped would loop.
+            if (ApiTokenStorage.getToken()) {
+                try {
+                    await ApiContainer.get().authLogoutCreate()
+                } catch {
+                    // Already gone, or unreachable. The local half happens regardless —
+                    // the alternative is a panel that cannot sign out while the API is
+                    // down.
+                }
+            }
+
             // The Sconcur page's polling loop and its history live in a store of their own
             // so they survive navigation. This is where a session ends — the button, a
             // 401, the router guard all come through here — so this is where they stop.

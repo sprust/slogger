@@ -84,15 +84,17 @@ class CreateUserCommand extends Command
             return self::FAILURE;
         }
 
+        // No token: there is nothing to print. A session is opened by signing in, and
+        // one handed out here would be a long-lived credential nobody asked for.
         $this->table(
             [
                 'id',
-                'token',
+                'email',
             ],
             [
                 [
                     $newUser->id,
-                    $newUser->apiToken,
+                    $newUser->email,
                 ],
             ]
         );
