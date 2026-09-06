@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "67e06c82534dfacce6d26a1d4346b30c",
+    "content-hash": "596abd8a2c96cf42d2694888aeca517a",
     "packages": [
         {
             "name": "brick/math",
@@ -3433,23 +3433,23 @@
         },
         {
             "name": "sconcur/laravel",
-            "version": "0.2.0",
+            "version": "0.3.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sprust/sconcur-laravel.git",
-                "reference": "943ae27f1eeed08eda4af7dba761e58a1cd888c5"
+                "reference": "3a492cad80c0d799a96073b327076f782e6cde0b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sprust/sconcur-laravel/zipball/943ae27f1eeed08eda4af7dba761e58a1cd888c5",
-                "reference": "943ae27f1eeed08eda4af7dba761e58a1cd888c5",
+                "url": "https://api.github.com/repos/sprust/sconcur-laravel/zipball/3a492cad80c0d799a96073b327076f782e6cde0b",
+                "reference": "3a492cad80c0d799a96073b327076f782e6cde0b",
                 "shasum": ""
             },
             "require": {
                 "laminas/laminas-diactoros": "^3.0",
                 "laravel/framework": "^12.0",
                 "php": "^8.4",
-                "sconcur/sconcur": "0.12.1",
+                "sconcur/sconcur": "0.12.2",
                 "symfony/psr-http-message-bridge": "^7.0 | ^8.0"
             },
             "require-dev": {
@@ -3495,22 +3495,22 @@
             ],
             "support": {
                 "issues": "https://github.com/sprust/sconcur-laravel/issues",
-                "source": "https://github.com/sprust/sconcur-laravel/tree/v0.2.0"
+                "source": "https://github.com/sprust/sconcur-laravel/tree/v0.3.0"
             },
-            "time": "2026-09-05T11:57:11+00:00"
+            "time": "2026-09-05T20:06:43+00:00"
         },
         {
             "name": "sconcur/sconcur",
-            "version": "0.12.1",
+            "version": "0.12.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sprust/sconcur.git",
-                "reference": "0d77782cfcd3e4dc6aeccf4c5f20344c1142b19d"
+                "reference": "ada0bc6e2f43694a9264438b1b8caa3c128e737b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sprust/sconcur/zipball/0d77782cfcd3e4dc6aeccf4c5f20344c1142b19d",
-                "reference": "0d77782cfcd3e4dc6aeccf4c5f20344c1142b19d",
+                "url": "https://api.github.com/repos/sprust/sconcur/zipball/ada0bc6e2f43694a9264438b1b8caa3c128e737b",
+                "reference": "ada0bc6e2f43694a9264438b1b8caa3c128e737b",
                 "shasum": ""
             },
             "require": {
@@ -3560,9 +3560,9 @@
             "description": "PHP concurrency library backed by an extension written in Rust",
             "support": {
                 "issues": "https://github.com/sprust/sconcur/issues",
-                "source": "https://github.com/sprust/sconcur/tree/v0.12.1"
+                "source": "https://github.com/sprust/sconcur/tree/v0.12.2"
             },
-            "time": "2026-09-05T11:20:22+00:00"
+            "time": "2026-09-05T15:32:08+00:00"
         },
         {
             "name": "slogger/laravel",

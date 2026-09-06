@@ -128,6 +128,28 @@ export function normalizeUtcDateTime(value: string | Date | undefined | null): s
     return date.toISOString()
 }
 
+/**
+ * The instant a filter bound denotes, in milliseconds, whichever of its shapes it is in:
+ * the normalized `...Z` string the payload carries, or the plain `YYYY-MM-DD HH:MM:SS` the
+ * backend answers a graph window with. null for a bound that denotes nothing, which is
+ * what an empty one is.
+ *
+ * Here rather than at the caller because this file is where the two shapes are already
+ * known; a caller comparing them as strings would read 05:15:55 as later than
+ * 2026-09-06T03:15:59.999999Z.
+ */
+export function utcTimestamp(value: string | Date | undefined | null): number | null {
+    const normalized = normalizeUtcDateTime(value)
+
+    if (!normalized) {
+        return null
+    }
+
+    const time = new Date(normalized).getTime()
+
+    return Number.isNaN(time) ? null : time
+}
+
 export function makeUtcPickerDate(value: string | Date | undefined | null): Date | null {
     if (!value) {
         return null

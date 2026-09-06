@@ -31,6 +31,7 @@ import {useTraceAggregatorGraphStore} from "./store/traceAggregatorGraphStore.ts
 import {useTraceAggregatorTimestampPeriodStore} from "./store/traceAggregatorTimestampPeriodsStore.ts";
 import {PeriodPresetEnum, useTraceAggregatorStore} from "../traces/store/traceAggregatorStore.ts";
 import {useTraceAggregatorTimestampFieldsStore} from "./store/traceAggregatorTimestampFieldsStore.ts";
+import {utcTimestamp} from "../../../../../utils/helpers.ts";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
@@ -101,7 +102,7 @@ export default defineComponent({
               return
             }
 
-            this.traceAggregatorStore.payload.logging_from = this.traceAggregatorGraphStore.loggedAtFrom
+            this.mirrorGraphWindowIntoFilter()
 
             this.traceAggregatorGraphStore.waiting = true
 
@@ -111,6 +112,40 @@ export default defineComponent({
               this.update()
             }, 1000)
           })
+    },
+    /**
+     * Moves the traces filter's lower bound to the window the graph is drawing, so the
+     * table under it matches the chart while the chart is live.
+     *
+     * Only the lower bound is the graph's to move, and the search reads the two as a
+     * range, so this has to leave that range a range. Two things make the window
+     * unusable as a lower bound: `loggedAtFrom` is now-anchored unless `logging_to`
+     * bounds it, so an upper bound set from anywhere else - a pinned bucket, an applied
+     * state, the picker - can be older than it; and a poll that failed never reaches
+     * setMetrics, so `loggedAtFrom` is left at the previous window for this tick to
+     * write, and a 412 while a dynamic index builds is routine here.
+     *
+     * Either way the outcome is the same and is the one to rule out: a lower bound at or
+     * after the upper one, which the search answers with nothing while the chart above it
+     * goes on drawing its last good render. The bound is then left where it was rather
+     * than dropped or clamped - it is the user's, and a stale-but-ordered range is a
+     * far smaller lie than an empty one.
+     */
+    mirrorGraphWindowIntoFilter() {
+      const windowFrom = this.traceAggregatorGraphStore.loggedAtFrom
+      const windowFromAt = utcTimestamp(windowFrom)
+
+      if (windowFromAt === null) {
+        return
+      }
+
+      const loggingToAt = utcTimestamp(this.traceAggregatorStore.payload.logging_to)
+
+      if (loggingToAt !== null && windowFromAt >= loggingToAt) {
+        return
+      }
+
+      this.traceAggregatorStore.payload.logging_from = windowFrom
     },
     onGraphClick(mouseEvent: MouseEvent) {
       // @ts-ignore TODO
