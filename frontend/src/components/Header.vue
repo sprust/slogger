@@ -74,8 +74,11 @@ export default defineComponent({
     toggleDark() {
       this.toggleDarkUsing()
     },
-    logout() {
-      this.authStore.logout()
+    async logout() {
+      // Awaited: the route guard runs auth() on the way out, and a token still in storage
+      // would be revalidated — landing back on the dashboard on a session the server has
+      // just dropped.
+      await this.authStore.logout()
 
       this.router.push(this.routes.login)
     }

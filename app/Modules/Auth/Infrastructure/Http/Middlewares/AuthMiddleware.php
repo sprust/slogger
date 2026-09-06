@@ -12,6 +12,15 @@ use Symfony\Component\HttpFoundation\Response;
 
 readonly class AuthMiddleware
 {
+    /**
+     * Marks a request this middleware let through, for terminate() to read back.
+     *
+     * Not $request->user(): the resolver Laravel installs by default goes to a guard, and
+     * this application configures none — asking for one on a request that failed here
+     * turns a 401 into a 500.
+     */
+    private const string AUTHENTICATED = 'slogger.authenticated';
+
     public function __construct(
         private FindUserByTokenAction $findUserByTokenAction,
         private TouchUserTokenAction $touchUserTokenAction,
@@ -39,6 +48,8 @@ readonly class AuthMiddleware
 
         $request->setUserResolver(fn() => $user);
 
+        $request->attributes->set(self::AUTHENTICATED, true);
+
         return $next($request);
     }
 
@@ -53,7 +64,11 @@ readonly class AuthMiddleware
     {
         $token = $request->bearerToken();
 
-        if (!$token) {
+        // Only a request that actually authenticated renews anything. terminate() runs
+        // even for one this middleware refused — the framework calls it after handle(),
+        // whether handle() returned or aborted — and a token that was rejected has no
+        // business moving the row it was rejected against.
+        if (!$token || !$request->attributes->getBoolean(self::AUTHENTICATED)) {
             return;
         }
 

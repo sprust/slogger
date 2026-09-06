@@ -12,13 +12,6 @@ import {EchoContainer} from "./echoContainer.ts";
  */
 const indexWaitTimeout = 15000
 
-/**
- * The same, for the first wait on a given index — shorter, because that one is the wait
- * that can have missed its frame. Normally the subscription ends it well before this;
- * see onSubscribed below.
- */
-const firstIndexWaitTimeout = 5000
-
 /** How long the fallback waits between retries when there is no ws pool to wait on. */
 const indexPollInterval = 1000
 
@@ -26,84 +19,50 @@ const indexPollInterval = 1000
 const indexWaitStep = 100
 
 /**
- * Waits until the dynamic index the request is blocked on has been built.
+ * One wait for the signal that the index a request is blocked on has been built.
  *
- * Answers false when the user closed the dialog — the request is not to be repeated.
+ * Answers false when the user closed the dialog — the request is not to be repeated —
+ * and true both when the signal arrived and when the wait ran out.
  */
-async function waitForIndex(
-    indexId: string | null,
-    firstWaitOnThisIndex: boolean,
-    pendingRequestStore: ReturnType<typeof usePendingRequestStore>
+function waitForSignal(
+    timeout: number,
+    pendingRequestStore: ReturnType<typeof usePendingRequestStore>,
+    onSignal: (resolve: () => void) => void
 ): Promise<boolean> {
-    let onBuilt: () => void = () => {
-    }
-
-    const unsubscribe = indexId
-        ? EchoContainer.listen(
-            `sl-trace-index.${indexId}`,
-            '.index.built',
-            () => onBuilt(),
-            {
-                // Once per index, and for a reason that has nothing to do with the index
-                // being ready: the build was already running when this asked to listen,
-                // and a frame published before the channel was live is gone — the bus
-                // keeps no history. Retrying the moment the channel starts listening is
-                // what closes that window. A repeat wait on the same index has been
-                // listening since before the frame could have been published, so it has
-                // nothing to close and simply waits.
-                onSubscribed: firstWaitOnThisIndex ? () => onBuilt() : undefined,
-            }
-        )
-        : null
-
-    // No pool, or no index id to wait on: ask again on a timer, which is what this did
-    // before there was anything to wait for.
-    const timeout = unsubscribe
-        ? (firstWaitOnThisIndex ? firstIndexWaitTimeout : indexWaitTimeout)
-        : indexPollInterval
-
     let timerId: number | null = null
 
-    try {
-        return await new Promise<boolean>((resolve) => {
-            let waited = 0
+    return new Promise<boolean>((resolve) => {
+        let waited = 0
 
-            onBuilt = () => resolve(true)
+        onSignal(() => {
+            if (timerId !== null) {
+                window.clearTimeout(timerId)
+                timerId = null
+            }
 
-            const tick = () => {
-                if (pendingRequestStore.cancelRequested) {
-                    resolve(false)
+            resolve(true)
+        })
 
-                    return
-                }
+        const tick = () => {
+            if (pendingRequestStore.cancelRequested) {
+                resolve(false)
 
-                waited += indexWaitStep
+                return
+            }
 
-                if (waited >= timeout) {
-                    resolve(true)
+            waited += indexWaitStep
 
-                    return
-                }
+            if (waited >= timeout) {
+                resolve(true)
 
-                timerId = window.setTimeout(tick, indexWaitStep)
+                return
             }
 
             timerId = window.setTimeout(tick, indexWaitStep)
-        })
-    } finally {
-        // Whether the frame arrived, the wait timed out or the dialog was closed, this
-        // wait is over. Both of these outlive it otherwise: the channel would stay open,
-        // and the tick chain would keep rescheduling itself to the end of the timeout,
-        // once per hundred milliseconds, resolving a promise that is already settled.
-        onBuilt = () => {
         }
 
-        if (timerId !== null) {
-            window.clearTimeout(timerId)
-        }
-
-        unsubscribe?.()
-    }
+        timerId = window.setTimeout(tick, indexWaitStep)
+    })
 }
 
 export async function handleApiRequest<T>(request: () => Promise<T>): Promise<T> {
@@ -115,23 +74,101 @@ export async function handleApiRequest<T>(request: () => Promise<T>): Promise<T>
         if (error?.status === 412) {
             pendingRequestStore.open(error?.error?.data ?? null)
 
-            try {
-                // Which index the last wait listened on. Keyed by id and not by a
-                // counter: each 412 names whichever index is now in the way, and a wait
-                // on one this loop has not listened on before is a first wait again.
-                let watchedIndexId: string | null = null
+            // The subscription outlives the loop, and that is the point. Taken and
+            // dropped per wait, it would be re-established after every retry, with a
+            // /broadcasting/auth round trip in between — and a frame landing in that gap
+            // is gone, because the bus keeps no history. Held across the retries, the only
+            // window is the one before the first subscription, which onSubscribed closes.
+            let watchedIndexId: string | null = null
+            let unsubscribe: (() => void) | null = null
 
+            // Set by a frame that arrived while nothing was waiting on it — between two
+            // waits, that is, which is exactly where a retry sits.
+            let signalled = false
+
+            let onBuilt: () => void = () => {
+            }
+
+            const signal = () => {
+                signalled = true
+
+                onBuilt()
+            }
+
+            // Reached from three places — a change of index, a lost socket, and the exit
+            // below — so it lives here rather than being written out at each of them.
+            const release = (): void => {
+                unsubscribe?.()
+                unsubscribe = null
+            }
+
+            const watch = (indexId: string | null): void => {
+                release()
+
+                // A frame for the index being left behind is not an answer about the one
+                // being taken up: carried over, it would skip a wait and spend a request
+                // on a 412 that was already certain.
+                signalled = false
+
+                if (!indexId) {
+                    return
+                }
+
+                unsubscribe = EchoContainer.listen(
+                    `sl-trace-index.${indexId}`,
+                    '.index.built',
+                    signal,
+                    {
+                        // Not about the index being ready: the build was already running
+                        // when this asked to listen, and anything published before the
+                        // channel went live is lost. Retrying the moment it starts
+                        // listening is what closes that window, once per index.
+                        onSubscribed: signal,
+                        // Ends the wait that is running, without marking a signal: there
+                        // is nothing to report, and the next round has to go to the poll
+                        // rather than skip its wait as well.
+                        onLost: () => {
+                            release()
+
+                            onBuilt()
+                        },
+                    }
+                )
+            }
+
+            try {
                 while (true) {
                     const indexId = pendingRequestStore.data?.id ?? null
-                    const firstWaitOnThisIndex = indexId !== watchedIndexId
 
-                    watchedIndexId = indexId
+                    // Each 412 names whichever index is now in the way; the same one keeps
+                    // the subscription it already has.
+                    if (indexId !== watchedIndexId) {
+                        watchedIndexId = indexId
 
-                    const shouldContinue = await waitForIndex(
-                        indexId,
-                        firstWaitOnThisIndex,
-                        pendingRequestStore
-                    )
+                        watch(indexId)
+                    }
+
+                    let shouldContinue = true
+
+                    if (signalled) {
+                        // Arrived while this was retrying rather than waiting.
+                        signalled = false
+                    } else {
+                        shouldContinue = await waitForSignal(
+                            // No pool, or no index to wait on: ask again on a timer, the
+                            // way this did before there was anything to wait for.
+                            unsubscribe ? indexWaitTimeout : indexPollInterval,
+                            pendingRequestStore,
+                            (resolve) => {
+                                onBuilt = resolve
+                            }
+                        )
+
+                        onBuilt = () => {
+                        }
+
+                        signalled = false
+                    }
 
                     if (!shouldContinue) {
                         return undefined as T
@@ -141,9 +178,8 @@ export async function handleApiRequest<T>(request: () => Promise<T>): Promise<T>
                         return await request()
                     } catch (retryError: any) {
                         if (retryError?.status === 412) {
-                            // Possibly a different index this time — the next wait is on
-                            // whichever one the answer now names, and starts over as a
-                            // first wait if it is not the one just watched.
+                            // Possibly a different index this time — the loop above
+                            // re-subscribes only when the id actually changes.
                             pendingRequestStore.setData(retryError?.error?.data ?? null)
                             continue
                         }
@@ -154,6 +190,8 @@ export async function handleApiRequest<T>(request: () => Promise<T>): Promise<T>
                     }
                 }
             } finally {
+                release()
+
                 pendingRequestStore.close()
             }
         }

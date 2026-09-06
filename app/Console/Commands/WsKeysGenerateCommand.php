@@ -68,10 +68,18 @@ class WsKeysGenerateCommand extends Command
             return self::SUCCESS;
         }
 
-        file_put_contents(
-            $frontendEnvPath,
-            $this->set((string) file_get_contents($frontendEnvPath), 'SCONCUR_WS_KEY', $key)
-        );
+        $frontendEnv = $this->set((string) file_get_contents($frontendEnvPath), 'SCONCUR_WS_KEY', $key);
+
+        // Vite only exposes what is prefixed VITE_, and on a frontend/.env that predates
+        // the pool that line is simply absent — the key would be written, the bundle built
+        // without it, and the panel would sit on its polling fallback saying nothing.
+        // Added, not overwritten: an example-copied file already interpolates it, and that
+        // form survives the next key without a rebuild of this file.
+        if (!$this->isFilled($frontendEnv, 'VITE_SCONCUR_WS_KEY')) {
+            $frontendEnv = $this->set($frontendEnv, 'VITE_SCONCUR_WS_KEY', '${SCONCUR_WS_KEY}');
+        }
+
+        file_put_contents($frontendEnvPath, $frontendEnv);
 
         $this->components->info('SCONCUR_WS_KEY written to frontend/.env');
 

@@ -49,7 +49,10 @@ export const useAuthStore = defineStore('authStore', {
                 this.setUser(response.data.data)
             } catch (error: any) {
                 if (error?.status === 401) {
-                    this.setUser(null)
+                    // The session ended elsewhere. Same teardown as a logout: without it
+                    // the tab keeps its already-signed subscriptions and goes on receiving
+                    // pushed frames, with nothing left polling to notice.
+                    this.endSession()
 
                     return
                 }
@@ -71,9 +74,15 @@ export const useAuthStore = defineStore('authStore', {
                 }
             }
 
+            this.endSession()
+        },
+        /**
+         * Everything a tab has to let go of when its session is over, however it ended —
+         * the button, a 401 from anywhere, the router guard.
+         */
+        endSession() {
             // The Sconcur page's polling loop and its history live in a store of their own
-            // so they survive navigation. This is where a session ends — the button, a
-            // 401, the router guard all come through here — so this is where they stop.
+            // so they survive navigation, so this is where they stop.
             useSconcurStore().reset()
 
             // Before the client is dropped, not after: connect() refuses without a token,

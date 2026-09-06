@@ -71,6 +71,16 @@ let connectionLost = false
 
 let reconnectTimeoutId: number | null = null
 
+/**
+ * Bumped every time the client is torn down.
+ *
+ * An unsubscriber outlives the client it was made for — a caller can hold one across a
+ * drop and a reconnect — and the bookkeeping it would decrement belongs to a client that
+ * no longer exists. Left to run it would leave a channel out from under whoever
+ * subscribed on the new one.
+ */
+let generation = 0
+
 /** The dot's state. Written here, read by the header. */
 const status = ref<WsStatus>(restingStatus())
 
@@ -200,6 +210,11 @@ export class EchoContainer {
                 return
             }
 
+            // Including a drop after a successful connection. pusher-js takes ten seconds
+            // to call one `unavailable`, and until it does nothing here would report the
+            // socket lost or send anybody back to polling.
+            this.armDeadline()
+
             if (status.value !== 'lost') {
                 status.value = 'connecting'
             }
@@ -211,6 +226,18 @@ export class EchoContainer {
         connection.bind('unavailable', () => this.reportLost())
         connection.bind('failed', () => this.reportLost())
         connection.bind('error', () => this.reportLost())
+
+        this.armDeadline()
+    }
+
+    /**
+     * Gives the current attempt — or the current reconnect — a deadline, unless one is
+     * already running. Re-arming on every transition would push it out for ever.
+     */
+    private static armDeadline(): void {
+        if (attemptDeadlineId !== null) {
+            return
+        }
 
         attemptDeadlineId = window.setTimeout(
             () => {
@@ -295,10 +322,13 @@ export class EchoContainer {
 
         let stopped = false
 
+        const bornIn = generation
+
         return () => {
             // Idempotent: a second call would decrement past another owner's
-            // subscription and leave the channel from under it.
-            if (stopped) {
+            // subscription and leave the channel from under it. Stale calls are dropped
+            // for the same reason — the client this belonged to is gone.
+            if (stopped || bornIn !== generation) {
                 return
             }
 
@@ -342,6 +372,8 @@ export class EchoContainer {
         const closing = client
 
         client = null
+
+        generation++
 
         closing?.disconnect()
     }

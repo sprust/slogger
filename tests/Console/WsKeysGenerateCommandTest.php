@@ -53,6 +53,24 @@ class WsKeysGenerateCommandTest extends TestCase
         $this->assertFalse($this->isFilled("OTHER=\${SCONCUR_WS_APP_KEY}\n", 'SCONCUR_WS_APP_KEY'));
     }
 
+    public function testAFrontendEnvFromBeforeThePoolGetsBothLines(): void
+    {
+        // The one that predates this feature has neither line. Writing only the first
+        // leaves Vite with nothing to expose, and the panel silently keeps polling.
+        $env = "BACKEND_URL=http://localhost:8097\n";
+
+        $env = $this->set($env, 'SCONCUR_WS_KEY', 'the-key');
+
+        $this->assertFalse($this->isFilled($env, 'VITE_SCONCUR_WS_KEY'));
+
+        $env = $this->set($env, 'VITE_SCONCUR_WS_KEY', '${SCONCUR_WS_KEY}');
+
+        $this->assertSame(
+            "BACKEND_URL=http://localhost:8097\nSCONCUR_WS_KEY=the-key\nVITE_SCONCUR_WS_KEY=\${SCONCUR_WS_KEY}\n",
+            $env
+        );
+    }
+
     private function set(string $env, string $name, string $value): string
     {
         return $this->call('set', $env, $name, $value);

@@ -56,9 +56,12 @@ return new class extends Migration {
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            // Nullable where the original was not: the tokens are hashes now, so what goes
-            // back is a fresh string for anyone whose session did not survive the round
-            // trip, and null is the honest state until one is issued.
+            // Nullable where the original was not, because the column is filled in the
+            // loop below rather than by the schema change itself. Note what that loop
+            // means: the tokens in user_tokens are hashes, so nothing can be carried back
+            // the way up() carried them forward. A rollback issues everyone a new string
+            // that nobody holds — which signs every session out, the exact opposite of
+            // what up() promises.
             $table->string('api_token', 80)->nullable()->unique();
         });
 

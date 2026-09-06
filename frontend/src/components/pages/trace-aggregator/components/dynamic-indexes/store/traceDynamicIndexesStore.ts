@@ -105,7 +105,12 @@ export const useTraceDynamicIndexesStore = defineStore('traceDynamicIndexesStore
                 {
                     // The socket, or the channel, turned out not to be there after all.
                     onLost: () => {
-                        unsubscribeStats = null
+                        // Released rather than dropped: a refused channel leaves the
+                        // client standing, and forgetting the unsubscriber here would
+                        // leave the listener counted for ever — the next subscribeStats()
+                        // would add a second listener to the same channel and the count
+                        // would never fall back to zero.
+                        this.stopSubscribingStats()
 
                         this.pollStats()
                     },
@@ -117,15 +122,20 @@ export const useTraceDynamicIndexesStore = defineStore('traceDynamicIndexesStore
         stopWatchingStats() {
             this.started = false
 
-            if (unsubscribeStats !== null) {
-                unsubscribeStats()
-                unsubscribeStats = null
-            }
+            this.stopSubscribingStats()
 
             if (statsPollTimeoutId !== null) {
                 window.clearTimeout(statsPollTimeoutId)
                 statsPollTimeoutId = null
             }
+        },
+        stopSubscribingStats() {
+            if (unsubscribeStats === null) {
+                return
+            }
+
+            unsubscribeStats()
+            unsubscribeStats = null
         },
         pollStats() {
             // Checked here as well as inside the timer: the request before this one may
