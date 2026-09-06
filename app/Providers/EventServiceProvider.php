@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use App\Modules\Trace\Domain\Events\TraceTreeCacheBuildRequestedEvent;
+use App\Modules\Trace\Domain\Events\TraceTreeCacheStateChangedEvent;
+use App\Modules\Trace\Infrastructure\Listeners\BroadcastTraceTreeStateListener;
 use App\Modules\Trace\Infrastructure\Listeners\DispatchTraceTreeCacheBuildListener;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 
@@ -16,6 +18,9 @@ class EventServiceProvider extends ServiceProvider
     protected $listen = [
         TraceTreeCacheBuildRequestedEvent::class => [
             DispatchTraceTreeCacheBuildListener::class,
+        ],
+        TraceTreeCacheStateChangedEvent::class   => [
+            BroadcastTraceTreeStateListener::class,
         ],
     ];
 

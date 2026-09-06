@@ -64,6 +64,11 @@ flowchart TB
 логика, а вещание — инфраструктурный побочный эффект, значит в `Domain` не должно
 появиться ни одного `use Illuminate\Broadcasting\...`.
 
+Диспетчер приходит через конструктор, а не через хелпер `event()`. Причина
+приземлённая: весь существующий `tests/Modules` — это быстрые юнит-тесты на голом
+`PHPUnit\Framework\TestCase`, без поднятого приложения, а хелпер требует контейнера.
+Инъекция сохраняет этот уклад и делает поведение проверяемым.
+
 ### 2. Где событие поднимается
 
 | Переход | Место |
@@ -133,11 +138,14 @@ Broadcast::channel('sl-trace-tree.{rootTraceId}', fn(User $user) => true);
 
 `traceAggregatorTreeStore.ts`:
 
-- Убрать `schedulePolling()`, `clearPollingTimeout()`, `pollingTimeoutId`. Флаг
-  `polling` оставить — он про «идёт построение», и на нём висит UI; менять его теперь
-  будет подписка.
+- Флаг `polling` переименовать в `building` (и `cancelPolling()` в `cancelBuild()`): он
+  про «идёт построение», и на нём висит UI, а опроса под ним больше нет. Затрагивает
+  `TraceAggregatorTraceTree.vue` — три места.
 - Там, где сейчас `data.state.status === 'inProcess'` заводит опрос, — подписываться на
   `sl-trace-tree.{trace_id}`.
+- Опрос не удаляется, а становится запасным путём: `EchoContainer.listen(...)` отдаёт
+  `null`, когда ws-пул выключен, и тогда заводится тот же `setTimeout` на секунду, что и
+  раньше. Выключенный пул должен означать панель без живых обновлений, а не сломанную.
 - В обработчике кадра: `setTreeState(payload)`; на `finished` — один раз позвать
   `findTreeContent(...)` и `findTreeNodes(...)` за готовым деревом, затем отписаться; на
   `failed` и `canceled` — просто отписаться.

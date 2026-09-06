@@ -10,7 +10,7 @@
             v-if="isTraceSelected"
             link
             class="tree-cancel-button"
-            :disabled="!traceAggregatorTreeStore.polling"
+            :disabled="!traceAggregatorTreeStore.building"
             @click="cancel"
         >
           Cancel
@@ -285,7 +285,7 @@ export default defineComponent({
       return this.traceAggregatorTreeStore.selectedTrace.trace_id || this.traceAggregatorTreeStore.dataLoading
     },
     inProcess() {
-      return this.traceAggregatorTreeStore.loading || this.traceAggregatorTreeStore.polling
+      return this.traceAggregatorTreeStore.loading || this.traceAggregatorTreeStore.building
     },
     isTraceSelected() {
       return !!this.traceAggregatorTreeStore.parameters.trace_id
@@ -309,7 +309,7 @@ export default defineComponent({
       this.traceAggregatorTreeStore.freshTree()
     },
     cancel() {
-      this.traceAggregatorTreeStore.cancelPolling()
+      this.traceAggregatorTreeStore.cancelBuild()
     },
     onShowProcessesDialog() {
       this.showProcessesDialog = true

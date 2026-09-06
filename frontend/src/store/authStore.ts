@@ -4,6 +4,12 @@ import {defineStore} from "pinia";
 import {handleApiError, handleApiRequest} from "../utils/handleApiRequest.ts";
 import {useSconcurStore} from "../components/pages/sconcur/store/sconcurStore.ts";
 import {EchoContainer} from "../utils/echoContainer.ts";
+import {
+    useTraceAggregatorTreeStore
+} from "../components/pages/trace-aggregator/components/tree/store/traceAggregatorTreeStore.ts";
+import {
+    useTraceAggregatorTreeStore
+} from "../components/pages/trace-aggregator/components/tree/store/traceAggregatorTreeStore.ts";
 
 type AuthUser = AdminApi.AuthMeList.ResponseBody['data']
 
@@ -66,6 +72,10 @@ export const useAuthStore = defineStore('authStore', {
             // The client belongs to the session: its subscriptions were signed for the
             // person leaving, and whoever signs in next on this tab would inherit them.
             EchoContainer.disconnect()
+
+            // Disconnecting takes every subscription with it, but not the poll that
+            // stands in for one when there is no ws pool.
+            useTraceAggregatorTreeStore().stopWatching()
         },
         setUser(user: AuthUser | null) {
             this.user = user

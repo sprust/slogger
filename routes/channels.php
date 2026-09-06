@@ -18,3 +18,8 @@ use Illuminate\Support\Facades\Broadcast;
 | fanout exchange rather than a private one.
 |
 */
+
+Broadcast::channel(
+    'sl-trace-tree.{rootTraceId}',
+    static fn(LoggedUserObject $user, string $rootTraceId): bool => true
+);

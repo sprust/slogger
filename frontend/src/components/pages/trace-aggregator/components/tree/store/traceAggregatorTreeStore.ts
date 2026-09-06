@@ -7,6 +7,7 @@ import {readStream} from "../../../../../../utils/helpers.ts";
 import {TreeBuilder} from "./TreeBuilder.ts";
 import {TreeFilter} from "./TreeFilter.ts";
 import {IndicatorSetter} from "./IndicatorSetter.ts";
+import {EchoContainer} from "../../../../../../utils/echoContainer.ts";
 
 type TraceAggregatorTreeParameters = AdminApi.TraceAggregatorTracesTreeCreate.RequestBody
 export type TraceAggregatorTreeRow = AdminApi.TraceAggregatorTracesTreeCreate.ResponseBody['data'][number]
@@ -20,6 +21,22 @@ type TraceAggregatorTreeStreamResponse = {
 type TraceAggregatorTreeContentParameters = AdminApi.TraceAggregatorTracesTreeContentCreate.RequestBody
 type TraceAggregatorTreeContent = NonNullable<AdminApi.TraceAggregatorTracesTreeContentCreate.ResponseBody['data']['content']>
 type TraceAggregatorTreeContentService = TraceAggregatorTreeContent['services'][number]
+
+/**
+ * Cancels the subscription to the state of the tree being watched.
+ *
+ * Module-level rather than store state: only one tree is watched at a time, and a
+ * function in the state would be dropped by $reset() without ever being called.
+ */
+let unsubscribeTreeState: null | (() => void) = null
+
+/**
+ * How long a subscription may deliver nothing before the poll takes over.
+ *
+ * Covers what a returned unsubscriber cannot promise: that the socket connected, that
+ * nginx routed the upgrade, and that the channel was authorized.
+ */
+const watchdogTimeout = 10000
 
 interface ServicesMapInterface {
     [key: number]: TraceAggregatorTreeContentService
@@ -37,7 +54,7 @@ export interface TraceTreeNode {
 
 interface TraceAggregatorTreeStoreInterface {
     loading: boolean,
-    polling: boolean,
+    building: boolean,
     pollingTimeoutId: null | number,
     parameters: TraceAggregatorTreeParameters,
     state: null | TraceAggregatorTreeState,
@@ -59,7 +76,7 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
     state: (): TraceAggregatorTreeStoreInterface => {
         return {
             loading: false,
-            polling: false,
+            building: false,
             pollingTimeoutId: null,
             parameters: {} as TraceAggregatorTreeParameters,
             state: null,
@@ -112,7 +129,7 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
     },
     actions: {
         async initTreeParent(traceId: string) {
-            this.stopPolling()
+            this.stopWatching()
             this.$reset()
 
             return this.findTreeNodes({
@@ -124,7 +141,7 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
             )
         },
         async initTreeCurrent(traceId: string) {
-            this.stopPolling()
+            this.stopWatching()
             this.$reset()
 
             return this.findTreeNodes({
@@ -136,7 +153,7 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
             )
         },
         async initTreeByRow(row: TraceTreeNode) {
-            this.stopPolling()
+            this.stopWatching()
             this.$reset()
 
             return this.findTreeNodes({
@@ -147,7 +164,7 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
             })
         },
         async updateTree() {
-            this.stopPolling()
+            this.stopWatching()
             return this.findTreeNodes({
                 traceId: this.parameters.trace_id,
                 fresh: false,
@@ -159,7 +176,7 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
             const traceId = this.parameters.trace_id
             const isChild = this.parameters.is_child
 
-            this.stopPolling()
+            this.stopWatching()
 
             return this.findTreeNodes({
                 traceId: traceId,
@@ -173,12 +190,17 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
                 traceId,
                 fresh,
                 freshContent,
-                isChild
+                isChild,
+                watch = true,
             }: {
                 traceId: string,
                 fresh: boolean,
                 freshContent: boolean,
-                isChild: boolean
+                isChild: boolean,
+                // False when this call is itself a part of watching — the confirming read
+                // right after subscribing, and the read a frame asks for. Without it the
+                // two would call each other.
+                watch?: boolean,
             }
         ) {
             this.loading = true
@@ -223,13 +245,16 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
                 }
 
                 if (data.state.status === 'inProcess') {
-                    this.schedulePolling()
+                    if (watch) {
+                        this.watchState()
+                    }
+
                     this.loading = false
 
                     return response
                 }
 
-                this.stopPolling()
+                this.stopWatching()
 
                 if (freshContent) {
                     await this.findTreeContent(traceId, isChild)
@@ -241,7 +266,7 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
             })
 
             if (!response) {
-                this.stopPolling()
+                this.stopWatching()
                 this.loading = false
             }
 
@@ -263,12 +288,134 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
                         }
                     }))
         },
+        /**
+         * Follows a build that is still running.
+         *
+         * The state is pushed on a channel of this tree's own. The poll below is what
+         * happens when there is no ws pool to push it — the panel keeps working, it just
+         * asks again the way it used to.
+         */
+        watchState() {
+            this.building = true
+            this.stopSubscription()
+            this.clearPollingTimeout()
+
+            // The root of the tree, which is not the trace that was opened: with
+            // is_child false the server walks up to the topmost ancestor and builds
+            // that (FindTraceTreeAction), and the state it broadcasts is keyed by it.
+            // Subscribing by the opened trace id would mean a channel nobody publishes to.
+            const rootTraceId = this.state?.root_trace_id
+
+            if (!rootTraceId) {
+                this.schedulePolling()
+
+                return
+            }
+
+            const traceId = this.parameters.trace_id
+            const isChild = this.parameters.is_child
+
+            unsubscribeTreeState = EchoContainer.listen(
+                `sl-trace-tree.${rootTraceId}`,
+                '.state.changed',
+                (state: TraceAggregatorTreeState) => this.onStateChanged(state),
+                {
+                    // Once the channel is actually listening, and not a moment before.
+                    // The build was already running when this page asked to listen, and
+                    // subscribing is a round trip of its own; a finish that landed in
+                    // that window is gone for good, because the bus keeps no history. So
+                    // the state is read once from here — after which nothing can be
+                    // missed, since anything later arrives as a frame. The poll this
+                    // replaces made one request per second; this makes one per build.
+                    onSubscribed: () => {
+                        this.findTreeNodes({
+                            traceId: traceId,
+                            fresh: false,
+                            freshContent: true,
+                            isChild: isChild,
+                            watch: false,
+                        })
+                    },
+                    onLost: () => {
+                        // The socket turned out not to be there after all.
+                        this.stopSubscription()
+
+                        if (this.building) {
+                            this.schedulePolling()
+                        }
+                    },
+                }
+            )
+
+            if (!unsubscribeTreeState) {
+                this.schedulePolling()
+
+                return
+            }
+
+            // And if the subscription never completes at all — a pool that accepts the
+            // socket and then says nothing — the poll takes over.
+            this.armWatchdog()
+        },
+        /**
+         * Falls back to polling if the subscription delivers nothing at all.
+         *
+         * Disarmed by the first frame — progress counts, so a build that is moving keeps
+         * resetting it.
+         */
+        armWatchdog() {
+            this.clearPollingTimeout()
+
+            this.pollingTimeoutId = window.setTimeout(
+                () => {
+                    if (!this.building) {
+                        return
+                    }
+
+                    this.stopSubscription()
+                    this.schedulePolling()
+                },
+                watchdogTimeout
+            )
+        },
+        onStateChanged(state: TraceAggregatorTreeState) {
+            // A frame about a tree that is no longer the one on screen. The subscription
+            // is dropped when the tree changes, but a frame already in flight still
+            // arrives.
+            if (state.root_trace_id !== this.state?.root_trace_id) {
+                return
+            }
+
+            this.armWatchdog()
+
+            this.setTreeState(state)
+
+            // Progress: the count moved, the build is still running.
+            if (state.status === 'inProcess') {
+                return
+            }
+
+            this.stopWatching()
+
+            if (state.status !== 'finished') {
+                return
+            }
+
+            // watch: true, not false — the read can still come back inProcess (a stale
+            // state document, or a fresh build started in between), and then there has to
+            // be something following it again.
+            this.findTreeNodes({
+                traceId: this.parameters.trace_id,
+                fresh: false,
+                freshContent: true,
+                isChild: this.parameters.is_child,
+            })
+        },
         schedulePolling() {
-            this.polling = true
             this.clearPollingTimeout()
 
             this.pollingTimeoutId = window.setTimeout(async () => {
-                if (!this.polling) {
+                if (!this.building) {
                     return
                 }
 
@@ -286,12 +433,19 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
                 this.pollingTimeoutId = null
             }
         },
-        stopPolling() {
-            this.polling = false
+        stopSubscription() {
+            if (unsubscribeTreeState !== null) {
+                unsubscribeTreeState()
+                unsubscribeTreeState = null
+            }
+        },
+        stopWatching() {
+            this.building = false
+            this.stopSubscription()
             this.clearPollingTimeout()
         },
-        async cancelPolling() {
-            this.stopPolling()
+        async cancelBuild() {
+            this.stopWatching()
 
             if (!this.state?.root_trace_id) {
                 return
