@@ -1,7 +1,9 @@
 <template>
-  <el-tooltip :content="title" placement="bottom" :show-after="200">
-    <span class="ws-dot" :class="`ws-dot--${status}`"/>
-  </el-tooltip>
+  <div class="ws-status">
+    <el-tooltip :content="title" placement="bottom" :show-after="200">
+      <span class="ws-dot" :class="`ws-dot--${status}`"/>
+    </el-tooltip>
+  </div>
 </template>
 
 <script lang="ts">
@@ -33,8 +35,31 @@ export default defineComponent({
 </script>
 
 <style scoped>
+/*
+ * The geometry of the menu items beside it: the full height of the bar, the same
+ * transparent bottom border they reserve for the active underline, contents centred both
+ * ways. The root of this component is what el-menu lays out, so the centring happens in
+ * the one box that is certain to be a flex child of the bar — a wrapper in the header
+ * would leave the tooltip's own node in between.
+ *
+ * `align-self`, not `height: 100%`: it holds whatever the bar sets on its children.
+ *
+ * Not an el-menu-item: there is nothing to click here, and one would bring a cursor, a
+ * hover and a focus ring with it. Narrower than an item, too — an indicator standing in a
+ * row of buttons should not take a button's width.
+ */
+.ws-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: stretch;
+  box-sizing: border-box;
+  padding: 0 12px;
+  border-bottom: 2px solid transparent;
+}
+
 .ws-dot {
-  display: block;
+  flex: none;
   width: 13px;
   height: 13px;
   border-radius: 50%;

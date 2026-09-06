@@ -16,9 +16,7 @@
       Sconcur
     </el-menu-item>
     <div class="flex-grow"/>
-    <div class="ws-status">
-      <ws-status-indicator/>
-    </div>
+    <ws-status-indicator/>
     <el-menu-item index="" @click="toggleDark">
       <el-button :icon="isDark ? Moon : Sunny" link/>
     </el-menu-item>
@@ -94,21 +92,6 @@ export default defineComponent({
 <style scoped>
 .flex-grow {
   flex-grow: 1;
-}
-
-/* The geometry of the menu items beside it — full height, the same transparent bottom
-   border they reserve for the active underline, contents centred — so the dot sits on
-   their line rather than near it. Not an el-menu-item itself: there is nothing to click
-   here, and one would bring a cursor, a hover and a focus ring with it. Narrower, too:
-   an indicator standing in a row of buttons should not take a button's width. */
-.ws-status {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-  height: 100%;
-  padding: 0 12px;
-  border-bottom: 2px solid transparent;
 }
 
 #header-menu {
