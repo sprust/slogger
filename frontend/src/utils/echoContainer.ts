@@ -27,7 +27,7 @@ interface ListenCallbacks {
 let client: EchoClient | null = null
 
 /**
- * Set once the connection has proved unusable.
+ * Set once the pool has proved unusable, and cleared by disconnect() with the session.
  *
  * The app key lives in the panel's bundle and the pool's worker count lives in the
  * backend's .env — two independent switches. "Key present, pool off" is therefore a
@@ -36,7 +36,7 @@ let client: EchoClient | null = null
 let connectionLost = false
 
 /**
- * Whether the socket has ever been up.
+ * Whether the socket has ever been up, for this session.
  *
  * A drop after a successful connection is pusher-js's own business — it reconnects and
  * the subscriptions come back. Only a connection that never happened means there is
@@ -131,18 +131,18 @@ export class EchoContainer {
             }),
         })
 
-        // `unavailable` is pusher-js saying it could not reach the host and will keep
-        // trying; with the pool off that is the steady state, and waiting it out means a
-        // panel that never updates and never falls back either.
         const connection = client.connector.pusher.connection
 
         connection.bind('connected', () => {
             everConnected = true
         })
 
-        connection.bind('unavailable', () => this.reportLost())
-        connection.bind('failed', () => this.reportLost())
-        connection.bind('error', () => this.reportLost())
+        // `unavailable` is pusher-js saying it could not reach the host and will keep
+        // trying; with the pool off that is the steady state, and waiting it out means a
+        // panel that never updates and never falls back either.
+        connection.bind('unavailable', () => this.reportTransportLost())
+        connection.bind('failed', () => this.reportTransportLost())
+        connection.bind('error', () => this.reportTransportLost())
     }
 
     /**
@@ -150,9 +150,18 @@ export class EchoContainer {
      *
      * A session that ends has to take the client with it: its subscriptions were signed
      * for the person who is leaving, and the next one to sign in on this tab would
-     * inherit them.
+     * inherit them. The verdict on the pool goes with it too — it was reached under a
+     * token that is gone, and a tab that signs in again should find out for itself.
      */
     public static disconnect(): void {
+        connectionLost = false
+        everConnected = false
+
+        this.tearDown()
+    }
+
+    /** Drops the client and the bookkeeping, leaving the verdict alone. */
+    private static tearDown(): void {
         lostHandlers.clear()
 
         Object.keys(listenerCounts).forEach(channel => delete listenerCounts[channel])
@@ -169,15 +178,12 @@ export class EchoContainer {
     /**
      * Listens on a private channel until the returned function is called.
      *
-     * Returns null when there is no usable pool — that is the caller's signal to poll
-     * instead. `onLost` is the same signal arriving late, when the connection or the
-     * subscription turns out to be unusable only after this returned. `onSubscribed` is
-     * the moment the channel starts delivering, which is what closes the window between
-     * asking to listen and actually listening.
+     * Returns null when there is no usable pool — the caller's signal to poll instead.
+     * `onLost` is that same signal arriving late.
      *
      * Channels are reference-counted because the same one can have several owners at
-     * once: two requests can wait on the same dynamic index. Leaving on the first of them
-     * to finish would take the channel away from the other.
+     * once: two requests can wait on the same dynamic index, and leaving on the first of
+     * them to finish would take the channel away from the other.
      */
     public static listen(
         channel: string,
@@ -197,11 +203,9 @@ export class EchoContainer {
         const subscription = client.private(channel).listen(event, handler)
 
         if (onSubscribed) {
-            // Not the same moment as this call. Subscribing is a round trip of its own —
-            // connect, POST /broadcasting/auth, send pusher:subscribe — and only when it
-            // has finished is this channel actually listening. Anything published in
-            // between is gone: the bus keeps no history. Whoever needs to close that
-            // window has to do it from here, not from the line after this one.
+            // Not the same moment as this call: subscribing is a round trip of its own,
+            // and anything published before it finishes is gone — the bus keeps no
+            // history. Closing that window has to happen from here.
             subscription.subscribed(onSubscribed)
         }
 
@@ -215,8 +219,8 @@ export class EchoContainer {
         let stopped = false
 
         return () => {
-            // Idempotent on purpose: a second call would otherwise decrement the count
-            // past another owner's subscription and leave the channel from under it.
+            // Idempotent: a second call would decrement past another owner's
+            // subscription and leave the channel from under it.
             if (stopped) {
                 return
             }
@@ -250,13 +254,32 @@ export class EchoContainer {
     }
 
     /**
-     * Declares the connection unusable and sends every listener back to polling.
+     * The transport never came up.
+     *
+     * Guarded by everConnected, and only here: a drop after a successful connection is
+     * pusher-js reconnecting, not a pool that is missing.
+     */
+    private static reportTransportLost(): void {
+        if (everConnected) {
+            return
+        }
+
+        this.reportLost()
+    }
+
+    /**
+     * Declares the pool unusable and sends every listener back to polling.
+     *
+     * Unconditional, because the caller that matters most is a refused subscription:
+     * that happens on a socket that connected perfectly well, so everConnected says
+     * nothing about it, and nobody else will notice — a channel that was never
+     * authorized is indistinguishable from one with nothing to say.
      *
      * The client is dropped rather than left retrying: a later caller then takes the
-     * poll path immediately instead of subscribing to a socket that is not there.
+     * poll path immediately instead of subscribing to a socket that will not carry it.
      */
     private static reportLost(): void {
-        if (connectionLost || everConnected) {
+        if (connectionLost) {
             return
         }
 
@@ -264,7 +287,7 @@ export class EchoContainer {
 
         const handlers = [...lostHandlers]
 
-        this.disconnect()
+        this.tearDown()
 
         handlers.forEach(handler => handler())
     }

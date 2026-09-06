@@ -8,6 +8,7 @@ use App\Modules\Trace\Entities\DynamicIndex\TraceDynamicIndexStatsObject;
 use App\Modules\Trace\Entities\Trace\TraceIndexInfoObject;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
+use Illuminate\Contracts\Broadcasting\ShouldRescue;
 
 /**
  * A snapshot of what the dynamic indexes are doing, taken once by the task pool instead
@@ -17,8 +18,10 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
  * asks Mongo what it is doing right now, and the answer is the same for everyone
  * watching. So this is published by the pool that does the building, and no domain event
  * stands behind it.
+ *
+ * ShouldRescue: a reading nobody could be told about is not a failed tick.
  */
-class TraceDynamicIndexStatsBroadcast implements ShouldBroadcastNow
+class TraceDynamicIndexStatsBroadcast implements ShouldBroadcastNow, ShouldRescue
 {
     public function __construct(
         private readonly TraceDynamicIndexStatsObject $stats,
@@ -41,8 +44,8 @@ class TraceDynamicIndexStatsBroadcast implements ShouldBroadcastNow
     }
 
     /**
-     * The keys of TraceDynamicIndexStatsResource, so the panel can keep typing this as
-     * the stats endpoint's `data` and needs no hand-written type beside the generated one.
+     * The keys of TraceDynamicIndexStatsResource, so the panel keeps typing this as the
+     * stats endpoint's `data`. Asserted by TraceDynamicIndexBroadcastsTest.
      *
      * @return array<string, mixed>
      */

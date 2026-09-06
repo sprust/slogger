@@ -62,6 +62,12 @@ export const useTraceDynamicIndexesStore = defineStore('traceDynamicIndexesStore
          * there is nothing to build. The first read is still ours: until something is
          * being built, there is nothing to publish.
          *
+         * Anything published before the channel goes live is missed, but this snapshot
+         * repairs itself: the publisher repeats it every second while a build lasts, and
+         * closes with one saying there is nothing. Only a build that both starts and
+         * finishes inside the subscription handshake goes unseen, and that one had
+         * nothing to show.
+         *
          * Without a ws pool this falls back to the poll it replaced.
          */
         async watchStats() {
@@ -80,13 +86,8 @@ export const useTraceDynamicIndexesStore = defineStore('traceDynamicIndexesStore
                     this.traceDynamicIndexStats = stats
                 },
                 {
-                    // Anything published before the channel was live is gone, but this
-                    // one repairs itself: the publisher repeats its snapshot every second
-                    // while a build lasts, and closes with one saying there is nothing.
-                    // Only a build that both starts and finishes inside the subscription
-                    // handshake goes unseen, and that one had nothing to show.
+                    // The socket, or the channel, turned out not to be there after all.
                     onLost: () => {
-                        // The socket turned out not to be there after all.
                         unsubscribeStats = null
 
                         this.pollStats()
@@ -139,6 +140,11 @@ export const useTraceDynamicIndexesStore = defineStore('traceDynamicIndexesStore
                         this.traceDynamicIndexes = this.traceDynamicIndexes.filter(
                             (index: TraceDynamicIndex) => index.id !== id
                         )
+
+                        // The published snapshot only moves while something is being
+                        // built, and a delete moves the totals beside it. Nothing would
+                        // correct them until the next build, so they are re-read here.
+                        this.findTraceDynamicIndexStats()
                     })
             )
         },

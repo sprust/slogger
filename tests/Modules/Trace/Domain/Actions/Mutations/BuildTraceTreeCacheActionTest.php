@@ -93,6 +93,27 @@ class BuildTraceTreeCacheActionTest extends TestCase
         $this->action($states, $events, builderResult: false)->handle('root', 'v1');
     }
 
+    public function testAnnouncingIsNotAllowedToTurnAFinishedBuildIntoAFailedOne(): void
+    {
+        $states = $this->createMock(TraceTreeCacheStateRepository::class);
+        $events = $this->createMock(Dispatcher::class);
+
+        $states->method('markFinished')->willReturn(true);
+        $states->method('findOneByRootTraceId')
+            ->willReturn($this->state(TraceTreeCacheStateStatusEnum::Finished));
+
+        // A bus that is down. ShouldRescue keeps this from happening at all in practice,
+        // but markFailed() filters by version alone: were the announcement inside the
+        // catch, a throw here would overwrite the state of a tree that is fully built.
+        $events->method('dispatch')->willThrowException(new RuntimeException('bus is down'));
+
+        $states->expects($this->never())->method('markFailed');
+
+        $this->expectException(RuntimeException::class);
+
+        $this->action($states, $events, builderResult: true)->handle('root', 'v1');
+    }
+
     /**
      * @param MockObject&TraceTreeCacheStateRepository $states
      * @param MockObject&Dispatcher                    $events

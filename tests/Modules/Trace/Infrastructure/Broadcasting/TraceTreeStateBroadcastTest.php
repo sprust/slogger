@@ -6,6 +6,7 @@ use App\Modules\Trace\Entities\Trace\Tree\TraceTreeCacheStateObject;
 use App\Modules\Trace\Enums\TraceTreeCacheStateStatusEnum;
 use App\Modules\Trace\Infrastructure\Broadcasting\TraceTreeStateBroadcast;
 use App\Modules\Trace\Infrastructure\Http\Resources\Tree\TraceTreeStateResource;
+use Illuminate\Contracts\Broadcasting\ShouldRescue;
 use Illuminate\Support\Carbon;
 use PHPUnit\Framework\TestCase;
 
@@ -41,6 +42,15 @@ class TraceTreeStateBroadcastTest extends TestCase
         );
 
         $this->assertSame('state.changed', $broadcast->broadcastAs());
+    }
+
+    public function testAFailingBusCannotReachTheBuildThatRaisedThis(): void
+    {
+        // BuildTraceTreeCacheAction dispatches this right after marking the build
+        // finished. Without ShouldRescue a bus that is down throws out of dispatch(),
+        // and markFailed() — which filters by version alone — records the finished
+        // build as failed.
+        $this->assertInstanceOf(ShouldRescue::class, new TraceTreeStateBroadcast($this->state()));
     }
 
     private function state(): TraceTreeCacheStateObject

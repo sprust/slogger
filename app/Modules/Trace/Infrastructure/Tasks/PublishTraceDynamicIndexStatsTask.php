@@ -15,16 +15,12 @@ use SConcur\Laravel\Tasks\TickResultEnum;
  *
  * A task of its own rather than a few lines inside BuildTraceDynamicIndexesTask, and
  * that separation is the whole point: a tick of that task does not return until its whole
- * batch is built — createIndex() ends in a WaitGroup that waits for every collection — so
- * anything reporting from inside it would only ever speak once the work it is reporting
- * on had finished. The pool runs every task as its own coroutine, so this one keeps
- * ticking while that one is busy.
+ * batch is built, so anything reporting from inside it would only ever speak once the
+ * work it reports on had finished. The pool runs every task as its own coroutine.
  *
- * Silence is the resting state. Nothing is published while nothing is being built, which
- * is what keeps this from costing anything on an idle installation — a reading is taken
- * every couple of seconds and thrown away. That reading is two small Mongo operations
- * (an aggregate over the index collection and a currentOp on admin); the poll it replaced
- * made the same two, per open tab, twice a second.
+ * Silence is the resting state: nothing is published while nothing is being built. The
+ * reading itself is two small Mongo operations; the poll it replaced made the same two,
+ * per open tab, twice a second.
  */
 class PublishTraceDynamicIndexStatsTask implements TaskInterface
 {

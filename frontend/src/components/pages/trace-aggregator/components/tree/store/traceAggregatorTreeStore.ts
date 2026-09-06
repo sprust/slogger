@@ -31,6 +31,16 @@ type TraceAggregatorTreeContentService = TraceAggregatorTreeContent['services'][
 let unsubscribeTreeState: null | (() => void) = null
 
 /**
+ * The tree whose subscription went quiet long enough for the watchdog to fire.
+ *
+ * Kept so the fallback stays a fallback: without it every poll that comes back inProcess
+ * subscribes again, waits out the watchdog again, and the tree refreshes once per
+ * watchdogTimeout instead of once per second. Cleared by the first frame that does
+ * arrive, and keyed by root trace id so another tree starts with a clean slate.
+ */
+let silentTreeId: null | string = null
+
+/**
  * How long a subscription may deliver nothing before the poll takes over.
  *
  * Covers what a returned unsubscriber cannot promise: that the socket connected, that
@@ -55,7 +65,7 @@ export interface TraceTreeNode {
 interface TraceAggregatorTreeStoreInterface {
     loading: boolean,
     building: boolean,
-    pollingTimeoutId: null | number,
+    treeTimeoutId: null | number,
     parameters: TraceAggregatorTreeParameters,
     state: null | TraceAggregatorTreeState,
     tree: Array<TraceTreeNode>,
@@ -77,7 +87,7 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
         return {
             loading: false,
             building: false,
-            pollingTimeoutId: null,
+            treeTimeoutId: null,
             parameters: {} as TraceAggregatorTreeParameters,
             state: null,
             tree: new Array<TraceTreeNode>,
@@ -298,7 +308,7 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
         watchState() {
             this.building = true
             this.stopSubscription()
-            this.clearPollingTimeout()
+            this.clearTreeTimeout()
 
             // The root of the tree, which is not the trace that was opened: with
             // is_child false the server walks up to the topmost ancestor and builds
@@ -307,6 +317,14 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
             const rootTraceId = this.state?.root_trace_id
 
             if (!rootTraceId) {
+                this.schedulePolling()
+
+                return
+            }
+
+            // This tree's subscription has already been given its chance and delivered
+            // nothing; re-subscribing would only spend another watchdog on it.
+            if (silentTreeId === rootTraceId) {
                 this.schedulePolling()
 
                 return
@@ -364,13 +382,15 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
          * resetting it.
          */
         armWatchdog() {
-            this.clearPollingTimeout()
+            this.clearTreeTimeout()
 
-            this.pollingTimeoutId = window.setTimeout(
+            this.treeTimeoutId = window.setTimeout(
                 () => {
                     if (!this.building) {
                         return
                     }
+
+                    silentTreeId = this.state?.root_trace_id ?? null
 
                     this.stopSubscription()
                     this.schedulePolling()
@@ -385,6 +405,9 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
             if (state.root_trace_id !== this.state?.root_trace_id) {
                 return
             }
+
+            // The channel does deliver after all, whatever an earlier watchdog decided.
+            silentTreeId = null
 
             this.armWatchdog()
 
@@ -412,9 +435,9 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
             })
         },
         schedulePolling() {
-            this.clearPollingTimeout()
+            this.clearTreeTimeout()
 
-            this.pollingTimeoutId = window.setTimeout(async () => {
+            this.treeTimeoutId = window.setTimeout(async () => {
                 if (!this.building) {
                     return
                 }
@@ -427,10 +450,11 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
                 })
             }, 1000)
         },
-        clearPollingTimeout() {
-            if (this.pollingTimeoutId !== null) {
-                window.clearTimeout(this.pollingTimeoutId)
-                this.pollingTimeoutId = null
+        /** Clears whichever of the two timers is pending — the poll or the watchdog. */
+        clearTreeTimeout() {
+            if (this.treeTimeoutId !== null) {
+                window.clearTimeout(this.treeTimeoutId)
+                this.treeTimeoutId = null
             }
         },
         stopSubscription() {
@@ -441,8 +465,13 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
         },
         stopWatching() {
             this.building = false
+
+            // The latch lasts one build. A tree that is opened, or built, again deserves
+            // the subscription retried — the pool may have been restarted since.
+            silentTreeId = null
+
             this.stopSubscription()
-            this.clearPollingTimeout()
+            this.clearTreeTimeout()
         },
         async cancelBuild() {
             this.stopWatching()

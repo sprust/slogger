@@ -8,6 +8,7 @@ use App\Modules\Trace\Entities\Trace\TraceIndexInfoObject;
 use App\Modules\Trace\Infrastructure\Broadcasting\TraceDynamicIndexBuiltBroadcast;
 use App\Modules\Trace\Infrastructure\Broadcasting\TraceDynamicIndexStatsBroadcast;
 use App\Modules\Trace\Infrastructure\Http\Resources\TraceDynamicIndexStatsResource;
+use Illuminate\Contracts\Broadcasting\ShouldRescue;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -67,6 +68,21 @@ class TraceDynamicIndexBroadcastsTest extends TestCase
             ['id' => 'index-id', 'created' => true, 'error' => null],
             $broadcast->broadcastWith()
         );
+    }
+
+    public function testAFailingBusCannotReachTheWorkThatRaisedThese(): void
+    {
+        // The index is built and the reading is taken either way. Without ShouldRescue a
+        // bus that is down aborts the rest of the build pass, and turns a tick of the
+        // stats task into a reported failure.
+        $this->assertInstanceOf(
+            ShouldRescue::class,
+            new TraceDynamicIndexBuiltBroadcast(
+                new TraceDynamicIndexBuiltEvent(indexId: 'index-id', created: true, error: null)
+            )
+        );
+
+        $this->assertInstanceOf(ShouldRescue::class, new TraceDynamicIndexStatsBroadcast($this->stats()));
     }
 
     private function stats(): TraceDynamicIndexStatsObject

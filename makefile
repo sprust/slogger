@@ -33,6 +33,7 @@ setup:
 	make up
 	make composer c=install
 	make art c=key:generate
+	make ws-keys-generate
 	make art c="migrate --force"
 	make queues-declare
 	make frontend-npm-i
@@ -110,6 +111,11 @@ workers-art:
 # consumer pool started before it spins on 404 instead of reading.
 queues-declare:
 	make workers-art c='queues-declare'
+
+# The ws pool is on by default and refuses to start without these, so setup generates
+# a pair. Existing credentials are kept unless c=--force is passed.
+ws-keys-generate:
+	make art c="ws-keys-generate ${c}"
 
 composer:
 	docker-compose exec -e XDEBUG_MODE=off $(PHP_FPM_SERVICE) composer ${c}

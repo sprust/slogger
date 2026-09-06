@@ -13,9 +13,9 @@ import {EchoContainer} from "./echoContainer.ts";
 const indexWaitTimeout = 15000
 
 /**
- * The ceiling on the first wait. Normally the subscription itself ends it well before
- * this — see onSubscribed below; this is the floor under a subscription that never
- * completes.
+ * The same, for the first wait on a given index — shorter, because that one is the wait
+ * that can have missed its frame. Normally the subscription ends it well before this;
+ * see onSubscribed below.
  */
 const firstIndexWaitTimeout = 5000
 
@@ -32,7 +32,7 @@ const indexWaitStep = 100
  */
 async function waitForIndex(
     indexId: string | null,
-    attempt: number,
+    firstWaitOnThisIndex: boolean,
     pendingRequestStore: ReturnType<typeof usePendingRequestStore>
 ): Promise<boolean> {
     let onBuilt: () => void = () => {
@@ -44,13 +44,14 @@ async function waitForIndex(
             '.index.built',
             () => onBuilt(),
             {
-                // On the first wait only, and for a reason that has nothing to do with
-                // the index being ready: the build was already running when this asked to
-                // listen, and a frame published before the channel was live is gone — the
-                // bus keeps no history. Retrying the moment the channel starts listening
-                // is what closes that window. From then on the frame cannot be missed, so
-                // later waits have nothing to close and simply wait.
-                onSubscribed: attempt === 0 ? () => onBuilt() : undefined,
+                // Once per index, and for a reason that has nothing to do with the index
+                // being ready: the build was already running when this asked to listen,
+                // and a frame published before the channel was live is gone — the bus
+                // keeps no history. Retrying the moment the channel starts listening is
+                // what closes that window. A repeat wait on the same index has been
+                // listening since before the frame could have been published, so it has
+                // nothing to close and simply waits.
+                onSubscribed: firstWaitOnThisIndex ? () => onBuilt() : undefined,
             }
         )
         : null
@@ -58,7 +59,7 @@ async function waitForIndex(
     // No pool, or no index id to wait on: ask again on a timer, which is what this did
     // before there was anything to wait for.
     const timeout = unsubscribe
-        ? (attempt === 0 ? firstIndexWaitTimeout : indexWaitTimeout)
+        ? (firstWaitOnThisIndex ? firstIndexWaitTimeout : indexWaitTimeout)
         : indexPollInterval
 
     let timerId: number | null = null
@@ -115,12 +116,20 @@ export async function handleApiRequest<T>(request: () => Promise<T>): Promise<T>
             pendingRequestStore.open(error?.error?.data ?? null)
 
             try {
-                let attempt = 0
+                // Which index the last wait listened on. Keyed by id and not by a
+                // counter: each 412 names whichever index is now in the way, and a wait
+                // on one this loop has not listened on before is a first wait again.
+                let watchedIndexId: string | null = null
 
                 while (true) {
+                    const indexId = pendingRequestStore.data?.id ?? null
+                    const firstWaitOnThisIndex = indexId !== watchedIndexId
+
+                    watchedIndexId = indexId
+
                     const shouldContinue = await waitForIndex(
-                        pendingRequestStore.data?.id ?? null,
-                        attempt++,
+                        indexId,
+                        firstWaitOnThisIndex,
                         pendingRequestStore
                     )
 
@@ -133,7 +142,8 @@ export async function handleApiRequest<T>(request: () => Promise<T>): Promise<T>
                     } catch (retryError: any) {
                         if (retryError?.status === 412) {
                             // Possibly a different index this time — the next wait is on
-                            // whichever one the answer now names.
+                            // whichever one the answer now names, and starts over as a
+                            // first wait if it is not the one just watched.
                             pendingRequestStore.setData(retryError?.error?.data ?? null)
                             continue
                         }

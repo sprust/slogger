@@ -23,6 +23,21 @@ readonly class BuildTraceTreeCacheAction
 
     public function handle(string $rootTraceId, string $version): void
     {
+        // Announced outside build(), and outside its catch: markFailed() filters by
+        // version alone, so anything thrown while announcing a finished build would be
+        // caught there and record that build as failed.
+        $this->announce($rootTraceId, $this->build($rootTraceId, $version));
+    }
+
+    /**
+     * Runs the build and writes down how it ended.
+     *
+     * Answers whether this call is the one that marked the state — false when the build
+     * did not complete, or when the mark matched nothing because the build was canceled
+     * or superseded while it ran and the state on record is somebody else's.
+     */
+    private function build(string $rootTraceId, string $version): bool
+    {
         try {
             if (
                 !$this->isShouldContinueBuildTraceTreeCacheAction->handle(
@@ -30,7 +45,7 @@ readonly class BuildTraceTreeCacheAction
                     version: $version
                 )
             ) {
-                return;
+                return false;
             }
 
             $completed = $this->traceTreeCacheBuilderService->handle(
@@ -39,27 +54,23 @@ readonly class BuildTraceTreeCacheAction
             );
 
             if (!$completed) {
-                return;
+                return false;
             }
 
-            $marked = $this->traceTreeCacheStateRepository->markFinished(
+            return $this->traceTreeCacheStateRepository->markFinished(
                 rootTraceId: $rootTraceId,
                 version: $version,
             );
-
-            $this->announce($rootTraceId, $marked);
         } catch (Throwable $exception) {
             if (!$this->isShouldContinueBuildTraceTreeCacheAction->handle($rootTraceId, $version)) {
-                return;
+                return false;
             }
 
-            $marked = $this->traceTreeCacheStateRepository->markFailed(
+            return $this->traceTreeCacheStateRepository->markFailed(
                 rootTraceId: $rootTraceId,
                 version: $version,
                 error: $exception::class . ': ' . ($exception->getMessage() ?: 'Unknown error'),
             );
-
-            $this->announce($rootTraceId, $marked);
         }
     }
 
@@ -67,11 +78,7 @@ readonly class BuildTraceTreeCacheAction
      * Tells whoever is watching this tree that it has stopped moving.
      *
      * The state is read back rather than assembled here: mark* answers with whether it
-     * matched, not with what it wrote, and the announcement carries the whole state. One
-     * extra read per build is the price, and a build is not a frequent thing.
-     *
-     * Nothing is announced when the mark matched nothing — the build was canceled or
-     * superseded while it ran, and the state on record is somebody else's.
+     * matched, not with what it wrote, and the announcement carries the whole state.
      */
     private function announce(string $rootTraceId, bool $marked): void
     {

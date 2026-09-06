@@ -78,7 +78,7 @@ readonly class BuildPendingTraceDynamicIndexesAction
                     indexId: $index->id,
                     created: $indexCreated,
                     error: $exception
-                        ? $exception::class . ": {$exception->getMessage()}"
+                        ? $exception::class . ': ' . ($exception->getMessage() ?: 'Unknown error')
                         : null,
                 )
             );
