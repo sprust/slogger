@@ -1,5 +1,6 @@
 import Echo from 'laravel-echo'
 import Pusher from 'pusher-js'
+import {readonly, ref, type Ref} from 'vue'
 import {ApiTokenStorage} from "./apiContainer.ts";
 
 /**
@@ -10,44 +11,78 @@ import {ApiTokenStorage} from "./apiContainer.ts";
  * host and port, not the panel's: it is the same nginx that serves every other request,
  * with a separate location carrying the upgrade.
  *
- * The pool can be off, or up but unreachable. Everything here answers null in that case,
- * and every caller falls back to the polling it used before — a panel with no live
- * updates, not a broken one.
+ * A pool that is off, unreachable, or gone mid-session is not a broken panel: listen()
+ * answers null and every caller falls back to the polling it used before. Meanwhile this
+ * keeps trying, once a second, for as long as there is a session — so a pool that comes
+ * back is picked up on the callers' next attempt rather than on a page reload.
  */
 
 type EchoClient = Echo<'pusher'>
 
+/**
+ * What the header's dot shows.
+ *
+ * `off` and `lost` look the same from a subscriber's side — both mean polling — but not
+ * to whoever is looking at the panel: one is a pool nobody configured, the other one that
+ * was configured and did not answer.
+ */
+export type WsStatus = 'off' | 'idle' | 'connecting' | 'connected' | 'lost'
+
 interface ListenCallbacks {
     /** Called once the channel is actually subscribed, not when listen() returns. */
     onSubscribed?: () => void
-    /** Called when the connection or the subscription turns out to be unusable. */
+    /** Called when this subscription, or the socket under it, turns out to be unusable. */
     onLost?: () => void
 }
+
+/**
+ * The retry loop's beat: one attempt starts every second.
+ *
+ * Measured from the start of an attempt rather than from its failure, so the common case
+ * — a pool that is down and refuses the socket at once — retries on the second, every
+ * second, for as long as there is a session.
+ */
+const reconnectInterval = 1000
+
+/**
+ * How long one attempt may hang before it is written off.
+ *
+ * Longer than the beat on purpose. A socket that is refused reports it in milliseconds
+ * and never reaches this; what does reach it is a connection still being made, and one
+ * second is not enough of a chance to give that over a slow link. Shorter than pusher-js
+ * would take on its own, though — it waits ten seconds before saying `unavailable`, and
+ * a loop cannot beat once a second while an attempt of it lasts ten.
+ */
+const attemptDeadline = 3000
+
+let attemptStartedAt = 0
+
+let attemptDeadlineId: number | null = null
 
 let client: EchoClient | null = null
 
 /**
- * Set once the pool has proved unusable, and cleared by disconnect() with the session.
+ * Whether the socket is currently gone.
  *
- * The app key lives in the panel's bundle and the pool's worker count lives in the
- * backend's .env — two independent switches. "Key present, pool off" is therefore a
- * reachable state, and it looks like a client that constructs fine and never connects.
+ * Not a verdict — a reconnect is already scheduled whenever this is true. It exists so
+ * that one failure is reported once, however many events pusher-js raises about it.
  */
 let connectionLost = false
 
-/**
- * Whether the socket has ever been up, for this session.
- *
- * A drop after a successful connection is pusher-js's own business — it reconnects and
- * the subscriptions come back. Only a connection that never happened means there is
- * nothing on the other end.
- */
-let everConnected = false
+let reconnectTimeoutId: number | null = null
+
+/** The dot's state. Written here, read by the header. */
+const status = ref<WsStatus>(restingStatus())
+
+/** Where the status sits with no client: nothing is wrong, nothing is connected either. */
+function restingStatus(): WsStatus {
+    return appKey() === '' ? 'off' : 'idle'
+}
 
 /** How many live listeners each private channel has, so the last one out can leave it. */
 const listenerCounts: Record<string, number> = {}
 
-/** What to call when the connection turns out to be unusable — one per live listener. */
+/** What to call when the socket turns out to be unusable — one per live listener. */
 const lostHandlers = new Set<() => void>()
 
 function appKey(): string {
@@ -92,20 +127,33 @@ export class EchoContainer {
         throw new Error("Forbidden!")
     }
 
+    /** Whether a pool is configured at all. Nothing is retried when it is not. */
     public static isEnabled(): boolean {
-        return appKey() !== '' && !connectionLost
+        return appKey() !== ''
+    }
+
+    /** The connection as the header shows it. */
+    public static status(): Readonly<Ref<WsStatus>> {
+        return readonly(status)
     }
 
     /**
      * Opens the connection. Safe to call more than once.
      *
      * Called once a session exists, because channel authorization needs a token and
-     * there is no point holding a socket nobody may subscribe on.
+     * there is no point holding a socket nobody may subscribe on. Also the body of the
+     * retry loop: a failure schedules another one of these a second later.
      */
     public static connect(): void {
         if (client || !this.isEnabled() || !ApiTokenStorage.getToken()) {
             return
         }
+
+        this.clearReconnect()
+
+        connectionLost = false
+
+        attemptStartedAt = Date.now()
 
         const backendUrl = new URL(import.meta.env.VITE_BACKEND_URL)
         const secure = backendUrl.protocol === 'https:'
@@ -131,55 +179,78 @@ export class EchoContainer {
             }),
         })
 
+        // Stays red across the whole retry loop once something has failed. Showing every
+        // attempt would make the dot flicker once a second and say nothing more.
+        if (status.value !== 'lost') {
+            status.value = 'connecting'
+        }
+
         const connection = client.connector.pusher.connection
 
-        connection.bind('connected', () => {
-            everConnected = true
+        connection.bind('state_change', ({current}: {current: string}) => {
+            if (!client || connectionLost) {
+                return
+            }
+
+            if (current === 'connected') {
+                this.clearDeadline()
+
+                status.value = 'connected'
+
+                return
+            }
+
+            if (status.value !== 'lost') {
+                status.value = 'connecting'
+            }
         })
 
         // `unavailable` is pusher-js saying it could not reach the host and will keep
-        // trying; with the pool off that is the steady state, and waiting it out means a
-        // panel that never updates and never falls back either.
-        connection.bind('unavailable', () => this.reportTransportLost())
-        connection.bind('failed', () => this.reportTransportLost())
-        connection.bind('error', () => this.reportTransportLost())
+        // trying on its own schedule. This client is dropped and rebuilt instead, on a
+        // schedule of one second, so that a pool coming back is noticed promptly.
+        connection.bind('unavailable', () => this.reportLost())
+        connection.bind('failed', () => this.reportLost())
+        connection.bind('error', () => this.reportLost())
+
+        attemptDeadlineId = window.setTimeout(
+            () => {
+                attemptDeadlineId = null
+
+                if (status.value === 'connected') {
+                    return
+                }
+
+                this.reportLost()
+            },
+            attemptDeadline
+        )
     }
 
     /**
-     * Closes the connection and forgets every subscription.
+     * Closes the connection, forgets every subscription, and stops retrying.
      *
      * A session that ends has to take the client with it: its subscriptions were signed
      * for the person who is leaving, and the next one to sign in on this tab would
-     * inherit them. The verdict on the pool goes with it too — it was reached under a
-     * token that is gone, and a tab that signs in again should find out for itself.
+     * inherit them.
      */
     public static disconnect(): void {
+        this.clearReconnect()
+        this.clearDeadline()
+
         connectionLost = false
-        everConnected = false
 
         this.tearDown()
-    }
 
-    /** Drops the client and the bookkeeping, leaving the verdict alone. */
-    private static tearDown(): void {
-        lostHandlers.clear()
-
-        Object.keys(listenerCounts).forEach(channel => delete listenerCounts[channel])
-
-        if (!client) {
-            return
-        }
-
-        client.disconnect()
-
-        client = null
+        status.value = restingStatus()
     }
 
     /**
      * Listens on a private channel until the returned function is called.
      *
-     * Returns null when there is no usable pool — the caller's signal to poll instead.
-     * `onLost` is that same signal arriving late.
+     * Returns null unless the socket is up right now — the caller's signal to poll
+     * instead. A caller that keeps polling therefore keeps offering to subscribe, which
+     * is how a pool that came back is picked up without a page reload. `onLost` is the
+     * same signal arriving late.
      *
      * Channels are reference-counted because the same one can have several owners at
      * once: two requests can wait on the same dynamic index, and leaving on the first of
@@ -193,7 +264,7 @@ export class EchoContainer {
     ): (() => void) | null {
         this.connect()
 
-        if (!client) {
+        if (!client || status.value !== 'connected') {
             return null
         }
 
@@ -209,8 +280,14 @@ export class EchoContainer {
             subscription.subscribed(onSubscribed)
         }
 
-        // A refused subscription is silence that looks exactly like an idle channel.
-        subscription.error(() => this.reportLost())
+        // A refused subscription is silence that looks exactly like an idle channel. Only
+        // this owner is told: the socket is fine, and dropping it over one channel would
+        // put every other subscriber through a reconnect for nothing.
+        subscription.error(() => {
+            lostHandlers.delete(lost)
+
+            lost()
+        })
 
         listenerCounts[channel] = (listenerCounts[channel] ?? 0) + 1
 
@@ -253,30 +330,28 @@ export class EchoContainer {
         client.leave(channel)
     }
 
-    /**
-     * The transport never came up.
-     *
-     * Guarded by everConnected, and only here: a drop after a successful connection is
-     * pusher-js reconnecting, not a pool that is missing.
-     */
-    private static reportTransportLost(): void {
-        if (everConnected) {
-            return
-        }
+    /** Drops the client and the bookkeeping, leaving the retry schedule alone. */
+    private static tearDown(): void {
+        lostHandlers.clear()
 
-        this.reportLost()
+        Object.keys(listenerCounts).forEach(channel => delete listenerCounts[channel])
+
+        // Cleared before the socket is closed, not after: closing it raises one last
+        // state_change, and that handler reads this to know it is no longer speaking for
+        // a live client.
+        const closing = client
+
+        client = null
+
+        closing?.disconnect()
     }
 
     /**
-     * Declares the pool unusable and sends every listener back to polling.
+     * The socket is gone. Sends every listener back to polling and starts trying again.
      *
-     * Unconditional, because the caller that matters most is a refused subscription:
-     * that happens on a socket that connected perfectly well, so everConnected says
-     * nothing about it, and nobody else will notice — a channel that was never
-     * authorized is indistinguishable from one with nothing to say.
-     *
-     * The client is dropped rather than left retrying: a later caller then takes the
-     * poll path immediately instead of subscribing to a socket that will not carry it.
+     * The client is dropped rather than left to pusher-js's own reconnect: a caller that
+     * asks to listen in the meantime has to be told there is nothing to listen on, and a
+     * client that is retrying looks the same as one that is connected.
      */
     private static reportLost(): void {
         if (connectionLost) {
@@ -285,10 +360,57 @@ export class EchoContainer {
 
         connectionLost = true
 
+        this.clearDeadline()
+
+        status.value = 'lost'
+
         const handlers = [...lostHandlers]
 
         this.tearDown()
 
         handlers.forEach(handler => handler())
+
+        this.scheduleReconnect()
+    }
+
+    /**
+     * One more attempt, a second from now, for as long as there is a session.
+     *
+     * The loop ends by itself rather than by a counter: connect() does nothing without a
+     * token or an app key, and then nothing schedules the attempt after it.
+     */
+    private static scheduleReconnect(): void {
+        if (reconnectTimeoutId !== null) {
+            return
+        }
+
+        // What is left of this attempt's second. A socket refused outright waits nearly
+        // all of it; one that hung until the deadline waits none.
+        const wait = Math.max(0, reconnectInterval - (Date.now() - attemptStartedAt))
+
+        reconnectTimeoutId = window.setTimeout(
+            () => {
+                reconnectTimeoutId = null
+
+                // A failure inside schedules the next attempt; a refusal — no session,
+                // no app key — schedules nothing, and the loop ends there.
+                this.connect()
+            },
+            wait
+        )
+    }
+
+    private static clearReconnect(): void {
+        if (reconnectTimeoutId !== null) {
+            window.clearTimeout(reconnectTimeoutId)
+            reconnectTimeoutId = null
+        }
+    }
+
+    private static clearDeadline(): void {
+        if (attemptDeadlineId !== null) {
+            window.clearTimeout(attemptDeadlineId)
+            attemptDeadlineId = null
+        }
     }
 }

@@ -16,6 +16,9 @@
       Sconcur
     </el-menu-item>
     <div class="flex-grow"/>
+    <div class="ws-status">
+      <ws-status-indicator/>
+    </div>
     <el-menu-item index="" @click="toggleDark">
       <el-button :icon="isDark ? Moon : Sunny" link/>
     </el-menu-item>
@@ -37,8 +40,11 @@ import {useToggle} from '@vueuse/shared'
 import {useDark} from '@vueuse/core'
 import {Moon, Sunny} from '@element-plus/icons-vue'
 import {useToolLinksStore} from "../store/toolLinksStore.ts";
+import WsStatusIndicator from "./WsStatusIndicator.vue";
 
 export default defineComponent({
+  components: {WsStatusIndicator},
+
   data() {
     const isDark = useDark({
       storageKey: 'slogger-dark-mode',
@@ -88,6 +94,14 @@ export default defineComponent({
 <style scoped>
 .flex-grow {
   flex-grow: 1;
+}
+
+/* Not an el-menu-item: there is nothing to click, and a menu item would offer a hover
+   and a focus ring for it. */
+.ws-status {
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
 }
 
 #header-menu {

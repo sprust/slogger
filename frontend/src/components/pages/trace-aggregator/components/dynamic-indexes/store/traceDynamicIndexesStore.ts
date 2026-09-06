@@ -79,6 +79,23 @@ export const useTraceDynamicIndexesStore = defineStore('traceDynamicIndexesStore
 
             await this.findTraceDynamicIndexStats()
 
+            if (this.subscribeStats()) {
+                return
+            }
+
+            this.pollStats()
+        },
+        /**
+         * Subscribes if there is a socket to subscribe on, and says whether there was.
+         *
+         * Called again from every poll tick, which is what puts this back on the socket
+         * after one is lost and comes back — the container answers null in between.
+         */
+        subscribeStats(): boolean {
+            if (unsubscribeStats !== null) {
+                return true
+            }
+
             unsubscribeStats = EchoContainer.listen(
                 'sl-trace-indexes',
                 '.stats.updated',
@@ -95,11 +112,7 @@ export const useTraceDynamicIndexesStore = defineStore('traceDynamicIndexesStore
                 }
             )
 
-            if (unsubscribeStats) {
-                return
-            }
-
-            this.pollStats()
+            return unsubscribeStats !== null
         },
         stopWatchingStats() {
             this.started = false
@@ -125,6 +138,14 @@ export const useTraceDynamicIndexesStore = defineStore('traceDynamicIndexesStore
             statsPollTimeoutId = window.setTimeout(
                 () => {
                     if (!this.started) {
+                        return
+                    }
+
+                    // One read either way: after a subscription it is the confirming one,
+                    // and from then on the frames carry it.
+                    if (this.subscribeStats()) {
+                        this.findTraceDynamicIndexStats()
+
                         return
                     }
 

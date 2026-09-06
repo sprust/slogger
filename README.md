@@ -326,6 +326,11 @@ make ws-keys-generate c=--force  # replaces them
 Changing the key means rebuilding the panel (`make frontend-npm-build`), because it is
 baked into the bundle.
 
+The panel shows the connection as a dot beside the theme switch: green connected, amber
+connecting, red unreachable, grey not configured. Red is not a broken panel — every view
+that subscribes falls back to polling, and the connection is retried once a second until
+it comes back.
+
 ### Setup
 
 ```bash
