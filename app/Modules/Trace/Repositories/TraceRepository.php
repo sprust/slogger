@@ -249,12 +249,17 @@ readonly class TraceRepository
 
         $profilingData = is_null($trace) ? null : ($trace['pr'] ?? null);
 
-        if (is_null($profilingData)) {
+        // A trace without profiling still carries the field: the receiver writes every
+        // document with `hpr => false, pr => []` (periodic_trace_service), so absence is
+        // spelled as an empty array rather than as a missing key or a null. Reading
+        // `mainCaller` out of that answered the endpoint with a 500 instead of the 404 the
+        // controller turns a null into.
+        if (!is_array($profilingData) || $profilingData === []) {
             return null;
         }
 
         return new TraceProfilingDto(
-            mainCaller: $profilingData['mainCaller'],
+            mainCaller: (string) ($profilingData['mainCaller'] ?? ''),
             items: array_map(
                 fn(array $itemData) => new TraceProfilingItemDto(
                     raw: $itemData['raw'],
@@ -268,7 +273,7 @@ readonly class TraceRepository
                         $itemData['data']
                     ),
                 ),
-                $profilingData['items']
+                is_array($profilingData['items'] ?? null) ? $profilingData['items'] : []
             )
         );
     }

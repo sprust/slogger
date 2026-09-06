@@ -20,6 +20,12 @@ class DataFilterParameterTransport
      */
     public function make(array $validated): TraceDataFilterParameters
     {
+        // `data` is optional in every request that reaches here — RequestFilterRules::data()
+        // says `sometimes` — so a caller that filters on nothing omits the key entirely.
+        // Read it once as the empty filter it means; reaching into $validated['data'] on
+        // such a request answered a search with a 500.
+        $data = is_array($validated['data'] ?? null) ? $validated['data'] : [];
+
         return new TraceDataFilterParameters(
             filter: array_map(
                 fn(array $filterItem) => new TraceDataFilterItemParameters(
@@ -47,9 +53,9 @@ class DataFilterParameterTransport
                         )
                         : null
                 ),
-                $validated['data']['filter'] ?? []
+                is_array($data['filter'] ?? null) ? $data['filter'] : []
             ),
-            fields: ArrayValueGetter::arrayStringNull($validated['data'], 'fields') ?? [],
+            fields: ArrayValueGetter::arrayStringNull($data, 'fields') ?? [],
         );
     }
 }
