@@ -8,8 +8,8 @@ import {
     useTraceAggregatorTreeStore
 } from "../components/pages/trace-aggregator/components/tree/store/traceAggregatorTreeStore.ts";
 import {
-    useTraceAggregatorTreeStore
-} from "../components/pages/trace-aggregator/components/tree/store/traceAggregatorTreeStore.ts";
+    useTraceDynamicIndexesStore
+} from "../components/pages/trace-aggregator/components/dynamic-indexes/store/traceDynamicIndexesStore.ts";
 
 type AuthUser = AdminApi.AuthMeList.ResponseBody['data']
 
@@ -73,9 +73,10 @@ export const useAuthStore = defineStore('authStore', {
             // person leaving, and whoever signs in next on this tab would inherit them.
             EchoContainer.disconnect()
 
-            // Disconnecting takes every subscription with it, but not the poll that
-            // stands in for one when there is no ws pool.
+            // Disconnecting takes every subscription with it, but not the polls that
+            // stand in for them when there is no ws pool.
             useTraceAggregatorTreeStore().stopWatching()
+            useTraceDynamicIndexesStore().stopWatchingStats()
         },
         setUser(user: AuthUser | null) {
             this.user = user

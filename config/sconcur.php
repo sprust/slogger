@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Modules\Trace\Infrastructure\Tasks\BuildTraceDynamicIndexesTask;
+use App\Modules\Trace\Infrastructure\Tasks\PublishTraceDynamicIndexStatsTask;
 use App\Services\Tasks\CronTask;
 
 return [
@@ -417,6 +418,18 @@ return [
                 // There was work, so take the next batch straight away.
                 'busy'    => 0,
                 'backoff' => 3,
+            ],
+            [
+                // The panel's view of the task above, which cannot report on itself: a
+                // tick of it does not return until its batch is built.
+                'name'    => PublishTraceDynamicIndexStatsTask::NAME,
+                'task'    => PublishTraceDynamicIndexStatsTask::class,
+                // Two seconds is the cost of an idle installation — one reading, thrown
+                // away. A second is what a progress bar is worth once there is something
+                // to put in it.
+                'idle'    => 2,
+                'busy'    => 1,
+                'backoff' => 5,
             ],
         ],
     ],

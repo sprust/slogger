@@ -2,10 +2,19 @@ import {ApiContainer} from "../../../../../../utils/apiContainer.ts";
 import {AdminApi} from "../../../../../../api-schema/admin-api-schema.ts";
 import {defineStore} from "pinia";
 import {handleApiRequest} from "../../../../../../utils/handleApiRequest.ts";
+import {EchoContainer} from "../../../../../../utils/echoContainer.ts";
 
 export type TraceDynamicIndex = AdminApi.TraceAggregatorDynamicIndexesList.ResponseBody['data'][number];
 export type TraceDynamicIndexStats = AdminApi.TraceAggregatorDynamicIndexesStatsList.ResponseBody['data']
 export type TraceDynamicIndexInfo = AdminApi.TraceAggregatorDynamicIndexesStatsList.ResponseBody['data']['indexes_in_process'][number]
+
+/**
+ * The live stats subscription, and the timer of the poll that stands in when there is no
+ * ws pool to subscribe to. Both are module-level: a function and a timer id are not state
+ * to be reset, and there is only ever one of each.
+ */
+let unsubscribeStats: null | (() => void) = null
+let statsPollTimeoutId: null | number = null
 
 interface TraceDynamicIndexesStoreInterface {
     started: boolean,
@@ -38,13 +47,89 @@ export const useTraceDynamicIndexesStore = defineStore('traceDynamicIndexesStore
             )
         },
         async findTraceDynamicIndexStats() {
-            this.started = true
-
             return await handleApiRequest(
                 () => ApiContainer.get().traceAggregatorDynamicIndexesStatsList()
                     .then(response => {
                         this.traceDynamicIndexStats = response.data.data
                     })
+            )
+        },
+        /**
+         * Starts following what the indexes are doing, once per session.
+         *
+         * The snapshot is published by the task pool that does the building, so nobody
+         * here has to ask for it — one reading serves every open tab, and silence means
+         * there is nothing to build. The first read is still ours: until something is
+         * being built, there is nothing to publish.
+         *
+         * Without a ws pool this falls back to the poll it replaced.
+         */
+        async watchStats() {
+            if (this.started) {
+                return
+            }
+
+            this.started = true
+
+            await this.findTraceDynamicIndexStats()
+
+            unsubscribeStats = EchoContainer.listen(
+                'sl-trace-indexes',
+                '.stats.updated',
+                (stats: TraceDynamicIndexStats) => {
+                    this.traceDynamicIndexStats = stats
+                },
+                {
+                    // Anything published before the channel was live is gone, but this
+                    // one repairs itself: the publisher repeats its snapshot every second
+                    // while a build lasts, and closes with one saying there is nothing.
+                    // Only a build that both starts and finishes inside the subscription
+                    // handshake goes unseen, and that one had nothing to show.
+                    onLost: () => {
+                        // The socket turned out not to be there after all.
+                        unsubscribeStats = null
+
+                        this.pollStats()
+                    },
+                }
+            )
+
+            if (unsubscribeStats) {
+                return
+            }
+
+            this.pollStats()
+        },
+        stopWatchingStats() {
+            this.started = false
+
+            if (unsubscribeStats !== null) {
+                unsubscribeStats()
+                unsubscribeStats = null
+            }
+
+            if (statsPollTimeoutId !== null) {
+                window.clearTimeout(statsPollTimeoutId)
+                statsPollTimeoutId = null
+            }
+        },
+        pollStats() {
+            // Checked here as well as inside the timer: the request before this one may
+            // have been in flight when the session ended, and rescheduling then would
+            // leave a timer behind that stopWatchingStats() has already given up on.
+            if (!this.started) {
+                return
+            }
+
+            statsPollTimeoutId = window.setTimeout(
+                () => {
+                    if (!this.started) {
+                        return
+                    }
+
+                    this.findTraceDynamicIndexStats().finally(() => this.pollStats())
+                },
+                2000
             )
         },
         async deleteTraceDynamicIndex(id: string) {

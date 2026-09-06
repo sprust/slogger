@@ -23,3 +23,10 @@ Broadcast::channel(
     'sl-trace-tree.{rootTraceId}',
     static fn(LoggedUserObject $user, string $rootTraceId): bool => true
 );
+
+Broadcast::channel('sl-trace-indexes', static fn(LoggedUserObject $user): bool => true);
+
+Broadcast::channel(
+    'sl-trace-index.{indexId}',
+    static fn(LoggedUserObject $user, string $indexId): bool => true
+);

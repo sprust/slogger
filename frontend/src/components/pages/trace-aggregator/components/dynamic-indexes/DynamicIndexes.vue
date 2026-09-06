@@ -123,12 +123,6 @@ export default defineComponent({
     update() {
       this.traceDynamicIndexesStore.findTraceDynamicIndexes()
     },
-    updateStats() {
-      this.traceDynamicIndexesStore.findTraceDynamicIndexStats()
-          .finally(() =>
-              setTimeout(() => this.updateStats(), 2000)
-          )
-    },
     deleteIndex(index: TraceDynamicIndex) {
       if (!confirm('Do you want delete index?')) {
         return
@@ -238,9 +232,7 @@ export default defineComponent({
   },
 
   mounted() {
-    if (!this.traceDynamicIndexesStore.started) {
-      this.updateStats()
-    }
+    this.traceDynamicIndexesStore.watchStats()
   }
 })
 </script>
