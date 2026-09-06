@@ -196,7 +196,13 @@ SCONCUR_WS_ADDRESS=0.0.0.0:28090
 SCONCUR_WS_APP_KEY=
 SCONCUR_WS_APP_SECRET=
 SCONCUR_WS_BUS_DRIVER=amqp
+SCONCUR_WS_BUS_DSN=amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@${RABBITMQ_HOST}:${RABBITMQ_PORT}/%2F
 ```
+
+DSN приходится собирать руками: `config/sconcur.php` откатывается к
+`SCONCUR_RABBITMQ_DSN`, которого в этом проекте нет — `config/queue.php` собирает свой
+DSN из `RABBITMQ_*` сам, а у ws-шины такого запасного пути нет. Без этой строки шина
+получает `null` и ни одно событие не уезжает.
 
 Один воркер, а не два. При одном воркере `presence.store: auto` выбирает `memory`, и
 общего хранилища участников не нужно; presence-каналы нам всё равно не понадобятся ни в
@@ -225,9 +231,27 @@ export const echo = new Echo<'pusher'>({
     disableStats: true,
     enabledTransports: ['ws', 'wss'],
     cluster: '',
-    authEndpoint: `${import.meta.env.VITE_BACKEND_URL}/broadcasting/auth`,
-    bearerToken: ApiTokenStorage.getToken(),
+    // Не authEndpoint: см. ниже — авторизацию канала приходится делать самим.
+    authorizer: /* ... */,
 })
+```
+
+Авторизация канала пишется руками, а не отдаётся `authEndpoint`. Причина найдена
+проверкой, а не вычитана: `pusher-js` шлёт этот POST как
+`application/x-www-form-urlencoded`, а HTTP-сервер SConcur отдаёт PHP пустой ввод для
+такого тела — `$request->all()` пуст, `channel_name` до брокастера не доезжает, и
+`SConcurBroadcaster::auth()` отказывает каждому приватному каналу. Тот же запрос с
+`Content-type: application/json` проходит. Поэтому в `authorizer` — обычный `fetch` с
+JSON и `Bearer`-токеном, тем же, что у остальных запросов панели.
+
+Проверяется это так:
+
+```
+curl -X POST http://localhost:8097/broadcasting/auth -H 'Authorization: Bearer <token>' \
+     -d 'channel_name=private-sl-trace-indexes&socket_id=1.1'      # 403
+curl -X POST http://localhost:8097/broadcasting/auth -H 'Authorization: Bearer <token>' \
+     -H 'Content-type: application/json' \
+     -d '{"channel_name":"private-sl-trace-indexes","socket_id":"1.1"}'   # {"auth":"key:hmac"}
 ```
 
 Три места, где легко ошибиться:
@@ -259,6 +283,43 @@ export const echo = new Echo<'pusher'>({
   отдельно.
 - Не занимается presence-каналами и клиентскими событиями (`client-*`) — ни то, ни
   другое в ЛК не нужно.
+
+## Гонка «опубликовали раньше, чем подписались»
+
+Единственное место, где эта конструкция может молча потерять данные, и потому — с
+проверкой, а не с рассуждением.
+
+Шина ничего не хранит: `autoDelete` у очереди ws-воркера выключен, но сообщение,
+пришедшее в fanout до того, как клиент подписался на канал, до него не доедет никогда.
+Проверяется так — соединение поднято, событие опубликовано, подписка сделана после:
+
+```
+connected, socket_id=355.2
+publishing before subscribe...
+subscribed after the fact
+frames after subscribing: ['pusher_internal:subscription_succeeded']
+VERDICT: LOST
+```
+
+Важно, что окно шире, чем кажется. `Echo.private(...).listen(...)` — это не «подписан»,
+а «попросил подписаться»: дальше идёт установка соединения, `POST /broadcasting/auth` и
+кадр `pusher:subscribe`, и только `pusher_internal:subscription_succeeded` означает, что
+канал слушает. Всё, что опубликовано до этого момента, потеряно — включая то, что
+опубликовано уже после вызова `listen()`.
+
+Отсюда правило для каждого потока: **добор состояния делается не после `listen()`, а
+после `subscribed`.**
+
+| Поток | Чем закрыт |
+|---|---|
+| Дерево трейса | `onSubscribed` → одно чтение состояния. Всё, что раньше, видно в этом чтении; всё, что позже, приезжает кадром. Окна не остаётся |
+| Ожидание индекса (412) | `onSubscribed` → один повтор запроса, только на первой попытке |
+| Прогресс индексов | Само чинится: снимок повторяется раз в секунду, пока идёт работа, и закрывается кадром с нулём |
+
+Плюс общий страховочный слой на случай, когда `subscribed` не наступает вовсе (пул
+принял сокет и молчит): у дерева — сторож на 10 секунд, после которого включается
+опрос; у ожидания индекса — потолок на ожидании; `pusher:subscription_error` и
+недоступность соединения переводят всех слушателей на опрос сразу.
 
 ## Ограничения, которые придётся принять
 

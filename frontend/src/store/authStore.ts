@@ -3,6 +3,7 @@ import {ApiContainer, ApiTokenStorage} from "../utils/apiContainer.ts";
 import {defineStore} from "pinia";
 import {handleApiError, handleApiRequest} from "../utils/handleApiRequest.ts";
 import {useSconcurStore} from "../components/pages/sconcur/store/sconcurStore.ts";
+import {EchoContainer} from "../utils/echoContainer.ts";
 
 type AuthUser = AdminApi.AuthMeList.ResponseBody['data']
 
@@ -56,7 +57,15 @@ export const useAuthStore = defineStore('authStore', {
             // 401, the router guard all come through here — so this is where they stop.
             useSconcurStore().reset()
 
+            // Before the client is dropped, not after: connect() refuses without a token,
+            // and that is what stops anything still in flight — a watchStats() awaiting
+            // its first read, say — from rebuilding the client for the session that has
+            // just ended.
             this.setUser(null)
+
+            // The client belongs to the session: its subscriptions were signed for the
+            // person leaving, and whoever signs in next on this tab would inherit them.
+            EchoContainer.disconnect()
         },
         setUser(user: AuthUser | null) {
             this.user = user
@@ -65,6 +74,8 @@ export const useAuthStore = defineStore('authStore', {
                 ApiTokenStorage.forgetToken()
             } else {
                 ApiTokenStorage.setToken(user.api_token)
+
+                EchoContainer.connect()
             }
         }
     },

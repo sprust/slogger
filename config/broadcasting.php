@@ -30,6 +30,15 @@ return [
 
     'connections' => [
 
+        /*
+        | The ws pool of sconcur/laravel. It carries no credentials of its own: the
+        | driver reads the app key, the secret and the bus from config('sconcur.ws'),
+        | which is also where the ws workers read them — one place for both halves.
+        */
+        'sconcur' => [
+            'driver' => 'sconcur',
+        ],
+
         'pusher' => [
             'driver' => 'pusher',
             'key' => env('PUSHER_APP_KEY'),
