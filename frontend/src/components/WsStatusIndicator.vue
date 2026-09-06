@@ -34,9 +34,9 @@ export default defineComponent({
 
 <style scoped>
 .ws-dot {
-  display: inline-block;
-  width: 9px;
-  height: 9px;
+  display: block;
+  width: 13px;
+  height: 13px;
   border-radius: 50%;
   background-color: var(--el-color-info-light-5);
 }
