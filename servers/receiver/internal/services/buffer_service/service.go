@@ -64,8 +64,14 @@ func (s *Service) Save(ctx context.Context, serviceId int, traces *dto.TracesMes
 	return nil
 }
 
-func (s *Service) FindForTransporter(ctx context.Context) (map[int]*dto.ServiceTraces, error) {
+// FindForTransporter returns a batch to save, and beside it the documents of that batch
+// that cannot be saved at all and are to be moved out of the buffer.
+func (s *Service) FindForTransporter(ctx context.Context) (map[int]*dto.ServiceTraces, []buffer_repository.InvalidDoc, error) {
 	return s.repository.FindMany(ctx, 1000)
+}
+
+func (s *Service) MoveToInvalid(ctx context.Context, docs []buffer_repository.InvalidDoc) error {
+	return s.repository.MoveToInvalid(ctx, docs)
 }
 
 func (s *Service) DeleteByIds(ctx context.Context, ids []primitive.ObjectID) (int64, error) {

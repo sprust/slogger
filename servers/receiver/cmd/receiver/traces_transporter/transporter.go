@@ -54,7 +54,7 @@ func (s *Transporter) Run(ctx context.Context) error {
 	}()
 
 	for !s.closing.Load() {
-		serviceTracesMap, err := s.bufferService.FindForTransporter(ctx)
+		serviceTracesMap, invalidDocs, err := s.bufferService.FindForTransporter(ctx)
 
 		if err != nil {
 			slog.Error("Failed to find traces for transporter: " + err.Error())
@@ -62,6 +62,15 @@ func (s *Transporter) Run(ctx context.Context) error {
 			time.Sleep(1 * time.Second)
 
 			continue
+		}
+
+		// Moved out first, and not through the attempt counter: retrying will not make a
+		// document readable, and until it is gone it is among the oldest in the buffer and
+		// takes a place in every batch this reads.
+		if len(invalidDocs) > 0 {
+			if err := s.bufferService.MoveToInvalid(ctx, invalidDocs); err != nil {
+				slog.Error(errs.Err(err).Error())
+			}
 		}
 
 		if len(serviceTracesMap) == 0 {
