@@ -1,6 +1,7 @@
 <?php
 
 use App\Modules\Auth\Infrastructure\Http\Controllers\LoginController;
+use App\Modules\Auth\Infrastructure\Http\Controllers\LogoutController;
 use App\Modules\Auth\Infrastructure\Http\Controllers\MeController;
 use App\Modules\Auth\Infrastructure\Http\Middlewares\AuthMiddleware;
 use App\Modules\Cleaner\Infrastructure\Http\Controllers\ProcessController;
@@ -25,6 +26,7 @@ Route::prefix('/auth')
     ->group(function () {
         Route::get('/me', MeController::class)->name('me');
         Route::post('/login', LoginController::class)->withoutMiddleware(AuthMiddleware::class)->name('login');
+        Route::post('/logout', LogoutController::class)->name('logout');
     });
 
 Route::prefix('/dashboard')

@@ -259,6 +259,21 @@ export namespace AdminApi {
   }
 
   /**
+   * No description
+   * @name AuthLogoutCreate
+   * @request POST:/admin-api/auth/logout
+   * @secure
+   * @response `200` `any` description
+   */
+  export namespace AuthLogoutCreate {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = any;
+  }
+
+  /**
  * No description
  * @name DashboardDatabaseList
  * @request GET:/admin-api/dashboard/database
@@ -2231,6 +2246,23 @@ export class Api<
         method: "POST",
         body: data,
         type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @name AuthLogoutCreate
+     * @request POST:/admin-api/auth/logout
+     * @secure
+     * @response `200` `any` description
+     */
+    authLogoutCreate: (params: RequestParams = {}) =>
+      this.request<any, any>({
+        path: `/admin-api/auth/logout`,
+        method: "POST",
+        secure: true,
         format: "json",
         ...params,
       }),

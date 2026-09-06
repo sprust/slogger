@@ -13,7 +13,6 @@ use Illuminate\Support\Carbon;
  * @property string      $email
  * @property Carbon|null $email_verified_at
  * @property string      $password
- * @property string      $api_token
  * @property Carbon      $created_at
  * @property Carbon      $updated_at
  */

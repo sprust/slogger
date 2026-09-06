@@ -22,12 +22,15 @@ readonly class FindUserByTokenAction
             return null;
         }
 
+        // The token that was presented, not one read back from the user: a session's
+        // token exists only in its owner's hands, and /auth/me answers with the same one
+        // the caller already has rather than replacing it.
         return new LoggedUserObject(
             id: $user->id,
             firstName: $user->firstName,
             lastName: $user->lastName,
             email: $user->email,
-            apiToken: $user->apiToken
+            apiToken: $token
         );
     }
 }

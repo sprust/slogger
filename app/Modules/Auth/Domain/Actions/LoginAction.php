@@ -6,6 +6,7 @@ namespace App\Modules\Auth\Domain\Actions;
 
 use App\Modules\Auth\Entities\LoggedUserObject;
 use App\Modules\Auth\Parameters\LoginParameters;
+use App\Modules\User\Domain\Actions\CreateUserTokenAction;
 use App\Modules\User\Domain\Actions\FindUserByEmailAction;
 use Illuminate\Support\Facades\Hash;
 
@@ -13,6 +14,7 @@ readonly class LoginAction
 {
     public function __construct(
         private FindUserByEmailAction $findUserByEmailAction,
+        private CreateUserTokenAction $createUserTokenAction,
     ) {
     }
 
@@ -33,7 +35,9 @@ readonly class LoginAction
             firstName: $user->firstName,
             lastName: $user->lastName,
             email: $user->email,
-            apiToken: $user->apiToken
+            // A session of its own, so that signing in on a second device does not hand
+            // out the first one's token and signing out of one does not end both.
+            apiToken: $this->createUserTokenAction->handle($user->id)
         );
     }
 }

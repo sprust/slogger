@@ -14,7 +14,6 @@ readonly class UserDetailObject
         public ?string $lastName,
         public string $email,
         public string $password,
-        public string $apiToken,
         public Carbon $createdAt,
         public Carbon $updatedAt
     ) {

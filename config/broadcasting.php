@@ -11,7 +11,7 @@ return [
     | framework when an event needs to be broadcast. You may set this to
     | any of the connections defined in the "connections" array below.
     |
-    | Supported: "pusher", "ably", "redis", "log", "null"
+    | Supported: "sconcur", "pusher", "ably", "redis", "log", "null"
     |
     */
 
@@ -29,6 +29,15 @@ return [
     */
 
     'connections' => [
+
+        /*
+        | The ws pool of sconcur/laravel. It carries no credentials of its own: the
+        | driver reads the app key, the secret and the bus from config('sconcur.ws'),
+        | which is also where the ws workers read them — one place for both halves.
+        */
+        'sconcur' => [
+            'driver' => 'sconcur',
+        ],
 
         'pusher' => [
             'driver' => 'pusher',

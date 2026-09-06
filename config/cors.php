@@ -15,7 +15,10 @@ return [
     |
     */
 
-    'paths' => ['*-api/*'],
+    // The panel is served from its own origin, so both of these are cross-origin to
+    // it. broadcasting/auth is named separately because it does not end in -api: it is
+    // the framework's own route, registered by BroadcastServiceProvider.
+    'paths' => ['*-api/*', 'broadcasting/auth'],
 
     'allowed_methods' => ['*'],
 

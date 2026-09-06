@@ -16,6 +16,7 @@
       Sconcur
     </el-menu-item>
     <div class="flex-grow"/>
+    <ws-status-indicator/>
     <el-menu-item index="" @click="toggleDark">
       <el-button :icon="isDark ? Moon : Sunny" link/>
     </el-menu-item>
@@ -37,8 +38,11 @@ import {useToggle} from '@vueuse/shared'
 import {useDark} from '@vueuse/core'
 import {Moon, Sunny} from '@element-plus/icons-vue'
 import {useToolLinksStore} from "../store/toolLinksStore.ts";
+import WsStatusIndicator from "./WsStatusIndicator.vue";
 
 export default defineComponent({
+  components: {WsStatusIndicator},
+
   data() {
     const isDark = useDark({
       storageKey: 'slogger-dark-mode',
@@ -70,8 +74,11 @@ export default defineComponent({
     toggleDark() {
       this.toggleDarkUsing()
     },
-    logout() {
-      this.authStore.logout()
+    async logout() {
+      // Awaited: the route guard runs auth() on the way out, and a token still in storage
+      // would be revalidated — landing back on the dashboard on a session the server has
+      // just dropped.
+      await this.authStore.logout()
 
       this.router.push(this.routes.login)
     }

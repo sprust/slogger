@@ -146,6 +146,25 @@
                 }
             }
         },
+        "/admin-api/auth/logout": {
+            "post": {
+                "responses": {
+                    "200": {
+                        "description": "description",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/admin-api/dashboard/database": {
             "get": {
                 "responses": {

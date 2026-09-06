@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Modules\Trace\Domain\Actions\Mutations;
 
+use App\Modules\Trace\Domain\Events\TraceDynamicIndexBuiltEvent;
 use App\Modules\Trace\Repositories\TraceDynamicIndexRepository;
 use App\Modules\Trace\Repositories\TraceRepository;
+use Illuminate\Contracts\Events\Dispatcher;
 use SConcur\Exceptions\CoroutineTimeoutException;
 use SConcur\Exceptions\FlowStoppedException;
 use Throwable;
@@ -22,6 +24,9 @@ readonly class BuildPendingTraceDynamicIndexesAction
     public function __construct(
         private TraceDynamicIndexRepository $traceDynamicIndexRepository,
         private TraceRepository $traceRepository,
+        // Injected rather than reached through the event() helper: this action is unit
+        // tested without a container, and a helper would need one.
+        private Dispatcher $events,
     ) {
     }
 
@@ -63,6 +68,19 @@ readonly class BuildPendingTraceDynamicIndexesAction
                 inProcess: false,
                 created: $indexCreated,
                 exception: $exception
+            );
+
+            // Raised here and not in the shutdown branch above, which deliberately leaves
+            // the index in process: this is the one place an index stops being pending,
+            // and somebody is very likely blocked on it with a 412.
+            $this->events->dispatch(
+                new TraceDynamicIndexBuiltEvent(
+                    indexId: $index->id,
+                    created: $indexCreated,
+                    error: $exception
+                        ? $exception::class . ': ' . ($exception->getMessage() ?: 'Unknown error')
+                        : null,
+                )
             );
         }
 

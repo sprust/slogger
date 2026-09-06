@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Modules\Trace\Infrastructure\Tasks\BuildTraceDynamicIndexesTask;
+use App\Modules\Trace\Infrastructure\Tasks\PublishTraceDynamicIndexStatsTask;
 use App\Services\Tasks\CronTask;
 
 return [
@@ -148,10 +149,11 @@ return [
             | forwarded to the worker's argv verbatim, read back by WsServer::fromArgs,
             | with WsStartCommand declaring those flags so artisan accepts them.
             |
-            | Off here, and carried anyway: SLogger broadcasts nothing today, and a group
-            | the published config does not name is a group SCONCUR_WS_WORKER_COUNT cannot
-            | turn on — the setting would be accepted and do nothing at all. A worker count
-            | below one leaves the entry out of the master config entirely.
+            | Carried here rather than left to the package, because a group the published
+            | config does not name is a group SCONCUR_WS_WORKER_COUNT cannot turn on — the
+            | setting would be accepted and do nothing at all. A worker count below one
+            | leaves the entry out of the master config entirely, which is how the pool is
+            | switched off without taking its configuration with it.
             */
             (int) env('SCONCUR_WS_WORKER_COUNT', 0) < 1 ? null : [
                 'name'         => 'ws',
@@ -269,8 +271,8 @@ return [
     | The protocol side of the `ws` group above; the network side is that group's
     | `server` block, which travels through argv instead.
     |
-    | Carried at its defaults and unused: SLogger broadcasts nothing, and the pool it
-    | belongs to is off. It is here so the two halves stay together — a `ws` group turned
+    | Mostly at its defaults; what this application sets is in .env. It is here so the two
+    | halves stay together — a `ws` group turned
     | on against a config with no `ws` section resolves an app_key of '' and refuses to
     | start, which is a worse way to find out than reading this block.
     |
@@ -417,6 +419,18 @@ return [
                 // There was work, so take the next batch straight away.
                 'busy'    => 0,
                 'backoff' => 3,
+            ],
+            [
+                // The panel's view of the task above, which cannot report on itself: a
+                // tick of it does not return until its batch is built.
+                'name'    => PublishTraceDynamicIndexStatsTask::NAME,
+                'task'    => PublishTraceDynamicIndexStatsTask::class,
+                // Two seconds is the cost of an idle installation — one reading, thrown
+                // away. A second is what a progress bar is worth once there is something
+                // to put in it.
+                'idle'    => 2,
+                'busy'    => 1,
+                'backoff' => 5,
             ],
         ],
     ],

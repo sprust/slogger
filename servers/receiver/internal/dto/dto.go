@@ -49,6 +49,13 @@ func (t *ServiceTraces) Items() map[string]*Traces {
 	return t.items
 }
 
+// AddCreating files a trace under its id, replacing whatever was filed there before.
+//
+// The replacing is deliberate, not a merge: two creating documents with the same trace id
+// are taken to mean the client sent the same trace twice, so the earlier payload is
+// dropped rather than reconciled. That is an assumption about clients, not a property of
+// the data — if one ever sends two different traces under one id, one of them is lost
+// here. The caller adds both documents' ids either way, so both leave the buffer.
 func (t *ServiceTraces) AddCreating(trace *TraceCreating) {
 	if t.items == nil {
 		t.items = make(map[string]*Traces)
@@ -63,6 +70,8 @@ func (t *ServiceTraces) AddCreating(trace *TraceCreating) {
 	t.items[trace.TraceId].Creating = trace
 }
 
+// AddUpdating files an update under its trace id. Collapsed like AddCreating, and for
+// the same reason.
 func (t *ServiceTraces) AddUpdating(trace *TraceUpdating) {
 	if t.items == nil {
 		t.items = make(map[string]*Traces)
