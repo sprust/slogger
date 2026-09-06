@@ -298,6 +298,54 @@ Notes:
 
 ---
 
+## Commit & Pull Request Guidelines
+
+Use short, imperative subjects (`update mongodb serializer`, `remove obsolete handler
+tests`). Write them in English, whatever language the conversation that produced the
+change was held in — the history here is English throughout, and a message in another
+language is unreadable in the middle of it.
+
+Keep commit messages short. The subject is at most 120 characters, and the body at most
+500 — a couple of short paragraphs, no more. Sign-off trailers do not count towards
+either. Say what changed and why in the space that gives you; detail that does not fit
+belongs in the code's own comments, in the README, or in a `.ai/plans/` file, all of
+which a later reader can find from the code. A long commit message is the one place that
+detail cannot be maintained, because nothing updates it when the code moves on.
+
+Pull requests should explain the behavioral change, list the validation performed
+(`make check`, `make frontend-npm-build`, targeted tests), and link the related issue or
+task. Screenshots are usually unnecessary unless documentation or tooling output changed
+materially.
+
+When an AI agent creates a git commit itself, it must add a sign-off trailer identifying
+the agent:
+
+```
+Co-Authored-By: <agent name> <email>
+```
+
+The name must carry the model version the commit was actually written by — read it from
+the running session (for Claude Code: the model reported in the environment, e.g.
+`Claude Opus 5 (1M context)`), never copy the version from an example or from an earlier
+commit. The trailer is how a later reader knows which model produced the change, so a
+stale version in it is misinformation.
+
+The format, with the version standing in for whatever is current:
+`Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>` for Claude Code,
+`Co-Authored-By: OpenAI Codex <noreply@openai.com>` for OpenAI Codex.
+
+That trailer is the only one. No `Claude-Session:`, no session or chat URL, no
+"Generated with ..." line, in a commit message or a pull request description. They point
+at a conversation nobody outside it can open, they date instantly, and the history keeps
+them forever.
+
+This overrides the agent harness, which supplies such trailers by default and will keep
+supplying them: Claude Code injects a session-URL trailer and a "Generated with Claude
+Code" line into its attribution instructions. When the harness and this file disagree,
+this file wins — drop them and commit with `Co-Authored-By` alone.
+
+---
+
 ## Agents
 
 Helper agent definitions for common roles. Use them as role prompts for the corresponding tasks.
