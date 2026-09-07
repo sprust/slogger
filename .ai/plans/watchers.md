@@ -243,7 +243,7 @@ flowchart TB
     watcherSrv["watcher_service — фильтр и вёдра в памяти"]
     watchersTable["watchers.trace_match — MySQL"]
     timelines["watcherTimelines — документ на смотрителя"]
-    check["CheckWatchersJob — раз в минуту, корутина на смотрителя"]
+    check["CheckWatchersTask — раз в минуту, корутина на смотрителя"]
     incidents["watcher_incidents + watcher_incident_events — MySQL"]
     panel["ЛК: вкладка Watchers"]
 
@@ -410,7 +410,7 @@ app/Modules/Watcher/
 │   ├── Events/WatcherIncidentChangedEvent.php
 │   └── Exceptions/WatcherNotFoundException.php
 └── Infrastructure/
-    ├── Jobs/CheckWatchersJob.php
+    ├── Tasks/CheckWatchersTask.php
     ├── Listeners/BroadcastWatcherIncidentListener.php
     ├── Broadcasting/WatcherIncidentBroadcast.php
     ├── Http/Controllers/WatcherController.php
@@ -426,7 +426,7 @@ app/Modules/Watcher/
 
 Каждый чекер — класс с одним публичным методом; `CheckWatcherAction` только выбирает по
 типу чекер и передаёт его срабатывание в `RegisterTriggerAction`. Раскладку по корутинам
-делает джоба, а не действие: параллелизм — это про то, как запускают, а не про то, что
+делает задача, а не действие: параллелизм — это про то, как запускают, а не про то, что
 проверяют.
 
 ### Что добавляется в модуль Trace
@@ -441,51 +441,61 @@ app/Modules/Watcher/
 Линия смотрителя — не метрика трейсов, а его собственные данные, поэтому
 `WatcherTimelineRepository` живёт в `Watcher`.
 
-### Разбор: джоба по крону
+### Разбор: задача пула тасков
 
-Раз в минуту, штатным планировщиком — `app/Console/Kernel.php`, рядом с уже живущими там
-`ClearTracesJob` и `RefreshDatabaseStatCacheJob`:
+Смотрителей разбирает задача пула — `CheckWatchersTask` в `config/sconcur.php`, рядом с
+`CronTask` и задачами динамических индексов. Проход делается раз в минуту: задача тикает
+чаще и сама смотрит на смену минуты, тем же приёмом, что `App\Services\Tasks\CronTask`,
+— опоздавший тик не пропускает минуту.
+
+**Почему не джоба по расписанию.** Планировщик в этом приложении сам крутится задачей:
+`CronTask` раз в минуту зовёт `schedule:run`. То есть путь запланированной джобы — пул
+тасков → `schedule:run` → RabbitMQ (`QUEUE_CONNECTION=sconcur_rabbitmq`) → AMQP-пул →
+джоба. Четыре звена там, где задача одно, и джоба не заменяет пул, а надстраивается над
+ним: все его риски остаются, плюс два новых.
+
+Для смотрителей это не безразлично. Это ровно та подсистема, которая должна работать,
+когда всё плохо: очередь встала — смотрители молча перестают проверять, в тот самый
+момент, ради которого их заводили. Один из пяти типов — `buffer_overflow`, а переполненный
+буфер и больная инфраструктура ходят вместе. `ClearTracesJob` и `RefreshDatabaseStatCacheJob`
+остаются джобами по праву: чистка и обновление кеша могут подождать час, и никто не
+заметит.
+
+Пул заодно даёт единственность даром: он держит flock (`tasks.lock_path`), который
+освобождает ядро даже после SIGKILL, так что второй пул рядом не поднимется. Джобе
+понадобился бы `ShouldBeUnique` — замок в кеше, ещё одна зависимость, которая может быть
+настроена не так, и после жёсткого убийства воркера висит до истечения `$uniqueFor`.
+
+В `config/sconcur.php`, `tasks.list`:
 
 ```php
-$schedule->job(CheckWatchersJob::class)->everyMinute();
+[ 'name' => CheckWatchersTask::NAME, 'idle' => 5, 'busy' => 5, 'backoff' => 30 ],
 ```
-
-Не задача пула тасков: минутный разбор — это фоновая работа приложения, и место такой
-работы там же, где остальная. Планировщик и так крутится (`App\Services\Tasks\CronTask`
-раз в минуту зовёт `schedule:run`), так что нового рантайма не появляется.
-
-**Не перекрываться сама с собой.** `withoutOverlapping()` на расписании тут не поможет:
-`$schedule->job(...)` только ставит джобу в очередь и возвращается сразу, так что блокировка
-снимается задолго до того, как разбор закончится. Гарантию даёт сама джоба —
-`ShouldBeUnique` с `$uniqueFor` чуть меньше минуты. Это же и заменяет прежний довод
-«пишет один процесс»: очередь может выполнять джобы в нескольких воркерах, и без замка два
-разбора завели бы два инцидента на одно и то же.
 
 **Каждый смотритель — своя корутина.** Разбор одного смотрителя это `findOne` его линии
 плюс, может быть, запись инцидента; ждать их по очереди значит складывать задержки без
-всякой нужды. Поэтому джоба раскладывает смотрителей по `SConcur\WaitGroup` — тем же
-приёмом, что `TraceTreeRepository` и `FindTraceTimestampsAction`:
+всякой нужды. Проход раскладывает смотрителей по `SConcur\WaitGroup` — тем же приёмом,
+что `TraceTreeRepository` и `FindTraceTimestampsAction`:
 
 ```php
 $waitGroup = WaitGroup::create();
 
 foreach ($watchers as $watcher) {
-    $waitGroup->add(fn() => $this->checkWatcherAction->handle($watcher));
+    $waitGroup->add(fn() => $this->checkWatcherAction->handle($watcher, $context));
 }
 
 $waitGroup->waitAll();
 ```
 
 Смотрители друг о друге ничего не знают — у каждого своя линия и свои инциденты, — так что
-делить между корутинами нечего. Исключение одно: буферные смотрители читают общие счётчики
-`buffer` и `invalidBuffer`, и эти два числа берутся один раз до фан-аута, а не каждым по
-отдельности.
+делить между корутинами нечего. Исключение одно: размер буфера одинаков для всех, и он
+читается один раз до фан-аута, а не каждым буферным смотрителем отдельно.
 
 Ошибка в одной корутине не должна уносить остальных: `CheckWatcherAction` ловит и
-логирует, а джоба идёт дальше. Один смотритель с испорченными настройками не повод не
+логирует, а проход идёт дальше. Один смотритель с испорченными настройками не повод не
 проверить остальные.
 
-Уборка линий (`TrimWatcherTimelinesAction`) идёт тем же проходом.
+Уборка линий (`TrimWatcherTimelinesAction`) идёт тем же проходом, в тех же корутинах.
 
 ## HTTP API
 
@@ -551,8 +561,9 @@ PHP:
   переиспользование открытого инцидента, новый инцидент после закрытия;
 - `tests/Modules/Watcher/Domain/Actions/TrimWatcherTimelinesActionTest.php` — глубина
   отреза по настройкам;
-- `tests/Modules/Watcher/Infrastructure/CheckWatchersJobTest.php` — фан-аут по
-  смотрителям, падение одного не уносит остальных.
+- `tests/Modules/Watcher/Infrastructure/CheckWatchersTaskTest.php` — смена минуты по
+  образцу `tests/Services/Tasks/CronTaskTest.php`, фан-аут по смотрителям, падение одного
+  не уносит остальных.
 
 ## Этапы
 
@@ -562,8 +573,8 @@ PHP:
 2. **Go.** `watcher_repository`, матчер, `watcher_timeline_repository`, вёдра и сброс, хук
    в `saveTraces`, финальный сброс при остановке, `MYSQL_TABLE_WATCHERS` в `.env.example`.
    Проверяется тестами Go и глазами по `watcherTimelines`.
-3. **Проверки.** Чекеры, `WatcherTimelineReader`, инциденты и события, `CheckWatchersJob`
-   в расписании, `TrimWatcherTimelinesAction`.
+3. **Проверки.** Чекеры, `WatcherTimelineReader`, инциденты и события, `CheckWatchersTask`
+   в `config/sconcur.php`, `TrimWatcherTimelinesAction`.
 4. **HTTP.** Контроллеры, реквесты, ресурсы, роуты, `make oa-generate`.
 5. **Фронт.** Вкладка, сторы, формы, `make frontend-npm-build`.
 6. **WS-бейдж** открытых инцидентов.
@@ -578,8 +589,8 @@ PHP:
 3. Таймлайн — один документ на смотрителя, `_id` = `watcher_id`.
 4. Уникальности открытого инцидента нет.
 5. Приёмник читает `watchers` сам, отдельного канала настроек сбора нет.
-6. Разбор — джоба по крону раз в минуту, каждый смотритель в своей корутине через
-   `WaitGroup`; не задача пула тасков.
+6. Разбор — задача пула тасков, проход раз в минуту, каждый смотритель в своей корутине
+   через `WaitGroup`.
 7. Статусы инцидента в прошедшем времени: `opened` / `closed`.
 8. Вкладка `Watchers` — сразу после `Aggregator`.
 
