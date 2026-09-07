@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"slogger_receiver/internal/services/buffer_service"
 	"slogger_receiver/internal/services/periodic_trace_service"
+	"slogger_receiver/internal/services/watcher_service"
 	"slogger_receiver/pkg/foundation/errs"
 	"sync"
 	"sync/atomic"
@@ -144,7 +145,27 @@ func (s *Transporter) Run(ctx context.Context) error {
 
 	s.closing.Store(false)
 
+	s.flushWatchers()
+
 	return nil
+}
+
+// flushWatchers writes out what the watchers have collected but not yet been given.
+//
+// Here rather than in a goroutine of its own, and after the loop above rather than
+// beside it: this is the only place that both feeds the watchers and knows it has
+// stopped. Anything watching the context would have to guess when the counting ended.
+//
+// On a context of its own, because the one this server ran on is already cancelled by
+// the time a shutdown reaches here — every write on it would be refused before it was
+// sent.
+func (s *Transporter) flushWatchers() {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := watcher_service.Get().Flush(ctx, true); err != nil {
+		slog.Error(errs.Err(err).Error())
+	}
 }
 
 func (s *Transporter) GetStats() Stats {

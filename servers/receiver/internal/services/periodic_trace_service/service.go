@@ -7,6 +7,7 @@ import (
 	"slogger_receiver/internal/dto"
 	"slogger_receiver/internal/helpers/datetime_helper"
 	"slogger_receiver/internal/services/trace_sharding_service"
+	"slogger_receiver/internal/services/watcher_service"
 	"slogger_receiver/pkg/foundation/errs"
 	"sync"
 	"sync/atomic"
@@ -124,7 +125,12 @@ func (s *Service) saveTraces(ctx context.Context, serviceId int, traceId string,
 		return errs.Err(err)
 	}
 
-	if errors.Is(err, mongo.ErrNoDocuments) {
+	// Whether this write creates the trace or completes one already there. It is the only
+	// place that can tell: a trace passes through here twice, and counting both would
+	// double every number the watchers are built on.
+	isNewTrace := errors.Is(err, mongo.ErrNoDocuments)
+
+	if isNewTrace {
 		existsTrace = bson.M{}
 	}
 
@@ -250,9 +256,92 @@ func (s *Service) saveTraces(ctx context.Context, serviceId int, traceId string,
 		return errs.Err(err)
 	}
 
+	// The watchers are fed from here rather than from the socket server because this is
+	// the only point that has the whole trace: an updating message carries no type, and
+	// the merge above has just restored it. Nothing is read for it — every value handed
+	// over is already in a local variable.
+	watcher_service.Get().AddTrace(
+		serviceId,
+		traceId,
+		traceType,
+		tagNames(tags),
+		durationValue(duration),
+		loggedAt.Time().UTC(),
+		isNewTrace,
+	)
+
 	slog.Debug("saved trace: " + traceId + " for service: " + string(rune(serviceId)) + " to collection: " + coll.Name())
 
 	return nil
+}
+
+// tagNames pulls the tag names out of whichever shape the merge above left them in: the
+// list this service just built, or the one decoded from the stored document.
+func tagNames(value interface{}) []string {
+	var items []interface{}
+
+	switch v := value.(type) {
+	case []interface{}:
+		items = v
+	case primitive.A:
+		items = []interface{}(v)
+	default:
+		return nil
+	}
+
+	names := make([]string, 0, len(items))
+
+	for _, item := range items {
+		switch tag := item.(type) {
+		case primitive.M:
+			if name, ok := tag["nm"].(string); ok && name != "" {
+				names = append(names, name)
+			}
+		case primitive.D:
+			for _, element := range tag {
+				if element.Key != "nm" {
+					continue
+				}
+
+				if name, ok := element.Value.(string); ok && name != "" {
+					names = append(names, name)
+				}
+			}
+		case string:
+			if tag != "" {
+				names = append(names, tag)
+			}
+		}
+	}
+
+	return names
+}
+
+// durationValue reads a duration in whatever width it arrived in — the message hands over
+// a float, the stored document whatever bson decoded it to.
+func durationValue(value interface{}) *float64 {
+	switch v := value.(type) {
+	case float64:
+		return &v
+	case float32:
+		duration := float64(v)
+
+		return &duration
+	case int:
+		duration := float64(v)
+
+		return &duration
+	case int32:
+		duration := float64(v)
+
+		return &duration
+	case int64:
+		duration := float64(v)
+
+		return &duration
+	default:
+		return nil
+	}
 }
 
 // isEmptyTags reports whether a stored tgs value holds no tags, so that an

@@ -12,6 +12,7 @@ use App\Modules\Logs\Infrastructure\LogsServiceProvider;
 use App\Modules\Service\Infrastructure\ServiceServiceProvider;
 use App\Modules\Trace\Infrastructure\TraceServiceProvider;
 use App\Modules\User\Infrastructure\UserServiceProvider;
+use App\Modules\Watcher\Infrastructure\WatcherServiceProvider;
 
 class ModulesConfig
 {
@@ -28,6 +29,7 @@ class ModulesConfig
             DashboardProvider::class,
             CleanerServiceProvider::class,
             LogsServiceProvider::class,
+            WatcherServiceProvider::class,
         ];
     }
 }
