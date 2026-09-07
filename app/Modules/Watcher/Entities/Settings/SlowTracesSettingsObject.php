@@ -21,4 +21,9 @@ readonly class SlowTracesSettingsObject implements HasTraceFilterInterface
     {
         return $this->filter;
     }
+
+    public function timelineDepthMinutes(): int
+    {
+        return $this->windowMinutes;
+    }
 }

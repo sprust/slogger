@@ -19,4 +19,9 @@ readonly class NoNewTracesSettingsObject implements HasTraceFilterInterface
     {
         return $this->filter;
     }
+
+    public function timelineDepthMinutes(): int
+    {
+        return $this->periodMinutes;
+    }
 }

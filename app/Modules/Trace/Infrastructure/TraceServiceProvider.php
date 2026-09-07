@@ -18,7 +18,9 @@ use App\Modules\Trace\Domain\Actions\Mutations\DeleteTraceTreeCacheStateAction;
 use App\Modules\Trace\Domain\Actions\Mutations\DeleteTraceAdminStoreAction;
 use App\Modules\Trace\Domain\Actions\Mutations\DeleteTraceDynamicIndexAction;
 use App\Modules\Trace\Domain\Actions\Mutations\FlushDynamicIndexesAction;
+use App\Modules\Trace\Domain\Actions\Queries\CountInvalidTraceBufferSinceAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindStatusesAction;
+use App\Modules\Trace\Domain\Actions\Queries\FindTraceBufferCountAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTagsAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceAdminStoreAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceDetailAction;
@@ -43,6 +45,7 @@ use App\Modules\Trace\Repositories\Services\PeriodicTraceCollectionNameService;
 use App\Modules\Trace\Repositories\Services\PeriodicTraceService;
 use App\Modules\Trace\Repositories\Services\TracePipelineBuilder;
 use App\Modules\Trace\Repositories\TraceAdminStoreRepository;
+use App\Modules\Trace\Repositories\TraceBufferRepository;
 use App\Modules\Trace\Repositories\TraceContentRepository;
 use App\Modules\Trace\Repositories\TraceDynamicIndexRepository;
 use App\Modules\Trace\Repositories\TraceRepository;
@@ -95,6 +98,7 @@ class TraceServiceProvider extends BaseServiceProvider
             TraceAdminStoreRepository::class,
             TraceTreeCacheRepository::class,
             TraceTreeCacheStateRepository::class,
+            TraceBufferRepository::class,
             // actions
             MakeMetricIndicatorsAction::class,
             MakeTraceTimestampPeriodsAction::class,
@@ -111,6 +115,8 @@ class TraceServiceProvider extends BaseServiceProvider
             CancelTraceTreeCacheStateAction::class,
             DeleteTraceTreeCacheStateAction::class,
             // actions.queries
+            FindTraceBufferCountAction::class,
+            CountInvalidTraceBufferSinceAction::class,
             FindStatusesAction::class,
             FindTagsAction::class,
             FindTraceDetailAction::class,
