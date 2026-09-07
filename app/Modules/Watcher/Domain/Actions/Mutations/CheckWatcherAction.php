@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Watcher\Domain\Actions\Mutations;
 
-use App\Modules\Watcher\Domain\Services\Checkers\WatcherCheckerRegistry;
+use App\Modules\Watcher\Domain\Services\Types\WatcherTypeRegistry;
 use App\Modules\Watcher\Entities\WatcherCheckContextObject;
 use App\Modules\Watcher\Entities\WatcherObject;
 use App\Modules\Watcher\Repositories\WatcherRepository;
@@ -21,7 +21,7 @@ use Throwable;
 readonly class CheckWatcherAction
 {
     public function __construct(
-        private WatcherCheckerRegistry $checkers,
+        private WatcherTypeRegistry $types,
         private RegisterTriggerAction $registerTriggerAction,
         private TrimWatcherTimelineAction $trimTimelineAction,
         private WatcherRepository $watcherRepository,
@@ -32,7 +32,7 @@ readonly class CheckWatcherAction
     public function handle(WatcherObject $watcher, WatcherCheckContextObject $context): void
     {
         try {
-            $trigger = $this->checkers->for($watcher->type)->check($watcher, $context);
+            $trigger = $this->types->for($watcher->type)->checker()->check($watcher, $context);
 
             if (!is_null($trigger)) {
                 $this->registerTriggerAction->handle($watcher, $trigger, $context->now);

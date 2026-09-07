@@ -13,4 +13,9 @@ readonly class InvalidBufferGrownSettingsObject implements WatcherSettingsInterf
         public int $threshold = 1
     ) {
     }
+
+    public function toArray(): array
+    {
+        return ['threshold' => $this->threshold];
+    }
 }

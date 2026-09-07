@@ -1,15 +1,14 @@
 <?php
 
-namespace Tests\Modules\Watcher\Repositories\Services;
+namespace Tests\Modules\Watcher\Domain\Services;
 
+use App\Modules\Watcher\Domain\Services\WatcherMatchFactory;
 use App\Modules\Watcher\Entities\Settings\BufferOverflowSettingsObject;
 use App\Modules\Watcher\Entities\Settings\InvalidBufferGrownSettingsObject;
 use App\Modules\Watcher\Entities\Settings\NoNewTracesSettingsObject;
 use App\Modules\Watcher\Entities\Settings\SlowTracesSettingsObject;
-use App\Modules\Watcher\Entities\Settings\TracesSpikeSettingsObject;
 use App\Modules\Watcher\Entities\Settings\WatcherTraceFilterObject;
 use App\Modules\Watcher\Entities\WatcherMatchObject;
-use App\Modules\Watcher\Repositories\Services\WatcherMatchFactory;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -22,7 +21,7 @@ class WatcherMatchFactoryTest extends TestCase
 {
     public function testSettingsThatDescribeTracesBecomeAMatch(): void
     {
-        $match = $this->factory()->make(
+        $match = new WatcherMatchFactory()->make(
             new SlowTracesSettingsObject(
                 duration: 10,
                 filter: new WatcherTraceFilterObject(
@@ -46,14 +45,16 @@ class WatcherMatchFactoryTest extends TestCase
      */
     public function testBufferSettingsHaveNoMatch(): void
     {
-        $this->assertNull($this->factory()->make(new BufferOverflowSettingsObject()));
-        $this->assertNull($this->factory()->make(new InvalidBufferGrownSettingsObject()));
+        $factory = new WatcherMatchFactory();
+
+        $this->assertNull($factory->make(new BufferOverflowSettingsObject()));
+        $this->assertNull($factory->make(new InvalidBufferGrownSettingsObject()));
     }
 
     /** An unfiltered watcher counts everything, which is a filter of empty lists — not null. */
     public function testAnEmptyFilterIsStillAMatch(): void
     {
-        $match = $this->factory()->make(new NoNewTracesSettingsObject());
+        $match = new WatcherMatchFactory()->make(new NoNewTracesSettingsObject());
 
         $this->assertNotNull($match);
         $this->assertSame([], $match->serviceIds);
@@ -70,7 +71,7 @@ class WatcherMatchFactoryTest extends TestCase
                 'types'       => ['db'],
                 'tags'        => ['slow'],
             ],
-            $this->factory()->toArray(
+            new WatcherMatchFactory()->toArray(
                 new WatcherMatchObject(serviceIds: [3], types: ['db'], tags: ['slow'])
             )
         );
@@ -78,56 +79,6 @@ class WatcherMatchFactoryTest extends TestCase
 
     public function testNothingToStoreForAWatcherWithoutAMatch(): void
     {
-        $this->assertNull($this->factory()->toArray(null));
-        $this->assertNull($this->factory()->fromArray(null));
-    }
-
-    public function testAStoredMatchReadsBackAsItWasWritten(): void
-    {
-        $factory = $this->factory();
-
-        $match = $factory->make(
-            new TracesSpikeSettingsObject(
-                filter: new WatcherTraceFilterObject(serviceIds: [1, 2], types: ['http'], tags: [])
-            )
-        );
-
-        $restored = $factory->fromArray($factory->toArray($match));
-
-        $this->assertEquals($match, $restored);
-    }
-
-    /**
-     * The version travels with the value rather than being assumed on read: a match
-     * written by a newer panel has to arrive here as its own number, so the receiver —
-     * which reads the same column — can refuse what it does not understand.
-     */
-    public function testAnUnknownVersionIsKeptRatherThanReplaced(): void
-    {
-        $match = $this->factory()->fromArray([
-            'v'           => 99,
-            'service_ids' => [],
-            'types'       => [],
-            'tags'        => [],
-        ]);
-
-        $this->assertNotNull($match);
-        $this->assertSame(99, $match->version);
-    }
-
-    /** A column written before a key existed still has to load. */
-    public function testMissingKeysReadAsEmpty(): void
-    {
-        $match = $this->factory()->fromArray(['v' => 1]);
-
-        $this->assertNotNull($match);
-        $this->assertSame([], $match->serviceIds);
-        $this->assertSame([], $match->types);
-        $this->assertSame([], $match->tags);
-    }
-
-    private function factory(): WatcherMatchFactory
-    {
-        return new WatcherMatchFactory();
+        $this->assertNull(new WatcherMatchFactory()->toArray(null));
     }
 }

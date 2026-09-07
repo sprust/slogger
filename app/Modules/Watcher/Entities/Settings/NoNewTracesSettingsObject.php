@@ -24,4 +24,12 @@ readonly class NoNewTracesSettingsObject implements HasTraceFilterInterface
     {
         return $this->periodMinutes;
     }
+
+    public function toArray(): array
+    {
+        return [
+            'period_minutes' => $this->periodMinutes,
+            'filter'         => $this->filter->toArray(),
+        ];
+    }
 }

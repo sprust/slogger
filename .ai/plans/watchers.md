@@ -378,14 +378,12 @@ app/Modules/Watcher/
 │   ├── UpdateWatcherParameters.php
 │   └── FindIncidentsParameters.php
 ├── Repositories/
+│   ├── Dto/WatcherDto.php                   — строка как она лежит: тип строкой, настройки json
 │   ├── WatcherRepository.php
 │   ├── WatcherIncidentRepository.php
 │   ├── WatcherIncidentEventRepository.php
-│   ├── WatcherTimelineRepository.php        — findOne по _id, pull старого
-│   └── Services/
-│       ├── WatcherSettingsMapper.php        — json ↔ объект настроек
-│       ├── WatcherMatchFactory.php          — settings → match
-│       └── WatcherTimelineReader.php        — склейка вёдер с одинаковым t, окна
+│   ├── WatcherTimelineRepository.php        — чтение линии из Mongo
+│   └── Services/WatcherTimelineReader.php   — сборка линии из фрагментов документа
 ├── Domain/
 │   ├── Actions/Mutations/
 │   │   ├── CreateWatcherAction.php
@@ -399,24 +397,35 @@ app/Modules/Watcher/
 │   │   ├── FindWatchersAction.php
 │   │   ├── FindIncidentsAction.php
 │   │   └── FindIncidentEventsAction.php
+│   ├── Services/Types/                       — по классу на тип: настройки, описание, чекер
+│   │   ├── WatcherTypeDefinitionInterface.php
+│   │   ├── <Тип>WatcherType.php
+│   │   └── WatcherTypeRegistry.php           — единственный match по WatcherTypeEnum в модуле
+│   ├── Services/WatcherFactory.php           — WatcherDto → WatcherObject
+│   ├── Services/WatcherMatchFactory.php      — настройки → trace_match
+│   ├── Services/WatcherTimelineAnalyzer.php
 │   ├── Services/Checkers/
-│   │   ├── WatcherCheckerInterface.php      — check(WatcherObject): ?WatcherTriggerObject
+│   │   ├── WatcherCheckerInterface.php       — check(WatcherObject, context): ?WatcherTriggerObject
 │   │   ├── BufferOverflowChecker.php
 │   │   ├── InvalidBufferGrownChecker.php
 │   │   ├── NoNewTracesChecker.php
 │   │   ├── TracesSpikeChecker.php
-│   │   ├── SlowTracesChecker.php
-│   │   └── WatcherCheckerRegistry.php       — тип → чекер
+│   │   └── SlowTracesChecker.php
 │   ├── Events/WatcherIncidentChangedEvent.php
 │   └── Exceptions/WatcherNotFoundException.php
 └── Infrastructure/
     ├── Tasks/CheckWatchersTask.php
     ├── Listeners/BroadcastWatcherIncidentListener.php
     ├── Broadcasting/WatcherIncidentBroadcast.php
-    ├── Http/Controllers/WatcherController.php
+    ├── Http/Controllers/WatcherController.php            — список, типы, удаление
     ├── Http/Controllers/WatcherIncidentController.php
-    ├── Http/Requests/{Create,Update}WatcherRequest.php, IndexIncidentsRequest.php
-    ├── Http/Resources/WatcherResource.php, WatcherIncidentResource.php, WatcherIncidentEventResource.php
+    ├── Http/Controllers/AbstractWatcherTypeController.php — создание и правка
+    ├── Http/Controllers/<Тип>WatcherController.php        — по одному на тип
+    ├── Http/Requests/<Тип>WatcherRequest.php              — по одному на тип
+    ├── Http/Requests/IndexIncidentsRequest.php
+    ├── Http/Resources/WatcherResource.php                 — список, без настроек
+    ├── Http/Resources/<Тип>WatcherSettingsResource.php    — по одному на тип
+    ├── Http/Resources/WatcherIncidentResource.php, WatcherIncidentEventResource.php
     └── WatcherServiceProvider.php
 ```
 
@@ -424,10 +433,16 @@ app/Modules/Watcher/
 `WatcherIncidentEvent.php` (MySQL, `AbstractModel`) и `WatcherTimeline.php` (Mongo,
 `AbstractTraceModel` — соединение `mongodb.traces`).
 
-Каждый чекер — класс с одним публичным методом; `CheckWatcherAction` только выбирает по
-типу чекер и передаёт его срабатывание в `RegisterTriggerAction`. Раскладку по корутинам
-делает задача, а не действие: параллелизм — это про то, как запускают, а не про то, что
-проверяют.
+Каждый чекер — класс с одним публичным методом; `CheckWatcherAction` только берёт чекер у
+реестра и передаёт срабатывание в `RegisterTriggerAction`. Раскладку по корутинам делает
+задача, а не действие: параллелизм — это про то, как запускают, а не про то, что проверяют.
+
+**Тип живёт в одном месте.** Всё, что зависит от `WatcherTypeEnum` — как прочитать
+настройки, как описать тип панели, кто его проверяет — собрано в определении типа
+(`Domain/Services/Types/<Тип>WatcherType`), а `WatcherTypeRegistry` — единственный `match`
+по енуму в модуле. Репозиторий про типы не знает вообще: он отдаёт `WatcherDto` со строкой
+и json, а собирает из этого смотрителя `WatcherFactory`. Иначе знание о типах расползается
+по слоям, и слой данных начинает вычислять.
 
 ### Что добавляется в модуль Trace
 
@@ -503,20 +518,53 @@ $waitGroup->waitAll();
 
 ```php
 Route::prefix('/watchers')->as('watchers.')->group(function () {
-    Route::get('', [WatcherController::class, 'index'])->name('index');
-    Route::post('', [WatcherController::class, 'create'])->name('create');
-    Route::patch('/{id}', [WatcherController::class, 'update'])->name('update');
-    Route::delete('/{id}', [WatcherController::class, 'delete'])->name('delete');
+    Route::get('', [WatcherController::class, 'index'])->name('index');       // без настроек
     Route::get('/types', [WatcherController::class, 'types'])->name('types');
+    Route::delete('/{id}', [WatcherController::class, 'delete'])->name('delete');
 
-    Route::get('/incidents', [WatcherIncidentController::class, 'index'])->name('incidents.index');
-    Route::get('/incidents/{id}/events', [WatcherIncidentController::class, 'events'])->name('incidents.events');
-    Route::patch('/incidents/{id}/close', [WatcherIncidentController::class, 'close'])->name('incidents.close');
+    Route::get('/incidents', [WatcherIncidentController::class, 'index']);
+    Route::get('/incidents/{id}/events', [WatcherIncidentController::class, 'events']);
+    Route::patch('/incidents/{id}/close', [WatcherIncidentController::class, 'close']);
+
+    // Настройки — по маршруту на тип, и на чтение, и на запись:
+    // GET   /watchers/slow-traces/{id}   POST  /watchers/slow-traces
+    // PATCH /watchers/slow-traces/{id}
+    // ... и так для каждого из пяти
 });
 ```
 
-Два контроллера: смотритель и инцидент — разные сущности. `types` отдаёт описание типов и
-их полей, чтобы форма строилась по контракту, а не по дублирующему списку в TS.
+**Маршрут на тип, а не один общий.** Тело запроса зависит от типа, и один общий маршрут
+означал бы схему, в которой все поля всех типов необязательные. Практическая цена этого
+не в красоте: опечатка в ключе (`periodminutes`) проходила валидацию, маппер подставлял
+дефолт, и смотритель молча мерил не то, что просили. С маршрутом на тип это 422.
+
+Тип уезжает из тела в URL, и состояние «смотритель одного типа с настройками другого»
+перестаёт быть выразимым. Создание и правка одного типа берут одинаковое тело, поэтому
+реквест на них один: `SlowTracesWatcherRequest` и так далее — пять реквестов, пять тонких
+контроллеров поверх `AbstractWatcherTypeController`, который и делает всю работу.
+
+Инцидент — отдельный контроллер: это другая сущность.
+
+`types` отдаёт типы, их заголовки и дефолты полей, чтобы панель не держала вторую копию
+этих чисел.
+
+**Ответы — по тому же принципу.** `GET /watchers` отдаёт список **без настроек**: их
+форма зависит от типа, а список смешанный. Настройки читаются по одной штуке с маршрута
+своего типа — `GET /watchers/slow-traces/{id}` — и там ответ типизирован полностью.
+Смотритель другого типа по этому маршруту отвечает 404, а не ресурсом чужой формы.
+
+Панели это ничего не стоит: таблице настройки не нужны, а диалог правки и так открывается
+для одного смотрителя, тип которого уже известен.
+
+`payload` события — исключение: одна форма на все типы, поля неподходящих типов приходят
+`null`. Событие читается через инцидент, а тот маршрут типа не называет; вписать его туда
+значило бы завести ещё пять маршрутов на view, который только читает. Строгость на записи
+и мягкость на чтении — не противоречие: реквест, принявший лишнее поле, молча меняет то,
+что смотритель мерит, а ответ с лишним `null` не меняет ничего.
+
+Чего схема всё же не выражает: вложенные обязательные поля (`settings.duration`) не
+попадают в `required` — генератор собирает его только на верхнем уровне. Сервер их
+требует, схема об этом умалчивает.
 
 После изменений — `make oa-generate`, затем `make frontend-npm-build`.
 

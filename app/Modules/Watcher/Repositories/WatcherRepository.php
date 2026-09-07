@@ -5,25 +5,18 @@ declare(strict_types=1);
 namespace App\Modules\Watcher\Repositories;
 
 use App\Models\Watchers\Watcher;
-use App\Modules\Watcher\Entities\Settings\WatcherSettingsInterface;
-use App\Modules\Watcher\Entities\WatcherMatchObject;
-use App\Modules\Watcher\Entities\WatcherObject;
-use App\Modules\Watcher\Enums\WatcherTypeEnum;
-use App\Modules\Watcher\Repositories\Services\WatcherMatchFactory;
-use App\Modules\Watcher\Repositories\Services\WatcherSettingsMapper;
+use App\Modules\Watcher\Repositories\Dto\WatcherDto;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 
+/**
+ * Rows in and rows out. Nothing here interprets a watcher's type or its settings — that
+ * is the domain's, and it is one place there rather than a second copy here.
+ */
 readonly class WatcherRepository
 {
-    public function __construct(
-        private WatcherSettingsMapper $settingsMapper,
-        private WatcherMatchFactory $matchFactory
-    ) {
-    }
-
     /**
-     * @return WatcherObject[]
+     * @return WatcherDto[]
      */
     public function find(?bool $enabled = null): array
     {
@@ -34,53 +27,56 @@ readonly class WatcherRepository
             )
             ->orderBy('id')
             ->get()
-            ->map(fn(Watcher $watcher) => $this->makeObject($watcher))
+            ->map(fn(Watcher $watcher) => $this->makeDto($watcher))
             ->all();
     }
 
-    public function findById(int $id): ?WatcherObject
+    public function findById(int $id): ?WatcherDto
     {
         $watcher = Watcher::query()->find($id);
 
-        return $watcher instanceof Watcher ? $this->makeObject($watcher) : null;
+        return $watcher instanceof Watcher ? $this->makeDto($watcher) : null;
     }
 
+    /**
+     * @param array<string, mixed>      $settings
+     * @param array<string, mixed>|null $traceMatch
+     */
     public function create(
         string $name,
-        WatcherTypeEnum $type,
+        string $type,
         bool $enabled,
         int $cooldownSeconds,
-        WatcherSettingsInterface $settings,
-        ?WatcherMatchObject $match,
+        array $settings,
+        ?array $traceMatch,
         ?Carbon $collectSince
-    ): WatcherObject {
+    ): WatcherDto {
         $watcher = new Watcher();
 
         $watcher->name             = $name;
-        $watcher->type             = $type->value;
+        $watcher->type             = $type;
         $watcher->enabled          = $enabled;
         $watcher->cooldown_seconds = $cooldownSeconds;
-        $watcher->settings         = $this->settingsMapper->toArray($settings);
-        $watcher->trace_match      = $this->matchFactory->toArray($match);
+        $watcher->settings         = $settings;
+        $watcher->trace_match      = $traceMatch;
         $watcher->collect_since    = $collectSince;
 
         $watcher->saveOrFail();
 
-        return $this->makeObject($watcher);
+        return $this->makeDto($watcher);
     }
 
     /**
-     * `collectSince` is passed rather than kept because it is not a property of the edit
-     * but a decision about it: a filter that changed invalidates the line already
-     * collected, a rename does not.
+     * @param array<string, mixed>      $settings
+     * @param array<string, mixed>|null $traceMatch
      */
     public function update(
         int $id,
         string $name,
         bool $enabled,
         int $cooldownSeconds,
-        WatcherSettingsInterface $settings,
-        ?WatcherMatchObject $match,
+        array $settings,
+        ?array $traceMatch,
         ?Carbon $collectSince
     ): void {
         Watcher::query()
@@ -89,8 +85,8 @@ readonly class WatcherRepository
                 'name'             => $name,
                 'enabled'          => $enabled,
                 'cooldown_seconds' => $cooldownSeconds,
-                'settings'         => $this->settingsMapper->toArray($settings),
-                'trace_match'      => $this->matchFactory->toArray($match),
+                'settings'         => $settings,
+                'trace_match'      => $traceMatch,
                 'collect_since'    => $collectSince,
                 'updated_at'       => Carbon::now(),
             ]);
@@ -115,18 +111,16 @@ readonly class WatcherRepository
         Watcher::query()->where('id', $id)->delete();
     }
 
-    private function makeObject(Watcher $watcher): WatcherObject
+    private function makeDto(Watcher $watcher): WatcherDto
     {
-        $type = WatcherTypeEnum::from($watcher->type);
-
-        return new WatcherObject(
+        return new WatcherDto(
             id: $watcher->id,
             name: $watcher->name,
-            type: $type,
+            type: $watcher->type,
             enabled: $watcher->enabled,
             cooldownSeconds: $watcher->cooldown_seconds,
-            settings: $this->settingsMapper->toObject($type, $watcher->settings),
-            match: $this->matchFactory->fromArray($watcher->trace_match),
+            settings: $watcher->settings,
+            traceMatch: $watcher->trace_match,
             collectSince: $watcher->collect_since,
             lastCheckedAt: $watcher->last_checked_at,
             lastTriggeredAt: $watcher->last_triggered_at,

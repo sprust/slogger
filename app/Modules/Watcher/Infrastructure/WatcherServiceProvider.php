@@ -15,16 +15,23 @@ use App\Modules\Watcher\Domain\Actions\Mutations\TrimWatcherTimelineAction;
 use App\Modules\Watcher\Domain\Actions\Mutations\UpdateWatcherAction;
 use App\Modules\Watcher\Domain\Actions\Queries\FindIncidentEventsAction;
 use App\Modules\Watcher\Domain\Actions\Queries\FindIncidentsAction;
+use App\Modules\Watcher\Domain\Actions\Queries\FindWatcherTypesAction;
+use App\Modules\Watcher\Domain\Actions\Queries\FindWatcherAction;
 use App\Modules\Watcher\Domain\Actions\Queries\FindWatchersAction;
 use App\Modules\Watcher\Domain\Services\Checkers\BufferOverflowChecker;
 use App\Modules\Watcher\Domain\Services\Checkers\InvalidBufferGrownChecker;
 use App\Modules\Watcher\Domain\Services\Checkers\NoNewTracesChecker;
 use App\Modules\Watcher\Domain\Services\Checkers\SlowTracesChecker;
 use App\Modules\Watcher\Domain\Services\Checkers\TracesSpikeChecker;
-use App\Modules\Watcher\Domain\Services\Checkers\WatcherCheckerRegistry;
+use App\Modules\Watcher\Domain\Services\Types\BufferOverflowWatcherType;
+use App\Modules\Watcher\Domain\Services\Types\InvalidBufferGrownWatcherType;
+use App\Modules\Watcher\Domain\Services\Types\NoNewTracesWatcherType;
+use App\Modules\Watcher\Domain\Services\Types\SlowTracesWatcherType;
+use App\Modules\Watcher\Domain\Services\Types\TracesSpikeWatcherType;
+use App\Modules\Watcher\Domain\Services\Types\WatcherTypeRegistry;
+use App\Modules\Watcher\Domain\Services\WatcherFactory;
+use App\Modules\Watcher\Domain\Services\WatcherMatchFactory;
 use App\Modules\Watcher\Domain\Services\WatcherTimelineAnalyzer;
-use App\Modules\Watcher\Repositories\Services\WatcherMatchFactory;
-use App\Modules\Watcher\Repositories\Services\WatcherSettingsMapper;
 use App\Modules\Watcher\Repositories\Services\WatcherTimelineReader;
 use App\Modules\Watcher\Repositories\WatcherIncidentEventRepository;
 use App\Modules\Watcher\Repositories\WatcherIncidentRepository;
@@ -37,8 +44,6 @@ class WatcherServiceProvider extends BaseServiceProvider
     {
         return [
             // repository services
-            WatcherSettingsMapper::class,
-            WatcherMatchFactory::class,
             WatcherTimelineReader::class,
             // repositories
             WatcherRepository::class,
@@ -52,9 +57,18 @@ class WatcherServiceProvider extends BaseServiceProvider
             NoNewTracesChecker::class,
             TracesSpikeChecker::class,
             SlowTracesChecker::class,
-            WatcherCheckerRegistry::class,
+            BufferOverflowWatcherType::class,
+            InvalidBufferGrownWatcherType::class,
+            NoNewTracesWatcherType::class,
+            TracesSpikeWatcherType::class,
+            SlowTracesWatcherType::class,
+            WatcherTypeRegistry::class,
+            WatcherMatchFactory::class,
+            WatcherFactory::class,
             // actions
             FindWatchersAction::class,
+            FindWatcherAction::class,
+            FindWatcherTypesAction::class,
             FindIncidentsAction::class,
             FindIncidentEventsAction::class,
             CreateWatcherAction::class,

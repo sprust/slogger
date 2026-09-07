@@ -28,4 +28,14 @@ readonly class TracesSpikeSettingsObject implements HasTraceFilterInterface
     {
         return $this->windowMinutes + $this->baselineMinutes;
     }
+
+    public function toArray(): array
+    {
+        return [
+            'window_minutes'   => $this->windowMinutes,
+            'baseline_minutes' => $this->baselineMinutes,
+            'growth_percent'   => $this->growthPercent,
+            'filter'           => $this->filter->toArray(),
+        ];
+    }
 }

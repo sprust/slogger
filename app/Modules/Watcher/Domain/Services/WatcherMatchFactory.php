@@ -2,19 +2,18 @@
 
 declare(strict_types=1);
 
-namespace App\Modules\Watcher\Repositories\Services;
+namespace App\Modules\Watcher\Domain\Services;
 
-use App\Modules\Common\Helpers\ArrayValueGetter;
 use App\Modules\Watcher\Entities\Settings\HasTraceFilterInterface;
 use App\Modules\Watcher\Entities\Settings\WatcherSettingsInterface;
 use App\Modules\Watcher\Entities\WatcherMatchObject;
 
 /**
- * The `watchers.trace_match` column, in both directions.
+ * The `watchers.trace_match` column, written from a watcher's settings.
  *
- * This is the entire contract between the panel and the Go receiver, which is why it
- * lives in one class rather than being spread over the repository: the shape written here
- * is parsed there, and the two have to be read side by side.
+ * This is the entire contract between the panel and the Go receiver, which is why the
+ * shape lives in one class: what is written here is parsed there, and the two have to be
+ * read side by side.
  */
 readonly class WatcherMatchFactory
 {
@@ -52,22 +51,5 @@ readonly class WatcherMatchFactory
             'types'       => $match->types,
             'tags'        => $match->tags,
         ];
-    }
-
-    /**
-     * @param array<string, mixed>|null $raw
-     */
-    public function fromArray(?array $raw): ?WatcherMatchObject
-    {
-        if (is_null($raw)) {
-            return null;
-        }
-
-        return new WatcherMatchObject(
-            serviceIds: array_values(ArrayValueGetter::arrayIntNull($raw, 'service_ids') ?? []),
-            types: array_values(ArrayValueGetter::arrayStringNull($raw, 'types') ?? []),
-            tags: array_values(ArrayValueGetter::arrayStringNull($raw, 'tags') ?? []),
-            version: ArrayValueGetter::intNull($raw, 'v') ?? WatcherMatchObject::VERSION
-        );
     }
 }

@@ -26,4 +26,13 @@ readonly class SlowTracesSettingsObject implements HasTraceFilterInterface
     {
         return $this->windowMinutes;
     }
+
+    public function toArray(): array
+    {
+        return [
+            'duration'       => $this->duration,
+            'window_minutes' => $this->windowMinutes,
+            'filter'         => $this->filter->toArray(),
+        ];
+    }
 }

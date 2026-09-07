@@ -27,4 +27,16 @@ readonly class WatcherTraceFilterObject
         public array $tags = []
     ) {
     }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function toArray(): array
+    {
+        return [
+            'service_ids' => $this->serviceIds,
+            'types'       => $this->types,
+            'tags'        => $this->tags,
+        ];
+    }
 }

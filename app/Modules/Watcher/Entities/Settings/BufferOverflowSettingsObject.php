@@ -13,4 +13,9 @@ readonly class BufferOverflowSettingsObject implements WatcherSettingsInterface
         public int $threshold = 1000
     ) {
     }
+
+    public function toArray(): array
+    {
+        return ['threshold' => $this->threshold];
+    }
 }
