@@ -278,7 +278,28 @@ Notes:
 - All traits must be named with a `Trait` postfix (e.g. `HasFactoryTrait`), and the file name must match the trait name (PSR-4).
 - Do not use the `final` keyword on classes. Keep classes extendable.
 - Do not declare global/namespaced helper functions (no `function current_context()` style API). Expose behavior through classes and static entry points instead (e.g. `SConcur\Context\Context::current()`).
+- Name the cases of a status enum in the past tense — `Opened`, `Closed`, `Finished`,
+  `Canceled`. A status says what happened to the record, not what it currently looks like,
+  and a set mixing an adjective with a participle (`Open` beside `Closed`) reads as two
+  different kinds of thing.
 - For SConcur coroutine state, use the library's `SConcur\Context\Context` (`Context::current()->find/has/set/forget`) — do not reimplement a context store. Working-with-context semantics: `vendor/sconcur/sconcur/docs/coroutine-context.ru.md`.
+
+### Migrations
+
+- Name a migration the way the framework does: `Y_m_d_His_snake_case_description.php`, where
+  the prefix is the time the file was created **in UTC**. Let
+  `make art c="make:migration create_widgets_table"` produce it, or take the timestamp from
+  `date -u +%Y_%m_%d_%H%M%S` — never invent a round one.
+- UTC, not local time: `MigrationCreator::getDatePrefix()` is `date('Y_m_d_His')`, and the
+  framework has already called `date_default_timezone_set(config('app.timezone'))`, which is
+  `UTC` here (`config/app.php`). A prefix written in a local zone sorts ahead of migrations
+  that were actually written later somewhere else.
+- Round prefixes like `100000`, `100100`, `120000` are the tell of a hand-written name. They
+  do not order correctly against the real ones written the same day, they make several
+  migrations look like a single scripted batch, and they lose the one thing the prefix is
+  for: when the change was actually written.
+- A migration already committed keeps its name whatever it looks like — it may have run on
+  installations, and renaming it makes the migrator run it again.
 
 ## Required Commands After Changes
 

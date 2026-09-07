@@ -25,7 +25,7 @@
 | Кто | Что делает |
 |---|---|
 | Go | по одному базовому фильтру решает, относится ли трейс к смотрителю, и складывает его в 15-секундное ведро: количество, длительности, свёртка по разрезам |
-| PHP | читает таймлайн, применяет пороги, окна и проценты, решает, что сработало, ведёт инциденты и события |
+| PHP | раз в минуту читает таймлайны, применяет пороги, окна и проценты, решает, что сработало, ведёт инциденты и события |
 
 Базовый фильтр одинаков по форме у всех смотрителей — сервис, тип, теги. Всё, чем
 смотрители отличаются друг от друга, лежит в PHP и в Go не попадает вовсе.
@@ -41,7 +41,10 @@
 
 ## Что именно читает Go
 
-Колонка `watchers.match` (json) — и только она, плюс `id`.
+Колонка `watchers.trace_match` (json) — и только она, плюс `id`.
+
+Названа не `match`: это зарезервированное слово MySQL (`MATCH ... AGAINST`), и сырому
+SQL приёмника пришлось бы навсегда его экранировать.
 
 ```json
 { "v": 1,
@@ -54,10 +57,10 @@
 из перечисленных. `v` — версия формата: приёмник, встретив незнакомую, пропускает такого
 смотрителя и пишет об этом в лог, вместо того чтобы молча считать не то.
 
-`match = NULL` — смотритель приёмнику не интересен (`buffer_overflow`,
+`trace_match = NULL` — смотритель приёмнику не интересен (`buffer_overflow`,
 `invalid_buffer_grown` считаются в PHP по буферам). Таких Go не загружает.
 
-`match` — производная от `settings`, её пересчитывает PHP при сохранении смотрителя
+`trace_match` — производная от `settings`, её пересчитывает PHP при сохранении смотрителя
 (`WatcherMatchFactory`). Отдельная колонка, а не вложенный ключ: контракт с Go должно быть
 видно в схеме, а не в соглашении внутри json.
 
@@ -171,7 +174,7 @@ $set:  { uat: now }
 
 ```text
 servers/receiver/internal/
-├── repositories/watcher_repository/repository.go          — SELECT id, match FROM watchers WHERE enabled = 1
+├── repositories/watcher_repository/repository.go          — SELECT id, trace_match FROM watchers WHERE enabled = 1
 ├── repositories/watcher_timeline_repository/repository.go — запись вёдер в Mongo
 └── services/watcher_service/service.go                    — компиляция фильтров, матчинг, вёдра в памяти, сброс
 ```
@@ -189,7 +192,7 @@ servers/receiver/internal/
   только закрытые, с запасом ещё в 15 секунд на опоздавшие. Горутина рядом с `saveStats`
   в `cmd/receiver/main.go`.
 - Сбой матчинга или записи линии логируется и **не** влияет на сохранение трейса.
-- Нет включённых смотрителей с `match` — ни матчинга, ни записей, ни соединения с Mongo
+- Нет включённых смотрителей с `trace_match` — ни матчинга, ни записей, ни соединения с Mongo
   под это.
 
 Весь объём Go-части — фильтр по трём множествам, счётчики и запись. Ни одного знания о
@@ -238,9 +241,9 @@ flowchart TB
     transporter["traces_transporter + periodic_trace_service.saveTraces"]
     shards["traces_Y_m_d_HH_HH — часовые коллекции"]
     watcherSrv["watcher_service — фильтр и вёдра в памяти"]
-    watchersTable["watchers.match — MySQL"]
+    watchersTable["watchers.trace_match — MySQL"]
     timelines["watcherTimelines — документ на смотрителя"]
-    check["CheckWatchersTask — пул тасков SConcur"]
+    check["CheckWatchersJob — раз в минуту, корутина на смотрителя"]
     incidents["watcher_incidents + watcher_incident_events — MySQL"]
     panel["ЛК: вкладка Watchers"]
 
@@ -303,7 +306,7 @@ Cooldown («не чаще, чем раз в») тоже настраиваетс
 | `name` | string(255) | человеческое имя |
 | `type` | string(64) | `WatcherTypeEnum` |
 | `enabled` | bool, index | выключенный не проверяется и не загружается приёмником |
-| `match` | json null | **единственное, что читает Go**; `NULL` у буферных типов |
+| `trace_match` | json null | **единственное, что читает Go**; `NULL` у буферных типов |
 | `settings` | json | пороги, окна, проценты — только для PHP |
 | `cooldown_seconds` | int | «не чаще, чем раз в» |
 | `collect_since` | timestamp null | с какого момента линия достоверна |
@@ -317,7 +320,7 @@ Cooldown («не чаще, чем раз в») тоже настраиваетс
 |---|---|---|
 | `id` | bigint | |
 | `watcher_id` | FK → watchers, cascadeOnDelete | |
-| `status` | string(16) | `open` / `closed` — статус1/статус2 |
+| `status` | string(16) | `opened` / `closed` — статус1/статус2, оба в прошедшем времени |
 | `first_event_at`, `last_event_at` | timestamp | |
 | `events_count` | int | чтобы список не считал |
 | `closed_at` | timestamp null | |
@@ -325,9 +328,8 @@ Cooldown («не чаще, чем раз в») тоже настраиваетс
 
 Уникальности «один открытый инцидент на смотрителя» нет: индекс `{watcher_id, status}`
 нужен только для поиска. Открытый инцидент ищется запросом
-`where watcher_id = ? and status = 'open' order by id desc limit 1` — есть, событие уходит
-в него; нет, заводится новый. Ограничение в базе тут и не требуется: пишет всегда один
-процесс — пул тасков SConcur.
+`where watcher_id = ? and status = 'opened' order by id desc limit 1` — есть, событие
+уходит в него; нет, заводится новый.
 
 `watcher_incident_events` — таблица2:
 
@@ -391,7 +393,7 @@ app/Modules/Watcher/
 │   │   ├── DeleteWatcherAction.php
 │   │   ├── RegisterTriggerAction.php
 │   │   ├── CloseIncidentAction.php
-│   │   ├── CheckWatchersAction.php          — один проход по включённым смотрителям
+│   │   ├── CheckWatcherAction.php           — проверить одного, своей корутиной
 │   │   └── TrimWatcherTimelinesAction.php   — вырезать то, что ушло за видимость
 │   ├── Actions/Queries/
 │   │   ├── FindWatchersAction.php
@@ -408,7 +410,7 @@ app/Modules/Watcher/
 │   ├── Events/WatcherIncidentChangedEvent.php
 │   └── Exceptions/WatcherNotFoundException.php
 └── Infrastructure/
-    ├── Tasks/CheckWatchersTask.php
+    ├── Jobs/CheckWatchersJob.php
     ├── Listeners/BroadcastWatcherIncidentListener.php
     ├── Broadcasting/WatcherIncidentBroadcast.php
     ├── Http/Controllers/WatcherController.php
@@ -422,8 +424,10 @@ app/Modules/Watcher/
 `WatcherIncidentEvent.php` (MySQL, `AbstractModel`) и `WatcherTimeline.php` (Mongo,
 `AbstractTraceModel` — соединение `mongodb.traces`).
 
-Каждый чекер — класс с одним публичным методом; `CheckWatchersAction` только раскладывает
-смотрителей по чекерам и передаёт срабатывания в `RegisterTriggerAction`.
+Каждый чекер — класс с одним публичным методом; `CheckWatcherAction` только выбирает по
+типу чекер и передаёт его срабатывание в `RegisterTriggerAction`. Раскладку по корутинам
+делает джоба, а не действие: параллелизм — это про то, как запускают, а не про то, что
+проверяют.
 
 ### Что добавляется в модуль Trace
 
@@ -437,18 +441,51 @@ app/Modules/Watcher/
 Линия смотрителя — не метрика трейсов, а его собственные данные, поэтому
 `WatcherTimelineRepository` живёт в `Watcher`.
 
-### Задача пула
+### Разбор: джоба по крону
 
-В `config/sconcur.php`, `tasks.list`:
+Раз в минуту, штатным планировщиком — `app/Console/Kernel.php`, рядом с уже живущими там
+`ClearTracesJob` и `RefreshDatabaseStatCacheJob`:
 
 ```php
-[ 'name' => CheckWatchersTask::NAME, 'idle' => 5, 'busy' => 5, 'backoff' => 30 ],
+$schedule->job(CheckWatchersJob::class)->everyMinute();
 ```
 
-Такт проверяет всех включённых смотрителей раз в ~30 секунд — при cooldown в минутах этого
-достаточно, а стоимость такта это выборка из MySQL и по одному `findOne` на смотрителя.
-Уборка линий (`TrimWatcherTimelinesAction`) идёт из того же такта, но не чаще раза в
-минуту. Пул тасков — один процесс, конкуренции за инциденты нет by design.
+Не задача пула тасков: минутный разбор — это фоновая работа приложения, и место такой
+работы там же, где остальная. Планировщик и так крутится (`App\Services\Tasks\CronTask`
+раз в минуту зовёт `schedule:run`), так что нового рантайма не появляется.
+
+**Не перекрываться сама с собой.** `withoutOverlapping()` на расписании тут не поможет:
+`$schedule->job(...)` только ставит джобу в очередь и возвращается сразу, так что блокировка
+снимается задолго до того, как разбор закончится. Гарантию даёт сама джоба —
+`ShouldBeUnique` с `$uniqueFor` чуть меньше минуты. Это же и заменяет прежний довод
+«пишет один процесс»: очередь может выполнять джобы в нескольких воркерах, и без замка два
+разбора завели бы два инцидента на одно и то же.
+
+**Каждый смотритель — своя корутина.** Разбор одного смотрителя это `findOne` его линии
+плюс, может быть, запись инцидента; ждать их по очереди значит складывать задержки без
+всякой нужды. Поэтому джоба раскладывает смотрителей по `SConcur\WaitGroup` — тем же
+приёмом, что `TraceTreeRepository` и `FindTraceTimestampsAction`:
+
+```php
+$waitGroup = WaitGroup::create();
+
+foreach ($watchers as $watcher) {
+    $waitGroup->add(fn() => $this->checkWatcherAction->handle($watcher));
+}
+
+$waitGroup->waitAll();
+```
+
+Смотрители друг о друге ничего не знают — у каждого своя линия и свои инциденты, — так что
+делить между корутинами нечего. Исключение одно: буферные смотрители читают общие счётчики
+`buffer` и `invalidBuffer`, и эти два числа берутся один раз до фан-аута, а не каждым по
+отдельности.
+
+Ошибка в одной корутине не должна уносить остальных: `CheckWatcherAction` ловит и
+логирует, а джоба идёт дальше. Один смотритель с испорченными настройками не повод не
+проверить остальные.
+
+Уборка линий (`TrimWatcherTimelinesAction`) идёт тем же проходом.
 
 ## HTTP API
 
@@ -475,8 +512,8 @@ Route::prefix('/watchers')->as('watchers.')->group(function () {
 
 ## Фронт
 
-Вкладка `Watchers` в `frontend/src/components/Header.vue` перед `Logs`, маршрут
-`/watchers` в `frontend/src/utils/router.ts`.
+Вкладка `Watchers` в `frontend/src/components/Header.vue` сразу после `Aggregator`,
+маршрут `/watchers` в `frontend/src/utils/router.ts`.
 
 - `frontend/src/components/pages/watchers/Watchers.vue` — два таба:
   - **Incidents**: таблица, открытые сверху, раскрытие строки показывает события со
@@ -514,8 +551,8 @@ PHP:
   переиспользование открытого инцидента, новый инцидент после закрытия;
 - `tests/Modules/Watcher/Domain/Actions/TrimWatcherTimelinesActionTest.php` — глубина
   отреза по настройкам;
-- `tests/Modules/Watcher/Infrastructure/CheckWatchersTaskTest.php` — по образцу
-  `tests/Services/Tasks/CronTaskTest.php`.
+- `tests/Modules/Watcher/Infrastructure/CheckWatchersJobTest.php` — фан-аут по
+  смотрителям, падение одного не уносит остальных.
 
 ## Этапы
 
@@ -525,8 +562,8 @@ PHP:
 2. **Go.** `watcher_repository`, матчер, `watcher_timeline_repository`, вёдра и сброс, хук
    в `saveTraces`, финальный сброс при остановке, `MYSQL_TABLE_WATCHERS` в `.env.example`.
    Проверяется тестами Go и глазами по `watcherTimelines`.
-3. **Проверки.** Чекеры, `WatcherTimelineReader`, инциденты и события, `CheckWatchersTask`,
-   `TrimWatcherTimelinesAction`.
+3. **Проверки.** Чекеры, `WatcherTimelineReader`, инциденты и события, `CheckWatchersJob`
+   в расписании, `TrimWatcherTimelinesAction`.
 4. **HTTP.** Контроллеры, реквесты, ресурсы, роуты, `make oa-generate`.
 5. **Фронт.** Вкладка, сторы, формы, `make frontend-npm-build`.
 6. **WS-бейдж** открытых инцидентов.
@@ -541,6 +578,10 @@ PHP:
 3. Таймлайн — один документ на смотрителя, `_id` = `watcher_id`.
 4. Уникальности открытого инцидента нет.
 5. Приёмник читает `watchers` сам, отдельного канала настроек сбора нет.
+6. Разбор — джоба по крону раз в минуту, каждый смотритель в своей корутине через
+   `WaitGroup`; не задача пула тасков.
+7. Статусы инцидента в прошедшем времени: `opened` / `closed`.
+8. Вкладка `Watchers` — сразу после `Aggregator`.
 
 ## Вне рамок
 
