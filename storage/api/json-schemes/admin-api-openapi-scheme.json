@@ -4260,7 +4260,8 @@
                                 "properties": {
                                     "name": {
                                         "type": "string",
-                                        "maxLength": 255
+                                        "maxLength": 255,
+                                        "minLength": 1
                                     },
                                     "enabled": {
                                         "type": "boolean"
@@ -4425,7 +4426,8 @@
                                 "properties": {
                                     "name": {
                                         "type": "string",
-                                        "maxLength": 255
+                                        "maxLength": 255,
+                                        "minLength": 1
                                     },
                                     "enabled": {
                                         "type": "boolean"
@@ -4490,7 +4492,8 @@
                                 "properties": {
                                     "name": {
                                         "type": "string",
-                                        "maxLength": 255
+                                        "maxLength": 255,
+                                        "minLength": 1
                                     },
                                     "enabled": {
                                         "type": "boolean"
@@ -4655,7 +4658,8 @@
                                 "properties": {
                                     "name": {
                                         "type": "string",
-                                        "maxLength": 255
+                                        "maxLength": 255,
+                                        "minLength": 1
                                     },
                                     "enabled": {
                                         "type": "boolean"
@@ -4720,7 +4724,8 @@
                                 "properties": {
                                     "name": {
                                         "type": "string",
-                                        "maxLength": 255
+                                        "maxLength": 255,
+                                        "minLength": 1
                                     },
                                     "enabled": {
                                         "type": "boolean"
@@ -4751,14 +4756,16 @@
                                                         "type": "array",
                                                         "items": {
                                                             "type": "string",
-                                                            "maxLength": 255
+                                                            "maxLength": 255,
+                                                            "minLength": 1
                                                         }
                                                     },
                                                     "tags": {
                                                         "type": "array",
                                                         "items": {
                                                             "type": "string",
-                                                            "maxLength": 255
+                                                            "maxLength": 255,
+                                                            "minLength": 1
                                                         }
                                                     }
                                                 }
@@ -4942,7 +4949,8 @@
                                 "properties": {
                                     "name": {
                                         "type": "string",
-                                        "maxLength": 255
+                                        "maxLength": 255,
+                                        "minLength": 1
                                     },
                                     "enabled": {
                                         "type": "boolean"
@@ -4973,14 +4981,16 @@
                                                         "type": "array",
                                                         "items": {
                                                             "type": "string",
-                                                            "maxLength": 255
+                                                            "maxLength": 255,
+                                                            "minLength": 1
                                                         }
                                                     },
                                                     "tags": {
                                                         "type": "array",
                                                         "items": {
                                                             "type": "string",
-                                                            "maxLength": 255
+                                                            "maxLength": 255,
+                                                            "minLength": 1
                                                         }
                                                     }
                                                 }
@@ -5033,7 +5043,8 @@
                                 "properties": {
                                     "name": {
                                         "type": "string",
-                                        "maxLength": 255
+                                        "maxLength": 255,
+                                        "minLength": 1
                                     },
                                     "enabled": {
                                         "type": "boolean"
@@ -5073,14 +5084,16 @@
                                                         "type": "array",
                                                         "items": {
                                                             "type": "string",
-                                                            "maxLength": 255
+                                                            "maxLength": 255,
+                                                            "minLength": 1
                                                         }
                                                     },
                                                     "tags": {
                                                         "type": "array",
                                                         "items": {
                                                             "type": "string",
-                                                            "maxLength": 255
+                                                            "maxLength": 255,
+                                                            "minLength": 1
                                                         }
                                                     }
                                                 }
@@ -5274,7 +5287,8 @@
                                 "properties": {
                                     "name": {
                                         "type": "string",
-                                        "maxLength": 255
+                                        "maxLength": 255,
+                                        "minLength": 1
                                     },
                                     "enabled": {
                                         "type": "boolean"
@@ -5314,14 +5328,16 @@
                                                         "type": "array",
                                                         "items": {
                                                             "type": "string",
-                                                            "maxLength": 255
+                                                            "maxLength": 255,
+                                                            "minLength": 1
                                                         }
                                                     },
                                                     "tags": {
                                                         "type": "array",
                                                         "items": {
                                                             "type": "string",
-                                                            "maxLength": 255
+                                                            "maxLength": 255,
+                                                            "minLength": 1
                                                         }
                                                     }
                                                 }
@@ -5374,7 +5390,8 @@
                                 "properties": {
                                     "name": {
                                         "type": "string",
-                                        "maxLength": 255
+                                        "maxLength": 255,
+                                        "minLength": 1
                                     },
                                     "enabled": {
                                         "type": "boolean"
@@ -5410,14 +5427,16 @@
                                                         "type": "array",
                                                         "items": {
                                                             "type": "string",
-                                                            "maxLength": 255
+                                                            "maxLength": 255,
+                                                            "minLength": 1
                                                         }
                                                     },
                                                     "tags": {
                                                         "type": "array",
                                                         "items": {
                                                             "type": "string",
-                                                            "maxLength": 255
+                                                            "maxLength": 255,
+                                                            "minLength": 1
                                                         }
                                                     }
                                                 }
@@ -5606,7 +5625,8 @@
                                 "properties": {
                                     "name": {
                                         "type": "string",
-                                        "maxLength": 255
+                                        "maxLength": 255,
+                                        "minLength": 1
                                     },
                                     "enabled": {
                                         "type": "boolean"
@@ -5642,14 +5662,16 @@
                                                         "type": "array",
                                                         "items": {
                                                             "type": "string",
-                                                            "maxLength": 255
+                                                            "maxLength": 255,
+                                                            "minLength": 1
                                                         }
                                                     },
                                                     "tags": {
                                                         "type": "array",
                                                         "items": {
                                                             "type": "string",
-                                                            "maxLength": 255
+                                                            "maxLength": 255,
+                                                            "minLength": 1
                                                         }
                                                     }
                                                 }

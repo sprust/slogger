@@ -206,6 +206,19 @@ Notes:
 - `Infrastructure` — only nested directories inside `app/Modules/<Module>/Infrastructure/<Subdir>`
 - `Models` — `app/Models`
 
+### Cross-Module Dependencies
+
+Deptrac allows a dependency inside the same layer, so `Watcher\Domain` reaching into
+`Trace\Domain` passes the tool. Two such edges exist on purpose and are the only ones:
+
+- `Notification\Domain\Services\IncidentMessageFactory` → `Watcher\Domain\Services\Types\WatcherTypeRegistry`,
+  to read a watcher type's title. The dependency runs one way only: `Watcher` knows nothing
+  about channels.
+- `Watcher\Domain\Services\Checkers\InvalidBufferGrownChecker` → `Trace\Domain`, to read
+  the buffer counter.
+
+A new cross-module edge is not covered by the tool, so add it here or do not add it.
+
 ### Allowed Dependencies
 
 - `Domain` may depend only on `Entities`, `Parameters`, `Repositories`.

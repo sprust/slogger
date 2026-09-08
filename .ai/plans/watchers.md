@@ -252,7 +252,7 @@ flowchart TB
     watchersTable["watchers.trace_match — MySQL"]
     timelines["watcherTimelines — документ на смотрителя"]
     check["CheckWatchersTask — раз в минуту, корутина на смотрителя"]
-    incidents["watcher_incidents + watcher_incident_events — MySQL"]
+    incidents["watcherIncidents + watcherIncidentEvents — Mongo"]
     panel["ЛК: вкладка Watchers"]
 
     client -->|"TCP"| socket
@@ -420,7 +420,6 @@ app/Modules/Watcher/
 │   │   ├── CloseIncidentAction.php
 │   │   ├── CheckWatcherAction.php           — проверить одного, своей корутиной
 │   │   ├── TrimWatcherTimelineAction.php   — вырезать то, что ушло за видимость
-│   └── DeleteOrphanWatcherTimelinesAction.php — убрать линии смотрителей, которых нет
 │   ├── Actions/Queries/
 │   │   ├── FindWatchersAction.php
 │   │   ├── FindIncidentsAction.php

@@ -9,7 +9,6 @@ return new class extends Migration {
 
     public $withinTransaction = false;
 
-    /** The same month an incident is kept for; a delivery is read beside the one it is about. */
     private const int NOTIFICATION_TTL_SECONDS = 60 * 60 * 24 * 30;
 
     private const string COLLECTION = 'notifications';
