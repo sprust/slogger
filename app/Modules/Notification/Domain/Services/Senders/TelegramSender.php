@@ -77,6 +77,16 @@ readonly class TelegramSender implements NotificationSenderInterface
         return str_replace(['&', '<', '>'], ['&amp;', '&lt;', '&gt;'], $value);
     }
 
+    public function bold(string $value): string
+    {
+        return "<b>$value</b>";
+    }
+
+    public function code(string $value): string
+    {
+        return "<code>$value</code>";
+    }
+
     private function cut(string $text): string
     {
         if (mb_strlen($text) <= self::MAX_TEXT_LENGTH) {

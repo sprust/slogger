@@ -6,10 +6,6 @@ namespace App\Modules\Notification\Infrastructure\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-/**
- * The token is optional here: the form was shown a mask, so an empty one means the stored
- * token stays.
- */
 class UpdateTelegramChannelRequest extends FormRequest
 {
     use ChannelRulesTrait;

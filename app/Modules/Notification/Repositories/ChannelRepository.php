@@ -61,9 +61,6 @@ readonly class ChannelRepository
     }
 
     /**
-     * Through the model rather than a query builder update: `settings` is an encrypted
-     * cast, and a mass update writes the array past the cast as a raw value.
-     *
      * @param array<string, mixed> $settings
      */
     public function update(

@@ -16,9 +16,6 @@ interface NotificationChannelTypeDefinitionInterface
     public function makeSettings(array $settings): ChannelSettingsInterface;
 
     /**
-     * The settings to store after an edit. A secret field is never sent back to the form,
-     * so it arrives empty from a dialog nobody touched, and the stored value stays.
-     *
      * @param array<string, mixed> $submitted
      */
     public function makeUpdatedSettings(array $submitted, ChannelSettingsInterface $stored): ChannelSettingsInterface;

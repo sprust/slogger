@@ -2,6 +2,9 @@
 
 namespace App\Providers;
 
+use App\Modules\Notification\Domain\Events\NotificationEnqueuedEvent;
+use App\Modules\Notification\Infrastructure\Listeners\DispatchNotificationListener;
+use App\Modules\Notification\Infrastructure\Listeners\EnqueueNotificationsListener;
 use App\Modules\Trace\Domain\Events\TraceDynamicIndexBuiltEvent;
 use App\Modules\Trace\Domain\Events\TraceTreeCacheBuildRequestedEvent;
 use App\Modules\Trace\Domain\Events\TraceTreeCacheStateChangedEvent;
@@ -29,8 +32,12 @@ class EventServiceProvider extends ServiceProvider
         TraceDynamicIndexBuiltEvent::class       => [
             BroadcastTraceDynamicIndexBuiltListener::class,
         ],
+        NotificationEnqueuedEvent::class         => [
+            DispatchNotificationListener::class,
+        ],
         WatcherIncidentChangedEvent::class       => [
             BroadcastWatcherIncidentListener::class,
+            EnqueueNotificationsListener::class,
         ],
     ];
 

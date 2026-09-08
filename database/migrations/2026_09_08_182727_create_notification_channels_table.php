@@ -13,8 +13,6 @@ return new class extends Migration {
             $table->string('type', 64);
             $table->boolean('enabled')->default(true)->index();
 
-            // Text, not json: the cast is `encrypted:array`, so what is stored is a
-            // base64 envelope.
             $table->text('settings');
 
             $table->boolean('on_opened')->default(true);

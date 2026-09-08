@@ -12,4 +12,8 @@ interface NotificationSenderInterface
     public function send(ChannelObject $channel, string $text): SendResultObject;
 
     public function escape(string $value): string;
+
+    public function bold(string $value): string;
+
+    public function code(string $value): string;
 }

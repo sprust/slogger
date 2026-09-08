@@ -60,21 +60,26 @@ PSR-18: внутри корутины он её приостанавливает
 ```mermaid
 flowchart TB
     trigger["RegisterTriggerAction / CloseIncidentAction"]
-    listener["EnqueueNotificationsListener — составляет текст"]
+    listener["EnqueueNotificationsListener"]
+    enqueue["EnqueueNotificationsAction — составляет текст"]
     channels["notification_channels — MySQL"]
     outbox["notifications — Mongo, TTL 30 дней"]
-    task["SendNotificationsTask — пул тасков, раз в 5 секунд"]
+    dispatcher["DispatchNotificationListener"]
+    job["SendNotificationJob — очередь default"]
     registry["NotificationChannelTypeRegistry"]
     sender["TelegramSender — SConcur HttpClient"]
     telegram["api.telegram.org"]
     panel["ЛК: вкладка Notifications"]
 
     trigger -->|"WatcherIncidentChangedEvent"| listener
-    listener -->|"FindChannelsForWatcherAction"| channels
-    listener -->|"по строке на канал"| outbox
-    task <-->|"findDue / markSent / markFailed"| outbox
-    task -->|"for(type)->sender()"| registry
-    registry -->|"send(ChannelObject, NotificationObject)"| sender
+    listener --> enqueue
+    enqueue -->|"FindChannelsAction(enabled)"| channels
+    enqueue -->|"по строке на канал"| outbox
+    enqueue -->|"NotificationEnqueuedEvent"| dispatcher
+    dispatcher -->|"dispatch(SendNotificationJob)"| job
+    job <-->|"findById / markSent / markFailed"| outbox
+    job -->|"for(type)->sender()"| registry
+    registry -->|"send(ChannelObject, text)"| sender
     sender <-->|"POST sendMessage"| telegram
     panel -->|"admin-api"| channels
     panel -->|"последние доставки и их ошибки"| outbox
@@ -94,12 +99,26 @@ Telegram.
 случилось. Поэтому слушатель кладёт в исходящие готовую строку, а отправителю остаётся
 доставить её.
 
-## Почему не очередь
+## Почему очередь
 
-`QUEUE_CONNECTION=sconcur_rabbitmq`, и путь джобы — пул тасков → `schedule:run` → RabbitMQ
-→ AMQP-пул → джоба. Тот же довод, что и у `CheckWatchersTask`: очередь встала —
-уведомления молчат ровно тогда, когда они нужны. Пул тасков и Mongo уже обязаны работать;
-ни одной новой зависимости.
+Доставляет джоба, а не задача пула. `QUEUE_CONNECTION=sconcur_rabbitmq`, очередь
+`default` — она уже объявлена и потребляется, новой топологии не нужно.
+
+Первая редакция плана уводила отправку в пул тасков, чтобы уведомления не зависели от
+брокера. Довод был записан сильнее, чем есть: путь диспатченой джобы — публикация в
+RabbitMQ и консьюмер, два звена, а не четыре (`schedule:run` в нём нет, эта формулировка
+перекочевала из плана смотрителей, где речь про расписание). Взамен пул требовал своей
+таблицы откатов, своего лимита попыток и колонок под них — второй механизм повторов рядом
+с тем, что фреймворк уже даёт.
+
+Повторы теперь целиком на джобе: `$tries = 6`, `$backoff = [15, 60, 300, 900, 3600]`,
+отказ навсегда — `fail()`, а `retry_after` от Telegram — `release()`.
+
+**Чем платим.** Если брокер лежит в момент срабатывания, `dispatch()` бросает, слушатель
+это ловит и логирует, а строка остаётся неотправленной, и переотправить её некому. Пул
+тасков в этом случае продолжал бы пытаться. Если это окажется важно — нужен подметальщик,
+который раз в N минут переставляет в очередь строки с `sentAt = null` старше минуты; пока
+его нет сознательно.
 
 ## Хранение
 
@@ -135,19 +154,20 @@ Telegram.
 ```
 { _id: ObjectId,
   channelId: int,
-  watcherId: int,
-  incidentId: ObjectId,
+  watcherId: int | null,
+  incidentId: string | null,
   kind: "opened" | "event" | "closed",
   text: string,          // готовый текст, составленный при срабатывании
-  createdAt: UTCDateTime,
-  attempts: int,
-  nextAttemptAt: UTCDateTime,   // когда пробовать в следующий раз
   sentAt: UTCDateTime | null,
-  error: string | null }
+  error: string | null,
+  createdAt: UTCDateTime }
 ```
 
-Индексы: TTL на `createdAt`; `{sentAt: 1, nextAttemptAt: 1}` — это и есть выборка задачи;
-`{channelId: 1, _id: -1}` — для списка последних доставок в панели.
+Счётчика попыток и срока следующей нет: повторы держит очередь. Строка — журнал доставок,
+и всё, что в ней есть про исход, это `sentAt` и последняя ошибка.
+
+Индексы: TTL на `createdAt`; `{channelId: 1, _id: -1}` — для списка последних доставок в
+панели.
 
 ## Типы каналов
 
@@ -185,35 +205,33 @@ sender(): NotificationSenderInterface                     // кто отправ
 
 ## Отправка
 
-`SendNotificationsTask` в том же пуле, в `config/sconcur.php`, `tasks.list`:
+Строка пишется в исходящие, дальше `EnqueueNotificationsAction` поднимает
+`NotificationEnqueuedEvent`, а `DispatchNotificationListener` кладёт в очередь
+`SendNotificationJob`. Событие посередине — правило проекта: очередь дёргают из
+`Infrastructure/Listeners`, а не из домена, тем же приёмом, что
+`TraceTreeCacheBuildRequestedEvent`.
+
+В джобе едет только `notificationId`: текст уже лежит в строке, и копия его в теле джобы
+была бы вторым экземпляром того же сообщения.
 
 ```php
-[ 'name' => SendNotificationsTask::NAME, 'task' => SendNotificationsTask::class,
-  'idle' => 5, 'busy' => 0, 'backoff' => 15 ],
+public int $tries = 6;
+
+public array $backoff = [15, 60, 300, 900, 3600];
 ```
 
-`busy => 0` — была работа, значит сразу за следующей пачкой; `idle => 5` — исходящие
-обычно пусты, и пять секунд задержки для уведомления ничего не значат.
+`SendNotificationAction` делает одну попытку и записывает исход в строку, а решает,
+пробовать ли ещё, джоба, читая `SendResultObject`:
 
-Тик берёт пачку (не больше 50) строк, у которых `sentAt = null` и `nextAttemptAt <= now`,
-и раскладывает их по `SConcur\WaitGroup` — тем же приёмом, что проход смотрителей:
+| Что вернулось | Что делает джоба |
+|---|---|
+| доставлено | выходит |
+| отказ навсегда (`permanent`) | `fail()`, повторов нет |
+| `retry_after` от Telegram | `release($seconds)` |
+| всё остальное | бросает, дальше решает `$backoff` |
 
-```php
-$waitGroup = WaitGroup::create();
-
-foreach ($notifications as $notification) {
-    $waitGroup->add(fn() => $this->sendNotificationAction->handle($notification));
-}
-
-$waitGroup->waitAll();
-```
-
-Клиент неблокирующий, поэтому пятьдесят запросов идут одновременно и медленный Telegram
-не держит пул. Один канал не влияет на другие: `SendNotificationAction` ловит и логирует,
-пачка идёт дальше.
-
-Откат: 15 с, 1 мин, 5 мин, 15 мин, 1 ч. После шестой попытки строка остаётся с `error` и
-больше не берётся — молчащий канал должно быть видно, а не слышно.
+Джоба, пережившая TTL строки или её доставку, выходит молча: `sentAt` уже стоит, и
+потерянный по дороге ответ не должен слать сообщение дважды.
 
 ## Что отправляется
 
@@ -274,8 +292,9 @@ app/Modules/Notification/
 │   ├── Services/ChannelFactory.php       — ChannelDto -> ChannelObject
 │   └── Services/IncidentMessageFactory.php — событие смотрителя -> текст
 └── Infrastructure/
-    ├── Tasks/SendNotificationsTask.php
-    ├── Listeners/EnqueueNotificationsListener.php
+    ├── Jobs/SendNotificationJob.php
+    ├── Listeners/EnqueueNotificationsListener.php           — смотритель -> исходящие
+    ├── Listeners/DispatchNotificationListener.php           — исходящие -> очередь
     ├── Http/Controllers/NotificationChannelController.php      — список, типы, удаление, тест
     ├── Http/Controllers/TelegramChannelController.php          — создание и правка
     ├── Http/Controllers/AbstractChannelTypeController.php
@@ -334,8 +353,9 @@ Route::prefix('/notification-channels')->as('notification-channels.')->group(fun
   которого нет свёртки.
 - `EnqueueNotificationsListenerTest` — фильтр по смотрителям, три переключателя,
   выключенный канал не получает строки.
-- `SendNotificationsTaskTest` — берётся только то, чей срок подошёл; отказ одного канала
-  не уносит пачку; откат растёт; после последней попытки строка больше не берётся.
+- `SendNotificationJobTest` — доставка заканчивает джобу; отказ навсегда — `fail()` без
+  повторов; `retry_after` уходит в `release()`; остальное бросается под `$backoff`; строка,
+  которой уже нет или которая доставлена, не шлётся дважды.
 - `ChannelFactoryTest` — колонка настроек читается по типу, неизвестный тип пропускается,
   как в `WatcherFactory`.
 
@@ -345,8 +365,12 @@ Route::prefix('/notification-channels')->as('notification-channels.')->group(fun
    Проверяется кнопкой «тест» без единого смотрителя.~~ Сделано: модуль
    `app/Modules/Notification`, миграция `2026_09_08_182727_create_notification_channels_table`,
    маршруты `/notification-channels`, тесты в `tests/Modules/Notification`.
-2. **Исходящие.** Коллекция с TTL, репозиторий, `SendNotificationsTask`, повторы и откаты.
-3. **Связь со смотрителями.** Слушатель, `IncidentMessageFactory`, три переключателя.
+2. ~~**Исходящие.** Коллекция с TTL, репозиторий, доставка, повторы и откаты.~~
+   Сделано: коллекция `notifications` (TTL 30 дней), `NotificationRepository`,
+   `SendNotificationAction`, `SendNotificationJob` с шестью попытками и откатом 15 с → 1 ч.
+3. ~~**Связь со смотрителями.** Слушатель, `IncidentMessageFactory`, три переключателя.~~
+   Сделано: `EnqueueNotificationsListener` на `WatcherIncidentChangedEvent`,
+   `EnqueueNotificationsAction`, `IncidentMessageFactory`.
 4. **Фронт.** Вкладка, форма, доставки, `make oa-generate` и `make frontend-npm-build`.
 
 Этапы 1–3 самостоятельны и проверяются без фронта.
@@ -355,14 +379,23 @@ Route::prefix('/notification-channels')->as('notification-channels.')->group(fun
 
 1. Отдельный модуль `Notification`; зависимость односторонняя.
 2. Исходящие в Mongo с TTL 30 дней, текст составляется при срабатывании.
-3. Отправляет задача пула, а не джоба: уведомления не должны зависеть от очереди.
-4. HTTP — неблокирующим клиентом SConcur, потому что воркер тасков один.
+3. Отправляет джоба в очереди `default`. Повторы, откаты и `failed_jobs` — фреймворка, а не свои.
+4. HTTP — неблокирующим клиентом SConcur: воркер очереди тоже один, и блокирующий запрос
+   занимал бы его целиком.
 5. Фильтр по смотрителям — на канале, но не сейчас: этап 1 сделан без `watcher_ids`.
 6. `settings` шифруются, наружу токен уходит маской. Пустой токен в PATCH означает
    «оставить сохранённый» — форме нечего прислать обратно, кроме маски.
 7. Тип канала — один класс плюс строка в реестре, как у смотрителей.
 8. Повторные события (`on_event`) по умолчанию выключены: cooldown придерживает поток,
    но чат всё равно жалко.
+9. Исходящие хранятся 30 дней, как инциденты.
+10. Строка канала, которого больше нет или который выключили, не ждёт своего часа, а
+    закрывается с причиной: выключенный канал не должен вывалить накопленное, когда его
+    включат обратно.
+11. Текст не различает типы смотрителей: печатается то, что чекер положил в payload, как
+    есть. Новый тип рассказывает о себе сам, без правки модуля уведомлений.
+12. Слушатель ловит и логирует свои ошибки: он работает внутри прохода проверок, инцидент
+    к этому моменту уже записан, и неудача рассказать о нём не должна отменять запись.
 
 ## Вне рамок
 
@@ -375,5 +408,4 @@ Route::prefix('/notification-channels')->as('notification-channels.')->group(fun
 
 ## Требуют решения
 
-1. **Срок хранения исходящих — 30 дней**, как у инцидентов. Доставки нужны для разбора
-   «почему молчало», и дольше месяца это едва ли кому-то интересно. Решается на этапе 2.
+Открытых вопросов нет.
