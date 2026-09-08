@@ -46,7 +46,7 @@ readonly class RegisterTriggerAction
 
         $this->eventRepository->create($incident->id, $occurredAt, $trigger->payload);
 
-        $this->incidentRepository->registerEvent($incident->id, $occurredAt);
+        $this->incidentRepository->incrementEventsCount($incident->id, $occurredAt);
 
         $this->watcherRepository->updateTriggeredAt($watcher->id, $occurredAt);
 

@@ -22,6 +22,11 @@ import (
 // monopolize the MongoDB connection pool under a large buffered backlog.
 const maxConcurrentSaves = 64
 
+// unknownTraceType is what a trace is stored as until its create arrives. An updating
+// message carries no type, so a trace whose update is persisted first spends a while
+// under this placeholder.
+const unknownTraceType = "__UNKNOWN"
+
 var instance *Service
 var once sync.Once
 
@@ -142,7 +147,7 @@ func (s *Service) saveTraces(ctx context.Context, serviceId int, traceId string,
 		parentTraceId = *traces.Creating.ParentTraceId
 	}
 
-	traceType := "__UNKNOWN"
+	traceType := unknownTraceType
 	if traces.Creating != nil && traces.Creating.Type != "" {
 		traceType = traces.Creating.Type
 	} else if existingType, ok := existsTrace["tp"].(string); ok && existingType != "" {
@@ -256,6 +261,29 @@ func (s *Service) saveTraces(ctx context.Context, serviceId int, traceId string,
 		return errs.Err(err)
 	}
 
+	// Which write counts the trace, and which write brings its duration.
+	//
+	// Not simply the first write and every write after it. A trace can be written by its
+	// update before its create arrives (README, "Trace timeline"), and that first write
+	// knows neither the type nor the tags — counting it would file the trace under
+	// __UNKNOWN with no tags, where no filtered watcher can ever see it, and the create
+	// that follows could not correct it. So the counting write is the one that first gives
+	// the trace a type, whichever of the two that turns out to be.
+	//
+	// The duration is added by the write that first carries one, for the same reason in
+	// reverse: `duration` above is the merged value, so a second write over a trace whose
+	// duration was already stored would add it to the sums again.
+	typeWasKnown := isKnownTraceType(existsTrace["tp"])
+	_, durationWasStored := existsTrace["dur"]
+
+	countsAsNew := traceType != unknownTraceType && !typeWasKnown
+
+	var newDuration interface{}
+
+	if !durationWasStored {
+		newDuration = duration
+	}
+
 	// The watchers are fed from here rather than from the socket server because this is
 	// the only point that has the whole trace: an updating message carries no type, and
 	// the merge above has just restored it. Nothing is read for it — every value handed
@@ -265,9 +293,9 @@ func (s *Service) saveTraces(ctx context.Context, serviceId int, traceId string,
 		traceId,
 		traceType,
 		tagNames(tags),
-		durationValue(duration),
+		durationValue(newDuration),
 		loggedAt.Time().UTC(),
-		isNewTrace,
+		countsAsNew,
 	)
 
 	slog.Debug("saved trace: " + traceId + " for service: " + string(rune(serviceId)) + " to collection: " + coll.Name())
@@ -277,6 +305,14 @@ func (s *Service) saveTraces(ctx context.Context, serviceId int, traceId string,
 
 // tagNames pulls the tag names out of whichever shape the merge above left them in: the
 // list this service just built, or the one decoded from the stored document.
+// isKnownTraceType says whether what is stored is a real type rather than the placeholder
+// a trace wears between its update and its create.
+func isKnownTraceType(stored interface{}) bool {
+	value, ok := stored.(string)
+
+	return ok && value != "" && value != unknownTraceType
+}
+
 func tagNames(value interface{}) []string {
 	var items []interface{}
 

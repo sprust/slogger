@@ -3824,13 +3824,22 @@
                                                                 "default": {
                                                                     "type": "number",
                                                                     "nullable": false
+                                                                },
+                                                                "min": {
+                                                                    "type": "number",
+                                                                    "nullable": false
+                                                                },
+                                                                "max": {
+                                                                    "type": "number",
+                                                                    "nullable": true
                                                                 }
                                                             },
                                                             "required": [
                                                                 "key",
                                                                 "title",
                                                                 "value_type",
-                                                                "default"
+                                                                "default",
+                                                                "min"
                                                             ]
                                                         }
                                                     }
@@ -4022,6 +4031,25 @@
                         "required": true,
                         "in": "path",
                         "schema": {}
+                    },
+                    {
+                        "name": "page",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 200
+                        }
                     }
                 ],
                 "responses": {
@@ -4698,7 +4726,7 @@
                                             "period_minutes": {
                                                 "type": "integer",
                                                 "minimum": 1,
-                                                "maximum": 1440
+                                                "maximum": 180
                                             },
                                             "filter": {
                                                 "type": "object",
@@ -4920,7 +4948,7 @@
                                             "period_minutes": {
                                                 "type": "integer",
                                                 "minimum": 1,
-                                                "maximum": 1440
+                                                "maximum": 180
                                             },
                                             "filter": {
                                                 "type": "object",
@@ -5011,12 +5039,12 @@
                                             "window_minutes": {
                                                 "type": "integer",
                                                 "minimum": 1,
-                                                "maximum": 1440
+                                                "maximum": 180
                                             },
                                             "baseline_minutes": {
                                                 "type": "integer",
                                                 "minimum": 1,
-                                                "maximum": 1440
+                                                "maximum": 180
                                             },
                                             "growth_percent": {
                                                 "type": "integer",
@@ -5252,12 +5280,12 @@
                                             "window_minutes": {
                                                 "type": "integer",
                                                 "minimum": 1,
-                                                "maximum": 1440
+                                                "maximum": 180
                                             },
                                             "baseline_minutes": {
                                                 "type": "integer",
                                                 "minimum": 1,
-                                                "maximum": 1440
+                                                "maximum": 180
                                             },
                                             "growth_percent": {
                                                 "type": "integer",
@@ -5357,7 +5385,7 @@
                                             "window_minutes": {
                                                 "type": "integer",
                                                 "minimum": 1,
-                                                "maximum": 1440
+                                                "maximum": 180
                                             },
                                             "filter": {
                                                 "type": "object",
@@ -5589,7 +5617,7 @@
                                             "window_minutes": {
                                                 "type": "integer",
                                                 "minimum": 1,
-                                                "maximum": 1440
+                                                "maximum": 180
                                             },
                                             "filter": {
                                                 "type": "object",

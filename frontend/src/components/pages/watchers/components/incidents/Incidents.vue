@@ -129,6 +129,21 @@ const IncidentEvents = defineAsyncComponent(() => import("./IncidentEvents.vue")
  */
 let unsubscribeFrames: null | (() => void) = null
 
+/**
+ * The frames of one pass, gathered before anything is re-read.
+ *
+ * A minute pass that trips five watchers publishes five frames within milliseconds, and
+ * each of them makes the same list a page old. Reading it five times over would put five
+ * requests in flight for one answer.
+ */
+let reloadTimeoutId: null | number = null
+
+/** How long to wait for the rest of the pass. One minute pass lands well inside this. */
+const reloadDelay = 300
+
+/** Which incidents moved while the wait above was running. */
+const pendingIncidentIds = new Set<number>()
+
 export default defineComponent({
   components: {IncidentEvents},
 
@@ -206,6 +221,34 @@ export default defineComponent({
             delete this.closing[incident.id]
           })
     },
+    /** Gathers the frames of one pass into a single re-read. */
+    scheduleReload(incidentId: number) {
+      pendingIncidentIds.add(incidentId)
+
+      if (reloadTimeoutId !== null) {
+        return
+      }
+
+      reloadTimeoutId = window.setTimeout(
+        () => {
+          reloadTimeoutId = null
+
+          const incidentIds = [...pendingIncidentIds]
+
+          pendingIncidentIds.clear()
+
+          // The events of the incidents that moved, and the list once for all of them.
+          incidentIds.forEach(id => {
+            if (this.incidentsStore.events[id]) {
+              this.incidentsStore.findEvents(id)
+            }
+          })
+
+          this.incidentsStore.find()
+        },
+        reloadDelay
+      )
+    },
     watcherName(watcherId: number): string {
       return this.watchersStore.items.find(watcher => watcher.id === watcherId)?.name
           ?? `Watcher #${watcherId}`
@@ -231,13 +274,20 @@ export default defineComponent({
     this.update()
 
     unsubscribeFrames = this.statStore.onFrame((frame: WatcherIncidentFrame) => {
-      this.incidentsStore.reload(frame.incident_id)
+      this.scheduleReload(frame.incident_id)
     })
   },
 
   unmounted() {
     unsubscribeFrames?.()
     unsubscribeFrames = null
+
+    if (reloadTimeoutId !== null) {
+      window.clearTimeout(reloadTimeoutId)
+      reloadTimeoutId = null
+    }
+
+    pendingIncidentIds.clear()
   },
 })
 </script>

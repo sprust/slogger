@@ -132,12 +132,6 @@ func (s *Server) Run(ctx context.Context) error {
 		}()
 	}
 
-	for s.closing.Load() {
-		time.Sleep(1 * time.Second)
-	}
-
-	s.closing.Store(false)
-
 	return nil
 }
 
@@ -273,9 +267,14 @@ func (s *Server) GetStats() Stats {
 	}
 }
 
+// stop closes the listener and waits for the connections still being handled.
+//
+// The flag stays raised: Accept fails the moment the listener closes, and the loop in Run
+// reads this to tell a shutdown from a real error. Lowering it again on the way out — as
+// a `defer` here used to — made that a race, and losing it meant Run returning an error
+// and main panicking on a perfectly ordinary SIGTERM.
 func (s *Server) stop() {
 	s.closing.Store(true)
-	defer s.closing.Store(false)
 
 	for {
 		activeHandlingCount := s.activeHandlingCount.Load()

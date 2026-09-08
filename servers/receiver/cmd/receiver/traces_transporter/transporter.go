@@ -54,7 +54,9 @@ func (s *Transporter) Run(ctx context.Context) error {
 		}
 	}()
 
-	for !s.closing.Load() {
+	// The context as well as the flag: a shutdown cancels it first, and the flush below
+	// is the point of getting out of here at all.
+	for !s.closing.Load() && ctx.Err() == nil {
 		serviceTracesMap, invalidDocs, err := s.bufferService.FindForTransporter(ctx)
 
 		if err != nil {
@@ -139,12 +141,6 @@ func (s *Transporter) Run(ctx context.Context) error {
 		}
 	}
 
-	for s.closing.Load() {
-		time.Sleep(1 * time.Second)
-	}
-
-	s.closing.Store(false)
-
 	s.flushWatchers()
 
 	return nil
@@ -174,9 +170,15 @@ func (s *Transporter) GetStats() Stats {
 		Deleted: s.totalDeletedBufferCount.Load(),
 	}
 }
+// stop asks the loop above to finish the batch it is on and come out.
+//
+// The flag stays raised. It used to be lowered again by a `defer` on this function, which
+// left it true for the length of one log line — never long enough for a loop whose every
+// turn contains a database round trip to see it. Run therefore never returned, the final
+// flush of the watcher buckets never happened, and every shutdown ended on the ten-second
+// deadline in main.
 func (s *Transporter) stop() {
 	s.closing.Store(true)
-	defer s.closing.Store(false)
 
 	slog.Warn("Trace transporter stopped")
 }

@@ -141,6 +141,13 @@ export const useWatcherIncidentStatStore = defineStore('watcherIncidentStatStore
                 return
             }
 
+            // Cleared first: a second failure while one is already scheduled would
+            // otherwise leave a timer nobody holds the id of, polling for as long as the
+            // tab is open — logout included.
+            if (pollTimeoutId !== null) {
+                window.clearTimeout(pollTimeoutId)
+            }
+
             pollTimeoutId = window.setTimeout(
                 () => {
                     if (!this.started) {

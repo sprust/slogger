@@ -12,6 +12,7 @@ use App\Modules\Watcher\Domain\Actions\Queries\FindIncidentStatAction;
 use App\Modules\Watcher\Domain\Actions\Queries\FindIncidentsAction;
 use App\Modules\Watcher\Domain\Exceptions\WatcherIncidentNotFoundException;
 use App\Modules\Watcher\Enums\WatcherIncidentStatusEnum;
+use App\Modules\Watcher\Infrastructure\Http\Requests\IndexIncidentEventsRequest;
 use App\Modules\Watcher\Infrastructure\Http\Requests\IndexIncidentsRequest;
 use App\Modules\Watcher\Infrastructure\Http\Resources\WatcherIncidentEventResource;
 use App\Modules\Watcher\Infrastructure\Http\Resources\WatcherIncidentResource;
@@ -65,10 +66,16 @@ readonly class WatcherIncidentController
     }
 
     #[OaListItemTypeAttribute(WatcherIncidentEventResource::class)]
-    public function events(int $id): AnonymousResourceCollection
+    public function events(int $id, IndexIncidentEventsRequest $request): AnonymousResourceCollection
     {
+        $validated = $request->validated();
+
         return WatcherIncidentEventResource::collection(
-            $this->findIncidentEventsAction->handle($id)
+            $this->findIncidentEventsAction->handle(
+                incidentId: $id,
+                page: ArrayValueGetter::intNull($validated, 'page') ?? 1,
+                perPage: ArrayValueGetter::intNull($validated, 'per_page') ?? 50
+            )
         );
     }
 

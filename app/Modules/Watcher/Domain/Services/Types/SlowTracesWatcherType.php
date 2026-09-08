@@ -10,6 +10,7 @@ use App\Modules\Watcher\Domain\Services\Checkers\WatcherCheckerInterface;
 use App\Modules\Watcher\Entities\Settings\SlowTracesSettingsObject;
 use App\Modules\Watcher\Entities\Settings\WatcherSettingsInterface;
 use App\Modules\Watcher\Entities\WatcherTypeFieldObject;
+use App\Modules\Watcher\Entities\WatcherTimelineObject;
 use App\Modules\Watcher\Entities\WatcherTypeObject;
 use App\Modules\Watcher\Enums\WatcherTypeEnum;
 
@@ -44,13 +45,15 @@ readonly class SlowTracesWatcherType implements WatcherTypeDefinitionInterface
                     key: 'duration',
                     title: 'Longer than, seconds',
                     valueType: 'float',
-                    default: new SlowTracesSettingsObject()->duration
+                    default: new SlowTracesSettingsObject()->duration,
+                    min: 0
                 ),
                 new WatcherTypeFieldObject(
                     key: 'window_minutes',
                     title: 'Look at the last, minutes',
                     valueType: 'int',
-                    default: new SlowTracesSettingsObject()->windowMinutes
+                    default: new SlowTracesSettingsObject()->windowMinutes,
+                    max: WatcherTimelineObject::MAX_DEPTH_MINUTES
                 ),
             ]
         );

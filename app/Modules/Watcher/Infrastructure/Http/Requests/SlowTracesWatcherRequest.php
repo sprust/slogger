@@ -16,7 +16,7 @@ class SlowTracesWatcherRequest extends FormRequest
             ...$this->commonRules(),
             'settings'                => ['required', 'array'],
             'settings.duration'       => ['required', 'numeric', 'min:0'],
-            'settings.window_minutes' => ['required', 'integer', 'min:1', 'max:1440'],
+            'settings.window_minutes' => $this->timelineMinutesRules(),
             ...$this->traceFilterRules(),
         ];
     }

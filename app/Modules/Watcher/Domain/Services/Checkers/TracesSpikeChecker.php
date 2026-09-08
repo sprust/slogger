@@ -9,8 +9,10 @@ use App\Modules\Watcher\Entities\Settings\TracesSpikeSettingsObject;
 use App\Modules\Watcher\Entities\WatcherCheckContextObject;
 use App\Modules\Watcher\Entities\WatcherObject;
 use App\Modules\Watcher\Entities\WatcherTimelineGroupObject;
+use App\Modules\Watcher\Entities\WatcherTimelineObject;
 use App\Modules\Watcher\Entities\WatcherTriggerObject;
 use App\Modules\Watcher\Repositories\WatcherTimelineRepository;
+use Illuminate\Support\Carbon;
 
 /**
  * The recent window carries far more traces than the stretch before it.
@@ -50,6 +52,21 @@ readonly class TracesSpikeChecker implements WatcherCheckerInterface
 
         $timeline = $this->timelineRepository->find($watcher->id);
 
+        // The line has to cover the baseline, not merely start before the window. Buckets
+        // are summed over whatever is there and divided by the full baseline, so a line
+        // that reaches back only half of it halves the rate it reports — and steady
+        // traffic then reads as a spike, for ever. The line can be short of the baseline
+        // even for a watcher that has been collecting for days: the receiver caps it at
+        // WatcherTimelineObject::MAX_DEPTH_MINUTES whatever the settings say.
+        //
+        // A line with nothing in it is not this case: an empty baseline is handled below,
+        // and reporting an arrival as a spike is what that guard is for.
+        $startsAt = $timeline->startsAt();
+
+        if (!is_null($startsAt) && $startsAt->gt($baselineFrom)) {
+            return null;
+        }
+
         $baselineCount = $this->analyzer->countIn($timeline, $baselineFrom, $windowFrom);
 
         $baselineRate = $baselineCount / $settings->baselineMinutes;
@@ -87,9 +104,9 @@ readonly class TracesSpikeChecker implements WatcherCheckerInterface
      * @return array<int, array<string, mixed>>
      */
     private function reportGroups(
-        \App\Modules\Watcher\Entities\WatcherTimelineObject $timeline,
-        \Illuminate\Support\Carbon $from,
-        \Illuminate\Support\Carbon $to
+        WatcherTimelineObject $timeline,
+        Carbon $from,
+        Carbon $to
     ): array {
         $groups = $this->analyzer->groupsIn($timeline, $from, $to);
 

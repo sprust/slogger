@@ -67,9 +67,14 @@ class CheckWatchersTask implements TaskInterface
             return TickResultEnum::Idle;
         }
 
+        // Marked as done only once the pass has been made. A throw on the way in — the
+        // list of watchers could not be read — would otherwise burn the minute, and with
+        // a window of one minute the stretch it covered is never looked at by anything.
+        $result = $this->pass($now);
+
         $this->previousMinute = $now->minute;
 
-        return $this->pass($now);
+        return $result;
     }
 
     private function pass(Carbon $now): TickResultEnum

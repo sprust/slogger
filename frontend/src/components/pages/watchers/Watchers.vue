@@ -1,9 +1,11 @@
 <template>
   <el-tabs v-model="tab">
-    <el-tab-pane label="Incidents" name="incidents">
+    <!-- lazy: without it both panes mount at once and the page opens with two requests
+         for the watchers and two for the types, one pair of which nobody is looking at. -->
+    <el-tab-pane label="Incidents" name="incidents" lazy>
       <Incidents/>
     </el-tab-pane>
-    <el-tab-pane label="Settings" name="settings">
+    <el-tab-pane label="Settings" name="settings" lazy>
       <WatcherList/>
     </el-tab-pane>
   </el-tabs>

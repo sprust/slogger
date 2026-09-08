@@ -1906,6 +1906,8 @@ export namespace AdminApi {
     title: string,
     value_type: string,
     default: number,
+    min: number,
+    max?: number | null,
 
 })[],
 
@@ -1930,6 +1932,8 @@ export namespace AdminApi {
           title: string;
           value_type: string;
           default: number;
+          min: number;
+          max?: number | null;
         }[];
       }[];
     };
@@ -2056,7 +2060,15 @@ export namespace AdminApi {
     export type RequestParams = {
       id: any;
     };
-    export type RequestQuery = {};
+    export type RequestQuery = {
+      /** @min 1 */
+      page?: number;
+      /**
+       * @min 1
+       * @max 200
+       */
+      per_page?: number;
+    };
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody = {
@@ -2378,7 +2390,7 @@ export namespace AdminApi {
       settings?: {
         /**
          * @min 1
-         * @max 1440
+         * @max 180
          */
         period_minutes?: number;
         filter?: {
@@ -2469,7 +2481,7 @@ export namespace AdminApi {
       settings?: {
         /**
          * @min 1
-         * @max 1440
+         * @max 180
          */
         period_minutes?: number;
         filter?: {
@@ -2520,12 +2532,12 @@ export namespace AdminApi {
       settings?: {
         /**
          * @min 1
-         * @max 1440
+         * @max 180
          */
         window_minutes?: number;
         /**
          * @min 1
-         * @max 1440
+         * @max 180
          */
         baseline_minutes?: number;
         /** @min 1 */
@@ -2622,12 +2634,12 @@ export namespace AdminApi {
       settings?: {
         /**
          * @min 1
-         * @max 1440
+         * @max 180
          */
         window_minutes?: number;
         /**
          * @min 1
-         * @max 1440
+         * @max 180
          */
         baseline_minutes?: number;
         /** @min 1 */
@@ -2685,7 +2697,7 @@ export namespace AdminApi {
         duration?: number;
         /**
          * @min 1
-         * @max 1440
+         * @max 180
          */
         window_minutes?: number;
         filter?: {
@@ -2783,7 +2795,7 @@ export namespace AdminApi {
         duration?: number;
         /**
          * @min 1
-         * @max 1440
+         * @max 180
          */
         window_minutes?: number;
         filter?: {
@@ -5043,6 +5055,8 @@ export class Api<
     title: string,
     value_type: string,
     default: number,
+    min: number,
+    max?: number | null,
 
 })[],
 
@@ -5064,6 +5078,8 @@ export class Api<
               title: string;
               value_type: string;
               default: number;
+              min: number;
+              max?: number | null;
             }[];
           }[];
         },
@@ -5208,7 +5224,19 @@ export class Api<
 
 }` description
  */
-    watchersIncidentsEventsList: (id: any, params: RequestParams = {}) =>
+    watchersIncidentsEventsList: (
+      id: any,
+      query?: {
+        /** @min 1 */
+        page?: number;
+        /**
+         * @min 1
+         * @max 200
+         */
+        per_page?: number;
+      },
+      params: RequestParams = {},
+    ) =>
       this.request<
         {
           data: {
@@ -5247,6 +5275,7 @@ export class Api<
       >({
         path: `/admin-api/watchers/incidents/${id}/events`,
         method: "GET",
+        query: query,
         secure: true,
         format: "json",
         ...params,
@@ -5576,7 +5605,7 @@ export class Api<
         settings?: {
           /**
            * @min 1
-           * @max 1440
+           * @max 180
            */
           period_minutes?: number;
           filter?: {
@@ -5679,7 +5708,7 @@ export class Api<
         settings?: {
           /**
            * @min 1
-           * @max 1440
+           * @max 180
            */
           period_minutes?: number;
           filter?: {
@@ -5737,12 +5766,12 @@ export class Api<
         settings?: {
           /**
            * @min 1
-           * @max 1440
+           * @max 180
            */
           window_minutes?: number;
           /**
            * @min 1
-           * @max 1440
+           * @max 180
            */
           baseline_minutes?: number;
           /** @min 1 */
@@ -5851,12 +5880,12 @@ export class Api<
         settings?: {
           /**
            * @min 1
-           * @max 1440
+           * @max 180
            */
           window_minutes?: number;
           /**
            * @min 1
-           * @max 1440
+           * @max 180
            */
           baseline_minutes?: number;
           /** @min 1 */
@@ -5921,7 +5950,7 @@ export class Api<
           duration?: number;
           /**
            * @min 1
-           * @max 1440
+           * @max 180
            */
           window_minutes?: number;
           filter?: {
@@ -6031,7 +6060,7 @@ export class Api<
           duration?: number;
           /**
            * @min 1
-           * @max 1440
+           * @max 180
            */
           window_minutes?: number;
           filter?: {

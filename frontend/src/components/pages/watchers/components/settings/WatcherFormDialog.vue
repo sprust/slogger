@@ -16,6 +16,15 @@
       {{ definition.description }}
     </el-text>
 
+    <el-alert
+        v-if="loadFailed"
+        title="The settings of this watcher could not be read. Close the dialog and try again."
+        type="error"
+        :closable="false"
+        show-icon
+        style="margin-top: 10px"
+    />
+
     <el-form label-width="180px" style="margin-top: 15px" v-loading="loading">
       <el-form-item label="Name">
         <el-input v-model="form.name" placeholder="A short name, so you know what it is"/>
@@ -24,7 +33,12 @@
         <el-switch v-model="form.enabled"/>
       </el-form-item>
       <el-form-item label="Wait between alerts, s">
-        <el-input-number v-model="form.cooldownSeconds" :min="1" :max="86400"/>
+        <el-input-number
+            v-model="form.cooldownSeconds"
+            :min="1"
+            :max="86400"
+            :value-on-clear="definition?.default_cooldown_seconds ?? 600"
+        />
       </el-form-item>
 
       <el-form-item
@@ -32,9 +46,14 @@
           :key="field.key"
           :label="field.title"
       >
+        <!-- The bounds come from the server's own rules (/watchers/types), so a number it
+             would refuse cannot be typed. A rejected save used to close the dialog and
+             take the whole form with it. -->
         <el-input-number
             v-model="form.settings[field.key]"
-            :min="0"
+            :min="field.min"
+            :max="field.max ?? Infinity"
+            :value-on-clear="field.default"
             :step="field.value_type === 'float' ? 0.1 : 1"
             :precision="field.value_type === 'float' ? 3 : 0"
         />
@@ -97,7 +116,7 @@
       <el-button
           type="primary"
           :loading="saving"
-          :disabled="form.name.trim() === ''"
+          :disabled="!canSave"
           @click="save"
       >
         Save
@@ -142,6 +161,13 @@ export default defineComponent({
     return {
       loading: false,
       saving: false,
+      // Whether what is in the form is this watcher's own settings.
+      //
+      // A failed read is not an empty form: fill() has already put the type's defaults in
+      // it, and handleApiRequest answers with undefined instead of throwing. Saving then
+      // wrote those defaults — and an empty filter — over a watcher nobody meant to
+      // change, without a word on screen.
+      loadFailed: false,
       form: {
         name: '',
         enabled: true,
@@ -169,6 +195,9 @@ export default defineComponent({
     definition(): WatcherType | undefined {
       return this.watcherTypesStore.byType(this.type)
     },
+    canSave(): boolean {
+      return this.form.name.trim() !== '' && !this.loading && !this.loadFailed
+    },
   },
 
   methods: {
@@ -183,6 +212,12 @@ export default defineComponent({
     async fill() {
       const definition = this.definition
 
+      // The dialog is one component reused for every watcher, and a response outlives the
+      // dialog it was opened for: edit A, close it, edit B, and A's settings would land in
+      // B's form — and be saved onto B.
+      const watcherId = this.watcherId
+
+      this.loadFailed = false
       this.form.name = ''
       this.form.enabled = true
       this.form.cooldownSeconds = definition?.default_cooldown_seconds ?? 600
@@ -197,11 +232,11 @@ export default defineComponent({
         this.servicesStore.findServices()
       }
 
-      if (this.watcherId === null) {
+      if (watcherId === null) {
         return
       }
 
-      const watcher = this.watchersStore.items.find(item => item.id === this.watcherId)
+      const watcher = this.watchersStore.items.find(item => item.id === watcherId)
 
       if (watcher) {
         this.form.name = watcher.name
@@ -211,12 +246,20 @@ export default defineComponent({
 
       this.loading = true
 
-      const settings = await this.watchersStore.findSettings(this.type, this.watcherId)
+      const settings = await this.watchersStore.findSettings(this.type, watcherId)
           .finally(() => {
-            this.loading = false
+            if (watcherId === this.watcherId) {
+              this.loading = false
+            }
           })
 
+      if (watcherId !== this.watcherId) {
+        return
+      }
+
       if (!settings) {
+        this.loadFailed = true
+
         return
       }
 
@@ -251,9 +294,16 @@ export default defineComponent({
           ? this.watchersStore.create(this.type, payload)
           : this.watchersStore.update(this.type, this.watcherId, payload)
 
-      await saved.finally(() => {
+      const succeeded = await saved.finally(() => {
         this.saving = false
       })
+
+      // Only on success. A rejected save — a 422 the server sends, a request that never
+      // arrived — is reported by handleApiRequest and answered with undefined; closing
+      // regardless would throw away everything that was typed along with the reason.
+      if (succeeded !== true) {
+        return
+      }
 
       // The list is refreshed by the store as part of saving, so closing is all that is
       // left to do here.

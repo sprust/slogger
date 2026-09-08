@@ -2,6 +2,7 @@ package watcher_service
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"slices"
 	"slogger_receiver/internal/repositories/watcher_repository"
@@ -134,7 +135,6 @@ type Service struct {
 	matchersMu sync.RWMutex
 	byService  map[int][]*matcher
 	global     []*matcher
-	known      map[int]struct{}
 
 	// Which watchers were skipped and at what version, so an unreadable filter is
 	// reported once rather than on every reload.
@@ -249,7 +249,6 @@ func (s *Service) compile(watchers []watcher_repository.Watcher) {
 	s.matchersMu.Lock()
 	s.byService = byService
 	s.global = global
-	s.known = known
 	s.matchersMu.Unlock()
 
 	s.active.Store(len(order) > 0)
@@ -295,6 +294,15 @@ func (s *Service) AddTrace(
 		return
 	}
 
+	// The watchers are counted on the path that saves the trace, and a trace that reached
+	// storage must not be undone by the bookkeeping beside it. Anything that goes wrong
+	// here costs a number in a line, which is the cheaper of the two.
+	defer func() {
+		if recovered := recover(); recovered != nil {
+			slog.Error(fmt.Sprintf("watcher service panicked while counting a trace: %v", recovered))
+		}
+	}()
+
 	// Neither a new trace nor a duration: there is nothing in this write to record.
 	if !isNew && duration == nil {
 		return
@@ -304,6 +312,15 @@ func (s *Service) AddTrace(
 
 	if len(watcherIds) == 0 {
 		return
+	}
+
+	// Clamped to now: loggedAt comes from the client, and a clock running ahead would
+	// make a bucket that never closes — held in memory for ever, and once written it sits
+	// at the tail of the line where the panel's cutoff can never reach it.
+	now := time.Now().UTC()
+
+	if loggedAt.After(now) {
+		loggedAt = now
 	}
 
 	at := loggedAt.UTC().Truncate(BucketSize).UnixMilli()
@@ -496,6 +513,10 @@ func groupSignature(serviceId int, traceType string, tags []string) (string, []s
 	return builder.String(), sorted
 }
 
+// sep separates the parts of a signature: a byte that cannot appear in a type or a tag,
+// so no two different filters can ever spell the same string.
+const sep = "\x00"
+
 // matchSignature is what makes two watchers asking the same question share one matcher.
 func matchSignature(match watcher_repository.Match) string {
 	serviceIds := append([]int(nil), match.ServiceIds...)
@@ -508,9 +529,13 @@ func matchSignature(match watcher_repository.Match) string {
 		parts = append(parts, strconv.Itoa(serviceId))
 	}
 
-	return strings.Join(parts, ",") +
-		"|" + strings.Join(sortedUnique(match.Types), ",") +
-		"|" + strings.Join(sortedUnique(match.Tags), ",")
+	// A byte no tag or type can contain, the same one groupSignature uses. With a comma
+	// and a pipe, a watcher on the single tag "a,b" signed the same as one on the two tags
+	// "a" and "b" — they were folded into one matcher and the second collected the first's
+	// traffic.
+	return strings.Join(parts, sep) +
+		sep + sep + strings.Join(sortedUnique(match.Types), sep) +
+		sep + sep + strings.Join(sortedUnique(match.Tags), sep)
 }
 
 func sortedUnique(values []string) []string {

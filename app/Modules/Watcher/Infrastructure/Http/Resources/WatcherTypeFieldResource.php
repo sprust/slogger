@@ -14,6 +14,14 @@ class WatcherTypeFieldResource extends AbstractApiResource
     private string $value_type;
     /** Always a number; `value_type` says whether the form should keep it whole. */
     private float $default;
+    /**
+     * The bounds the server validates against.
+     *
+     * Sent so that the form can hold the input inside them rather than let the number be
+     * typed and refused: a 422 closes the dialog and takes the rest of the form with it.
+     */
+    private float $min;
+    private ?float $max;
 
     public function __construct(WatcherTypeFieldObject $resource)
     {
@@ -23,5 +31,7 @@ class WatcherTypeFieldResource extends AbstractApiResource
         $this->title      = $resource->title;
         $this->value_type = $resource->valueType;
         $this->default    = (float) $resource->default;
+        $this->min        = (float) $resource->min;
+        $this->max        = is_null($resource->max) ? null : (float) $resource->max;
     }
 }

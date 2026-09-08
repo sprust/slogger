@@ -8,6 +8,8 @@ use App\Modules\Watcher\Domain\Actions\Queries\FindWatcherAction;
 use App\Modules\Watcher\Domain\Exceptions\WatcherNotFoundException;
 use App\Modules\Watcher\Domain\Services\Types\WatcherTypeRegistry;
 use App\Modules\Watcher\Domain\Services\WatcherMatchFactory;
+use App\Modules\Watcher\Entities\Settings\HasTraceFilterInterface;
+use App\Modules\Watcher\Entities\Settings\WatcherSettingsInterface;
 use App\Modules\Watcher\Entities\WatcherMatchObject;
 use App\Modules\Watcher\Parameters\UpdateWatcherParameters;
 use App\Modules\Watcher\Repositories\WatcherRepository;
@@ -45,6 +47,13 @@ readonly class UpdateWatcherAction
 
         $filterChanged = !$this->sameMatch($watcher->match, $match);
 
+        // A window that grew reaches back further than the line does: the trimming has
+        // been cutting it to the old depth all along, so the part before the change is
+        // simply not there — and a checker reading it would take what was never kept for
+        // an absence. Waiting for the line to grow into the new window is the honest
+        // answer, and that is what collect_since says.
+        $deepened = $this->depthOf($settings) > $this->depthOf($watcher->settings);
+
         // A changed filter makes the line already collected answer a different question,
         // so it is thrown away and the watcher starts collecting again. Anything else —
         // a rename, a new threshold, a longer window — reads the same traces, and keeping
@@ -60,10 +69,19 @@ readonly class UpdateWatcherAction
             cooldownSeconds: $parameters->cooldownSeconds,
             settings: $settings->toArray(),
             traceMatch: $this->matchFactory->toArray($match),
-            collectSince: $filterChanged || !$watcher->enabled && $parameters->enabled
+            collectSince: $filterChanged || $deepened || (!$watcher->enabled && $parameters->enabled)
                 ? Carbon::now()
                 : $watcher->collectSince
         );
+    }
+
+    /**
+     * How far back these settings ask a checker to look. Nothing, for a watcher that reads
+     * counters rather than a line.
+     */
+    private function depthOf(WatcherSettingsInterface $settings): int
+    {
+        return $settings instanceof HasTraceFilterInterface ? $settings->timelineDepthMinutes() : 0;
     }
 
     /**

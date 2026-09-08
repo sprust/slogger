@@ -72,26 +72,63 @@ class BufferCheckersTest extends TestCase
         );
     }
 
-    /** Afterwards the window starts where the last check ended: nothing in between is missed. */
-    public function testLaterChecksLookFromTheLastCheck(): void
+    /**
+     * Afterwards the window starts where the watcher last spoke — not where it last
+     * looked.
+     *
+     * The check runs every minute and the cooldown throws most of those triggers away.
+     * Moving the window on every look meant the count reset while nobody was being told:
+     * with a ten-minute cooldown and three failures a minute, the event that finally got
+     * through said three, and the thirty that failed in between were reported by nothing.
+     */
+    public function testTheWindowStartsWhereTheWatcherLastSpoke(): void
     {
-        $now      = Carbon::parse('2026-09-07 12:00:00');
-        $lastSeen = Carbon::parse('2026-09-07 11:59:00');
+        $this->assertWindowStartsAt(
+            '2026-09-07 11:50:00',
+            lastTriggeredAt: Carbon::parse('2026-09-07 11:50:00'),
+            // Looked at a minute ago and said nothing: the ten minutes before that are
+            // still unreported.
+            lastCheckedAt: Carbon::parse('2026-09-07 11:59:00')
+        );
+    }
 
+    /**
+     * Never before the watcher started collecting. One switched off for a week and back on
+     * this morning would otherwise open an incident about what failed while it was off.
+     */
+    public function testTheWindowNeverReachesBackBeforeCollectingStarted(): void
+    {
+        $this->assertWindowStartsAt(
+            '2026-09-07 11:30:00',
+            lastTriggeredAt: Carbon::parse('2026-09-01 09:00:00'),
+            collectSince: Carbon::parse('2026-09-07 11:30:00')
+        );
+    }
+
+    private function assertWindowStartsAt(
+        string $expected,
+        ?Carbon $lastTriggeredAt = null,
+        ?Carbon $lastCheckedAt = null,
+        ?Carbon $collectSince = null
+    ): void {
         $action = $this->createMock(CountInvalidTraceBufferSinceAction::class);
         $action->expects($this->once())
             ->method('handle')
-            ->with($lastSeen)
+            ->with($this->callback(
+                static fn(Carbon $since): bool => $since->toDateTimeString() === $expected
+            ))
             ->willReturn(0);
 
         new InvalidBufferGrownChecker($action)->check(
             $this->watcher(
                 WatcherTypeEnum::InvalidBufferGrown,
                 new InvalidBufferGrownSettingsObject(),
-                lastCheckedAt: $lastSeen,
+                collectSince: $collectSince,
+                lastTriggeredAt: $lastTriggeredAt,
+                lastCheckedAt: $lastCheckedAt,
                 cooldownSeconds: 600
             ),
-            new WatcherCheckContextObject($now, null)
+            new WatcherCheckContextObject(Carbon::parse('2026-09-07 12:00:00'), null)
         );
     }
 
@@ -115,7 +152,7 @@ class BufferCheckersTest extends TestCase
             $this->watcher(
                 WatcherTypeEnum::InvalidBufferGrown,
                 new InvalidBufferGrownSettingsObject(threshold: $threshold),
-                lastCheckedAt: Carbon::now()->subMinute()
+                lastTriggeredAt: Carbon::now()->subMinute()
             ),
             new WatcherCheckContextObject(Carbon::now(), null)
         );

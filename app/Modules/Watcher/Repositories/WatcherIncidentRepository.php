@@ -81,14 +81,14 @@ readonly class WatcherIncidentRepository
         return $this->makeObject($incident);
     }
 
-    public function registerEvent(int $id, Carbon $occurredAt): void
+    public function incrementEventsCount(int $id, Carbon $lastEventAt): void
     {
         // increment rather than a read-modify-write: the counter is a denormalisation of
         // the events table, and the database is the only thing that can add to it without
         // a window in which somebody else's event is lost.
         WatcherIncident::query()
             ->where('id', $id)
-            ->increment('events_count', 1, ['last_event_at' => $occurredAt]);
+            ->increment('events_count', 1, ['last_event_at' => $lastEventAt]);
     }
 
     public function updateStatus(

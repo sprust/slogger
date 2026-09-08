@@ -10,6 +10,7 @@ use App\Modules\Watcher\Domain\Services\Checkers\WatcherCheckerInterface;
 use App\Modules\Watcher\Entities\Settings\NoNewTracesSettingsObject;
 use App\Modules\Watcher\Entities\Settings\WatcherSettingsInterface;
 use App\Modules\Watcher\Entities\WatcherTypeFieldObject;
+use App\Modules\Watcher\Entities\WatcherTimelineObject;
 use App\Modules\Watcher\Entities\WatcherTypeObject;
 use App\Modules\Watcher\Enums\WatcherTypeEnum;
 
@@ -43,7 +44,8 @@ readonly class NoNewTracesWatcherType implements WatcherTypeDefinitionInterface
                     key: 'period_minutes',
                     title: 'Minutes without traces',
                     valueType: 'int',
-                    default: new NoNewTracesSettingsObject()->periodMinutes
+                    default: new NoNewTracesSettingsObject()->periodMinutes,
+                    max: WatcherTimelineObject::MAX_DEPTH_MINUTES
                 ),
             ]
         );

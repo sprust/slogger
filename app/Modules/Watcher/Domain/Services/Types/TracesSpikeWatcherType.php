@@ -10,6 +10,7 @@ use App\Modules\Watcher\Domain\Services\Checkers\WatcherCheckerInterface;
 use App\Modules\Watcher\Entities\Settings\TracesSpikeSettingsObject;
 use App\Modules\Watcher\Entities\Settings\WatcherSettingsInterface;
 use App\Modules\Watcher\Entities\WatcherTypeFieldObject;
+use App\Modules\Watcher\Entities\WatcherTimelineObject;
 use App\Modules\Watcher\Entities\WatcherTypeObject;
 use App\Modules\Watcher\Enums\WatcherTypeEnum;
 
@@ -45,13 +46,15 @@ readonly class TracesSpikeWatcherType implements WatcherTypeDefinitionInterface
                     key: 'window_minutes',
                     title: 'Count over the last, minutes',
                     valueType: 'int',
-                    default: new TracesSpikeSettingsObject()->windowMinutes
+                    default: new TracesSpikeSettingsObject()->windowMinutes,
+                    max: WatcherTimelineObject::MAX_DEPTH_MINUTES
                 ),
                 new WatcherTypeFieldObject(
                     key: 'baseline_minutes',
                     title: 'Compare with the last, minutes',
                     valueType: 'int',
-                    default: new TracesSpikeSettingsObject()->baselineMinutes
+                    default: new TracesSpikeSettingsObject()->baselineMinutes,
+                    max: WatcherTimelineObject::MAX_DEPTH_MINUTES
                 ),
                 new WatcherTypeFieldObject(
                     key: 'growth_percent',

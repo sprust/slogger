@@ -10,6 +10,17 @@ export type WatcherIncidentEventGroup = WatcherIncidentEvent['payload']['groups'
 
 const perPage = 50
 
+const eventsPerPage = 50
+
+/**
+ * Which list request is the current one.
+ *
+ * Frames arrive one per watcher that spoke, so a single minute pass can put several list
+ * requests in flight at once; without this the table settles on whichever answers last,
+ * which may be older than the page the reader has since turned to.
+ */
+let findRequest = 0
+
 /** Events per incident, kept for as long as the page is open: an incident's history does
  * not change once it is read, except by a frame that reloads the row anyway. */
 interface EventsByIncident {
@@ -19,6 +30,8 @@ interface EventsByIncident {
 interface IncidentsStoreInterface {
     loading: boolean
     loaded: boolean
+    eventsPage: { [incidentId: number]: number }
+    eventsExhausted: { [incidentId: number]: boolean }
     page: number
     status: WatchersIncidentsListParamsStatusEnum | null
     watcherId: number | null
@@ -32,6 +45,8 @@ export const useIncidentsStore = defineStore('incidentsStore', {
         return {
             loading: false,
             loaded: false,
+            eventsPage: {},
+            eventsExhausted: {},
             page: 1,
             // Opened by default: the list is a work queue, and what has been dealt with
             // is history one has to ask for.
@@ -64,25 +79,65 @@ export const useIncidentsStore = defineStore('incidentsStore', {
                 ...(this.watcherId === null ? {} : {watcher_id: this.watcherId}),
             }
 
+            const request = ++findRequest
+
             return await handleApiRequest(
                 () => ApiContainer.get().watchersIncidentsList(query)
                     .then(response => {
+                        // A later request has already been sent, so this answer describes
+                        // a filter or a page nobody is looking at any more.
+                        if (request !== findRequest) {
+                            return
+                        }
+
                         this.items = response.data.data
 
                         this.loaded = true
                     })
                     .finally(() => {
-                        this.loading = false
+                        if (request === findRequest) {
+                            this.loading = false
+                        }
                     })
             )
         },
         async findEvents(incidentId: number) {
+            this.eventsPage[incidentId] = 1
+            this.eventsExhausted[incidentId] = false
+
+            return await this.loadEvents(incidentId, 1, false)
+        },
+        /**
+         * The next page, appended.
+         *
+         * An incident open for a day holds a few hundred events — 288 at the shortest
+         * cooldown the form allows — and the first page is not all of them.
+         */
+        async findMoreEvents(incidentId: number) {
+            const page = (this.eventsPage[incidentId] ?? 1) + 1
+
+            this.eventsPage[incidentId] = page
+
+            return await this.loadEvents(incidentId, page, true)
+        },
+        async loadEvents(incidentId: number, page: number, append: boolean) {
             this.loadingEvents[incidentId] = true
 
             return await handleApiRequest(
-                () => ApiContainer.get().watchersIncidentsEventsList(incidentId)
+                () => ApiContainer.get().watchersIncidentsEventsList(incidentId, {
+                    page,
+                    per_page: eventsPerPage,
+                })
                     .then(response => {
-                        this.events[incidentId] = response.data.data
+                        const events = response.data.data
+
+                        this.events[incidentId] = append
+                            ? [...(this.events[incidentId] ?? []), ...events]
+                            : events
+
+                        // A short page is the last one: the answer carries no total, and
+                        // asking for one would count rows nobody is going to read.
+                        this.eventsExhausted[incidentId] = events.length < eventsPerPage
                     })
                     .finally(() => {
                         delete this.loadingEvents[incidentId]
@@ -114,7 +169,12 @@ export const useIncidentsStore = defineStore('incidentsStore', {
 
             return this.find()
         },
-        /** An incident moved: whatever is on screen is a page old. */
+        /**
+         * An incident moved: whatever is on screen is a page old.
+         *
+         * The events of an incident nobody has expanded are not read — there is nothing
+         * on screen to correct.
+         */
         reload(incidentId: number) {
             if (this.events[incidentId]) {
                 this.findEvents(incidentId)

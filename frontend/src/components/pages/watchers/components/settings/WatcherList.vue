@@ -7,7 +7,7 @@
       <template #dropdown>
         <el-dropdown-menu>
           <el-dropdown-item
-              v-for="type in watcherTypesStore.items"
+              v-for="type in creatableTypes"
               :key="type.type"
               :command="type.type"
           >
@@ -95,7 +95,7 @@
 import {defineAsyncComponent, defineComponent} from 'vue'
 import {Refresh as IconRefresh} from '@element-plus/icons-vue'
 import {useWatchersStore, Watcher, watcherTypeIsKnown} from "../../store/watchersStore.ts";
-import {useWatcherTypesStore} from "../../store/watcherTypesStore.ts";
+import {useWatcherTypesStore, WatcherType} from "../../store/watcherTypesStore.ts";
 
 const WatcherFormDialog = defineAsyncComponent(() => import("./WatcherFormDialog.vue"))
 
@@ -114,6 +114,16 @@ export default defineComponent({
   computed: {
     watchersStore() {
       return useWatchersStore()
+    },
+    /**
+     * Only the types this panel knows how to send.
+     *
+     * A server ahead of the panel offers types whose endpoint is not in the client, and
+     * offering them here meant a filled-in form, a dialog that closed and a list that
+     * never changed, with nothing anywhere saying why. Editing already worked this way.
+     */
+    creatableTypes(): Array<WatcherType> {
+      return this.watcherTypesStore.items.filter((type: WatcherType) => watcherTypeIsKnown(type.type))
     },
     watcherTypesStore() {
       return useWatcherTypesStore()

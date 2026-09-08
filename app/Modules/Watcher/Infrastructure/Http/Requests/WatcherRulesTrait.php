@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Watcher\Infrastructure\Http\Requests;
 
+use App\Modules\Watcher\Entities\WatcherTimelineObject;
+
 /**
  * What every watcher has, whatever it watches.
  *
@@ -25,6 +27,19 @@ trait WatcherRulesTrait
             // nobody will hear from about a problem that started this morning.
             'cooldown_seconds' => ['required', 'integer', 'min:1', 'max:86400'],
         ];
+    }
+
+    /**
+     * A stretch of time the watcher looks at, in minutes.
+     *
+     * Capped at how far a line reaches: a window longer than that reads buckets that were
+     * never kept, and every checker would take the part it cannot see for an absence.
+     *
+     * @return array<int, string>
+     */
+    protected function timelineMinutesRules(): array
+    {
+        return ['required', 'integer', 'min:1', 'max:' . WatcherTimelineObject::MAX_DEPTH_MINUTES];
     }
 
     /**

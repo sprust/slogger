@@ -159,6 +159,12 @@ $set:  { uat: now }
 `$pull: { tl: { t: { $lt: cutoff } } }`. То есть `$slice` — предохранитель, `$pull` —
 уборка по конфигу.
 
+Потолок в 720 вёдер — это ещё и предел того, что смотритель может у себя спросить: окно
+длиннее трёх часов читало бы вёдра, которых никто не хранил, и недостающую часть чекер
+принял бы за отсутствие. Поэтому `WatcherTimelineObject::MAX_DEPTH_MINUTES` (180) — общий
+потолок для `period_minutes`, `window_minutes` и суммы окна с базой у спайка; поднимать
+его можно только вместе с `maxBuckets` в приёмнике.
+
 Размер: 4 ведра в минуту, 240 в час, 720 под потолком. Чтение чекером — `findOne({_id: w})`,
 один документ.
 
@@ -266,7 +272,7 @@ flowchart TB
 | Тип | Что читает PHP | Настройки |
 |---|---|---|
 | `buffer_overflow` | `buffer.estimatedDocumentCount()` — O(1) по метаданным | `threshold` (1000) |
-| `invalid_buffer_grown` | `invalidBuffer.count({iat: {$gt: last_checked_at}})` — по существующему индексу `iat` | `threshold` (1) |
+| `invalid_buffer_grown` | `invalidBuffer.count({iat: {$gt: last_triggered_at}})` — по существующему индексу `iat` | `threshold` (1) |
 | `no_new_traces` | сумма `c` за окно == 0 | `period_minutes` (10) + `match` |
 | `traces_spike` | сумма `c` за окно против средней за базу | `window_minutes` (5), `baseline_minutes` (60), `growth_percent` (90) + `match` |
 | `slow_traces` | группы окна с `dMax >= duration` | `duration` (10) + `match` |
@@ -310,7 +316,7 @@ Cooldown («не чаще, чем раз в») тоже настраиваетс
 | `settings` | json | пороги, окна, проценты — только для PHP |
 | `cooldown_seconds` | int | «не чаще, чем раз в» |
 | `collect_since` | timestamp null | с какого момента линия достоверна |
-| `last_checked_at` | timestamp null | граница окна для `invalid_buffer_grown` |
+| `last_checked_at` | timestamp null | когда смотрителя проверяли в последний раз |
 | `last_triggered_at` | timestamp null | для cooldown |
 | `created_at` / `updated_at` | timestamp | |
 
@@ -342,7 +348,10 @@ Cooldown («не чаще, чем раз в») тоже настраиваетс
 
 Порядок при срабатывании (`RegisterTriggerAction`):
 
-1. `now - last_triggered_at < cooldown_seconds` → выходим, ничего не пишем.
+1. `now - last_triggered_at < cooldown_seconds` → выходим, ничего не пишем. Окно
+   `invalid_buffer_grown` отсчитывается от `last_triggered_at`, а не от `last_checked_at`,
+   именно поэтому: проверка, чьё срабатывание съел cooldown, иначе увозила бы окно вперёд,
+   и то, что случилось внутри cooldown, не попадало бы ни в одно событие.
 2. Ищем последний открытый инцидент смотрителя. Нет — создаём.
 3. Пишем событие с `occurred_at` и `payload`.
 4. `events_count++`, `last_event_at`, `watchers.last_triggered_at = now`.
@@ -524,7 +533,7 @@ Route::prefix('/watchers')->as('watchers.')->group(function () {
 
     Route::get('/incidents', [WatcherIncidentController::class, 'index']);
     Route::get('/incidents/stat', [WatcherIncidentController::class, 'stat']);
-    Route::get('/incidents/{id}/events', [WatcherIncidentController::class, 'events']);
+    Route::get('/incidents/{id}/events', [WatcherIncidentController::class, 'events']); // page, per_page
     Route::patch('/incidents/{id}/close', [WatcherIncidentController::class, 'close']);
 
     // Настройки — по маршруту на тип, и на чтение, и на запись:
@@ -546,8 +555,9 @@ Route::prefix('/watchers')->as('watchers.')->group(function () {
 
 Инцидент — отдельный контроллер: это другая сущность.
 
-`types` отдаёт типы, их заголовки и дефолты полей, чтобы панель не держала вторую копию
-этих чисел.
+`types` отдаёт типы, их заголовки, дефолты полей и границы, в которых сервер их принимает,
+чтобы панель не держала вторую копию этих чисел и не давала ввести то, что всё равно будет
+отклонено: 422 закрывает диалог и уносит с собой всю форму.
 
 `incidents/stat` отдаёт одно число — сколько инцидентов открыто. Оно нужно бейджу в шапке,
 который висит на каждой странице: без него первое значение бейджа взялось бы только из

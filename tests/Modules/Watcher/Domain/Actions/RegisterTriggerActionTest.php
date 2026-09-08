@@ -46,7 +46,7 @@ class RegisterTriggerActionTest extends TestCase
         $incidents = $this->createMock(WatcherIncidentRepository::class);
         $incidents->method('findLastOpenByWatcherId')->willReturn($this->incident(7));
         $incidents->expects($this->never())->method('create');
-        $incidents->expects($this->once())->method('registerEvent')->with(7);
+        $incidents->expects($this->once())->method('incrementEventsCount')->with(7);
         $incidents->method('findById')->willReturn($this->incident(7));
 
         $events = $this->createMock(WatcherIncidentEventRepository::class);

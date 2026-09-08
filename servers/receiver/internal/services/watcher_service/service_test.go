@@ -86,6 +86,26 @@ func TestTheSameFilterWrittenDifferentlyIsTheSameMatcher(t *testing.T) {
 	}
 }
 
+// A separator that can appear inside a tag is not a separator. With a comma between the
+// items and a pipe between the sections, a watcher on the one tag "a,b" signed exactly
+// like a watcher on the two tags "a" and "b" — they were folded into one matcher, and the
+// second then collected the first's traffic under a filter nobody gave it.
+func TestATagContainingASeparatorDoesNotCollideWithTwoTags(t *testing.T) {
+	first := matchSignature(watcher_repository.Match{Tags: []string{"a,b"}})
+	second := matchSignature(watcher_repository.Match{Tags: []string{"a", "b"}})
+
+	if first == second {
+		t.Fatalf("two different tag filters produced the same signature: %q", first)
+	}
+
+	withTypes := matchSignature(watcher_repository.Match{Types: []string{"a|b"}})
+	withTags := matchSignature(watcher_repository.Match{Types: []string{"a"}, Tags: []string{"b"}})
+
+	if withTypes == withTags {
+		t.Fatalf("a type and a tag ran together into one signature: %q", withTypes)
+	}
+}
+
 func TestDifferentFiltersAreDifferentMatchers(t *testing.T) {
 	first := matchSignature(watcher_repository.Match{Types: []string{"http"}})
 	second := matchSignature(watcher_repository.Match{Tags: []string{"http"}})
@@ -127,6 +147,22 @@ func TestAnUpdateWithoutADurationRecordsNothing(t *testing.T) {
 
 	if buckets := service.takeBuckets(true); len(buckets) != 0 {
 		t.Fatalf("expected nothing collected, got %+v", buckets)
+	}
+}
+
+// A bucket is chosen by loggedAt, which the client sends. A clock running ahead would
+// otherwise make one that is never closed: held in memory for ever, and once the shutdown
+// flush writes it, sitting at the tail of the line where the panel's cutoff — which
+// deletes by "older than" — can never reach it, holding a slot in the 720-bucket ceiling.
+func TestATraceFromTheFutureLandsInTheCurrentBucket(t *testing.T) {
+	service := newTestService(1, watcher_repository.Match{Version: 1})
+
+	service.AddTrace(1, "trace-1", "http", nil, nil, time.Now().UTC().AddDate(1, 0, 0), true)
+
+	bucket := onlyBucket(t, service)
+
+	if bucket.At.Time().UTC().After(time.Now().UTC()) {
+		t.Fatalf("the bucket was put in the future: %s", bucket.At.Time())
 	}
 }
 

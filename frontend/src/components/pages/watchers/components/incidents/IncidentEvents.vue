@@ -76,6 +76,15 @@
         </template>
       </el-table-column>
     </el-table>
+
+    <el-button
+        v-if="events.length > 0 && !exhausted"
+        :loading="loading"
+        style="margin-top: 10px"
+        @click="loadMore"
+    >
+      Show more
+    </el-button>
   </div>
 </template>
 
@@ -139,6 +148,9 @@ export default defineComponent({
     loading(): boolean {
       return this.incidentsStore.loadingEvents[this.incident.id] === true
     },
+    exhausted(): boolean {
+      return this.incidentsStore.eventsExhausted[this.incident.id] === true
+    },
     /**
      * The columns this incident's events need.
      *
@@ -156,6 +168,9 @@ export default defineComponent({
   },
 
   methods: {
+    loadMore() {
+      this.incidentsStore.findMoreEvents(this.incident.id)
+    },
     serviceName(serviceId: number): string {
       return this.servicesStore.items.find(service => service.id === serviceId)?.name
           ?? `Service #${serviceId}`

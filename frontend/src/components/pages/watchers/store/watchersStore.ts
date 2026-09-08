@@ -127,27 +127,33 @@ export const useWatchersStore = defineStore('watchersStore', {
                 () => endpoints.show(id).then(response => response.data.data)
             )
         },
-        async create(type: string, payload: WatcherPayload) {
+        /**
+         * Answers true only when the watcher was actually written.
+         *
+         * handleApiRequest reports a rejection and answers with undefined rather than
+         * throwing, so this is how the dialog knows whether it may close.
+         */
+        async create(type: string, payload: WatcherPayload): Promise<boolean> {
             const endpoints = typeEndpoints[type]
 
             if (!endpoints) {
-                return
+                return false
             }
 
             return await handleApiRequest(
-                () => endpoints.create(payload).then(() => this.find())
-            )
+                () => endpoints.create(payload).then(() => this.find()).then(() => true)
+            ) === true
         },
-        async update(type: string, id: number, payload: WatcherPayload) {
+        async update(type: string, id: number, payload: WatcherPayload): Promise<boolean> {
             const endpoints = typeEndpoints[type]
 
             if (!endpoints) {
-                return
+                return false
             }
 
             return await handleApiRequest(
-                () => endpoints.update(id, payload).then(() => this.find())
-            )
+                () => endpoints.update(id, payload).then(() => this.find()).then(() => true)
+            ) === true
         },
         async remove(id: number) {
             return await handleApiRequest(

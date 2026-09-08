@@ -11,6 +11,9 @@ import {
     useTraceDynamicIndexesStore
 } from "../components/pages/trace-aggregator/components/dynamic-indexes/store/traceDynamicIndexesStore.ts";
 import {useWatcherIncidentStatStore} from "./watcherIncidentStatStore.ts";
+import {useIncidentsStore} from "../components/pages/watchers/store/incidentsStore.ts";
+import {useWatchersStore} from "../components/pages/watchers/store/watchersStore.ts";
+import {useWatcherTypesStore} from "../components/pages/watchers/store/watcherTypesStore.ts";
 
 type AuthUser = AdminApi.AuthMeList.ResponseBody['data']
 
@@ -101,6 +104,13 @@ export const useAuthStore = defineStore('authStore', {
             useTraceAggregatorTreeStore().stopWatching()
             useTraceDynamicIndexesStore().stopWatchingStats()
             useWatcherIncidentStatStore().stopWatching()
+
+            // Incidents, watchers and the types they come in are read once per session and
+            // held; the next person to sign in on this tab would otherwise be shown what
+            // the last one was looking at until the first request answers.
+            useIncidentsStore().$reset()
+            useWatchersStore().$reset()
+            useWatcherTypesStore().$reset()
         },
         setUser(user: AuthUser | null) {
             this.user = user

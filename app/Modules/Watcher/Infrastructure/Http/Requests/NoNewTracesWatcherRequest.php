@@ -15,7 +15,7 @@ class NoNewTracesWatcherRequest extends FormRequest
         return [
             ...$this->commonRules(),
             'settings'                => ['required', 'array'],
-            'settings.period_minutes' => ['required', 'integer', 'min:1', 'max:1440'],
+            'settings.period_minutes' => $this->timelineMinutesRules(),
             ...$this->traceFilterRules(),
         ];
     }
