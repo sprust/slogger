@@ -67,12 +67,12 @@
            down and the numbers line up. -->
       <el-table-column
           v-for="column in columns"
-          :key="column.key"
+          :key="`${column.bucket}.${column.key}`"
           :label="column.title"
           min-width="140"
       >
         <template #default="scope">
-          {{ scope.row.payload[column.key] }}
+          {{ payloadValue(scope.row, column) }}
         </template>
       </el-table-column>
     </el-table>
@@ -100,6 +100,14 @@ import {
 } from "../../../trace-aggregator/components/traces/store/traceAggregatorStore.ts";
 import {routes} from "../../../../../utils/router.ts";
 
+type PayloadBucket = 'settings' | 'measured'
+
+type PayloadColumn = {
+  bucket: PayloadBucket,
+  key: string,
+  title: string,
+}
+
 /**
  * The payload's fields in the order the server writes them, with the titles their columns
  * get.
@@ -107,24 +115,27 @@ import {routes} from "../../../../../utils/router.ts";
  * One list for every watcher type, like the payload itself: an event is read through its
  * incident, and that route names no type. Whichever fields do not apply come back null,
  * and a column nobody filled in is not drawn.
+ *
+ * `growth_percent` is in both buckets and means two different things: what the watcher
+ * was set to react to, and what it saw.
  */
-const payloadTitles: Array<[keyof WatcherIncidentEvent['payload'], string]> = [
-  ['threshold', 'Limit'],
-  ['buffer_count', 'Traces in the buffer'],
-  ['invalid_count', 'Broken traces'],
-  ['since', 'Counted since'],
-  ['period_minutes', 'Minutes without traces'],
-  ['window_from', 'From'],
-  ['window_to', 'To'],
-  ['window_minutes', 'Minutes counted'],
-  ['window_count', 'Traces counted'],
-  ['window_per_minute', 'Traces per minute now'],
-  ['baseline_minutes', 'Minutes compared with'],
-  ['baseline_per_minute', 'Traces per minute before'],
-  ['growth_percent', 'Growth, %'],
-  ['threshold_percent', 'Growth to react to, %'],
-  ['duration', 'Longer than, s'],
-  ['slowest', 'Slowest trace, s'],
+const payloadTitles: Array<PayloadColumn> = [
+  {bucket: 'settings', key: 'threshold', title: 'Limit'},
+  {bucket: 'measured', key: 'buffer_count', title: 'Traces in the buffer'},
+  {bucket: 'measured', key: 'invalid_count', title: 'Broken traces'},
+  {bucket: 'measured', key: 'since', title: 'Counted since'},
+  {bucket: 'settings', key: 'period_minutes', title: 'Minutes without traces'},
+  {bucket: 'measured', key: 'window_from', title: 'From'},
+  {bucket: 'measured', key: 'window_to', title: 'To'},
+  {bucket: 'settings', key: 'window_minutes', title: 'Minutes counted'},
+  {bucket: 'measured', key: 'window_count', title: 'Traces counted'},
+  {bucket: 'measured', key: 'window_per_minute', title: 'Traces per minute now'},
+  {bucket: 'settings', key: 'baseline_minutes', title: 'Minutes compared with'},
+  {bucket: 'measured', key: 'baseline_per_minute', title: 'Traces per minute before'},
+  {bucket: 'measured', key: 'growth_percent', title: 'Growth, %'},
+  {bucket: 'settings', key: 'growth_percent', title: 'Growth to react to, %'},
+  {bucket: 'settings', key: 'duration', title: 'Longer than, s'},
+  {bucket: 'measured', key: 'slowest', title: 'Slowest trace, s'},
 ]
 
 export default defineComponent({
@@ -157,17 +168,18 @@ export default defineComponent({
      * The payload has one shape for every watcher type and fills in only what applies, so
      * the columns are worked out from what is there rather than from a list per type.
      */
-    columns(): Array<{ key: keyof WatcherIncidentEvent['payload'], title: string }> {
-      return payloadTitles
-          .filter(([key]) => this.events.some(
-              (event: WatcherIncidentEvent) => event.payload[key] !== null
-                  && event.payload[key] !== undefined
-          ))
-          .map(([key, title]) => ({key, title}))
+    columns(): Array<PayloadColumn> {
+      return payloadTitles.filter(column => this.events.some(
+          (event: WatcherIncidentEvent) => this.payloadValue(event, column) !== null
+              && this.payloadValue(event, column) !== undefined
+      ))
     },
   },
 
   methods: {
+    payloadValue(event: WatcherIncidentEvent, column: PayloadColumn): unknown {
+      return (event.payload[column.bucket] as Record<string, unknown>)[column.key]
+    },
     loadMore() {
       this.incidentsStore.findMoreEvents(this.incident.id)
     },

@@ -57,10 +57,12 @@ readonly class NoNewTracesChecker implements WatcherCheckerInterface
             return null;
         }
 
-        return new WatcherTriggerObject([
-            'period_minutes' => $settings->periodMinutes,
-            'window_from'    => $from->toDateTimeString(),
-            'window_to'      => $to->toDateTimeString(),
-        ]);
+        return new WatcherTriggerObject(
+            settings: ['period_minutes' => $settings->periodMinutes],
+            measured: [
+                'window_from' => $from->toDateTimeString(),
+                'window_to'   => $to->toDateTimeString(),
+            ]
+        );
     }
 }

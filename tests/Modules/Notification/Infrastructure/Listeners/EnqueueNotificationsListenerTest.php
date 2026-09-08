@@ -139,8 +139,10 @@ class EnqueueNotificationsListenerTest extends TestCase
         return new WatcherIncidentEventObject(
             id: '68be1f000000000000000010',
             incidentId: '68be1f000000000000000009',
-            occurredAt: Carbon::parse('2026-09-08 19:20:03'),
-            payload: ['buffer_count' => 12000, 'threshold' => 1000]
+            settings: ['threshold' => 1000],
+            measured: ['buffer_count' => 12000],
+            groups: [],
+            occurredAt: Carbon::parse('2026-09-08 19:20:03')
         );
     }
 }

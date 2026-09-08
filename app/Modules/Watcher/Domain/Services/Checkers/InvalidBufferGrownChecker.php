@@ -37,11 +37,13 @@ readonly class InvalidBufferGrownChecker implements WatcherCheckerInterface
             return null;
         }
 
-        return new WatcherTriggerObject([
-            'invalid_count' => $count,
-            'threshold'     => $settings->threshold,
-            'since'         => $since->toDateTimeString(),
-        ]);
+        return new WatcherTriggerObject(
+            settings: ['threshold' => $settings->threshold],
+            measured: [
+                'invalid_count' => $count,
+                'since'         => $since->toDateTimeString(),
+            ]
+        );
     }
 
     /**

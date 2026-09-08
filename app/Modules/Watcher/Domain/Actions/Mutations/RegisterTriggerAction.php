@@ -44,7 +44,7 @@ readonly class RegisterTriggerAction
         $incident = $this->incidentRepository->findLastOpenByWatcherId($watcher->id)
             ?? $this->incidentRepository->create($watcher->id, $occurredAt);
 
-        $this->eventRepository->create($incident->id, $occurredAt, $trigger->payload);
+        $this->eventRepository->create($incident->id, $occurredAt, $trigger);
 
         $this->incidentRepository->incrementEventsCount($incident->id, $occurredAt);
 

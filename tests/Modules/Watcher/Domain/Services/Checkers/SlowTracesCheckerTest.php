@@ -27,7 +27,7 @@ class SlowTracesCheckerTest extends TestCase
         $trigger = $this->check(durations: [12.5]);
 
         $this->assertNotNull($trigger);
-        $this->assertSame(12.5, $trigger->payload['slowest']);
+        $this->assertSame(12.5, $trigger->measured['slowest']);
     }
 
     public function testTheThresholdIsInclusive(): void
@@ -54,8 +54,8 @@ class SlowTracesCheckerTest extends TestCase
         $trigger = $this->check(durations: [11.0, 30.0, 15.0]);
 
         $this->assertNotNull($trigger);
-        $this->assertSame(30.0, $trigger->payload['groups'][0]['duration_max']);
-        $this->assertSame('trace-30', $trigger->payload['groups'][0]['trace_id']);
+        $this->assertSame(30.0, $trigger->groups[0]['duration_max']);
+        $this->assertSame('trace-30', $trigger->groups[0]['trace_id']);
     }
 
     /** Shapes come back slowest first, so the worst is the first thing read. */
@@ -66,7 +66,7 @@ class SlowTracesCheckerTest extends TestCase
         $this->assertNotNull($trigger);
         $this->assertSame(
             [30.0, 15.0, 11.0],
-            array_column($trigger->payload['groups'], 'duration_max')
+            array_column($trigger->groups, 'duration_max')
         );
     }
 

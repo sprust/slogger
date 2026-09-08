@@ -83,16 +83,20 @@ readonly class TracesSpikeChecker implements WatcherCheckerInterface
             return null;
         }
 
-        return new WatcherTriggerObject([
-            'window_minutes'      => $settings->windowMinutes,
-            'window_count'        => $windowCount,
-            'window_per_minute'   => round($windowRate, 2),
-            'baseline_minutes'    => $settings->baselineMinutes,
-            'baseline_per_minute' => round($baselineRate, 2),
-            'growth_percent'      => round($growthPercent, 2),
-            'threshold_percent'   => $settings->growthPercent,
-            'groups'              => $this->reportGroups($timeline, $windowFrom, $to),
-        ]);
+        return new WatcherTriggerObject(
+            settings: [
+                'window_minutes'   => $settings->windowMinutes,
+                'baseline_minutes' => $settings->baselineMinutes,
+                'growth_percent'   => $settings->growthPercent,
+            ],
+            measured: [
+                'window_count'        => $windowCount,
+                'window_per_minute'   => round($windowRate, 2),
+                'baseline_per_minute' => round($baselineRate, 2),
+                'growth_percent'      => round($growthPercent, 2),
+            ],
+            groups: $this->reportGroups($timeline, $windowFrom, $to)
+        );
     }
 
     /**

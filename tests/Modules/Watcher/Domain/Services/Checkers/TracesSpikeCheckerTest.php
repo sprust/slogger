@@ -38,7 +38,7 @@ class TracesSpikeCheckerTest extends TestCase
         );
 
         $this->assertNotNull($trigger);
-        $this->assertSame(100.0, $trigger->payload['growth_percent']);
+        $this->assertSame(100.0, $trigger->measured['growth_percent']);
     }
 
     public function testAGrowthBelowTheThresholdSaysNothing(): void
@@ -89,10 +89,10 @@ class TracesSpikeCheckerTest extends TestCase
         $trigger = $this->check(baselinePerMinute: 1, windowTotal: 20);
 
         $this->assertNotNull($trigger);
-        $this->assertSame(20, $trigger->payload['window_count']);
-        $this->assertSame(4.0, $trigger->payload['window_per_minute']);
-        $this->assertSame(1.0, $trigger->payload['baseline_per_minute']);
-        $this->assertSame(90, $trigger->payload['threshold_percent']);
+        $this->assertSame(20, $trigger->measured['window_count']);
+        $this->assertSame(4.0, $trigger->measured['window_per_minute']);
+        $this->assertSame(1.0, $trigger->measured['baseline_per_minute']);
+        $this->assertSame(90, $trigger->settings['growth_percent']);
     }
 
     private function check(

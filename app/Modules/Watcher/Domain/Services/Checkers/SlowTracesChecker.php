@@ -61,11 +61,13 @@ readonly class SlowTracesChecker implements WatcherCheckerInterface
             static fn(WatcherTimelineGroupObject $a, WatcherTimelineGroupObject $b): int => $b->durationMax <=> $a->durationMax
         );
 
-        return new WatcherTriggerObject([
-            'duration'       => $settings->duration,
-            'window_minutes' => $settings->windowMinutes,
-            'slowest'        => round($groups[0]->durationMax, 3),
-            'groups'         => array_map(
+        return new WatcherTriggerObject(
+            settings: [
+                'duration'       => $settings->duration,
+                'window_minutes' => $settings->windowMinutes,
+            ],
+            measured: ['slowest' => round($groups[0]->durationMax, 3)],
+            groups: array_map(
                 static fn(WatcherTimelineGroupObject $group): array => [
                     'service_id'   => $group->serviceId,
                     'type'         => $group->type,
@@ -75,7 +77,7 @@ readonly class SlowTracesChecker implements WatcherCheckerInterface
                     'trace_id'     => $group->slowestTraceId,
                 ],
                 array_slice($groups, 0, self::MAX_REPORTED_GROUPS)
-            ),
-        ]);
+            )
+        );
     }
 }

@@ -36,19 +36,23 @@ readonly class IncidentMessageFactory
             implode("\n", $this->head($kind, $watcher, $incident, $sender)),
         ];
 
-        if ($kind === NotificationKindEnum::Closed) {
+        if ($kind === NotificationKindEnum::Closed || is_null($event)) {
             return implode("\n\n", $blocks);
         }
 
-        $payload = is_null($event) ? [] : $event->payload;
+        $settings = $this->values($event->settings, $sender);
 
-        $details = $this->details($payload, $sender);
-
-        if (count($details)) {
-            $blocks[] = "📊 details:\n" . implode("\n", $details);
+        if (count($settings)) {
+            $blocks[] = "⚙️ settings:\n" . implode("\n", $settings);
         }
 
-        $traces = $this->traces($payload['groups'] ?? null, $sender);
+        $measured = $this->values($event->measured, $sender);
+
+        if (count($measured)) {
+            $blocks[] = "📊 measured:\n" . implode("\n", $measured);
+        }
+
+        $traces = $this->traces($event->groups, $sender);
 
         if (count($traces)) {
             $blocks[] = "🔎 traces:\n" . implode("\n", $traces);
@@ -102,19 +106,15 @@ readonly class IncidentMessageFactory
     }
 
     /**
-     * @param array<string, mixed> $payload
+     * @param array<string, scalar> $values
      *
      * @return string[]
      */
-    private function details(array $payload, NotificationSenderInterface $sender): array
+    private function values(array $values, NotificationSenderInterface $sender): array
     {
         $lines = [];
 
-        foreach ($payload as $key => $value) {
-            if ($key === 'groups' || !is_scalar($value)) {
-                continue;
-            }
-
+        foreach ($values as $key => $value) {
             $lines[] = sprintf(
                 '• %s: %s',
                 str_replace('_', ' ', $key),
@@ -126,21 +126,15 @@ readonly class IncidentMessageFactory
     }
 
     /**
+     * @param array<int, array<string, mixed>> $groups
+     *
      * @return string[]
      */
-    private function traces(mixed $groups, NotificationSenderInterface $sender): array
+    private function traces(array $groups, NotificationSenderInterface $sender): array
     {
-        if (!is_array($groups) || !count($groups)) {
-            return [];
-        }
-
         $lines = [];
 
         foreach (array_slice($groups, 0, self::MAX_GROUPS) as $group) {
-            if (!is_array($group)) {
-                continue;
-            }
-
             $named = array_filter(
                 [
                     $group['type'] ?? null,

@@ -2024,22 +2024,28 @@ export namespace AdminApi {
     incident_id: string,
     occurred_at: string,
     payload: {
+    settings: {
     threshold?: number | null,
+    period_minutes?: number | null,
+    window_minutes?: number | null,
+    baseline_minutes?: number | null,
+    growth_percent?: number | null,
+    duration?: number | null,
+
+},
+    measured: {
     buffer_count?: number | null,
     invalid_count?: number | null,
     since?: string | null,
-    period_minutes?: number | null,
     window_from?: string | null,
     window_to?: string | null,
-    window_minutes?: number | null,
     window_count?: number | null,
     window_per_minute?: number | null,
-    baseline_minutes?: number | null,
     baseline_per_minute?: number | null,
     growth_percent?: number | null,
-    threshold_percent?: number | null,
-    duration?: number | null,
     slowest?: number | null,
+
+},
     groups: ({
     service_id: number,
     type: string,
@@ -2077,22 +2083,26 @@ export namespace AdminApi {
         incident_id: string;
         occurred_at: string;
         payload: {
-          threshold?: number | null;
-          buffer_count?: number | null;
-          invalid_count?: number | null;
-          since?: string | null;
-          period_minutes?: number | null;
-          window_from?: string | null;
-          window_to?: string | null;
-          window_minutes?: number | null;
-          window_count?: number | null;
-          window_per_minute?: number | null;
-          baseline_minutes?: number | null;
-          baseline_per_minute?: number | null;
-          growth_percent?: number | null;
-          threshold_percent?: number | null;
-          duration?: number | null;
-          slowest?: number | null;
+          settings: {
+            threshold?: number | null;
+            period_minutes?: number | null;
+            window_minutes?: number | null;
+            baseline_minutes?: number | null;
+            growth_percent?: number | null;
+            duration?: number | null;
+          };
+          measured: {
+            buffer_count?: number | null;
+            invalid_count?: number | null;
+            since?: string | null;
+            window_from?: string | null;
+            window_to?: string | null;
+            window_count?: number | null;
+            window_per_minute?: number | null;
+            baseline_per_minute?: number | null;
+            growth_percent?: number | null;
+            slowest?: number | null;
+          };
           groups: {
             service_id: number;
             type: string;
@@ -5501,22 +5511,28 @@ export class Api<
     incident_id: string,
     occurred_at: string,
     payload: {
+    settings: {
     threshold?: number | null,
+    period_minutes?: number | null,
+    window_minutes?: number | null,
+    baseline_minutes?: number | null,
+    growth_percent?: number | null,
+    duration?: number | null,
+
+},
+    measured: {
     buffer_count?: number | null,
     invalid_count?: number | null,
     since?: string | null,
-    period_minutes?: number | null,
     window_from?: string | null,
     window_to?: string | null,
-    window_minutes?: number | null,
     window_count?: number | null,
     window_per_minute?: number | null,
-    baseline_minutes?: number | null,
     baseline_per_minute?: number | null,
     growth_percent?: number | null,
-    threshold_percent?: number | null,
-    duration?: number | null,
     slowest?: number | null,
+
+},
     groups: ({
     service_id: number,
     type: string,
@@ -5553,22 +5569,26 @@ export class Api<
             incident_id: string;
             occurred_at: string;
             payload: {
-              threshold?: number | null;
-              buffer_count?: number | null;
-              invalid_count?: number | null;
-              since?: string | null;
-              period_minutes?: number | null;
-              window_from?: string | null;
-              window_to?: string | null;
-              window_minutes?: number | null;
-              window_count?: number | null;
-              window_per_minute?: number | null;
-              baseline_minutes?: number | null;
-              baseline_per_minute?: number | null;
-              growth_percent?: number | null;
-              threshold_percent?: number | null;
-              duration?: number | null;
-              slowest?: number | null;
+              settings: {
+                threshold?: number | null;
+                period_minutes?: number | null;
+                window_minutes?: number | null;
+                baseline_minutes?: number | null;
+                growth_percent?: number | null;
+                duration?: number | null;
+              };
+              measured: {
+                buffer_count?: number | null;
+                invalid_count?: number | null;
+                since?: string | null;
+                window_from?: string | null;
+                window_to?: string | null;
+                window_count?: number | null;
+                window_per_minute?: number | null;
+                baseline_per_minute?: number | null;
+                growth_percent?: number | null;
+                slowest?: number | null;
+              };
               groups: {
                 service_id: number;
                 type: string;

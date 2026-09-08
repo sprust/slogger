@@ -149,7 +149,7 @@ class RegisterTriggerActionTest extends TestCase
                 lastTriggeredAt: $lastTriggeredAt,
                 cooldownSeconds: 300
             ),
-            new WatcherTriggerObject(['buffer_count' => 5000]),
+            new WatcherTriggerObject(settings: ['threshold' => 1000], measured: ['buffer_count' => 5000]),
             $now
         );
     }

@@ -30,7 +30,7 @@ class NoNewTracesCheckerTest extends TestCase
         $trigger = $this->check(bucketsAtMinutesAgo: []);
 
         $this->assertNotNull($trigger);
-        $this->assertSame(10, $trigger->payload['period_minutes']);
+        $this->assertSame(10, $trigger->settings['period_minutes']);
     }
 
     public function testOneTraceInTheWindowIsEnoughToStayQuiet(): void

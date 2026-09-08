@@ -4078,69 +4078,77 @@
                                                     },
                                                     "payload": {
                                                         "properties": {
-                                                            "threshold": {
-                                                                "type": "integer",
-                                                                "nullable": true
+                                                            "settings": {
+                                                                "properties": {
+                                                                    "threshold": {
+                                                                        "type": "integer",
+                                                                        "nullable": true
+                                                                    },
+                                                                    "period_minutes": {
+                                                                        "type": "integer",
+                                                                        "nullable": true
+                                                                    },
+                                                                    "window_minutes": {
+                                                                        "type": "integer",
+                                                                        "nullable": true
+                                                                    },
+                                                                    "baseline_minutes": {
+                                                                        "type": "integer",
+                                                                        "nullable": true
+                                                                    },
+                                                                    "growth_percent": {
+                                                                        "type": "number",
+                                                                        "nullable": true
+                                                                    },
+                                                                    "duration": {
+                                                                        "type": "number",
+                                                                        "nullable": true
+                                                                    }
+                                                                }
                                                             },
-                                                            "buffer_count": {
-                                                                "type": "integer",
-                                                                "nullable": true
-                                                            },
-                                                            "invalid_count": {
-                                                                "type": "integer",
-                                                                "nullable": true
-                                                            },
-                                                            "since": {
-                                                                "type": "string",
-                                                                "nullable": true
-                                                            },
-                                                            "period_minutes": {
-                                                                "type": "integer",
-                                                                "nullable": true
-                                                            },
-                                                            "window_from": {
-                                                                "type": "string",
-                                                                "nullable": true
-                                                            },
-                                                            "window_to": {
-                                                                "type": "string",
-                                                                "nullable": true
-                                                            },
-                                                            "window_minutes": {
-                                                                "type": "integer",
-                                                                "nullable": true
-                                                            },
-                                                            "window_count": {
-                                                                "type": "integer",
-                                                                "nullable": true
-                                                            },
-                                                            "window_per_minute": {
-                                                                "type": "number",
-                                                                "nullable": true
-                                                            },
-                                                            "baseline_minutes": {
-                                                                "type": "integer",
-                                                                "nullable": true
-                                                            },
-                                                            "baseline_per_minute": {
-                                                                "type": "number",
-                                                                "nullable": true
-                                                            },
-                                                            "growth_percent": {
-                                                                "type": "number",
-                                                                "nullable": true
-                                                            },
-                                                            "threshold_percent": {
-                                                                "type": "integer",
-                                                                "nullable": true
-                                                            },
-                                                            "duration": {
-                                                                "type": "number",
-                                                                "nullable": true
-                                                            },
-                                                            "slowest": {
-                                                                "type": "number",
-                                                                "nullable": true
+                                                            "measured": {
+                                                                "properties": {
+                                                                    "buffer_count": {
+                                                                        "type": "integer",
+                                                                        "nullable": true
+                                                                    },
+                                                                    "invalid_count": {
+                                                                        "type": "integer",
+                                                                        "nullable": true
+                                                                    },
+                                                                    "since": {
+                                                                        "type": "string",
+                                                                        "nullable": true
+                                                                    },
+                                                                    "window_from": {
+                                                                        "type": "string",
+                                                                        "nullable": true
+                                                                    },
+                                                                    "window_to": {
+                                                                        "type": "string",
+                                                                        "nullable": true
+                                                                    },
+                                                                    "window_count": {
+                                                                        "type": "integer",
+                                                                        "nullable": true
+                                                                    },
+                                                                    "window_per_minute": {
+                                                                        "type": "number",
+                                                                        "nullable": true
+                                                                    },
+                                                                    "baseline_per_minute": {
+                                                                        "type": "number",
+                                                                        "nullable": true
+                                                                    },
+                                                                    "growth_percent": {
+                                                                        "type": "number",
+                                                                        "nullable": true
+                                                                    },
+                                                                    "slowest": {
+                                                                        "type": "number",
+                                                                        "nullable": true
+                                                                    }
+                                                                }
                                                             },
                                                             "groups": {
                                                                 "type": "array",
@@ -4185,6 +4193,8 @@
                                                             }
                                                         },
                                                         "required": [
+                                                            "settings",
+                                                            "measured",
                                                             "groups"
                                                         ]
                                                     }

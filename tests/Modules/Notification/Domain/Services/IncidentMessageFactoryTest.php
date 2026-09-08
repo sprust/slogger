@@ -34,7 +34,7 @@ class IncidentMessageFactoryTest extends TestCase
             kind: NotificationKindEnum::Opened,
             watcher: $this->watcher(),
             incident: $this->incident(),
-            event: $this->event(['buffer_count' => 12000, 'threshold' => 1000]),
+            event: $this->event(settings: ['threshold' => 1000], measured: ['buffer_count' => 12000]),
             sender: $this->sender()
         );
 
@@ -45,9 +45,11 @@ class IncidentMessageFactoryTest extends TestCase
             . "📛 type: Buffer overflow\n"
             . "🕒 lastEvent: 2026-09-08 19:20:03\n"
             . "\n"
-            . "📊 details:\n"
-            . "• buffer count: 12000\n"
-            . '• threshold: 1000',
+            . "⚙️ settings:\n"
+            . "• threshold: 1000\n"
+            . "\n"
+            . "📊 measured:\n"
+            . '• buffer count: 12000',
             $text
         );
     }
@@ -58,7 +60,7 @@ class IncidentMessageFactoryTest extends TestCase
             kind: NotificationKindEnum::Event,
             watcher: $this->watcher(),
             incident: $this->incident(eventsCount: 4),
-            event: $this->event(['buffer_count' => 12000]),
+            event: $this->event(measured: ['buffer_count' => 12000]),
             sender: $this->sender()
         );
 
@@ -76,7 +78,7 @@ class IncidentMessageFactoryTest extends TestCase
                 eventsCount: 4,
                 closedAt: Carbon::parse('2026-09-08 20:00:00')
             ),
-            event: $this->event(['buffer_count' => 12000]),
+            event: $this->event(measured: ['buffer_count' => 12000]),
             sender: $this->sender()
         );
 
@@ -105,7 +107,7 @@ class IncidentMessageFactoryTest extends TestCase
         $this->assertStringContainsString('🔴 <b>slogger (opened)</b>', $text);
         $this->assertStringContainsString('🏷 name: prod buffer', $text);
         $this->assertStringContainsString('📛 type: Buffer overflow', $text);
-        $this->assertStringNotContainsString('details:', $text);
+        $this->assertStringNotContainsString('measured:', $text);
     }
 
     public function testTheTracesBlockCarriesTheShapeItsCountAndTheTraceWorthOpening(): void
@@ -114,20 +116,21 @@ class IncidentMessageFactoryTest extends TestCase
             kind: NotificationKindEnum::Opened,
             watcher: $this->watcher(type: WatcherTypeEnum::SlowTraces),
             incident: $this->incident(),
-            event: $this->event([
-                'duration' => 10.0,
-                'slowest'  => 41.2,
-                'groups'   => [
+            event: $this->event(
+                settings: ['duration' => 10.0],
+                measured: ['slowest' => 41.2],
+                groups: [
                     ['type' => 'http', 'tags' => ['api'], 'count' => 3, 'duration_max' => 41.2, 'trace_id' => 'abc123'],
                     ['type' => 'job', 'tags' => [], 'count' => 1, 'duration_max' => 12.7, 'trace_id' => 'def456'],
-                ],
-            ]),
+                ]
+            ),
             sender: $this->sender()
         );
 
         $this->assertStringContainsString('🔴 <b>slogger (opened)</b>', $text);
         $this->assertStringContainsString('📛 type: Slow traces', $text);
-        $this->assertStringContainsString("📊 details:\n• duration: 10s\n• slowest: 41.2s", $text);
+        $this->assertStringContainsString("⚙️ settings:\n• duration: 10s", $text);
+        $this->assertStringContainsString("📊 measured:\n• slowest: 41.2s", $text);
         $this->assertStringContainsString(
             "🔎 traces:\n• http api\n  3 traces, up to 41.2s\n  <code>abc123</code>",
             $text
@@ -141,7 +144,7 @@ class IncidentMessageFactoryTest extends TestCase
             kind: NotificationKindEnum::Opened,
             watcher: $this->watcher(name: 'prod <b>buffer</b> & co'),
             incident: $this->incident(),
-            event: $this->event(['groups' => [['type' => '<i>http</i>', 'tags' => []]]]),
+            event: $this->event(groups: [['type' => '<i>http</i>', 'tags' => []]]),
             sender: $this->sender()
         );
 
@@ -209,15 +212,19 @@ class IncidentMessageFactoryTest extends TestCase
     }
 
     /**
-     * @param array<string, mixed> $payload
+     * @param array<string, scalar>            $settings
+     * @param array<string, scalar>            $measured
+     * @param array<int, array<string, mixed>> $groups
      */
-    private function event(array $payload): WatcherIncidentEventObject
+    private function event(array $settings = [], array $measured = [], array $groups = []): WatcherIncidentEventObject
     {
         return new WatcherIncidentEventObject(
             id: '68be1f000000000000000010',
             incidentId: '68be1f000000000000000009',
-            occurredAt: Carbon::parse('2026-09-08 19:20:03'),
-            payload: $payload
+            settings: $settings,
+            measured: $measured,
+            groups: $groups,
+            occurredAt: Carbon::parse('2026-09-08 19:20:03')
         );
     }
 }

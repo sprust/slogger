@@ -4,20 +4,18 @@ declare(strict_types=1);
 
 namespace App\Modules\Watcher\Entities;
 
-/**
- * What a checker saw when it decided the watcher has something to say.
- *
- * The payload is shapeless because every type reports its own numbers, and the panel only
- * renders them. What every one of them owes the reader is the value it measured beside the
- * threshold it crossed — a bare "it fired" is not worth an incident.
- */
 readonly class WatcherTriggerObject
 {
     /**
-     * @param array<string, mixed> $payload
+     * @param array<string, scalar>            $settings the numbers the watcher was set to,
+     *                                                   keyed as its settings object keys them
+     * @param array<string, scalar>            $measured what the checker saw
+     * @param array<int, array<string, mixed>> $groups
      */
     public function __construct(
-        public array $payload
+        public array $settings,
+        public array $measured,
+        public array $groups = []
     ) {
     }
 }

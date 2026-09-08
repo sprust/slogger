@@ -21,6 +21,6 @@ class WatcherIncidentEventResource extends AbstractApiResource
         $this->id          = $resource->id;
         $this->incident_id = $resource->incidentId;
         $this->occurred_at = $resource->occurredAt->toDateTimeString();
-        $this->payload     = new WatcherIncidentEventPayloadResource($resource->payload);
+        $this->payload     = new WatcherIncidentEventPayloadResource($resource);
     }
 }

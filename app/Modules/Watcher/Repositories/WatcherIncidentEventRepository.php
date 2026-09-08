@@ -6,6 +6,7 @@ namespace App\Modules\Watcher\Repositories;
 
 use App\Models\Watchers\WatcherIncidentEvent;
 use App\Modules\Watcher\Entities\WatcherIncidentEventObject;
+use App\Modules\Watcher\Entities\WatcherTriggerObject;
 use Illuminate\Support\Carbon;
 use SConcur\Bson\Exceptions\InvalidBsonValueException;
 use SConcur\Bson\ObjectId;
@@ -42,10 +43,7 @@ readonly class WatcherIncidentEventRepository
         return $events;
     }
 
-    /**
-     * @param array<string, mixed> $payload
-     */
-    public function create(string $incidentId, Carbon $occurredAt, array $payload): void
+    public function create(string $incidentId, Carbon $occurredAt, WatcherTriggerObject $trigger): void
     {
         $objectId = $this->objectId($incidentId);
 
@@ -56,7 +54,11 @@ readonly class WatcherIncidentEventRepository
         WatcherIncidentEvent::sconcur()->insertOne([
             'incidentId' => $objectId,
             'occurredAt' => new UTCDateTime($occurredAt),
-            'payload'    => $payload,
+            'payload'    => [
+                'settings' => $trigger->settings,
+                'measured' => $trigger->measured,
+                'groups'   => $trigger->groups,
+            ],
         ]);
     }
 
@@ -85,13 +87,63 @@ readonly class WatcherIncidentEventRepository
         /** @var array<string, mixed> $payload */
         $payload = is_array($payload) ? $payload : [];
 
+        // A payload written before the split has its numbers at the top level, and which
+        // of them were settings is not recoverable from the document. They are read as
+        // measured until the TTL retires the last of them.
+        $split = array_key_exists('settings', $payload) || array_key_exists('measured', $payload);
+
         return new WatcherIncidentEventObject(
             id: (string) $document['_id'],
             incidentId: (string) $document['incidentId'],
+            settings: $split ? $this->scalars($payload['settings'] ?? null) : [],
+            measured: $split
+                ? $this->scalars($payload['measured'] ?? null)
+                : $this->scalars($payload),
+            groups: $this->groups($payload['groups'] ?? null),
             occurredAt: $occurredAt instanceof UTCDateTime
                 ? Carbon::parse($occurredAt->toDateTime())
-                : Carbon::now(),
-            payload: $payload
+                : Carbon::now()
         );
+    }
+
+    /**
+     * @return array<string, scalar>
+     */
+    private function scalars(mixed $values): array
+    {
+        if (!is_array($values)) {
+            return [];
+        }
+
+        $scalars = [];
+
+        foreach ($values as $key => $value) {
+            if (is_string($key) && is_scalar($value)) {
+                $scalars[$key] = $value;
+            }
+        }
+
+        return $scalars;
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function groups(mixed $groups): array
+    {
+        if (!is_array($groups)) {
+            return [];
+        }
+
+        $result = [];
+
+        foreach ($groups as $group) {
+            if (is_array($group)) {
+                /** @var array<string, mixed> $group */
+                $result[] = $group;
+            }
+        }
+
+        return $result;
     }
 }

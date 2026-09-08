@@ -32,9 +32,9 @@ readonly class BufferOverflowChecker implements WatcherCheckerInterface
             return null;
         }
 
-        return new WatcherTriggerObject([
-            'buffer_count' => $context->bufferCount,
-            'threshold'    => $settings->threshold,
-        ]);
+        return new WatcherTriggerObject(
+            settings: ['threshold' => $settings->threshold],
+            measured: ['buffer_count' => $context->bufferCount]
+        );
     }
 }
