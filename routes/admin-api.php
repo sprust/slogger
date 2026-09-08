@@ -8,6 +8,8 @@ use App\Modules\Cleaner\Infrastructure\Http\Controllers\ProcessController;
 use App\Modules\Dashboard\Infrastructure\Http\Controllers\DatabaseStatController;
 use App\Modules\Dashboard\Infrastructure\Http\Controllers\SconcurStatController;
 use App\Modules\Logs\Infrastructure\Http\Controllers\LogController;
+use App\Modules\Notification\Infrastructure\Http\Controllers\NotificationChannelController;
+use App\Modules\Notification\Infrastructure\Http\Controllers\TelegramChannelController;
 use App\Modules\Service\Infrastructure\Http\Controllers\ServiceController;
 use App\Modules\Tools\Infrastructure\Http\Controllers\ToolLinksController;
 use App\Modules\Trace\Infrastructure\Http\Controllers\TraceAdminStoreController;
@@ -162,6 +164,31 @@ Route::prefix('/watchers')
         }
 
         Route::delete('/{id}', [WatcherController::class, 'delete'])->name('delete');
+    });
+
+Route::prefix('/notification-channels')
+    ->as('notification-channels.')
+    ->group(function () {
+        Route::get('', [NotificationChannelController::class, 'index'])->name('index');
+        Route::get('/types', [NotificationChannelController::class, 'types'])->name('types');
+
+        // A route per type, because the body follows the type.
+        $types = [
+            'telegram' => TelegramChannelController::class,
+        ];
+
+        foreach ($types as $segment => $controller) {
+            Route::prefix("/$segment")
+                ->as("$segment.")
+                ->group(function () use ($controller) {
+                    Route::post('', [$controller, 'create'])->name('create');
+                    Route::get('/{id}', [$controller, 'show'])->name('show');
+                    Route::patch('/{id}', [$controller, 'update'])->name('update');
+                });
+        }
+
+        Route::post('/{id}/test', [NotificationChannelController::class, 'test'])->name('test');
+        Route::delete('/{id}', [NotificationChannelController::class, 'delete'])->name('delete');
     });
 
 Route::prefix('/logs')

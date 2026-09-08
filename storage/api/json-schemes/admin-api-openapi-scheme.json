@@ -5704,6 +5704,512 @@
                 ]
             }
         },
+        "/admin-api/notification-channels": {
+            "get": {
+                "responses": {
+                    "200": {
+                        "description": "description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "nullable": false
+                                                    },
+                                                    "name": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "type": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "enabled": {
+                                                        "type": "boolean",
+                                                        "nullable": false
+                                                    },
+                                                    "on_opened": {
+                                                        "type": "boolean",
+                                                        "nullable": false
+                                                    },
+                                                    "on_event": {
+                                                        "type": "boolean",
+                                                        "nullable": false
+                                                    },
+                                                    "on_closed": {
+                                                        "type": "boolean",
+                                                        "nullable": false
+                                                    },
+                                                    "created_at": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "updated_at": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    }
+                                                },
+                                                "required": [
+                                                    "id",
+                                                    "name",
+                                                    "type",
+                                                    "enabled",
+                                                    "on_opened",
+                                                    "on_event",
+                                                    "on_closed",
+                                                    "created_at",
+                                                    "updated_at"
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/admin-api/notification-channels/types": {
+            "get": {
+                "responses": {
+                    "200": {
+                        "description": "description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "type": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "title": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "description": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "fields": {
+                                                        "type": "array",
+                                                        "nullable": false,
+                                                        "items": {
+                                                            "properties": {
+                                                                "key": {
+                                                                    "type": "string",
+                                                                    "nullable": false
+                                                                },
+                                                                "title": {
+                                                                    "type": "string",
+                                                                    "nullable": false
+                                                                },
+                                                                "description": {
+                                                                    "type": "string",
+                                                                    "nullable": false
+                                                                },
+                                                                "secret": {
+                                                                    "type": "boolean",
+                                                                    "nullable": false
+                                                                },
+                                                                "max_length": {
+                                                                    "type": "integer",
+                                                                    "nullable": false
+                                                                }
+                                                            },
+                                                            "required": [
+                                                                "key",
+                                                                "title",
+                                                                "description",
+                                                                "secret",
+                                                                "max_length"
+                                                            ]
+                                                        }
+                                                    }
+                                                },
+                                                "required": [
+                                                    "type",
+                                                    "title",
+                                                    "description",
+                                                    "fields"
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/admin-api/notification-channels/telegram": {
+            "post": {
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "maxLength": 255,
+                                        "minLength": 1
+                                    },
+                                    "enabled": {
+                                        "type": "boolean"
+                                    },
+                                    "on_opened": {
+                                        "type": "boolean"
+                                    },
+                                    "on_event": {
+                                        "type": "boolean"
+                                    },
+                                    "on_closed": {
+                                        "type": "boolean"
+                                    },
+                                    "settings": {
+                                        "type": "object",
+                                        "properties": {
+                                            "bot_token": {
+                                                "type": "string",
+                                                "maxLength": 255,
+                                                "minLength": 10
+                                            },
+                                            "chat_id": {
+                                                "type": "string",
+                                                "maxLength": 255,
+                                                "minLength": 5
+                                            }
+                                        }
+                                    }
+                                },
+                                "required": [
+                                    "name",
+                                    "enabled",
+                                    "on_opened",
+                                    "on_event",
+                                    "on_closed"
+                                ],
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "nullable": false
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "nullable": false
+                                                },
+                                                "type": {
+                                                    "type": "string",
+                                                    "nullable": false
+                                                },
+                                                "enabled": {
+                                                    "type": "boolean",
+                                                    "nullable": false
+                                                },
+                                                "on_opened": {
+                                                    "type": "boolean",
+                                                    "nullable": false
+                                                },
+                                                "on_event": {
+                                                    "type": "boolean",
+                                                    "nullable": false
+                                                },
+                                                "on_closed": {
+                                                    "type": "boolean",
+                                                    "nullable": false
+                                                },
+                                                "created_at": {
+                                                    "type": "string",
+                                                    "nullable": false
+                                                },
+                                                "updated_at": {
+                                                    "type": "string",
+                                                    "nullable": false
+                                                }
+                                            },
+                                            "required": [
+                                                "id",
+                                                "name",
+                                                "type",
+                                                "enabled",
+                                                "on_opened",
+                                                "on_event",
+                                                "on_closed",
+                                                "created_at",
+                                                "updated_at"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/admin-api/notification-channels/telegram/{id}": {
+            "get": {
+                "parameters": [
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "schema": {}
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "nullable": false
+                                                },
+                                                "bot_token_mask": {
+                                                    "type": "string",
+                                                    "nullable": false
+                                                },
+                                                "chat_id": {
+                                                    "type": "string",
+                                                    "nullable": false
+                                                }
+                                            },
+                                            "required": [
+                                                "id",
+                                                "bot_token_mask",
+                                                "chat_id"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "patch": {
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "maxLength": 255,
+                                        "minLength": 1
+                                    },
+                                    "enabled": {
+                                        "type": "boolean"
+                                    },
+                                    "on_opened": {
+                                        "type": "boolean"
+                                    },
+                                    "on_event": {
+                                        "type": "boolean"
+                                    },
+                                    "on_closed": {
+                                        "type": "boolean"
+                                    },
+                                    "settings": {
+                                        "type": "object",
+                                        "properties": {
+                                            "bot_token": {
+                                                "type": "string",
+                                                "nullable": true,
+                                                "maxLength": 255,
+                                                "minLength": 10
+                                            },
+                                            "chat_id": {
+                                                "type": "string",
+                                                "maxLength": 255,
+                                                "minLength": 5
+                                            }
+                                        }
+                                    }
+                                },
+                                "required": [
+                                    "name",
+                                    "enabled",
+                                    "on_opened",
+                                    "on_event",
+                                    "on_closed"
+                                ],
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "schema": {}
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "description",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/admin-api/notification-channels/{id}/test": {
+            "post": {
+                "parameters": [
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "schema": {}
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "delivered": {
+                                                    "type": "boolean",
+                                                    "nullable": false
+                                                },
+                                                "permanent": {
+                                                    "type": "boolean",
+                                                    "nullable": false
+                                                },
+                                                "error": {
+                                                    "type": "string",
+                                                    "nullable": true
+                                                },
+                                                "retry_after_seconds": {
+                                                    "type": "integer",
+                                                    "nullable": true
+                                                }
+                                            },
+                                            "required": [
+                                                "delivered",
+                                                "permanent"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/admin-api/notification-channels/{id}": {
+            "delete": {
+                "parameters": [
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "schema": {}
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "description"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/admin-api/logs": {
             "get": {
                 "parameters": [

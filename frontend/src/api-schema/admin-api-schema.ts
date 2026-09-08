@@ -2828,6 +2828,274 @@ export namespace AdminApi {
 
   /**
  * No description
+ * @name NotificationChannelsList
+ * @request GET:/admin-api/notification-channels
+ * @secure
+ * @response `200` `{
+    data: ({
+    id: number,
+    name: string,
+    type: string,
+    enabled: boolean,
+    on_opened: boolean,
+    on_event: boolean,
+    on_closed: boolean,
+    created_at: string,
+    updated_at: string,
+
+})[],
+
+}` description
+*/
+  export namespace NotificationChannelsList {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        id: number;
+        name: string;
+        type: string;
+        enabled: boolean;
+        on_opened: boolean;
+        on_event: boolean;
+        on_closed: boolean;
+        created_at: string;
+        updated_at: string;
+      }[];
+    };
+  }
+
+  /**
+ * No description
+ * @name NotificationChannelsTypesList
+ * @request GET:/admin-api/notification-channels/types
+ * @secure
+ * @response `200` `{
+    data: ({
+    type: string,
+    title: string,
+    description: string,
+    fields: ({
+    key: string,
+    title: string,
+    description: string,
+    secret: boolean,
+    max_length: number,
+
+})[],
+
+})[],
+
+}` description
+*/
+  export namespace NotificationChannelsTypesList {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        type: string;
+        title: string;
+        description: string;
+        fields: {
+          key: string;
+          title: string;
+          description: string;
+          secret: boolean;
+          max_length: number;
+        }[];
+      }[];
+    };
+  }
+
+  /**
+ * No description
+ * @name NotificationChannelsTelegramCreate
+ * @request POST:/admin-api/notification-channels/telegram
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    name: string,
+    type: string,
+    enabled: boolean,
+    on_opened: boolean,
+    on_event: boolean,
+    on_closed: boolean,
+    created_at: string,
+    updated_at: string,
+
+},
+
+}` description
+*/
+  export namespace NotificationChannelsTelegramCreate {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = {
+      /**
+       * @minLength 1
+       * @maxLength 255
+       */
+      name: string;
+      enabled: boolean;
+      on_opened: boolean;
+      on_event: boolean;
+      on_closed: boolean;
+      settings?: {
+        /**
+         * @minLength 10
+         * @maxLength 255
+         */
+        bot_token?: string;
+        /**
+         * @minLength 5
+         * @maxLength 255
+         */
+        chat_id?: string;
+      };
+    };
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        id: number;
+        name: string;
+        type: string;
+        enabled: boolean;
+        on_opened: boolean;
+        on_event: boolean;
+        on_closed: boolean;
+        created_at: string;
+        updated_at: string;
+      };
+    };
+  }
+
+  /**
+ * No description
+ * @name NotificationChannelsTelegramDetail
+ * @request GET:/admin-api/notification-channels/telegram/{id}
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    bot_token_mask: string,
+    chat_id: string,
+
+},
+
+}` description
+*/
+  export namespace NotificationChannelsTelegramDetail {
+    export type RequestParams = {
+      id: any;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        id: number;
+        bot_token_mask: string;
+        chat_id: string;
+      };
+    };
+  }
+
+  /**
+   * No description
+   * @name NotificationChannelsTelegramPartialUpdate
+   * @request PATCH:/admin-api/notification-channels/telegram/{id}
+   * @secure
+   * @response `200` `any` description
+   */
+  export namespace NotificationChannelsTelegramPartialUpdate {
+    export type RequestParams = {
+      id: any;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = {
+      /**
+       * @minLength 1
+       * @maxLength 255
+       */
+      name: string;
+      enabled: boolean;
+      on_opened: boolean;
+      on_event: boolean;
+      on_closed: boolean;
+      settings?: {
+        /**
+         * @minLength 10
+         * @maxLength 255
+         */
+        bot_token?: string | null;
+        /**
+         * @minLength 5
+         * @maxLength 255
+         */
+        chat_id?: string;
+      };
+    };
+    export type RequestHeaders = {};
+    export type ResponseBody = any;
+  }
+
+  /**
+ * No description
+ * @name NotificationChannelsTestCreate
+ * @request POST:/admin-api/notification-channels/{id}/test
+ * @secure
+ * @response `200` `{
+    data: {
+    delivered: boolean,
+    permanent: boolean,
+    error?: string | null,
+    retry_after_seconds?: number | null,
+
+},
+
+}` description
+*/
+  export namespace NotificationChannelsTestCreate {
+    export type RequestParams = {
+      id: any;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        delivered: boolean;
+        permanent: boolean;
+        error?: string | null;
+        retry_after_seconds?: number | null;
+      };
+    };
+  }
+
+  /**
+   * No description
+   * @name NotificationChannelsDelete
+   * @request DELETE:/admin-api/notification-channels/{id}
+   * @secure
+   * @response `200` `void` description
+   */
+  export namespace NotificationChannelsDelete {
+    export type RequestParams = {
+      id: any;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
+  }
+
+  /**
+ * No description
  * @name LogsList
  * @request GET:/admin-api/logs
  * @secure
@@ -6093,6 +6361,305 @@ export class Api<
     watchersDelete: (id: any, params: RequestParams = {}) =>
       this.request<void, any>({
         path: `/admin-api/watchers/${id}`,
+        method: "DELETE",
+        secure: true,
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name NotificationChannelsList
+ * @request GET:/admin-api/notification-channels
+ * @secure
+ * @response `200` `{
+    data: ({
+    id: number,
+    name: string,
+    type: string,
+    enabled: boolean,
+    on_opened: boolean,
+    on_event: boolean,
+    on_closed: boolean,
+    created_at: string,
+    updated_at: string,
+
+})[],
+
+}` description
+ */
+    notificationChannelsList: (params: RequestParams = {}) =>
+      this.request<
+        {
+          data: {
+            id: number;
+            name: string;
+            type: string;
+            enabled: boolean;
+            on_opened: boolean;
+            on_event: boolean;
+            on_closed: boolean;
+            created_at: string;
+            updated_at: string;
+          }[];
+        },
+        any
+      >({
+        path: `/admin-api/notification-channels`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name NotificationChannelsTypesList
+ * @request GET:/admin-api/notification-channels/types
+ * @secure
+ * @response `200` `{
+    data: ({
+    type: string,
+    title: string,
+    description: string,
+    fields: ({
+    key: string,
+    title: string,
+    description: string,
+    secret: boolean,
+    max_length: number,
+
+})[],
+
+})[],
+
+}` description
+ */
+    notificationChannelsTypesList: (params: RequestParams = {}) =>
+      this.request<
+        {
+          data: {
+            type: string;
+            title: string;
+            description: string;
+            fields: {
+              key: string;
+              title: string;
+              description: string;
+              secret: boolean;
+              max_length: number;
+            }[];
+          }[];
+        },
+        any
+      >({
+        path: `/admin-api/notification-channels/types`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name NotificationChannelsTelegramCreate
+ * @request POST:/admin-api/notification-channels/telegram
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    name: string,
+    type: string,
+    enabled: boolean,
+    on_opened: boolean,
+    on_event: boolean,
+    on_closed: boolean,
+    created_at: string,
+    updated_at: string,
+
+},
+
+}` description
+ */
+    notificationChannelsTelegramCreate: (
+      data: {
+        /**
+         * @minLength 1
+         * @maxLength 255
+         */
+        name: string;
+        enabled: boolean;
+        on_opened: boolean;
+        on_event: boolean;
+        on_closed: boolean;
+        settings?: {
+          /**
+           * @minLength 10
+           * @maxLength 255
+           */
+          bot_token?: string;
+          /**
+           * @minLength 5
+           * @maxLength 255
+           */
+          chat_id?: string;
+        };
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          data: {
+            id: number;
+            name: string;
+            type: string;
+            enabled: boolean;
+            on_opened: boolean;
+            on_event: boolean;
+            on_closed: boolean;
+            created_at: string;
+            updated_at: string;
+          };
+        },
+        any
+      >({
+        path: `/admin-api/notification-channels/telegram`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name NotificationChannelsTelegramDetail
+ * @request GET:/admin-api/notification-channels/telegram/{id}
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    bot_token_mask: string,
+    chat_id: string,
+
+},
+
+}` description
+ */
+    notificationChannelsTelegramDetail: (id: any, params: RequestParams = {}) =>
+      this.request<
+        {
+          data: {
+            id: number;
+            bot_token_mask: string;
+            chat_id: string;
+          };
+        },
+        any
+      >({
+        path: `/admin-api/notification-channels/telegram/${id}`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @name NotificationChannelsTelegramPartialUpdate
+     * @request PATCH:/admin-api/notification-channels/telegram/{id}
+     * @secure
+     * @response `200` `any` description
+     */
+    notificationChannelsTelegramPartialUpdate: (
+      id: any,
+      data: {
+        /**
+         * @minLength 1
+         * @maxLength 255
+         */
+        name: string;
+        enabled: boolean;
+        on_opened: boolean;
+        on_event: boolean;
+        on_closed: boolean;
+        settings?: {
+          /**
+           * @minLength 10
+           * @maxLength 255
+           */
+          bot_token?: string | null;
+          /**
+           * @minLength 5
+           * @maxLength 255
+           */
+          chat_id?: string;
+        };
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<any, any>({
+        path: `/admin-api/notification-channels/telegram/${id}`,
+        method: "PATCH",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name NotificationChannelsTestCreate
+ * @request POST:/admin-api/notification-channels/{id}/test
+ * @secure
+ * @response `200` `{
+    data: {
+    delivered: boolean,
+    permanent: boolean,
+    error?: string | null,
+    retry_after_seconds?: number | null,
+
+},
+
+}` description
+ */
+    notificationChannelsTestCreate: (id: any, params: RequestParams = {}) =>
+      this.request<
+        {
+          data: {
+            delivered: boolean;
+            permanent: boolean;
+            error?: string | null;
+            retry_after_seconds?: number | null;
+          };
+        },
+        any
+      >({
+        path: `/admin-api/notification-channels/${id}/test`,
+        method: "POST",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @name NotificationChannelsDelete
+     * @request DELETE:/admin-api/notification-channels/{id}
+     * @secure
+     * @response `200` `void` description
+     */
+    notificationChannelsDelete: (id: any, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/admin-api/notification-channels/${id}`,
         method: "DELETE",
         secure: true,
         ...params,

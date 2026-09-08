@@ -282,6 +282,30 @@ Notes:
   `Canceled`. A status says what happened to the record, not what it currently looks like,
   and a set mixing an adjective with a participle (`Open` beside `Closed`) reads as two
   different kinds of thing.
+- Entities, DTOs and parameter objects hold data and nothing else: promoted readonly
+  properties and a constructor. No behaviour methods on them, and no static factory or
+  named-constructor methods (`SomeObject::delivered()`, `::fromArray()`) — build them with
+  `new` and keep the decision about what to build in the action or service that makes it.
+  The settings objects' `toArray()` is the one exception: it is how a settings column is
+  written, and the object is the only place that knows its own fields.
+- Call with named arguments once a call is written across more than one line —
+  `new HttpClient(responseFactory: ..., options: ...)`, `$sender->send(channel: ..., text: ...)`.
+  Short single-line calls stay positional. Named arguments bind to parameter names, so
+  the names of an interface's parameters become part of its contract, and the same goes
+  for a third-party constructor: renaming a parameter is then a breaking change.
+- A call passed as an argument to another call goes on its own line:
+
+  ```php
+  return ChannelResource::collection(
+      $this->findChannelsAction->handle()
+  );
+  ```
+- Do not interpolate property or method access into a string — no `"channel [$dto->id]"`.
+  Use `sprintf()` with placeholders. A plain scalar variable may still be interpolated:
+  `"channel [$channelId] not found"`.
+- Give every string validation rule a `min` beside its `max`
+  (`['required', 'string', 'min:10', 'max:255']`). The generated OpenAPI schema carries
+  both as `minLength`/`maxLength`, so a rule changed here needs `make oa-generate`.
 - For SConcur coroutine state, use the library's `SConcur\Context\Context` (`Context::current()->find/has/set/forget`) — do not reimplement a context store. Working-with-context semantics: `vendor/sconcur/sconcur/docs/coroutine-context.ru.md`.
 
 ### Migrations
