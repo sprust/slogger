@@ -16,7 +16,7 @@ use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use SConcur\Laravel\Tasks\TaskPoolLogger;
 use SConcur\Laravel\Tasks\TickResultEnum;
-use Tests\Modules\Watcher\WatcherFactory;
+use Tests\Modules\Watcher\WatcherFactoryTrait;
 
 /**
  * The pass is once a minute; the task ticks more often than that and watches the minute
@@ -24,7 +24,7 @@ use Tests\Modules\Watcher\WatcherFactory;
  */
 class CheckWatchersTaskTest extends TestCase
 {
-    use WatcherFactory;
+    use WatcherFactoryTrait;
 
     protected function tearDown(): void
     {

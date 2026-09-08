@@ -105,9 +105,11 @@ export const useAuthStore = defineStore('authStore', {
             useTraceDynamicIndexesStore().stopWatchingStats()
             useWatcherIncidentStatStore().stopWatching()
 
-            // Incidents, watchers and the types they come in are read once per session and
-            // held; the next person to sign in on this tab would otherwise be shown what
-            // the last one was looking at until the first request answers.
+            // Incidents, watchers, the types they come in and the number in the badge are
+            // read once per session and held; the next person to sign in on this tab would
+            // otherwise be shown what the last one was looking at until the first request
+            // answers.
+            useWatcherIncidentStatStore().$reset()
             useIncidentsStore().$reset()
             useWatchersStore().$reset()
             useWatcherTypesStore().$reset()

@@ -4726,7 +4726,7 @@
                                             "period_minutes": {
                                                 "type": "integer",
                                                 "minimum": 1,
-                                                "maximum": 180
+                                                "maximum": 175
                                             },
                                             "filter": {
                                                 "type": "object",
@@ -4948,7 +4948,7 @@
                                             "period_minutes": {
                                                 "type": "integer",
                                                 "minimum": 1,
-                                                "maximum": 180
+                                                "maximum": 175
                                             },
                                             "filter": {
                                                 "type": "object",
@@ -5039,12 +5039,12 @@
                                             "window_minutes": {
                                                 "type": "integer",
                                                 "minimum": 1,
-                                                "maximum": 180
+                                                "maximum": 175
                                             },
                                             "baseline_minutes": {
                                                 "type": "integer",
                                                 "minimum": 1,
-                                                "maximum": 180
+                                                "maximum": 175
                                             },
                                             "growth_percent": {
                                                 "type": "integer",
@@ -5280,12 +5280,12 @@
                                             "window_minutes": {
                                                 "type": "integer",
                                                 "minimum": 1,
-                                                "maximum": 180
+                                                "maximum": 175
                                             },
                                             "baseline_minutes": {
                                                 "type": "integer",
                                                 "minimum": 1,
-                                                "maximum": 180
+                                                "maximum": 175
                                             },
                                             "growth_percent": {
                                                 "type": "integer",
@@ -5385,7 +5385,7 @@
                                             "window_minutes": {
                                                 "type": "integer",
                                                 "minimum": 1,
-                                                "maximum": 180
+                                                "maximum": 175
                                             },
                                             "filter": {
                                                 "type": "object",
@@ -5617,7 +5617,7 @@
                                             "window_minutes": {
                                                 "type": "integer",
                                                 "minimum": 1,
-                                                "maximum": 180
+                                                "maximum": 175
                                             },
                                             "filter": {
                                                 "type": "object",

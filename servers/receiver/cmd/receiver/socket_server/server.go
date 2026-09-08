@@ -42,6 +42,11 @@ type Server struct {
 	activeHandlingCount    atomic.Int64
 	handlingSemaphore      chan struct{}
 	closing                atomic.Bool
+
+	// Closed once stop() has finished letting go of everything it holds. Run waits on it
+	// rather than returning the moment Accept fails, which is only the first thing stop()
+	// does — main takes a returned Run for a server that has finished.
+	stopped chan struct{}
 }
 
 type Stats struct {
@@ -70,6 +75,7 @@ func New(network string, address string) *Server {
 		totalHandlingCount:     atomic.Uint64{},
 		activeHandlingCount:    atomic.Int64{},
 		handlingSemaphore:      make(chan struct{}, maxConcurrentHandlings),
+		stopped:                make(chan struct{}),
 	}
 }
 
@@ -130,6 +136,12 @@ func (s *Server) Run(ctx context.Context) error {
 				slog.Error(err.Error())
 			}
 		}()
+	}
+
+	// The listener is closed first thing in stop(), so Accept fails while the connections
+	// still being handled, the context and the service connection are yet to be let go of.
+	if s.closing.Load() {
+		<-s.stopped
 	}
 
 	return nil
@@ -275,6 +287,7 @@ func (s *Server) GetStats() Stats {
 // and main panicking on a perfectly ordinary SIGTERM.
 func (s *Server) stop() {
 	s.closing.Store(true)
+	defer close(s.stopped)
 
 	for {
 		activeHandlingCount := s.activeHandlingCount.Load()

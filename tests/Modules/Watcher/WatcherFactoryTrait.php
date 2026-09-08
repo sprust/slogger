@@ -11,7 +11,7 @@ use Illuminate\Support\Carbon;
  * Builds watchers for the tests, so that a case says what it is about instead of naming
  * eleven constructor arguments.
  */
-trait WatcherFactory
+trait WatcherFactoryTrait
 {
     private function watcher(
         WatcherTypeEnum $type,

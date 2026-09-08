@@ -2390,7 +2390,7 @@ export namespace AdminApi {
       settings?: {
         /**
          * @min 1
-         * @max 180
+         * @max 175
          */
         period_minutes?: number;
         filter?: {
@@ -2481,7 +2481,7 @@ export namespace AdminApi {
       settings?: {
         /**
          * @min 1
-         * @max 180
+         * @max 175
          */
         period_minutes?: number;
         filter?: {
@@ -2532,12 +2532,12 @@ export namespace AdminApi {
       settings?: {
         /**
          * @min 1
-         * @max 180
+         * @max 175
          */
         window_minutes?: number;
         /**
          * @min 1
-         * @max 180
+         * @max 175
          */
         baseline_minutes?: number;
         /** @min 1 */
@@ -2634,12 +2634,12 @@ export namespace AdminApi {
       settings?: {
         /**
          * @min 1
-         * @max 180
+         * @max 175
          */
         window_minutes?: number;
         /**
          * @min 1
-         * @max 180
+         * @max 175
          */
         baseline_minutes?: number;
         /** @min 1 */
@@ -2697,7 +2697,7 @@ export namespace AdminApi {
         duration?: number;
         /**
          * @min 1
-         * @max 180
+         * @max 175
          */
         window_minutes?: number;
         filter?: {
@@ -2795,7 +2795,7 @@ export namespace AdminApi {
         duration?: number;
         /**
          * @min 1
-         * @max 180
+         * @max 175
          */
         window_minutes?: number;
         filter?: {
@@ -5605,7 +5605,7 @@ export class Api<
         settings?: {
           /**
            * @min 1
-           * @max 180
+           * @max 175
            */
           period_minutes?: number;
           filter?: {
@@ -5708,7 +5708,7 @@ export class Api<
         settings?: {
           /**
            * @min 1
-           * @max 180
+           * @max 175
            */
           period_minutes?: number;
           filter?: {
@@ -5766,12 +5766,12 @@ export class Api<
         settings?: {
           /**
            * @min 1
-           * @max 180
+           * @max 175
            */
           window_minutes?: number;
           /**
            * @min 1
-           * @max 180
+           * @max 175
            */
           baseline_minutes?: number;
           /** @min 1 */
@@ -5880,12 +5880,12 @@ export class Api<
         settings?: {
           /**
            * @min 1
-           * @max 180
+           * @max 175
            */
           window_minutes?: number;
           /**
            * @min 1
-           * @max 180
+           * @max 175
            */
           baseline_minutes?: number;
           /** @min 1 */
@@ -5950,7 +5950,7 @@ export class Api<
           duration?: number;
           /**
            * @min 1
-           * @max 180
+           * @max 175
            */
           window_minutes?: number;
           filter?: {
@@ -6060,7 +6060,7 @@ export class Api<
           duration?: number;
           /**
            * @min 1
-           * @max 180
+           * @max 175
            */
           window_minutes?: number;
           filter?: {

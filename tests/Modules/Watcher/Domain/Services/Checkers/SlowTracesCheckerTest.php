@@ -14,11 +14,11 @@ use App\Modules\Watcher\Enums\WatcherTypeEnum;
 use App\Modules\Watcher\Repositories\WatcherTimelineRepository;
 use Illuminate\Support\Carbon;
 use PHPUnit\Framework\TestCase;
-use Tests\Modules\Watcher\WatcherFactory;
+use Tests\Modules\Watcher\WatcherFactoryTrait;
 
 class SlowTracesCheckerTest extends TestCase
 {
-    use WatcherFactory;
+    use WatcherFactoryTrait;
 
     private const string NOW = '2026-09-07 12:00:00';
 

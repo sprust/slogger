@@ -11,11 +11,11 @@ use App\Modules\Watcher\Entities\WatcherCheckContextObject;
 use App\Modules\Watcher\Enums\WatcherTypeEnum;
 use Illuminate\Support\Carbon;
 use PHPUnit\Framework\TestCase;
-use Tests\Modules\Watcher\WatcherFactory;
+use Tests\Modules\Watcher\WatcherFactoryTrait;
 
 class BufferCheckersTest extends TestCase
 {
-    use WatcherFactory;
+    use WatcherFactoryTrait;
 
     public function testAFullBufferIsReported(): void
     {

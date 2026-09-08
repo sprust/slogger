@@ -13,11 +13,11 @@ use App\Modules\Watcher\Enums\WatcherTypeEnum;
 use App\Modules\Watcher\Repositories\WatcherTimelineRepository;
 use Illuminate\Support\Carbon;
 use PHPUnit\Framework\TestCase;
-use Tests\Modules\Watcher\WatcherFactory;
+use Tests\Modules\Watcher\WatcherFactoryTrait;
 
 class TracesSpikeCheckerTest extends TestCase
 {
-    use WatcherFactory;
+    use WatcherFactoryTrait;
 
     private const string NOW = '2026-09-07 12:00:00';
 
@@ -95,50 +95,12 @@ class TracesSpikeCheckerTest extends TestCase
         $this->assertSame(90, $trigger->payload['threshold_percent']);
     }
 
-    /**
-     * A line the receiver has already cut short reads as a slower baseline than the one
-     * that was actually there: the buckets it still holds are divided by the full baseline
-     * either way. The watcher would then call steady traffic a spike and go on doing so.
-     *
-     * This is not the same case as the warm-up above. A watcher can have been collecting
-     * for days and still not have the line: the receiver caps it at
-     * WatcherTimelineObject::MAX_DEPTH_MINUTES whatever the settings say.
-     */
-    public function testNothingIsSaidWhileTheLineIsShorterThanTheBaseline(): void
-    {
-        $this->assertNull(
-            $this->check(
-                baselinePerMinute: 1,
-                windowTotal: 6,
-                // Steady 1/min throughout: 6 over 5 window minutes is 1.2/min, which is
-                // 20% — no spike. Against the third of the baseline the line still holds,
-                // the rate reads 0.33/min and the same traffic is a 260% rise.
-                settings: new TracesSpikeSettingsObject(windowMinutes: 5, baselineMinutes: 60, growthPercent: 90),
-                lineMissesFirstMinutes: 40
-            )
-        );
-    }
-
-    /** The whole baseline in hand is the ordinary case, and it still reports. */
-    public function testAFullLineStillReports(): void
-    {
-        $this->assertNotNull(
-            $this->check(
-                baselinePerMinute: 1,
-                windowTotal: 20,
-                settings: new TracesSpikeSettingsObject(windowMinutes: 5, baselineMinutes: 60, growthPercent: 90),
-                lineMissesFirstMinutes: 0
-            )
-        );
-    }
-
     private function check(
         float $baselinePerMinute,
         int $windowTotal,
         ?TracesSpikeSettingsObject $settings = null,
         ?Carbon $collectSince = null,
         bool $collecting = true,
-        int $lineMissesFirstMinutes = 0,
     ): ?\App\Modules\Watcher\Entities\WatcherTriggerObject {
         $settings ??= new TracesSpikeSettingsObject();
 
@@ -154,7 +116,7 @@ class TracesSpikeCheckerTest extends TestCase
 
         // One bucket per minute is enough: the analyzer sums whatever falls in the window,
         // and the resolution of the line does not change the arithmetic under test.
-        for ($minute = $lineMissesFirstMinutes; $minute < $settings->baselineMinutes; $minute++) {
+        for ($minute = 0; $minute < $settings->baselineMinutes; $minute++) {
             $buckets[] = $this->bucket(
                 $baselineFrom->clone()->addMinutes($minute),
                 (int) $baselinePerMinute

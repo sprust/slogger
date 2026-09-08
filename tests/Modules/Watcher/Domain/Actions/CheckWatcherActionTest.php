@@ -24,11 +24,11 @@ use Illuminate\Support\Carbon;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
-use Tests\Modules\Watcher\WatcherFactory;
+use Tests\Modules\Watcher\WatcherFactoryTrait;
 
 class CheckWatcherActionTest extends TestCase
 {
-    use WatcherFactory;
+    use WatcherFactoryTrait;
 
     /**
      * A pass covers every watcher, and one with settings nothing can read is no reason to

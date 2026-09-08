@@ -31,7 +31,7 @@ readonly class InvalidBufferGrownChecker implements WatcherCheckerInterface
 
         $since = $this->windowStart($watcher, $context->now);
 
-        $count = $this->countInvalidSinceAction->handle($since);
+        $count = $this->countInvalidSinceAction->handle($since, $context->now);
 
         if ($count < $settings->threshold) {
             return null;

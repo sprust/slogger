@@ -116,9 +116,16 @@ export const useIncidentsStore = defineStore('incidentsStore', {
         async findMoreEvents(incidentId: number) {
             const page = (this.eventsPage[incidentId] ?? 1) + 1
 
-            this.eventsPage[incidentId] = page
+            const loaded = await this.loadEvents(incidentId, page, true)
 
-            return await this.loadEvents(incidentId, page, true)
+            // Only once it is actually in hand. Counting the page as read whatever
+            // happened would make the next press ask for the one after it, and the events
+            // in between would never be shown.
+            if (loaded === true) {
+                this.eventsPage[incidentId] = page
+            }
+
+            return loaded
         },
         async loadEvents(incidentId: number, page: number, append: boolean) {
             this.loadingEvents[incidentId] = true
@@ -142,6 +149,7 @@ export const useIncidentsStore = defineStore('incidentsStore', {
                     .finally(() => {
                         delete this.loadingEvents[incidentId]
                     })
+                    .then(() => true)
             )
         },
         async close(incidentId: number) {

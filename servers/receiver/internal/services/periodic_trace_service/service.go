@@ -274,7 +274,13 @@ func (s *Service) saveTraces(ctx context.Context, serviceId int, traceId string,
 	// reverse: `duration` above is the merged value, so a second write over a trace whose
 	// duration was already stored would add it to the sums again.
 	typeWasKnown := isKnownTraceType(existsTrace["tp"])
-	_, durationWasStored := existsTrace["dur"]
+
+	// By the value, not by the key: the document is written with every field it has room
+	// for, so a trace saved before its duration arrived carries `dur` as a null. Read as
+	// presence, that null says "already counted" on every write after the first — and then
+	// no duration is ever recorded for anybody, which is every slow_traces watcher going
+	// quiet for good.
+	durationWasStored := durationValue(existsTrace["dur"]) != nil
 
 	countsAsNew := traceType != unknownTraceType && !typeWasKnown
 
@@ -305,14 +311,6 @@ func (s *Service) saveTraces(ctx context.Context, serviceId int, traceId string,
 
 // tagNames pulls the tag names out of whichever shape the merge above left them in: the
 // list this service just built, or the one decoded from the stored document.
-// isKnownTraceType says whether what is stored is a real type rather than the placeholder
-// a trace wears between its update and its create.
-func isKnownTraceType(stored interface{}) bool {
-	value, ok := stored.(string)
-
-	return ok && value != "" && value != unknownTraceType
-}
-
 func tagNames(value interface{}) []string {
 	var items []interface{}
 
@@ -351,6 +349,14 @@ func tagNames(value interface{}) []string {
 	}
 
 	return names
+}
+
+// isKnownTraceType says whether what is stored is a real type rather than the placeholder
+// a trace wears between its update and its create.
+func isKnownTraceType(stored interface{}) bool {
+	value, ok := stored.(string)
+
+	return ok && value != "" && value != unknownTraceType
 }
 
 // durationValue reads a duration in whatever width it arrived in — the message hands over

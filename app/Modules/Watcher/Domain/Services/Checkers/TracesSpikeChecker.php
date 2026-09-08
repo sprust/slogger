@@ -52,21 +52,13 @@ readonly class TracesSpikeChecker implements WatcherCheckerInterface
 
         $timeline = $this->timelineRepository->find($watcher->id);
 
-        // The line has to cover the baseline, not merely start before the window. Buckets
-        // are summed over whatever is there and divided by the full baseline, so a line
-        // that reaches back only half of it halves the rate it reports — and steady
-        // traffic then reads as a spike, for ever. The line can be short of the baseline
-        // even for a watcher that has been collecting for days: the receiver caps it at
-        // WatcherTimelineObject::MAX_DEPTH_MINUTES whatever the settings say.
-        //
-        // A line with nothing in it is not this case: an empty baseline is handled below,
-        // and reporting an arrival as a spike is what that guard is for.
-        $startsAt = $timeline->startsAt();
-
-        if (!is_null($startsAt) && $startsAt->gt($baselineFrom)) {
-            return null;
-        }
-
+        // The line is known to cover the baseline rather than checked to: the settings
+        // cannot ask for more than WatcherTimelineObject::MAX_DEPTH_MINUTES, which is
+        // short of what the receiver's 720 buckets hold even when every one of them is
+        // full. Reading the coverage off the buckets themselves cannot work — a line with
+        // no bucket at its head is a line nothing matched there, which is not the same as
+        // a line that was cut, and treating the two alike silences the watcher on exactly
+        // the quiet services it was pointed at.
         $baselineCount = $this->analyzer->countIn($timeline, $baselineFrom, $windowFrom);
 
         $baselineRate = $baselineCount / $settings->baselineMinutes;

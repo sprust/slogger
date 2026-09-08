@@ -11,6 +11,7 @@ use App\Modules\Watcher\Entities\WatcherObject;
 use App\Modules\Watcher\Parameters\CreateWatcherParameters;
 use App\Modules\Watcher\Repositories\WatcherRepository;
 use Illuminate\Support\Carbon;
+use LogicException;
 
 readonly class CreateWatcherAction
 {
@@ -26,7 +27,7 @@ readonly class CreateWatcherAction
     {
         $settings = $this->types->for($parameters->type)->makeSettings($parameters->settings);
 
-        return $this->watcherFactory->make(
+        $watcher = $this->watcherFactory->make(
             $this->watcherRepository->create(
                 name: $parameters->name,
                 type: $parameters->type->value,
@@ -40,5 +41,14 @@ readonly class CreateWatcherAction
                 collectSince: Carbon::now()
             )
         );
+
+        // The type came from the enum a moment ago, so the factory cannot fail to read it
+        // back. Stated rather than assumed: the factory answers null for a row it cannot
+        // make sense of, and silently returning one here would be worse than saying so.
+        if (is_null($watcher)) {
+            throw new LogicException("Watcher of type [{$parameters->type->value}] could not be read back");
+        }
+
+        return $watcher;
     }
 }

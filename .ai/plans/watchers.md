@@ -154,16 +154,18 @@ $set:  { uat: now }
 отказывать и метрики тихо теряются. TTL не поможет — он удаляет документы, а не элементы
 массива.
 
-Точную уборку делает PHP: `TrimWatcherTimelinesAction` раз в минуту считает по настройкам
+Точную уборку делает PHP: `TrimWatcherTimelineAction` раз в минуту считает по настройкам
 смотрителя, какая глубина ему вообще видна (окно, база, запас), и вырезает лишнее —
 `$pull: { tl: { t: { $lt: cutoff } } }`. То есть `$slice` — предохранитель, `$pull` —
 уборка по конфигу.
 
 Потолок в 720 вёдер — это ещё и предел того, что смотритель может у себя спросить: окно
 длиннее трёх часов читало бы вёдра, которых никто не хранил, и недостающую часть чекер
-принял бы за отсутствие. Поэтому `WatcherTimelineObject::MAX_DEPTH_MINUTES` (180) — общий
-потолок для `period_minutes`, `window_minutes` и суммы окна с базой у спайка; поднимать
-его можно только вместе с `maxBuckets` в приёмнике.
+принял бы за отсутствие. Поэтому `WatcherTimelineObject::MAX_DEPTH_MINUTES` (175) — общий
+потолок для `period_minutes`, `window_minutes` и суммы окна с базой у спайка. Он строго
+меньше `RECEIVER_CEILING_MINUTES` (180): окно и так сдвинуто назад на `LAG_SECONDS`, и
+потолок вровень с ним означал бы, что самая глубокая настройка просит минуту, которой уже
+нет. Поднимать его можно только вместе с `maxBuckets` в приёмнике.
 
 Размер: 4 ведра в минуту, 240 в час, 720 под потолком. Чтение чекером — `findOne({_id: w})`,
 один документ.
@@ -401,7 +403,9 @@ app/Modules/Watcher/
 │   │   ├── RegisterTriggerAction.php
 │   │   ├── CloseIncidentAction.php
 │   │   ├── CheckWatcherAction.php           — проверить одного, своей корутиной
-│   │   └── TrimWatcherTimelinesAction.php   — вырезать то, что ушло за видимость
+│   │   ├── TrimWatcherTimelineAction.php   — вырезать то, что ушло за видимость
+│   │   ├── DeleteOrphanWatcherTimelinesAction.php — убрать линии смотрителей, которых нет
+│   └── DeleteOrphanWatcherTimelinesAction.php — убрать линии смотрителей, которых нет
 │   ├── Actions/Queries/
 │   │   ├── FindWatchersAction.php
 │   │   ├── FindIncidentsAction.php
@@ -459,8 +463,9 @@ app/Modules/Watcher/
 
 - `app/Models/Traces/TraceBuffer.php`, `TraceInvalidBuffer.php` — коллекции `buffer`,
   `invalidBuffer`.
-- `Repositories/TraceBufferRepository.php` — `estimatedCount()`, `countInvalidSince()`.
-- `Domain/Actions/Queries/FindTraceBufferStatAction.php`.
+- `Repositories/TraceBufferRepository.php` — `estimatedCount()`, `countInvalidBetween()`.
+- `Domain/Actions/Queries/FindTraceBufferCountAction.php` и
+  `CountInvalidTraceBufferSinceAction.php`.
 
 Линия смотрителя — не метрика трейсов, а его собственные данные, поэтому
 `WatcherTimelineRepository` живёт в `Watcher`.
@@ -519,7 +524,7 @@ $waitGroup->waitAll();
 логирует, а проход идёт дальше. Один смотритель с испорченными настройками не повод не
 проверить остальные.
 
-Уборка линий (`TrimWatcherTimelinesAction`) идёт тем же проходом, в тех же корутинах.
+Уборка линий (`TrimWatcherTimelineAction`) идёт тем же проходом, в тех же корутинах.
 
 ## HTTP API
 
@@ -626,11 +631,11 @@ PHP:
 - `.../SlowTracesCheckerTest.php` — порог по `dMax` группы, доказательства (`tid`);
 - `tests/Modules/Watcher/Repositories/Services/WatcherTimelineReaderTest.php` — склейка
   вёдер с одинаковым `t`, границы окна;
-- `tests/Modules/Watcher/Repositories/Services/WatcherMatchFactoryTest.php` — settings →
+- `tests/Modules/Watcher/Domain/Services/WatcherMatchFactoryTest.php` — settings →
   match, `NULL` у буферных типов;
 - `tests/Modules/Watcher/Domain/Actions/RegisterTriggerActionTest.php` — cooldown,
   переиспользование открытого инцидента, новый инцидент после закрытия;
-- `tests/Modules/Watcher/Domain/Actions/TrimWatcherTimelinesActionTest.php` — глубина
+- `tests/Modules/Watcher/Domain/Actions/TrimWatcherTimelineActionTest.php` — глубина
   отреза по настройкам;
 - `tests/Modules/Watcher/Infrastructure/CheckWatchersTaskTest.php` — смена минуты по
   образцу `tests/Services/Tasks/CronTaskTest.php`, фан-аут по смотрителям, падение одного
@@ -645,7 +650,7 @@ PHP:
    в `saveTraces`, финальный сброс при остановке, `MYSQL_TABLE_WATCHERS` в `.env.example`.
    Проверяется тестами Go и глазами по `watcherTimelines`.
 3. **Проверки.** Чекеры, `WatcherTimelineReader`, инциденты и события, `CheckWatchersTask`
-   в `config/sconcur.php`, `TrimWatcherTimelinesAction`.
+   в `config/sconcur.php`, `TrimWatcherTimelineAction`.
 4. **HTTP.** Контроллеры, реквесты, ресурсы, роуты, `make oa-generate`.
 5. **Фронт.** Вкладка, сторы, формы, `make frontend-npm-build`.
 6. **WS-бейдж** открытых инцидентов.
@@ -676,13 +681,16 @@ PHP:
 - Фильтры по полям `dt` в `match`.
 - Смотрители за логами (`app/Modules/Logs`) — та же схема, отдельный тип, позже.
 
-## Требуют решения
+## Решённые вопросы
 
-1. **Правка `main.go`, чтобы дождаться обоих серверов** при остановке — три строки, но это
-   изменение общего поведения приёмника при SIGTERM, а не только нашей фичи. Нужно явное
-   «да».
-2. **Потолок линии — 720 элементов (3 часа).** `$slice` на стороне приёмника, страховка от
-   неработающей PHP-уборки. Он должен быть больше самого длинного окна, которое настройки
-   позволяют задать: если разрешим базу спайка длиннее 3 часов, потолок надо поднимать
-   вместе с ней.
-3. **Групп в свёртке — 20** на ведро; `c` точный при любом переполнении.
+1. **Приёмник ждёт оба сервера** при остановке (`waitForShutdown` в `main.go`). Иначе
+   процесс завершался посреди финального сброса, а транспортёр мог быть оборван на середине
+   пачки.
+2. **Потолок линии — 720 вёдер**, то есть не меньше 3 часов: разреженный трафик растягивает
+   те же вёдра на большее время, поэтому 180 минут — нижняя граница
+   (`WatcherTimelineObject::RECEIVER_CEILING_MINUTES`). Настройки ограничены 175 минутами
+   (`MAX_DEPTH_MINUTES`) — строго меньше, с запасом на `LAG_SECONDS`: окно, уходящее за
+   линию, читает вёдра, которых никто не хранил, и чекер принимает недостачу за отсутствие.
+   Поднимать потолок можно только вместе с `maxBuckets` в приёмнике.
+3. **Групп в свёртке — 20** на ведро; `c` точный при любом переполнении. В событие уходит до
+   пяти (`MAX_REPORTED_GROUPS`).

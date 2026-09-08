@@ -17,7 +17,7 @@ use App\Modules\Watcher\Repositories\WatcherRepository;
 use App\Modules\Watcher\Repositories\WatcherTimelineRepository;
 use Illuminate\Support\Carbon;
 use PHPUnit\Framework\TestCase;
-use Tests\Modules\Watcher\WatcherFactory;
+use Tests\Modules\Watcher\WatcherFactoryTrait;
 
 /**
  * When an edit makes the line already collected unfit to answer with, and what happens to
@@ -25,7 +25,7 @@ use Tests\Modules\Watcher\WatcherFactory;
  */
 class UpdateWatcherActionTest extends TestCase
 {
-    use WatcherFactory;
+    use WatcherFactoryTrait;
 
     private const string COLLECTING_SINCE = '2026-09-06 12:00:00';
 

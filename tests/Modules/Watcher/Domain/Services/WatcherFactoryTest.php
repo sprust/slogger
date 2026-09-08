@@ -20,6 +20,7 @@ use App\Modules\Watcher\Enums\WatcherTypeEnum;
 use App\Modules\Watcher\Repositories\Dto\WatcherDto;
 use Illuminate\Support\Carbon;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
 
 /**
  * Where a row becomes a watcher. The repository hands over a type as a string and settings
@@ -88,6 +89,16 @@ class WatcherFactoryTest extends TestCase
     }
 
     /**
+     * A stored type outlives the code that wrote it — a watcher made by a newer build, or
+     * one whose type a rollback took away. Throwing would take out the whole pass, which
+     * reads every watcher before it checks any of them.
+     */
+    public function testARowOfAnUnknownTypeIsSkippedRatherThanFatal(): void
+    {
+        $this->assertNull($this->factory()->make($this->dto('somethingElse')));
+    }
+
+    /**
      * @param array<string, mixed>      $settings
      * @param array<string, mixed>|null $traceMatch
      */
@@ -123,7 +134,8 @@ class WatcherFactoryTest extends TestCase
                 new NoNewTracesWatcherType($this->createMock(NoNewTracesChecker::class)),
                 new TracesSpikeWatcherType($this->createMock(TracesSpikeChecker::class)),
                 new SlowTracesWatcherType($this->createMock(SlowTracesChecker::class))
-            )
+            ),
+            $this->createMock(LoggerInterface::class)
         );
     }
 }

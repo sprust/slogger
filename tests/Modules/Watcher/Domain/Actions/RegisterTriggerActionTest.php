@@ -15,7 +15,7 @@ use App\Modules\Watcher\Repositories\WatcherRepository;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Support\Carbon;
 use PHPUnit\Framework\TestCase;
-use Tests\Modules\Watcher\WatcherFactory;
+use Tests\Modules\Watcher\WatcherFactoryTrait;
 
 /**
  * One problem is one incident, however many times it was noticed; and a problem that
@@ -23,7 +23,7 @@ use Tests\Modules\Watcher\WatcherFactory;
  */
 class RegisterTriggerActionTest extends TestCase
 {
-    use WatcherFactory;
+    use WatcherFactoryTrait;
 
     private const string NOW = '2026-09-07 12:00:00';
 

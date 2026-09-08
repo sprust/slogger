@@ -10,7 +10,7 @@ use App\Modules\Watcher\Enums\WatcherTypeEnum;
 use App\Modules\Watcher\Repositories\WatcherTimelineRepository;
 use Illuminate\Support\Carbon;
 use PHPUnit\Framework\TestCase;
-use Tests\Modules\Watcher\WatcherFactory;
+use Tests\Modules\Watcher\WatcherFactoryTrait;
 
 /**
  * How much of a line is worth keeping: what the watcher can still be asked about, and a
@@ -18,7 +18,7 @@ use Tests\Modules\Watcher\WatcherFactory;
  */
 class TrimWatcherTimelineActionTest extends TestCase
 {
-    use WatcherFactory;
+    use WatcherFactoryTrait;
 
     private const string NOW = '2026-09-07 12:00:00';
 

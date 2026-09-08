@@ -170,6 +170,7 @@ func (s *Transporter) GetStats() Stats {
 		Deleted: s.totalDeletedBufferCount.Load(),
 	}
 }
+
 // stop asks the loop above to finish the batch it is on and come out.
 //
 // The flag stays raised. It used to be lowered again by a `defer` on this function, which

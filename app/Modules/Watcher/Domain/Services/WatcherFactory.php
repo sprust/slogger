@@ -10,6 +10,7 @@ use App\Modules\Watcher\Entities\WatcherMatchObject;
 use App\Modules\Watcher\Entities\WatcherObject;
 use App\Modules\Watcher\Enums\WatcherTypeEnum;
 use App\Modules\Watcher\Repositories\Dto\WatcherDto;
+use Psr\Log\LoggerInterface;
 
 /**
  * Turns a stored row into a watcher.
@@ -21,13 +22,29 @@ use App\Modules\Watcher\Repositories\Dto\WatcherDto;
 readonly class WatcherFactory
 {
     public function __construct(
-        private WatcherTypeRegistry $types
+        private WatcherTypeRegistry $types,
+        private LoggerInterface $logger
     ) {
     }
 
-    public function make(WatcherDto $dto): WatcherObject
+    /**
+     * Null for a row of a type this build does not know.
+     *
+     * A stored type is data, and data outlives the code that wrote it: a watcher created
+     * by a newer build, or one whose type a rollback took away, is a row like any other.
+     * Throwing on it would take out the whole pass — the check task reads every watcher
+     * before it checks any of them — so an unreadable row is skipped, the way the receiver
+     * skips a filter whose version it does not recognise.
+     */
+    public function make(WatcherDto $dto): ?WatcherObject
     {
-        $type = WatcherTypeEnum::from($dto->type);
+        $type = WatcherTypeEnum::tryFrom($dto->type);
+
+        if (is_null($type)) {
+            $this->logger->warning("Watcher [$dto->id] has an unknown type [$dto->type] and was skipped");
+
+            return null;
+        }
 
         return new WatcherObject(
             id: $dto->id,

@@ -30,10 +30,13 @@ readonly class TraceBufferRepository
      * Counted, not estimated: the question is about a slice, and the slice is normally
      * empty. The `iat` index the TTL rides on is what makes it cheap.
      */
-    public function countInvalidSince(Carbon $since): int
+    public function countInvalidBetween(Carbon $since, Carbon $until): int
     {
         return TraceInvalidBuffer::sconcur()->countDocuments([
-            'iat' => ['$gt' => new UTCDateTime($since)],
+            'iat' => [
+                '$gt'  => new UTCDateTime($since),
+                '$lte' => new UTCDateTime($until),
+            ],
         ]);
     }
 }

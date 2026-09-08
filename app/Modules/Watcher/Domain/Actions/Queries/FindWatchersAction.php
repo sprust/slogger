@@ -22,9 +22,16 @@ readonly class FindWatchersAction
      */
     public function handle(?bool $enabled = null): array
     {
-        return array_map(
-            fn(WatcherDto $dto): WatcherObject => $this->watcherFactory->make($dto),
-            $this->watcherRepository->find($enabled)
+        // Rows of a type this build cannot read are dropped rather than raised: the pass
+        // that calls this reads every watcher before it checks any of them, and one row
+        // nobody can make sense of is no reason to check none of them.
+        return array_values(
+            array_filter(
+                array_map(
+                    fn(WatcherDto $dto): ?WatcherObject => $this->watcherFactory->make($dto),
+                    $this->watcherRepository->find($enabled)
+                )
+            )
         );
     }
 }
