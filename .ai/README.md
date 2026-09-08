@@ -10,6 +10,13 @@ Centralized source of instructions for AI assistants (Claude Code and others) wo
 
 - Before making any changes (even trivial ones), show the user a plan describing what files and lines will be modified.
 - Wait for explicit user approval before proceeding with the implementation.
+- Every commit needs its own approval, and so does every push. An approval given for one
+  commit covers that commit and nothing after it. "Commit and push, carry on" approves the
+  commit named at that moment and permits the work that follows — it does not approve the
+  commits that work will produce. Prepare the message, show what is staged, and ask again.
+- An approval is never inherited: not from the previous commit, not from a series of them,
+  not from the user having approved every one so far. The moment the work is ready to
+  commit, stop and ask, however many times that has already happened in the session.
 
 ## Permission Policy For Command Execution
 
@@ -288,6 +295,11 @@ Notes:
   `new` and keep the decision about what to build in the action or service that makes it.
   The settings objects' `toArray()` is the one exception: it is how a settings column is
   written, and the object is the only place that knows its own fields.
+- Timestamps come last, in this order: `createdAt`, `updatedAt`, `deletedAt` (`created_at`,
+  `updated_at`, `deleted_at`). That holds for entity and DTO constructors, model `@property`
+  blocks, migration columns, repository parameters and the documents a repository writes.
+  A timestamp that is part of what the record means — `sentAt`, `occurredAt`, `closedAt` —
+  is an ordinary field and stays with the others, before the three above.
 - Call with named arguments once a call is written across more than one line —
   `new HttpClient(responseFactory: ..., options: ...)`, `$sender->send(channel: ..., text: ...)`.
   Short single-line calls stay positional. Named arguments bind to parameter names, so
