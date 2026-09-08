@@ -4,7 +4,6 @@
       width="600px"
       :close-on-click-modal="false"
       @update:model-value="$emit('update:modelValue', $event)"
-      @open="fill"
   >
     <template #header>
       <el-text>
@@ -200,6 +199,17 @@ export default defineComponent({
     },
   },
 
+  watch: {
+    modelValue: {
+      immediate: true,
+      handler(visible: boolean) {
+        if (visible) {
+          this.fill()
+        }
+      },
+    },
+  },
+
   methods: {
     /**
      * Puts the form where it should start: the type's defaults for a new watcher, the
@@ -217,6 +227,7 @@ export default defineComponent({
       // B's form — and be saved onto B.
       const watcherId = this.watcherId
 
+      this.loading = false
       this.loadFailed = false
       this.form.name = ''
       this.form.enabled = true

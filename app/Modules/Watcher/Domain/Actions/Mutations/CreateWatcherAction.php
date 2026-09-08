@@ -46,7 +46,9 @@ readonly class CreateWatcherAction
         // back. Stated rather than assumed: the factory answers null for a row it cannot
         // make sense of, and silently returning one here would be worse than saying so.
         if (is_null($watcher)) {
-            throw new LogicException("Watcher of type [{$parameters->type->value}] could not be read back");
+            throw new LogicException(
+                sprintf('Watcher of type [%s] could not be read back', $parameters->type->value)
+            );
         }
 
         return $watcher;

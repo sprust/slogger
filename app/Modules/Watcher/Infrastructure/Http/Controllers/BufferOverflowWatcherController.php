@@ -31,6 +31,10 @@ readonly class BufferOverflowWatcherController extends AbstractWatcherTypeContro
 
     public function update(int $id, BufferOverflowWatcherRequest $request): void
     {
-        $this->updateWatcher($id, $request->validated());
+        $this->updateWatcher(
+            type: WatcherTypeEnum::BufferOverflow,
+            id: $id,
+            validated: $request->validated()
+        );
     }
 }

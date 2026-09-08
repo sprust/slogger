@@ -31,6 +31,10 @@ readonly class NoNewTracesWatcherController extends AbstractWatcherTypeControlle
 
     public function update(int $id, NoNewTracesWatcherRequest $request): void
     {
-        $this->updateWatcher($id, $request->validated());
+        $this->updateWatcher(
+            type: WatcherTypeEnum::NoNewTraces,
+            id: $id,
+            validated: $request->validated()
+        );
     }
 }

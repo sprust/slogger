@@ -38,12 +38,14 @@ readonly class EnqueueNotificationsAction
 
         $now = Carbon::now();
 
+        $notifications = [];
+
         foreach ($this->findChannelsAction->handle(enabled: true) as $channel) {
             if (!$this->speaksAbout($channel, $kind)) {
                 continue;
             }
 
-            $notification = $this->notificationRepository->create(
+            $notifications[] = $this->notificationRepository->create(
                 channelId: $channel->id,
                 watcherId: $watcher->id,
                 incidentId: $incident->id,
@@ -57,7 +59,11 @@ readonly class EnqueueNotificationsAction
                 ),
                 createdAt: $now
             );
+        }
 
+        // Every row is written before anything is put on the queue: a broker that refuses
+        // the first would otherwise leave the channels after it with no record at all.
+        foreach ($notifications as $notification) {
             $this->events->dispatch(new NotificationEnqueuedEvent($notification->id));
         }
     }

@@ -47,7 +47,7 @@ readonly class NoNewTracesChecker implements WatcherCheckerInterface
         // A line whose head the receiver dropped is missing the beginning of this window,
         // and an empty window is exactly what this watcher reports. Silence it cannot
         // vouch for is not silence.
-        if ($timeline->startsAfter($from)) {
+        if ($this->analyzer->startsAfter($timeline, $from)) {
             return null;
         }
 

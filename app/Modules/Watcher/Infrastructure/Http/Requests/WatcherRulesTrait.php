@@ -21,7 +21,7 @@ trait WatcherRulesTrait
     protected function commonRules(): array
     {
         return [
-            'name'    => ['required', 'string', 'max:255'],
+            'name'    => ['required', 'string', 'min:1', 'max:255'],
             'enabled' => ['required', 'boolean'],
             // A day at the top: a watcher that may speak less often than that is one
             // nobody will hear from about a problem that started this morning.
@@ -59,9 +59,9 @@ trait WatcherRulesTrait
             'settings.filter.service_ids'   => ['sometimes', 'array'],
             'settings.filter.service_ids.*' => ['integer'],
             'settings.filter.types'         => ['sometimes', 'array'],
-            'settings.filter.types.*'       => ['string', 'max:255'],
+            'settings.filter.types.*'       => ['string', 'min:1', 'max:255'],
             'settings.filter.tags'          => ['sometimes', 'array'],
-            'settings.filter.tags.*'        => ['string', 'max:255'],
+            'settings.filter.tags.*'        => ['string', 'min:1', 'max:255'],
         ];
     }
 }

@@ -31,6 +31,10 @@ readonly class TracesSpikeWatcherController extends AbstractWatcherTypeControlle
 
     public function update(int $id, TracesSpikeWatcherRequest $request): void
     {
-        $this->updateWatcher($id, $request->validated());
+        $this->updateWatcher(
+            type: WatcherTypeEnum::TracesSpike,
+            id: $id,
+            validated: $request->validated()
+        );
     }
 }

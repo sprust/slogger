@@ -72,12 +72,26 @@ class NoNewTracesCheckerTest extends TestCase
     }
 
     /**
-     * @param int[] $bucketsAtMinutesAgo
+     * A line at the receiver's cap had its head cut, so an empty window may be a stretch
+     * that was dropped rather than one where nothing happened. Reporting an absence from
+     * it would be a false alarm — the one thing this watcher must not produce.
      */
+    public function testATruncatedLineThatStartsInsideTheWindowSaysNothing(): void
+    {
+        $this->assertNull($this->check(bucketsAtMinutesAgo: [2], truncated: true));
+    }
+
+    /** Below the cap nothing was dropped, so the same line is an answer. */
+    public function testAnUntruncatedLineStartingInsideTheWindowStillReports(): void
+    {
+        $this->assertNotNull($this->check(bucketsAtMinutesAgo: [30], truncated: false));
+    }
+
     private function check(
         array $bucketsAtMinutesAgo,
         ?Carbon $collectSince = null,
-        bool $collecting = true
+        bool $collecting = true,
+        bool $truncated = false
     ): ?WatcherTriggerObject {
         $now = Carbon::parse(self::NOW);
 
@@ -94,7 +108,7 @@ class NoNewTracesCheckerTest extends TestCase
         );
 
         $repository = $this->createMock(WatcherTimelineRepository::class);
-        $repository->method('find')->willReturn(new WatcherTimelineObject(1, $buckets));
+        $repository->method('find')->willReturn(new WatcherTimelineObject(1, $buckets, $truncated));
 
         $watcher = $this->watcher(
             WatcherTypeEnum::NoNewTraces,

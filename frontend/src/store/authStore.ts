@@ -13,6 +13,9 @@ import {
 import {useWatcherIncidentStatStore} from "./watcherIncidentStatStore.ts";
 import {useIncidentsStore} from "../components/pages/watchers/store/incidentsStore.ts";
 import {useWatchersStore} from "../components/pages/watchers/store/watchersStore.ts";
+import {useChannelsStore} from "../components/pages/watchers/components/notifications/store/channelsStore.ts";
+import {useChannelTypesStore} from "../components/pages/watchers/components/notifications/store/channelTypesStore.ts";
+import {useDeliveriesStore} from "../components/pages/watchers/components/notifications/store/deliveriesStore.ts";
 import {useWatcherTypesStore} from "../components/pages/watchers/store/watcherTypesStore.ts";
 
 type AuthUser = AdminApi.AuthMeList.ResponseBody['data']
@@ -113,6 +116,9 @@ export const useAuthStore = defineStore('authStore', {
             useIncidentsStore().$reset()
             useWatchersStore().$reset()
             useWatcherTypesStore().$reset()
+            useChannelsStore().$reset()
+            useChannelTypesStore().$reset()
+            useDeliveriesStore().$reset()
         },
         setUser(user: AuthUser | null) {
             this.user = user

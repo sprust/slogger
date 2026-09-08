@@ -82,6 +82,25 @@ readonly class WatcherTimelineAnalyzer
         return array_values($groups);
     }
 
+    /** The first moment a line holds, or null when it holds nothing. */
+    public function startsAt(WatcherTimelineObject $timeline): ?Carbon
+    {
+        return $timeline->buckets[0]->at ?? null;
+    }
+
+    /**
+     * Whether a line is known not to reach back to $from.
+     *
+     * Only a line at the cap can answer this. Below the cap nothing was dropped, so a head
+     * with no buckets in it is a stretch where nothing matched — which is an answer, not a
+     * gap. At the cap the head was cut, and then the first bucket really is where the line
+     * begins.
+     */
+    public function startsAfter(WatcherTimelineObject $timeline, Carbon $from): bool
+    {
+        return $timeline->truncated && $this->startsAt($timeline)?->gt($from) === true;
+    }
+
     private function merge(
         WatcherTimelineGroupObject $first,
         WatcherTimelineGroupObject $second

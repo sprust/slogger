@@ -58,7 +58,7 @@ readonly class TracesSpikeChecker implements WatcherCheckerInterface
         // for as long as the watcher exists. The settings are capped well inside what the
         // cap holds, but the cap counts elements and a busy watcher spends several on one
         // moment, so this has to be read rather than assumed.
-        if ($timeline->startsAfter($baselineFrom)) {
+        if ($this->analyzer->startsAfter($timeline, $baselineFrom)) {
             return null;
         }
 

@@ -41,7 +41,9 @@ readonly class WatcherFactory
         $type = WatcherTypeEnum::tryFrom($dto->type);
 
         if (is_null($type)) {
-            $this->logger->warning("Watcher [$dto->id] has an unknown type [$dto->type] and was skipped");
+            $this->logger->warning(
+                sprintf('Watcher [%d] has an unknown type [%s] and was skipped', $dto->id, $dto->type)
+            );
 
             return null;
         }

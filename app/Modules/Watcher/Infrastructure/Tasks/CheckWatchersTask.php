@@ -8,7 +8,6 @@ use App\Modules\Trace\Domain\Actions\Queries\FindTraceBufferCountAction;
 use App\Modules\Watcher\Domain\Actions\Mutations\CheckWatcherAction;
 use App\Modules\Watcher\Domain\Actions\Queries\FindWatchersAction;
 use App\Modules\Watcher\Entities\WatcherCheckContextObject;
-use App\Modules\Watcher\Entities\WatcherObject;
 use Illuminate\Support\Carbon;
 use SConcur\Laravel\Tasks\TaskInterface;
 use SConcur\Laravel\Tasks\TaskPoolLogger;
@@ -77,13 +76,7 @@ class CheckWatchersTask implements TaskInterface
 
     private function pass(Carbon $now): TickResultEnum
     {
-        // Every watcher, not only the enabled ones: a disabled one is not checked, but its
-        // line is still trimmed to what its settings can see.
-        $watchers = $this->findWatchersAction->handle();
-
-        $enabled = array_values(
-            array_filter($watchers, static fn(WatcherObject $watcher): bool => $watcher->enabled)
-        );
+        $enabled = $this->findWatchersAction->handle(enabled: true);
 
         if (!count($enabled)) {
             return TickResultEnum::Idle;

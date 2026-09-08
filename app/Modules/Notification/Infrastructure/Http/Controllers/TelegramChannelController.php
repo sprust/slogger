@@ -35,6 +35,10 @@ readonly class TelegramChannelController extends AbstractChannelTypeController
 
     public function update(int $id, UpdateTelegramChannelRequest $request): void
     {
-        $this->updateChannel($id, $request->validated());
+        $this->updateChannel(
+            type: NotificationChannelTypeEnum::Telegram,
+            id: $id,
+            validated: $request->validated()
+        );
     }
 }

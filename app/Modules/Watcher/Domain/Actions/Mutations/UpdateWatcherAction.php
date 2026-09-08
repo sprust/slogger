@@ -18,6 +18,12 @@ use Illuminate\Support\Carbon;
 
 readonly class UpdateWatcherAction
 {
+    /**
+     * How long the receiver may still be collecting against the filter that was just
+     * replaced — its reload interval. A line is only believed from after that.
+     */
+    private const int RECEIVER_RELOAD_SECONDS = 30;
+
     public function __construct(
         private WatcherRepository $watcherRepository,
         private WatcherTimelineRepository $timelineRepository,
@@ -70,7 +76,7 @@ readonly class UpdateWatcherAction
             settings: $settings->toArray(),
             traceMatch: $this->matchFactory->toArray($match),
             collectSince: $filterChanged || $deepened || (!$watcher->enabled && $parameters->enabled)
-                ? Carbon::now()
+                ? Carbon::now()->addSeconds(self::RECEIVER_RELOAD_SECONDS)
                 : $watcher->collectSince
         );
     }

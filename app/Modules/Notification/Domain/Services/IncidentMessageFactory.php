@@ -117,7 +117,7 @@ readonly class IncidentMessageFactory
         foreach ($values as $key => $value) {
             $lines[] = sprintf(
                 '• %s: %s',
-                str_replace('_', ' ', $key),
+                $sender->escape(str_replace('_', ' ', $key)),
                 $sender->escape($this->readable($key, $value))
             );
         }

@@ -26,9 +26,6 @@ readonly class TelegramSender implements NotificationSenderInterface
     ) {
     }
 
-    /**
-     * @throws JsonException
-     */
     public function send(ChannelObject $channel, string $text): SendResultObject
     {
         $settings = $channel->settings;
@@ -49,12 +46,20 @@ readonly class TelegramSender implements NotificationSenderInterface
             );
         }
 
-        $body = json_encode([
-            'chat_id'                  => $settings->chatId,
-            'text'                     => $this->cut($text),
-            'parse_mode'               => 'HTML',
-            'disable_web_page_preview' => true,
-        ], JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+        try {
+            $body = json_encode([
+                'chat_id'                  => $settings->chatId,
+                'text'                     => $this->cut($text),
+                'parse_mode'               => 'HTML',
+                'disable_web_page_preview' => true,
+            ], JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+        } catch (JsonException $exception) {
+            return new SendResultObject(
+                delivered: false,
+                permanent: true,
+                error: 'Message could not be encoded: ' . $exception->getMessage()
+            );
+        }
 
         try {
             $response = $this->httpClient->sendRequest(
@@ -66,7 +71,10 @@ readonly class TelegramSender implements NotificationSenderInterface
                 )
             );
         } catch (Throwable $exception) {
-            return new SendResultObject(delivered: false, error: $exception->getMessage());
+            return new SendResultObject(
+                delivered: false,
+                error: $this->withoutToken($exception->getMessage(), $settings->botToken)
+            );
         }
 
         return $this->read($response);
@@ -85,6 +93,11 @@ readonly class TelegramSender implements NotificationSenderInterface
     public function code(string $value): string
     {
         return "<code>$value</code>";
+    }
+
+    private function withoutToken(string $message, string $botToken): string
+    {
+        return str_replace($botToken, '***', $message);
     }
 
     private function cut(string $text): string

@@ -68,8 +68,10 @@ abstract readonly class AbstractWatcherTypeController
     /**
      * @param array<string, mixed> $validated
      */
-    protected function updateWatcher(int $id, array $validated): void
+    protected function updateWatcher(WatcherTypeEnum $type, int $id, array $validated): void
     {
+        $this->findWatcher($type, $id);
+
         try {
             $this->updateWatcherAction->handle(
                 new UpdateWatcherParameters(

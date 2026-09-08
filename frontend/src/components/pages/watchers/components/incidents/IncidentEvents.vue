@@ -220,7 +220,7 @@ export default defineComponent({
       this.incidentsStore.findEvents(this.incident.id)
     }
 
-    if (this.servicesStore.items.length === 0) {
+    if (this.servicesStore.items.length === 0 && !this.servicesStore.loading) {
       this.servicesStore.findServices()
     }
   },

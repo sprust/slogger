@@ -4,7 +4,6 @@
       width="600px"
       :close-on-click-modal="false"
       @update:model-value="$emit('update:modelValue', $event)"
-      @open="fill"
   >
     <template #header>
       <el-text>
@@ -147,6 +146,17 @@ export default defineComponent({
     },
   },
 
+  watch: {
+    modelValue: {
+      immediate: true,
+      handler(visible: boolean) {
+        if (visible) {
+          this.fill()
+        }
+      },
+    },
+  },
+
   methods: {
     placeholderOf(field: ChannelTypeField): string {
       if (!field.secret || this.channelId === null) {
@@ -160,6 +170,7 @@ export default defineComponent({
     async fill() {
       const channelId = this.channelId
 
+      this.loading = false
       this.loadFailed = false
       this.masked = {}
       this.form.name = ''

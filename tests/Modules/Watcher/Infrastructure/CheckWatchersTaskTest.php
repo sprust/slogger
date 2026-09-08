@@ -79,17 +79,31 @@ class CheckWatchersTaskTest extends TestCase
         $this->assertSame(TickResultEnum::Worked, $task->tick());
     }
 
-    public function testADisabledWatcherIsNotChecked(): void
+    public function testOnlyTheEnabledWatchersAreEvenAskedFor(): void
     {
         Carbon::setTestNow(Carbon::create(2026, 9, 7, 12, 0, 20));
+
+        $findWatchers = $this->createMock(FindWatchersAction::class);
+
+        $findWatchers->expects($this->once())
+            ->method('handle')
+            ->with(true)
+            ->willReturn([]);
 
         $checkAction = $this->createMock(CheckWatcherAction::class);
         $checkAction->expects($this->never())->method('handle');
 
-        $this->assertSame(
-            TickResultEnum::Idle,
-            $this->task($checkAction, watchers: [$this->disabled()])->tick()
+        $bufferAction = $this->createMock(FindTraceBufferCountAction::class);
+        $bufferAction->method('handle')->willReturn(0);
+
+        $task = new CheckWatchersTask(
+            $findWatchers,
+            $bufferAction,
+            $checkAction,
+            $this->createMock(TaskPoolLogger::class)
         );
+
+        $this->assertSame(TickResultEnum::Idle, $task->tick());
     }
 
     /**

@@ -54,8 +54,10 @@ abstract readonly class AbstractChannelTypeController
     /**
      * @param array<string, mixed> $validated
      */
-    protected function updateChannel(int $id, array $validated): void
+    protected function updateChannel(NotificationChannelTypeEnum $type, int $id, array $validated): void
     {
+        $this->findChannel($type, $id);
+
         try {
             $this->updateChannelAction->handle(
                 new UpdateChannelParameters(

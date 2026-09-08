@@ -61,7 +61,7 @@ class WatcherTimelineDepthTest extends TestCase
     {
         $timeline = $this->timeline(startsAt: '2026-09-08 11:55:00', truncated: false);
 
-        $this->assertFalse($timeline->startsAfter(Carbon::parse('2026-09-08 11:00:00')));
+        $this->assertFalse($this->analyzer()->startsAfter($timeline, Carbon::parse('2026-09-08 11:00:00')));
     }
 
     /** At the cap the head was cut, and the first bucket is where the line really begins. */
@@ -69,8 +69,8 @@ class WatcherTimelineDepthTest extends TestCase
     {
         $timeline = $this->timeline(startsAt: '2026-09-08 11:55:00', truncated: true);
 
-        $this->assertTrue($timeline->startsAfter(Carbon::parse('2026-09-08 11:00:00')));
-        $this->assertFalse($timeline->startsAfter(Carbon::parse('2026-09-08 11:56:00')));
+        $this->assertTrue($this->analyzer()->startsAfter($timeline, Carbon::parse('2026-09-08 11:00:00')));
+        $this->assertFalse($this->analyzer()->startsAfter($timeline, Carbon::parse('2026-09-08 11:56:00')));
     }
 
     private function timeline(string $startsAt, bool $truncated): WatcherTimelineObject
@@ -89,5 +89,10 @@ class WatcherTimelineDepthTest extends TestCase
             ],
             truncated: $truncated
         );
+    }
+
+    private function analyzer(): WatcherTimelineAnalyzer
+    {
+        return new WatcherTimelineAnalyzer();
     }
 }

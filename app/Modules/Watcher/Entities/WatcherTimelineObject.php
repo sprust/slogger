@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Modules\Watcher\Entities;
 
-use Illuminate\Support\Carbon;
-
 /**
  * A watcher's line: its buckets, oldest first, each timestamp appearing once.
  */
@@ -45,24 +43,5 @@ readonly class WatcherTimelineObject
         public array $buckets,
         public bool $truncated = false
     ) {
-    }
-
-    /** The first moment this line holds, or null when it holds nothing. */
-    public function startsAt(): ?Carbon
-    {
-        return $this->buckets[0]->at ?? null;
-    }
-
-    /**
-     * Whether the line is known not to reach back to $from.
-     *
-     * Only a line at the cap can answer this. Below the cap nothing was dropped, so a head
-     * with no buckets in it is a stretch where nothing matched — which is an answer, not a
-     * gap. At the cap the head was cut, and then the first bucket really is where the line
-     * begins.
-     */
-    public function startsAfter(Carbon $from): bool
-    {
-        return $this->truncated && $this->startsAt()?->gt($from) === true;
     }
 }

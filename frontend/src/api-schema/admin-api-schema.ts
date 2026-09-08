@@ -2159,7 +2159,10 @@ export namespace AdminApi {
     export type RequestParams = {};
     export type RequestQuery = {};
     export type RequestBody = {
-      /** @maxLength 255 */
+      /**
+       * @minLength 1
+       * @maxLength 255
+       */
       name: string;
       enabled: boolean;
       /**
@@ -2231,7 +2234,10 @@ export namespace AdminApi {
     };
     export type RequestQuery = {};
     export type RequestBody = {
-      /** @maxLength 255 */
+      /**
+       * @minLength 1
+       * @maxLength 255
+       */
       name: string;
       enabled: boolean;
       /**
@@ -2274,7 +2280,10 @@ export namespace AdminApi {
     export type RequestParams = {};
     export type RequestQuery = {};
     export type RequestBody = {
-      /** @maxLength 255 */
+      /**
+       * @minLength 1
+       * @maxLength 255
+       */
       name: string;
       enabled: boolean;
       /**
@@ -2346,7 +2355,10 @@ export namespace AdminApi {
     };
     export type RequestQuery = {};
     export type RequestBody = {
-      /** @maxLength 255 */
+      /**
+       * @minLength 1
+       * @maxLength 255
+       */
       name: string;
       enabled: boolean;
       /**
@@ -2389,7 +2401,10 @@ export namespace AdminApi {
     export type RequestParams = {};
     export type RequestQuery = {};
     export type RequestBody = {
-      /** @maxLength 255 */
+      /**
+       * @minLength 1
+       * @maxLength 255
+       */
       name: string;
       enabled: boolean;
       /**
@@ -2480,7 +2495,10 @@ export namespace AdminApi {
     };
     export type RequestQuery = {};
     export type RequestBody = {
-      /** @maxLength 255 */
+      /**
+       * @minLength 1
+       * @maxLength 255
+       */
       name: string;
       enabled: boolean;
       /**
@@ -2531,7 +2549,10 @@ export namespace AdminApi {
     export type RequestParams = {};
     export type RequestQuery = {};
     export type RequestBody = {
-      /** @maxLength 255 */
+      /**
+       * @minLength 1
+       * @maxLength 255
+       */
       name: string;
       enabled: boolean;
       /**
@@ -2633,7 +2654,10 @@ export namespace AdminApi {
     };
     export type RequestQuery = {};
     export type RequestBody = {
-      /** @maxLength 255 */
+      /**
+       * @minLength 1
+       * @maxLength 255
+       */
       name: string;
       enabled: boolean;
       /**
@@ -2691,7 +2715,10 @@ export namespace AdminApi {
     export type RequestParams = {};
     export type RequestQuery = {};
     export type RequestBody = {
-      /** @maxLength 255 */
+      /**
+       * @minLength 1
+       * @maxLength 255
+       */
       name: string;
       enabled: boolean;
       /**
@@ -2789,7 +2816,10 @@ export namespace AdminApi {
     };
     export type RequestQuery = {};
     export type RequestBody = {
-      /** @maxLength 255 */
+      /**
+       * @minLength 1
+       * @maxLength 255
+       */
       name: string;
       enabled: boolean;
       /**
@@ -5655,7 +5685,10 @@ export class Api<
  */
     watchersBufferOverflowCreate: (
       data: {
-        /** @maxLength 255 */
+        /**
+         * @minLength 1
+         * @maxLength 255
+         */
         name: string;
         enabled: boolean;
         /**
@@ -5739,7 +5772,10 @@ export class Api<
     watchersBufferOverflowPartialUpdate: (
       id: any,
       data: {
-        /** @maxLength 255 */
+        /**
+         * @minLength 1
+         * @maxLength 255
+         */
         name: string;
         enabled: boolean;
         /**
@@ -5789,7 +5825,10 @@ export class Api<
  */
     watchersInvalidBufferGrownCreate: (
       data: {
-        /** @maxLength 255 */
+        /**
+         * @minLength 1
+         * @maxLength 255
+         */
         name: string;
         enabled: boolean;
         /**
@@ -5873,7 +5912,10 @@ export class Api<
     watchersInvalidBufferGrownPartialUpdate: (
       id: any,
       data: {
-        /** @maxLength 255 */
+        /**
+         * @minLength 1
+         * @maxLength 255
+         */
         name: string;
         enabled: boolean;
         /**
@@ -5923,7 +5965,10 @@ export class Api<
  */
     watchersNoNewTracesCreate: (
       data: {
-        /** @maxLength 255 */
+        /**
+         * @minLength 1
+         * @maxLength 255
+         */
         name: string;
         enabled: boolean;
         /**
@@ -6026,7 +6071,10 @@ export class Api<
     watchersNoNewTracesPartialUpdate: (
       id: any,
       data: {
-        /** @maxLength 255 */
+        /**
+         * @minLength 1
+         * @maxLength 255
+         */
         name: string;
         enabled: boolean;
         /**
@@ -6084,7 +6132,10 @@ export class Api<
  */
     watchersTracesSpikeCreate: (
       data: {
-        /** @maxLength 255 */
+        /**
+         * @minLength 1
+         * @maxLength 255
+         */
         name: string;
         enabled: boolean;
         /**
@@ -6198,7 +6249,10 @@ export class Api<
     watchersTracesSpikePartialUpdate: (
       id: any,
       data: {
-        /** @maxLength 255 */
+        /**
+         * @minLength 1
+         * @maxLength 255
+         */
         name: string;
         enabled: boolean;
         /**
@@ -6263,7 +6317,10 @@ export class Api<
  */
     watchersSlowTracesCreate: (
       data: {
-        /** @maxLength 255 */
+        /**
+         * @minLength 1
+         * @maxLength 255
+         */
         name: string;
         enabled: boolean;
         /**
@@ -6373,7 +6430,10 @@ export class Api<
     watchersSlowTracesPartialUpdate: (
       id: any,
       data: {
-        /** @maxLength 255 */
+        /**
+         * @minLength 1
+         * @maxLength 255
+         */
         name: string;
         enabled: boolean;
         /**

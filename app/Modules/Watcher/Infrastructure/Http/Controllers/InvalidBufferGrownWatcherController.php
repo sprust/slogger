@@ -31,6 +31,10 @@ readonly class InvalidBufferGrownWatcherController extends AbstractWatcherTypeCo
 
     public function update(int $id, InvalidBufferGrownWatcherRequest $request): void
     {
-        $this->updateWatcher($id, $request->validated());
+        $this->updateWatcher(
+            type: WatcherTypeEnum::InvalidBufferGrown,
+            id: $id,
+            validated: $request->validated()
+        );
     }
 }

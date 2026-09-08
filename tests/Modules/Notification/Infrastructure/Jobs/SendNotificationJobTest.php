@@ -29,8 +29,6 @@ class SendNotificationJobTest extends TestCase
             new SendResultObject(delivered: true),
             $queueJob
         )->handle(...$this->dependencies($this->notification(), new SendResultObject(delivered: true)));
-
-        $this->assertTrue(true);
     }
 
     public function testARefusalFailsTheJobRatherThanRetrying(): void

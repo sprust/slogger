@@ -244,7 +244,7 @@ export default defineComponent({
           // The events of the incidents that moved, and the list once for all of them.
           incidentIds.forEach(id => {
             if (this.incidentsStore.events[id]) {
-              this.incidentsStore.findEvents(id)
+              this.incidentsStore.refreshEvents(id)
             }
           })
 

@@ -25,8 +25,8 @@ readonly class BroadcastWatcherIncidentListener
     {
         $this->events->dispatch(
             new WatcherIncidentBroadcast(
-                $event->incident,
-                $this->findIncidentStatAction->handle()->openedCount
+                incident: $event->incident,
+                openedCount: $this->findIncidentStatAction->handle()->openedCount
             )
         );
     }

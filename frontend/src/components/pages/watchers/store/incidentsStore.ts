@@ -87,12 +87,14 @@ export const useIncidentsStore = defineStore('incidentsStore', {
                         // A later request has already been sent, so this answer describes
                         // a filter or a page nobody is looking at any more.
                         if (request !== findRequest) {
-                            return
+                            return false
                         }
 
                         this.items = response.data.data
 
                         this.loaded = true
+
+                        return true
                     })
                     .finally(() => {
                         if (request === findRequest) {
@@ -106,6 +108,28 @@ export const useIncidentsStore = defineStore('incidentsStore', {
             this.eventsExhausted[incidentId] = false
 
             return await this.loadEvents(incidentId, 1, false)
+        },
+        /**
+         * The same events the reader already has, read again.
+         *
+         * Not findEvents: that snaps back to the first page, and an incident somebody has
+         * pressed "Show more" on three times would lose two hundred rows every time the
+         * watcher speaks — which, for an incident that is still going, is often.
+         */
+        async refreshEvents(incidentId: string) {
+            const pages = this.eventsPage[incidentId] ?? 1
+
+            this.eventsExhausted[incidentId] = false
+
+            for (let page = 1; page <= pages; page++) {
+                const loaded = await this.loadEvents(incidentId, page, page > 1)
+
+                if (loaded !== true) {
+                    return loaded
+                }
+            }
+
+            return true
         },
         /**
          * The next page, appended.
@@ -166,27 +190,24 @@ export const useIncidentsStore = defineStore('incidentsStore', {
                     })
             )
         },
-        setPage(page: number) {
+        async setPage(page: number) {
+            const previous = this.page
+
             this.page = page
 
-            return this.find()
+            const loaded = await this.find()
+
+            // Only a request that failed puts the page back. A stale one answers false —
+            // a later request is already in flight and owns the page now.
+            if (loaded === undefined) {
+                this.page = previous
+            }
+
+            return loaded
         },
         /** The filter has been changed — whoever changed it wrote it here first. */
         applyFilter() {
             this.page = 1
-
-            return this.find()
-        },
-        /**
-         * An incident moved: whatever is on screen is a page old.
-         *
-         * The events of an incident nobody has expanded are not read — there is nothing
-         * on screen to correct.
-         */
-        reload(incidentId: string) {
-            if (this.events[incidentId]) {
-                this.findEvents(incidentId)
-            }
 
             return this.find()
         },
