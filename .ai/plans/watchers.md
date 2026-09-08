@@ -523,6 +523,7 @@ Route::prefix('/watchers')->as('watchers.')->group(function () {
     Route::delete('/{id}', [WatcherController::class, 'delete'])->name('delete');
 
     Route::get('/incidents', [WatcherIncidentController::class, 'index']);
+    Route::get('/incidents/stat', [WatcherIncidentController::class, 'stat']);
     Route::get('/incidents/{id}/events', [WatcherIncidentController::class, 'events']);
     Route::patch('/incidents/{id}/close', [WatcherIncidentController::class, 'close']);
 
@@ -547,6 +548,12 @@ Route::prefix('/watchers')->as('watchers.')->group(function () {
 
 `types` отдаёт типы, их заголовки и дефолты полей, чтобы панель не держала вторую копию
 этих чисел.
+
+`incidents/stat` отдаёт одно число — сколько инцидентов открыто. Оно нужно бейджу в шапке,
+который висит на каждой странице: без него первое значение бейджа взялось бы только из
+первого WS-сообщения, то есть панель показывала бы ноль до ближайшего срабатывания, а без
+WS-пула — всегда. Считать длину списка вместо этого значило бы тянуть строки, которых
+никто не показывает.
 
 **Ответы — по тому же принципу.** `GET /watchers` отдаёт список **без настроек**: их
 форма зависит от типа, а список смешанный. Настройки читаются по одной штуке с маршрута
@@ -581,7 +588,13 @@ Route::prefix('/watchers')->as('watchers.')->group(function () {
 - Сторы `store/watchersStore.ts` и `store/incidentsStore.ts` по образцу
   `trace-cleaner/store/traceCleanerStore.ts`.
 - Бейдж с числом открытых инцидентов в шапке по WS-каналу `sl-watchers` (WS уже включён:
-  `BROADCAST_DRIVER=sconcur`, `SCONCUR_WS_WORKER_COUNT=1`).
+  `BROADCAST_DRIVER=sconcur`, `SCONCUR_WS_WORKER_COUNT=1`). Начальное значение — с
+  `incidents/stat`, и он же опрашивается, когда пула нет, тем же приёмом, что
+  `traceDynamicIndexesStore`.
+
+Кадр `sl-watchers` (`incident.changed`) несёт `incident_id`, `watcher_id`, `status` и
+`opened_count`. Счёт берётся в листенере, а не кладётся в доменное событие: сколько всего
+инцидентов открыто — это чтение таблицы, а не часть того, что случилось с этим одним.
 
 ## Тесты
 

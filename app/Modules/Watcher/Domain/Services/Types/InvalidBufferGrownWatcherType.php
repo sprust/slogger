@@ -31,14 +31,14 @@ readonly class InvalidBufferGrownWatcherType implements WatcherTypeDefinitionInt
     {
         return new WatcherTypeObject(
             type: WatcherTypeEnum::InvalidBufferGrown,
-            title: 'Invalid buffer grew',
-            description: 'Documents the receiver could not act on have appeared since the last check.',
+            title: 'Broken traces',
+            description: 'Traces the receiver could not read have arrived since the last check.',
             defaultCooldownSeconds: WatcherTypeEnum::InvalidBufferGrown->defaultCooldownSeconds(),
             hasTraceFilter: false,
             fields: [
                 new WatcherTypeFieldObject(
                     key: 'threshold',
-                    title: 'New invalid documents',
+                    title: 'New broken traces',
                     valueType: 'int',
                     default: new InvalidBufferGrownSettingsObject()->threshold
                 ),

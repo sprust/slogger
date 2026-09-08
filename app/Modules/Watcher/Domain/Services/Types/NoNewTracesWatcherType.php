@@ -35,13 +35,13 @@ readonly class NoNewTracesWatcherType implements WatcherTypeDefinitionInterface
         return new WatcherTypeObject(
             type: WatcherTypeEnum::NoNewTraces,
             title: 'No new traces',
-            description: 'Nothing matching the filter has arrived for the whole period.',
+            description: 'No traces matching the filter have arrived for the whole period.',
             defaultCooldownSeconds: WatcherTypeEnum::NoNewTraces->defaultCooldownSeconds(),
             hasTraceFilter: true,
             fields: [
                 new WatcherTypeFieldObject(
                     key: 'period_minutes',
-                    title: 'Silence, minutes',
+                    title: 'Minutes without traces',
                     valueType: 'int',
                     default: new NoNewTracesSettingsObject()->periodMinutes
                 ),

@@ -37,25 +37,25 @@ readonly class TracesSpikeWatcherType implements WatcherTypeDefinitionInterface
         return new WatcherTypeObject(
             type: WatcherTypeEnum::TracesSpike,
             title: 'Traces spike',
-            description: 'The recent window carries far more traces per minute than the stretch before it.',
+            description: 'Many more traces per minute are arriving now than in the period before.',
             defaultCooldownSeconds: WatcherTypeEnum::TracesSpike->defaultCooldownSeconds(),
             hasTraceFilter: true,
             fields: [
                 new WatcherTypeFieldObject(
                     key: 'window_minutes',
-                    title: 'Window, minutes',
+                    title: 'Count over the last, minutes',
                     valueType: 'int',
                     default: new TracesSpikeSettingsObject()->windowMinutes
                 ),
                 new WatcherTypeFieldObject(
                     key: 'baseline_minutes',
-                    title: 'Baseline, minutes',
+                    title: 'Compare with the last, minutes',
                     valueType: 'int',
                     default: new TracesSpikeSettingsObject()->baselineMinutes
                 ),
                 new WatcherTypeFieldObject(
                     key: 'growth_percent',
-                    title: 'Growth, %',
+                    title: 'Growth to react to, %',
                     valueType: 'int',
                     default: new TracesSpikeSettingsObject()->growthPercent
                 ),

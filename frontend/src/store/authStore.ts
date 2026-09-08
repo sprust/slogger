@@ -10,6 +10,7 @@ import {
 import {
     useTraceDynamicIndexesStore
 } from "../components/pages/trace-aggregator/components/dynamic-indexes/store/traceDynamicIndexesStore.ts";
+import {useWatcherIncidentStatStore} from "./watcherIncidentStatStore.ts";
 
 type AuthUser = AdminApi.AuthMeList.ResponseBody['data']
 
@@ -99,6 +100,7 @@ export const useAuthStore = defineStore('authStore', {
             // stand in for them when there is no ws pool.
             useTraceAggregatorTreeStore().stopWatching()
             useTraceDynamicIndexesStore().stopWatchingStats()
+            useWatcherIncidentStatStore().stopWatching()
         },
         setUser(user: AuthUser | null) {
             this.user = user

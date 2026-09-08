@@ -14,6 +14,7 @@ use App\Modules\Watcher\Domain\Actions\Mutations\RegisterTriggerAction;
 use App\Modules\Watcher\Domain\Actions\Mutations\TrimWatcherTimelineAction;
 use App\Modules\Watcher\Domain\Actions\Mutations\UpdateWatcherAction;
 use App\Modules\Watcher\Domain\Actions\Queries\FindIncidentEventsAction;
+use App\Modules\Watcher\Domain\Actions\Queries\FindIncidentStatAction;
 use App\Modules\Watcher\Domain\Actions\Queries\FindIncidentsAction;
 use App\Modules\Watcher\Domain\Actions\Queries\FindWatcherTypesAction;
 use App\Modules\Watcher\Domain\Actions\Queries\FindWatcherAction;
@@ -71,6 +72,7 @@ class WatcherServiceProvider extends BaseServiceProvider
             FindWatcherTypesAction::class,
             FindIncidentsAction::class,
             FindIncidentEventsAction::class,
+            FindIncidentStatAction::class,
             CreateWatcherAction::class,
             UpdateWatcherAction::class,
             DeleteWatcherAction::class,

@@ -8,14 +8,17 @@ use App\Modules\Auth\Domain\Actions\FindUserByTokenAction;
 use App\Modules\Common\Helpers\ArrayValueGetter;
 use App\Modules\Watcher\Domain\Actions\Mutations\CloseIncidentAction;
 use App\Modules\Watcher\Domain\Actions\Queries\FindIncidentEventsAction;
+use App\Modules\Watcher\Domain\Actions\Queries\FindIncidentStatAction;
 use App\Modules\Watcher\Domain\Actions\Queries\FindIncidentsAction;
 use App\Modules\Watcher\Domain\Exceptions\WatcherIncidentNotFoundException;
 use App\Modules\Watcher\Enums\WatcherIncidentStatusEnum;
 use App\Modules\Watcher\Infrastructure\Http\Requests\IndexIncidentsRequest;
 use App\Modules\Watcher\Infrastructure\Http\Resources\WatcherIncidentEventResource;
 use App\Modules\Watcher\Infrastructure\Http\Resources\WatcherIncidentResource;
+use App\Modules\Watcher\Infrastructure\Http\Resources\WatcherIncidentStatResource;
 use App\Modules\Watcher\Parameters\FindIncidentsParameters;
 use Ifksco\OpenApiGenerator\Attributes\OaListItemTypeAttribute;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response as ResponseFoundation;
 
@@ -28,22 +31,20 @@ readonly class WatcherIncidentController
     public function __construct(
         private FindIncidentsAction $findIncidentsAction,
         private FindIncidentEventsAction $findIncidentEventsAction,
+        private FindIncidentStatAction $findIncidentStatAction,
         private CloseIncidentAction $closeIncidentAction,
         private FindUserByTokenAction $findUserByTokenAction
     ) {
     }
 
-    /**
-     * @return WatcherIncidentResource[]
-     */
     #[OaListItemTypeAttribute(WatcherIncidentResource::class)]
-    public function index(IndexIncidentsRequest $request): array
+    public function index(IndexIncidentsRequest $request): AnonymousResourceCollection
     {
         $validated = $request->validated();
 
         $status = ArrayValueGetter::stringNull($validated, 'status');
 
-        return WatcherIncidentResource::mapIntoMe(
+        return WatcherIncidentResource::collection(
             $this->findIncidentsAction->handle(
                 new FindIncidentsParameters(
                     status: $status ? WatcherIncidentStatusEnum::from($status) : null,
@@ -56,12 +57,17 @@ readonly class WatcherIncidentController
     }
 
     /**
-     * @return WatcherIncidentEventResource[]
+     * How much there is to deal with, for the badge the header shows on every page.
      */
-    #[OaListItemTypeAttribute(WatcherIncidentEventResource::class)]
-    public function events(int $id): array
+    public function stat(): WatcherIncidentStatResource
     {
-        return WatcherIncidentEventResource::mapIntoMe(
+        return new WatcherIncidentStatResource($this->findIncidentStatAction->handle());
+    }
+
+    #[OaListItemTypeAttribute(WatcherIncidentEventResource::class)]
+    public function events(int $id): AnonymousResourceCollection
+    {
+        return WatcherIncidentEventResource::collection(
             $this->findIncidentEventsAction->handle($id)
         );
     }

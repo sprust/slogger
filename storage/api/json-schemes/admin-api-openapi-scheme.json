@@ -3977,6 +3977,43 @@
                 ]
             }
         },
+        "/admin-api/watchers/incidents/stat": {
+            "get": {
+                "responses": {
+                    "200": {
+                        "description": "description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "opened_count": {
+                                                    "type": "integer",
+                                                    "nullable": false
+                                                }
+                                            },
+                                            "required": [
+                                                "opened_count"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/admin-api/watchers/incidents/{id}/events": {
             "get": {
                 "parameters": [

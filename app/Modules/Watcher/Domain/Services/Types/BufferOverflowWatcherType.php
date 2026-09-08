@@ -32,13 +32,13 @@ readonly class BufferOverflowWatcherType implements WatcherTypeDefinitionInterfa
         return new WatcherTypeObject(
             type: WatcherTypeEnum::BufferOverflow,
             title: 'Buffer overflow',
-            description: 'The intake buffer has stopped draining.',
+            description: 'Traces are piling up in the intake buffer: the receiver takes them in faster than they are saved.',
             defaultCooldownSeconds: WatcherTypeEnum::BufferOverflow->defaultCooldownSeconds(),
             hasTraceFilter: false,
             fields: [
                 new WatcherTypeFieldObject(
                     key: 'threshold',
-                    title: 'Documents in the buffer',
+                    title: 'Traces in the buffer',
                     valueType: 'int',
                     default: new BufferOverflowSettingsObject()->threshold
                 ),

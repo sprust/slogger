@@ -1986,6 +1986,31 @@ export namespace AdminApi {
 
   /**
  * No description
+ * @name WatchersIncidentsStatList
+ * @request GET:/admin-api/watchers/incidents/stat
+ * @secure
+ * @response `200` `{
+    data: {
+    opened_count: number,
+
+},
+
+}` description
+*/
+  export namespace WatchersIncidentsStatList {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        opened_count: number;
+      };
+    };
+  }
+
+  /**
+ * No description
  * @name WatchersIncidentsEventsList
  * @request GET:/admin-api/watchers/incidents/{id}/events
  * @secure
@@ -5104,6 +5129,36 @@ export class Api<
         path: `/admin-api/watchers/incidents`,
         method: "GET",
         query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name WatchersIncidentsStatList
+ * @request GET:/admin-api/watchers/incidents/stat
+ * @secure
+ * @response `200` `{
+    data: {
+    opened_count: number,
+
+},
+
+}` description
+ */
+    watchersIncidentsStatList: (params: RequestParams = {}) =>
+      this.request<
+        {
+          data: {
+            opened_count: number;
+          };
+        },
+        any
+      >({
+        path: `/admin-api/watchers/incidents/stat`,
+        method: "GET",
         secure: true,
         format: "json",
         ...params,

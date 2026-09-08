@@ -10,6 +10,7 @@ use App\Modules\Watcher\Domain\Actions\Queries\FindWatchersAction;
 use App\Modules\Watcher\Infrastructure\Http\Resources\WatcherResource;
 use App\Modules\Watcher\Infrastructure\Http\Resources\WatcherTypeResource;
 use Ifksco\OpenApiGenerator\Attributes\OaListItemTypeAttribute;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 /**
  * What is the same for every watcher: listing them, describing the types, removing one.
@@ -27,25 +28,20 @@ readonly class WatcherController
     ) {
     }
 
-    /**
-     * @return WatcherResource[]
-     */
     #[OaListItemTypeAttribute(WatcherResource::class)]
-    public function index(): array
+    public function index(): AnonymousResourceCollection
     {
-        return WatcherResource::mapIntoMe($this->findWatchersAction->handle());
+        return WatcherResource::collection($this->findWatchersAction->handle());
     }
 
     /**
      * The types, their titles and the defaults their fields start from, so the panel does
      * not carry a second copy of any of it.
-     *
-     * @return WatcherTypeResource[]
      */
     #[OaListItemTypeAttribute(WatcherTypeResource::class)]
-    public function types(): array
+    public function types(): AnonymousResourceCollection
     {
-        return WatcherTypeResource::mapIntoMe($this->findWatcherTypesAction->handle());
+        return WatcherTypeResource::collection($this->findWatcherTypesAction->handle());
     }
 
     public function delete(int $id): void

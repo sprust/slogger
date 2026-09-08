@@ -36,19 +36,19 @@ readonly class SlowTracesWatcherType implements WatcherTypeDefinitionInterface
         return new WatcherTypeObject(
             type: WatcherTypeEnum::SlowTraces,
             title: 'Slow traces',
-            description: 'A trace matching the filter ran longer than it should.',
+            description: 'A trace matching the filter took longer than the limit.',
             defaultCooldownSeconds: WatcherTypeEnum::SlowTraces->defaultCooldownSeconds(),
             hasTraceFilter: true,
             fields: [
                 new WatcherTypeFieldObject(
                     key: 'duration',
-                    title: 'Duration',
+                    title: 'Longer than, seconds',
                     valueType: 'float',
                     default: new SlowTracesSettingsObject()->duration
                 ),
                 new WatcherTypeFieldObject(
                     key: 'window_minutes',
-                    title: 'Window, minutes',
+                    title: 'Look at the last, minutes',
                     valueType: 'int',
                     default: new SlowTracesSettingsObject()->windowMinutes
                 ),

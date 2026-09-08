@@ -17,6 +17,7 @@ It collects data about code execution (HTTP requests, queues, events, commands, 
 - Timeline charts for trace metrics — count, duration, memory, CPU — with aggregations and the same filtering as in search.
 - Storage dashboard — collection sizes, memory and index usage.
 - Runtime dashboard — live stats of the SConcur HTTP server: worker pool, RPS, CPU, memory, in-flight requests.
+- Watchers — configurable rules that open an incident when the system misbehaves: a buffer growing, traces stopping, a spike of them, traces running too long.
 - Automatic cleanup of stale data.
 
 ---
@@ -168,6 +169,14 @@ Besides paginated search, timeline charts are built over traces. You pick a peri
 - CPU (`cpu`).
 
 For duration/memory/CPU the average, minimum, and maximum are computed. Charts can additionally be built over numeric fields from `data`. The same set of filters as in search applies to charts, so you can watch metric dynamics for a specific service, operation type, tag, or an arbitrary condition on the data. Interval collection is parallelized, which makes charts fast to build even over large periods.
+
+### Watchers
+
+Configurable rules that watch the system and open an incident when one of them is broken. Five types: the buffer growing (`bufferOverflow`), invalid traces arriving (`invalidBufferGrown`), traces stopping (`noNewTraces`), a spike of them (`tracesSpike`), and traces running longer than they should (`slowTraces`). The last three take a filter — services, trace types, tags — so a watcher can be about one part of the system rather than all of it.
+
+No watcher queries the hourly trace collections, and none uses the dynamic indexes. Traces are counted where they already pass one by one — in the receiver, which matches each of them against the watchers' filters and adds it to a 15-second bucket in the watcher's own timeline (`watcherTimelines`, one document per watcher). The receiver knows nothing about thresholds, windows or cooldowns: a task in the pool reads the timelines once a minute, applies the numbers each watcher was configured with, and decides what has gone wrong. The heaviest query a watcher makes is a `findOne` of its own line.
+
+A trigger opens an incident, or adds an event to the one already open — a watcher speaks at most once per its cooldown, so a problem lasting an hour does not fill the incident with sixty identical events. An event carries what the watcher saw: the value, the threshold, and up to twenty shapes of trace behind it (service, type, tags, how many, the slowest one by id). Incidents are closed by a person, from the panel: a watcher going quiet means the symptom stopped, not that the cause was found. The badge in the header counts the open ones over the `sl-watchers` WebSocket channel.
 
 ### Automatic cleanup
 

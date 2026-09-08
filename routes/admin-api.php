@@ -132,6 +132,9 @@ Route::prefix('/watchers')
             ->as('incidents.')
             ->group(function () {
                 Route::get('', [WatcherIncidentController::class, 'index'])->name('index');
+                // What the header's badge reads on every page, so it never has to fetch
+                // the list to count it.
+                Route::get('/stat', [WatcherIncidentController::class, 'stat'])->name('stat');
                 Route::get('/{id}/events', [WatcherIncidentController::class, 'events'])->name('events');
                 Route::patch('/{id}/close', [WatcherIncidentController::class, 'close'])->name('close');
             });
