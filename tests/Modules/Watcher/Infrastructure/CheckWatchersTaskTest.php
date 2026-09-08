@@ -4,8 +4,6 @@ namespace Tests\Modules\Watcher\Infrastructure;
 
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceBufferCountAction;
 use App\Modules\Watcher\Domain\Actions\Mutations\CheckWatcherAction;
-use App\Modules\Watcher\Domain\Actions\Mutations\DeleteOrphanWatcherTimelinesAction;
-use App\Modules\Watcher\Domain\Actions\Queries\FindWatcherIdsAction;
 use App\Modules\Watcher\Domain\Actions\Queries\FindWatchersAction;
 use App\Modules\Watcher\Entities\Settings\BufferOverflowSettingsObject;
 use App\Modules\Watcher\Entities\WatcherCheckContextObject;
@@ -95,44 +93,6 @@ class CheckWatchersTaskTest extends TestCase
     }
 
     /**
-     * Lines are swept by every watcher that exists, disabled ones included — otherwise
-     * switching a watcher off would delete the history it comes back to.
-     */
-    public function testTheSweepCountsDisabledWatchersAsExisting(): void
-    {
-        Carbon::setTestNow(Carbon::create(2026, 9, 7, 12, 0, 20));
-
-        $sweep = $this->createMock(DeleteOrphanWatcherTimelinesAction::class);
-        $sweep->expects($this->once())->method('handle')->with([1, 2]);
-
-        $this->task(
-            $this->createMock(CheckWatcherAction::class),
-            watchers: [$this->enabled(1), $this->disabled(2)],
-            sweep: $sweep
-        )->tick();
-    }
-
-    /**
-     * A row of a type this build cannot read is skipped by the checks and still owns its
-     * line — the receiver reads the table itself and knows nothing about types, so it goes
-     * on writing one. Sweeping by the checked list would delete that line every minute.
-     */
-    public function testTheSweepCountsWatchersTheChecksCouldNotRead(): void
-    {
-        Carbon::setTestNow(Carbon::create(2026, 9, 7, 12, 0, 20));
-
-        $sweep = $this->createMock(DeleteOrphanWatcherTimelinesAction::class);
-        $sweep->expects($this->once())->method('handle')->with([1, 2, 3]);
-
-        $this->task(
-            $this->createMock(CheckWatcherAction::class),
-            watchers: [$this->enabled(1), $this->disabled(2)],
-            sweep: $sweep,
-            ids: [1, 2, 3]
-        )->tick();
-    }
-
-    /**
      * A Mongo that will not answer must not stop the watchers that never asked it
      * anything, and must not be reported to the ones that did as an empty buffer.
      */
@@ -165,19 +125,12 @@ class CheckWatchersTaskTest extends TestCase
     private function task(
         CheckWatcherAction $checkAction,
         ?array $watchers = null,
-        ?DeleteOrphanWatcherTimelinesAction $sweep = null,
-        ?FindTraceBufferCountAction $bufferAction = null,
-        ?array $ids = null
+        ?FindTraceBufferCountAction $bufferAction = null
     ): CheckWatchersTask {
         $watchers ??= [$this->enabled(1)];
 
         $findWatchers = $this->createMock(FindWatchersAction::class);
         $findWatchers->method('handle')->willReturn($watchers);
-
-        $findIds = $this->createMock(FindWatcherIdsAction::class);
-        $findIds->method('handle')->willReturn(
-            $ids ?? array_map(static fn(WatcherObject $watcher): int => $watcher->id, $watchers)
-        );
 
         if (is_null($bufferAction)) {
             $bufferAction = $this->createMock(FindTraceBufferCountAction::class);
@@ -186,10 +139,8 @@ class CheckWatchersTaskTest extends TestCase
 
         return new CheckWatchersTask(
             $findWatchers,
-            $findIds,
             $bufferAction,
             $checkAction,
-            $sweep ?? $this->createMock(DeleteOrphanWatcherTimelinesAction::class),
             $this->createMock(TaskPoolLogger::class)
         );
     }

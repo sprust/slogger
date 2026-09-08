@@ -55,20 +55,4 @@ readonly class WatcherTimelineRepository
     {
         WatcherTimeline::sconcur()->deleteOne(['_id' => $watcherId]);
     }
-
-    /**
-     * Removes the lines of watchers that no longer exist.
-     *
-     * The collection carries no TTL — a live watcher's line must not expire — so a
-     * document left behind by a deleted watcher would stay for good. The receiver drops
-     * such buckets from memory too, but only the panel knows the full list.
-     *
-     * @param int[] $watcherIds
-     */
-    public function deleteExcept(array $watcherIds): void
-    {
-        WatcherTimeline::sconcur()->deleteMany([
-            '_id' => ['$nin' => array_values($watcherIds)],
-        ]);
-    }
 }

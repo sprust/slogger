@@ -8,7 +8,7 @@ use Exception;
 
 class WatcherIncidentNotFoundException extends Exception
 {
-    public function __construct(int $incidentId)
+    public function __construct(string $incidentId)
     {
         parent::__construct("Watcher incident [$incidentId] not found");
     }

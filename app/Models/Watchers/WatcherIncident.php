@@ -2,27 +2,36 @@
 
 namespace App\Models\Watchers;
 
-use App\Models\AbstractModel;
+use App\Models\AbstractTraceModel;
 use Illuminate\Support\Carbon;
 
 /**
- * @property int         $id
- * @property int         $watcher_id
+ * One incident: a watcher had something to say, and it stands until a person closes it.
+ *
+ * In Mongo rather than beside the watcher in MySQL. Everything a watcher produces is
+ * periodic — it accumulates while the system runs and is worth keeping for a while, not
+ * for ever — so it lives where a TTL index can retire it, on `lastEventAt`. The settings
+ * are the only part of a watcher that has to be kept exactly as long as the watcher does.
+ *
+ * Because a TTL retires these on its own, deleting a watcher leaves its incidents alone:
+ * there is no foreign key to cascade and no sweep to run.
+ *
+ * @property string      $_id
+ * @property int         $watcherId
  * @property string      $status
- * @property Carbon      $first_event_at
- * @property Carbon      $last_event_at
- * @property int         $events_count
- * @property Carbon|null $closed_at
- * @property int|null    $closed_by_user_id
+ * @property Carbon      $firstEventAt
+ * @property Carbon      $lastEventAt
+ * @property int         $eventsCount
+ * @property Carbon|null $closedAt
+ * @property int|null    $closedByUserId
  */
-class WatcherIncident extends AbstractModel
+class WatcherIncident extends AbstractTraceModel
 {
-    /** first_event_at and last_event_at say the same thing more precisely. */
-    public $timestamps = false;
+    public const UPDATED_AT = null;
+    public const CREATED_AT = null;
 
-    protected $casts = [
-        'first_event_at' => 'datetime',
-        'last_event_at'  => 'datetime',
-        'closed_at'      => 'datetime',
-    ];
+    public function getCollectionName(): string
+    {
+        return 'watcherIncidents';
+    }
 }

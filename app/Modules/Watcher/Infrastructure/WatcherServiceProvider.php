@@ -8,7 +8,6 @@ use App\Modules\Common\Infrastructure\BaseServiceProvider;
 use App\Modules\Watcher\Domain\Actions\Mutations\CheckWatcherAction;
 use App\Modules\Watcher\Domain\Actions\Mutations\CloseIncidentAction;
 use App\Modules\Watcher\Domain\Actions\Mutations\CreateWatcherAction;
-use App\Modules\Watcher\Domain\Actions\Mutations\DeleteOrphanWatcherTimelinesAction;
 use App\Modules\Watcher\Domain\Actions\Mutations\DeleteWatcherAction;
 use App\Modules\Watcher\Domain\Actions\Mutations\RegisterTriggerAction;
 use App\Modules\Watcher\Domain\Actions\Mutations\TrimWatcherTimelineAction;
@@ -18,7 +17,6 @@ use App\Modules\Watcher\Domain\Actions\Queries\FindIncidentStatAction;
 use App\Modules\Watcher\Domain\Actions\Queries\FindIncidentsAction;
 use App\Modules\Watcher\Domain\Actions\Queries\FindWatcherTypesAction;
 use App\Modules\Watcher\Domain\Actions\Queries\FindWatcherAction;
-use App\Modules\Watcher\Domain\Actions\Queries\FindWatcherIdsAction;
 use App\Modules\Watcher\Domain\Actions\Queries\FindWatchersAction;
 use App\Modules\Watcher\Domain\Services\Checkers\BufferOverflowChecker;
 use App\Modules\Watcher\Domain\Services\Checkers\InvalidBufferGrownChecker;
@@ -69,7 +67,6 @@ class WatcherServiceProvider extends BaseServiceProvider
             WatcherFactory::class,
             // actions
             FindWatchersAction::class,
-            FindWatcherIdsAction::class,
             FindWatcherAction::class,
             FindWatcherTypesAction::class,
             FindIncidentsAction::class,
@@ -82,7 +79,6 @@ class WatcherServiceProvider extends BaseServiceProvider
             RegisterTriggerAction::class,
             CloseIncidentAction::class,
             TrimWatcherTimelineAction::class,
-            DeleteOrphanWatcherTimelinesAction::class,
         ];
     }
 }

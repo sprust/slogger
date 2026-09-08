@@ -12,8 +12,8 @@ readonly class WatcherIncidentEventObject
      * @param array<string, mixed> $payload
      */
     public function __construct(
-        public int $id,
-        public int $incidentId,
+        public string $id,
+        public string $incidentId,
         public Carbon $occurredAt,
         public array $payload
     ) {

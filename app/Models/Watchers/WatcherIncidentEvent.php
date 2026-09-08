@@ -2,22 +2,28 @@
 
 namespace App\Models\Watchers;
 
-use App\Models\AbstractModel;
+use App\Models\AbstractTraceModel;
 use Illuminate\Support\Carbon;
 
 /**
- * @property int    $id
- * @property int    $incident_id
- * @property Carbon $occurred_at
+ * One time a watcher said it again, under the incident it belongs to.
+ *
+ * Retired by a TTL on `occurredAt`, like the incident above it. The two are given the same
+ * lifetime, so an incident and the history behind it go together rather than leaving a row
+ * whose events have gone.
+ *
+ * @property string               $_id
+ * @property string               $incidentId
+ * @property Carbon               $occurredAt
  * @property array<string, mixed> $payload
  */
-class WatcherIncidentEvent extends AbstractModel
+class WatcherIncidentEvent extends AbstractTraceModel
 {
-    /** occurred_at is the only time this row has. */
-    public $timestamps = false;
+    public const UPDATED_AT = null;
+    public const CREATED_AT = null;
 
-    protected $casts = [
-        'occurred_at' => 'datetime',
-        'payload'     => 'array',
-    ];
+    public function getCollectionName(): string
+    {
+        return 'watcherIncidentEvents';
+    }
 }

@@ -9,7 +9,7 @@ use App\Modules\Watcher\Entities\WatcherIncidentObject;
 
 class WatcherIncidentResource extends AbstractApiResource
 {
-    private int $id;
+    private string $id;
     private int $watcher_id;
     private string $status;
     private string $first_event_at;

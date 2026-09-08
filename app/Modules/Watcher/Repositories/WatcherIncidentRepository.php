@@ -8,8 +8,10 @@ use App\Models\Watchers\WatcherIncident;
 use App\Modules\Watcher\Entities\WatcherIncidentObject;
 use App\Modules\Watcher\Enums\WatcherIncidentStatusEnum;
 use App\Modules\Watcher\Parameters\FindIncidentsParameters;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
+use SConcur\Bson\Exceptions\InvalidBsonValueException;
+use SConcur\Bson\ObjectId;
+use SConcur\Bson\UTCDateTime;
 
 readonly class WatcherIncidentRepository
 {
@@ -18,105 +20,182 @@ readonly class WatcherIncidentRepository
      */
     public function find(FindIncidentsParameters $parameters): array
     {
-        return WatcherIncident::query()
-            ->when(
-                !is_null($parameters->status),
-                fn(Builder $query) => $query->where('status', $parameters->status?->value)
-            )
-            ->when(
-                !is_null($parameters->watcherId),
-                fn(Builder $query) => $query->where('watcher_id', $parameters->watcherId)
-            )
+        $filter = [];
+
+        if (!is_null($parameters->status)) {
+            $filter['status'] = $parameters->status->value;
+        }
+
+        if (!is_null($parameters->watcherId)) {
+            $filter['watcherId'] = $parameters->watcherId;
+        }
+
+        $cursor = WatcherIncident::sconcur()->find(
+            filter: $filter,
             // Still open first, then newest: the list is a work queue, and a closed
-            // incident is history whatever its date.
-            ->orderByRaw('status = ? desc', [WatcherIncidentStatusEnum::Opened->value])
-            ->orderByDesc('id')
-            ->forPage($parameters->page, $parameters->perPage)
-            ->get()
-            ->map(fn(WatcherIncident $incident) => $this->makeObject($incident))
-            ->all();
+            // incident is history whatever its date. `opened` sorts after `closed`, which
+            // is what the descending order is for; the id carries the time it was made.
+            sort: ['status' => -1, '_id' => -1],
+            limit: $parameters->perPage,
+            skip: ($parameters->page - 1) * $parameters->perPage,
+        );
+
+        $incidents = [];
+
+        foreach ($cursor as $document) {
+            $incidents[] = $this->makeObject($document);
+        }
+
+        return $incidents;
     }
 
     public function findLastOpenByWatcherId(int $watcherId): ?WatcherIncidentObject
     {
-        // Annotated because the ordering is forwarded to the query builder, which hands
-        // back a plain object where the model was: the same reason phpstan.neon already
-        // carries an ignore for the collection map below.
-        /** @var WatcherIncident|null $incident */
-        $incident = WatcherIncident::query()
-            ->where('watcher_id', $watcherId)
-            ->where('status', WatcherIncidentStatusEnum::Opened->value)
-            ->orderByDesc('id')
-            ->first();
+        $cursor = WatcherIncident::sconcur()->find(
+            filter: [
+                'watcherId' => $watcherId,
+                'status'    => WatcherIncidentStatusEnum::Opened->value,
+            ],
+            sort: ['_id' => -1],
+            limit: 1,
+        );
 
-        return is_null($incident) ? null : $this->makeObject($incident);
+        foreach ($cursor as $document) {
+            return $this->makeObject($document);
+        }
+
+        return null;
     }
 
-    public function findById(int $id): ?WatcherIncidentObject
+    public function findById(string $id): ?WatcherIncidentObject
     {
-        $incident = WatcherIncident::query()->find($id);
+        $objectId = $this->objectId($id);
 
-        return $incident instanceof WatcherIncident ? $this->makeObject($incident) : null;
+        if (is_null($objectId)) {
+            return null;
+        }
+
+        $document = WatcherIncident::sconcur()->findOne(['_id' => $objectId]);
+
+        return is_null($document) ? null : $this->makeObject($document);
     }
 
     public function countOpen(): int
     {
-        return WatcherIncident::query()
-            ->where('status', WatcherIncidentStatusEnum::Opened->value)
-            ->count();
+        return WatcherIncident::sconcur()->countDocuments([
+            'status' => WatcherIncidentStatusEnum::Opened->value,
+        ]);
     }
 
     public function create(int $watcherId, Carbon $occurredAt): WatcherIncidentObject
     {
-        $incident = new WatcherIncident();
+        $result = WatcherIncident::sconcur()->insertOne([
+            'watcherId'      => $watcherId,
+            'status'         => WatcherIncidentStatusEnum::Opened->value,
+            'firstEventAt'   => new UTCDateTime($occurredAt),
+            'lastEventAt'    => new UTCDateTime($occurredAt),
+            'eventsCount'    => 0,
+            'closedAt'       => null,
+            'closedByUserId' => null,
+        ]);
 
-        $incident->watcher_id     = $watcherId;
-        $incident->status         = WatcherIncidentStatusEnum::Opened->value;
-        $incident->first_event_at = $occurredAt;
-        $incident->last_event_at  = $occurredAt;
-        $incident->events_count   = 0;
-
-        $incident->saveOrFail();
-
-        return $this->makeObject($incident);
+        return new WatcherIncidentObject(
+            id: (string) $result->insertedId,
+            watcherId: $watcherId,
+            status: WatcherIncidentStatusEnum::Opened,
+            firstEventAt: $occurredAt,
+            lastEventAt: $occurredAt,
+            eventsCount: 0,
+            closedAt: null,
+            closedByUserId: null
+        );
     }
 
-    public function incrementEventsCount(int $id, Carbon $lastEventAt): void
+    public function incrementEventsCount(string $id, Carbon $lastEventAt): void
     {
-        // increment rather than a read-modify-write: the counter is a denormalisation of
-        // the events table, and the database is the only thing that can add to it without
-        // a window in which somebody else's event is lost.
-        WatcherIncident::query()
-            ->where('id', $id)
-            ->increment('events_count', 1, ['last_event_at' => $lastEventAt]);
+        $objectId = $this->objectId($id);
+
+        if (is_null($objectId)) {
+            return;
+        }
+
+        WatcherIncident::sconcur()->updateOne(
+            filter: ['_id' => $objectId],
+            update: [
+                // $inc rather than a read-modify-write: the counter is a denormalisation
+                // of the events collection, and the database is the only thing that can
+                // add to it without a window in which somebody else's event is lost.
+                '$inc' => ['eventsCount' => 1],
+                '$set' => ['lastEventAt' => new UTCDateTime($lastEventAt)],
+            ],
+        );
     }
 
     public function updateStatus(
-        int $id,
+        string $id,
         WatcherIncidentStatusEnum $status,
         ?Carbon $closedAt,
         ?int $closedByUserId
     ): void {
-        WatcherIncident::query()
-            ->where('id', $id)
-            ->update([
-                'status'            => $status->value,
-                'closed_at'         => $closedAt,
-                'closed_by_user_id' => $closedByUserId,
-            ]);
+        $objectId = $this->objectId($id);
+
+        if (is_null($objectId)) {
+            return;
+        }
+
+        WatcherIncident::sconcur()->updateOne(
+            filter: ['_id' => $objectId],
+            update: [
+                '$set' => [
+                    'status'         => $status->value,
+                    'closedAt'       => is_null($closedAt) ? null : new UTCDateTime($closedAt),
+                    'closedByUserId' => $closedByUserId,
+                ],
+            ],
+        );
     }
 
-    private function makeObject(WatcherIncident $incident): WatcherIncidentObject
+    /**
+     * An id that is not one, answered with null rather than an exception.
+     *
+     * These arrive from the url, and a mistyped one is a 404 rather than a 500. The format
+     * is not restated here — the value object is what knows it.
+     */
+    private function objectId(string $id): ?ObjectId
+    {
+        try {
+            return new ObjectId($id);
+        } catch (InvalidBsonValueException) {
+            return null;
+        }
+    }
+
+    /**
+     * @param array<int|string, mixed> $document
+     */
+    private function makeObject(array $document): WatcherIncidentObject
     {
         return new WatcherIncidentObject(
-            id: $incident->id,
-            watcherId: $incident->watcher_id,
-            status: WatcherIncidentStatusEnum::from($incident->status),
-            firstEventAt: $incident->first_event_at,
-            lastEventAt: $incident->last_event_at,
-            eventsCount: $incident->events_count,
-            closedAt: $incident->closed_at,
-            closedByUserId: $incident->closed_by_user_id
+            id: (string) $document['_id'],
+            watcherId: (int) $document['watcherId'],
+            status: WatcherIncidentStatusEnum::from((string) $document['status']),
+            firstEventAt: $this->readDate($document, 'firstEventAt') ?? Carbon::now(),
+            lastEventAt: $this->readDate($document, 'lastEventAt') ?? Carbon::now(),
+            eventsCount: (int) ($document['eventsCount'] ?? 0),
+            closedAt: $this->readDate($document, 'closedAt'),
+            closedByUserId: isset($document['closedByUserId'])
+                ? (int) $document['closedByUserId']
+                : null
         );
+    }
+
+    /**
+     * @param array<int|string, mixed> $document
+     */
+    private function readDate(array $document, string $key): ?Carbon
+    {
+        $value = $document[$key] ?? null;
+
+        return $value instanceof UTCDateTime ? Carbon::parse($value->toDateTime()) : null;
     }
 }

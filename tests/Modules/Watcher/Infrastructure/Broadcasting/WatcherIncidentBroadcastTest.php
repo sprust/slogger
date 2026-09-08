@@ -51,7 +51,7 @@ class WatcherIncidentBroadcastTest extends TestCase
         // list that happens to be open which row to look at again.
         $this->assertSame(
             [
-                'incident_id'  => 12,
+                'incident_id'  => '68be1f00a1b2c3d4e5f60012',
                 'watcher_id'   => 7,
                 'status'       => 'opened',
                 'opened_count' => 3,
@@ -71,7 +71,7 @@ class WatcherIncidentBroadcastTest extends TestCase
     {
         return new WatcherIncidentBroadcast(
             new WatcherIncidentObject(
-                id: 12,
+                id: '68be1f00a1b2c3d4e5f60012',
                 watcherId: 7,
                 status: WatcherIncidentStatusEnum::Opened,
                 firstEventAt: Carbon::parse('2026-09-08 10:00:00'),

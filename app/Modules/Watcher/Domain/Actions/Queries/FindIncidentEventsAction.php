@@ -17,7 +17,7 @@ readonly class FindIncidentEventsAction
     /**
      * @return WatcherIncidentEventObject[]
      */
-    public function handle(int $incidentId, int $page = 1, int $perPage = 50): array
+    public function handle(string $incidentId, int $page = 1, int $perPage = 50): array
     {
         return $this->eventRepository->findByIncidentId($incidentId, $page, $perPage);
     }

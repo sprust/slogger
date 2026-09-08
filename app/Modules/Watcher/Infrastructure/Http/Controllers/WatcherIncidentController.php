@@ -66,7 +66,7 @@ readonly class WatcherIncidentController
     }
 
     #[OaListItemTypeAttribute(WatcherIncidentEventResource::class)]
-    public function events(int $id, IndexIncidentEventsRequest $request): AnonymousResourceCollection
+    public function events(string $id, IndexIncidentEventsRequest $request): AnonymousResourceCollection
     {
         $validated = $request->validated();
 
@@ -79,7 +79,7 @@ readonly class WatcherIncidentController
         );
     }
 
-    public function close(int $id, Request $request): void
+    public function close(string $id, Request $request): void
     {
         try {
             $this->closeIncidentAction->handle($id, $this->currentUserId($request));

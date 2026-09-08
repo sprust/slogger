@@ -178,6 +178,8 @@ No watcher queries the hourly trace collections, and none uses the dynamic index
 
 A trigger opens an incident, or adds an event to the one already open — a watcher speaks at most once per its cooldown, so a problem lasting an hour does not fill the incident with sixty identical events. An event carries what the watcher saw: the value, the threshold, and up to five shapes of trace behind it (service, type, tags, how many, the slowest one by id). Incidents are closed by a person, from the panel: a watcher going quiet means the symptom stopped, not that the cause was found. The badge in the header counts the open ones over the `sl-watchers` WebSocket channel.
 
+Only a watcher's settings live in MySQL. Everything it produces — the incidents, the events under them, the lines behind those — accumulates while the system runs, so it lives in MongoDB and is retired by a TTL index: a month for incidents and events, three days for a line nothing has been written to. Removing a watcher therefore leaves all of it alone, and the removal is soft, so the incidents it found still have a name to show against.
+
 ### Automatic cleanup
 
 Stale traces are removed automatically. The retention period is set by the `TRACES_LIFETIME_DAYS` variable (default 3 days). Cleanup is a queued job (`ClearTracesJob`) and, thanks to hourly sharding, drops whole shard collections that fell out of the retention window instead of deleting individual documents. This is fast, does not fragment storage, and also removes the dynamic indexes associated with those shards.

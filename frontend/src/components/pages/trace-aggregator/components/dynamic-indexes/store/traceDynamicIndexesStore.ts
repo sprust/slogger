@@ -16,6 +16,21 @@ export type TraceDynamicIndexInfo = AdminApi.TraceAggregatorDynamicIndexesStatsL
 let unsubscribeStats: null | (() => void) = null
 let statsPollTimeoutId: null | number = null
 
+/** How often to ask while there is nothing to be told by. */
+const statsPollInterval = 2000
+
+/**
+ * How often to ask anyway while subscribed.
+ *
+ * The publisher speaks while a build is running and once more to say it has stopped, and
+ * that last frame is said exactly once — a tab that misses it keeps showing a build that
+ * finished. Which is not a rare accident: the pool replaces its workers on a reload, and
+ * a task instance that comes up after the build it never announced has nothing to take
+ * back. So the snapshot is confirmed on a slow beat, and a missed frame corrects itself
+ * within it instead of standing until somebody reloads the page.
+ */
+const subscribedReadInterval = 30000
+
 interface TraceDynamicIndexesStoreInterface {
     started: boolean,
     loading: boolean
@@ -79,9 +94,7 @@ export const useTraceDynamicIndexesStore = defineStore('traceDynamicIndexesStore
 
             await this.findTraceDynamicIndexStats()
 
-            if (this.subscribeStats()) {
-                return
-            }
+            this.subscribeStats()
 
             this.pollStats()
         },
@@ -145,23 +158,25 @@ export const useTraceDynamicIndexesStore = defineStore('traceDynamicIndexesStore
                 return
             }
 
+            // Replaced, not added to: a second failure while one is already scheduled
+            // would leave a timer nobody holds the id of, polling until the tab is closed.
+            if (statsPollTimeoutId !== null) {
+                window.clearTimeout(statsPollTimeoutId)
+            }
+
+            const subscribed = unsubscribeStats !== null
+
             statsPollTimeoutId = window.setTimeout(
                 () => {
                     if (!this.started) {
                         return
                     }
 
-                    // One read either way: after a subscription it is the confirming one,
-                    // and from then on the frames carry it.
-                    if (this.subscribeStats()) {
-                        this.findTraceDynamicIndexStats()
-
-                        return
-                    }
+                    this.subscribeStats()
 
                     this.findTraceDynamicIndexStats().finally(() => this.pollStats())
                 },
-                2000
+                subscribed ? subscribedReadInterval : statsPollInterval
             )
         },
         async deleteTraceDynamicIndex(id: string) {

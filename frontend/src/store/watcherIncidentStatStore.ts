@@ -14,7 +14,7 @@ export type WatcherIncidentStat = AdminApi.WatchersIncidentsStatList.ResponseBod
  * which is what tells a list that happens to be open to read itself again.
  */
 export type WatcherIncidentFrame = {
-    incident_id: number,
+    incident_id: string,
     watcher_id: number,
     status: string,
     opened_count: number,
@@ -35,6 +35,16 @@ let pollTimeoutId: null | number = null
  * the shortest of which is measured in minutes, and this request runs on every page.
  */
 const pollInterval = 30000
+
+/**
+ * How often it asks anyway while subscribed.
+ *
+ * A frame missed — the socket down for a moment, the tab asleep, a subscription still
+ * being made — leaves a number on screen that nothing will correct, because the next frame
+ * only comes when a watcher next speaks. The badge is shown on every page, so it confirms
+ * itself on a slow beat rather than standing wrong until a reload.
+ */
+const subscribedReadInterval = 120000
 
 /** Called on every frame, by whoever is showing incidents at the time. */
 const frameHandlers = new Set<(frame: WatcherIncidentFrame) => void>()
@@ -75,9 +85,7 @@ export const useWatcherIncidentStatStore = defineStore('watcherIncidentStatStore
 
             await this.findStat()
 
-            if (this.subscribe()) {
-                return
-            }
+            this.subscribe()
 
             this.poll()
         },
@@ -148,23 +156,19 @@ export const useWatcherIncidentStatStore = defineStore('watcherIncidentStatStore
                 window.clearTimeout(pollTimeoutId)
             }
 
+            const subscribed = unsubscribeIncidents !== null
+
             pollTimeoutId = window.setTimeout(
                 () => {
                     if (!this.started) {
                         return
                     }
 
-                    // One read either way: after a subscription it is the confirming one,
-                    // and from then on the frames carry the count.
-                    if (this.subscribe()) {
-                        this.findStat()
-
-                        return
-                    }
+                    this.subscribe()
 
                     this.findStat().finally(() => this.poll())
                 },
-                pollInterval
+                subscribed ? subscribedReadInterval : pollInterval
             )
         },
         /**

@@ -146,14 +146,14 @@ let reloadTimeoutId: null | number = null
 const reloadDelay = 300
 
 /** Which incidents moved while the wait above was running. */
-const pendingIncidentIds = new Set<number>()
+const pendingIncidentIds = new Set<string>()
 
 export default defineComponent({
   components: {IncidentEvents},
 
   data() {
     return {
-      closing: {} as { [id: number]: boolean },
+      closing: {} as { [id: string]: boolean },
     }
   },
 
@@ -226,7 +226,7 @@ export default defineComponent({
           })
     },
     /** Gathers the frames of one pass into a single re-read. */
-    scheduleReload(incidentId: number) {
+    scheduleReload(incidentId: string) {
       pendingIncidentIds.add(incidentId)
 
       if (reloadTimeoutId !== null) {

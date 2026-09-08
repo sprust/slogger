@@ -7,46 +7,91 @@ namespace App\Modules\Watcher\Repositories;
 use App\Models\Watchers\WatcherIncidentEvent;
 use App\Modules\Watcher\Entities\WatcherIncidentEventObject;
 use Illuminate\Support\Carbon;
+use SConcur\Bson\Exceptions\InvalidBsonValueException;
+use SConcur\Bson\ObjectId;
+use SConcur\Bson\UTCDateTime;
 
 readonly class WatcherIncidentEventRepository
 {
     /**
      * @return WatcherIncidentEventObject[]
      */
-    public function findByIncidentId(int $incidentId, int $page, int $perPage): array
+    public function findByIncidentId(string $incidentId, int $page, int $perPage): array
     {
-        return WatcherIncidentEvent::query()
-            ->where('incident_id', $incidentId)
-            ->orderByDesc('id')
-            ->forPage($page, $perPage)
-            ->get()
-            ->map(fn(WatcherIncidentEvent $event) => $this->makeObject($event))
-            ->all();
+        $objectId = $this->objectId($incidentId);
+
+        if (is_null($objectId)) {
+            return [];
+        }
+
+        $cursor = WatcherIncidentEvent::sconcur()->find(
+            filter: ['incidentId' => $objectId],
+            // Newest first, and the id carries the moment it was written — an event is
+            // never edited, so nothing else can order them.
+            sort: ['_id' => -1],
+            limit: $perPage,
+            skip: ($page - 1) * $perPage,
+        );
+
+        $events = [];
+
+        foreach ($cursor as $document) {
+            $events[] = $this->makeObject($document);
+        }
+
+        return $events;
     }
 
     /**
      * @param array<string, mixed> $payload
      */
-    public function create(int $incidentId, Carbon $occurredAt, array $payload): WatcherIncidentEventObject
+    public function create(string $incidentId, Carbon $occurredAt, array $payload): void
     {
-        $event = new WatcherIncidentEvent();
+        $objectId = $this->objectId($incidentId);
 
-        $event->incident_id = $incidentId;
-        $event->occurred_at = $occurredAt;
-        $event->payload     = $payload;
+        if (is_null($objectId)) {
+            return;
+        }
 
-        $event->saveOrFail();
-
-        return $this->makeObject($event);
+        WatcherIncidentEvent::sconcur()->insertOne([
+            'incidentId' => $objectId,
+            'occurredAt' => new UTCDateTime($occurredAt),
+            'payload'    => $payload,
+        ]);
     }
 
-    private function makeObject(WatcherIncidentEvent $event): WatcherIncidentEventObject
+    /**
+     * An id that is not one, answered with nothing rather than an exception: these arrive
+     * from the url. The format is not restated here — the value object is what knows it.
+     */
+    private function objectId(string $id): ?ObjectId
     {
+        try {
+            return new ObjectId($id);
+        } catch (InvalidBsonValueException) {
+            return null;
+        }
+    }
+
+    /**
+     * @param array<int|string, mixed> $document
+     */
+    private function makeObject(array $document): WatcherIncidentEventObject
+    {
+        $occurredAt = $document['occurredAt'] ?? null;
+
+        $payload = $document['payload'] ?? [];
+
+        /** @var array<string, mixed> $payload */
+        $payload = is_array($payload) ? $payload : [];
+
         return new WatcherIncidentEventObject(
-            id: $event->id,
-            incidentId: $event->incident_id,
-            occurredAt: $event->occurred_at,
-            payload: $event->payload
+            id: (string) $document['_id'],
+            incidentId: (string) $document['incidentId'],
+            occurredAt: $occurredAt instanceof UTCDateTime
+                ? Carbon::parse($occurredAt->toDateTime())
+                : Carbon::now(),
+            payload: $payload
         );
     }
 }

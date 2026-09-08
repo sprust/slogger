@@ -10,7 +10,7 @@ use Illuminate\Support\Carbon;
 readonly class WatcherIncidentObject
 {
     public function __construct(
-        public int $id,
+        public string $id,
         public int $watcherId,
         public WatcherIncidentStatusEnum $status,
         public Carbon $firstEventAt,

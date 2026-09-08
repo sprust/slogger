@@ -24,20 +24,20 @@ let findRequest = 0
 /** Events per incident, kept for as long as the page is open: an incident's history does
  * not change once it is read, except by a frame that reloads the row anyway. */
 interface EventsByIncident {
-    [incidentId: number]: Array<WatcherIncidentEvent>
+    [incidentId: string]: Array<WatcherIncidentEvent>
 }
 
 interface IncidentsStoreInterface {
     loading: boolean
     loaded: boolean
-    eventsPage: { [incidentId: number]: number }
-    eventsExhausted: { [incidentId: number]: boolean }
+    eventsPage: { [incidentId: string]: number }
+    eventsExhausted: { [incidentId: string]: boolean }
     page: number
     status: WatchersIncidentsListParamsStatusEnum | null
     watcherId: number | null
     items: Array<WatcherIncident>
     events: EventsByIncident
-    loadingEvents: { [incidentId: number]: boolean }
+    loadingEvents: { [incidentId: string]: boolean }
 }
 
 export const useIncidentsStore = defineStore('incidentsStore', {
@@ -101,7 +101,7 @@ export const useIncidentsStore = defineStore('incidentsStore', {
                     })
             )
         },
-        async findEvents(incidentId: number) {
+        async findEvents(incidentId: string) {
             this.eventsPage[incidentId] = 1
             this.eventsExhausted[incidentId] = false
 
@@ -113,7 +113,7 @@ export const useIncidentsStore = defineStore('incidentsStore', {
          * An incident open for a day holds a few hundred events — 288 at the shortest
          * cooldown the form allows — and the first page is not all of them.
          */
-        async findMoreEvents(incidentId: number) {
+        async findMoreEvents(incidentId: string) {
             const page = (this.eventsPage[incidentId] ?? 1) + 1
 
             const loaded = await this.loadEvents(incidentId, page, true)
@@ -127,7 +127,7 @@ export const useIncidentsStore = defineStore('incidentsStore', {
 
             return loaded
         },
-        async loadEvents(incidentId: number, page: number, append: boolean) {
+        async loadEvents(incidentId: string, page: number, append: boolean) {
             this.loadingEvents[incidentId] = true
 
             return await handleApiRequest(
@@ -152,7 +152,7 @@ export const useIncidentsStore = defineStore('incidentsStore', {
                     .then(() => true)
             )
         },
-        async close(incidentId: number) {
+        async close(incidentId: string) {
             return await handleApiRequest(
                 () => ApiContainer.get().watchersIncidentsClosePartialUpdate(incidentId)
                     .then(() => {
@@ -183,7 +183,7 @@ export const useIncidentsStore = defineStore('incidentsStore', {
          * The events of an incident nobody has expanded are not read — there is nothing
          * on screen to correct.
          */
-        reload(incidentId: number) {
+        reload(incidentId: string) {
             if (this.events[incidentId]) {
                 this.findEvents(incidentId)
             }

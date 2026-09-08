@@ -17,6 +17,8 @@ use PHPUnit\Framework\TestCase;
  */
 class CloseIncidentActionTest extends TestCase
 {
+    private const string INCIDENT_ID = '68be1f00a1b2c3d4e5f60012';
+
     public function testClosingRecordsWhoDidIt(): void
     {
         $incidents = $this->createMock(WatcherIncidentRepository::class);
@@ -25,7 +27,7 @@ class CloseIncidentActionTest extends TestCase
         $incidents->expects($this->once())
             ->method('updateStatus')
             ->with(
-                12,
+                self::INCIDENT_ID,
                 WatcherIncidentStatusEnum::Closed,
                 $this->isInstanceOf(Carbon::class),
                 7
@@ -47,7 +49,7 @@ class CloseIncidentActionTest extends TestCase
         $events = $this->createMock(Dispatcher::class);
         $events->expects($this->never())->method('dispatch');
 
-        new CloseIncidentAction($incidents, $events)->handle(12, 7);
+        new CloseIncidentAction($incidents, $events)->handle(self::INCIDENT_ID, 7);
     }
 
     /** Whoever is watching is told, so the badge and any open list follow. */
@@ -61,7 +63,7 @@ class CloseIncidentActionTest extends TestCase
             ->method('dispatch')
             ->with($this->isInstanceOf(WatcherIncidentChangedEvent::class));
 
-        new CloseIncidentAction($incidents, $events)->handle(12, 7);
+        new CloseIncidentAction($incidents, $events)->handle(self::INCIDENT_ID, 7);
     }
 
     public function testAnIncidentThatIsNotThereIsReported(): void
@@ -77,13 +79,13 @@ class CloseIncidentActionTest extends TestCase
     private function close(WatcherIncidentRepository $incidents, ?int $closedByUserId): void
     {
         new CloseIncidentAction($incidents, $this->createMock(Dispatcher::class))
-            ->handle(12, $closedByUserId);
+            ->handle(self::INCIDENT_ID, $closedByUserId);
     }
 
     private function incident(WatcherIncidentStatusEnum $status): WatcherIncidentObject
     {
         return new WatcherIncidentObject(
-            id: 12,
+            id: self::INCIDENT_ID,
             watcherId: 7,
             status: $status,
             firstEventAt: Carbon::parse('2026-09-08 10:00:00'),

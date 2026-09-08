@@ -78,9 +78,13 @@ type Repository struct {
 	mutex sync.Mutex
 }
 
-// FindEnabled returns the watchers this service has anything to do with: enabled, and
-// carrying a filter. The ones without a filter watch the buffers, which the panel reads
-// for itself.
+// FindEnabled returns the watchers this service has anything to do with: enabled, not
+// deleted, and carrying a filter. The ones without a filter watch the buffers, which the
+// panel reads for itself.
+//
+// Deleted is soft — the panel keeps the row so that the incidents a watcher left behind
+// still have a name to show against — so it has to be asked for here rather than assumed
+// from the row being gone.
 //
 // A row whose json will not parse is skipped and logged rather than failing the whole
 // read: one broken watcher must not stop the others from being collected for.
@@ -94,7 +98,7 @@ func (r *Repository) FindEnabled(ctx context.Context) ([]Watcher, error) {
 	err := r.db.SelectContext(
 		ctx,
 		&rows,
-		"SELECT id, trace_match FROM "+r.table+" WHERE enabled = 1 AND trace_match IS NOT NULL",
+		"SELECT id, trace_match FROM "+r.table+" WHERE enabled = 1 AND deleted_at IS NULL AND trace_match IS NOT NULL",
 	)
 
 	if err != nil {

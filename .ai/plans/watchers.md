@@ -301,10 +301,23 @@ Cooldown («не чаще, чем раз в») тоже настраиваетс
 изменении `match`), и проверка, которой нужно полное окно, пропускается, пока
 `now - collect_since` меньше окна. Смотритель тихо ждёт, пока накопится история.
 
-## Инциденты и события (MySQL)
+## Инциденты и события (Mongo)
 
 Объём мал по построению: cooldown ограничивает поток событий (при 5 минутах — максимум 288
 событий на смотрителя в сутки).
+
+**В MySQL остаются только настройки смотрителя.** Всё остальное, что он производит —
+инциденты, события, линии, — данные периодические: копятся, пока система работает, и стоят
+того, чтобы полежать какое-то время, а не вечно. Поэтому они лежат там же, где трейсы и
+буфер, и убираются TTL-индексом: инциденты по `lastEventAt`, события по `occurredAt` (30
+дней), линии по `uat` (3 дня — у живого смотрителя `uat` переписывается каждые 15 секунд и
+не истекает никогда).
+
+Из этого следует две вещи. Удаление смотрителя **ничего из этого не трогает**: внешних
+ключей нет, каскада нет, подметания сирот тоже — история проблемы не должна исчезать
+оттого, что кто-то прибрал нашедшего её смотрителя. И само удаление **мягкое**
+(`softDeletes`), чтобы у оставшихся инцидентов было чьё имя показать; приёмник поэтому
+спрашивает `deleted_at IS NULL` наравне с `enabled = 1`.
 
 `watchers`:
 
@@ -321,32 +334,35 @@ Cooldown («не чаще, чем раз в») тоже настраиваетс
 | `last_checked_at` | timestamp null | когда смотрителя проверяли в последний раз |
 | `last_triggered_at` | timestamp null | для cooldown |
 | `created_at` / `updated_at` | timestamp | |
+| `deleted_at` | timestamp null | мягкое удаление; приёмник читает только строки, где он пуст |
 
-`watcher_incidents` — таблица1:
+`watcherIncidents` — коллекция1:
 
-| Колонка | Тип | Смысл |
+| Поле | Тип | Смысл |
 |---|---|---|
-| `id` | bigint | |
-| `watcher_id` | FK → watchers, cascadeOnDelete | |
-| `status` | string(16) | `opened` / `closed` — статус1/статус2, оба в прошедшем времени |
-| `first_event_at`, `last_event_at` | timestamp | |
-| `events_count` | int | чтобы список не считал |
-| `closed_at` | timestamp null | |
-| `closed_by_user_id` | FK → users null | кто закрыл |
+| `_id` | ObjectId | несёт в себе момент создания, по нему же и сортировка |
+| `watcherId` | int | id смотрителя; связи на уровне БД нет и не нужно |
+| `status` | string | `opened` / `closed` — оба в прошедшем времени |
+| `firstEventAt`, `lastEventAt` | UTCDateTime | на `lastEventAt` висит TTL |
+| `eventsCount` | int | чтобы список не считал |
+| `closedAt` | UTCDateTime null | |
+| `closedByUserId` | int null | кто закрыл; пользователи остаются в MySQL |
 
-Уникальности «один открытый инцидент на смотрителя» нет: индекс `{watcher_id, status}`
+Уникальности «один открытый инцидент на смотрителя» нет: индекс `{watcherId, status}`
 нужен только для поиска. Открытый инцидент ищется запросом
-`where watcher_id = ? and status = 'opened' order by id desc limit 1` — есть, событие
-уходит в него; нет, заводится новый.
+`{watcherId, status: 'opened'}` с сортировкой `{_id: -1}` и лимитом 1 — есть, событие
+уходит в него; нет, заводится новый. Список сортируется по `{status: -1, _id: -1}`:
+`opened` лексикографически больше `closed`, поэтому убывающий статус ставит очередь работы
+наверх.
 
-`watcher_incident_events` — таблица2:
+`watcherIncidentEvents` — коллекция2:
 
-| Колонка | Тип | Смысл |
+| Поле | Тип | Смысл |
 |---|---|---|
-| `id` | bigint | |
-| `incident_id` | FK → watcher_incidents, cascadeOnDelete | |
-| `occurred_at` | timestamp, index | время происшествия |
-| `payload` | json | что увидел смотритель: значение, порог, свёртка `g` с `tid` |
+| `_id` | ObjectId | |
+| `incidentId` | ObjectId | инцидент, под которым лежит событие |
+| `occurredAt` | UTCDateTime | время происшествия; на нём TTL |
+| `payload` | object | что увидел смотритель: значение, порог, свёртка `g` с `tid` |
 
 Порядок при срабатывании (`RegisterTriggerAction`):
 
@@ -359,8 +375,8 @@ Cooldown («не чаще, чем раз в») тоже настраиваетс
 4. `events_count++`, `last_event_at`, `watchers.last_triggered_at = now`.
 5. Диспатчим `WatcherIncidentChangedEvent`; листенер вещает в `sl-watchers`.
 
-Закрытие из ЛК (`CloseIncidentAction`): `status = closed`, `closed_at`,
-`closed_by_user_id`. Следующее срабатывание заведёт новый инцидент.
+Закрытие из ЛК (`CloseIncidentAction`): `status = closed`, `closedAt`, `closedByUserId`.
+Следующее срабатывание заведёт новый инцидент.
 
 ## Структура модуля
 
@@ -404,7 +420,6 @@ app/Modules/Watcher/
 │   │   ├── CloseIncidentAction.php
 │   │   ├── CheckWatcherAction.php           — проверить одного, своей корутиной
 │   │   ├── TrimWatcherTimelineAction.php   — вырезать то, что ушло за видимость
-│   │   ├── DeleteOrphanWatcherTimelinesAction.php — убрать линии смотрителей, которых нет
 │   └── DeleteOrphanWatcherTimelinesAction.php — убрать линии смотрителей, которых нет
 │   ├── Actions/Queries/
 │   │   ├── FindWatchersAction.php
@@ -442,8 +457,8 @@ app/Modules/Watcher/
     └── WatcherServiceProvider.php
 ```
 
-Модели: `app/Models/Watchers/Watcher.php`, `WatcherIncident.php`,
-`WatcherIncidentEvent.php` (MySQL, `AbstractModel`) и `WatcherTimeline.php` (Mongo,
+Модели: `app/Models/Watchers/Watcher.php` (MySQL, `AbstractModel`, `SoftDeletes`) и
+`WatcherIncident.php`, `WatcherIncidentEvent.php`, `WatcherTimeline.php` (Mongo,
 `AbstractTraceModel` — соединение `mongodb.traces`).
 
 Каждый чекер — класс с одним публичным методом; `CheckWatcherAction` только берёт чекер у

@@ -35,7 +35,7 @@ class BroadcastWatcherIncidentListenerTest extends TestCase
         // The badge only needs the count; this half is what tells a list that happens to
         // be open which row to read again.
         $this->assertSame(
-            ['incident_id' => 12, 'watcher_id' => 7, 'status' => 'closed', 'opened_count' => 0],
+            ['incident_id' => '68be1f00a1b2c3d4e5f60012', 'watcher_id' => 7, 'status' => 'closed', 'opened_count' => 0],
             $published->broadcastWith()
         );
     }
@@ -67,7 +67,7 @@ class BroadcastWatcherIncidentListenerTest extends TestCase
     private function incident(WatcherIncidentStatusEnum $status): WatcherIncidentObject
     {
         return new WatcherIncidentObject(
-            id: 12,
+            id: '68be1f00a1b2c3d4e5f60012',
             watcherId: 7,
             status: $status,
             firstEventAt: Carbon::parse('2026-09-08 10:00:00'),

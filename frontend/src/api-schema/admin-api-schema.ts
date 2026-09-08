@@ -1946,7 +1946,7 @@ export namespace AdminApi {
  * @secure
  * @response `200` `{
     data: ({
-    id: number,
+    id: string,
     watcher_id: number,
     status: string,
     first_event_at: string,
@@ -1976,7 +1976,7 @@ export namespace AdminApi {
     export type RequestHeaders = {};
     export type ResponseBody = {
       data: {
-        id: number;
+        id: string;
         watcher_id: number;
         status: string;
         first_event_at: string;
@@ -2020,8 +2020,8 @@ export namespace AdminApi {
  * @secure
  * @response `200` `{
     data: ({
-    id: number,
-    incident_id: number,
+    id: string,
+    incident_id: string,
     occurred_at: string,
     payload: {
     threshold?: number | null,
@@ -2073,8 +2073,8 @@ export namespace AdminApi {
     export type RequestHeaders = {};
     export type ResponseBody = {
       data: {
-        id: number;
-        incident_id: number;
+        id: string;
+        incident_id: string;
         occurred_at: string;
         payload: {
           threshold?: number | null;
@@ -5100,7 +5100,7 @@ export class Api<
  * @secure
  * @response `200` `{
     data: ({
-    id: number,
+    id: string,
     watcher_id: number,
     status: string,
     first_event_at: string,
@@ -5130,7 +5130,7 @@ export class Api<
       this.request<
         {
           data: {
-            id: number;
+            id: string;
             watcher_id: number;
             status: string;
             first_event_at: string;
@@ -5188,8 +5188,8 @@ export class Api<
  * @secure
  * @response `200` `{
     data: ({
-    id: number,
-    incident_id: number,
+    id: string,
+    incident_id: string,
     occurred_at: string,
     payload: {
     threshold?: number | null,
@@ -5240,8 +5240,8 @@ export class Api<
       this.request<
         {
           data: {
-            id: number;
-            incident_id: number;
+            id: string;
+            incident_id: string;
             occurred_at: string;
             payload: {
               threshold?: number | null;

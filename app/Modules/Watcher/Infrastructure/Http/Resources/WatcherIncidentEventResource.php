@@ -9,8 +9,8 @@ use App\Modules\Watcher\Entities\WatcherIncidentEventObject;
 
 class WatcherIncidentEventResource extends AbstractApiResource
 {
-    private int $id;
-    private int $incident_id;
+    private string $id;
+    private string $incident_id;
     private string $occurred_at;
     private WatcherIncidentEventPayloadResource $payload;
 

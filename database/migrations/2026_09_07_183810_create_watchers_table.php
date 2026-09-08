@@ -7,6 +7,10 @@ use Illuminate\Support\Facades\Schema;
 /**
  * The watchers themselves: what is watched, how often it may speak, and the one part of
  * that the receiver reads.
+ *
+ * The only part of a watcher that lives here. Everything it produces — its incidents, the
+ * events under them, the line behind those — accumulates while the system runs and is
+ * kept for a while rather than for ever, so it lives in Mongo under a TTL.
  */
 return new class extends Migration {
     public function up(): void
@@ -43,6 +47,11 @@ return new class extends Migration {
             $table->timestamp('last_checked_at')->nullable();
             $table->timestamp('last_triggered_at')->nullable();
             $table->timestamps();
+
+            // Soft, because what a watcher produced outlives it: the incidents are retired
+            // by a TTL of their own, and a list of them needs the name of the watcher that
+            // found them. The receiver asks for `deleted_at IS NULL` alongside `enabled`.
+            $table->softDeletes();
         });
     }
 

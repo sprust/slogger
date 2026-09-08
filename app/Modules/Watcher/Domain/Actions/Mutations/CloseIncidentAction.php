@@ -29,7 +29,7 @@ readonly class CloseIncidentAction
     /**
      * @throws WatcherIncidentNotFoundException
      */
-    public function handle(int $incidentId, ?int $closedByUserId): void
+    public function handle(string $incidentId, ?int $closedByUserId): void
     {
         $incident = $this->incidentRepository->findById($incidentId);
 
