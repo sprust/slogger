@@ -185,10 +185,15 @@ func (s *Service) saveTraces(ctx context.Context, serviceId int, traceId string,
 		data = []interface{}{}
 	}
 
+	// By value, not by key. The document below is written with every field it has room
+	// for, so a trace stored before its numbers arrived carries nulls under them — and a
+	// key holding a null, taken for a stored value, wins over the create that is finally
+	// bringing the real one. A create landing after an update that carried none would lose
+	// its duration, memory and cpu for good.
 	var duration interface{}
 	if traces.Updating != nil && traces.Updating.Duration != nil {
 		duration = *traces.Updating.Duration
-	} else if existingDuration, ok := existsTrace["dur"]; ok {
+	} else if existingDuration := existsTrace["dur"]; existingDuration != nil {
 		duration = existingDuration
 	} else if traces.Creating != nil && traces.Creating.Duration != nil {
 		duration = *traces.Creating.Duration
@@ -197,7 +202,7 @@ func (s *Service) saveTraces(ctx context.Context, serviceId int, traceId string,
 	var memory interface{}
 	if traces.Updating != nil && traces.Updating.Memory != nil {
 		memory = *traces.Updating.Memory
-	} else if existingMemory, ok := existsTrace["mem"]; ok {
+	} else if existingMemory := existsTrace["mem"]; existingMemory != nil {
 		memory = existingMemory
 	} else if traces.Creating != nil && traces.Creating.Memory != nil {
 		memory = *traces.Creating.Memory
@@ -206,7 +211,7 @@ func (s *Service) saveTraces(ctx context.Context, serviceId int, traceId string,
 	var cpu interface{}
 	if traces.Updating != nil && traces.Updating.Cpu != nil {
 		cpu = *traces.Updating.Cpu
-	} else if existingCPU, ok := existsTrace["cpu"]; ok {
+	} else if existingCPU := existsTrace["cpu"]; existingCPU != nil {
 		cpu = existingCPU
 	} else if traces.Creating != nil && traces.Creating.Cpu != nil {
 		cpu = *traces.Creating.Cpu
@@ -269,10 +274,6 @@ func (s *Service) saveTraces(ctx context.Context, serviceId int, traceId string,
 	// __UNKNOWN with no tags, where no filtered watcher can ever see it, and the create
 	// that follows could not correct it. So the counting write is the one that first gives
 	// the trace a type, whichever of the two that turns out to be.
-	//
-	// The duration is added by the write that first carries one, for the same reason in
-	// reverse: `duration` above is the merged value, so a second write over a trace whose
-	// duration was already stored would add it to the sums again.
 	typeWasKnown := isKnownTraceType(existsTrace["tp"])
 
 	// By the value, not by the key: the document is written with every field it has room
@@ -282,11 +283,13 @@ func (s *Service) saveTraces(ctx context.Context, serviceId int, traceId string,
 	// quiet for good.
 	durationWasStored := durationValue(existsTrace["dur"]) != nil
 
-	countsAsNew := traceType != unknownTraceType && !typeWasKnown
+	typeIsKnown := traceType != unknownTraceType
+
+	countsAsNew := typeIsKnown && !typeWasKnown
 
 	var newDuration interface{}
 
-	if !durationWasStored {
+	if reportsDuration(typeIsKnown, typeWasKnown, durationWasStored) {
 		newDuration = duration
 	}
 
@@ -349,6 +352,18 @@ func tagNames(value interface{}) []string {
 	}
 
 	return names
+}
+
+// reportsDuration says whether this write is the one to hand the trace's duration to the
+// watchers.
+//
+// The first write that has both a real type and a duration in hand — which is not always
+// the write that brought the duration. Handing it over under the placeholder would file it
+// under a type no filter matches and no watcher can see, and the create that follows could
+// not put it right: the duration is the merged value by then, so it would look like one
+// already reported.
+func reportsDuration(typeIsKnown bool, typeWasKnown bool, durationWasStored bool) bool {
+	return typeIsKnown && !(durationWasStored && typeWasKnown)
 }
 
 // isKnownTraceType says whether what is stored is a real type rather than the placeholder

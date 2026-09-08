@@ -138,8 +138,12 @@ func (s *Server) Run(ctx context.Context) error {
 		}()
 	}
 
-	// The listener is closed first thing in stop(), so Accept fails while the connections
-	// still being handled, the context and the service connection are yet to be let go of.
+	// stop() waits for the connections still being handled before it closes the listener,
+	// so Accept cannot fail until that drain is over — and what is left after it is the
+	// context and the service connection. Waiting here is what makes a returned Run mean a
+	// server that has finished rather than one that has stopped listening. The cost is
+	// that a handler wedged on the database holds Run as well, and then main's ten-second
+	// deadline is what ends the process.
 	if s.closing.Load() {
 		<-s.stopped
 	}

@@ -4,41 +4,65 @@ declare(strict_types=1);
 
 namespace App\Modules\Watcher\Entities;
 
+use Illuminate\Support\Carbon;
+
 /**
  * A watcher's line: its buckets, oldest first, each timestamp appearing once.
  */
 readonly class WatcherTimelineObject
 {
     /**
-     * The least a line is guaranteed to reach back, in minutes.
+     * How many elements the receiver keeps in the stored array (`maxBuckets` in
+     * `watcher_timeline_repository`).
      *
-     * The receiver keeps 720 buckets of 15 seconds (`maxBuckets` in
-     * `watcher_timeline_repository`), and that ceiling holds whatever the panel does — it
-     * is the guard against a stopped trimming task growing the array until `$push` starts
-     * refusing. Traffic thin enough to leave gaps stretches those buckets over more time,
-     * never less, so this is a floor.
+     * Elements, not moments. The receiver's writes are additive and never read the
+     * document first — that is what makes them safe across restarts and across receivers —
+     * so a bucket reopened by a late trace arrives as a second element with the same
+     * timestamp. A line of 720 elements can therefore be three hours of a service whose
+     * traces all finish inside one bucket, or forty minutes of one whose traces run for
+     * minutes. `$truncated` is what says which.
      */
-    public const int RECEIVER_CEILING_MINUTES = 180;
+    public const int RECEIVER_ELEMENT_CAP = 720;
 
     /**
      * How far back a watcher may be configured to look, in minutes.
      *
-     * Deliberately short of the ceiling above. A window reaching past what the line holds
-     * reads buckets nobody kept, and every checker takes what is missing for an absence —
-     * a spike watcher divides the part it found by the whole baseline it asked for, and
-     * calls steady traffic a rise, for ever. The margin covers
-     * WatcherTimelineAnalyzer::LAG_SECONDS, by which every window is already shifted back.
-     *
-     * Raising it means raising `maxBuckets` in the receiver in the same change.
+     * Short of the three hours the cap holds at its best, with room for the lag by which
+     * every window is already shifted back and for the slack the trimming keeps. It is not
+     * a guarantee — see the cap above — which is why the checkers that would misread a
+     * short line also test `$truncated`.
      */
     public const int MAX_DEPTH_MINUTES = 175;
 
     /**
      * @param WatcherTimelineBucketObject[] $buckets
+     * @param bool                          $truncated whether the stored array was at the
+     *                                                 receiver's cap, so its head may have
+     *                                                 been dropped
      */
     public function __construct(
         public int $watcherId,
-        public array $buckets
+        public array $buckets,
+        public bool $truncated = false
     ) {
+    }
+
+    /** The first moment this line holds, or null when it holds nothing. */
+    public function startsAt(): ?Carbon
+    {
+        return $this->buckets[0]->at ?? null;
+    }
+
+    /**
+     * Whether the line is known not to reach back to $from.
+     *
+     * Only a line at the cap can answer this. Below the cap nothing was dropped, so a head
+     * with no buckets in it is a stretch where nothing matched — which is an answer, not a
+     * gap. At the cap the head was cut, and then the first bucket really is where the line
+     * begins.
+     */
+    public function startsAfter(Carbon $from): bool
+    {
+        return $this->truncated && $this->startsAt()?->gt($from) === true;
     }
 }

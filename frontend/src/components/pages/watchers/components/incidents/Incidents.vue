@@ -126,11 +126,10 @@ const IncidentEvents = defineAsyncComponent(() => import("./IncidentEvents.vue")
 /**
  * Dropped when the tab is left, so a list nobody is looking at is not reloaded on every
  * frame. The badge in the header keeps following them either way.
- */
-/**
- * Module-level, like the store's own subscription: the page holds one incidents list, and
- * the tab panes are lazy, so there is only ever one of these mounted. A second instance
- * would take this handle from the first and leave its listener behind.
+ *
+ * Module-level, like the store's own subscription: the page holds one incidents list and
+ * the tab panes are lazy, so only one of these is ever mounted. A second instance would
+ * take this handle from the first and leave its listener behind.
  */
 let unsubscribeFrames: null | (() => void) = null
 

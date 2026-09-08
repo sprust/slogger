@@ -40,9 +40,11 @@ readonly class CheckWatcherAction
 
             $this->trimTimelineAction->handle($watcher, $context->now);
 
-            // Last, and only on the way out without an error: this moment is the lower
-            // bound of the next check's window for the watchers that read one, and moving
-            // it past a check that did not happen would skip whatever was in between.
+            // Last, and only on the way out without an error. Nothing reads it back — the
+            // window of invalid_buffer_grown is measured from the last trigger, not from
+            // the last look — so this is what the panel shows, and showing a check that
+            // threw as one that happened would be a lie about the only thing on the row
+            // that says the watcher is alive.
             $this->watcherRepository->updateCheckedAt($watcher->id, $context->now);
         } catch (Throwable $exception) {
             $this->logger->error("Watcher [$watcher->id] check failed: " . $exception->getMessage(), [

@@ -2,38 +2,92 @@
 
 namespace Tests\Modules\Watcher\Entities;
 
+use App\Modules\Watcher\Domain\Actions\Mutations\TrimWatcherTimelineAction;
 use App\Modules\Watcher\Domain\Services\WatcherTimelineAnalyzer;
+use App\Modules\Watcher\Entities\WatcherTimelineBucketObject;
 use App\Modules\Watcher\Entities\WatcherTimelineObject;
+use Illuminate\Support\Carbon;
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
 
 /**
- * What a watcher may ask for has to be less than what the line is guaranteed to hold.
+ * How much of a line a watcher may ask about, and how the answer knows when it cannot.
  *
- * Nothing in the running system reports the difference. A window reaching past the line
- * simply reads buckets nobody kept, and the checkers take what is missing for an absence —
- * a spike watcher divides the part it found by the whole baseline it asked for and calls
- * steady traffic a rise, hour after hour. So the two numbers are pinned here, and the
- * receiver's `maxBuckets` has to move with them.
+ * Nothing in the running system reports a window that reaches past its line. The buckets
+ * that are not there are simply not counted, and every checker reads what is missing as an
+ * absence — a spike watcher divides the part it found by the whole baseline it asked for
+ * and calls steady traffic a rise, hour after hour.
  */
 class WatcherTimelineDepthTest extends TestCase
 {
-    /** 720 buckets of 15 seconds, every one of them filled. */
-    public function testTheCeilingIsWhatTheReceiverKeeps(): void
+    /**
+     * The trimming has to keep everything the deepest window can reach for, including the
+     * lag by which that window is already shifted back.
+     */
+    public function testTheTrimmingKeepsMoreThanTheDeepestWindowAsksFor(): void
     {
-        $this->assertSame(720 * 15 / 60, WatcherTimelineObject::RECEIVER_CEILING_MINUTES);
+        $slack = new ReflectionClass(TrimWatcherTimelineAction::class)
+            ->getConstant('SLACK_MINUTES');
+
+        $this->assertGreaterThanOrEqual(
+            WatcherTimelineAnalyzer::LAG_SECONDS,
+            $slack * 60,
+            'the trimming cuts inside the window the lag pushes the checkers back to'
+        );
     }
 
     /**
-     * With room for the lag on top, by which every window is already shifted back: a
-     * window of exactly the ceiling would ask for a minute that had fallen off the end.
+     * At its best — every element a moment of its own — the cap holds what the deepest
+     * settings plus that slack need. It is only ever at its best, though: the receiver
+     * writes an element per flush, not per moment, so a busy watcher spends several on one
+     * timestamp. That is what startsAfter() is for.
      */
-    public function testTheDeepestWindowFitsUnderTheCeilingWithTheLagOnTop(): void
+    public function testTheDeepestSettingsFitTheCapWhenNoMomentIsWrittenTwice(): void
     {
-        $lagMinutes = (int) ceil(WatcherTimelineAnalyzer::LAG_SECONDS / 60);
+        $slack = new ReflectionClass(TrimWatcherTimelineAction::class)
+            ->getConstant('SLACK_MINUTES');
 
-        $this->assertLessThan(
-            WatcherTimelineObject::RECEIVER_CEILING_MINUTES,
-            WatcherTimelineObject::MAX_DEPTH_MINUTES + $lagMinutes
+        $keptSeconds = (WatcherTimelineObject::MAX_DEPTH_MINUTES + $slack) * 60;
+
+        $this->assertLessThanOrEqual(
+            WatcherTimelineObject::RECEIVER_ELEMENT_CAP,
+            $keptSeconds / 15,
+            'the deepest settings need more 15-second buckets than the receiver keeps'
+        );
+    }
+
+    /** Below the cap nothing was dropped, so a quiet head is an answer, not a gap. */
+    public function testALineUnderTheCapIsTakenAtItsWord(): void
+    {
+        $timeline = $this->timeline(startsAt: '2026-09-08 11:55:00', truncated: false);
+
+        $this->assertFalse($timeline->startsAfter(Carbon::parse('2026-09-08 11:00:00')));
+    }
+
+    /** At the cap the head was cut, and the first bucket is where the line really begins. */
+    public function testALineAtTheCapAdmitsWhereItBegins(): void
+    {
+        $timeline = $this->timeline(startsAt: '2026-09-08 11:55:00', truncated: true);
+
+        $this->assertTrue($timeline->startsAfter(Carbon::parse('2026-09-08 11:00:00')));
+        $this->assertFalse($timeline->startsAfter(Carbon::parse('2026-09-08 11:56:00')));
+    }
+
+    private function timeline(string $startsAt, bool $truncated): WatcherTimelineObject
+    {
+        return new WatcherTimelineObject(
+            watcherId: 1,
+            buckets: [
+                new WatcherTimelineBucketObject(
+                    at: Carbon::parse($startsAt),
+                    count: 1,
+                    durationCount: 0,
+                    durationSum: 0,
+                    durationMax: 0,
+                    groups: []
+                ),
+            ],
+            truncated: $truncated
         );
     }
 }

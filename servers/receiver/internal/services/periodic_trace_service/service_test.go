@@ -49,3 +49,33 @@ func TestThePlaceholderIsNotAKnownType(t *testing.T) {
 		t.Fatal("a real type was not recognised")
 	}
 }
+
+// A trace whose update was persisted first has no type on that write, and the duration it
+// brought must wait for the create rather than go over under the placeholder: a filtered
+// watcher never sees __UNKNOWN, and an unfiltered one would file the evidence under a type
+// that does not exist.
+func TestTheDurationWaitsForARealType(t *testing.T) {
+	cases := []struct {
+		name              string
+		typeIsKnown       bool
+		typeWasKnown      bool
+		durationWasStored bool
+		want              bool
+	}{
+		{"a create bringing both", true, false, false, true},
+		{"an update completing a create", true, true, false, true},
+		{"an update landing before its create", false, false, false, false},
+		{"the create picking up a duration stored under the placeholder", true, false, true, true},
+		{"a replayed batch reporting nothing again", true, true, true, false},
+	}
+
+	for _, testCase := range cases {
+		t.Run(testCase.name, func(t *testing.T) {
+			got := reportsDuration(testCase.typeIsKnown, testCase.typeWasKnown, testCase.durationWasStored)
+
+			if got != testCase.want {
+				t.Fatalf("reportsDuration = %v, wanted %v", got, testCase.want)
+			}
+		})
+	}
+}

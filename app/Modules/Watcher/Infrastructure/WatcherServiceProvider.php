@@ -18,6 +18,7 @@ use App\Modules\Watcher\Domain\Actions\Queries\FindIncidentStatAction;
 use App\Modules\Watcher\Domain\Actions\Queries\FindIncidentsAction;
 use App\Modules\Watcher\Domain\Actions\Queries\FindWatcherTypesAction;
 use App\Modules\Watcher\Domain\Actions\Queries\FindWatcherAction;
+use App\Modules\Watcher\Domain\Actions\Queries\FindWatcherIdsAction;
 use App\Modules\Watcher\Domain\Actions\Queries\FindWatchersAction;
 use App\Modules\Watcher\Domain\Services\Checkers\BufferOverflowChecker;
 use App\Modules\Watcher\Domain\Services\Checkers\InvalidBufferGrownChecker;
@@ -68,6 +69,7 @@ class WatcherServiceProvider extends BaseServiceProvider
             WatcherFactory::class,
             // actions
             FindWatchersAction::class,
+            FindWatcherIdsAction::class,
             FindWatcherAction::class,
             FindWatcherTypesAction::class,
             FindIncidentsAction::class,

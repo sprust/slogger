@@ -7,6 +7,7 @@ namespace App\Modules\Watcher\Infrastructure\Tasks;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceBufferCountAction;
 use App\Modules\Watcher\Domain\Actions\Mutations\CheckWatcherAction;
 use App\Modules\Watcher\Domain\Actions\Mutations\DeleteOrphanWatcherTimelinesAction;
+use App\Modules\Watcher\Domain\Actions\Queries\FindWatcherIdsAction;
 use App\Modules\Watcher\Domain\Actions\Queries\FindWatchersAction;
 use App\Modules\Watcher\Entities\WatcherCheckContextObject;
 use App\Modules\Watcher\Entities\WatcherObject;
@@ -47,6 +48,7 @@ class CheckWatchersTask implements TaskInterface
 
     public function __construct(
         private readonly FindWatchersAction $findWatchersAction,
+        private readonly FindWatcherIdsAction $findWatcherIdsAction,
         private readonly FindTraceBufferCountAction $findBufferCountAction,
         private readonly CheckWatcherAction $checkWatcherAction,
         private readonly DeleteOrphanWatcherTimelinesAction $deleteOrphanTimelinesAction,
@@ -79,13 +81,14 @@ class CheckWatchersTask implements TaskInterface
 
     private function pass(Carbon $now): TickResultEnum
     {
-        // Every watcher, not only the enabled ones: the disabled ones still own their
-        // lines, and the sweep below decides what to remove by this list.
-        $watchers = $this->findWatchersAction->handle();
+        // From the rows, not from the watchers below: a row whose type this build cannot
+        // read is skipped by the checks and still owns its line, which the receiver goes
+        // on writing. Sweeping by the checked list would delete it every minute.
+        $this->deleteOrphanTimelinesAction->handle($this->findWatcherIdsAction->handle());
 
-        $this->deleteOrphanTimelinesAction->handle(
-            array_map(static fn(WatcherObject $watcher): int => $watcher->id, $watchers)
-        );
+        // Every watcher, not only the enabled ones: a disabled one is not checked, but the
+        // pass still has to know it exists.
+        $watchers = $this->findWatchersAction->handle();
 
         $enabled = array_values(
             array_filter($watchers, static fn(WatcherObject $watcher): bool => $watcher->enabled)

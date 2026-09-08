@@ -54,7 +54,12 @@ readonly class WatcherTimelineReader
 
         return new WatcherTimelineObject(
             watcherId: $watcherId,
-            buckets: array_values($byMoment)
+            buckets: array_values($byMoment),
+            // Counted on the raw array, before the merge above hides it: at the cap the
+            // receiver's $slice has been dropping the oldest elements, and how far back
+            // the line still reaches is then whatever survived — not what the settings
+            // asked for.
+            truncated: count($buckets) >= WatcherTimelineObject::RECEIVER_ELEMENT_CAP
         );
     }
 

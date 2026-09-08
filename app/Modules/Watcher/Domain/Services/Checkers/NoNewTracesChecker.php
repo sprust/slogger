@@ -42,11 +42,16 @@ readonly class NoNewTracesChecker implements WatcherCheckerInterface
             return null;
         }
 
-        $count = $this->analyzer->countIn(
-            $this->timelineRepository->find($watcher->id),
-            $from,
-            $to
-        );
+        $timeline = $this->timelineRepository->find($watcher->id);
+
+        // A line whose head the receiver dropped is missing the beginning of this window,
+        // and an empty window is exactly what this watcher reports. Silence it cannot
+        // vouch for is not silence.
+        if ($timeline->startsAfter($from)) {
+            return null;
+        }
+
+        $count = $this->analyzer->countIn($timeline, $from, $to);
 
         if ($count > 0) {
             return null;
