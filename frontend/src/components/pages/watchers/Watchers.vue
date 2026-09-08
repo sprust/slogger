@@ -8,6 +8,9 @@
     <el-tab-pane label="Settings" name="settings" lazy>
       <WatcherList/>
     </el-tab-pane>
+    <el-tab-pane label="Notifications" name="notifications" lazy>
+      <ChannelList/>
+    </el-tab-pane>
   </el-tabs>
 </template>
 
@@ -16,9 +19,10 @@ import {defineAsyncComponent, defineComponent} from 'vue'
 
 const Incidents = defineAsyncComponent(() => import("./components/incidents/Incidents.vue"))
 const WatcherList = defineAsyncComponent(() => import("./components/settings/WatcherList.vue"))
+const ChannelList = defineAsyncComponent(() => import("./components/notifications/ChannelList.vue"))
 
 export default defineComponent({
-  components: {Incidents, WatcherList},
+  components: {Incidents, WatcherList, ChannelList},
 
   data() {
     return {

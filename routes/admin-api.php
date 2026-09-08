@@ -187,6 +187,7 @@ Route::prefix('/notification-channels')
                 });
         }
 
+        Route::get('/{id}/deliveries', [NotificationChannelController::class, 'deliveries'])->name('deliveries');
         Route::post('/{id}/test', [NotificationChannelController::class, 'test'])->name('test');
         Route::delete('/{id}', [NotificationChannelController::class, 'delete'])->name('delete');
     });

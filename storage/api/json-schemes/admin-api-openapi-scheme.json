@@ -6130,6 +6130,85 @@
                 ]
             }
         },
+        "/admin-api/notification-channels/{id}/deliveries": {
+            "get": {
+                "parameters": [
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "schema": {}
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "watcher_id": {
+                                                        "type": "integer",
+                                                        "nullable": true
+                                                    },
+                                                    "incident_id": {
+                                                        "type": "string",
+                                                        "nullable": true
+                                                    },
+                                                    "kind": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "text": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "sent_at": {
+                                                        "type": "string",
+                                                        "nullable": true
+                                                    },
+                                                    "error": {
+                                                        "type": "string",
+                                                        "nullable": true
+                                                    },
+                                                    "created_at": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    }
+                                                },
+                                                "required": [
+                                                    "id",
+                                                    "kind",
+                                                    "text",
+                                                    "created_at"
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/admin-api/notification-channels/{id}/test": {
             "post": {
                 "parameters": [

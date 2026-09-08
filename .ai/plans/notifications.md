@@ -337,7 +337,10 @@ Route::prefix('/notification-channels')->as('notification-channels.')->group(fun
 
 ## Фронт
 
-Вкладка `Notifications` в шапке после `Watchers`, маршрут `/notifications`.
+Третья вкладка `Notifications` на странице смотрителей, рядом с `Incidents` и `Settings`.
+Отдельного пункта меню нет: каналы сегодня существуют только ради смотрителей, а верхнее
+меню и без них длинное. Когда появится источник уведомлений помимо смотрителей, вкладка
+переедет в свою страницу — компонент для этого самодостаточен.
 
 - Таблица каналов: имя, тип, включён, что слать, последняя ошибка.
 - Диалог создания и правки: поля из `/notification-channels/types`, как у смотрителей.
@@ -371,9 +374,14 @@ Route::prefix('/notification-channels')->as('notification-channels.')->group(fun
 3. ~~**Связь со смотрителями.** Слушатель, `IncidentMessageFactory`, три переключателя.~~
    Сделано: `EnqueueNotificationsListener` на `WatcherIncidentChangedEvent`,
    `EnqueueNotificationsAction`, `IncidentMessageFactory`.
-4. **Фронт.** Вкладка, форма, доставки, `make oa-generate` и `make frontend-npm-build`.
+4. ~~**Фронт.** Вкладка, форма, доставки, `make oa-generate` и `make frontend-npm-build`.~~
+   Сделано: третья вкладка `Notifications` на странице смотрителей, таблица каналов с
+   раскрытием в доставки, диалог создания и правки, кнопка теста. Плюс бэкенд
+   `GET /notification-channels/{id}/deliveries`.
 
 Этапы 1–3 самостоятельны и проверяются без фронта.
+
+Все четыре сделаны.
 
 ## Принятые решения
 

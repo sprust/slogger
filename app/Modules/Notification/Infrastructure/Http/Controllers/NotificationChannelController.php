@@ -8,9 +8,11 @@ use App\Modules\Notification\Domain\Actions\Mutations\DeleteChannelAction;
 use App\Modules\Notification\Domain\Actions\Mutations\SendTestNotificationAction;
 use App\Modules\Notification\Domain\Actions\Queries\FindChannelTypesAction;
 use App\Modules\Notification\Domain\Actions\Queries\FindChannelsAction;
+use App\Modules\Notification\Domain\Actions\Queries\FindNotificationsAction;
 use App\Modules\Notification\Domain\Exceptions\NotificationChannelNotFoundException;
 use App\Modules\Notification\Infrastructure\Http\Resources\ChannelResource;
 use App\Modules\Notification\Infrastructure\Http\Resources\ChannelTypeResource;
+use App\Modules\Notification\Infrastructure\Http\Resources\NotificationResource;
 use App\Modules\Notification\Infrastructure\Http\Resources\SendResultResource;
 use Ifksco\OpenApiGenerator\Attributes\OaListItemTypeAttribute;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -18,9 +20,12 @@ use Symfony\Component\HttpFoundation\Response as ResponseFoundation;
 
 readonly class NotificationChannelController
 {
+    private const int DELIVERIES_LIMIT = 50;
+
     public function __construct(
         private FindChannelsAction $findChannelsAction,
         private FindChannelTypesAction $findChannelTypesAction,
+        private FindNotificationsAction $findNotificationsAction,
         private DeleteChannelAction $deleteChannelAction,
         private SendTestNotificationAction $sendTestNotificationAction
     ) {
@@ -39,6 +44,14 @@ readonly class NotificationChannelController
     {
         return ChannelTypeResource::collection(
             $this->findChannelTypesAction->handle()
+        );
+    }
+
+    #[OaListItemTypeAttribute(NotificationResource::class)]
+    public function deliveries(int $id): AnonymousResourceCollection
+    {
+        return NotificationResource::collection(
+            $this->findNotificationsAction->handle($id, self::DELIVERIES_LIMIT)
         );
     }
 

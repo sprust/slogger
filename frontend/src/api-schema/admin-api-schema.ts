@@ -3046,6 +3046,47 @@ export namespace AdminApi {
 
   /**
  * No description
+ * @name NotificationChannelsDeliveriesList
+ * @request GET:/admin-api/notification-channels/{id}/deliveries
+ * @secure
+ * @response `200` `{
+    data: ({
+    id: string,
+    watcher_id?: number | null,
+    incident_id?: string | null,
+    kind: string,
+    text: string,
+    sent_at?: string | null,
+    error?: string | null,
+    created_at: string,
+
+})[],
+
+}` description
+*/
+  export namespace NotificationChannelsDeliveriesList {
+    export type RequestParams = {
+      id: any;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        id: string;
+        watcher_id?: number | null;
+        incident_id?: string | null;
+        kind: string;
+        text: string;
+        sent_at?: string | null;
+        error?: string | null;
+        created_at: string;
+      }[];
+    };
+  }
+
+  /**
+ * No description
  * @name NotificationChannelsTestCreate
  * @request POST:/admin-api/notification-channels/{id}/test
  * @secure
@@ -6609,6 +6650,50 @@ export class Api<
         body: data,
         secure: true,
         type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name NotificationChannelsDeliveriesList
+ * @request GET:/admin-api/notification-channels/{id}/deliveries
+ * @secure
+ * @response `200` `{
+    data: ({
+    id: string,
+    watcher_id?: number | null,
+    incident_id?: string | null,
+    kind: string,
+    text: string,
+    sent_at?: string | null,
+    error?: string | null,
+    created_at: string,
+
+})[],
+
+}` description
+ */
+    notificationChannelsDeliveriesList: (id: any, params: RequestParams = {}) =>
+      this.request<
+        {
+          data: {
+            id: string;
+            watcher_id?: number | null;
+            incident_id?: string | null;
+            kind: string;
+            text: string;
+            sent_at?: string | null;
+            error?: string | null;
+            created_at: string;
+          }[];
+        },
+        any
+      >({
+        path: `/admin-api/notification-channels/${id}/deliveries`,
+        method: "GET",
+        secure: true,
         format: "json",
         ...params,
       }),

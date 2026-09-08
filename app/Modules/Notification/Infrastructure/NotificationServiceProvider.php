@@ -14,6 +14,7 @@ use App\Modules\Notification\Domain\Actions\Mutations\UpdateChannelAction;
 use App\Modules\Notification\Domain\Actions\Queries\FindChannelAction;
 use App\Modules\Notification\Domain\Actions\Queries\FindChannelTypesAction;
 use App\Modules\Notification\Domain\Actions\Queries\FindNotificationAction;
+use App\Modules\Notification\Domain\Actions\Queries\FindNotificationsAction;
 use App\Modules\Notification\Domain\Actions\Queries\FindChannelsAction;
 use App\Modules\Notification\Domain\Services\ChannelFactory;
 use App\Modules\Notification\Domain\Services\IncidentMessageFactory;
@@ -69,6 +70,7 @@ class NotificationServiceProvider extends BaseServiceProvider
             FindChannelAction::class,
             FindChannelTypesAction::class,
             FindNotificationAction::class,
+            FindNotificationsAction::class,
             CreateChannelAction::class,
             UpdateChannelAction::class,
             DeleteChannelAction::class,
