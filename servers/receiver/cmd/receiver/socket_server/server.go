@@ -227,9 +227,17 @@ func (s *Server) handleConnection(conn net.Conn) error {
 			continue
 		}
 
+		// Counted before the ack, not after it: stop() drains on this counter, and a
+		// message acked in the gap between the two used to be invisible to the drain —
+		// handled on a context the shutdown had already cancelled, and lost, while its
+		// sender had been told it arrived.
+		s.activeHandlingCount.Add(1)
+
 		err = tr.Write("received")
 
 		if err != nil {
+			s.activeHandlingCount.Add(-1)
+
 			return errs.Err(err)
 		}
 
@@ -240,7 +248,6 @@ func (s *Server) handleConnection(conn net.Conn) error {
 		s.handlingSemaphore <- struct{}{}
 
 		s.totalHandlingCount.Add(1)
-		s.activeHandlingCount.Add(1)
 
 		go func(msg []byte, serviceId int) {
 			defer func() {

@@ -3,6 +3,7 @@ package watcher_service
 import (
 	"slogger_receiver/internal/repositories/watcher_repository"
 	"slogger_receiver/internal/repositories/watcher_timeline_repository"
+	"strconv"
 	"testing"
 	"time"
 )
@@ -127,14 +128,57 @@ func TestATraceIsCountedOnceAndItsDurationArrivesLater(t *testing.T) {
 	service.AddTrace(1, "trace-1", "http", nil, nil, at, true)
 	service.AddTrace(1, "trace-1", "http", nil, &duration, at, false)
 
-	bucket := onlyBucket(t, service)
+	byTime := bucketsByTime(t, service)
 
-	if bucket.Count != 1 {
-		t.Fatalf("expected one trace, got %d", bucket.Count)
+	started := bucketAt(t, byTime, time.Date(2026, 9, 7, 10, 0, 0, 0, time.UTC))
+	finished := bucketAt(t, byTime, time.Date(2026, 9, 7, 10, 0, 15, 0, time.UTC))
+
+	if started.Count != 1 || started.DurCount != 0 {
+		t.Fatalf("the start bucket should hold the count and nothing else: %+v", started)
 	}
 
-	if bucket.DurCount != 1 || bucket.DurMax != 12.5 || bucket.DurSum != 12.5 {
-		t.Fatalf("the duration of the finished trace was not recorded: %+v", bucket)
+	if finished.Count != 0 || finished.DurCount != 1 || finished.DurMax != 12.5 || finished.DurSum != 12.5 {
+		t.Fatalf("the duration belongs to the bucket it became true in: %+v", finished)
+	}
+}
+
+// The point of filing a duration under its completion: a trace slower than the watcher's
+// own window used to land in a bucket the window could never reach, so the slower the
+// trace the more certainly nothing was raised.
+func TestADurationLandsInTheBucketItBecameTrueIn(t *testing.T) {
+	service := newTestService(1, watcher_repository.Match{Version: 1})
+
+	at := time.Date(2026, 9, 7, 10, 0, 0, 0, time.UTC)
+	duration := 600.0
+
+	service.AddTrace(1, "slow", "http", nil, nil, at, true)
+	service.AddTrace(1, "slow", "http", nil, &duration, at, false)
+
+	finished := bucketAt(t, bucketsByTime(t, service), time.Date(2026, 9, 7, 10, 10, 0, 0, time.UTC))
+
+	if finished.DurMax != 600 {
+		t.Fatalf("a ten-minute trace should be visible ten minutes on: %+v", finished)
+	}
+}
+
+// A duration from a clock running ahead is clamped, like the start already was: a bucket
+// in the future is one no window ever closes over.
+func TestADurationRunningPastNowIsClamped(t *testing.T) {
+	service := newTestService(1, watcher_repository.Match{Version: 1})
+
+	at := time.Now().UTC().Add(-time.Second)
+	duration := 3600.0
+
+	service.AddTrace(1, "wrong-clock", "http", nil, &duration, at, true)
+
+	buckets := service.takeBuckets(true)
+
+	for _, watcherBuckets := range buckets {
+		for _, bucket := range watcherBuckets {
+			if bucket.At.Time().After(time.Now().UTC().Add(time.Second)) {
+				t.Fatalf("a bucket was made in the future: %v", bucket.At.Time())
+			}
+		}
 	}
 }
 
@@ -220,7 +264,8 @@ func TestAGroupKeepsTheSlowestTrace(t *testing.T) {
 	service.AddTrace(1, "quick", "http", nil, &quick, at, true)
 	service.AddTrace(1, "slow", "http", nil, &slow, at, true)
 
-	bucket := onlyBucket(t, service)
+	// The slow one finishes half a minute on, so its duration is filed there.
+	bucket := bucketAt(t, bucketsByTime(t, service), time.Date(2026, 9, 7, 10, 0, 30, 0, time.UTC))
 
 	if bucket.Groups[0].TraceId != "slow" {
 		t.Fatalf("expected the slowest trace to be named, got %q", bucket.Groups[0].TraceId)
@@ -342,6 +387,38 @@ func newTestService(watcherId int, match watcher_repository.Match) *Service {
 	return service
 }
 
+// bucketsByTime takes everything the service holds, once: takeBuckets empties it, so a
+// test that looks at two moments has to read them from the same snapshot.
+func bucketsByTime(t *testing.T, service *Service) map[int64]watcher_timeline_repository.Bucket {
+	t.Helper()
+
+	byTime := make(map[int64]watcher_timeline_repository.Bucket)
+
+	for _, watcherBuckets := range service.takeBuckets(true) {
+		for _, bucket := range watcherBuckets {
+			byTime[bucket.At.Time().UTC().UnixMilli()] = bucket
+		}
+	}
+
+	return byTime
+}
+
+func bucketAt(
+	t *testing.T,
+	byTime map[int64]watcher_timeline_repository.Bucket,
+	at time.Time,
+) watcher_timeline_repository.Bucket {
+	t.Helper()
+
+	bucket, ok := byTime[at.UTC().UnixMilli()]
+
+	if !ok {
+		t.Fatalf("no bucket at %v", at)
+	}
+
+	return bucket
+}
+
 func onlyBucket(t *testing.T, service *Service) watcher_timeline_repository.Bucket {
 	t.Helper()
 
@@ -374,4 +451,57 @@ func TestAGroupWithoutTagsCarriesAnEmptyList(t *testing.T) {
 	if len(tags) != 0 {
 		t.Fatalf("expected no tags, got %v", tags)
 	}
+}
+
+// A watcher scoped to one service must not be fed another's traces. The matcher itself
+// does not look at service ids at all — the split into byService and global is what does
+// it, so a mistake there would make every scoped watcher watch everything.
+func TestAScopedWatcherIsNotFedAnotherServicesTraces(t *testing.T) {
+	service := newTestService(1, watcher_repository.Match{Version: 1, ServiceIds: []int{3}})
+
+	service.AddTrace(4, "other-service", "http", nil, nil, time.Now().UTC(), true)
+
+	if len(service.takeBuckets(true)) != 0 {
+		t.Fatal("a watcher scoped to service 3 collected service 4")
+	}
+
+	service.AddTrace(3, "its-own", "http", nil, nil, time.Now().UTC(), true)
+
+	if len(service.takeBuckets(true)) != 1 {
+		t.Fatal("a watcher scoped to service 3 did not collect service 3")
+	}
+}
+
+// The rollup is capped, and the cap used to be first-come. A slow trace of a shape that
+// arrived twenty-first was then dropped from the breakdown entirely, which is the one
+// trace a slow_traces watcher is looking for.
+func TestAFullBucketMakesRoomForASlowerShape(t *testing.T) {
+	service := newTestService(1, watcher_repository.Match{Version: 1})
+
+	at := time.Date(2026, 9, 7, 10, 0, 0, 0, time.UTC)
+	quick := 0.1
+
+	for i := 0; i < maxGroups; i++ {
+		service.AddTrace(1, "quick", "type-"+strconv.Itoa(i), nil, &quick, at, true)
+	}
+
+	// Inside the same bucket on purpose: what is under test is the cap, not the moment a
+	// duration is filed under.
+	slow := 5.0
+
+	service.AddTrace(1, "the-slow-one", "type-late", nil, &slow, at, true)
+
+	bucket := bucketAt(t, bucketsByTime(t, service), at)
+
+	if len(bucket.Groups) != maxGroups {
+		t.Fatalf("expected the cap to hold, got %d groups", len(bucket.Groups))
+	}
+
+	for _, group := range bucket.Groups {
+		if group.TraceId == "the-slow-one" {
+			return
+		}
+	}
+
+	t.Fatal("the slowest shape was not kept")
 }

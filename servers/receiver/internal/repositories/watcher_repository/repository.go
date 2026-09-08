@@ -88,9 +88,9 @@ type Repository struct {
 //
 // A row whose json will not parse is skipped and logged rather than failing the whole
 // read: one broken watcher must not stop the others from being collected for.
-func (r *Repository) FindEnabled(ctx context.Context) ([]Watcher, error) {
+func (r *Repository) FindEnabled(ctx context.Context) ([]Watcher, int, error) {
 	if err := r.connect(); err != nil {
-		return nil, errs.Err(err)
+		return nil, 0, errs.Err(err)
 	}
 
 	var rows []row
@@ -102,7 +102,7 @@ func (r *Repository) FindEnabled(ctx context.Context) ([]Watcher, error) {
 	)
 
 	if err != nil {
-		return nil, errs.Err(err)
+		return nil, 0, errs.Err(err)
 	}
 
 	watchers := make([]Watcher, 0, len(rows))
@@ -119,7 +119,7 @@ func (r *Repository) FindEnabled(ctx context.Context) ([]Watcher, error) {
 		watchers = append(watchers, Watcher{Id: item.Id, Match: match})
 	}
 
-	return watchers, nil
+	return watchers, len(rows), nil
 }
 
 func (r *Repository) connect() error {

@@ -35,6 +35,10 @@ const (
 	reloadInterval = 30 * time.Second
 	flushInterval  = 15 * time.Second
 
+	// How long a flush may take once the buckets have left memory. Long enough for a
+	// slow Mongo, short enough that a shutdown is not held on it.
+	pushTimeout = 5 * time.Second
+
 	// The only match format this binary understands. A watcher carrying anything else is
 	// skipped rather than read as if it were this one.
 	supportedMatchVersion = 1
@@ -180,10 +184,17 @@ func (s *Service) Run(ctx context.Context) {
 // A failure leaves the previous set in place: collecting against a filter that is thirty
 // seconds stale is better than collecting against none.
 func (s *Service) Reload(ctx context.Context) error {
-	watchers, err := s.watchers.FindEnabled(ctx)
+	watchers, read, err := s.watchers.FindEnabled(ctx)
 
 	if err != nil {
 		return errs.Err(err)
+	}
+
+	// Rows came back and not one of them could be read: the shape of `trace_match`
+	// changed under us. Taken as a failure rather than as "there are no watchers", which
+	// would switch collection off for every one of them and drop what is held.
+	if read > 0 && len(watchers) == 0 {
+		return errs.Err(fmt.Errorf("all %d watcher rows failed to read", read))
 	}
 
 	s.compile(watchers)
@@ -268,7 +279,13 @@ func (s *Service) Flush(ctx context.Context, all bool) error {
 		return nil
 	}
 
-	if err := s.timelines.Push(ctx, buckets); err != nil {
+	// Detached from the caller's context: the buckets have already left memory, and a
+	// SIGTERM arriving between the two would otherwise take them with it. The deadline is
+	// what keeps the write bounded instead.
+	writeCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), pushTimeout)
+	defer cancel()
+
+	if err := s.timelines.Push(writeCtx, buckets); err != nil {
 		return errs.Err(err)
 	}
 
@@ -323,7 +340,23 @@ func (s *Service) AddTrace(
 		loggedAt = now
 	}
 
-	at := loggedAt.UTC().Truncate(BucketSize).UnixMilli()
+	startedAt := loggedAt.UTC().Truncate(BucketSize).UnixMilli()
+
+	// A duration belongs to the moment it became true, not to the moment the trace
+	// started. Filed under the start, a trace slower than the watcher's own window landed
+	// in a bucket the window can never reach — so the slower the trace, the more certainly
+	// it raised nothing, which is the opposite of what a slow_traces watcher is for.
+	finishedAt := startedAt
+
+	if duration != nil {
+		finished := loggedAt.Add(time.Duration(*duration * float64(time.Second)))
+
+		if finished.After(now) {
+			finished = now
+		}
+
+		finishedAt = finished.UTC().Truncate(BucketSize).UnixMilli()
+	}
 
 	signature, sortedTags := groupSignature(serviceId, traceType, tags)
 
@@ -331,37 +364,16 @@ func (s *Service) AddTrace(
 	defer s.bucketsMu.Unlock()
 
 	for _, watcherId := range watcherIds {
-		key := bucketKey{watcherId: watcherId, at: at}
-
-		bucket := s.buckets[key]
-
-		if bucket == nil {
-			bucket = &bucketState{groups: make(map[string]*groupState)}
-
-			s.buckets[key] = bucket
-		}
-
-		group := bucket.groups[signature]
-
-		if group == nil && len(bucket.groups) < maxGroups {
-			group = &groupState{
-				serviceId: serviceId,
-				traceType: traceType,
-				tags:      sortedTags,
-			}
-
-			bucket.groups[signature] = group
-		}
-
 		if isNew {
-			bucket.count++
+			bucket, group := s.groupFor(watcherId, startedAt, signature, serviceId, traceType, sortedTags)
 
-			if group != nil {
-				group.count++
-			}
+			bucket.count++
+			group.count++
 		}
 
 		if duration != nil {
+			bucket, group := s.groupFor(watcherId, finishedAt, signature, serviceId, traceType, sortedTags)
+
 			bucket.durCount++
 			bucket.durSum += *duration
 
@@ -369,18 +381,75 @@ func (s *Service) AddTrace(
 				bucket.durMax = *duration
 			}
 
-			if group != nil {
-				group.durCount++
-				group.durSum += *duration
+			group.durCount++
+			group.durSum += *duration
 
-				// The slowest trace of the group keeps its name, so the panel can point
-				// at something rather than only report a number.
-				if *duration > group.durMax || group.traceId == "" {
-					group.durMax = *duration
-					group.traceId = traceId
-				}
+			// The slowest trace of the group keeps its name, so the panel can point at
+			// something rather than only report a number.
+			if *duration > group.durMax || group.traceId == "" {
+				group.durMax = *duration
+				group.traceId = traceId
 			}
 		}
+	}
+}
+
+// groupFor hands back the bucket of one moment and the group of one shape inside it,
+// making either where it does not exist yet. The caller holds bucketsMu.
+func (s *Service) groupFor(
+	watcherId int,
+	at int64,
+	signature string,
+	serviceId int,
+	traceType string,
+	sortedTags []string,
+) (*bucketState, *groupState) {
+	key := bucketKey{watcherId: watcherId, at: at}
+
+	bucket := s.buckets[key]
+
+	if bucket == nil {
+		bucket = &bucketState{groups: make(map[string]*groupState)}
+
+		s.buckets[key] = bucket
+	}
+
+	group := bucket.groups[signature]
+
+	if group == nil {
+		// Full: the fastest group makes way. Refusing the newcomer instead used to hide a
+		// slow trace of a shape that arrived twenty-first, which is exactly the trace a
+		// slow_traces watcher exists to find.
+		if len(bucket.groups) >= maxGroups {
+			evictFastestGroup(bucket)
+		}
+
+		group = &groupState{
+			serviceId: serviceId,
+			traceType: traceType,
+			tags:      sortedTags,
+		}
+
+		bucket.groups[signature] = group
+	}
+
+	return bucket, group
+}
+
+// evictFastestGroup drops the group whose slowest trace is the least remarkable, so that
+// the cap keeps the rollup bounded without deciding what is worth reporting by arrival
+// order. The bucket's own counters are untouched — they were never capped.
+func evictFastestGroup(bucket *bucketState) {
+	var slowest string
+
+	for signature, group := range bucket.groups {
+		if slowest == "" || group.durMax < bucket.groups[slowest].durMax {
+			slowest = signature
+		}
+	}
+
+	if slowest != "" {
+		delete(bucket.groups, slowest)
 	}
 }
 
@@ -435,8 +504,8 @@ func (s *Service) takeBuckets(all bool) map[int][]watcher_timeline_repository.Bu
 // dropUnknownBuckets forgets what was collected for watchers that are no longer active.
 //
 // Otherwise a watcher deleted in the panel would have its document written again by the
-// next flush, and nothing would ever remove it: the collection has no TTL, because a live
-// watcher's line must not expire.
+// next flush, and the TTL on `uat` would only take it three days later — three days of a
+// line nobody asked for.
 func (s *Service) dropUnknownBuckets(known map[int]struct{}) {
 	s.bucketsMu.Lock()
 	defer s.bucketsMu.Unlock()
