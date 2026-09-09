@@ -436,21 +436,42 @@ func (s *Service) groupFor(
 	return bucket, group
 }
 
-// evictFastestGroup drops the group whose slowest trace is the least remarkable, so that
-// the cap keeps the rollup bounded without deciding what is worth reporting by arrival
-// order. The bucket's own counters are untouched — they were never capped.
+// evictFastestGroup drops the least remarkable group, so that the cap keeps the rollup
+// bounded without deciding what is worth reporting by arrival order. The bucket's own
+// counters are untouched — they were never capped.
+//
+// Ranked by the slowest trace first and by how many traces there were second. The count is
+// not a tie-break for tidiness: a trace is counted in the bucket it started in and its
+// duration filed in the bucket it finished in, so in a bucket of traces that run longer
+// than fifteen seconds every group has a durMax of zero. Comparing on durMax alone then
+// never holds, the choice falls to whichever key Go's randomised map iteration yielded
+// first, and the busiest shape of the window — the one the panel exists to show — is as
+// likely to go as a shape seen once.
 func evictFastestGroup(bucket *bucketState) {
-	var slowest string
+	var (
+		fastest string
+		found   *groupState
+	)
 
 	for signature, group := range bucket.groups {
-		if slowest == "" || group.durMax < bucket.groups[slowest].durMax {
-			slowest = signature
+		if found == nil || lessRemarkable(group, found) {
+			fastest = signature
+			found = group
 		}
 	}
 
-	if slowest != "" {
-		delete(bucket.groups, slowest)
+	if fastest != "" {
+		delete(bucket.groups, fastest)
 	}
+}
+
+// lessRemarkable says whether the first group is the better one to lose.
+func lessRemarkable(group *groupState, than *groupState) bool {
+	if group.durMax != than.durMax {
+		return group.durMax < than.durMax
+	}
+
+	return group.count < than.count
 }
 
 func (s *Service) watcherIdsFor(serviceId int, traceType string, tags []string) []int {
@@ -496,6 +517,23 @@ func (s *Service) takeBuckets(all bool) map[int][]watcher_timeline_repository.Bu
 		delete(s.buckets, key)
 
 		result[key.watcherId] = append(result[key.watcherId], bucket.toDocument(at))
+	}
+
+	// No more than the line holds. A watcher whose filter matches a backlog being caught
+	// up collects the buckets of hours of traces in one pass, and they go into a single
+	// $push $each per watcher: past 16MB the driver refuses the update, and by then the
+	// buckets have left memory, so that one oversized watcher loses the flush for every
+	// other one too. What is dropped here is what $slice would have dropped on arrival.
+	for watcherId, buckets := range result {
+		if len(buckets) <= watcher_timeline_repository.MaxBuckets {
+			continue
+		}
+
+		slices.SortFunc(buckets, func(a, b watcher_timeline_repository.Bucket) int {
+			return a.At.Time().Compare(b.At.Time())
+		})
+
+		result[watcherId] = buckets[len(buckets)-watcher_timeline_repository.MaxBuckets:]
 	}
 
 	return result

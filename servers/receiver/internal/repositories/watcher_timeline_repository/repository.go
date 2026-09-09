@@ -16,13 +16,16 @@ import (
 
 const defaultCollection = "watcherTimelines"
 
-// maxBuckets caps the line on this side, independently of the panel's trimming.
+// MaxBuckets caps the line on this side, independently of the panel's trimming.
 //
 // Without it a stopped panel means an array that grows until the document reaches 16MB,
 // after which every push is refused and the line stops silently. A TTL cannot cover this:
 // it removes documents, not elements of an array. 720 buckets of 15 seconds is three
 // hours, which is more than the longest window the settings can ask for.
-const maxBuckets = 720
+//
+// Exported because the service trims what it hands over to the same number: what $slice
+// would throw away should not be built into the update document in the first place.
+const MaxBuckets = 720
 
 // Group is a bucket's rollup: the traces of one shape, and the slowest of them by name.
 type Group struct {
@@ -103,7 +106,7 @@ func (r *Repository) Push(ctx context.Context, buckets map[int][]Bucket) error {
 							// array and should not have to sort it.
 							"$each":  watcherBuckets,
 							"$sort":  bson.M{"t": 1},
-							"$slice": -maxBuckets,
+							"$slice": -MaxBuckets,
 						},
 					},
 					"$set": bson.M{"uat": now},

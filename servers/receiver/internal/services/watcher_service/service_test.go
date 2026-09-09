@@ -505,3 +505,116 @@ func TestAFullBucketMakesRoomForASlowerShape(t *testing.T) {
 
 	t.Fatal("the slowest shape was not kept")
 }
+
+// The bucket a trace is counted in is the one it started in, and its duration is filed in
+// the one it finished in. A trace that runs longer than a bucket therefore leaves a group
+// with a count and no duration at all — and in a bucket of nothing but those, ranking the
+// cap on durMax alone compares zero with zero, never holds, and leaves the choice to map
+// order. The busiest shape of the window was then as likely to go as one seen once.
+func TestAFullBucketOfUnfinishedTracesKeepsTheBusiestShape(t *testing.T) {
+	service := newTestService(1, watcher_repository.Match{Version: 1})
+
+	at := time.Date(2026, 9, 7, 10, 0, 0, 0, time.UTC)
+
+	for i := 0; i < 100; i++ {
+		service.AddTrace(1, "hot-"+strconv.Itoa(i), "type-hot", nil, nil, at, true)
+	}
+
+	// Every one of these is a shape of its own, so each arrival past the cap evicts.
+	for i := 0; i < maxGroups*2; i++ {
+		service.AddTrace(1, "cold-"+strconv.Itoa(i), "type-cold-"+strconv.Itoa(i), nil, nil, at, true)
+	}
+
+	bucket := bucketAt(t, bucketsByTime(t, service), at)
+
+	if len(bucket.Groups) != maxGroups {
+		t.Fatalf("expected the cap to hold, got %d groups", len(bucket.Groups))
+	}
+
+	for _, group := range bucket.Groups {
+		if group.Type == "type-hot" {
+			if group.Count != 100 {
+				t.Fatalf("expected the busiest shape to keep its 100 traces, got %d", group.Count)
+			}
+
+			return
+		}
+	}
+
+	t.Fatal("the busiest shape was evicted")
+}
+
+// One pass can collect more than the line holds — a backlog being caught up hands over
+// the buckets of hours of traces at once — and all of them go into a single $push per
+// watcher. Past 16MB the driver refuses that update, and the buckets have already left
+// memory, so the flush is lost for every watcher rather than for the oversized one.
+func TestAFlushHandsOverNoMoreThanTheLineHolds(t *testing.T) {
+	service := newTestService(1, watcher_repository.Match{Version: 1})
+
+	at := time.Date(2026, 9, 7, 10, 0, 0, 0, time.UTC)
+
+	total := watcher_timeline_repository.MaxBuckets + 50
+
+	for i := 0; i < total; i++ {
+		service.AddTrace(1, "trace", "http", nil, nil, at.Add(time.Duration(i)*BucketSize), true)
+	}
+
+	buckets := service.takeBuckets(true)[1]
+
+	if len(buckets) != watcher_timeline_repository.MaxBuckets {
+		t.Fatalf("expected %d buckets, got %d", watcher_timeline_repository.MaxBuckets, len(buckets))
+	}
+
+	// The newest are the ones kept: the oldest are what $slice would have dropped anyway.
+	oldest := at.Add(time.Duration(total-watcher_timeline_repository.MaxBuckets) * BucketSize)
+
+	for _, bucket := range buckets {
+		if bucket.At.Time().UTC().Before(oldest) {
+			t.Fatalf("kept a bucket at %s, older than %s", bucket.At.Time().UTC(), oldest)
+		}
+	}
+}
+
+// Two watchers with the same filter are compiled into one matcher carrying both ids, and
+// a fan-out that lost one of them would leave that watcher collecting nothing at all.
+func TestTwoWatchersWithTheSameFilterBothCollect(t *testing.T) {
+	service := &Service{
+		buckets: make(map[bucketKey]*bucketState),
+		skipped: make(map[int]int),
+	}
+
+	service.compile([]watcher_repository.Watcher{
+		{Id: 1, Match: watcher_repository.Match{Version: 1, Types: []string{"http"}}},
+		{Id: 2, Match: watcher_repository.Match{Version: 1, Types: []string{"http"}}},
+	})
+
+	service.AddTrace(1, "trace", "http", nil, nil, time.Now().UTC(), true)
+
+	buckets := service.takeBuckets(true)
+
+	if len(buckets[1]) != 1 || len(buckets[2]) != 1 {
+		t.Fatalf("expected both watchers to collect, got %d and %d", len(buckets[1]), len(buckets[2]))
+	}
+}
+
+// The choice itself, without the map order the test above still depends on: two groups
+// that are equally slow — which is every group of a bucket whose traces have not finished
+// — are separated by how many traces they hold, not by whichever the runtime offered first.
+func TestTheCapSeparatesEquallySlowGroupsByCount(t *testing.T) {
+	bucket := &bucketState{
+		groups: map[string]*groupState{
+			"busy":  {count: 100},
+			"quiet": {count: 1},
+		},
+	}
+
+	evictFastestGroup(bucket)
+
+	if _, ok := bucket.groups["busy"]; !ok {
+		t.Fatal("the busiest of two equally slow groups was evicted")
+	}
+
+	if _, ok := bucket.groups["quiet"]; ok {
+		t.Fatal("the quiet group should have made way")
+	}
+}

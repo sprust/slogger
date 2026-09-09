@@ -48,7 +48,7 @@ func main() {
 	socketServer := socket_server.New("tcp", ":"+socketPort)
 	transporterServer := traces_transporter.New()
 
-	done := make(chan error, 2)
+	done := make(chan error, 3)
 
 	go func(ctx context.Context) {
 		done <- socketServer.Run(ctx)
@@ -59,9 +59,18 @@ func main() {
 	}(ctx)
 
 	// The watchers' own loop: keeps their filters current and writes closed buckets out.
-	// Not part of `done` — it holds nothing that has to be finished before the process
-	// exits, and what it has collected is written by the transporter on its way out.
-	go watcher_service.Get().Run(ctx)
+	//
+	// Waited for like the other two, because its flush takes the buckets out of memory
+	// before it writes them. A tick that started just before the signal has therefore
+	// already emptied the map the transporter's closing flush reads, so that one finds
+	// nothing, returns at once, and the process exits over a write still in flight —
+	// losing the fifteen seconds it was holding. Run returns between flushes, so waiting
+	// for it is enough.
+	go func(ctx context.Context) {
+		watcher_service.Get().Run(ctx)
+
+		done <- nil
+	}(ctx)
 
 	go func() {
 		for {
@@ -94,7 +103,7 @@ func main() {
 
 			cancel()
 
-			if waitForShutdown(done, 2, 10*time.Second) {
+			if waitForShutdown(done, 3, 10*time.Second) {
 				slog.Warn("Completed successfully by signal")
 			} else {
 				slog.Error("shutdown by timeout")
