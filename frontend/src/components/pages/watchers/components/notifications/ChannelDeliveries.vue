@@ -2,27 +2,26 @@
   <el-table
       :data="deliveries"
       :border="true"
-      size="small"
       v-loading="deliveriesStore.loading[channelId]"
       empty-text="Nothing has been sent through this channel yet"
   >
     <el-table-column label="Created" prop="created_at" width="170"/>
     <el-table-column label="Kind" width="90">
       <template #default="scope">
-        <el-tag :type="kindTagType(scope.row.kind)" size="small">
+        <el-tag :type="kindTagType(scope.row.kind)">
           {{ scope.row.kind }}
         </el-tag>
       </template>
     </el-table-column>
     <el-table-column label="Status" width="170">
       <template #default="scope">
-        <el-tag v-if="scope.row.sent_at" type="success" size="small">
+        <el-tag v-if="scope.row.sent_at" type="success">
           sent {{ scope.row.sent_at }}
         </el-tag>
-        <el-tag v-else-if="scope.row.error" type="danger" size="small">
+        <el-tag v-else-if="scope.row.error" type="danger">
           failed
         </el-tag>
-        <el-tag v-else type="info" size="small">
+        <el-tag v-else type="info">
           queued
         </el-tag>
       </template>

@@ -3,6 +3,7 @@ import {AdminApi} from "../api-schema/admin-api-schema.ts";
 import {defineStore} from "pinia";
 import {handleApiRequest} from "../utils/handleApiRequest.ts";
 import {EchoContainer} from "../utils/echoContainer.ts";
+import {currentSession, sessionEnded} from "./session.ts";
 
 export type WatcherIncidentStat = AdminApi.WatchersIncidentsStatList.ResponseBody['data']
 
@@ -63,9 +64,17 @@ export const useWatcherIncidentStatStore = defineStore('watcherIncidentStatStore
     },
     actions: {
         async findStat() {
+            const session = currentSession()
+
             return await handleApiRequest(
                 () => ApiContainer.get().watchersIncidentsStatList()
                     .then(response => {
+                        // Signed out while this was on the wire: the badge would
+                        // otherwise show the last person's number until the next frame.
+                        if (sessionEnded(session)) {
+                            return
+                        }
+
                         this.openedCount = response.data.data.opened_count
                     })
             )

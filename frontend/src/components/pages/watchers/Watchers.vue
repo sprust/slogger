@@ -1,9 +1,14 @@
 <template>
   <el-tabs v-model="tab">
     <!-- lazy: without it both panes mount at once and the page opens with two requests
-         for the watchers and two for the types, one pair of which nobody is looking at. -->
+         for the watchers and two for the types, one pair of which nobody is looking at.
+
+         It only defers the first render, though. Once a pane has been opened it stays
+         mounted and is hidden with v-show, so leaving the tab unmounts nothing — which is
+         why the incidents list is told whether it is the one on screen rather than left
+         to work it out from its own lifecycle. -->
     <el-tab-pane label="Incidents" name="incidents" lazy>
-      <Incidents/>
+      <Incidents :active="tab === 'incidents'"/>
     </el-tab-pane>
     <el-tab-pane label="Settings" name="settings" lazy>
       <WatcherList/>

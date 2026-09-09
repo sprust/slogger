@@ -1,6 +1,7 @@
 import {ApiContainer} from "../../../../utils/apiContainer.ts";
 import {AdminApi} from "../../../../api-schema/admin-api-schema.ts";
 import {defineStore} from "pinia";
+import {currentSession, sessionEnded} from "../../../../store/session.ts";
 import {handleApiRequest} from "../../../../utils/handleApiRequest.ts";
 import {useIncidentsStore} from "./incidentsStore.ts";
 import {useWatcherIncidentStatStore} from "../../../../store/watcherIncidentStatStore.ts";
@@ -98,9 +99,17 @@ export const useWatchersStore = defineStore('watchersStore', {
         async find() {
             this.loading = true
 
+            const session = currentSession()
+
             return await handleApiRequest(
                 () => ApiContainer.get().watchersList()
                     .then(response => {
+                        // Signed out while this was on the wire: the answer describes a
+                        // session that is over.
+                        if (sessionEnded(session)) {
+                            return
+                        }
+
                         this.items = response.data.data
 
                         this.loaded = true

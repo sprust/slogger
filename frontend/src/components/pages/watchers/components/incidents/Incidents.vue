@@ -127,9 +127,15 @@ const IncidentEvents = defineAsyncComponent(() => import("./IncidentEvents.vue")
  * Dropped when the tab is left, so a list nobody is looking at is not reloaded on every
  * frame. The badge in the header keeps following them either way.
  *
- * Module-level, like the store's own subscription: the page holds one incidents list and
- * the tab panes are lazy, so only one of these is ever mounted. A second instance would
- * take this handle from the first and leave its listener behind.
+ * Tied to the `active` prop rather than to mounting: el-tab-pane's `lazy` only defers the
+ * first render, and after that the pane is kept mounted and hidden with v-show, so
+ * unmounted() never runs on a tab switch. This used to leave the listener registered for
+ * the life of the page, reloading the list on every frame while the reader was on
+ * Settings or Notifications.
+ *
+ * Module-level, like the store's own subscription: the page holds one incidents list, so
+ * only one of these is ever mounted. A second instance would take this handle from the
+ * first and leave its listener behind.
  */
 let unsubscribeFrames: null | (() => void) = null
 
@@ -150,6 +156,14 @@ const pendingIncidentIds = new Set<string>()
 
 export default defineComponent({
   components: {IncidentEvents},
+
+  props: {
+    /** Whether this is the tab on screen. */
+    active: {
+      type: Boolean,
+      default: true,
+    },
+  },
 
   data() {
     return {
@@ -262,6 +276,42 @@ export default defineComponent({
 
       return type ? this.watcherTypesStore.titleOf(type) : ''
     },
+    watchFrames() {
+      if (unsubscribeFrames !== null) {
+        return
+      }
+
+      unsubscribeFrames = this.statStore.onFrame((frame: WatcherIncidentFrame) => {
+        this.scheduleReload(frame.incident_id)
+      })
+    },
+    stopWatchingFrames() {
+      unsubscribeFrames?.()
+      unsubscribeFrames = null
+
+      if (reloadTimeoutId !== null) {
+        window.clearTimeout(reloadTimeoutId)
+        reloadTimeoutId = null
+      }
+
+      pendingIncidentIds.clear()
+    },
+  },
+
+  watch: {
+    active(active: boolean) {
+      if (active) {
+        this.watchFrames()
+
+        // Back after a while away: whatever happened in between was not followed, so the
+        // list is read once rather than left as the reader last saw it.
+        this.incidentsStore.find()
+
+        return
+      }
+
+      this.stopWatchingFrames()
+    },
   },
 
   mounted() {
@@ -277,21 +327,13 @@ export default defineComponent({
 
     this.update()
 
-    unsubscribeFrames = this.statStore.onFrame((frame: WatcherIncidentFrame) => {
-      this.scheduleReload(frame.incident_id)
-    })
+    if (this.active) {
+      this.watchFrames()
+    }
   },
 
   unmounted() {
-    unsubscribeFrames?.()
-    unsubscribeFrames = null
-
-    if (reloadTimeoutId !== null) {
-      window.clearTimeout(reloadTimeoutId)
-      reloadTimeoutId = null
-    }
-
-    pendingIncidentIds.clear()
+    this.stopWatchingFrames()
   },
 })
 </script>

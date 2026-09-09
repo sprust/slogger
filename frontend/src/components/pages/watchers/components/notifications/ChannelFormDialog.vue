@@ -43,7 +43,7 @@
             :placeholder="placeholderOf(field)"
             show-word-limit
         />
-        <el-text type="info" size="small">{{ field.description }}</el-text>
+        <el-text type="info">{{ field.description }}</el-text>
       </el-form-item>
 
       <el-divider content-position="left">

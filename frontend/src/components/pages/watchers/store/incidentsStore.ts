@@ -3,6 +3,7 @@ import {AdminApi, WatchersIncidentsListParamsStatusEnum} from "../../../../api-s
 import {defineStore} from "pinia";
 import {handleApiRequest} from "../../../../utils/handleApiRequest.ts";
 import {useWatcherIncidentStatStore} from "../../../../store/watcherIncidentStatStore.ts";
+import {currentSession, sessionEnded} from "../../../../store/session.ts";
 
 export type WatcherIncident = AdminApi.WatchersIncidentsList.ResponseBody['data'][number];
 export type WatcherIncidentEvent = AdminApi.WatchersIncidentsEventsList.ResponseBody['data'][number];
@@ -81,12 +82,15 @@ export const useIncidentsStore = defineStore('incidentsStore', {
 
             const request = ++findRequest
 
+            const session = currentSession()
+
             return await handleApiRequest(
                 () => ApiContainer.get().watchersIncidentsList(query)
                     .then(response => {
                         // A later request has already been sent, so this answer describes
-                        // a filter or a page nobody is looking at any more.
-                        if (request !== findRequest) {
+                        // a filter or a page nobody is looking at any more. Or the session
+                        // it was sent in has ended, and it describes the last person's.
+                        if (request !== findRequest || sessionEnded(session)) {
                             return false
                         }
 
@@ -125,6 +129,19 @@ export const useIncidentsStore = defineStore('incidentsStore', {
                 const loaded = await this.loadEvents(incidentId, page, page > 1)
 
                 if (loaded !== true) {
+                    // What is on screen now is the pages that answered, and the counter
+                    // has to say so. The first page replaces the list rather than
+                    // appending to it, so a failure on the second used to leave the
+                    // counter at the old total with only fifty rows behind it: "Show
+                    // more" then asked for the page after that total, and everything in
+                    // between was unreachable until the incident was collapsed and the
+                    // panel reloaded.
+                    //
+                    // A first page that failed changed nothing, and the counter with it.
+                    if (page > 1) {
+                        this.eventsPage[incidentId] = page - 1
+                    }
+
                     return loaded
                 }
             }
@@ -154,12 +171,18 @@ export const useIncidentsStore = defineStore('incidentsStore', {
         async loadEvents(incidentId: string, page: number, append: boolean) {
             this.loadingEvents[incidentId] = true
 
+            const session = currentSession()
+
             return await handleApiRequest(
                 () => ApiContainer.get().watchersIncidentsEventsList(incidentId, {
                     page,
                     per_page: eventsPerPage,
                 })
                     .then(response => {
+                        if (sessionEnded(session)) {
+                            return
+                        }
+
                         const events = response.data.data
 
                         this.events[incidentId] = append

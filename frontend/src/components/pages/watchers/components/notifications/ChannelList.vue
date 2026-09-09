@@ -34,7 +34,7 @@
       :border="true"
       row-key="id"
       v-loading="channelsStore.loading"
-      empty-text="No channels yet. A watcher has nowhere to speak."
+      empty-text="No channels yet. Watchers have nowhere to send alerts."
   >
     <el-table-column type="expand">
       <template #default="scope">
@@ -58,9 +58,9 @@
     </el-table-column>
     <el-table-column label="Sends" min-width="180">
       <template #default="scope">
-        <el-tag v-if="scope.row.on_opened" type="danger" size="small">opened</el-tag>
-        <el-tag v-if="scope.row.on_event" type="warning" size="small">event</el-tag>
-        <el-tag v-if="scope.row.on_closed" type="success" size="small">closed</el-tag>
+        <el-tag v-if="scope.row.on_opened" type="danger">opened</el-tag>
+        <el-tag v-if="scope.row.on_event" type="warning">event</el-tag>
+        <el-tag v-if="scope.row.on_closed" type="success">closed</el-tag>
       </template>
     </el-table-column>
     <el-table-column label="Test" min-width="220">
