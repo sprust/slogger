@@ -145,8 +145,13 @@ oa-generate:
 # and the extension have to be brought into step before any long-lived process
 # starts on them. Installing from the new image first (composer-fresh) and only
 # then swapping containers keeps the old ones serving until the moment they are
-# replaced. `up` recreates just what the rebuild changed — php-fpm and workers —
-# and leaves mysql, mongo, redis and rabbitmq running.
+# replaced. `up` recreates only what the rebuild changed and leaves mysql, mongo,
+# redis and rabbitmq running.
+#
+# The application code is a bind mount, so an ordinary commit changes no image and
+# `up` recreates nothing: the sconcur workers keep serving the classes they already
+# loaded. sconcur-reload is what carries the new code to them, and it comes after
+# the migration so the fresh workers start on the schema they expect.
 deploy-prod:
 	git pull
 	make build
@@ -155,6 +160,7 @@ deploy-prod:
 	make up
 	make queues-declare
 	make art c='migrate --force'
+	make sconcur-reload
 	make receiver-build
 	make frontend-npm-i
 	make frontend-npm-build
@@ -168,6 +174,7 @@ deploy-dev:
 	make up
 	make queues-declare
 	make art c='migrate --force'
+	make sconcur-reload
 	make receiver-build
 	make frontend-npm-i
 	make frontend-npm-build
