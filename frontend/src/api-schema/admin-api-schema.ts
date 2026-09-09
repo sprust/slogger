@@ -1858,6 +1858,7 @@ export namespace AdminApi {
     type: string,
     enabled: boolean,
     cooldown_seconds: number,
+    notification_channel_id?: number | null,
     collect_since?: string | null,
     last_checked_at?: string | null,
     last_triggered_at?: string | null,
@@ -1880,6 +1881,7 @@ export namespace AdminApi {
         type: string;
         enabled: boolean;
         cooldown_seconds: number;
+        notification_channel_id?: number | null;
         collect_since?: string | null;
         last_checked_at?: string | null;
         last_triggered_at?: string | null;
@@ -2145,6 +2147,7 @@ export namespace AdminApi {
     type: string,
     enabled: boolean,
     cooldown_seconds: number,
+    notification_channel_id?: number | null,
     collect_since?: string | null,
     last_checked_at?: string | null,
     last_triggered_at?: string | null,
@@ -2170,6 +2173,7 @@ export namespace AdminApi {
        * @max 86400
        */
       cooldown_seconds: number;
+      notification_channel_id?: number | null;
       settings?: {
         /** @min 1 */
         threshold?: number;
@@ -2183,6 +2187,7 @@ export namespace AdminApi {
         type: string;
         enabled: boolean;
         cooldown_seconds: number;
+        notification_channel_id?: number | null;
         collect_since?: string | null;
         last_checked_at?: string | null;
         last_triggered_at?: string | null;
@@ -2245,6 +2250,7 @@ export namespace AdminApi {
        * @max 86400
        */
       cooldown_seconds: number;
+      notification_channel_id?: number | null;
       settings?: {
         /** @min 1 */
         threshold?: number;
@@ -2266,6 +2272,7 @@ export namespace AdminApi {
     type: string,
     enabled: boolean,
     cooldown_seconds: number,
+    notification_channel_id?: number | null,
     collect_since?: string | null,
     last_checked_at?: string | null,
     last_triggered_at?: string | null,
@@ -2291,6 +2298,7 @@ export namespace AdminApi {
        * @max 86400
        */
       cooldown_seconds: number;
+      notification_channel_id?: number | null;
       settings?: {
         /** @min 1 */
         threshold?: number;
@@ -2304,6 +2312,7 @@ export namespace AdminApi {
         type: string;
         enabled: boolean;
         cooldown_seconds: number;
+        notification_channel_id?: number | null;
         collect_since?: string | null;
         last_checked_at?: string | null;
         last_triggered_at?: string | null;
@@ -2366,6 +2375,7 @@ export namespace AdminApi {
        * @max 86400
        */
       cooldown_seconds: number;
+      notification_channel_id?: number | null;
       settings?: {
         /** @min 1 */
         threshold?: number;
@@ -2387,6 +2397,7 @@ export namespace AdminApi {
     type: string,
     enabled: boolean,
     cooldown_seconds: number,
+    notification_channel_id?: number | null,
     collect_since?: string | null,
     last_checked_at?: string | null,
     last_triggered_at?: string | null,
@@ -2412,6 +2423,7 @@ export namespace AdminApi {
        * @max 86400
        */
       cooldown_seconds: number;
+      notification_channel_id?: number | null;
       settings?: {
         /**
          * @min 1
@@ -2433,6 +2445,7 @@ export namespace AdminApi {
         type: string;
         enabled: boolean;
         cooldown_seconds: number;
+        notification_channel_id?: number | null;
         collect_since?: string | null;
         last_checked_at?: string | null;
         last_triggered_at?: string | null;
@@ -2506,6 +2519,7 @@ export namespace AdminApi {
        * @max 86400
        */
       cooldown_seconds: number;
+      notification_channel_id?: number | null;
       settings?: {
         /**
          * @min 1
@@ -2535,6 +2549,7 @@ export namespace AdminApi {
     type: string,
     enabled: boolean,
     cooldown_seconds: number,
+    notification_channel_id?: number | null,
     collect_since?: string | null,
     last_checked_at?: string | null,
     last_triggered_at?: string | null,
@@ -2560,6 +2575,7 @@ export namespace AdminApi {
        * @max 86400
        */
       cooldown_seconds: number;
+      notification_channel_id?: number | null;
       settings?: {
         /**
          * @min 1
@@ -2588,6 +2604,7 @@ export namespace AdminApi {
         type: string;
         enabled: boolean;
         cooldown_seconds: number;
+        notification_channel_id?: number | null;
         collect_since?: string | null;
         last_checked_at?: string | null;
         last_triggered_at?: string | null;
@@ -2665,6 +2682,7 @@ export namespace AdminApi {
        * @max 86400
        */
       cooldown_seconds: number;
+      notification_channel_id?: number | null;
       settings?: {
         /**
          * @min 1
@@ -2701,6 +2719,7 @@ export namespace AdminApi {
     type: string,
     enabled: boolean,
     cooldown_seconds: number,
+    notification_channel_id?: number | null,
     collect_since?: string | null,
     last_checked_at?: string | null,
     last_triggered_at?: string | null,
@@ -2726,6 +2745,7 @@ export namespace AdminApi {
        * @max 86400
        */
       cooldown_seconds: number;
+      notification_channel_id?: number | null;
       settings?: {
         /**
          * @format float
@@ -2752,6 +2772,7 @@ export namespace AdminApi {
         type: string;
         enabled: boolean;
         cooldown_seconds: number;
+        notification_channel_id?: number | null;
         collect_since?: string | null;
         last_checked_at?: string | null;
         last_triggered_at?: string | null;
@@ -2827,6 +2848,7 @@ export namespace AdminApi {
        * @max 86400
        */
       cooldown_seconds: number;
+      notification_channel_id?: number | null;
       settings?: {
         /**
          * @format float
@@ -5351,6 +5373,7 @@ export class Api<
     type: string,
     enabled: boolean,
     cooldown_seconds: number,
+    notification_channel_id?: number | null,
     collect_since?: string | null,
     last_checked_at?: string | null,
     last_triggered_at?: string | null,
@@ -5370,6 +5393,7 @@ export class Api<
             type: string;
             enabled: boolean;
             cooldown_seconds: number;
+            notification_channel_id?: number | null;
             collect_since?: string | null;
             last_checked_at?: string | null;
             last_triggered_at?: string | null;
@@ -5673,6 +5697,7 @@ export class Api<
     type: string,
     enabled: boolean,
     cooldown_seconds: number,
+    notification_channel_id?: number | null,
     collect_since?: string | null,
     last_checked_at?: string | null,
     last_triggered_at?: string | null,
@@ -5696,6 +5721,7 @@ export class Api<
          * @max 86400
          */
         cooldown_seconds: number;
+        notification_channel_id?: number | null;
         settings?: {
           /** @min 1 */
           threshold?: number;
@@ -5711,6 +5737,7 @@ export class Api<
             type: string;
             enabled: boolean;
             cooldown_seconds: number;
+            notification_channel_id?: number | null;
             collect_since?: string | null;
             last_checked_at?: string | null;
             last_triggered_at?: string | null;
@@ -5783,6 +5810,7 @@ export class Api<
          * @max 86400
          */
         cooldown_seconds: number;
+        notification_channel_id?: number | null;
         settings?: {
           /** @min 1 */
           threshold?: number;
@@ -5813,6 +5841,7 @@ export class Api<
     type: string,
     enabled: boolean,
     cooldown_seconds: number,
+    notification_channel_id?: number | null,
     collect_since?: string | null,
     last_checked_at?: string | null,
     last_triggered_at?: string | null,
@@ -5836,6 +5865,7 @@ export class Api<
          * @max 86400
          */
         cooldown_seconds: number;
+        notification_channel_id?: number | null;
         settings?: {
           /** @min 1 */
           threshold?: number;
@@ -5851,6 +5881,7 @@ export class Api<
             type: string;
             enabled: boolean;
             cooldown_seconds: number;
+            notification_channel_id?: number | null;
             collect_since?: string | null;
             last_checked_at?: string | null;
             last_triggered_at?: string | null;
@@ -5923,6 +5954,7 @@ export class Api<
          * @max 86400
          */
         cooldown_seconds: number;
+        notification_channel_id?: number | null;
         settings?: {
           /** @min 1 */
           threshold?: number;
@@ -5953,6 +5985,7 @@ export class Api<
     type: string,
     enabled: boolean,
     cooldown_seconds: number,
+    notification_channel_id?: number | null,
     collect_since?: string | null,
     last_checked_at?: string | null,
     last_triggered_at?: string | null,
@@ -5976,6 +6009,7 @@ export class Api<
          * @max 86400
          */
         cooldown_seconds: number;
+        notification_channel_id?: number | null;
         settings?: {
           /**
            * @min 1
@@ -5999,6 +6033,7 @@ export class Api<
             type: string;
             enabled: boolean;
             cooldown_seconds: number;
+            notification_channel_id?: number | null;
             collect_since?: string | null;
             last_checked_at?: string | null;
             last_triggered_at?: string | null;
@@ -6082,6 +6117,7 @@ export class Api<
          * @max 86400
          */
         cooldown_seconds: number;
+        notification_channel_id?: number | null;
         settings?: {
           /**
            * @min 1
@@ -6120,6 +6156,7 @@ export class Api<
     type: string,
     enabled: boolean,
     cooldown_seconds: number,
+    notification_channel_id?: number | null,
     collect_since?: string | null,
     last_checked_at?: string | null,
     last_triggered_at?: string | null,
@@ -6143,6 +6180,7 @@ export class Api<
          * @max 86400
          */
         cooldown_seconds: number;
+        notification_channel_id?: number | null;
         settings?: {
           /**
            * @min 1
@@ -6173,6 +6211,7 @@ export class Api<
             type: string;
             enabled: boolean;
             cooldown_seconds: number;
+            notification_channel_id?: number | null;
             collect_since?: string | null;
             last_checked_at?: string | null;
             last_triggered_at?: string | null;
@@ -6260,6 +6299,7 @@ export class Api<
          * @max 86400
          */
         cooldown_seconds: number;
+        notification_channel_id?: number | null;
         settings?: {
           /**
            * @min 1
@@ -6305,6 +6345,7 @@ export class Api<
     type: string,
     enabled: boolean,
     cooldown_seconds: number,
+    notification_channel_id?: number | null,
     collect_since?: string | null,
     last_checked_at?: string | null,
     last_triggered_at?: string | null,
@@ -6328,6 +6369,7 @@ export class Api<
          * @max 86400
          */
         cooldown_seconds: number;
+        notification_channel_id?: number | null;
         settings?: {
           /**
            * @format float
@@ -6356,6 +6398,7 @@ export class Api<
             type: string;
             enabled: boolean;
             cooldown_seconds: number;
+            notification_channel_id?: number | null;
             collect_since?: string | null;
             last_checked_at?: string | null;
             last_triggered_at?: string | null;
@@ -6441,6 +6484,7 @@ export class Api<
          * @max 86400
          */
         cooldown_seconds: number;
+        notification_channel_id?: number | null;
         settings?: {
           /**
            * @format float

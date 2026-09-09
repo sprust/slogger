@@ -22,6 +22,7 @@ class WatcherResource extends AbstractApiResource
     private string $type;
     private bool $enabled;
     private int $cooldown_seconds;
+    private ?int $notification_channel_id;
     private ?string $collect_since;
     private ?string $last_checked_at;
     private ?string $last_triggered_at;
@@ -42,5 +43,7 @@ class WatcherResource extends AbstractApiResource
         $this->last_triggered_at = $resource->lastTriggeredAt?->toDateTimeString();
         $this->created_at        = $resource->createdAt->toDateTimeString();
         $this->updated_at        = $resource->updatedAt->toDateTimeString();
+
+        $this->notification_channel_id = $resource->notificationChannelId;
     }
 }

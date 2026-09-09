@@ -59,6 +59,7 @@ abstract readonly class AbstractWatcherTypeController
                     type: $type,
                     enabled: ArrayValueGetter::bool($validated, 'enabled'),
                     cooldownSeconds: ArrayValueGetter::int($validated, 'cooldown_seconds'),
+                    notificationChannelId: ArrayValueGetter::intNull($validated, 'notification_channel_id'),
                     settings: $this->settingsOf($validated)
                 )
             )
@@ -79,6 +80,7 @@ abstract readonly class AbstractWatcherTypeController
                     name: ArrayValueGetter::string($validated, 'name'),
                     enabled: ArrayValueGetter::bool($validated, 'enabled'),
                     cooldownSeconds: ArrayValueGetter::int($validated, 'cooldown_seconds'),
+                    notificationChannelId: ArrayValueGetter::intNull($validated, 'notification_channel_id'),
                     settings: $this->settingsOf($validated)
                 )
             );

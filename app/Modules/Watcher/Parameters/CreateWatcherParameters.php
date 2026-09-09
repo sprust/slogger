@@ -21,6 +21,7 @@ readonly class CreateWatcherParameters
         public WatcherTypeEnum $type,
         public bool $enabled,
         public int $cooldownSeconds,
+        public ?int $notificationChannelId,
         public array $settings
     ) {
     }

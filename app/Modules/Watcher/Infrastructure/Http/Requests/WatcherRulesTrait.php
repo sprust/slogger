@@ -26,6 +26,14 @@ trait WatcherRulesTrait
             // A day at the top: a watcher that may speak less often than that is one
             // nobody will hear from about a problem that started this morning.
             'cooldown_seconds' => ['required', 'integer', 'min:1', 'max:86400'],
+            // `present`, so a watcher cannot be silenced by a field somebody left out.
+            // The last two `exists` arguments are for the channels' soft deletes.
+            'notification_channel_id' => [
+                'present',
+                'nullable',
+                'integer',
+                'exists:notification_channels,id,deleted_at,NULL',
+            ],
         ];
     }
 

@@ -25,6 +25,7 @@ readonly class WatcherDto
         public string $type,
         public bool $enabled,
         public int $cooldownSeconds,
+        public ?int $notificationChannelId,
         public array $settings,
         public ?array $traceMatch,
         public ?Carbon $collectSince,

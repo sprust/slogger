@@ -115,6 +115,7 @@ class WatcherFactoryTest extends TestCase
             type: $type,
             enabled: true,
             cooldownSeconds: 300,
+            notificationChannelId: null,
             settings: $settings,
             traceMatch: $traceMatch,
             collectSince: null,

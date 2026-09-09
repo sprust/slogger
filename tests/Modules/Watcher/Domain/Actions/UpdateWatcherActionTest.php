@@ -157,8 +157,18 @@ class UpdateWatcherActionTest extends TestCase
         $watchers = $this->createMock(WatcherRepository::class);
         $watchers->expects($this->once())
             ->method('update')
-            ->willReturnCallback(function (...$arguments) use (&$written): void {
-                $written = $arguments[6] ?? null;
+            // Named, not indexed: the repository's signature grows.
+            ->willReturnCallback(function (
+                int $id,
+                string $name,
+                bool $enabled,
+                int $cooldownSeconds,
+                ?int $notificationChannelId,
+                array $settings,
+                ?array $traceMatch,
+                ?Carbon $collectSince
+            ) use (&$written): void {
+                $written = $collectSince;
             });
 
         $find = $this->createMock(FindWatcherAction::class);
@@ -177,6 +187,7 @@ class UpdateWatcherActionTest extends TestCase
                 name: 'watcher',
                 enabled: true,
                 cooldownSeconds: 600,
+                notificationChannelId: null,
                 settings: $edited
             )
         );
@@ -198,6 +209,7 @@ class UpdateWatcherActionTest extends TestCase
             type: $watcher->type,
             enabled: $enabled,
             cooldownSeconds: $watcher->cooldownSeconds,
+            notificationChannelId: $watcher->notificationChannelId,
             settings: $watcher->settings,
             match: new WatcherMatchFactory()->make($settings),
             collectSince: $watcher->collectSince,

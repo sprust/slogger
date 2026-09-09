@@ -50,6 +50,17 @@
       </template>
     </el-table-column>
     <el-table-column label="Wait between alerts, s" prop="cooldown_seconds" width="140"/>
+    <el-table-column label="Notifies" min-width="140">
+      <template #default="scope">
+        <!-- A watcher that tells nobody looks like one that does until you open it. -->
+        <el-text v-if="scope.row.notification_channel_id === null" type="info">
+          nobody
+        </el-text>
+        <template v-else>
+          {{ channelName(scope.row.notification_channel_id) }}
+        </template>
+      </template>
+    </el-table-column>
     <el-table-column label="Collecting since" min-width="160">
       <template #default="scope">
         {{ scope.row.collect_since ?? '' }}
@@ -96,6 +107,7 @@ import {defineAsyncComponent, defineComponent} from 'vue'
 import {Refresh as IconRefresh} from '@element-plus/icons-vue'
 import {useWatchersStore, Watcher, watcherTypeIsKnown} from "../../store/watchersStore.ts";
 import {useWatcherTypesStore, WatcherType} from "../../store/watcherTypesStore.ts";
+import {Channel, useChannelsStore} from "../notifications/store/channelsStore.ts";
 
 const WatcherFormDialog = defineAsyncComponent(() => import("./WatcherFormDialog.vue"))
 
@@ -128,6 +140,9 @@ export default defineComponent({
     watcherTypesStore() {
       return useWatcherTypesStore()
     },
+    channelsStore() {
+      return useChannelsStore()
+    },
     IconRefresh() {
       return IconRefresh
     },
@@ -135,6 +150,11 @@ export default defineComponent({
 
   methods: {
     watcherTypeIsKnown,
+    /** A row can still name a channel that is gone, so fall back to the id. */
+    channelName(channelId: number): string {
+      return this.channelsStore.items.find((channel: Channel) => channel.id === channelId)?.name
+          ?? `Channel #${channelId}`
+    },
     update() {
       this.watchersStore.find()
     },
@@ -165,6 +185,10 @@ export default defineComponent({
   mounted() {
     if (!this.watcherTypesStore.loaded) {
       this.watcherTypesStore.find()
+    }
+
+    if (!this.channelsStore.loaded) {
+      this.channelsStore.find()
     }
 
     this.update()

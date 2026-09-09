@@ -54,6 +54,7 @@ readonly class WatcherFactory
             type: $type,
             enabled: $dto->enabled,
             cooldownSeconds: $dto->cooldownSeconds,
+            notificationChannelId: $dto->notificationChannelId,
             settings: $this->types->for($type)->makeSettings($dto->settings),
             match: $this->makeMatch($dto->traceMatch),
             collectSince: $dto->collectSince,

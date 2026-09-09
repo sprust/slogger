@@ -185,6 +185,8 @@ Only a watcher's settings live in MySQL. Everything it produces — the incident
 
 An incident is worth nothing to somebody who is not looking at the panel, so a channel carries it out. One type so far, Telegram: a bot posts into a chat, a group or a channel. A channel says which of the three moments it speaks about — the incident being opened, another event under one already open, and the incident being closed — so a chat can take the openings alone while another takes everything.
 
+Each watcher names the one channel it speaks through, chosen in its own form, and naming none is a real answer: that watcher opens incidents in the panel and tells nobody. So two teams can each be sent their own part of the system instead of everybody hearing everything. A channel switched off, or removed after a watcher was pointed at it, silences that watcher rather than piling up deliveries that cannot go anywhere.
+
 Sending is a queued job (`SendNotificationJob`), never the watcher's pass: a Telegram that is slow or down must not hold up the checks. Every message is written to `notifications` before it is sent and updated with what came back, which is what the delivery list under each channel shows — sent, queued, or the error Telegram gave. A 429 is released for exactly as long as Telegram asked for, a 4xx is final, everything else is retried with a growing backoff.
 
 The bot token is stored encrypted (`encrypted:array` over a single column) and never sent back to the panel — the edit form is shown a mask of the last few characters, and left blank it keeps the token already stored. There is a Test button beside each channel, which sends one message through the real credentials and reports what happened.

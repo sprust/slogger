@@ -16,6 +16,7 @@ readonly class WatcherObject
         public WatcherTypeEnum $type,
         public bool $enabled,
         public int $cooldownSeconds,
+        public ?int $notificationChannelId,
         public WatcherSettingsInterface $settings,
         public ?WatcherMatchObject $match,
         public ?Carbon $collectSince,

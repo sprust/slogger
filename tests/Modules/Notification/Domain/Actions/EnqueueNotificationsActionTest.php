@@ -3,7 +3,7 @@
 namespace Tests\Modules\Notification\Domain\Actions;
 
 use App\Modules\Notification\Domain\Actions\Mutations\EnqueueNotificationsAction;
-use App\Modules\Notification\Domain\Actions\Queries\FindChannelsAction;
+use App\Modules\Notification\Domain\Actions\Queries\FindChannelAction;
 use App\Modules\Notification\Domain\Events\NotificationEnqueuedEvent;
 use App\Modules\Notification\Domain\Services\IncidentMessageFactory;
 use App\Modules\Notification\Domain\Services\Senders\TelegramSender;
@@ -15,12 +15,12 @@ use App\Modules\Notification\Entities\Settings\TelegramSettingsObject;
 use App\Modules\Notification\Enums\NotificationChannelTypeEnum;
 use App\Modules\Notification\Enums\NotificationKindEnum;
 use App\Modules\Notification\Repositories\NotificationRepository;
-use Illuminate\Contracts\Events\Dispatcher;
 use App\Modules\Watcher\Entities\Settings\BufferOverflowSettingsObject;
 use App\Modules\Watcher\Entities\WatcherIncidentObject;
 use App\Modules\Watcher\Entities\WatcherObject;
 use App\Modules\Watcher\Enums\WatcherIncidentStatusEnum;
 use App\Modules\Watcher\Enums\WatcherTypeEnum;
+use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Support\Carbon;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
@@ -45,7 +45,7 @@ class EnqueueNotificationsActionTest extends TestCase
             ->with(1, 7, '68be1f000000000000000009', NotificationKindEnum::Opened)
             ->willReturn($this->notification());
 
-        $this->action($repository, [$this->channel()])
+        $this->action($repository, $this->channel())
             ->handle($this->watcher(), $this->incident(), null);
     }
 
@@ -58,7 +58,7 @@ class EnqueueNotificationsActionTest extends TestCase
             ->with(1, 7, '68be1f000000000000000009', NotificationKindEnum::Event)
             ->willReturn($this->notification());
 
-        $this->action($repository, [$this->channel(onEvent: true)])
+        $this->action($repository, $this->channel(onEvent: true))
             ->handle($this->watcher(), $this->incident(eventsCount: 3), null);
     }
 
@@ -71,7 +71,7 @@ class EnqueueNotificationsActionTest extends TestCase
             ->with(1, 7, '68be1f000000000000000009', NotificationKindEnum::Closed)
             ->willReturn($this->notification());
 
-        $this->action($repository, [$this->channel()])
+        $this->action($repository, $this->channel())
             ->handle(
                 $this->watcher(),
                 $this->incident(status: WatcherIncidentStatusEnum::Closed, eventsCount: 3),
@@ -84,7 +84,7 @@ class EnqueueNotificationsActionTest extends TestCase
         $repository = $this->createMock(NotificationRepository::class);
         $repository->expects($this->never())->method('create');
 
-        $this->action($repository, [$this->channel(onEvent: false)])
+        $this->action($repository, $this->channel(onEvent: false))
             ->handle($this->watcher(), $this->incident(eventsCount: 3), null);
     }
 
@@ -93,7 +93,7 @@ class EnqueueNotificationsActionTest extends TestCase
         $repository = $this->createMock(NotificationRepository::class);
         $repository->expects($this->never())->method('create');
 
-        $this->action($repository, [$this->channel(onClosed: false)])
+        $this->action($repository, $this->channel(onClosed: false))
             ->handle(
                 $this->watcher(),
                 $this->incident(status: WatcherIncidentStatusEnum::Closed),
@@ -101,18 +101,71 @@ class EnqueueNotificationsActionTest extends TestCase
             );
     }
 
-    public function testEveryChannelThatWantsItGetsItsOwnRow(): void
+    /** Nothing is read either: there is no channel to look up. */
+    public function testAWatcherThatNamesNoChannelSaysNothing(): void
+    {
+        $findChannelAction = $this->createMock(FindChannelAction::class);
+        $findChannelAction->expects($this->never())->method('handle');
+
+        $repository = $this->createMock(NotificationRepository::class);
+        $repository->expects($this->never())->method('create');
+
+        $this->events->expects($this->never())->method('dispatch');
+
+        new EnqueueNotificationsAction(
+            findChannelAction: $findChannelAction,
+            types: $this->types(),
+            messageFactory: $this->createMock(IncidentMessageFactory::class),
+            notificationRepository: $repository,
+            events: $this->events
+        )->handle($this->watcher(channelId: null), $this->incident(), null);
+    }
+
+    public function testTheChannelAskedForIsTheOneTheWatcherNames(): void
+    {
+        $findChannelAction = $this->createMock(FindChannelAction::class);
+
+        $findChannelAction->expects($this->once())
+            ->method('handle')
+            ->with(4)
+            ->willReturn($this->channel(id: 4));
+
+        $repository = $this->createMock(NotificationRepository::class);
+        $repository->method('create')->willReturn($this->notification());
+
+        $messageFactory = $this->createMock(IncidentMessageFactory::class);
+        $messageFactory->method('make')->willReturn('a watcher went off');
+
+        new EnqueueNotificationsAction(
+            findChannelAction: $findChannelAction,
+            types: $this->types(),
+            messageFactory: $messageFactory,
+            notificationRepository: $repository,
+            events: $this->events
+        )->handle($this->watcher(channelId: 4), $this->incident(), null);
+    }
+
+    /** Quiet rather than a row SendNotificationAction would only mark failed. */
+    public function testAChannelThatWasSwitchedOffGetsNothing(): void
     {
         $repository = $this->createMock(NotificationRepository::class);
-        $repository->expects($this->exactly(2))->method('create')->willReturn($this->notification());
+        $repository->expects($this->never())->method('create');
 
-        $this->events->expects($this->exactly(2))->method('dispatch');
-
-        $this->action($repository, [$this->channel(id: 1), $this->channel(id: 2)])
+        $this->action($repository, $this->channel(enabled: false))
             ->handle($this->watcher(), $this->incident(), null);
     }
 
-    public function testEachRowIsAnnouncedByItsOwnEvent(): void
+    /** Removed since the watcher was pointed at it. */
+    public function testAChannelThatIsGoneGetsNothing(): void
+    {
+        $repository = $this->createMock(NotificationRepository::class);
+        $repository->expects($this->never())->method('create');
+
+        $this->action($repository, null)
+            ->handle($this->watcher(), $this->incident(), null);
+    }
+
+    public function testTheRowIsAnnouncedByItsOwnEvent(): void
     {
         $repository = $this->createMock(NotificationRepository::class);
 
@@ -120,29 +173,11 @@ class EnqueueNotificationsActionTest extends TestCase
             ->method('dispatch')
             ->with(new NotificationEnqueuedEvent('68be1f000000000000000001'));
 
-        $this->action($repository, [$this->channel()])
+        $this->action($repository, $this->channel())
             ->handle($this->watcher(), $this->incident(), null);
     }
 
-    public function testTheDisabledChannelsAreNeverRead(): void
-    {
-        $findChannelsAction = $this->createMock(FindChannelsAction::class);
-
-        $findChannelsAction->expects($this->once())
-            ->method('handle')
-            ->with(true)
-            ->willReturn([]);
-
-        new EnqueueNotificationsAction(
-            findChannelsAction: $findChannelsAction,
-            types: $this->types(),
-            messageFactory: $this->createMock(IncidentMessageFactory::class),
-            notificationRepository: $this->createMock(NotificationRepository::class),
-            events: $this->createMock(Dispatcher::class)
-        )->handle($this->watcher(), $this->incident(), null);
-    }
-
-    public function testEveryRowIsWrittenBeforeAnythingIsQueued(): void
+    public function testTheRowIsWrittenBeforeAnythingIsQueued(): void
     {
         $written = 0;
 
@@ -156,23 +191,20 @@ class EnqueueNotificationsActionTest extends TestCase
         $this->events->method('dispatch')->willThrowException(new RuntimeException('broker is down'));
 
         try {
-            $this->action($repository, [$this->channel(id: 1), $this->channel(id: 2)])
+            $this->action($repository, $this->channel())
                 ->handle($this->watcher(), $this->incident(), null);
         } catch (RuntimeException) {
         }
 
-        $this->assertSame(2, $written);
+        $this->assertSame(1, $written);
     }
 
-    /**
-     * @param ChannelObject[] $channels
-     */
     private function action(
         NotificationRepository $repository,
-        array $channels
+        ?ChannelObject $channel
     ): EnqueueNotificationsAction {
-        $findChannelsAction = $this->createMock(FindChannelsAction::class);
-        $findChannelsAction->method('handle')->willReturn($channels);
+        $findChannelAction = $this->createMock(FindChannelAction::class);
+        $findChannelAction->method('handle')->willReturn($channel);
 
         $messageFactory = $this->createMock(IncidentMessageFactory::class);
         $messageFactory->method('make')->willReturn('a watcher went off');
@@ -180,7 +212,7 @@ class EnqueueNotificationsActionTest extends TestCase
         $repository->method('create')->willReturn($this->notification());
 
         return new EnqueueNotificationsAction(
-            findChannelsAction: $findChannelsAction,
+            findChannelAction: $findChannelAction,
             types: $this->types(),
             messageFactory: $messageFactory,
             notificationRepository: $repository,
@@ -213,7 +245,8 @@ class EnqueueNotificationsActionTest extends TestCase
     private function channel(
         int $id = 1,
         bool $onEvent = false,
-        bool $onClosed = true
+        bool $onClosed = true,
+        bool $enabled = true
     ): ChannelObject {
         $now = Carbon::parse('2026-09-08 12:00:00');
 
@@ -221,7 +254,7 @@ class EnqueueNotificationsActionTest extends TestCase
             id: $id,
             name: 'ops chat',
             type: NotificationChannelTypeEnum::Telegram,
-            enabled: true,
+            enabled: $enabled,
             onOpened: true,
             onEvent: $onEvent,
             onClosed: $onClosed,
@@ -231,7 +264,7 @@ class EnqueueNotificationsActionTest extends TestCase
         );
     }
 
-    private function watcher(): WatcherObject
+    private function watcher(?int $channelId = 1): WatcherObject
     {
         $now = Carbon::parse('2026-09-08 19:00:00');
 
@@ -241,6 +274,7 @@ class EnqueueNotificationsActionTest extends TestCase
             type: WatcherTypeEnum::BufferOverflow,
             enabled: true,
             cooldownSeconds: 600,
+            notificationChannelId: $channelId,
             settings: new BufferOverflowSettingsObject(),
             match: null,
             collectSince: $now,

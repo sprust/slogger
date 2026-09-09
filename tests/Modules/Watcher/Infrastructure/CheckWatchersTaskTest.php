@@ -174,6 +174,7 @@ class CheckWatchersTaskTest extends TestCase
             type: $watcher->type,
             enabled: false,
             cooldownSeconds: $watcher->cooldownSeconds,
+            notificationChannelId: null,
             settings: $watcher->settings,
             match: null,
             collectSince: null,

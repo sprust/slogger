@@ -47,6 +47,7 @@ readonly class WatcherRepository
         string $type,
         bool $enabled,
         int $cooldownSeconds,
+        ?int $notificationChannelId,
         array $settings,
         ?array $traceMatch,
         ?Carbon $collectSince
@@ -60,6 +61,8 @@ readonly class WatcherRepository
         $watcher->settings         = $settings;
         $watcher->trace_match      = $traceMatch;
         $watcher->collect_since    = $collectSince;
+
+        $watcher->notification_channel_id = $notificationChannelId;
 
         $watcher->saveOrFail();
 
@@ -75,6 +78,7 @@ readonly class WatcherRepository
         string $name,
         bool $enabled,
         int $cooldownSeconds,
+        ?int $notificationChannelId,
         array $settings,
         ?array $traceMatch,
         ?Carbon $collectSince
@@ -82,13 +86,14 @@ readonly class WatcherRepository
         Watcher::query()
             ->where('id', $id)
             ->update([
-                'name'             => $name,
-                'enabled'          => $enabled,
-                'cooldown_seconds' => $cooldownSeconds,
-                'settings'         => $settings,
-                'trace_match'      => $traceMatch,
-                'collect_since'    => $collectSince,
-                'updated_at'       => Carbon::now(),
+                'name'                    => $name,
+                'enabled'                 => $enabled,
+                'cooldown_seconds'        => $cooldownSeconds,
+                'settings'                => $settings,
+                'notification_channel_id' => $notificationChannelId,
+                'trace_match'             => $traceMatch,
+                'collect_since'           => $collectSince,
+                'updated_at'              => Carbon::now(),
             ]);
     }
 
@@ -129,6 +134,7 @@ readonly class WatcherRepository
             type: $watcher->type,
             enabled: $watcher->enabled,
             cooldownSeconds: $watcher->cooldown_seconds,
+            notificationChannelId: $watcher->notification_channel_id,
             settings: $watcher->settings,
             traceMatch: $watcher->trace_match,
             collectSince: $watcher->collect_since,

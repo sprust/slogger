@@ -18,6 +18,7 @@ readonly class UpdateWatcherParameters
         public string $name,
         public bool $enabled,
         public int $cooldownSeconds,
+        public ?int $notificationChannelId,
         public array $settings
     ) {
     }

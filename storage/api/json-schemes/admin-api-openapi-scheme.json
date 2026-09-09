@@ -3722,6 +3722,10 @@
                                                         "type": "integer",
                                                         "nullable": false
                                                     },
+                                                    "notification_channel_id": {
+                                                        "type": "integer",
+                                                        "nullable": true
+                                                    },
                                                     "collect_since": {
                                                         "type": "string",
                                                         "nullable": true
@@ -4271,6 +4275,10 @@
                                         "minimum": 1,
                                         "maximum": 86400
                                     },
+                                    "notification_channel_id": {
+                                        "type": "integer",
+                                        "nullable": true
+                                    },
                                     "settings": {
                                         "type": "object",
                                         "properties": {
@@ -4320,6 +4328,10 @@
                                                 "cooldown_seconds": {
                                                     "type": "integer",
                                                     "nullable": false
+                                                },
+                                                "notification_channel_id": {
+                                                    "type": "integer",
+                                                    "nullable": true
                                                 },
                                                 "collect_since": {
                                                     "type": "string",
@@ -4437,6 +4449,10 @@
                                         "minimum": 1,
                                         "maximum": 86400
                                     },
+                                    "notification_channel_id": {
+                                        "type": "integer",
+                                        "nullable": true
+                                    },
                                     "settings": {
                                         "type": "object",
                                         "properties": {
@@ -4503,6 +4519,10 @@
                                         "minimum": 1,
                                         "maximum": 86400
                                     },
+                                    "notification_channel_id": {
+                                        "type": "integer",
+                                        "nullable": true
+                                    },
                                     "settings": {
                                         "type": "object",
                                         "properties": {
@@ -4552,6 +4572,10 @@
                                                 "cooldown_seconds": {
                                                     "type": "integer",
                                                     "nullable": false
+                                                },
+                                                "notification_channel_id": {
+                                                    "type": "integer",
+                                                    "nullable": true
                                                 },
                                                 "collect_since": {
                                                     "type": "string",
@@ -4669,6 +4693,10 @@
                                         "minimum": 1,
                                         "maximum": 86400
                                     },
+                                    "notification_channel_id": {
+                                        "type": "integer",
+                                        "nullable": true
+                                    },
                                     "settings": {
                                         "type": "object",
                                         "properties": {
@@ -4734,6 +4762,10 @@
                                         "type": "integer",
                                         "minimum": 1,
                                         "maximum": 86400
+                                    },
+                                    "notification_channel_id": {
+                                        "type": "integer",
+                                        "nullable": true
                                     },
                                     "settings": {
                                         "type": "object",
@@ -4812,6 +4844,10 @@
                                                 "cooldown_seconds": {
                                                     "type": "integer",
                                                     "nullable": false
+                                                },
+                                                "notification_channel_id": {
+                                                    "type": "integer",
+                                                    "nullable": true
                                                 },
                                                 "collect_since": {
                                                     "type": "string",
@@ -4960,6 +4996,10 @@
                                         "minimum": 1,
                                         "maximum": 86400
                                     },
+                                    "notification_channel_id": {
+                                        "type": "integer",
+                                        "nullable": true
+                                    },
                                     "settings": {
                                         "type": "object",
                                         "properties": {
@@ -5054,6 +5094,10 @@
                                         "minimum": 1,
                                         "maximum": 86400
                                     },
+                                    "notification_channel_id": {
+                                        "type": "integer",
+                                        "nullable": true
+                                    },
                                     "settings": {
                                         "type": "object",
                                         "properties": {
@@ -5140,6 +5184,10 @@
                                                 "cooldown_seconds": {
                                                     "type": "integer",
                                                     "nullable": false
+                                                },
+                                                "notification_channel_id": {
+                                                    "type": "integer",
+                                                    "nullable": true
                                                 },
                                                 "collect_since": {
                                                     "type": "string",
@@ -5298,6 +5346,10 @@
                                         "minimum": 1,
                                         "maximum": 86400
                                     },
+                                    "notification_channel_id": {
+                                        "type": "integer",
+                                        "nullable": true
+                                    },
                                     "settings": {
                                         "type": "object",
                                         "properties": {
@@ -5401,6 +5453,10 @@
                                         "minimum": 1,
                                         "maximum": 86400
                                     },
+                                    "notification_channel_id": {
+                                        "type": "integer",
+                                        "nullable": true
+                                    },
                                     "settings": {
                                         "type": "object",
                                         "properties": {
@@ -5483,6 +5539,10 @@
                                                 "cooldown_seconds": {
                                                     "type": "integer",
                                                     "nullable": false
+                                                },
+                                                "notification_channel_id": {
+                                                    "type": "integer",
+                                                    "nullable": true
                                                 },
                                                 "collect_since": {
                                                     "type": "string",
@@ -5635,6 +5695,10 @@
                                         "type": "integer",
                                         "minimum": 1,
                                         "maximum": 86400
+                                    },
+                                    "notification_channel_id": {
+                                        "type": "integer",
+                                        "nullable": true
                                     },
                                     "settings": {
                                         "type": "object",

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Notification\Domain\Actions\Mutations;
 
-use App\Modules\Notification\Domain\Actions\Queries\FindChannelsAction;
+use App\Modules\Notification\Domain\Actions\Queries\FindChannelAction;
 use App\Modules\Notification\Domain\Events\NotificationEnqueuedEvent;
 use App\Modules\Notification\Domain\Services\IncidentMessageFactory;
 use App\Modules\Notification\Domain\Services\Types\NotificationChannelTypeRegistry;
@@ -18,10 +18,14 @@ use App\Modules\Watcher\Enums\WatcherIncidentStatusEnum;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Support\Carbon;
 
+/**
+ * Writes down what a watcher has to say, for the one channel it names. A watcher that
+ * names none says nothing.
+ */
 readonly class EnqueueNotificationsAction
 {
     public function __construct(
-        private FindChannelsAction $findChannelsAction,
+        private FindChannelAction $findChannelAction,
         private NotificationChannelTypeRegistry $types,
         private IncidentMessageFactory $messageFactory,
         private NotificationRepository $notificationRepository,
@@ -34,36 +38,48 @@ readonly class EnqueueNotificationsAction
         WatcherIncidentObject $incident,
         ?WatcherIncidentEventObject $event
     ): void {
+        $channel = $this->channelOf($watcher);
+
+        if (is_null($channel)) {
+            return;
+        }
+
         $kind = $this->kindOf($incident);
 
-        $now = Carbon::now();
+        if (!$this->speaksAbout($channel, $kind)) {
+            return;
+        }
 
-        $notifications = [];
-
-        foreach ($this->findChannelsAction->handle(enabled: true) as $channel) {
-            if (!$this->speaksAbout($channel, $kind)) {
-                continue;
-            }
-
-            $notifications[] = $this->notificationRepository->create(
-                channelId: $channel->id,
-                watcherId: $watcher->id,
-                incidentId: $incident->id,
+        $notification = $this->notificationRepository->create(
+            channelId: $channel->id,
+            watcherId: $watcher->id,
+            incidentId: $incident->id,
+            kind: $kind,
+            text: $this->messageFactory->make(
                 kind: $kind,
-                text: $this->messageFactory->make(
-                    kind: $kind,
-                    watcher: $watcher,
-                    incident: $incident,
-                    event: $event,
-                    sender: $this->types->for($channel->type)->sender()
-                ),
-                createdAt: $now
-            );
+                watcher: $watcher,
+                incident: $incident,
+                event: $event,
+                sender: $this->types->for($channel->type)->sender()
+            ),
+            createdAt: Carbon::now()
+        );
+
+        // Written first and queued after: a broker that will not take the job still
+        // leaves a row saying the message was meant to go.
+        $this->events->dispatch(new NotificationEnqueuedEvent($notification->id));
+    }
+
+    /** One that was switched off or removed counts as none: the watcher goes quiet. */
+    private function channelOf(WatcherObject $watcher): ?ChannelObject
+    {
+        if (is_null($watcher->notificationChannelId)) {
+            return null;
         }
 
-        foreach ($notifications as $notification) {
-            $this->events->dispatch(new NotificationEnqueuedEvent($notification->id));
-        }
+        $channel = $this->findChannelAction->handle($watcher->notificationChannelId);
+
+        return $channel?->enabled === true ? $channel : null;
     }
 
     private function kindOf(WatcherIncidentObject $incident): NotificationKindEnum

@@ -39,6 +39,24 @@
             :value-on-clear="definition?.default_cooldown_seconds ?? 600"
         />
       </el-form-item>
+      <el-form-item label="Notify through">
+        <el-select
+            v-model="form.notificationChannelId"
+            clearable
+            placeholder="Nobody — only open an incident"
+            style="width: 100%"
+        >
+          <el-option
+              v-for="channel in channelsStore.items"
+              :key="channel.id"
+              :label="channel.enabled ? channel.name : `${channel.name} (off)`"
+              :value="channel.id"
+          />
+        </el-select>
+        <el-text type="info">
+          Leave it empty and the watcher opens incidents here without telling anyone.
+        </el-text>
+      </el-form-item>
 
       <el-form-item
           v-for="field in definition?.fields ?? []"
@@ -131,6 +149,7 @@ import {useWatcherTypesStore, WatcherType} from "../../store/watcherTypesStore.t
 import {
   useTraceAggregatorServicesStore
 } from "../../../trace-aggregator/components/services/store/traceAggregatorServicesStore.ts";
+import {useChannelsStore} from "../../components/notifications/store/channelsStore.ts";
 
 /** The numbers of one watcher, keyed the way `/watchers/types` names them. */
 interface SettingsForm {
@@ -171,6 +190,7 @@ export default defineComponent({
         name: '',
         enabled: true,
         cooldownSeconds: 600,
+        notificationChannelId: null as number | null,
         settings: {} as SettingsForm,
         filter: {
           service_ids: [] as number[],
@@ -190,6 +210,9 @@ export default defineComponent({
     },
     servicesStore() {
       return useTraceAggregatorServicesStore()
+    },
+    channelsStore() {
+      return useChannelsStore()
     },
     definition(): WatcherType | undefined {
       return this.watcherTypesStore.byType(this.type)
@@ -232,6 +255,7 @@ export default defineComponent({
       this.form.name = ''
       this.form.enabled = true
       this.form.cooldownSeconds = definition?.default_cooldown_seconds ?? 600
+      this.form.notificationChannelId = null
       this.form.settings = {}
       this.form.filter = {service_ids: [], types: [], tags: []}
 
@@ -241,6 +265,10 @@ export default defineComponent({
 
       if (this.servicesStore.items.length === 0) {
         this.servicesStore.findServices()
+      }
+
+      if (!this.channelsStore.loaded) {
+        this.channelsStore.find()
       }
 
       if (watcherId === null) {
@@ -253,6 +281,7 @@ export default defineComponent({
         this.form.name = watcher.name
         this.form.enabled = watcher.enabled
         this.form.cooldownSeconds = watcher.cooldown_seconds
+        this.form.notificationChannelId = watcher.notification_channel_id ?? null
       }
 
       this.loading = true
@@ -293,6 +322,9 @@ export default defineComponent({
         name: this.form.name.trim(),
         enabled: this.form.enabled,
         cooldown_seconds: this.form.cooldownSeconds,
+        // element-plus clears a select with undefined, and JSON.stringify drops it —
+        // the server wants the key even when it is null.
+        notification_channel_id: this.form.notificationChannelId ?? null,
         settings: {
           ...this.form.settings,
           ...(this.definition?.has_trace_filter ? {filter: this.form.filter} : {}),

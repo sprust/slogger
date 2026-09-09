@@ -65,7 +65,9 @@ class WatcherTypeRouteGuardTest extends TestCase
             'name'             => 'x',
             'enabled'          => true,
             'cooldown_seconds' => 300,
-            'settings'         => ['duration' => 10, 'window_minutes' => 5],
+            // The rules ask for the key even when it is null.
+            'notification_channel_id' => null,
+            'settings'                => ['duration' => 10, 'window_minutes' => 5],
         ]);
 
         $request->setContainer($this->app);
@@ -95,6 +97,7 @@ class WatcherTypeRouteGuardTest extends TestCase
             type: $type,
             enabled: true,
             cooldownSeconds: 600,
+            notificationChannelId: null,
             settings: new BufferOverflowSettingsObject(),
             match: null,
             collectSince: $now,

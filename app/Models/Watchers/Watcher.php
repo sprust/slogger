@@ -14,6 +14,7 @@ use Illuminate\Support\Carbon;
  * @property array<string, mixed>|null $trace_match
  * @property array<string, mixed>      $settings
  * @property int         $cooldown_seconds
+ * @property int|null    $notification_channel_id
  * @property Carbon|null $collect_since
  * @property Carbon|null $last_checked_at
  * @property Carbon|null $last_triggered_at

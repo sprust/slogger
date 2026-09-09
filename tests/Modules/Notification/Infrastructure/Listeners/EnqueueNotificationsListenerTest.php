@@ -110,6 +110,7 @@ class EnqueueNotificationsListenerTest extends TestCase
             type: WatcherTypeEnum::BufferOverflow,
             enabled: true,
             cooldownSeconds: 600,
+            notificationChannelId: null,
             settings: new BufferOverflowSettingsObject(),
             match: null,
             collectSince: $now,

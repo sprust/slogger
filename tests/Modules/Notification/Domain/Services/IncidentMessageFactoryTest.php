@@ -211,6 +211,7 @@ class IncidentMessageFactoryTest extends TestCase
             type: $type,
             enabled: true,
             cooldownSeconds: 600,
+            notificationChannelId: null,
             settings: new BufferOverflowSettingsObject(),
             match: null,
             collectSince: $now,
