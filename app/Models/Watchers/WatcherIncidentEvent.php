@@ -8,9 +8,9 @@ use Illuminate\Support\Carbon;
 /**
  * One time a watcher said it again, under the incident it belongs to.
  *
- * Retired by a TTL on `occurredAt`, like the incident above it. The two are given the same
- * lifetime, so an incident and the history behind it go together rather than leaving a row
- * whose events have gone.
+ * Retired by a TTL on `occurredAt`: a month from when it happened, on its own clock. The
+ * incident above it is retired a month after it was closed, so an incident left open for
+ * longer keeps its row and its count while its earliest events go.
  *
  * @property string               $_id
  * @property string               $incidentId

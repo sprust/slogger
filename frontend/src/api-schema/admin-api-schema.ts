@@ -2729,7 +2729,7 @@ export namespace AdminApi {
       settings?: {
         /**
          * @format float
-         * @min 0
+         * @min 0.001
          */
         duration?: number;
         /**
@@ -2830,7 +2830,7 @@ export namespace AdminApi {
       settings?: {
         /**
          * @format float
-         * @min 0
+         * @min 0.001
          */
         duration?: number;
         /**
@@ -6331,7 +6331,7 @@ export class Api<
         settings?: {
           /**
            * @format float
-           * @min 0
+           * @min 0.001
            */
           duration?: number;
           /**
@@ -6444,7 +6444,7 @@ export class Api<
         settings?: {
           /**
            * @format float
-           * @min 0
+           * @min 0.001
            */
           duration?: number;
           /**

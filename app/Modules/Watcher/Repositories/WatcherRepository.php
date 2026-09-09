@@ -92,10 +92,19 @@ readonly class WatcherRepository
             ]);
     }
 
+    /**
+     * Both of these go through the base query, so that `updated_at` is left alone.
+     *
+     * Eloquent's own update() adds it, and these two run on every watcher every minute:
+     * the column would then say when the watcher was last looked at rather than when
+     * somebody last changed it, which is the one thing it is for. The soft-delete scope
+     * still applies — toBase() applies the scopes before it hands the query over.
+     */
     public function updateCheckedAt(int $id, Carbon $checkedAt): void
     {
         Watcher::query()
             ->where('id', $id)
+            ->toBase()
             ->update(['last_checked_at' => $checkedAt]);
     }
 
@@ -103,6 +112,7 @@ readonly class WatcherRepository
     {
         Watcher::query()
             ->where('id', $id)
+            ->toBase()
             ->update(['last_triggered_at' => $triggeredAt]);
     }
 

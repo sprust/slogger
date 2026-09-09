@@ -5407,7 +5407,7 @@
                                             "duration": {
                                                 "type": "number",
                                                 "format": "float",
-                                                "minimum": 0
+                                                "minimum": 0.001
                                             },
                                             "window_minutes": {
                                                 "type": "integer",
@@ -5642,7 +5642,7 @@
                                             "duration": {
                                                 "type": "number",
                                                 "format": "float",
-                                                "minimum": 0
+                                                "minimum": 0.001
                                             },
                                             "window_minutes": {
                                                 "type": "integer",

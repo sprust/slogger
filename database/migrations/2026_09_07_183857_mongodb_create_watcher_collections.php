@@ -36,6 +36,13 @@ return new class extends Migration {
     private const int INCIDENT_TTL_SECONDS = 60 * 60 * 24 * 30;
 
     /**
+     * The TTL a closed incident rides on used to be `lastEventAt`, which also retired the
+     * open ones. Dropped by name, because nothing else would: putIndexes reconciles the
+     * indexes it is given and leaves the rest alone.
+     */
+    private const string RETIRED_INCIDENT_TTL_INDEX = 'lastEventAt_1';
+
+    /**
      * Three days for a line. A watcher whose traffic never stops has `uat` rewritten every
      * fifteen seconds and never expires; one that has matched nothing for three days loses
      * a document that says nothing, and gets a fresh one from the next trace.
@@ -46,11 +53,19 @@ return new class extends Migration {
     {
         $database = $this->database();
 
+        $this->dropIndex($database, 'watcherIncidents', self::RETIRED_INCIDENT_TTL_INDEX);
+
         $this->putIndexes($database, 'watcherIncidents', [
+            // A month after it was closed, and only then. The TTL used to hang off
+            // `lastEventAt` for every incident, which quietly removed the open ones too:
+            // a problem nobody got to in a month lost the only record that it happened,
+            // and the badge counting them went down on its own. Nothing closes an
+            // incident but a person, and that has to include this.
             [
-                'key'                => ['lastEventAt' => 1],
-                'name'               => 'lastEventAt_1',
-                'expireAfterSeconds' => self::INCIDENT_TTL_SECONDS,
+                'key'                    => ['closedAt' => 1],
+                'name'                   => 'closedAt_1',
+                'expireAfterSeconds'     => self::INCIDENT_TTL_SECONDS,
+                'partialFilterExpression' => ['status' => 'closed'],
             ],
             // The open incident of one watcher, which every trigger looks for.
             ['key' => ['watcherId' => 1, 'status' => 1], 'name' => 'watcherId_1_status_1'],
@@ -60,8 +75,12 @@ return new class extends Migration {
         ]);
 
         $this->putIndexes($database, 'watcherIncidentEvents', [
-            // The same lifetime as the incident above, so that an incident and the history
-            // behind it go together rather than leaving a row whose events have gone.
+            // A month from when it happened, on its own clock. Not tied to the incident
+            // above it — Mongo retires documents, not the children of one — so an
+            // incident left open for longer than this keeps its row and its count while
+            // its earliest events go. That is the trade for not writing a sweep: the
+            // count says how many times the watcher spoke, the events say what it saw
+            // recently.
             [
                 'key'                => ['occurredAt' => 1],
                 'name'               => 'occurredAt_1',
@@ -98,7 +117,8 @@ return new class extends Migration {
      * Puts the given indexes on a collection, creating it if the first write has not.
      *
      * The same name with different options is an IndexOptionsConflict rather than a no-op,
-     * so an index already there under another TTL is dropped and made again.
+     * so an index already there under another TTL, or under another partial filter, is
+     * dropped and made again.
      *
      * @param array<int, array<string, mixed>> $indexes
      */
@@ -122,7 +142,10 @@ return new class extends Migration {
             $current = $existing[$index['name']] ?? null;
 
             if (!is_null($current)) {
-                if (($current['expireAfterSeconds'] ?? null) === ($index['expireAfterSeconds'] ?? null)) {
+                $same = ($current['expireAfterSeconds'] ?? null) === ($index['expireAfterSeconds'] ?? null)
+                    && ($current['partialFilterExpression'] ?? null) == ($index['partialFilterExpression'] ?? null);
+
+                if ($same) {
                     continue;
                 }
 

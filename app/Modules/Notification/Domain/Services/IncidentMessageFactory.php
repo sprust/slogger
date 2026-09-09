@@ -148,13 +148,22 @@ readonly class IncidentMessageFactory
             $count = $group['count'] ?? null;
             $max   = $group['duration_max'] ?? null;
 
-            if (is_scalar($count) && is_scalar($max)) {
-                $lines[] = sprintf(
-                    '  %d trace%s, up to %s',
+            // The duration is optional, and its absence used to take the count with it.
+            // Only slow_traces puts a maximum in a group; the groups of a spike carry a
+            // count and nothing else, so every spike message listed the shapes without
+            // ever saying how many traces were behind them.
+            if (is_scalar($count)) {
+                $line = sprintf(
+                    '  %d trace%s',
                     (int) $count,
-                    (int) $count === 1 ? '' : 's',
-                    $sender->escape($this->readable('duration_max', $max))
+                    (int) $count === 1 ? '' : 's'
                 );
+
+                if (is_scalar($max)) {
+                    $line .= ', up to ' . $sender->escape($this->readable('duration_max', $max));
+                }
+
+                $lines[] = $line;
             }
 
             if (is_scalar($group['trace_id'] ?? null)) {

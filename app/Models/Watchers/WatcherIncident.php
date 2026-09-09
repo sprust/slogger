@@ -10,8 +10,10 @@ use Illuminate\Support\Carbon;
  *
  * In Mongo rather than beside the watcher in MySQL. Everything a watcher produces is
  * periodic — it accumulates while the system runs and is worth keeping for a while, not
- * for ever — so it lives where a TTL index can retire it, on `lastEventAt`. The settings
- * are the only part of a watcher that has to be kept exactly as long as the watcher does.
+ * for ever — so it lives where a TTL index can retire it, a month after it was closed.
+ * Only after: an open incident has no `closedAt`, the TTL is partial to the closed ones,
+ * and nothing removes it until a person does. The settings are the only part of a watcher
+ * that has to be kept exactly as long as the watcher does.
  *
  * Because a TTL retires these on its own, deleting a watcher leaves its incidents alone:
  * there is no foreign key to cascade and no sweep to run.

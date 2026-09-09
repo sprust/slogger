@@ -138,6 +138,33 @@ class IncidentMessageFactoryTest extends TestCase
         $this->assertStringContainsString("• job\n  1 trace, up to 12.7s\n  <code>def456</code>", $text);
     }
 
+    /**
+     * Only slow_traces puts a maximum in a group. The groups of a spike carry a count and
+     * nothing else, and the count used to be printed only beside a duration — so every
+     * spike message listed the shapes without ever saying how many traces were behind
+     * them, which is the whole of what a spike is about.
+     */
+    public function testASpikeGroupWithoutADurationStillSaysHowManyTracesThereWere(): void
+    {
+        $text = $this->factory()->make(
+            kind: NotificationKindEnum::Opened,
+            watcher: $this->watcher(type: WatcherTypeEnum::TracesSpike),
+            incident: $this->incident(),
+            event: $this->event(
+                measured: ['window_count' => 900],
+                groups: [
+                    ['type' => 'http', 'tags' => ['api'], 'count' => 700],
+                    ['type' => 'job', 'tags' => [], 'count' => 1],
+                ]
+            ),
+            sender: $this->sender()
+        );
+
+        $this->assertStringContainsString("🔎 traces:\n• http api\n  700 traces", $text);
+        $this->assertStringContainsString("• job\n  1 trace", $text);
+        $this->assertStringNotContainsString('up to', $text);
+    }
+
     public function testEverythingThatCameFromOutsideIsEscaped(): void
     {
         $text = $this->factory()->make(

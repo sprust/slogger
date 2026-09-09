@@ -137,8 +137,50 @@ class TelegramSenderTest extends TestCase
 
         new TelegramSender($client)->send($this->channel(), str_repeat('a', 5000));
 
-        $this->assertSame(TelegramSender::MAX_TEXT_LENGTH, mb_strlen($sent));
+        $this->assertLessThanOrEqual(TelegramSender::MAX_TEXT_LENGTH, mb_strlen($sent));
         $this->assertStringEndsWith('…', $sent);
+    }
+
+    /**
+     * The text is already marked up and already escaped by the time it gets here, so the
+     * character at the limit can be the middle of a tag or of an entity. Telegram answers
+     * a broken one with a 400, which this reads as permanent — the message is then lost
+     * rather than shortened.
+     */
+    public function testACutInTheMiddleOfMarkupLeavesTheMessageParseable(): void
+    {
+        $sent = null;
+
+        $client = $this->createMock(ClientInterface::class);
+        $client->method('sendRequest')
+            ->willReturnCallback(function (RequestInterface $request) use (&$sent): Response {
+                $sent = json_decode((string) $request->getBody(), true)['text'];
+
+                return new Response(200, body: '{"ok":true}');
+            });
+
+        // Long enough that the cut lands inside the trailing run of markup and entities.
+        $text = '<b>' . str_repeat('a', TelegramSender::MAX_TEXT_LENGTH)
+            . str_repeat('<code>x</code>&amp;', 20) . '</b>';
+
+        new TelegramSender($client)->send($this->channel(), $text);
+
+        $this->assertLessThanOrEqual(TelegramSender::MAX_TEXT_LENGTH, mb_strlen($sent));
+        $this->assertSame(
+            substr_count((string) $sent, '<b>'),
+            substr_count((string) $sent, '</b>'),
+            'the bold the cut left open was not closed'
+        );
+        $this->assertSame(
+            substr_count((string) $sent, '<code>'),
+            substr_count((string) $sent, '</code>'),
+            'a code tag the cut left open was not closed'
+        );
+        $this->assertDoesNotMatchRegularExpression(
+            '/<[^<>]*$|&[^&;<]*$/u',
+            (string) preg_replace('/…$/u', '', (string) $sent),
+            'the cut left half a tag or half an entity at the end'
+        );
     }
 
     public function testAMessageAtTheLimitIsSentWhole(): void
