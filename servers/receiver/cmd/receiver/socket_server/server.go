@@ -42,6 +42,11 @@ type Server struct {
 	activeHandlingCount    atomic.Int64
 	handlingSemaphore      chan struct{}
 	closing                atomic.Bool
+
+	// Closed once stop() has finished letting go of everything it holds. Run waits on it
+	// rather than returning the moment Accept fails, which is only the first thing stop()
+	// does — main takes a returned Run for a server that has finished.
+	stopped chan struct{}
 }
 
 type Stats struct {
@@ -70,6 +75,7 @@ func New(network string, address string) *Server {
 		totalHandlingCount:     atomic.Uint64{},
 		activeHandlingCount:    atomic.Int64{},
 		handlingSemaphore:      make(chan struct{}, maxConcurrentHandlings),
+		stopped:                make(chan struct{}),
 	}
 }
 
@@ -132,11 +138,15 @@ func (s *Server) Run(ctx context.Context) error {
 		}()
 	}
 
-	for s.closing.Load() {
-		time.Sleep(1 * time.Second)
+	// stop() waits for the connections still being handled before it closes the listener,
+	// so Accept cannot fail until that drain is over — and what is left after it is the
+	// context and the service connection. Waiting here is what makes a returned Run mean a
+	// server that has finished rather than one that has stopped listening. The cost is
+	// that a handler wedged on the database holds Run as well, and then main's ten-second
+	// deadline is what ends the process.
+	if s.closing.Load() {
+		<-s.stopped
 	}
-
-	s.closing.Store(false)
 
 	return nil
 }
@@ -205,7 +215,20 @@ func (s *Server) handleConnection(conn net.Conn) error {
 
 		slog.Debug(fmt.Sprintf("received message with len %d", len(message)))
 
+		// Counted first and only then checked, rather than the other way round. The
+		// drain in stop() raises `closing` and then reads this counter, so a message
+		// that tested the flag before the raise and incremented after the read was
+		// invisible to it — handled on a context the shutdown had already cancelled,
+		// and lost, while its sender had been told it arrived.
+		//
+		// This way round the window cannot open: Go's atomics are sequentially
+		// consistent, so a handler that reads `closing` as false has already published
+		// its increment, and a drain that reads zero has therefore seen the raise win.
+		s.activeHandlingCount.Add(1)
+
 		if s.closing.Load() {
+			s.activeHandlingCount.Add(-1)
+
 			slog.Debug("closing socket server by request. message skipped.")
 
 			err = tr.Write("server_is_closing")
@@ -217,9 +240,13 @@ func (s *Server) handleConnection(conn net.Conn) error {
 			continue
 		}
 
+		// Acked while it is already counted, so the drain covers everything a sender
+		// was told had arrived.
 		err = tr.Write("received")
 
 		if err != nil {
+			s.activeHandlingCount.Add(-1)
+
 			return errs.Err(err)
 		}
 
@@ -230,7 +257,6 @@ func (s *Server) handleConnection(conn net.Conn) error {
 		s.handlingSemaphore <- struct{}{}
 
 		s.totalHandlingCount.Add(1)
-		s.activeHandlingCount.Add(1)
 
 		go func(msg []byte, serviceId int) {
 			defer func() {
@@ -273,9 +299,15 @@ func (s *Server) GetStats() Stats {
 	}
 }
 
+// stop closes the listener and waits for the connections still being handled.
+//
+// The flag stays raised: Accept fails the moment the listener closes, and the loop in Run
+// reads this to tell a shutdown from a real error. Lowering it again on the way out — as
+// a `defer` here used to — made that a race, and losing it meant Run returning an error
+// and main panicking on a perfectly ordinary SIGTERM.
 func (s *Server) stop() {
 	s.closing.Store(true)
-	defer s.closing.Store(false)
+	defer close(s.stopped)
 
 	for {
 		activeHandlingCount := s.activeHandlingCount.Load()

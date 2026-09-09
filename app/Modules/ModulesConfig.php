@@ -9,9 +9,11 @@ use App\Modules\Cleaner\Infrastructure\CleanerServiceProvider;
 use App\Modules\Common\Infrastructure\BaseServiceProvider;
 use App\Modules\Dashboard\Infrastructure\DashboardProvider;
 use App\Modules\Logs\Infrastructure\LogsServiceProvider;
+use App\Modules\Notification\Infrastructure\NotificationServiceProvider;
 use App\Modules\Service\Infrastructure\ServiceServiceProvider;
 use App\Modules\Trace\Infrastructure\TraceServiceProvider;
 use App\Modules\User\Infrastructure\UserServiceProvider;
+use App\Modules\Watcher\Infrastructure\WatcherServiceProvider;
 
 class ModulesConfig
 {
@@ -28,6 +30,8 @@ class ModulesConfig
             DashboardProvider::class,
             CleanerServiceProvider::class,
             LogsServiceProvider::class,
+            WatcherServiceProvider::class,
+            NotificationServiceProvider::class,
         ];
     }
 }

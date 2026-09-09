@@ -13,7 +13,7 @@
         "ifksco/openapi-generator": "dev-master",
         "laravel/framework": "^12",
         "laravel/tinker": "^2.8",
-        "sconcur/laravel": "^0.3",
+        "sconcur/laravel": "^0.4",
         "slogger/laravel": "^2.1"
     },
     "require-dev": {

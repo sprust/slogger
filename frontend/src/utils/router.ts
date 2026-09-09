@@ -5,6 +5,7 @@ import Dashboard from "../components/pages/dashboard/Dashboard.vue";
 import TraceAggregator from "../components/pages/trace-aggregator/TraceAggregator.vue";
 import TraceCleaner from "../components/pages/trace-cleaner/TraceCleaner.vue";
 import Logs from "../components/pages/logs-viewer/Logs.vue";
+import Watchers from "../components/pages/watchers/Watchers.vue";
 import Sconcur from "../components/pages/sconcur/Sconcur.vue";
 
 export const routes = {
@@ -23,6 +24,10 @@ export const routes = {
     traceCleaner: {
         path: '/trace-cleaner',
         name: 'trace-cleaner',
+    },
+    watchers: {
+        path: '/watchers',
+        name: 'watchers',
     },
     logs: {
         path: '/logs',
@@ -56,6 +61,11 @@ export const router = createRouter({
             path: routes.traceCleaner.path,
             component: TraceCleaner,
             name: routes.traceCleaner.name
+        },
+        {
+            path: routes.watchers.path,
+            component: Watchers,
+            name: routes.watchers.name
         },
         {
             path: routes.logs.path,

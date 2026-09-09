@@ -10,6 +10,14 @@ import {
 import {
     useTraceDynamicIndexesStore
 } from "../components/pages/trace-aggregator/components/dynamic-indexes/store/traceDynamicIndexesStore.ts";
+import {useWatcherIncidentStatStore} from "./watcherIncidentStatStore.ts";
+import {useIncidentsStore} from "../components/pages/watchers/store/incidentsStore.ts";
+import {useWatchersStore} from "../components/pages/watchers/store/watchersStore.ts";
+import {useChannelsStore} from "../components/pages/watchers/components/notifications/store/channelsStore.ts";
+import {useChannelTypesStore} from "../components/pages/watchers/components/notifications/store/channelTypesStore.ts";
+import {useDeliveriesStore} from "../components/pages/watchers/components/notifications/store/deliveriesStore.ts";
+import {useWatcherTypesStore} from "../components/pages/watchers/store/watcherTypesStore.ts";
+import {nextSession} from "./session.ts";
 
 type AuthUser = AdminApi.AuthMeList.ResponseBody['data']
 
@@ -99,6 +107,26 @@ export const useAuthStore = defineStore('authStore', {
             // stand in for them when there is no ws pool.
             useTraceAggregatorTreeStore().stopWatching()
             useTraceDynamicIndexesStore().stopWatchingStats()
+            useWatcherIncidentStatStore().stopWatching()
+
+            // Incidents, watchers, the types they come in and the number in the badge are
+            // read once per session and held; the next person to sign in on this tab would
+            // otherwise be shown what the last one was looking at until the first request
+            // answers.
+            useWatcherIncidentStatStore().$reset()
+            useIncidentsStore().$reset()
+            useWatchersStore().$reset()
+            useWatcherTypesStore().$reset()
+            useChannelsStore().$reset()
+            useChannelTypesStore().$reset()
+            useDeliveriesStore().$reset()
+
+            // After the stores are cleared, not before: from here on an answer to a
+            // request sent in the session that just ended is not written anywhere. Those
+            // requests are not aborted and answer normally — the token was valid when
+            // they went out — so without this they would refill the stores a moment after
+            // they were emptied, `loaded` and all.
+            nextSession()
         },
         setUser(user: AuthUser | null) {
             this.user = user

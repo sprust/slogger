@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Modules\Trace\Infrastructure\Tasks\BuildTraceDynamicIndexesTask;
 use App\Modules\Trace\Infrastructure\Tasks\PublishTraceDynamicIndexStatsTask;
+use App\Modules\Watcher\Infrastructure\Tasks\CheckWatchersTask;
 use App\Services\Tasks\CronTask;
 
 return [
@@ -419,6 +420,18 @@ return [
                 // There was work, so take the next batch straight away.
                 'busy'    => 0,
                 'backoff' => 3,
+            ],
+            [
+                // Looks at every enabled watcher once a minute. It ticks more often than
+                // that and watches the minute itself, so a tick delayed by a busy pool
+                // still serves the minute it belongs to.
+                'name'    => CheckWatchersTask::NAME,
+                'task'    => CheckWatchersTask::class,
+                'idle'    => 5,
+                // A pass is over for this minute either way, so there is nothing to come
+                // straight back for.
+                'busy'    => 5,
+                'backoff' => 30,
             ],
             [
                 // The panel's view of the task above, which cannot report on itself: a

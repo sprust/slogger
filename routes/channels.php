@@ -30,3 +30,10 @@ Broadcast::channel(
     'sl-trace-index.{indexId}',
     static fn(LoggedUserObject $user, string $indexId): bool => true
 );
+
+/*
+ * One channel for every watcher: the header's badge follows all of them at once, and a
+ * channel per watcher would mean subscribing to a list that changes while the panel is
+ * open.
+ */
+Broadcast::channel('sl-watchers', static fn(LoggedUserObject $user): bool => true);

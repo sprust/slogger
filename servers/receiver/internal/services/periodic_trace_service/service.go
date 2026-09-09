@@ -7,6 +7,7 @@ import (
 	"slogger_receiver/internal/dto"
 	"slogger_receiver/internal/helpers/datetime_helper"
 	"slogger_receiver/internal/services/trace_sharding_service"
+	"slogger_receiver/internal/services/watcher_service"
 	"slogger_receiver/pkg/foundation/errs"
 	"sync"
 	"sync/atomic"
@@ -20,6 +21,11 @@ import (
 // maxConcurrentSaves bounds trace-saving goroutines so the transporter does not
 // monopolize the MongoDB connection pool under a large buffered backlog.
 const maxConcurrentSaves = 64
+
+// unknownTraceType is what a trace is stored as until its create arrives. An updating
+// message carries no type, so a trace whose update is persisted first spends a while
+// under this placeholder.
+const unknownTraceType = "__UNKNOWN"
 
 var instance *Service
 var once sync.Once
@@ -124,7 +130,12 @@ func (s *Service) saveTraces(ctx context.Context, serviceId int, traceId string,
 		return errs.Err(err)
 	}
 
-	if errors.Is(err, mongo.ErrNoDocuments) {
+	// Whether this write creates the trace or completes one already there. It is the only
+	// place that can tell: a trace passes through here twice, and counting both would
+	// double every number the watchers are built on.
+	isNewTrace := errors.Is(err, mongo.ErrNoDocuments)
+
+	if isNewTrace {
 		existsTrace = bson.M{}
 	}
 
@@ -136,7 +147,7 @@ func (s *Service) saveTraces(ctx context.Context, serviceId int, traceId string,
 		parentTraceId = *traces.Creating.ParentTraceId
 	}
 
-	traceType := "__UNKNOWN"
+	traceType := unknownTraceType
 	if traces.Creating != nil && traces.Creating.Type != "" {
 		traceType = traces.Creating.Type
 	} else if existingType, ok := existsTrace["tp"].(string); ok && existingType != "" {
@@ -174,10 +185,15 @@ func (s *Service) saveTraces(ctx context.Context, serviceId int, traceId string,
 		data = []interface{}{}
 	}
 
+	// By value, not by key. The document below is written with every field it has room
+	// for, so a trace stored before its numbers arrived carries nulls under them — and a
+	// key holding a null, taken for a stored value, wins over the create that is finally
+	// bringing the real one. A create landing after an update that carried none would lose
+	// its duration, memory and cpu for good.
 	var duration interface{}
 	if traces.Updating != nil && traces.Updating.Duration != nil {
 		duration = *traces.Updating.Duration
-	} else if existingDuration, ok := existsTrace["dur"]; ok {
+	} else if existingDuration := existsTrace["dur"]; existingDuration != nil {
 		duration = existingDuration
 	} else if traces.Creating != nil && traces.Creating.Duration != nil {
 		duration = *traces.Creating.Duration
@@ -186,7 +202,7 @@ func (s *Service) saveTraces(ctx context.Context, serviceId int, traceId string,
 	var memory interface{}
 	if traces.Updating != nil && traces.Updating.Memory != nil {
 		memory = *traces.Updating.Memory
-	} else if existingMemory, ok := existsTrace["mem"]; ok {
+	} else if existingMemory := existsTrace["mem"]; existingMemory != nil {
 		memory = existingMemory
 	} else if traces.Creating != nil && traces.Creating.Memory != nil {
 		memory = *traces.Creating.Memory
@@ -195,7 +211,7 @@ func (s *Service) saveTraces(ctx context.Context, serviceId int, traceId string,
 	var cpu interface{}
 	if traces.Updating != nil && traces.Updating.Cpu != nil {
 		cpu = *traces.Updating.Cpu
-	} else if existingCPU, ok := existsTrace["cpu"]; ok {
+	} else if existingCPU := existsTrace["cpu"]; existingCPU != nil {
 		cpu = existingCPU
 	} else if traces.Creating != nil && traces.Creating.Cpu != nil {
 		cpu = *traces.Creating.Cpu
@@ -250,9 +266,139 @@ func (s *Service) saveTraces(ctx context.Context, serviceId int, traceId string,
 		return errs.Err(err)
 	}
 
+	// Which write counts the trace, and which write brings its duration.
+	//
+	// Not simply the first write and every write after it. A trace can be written by its
+	// update before its create arrives (README, "Trace timeline"), and that first write
+	// knows neither the type nor the tags — counting it would file the trace under
+	// __UNKNOWN with no tags, where no filtered watcher can ever see it, and the create
+	// that follows could not correct it. So the counting write is the one that first gives
+	// the trace a type, whichever of the two that turns out to be.
+	typeWasKnown := isKnownTraceType(existsTrace["tp"])
+
+	// By the value, not by the key: the document is written with every field it has room
+	// for, so a trace saved before its duration arrived carries `dur` as a null. Read as
+	// presence, that null says "already counted" on every write after the first — and then
+	// no duration is ever recorded for anybody, which is every slow_traces watcher going
+	// quiet for good.
+	durationWasStored := durationValue(existsTrace["dur"]) != nil
+
+	typeIsKnown := traceType != unknownTraceType
+
+	countsAsNew := typeIsKnown && !typeWasKnown
+
+	var newDuration interface{}
+
+	if reportsDuration(typeIsKnown, typeWasKnown, durationWasStored) {
+		newDuration = duration
+	}
+
+	// The watchers are fed from here rather than from the socket server because this is
+	// the only point that has the whole trace: an updating message carries no type, and
+	// the merge above has just restored it. Nothing is read for it — every value handed
+	// over is already in a local variable.
+	watcher_service.Get().AddTrace(
+		serviceId,
+		traceId,
+		traceType,
+		tagNames(tags),
+		durationValue(newDuration),
+		loggedAt.Time().UTC(),
+		countsAsNew,
+	)
+
 	slog.Debug("saved trace: " + traceId + " for service: " + string(rune(serviceId)) + " to collection: " + coll.Name())
 
 	return nil
+}
+
+// tagNames pulls the tag names out of whichever shape the merge above left them in: the
+// list this service just built, or the one decoded from the stored document.
+func tagNames(value interface{}) []string {
+	var items []interface{}
+
+	switch v := value.(type) {
+	case []interface{}:
+		items = v
+	case primitive.A:
+		items = []interface{}(v)
+	default:
+		return nil
+	}
+
+	names := make([]string, 0, len(items))
+
+	for _, item := range items {
+		switch tag := item.(type) {
+		case primitive.M:
+			if name, ok := tag["nm"].(string); ok && name != "" {
+				names = append(names, name)
+			}
+		case primitive.D:
+			for _, element := range tag {
+				if element.Key != "nm" {
+					continue
+				}
+
+				if name, ok := element.Value.(string); ok && name != "" {
+					names = append(names, name)
+				}
+			}
+		case string:
+			if tag != "" {
+				names = append(names, tag)
+			}
+		}
+	}
+
+	return names
+}
+
+// reportsDuration says whether this write is the one to hand the trace's duration to the
+// watchers.
+//
+// The first write that has both a real type and a duration in hand — which is not always
+// the write that brought the duration. Handing it over under the placeholder would file it
+// under a type no filter matches and no watcher can see, and the create that follows could
+// not put it right: the duration is the merged value by then, so it would look like one
+// already reported.
+func reportsDuration(typeIsKnown bool, typeWasKnown bool, durationWasStored bool) bool {
+	return typeIsKnown && !(durationWasStored && typeWasKnown)
+}
+
+// isKnownTraceType says whether what is stored is a real type rather than the placeholder
+// a trace wears between its update and its create.
+func isKnownTraceType(stored interface{}) bool {
+	value, ok := stored.(string)
+
+	return ok && value != "" && value != unknownTraceType
+}
+
+// durationValue reads a duration in whatever width it arrived in — the message hands over
+// a float, the stored document whatever bson decoded it to.
+func durationValue(value interface{}) *float64 {
+	switch v := value.(type) {
+	case float64:
+		return &v
+	case float32:
+		duration := float64(v)
+
+		return &duration
+	case int:
+		duration := float64(v)
+
+		return &duration
+	case int32:
+		duration := float64(v)
+
+		return &duration
+	case int64:
+		duration := float64(v)
+
+		return &duration
+	default:
+		return nil
+	}
 }
 
 // isEmptyTags reports whether a stored tgs value holds no tags, so that an

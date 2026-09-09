@@ -9,6 +9,7 @@ import (
 	"runtime"
 	"slogger_receiver/cmd/receiver/socket_server"
 	"slogger_receiver/cmd/receiver/traces_transporter"
+	"slogger_receiver/internal/services/watcher_service"
 	"slogger_receiver/pkg/foundation/logging"
 	"syscall"
 	"time"
@@ -47,7 +48,7 @@ func main() {
 	socketServer := socket_server.New("tcp", ":"+socketPort)
 	transporterServer := traces_transporter.New()
 
-	done := make(chan error, 2)
+	done := make(chan error, 3)
 
 	go func(ctx context.Context) {
 		done <- socketServer.Run(ctx)
@@ -55,6 +56,20 @@ func main() {
 
 	go func(ctx context.Context) {
 		done <- transporterServer.Run(ctx)
+	}(ctx)
+
+	// The watchers' own loop: keeps their filters current and writes closed buckets out.
+	//
+	// Waited for like the other two, because its flush takes the buckets out of memory
+	// before it writes them. A tick that started just before the signal has therefore
+	// already emptied the map the transporter's closing flush reads, so that one finds
+	// nothing, returns at once, and the process exits over a write still in flight —
+	// losing the fifteen seconds it was holding. Run returns between flushes, so waiting
+	// for it is enough.
+	go func(ctx context.Context) {
+		watcher_service.Get().Run(ctx)
+
+		done <- nil
 	}(ctx)
 
 	go func() {
@@ -88,18 +103,37 @@ func main() {
 
 			cancel()
 
-			select {
-			case err := <-done:
-				if err != nil {
-					panic(err)
-				}
-
+			if waitForShutdown(done, 3, 10*time.Second) {
 				slog.Warn("Completed successfully by signal")
-			case <-time.After(10 * time.Second):
+			} else {
 				slog.Error("shutdown by timeout")
 			}
 		}
 	}
+}
+
+// waitForShutdown waits for the long-running servers to report, and says whether all of
+// them did so before the deadline.
+//
+// All of them, not whichever finishes first. `done` is shared, and returning on the first
+// result ends the process while the other server is still unwinding — which used to mean
+// a batch cut in half, and now also means the watchers' last buckets never written, since
+// the transporter writes those after its loop ends.
+func waitForShutdown(done <-chan error, count int, timeout time.Duration) bool {
+	deadline := time.After(timeout)
+
+	for i := 0; i < count; i++ {
+		select {
+		case err := <-done:
+			if err != nil {
+				panic(err)
+			}
+		case <-deadline:
+			return false
+		}
+	}
+
+	return true
 }
 
 func saveStats(socketServer *socket_server.Server, transporterServer *traces_transporter.Transporter) {

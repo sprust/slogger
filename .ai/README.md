@@ -10,6 +10,13 @@ Centralized source of instructions for AI assistants (Claude Code and others) wo
 
 - Before making any changes (even trivial ones), show the user a plan describing what files and lines will be modified.
 - Wait for explicit user approval before proceeding with the implementation.
+- Every commit needs its own approval, and so does every push. An approval given for one
+  commit covers that commit and nothing after it. "Commit and push, carry on" approves the
+  commit named at that moment and permits the work that follows — it does not approve the
+  commits that work will produce. Prepare the message, show what is staged, and ask again.
+- An approval is never inherited: not from the previous commit, not from a series of them,
+  not from the user having approved every one so far. The moment the work is ready to
+  commit, stop and ask, however many times that has already happened in the session.
 
 ## Permission Policy For Command Execution
 
@@ -199,6 +206,36 @@ Notes:
 - `Infrastructure` — only nested directories inside `app/Modules/<Module>/Infrastructure/<Subdir>`
 - `Models` — `app/Models`
 
+### Cross-Module Dependencies
+
+Deptrac compares layers, not modules, so `Watcher\Domain` reaching into `Trace\Domain`
+passes the tool. Nothing but this list stands between that and a graph nobody can follow,
+so a new cross-module edge is added here or is not added.
+
+`Notification` → `Watcher`. One way only: `Watcher` knows nothing about channels.
+
+- `Domain\Actions\Mutations\EnqueueNotificationsAction` → `Watcher\Entities`,
+  `Watcher\Enums` — the incident, its event and its status are what a message is made of.
+- `Domain\Services\IncidentMessageFactory` → `Watcher\Domain\Services\Types\WatcherTypeRegistry`,
+  `Watcher\Entities` — to read a watcher type's title, and the same three objects.
+- `Infrastructure\Listeners\EnqueueNotificationsListener` → `Watcher\Domain\Events`,
+  `Watcher\Domain\Actions\Queries` — it listens for `WatcherIncidentChangedEvent` and
+  reads the watcher and the latest event behind it.
+- `Infrastructure\NotificationServiceProvider` → `Watcher\Domain\Services\Types\WatcherTypeRegistry`,
+  to build the message factory above.
+
+`Watcher` → `Trace`.
+
+- `Domain\Services\Checkers\InvalidBufferGrownChecker` → `Trace\Domain`, to count what
+  the receiver could not act on.
+- `Infrastructure\Tasks\CheckWatchersTask` → `Trace\Domain`, to read the buffer size
+  once for a whole pass rather than once per watcher.
+
+`Watcher` → `Auth`.
+
+- `Infrastructure\Http\Controllers\WatcherIncidentController` → `Auth\Domain\Actions\FindUserByTokenAction`,
+  to record who closed an incident. The only place outside `Auth` that reaches into it.
+
 ### Allowed Dependencies
 
 - `Domain` may depend only on `Entities`, `Parameters`, `Repositories`.
@@ -278,7 +315,57 @@ Notes:
 - All traits must be named with a `Trait` postfix (e.g. `HasFactoryTrait`), and the file name must match the trait name (PSR-4).
 - Do not use the `final` keyword on classes. Keep classes extendable.
 - Do not declare global/namespaced helper functions (no `function current_context()` style API). Expose behavior through classes and static entry points instead (e.g. `SConcur\Context\Context::current()`).
+- Name the cases of a status enum in the past tense — `Opened`, `Closed`, `Finished`,
+  `Canceled`. A status says what happened to the record, not what it currently looks like,
+  and a set mixing an adjective with a participle (`Open` beside `Closed`) reads as two
+  different kinds of thing.
+- Entities, DTOs and parameter objects hold data and nothing else: promoted readonly
+  properties and a constructor. No behaviour methods on them, and no static factory or
+  named-constructor methods (`SomeObject::delivered()`, `::fromArray()`) — build them with
+  `new` and keep the decision about what to build in the action or service that makes it.
+  The settings objects' `toArray()` is the one exception: it is how a settings column is
+  written, and the object is the only place that knows its own fields.
+- Timestamps come last, in this order: `createdAt`, `updatedAt`, `deletedAt` (`created_at`,
+  `updated_at`, `deleted_at`). That holds for entity and DTO constructors, model `@property`
+  blocks, migration columns, repository parameters and the documents a repository writes.
+  A timestamp that is part of what the record means — `sentAt`, `occurredAt`, `closedAt` —
+  is an ordinary field and stays with the others, before the three above.
+- Call with named arguments once a call is written across more than one line —
+  `new HttpClient(responseFactory: ..., options: ...)`, `$sender->send(channel: ..., text: ...)`.
+  Short single-line calls stay positional. Named arguments bind to parameter names, so
+  the names of an interface's parameters become part of its contract, and the same goes
+  for a third-party constructor: renaming a parameter is then a breaking change.
+- A call passed as an argument to another call goes on its own line:
+
+  ```php
+  return ChannelResource::collection(
+      $this->findChannelsAction->handle()
+  );
+  ```
+- Do not interpolate property or method access into a string — no `"channel [$dto->id]"`.
+  Use `sprintf()` with placeholders. A plain scalar variable may still be interpolated:
+  `"channel [$channelId] not found"`.
+- Give every string validation rule a `min` beside its `max`
+  (`['required', 'string', 'min:10', 'max:255']`). The generated OpenAPI schema carries
+  both as `minLength`/`maxLength`, so a rule changed here needs `make oa-generate`.
 - For SConcur coroutine state, use the library's `SConcur\Context\Context` (`Context::current()->find/has/set/forget`) — do not reimplement a context store. Working-with-context semantics: `vendor/sconcur/sconcur/docs/coroutine-context.ru.md`.
+
+### Migrations
+
+- Name a migration the way the framework does: `Y_m_d_His_snake_case_description.php`, where
+  the prefix is the time the file was created **in UTC**. Let
+  `make art c="make:migration create_widgets_table"` produce it, or take the timestamp from
+  `date -u +%Y_%m_%d_%H%M%S` — never invent a round one.
+- UTC, not local time: `MigrationCreator::getDatePrefix()` is `date('Y_m_d_His')`, and the
+  framework has already called `date_default_timezone_set(config('app.timezone'))`, which is
+  `UTC` here (`config/app.php`). A prefix written in a local zone sorts ahead of migrations
+  that were actually written later somewhere else.
+- Round prefixes like `100000`, `100100`, `120000` are the tell of a hand-written name. They
+  do not order correctly against the real ones written the same day, they make several
+  migrations look like a single scripted batch, and they lose the one thing the prefix is
+  for: when the change was actually written.
+- A migration already committed keeps its name whatever it looks like — it may have run on
+  installations, and renaming it makes the migrator run it again.
 
 ## Required Commands After Changes
 

@@ -184,6 +184,11 @@ export enum DataCompEnum9 {
   Ends = "ends",
 }
 
+export enum WatchersIncidentsListParamsStatusEnum {
+  Opened = "opened",
+  Closed = "closed",
+}
+
 export namespace AdminApi {
   /**
  * No description
@@ -1839,6 +1844,1335 @@ export namespace AdminApi {
         updated_at: string;
       }[];
     };
+  }
+
+  /**
+ * No description
+ * @name WatchersList
+ * @request GET:/admin-api/watchers
+ * @secure
+ * @response `200` `{
+    data: ({
+    id: number,
+    name: string,
+    type: string,
+    enabled: boolean,
+    cooldown_seconds: number,
+    collect_since?: string | null,
+    last_checked_at?: string | null,
+    last_triggered_at?: string | null,
+    created_at: string,
+    updated_at: string,
+
+})[],
+
+}` description
+*/
+  export namespace WatchersList {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        id: number;
+        name: string;
+        type: string;
+        enabled: boolean;
+        cooldown_seconds: number;
+        collect_since?: string | null;
+        last_checked_at?: string | null;
+        last_triggered_at?: string | null;
+        created_at: string;
+        updated_at: string;
+      }[];
+    };
+  }
+
+  /**
+ * No description
+ * @name WatchersTypesList
+ * @request GET:/admin-api/watchers/types
+ * @secure
+ * @response `200` `{
+    data: ({
+    type: string,
+    title: string,
+    description: string,
+    default_cooldown_seconds: number,
+    has_trace_filter: boolean,
+    fields: ({
+    key: string,
+    title: string,
+    value_type: string,
+    default: number,
+    min: number,
+    max?: number | null,
+
+})[],
+
+})[],
+
+}` description
+*/
+  export namespace WatchersTypesList {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        type: string;
+        title: string;
+        description: string;
+        default_cooldown_seconds: number;
+        has_trace_filter: boolean;
+        fields: {
+          key: string;
+          title: string;
+          value_type: string;
+          default: number;
+          min: number;
+          max?: number | null;
+        }[];
+      }[];
+    };
+  }
+
+  /**
+ * No description
+ * @name WatchersIncidentsList
+ * @request GET:/admin-api/watchers/incidents
+ * @secure
+ * @response `200` `{
+    data: ({
+    id: string,
+    watcher_id: number,
+    status: string,
+    first_event_at: string,
+    last_event_at: string,
+    events_count: number,
+    closed_at?: string | null,
+    closed_by_user_id?: number | null,
+
+})[],
+
+}` description
+*/
+  export namespace WatchersIncidentsList {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /** @min 1 */
+      page?: number;
+      /**
+       * @min 1
+       * @max 200
+       */
+      per_page?: number;
+      status?: WatchersIncidentsListParamsStatusEnum | null;
+      watcher_id?: number | null;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        id: string;
+        watcher_id: number;
+        status: string;
+        first_event_at: string;
+        last_event_at: string;
+        events_count: number;
+        closed_at?: string | null;
+        closed_by_user_id?: number | null;
+      }[];
+    };
+  }
+
+  /**
+ * No description
+ * @name WatchersIncidentsStatList
+ * @request GET:/admin-api/watchers/incidents/stat
+ * @secure
+ * @response `200` `{
+    data: {
+    opened_count: number,
+
+},
+
+}` description
+*/
+  export namespace WatchersIncidentsStatList {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        opened_count: number;
+      };
+    };
+  }
+
+  /**
+ * No description
+ * @name WatchersIncidentsEventsList
+ * @request GET:/admin-api/watchers/incidents/{id}/events
+ * @secure
+ * @response `200` `{
+    data: ({
+    id: string,
+    incident_id: string,
+    occurred_at: string,
+    payload: {
+    settings: {
+    threshold?: number | null,
+    period_minutes?: number | null,
+    window_minutes?: number | null,
+    baseline_minutes?: number | null,
+    growth_percent?: number | null,
+    duration?: number | null,
+
+},
+    measured: {
+    buffer_count?: number | null,
+    invalid_count?: number | null,
+    since?: string | null,
+    window_from?: string | null,
+    window_to?: string | null,
+    window_count?: number | null,
+    window_per_minute?: number | null,
+    baseline_per_minute?: number | null,
+    growth_percent?: number | null,
+    slowest?: number | null,
+
+},
+    groups: ({
+    service_id: number,
+    type: string,
+    tags: (string)[],
+    count: number,
+    duration_max?: number | null,
+    trace_id?: string | null,
+
+})[],
+
+},
+
+})[],
+
+}` description
+*/
+  export namespace WatchersIncidentsEventsList {
+    export type RequestParams = {
+      id: any;
+    };
+    export type RequestQuery = {
+      /** @min 1 */
+      page?: number;
+      /**
+       * @min 1
+       * @max 200
+       */
+      per_page?: number;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        id: string;
+        incident_id: string;
+        occurred_at: string;
+        payload: {
+          settings: {
+            threshold?: number | null;
+            period_minutes?: number | null;
+            window_minutes?: number | null;
+            baseline_minutes?: number | null;
+            growth_percent?: number | null;
+            duration?: number | null;
+          };
+          measured: {
+            buffer_count?: number | null;
+            invalid_count?: number | null;
+            since?: string | null;
+            window_from?: string | null;
+            window_to?: string | null;
+            window_count?: number | null;
+            window_per_minute?: number | null;
+            baseline_per_minute?: number | null;
+            growth_percent?: number | null;
+            slowest?: number | null;
+          };
+          groups: {
+            service_id: number;
+            type: string;
+            tags: string[];
+            count: number;
+            duration_max?: number | null;
+            trace_id?: string | null;
+          }[];
+        };
+      }[];
+    };
+  }
+
+  /**
+   * No description
+   * @name WatchersIncidentsClosePartialUpdate
+   * @request PATCH:/admin-api/watchers/incidents/{id}/close
+   * @secure
+   * @response `200` `any` description
+   */
+  export namespace WatchersIncidentsClosePartialUpdate {
+    export type RequestParams = {
+      id: any;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = any;
+  }
+
+  /**
+ * No description
+ * @name WatchersBufferOverflowCreate
+ * @request POST:/admin-api/watchers/buffer-overflow
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    name: string,
+    type: string,
+    enabled: boolean,
+    cooldown_seconds: number,
+    collect_since?: string | null,
+    last_checked_at?: string | null,
+    last_triggered_at?: string | null,
+    created_at: string,
+    updated_at: string,
+
+},
+
+}` description
+*/
+  export namespace WatchersBufferOverflowCreate {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = {
+      /**
+       * @minLength 1
+       * @maxLength 255
+       */
+      name: string;
+      enabled: boolean;
+      /**
+       * @min 1
+       * @max 86400
+       */
+      cooldown_seconds: number;
+      settings?: {
+        /** @min 1 */
+        threshold?: number;
+      };
+    };
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        id: number;
+        name: string;
+        type: string;
+        enabled: boolean;
+        cooldown_seconds: number;
+        collect_since?: string | null;
+        last_checked_at?: string | null;
+        last_triggered_at?: string | null;
+        created_at: string;
+        updated_at: string;
+      };
+    };
+  }
+
+  /**
+ * No description
+ * @name WatchersBufferOverflowDetail
+ * @request GET:/admin-api/watchers/buffer-overflow/{id}
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    threshold: number,
+
+},
+
+}` description
+*/
+  export namespace WatchersBufferOverflowDetail {
+    export type RequestParams = {
+      id: any;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        id: number;
+        threshold: number;
+      };
+    };
+  }
+
+  /**
+   * No description
+   * @name WatchersBufferOverflowPartialUpdate
+   * @request PATCH:/admin-api/watchers/buffer-overflow/{id}
+   * @secure
+   * @response `200` `any` description
+   */
+  export namespace WatchersBufferOverflowPartialUpdate {
+    export type RequestParams = {
+      id: any;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = {
+      /**
+       * @minLength 1
+       * @maxLength 255
+       */
+      name: string;
+      enabled: boolean;
+      /**
+       * @min 1
+       * @max 86400
+       */
+      cooldown_seconds: number;
+      settings?: {
+        /** @min 1 */
+        threshold?: number;
+      };
+    };
+    export type RequestHeaders = {};
+    export type ResponseBody = any;
+  }
+
+  /**
+ * No description
+ * @name WatchersInvalidBufferGrownCreate
+ * @request POST:/admin-api/watchers/invalid-buffer-grown
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    name: string,
+    type: string,
+    enabled: boolean,
+    cooldown_seconds: number,
+    collect_since?: string | null,
+    last_checked_at?: string | null,
+    last_triggered_at?: string | null,
+    created_at: string,
+    updated_at: string,
+
+},
+
+}` description
+*/
+  export namespace WatchersInvalidBufferGrownCreate {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = {
+      /**
+       * @minLength 1
+       * @maxLength 255
+       */
+      name: string;
+      enabled: boolean;
+      /**
+       * @min 1
+       * @max 86400
+       */
+      cooldown_seconds: number;
+      settings?: {
+        /** @min 1 */
+        threshold?: number;
+      };
+    };
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        id: number;
+        name: string;
+        type: string;
+        enabled: boolean;
+        cooldown_seconds: number;
+        collect_since?: string | null;
+        last_checked_at?: string | null;
+        last_triggered_at?: string | null;
+        created_at: string;
+        updated_at: string;
+      };
+    };
+  }
+
+  /**
+ * No description
+ * @name WatchersInvalidBufferGrownDetail
+ * @request GET:/admin-api/watchers/invalid-buffer-grown/{id}
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    threshold: number,
+
+},
+
+}` description
+*/
+  export namespace WatchersInvalidBufferGrownDetail {
+    export type RequestParams = {
+      id: any;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        id: number;
+        threshold: number;
+      };
+    };
+  }
+
+  /**
+   * No description
+   * @name WatchersInvalidBufferGrownPartialUpdate
+   * @request PATCH:/admin-api/watchers/invalid-buffer-grown/{id}
+   * @secure
+   * @response `200` `any` description
+   */
+  export namespace WatchersInvalidBufferGrownPartialUpdate {
+    export type RequestParams = {
+      id: any;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = {
+      /**
+       * @minLength 1
+       * @maxLength 255
+       */
+      name: string;
+      enabled: boolean;
+      /**
+       * @min 1
+       * @max 86400
+       */
+      cooldown_seconds: number;
+      settings?: {
+        /** @min 1 */
+        threshold?: number;
+      };
+    };
+    export type RequestHeaders = {};
+    export type ResponseBody = any;
+  }
+
+  /**
+ * No description
+ * @name WatchersNoNewTracesCreate
+ * @request POST:/admin-api/watchers/no-new-traces
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    name: string,
+    type: string,
+    enabled: boolean,
+    cooldown_seconds: number,
+    collect_since?: string | null,
+    last_checked_at?: string | null,
+    last_triggered_at?: string | null,
+    created_at: string,
+    updated_at: string,
+
+},
+
+}` description
+*/
+  export namespace WatchersNoNewTracesCreate {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = {
+      /**
+       * @minLength 1
+       * @maxLength 255
+       */
+      name: string;
+      enabled: boolean;
+      /**
+       * @min 1
+       * @max 86400
+       */
+      cooldown_seconds: number;
+      settings?: {
+        /**
+         * @min 1
+         * @max 175
+         */
+        period_minutes?: number;
+        filter?: {
+          service_ids?: number[];
+          types?: string[];
+          tags?: string[];
+        };
+      };
+    };
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        id: number;
+        name: string;
+        type: string;
+        enabled: boolean;
+        cooldown_seconds: number;
+        collect_since?: string | null;
+        last_checked_at?: string | null;
+        last_triggered_at?: string | null;
+        created_at: string;
+        updated_at: string;
+      };
+    };
+  }
+
+  /**
+ * No description
+ * @name WatchersNoNewTracesDetail
+ * @request GET:/admin-api/watchers/no-new-traces/{id}
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    period_minutes: number,
+    filter: {
+    service_ids: (number)[],
+    types: (string)[],
+    tags: (string)[],
+
+},
+
+},
+
+}` description
+*/
+  export namespace WatchersNoNewTracesDetail {
+    export type RequestParams = {
+      id: any;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        id: number;
+        period_minutes: number;
+        filter: {
+          service_ids: number[];
+          types: string[];
+          tags: string[];
+        };
+      };
+    };
+  }
+
+  /**
+   * No description
+   * @name WatchersNoNewTracesPartialUpdate
+   * @request PATCH:/admin-api/watchers/no-new-traces/{id}
+   * @secure
+   * @response `200` `any` description
+   */
+  export namespace WatchersNoNewTracesPartialUpdate {
+    export type RequestParams = {
+      id: any;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = {
+      /**
+       * @minLength 1
+       * @maxLength 255
+       */
+      name: string;
+      enabled: boolean;
+      /**
+       * @min 1
+       * @max 86400
+       */
+      cooldown_seconds: number;
+      settings?: {
+        /**
+         * @min 1
+         * @max 175
+         */
+        period_minutes?: number;
+        filter?: {
+          service_ids?: number[];
+          types?: string[];
+          tags?: string[];
+        };
+      };
+    };
+    export type RequestHeaders = {};
+    export type ResponseBody = any;
+  }
+
+  /**
+ * No description
+ * @name WatchersTracesSpikeCreate
+ * @request POST:/admin-api/watchers/traces-spike
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    name: string,
+    type: string,
+    enabled: boolean,
+    cooldown_seconds: number,
+    collect_since?: string | null,
+    last_checked_at?: string | null,
+    last_triggered_at?: string | null,
+    created_at: string,
+    updated_at: string,
+
+},
+
+}` description
+*/
+  export namespace WatchersTracesSpikeCreate {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = {
+      /**
+       * @minLength 1
+       * @maxLength 255
+       */
+      name: string;
+      enabled: boolean;
+      /**
+       * @min 1
+       * @max 86400
+       */
+      cooldown_seconds: number;
+      settings?: {
+        /**
+         * @min 1
+         * @max 175
+         */
+        window_minutes?: number;
+        /**
+         * @min 1
+         * @max 175
+         */
+        baseline_minutes?: number;
+        /** @min 1 */
+        growth_percent?: number;
+        filter?: {
+          service_ids?: number[];
+          types?: string[];
+          tags?: string[];
+        };
+      };
+    };
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        id: number;
+        name: string;
+        type: string;
+        enabled: boolean;
+        cooldown_seconds: number;
+        collect_since?: string | null;
+        last_checked_at?: string | null;
+        last_triggered_at?: string | null;
+        created_at: string;
+        updated_at: string;
+      };
+    };
+  }
+
+  /**
+ * No description
+ * @name WatchersTracesSpikeDetail
+ * @request GET:/admin-api/watchers/traces-spike/{id}
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    window_minutes: number,
+    baseline_minutes: number,
+    growth_percent: number,
+    filter: {
+    service_ids: (number)[],
+    types: (string)[],
+    tags: (string)[],
+
+},
+
+},
+
+}` description
+*/
+  export namespace WatchersTracesSpikeDetail {
+    export type RequestParams = {
+      id: any;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        id: number;
+        window_minutes: number;
+        baseline_minutes: number;
+        growth_percent: number;
+        filter: {
+          service_ids: number[];
+          types: string[];
+          tags: string[];
+        };
+      };
+    };
+  }
+
+  /**
+   * No description
+   * @name WatchersTracesSpikePartialUpdate
+   * @request PATCH:/admin-api/watchers/traces-spike/{id}
+   * @secure
+   * @response `200` `any` description
+   */
+  export namespace WatchersTracesSpikePartialUpdate {
+    export type RequestParams = {
+      id: any;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = {
+      /**
+       * @minLength 1
+       * @maxLength 255
+       */
+      name: string;
+      enabled: boolean;
+      /**
+       * @min 1
+       * @max 86400
+       */
+      cooldown_seconds: number;
+      settings?: {
+        /**
+         * @min 1
+         * @max 175
+         */
+        window_minutes?: number;
+        /**
+         * @min 1
+         * @max 175
+         */
+        baseline_minutes?: number;
+        /** @min 1 */
+        growth_percent?: number;
+        filter?: {
+          service_ids?: number[];
+          types?: string[];
+          tags?: string[];
+        };
+      };
+    };
+    export type RequestHeaders = {};
+    export type ResponseBody = any;
+  }
+
+  /**
+ * No description
+ * @name WatchersSlowTracesCreate
+ * @request POST:/admin-api/watchers/slow-traces
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    name: string,
+    type: string,
+    enabled: boolean,
+    cooldown_seconds: number,
+    collect_since?: string | null,
+    last_checked_at?: string | null,
+    last_triggered_at?: string | null,
+    created_at: string,
+    updated_at: string,
+
+},
+
+}` description
+*/
+  export namespace WatchersSlowTracesCreate {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = {
+      /**
+       * @minLength 1
+       * @maxLength 255
+       */
+      name: string;
+      enabled: boolean;
+      /**
+       * @min 1
+       * @max 86400
+       */
+      cooldown_seconds: number;
+      settings?: {
+        /**
+         * @format float
+         * @min 0.001
+         */
+        duration?: number;
+        /**
+         * @min 1
+         * @max 175
+         */
+        window_minutes?: number;
+        filter?: {
+          service_ids?: number[];
+          types?: string[];
+          tags?: string[];
+        };
+      };
+    };
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        id: number;
+        name: string;
+        type: string;
+        enabled: boolean;
+        cooldown_seconds: number;
+        collect_since?: string | null;
+        last_checked_at?: string | null;
+        last_triggered_at?: string | null;
+        created_at: string;
+        updated_at: string;
+      };
+    };
+  }
+
+  /**
+ * No description
+ * @name WatchersSlowTracesDetail
+ * @request GET:/admin-api/watchers/slow-traces/{id}
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    duration: number,
+    window_minutes: number,
+    filter: {
+    service_ids: (number)[],
+    types: (string)[],
+    tags: (string)[],
+
+},
+
+},
+
+}` description
+*/
+  export namespace WatchersSlowTracesDetail {
+    export type RequestParams = {
+      id: any;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        id: number;
+        duration: number;
+        window_minutes: number;
+        filter: {
+          service_ids: number[];
+          types: string[];
+          tags: string[];
+        };
+      };
+    };
+  }
+
+  /**
+   * No description
+   * @name WatchersSlowTracesPartialUpdate
+   * @request PATCH:/admin-api/watchers/slow-traces/{id}
+   * @secure
+   * @response `200` `any` description
+   */
+  export namespace WatchersSlowTracesPartialUpdate {
+    export type RequestParams = {
+      id: any;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = {
+      /**
+       * @minLength 1
+       * @maxLength 255
+       */
+      name: string;
+      enabled: boolean;
+      /**
+       * @min 1
+       * @max 86400
+       */
+      cooldown_seconds: number;
+      settings?: {
+        /**
+         * @format float
+         * @min 0.001
+         */
+        duration?: number;
+        /**
+         * @min 1
+         * @max 175
+         */
+        window_minutes?: number;
+        filter?: {
+          service_ids?: number[];
+          types?: string[];
+          tags?: string[];
+        };
+      };
+    };
+    export type RequestHeaders = {};
+    export type ResponseBody = any;
+  }
+
+  /**
+   * No description
+   * @name WatchersDelete
+   * @request DELETE:/admin-api/watchers/{id}
+   * @secure
+   * @response `200` `void` description
+   */
+  export namespace WatchersDelete {
+    export type RequestParams = {
+      id: any;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
+  }
+
+  /**
+ * No description
+ * @name NotificationChannelsList
+ * @request GET:/admin-api/notification-channels
+ * @secure
+ * @response `200` `{
+    data: ({
+    id: number,
+    name: string,
+    type: string,
+    enabled: boolean,
+    on_opened: boolean,
+    on_event: boolean,
+    on_closed: boolean,
+    created_at: string,
+    updated_at: string,
+
+})[],
+
+}` description
+*/
+  export namespace NotificationChannelsList {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        id: number;
+        name: string;
+        type: string;
+        enabled: boolean;
+        on_opened: boolean;
+        on_event: boolean;
+        on_closed: boolean;
+        created_at: string;
+        updated_at: string;
+      }[];
+    };
+  }
+
+  /**
+ * No description
+ * @name NotificationChannelsTypesList
+ * @request GET:/admin-api/notification-channels/types
+ * @secure
+ * @response `200` `{
+    data: ({
+    type: string,
+    title: string,
+    description: string,
+    fields: ({
+    key: string,
+    title: string,
+    description: string,
+    secret: boolean,
+    max_length: number,
+
+})[],
+
+})[],
+
+}` description
+*/
+  export namespace NotificationChannelsTypesList {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        type: string;
+        title: string;
+        description: string;
+        fields: {
+          key: string;
+          title: string;
+          description: string;
+          secret: boolean;
+          max_length: number;
+        }[];
+      }[];
+    };
+  }
+
+  /**
+ * No description
+ * @name NotificationChannelsTelegramCreate
+ * @request POST:/admin-api/notification-channels/telegram
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    name: string,
+    type: string,
+    enabled: boolean,
+    on_opened: boolean,
+    on_event: boolean,
+    on_closed: boolean,
+    created_at: string,
+    updated_at: string,
+
+},
+
+}` description
+*/
+  export namespace NotificationChannelsTelegramCreate {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = {
+      /**
+       * @minLength 1
+       * @maxLength 255
+       */
+      name: string;
+      enabled: boolean;
+      on_opened: boolean;
+      on_event: boolean;
+      on_closed: boolean;
+      settings?: {
+        /**
+         * @minLength 10
+         * @maxLength 255
+         */
+        bot_token?: string;
+        /**
+         * @minLength 5
+         * @maxLength 255
+         */
+        chat_id?: string;
+      };
+    };
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        id: number;
+        name: string;
+        type: string;
+        enabled: boolean;
+        on_opened: boolean;
+        on_event: boolean;
+        on_closed: boolean;
+        created_at: string;
+        updated_at: string;
+      };
+    };
+  }
+
+  /**
+ * No description
+ * @name NotificationChannelsTelegramDetail
+ * @request GET:/admin-api/notification-channels/telegram/{id}
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    bot_token_mask: string,
+    chat_id: string,
+
+},
+
+}` description
+*/
+  export namespace NotificationChannelsTelegramDetail {
+    export type RequestParams = {
+      id: any;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        id: number;
+        bot_token_mask: string;
+        chat_id: string;
+      };
+    };
+  }
+
+  /**
+   * No description
+   * @name NotificationChannelsTelegramPartialUpdate
+   * @request PATCH:/admin-api/notification-channels/telegram/{id}
+   * @secure
+   * @response `200` `any` description
+   */
+  export namespace NotificationChannelsTelegramPartialUpdate {
+    export type RequestParams = {
+      id: any;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = {
+      /**
+       * @minLength 1
+       * @maxLength 255
+       */
+      name: string;
+      enabled: boolean;
+      on_opened: boolean;
+      on_event: boolean;
+      on_closed: boolean;
+      settings?: {
+        /**
+         * @minLength 10
+         * @maxLength 255
+         */
+        bot_token?: string | null;
+        /**
+         * @minLength 5
+         * @maxLength 255
+         */
+        chat_id?: string;
+      };
+    };
+    export type RequestHeaders = {};
+    export type ResponseBody = any;
+  }
+
+  /**
+ * No description
+ * @name NotificationChannelsDeliveriesList
+ * @request GET:/admin-api/notification-channels/{id}/deliveries
+ * @secure
+ * @response `200` `{
+    data: ({
+    id: string,
+    watcher_id?: number | null,
+    incident_id?: string | null,
+    kind: string,
+    text: string,
+    sent_at?: string | null,
+    error?: string | null,
+    created_at: string,
+
+})[],
+
+}` description
+*/
+  export namespace NotificationChannelsDeliveriesList {
+    export type RequestParams = {
+      id: any;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        id: string;
+        watcher_id?: number | null;
+        incident_id?: string | null;
+        kind: string;
+        text: string;
+        sent_at?: string | null;
+        error?: string | null;
+        created_at: string;
+      }[];
+    };
+  }
+
+  /**
+ * No description
+ * @name NotificationChannelsTestCreate
+ * @request POST:/admin-api/notification-channels/{id}/test
+ * @secure
+ * @response `200` `{
+    data: {
+    delivered: boolean,
+    permanent: boolean,
+    error?: string | null,
+    retry_after_seconds?: number | null,
+
+},
+
+}` description
+*/
+  export namespace NotificationChannelsTestCreate {
+    export type RequestParams = {
+      id: any;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        delivered: boolean;
+        permanent: boolean;
+        error?: string | null;
+        retry_after_seconds?: number | null;
+      };
+    };
+  }
+
+  /**
+   * No description
+   * @name NotificationChannelsDelete
+   * @request DELETE:/admin-api/notification-channels/{id}
+   * @secure
+   * @response `200` `void` description
+   */
+  export namespace NotificationChannelsDelete {
+    export type RequestParams = {
+      id: any;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
   }
 
   /**
@@ -4001,6 +5335,1498 @@ export class Api<
         method: "GET",
         secure: true,
         format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name WatchersList
+ * @request GET:/admin-api/watchers
+ * @secure
+ * @response `200` `{
+    data: ({
+    id: number,
+    name: string,
+    type: string,
+    enabled: boolean,
+    cooldown_seconds: number,
+    collect_since?: string | null,
+    last_checked_at?: string | null,
+    last_triggered_at?: string | null,
+    created_at: string,
+    updated_at: string,
+
+})[],
+
+}` description
+ */
+    watchersList: (params: RequestParams = {}) =>
+      this.request<
+        {
+          data: {
+            id: number;
+            name: string;
+            type: string;
+            enabled: boolean;
+            cooldown_seconds: number;
+            collect_since?: string | null;
+            last_checked_at?: string | null;
+            last_triggered_at?: string | null;
+            created_at: string;
+            updated_at: string;
+          }[];
+        },
+        any
+      >({
+        path: `/admin-api/watchers`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name WatchersTypesList
+ * @request GET:/admin-api/watchers/types
+ * @secure
+ * @response `200` `{
+    data: ({
+    type: string,
+    title: string,
+    description: string,
+    default_cooldown_seconds: number,
+    has_trace_filter: boolean,
+    fields: ({
+    key: string,
+    title: string,
+    value_type: string,
+    default: number,
+    min: number,
+    max?: number | null,
+
+})[],
+
+})[],
+
+}` description
+ */
+    watchersTypesList: (params: RequestParams = {}) =>
+      this.request<
+        {
+          data: {
+            type: string;
+            title: string;
+            description: string;
+            default_cooldown_seconds: number;
+            has_trace_filter: boolean;
+            fields: {
+              key: string;
+              title: string;
+              value_type: string;
+              default: number;
+              min: number;
+              max?: number | null;
+            }[];
+          }[];
+        },
+        any
+      >({
+        path: `/admin-api/watchers/types`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name WatchersIncidentsList
+ * @request GET:/admin-api/watchers/incidents
+ * @secure
+ * @response `200` `{
+    data: ({
+    id: string,
+    watcher_id: number,
+    status: string,
+    first_event_at: string,
+    last_event_at: string,
+    events_count: number,
+    closed_at?: string | null,
+    closed_by_user_id?: number | null,
+
+})[],
+
+}` description
+ */
+    watchersIncidentsList: (
+      query?: {
+        /** @min 1 */
+        page?: number;
+        /**
+         * @min 1
+         * @max 200
+         */
+        per_page?: number;
+        status?: WatchersIncidentsListParamsStatusEnum | null;
+        watcher_id?: number | null;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          data: {
+            id: string;
+            watcher_id: number;
+            status: string;
+            first_event_at: string;
+            last_event_at: string;
+            events_count: number;
+            closed_at?: string | null;
+            closed_by_user_id?: number | null;
+          }[];
+        },
+        any
+      >({
+        path: `/admin-api/watchers/incidents`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name WatchersIncidentsStatList
+ * @request GET:/admin-api/watchers/incidents/stat
+ * @secure
+ * @response `200` `{
+    data: {
+    opened_count: number,
+
+},
+
+}` description
+ */
+    watchersIncidentsStatList: (params: RequestParams = {}) =>
+      this.request<
+        {
+          data: {
+            opened_count: number;
+          };
+        },
+        any
+      >({
+        path: `/admin-api/watchers/incidents/stat`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name WatchersIncidentsEventsList
+ * @request GET:/admin-api/watchers/incidents/{id}/events
+ * @secure
+ * @response `200` `{
+    data: ({
+    id: string,
+    incident_id: string,
+    occurred_at: string,
+    payload: {
+    settings: {
+    threshold?: number | null,
+    period_minutes?: number | null,
+    window_minutes?: number | null,
+    baseline_minutes?: number | null,
+    growth_percent?: number | null,
+    duration?: number | null,
+
+},
+    measured: {
+    buffer_count?: number | null,
+    invalid_count?: number | null,
+    since?: string | null,
+    window_from?: string | null,
+    window_to?: string | null,
+    window_count?: number | null,
+    window_per_minute?: number | null,
+    baseline_per_minute?: number | null,
+    growth_percent?: number | null,
+    slowest?: number | null,
+
+},
+    groups: ({
+    service_id: number,
+    type: string,
+    tags: (string)[],
+    count: number,
+    duration_max?: number | null,
+    trace_id?: string | null,
+
+})[],
+
+},
+
+})[],
+
+}` description
+ */
+    watchersIncidentsEventsList: (
+      id: any,
+      query?: {
+        /** @min 1 */
+        page?: number;
+        /**
+         * @min 1
+         * @max 200
+         */
+        per_page?: number;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          data: {
+            id: string;
+            incident_id: string;
+            occurred_at: string;
+            payload: {
+              settings: {
+                threshold?: number | null;
+                period_minutes?: number | null;
+                window_minutes?: number | null;
+                baseline_minutes?: number | null;
+                growth_percent?: number | null;
+                duration?: number | null;
+              };
+              measured: {
+                buffer_count?: number | null;
+                invalid_count?: number | null;
+                since?: string | null;
+                window_from?: string | null;
+                window_to?: string | null;
+                window_count?: number | null;
+                window_per_minute?: number | null;
+                baseline_per_minute?: number | null;
+                growth_percent?: number | null;
+                slowest?: number | null;
+              };
+              groups: {
+                service_id: number;
+                type: string;
+                tags: string[];
+                count: number;
+                duration_max?: number | null;
+                trace_id?: string | null;
+              }[];
+            };
+          }[];
+        },
+        any
+      >({
+        path: `/admin-api/watchers/incidents/${id}/events`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @name WatchersIncidentsClosePartialUpdate
+     * @request PATCH:/admin-api/watchers/incidents/{id}/close
+     * @secure
+     * @response `200` `any` description
+     */
+    watchersIncidentsClosePartialUpdate: (
+      id: any,
+      params: RequestParams = {},
+    ) =>
+      this.request<any, any>({
+        path: `/admin-api/watchers/incidents/${id}/close`,
+        method: "PATCH",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name WatchersBufferOverflowCreate
+ * @request POST:/admin-api/watchers/buffer-overflow
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    name: string,
+    type: string,
+    enabled: boolean,
+    cooldown_seconds: number,
+    collect_since?: string | null,
+    last_checked_at?: string | null,
+    last_triggered_at?: string | null,
+    created_at: string,
+    updated_at: string,
+
+},
+
+}` description
+ */
+    watchersBufferOverflowCreate: (
+      data: {
+        /**
+         * @minLength 1
+         * @maxLength 255
+         */
+        name: string;
+        enabled: boolean;
+        /**
+         * @min 1
+         * @max 86400
+         */
+        cooldown_seconds: number;
+        settings?: {
+          /** @min 1 */
+          threshold?: number;
+        };
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          data: {
+            id: number;
+            name: string;
+            type: string;
+            enabled: boolean;
+            cooldown_seconds: number;
+            collect_since?: string | null;
+            last_checked_at?: string | null;
+            last_triggered_at?: string | null;
+            created_at: string;
+            updated_at: string;
+          };
+        },
+        any
+      >({
+        path: `/admin-api/watchers/buffer-overflow`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name WatchersBufferOverflowDetail
+ * @request GET:/admin-api/watchers/buffer-overflow/{id}
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    threshold: number,
+
+},
+
+}` description
+ */
+    watchersBufferOverflowDetail: (id: any, params: RequestParams = {}) =>
+      this.request<
+        {
+          data: {
+            id: number;
+            threshold: number;
+          };
+        },
+        any
+      >({
+        path: `/admin-api/watchers/buffer-overflow/${id}`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @name WatchersBufferOverflowPartialUpdate
+     * @request PATCH:/admin-api/watchers/buffer-overflow/{id}
+     * @secure
+     * @response `200` `any` description
+     */
+    watchersBufferOverflowPartialUpdate: (
+      id: any,
+      data: {
+        /**
+         * @minLength 1
+         * @maxLength 255
+         */
+        name: string;
+        enabled: boolean;
+        /**
+         * @min 1
+         * @max 86400
+         */
+        cooldown_seconds: number;
+        settings?: {
+          /** @min 1 */
+          threshold?: number;
+        };
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<any, any>({
+        path: `/admin-api/watchers/buffer-overflow/${id}`,
+        method: "PATCH",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name WatchersInvalidBufferGrownCreate
+ * @request POST:/admin-api/watchers/invalid-buffer-grown
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    name: string,
+    type: string,
+    enabled: boolean,
+    cooldown_seconds: number,
+    collect_since?: string | null,
+    last_checked_at?: string | null,
+    last_triggered_at?: string | null,
+    created_at: string,
+    updated_at: string,
+
+},
+
+}` description
+ */
+    watchersInvalidBufferGrownCreate: (
+      data: {
+        /**
+         * @minLength 1
+         * @maxLength 255
+         */
+        name: string;
+        enabled: boolean;
+        /**
+         * @min 1
+         * @max 86400
+         */
+        cooldown_seconds: number;
+        settings?: {
+          /** @min 1 */
+          threshold?: number;
+        };
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          data: {
+            id: number;
+            name: string;
+            type: string;
+            enabled: boolean;
+            cooldown_seconds: number;
+            collect_since?: string | null;
+            last_checked_at?: string | null;
+            last_triggered_at?: string | null;
+            created_at: string;
+            updated_at: string;
+          };
+        },
+        any
+      >({
+        path: `/admin-api/watchers/invalid-buffer-grown`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name WatchersInvalidBufferGrownDetail
+ * @request GET:/admin-api/watchers/invalid-buffer-grown/{id}
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    threshold: number,
+
+},
+
+}` description
+ */
+    watchersInvalidBufferGrownDetail: (id: any, params: RequestParams = {}) =>
+      this.request<
+        {
+          data: {
+            id: number;
+            threshold: number;
+          };
+        },
+        any
+      >({
+        path: `/admin-api/watchers/invalid-buffer-grown/${id}`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @name WatchersInvalidBufferGrownPartialUpdate
+     * @request PATCH:/admin-api/watchers/invalid-buffer-grown/{id}
+     * @secure
+     * @response `200` `any` description
+     */
+    watchersInvalidBufferGrownPartialUpdate: (
+      id: any,
+      data: {
+        /**
+         * @minLength 1
+         * @maxLength 255
+         */
+        name: string;
+        enabled: boolean;
+        /**
+         * @min 1
+         * @max 86400
+         */
+        cooldown_seconds: number;
+        settings?: {
+          /** @min 1 */
+          threshold?: number;
+        };
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<any, any>({
+        path: `/admin-api/watchers/invalid-buffer-grown/${id}`,
+        method: "PATCH",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name WatchersNoNewTracesCreate
+ * @request POST:/admin-api/watchers/no-new-traces
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    name: string,
+    type: string,
+    enabled: boolean,
+    cooldown_seconds: number,
+    collect_since?: string | null,
+    last_checked_at?: string | null,
+    last_triggered_at?: string | null,
+    created_at: string,
+    updated_at: string,
+
+},
+
+}` description
+ */
+    watchersNoNewTracesCreate: (
+      data: {
+        /**
+         * @minLength 1
+         * @maxLength 255
+         */
+        name: string;
+        enabled: boolean;
+        /**
+         * @min 1
+         * @max 86400
+         */
+        cooldown_seconds: number;
+        settings?: {
+          /**
+           * @min 1
+           * @max 175
+           */
+          period_minutes?: number;
+          filter?: {
+            service_ids?: number[];
+            types?: string[];
+            tags?: string[];
+          };
+        };
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          data: {
+            id: number;
+            name: string;
+            type: string;
+            enabled: boolean;
+            cooldown_seconds: number;
+            collect_since?: string | null;
+            last_checked_at?: string | null;
+            last_triggered_at?: string | null;
+            created_at: string;
+            updated_at: string;
+          };
+        },
+        any
+      >({
+        path: `/admin-api/watchers/no-new-traces`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name WatchersNoNewTracesDetail
+ * @request GET:/admin-api/watchers/no-new-traces/{id}
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    period_minutes: number,
+    filter: {
+    service_ids: (number)[],
+    types: (string)[],
+    tags: (string)[],
+
+},
+
+},
+
+}` description
+ */
+    watchersNoNewTracesDetail: (id: any, params: RequestParams = {}) =>
+      this.request<
+        {
+          data: {
+            id: number;
+            period_minutes: number;
+            filter: {
+              service_ids: number[];
+              types: string[];
+              tags: string[];
+            };
+          };
+        },
+        any
+      >({
+        path: `/admin-api/watchers/no-new-traces/${id}`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @name WatchersNoNewTracesPartialUpdate
+     * @request PATCH:/admin-api/watchers/no-new-traces/{id}
+     * @secure
+     * @response `200` `any` description
+     */
+    watchersNoNewTracesPartialUpdate: (
+      id: any,
+      data: {
+        /**
+         * @minLength 1
+         * @maxLength 255
+         */
+        name: string;
+        enabled: boolean;
+        /**
+         * @min 1
+         * @max 86400
+         */
+        cooldown_seconds: number;
+        settings?: {
+          /**
+           * @min 1
+           * @max 175
+           */
+          period_minutes?: number;
+          filter?: {
+            service_ids?: number[];
+            types?: string[];
+            tags?: string[];
+          };
+        };
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<any, any>({
+        path: `/admin-api/watchers/no-new-traces/${id}`,
+        method: "PATCH",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name WatchersTracesSpikeCreate
+ * @request POST:/admin-api/watchers/traces-spike
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    name: string,
+    type: string,
+    enabled: boolean,
+    cooldown_seconds: number,
+    collect_since?: string | null,
+    last_checked_at?: string | null,
+    last_triggered_at?: string | null,
+    created_at: string,
+    updated_at: string,
+
+},
+
+}` description
+ */
+    watchersTracesSpikeCreate: (
+      data: {
+        /**
+         * @minLength 1
+         * @maxLength 255
+         */
+        name: string;
+        enabled: boolean;
+        /**
+         * @min 1
+         * @max 86400
+         */
+        cooldown_seconds: number;
+        settings?: {
+          /**
+           * @min 1
+           * @max 175
+           */
+          window_minutes?: number;
+          /**
+           * @min 1
+           * @max 175
+           */
+          baseline_minutes?: number;
+          /** @min 1 */
+          growth_percent?: number;
+          filter?: {
+            service_ids?: number[];
+            types?: string[];
+            tags?: string[];
+          };
+        };
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          data: {
+            id: number;
+            name: string;
+            type: string;
+            enabled: boolean;
+            cooldown_seconds: number;
+            collect_since?: string | null;
+            last_checked_at?: string | null;
+            last_triggered_at?: string | null;
+            created_at: string;
+            updated_at: string;
+          };
+        },
+        any
+      >({
+        path: `/admin-api/watchers/traces-spike`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name WatchersTracesSpikeDetail
+ * @request GET:/admin-api/watchers/traces-spike/{id}
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    window_minutes: number,
+    baseline_minutes: number,
+    growth_percent: number,
+    filter: {
+    service_ids: (number)[],
+    types: (string)[],
+    tags: (string)[],
+
+},
+
+},
+
+}` description
+ */
+    watchersTracesSpikeDetail: (id: any, params: RequestParams = {}) =>
+      this.request<
+        {
+          data: {
+            id: number;
+            window_minutes: number;
+            baseline_minutes: number;
+            growth_percent: number;
+            filter: {
+              service_ids: number[];
+              types: string[];
+              tags: string[];
+            };
+          };
+        },
+        any
+      >({
+        path: `/admin-api/watchers/traces-spike/${id}`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @name WatchersTracesSpikePartialUpdate
+     * @request PATCH:/admin-api/watchers/traces-spike/{id}
+     * @secure
+     * @response `200` `any` description
+     */
+    watchersTracesSpikePartialUpdate: (
+      id: any,
+      data: {
+        /**
+         * @minLength 1
+         * @maxLength 255
+         */
+        name: string;
+        enabled: boolean;
+        /**
+         * @min 1
+         * @max 86400
+         */
+        cooldown_seconds: number;
+        settings?: {
+          /**
+           * @min 1
+           * @max 175
+           */
+          window_minutes?: number;
+          /**
+           * @min 1
+           * @max 175
+           */
+          baseline_minutes?: number;
+          /** @min 1 */
+          growth_percent?: number;
+          filter?: {
+            service_ids?: number[];
+            types?: string[];
+            tags?: string[];
+          };
+        };
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<any, any>({
+        path: `/admin-api/watchers/traces-spike/${id}`,
+        method: "PATCH",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name WatchersSlowTracesCreate
+ * @request POST:/admin-api/watchers/slow-traces
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    name: string,
+    type: string,
+    enabled: boolean,
+    cooldown_seconds: number,
+    collect_since?: string | null,
+    last_checked_at?: string | null,
+    last_triggered_at?: string | null,
+    created_at: string,
+    updated_at: string,
+
+},
+
+}` description
+ */
+    watchersSlowTracesCreate: (
+      data: {
+        /**
+         * @minLength 1
+         * @maxLength 255
+         */
+        name: string;
+        enabled: boolean;
+        /**
+         * @min 1
+         * @max 86400
+         */
+        cooldown_seconds: number;
+        settings?: {
+          /**
+           * @format float
+           * @min 0.001
+           */
+          duration?: number;
+          /**
+           * @min 1
+           * @max 175
+           */
+          window_minutes?: number;
+          filter?: {
+            service_ids?: number[];
+            types?: string[];
+            tags?: string[];
+          };
+        };
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          data: {
+            id: number;
+            name: string;
+            type: string;
+            enabled: boolean;
+            cooldown_seconds: number;
+            collect_since?: string | null;
+            last_checked_at?: string | null;
+            last_triggered_at?: string | null;
+            created_at: string;
+            updated_at: string;
+          };
+        },
+        any
+      >({
+        path: `/admin-api/watchers/slow-traces`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name WatchersSlowTracesDetail
+ * @request GET:/admin-api/watchers/slow-traces/{id}
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    duration: number,
+    window_minutes: number,
+    filter: {
+    service_ids: (number)[],
+    types: (string)[],
+    tags: (string)[],
+
+},
+
+},
+
+}` description
+ */
+    watchersSlowTracesDetail: (id: any, params: RequestParams = {}) =>
+      this.request<
+        {
+          data: {
+            id: number;
+            duration: number;
+            window_minutes: number;
+            filter: {
+              service_ids: number[];
+              types: string[];
+              tags: string[];
+            };
+          };
+        },
+        any
+      >({
+        path: `/admin-api/watchers/slow-traces/${id}`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @name WatchersSlowTracesPartialUpdate
+     * @request PATCH:/admin-api/watchers/slow-traces/{id}
+     * @secure
+     * @response `200` `any` description
+     */
+    watchersSlowTracesPartialUpdate: (
+      id: any,
+      data: {
+        /**
+         * @minLength 1
+         * @maxLength 255
+         */
+        name: string;
+        enabled: boolean;
+        /**
+         * @min 1
+         * @max 86400
+         */
+        cooldown_seconds: number;
+        settings?: {
+          /**
+           * @format float
+           * @min 0.001
+           */
+          duration?: number;
+          /**
+           * @min 1
+           * @max 175
+           */
+          window_minutes?: number;
+          filter?: {
+            service_ids?: number[];
+            types?: string[];
+            tags?: string[];
+          };
+        };
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<any, any>({
+        path: `/admin-api/watchers/slow-traces/${id}`,
+        method: "PATCH",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @name WatchersDelete
+     * @request DELETE:/admin-api/watchers/{id}
+     * @secure
+     * @response `200` `void` description
+     */
+    watchersDelete: (id: any, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/admin-api/watchers/${id}`,
+        method: "DELETE",
+        secure: true,
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name NotificationChannelsList
+ * @request GET:/admin-api/notification-channels
+ * @secure
+ * @response `200` `{
+    data: ({
+    id: number,
+    name: string,
+    type: string,
+    enabled: boolean,
+    on_opened: boolean,
+    on_event: boolean,
+    on_closed: boolean,
+    created_at: string,
+    updated_at: string,
+
+})[],
+
+}` description
+ */
+    notificationChannelsList: (params: RequestParams = {}) =>
+      this.request<
+        {
+          data: {
+            id: number;
+            name: string;
+            type: string;
+            enabled: boolean;
+            on_opened: boolean;
+            on_event: boolean;
+            on_closed: boolean;
+            created_at: string;
+            updated_at: string;
+          }[];
+        },
+        any
+      >({
+        path: `/admin-api/notification-channels`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name NotificationChannelsTypesList
+ * @request GET:/admin-api/notification-channels/types
+ * @secure
+ * @response `200` `{
+    data: ({
+    type: string,
+    title: string,
+    description: string,
+    fields: ({
+    key: string,
+    title: string,
+    description: string,
+    secret: boolean,
+    max_length: number,
+
+})[],
+
+})[],
+
+}` description
+ */
+    notificationChannelsTypesList: (params: RequestParams = {}) =>
+      this.request<
+        {
+          data: {
+            type: string;
+            title: string;
+            description: string;
+            fields: {
+              key: string;
+              title: string;
+              description: string;
+              secret: boolean;
+              max_length: number;
+            }[];
+          }[];
+        },
+        any
+      >({
+        path: `/admin-api/notification-channels/types`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name NotificationChannelsTelegramCreate
+ * @request POST:/admin-api/notification-channels/telegram
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    name: string,
+    type: string,
+    enabled: boolean,
+    on_opened: boolean,
+    on_event: boolean,
+    on_closed: boolean,
+    created_at: string,
+    updated_at: string,
+
+},
+
+}` description
+ */
+    notificationChannelsTelegramCreate: (
+      data: {
+        /**
+         * @minLength 1
+         * @maxLength 255
+         */
+        name: string;
+        enabled: boolean;
+        on_opened: boolean;
+        on_event: boolean;
+        on_closed: boolean;
+        settings?: {
+          /**
+           * @minLength 10
+           * @maxLength 255
+           */
+          bot_token?: string;
+          /**
+           * @minLength 5
+           * @maxLength 255
+           */
+          chat_id?: string;
+        };
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          data: {
+            id: number;
+            name: string;
+            type: string;
+            enabled: boolean;
+            on_opened: boolean;
+            on_event: boolean;
+            on_closed: boolean;
+            created_at: string;
+            updated_at: string;
+          };
+        },
+        any
+      >({
+        path: `/admin-api/notification-channels/telegram`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name NotificationChannelsTelegramDetail
+ * @request GET:/admin-api/notification-channels/telegram/{id}
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    bot_token_mask: string,
+    chat_id: string,
+
+},
+
+}` description
+ */
+    notificationChannelsTelegramDetail: (id: any, params: RequestParams = {}) =>
+      this.request<
+        {
+          data: {
+            id: number;
+            bot_token_mask: string;
+            chat_id: string;
+          };
+        },
+        any
+      >({
+        path: `/admin-api/notification-channels/telegram/${id}`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @name NotificationChannelsTelegramPartialUpdate
+     * @request PATCH:/admin-api/notification-channels/telegram/{id}
+     * @secure
+     * @response `200` `any` description
+     */
+    notificationChannelsTelegramPartialUpdate: (
+      id: any,
+      data: {
+        /**
+         * @minLength 1
+         * @maxLength 255
+         */
+        name: string;
+        enabled: boolean;
+        on_opened: boolean;
+        on_event: boolean;
+        on_closed: boolean;
+        settings?: {
+          /**
+           * @minLength 10
+           * @maxLength 255
+           */
+          bot_token?: string | null;
+          /**
+           * @minLength 5
+           * @maxLength 255
+           */
+          chat_id?: string;
+        };
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<any, any>({
+        path: `/admin-api/notification-channels/telegram/${id}`,
+        method: "PATCH",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name NotificationChannelsDeliveriesList
+ * @request GET:/admin-api/notification-channels/{id}/deliveries
+ * @secure
+ * @response `200` `{
+    data: ({
+    id: string,
+    watcher_id?: number | null,
+    incident_id?: string | null,
+    kind: string,
+    text: string,
+    sent_at?: string | null,
+    error?: string | null,
+    created_at: string,
+
+})[],
+
+}` description
+ */
+    notificationChannelsDeliveriesList: (id: any, params: RequestParams = {}) =>
+      this.request<
+        {
+          data: {
+            id: string;
+            watcher_id?: number | null;
+            incident_id?: string | null;
+            kind: string;
+            text: string;
+            sent_at?: string | null;
+            error?: string | null;
+            created_at: string;
+          }[];
+        },
+        any
+      >({
+        path: `/admin-api/notification-channels/${id}/deliveries`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name NotificationChannelsTestCreate
+ * @request POST:/admin-api/notification-channels/{id}/test
+ * @secure
+ * @response `200` `{
+    data: {
+    delivered: boolean,
+    permanent: boolean,
+    error?: string | null,
+    retry_after_seconds?: number | null,
+
+},
+
+}` description
+ */
+    notificationChannelsTestCreate: (id: any, params: RequestParams = {}) =>
+      this.request<
+        {
+          data: {
+            delivered: boolean;
+            permanent: boolean;
+            error?: string | null;
+            retry_after_seconds?: number | null;
+          };
+        },
+        any
+      >({
+        path: `/admin-api/notification-channels/${id}/test`,
+        method: "POST",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @name NotificationChannelsDelete
+     * @request DELETE:/admin-api/notification-channels/{id}
+     * @secure
+     * @response `200` `void` description
+     */
+    notificationChannelsDelete: (id: any, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/admin-api/notification-channels/${id}`,
+        method: "DELETE",
+        secure: true,
         ...params,
       }),
 

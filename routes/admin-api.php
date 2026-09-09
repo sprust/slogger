@@ -8,6 +8,8 @@ use App\Modules\Cleaner\Infrastructure\Http\Controllers\ProcessController;
 use App\Modules\Dashboard\Infrastructure\Http\Controllers\DatabaseStatController;
 use App\Modules\Dashboard\Infrastructure\Http\Controllers\SconcurStatController;
 use App\Modules\Logs\Infrastructure\Http\Controllers\LogController;
+use App\Modules\Notification\Infrastructure\Http\Controllers\NotificationChannelController;
+use App\Modules\Notification\Infrastructure\Http\Controllers\TelegramChannelController;
 use App\Modules\Service\Infrastructure\Http\Controllers\ServiceController;
 use App\Modules\Tools\Infrastructure\Http\Controllers\ToolLinksController;
 use App\Modules\Trace\Infrastructure\Http\Controllers\TraceAdminStoreController;
@@ -19,6 +21,13 @@ use App\Modules\Trace\Infrastructure\Http\Controllers\TraceTimestampPeriodsContr
 use App\Modules\Trace\Infrastructure\Http\Controllers\TraceTimestampsController;
 use App\Modules\Trace\Infrastructure\Http\Controllers\TraceTreeController;
 use App\Modules\Trace\Infrastructure\Http\Controllers\TraceTreeStateController;
+use App\Modules\Watcher\Infrastructure\Http\Controllers\BufferOverflowWatcherController;
+use App\Modules\Watcher\Infrastructure\Http\Controllers\InvalidBufferGrownWatcherController;
+use App\Modules\Watcher\Infrastructure\Http\Controllers\NoNewTracesWatcherController;
+use App\Modules\Watcher\Infrastructure\Http\Controllers\SlowTracesWatcherController;
+use App\Modules\Watcher\Infrastructure\Http\Controllers\TracesSpikeWatcherController;
+use App\Modules\Watcher\Infrastructure\Http\Controllers\WatcherController;
+use App\Modules\Watcher\Infrastructure\Http\Controllers\WatcherIncidentController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('/auth')
@@ -112,6 +121,75 @@ Route::prefix('/trace-cleaner')
     ->group(function () {
         Route::get('/processes', [ProcessController::class, 'index'])
             ->name('processes');
+    });
+
+Route::prefix('/watchers')
+    ->as('watchers.')
+    ->group(function () {
+        Route::get('', [WatcherController::class, 'index'])->name('index');
+        Route::get('/types', [WatcherController::class, 'types'])->name('types');
+
+        // Before the {id} routes, or `incidents` is read as a watcher id.
+        Route::prefix('/incidents')
+            ->as('incidents.')
+            ->group(function () {
+                Route::get('', [WatcherIncidentController::class, 'index'])->name('index');
+                // What the header's badge reads on every page, so it never has to fetch
+                // the list to count it.
+                Route::get('/stat', [WatcherIncidentController::class, 'stat'])->name('stat');
+                Route::get('/{id}/events', [WatcherIncidentController::class, 'events'])->name('events');
+                Route::patch('/{id}/close', [WatcherIncidentController::class, 'close'])->name('close');
+            });
+
+        // A route per type, because the body follows the type: this is what makes the
+        // generated schema say which numbers a watcher of this type takes, rather than
+        // offering every number any type might take.
+        $types = [
+            'buffer-overflow'      => BufferOverflowWatcherController::class,
+            'invalid-buffer-grown' => InvalidBufferGrownWatcherController::class,
+            'no-new-traces'        => NoNewTracesWatcherController::class,
+            'traces-spike'         => TracesSpikeWatcherController::class,
+            'slow-traces'          => SlowTracesWatcherController::class,
+        ];
+
+        foreach ($types as $segment => $controller) {
+            Route::prefix("/$segment")
+                ->as("$segment.")
+                ->group(function () use ($controller) {
+                    Route::post('', [$controller, 'create'])->name('create');
+                    // The settings of one watcher, typed because the route names the type.
+                    Route::get('/{id}', [$controller, 'show'])->name('show');
+                    Route::patch('/{id}', [$controller, 'update'])->name('update');
+                });
+        }
+
+        Route::delete('/{id}', [WatcherController::class, 'delete'])->name('delete');
+    });
+
+Route::prefix('/notification-channels')
+    ->as('notification-channels.')
+    ->group(function () {
+        Route::get('', [NotificationChannelController::class, 'index'])->name('index');
+        Route::get('/types', [NotificationChannelController::class, 'types'])->name('types');
+
+        // A route per type, because the body follows the type.
+        $types = [
+            'telegram' => TelegramChannelController::class,
+        ];
+
+        foreach ($types as $segment => $controller) {
+            Route::prefix("/$segment")
+                ->as("$segment.")
+                ->group(function () use ($controller) {
+                    Route::post('', [$controller, 'create'])->name('create');
+                    Route::get('/{id}', [$controller, 'show'])->name('show');
+                    Route::patch('/{id}', [$controller, 'update'])->name('update');
+                });
+        }
+
+        Route::get('/{id}/deliveries', [NotificationChannelController::class, 'deliveries'])->name('deliveries');
+        Route::post('/{id}/test', [NotificationChannelController::class, 'test'])->name('test');
+        Route::delete('/{id}', [NotificationChannelController::class, 'delete'])->name('delete');
     });
 
 Route::prefix('/logs')

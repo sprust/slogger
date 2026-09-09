@@ -6,6 +6,19 @@
     <el-menu-item :index="routes.traceAggregator.path">
       Aggregator
     </el-menu-item>
+    <el-menu-item :index="routes.watchers.path">
+      <!-- The badge sits on the word rather than beside it: the menu lays its items out
+           in a row, and a badge given a box of its own would widen the item every time a
+           watcher speaks. -->
+      <el-badge
+          :value="watcherIncidentStatStore.openedCount"
+          :hidden="watcherIncidentStatStore.openedCount === 0"
+          :offset="[8, -8]"
+          type="danger"
+      >
+        Watchers
+      </el-badge>
+    </el-menu-item>
     <el-menu-item :index="routes.traceCleaner.path">
       Cleaner
     </el-menu-item>
@@ -38,6 +51,7 @@ import {useToggle} from '@vueuse/shared'
 import {useDark} from '@vueuse/core'
 import {Moon, Sunny} from '@element-plus/icons-vue'
 import {useToolLinksStore} from "../store/toolLinksStore.ts";
+import {useWatcherIncidentStatStore} from "../store/watcherIncidentStatStore.ts";
 import WsStatusIndicator from "./WsStatusIndicator.vue";
 
 export default defineComponent({
@@ -63,6 +77,9 @@ export default defineComponent({
     toolLinksStore() {
       return useToolLinksStore()
     },
+    watcherIncidentStatStore() {
+      return useWatcherIncidentStatStore()
+    },
     Sunny() {
       return Sunny
     },
@@ -87,6 +104,10 @@ export default defineComponent({
     if (!this.toolLinksStore.loaded) {
       this.toolLinksStore.findToolLinks()
     }
+
+    // Followed from the header rather than from the watchers page: an incident opened
+    // while somebody is reading traces is exactly the one worth noticing.
+    this.watcherIncidentStatStore.watch()
   }
 })
 
