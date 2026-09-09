@@ -29,6 +29,7 @@ use App\Modules\Watcher\Domain\Services\Types\NoNewTracesWatcherType;
 use App\Modules\Watcher\Domain\Services\Types\SlowTracesWatcherType;
 use App\Modules\Watcher\Domain\Services\Types\TracesSpikeWatcherType;
 use App\Modules\Watcher\Domain\Services\Types\WatcherTypeRegistry;
+use App\Modules\Watcher\Domain\Services\WatcherCollectionStart;
 use App\Modules\Watcher\Domain\Services\WatcherFactory;
 use App\Modules\Watcher\Domain\Services\WatcherMatchFactory;
 use App\Modules\Watcher\Domain\Services\WatcherTimelineAnalyzer;
@@ -65,6 +66,7 @@ class WatcherServiceProvider extends BaseServiceProvider
             WatcherTypeRegistry::class,
             WatcherMatchFactory::class,
             WatcherFactory::class,
+            WatcherCollectionStart::class,
             // actions
             FindWatchersAction::class,
             FindWatcherAction::class,

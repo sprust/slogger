@@ -7,6 +7,7 @@ namespace App\Modules\Watcher\Domain\Actions\Mutations;
 use App\Modules\Watcher\Domain\Actions\Queries\FindWatcherAction;
 use App\Modules\Watcher\Domain\Exceptions\WatcherNotFoundException;
 use App\Modules\Watcher\Domain\Services\Types\WatcherTypeRegistry;
+use App\Modules\Watcher\Domain\Services\WatcherCollectionStart;
 use App\Modules\Watcher\Domain\Services\WatcherMatchFactory;
 use App\Modules\Watcher\Entities\Settings\HasTraceFilterInterface;
 use App\Modules\Watcher\Entities\Settings\WatcherSettingsInterface;
@@ -18,18 +19,13 @@ use Illuminate\Support\Carbon;
 
 readonly class UpdateWatcherAction
 {
-    /**
-     * How long the receiver may still be collecting against the filter that was just
-     * replaced — its reload interval. A line is only believed from after that.
-     */
-    private const int RECEIVER_RELOAD_SECONDS = 30;
-
     public function __construct(
         private WatcherRepository $watcherRepository,
         private WatcherTimelineRepository $timelineRepository,
         private WatcherTypeRegistry $types,
         private WatcherMatchFactory $matchFactory,
-        private FindWatcherAction $findWatcherAction
+        private FindWatcherAction $findWatcherAction,
+        private WatcherCollectionStart $collectionStart
     ) {
     }
 
@@ -44,26 +40,14 @@ readonly class UpdateWatcherAction
             throw new WatcherNotFoundException($parameters->id);
         }
 
-        // The type comes from the row, not from the request: it decides the shape of the
-        // settings, and letting an edit change it would leave the stored numbers meaning
-        // something else.
         $settings = $this->types->for($watcher->type)->makeSettings($parameters->settings);
 
         $match = $this->matchFactory->make($settings);
 
         $filterChanged = !$this->sameMatch($watcher->match, $match);
 
-        // A window that grew reaches back further than the line does: the trimming has
-        // been cutting it to the old depth all along, so the part before the change is
-        // simply not there — and a checker reading it would take what was never kept for
-        // an absence. Waiting for the line to grow into the new window is the honest
-        // answer, and that is what collect_since says.
         $deepened = $this->depthOf($settings) > $this->depthOf($watcher->settings);
 
-        // A changed filter makes the line already collected answer a different question,
-        // so it is thrown away and the watcher starts collecting again. Anything else —
-        // a rename, a new threshold, a longer window — reads the same traces, and keeping
-        // the history is what lets the new setting take effect immediately.
         if ($filterChanged) {
             $this->timelineRepository->delete($watcher->id);
         }
@@ -76,7 +60,7 @@ readonly class UpdateWatcherAction
             settings: $settings->toArray(),
             traceMatch: $this->matchFactory->toArray($match),
             collectSince: $filterChanged || $deepened || (!$watcher->enabled && $parameters->enabled)
-                ? Carbon::now()->addSeconds(self::RECEIVER_RELOAD_SECONDS)
+                ? $this->collectionStart->afterNextReload(Carbon::now())
                 : $watcher->collectSince
         );
     }

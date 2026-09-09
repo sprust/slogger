@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Watcher\Domain\Actions\Mutations;
 
 use App\Modules\Watcher\Domain\Services\Types\WatcherTypeRegistry;
+use App\Modules\Watcher\Domain\Services\WatcherCollectionStart;
 use App\Modules\Watcher\Domain\Services\WatcherFactory;
 use App\Modules\Watcher\Domain\Services\WatcherMatchFactory;
 use App\Modules\Watcher\Entities\WatcherObject;
@@ -19,7 +20,8 @@ readonly class CreateWatcherAction
         private WatcherRepository $watcherRepository,
         private WatcherTypeRegistry $types,
         private WatcherMatchFactory $matchFactory,
-        private WatcherFactory $watcherFactory
+        private WatcherFactory $watcherFactory,
+        private WatcherCollectionStart $collectionStart
     ) {
     }
 
@@ -35,10 +37,7 @@ readonly class CreateWatcherAction
                 cooldownSeconds: $parameters->cooldownSeconds,
                 settings: $settings->toArray(),
                 traceMatch: $this->matchFactory->toArray($this->matchFactory->make($settings)),
-                // Its line starts now. Until it is as long as the window a check needs, the
-                // checks that report an absence stay quiet — an empty window nobody was
-                // counting for is not silence.
-                collectSince: Carbon::now()
+                collectSince: $this->collectionStart->afterNextReload(Carbon::now())
             )
         );
 

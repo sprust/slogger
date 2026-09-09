@@ -7,6 +7,7 @@ use App\Modules\Watcher\Domain\Actions\Queries\FindWatcherAction;
 use App\Modules\Watcher\Domain\Services\Checkers\NoNewTracesChecker;
 use App\Modules\Watcher\Domain\Services\Types\NoNewTracesWatcherType;
 use App\Modules\Watcher\Domain\Services\Types\WatcherTypeRegistry;
+use App\Modules\Watcher\Domain\Services\WatcherCollectionStart;
 use App\Modules\Watcher\Domain\Services\WatcherMatchFactory;
 use App\Modules\Watcher\Entities\Settings\NoNewTracesSettingsObject;
 use App\Modules\Watcher\Entities\Settings\WatcherTraceFilterObject;
@@ -168,7 +169,8 @@ class UpdateWatcherActionTest extends TestCase
             $timelines ?? $this->createMock(WatcherTimelineRepository::class),
             $this->registry(),
             new WatcherMatchFactory(),
-            $find
+            $find,
+            new WatcherCollectionStart()
         )->handle(
             new UpdateWatcherParameters(
                 id: 1,
