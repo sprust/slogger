@@ -18,6 +18,7 @@ It collects data about code execution (HTTP requests, queues, events, commands, 
 - Storage dashboard — collection sizes, memory and index usage.
 - Runtime dashboard — live stats of the SConcur HTTP server: worker pool, RPS, CPU, memory, in-flight requests.
 - Watchers — configurable rules that open an incident when the system misbehaves: a buffer growing, traces stopping, a spike of them, traces running too long.
+- Notification channels — a watcher's incidents are sent on to Telegram, with a delivery log per channel.
 - Automatic cleanup of stale data.
 
 ---
@@ -179,6 +180,14 @@ No watcher queries the hourly trace collections, and none uses the dynamic index
 A trigger opens an incident, or adds an event to the one already open — a watcher speaks at most once per its cooldown, so a problem lasting an hour does not fill the incident with sixty identical events. An event carries what the watcher saw: the value, the threshold, and up to five shapes of trace behind it (service, type, tags, how many, the slowest one by id). Incidents are closed by a person, from the panel: a watcher going quiet means the symptom stopped, not that the cause was found. The badge in the header counts the open ones over the `sl-watchers` WebSocket channel.
 
 Only a watcher's settings live in MySQL. Everything it produces — the incidents, the events under them, the lines behind those — accumulates while the system runs, so it lives in MongoDB and is retired by a TTL index: a month for incidents and events, three days for a line nothing has been written to. Removing a watcher therefore leaves all of it alone, and the removal is soft, so the incidents it found still have a name to show against.
+
+### Notification channels
+
+An incident is worth nothing to somebody who is not looking at the panel, so a channel carries it out. One type so far, Telegram: a bot posts into a chat, a group or a channel. A channel says which of the three moments it speaks about — the incident being opened, another event under one already open, and the incident being closed — so a chat can take the openings alone while another takes everything.
+
+Sending is a queued job (`SendNotificationJob`), never the watcher's pass: a Telegram that is slow or down must not hold up the checks. Every message is written to `notifications` before it is sent and updated with what came back, which is what the delivery list under each channel shows — sent, queued, or the error Telegram gave. A 429 is released for exactly as long as Telegram asked for, a 4xx is final, everything else is retried with a growing backoff.
+
+The bot token is stored encrypted (`encrypted:array` over a single column) and never sent back to the panel — the edit form is shown a mask of the last few characters, and left blank it keeps the token already stored. There is a Test button beside each channel, which sends one message through the real credentials and reports what happened.
 
 ### Automatic cleanup
 

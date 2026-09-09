@@ -208,16 +208,33 @@ Notes:
 
 ### Cross-Module Dependencies
 
-Deptrac allows a dependency inside the same layer, so `Watcher\Domain` reaching into
-`Trace\Domain` passes the tool. Two such edges exist on purpose and are the only ones:
+Deptrac compares layers, not modules, so `Watcher\Domain` reaching into `Trace\Domain`
+passes the tool. Nothing but this list stands between that and a graph nobody can follow,
+so a new cross-module edge is added here or is not added.
 
-- `Notification\Domain\Services\IncidentMessageFactory` → `Watcher\Domain\Services\Types\WatcherTypeRegistry`,
-  to read a watcher type's title. The dependency runs one way only: `Watcher` knows nothing
-  about channels.
-- `Watcher\Domain\Services\Checkers\InvalidBufferGrownChecker` → `Trace\Domain`, to read
-  the buffer counter.
+`Notification` → `Watcher`. One way only: `Watcher` knows nothing about channels.
 
-A new cross-module edge is not covered by the tool, so add it here or do not add it.
+- `Domain\Actions\Mutations\EnqueueNotificationsAction` → `Watcher\Entities`,
+  `Watcher\Enums` — the incident, its event and its status are what a message is made of.
+- `Domain\Services\IncidentMessageFactory` → `Watcher\Domain\Services\Types\WatcherTypeRegistry`,
+  `Watcher\Entities` — to read a watcher type's title, and the same three objects.
+- `Infrastructure\Listeners\EnqueueNotificationsListener` → `Watcher\Domain\Events`,
+  `Watcher\Domain\Actions\Queries` — it listens for `WatcherIncidentChangedEvent` and
+  reads the watcher and the latest event behind it.
+- `Infrastructure\NotificationServiceProvider` → `Watcher\Domain\Services\Types\WatcherTypeRegistry`,
+  to build the message factory above.
+
+`Watcher` → `Trace`.
+
+- `Domain\Services\Checkers\InvalidBufferGrownChecker` → `Trace\Domain`, to count what
+  the receiver could not act on.
+- `Infrastructure\Tasks\CheckWatchersTask` → `Trace\Domain`, to read the buffer size
+  once for a whole pass rather than once per watcher.
+
+`Watcher` → `Auth`.
+
+- `Infrastructure\Http\Controllers\WatcherIncidentController` → `Auth\Domain\Actions\FindUserByTokenAction`,
+  to record who closed an incident. The only place outside `Auth` that reaches into it.
 
 ### Allowed Dependencies
 
