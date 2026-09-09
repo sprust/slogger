@@ -107,7 +107,6 @@ export const useAuthStore = defineStore('authStore', {
             // stand in for them when there is no ws pool.
             useTraceAggregatorTreeStore().stopWatching()
             useTraceDynamicIndexesStore().stopWatchingStats()
-            useWatcherIncidentStatStore().stopWatching()
 
             // Incidents, watchers, the types they come in and the number in the badge are
             // read once per session and held; the next person to sign in on this tab would

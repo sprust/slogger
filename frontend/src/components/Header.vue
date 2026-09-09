@@ -105,9 +105,9 @@ export default defineComponent({
       this.toolLinksStore.findToolLinks()
     }
 
-    // Followed from the header rather than from the watchers page: an incident opened
-    // while somebody is reading traces is exactly the one worth noticing.
-    this.watcherIncidentStatStore.watch()
+    // Read from the header rather than from the watchers page: the badge is shown
+    // everywhere, so it is filled in wherever the panel was opened.
+    this.watcherIncidentStatStore.findStat()
   }
 })
 

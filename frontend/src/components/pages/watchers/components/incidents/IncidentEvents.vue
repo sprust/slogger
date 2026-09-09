@@ -9,6 +9,8 @@
         :data="events"
         :border="true"
         row-key="id"
+        :expand-row-keys="expandedEventIds"
+        @expand-change="rememberExpanded"
     >
       <el-table-column type="expand">
         <template #default="props">
@@ -51,7 +53,7 @@
                       v-if="scope.row.trace_id"
                       type="info"
                       link
-                      @click="openInAggregator(scope.row.trace_id)"
+                      @click="openInAggregator(scope.row.trace_id, props.row.occurred_at)"
                   >
                     {{ scope.row.trace_id }}
                   </el-button>
@@ -98,7 +100,14 @@ import {
   PeriodPresetEnum,
   useTraceAggregatorStore
 } from "../../../trace-aggregator/components/traces/store/traceAggregatorStore.ts";
+import {
+  useTraceAggregatorGraphStore
+} from "../../../trace-aggregator/components/graph/store/traceAggregatorGraphStore.ts";
+import {formatUtcDateTime, normalizeUtcDateTime, utcTimestamp} from "../../../../../utils/helpers.ts";
 import {routes} from "../../../../../utils/router.ts";
+
+/** How far either side of an event the aggregator is opened. */
+const periodMargin = 60 * 60 * 1000
 
 type PayloadBucket = 'settings' | 'measured'
 
@@ -150,6 +159,9 @@ export default defineComponent({
     incidentsStore() {
       return useIncidentsStore()
     },
+    expandedEventIds(): Array<string> {
+      return this.incidentsStore.expandedEventIds[this.incident.id] ?? []
+    },
     servicesStore() {
       return useTraceAggregatorServicesStore()
     },
@@ -183,6 +195,10 @@ export default defineComponent({
     loadMore() {
       this.incidentsStore.findMoreEvents(this.incident.id)
     },
+    /** Kept per incident: the events of one are no business of another's row. */
+    rememberExpanded(_row: WatcherIncidentEvent, expanded: Array<WatcherIncidentEvent>) {
+      this.incidentsStore.expandedEventIds[this.incident.id] = expanded.map(event => event.id)
+    },
     serviceName(serviceId: number): string {
       return this.servicesStore.items.find(service => service.id === serviceId)?.name
           ?? `Service #${serviceId}`
@@ -190,28 +206,56 @@ export default defineComponent({
     /**
      * Opens the aggregator on this one trace.
      *
-     * The filter is filled in and the request made from here rather than handed over in
-     * the url: the aggregator keeps its filter in a store that survives navigation and
-     * reads no query parameters, so this is what "a link to a trace" means on this panel.
+     * The filter is set from here rather than handed over in the url: the aggregator keeps
+     * it in a store that survives navigation and reads no query parameters, so this is
+     * what "a link to a trace" means on this panel. The search itself is left to whoever
+     * arrives — the filter is a starting point, not a question already asked.
      *
      * `initialized` is set because the aggregator resets its filter the first time it is
      * mounted — without it the trace id would be wiped on arrival.
      */
-    openInAggregator(traceId: string) {
+    openInAggregator(traceId: string, occurredAt: string) {
       const traceAggregatorStore = useTraceAggregatorStore()
+
+      // A live graph rewrites the filter's lower bound every second and would take the
+      // window below with it.
+      useTraceAggregatorGraphStore().playGraph = false
 
       traceAggregatorStore.resetFilters()
 
       traceAggregatorStore.initialized = true
       traceAggregatorStore.payload.trace_id = traceId
-      // Wide on purpose: an incident is read after the fact, and the default hour would
-      // often no longer hold the trace it points at. The preset wins over the dates
-      // beside it — see PeriodParameters::fromStringValues().
-      traceAggregatorStore.payload.logging_from_preset = PeriodPresetEnum.LastWeek
 
-      traceAggregatorStore.fillTraceAggregator()
+      this.applyPeriodAround(traceAggregatorStore, occurredAt)
 
       this.$router.push(routes.traceAggregator)
+    },
+    utcBound(at: number): string {
+      return normalizeUtcDateTime(formatUtcDateTime(new Date(at))) ?? ''
+    },
+    /**
+     * An hour either side of the moment the watcher spoke.
+     *
+     * Narrow on purpose: the search reads a period as a range of hourly shards, so a week
+     * around one known trace is thousands of collections to index and to scan. `Custom`
+     * is what makes the two dates count — any other preset computes `from` itself and
+     * throws them away, see PeriodParameters::fromStringValues().
+     */
+    applyPeriodAround(traceAggregatorStore: ReturnType<typeof useTraceAggregatorStore>, occurredAt: string) {
+      const at = utcTimestamp(occurredAt)
+
+      if (at === null) {
+        traceAggregatorStore.payload.logging_from_preset = PeriodPresetEnum.LastWeek
+
+        return
+      }
+
+      traceAggregatorStore.payload.logging_from_preset = PeriodPresetEnum.Custom
+      // Through the plain UTC text the pickers use, not straight from the Date:
+      // normalizeUtcDateTime reads a Date's local parts and stamps them as UTC, which
+      // would shift a real instant by the browser's offset.
+      traceAggregatorStore.payload.logging_from = this.utcBound(at - periodMargin)
+      traceAggregatorStore.payload.logging_to = this.utcBound(at + periodMargin)
     },
   },
 

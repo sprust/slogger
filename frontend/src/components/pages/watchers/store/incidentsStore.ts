@@ -39,6 +39,9 @@ interface IncidentsStoreInterface {
     items: Array<WatcherIncident>
     events: EventsByIncident
     loadingEvents: { [incidentId: string]: boolean }
+    /** Which rows are open, so that leaving the page and coming back keeps them open. */
+    expandedIncidentIds: Array<string>
+    expandedEventIds: { [incidentId: string]: Array<string> }
 }
 
 export const useIncidentsStore = defineStore('incidentsStore', {
@@ -56,6 +59,8 @@ export const useIncidentsStore = defineStore('incidentsStore', {
             items: [] as Array<WatcherIncident>,
             events: {} as EventsByIncident,
             loadingEvents: {},
+            expandedIncidentIds: [] as Array<string>,
+            expandedEventIds: {},
         }
     },
     getters: {
@@ -112,41 +117,6 @@ export const useIncidentsStore = defineStore('incidentsStore', {
             this.eventsExhausted[incidentId] = false
 
             return await this.loadEvents(incidentId, 1, false)
-        },
-        /**
-         * The same events the reader already has, read again.
-         *
-         * Not findEvents: that snaps back to the first page, and an incident somebody has
-         * pressed "Show more" on three times would lose two hundred rows every time the
-         * watcher speaks — which, for an incident that is still going, is often.
-         */
-        async refreshEvents(incidentId: string) {
-            const pages = this.eventsPage[incidentId] ?? 1
-
-            this.eventsExhausted[incidentId] = false
-
-            for (let page = 1; page <= pages; page++) {
-                const loaded = await this.loadEvents(incidentId, page, page > 1)
-
-                if (loaded !== true) {
-                    // What is on screen now is the pages that answered, and the counter
-                    // has to say so. The first page replaces the list rather than
-                    // appending to it, so a failure on the second used to leave the
-                    // counter at the old total with only fifty rows behind it: "Show
-                    // more" then asked for the page after that total, and everything in
-                    // between was unreachable until the incident was collapsed and the
-                    // panel reloaded.
-                    //
-                    // A first page that failed changed nothing, and the counter with it.
-                    if (page > 1) {
-                        this.eventsPage[incidentId] = page - 1
-                    }
-
-                    return loaded
-                }
-            }
-
-            return true
         },
         /**
          * The next page, appended.

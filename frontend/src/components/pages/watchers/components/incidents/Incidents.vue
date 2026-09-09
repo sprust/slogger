@@ -40,6 +40,8 @@
       :border="true"
       v-loading="incidentsStore.loading"
       row-key="id"
+      :expand-row-keys="incidentsStore.expandedIncidentIds"
+      @expand-change="rememberExpanded"
   >
     <el-table-column type="expand">
       <template #default="props">
@@ -119,40 +121,9 @@ import {useIncidentsStore, WatcherIncident} from "../../store/incidentsStore.ts"
 import {WatchersIncidentsListParamsStatusEnum} from "../../../../../api-schema/admin-api-schema.ts";
 import {useWatchersStore} from "../../store/watchersStore.ts";
 import {useWatcherTypesStore} from "../../store/watcherTypesStore.ts";
-import {useWatcherIncidentStatStore, WatcherIncidentFrame} from "../../../../../store/watcherIncidentStatStore.ts";
+import {useWatcherIncidentStatStore} from "../../../../../store/watcherIncidentStatStore.ts";
 
 const IncidentEvents = defineAsyncComponent(() => import("./IncidentEvents.vue"))
-
-/**
- * Dropped when the tab is left, so a list nobody is looking at is not reloaded on every
- * frame. The badge in the header keeps following them either way.
- *
- * Tied to the `active` prop rather than to mounting: el-tab-pane's `lazy` only defers the
- * first render, and after that the pane is kept mounted and hidden with v-show, so
- * unmounted() never runs on a tab switch. This used to leave the listener registered for
- * the life of the page, reloading the list on every frame while the reader was on
- * Settings or Notifications.
- *
- * Module-level, like the store's own subscription: the page holds one incidents list, so
- * only one of these is ever mounted. A second instance would take this handle from the
- * first and leave its listener behind.
- */
-let unsubscribeFrames: null | (() => void) = null
-
-/**
- * The frames of one pass, gathered before anything is re-read.
- *
- * A minute pass that trips five watchers publishes five frames within milliseconds, and
- * each of them makes the same list a page old. Reading it five times over would put five
- * requests in flight for one answer.
- */
-let reloadTimeoutId: null | number = null
-
-/** How long to wait for the rest of the pass. One minute pass lands well inside this. */
-const reloadDelay = 300
-
-/** Which incidents moved while the wait above was running. */
-const pendingIncidentIds = new Set<string>()
 
 export default defineComponent({
   components: {IncidentEvents},
@@ -216,7 +187,11 @@ export default defineComponent({
 
   methods: {
     update() {
-      this.incidentsStore.find()
+      // The count beside the list and the badge in the header come from the same read,
+      // so asking for the list is what puts them right too.
+      this.statStore.findStat()
+
+      return this.incidentsStore.find()
     },
     applyFilter() {
       this.incidentsStore.applyFilter()
@@ -239,34 +214,6 @@ export default defineComponent({
             delete this.closing[incident.id]
           })
     },
-    /** Gathers the frames of one pass into a single re-read. */
-    scheduleReload(incidentId: string) {
-      pendingIncidentIds.add(incidentId)
-
-      if (reloadTimeoutId !== null) {
-        return
-      }
-
-      reloadTimeoutId = window.setTimeout(
-        () => {
-          reloadTimeoutId = null
-
-          const incidentIds = [...pendingIncidentIds]
-
-          pendingIncidentIds.clear()
-
-          // The events of the incidents that moved, and the list once for all of them.
-          incidentIds.forEach(id => {
-            if (this.incidentsStore.events[id]) {
-              this.incidentsStore.refreshEvents(id)
-            }
-          })
-
-          this.incidentsStore.find()
-        },
-        reloadDelay
-      )
-    },
     watcherName(watcherId: number): string {
       return this.watchersStore.items.find(watcher => watcher.id === watcherId)?.name
           ?? `Watcher #${watcherId}`
@@ -276,41 +223,19 @@ export default defineComponent({
 
       return type ? this.watcherTypesStore.titleOf(type) : ''
     },
-    watchFrames() {
-      if (unsubscribeFrames !== null) {
-        return
-      }
-
-      unsubscribeFrames = this.statStore.onFrame((frame: WatcherIncidentFrame) => {
-        this.scheduleReload(frame.incident_id)
-      })
-    },
-    stopWatchingFrames() {
-      unsubscribeFrames?.()
-      unsubscribeFrames = null
-
-      if (reloadTimeoutId !== null) {
-        window.clearTimeout(reloadTimeoutId)
-        reloadTimeoutId = null
-      }
-
-      pendingIncidentIds.clear()
+    /** el-table hands over every open row, so the list is taken from it rather than kept in step by hand. */
+    rememberExpanded(_row: WatcherIncident, expanded: Array<WatcherIncident>) {
+      this.incidentsStore.expandedIncidentIds = expanded.map(incident => incident.id)
     },
   },
 
   watch: {
     active(active: boolean) {
+      // Back on screen after a while away: nothing follows the incidents in the
+      // background any more, so the list is read once rather than left as it was.
       if (active) {
-        this.watchFrames()
-
-        // Back after a while away: whatever happened in between was not followed, so the
-        // list is read once rather than left as the reader last saw it.
-        this.incidentsStore.find()
-
-        return
+        this.update()
       }
-
-      this.stopWatchingFrames()
     },
   },
 
@@ -326,14 +251,6 @@ export default defineComponent({
     }
 
     this.update()
-
-    if (this.active) {
-      this.watchFrames()
-    }
-  },
-
-  unmounted() {
-    this.stopWatchingFrames()
   },
 })
 </script>

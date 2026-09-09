@@ -12,7 +12,6 @@ use App\Modules\Trace\Infrastructure\Listeners\BroadcastTraceDynamicIndexBuiltLi
 use App\Modules\Trace\Infrastructure\Listeners\BroadcastTraceTreeStateListener;
 use App\Modules\Trace\Infrastructure\Listeners\DispatchTraceTreeCacheBuildListener;
 use App\Modules\Watcher\Domain\Events\WatcherIncidentChangedEvent;
-use App\Modules\Watcher\Infrastructure\Listeners\BroadcastWatcherIncidentListener;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 
 class EventServiceProvider extends ServiceProvider
@@ -36,7 +35,6 @@ class EventServiceProvider extends ServiceProvider
             DispatchNotificationListener::class,
         ],
         WatcherIncidentChangedEvent::class       => [
-            BroadcastWatcherIncidentListener::class,
             EnqueueNotificationsListener::class,
         ],
     ];
