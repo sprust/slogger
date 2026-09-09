@@ -61,8 +61,6 @@ readonly class EnqueueNotificationsAction
             );
         }
 
-        // Every row is written before anything is put on the queue: a broker that refuses
-        // the first would otherwise leave the channels after it with no record at all.
         foreach ($notifications as $notification) {
             $this->events->dispatch(new NotificationEnqueuedEvent($notification->id));
         }

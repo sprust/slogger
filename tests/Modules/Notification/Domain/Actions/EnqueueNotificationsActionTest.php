@@ -153,14 +153,12 @@ class EnqueueNotificationsActionTest extends TestCase
             return $this->notification();
         });
 
-        // A broker refusing the first one must not cost the channels after it their rows.
         $this->events->method('dispatch')->willThrowException(new RuntimeException('broker is down'));
 
         try {
             $this->action($repository, [$this->channel(id: 1), $this->channel(id: 2)])
                 ->handle($this->watcher(), $this->incident(), null);
         } catch (RuntimeException) {
-            // the listener above this is what reports it
         }
 
         $this->assertSame(2, $written);

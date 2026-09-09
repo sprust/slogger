@@ -14,11 +14,6 @@ use Illuminate\Support\Carbon;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Tests\TestCase;
 
-/**
- * The route names a type, and that is the promise the answer keeps. Editing used not to
- * check it: a body validated against one type's rules reached another type's settings
- * mapper, where every absent key fell back to a default.
- */
 class WatcherTypeRouteGuardTest extends TestCase
 {
     public function testEditingAWatcherOfAnotherTypeIsNotFound(): void

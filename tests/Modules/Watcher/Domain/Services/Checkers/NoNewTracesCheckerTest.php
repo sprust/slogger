@@ -71,17 +71,11 @@ class NoNewTracesCheckerTest extends TestCase
         $this->assertNull($this->check(bucketsAtMinutesAgo: [], collecting: false));
     }
 
-    /**
-     * A line at the receiver's cap had its head cut, so an empty window may be a stretch
-     * that was dropped rather than one where nothing happened. Reporting an absence from
-     * it would be a false alarm — the one thing this watcher must not produce.
-     */
     public function testATruncatedLineThatStartsInsideTheWindowSaysNothing(): void
     {
         $this->assertNull($this->check(bucketsAtMinutesAgo: [2], truncated: true));
     }
 
-    /** Below the cap nothing was dropped, so the same line is an answer. */
     public function testAnUntruncatedLineStartingInsideTheWindowStillReports(): void
     {
         $this->assertNotNull($this->check(bucketsAtMinutesAgo: [30], truncated: false));
