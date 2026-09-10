@@ -34,6 +34,22 @@
                 :data="groupsOf(props.row)"
                 :border="true"
             >
+              <el-table-column width="60" align="center">
+                <template #default="scope">
+                  <el-tooltip
+                      content="Find these traces in the aggregator"
+                      placement="right"
+                      :show-after="500"
+                  >
+                    <el-button
+                        type="info"
+                        link
+                        :icon="IconFilter"
+                        @click="openInAggregator(scope.row, props.row.occurred_at)"
+                    />
+                  </el-tooltip>
+                </template>
+              </el-table-column>
               <el-table-column label="Service" min-width="120">
                 <template #default="scope">
                   {{ serviceName(scope.row.service_id) }}
@@ -64,7 +80,7 @@
                       v-if="scope.row.trace_id"
                       type="info"
                       link
-                      @click="openInAggregator(scope.row.trace_id, props.row.occurred_at)"
+                      @click="openInAggregator(scope.row, props.row.occurred_at, scope.row.trace_id)"
                   >
                     {{ scope.row.trace_id }}
                   </el-button>
@@ -125,11 +141,12 @@ import {
 import {
   useTraceAggregatorGraphStore
 } from "../../../trace-aggregator/components/graph/store/traceAggregatorGraphStore.ts";
+import {Filter as IconFilter} from '@element-plus/icons-vue'
 import {formatUtcDateTime, normalizeUtcDateTime, utcTimestamp} from "../../../../../utils/helpers.ts";
 import {routes} from "../../../../../utils/router.ts";
 
 /** How far either side of an event the aggregator is opened. */
-const periodMargin = 60 * 60 * 1000
+const periodMargin = 15 * 60 * 1000
 
 type PayloadBucket = 'settings' | 'measured'
 
@@ -213,6 +230,9 @@ export default defineComponent({
     watchersStore() {
       return useWatchersStore()
     },
+    IconFilter() {
+      return IconFilter
+    },
     /** Empty for a watcher this panel is older than: no endpoint to ask, no columns to show. */
     watcherType(): string {
       return this.watchersStore.items.find(watcher => watcher.id === this.incident.watcher_id)?.type ?? ''
@@ -264,17 +284,22 @@ export default defineComponent({
           ?? `Service #${serviceId}`
     },
     /**
-     * Opens the aggregator on this one trace.
+     * Opens the aggregator on the traces this shape is made of, and on one of them by id
+     * where the shape names one.
      *
      * The filter is set from here rather than handed over in the url: the aggregator keeps
      * it in a store that survives navigation and reads no query parameters, so this is
-     * what "a link to a trace" means on this panel. The search itself is left to whoever
-     * arrives — the filter is a starting point, not a question already asked.
+     * what "a link to these traces" means on this panel. The search itself is left to
+     * whoever arrives — the filter is a starting point, not a question already asked.
      *
      * `initialized` is set because the aggregator resets its filter the first time it is
-     * mounted — without it the trace id would be wiped on arrival.
+     * mounted — without it everything set here would be wiped on arrival.
      */
-    openInAggregator(traceId: string, occurredAt: string) {
+    openInAggregator(
+      group: WatcherIncidentEventGroup,
+      occurredAt: string,
+      traceId: string | null = null,
+    ) {
       const traceAggregatorStore = useTraceAggregatorStore()
 
       // A live graph rewrites the filter's lower bound every second and would take the
@@ -286,6 +311,21 @@ export default defineComponent({
       traceAggregatorStore.initialized = true
       traceAggregatorStore.payload.trace_id = traceId
 
+      // What the group is: the traces of one service, of one type, carrying these tags.
+      // Only what the shape actually names — a watcher filtered by nothing leaves the
+      // type empty, and an empty value in the filter would ask for traces that have none.
+      if (group.service_id) {
+        traceAggregatorStore.payload.service_ids = [group.service_id]
+      }
+
+      if (group.type) {
+        traceAggregatorStore.payload.types = [group.type]
+      }
+
+      if (group.tags.length) {
+        traceAggregatorStore.payload.tags = [...group.tags]
+      }
+
       this.applyPeriodAround(traceAggregatorStore, occurredAt)
 
       this.$router.push(routes.traceAggregator)
@@ -294,7 +334,7 @@ export default defineComponent({
       return normalizeUtcDateTime(formatUtcDateTime(new Date(at))) ?? ''
     },
     /**
-     * An hour either side of the moment the watcher spoke.
+     * A quarter of an hour either side of the moment the watcher spoke.
      *
      * Narrow on purpose: the search reads a period as a range of hourly shards, so a week
      * around one known trace is thousands of collections to index and to scan. `Custom`
