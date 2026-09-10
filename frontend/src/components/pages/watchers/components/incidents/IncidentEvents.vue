@@ -1,11 +1,19 @@
 <template>
   <div v-loading="loading" style="padding: 0 20px 10px 20px">
-    <el-text v-if="!loading && events.length === 0" type="info">
+    <!-- An incident outlives the watcher that found it, and reading its events takes that
+         watcher's type: which numbers an event holds is the type's, and the event does not
+         carry it. Deleting a watcher from the panel is soft and leaves the row, so this is
+         a watcher whose row is gone altogether. -->
+    <el-text v-if="watcherMissing" type="info">
+      The watcher behind this incident is gone, so its events cannot be read.
+    </el-text>
+
+    <el-text v-else-if="!loading && events.length === 0" type="info">
       No events.
     </el-text>
 
     <el-table
-        v-else
+        v-else-if="events.length > 0"
         :data="events"
         :border="true"
         row-key="id"
@@ -15,7 +23,10 @@
       <el-table-column type="expand">
         <template #default="props">
           <div style="padding: 0 20px 10px 20px">
-            <el-text v-if="groupsOf(props.row).length === 0" type="info">
+            <el-text v-if="!props.row.payload" type="info">
+              This event was written in a shape this version cannot read.
+            </el-text>
+            <el-text v-else-if="groupsOf(props.row).length === 0" type="info">
               This watcher reads counters, not traces, so there is nothing to show here.
             </el-text>
             <el-table
@@ -210,7 +221,14 @@ export default defineComponent({
       return this.incidentsStore.events[this.incident.id] ?? []
     },
     loading(): boolean {
+      // The watchers too: which endpoint answers follows the type, so there is nothing to
+      // ask for until that list is in hand.
       return this.incidentsStore.loadingEvents[this.incident.id] === true
+          || (!this.watchersStore.loaded && this.watchersStore.loading)
+    },
+    /** Told apart from a list that has simply not arrived yet, which would say the same. */
+    watcherMissing(): boolean {
+      return this.watchersStore.loaded && !this.watcherType
     },
     exhausted(): boolean {
       return this.incidentsStore.eventsExhausted[this.incident.id] === true
