@@ -160,6 +160,7 @@ deploy-prod:
 	make up
 	make queues-declare
 	make art c='migrate --force'
+	make sconcur-wait
 	make sconcur-reload
 	make receiver-build
 	make frontend-npm-i
@@ -174,6 +175,7 @@ deploy-dev:
 	make up
 	make queues-declare
 	make art c='migrate --force'
+	make sconcur-wait
 	make sconcur-reload
 	make receiver-build
 	make frontend-npm-i
@@ -214,6 +216,34 @@ sconcur-update:
 	make composer-fresh c='dump-autoload'
 	make up
 	make sconcur-status
+
+# Waits until the master holds its lock, for the deploys to lean on.
+#
+# `up` returns when the container is up, not when the master inside it has booted and
+# taken the lock — supervisor starts it, and a build that changed the image means `up`
+# recreated the container. A deploy then reached sconcur-reload before the master
+# existed, got `not running` with exit 3, and died there with four steps still to run.
+# Which is the one case where there was nothing to reload: workers that have only just
+# started are already on the new code.
+#
+# master:status is what to ask — it answers 0 running, 3 stopped, and decides by the lock
+# rather than by a pid in the state file, so a stale file cannot fool it. The wait is not
+# folded into sconcur-reload because that one is also typed by hand, where "not running"
+# is the answer somebody wants immediately rather than in a minute.
+SCONCUR_MASTER_WAIT_SECONDS ?= 60
+
+sconcur-wait:
+	@echo "waiting for the sconcur master"; \
+	waited=0; \
+	until "$(WORKERS_CLI)"php artisan sconcur:servers:master:status >/dev/null 2>&1; do \
+		waited=$$((waited + 1)); \
+		if [ $$waited -ge $(SCONCUR_MASTER_WAIT_SECONDS) ]; then \
+			echo "the sconcur master did not come up in $(SCONCUR_MASTER_WAIT_SECONDS)s"; \
+			"$(WORKERS_CLI)"php artisan sconcur:servers:master:status; \
+			exit 1; \
+		fi; \
+		sleep 1; \
+	done
 
 # Fresh worker processes on the current code and config; the master keeps running.
 sconcur-reload:
