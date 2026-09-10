@@ -366,7 +366,7 @@ export default defineComponent({
   },
 
   mounted() {
-    if (this.servicesStore.items.length === 0 && !this.servicesStore.loading) {
+    if (!this.servicesStore.loaded && !this.servicesStore.loading) {
       this.servicesStore.findServices()
     }
   },

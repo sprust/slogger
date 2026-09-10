@@ -275,7 +275,7 @@ export default defineComponent({
         this.form.settings[field.key] = field.default
       })
 
-      if (this.servicesStore.items.length === 0) {
+      if (!this.servicesStore.loaded && !this.servicesStore.loading) {
         this.servicesStore.findServices()
       }
 

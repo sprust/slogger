@@ -7,13 +7,24 @@ export type TraceAggregatorService = AdminApi.ServicesList.ResponseBody['data'][
 
 interface TraceAggregatorServicesStoreInterface {
     loading: boolean
+    loaded: boolean
     items: Array<TraceAggregatorService>
 }
 
 export const useTraceAggregatorServicesStore = defineStore('traceAggregatorServicesStore', {
+    /**
+     * `loading` is a request in flight and `loaded` is whether the list has ever arrived.
+     *
+     * One flag was doing both jobs: it started as true, meaning "nobody has fetched this
+     * yet", and the aggregator fetched only while it was true. Anything else reading it
+     * as a request in flight — which is what it is called — concluded somebody was
+     * already fetching and left the list alone, so a service behind an incident had no
+     * name but its id.
+     */
     state: (): TraceAggregatorServicesStoreInterface => {
         return {
-            loading: true,
+            loading: false,
+            loaded: false,
             items: [] as Array<TraceAggregatorService>
         }
     },
@@ -25,6 +36,8 @@ export const useTraceAggregatorServicesStore = defineStore('traceAggregatorServi
                 () => ApiContainer.get().servicesList()
                     .then(response => {
                         this.items = response.data.data
+
+                        this.loaded = true
                     })
                     .finally(() => {
                         this.loading = false
