@@ -128,14 +128,6 @@ const IncidentEvents = defineAsyncComponent(() => import("./IncidentEvents.vue")
 export default defineComponent({
   components: {IncidentEvents},
 
-  props: {
-    /** Whether this is the tab on screen. */
-    active: {
-      type: Boolean,
-      default: true,
-    },
-  },
-
   data() {
     return {
       closing: {} as { [id: string]: boolean },
@@ -229,16 +221,6 @@ export default defineComponent({
     },
   },
 
-  watch: {
-    active(active: boolean) {
-      // Back on screen after a while away: nothing follows the incidents in the
-      // background any more, so the list is read once rather than left as it was.
-      if (active) {
-        this.update()
-      }
-    },
-  },
-
   mounted() {
     // The names beside each incident and the titles under them come from these two, and
     // both are read once per session.
@@ -250,7 +232,12 @@ export default defineComponent({
       this.watcherTypesStore.find()
     }
 
-    this.update()
+    // Once, not on every visit. Coming back to the tab is not a reason to throw away
+    // the list the reader left — the Refresh button beside the filters is, and it is the
+    // only thing that should collapse the rows they had opened.
+    if (!this.incidentsStore.loaded) {
+      this.update()
+    }
   },
 })
 </script>

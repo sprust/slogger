@@ -62,8 +62,8 @@ const eventsPerPage = 50
  */
 let findRequest = 0
 
-/** Events per incident, kept for as long as the page is open: an incident's history does
- * not change once it is read, except by a frame that reloads the row anyway. */
+/** Events per incident, kept until the list is read again: reading it is what a refresh
+ * of the table means, and an incident open on screen has to show what it holds now. */
 interface EventsByIncident {
     [incidentId: string]: Array<WatcherIncidentEvent>
 }
@@ -112,6 +112,8 @@ export const useIncidentsStore = defineStore('incidentsStore', {
     },
     actions: {
         async find() {
+            this.reset()
+
             this.loading = true
 
             // A filter nobody set is left out of the query rather than sent as null: the
@@ -234,6 +236,25 @@ export const useIncidentsStore = defineStore('incidentsStore', {
                         return this.find()
                     })
             )
+        },
+        /**
+         * Everything the table holds, dropped before the list is asked for again.
+         *
+         * A refresh that kept it was not a refresh: the rows left open stayed open over
+         * their old events, so an incident that had spoken again since showed the same
+         * page it showed a minute ago, and the reader had to collapse the row and open it
+         * to see anything new. The rows are read from `items` and everything else here is
+         * keyed by an incident id, so all of it belongs to the list that is being
+         * replaced.
+         */
+        reset() {
+            this.items = []
+            this.expandedIncidentIds = []
+            this.expandedEventIds = {}
+            this.events = {}
+            this.eventsPage = {}
+            this.eventsExhausted = {}
+            this.loadingEvents = {}
         },
         async setPage(page: number) {
             const previous = this.page

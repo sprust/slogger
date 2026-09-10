@@ -191,7 +191,11 @@ export default defineComponent({
       this.channelsStore.find()
     }
 
-    this.update()
+    // Once, not on every visit: coming back to the page is not a reason to read the list
+    // again, and the Refresh button beside it is there for when it is.
+    if (!this.watchersStore.loaded) {
+      this.update()
+    }
   },
 })
 </script>

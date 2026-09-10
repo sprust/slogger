@@ -4,11 +4,10 @@
          for the watchers and two for the types, one pair of which nobody is looking at.
 
          It only defers the first render, though. Once a pane has been opened it stays
-         mounted and is hidden with v-show, so leaving the tab unmounts nothing — which is
-         why the incidents list is told whether it is the one on screen rather than left
-         to work it out from its own lifecycle. -->
+         mounted and is hidden with v-show, so switching tabs neither unmounts anything
+         nor reads anything again. -->
     <el-tab-pane label="Incidents" :name="watcherTabs.incidents" lazy>
-      <Incidents :active="tabsStore.currentTab === watcherTabs.incidents"/>
+      <Incidents/>
     </el-tab-pane>
     <el-tab-pane label="Settings" :name="watcherTabs.settings" lazy>
       <WatcherList/>
