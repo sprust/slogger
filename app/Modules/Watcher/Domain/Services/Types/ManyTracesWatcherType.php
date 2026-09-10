@@ -46,7 +46,7 @@ readonly class ManyTracesWatcherType implements WatcherTypeDefinitionInterface
             fields: [
                 new WatcherTypeFieldObject(
                     key: 'window_minutes',
-                    title: 'Count over the last, minutes',
+                    title: 'Over the last, min',
                     valueType: 'int',
                     default: new ManyTracesSettingsObject()->windowMinutes,
                     max: WatcherTimelineObject::MAX_DEPTH_MINUTES

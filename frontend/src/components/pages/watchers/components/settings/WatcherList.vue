@@ -49,7 +49,7 @@
         </el-tag>
       </template>
     </el-table-column>
-    <el-table-column label="Wait between alerts, s" prop="cooldown_seconds" width="140"/>
+    <el-table-column label="Wait between alerts, sec" prop="cooldown_seconds" width="140"/>
     <el-table-column label="Notifies" min-width="140">
       <template #default="scope">
         <!-- A watcher that tells nobody looks like one that does until you open it. -->

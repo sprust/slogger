@@ -53,7 +53,7 @@
                 </template>
               </el-table-column>
               <el-table-column label="Traces" prop="count" width="90"/>
-              <el-table-column label="Slowest, s" width="110">
+              <el-table-column label="Slowest, sec" width="110">
                 <template #default="scope">
                   {{ scope.row.duration_max ?? '' }}
                 </template>
@@ -186,9 +186,9 @@ const columnsByType: Record<string, Array<PayloadColumn>> = {
     measured<ManyTracesEvent>('window_count', 'Traces counted'),
   ],
   slowTraces: [
-    setting<SlowTracesEvent>('duration', 'Longer than, s'),
+    setting<SlowTracesEvent>('duration', 'Longer than, sec'),
     setting<SlowTracesEvent>('window_minutes', 'Minutes counted'),
-    measured<SlowTracesEvent>('slowest', 'Slowest trace, s'),
+    measured<SlowTracesEvent>('slowest', 'Slowest trace, sec'),
   ],
 }
 

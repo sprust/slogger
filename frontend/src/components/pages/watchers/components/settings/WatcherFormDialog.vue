@@ -27,14 +27,17 @@
     <!-- for="" on every item: el-form-item otherwise ties its label to the one control
          inside it, and clicking the title of a parameter works the control — a click on
          the word "Enabled" flipped the switch. An empty `for` leaves the label a div. -->
-    <el-form label-width="180px" style="margin-top: 15px" v-loading="loading">
+    <!-- 200 rather than the 180 the channel form uses: the longest label here is a
+         sentence with a unit after it, and a label that does not fit wraps — putting its
+         tail above the row below, where it reads as that row's. -->
+    <el-form label-width="200px" style="margin-top: 15px" v-loading="loading">
       <el-form-item label="Name" for="">
         <el-input v-model="form.name" placeholder="A short name, so you know what it is"/>
       </el-form-item>
       <el-form-item label="Enabled" for="">
         <el-switch v-model="form.enabled"/>
       </el-form-item>
-      <el-form-item label="Wait between alerts, s" for="">
+      <el-form-item label="Wait between alerts, sec" for="">
         <el-input-number
             v-model="form.cooldownSeconds"
             :min="1"

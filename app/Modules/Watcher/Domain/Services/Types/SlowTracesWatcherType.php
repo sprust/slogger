@@ -46,14 +46,14 @@ readonly class SlowTracesWatcherType implements WatcherTypeDefinitionInterface
             fields: [
                 new WatcherTypeFieldObject(
                     key: 'duration',
-                    title: 'Longer than, seconds',
+                    title: 'Longer than, sec',
                     valueType: 'float',
                     default: new SlowTracesSettingsObject()->duration,
                     min: 0
                 ),
                 new WatcherTypeFieldObject(
                     key: 'window_minutes',
-                    title: 'Look at the last, minutes',
+                    title: 'Over the last, min',
                     valueType: 'int',
                     default: new SlowTracesSettingsObject()->windowMinutes,
                     max: WatcherTimelineObject::MAX_DEPTH_MINUTES
