@@ -140,6 +140,10 @@ export const useTraceAggregatorStore = defineStore('traceAggregatorStore', {
             loaded: false,
             payload: {
                 page: 1,
+                // Named rather than left to the object being replaced whole: it is part
+                // of the filter, and a reader looking for what a reset clears has to
+                // find it here.
+                service_ids: [],
                 types: [],
                 tags: [],
                 statuses: [],
@@ -202,6 +206,7 @@ export const useTraceAggregatorStore = defineStore('traceAggregatorStore', {
         resetFilters() {
             this.payload = {
                 page: 1,
+                service_ids: [],
                 types: [],
                 tags: [],
                 statuses: [],

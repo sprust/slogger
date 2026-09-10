@@ -5,6 +5,7 @@ namespace Tests\Modules\Watcher\Domain\Actions;
 use App\Modules\Watcher\Domain\Actions\Mutations\UpdateWatcherAction;
 use App\Modules\Watcher\Domain\Actions\Queries\FindWatcherAction;
 use App\Modules\Watcher\Domain\Services\Checkers\NoNewTracesChecker;
+use App\Modules\Watcher\Domain\Services\Events\NoNewTracesEventPayloadMapper;
 use App\Modules\Watcher\Domain\Services\Types\NoNewTracesWatcherType;
 use App\Modules\Watcher\Domain\Services\Types\WatcherTypeRegistry;
 use App\Modules\Watcher\Domain\Services\WatcherCollectionStart;
@@ -225,7 +226,10 @@ class UpdateWatcherActionTest extends TestCase
         $registry = $this->createMock(WatcherTypeRegistry::class);
 
         $registry->method('for')->willReturn(
-            new NoNewTracesWatcherType($this->createMock(NoNewTracesChecker::class))
+            new NoNewTracesWatcherType(
+                $this->createMock(NoNewTracesChecker::class),
+                new NoNewTracesEventPayloadMapper()
+            )
         );
 
         return $registry;

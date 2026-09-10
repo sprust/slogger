@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Watcher\Domain\Services\Types;
 
 use App\Modules\Watcher\Domain\Services\Checkers\WatcherCheckerInterface;
+use App\Modules\Watcher\Domain\Services\Events\WatcherEventPayloadMapperInterface;
 use App\Modules\Watcher\Entities\Settings\WatcherSettingsInterface;
 use App\Modules\Watcher\Entities\WatcherTypeObject;
 
@@ -12,8 +13,8 @@ use App\Modules\Watcher\Entities\WatcherTypeObject;
  * Everything one watcher type is: how to read its stored settings, how to describe it to
  * the panel, and who answers for it during a pass.
  *
- * One definition per type, so that the three questions are answered in one file each
- * instead of in three `match` statements that have to be kept in step. Adding a type is
+ * One definition per type, so that the questions are answered in one file each instead
+ * of in as many `match` statements that have to be kept in step. Adding a type is
  * one class and one arm of WatcherTypeRegistry.
  */
 interface WatcherTypeDefinitionInterface
@@ -31,6 +32,14 @@ interface WatcherTypeDefinitionInterface
 
     /** What the panel needs to offer this type and build its form. */
     public function describe(): WatcherTypeObject;
+
+    /**
+     * Both directions of this type's event payload.
+     *
+     * Beside makeSettings for the same reason: what a stored shape means belongs to the
+     * type that wrote it, and its checker is right here.
+     */
+    public function eventPayloadMapper(): WatcherEventPayloadMapperInterface;
 
     public function checker(): WatcherCheckerInterface;
 }

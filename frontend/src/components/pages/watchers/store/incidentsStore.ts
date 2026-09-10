@@ -6,8 +6,48 @@ import {useWatcherIncidentStatStore} from "../../../../store/watcherIncidentStat
 import {currentSession, sessionEnded} from "../../../../store/session.ts";
 
 export type WatcherIncident = AdminApi.WatchersIncidentsList.ResponseBody['data'][number];
-export type WatcherIncidentEvent = AdminApi.WatchersIncidentsEventsList.ResponseBody['data'][number];
-export type WatcherIncidentEventGroup = WatcherIncidentEvent['payload']['groups'][number];
+
+export type BufferOverflowEvent = AdminApi.WatchersIncidentsEventsBufferOverflowList.ResponseBody['data'][number];
+export type InvalidBufferGrownEvent = AdminApi.WatchersIncidentsEventsInvalidBufferGrownList.ResponseBody['data'][number];
+export type NoNewTracesEvent = AdminApi.WatchersIncidentsEventsNoNewTracesList.ResponseBody['data'][number];
+export type ManyTracesEvent = AdminApi.WatchersIncidentsEventsManyTracesList.ResponseBody['data'][number];
+export type SlowTracesEvent = AdminApi.WatchersIncidentsEventsSlowTracesList.ResponseBody['data'][number];
+
+/**
+ * One event of whichever watcher an incident belongs to.
+ *
+ * Every type answers on a route of its own, so each of these carries exactly the numbers
+ * its watcher reports. Which one a given incident holds is decided by the watcher, not by
+ * the event: the type comes from the watchers store.
+ */
+export type WatcherIncidentEvent =
+    | BufferOverflowEvent
+    | InvalidBufferGrownEvent
+    | NoNewTracesEvent
+    | ManyTracesEvent
+    | SlowTracesEvent;
+
+export type WatcherIncidentEventGroup = NonNullable<SlowTracesEvent['payload']>['groups'][number];
+
+type EventQuery = { page: number, per_page: number }
+
+/**
+ * Which endpoint answers for a type.
+ *
+ * The same shape as the settings endpoints in watchersStore, and for the same reason: the
+ * payload follows the watcher's type, and a route per type is what lets the answer name
+ * its numbers instead of offering every number any type might report.
+ */
+const eventEndpoints: Record<
+    string,
+    (incidentId: string, query: EventQuery) => Promise<{ data: { data: Array<WatcherIncidentEvent> } }>
+> = {
+    bufferOverflow: (id, query) => ApiContainer.get().watchersIncidentsEventsBufferOverflowList(id, query),
+    invalidBufferGrown: (id, query) => ApiContainer.get().watchersIncidentsEventsInvalidBufferGrownList(id, query),
+    noNewTraces: (id, query) => ApiContainer.get().watchersIncidentsEventsNoNewTracesList(id, query),
+    manyTraces: (id, query) => ApiContainer.get().watchersIncidentsEventsManyTracesList(id, query),
+    slowTraces: (id, query) => ApiContainer.get().watchersIncidentsEventsSlowTracesList(id, query),
+}
 
 const perPage = 50
 
@@ -22,8 +62,8 @@ const eventsPerPage = 50
  */
 let findRequest = 0
 
-/** Events per incident, kept for as long as the page is open: an incident's history does
- * not change once it is read, except by a frame that reloads the row anyway. */
+/** Events per incident, kept until the list is read again: reading it is what a refresh
+ * of the table means, and an incident open on screen has to show what it holds now. */
 interface EventsByIncident {
     [incidentId: string]: Array<WatcherIncidentEvent>
 }
@@ -72,6 +112,8 @@ export const useIncidentsStore = defineStore('incidentsStore', {
     },
     actions: {
         async find() {
+            this.reset()
+
             this.loading = true
 
             // A filter nobody set is left out of the query rather than sent as null: the
@@ -112,11 +154,11 @@ export const useIncidentsStore = defineStore('incidentsStore', {
                     })
             )
         },
-        async findEvents(incidentId: string) {
+        async findEvents(incidentId: string, watcherType: string) {
             this.eventsPage[incidentId] = 1
             this.eventsExhausted[incidentId] = false
 
-            return await this.loadEvents(incidentId, 1, false)
+            return await this.loadEvents(incidentId, watcherType, 1, false)
         },
         /**
          * The next page, appended.
@@ -124,10 +166,10 @@ export const useIncidentsStore = defineStore('incidentsStore', {
          * An incident open for a day holds a few hundred events — 288 at the shortest
          * cooldown the form allows — and the first page is not all of them.
          */
-        async findMoreEvents(incidentId: string) {
+        async findMoreEvents(incidentId: string, watcherType: string) {
             const page = (this.eventsPage[incidentId] ?? 1) + 1
 
-            const loaded = await this.loadEvents(incidentId, page, true)
+            const loaded = await this.loadEvents(incidentId, watcherType, page, true)
 
             // Only once it is actually in hand. Counting the page as read whatever
             // happened would make the next press ask for the one after it, and the events
@@ -138,13 +180,25 @@ export const useIncidentsStore = defineStore('incidentsStore', {
 
             return loaded
         },
-        async loadEvents(incidentId: string, page: number, append: boolean) {
+        /**
+         * A type the panel does not know about is a panel older than the server: there is
+         * no endpoint to ask and no columns to show, so nothing is asked for.
+         */
+        async loadEvents(incidentId: string, watcherType: string, page: number, append: boolean) {
+            const endpoint = eventEndpoints[watcherType]
+
+            if (!endpoint) {
+                this.eventsExhausted[incidentId] = true
+
+                return false
+            }
+
             this.loadingEvents[incidentId] = true
 
             const session = currentSession()
 
             return await handleApiRequest(
-                () => ApiContainer.get().watchersIncidentsEventsList(incidentId, {
+                () => endpoint(incidentId, {
                     page,
                     per_page: eventsPerPage,
                 })
@@ -182,6 +236,25 @@ export const useIncidentsStore = defineStore('incidentsStore', {
                         return this.find()
                     })
             )
+        },
+        /**
+         * Everything the table holds, dropped before the list is asked for again.
+         *
+         * A refresh that kept it was not a refresh: the rows left open stayed open over
+         * their old events, so an incident that had spoken again since showed the same
+         * page it showed a minute ago, and the reader had to collapse the row and open it
+         * to see anything new. The rows are read from `items` and everything else here is
+         * keyed by an incident id, so all of it belongs to the list that is being
+         * replaced.
+         */
+        reset() {
+            this.items = []
+            this.expandedIncidentIds = []
+            this.expandedEventIds = {}
+            this.events = {}
+            this.eventsPage = {}
+            this.eventsExhausted = {}
+            this.loadingEvents = {}
         },
         async setPage(page: number) {
             const previous = this.page

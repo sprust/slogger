@@ -9,7 +9,7 @@ enum WatcherTypeEnum: string
     case BufferOverflow = 'bufferOverflow';
     case InvalidBufferGrown = 'invalidBufferGrown';
     case NoNewTraces = 'noNewTraces';
-    case TracesSpike = 'tracesSpike';
+    case ManyTraces = 'manyTraces';
     case SlowTraces = 'slowTraces';
 
     /**
@@ -20,7 +20,7 @@ enum WatcherTypeEnum: string
     {
         return match ($this) {
             self::BufferOverflow, self::InvalidBufferGrown, self::NoNewTraces => 600,
-            self::TracesSpike, self::SlowTraces => 300,
+            self::ManyTraces, self::SlowTraces => 300,
         };
     }
 }

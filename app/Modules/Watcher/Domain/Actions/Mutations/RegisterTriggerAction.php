@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace App\Modules\Watcher\Domain\Actions\Mutations;
 
 use App\Modules\Watcher\Domain\Events\WatcherIncidentChangedEvent;
+use App\Modules\Watcher\Domain\Services\Types\WatcherTypeRegistry;
+use App\Modules\Watcher\Entities\Events\WatcherEventPayloadInterface;
 use App\Modules\Watcher\Entities\WatcherObject;
-use App\Modules\Watcher\Entities\WatcherTriggerObject;
 use App\Modules\Watcher\Repositories\WatcherIncidentEventRepository;
 use App\Modules\Watcher\Repositories\WatcherIncidentRepository;
 use App\Modules\Watcher\Repositories\WatcherRepository;
@@ -26,12 +27,16 @@ readonly class RegisterTriggerAction
         private WatcherRepository $watcherRepository,
         private WatcherIncidentRepository $incidentRepository,
         private WatcherIncidentEventRepository $eventRepository,
+        private WatcherTypeRegistry $types,
         private Dispatcher $events
     ) {
     }
 
-    public function handle(WatcherObject $watcher, WatcherTriggerObject $trigger, Carbon $occurredAt): void
-    {
+    public function handle(
+        WatcherObject $watcher,
+        WatcherEventPayloadInterface $payload,
+        Carbon $occurredAt
+    ): void {
         // The cooldown is on speaking, not on checking. The check runs every minute so
         // that a problem is noticed promptly; this is what keeps a problem that lasts an
         // hour from filling the incident with sixty identical events.
@@ -44,7 +49,11 @@ readonly class RegisterTriggerAction
         $incident = $this->incidentRepository->findLastOpenByWatcherId($watcher->id)
             ?? $this->incidentRepository->create($watcher->id, $occurredAt);
 
-        $this->eventRepository->create($incident->id, $occurredAt, $trigger);
+        $this->eventRepository->create(
+            incidentId: $incident->id,
+            occurredAt: $occurredAt,
+            payload: $this->types->for($watcher->type)->eventPayloadMapper()->toDocument($payload)
+        );
 
         $this->incidentRepository->incrementEventsCount($incident->id, $occurredAt);
 

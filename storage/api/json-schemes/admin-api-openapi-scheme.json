@@ -4027,7 +4027,34 @@
                 ]
             }
         },
-        "/admin-api/watchers/incidents/{id}/events": {
+        "/admin-api/watchers/incidents/{id}/close": {
+            "patch": {
+                "parameters": [
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "schema": {}
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "description",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/admin-api/watchers/incidents/{id}/events/buffer-overflow": {
             "get": {
                 "parameters": [
                     {
@@ -4086,73 +4113,359 @@
                                                                 "properties": {
                                                                     "threshold": {
                                                                         "type": "integer",
-                                                                        "nullable": true
-                                                                    },
-                                                                    "period_minutes": {
-                                                                        "type": "integer",
-                                                                        "nullable": true
-                                                                    },
-                                                                    "window_minutes": {
-                                                                        "type": "integer",
-                                                                        "nullable": true
-                                                                    },
-                                                                    "baseline_minutes": {
-                                                                        "type": "integer",
-                                                                        "nullable": true
-                                                                    },
-                                                                    "growth_percent": {
-                                                                        "type": "number",
-                                                                        "nullable": true
-                                                                    },
-                                                                    "duration": {
-                                                                        "type": "number",
-                                                                        "nullable": true
+                                                                        "nullable": false
                                                                     }
-                                                                }
+                                                                },
+                                                                "required": [
+                                                                    "threshold"
+                                                                ]
                                                             },
                                                             "measured": {
                                                                 "properties": {
                                                                     "buffer_count": {
                                                                         "type": "integer",
-                                                                        "nullable": true
-                                                                    },
+                                                                        "nullable": false
+                                                                    }
+                                                                },
+                                                                "required": [
+                                                                    "buffer_count"
+                                                                ]
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "settings",
+                                                            "measured"
+                                                        ]
+                                                    }
+                                                },
+                                                "required": [
+                                                    "id",
+                                                    "incident_id",
+                                                    "occurred_at"
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/admin-api/watchers/incidents/{id}/events/invalid-buffer-grown": {
+            "get": {
+                "parameters": [
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "schema": {}
+                    },
+                    {
+                        "name": "page",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 200
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "incident_id": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "occurred_at": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "payload": {
+                                                        "properties": {
+                                                            "settings": {
+                                                                "properties": {
+                                                                    "threshold": {
+                                                                        "type": "integer",
+                                                                        "nullable": false
+                                                                    }
+                                                                },
+                                                                "required": [
+                                                                    "threshold"
+                                                                ]
+                                                            },
+                                                            "measured": {
+                                                                "properties": {
                                                                     "invalid_count": {
                                                                         "type": "integer",
-                                                                        "nullable": true
+                                                                        "nullable": false
                                                                     },
                                                                     "since": {
                                                                         "type": "string",
-                                                                        "nullable": true
-                                                                    },
+                                                                        "nullable": false
+                                                                    }
+                                                                },
+                                                                "required": [
+                                                                    "invalid_count",
+                                                                    "since"
+                                                                ]
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "settings",
+                                                            "measured"
+                                                        ]
+                                                    }
+                                                },
+                                                "required": [
+                                                    "id",
+                                                    "incident_id",
+                                                    "occurred_at"
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/admin-api/watchers/incidents/{id}/events/no-new-traces": {
+            "get": {
+                "parameters": [
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "schema": {}
+                    },
+                    {
+                        "name": "page",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 200
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "incident_id": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "occurred_at": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "payload": {
+                                                        "properties": {
+                                                            "settings": {
+                                                                "properties": {
+                                                                    "period_minutes": {
+                                                                        "type": "integer",
+                                                                        "nullable": false
+                                                                    }
+                                                                },
+                                                                "required": [
+                                                                    "period_minutes"
+                                                                ]
+                                                            },
+                                                            "measured": {
+                                                                "properties": {
                                                                     "window_from": {
                                                                         "type": "string",
-                                                                        "nullable": true
+                                                                        "nullable": false
                                                                     },
                                                                     "window_to": {
                                                                         "type": "string",
-                                                                        "nullable": true
+                                                                        "nullable": false
+                                                                    }
+                                                                },
+                                                                "required": [
+                                                                    "window_from",
+                                                                    "window_to"
+                                                                ]
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "settings",
+                                                            "measured"
+                                                        ]
+                                                    }
+                                                },
+                                                "required": [
+                                                    "id",
+                                                    "incident_id",
+                                                    "occurred_at"
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/admin-api/watchers/incidents/{id}/events/many-traces": {
+            "get": {
+                "parameters": [
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "schema": {}
+                    },
+                    {
+                        "name": "page",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 200
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "incident_id": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "occurred_at": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "payload": {
+                                                        "properties": {
+                                                            "settings": {
+                                                                "properties": {
+                                                                    "window_minutes": {
+                                                                        "type": "integer",
+                                                                        "nullable": false
                                                                     },
+                                                                    "threshold": {
+                                                                        "type": "integer",
+                                                                        "nullable": false
+                                                                    }
+                                                                },
+                                                                "required": [
+                                                                    "window_minutes",
+                                                                    "threshold"
+                                                                ]
+                                                            },
+                                                            "measured": {
+                                                                "properties": {
                                                                     "window_count": {
                                                                         "type": "integer",
-                                                                        "nullable": true
-                                                                    },
-                                                                    "window_per_minute": {
-                                                                        "type": "number",
-                                                                        "nullable": true
-                                                                    },
-                                                                    "baseline_per_minute": {
-                                                                        "type": "number",
-                                                                        "nullable": true
-                                                                    },
-                                                                    "growth_percent": {
-                                                                        "type": "number",
-                                                                        "nullable": true
-                                                                    },
-                                                                    "slowest": {
-                                                                        "type": "number",
-                                                                        "nullable": true
+                                                                        "nullable": false
                                                                     }
-                                                                }
+                                                                },
+                                                                "required": [
+                                                                    "window_count"
+                                                                ]
                                                             },
                                                             "groups": {
                                                                 "type": "array",
@@ -4206,8 +4519,7 @@
                                                 "required": [
                                                     "id",
                                                     "incident_id",
-                                                    "occurred_at",
-                                                    "payload"
+                                                    "occurred_at"
                                                 ]
                                             }
                                         }
@@ -4227,14 +4539,33 @@
                 ]
             }
         },
-        "/admin-api/watchers/incidents/{id}/close": {
-            "patch": {
+        "/admin-api/watchers/incidents/{id}/events/slow-traces": {
+            "get": {
                 "parameters": [
                     {
                         "name": "id",
                         "required": true,
                         "in": "path",
                         "schema": {}
+                    },
+                    {
+                        "name": "page",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 200
+                        }
                     }
                 ],
                 "responses": {
@@ -4242,7 +4573,115 @@
                         "description": "description",
                         "content": {
                             "application/json": {
-                                "schema": {}
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "incident_id": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "occurred_at": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "payload": {
+                                                        "properties": {
+                                                            "settings": {
+                                                                "properties": {
+                                                                    "duration": {
+                                                                        "type": "number",
+                                                                        "nullable": false
+                                                                    },
+                                                                    "window_minutes": {
+                                                                        "type": "integer",
+                                                                        "nullable": false
+                                                                    }
+                                                                },
+                                                                "required": [
+                                                                    "duration",
+                                                                    "window_minutes"
+                                                                ]
+                                                            },
+                                                            "measured": {
+                                                                "properties": {
+                                                                    "slowest": {
+                                                                        "type": "number",
+                                                                        "nullable": false
+                                                                    }
+                                                                },
+                                                                "required": [
+                                                                    "slowest"
+                                                                ]
+                                                            },
+                                                            "groups": {
+                                                                "type": "array",
+                                                                "nullable": false,
+                                                                "items": {
+                                                                    "properties": {
+                                                                        "service_id": {
+                                                                            "type": "integer",
+                                                                            "nullable": false
+                                                                        },
+                                                                        "type": {
+                                                                            "type": "string",
+                                                                            "nullable": false
+                                                                        },
+                                                                        "tags": {
+                                                                            "type": "array",
+                                                                            "nullable": false,
+                                                                            "items": {
+                                                                                "type": "string"
+                                                                            }
+                                                                        },
+                                                                        "count": {
+                                                                            "type": "integer",
+                                                                            "nullable": false
+                                                                        },
+                                                                        "duration_max": {
+                                                                            "type": "number",
+                                                                            "nullable": true
+                                                                        },
+                                                                        "trace_id": {
+                                                                            "type": "string",
+                                                                            "nullable": true
+                                                                        }
+                                                                    },
+                                                                    "required": [
+                                                                        "service_id",
+                                                                        "type",
+                                                                        "tags",
+                                                                        "count"
+                                                                    ]
+                                                                }
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "settings",
+                                                            "measured",
+                                                            "groups"
+                                                        ]
+                                                    }
+                                                },
+                                                "required": [
+                                                    "id",
+                                                    "incident_id",
+                                                    "occurred_at"
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
                             }
                         }
                     }
@@ -5073,7 +5512,7 @@
                 ]
             }
         },
-        "/admin-api/watchers/traces-spike": {
+        "/admin-api/watchers/many-traces": {
             "post": {
                 "requestBody": {
                     "required": true,
@@ -5106,12 +5545,7 @@
                                                 "minimum": 1,
                                                 "maximum": 175
                                             },
-                                            "baseline_minutes": {
-                                                "type": "integer",
-                                                "minimum": 1,
-                                                "maximum": 175
-                                            },
-                                            "growth_percent": {
+                                            "threshold": {
                                                 "type": "integer",
                                                 "minimum": 1
                                             },
@@ -5236,7 +5670,7 @@
                 ]
             }
         },
-        "/admin-api/watchers/traces-spike/{id}": {
+        "/admin-api/watchers/many-traces/{id}": {
             "get": {
                 "parameters": [
                     {
@@ -5264,11 +5698,7 @@
                                                     "type": "integer",
                                                     "nullable": false
                                                 },
-                                                "baseline_minutes": {
-                                                    "type": "integer",
-                                                    "nullable": false
-                                                },
-                                                "growth_percent": {
+                                                "threshold": {
                                                     "type": "integer",
                                                     "nullable": false
                                                 },
@@ -5306,8 +5736,7 @@
                                             "required": [
                                                 "id",
                                                 "window_minutes",
-                                                "baseline_minutes",
-                                                "growth_percent",
+                                                "threshold",
                                                 "filter"
                                             ]
                                         }
@@ -5358,12 +5787,7 @@
                                                 "minimum": 1,
                                                 "maximum": 175
                                             },
-                                            "baseline_minutes": {
-                                                "type": "integer",
-                                                "minimum": 1,
-                                                "maximum": 175
-                                            },
-                                            "growth_percent": {
+                                            "threshold": {
                                                 "type": "integer",
                                                 "minimum": 1
                                             },

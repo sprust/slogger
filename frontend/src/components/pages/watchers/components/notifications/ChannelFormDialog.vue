@@ -24,11 +24,14 @@
         style="margin-top: 10px"
     />
 
+    <!-- for="" on every item: el-form-item otherwise ties its label to the one control
+         inside it, and clicking the title of a parameter works the control — a click on
+         the word "Enabled" flipped the switch. An empty `for` leaves the label a div. -->
     <el-form label-width="180px" style="margin-top: 15px" v-loading="loading">
-      <el-form-item label="Name">
+      <el-form-item label="Name" for="">
         <el-input v-model="form.name" placeholder="A short name, so you know what it is"/>
       </el-form-item>
-      <el-form-item label="Enabled">
+      <el-form-item label="Enabled" for="">
         <el-switch v-model="form.enabled"/>
       </el-form-item>
 
@@ -36,6 +39,7 @@
           v-for="field in definition?.fields ?? []"
           :key="field.key"
           :label="field.title"
+          for=""
       >
         <el-input
             v-model="form.settings[field.key]"
@@ -49,13 +53,13 @@
       <el-divider content-position="left">
         <el-text type="info">What to send</el-text>
       </el-divider>
-      <el-form-item label="Incident opened">
+      <el-form-item label="Incident opened" for="">
         <el-switch v-model="form.onOpened"/>
       </el-form-item>
-      <el-form-item label="Further events">
+      <el-form-item label="Further events" for="">
         <el-switch v-model="form.onEvent"/>
       </el-form-item>
-      <el-form-item label="Incident closed">
+      <el-form-item label="Incident closed" for="">
         <el-switch v-model="form.onClosed"/>
       </el-form-item>
     </el-form>

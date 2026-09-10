@@ -8,7 +8,7 @@ use App\Modules\Watcher\Entities\Settings\NoNewTracesSettingsObject;
 use App\Modules\Watcher\Entities\WatcherCheckContextObject;
 use App\Modules\Watcher\Entities\WatcherTimelineBucketObject;
 use App\Modules\Watcher\Entities\WatcherTimelineObject;
-use App\Modules\Watcher\Entities\WatcherTriggerObject;
+use App\Modules\Watcher\Entities\Events\NoNewTracesEventPayloadObject;
 use App\Modules\Watcher\Enums\WatcherTypeEnum;
 use App\Modules\Watcher\Repositories\WatcherTimelineRepository;
 use Illuminate\Support\Carbon;
@@ -30,7 +30,8 @@ class NoNewTracesCheckerTest extends TestCase
         $trigger = $this->check(bucketsAtMinutesAgo: []);
 
         $this->assertNotNull($trigger);
-        $this->assertSame(10, $trigger->settings['period_minutes']);
+        $this->assertInstanceOf(NoNewTracesEventPayloadObject::class, $trigger);
+        $this->assertSame(10, $trigger->settings->periodMinutes);
     }
 
     public function testOneTraceInTheWindowIsEnoughToStayQuiet(): void
@@ -86,7 +87,7 @@ class NoNewTracesCheckerTest extends TestCase
         ?Carbon $collectSince = null,
         bool $collecting = true,
         bool $truncated = false
-    ): ?WatcherTriggerObject {
+    ): ?NoNewTracesEventPayloadObject {
         $now = Carbon::parse(self::NOW);
 
         $buckets = array_map(

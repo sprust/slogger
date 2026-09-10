@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Watcher\Domain\Services\Checkers;
 
+use App\Modules\Watcher\Entities\Events\WatcherEventPayloadInterface;
 use App\Modules\Watcher\Entities\WatcherCheckContextObject;
 use App\Modules\Watcher\Entities\WatcherObject;
-use App\Modules\Watcher\Entities\WatcherTriggerObject;
 
 /**
  * Decides whether one watcher has something to say right now.
@@ -17,5 +17,5 @@ use App\Modules\Watcher\Entities\WatcherTriggerObject;
  */
 interface WatcherCheckerInterface
 {
-    public function check(WatcherObject $watcher, WatcherCheckContextObject $context): ?WatcherTriggerObject;
+    public function check(WatcherObject $watcher, WatcherCheckContextObject $context): ?WatcherEventPayloadInterface;
 }

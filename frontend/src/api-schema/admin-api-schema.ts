@@ -2016,47 +2016,41 @@ export namespace AdminApi {
   }
 
   /**
+   * No description
+   * @name WatchersIncidentsClosePartialUpdate
+   * @request PATCH:/admin-api/watchers/incidents/{id}/close
+   * @secure
+   * @response `200` `any` description
+   */
+  export namespace WatchersIncidentsClosePartialUpdate {
+    export type RequestParams = {
+      id: any;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = any;
+  }
+
+  /**
  * No description
- * @name WatchersIncidentsEventsList
- * @request GET:/admin-api/watchers/incidents/{id}/events
+ * @name WatchersIncidentsEventsBufferOverflowList
+ * @request GET:/admin-api/watchers/incidents/{id}/events/buffer-overflow
  * @secure
  * @response `200` `{
     data: ({
     id: string,
     incident_id: string,
     occurred_at: string,
-    payload: {
+    payload?: {
     settings: {
-    threshold?: number | null,
-    period_minutes?: number | null,
-    window_minutes?: number | null,
-    baseline_minutes?: number | null,
-    growth_percent?: number | null,
-    duration?: number | null,
+    threshold: number,
 
 },
     measured: {
-    buffer_count?: number | null,
-    invalid_count?: number | null,
-    since?: string | null,
-    window_from?: string | null,
-    window_to?: string | null,
-    window_count?: number | null,
-    window_per_minute?: number | null,
-    baseline_per_minute?: number | null,
-    growth_percent?: number | null,
-    slowest?: number | null,
+    buffer_count: number,
 
 },
-    groups: ({
-    service_id: number,
-    type: string,
-    tags: (string)[],
-    count: number,
-    duration_max?: number | null,
-    trace_id?: string | null,
-
-})[],
 
 },
 
@@ -2064,7 +2058,7 @@ export namespace AdminApi {
 
 }` description
 */
-  export namespace WatchersIncidentsEventsList {
+  export namespace WatchersIncidentsEventsBufferOverflowList {
     export type RequestParams = {
       id: any;
     };
@@ -2084,26 +2078,201 @@ export namespace AdminApi {
         id: string;
         incident_id: string;
         occurred_at: string;
-        payload: {
+        payload?: {
           settings: {
-            threshold?: number | null;
-            period_minutes?: number | null;
-            window_minutes?: number | null;
-            baseline_minutes?: number | null;
-            growth_percent?: number | null;
-            duration?: number | null;
+            threshold: number;
           };
           measured: {
-            buffer_count?: number | null;
-            invalid_count?: number | null;
-            since?: string | null;
-            window_from?: string | null;
-            window_to?: string | null;
-            window_count?: number | null;
-            window_per_minute?: number | null;
-            baseline_per_minute?: number | null;
-            growth_percent?: number | null;
-            slowest?: number | null;
+            buffer_count: number;
+          };
+        };
+      }[];
+    };
+  }
+
+  /**
+ * No description
+ * @name WatchersIncidentsEventsInvalidBufferGrownList
+ * @request GET:/admin-api/watchers/incidents/{id}/events/invalid-buffer-grown
+ * @secure
+ * @response `200` `{
+    data: ({
+    id: string,
+    incident_id: string,
+    occurred_at: string,
+    payload?: {
+    settings: {
+    threshold: number,
+
+},
+    measured: {
+    invalid_count: number,
+    since: string,
+
+},
+
+},
+
+})[],
+
+}` description
+*/
+  export namespace WatchersIncidentsEventsInvalidBufferGrownList {
+    export type RequestParams = {
+      id: any;
+    };
+    export type RequestQuery = {
+      /** @min 1 */
+      page?: number;
+      /**
+       * @min 1
+       * @max 200
+       */
+      per_page?: number;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        id: string;
+        incident_id: string;
+        occurred_at: string;
+        payload?: {
+          settings: {
+            threshold: number;
+          };
+          measured: {
+            invalid_count: number;
+            since: string;
+          };
+        };
+      }[];
+    };
+  }
+
+  /**
+ * No description
+ * @name WatchersIncidentsEventsNoNewTracesList
+ * @request GET:/admin-api/watchers/incidents/{id}/events/no-new-traces
+ * @secure
+ * @response `200` `{
+    data: ({
+    id: string,
+    incident_id: string,
+    occurred_at: string,
+    payload?: {
+    settings: {
+    period_minutes: number,
+
+},
+    measured: {
+    window_from: string,
+    window_to: string,
+
+},
+
+},
+
+})[],
+
+}` description
+*/
+  export namespace WatchersIncidentsEventsNoNewTracesList {
+    export type RequestParams = {
+      id: any;
+    };
+    export type RequestQuery = {
+      /** @min 1 */
+      page?: number;
+      /**
+       * @min 1
+       * @max 200
+       */
+      per_page?: number;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        id: string;
+        incident_id: string;
+        occurred_at: string;
+        payload?: {
+          settings: {
+            period_minutes: number;
+          };
+          measured: {
+            window_from: string;
+            window_to: string;
+          };
+        };
+      }[];
+    };
+  }
+
+  /**
+ * No description
+ * @name WatchersIncidentsEventsManyTracesList
+ * @request GET:/admin-api/watchers/incidents/{id}/events/many-traces
+ * @secure
+ * @response `200` `{
+    data: ({
+    id: string,
+    incident_id: string,
+    occurred_at: string,
+    payload?: {
+    settings: {
+    window_minutes: number,
+    threshold: number,
+
+},
+    measured: {
+    window_count: number,
+
+},
+    groups: ({
+    service_id: number,
+    type: string,
+    tags: (string)[],
+    count: number,
+    duration_max?: number | null,
+    trace_id?: string | null,
+
+})[],
+
+},
+
+})[],
+
+}` description
+*/
+  export namespace WatchersIncidentsEventsManyTracesList {
+    export type RequestParams = {
+      id: any;
+    };
+    export type RequestQuery = {
+      /** @min 1 */
+      page?: number;
+      /**
+       * @min 1
+       * @max 200
+       */
+      per_page?: number;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        id: string;
+        incident_id: string;
+        occurred_at: string;
+        payload?: {
+          settings: {
+            window_minutes: number;
+            threshold: number;
+          };
+          measured: {
+            window_count: number;
           };
           groups: {
             service_id: number;
@@ -2119,20 +2288,80 @@ export namespace AdminApi {
   }
 
   /**
-   * No description
-   * @name WatchersIncidentsClosePartialUpdate
-   * @request PATCH:/admin-api/watchers/incidents/{id}/close
-   * @secure
-   * @response `200` `any` description
-   */
-  export namespace WatchersIncidentsClosePartialUpdate {
+ * No description
+ * @name WatchersIncidentsEventsSlowTracesList
+ * @request GET:/admin-api/watchers/incidents/{id}/events/slow-traces
+ * @secure
+ * @response `200` `{
+    data: ({
+    id: string,
+    incident_id: string,
+    occurred_at: string,
+    payload?: {
+    settings: {
+    duration: number,
+    window_minutes: number,
+
+},
+    measured: {
+    slowest: number,
+
+},
+    groups: ({
+    service_id: number,
+    type: string,
+    tags: (string)[],
+    count: number,
+    duration_max?: number | null,
+    trace_id?: string | null,
+
+})[],
+
+},
+
+})[],
+
+}` description
+*/
+  export namespace WatchersIncidentsEventsSlowTracesList {
     export type RequestParams = {
       id: any;
     };
-    export type RequestQuery = {};
+    export type RequestQuery = {
+      /** @min 1 */
+      page?: number;
+      /**
+       * @min 1
+       * @max 200
+       */
+      per_page?: number;
+    };
     export type RequestBody = never;
     export type RequestHeaders = {};
-    export type ResponseBody = any;
+    export type ResponseBody = {
+      data: {
+        id: string;
+        incident_id: string;
+        occurred_at: string;
+        payload?: {
+          settings: {
+            duration: number;
+            window_minutes: number;
+          };
+          measured: {
+            slowest: number;
+          };
+          groups: {
+            service_id: number;
+            type: string;
+            tags: string[];
+            count: number;
+            duration_max?: number | null;
+            trace_id?: string | null;
+          }[];
+        };
+      }[];
+    };
   }
 
   /**
@@ -2539,8 +2768,8 @@ export namespace AdminApi {
 
   /**
  * No description
- * @name WatchersTracesSpikeCreate
- * @request POST:/admin-api/watchers/traces-spike
+ * @name WatchersManyTracesCreate
+ * @request POST:/admin-api/watchers/many-traces
  * @secure
  * @response `200` `{
     data: {
@@ -2560,7 +2789,7 @@ export namespace AdminApi {
 
 }` description
 */
-  export namespace WatchersTracesSpikeCreate {
+  export namespace WatchersManyTracesCreate {
     export type RequestParams = {};
     export type RequestQuery = {};
     export type RequestBody = {
@@ -2582,13 +2811,8 @@ export namespace AdminApi {
          * @max 175
          */
         window_minutes?: number;
-        /**
-         * @min 1
-         * @max 175
-         */
-        baseline_minutes?: number;
         /** @min 1 */
-        growth_percent?: number;
+        threshold?: number;
         filter?: {
           service_ids?: number[];
           types?: string[];
@@ -2616,15 +2840,14 @@ export namespace AdminApi {
 
   /**
  * No description
- * @name WatchersTracesSpikeDetail
- * @request GET:/admin-api/watchers/traces-spike/{id}
+ * @name WatchersManyTracesDetail
+ * @request GET:/admin-api/watchers/many-traces/{id}
  * @secure
  * @response `200` `{
     data: {
     id: number,
     window_minutes: number,
-    baseline_minutes: number,
-    growth_percent: number,
+    threshold: number,
     filter: {
     service_ids: (number)[],
     types: (string)[],
@@ -2636,7 +2859,7 @@ export namespace AdminApi {
 
 }` description
 */
-  export namespace WatchersTracesSpikeDetail {
+  export namespace WatchersManyTracesDetail {
     export type RequestParams = {
       id: any;
     };
@@ -2647,8 +2870,7 @@ export namespace AdminApi {
       data: {
         id: number;
         window_minutes: number;
-        baseline_minutes: number;
-        growth_percent: number;
+        threshold: number;
         filter: {
           service_ids: number[];
           types: string[];
@@ -2660,12 +2882,12 @@ export namespace AdminApi {
 
   /**
    * No description
-   * @name WatchersTracesSpikePartialUpdate
-   * @request PATCH:/admin-api/watchers/traces-spike/{id}
+   * @name WatchersManyTracesPartialUpdate
+   * @request PATCH:/admin-api/watchers/many-traces/{id}
    * @secure
    * @response `200` `any` description
    */
-  export namespace WatchersTracesSpikePartialUpdate {
+  export namespace WatchersManyTracesPartialUpdate {
     export type RequestParams = {
       id: any;
     };
@@ -2689,13 +2911,8 @@ export namespace AdminApi {
          * @max 175
          */
         window_minutes?: number;
-        /**
-         * @min 1
-         * @max 175
-         */
-        baseline_minutes?: number;
         /** @min 1 */
-        growth_percent?: number;
+        threshold?: number;
         filter?: {
           service_ids?: number[];
           types?: string[];
@@ -5554,48 +5771,45 @@ export class Api<
       }),
 
     /**
+     * No description
+     *
+     * @name WatchersIncidentsClosePartialUpdate
+     * @request PATCH:/admin-api/watchers/incidents/{id}/close
+     * @secure
+     * @response `200` `any` description
+     */
+    watchersIncidentsClosePartialUpdate: (
+      id: any,
+      params: RequestParams = {},
+    ) =>
+      this.request<any, any>({
+        path: `/admin-api/watchers/incidents/${id}/close`,
+        method: "PATCH",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
  * No description
  *
- * @name WatchersIncidentsEventsList
- * @request GET:/admin-api/watchers/incidents/{id}/events
+ * @name WatchersIncidentsEventsBufferOverflowList
+ * @request GET:/admin-api/watchers/incidents/{id}/events/buffer-overflow
  * @secure
  * @response `200` `{
     data: ({
     id: string,
     incident_id: string,
     occurred_at: string,
-    payload: {
+    payload?: {
     settings: {
-    threshold?: number | null,
-    period_minutes?: number | null,
-    window_minutes?: number | null,
-    baseline_minutes?: number | null,
-    growth_percent?: number | null,
-    duration?: number | null,
+    threshold: number,
 
 },
     measured: {
-    buffer_count?: number | null,
-    invalid_count?: number | null,
-    since?: string | null,
-    window_from?: string | null,
-    window_to?: string | null,
-    window_count?: number | null,
-    window_per_minute?: number | null,
-    baseline_per_minute?: number | null,
-    growth_percent?: number | null,
-    slowest?: number | null,
+    buffer_count: number,
 
 },
-    groups: ({
-    service_id: number,
-    type: string,
-    tags: (string)[],
-    count: number,
-    duration_max?: number | null,
-    trace_id?: string | null,
-
-})[],
 
 },
 
@@ -5603,7 +5817,7 @@ export class Api<
 
 }` description
  */
-    watchersIncidentsEventsList: (
+    watchersIncidentsEventsBufferOverflowList: (
       id: any,
       query?: {
         /** @min 1 */
@@ -5622,26 +5836,225 @@ export class Api<
             id: string;
             incident_id: string;
             occurred_at: string;
-            payload: {
+            payload?: {
               settings: {
-                threshold?: number | null;
-                period_minutes?: number | null;
-                window_minutes?: number | null;
-                baseline_minutes?: number | null;
-                growth_percent?: number | null;
-                duration?: number | null;
+                threshold: number;
               };
               measured: {
-                buffer_count?: number | null;
-                invalid_count?: number | null;
-                since?: string | null;
-                window_from?: string | null;
-                window_to?: string | null;
-                window_count?: number | null;
-                window_per_minute?: number | null;
-                baseline_per_minute?: number | null;
-                growth_percent?: number | null;
-                slowest?: number | null;
+                buffer_count: number;
+              };
+            };
+          }[];
+        },
+        any
+      >({
+        path: `/admin-api/watchers/incidents/${id}/events/buffer-overflow`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name WatchersIncidentsEventsInvalidBufferGrownList
+ * @request GET:/admin-api/watchers/incidents/{id}/events/invalid-buffer-grown
+ * @secure
+ * @response `200` `{
+    data: ({
+    id: string,
+    incident_id: string,
+    occurred_at: string,
+    payload?: {
+    settings: {
+    threshold: number,
+
+},
+    measured: {
+    invalid_count: number,
+    since: string,
+
+},
+
+},
+
+})[],
+
+}` description
+ */
+    watchersIncidentsEventsInvalidBufferGrownList: (
+      id: any,
+      query?: {
+        /** @min 1 */
+        page?: number;
+        /**
+         * @min 1
+         * @max 200
+         */
+        per_page?: number;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          data: {
+            id: string;
+            incident_id: string;
+            occurred_at: string;
+            payload?: {
+              settings: {
+                threshold: number;
+              };
+              measured: {
+                invalid_count: number;
+                since: string;
+              };
+            };
+          }[];
+        },
+        any
+      >({
+        path: `/admin-api/watchers/incidents/${id}/events/invalid-buffer-grown`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name WatchersIncidentsEventsNoNewTracesList
+ * @request GET:/admin-api/watchers/incidents/{id}/events/no-new-traces
+ * @secure
+ * @response `200` `{
+    data: ({
+    id: string,
+    incident_id: string,
+    occurred_at: string,
+    payload?: {
+    settings: {
+    period_minutes: number,
+
+},
+    measured: {
+    window_from: string,
+    window_to: string,
+
+},
+
+},
+
+})[],
+
+}` description
+ */
+    watchersIncidentsEventsNoNewTracesList: (
+      id: any,
+      query?: {
+        /** @min 1 */
+        page?: number;
+        /**
+         * @min 1
+         * @max 200
+         */
+        per_page?: number;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          data: {
+            id: string;
+            incident_id: string;
+            occurred_at: string;
+            payload?: {
+              settings: {
+                period_minutes: number;
+              };
+              measured: {
+                window_from: string;
+                window_to: string;
+              };
+            };
+          }[];
+        },
+        any
+      >({
+        path: `/admin-api/watchers/incidents/${id}/events/no-new-traces`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name WatchersIncidentsEventsManyTracesList
+ * @request GET:/admin-api/watchers/incidents/{id}/events/many-traces
+ * @secure
+ * @response `200` `{
+    data: ({
+    id: string,
+    incident_id: string,
+    occurred_at: string,
+    payload?: {
+    settings: {
+    window_minutes: number,
+    threshold: number,
+
+},
+    measured: {
+    window_count: number,
+
+},
+    groups: ({
+    service_id: number,
+    type: string,
+    tags: (string)[],
+    count: number,
+    duration_max?: number | null,
+    trace_id?: string | null,
+
+})[],
+
+},
+
+})[],
+
+}` description
+ */
+    watchersIncidentsEventsManyTracesList: (
+      id: any,
+      query?: {
+        /** @min 1 */
+        page?: number;
+        /**
+         * @min 1
+         * @max 200
+         */
+        per_page?: number;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          data: {
+            id: string;
+            incident_id: string;
+            occurred_at: string;
+            payload?: {
+              settings: {
+                window_minutes: number;
+                threshold: number;
+              };
+              measured: {
+                window_count: number;
               };
               groups: {
                 service_id: number;
@@ -5656,7 +6069,7 @@ export class Api<
         },
         any
       >({
-        path: `/admin-api/watchers/incidents/${id}/events`,
+        path: `/admin-api/watchers/incidents/${id}/events/many-traces`,
         method: "GET",
         query: query,
         secure: true,
@@ -5665,20 +6078,85 @@ export class Api<
       }),
 
     /**
-     * No description
-     *
-     * @name WatchersIncidentsClosePartialUpdate
-     * @request PATCH:/admin-api/watchers/incidents/{id}/close
-     * @secure
-     * @response `200` `any` description
-     */
-    watchersIncidentsClosePartialUpdate: (
+ * No description
+ *
+ * @name WatchersIncidentsEventsSlowTracesList
+ * @request GET:/admin-api/watchers/incidents/{id}/events/slow-traces
+ * @secure
+ * @response `200` `{
+    data: ({
+    id: string,
+    incident_id: string,
+    occurred_at: string,
+    payload?: {
+    settings: {
+    duration: number,
+    window_minutes: number,
+
+},
+    measured: {
+    slowest: number,
+
+},
+    groups: ({
+    service_id: number,
+    type: string,
+    tags: (string)[],
+    count: number,
+    duration_max?: number | null,
+    trace_id?: string | null,
+
+})[],
+
+},
+
+})[],
+
+}` description
+ */
+    watchersIncidentsEventsSlowTracesList: (
       id: any,
+      query?: {
+        /** @min 1 */
+        page?: number;
+        /**
+         * @min 1
+         * @max 200
+         */
+        per_page?: number;
+      },
       params: RequestParams = {},
     ) =>
-      this.request<any, any>({
-        path: `/admin-api/watchers/incidents/${id}/close`,
-        method: "PATCH",
+      this.request<
+        {
+          data: {
+            id: string;
+            incident_id: string;
+            occurred_at: string;
+            payload?: {
+              settings: {
+                duration: number;
+                window_minutes: number;
+              };
+              measured: {
+                slowest: number;
+              };
+              groups: {
+                service_id: number;
+                type: string;
+                tags: string[];
+                count: number;
+                duration_max?: number | null;
+                trace_id?: string | null;
+              }[];
+            };
+          }[];
+        },
+        any
+      >({
+        path: `/admin-api/watchers/incidents/${id}/events/slow-traces`,
+        method: "GET",
+        query: query,
         secure: true,
         format: "json",
         ...params,
@@ -6146,8 +6624,8 @@ export class Api<
     /**
  * No description
  *
- * @name WatchersTracesSpikeCreate
- * @request POST:/admin-api/watchers/traces-spike
+ * @name WatchersManyTracesCreate
+ * @request POST:/admin-api/watchers/many-traces
  * @secure
  * @response `200` `{
     data: {
@@ -6167,7 +6645,7 @@ export class Api<
 
 }` description
  */
-    watchersTracesSpikeCreate: (
+    watchersManyTracesCreate: (
       data: {
         /**
          * @minLength 1
@@ -6187,13 +6665,8 @@ export class Api<
            * @max 175
            */
           window_minutes?: number;
-          /**
-           * @min 1
-           * @max 175
-           */
-          baseline_minutes?: number;
           /** @min 1 */
-          growth_percent?: number;
+          threshold?: number;
           filter?: {
             service_ids?: number[];
             types?: string[];
@@ -6221,7 +6694,7 @@ export class Api<
         },
         any
       >({
-        path: `/admin-api/watchers/traces-spike`,
+        path: `/admin-api/watchers/many-traces`,
         method: "POST",
         body: data,
         secure: true,
@@ -6233,15 +6706,14 @@ export class Api<
     /**
  * No description
  *
- * @name WatchersTracesSpikeDetail
- * @request GET:/admin-api/watchers/traces-spike/{id}
+ * @name WatchersManyTracesDetail
+ * @request GET:/admin-api/watchers/many-traces/{id}
  * @secure
  * @response `200` `{
     data: {
     id: number,
     window_minutes: number,
-    baseline_minutes: number,
-    growth_percent: number,
+    threshold: number,
     filter: {
     service_ids: (number)[],
     types: (string)[],
@@ -6253,14 +6725,13 @@ export class Api<
 
 }` description
  */
-    watchersTracesSpikeDetail: (id: any, params: RequestParams = {}) =>
+    watchersManyTracesDetail: (id: any, params: RequestParams = {}) =>
       this.request<
         {
           data: {
             id: number;
             window_minutes: number;
-            baseline_minutes: number;
-            growth_percent: number;
+            threshold: number;
             filter: {
               service_ids: number[];
               types: string[];
@@ -6270,7 +6741,7 @@ export class Api<
         },
         any
       >({
-        path: `/admin-api/watchers/traces-spike/${id}`,
+        path: `/admin-api/watchers/many-traces/${id}`,
         method: "GET",
         secure: true,
         format: "json",
@@ -6280,12 +6751,12 @@ export class Api<
     /**
      * No description
      *
-     * @name WatchersTracesSpikePartialUpdate
-     * @request PATCH:/admin-api/watchers/traces-spike/{id}
+     * @name WatchersManyTracesPartialUpdate
+     * @request PATCH:/admin-api/watchers/many-traces/{id}
      * @secure
      * @response `200` `any` description
      */
-    watchersTracesSpikePartialUpdate: (
+    watchersManyTracesPartialUpdate: (
       id: any,
       data: {
         /**
@@ -6306,13 +6777,8 @@ export class Api<
            * @max 175
            */
           window_minutes?: number;
-          /**
-           * @min 1
-           * @max 175
-           */
-          baseline_minutes?: number;
           /** @min 1 */
-          growth_percent?: number;
+          threshold?: number;
           filter?: {
             service_ids?: number[];
             types?: string[];
@@ -6323,7 +6789,7 @@ export class Api<
       params: RequestParams = {},
     ) =>
       this.request<any, any>({
-        path: `/admin-api/watchers/traces-spike/${id}`,
+        path: `/admin-api/watchers/many-traces/${id}`,
         method: "PATCH",
         body: data,
         secure: true,

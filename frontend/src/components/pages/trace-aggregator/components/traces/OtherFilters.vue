@@ -11,7 +11,7 @@
       </el-row>
     </template>
     <el-form label-width="auto">
-      <el-form-item label="Trace id">
+      <el-form-item label="Trace id" for="">
         <el-input
             v-model="traceAggregatorStore.payload.trace_id"
             :disabled="traceAggregatorGraphStore.showGraph"
@@ -27,7 +27,7 @@
           </template>
         </el-input>
       </el-form-item>
-      <el-form-item label="Duration">
+      <el-form-item label="Duration" for="">
         <el-input-number
             v-model="traceAggregatorStore.payload.duration_from"
             :precision="6"
@@ -51,7 +51,7 @@
         >
         </el-button>
       </el-form-item>
-      <el-form-item label="Memory">
+      <el-form-item label="Memory" for="">
         <el-input-number
             v-model="traceAggregatorStore.payload.memory_from"
             :precision="2"
@@ -75,7 +75,7 @@
         >
         </el-button>
       </el-form-item>
-      <el-form-item label="Cpu">
+      <el-form-item label="Cpu" for="">
         <el-input-number
             v-model="traceAggregatorStore.payload.cpu_from"
             :precision="2"
@@ -99,7 +99,7 @@
         >
         </el-button>
       </el-form-item>
-      <el-form-item label="Profiling">
+      <el-form-item label="Profiling" for="">
         <el-switch
             v-model="traceAggregatorStore.payload.has_profiling"
             size="small"

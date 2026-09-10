@@ -6,7 +6,9 @@ use App\Modules\Watcher\Domain\Actions\Mutations\RegisterTriggerAction;
 use App\Modules\Watcher\Domain\Events\WatcherIncidentChangedEvent;
 use App\Modules\Watcher\Entities\Settings\BufferOverflowSettingsObject;
 use App\Modules\Watcher\Entities\WatcherIncidentObject;
-use App\Modules\Watcher\Entities\WatcherTriggerObject;
+use App\Modules\Watcher\Entities\Events\BufferOverflowEventMeasuredObject;
+use App\Modules\Watcher\Entities\Events\BufferOverflowEventPayloadObject;
+use App\Modules\Watcher\Entities\Events\BufferOverflowEventSettingsObject;
 use App\Modules\Watcher\Enums\WatcherIncidentStatusEnum;
 use App\Modules\Watcher\Enums\WatcherTypeEnum;
 use App\Modules\Watcher\Repositories\WatcherIncidentEventRepository;
@@ -15,6 +17,7 @@ use App\Modules\Watcher\Repositories\WatcherRepository;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Support\Carbon;
 use PHPUnit\Framework\TestCase;
+use Tests\Modules\Watcher\WatcherTypeRegistryFactoryTrait;
 use Tests\Modules\Watcher\WatcherFactoryTrait;
 
 /**
@@ -23,6 +26,8 @@ use Tests\Modules\Watcher\WatcherFactoryTrait;
  */
 class RegisterTriggerActionTest extends TestCase
 {
+    use WatcherTypeRegistryFactoryTrait;
+
     use WatcherFactoryTrait;
 
     private const string NOW = '2026-09-07 12:00:00';
@@ -141,6 +146,7 @@ class RegisterTriggerActionTest extends TestCase
             $this->createMock(WatcherRepository::class),
             $incidents,
             $events,
+            $this->watcherTypeRegistry(),
             $dispatcher ?? $this->createMock(Dispatcher::class)
         )->handle(
             $this->watcher(
@@ -149,7 +155,10 @@ class RegisterTriggerActionTest extends TestCase
                 lastTriggeredAt: $lastTriggeredAt,
                 cooldownSeconds: 300
             ),
-            new WatcherTriggerObject(settings: ['threshold' => 1000], measured: ['buffer_count' => 5000]),
+            new BufferOverflowEventPayloadObject(
+                settings: new BufferOverflowEventSettingsObject(threshold: 1000),
+                measured: new BufferOverflowEventMeasuredObject(bufferCount: 5000)
+            ),
             $now
         );
     }

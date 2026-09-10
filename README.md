@@ -17,7 +17,7 @@ It collects data about code execution (HTTP requests, queues, events, commands, 
 - Timeline charts for trace metrics — count, duration, memory, CPU — with aggregations and the same filtering as in search.
 - Storage dashboard — collection sizes, memory and index usage.
 - Runtime dashboard — live stats of the SConcur HTTP server: worker pool, RPS, CPU, memory, in-flight requests.
-- Watchers — configurable rules that open an incident when the system misbehaves: a buffer growing, traces stopping, a spike of them, traces running too long.
+- Watchers — configurable rules that open an incident when the system misbehaves: a buffer growing, traces stopping, too many of them, traces running too long.
 - Notification channels — a watcher's incidents are sent on to Telegram, with a delivery log per channel.
 - Automatic cleanup of stale data.
 
@@ -173,7 +173,7 @@ For duration/memory/CPU the average, minimum, and maximum are computed. Charts c
 
 ### Watchers
 
-Configurable rules that watch the system and open an incident when one of them is broken. Five types: the buffer growing (`bufferOverflow`), invalid traces arriving (`invalidBufferGrown`), traces stopping (`noNewTraces`), a spike of them (`tracesSpike`), and traces running longer than they should (`slowTraces`). The last three take a filter — services, trace types, tags — so a watcher can be about one part of the system rather than all of it.
+Configurable rules that watch the system and open an incident when one of them is broken. Five types: the buffer growing (`bufferOverflow`), invalid traces arriving (`invalidBufferGrown`), traces stopping (`noNewTraces`), more of them than a limit (`manyTraces`), and traces running longer than they should (`slowTraces`). The last three take a filter — services, trace types, tags — so a watcher can be about one part of the system rather than all of it.
 
 No watcher queries the hourly trace collections, and none uses the dynamic indexes. Traces are counted where they already pass one by one — in the receiver, which matches each of them against the watchers' filters and adds it to a 15-second bucket in the watcher's own timeline (`watcherTimelines`, one document per watcher). The receiver knows nothing about thresholds, windows or cooldowns: a task in the pool reads the timelines once a minute, applies the numbers each watcher was configured with, and decides what has gone wrong. The heaviest query a watcher makes is a `findOne` of its own line.
 

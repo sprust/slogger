@@ -31,9 +31,13 @@ readonly class WatcherRepository
             ->all();
     }
 
-    public function findById(int $id): ?WatcherDto
+    /**
+     * @param bool $withTrashed a deleted watcher still answers, for the incidents it left
+     *                          behind: they outlive it, and reading one takes its type
+     */
+    public function findById(int $id, bool $withTrashed = false): ?WatcherDto
     {
-        $watcher = Watcher::query()->find($id);
+        $watcher = ($withTrashed ? Watcher::withTrashed() : Watcher::query())->find($id);
 
         return $watcher instanceof Watcher ? $this->makeDto($watcher) : null;
     }

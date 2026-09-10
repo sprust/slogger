@@ -2,17 +2,6 @@
 
 namespace Tests\Modules\Watcher\Domain\Services;
 
-use App\Modules\Watcher\Domain\Services\Checkers\BufferOverflowChecker;
-use App\Modules\Watcher\Domain\Services\Checkers\InvalidBufferGrownChecker;
-use App\Modules\Watcher\Domain\Services\Checkers\NoNewTracesChecker;
-use App\Modules\Watcher\Domain\Services\Checkers\SlowTracesChecker;
-use App\Modules\Watcher\Domain\Services\Checkers\TracesSpikeChecker;
-use App\Modules\Watcher\Domain\Services\Types\BufferOverflowWatcherType;
-use App\Modules\Watcher\Domain\Services\Types\InvalidBufferGrownWatcherType;
-use App\Modules\Watcher\Domain\Services\Types\NoNewTracesWatcherType;
-use App\Modules\Watcher\Domain\Services\Types\SlowTracesWatcherType;
-use App\Modules\Watcher\Domain\Services\Types\TracesSpikeWatcherType;
-use App\Modules\Watcher\Domain\Services\Types\WatcherTypeRegistry;
 use App\Modules\Watcher\Domain\Services\WatcherFactory;
 use App\Modules\Watcher\Entities\Settings\SlowTracesSettingsObject;
 use App\Modules\Watcher\Entities\WatcherMatchObject;
@@ -21,13 +10,16 @@ use App\Modules\Watcher\Repositories\Dto\WatcherDto;
 use Illuminate\Support\Carbon;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
-
 /**
  * Where a row becomes a watcher. The repository hands over a type as a string and settings
  * as json; what those mean is decided here and nowhere else.
  */
+use Tests\Modules\Watcher\WatcherTypeRegistryFactoryTrait;
+
 class WatcherFactoryTest extends TestCase
 {
+    use WatcherTypeRegistryFactoryTrait;
+
     public function testTheStoredTypeDecidesHowTheSettingsAreRead(): void
     {
         $watcher = $this->factory()->make(
@@ -129,13 +121,7 @@ class WatcherFactoryTest extends TestCase
     private function factory(): WatcherFactory
     {
         return new WatcherFactory(
-            new WatcherTypeRegistry(
-                new BufferOverflowWatcherType($this->createMock(BufferOverflowChecker::class)),
-                new InvalidBufferGrownWatcherType($this->createMock(InvalidBufferGrownChecker::class)),
-                new NoNewTracesWatcherType($this->createMock(NoNewTracesChecker::class)),
-                new TracesSpikeWatcherType($this->createMock(TracesSpikeChecker::class)),
-                new SlowTracesWatcherType($this->createMock(SlowTracesChecker::class))
-            ),
+            $this->watcherTypeRegistry(),
             $this->createMock(LoggerInterface::class)
         );
     }

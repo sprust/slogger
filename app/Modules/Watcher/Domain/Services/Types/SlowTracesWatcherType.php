@@ -6,6 +6,8 @@ namespace App\Modules\Watcher\Domain\Services\Types;
 
 use App\Modules\Common\Helpers\ArrayValueGetter;
 use App\Modules\Watcher\Domain\Services\Checkers\SlowTracesChecker;
+use App\Modules\Watcher\Domain\Services\Events\SlowTracesEventPayloadMapper;
+use App\Modules\Watcher\Domain\Services\Events\WatcherEventPayloadMapperInterface;
 use App\Modules\Watcher\Domain\Services\Checkers\WatcherCheckerInterface;
 use App\Modules\Watcher\Entities\Settings\SlowTracesSettingsObject;
 use App\Modules\Watcher\Entities\Settings\WatcherSettingsInterface;
@@ -19,7 +21,8 @@ readonly class SlowTracesWatcherType implements WatcherTypeDefinitionInterface
     use WatcherTraceFilterTrait;
 
     public function __construct(
-        private SlowTracesChecker $checker
+        private SlowTracesChecker $checker,
+        private SlowTracesEventPayloadMapper $eventPayloadMapper
     ) {
     }
 
@@ -43,20 +46,25 @@ readonly class SlowTracesWatcherType implements WatcherTypeDefinitionInterface
             fields: [
                 new WatcherTypeFieldObject(
                     key: 'duration',
-                    title: 'Longer than, seconds',
+                    title: 'Longer than, sec',
                     valueType: 'float',
                     default: new SlowTracesSettingsObject()->duration,
                     min: 0
                 ),
                 new WatcherTypeFieldObject(
                     key: 'window_minutes',
-                    title: 'Look at the last, minutes',
+                    title: 'Over the last, min',
                     valueType: 'int',
                     default: new SlowTracesSettingsObject()->windowMinutes,
                     max: WatcherTimelineObject::MAX_DEPTH_MINUTES
                 ),
             ]
         );
+    }
+
+    public function eventPayloadMapper(): WatcherEventPayloadMapperInterface
+    {
+        return $this->eventPayloadMapper;
     }
 
     public function checker(): WatcherCheckerInterface

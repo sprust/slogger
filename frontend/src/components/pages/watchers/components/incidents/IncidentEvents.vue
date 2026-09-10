@@ -1,11 +1,19 @@
 <template>
   <div v-loading="loading" style="padding: 0 20px 10px 20px">
-    <el-text v-if="!loading && events.length === 0" type="info">
+    <!-- An incident outlives the watcher that found it, and reading its events takes that
+         watcher's type: which numbers an event holds is the type's, and the event does not
+         carry it. Deleting a watcher from the panel is soft and leaves the row, so this is
+         a watcher whose row is gone altogether. -->
+    <el-text v-if="watcherMissing" type="info">
+      The watcher behind this incident is gone, so its events cannot be read.
+    </el-text>
+
+    <el-text v-else-if="!loading && events.length === 0" type="info">
       No events.
     </el-text>
 
     <el-table
-        v-else
+        v-else-if="events.length > 0"
         :data="events"
         :border="true"
         row-key="id"
@@ -15,14 +23,33 @@
       <el-table-column type="expand">
         <template #default="props">
           <div style="padding: 0 20px 10px 20px">
-            <el-text v-if="props.row.payload.groups.length === 0" type="info">
+            <el-text v-if="!props.row.payload" type="info">
+              This event was written in a shape this version cannot read.
+            </el-text>
+            <el-text v-else-if="groupsOf(props.row).length === 0" type="info">
               This watcher reads counters, not traces, so there is nothing to show here.
             </el-text>
             <el-table
                 v-else
-                :data="props.row.payload.groups"
+                :data="groupsOf(props.row)"
                 :border="true"
             >
+              <el-table-column width="60" align="center">
+                <template #default="scope">
+                  <el-tooltip
+                      content="Find these traces in the aggregator"
+                      placement="right"
+                      :show-after="500"
+                  >
+                    <el-button
+                        type="info"
+                        link
+                        :icon="IconFilter"
+                        @click="openInAggregator(scope.row, props.row.occurred_at)"
+                    />
+                  </el-tooltip>
+                </template>
+              </el-table-column>
               <el-table-column label="Service" min-width="120">
                 <template #default="scope">
                   {{ serviceName(scope.row.service_id) }}
@@ -42,23 +69,12 @@
                 </template>
               </el-table-column>
               <el-table-column label="Traces" prop="count" width="90"/>
-              <el-table-column label="Slowest, s" width="110">
+              <el-table-column label="Slowest, sec" width="110">
                 <template #default="scope">
                   {{ scope.row.duration_max ?? '' }}
                 </template>
               </el-table-column>
-              <el-table-column label="Slowest trace" min-width="220">
-                <template #default="scope">
-                  <el-button
-                      v-if="scope.row.trace_id"
-                      type="info"
-                      link
-                      @click="openInAggregator(scope.row.trace_id, props.row.occurred_at)"
-                  >
-                    {{ scope.row.trace_id }}
-                  </el-button>
-                </template>
-              </el-table-column>
+              <el-table-column label="Slowest trace" prop="trace_id" min-width="220"/>
             </el-table>
           </div>
         </template>
@@ -92,7 +108,18 @@
 
 <script lang="ts">
 import {defineComponent, PropType} from 'vue'
-import {useIncidentsStore, WatcherIncident, WatcherIncidentEvent} from "../../store/incidentsStore.ts";
+import {
+  BufferOverflowEvent,
+  InvalidBufferGrownEvent,
+  NoNewTracesEvent,
+  SlowTracesEvent,
+  ManyTracesEvent,
+  useIncidentsStore,
+  WatcherIncident,
+  WatcherIncidentEvent,
+  WatcherIncidentEventGroup,
+} from "../../store/incidentsStore.ts";
+import {useWatchersStore} from "../../store/watchersStore.ts";
 import {
   useTraceAggregatorServicesStore
 } from "../../../trace-aggregator/components/services/store/traceAggregatorServicesStore.ts";
@@ -103,11 +130,12 @@ import {
 import {
   useTraceAggregatorGraphStore
 } from "../../../trace-aggregator/components/graph/store/traceAggregatorGraphStore.ts";
+import {Filter as IconFilter} from '@element-plus/icons-vue'
 import {formatUtcDateTime, normalizeUtcDateTime, utcTimestamp} from "../../../../../utils/helpers.ts";
 import {routes} from "../../../../../utils/router.ts";
 
 /** How far either side of an event the aggregator is opened. */
-const periodMargin = 60 * 60 * 1000
+const periodMargin = 15 * 60 * 1000
 
 type PayloadBucket = 'settings' | 'measured'
 
@@ -118,34 +146,57 @@ type PayloadColumn = {
 }
 
 /**
- * The payload's fields in the order the server writes them, with the titles their columns
- * get.
+ * A column of one watcher type's payload, named against the type the server answers with.
  *
- * One list for every watcher type, like the payload itself: an event is read through its
- * incident, and that route names no type. Whichever fields do not apply come back null,
- * and a column nobody filled in is not drawn.
- *
- * `growth_percent` is in both buckets and means two different things: what the watcher
- * was set to react to, and what it saw.
+ * The key is checked at build time: a number renamed on the server and regenerated into
+ * the schema fails here rather than showing an empty column nobody notices.
  */
-const payloadTitles: Array<PayloadColumn> = [
-  {bucket: 'settings', key: 'threshold', title: 'Limit'},
-  {bucket: 'measured', key: 'buffer_count', title: 'Traces in the buffer'},
-  {bucket: 'measured', key: 'invalid_count', title: 'Broken traces'},
-  {bucket: 'measured', key: 'since', title: 'Counted since'},
-  {bucket: 'settings', key: 'period_minutes', title: 'Minutes without traces'},
-  {bucket: 'measured', key: 'window_from', title: 'From'},
-  {bucket: 'measured', key: 'window_to', title: 'To'},
-  {bucket: 'settings', key: 'window_minutes', title: 'Minutes counted'},
-  {bucket: 'measured', key: 'window_count', title: 'Traces counted'},
-  {bucket: 'measured', key: 'window_per_minute', title: 'Traces per minute now'},
-  {bucket: 'settings', key: 'baseline_minutes', title: 'Minutes compared with'},
-  {bucket: 'measured', key: 'baseline_per_minute', title: 'Traces per minute before'},
-  {bucket: 'measured', key: 'growth_percent', title: 'Growth, %'},
-  {bucket: 'settings', key: 'growth_percent', title: 'Growth to react to, %'},
-  {bucket: 'settings', key: 'duration', title: 'Longer than, s'},
-  {bucket: 'measured', key: 'slowest', title: 'Slowest trace, s'},
-]
+function setting<E extends WatcherIncidentEvent>(
+    key: keyof NonNullable<E['payload']>['settings'] & string,
+    title: string,
+): PayloadColumn {
+  return {bucket: 'settings', key, title}
+}
+
+function measured<E extends WatcherIncidentEvent>(
+    key: keyof NonNullable<E['payload']>['measured'] & string,
+    title: string,
+): PayloadColumn {
+  return {bucket: 'measured', key, title}
+}
+
+/**
+ * The columns each watcher type's events fill, in the order the server writes them.
+ *
+ * One list per type rather than one list probed for non-null values: an incident's events
+ * all come from the same watcher, so the columns are known before the first row is read.
+ */
+const columnsByType: Record<string, Array<PayloadColumn>> = {
+  bufferOverflow: [
+    setting<BufferOverflowEvent>('threshold', 'Limit'),
+    measured<BufferOverflowEvent>('buffer_count', 'Traces in the buffer'),
+  ],
+  invalidBufferGrown: [
+    setting<InvalidBufferGrownEvent>('threshold', 'Limit'),
+    measured<InvalidBufferGrownEvent>('invalid_count', 'Invalid traces'),
+    measured<InvalidBufferGrownEvent>('since', 'Counted since'),
+  ],
+  noNewTraces: [
+    setting<NoNewTracesEvent>('period_minutes', 'Minutes without traces'),
+    measured<NoNewTracesEvent>('window_from', 'From'),
+    measured<NoNewTracesEvent>('window_to', 'To'),
+  ],
+  manyTraces: [
+    setting<ManyTracesEvent>('window_minutes', 'Minutes counted'),
+    setting<ManyTracesEvent>('threshold', 'More traces than'),
+    measured<ManyTracesEvent>('window_count', 'Traces counted'),
+  ],
+  slowTraces: [
+    setting<SlowTracesEvent>('duration', 'Longer than, sec'),
+    setting<SlowTracesEvent>('window_minutes', 'Minutes counted'),
+    measured<SlowTracesEvent>('slowest', 'Slowest trace, sec'),
+  ],
+}
 
 export default defineComponent({
   props: {
@@ -165,35 +216,53 @@ export default defineComponent({
     servicesStore() {
       return useTraceAggregatorServicesStore()
     },
+    watchersStore() {
+      return useWatchersStore()
+    },
+    IconFilter() {
+      return IconFilter
+    },
+    /** Empty for a watcher this panel is older than: no endpoint to ask, no columns to show. */
+    watcherType(): string {
+      return this.watchersStore.items.find(watcher => watcher.id === this.incident.watcher_id)?.type ?? ''
+    },
     events(): Array<WatcherIncidentEvent> {
       return this.incidentsStore.events[this.incident.id] ?? []
     },
     loading(): boolean {
+      // The watchers too: which endpoint answers follows the type, so there is nothing to
+      // ask for until that list is in hand.
       return this.incidentsStore.loadingEvents[this.incident.id] === true
+          || (!this.watchersStore.loaded && this.watchersStore.loading)
+    },
+    /** Told apart from a list that has simply not arrived yet, which would say the same. */
+    watcherMissing(): boolean {
+      return this.watchersStore.loaded && !this.watcherType
     },
     exhausted(): boolean {
       return this.incidentsStore.eventsExhausted[this.incident.id] === true
     },
-    /**
-     * The columns this incident's events need.
-     *
-     * The payload has one shape for every watcher type and fills in only what applies, so
-     * the columns are worked out from what is there rather than from a list per type.
-     */
+    /** The columns of this incident's watcher. Every event under it comes from the same one. */
     columns(): Array<PayloadColumn> {
-      return payloadTitles.filter(column => this.events.some(
-          (event: WatcherIncidentEvent) => this.payloadValue(event, column) !== null
-              && this.payloadValue(event, column) !== undefined
-      ))
+      return columnsByType[this.watcherType] ?? []
     },
   },
 
   methods: {
+    /** Empty for an event stored under a shape the server can no longer read. */
     payloadValue(event: WatcherIncidentEvent, column: PayloadColumn): unknown {
-      return (event.payload[column.bucket] as Record<string, unknown>)[column.key]
+      const payload = event.payload
+
+      return payload ? (payload[column.bucket] as Record<string, unknown>)[column.key] : null
+    },
+    /** Only the watchers that are about traces carry these; the ones that read counters have no groups at all. */
+    groupsOf(event: WatcherIncidentEvent): Array<WatcherIncidentEventGroup> {
+      const payload = event.payload
+
+      return payload && 'groups' in payload ? payload.groups : []
     },
     loadMore() {
-      this.incidentsStore.findMoreEvents(this.incident.id)
+      this.incidentsStore.findMoreEvents(this.incident.id, this.watcherType)
     },
     /** Kept per incident: the events of one are no business of another's row. */
     rememberExpanded(_row: WatcherIncidentEvent, expanded: Array<WatcherIncidentEvent>) {
@@ -204,17 +273,18 @@ export default defineComponent({
           ?? `Service #${serviceId}`
     },
     /**
-     * Opens the aggregator on this one trace.
+     * Fills the aggregator's filter with everything this shape knows.
      *
      * The filter is set from here rather than handed over in the url: the aggregator keeps
      * it in a store that survives navigation and reads no query parameters, so this is
-     * what "a link to a trace" means on this panel. The search itself is left to whoever
-     * arrives — the filter is a starting point, not a question already asked.
+     * what "a link to these traces" means on this panel. The search itself is left to
+     * whoever arrives, which is what makes filling all of it useful — the id and the
+     * shape are two questions, and whoever arrives picks one by clearing the other.
      *
      * `initialized` is set because the aggregator resets its filter the first time it is
-     * mounted — without it the trace id would be wiped on arrival.
+     * mounted — without it everything set here would be wiped on arrival.
      */
-    openInAggregator(traceId: string, occurredAt: string) {
+    openInAggregator(group: WatcherIncidentEventGroup, occurredAt: string) {
       const traceAggregatorStore = useTraceAggregatorStore()
 
       // A live graph rewrites the filter's lower bound every second and would take the
@@ -224,7 +294,27 @@ export default defineComponent({
       traceAggregatorStore.resetFilters()
 
       traceAggregatorStore.initialized = true
-      traceAggregatorStore.payload.trace_id = traceId
+
+      // Only what the shape actually names — a watcher filtered by nothing leaves the
+      // type empty, and an empty value in the filter would ask for traces that have none.
+      if (group.service_id) {
+        traceAggregatorStore.payload.service_ids = [group.service_id]
+      }
+
+      if (group.type) {
+        traceAggregatorStore.payload.types = [group.type]
+      }
+
+      if (group.tags.length) {
+        traceAggregatorStore.payload.tags = [...group.tags]
+      }
+
+      // Left in, and it answers on its own: a trace id reduces the search to that trace
+      // and the tree it belongs to, whatever else stands beside it. Clearing it is what
+      // asks the shape's question instead.
+      if (group.trace_id) {
+        traceAggregatorStore.payload.trace_id = group.trace_id
+      }
 
       this.applyPeriodAround(traceAggregatorStore, occurredAt)
 
@@ -234,7 +324,7 @@ export default defineComponent({
       return normalizeUtcDateTime(formatUtcDateTime(new Date(at))) ?? ''
     },
     /**
-     * An hour either side of the moment the watcher spoke.
+     * A quarter of an hour either side of the moment the watcher spoke.
      *
      * Narrow on purpose: the search reads a period as a range of hourly shards, so a week
      * around one known trace is thousands of collections to index and to scan. `Custom`
@@ -259,12 +349,24 @@ export default defineComponent({
     },
   },
 
-  mounted() {
-    if (!this.incidentsStore.events[this.incident.id]) {
-      this.incidentsStore.findEvents(this.incident.id)
-    }
+  watch: {
+    /**
+     * The events are asked for once the watcher behind the incident is known, not on
+     * mount: which endpoint answers follows the type, and a row restored open on page
+     * load renders before the watchers list has arrived.
+     */
+    watcherType: {
+      immediate: true,
+      handler(type: string) {
+        if (type && !this.incidentsStore.events[this.incident.id]) {
+          this.incidentsStore.findEvents(this.incident.id, type)
+        }
+      },
+    },
+  },
 
-    if (this.servicesStore.items.length === 0 && !this.servicesStore.loading) {
+  mounted() {
+    if (!this.servicesStore.loaded && !this.servicesStore.loading) {
       this.servicesStore.findServices()
     }
   },

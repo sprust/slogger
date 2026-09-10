@@ -37,7 +37,7 @@ export default defineComponent({
   },
 
   mounted() {
-    if (!this.traceAggregatorServicesStore.loading) {
+    if (this.traceAggregatorServicesStore.loaded || this.traceAggregatorServicesStore.loading) {
       return
     }
 

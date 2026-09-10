@@ -8,7 +8,6 @@ use App\Modules\Watcher\Domain\Actions\Queries\FindIncidentEventsAction;
 use App\Modules\Watcher\Domain\Actions\Queries\FindWatcherAction;
 use App\Modules\Watcher\Domain\Events\WatcherIncidentChangedEvent;
 use App\Modules\Watcher\Entities\Settings\BufferOverflowSettingsObject;
-use App\Modules\Watcher\Entities\WatcherIncidentEventObject;
 use App\Modules\Watcher\Entities\WatcherIncidentObject;
 use App\Modules\Watcher\Entities\WatcherObject;
 use App\Modules\Watcher\Enums\WatcherIncidentStatusEnum;
@@ -17,16 +16,19 @@ use Illuminate\Support\Carbon;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
+use Tests\Modules\Watcher\WatcherIncidentEventFactoryTrait;
 
 class EnqueueNotificationsListenerTest extends TestCase
 {
+    use WatcherIncidentEventFactoryTrait;
+
     public function testTheWatcherAndItsLatestEventReachTheAction(): void
     {
         $event = $this->incidentEvent();
 
         $eventsAction = $this->createMock(FindIncidentEventsAction::class);
         $eventsAction->method('handle')
-            ->with('68be1f000000000000000009', 1, 1)
+            ->with('68be1f000000000000000009', WatcherTypeEnum::BufferOverflow, 1, 1)
             ->willReturn([$event]);
 
         $enqueueAction = $this->createMock(EnqueueNotificationsAction::class);
@@ -132,18 +134,6 @@ class EnqueueNotificationsListenerTest extends TestCase
             eventsCount: 1,
             closedAt: null,
             closedByUserId: null
-        );
-    }
-
-    private function incidentEvent(): WatcherIncidentEventObject
-    {
-        return new WatcherIncidentEventObject(
-            id: '68be1f000000000000000010',
-            incidentId: '68be1f000000000000000009',
-            settings: ['threshold' => 1000],
-            measured: ['buffer_count' => 12000],
-            groups: [],
-            occurredAt: Carbon::parse('2026-09-08 19:20:03')
         );
     }
 }
