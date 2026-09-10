@@ -24,7 +24,7 @@ class WatcherTypeRouteGuardTest extends TestCase
         $controller = new SlowTracesWatcherController(
             createWatcherAction: $this->createMock(CreateWatcherAction::class),
             updateWatcherAction: $updateAction,
-            findWatcherAction: $this->findWatcherAction(WatcherTypeEnum::TracesSpike)
+            findWatcherAction: $this->findWatcherAction(WatcherTypeEnum::ManyTraces)
         );
 
         $this->expectException(NotFoundHttpException::class);

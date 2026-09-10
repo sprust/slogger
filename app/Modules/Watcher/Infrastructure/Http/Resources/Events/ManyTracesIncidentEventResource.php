@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Watcher\Infrastructure\Http\Resources\Events;
 
 use App\Modules\Common\Infrastructure\Http\Resources\AbstractApiResource;
-use App\Modules\Watcher\Entities\Events\TracesSpikeEventPayloadObject;
+use App\Modules\Watcher\Entities\Events\ManyTracesEventPayloadObject;
 use App\Modules\Watcher\Entities\WatcherIncidentEventObject;
 
 /**
@@ -16,12 +16,12 @@ use App\Modules\Watcher\Entities\WatcherIncidentEventObject;
  * keeps its place in the page either way, because a page that comes back short is read as
  * the end of the list.
  */
-class TracesSpikeIncidentEventResource extends AbstractApiResource
+class ManyTracesIncidentEventResource extends AbstractApiResource
 {
     private string $id;
     private string $incident_id;
     private string $occurred_at;
-    private ?TracesSpikeEventPayloadResource $payload;
+    private ?ManyTracesEventPayloadResource $payload;
 
     public function __construct(WatcherIncidentEventObject $resource)
     {
@@ -31,8 +31,8 @@ class TracesSpikeIncidentEventResource extends AbstractApiResource
         $this->incident_id = $resource->incidentId;
         $this->occurred_at = $resource->occurredAt->toDateTimeString();
 
-        $this->payload = $resource->payload instanceof TracesSpikeEventPayloadObject
-            ? new TracesSpikeEventPayloadResource($resource->payload)
+        $this->payload = $resource->payload instanceof ManyTracesEventPayloadObject
+            ? new ManyTracesEventPayloadResource($resource->payload)
             : null;
     }
 }

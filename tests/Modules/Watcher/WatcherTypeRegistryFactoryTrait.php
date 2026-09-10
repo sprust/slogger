@@ -6,18 +6,18 @@ use App\Modules\Watcher\Domain\Services\Checkers\BufferOverflowChecker;
 use App\Modules\Watcher\Domain\Services\Checkers\InvalidBufferGrownChecker;
 use App\Modules\Watcher\Domain\Services\Checkers\NoNewTracesChecker;
 use App\Modules\Watcher\Domain\Services\Checkers\SlowTracesChecker;
-use App\Modules\Watcher\Domain\Services\Checkers\TracesSpikeChecker;
+use App\Modules\Watcher\Domain\Services\Checkers\ManyTracesChecker;
 use App\Modules\Watcher\Domain\Services\Events\BufferOverflowEventPayloadMapper;
 use App\Modules\Watcher\Domain\Services\Events\InvalidBufferGrownEventPayloadMapper;
 use App\Modules\Watcher\Domain\Services\Events\NoNewTracesEventPayloadMapper;
 use App\Modules\Watcher\Domain\Services\Events\SlowTracesEventPayloadMapper;
-use App\Modules\Watcher\Domain\Services\Events\TracesSpikeEventPayloadMapper;
+use App\Modules\Watcher\Domain\Services\Events\ManyTracesEventPayloadMapper;
 use App\Modules\Watcher\Domain\Services\Events\WatcherEventGroupMapper;
 use App\Modules\Watcher\Domain\Services\Types\BufferOverflowWatcherType;
 use App\Modules\Watcher\Domain\Services\Types\InvalidBufferGrownWatcherType;
 use App\Modules\Watcher\Domain\Services\Types\NoNewTracesWatcherType;
 use App\Modules\Watcher\Domain\Services\Types\SlowTracesWatcherType;
-use App\Modules\Watcher\Domain\Services\Types\TracesSpikeWatcherType;
+use App\Modules\Watcher\Domain\Services\Types\ManyTracesWatcherType;
 use App\Modules\Watcher\Domain\Services\Types\WatcherTypeRegistry;
 use Psr\Log\NullLogger;
 
@@ -32,7 +32,7 @@ trait WatcherTypeRegistryFactoryTrait
         ?BufferOverflowChecker $bufferOverflow = null,
         ?InvalidBufferGrownChecker $invalidBufferGrown = null,
         ?NoNewTracesChecker $noNewTraces = null,
-        ?TracesSpikeChecker $tracesSpike = null,
+        ?ManyTracesChecker $manyTraces = null,
         ?SlowTracesChecker $slowTraces = null
     ): WatcherTypeRegistry {
         $groups = new WatcherEventGroupMapper(new NullLogger());
@@ -50,9 +50,9 @@ trait WatcherTypeRegistryFactoryTrait
                 $noNewTraces ?? $this->createMock(NoNewTracesChecker::class),
                 new NoNewTracesEventPayloadMapper()
             ),
-            new TracesSpikeWatcherType(
-                $tracesSpike ?? $this->createMock(TracesSpikeChecker::class),
-                new TracesSpikeEventPayloadMapper($groups)
+            new ManyTracesWatcherType(
+                $manyTraces ?? $this->createMock(ManyTracesChecker::class),
+                new ManyTracesEventPayloadMapper($groups)
             ),
             new SlowTracesWatcherType(
                 $slowTraces ?? $this->createMock(SlowTracesChecker::class),

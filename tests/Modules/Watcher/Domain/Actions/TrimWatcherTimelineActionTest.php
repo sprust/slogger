@@ -5,7 +5,7 @@ namespace Tests\Modules\Watcher\Domain\Actions;
 use App\Modules\Watcher\Domain\Actions\Mutations\TrimWatcherTimelineAction;
 use App\Modules\Watcher\Entities\Settings\BufferOverflowSettingsObject;
 use App\Modules\Watcher\Entities\Settings\NoNewTracesSettingsObject;
-use App\Modules\Watcher\Entities\Settings\TracesSpikeSettingsObject;
+use App\Modules\Watcher\Entities\Settings\ManyTracesSettingsObject;
 use App\Modules\Watcher\Enums\WatcherTypeEnum;
 use App\Modules\Watcher\Repositories\WatcherTimelineRepository;
 use Illuminate\Support\Carbon;
@@ -31,15 +31,12 @@ class TrimWatcherTimelineActionTest extends TestCase
         );
     }
 
-    /**
-     * A spike watcher reads its window and the baseline before it, so the depth is both of
-     * them — cutting to the window alone would take away what it compares against.
-     */
-    public function testASpikeKeepsItsBaselineToo(): void
+    /** A counting watcher reaches back as far as its window and no further. */
+    public function testACountingWatcherKeepsItsWindow(): void
     {
         $this->assertCutAt(
-            '2026-09-07 10:50:00',
-            new TracesSpikeSettingsObject(windowMinutes: 5, baselineMinutes: 60)
+            '2026-09-07 11:50:00',
+            new ManyTracesSettingsObject(windowMinutes: 5, threshold: 1000)
         );
     }
 
@@ -72,8 +69,8 @@ class TrimWatcherTimelineActionTest extends TestCase
 
         new TrimWatcherTimelineAction($repository)->handle(
             $this->watcher(
-                $settings instanceof TracesSpikeSettingsObject
-                    ? WatcherTypeEnum::TracesSpike
+                $settings instanceof ManyTracesSettingsObject
+                    ? WatcherTypeEnum::ManyTraces
                     : WatcherTypeEnum::NoNewTraces,
                 $settings
             ),

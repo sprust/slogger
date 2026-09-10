@@ -5,33 +5,32 @@ declare(strict_types=1);
 namespace App\Modules\Watcher\Domain\Services\Types;
 
 use App\Modules\Common\Helpers\ArrayValueGetter;
-use App\Modules\Watcher\Domain\Services\Checkers\TracesSpikeChecker;
-use App\Modules\Watcher\Domain\Services\Events\TracesSpikeEventPayloadMapper;
+use App\Modules\Watcher\Domain\Services\Checkers\ManyTracesChecker;
+use App\Modules\Watcher\Domain\Services\Events\ManyTracesEventPayloadMapper;
 use App\Modules\Watcher\Domain\Services\Events\WatcherEventPayloadMapperInterface;
 use App\Modules\Watcher\Domain\Services\Checkers\WatcherCheckerInterface;
-use App\Modules\Watcher\Entities\Settings\TracesSpikeSettingsObject;
+use App\Modules\Watcher\Entities\Settings\ManyTracesSettingsObject;
 use App\Modules\Watcher\Entities\Settings\WatcherSettingsInterface;
 use App\Modules\Watcher\Entities\WatcherTypeFieldObject;
 use App\Modules\Watcher\Entities\WatcherTimelineObject;
 use App\Modules\Watcher\Entities\WatcherTypeObject;
 use App\Modules\Watcher\Enums\WatcherTypeEnum;
 
-readonly class TracesSpikeWatcherType implements WatcherTypeDefinitionInterface
+readonly class ManyTracesWatcherType implements WatcherTypeDefinitionInterface
 {
     use WatcherTraceFilterTrait;
 
     public function __construct(
-        private TracesSpikeChecker $checker,
-        private TracesSpikeEventPayloadMapper $eventPayloadMapper
+        private ManyTracesChecker $checker,
+        private ManyTracesEventPayloadMapper $eventPayloadMapper
     ) {
     }
 
     public function makeSettings(array $settings): WatcherSettingsInterface
     {
-        return new TracesSpikeSettingsObject(
+        return new ManyTracesSettingsObject(
             windowMinutes: ArrayValueGetter::intNull($settings, 'window_minutes') ?? 5,
-            baselineMinutes: ArrayValueGetter::intNull($settings, 'baseline_minutes') ?? 60,
-            growthPercent: ArrayValueGetter::intNull($settings, 'growth_percent') ?? 90,
+            threshold: ArrayValueGetter::intNull($settings, 'threshold') ?? 1000,
             filter: $this->filterOf($settings)
         );
     }
@@ -39,31 +38,25 @@ readonly class TracesSpikeWatcherType implements WatcherTypeDefinitionInterface
     public function describe(): WatcherTypeObject
     {
         return new WatcherTypeObject(
-            type: WatcherTypeEnum::TracesSpike,
-            title: 'Traces spike',
-            description: 'Many more traces per minute are arriving now than in the period before.',
-            defaultCooldownSeconds: WatcherTypeEnum::TracesSpike->defaultCooldownSeconds(),
+            type: WatcherTypeEnum::ManyTraces,
+            title: 'Too many traces',
+            description: 'More traces than the limit arrived in the last few minutes.',
+            defaultCooldownSeconds: WatcherTypeEnum::ManyTraces->defaultCooldownSeconds(),
             hasTraceFilter: true,
             fields: [
                 new WatcherTypeFieldObject(
                     key: 'window_minutes',
                     title: 'Count over the last, minutes',
                     valueType: 'int',
-                    default: new TracesSpikeSettingsObject()->windowMinutes,
+                    default: new ManyTracesSettingsObject()->windowMinutes,
                     max: WatcherTimelineObject::MAX_DEPTH_MINUTES
                 ),
                 new WatcherTypeFieldObject(
-                    key: 'baseline_minutes',
-                    title: 'Compare with the last, minutes',
+                    key: 'threshold',
+                    title: 'More traces than',
                     valueType: 'int',
-                    default: new TracesSpikeSettingsObject()->baselineMinutes,
-                    max: WatcherTimelineObject::MAX_DEPTH_MINUTES
-                ),
-                new WatcherTypeFieldObject(
-                    key: 'growth_percent',
-                    title: 'Growth to react to, %',
-                    valueType: 'int',
-                    default: new TracesSpikeSettingsObject()->growthPercent
+                    default: new ManyTracesSettingsObject()->threshold,
+                    min: 1
                 ),
             ]
         );

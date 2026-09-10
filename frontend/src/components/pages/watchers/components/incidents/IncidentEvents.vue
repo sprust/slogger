@@ -97,7 +97,7 @@ import {
   InvalidBufferGrownEvent,
   NoNewTracesEvent,
   SlowTracesEvent,
-  TracesSpikeEvent,
+  ManyTracesEvent,
   useIncidentsStore,
   WatcherIncident,
   WatcherIncidentEvent,
@@ -169,14 +169,10 @@ const columnsByType: Record<string, Array<PayloadColumn>> = {
     measured<NoNewTracesEvent>('window_from', 'From'),
     measured<NoNewTracesEvent>('window_to', 'To'),
   ],
-  tracesSpike: [
-    setting<TracesSpikeEvent>('window_minutes', 'Minutes counted'),
-    measured<TracesSpikeEvent>('window_count', 'Traces counted'),
-    measured<TracesSpikeEvent>('window_per_minute', 'Traces per minute now'),
-    setting<TracesSpikeEvent>('baseline_minutes', 'Minutes compared with'),
-    measured<TracesSpikeEvent>('baseline_per_minute', 'Traces per minute before'),
-    measured<TracesSpikeEvent>('growth_percent', 'Growth, %'),
-    setting<TracesSpikeEvent>('growth_percent', 'Growth to react to, %'),
+  manyTraces: [
+    setting<ManyTracesEvent>('window_minutes', 'Minutes counted'),
+    setting<ManyTracesEvent>('threshold', 'More traces than'),
+    measured<ManyTracesEvent>('window_count', 'Traces counted'),
   ],
   slowTraces: [
     setting<SlowTracesEvent>('duration', 'Longer than, s'),

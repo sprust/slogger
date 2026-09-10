@@ -21,7 +21,7 @@ readonly class WatcherTypeRegistry
         private BufferOverflowWatcherType $bufferOverflow,
         private InvalidBufferGrownWatcherType $invalidBufferGrown,
         private NoNewTracesWatcherType $noNewTraces,
-        private TracesSpikeWatcherType $tracesSpike,
+        private ManyTracesWatcherType $manyTraces,
         private SlowTracesWatcherType $slowTraces
     ) {
     }
@@ -36,7 +36,7 @@ readonly class WatcherTypeRegistry
             WatcherTypeEnum::BufferOverflow     => $this->bufferOverflow,
             WatcherTypeEnum::InvalidBufferGrown => $this->invalidBufferGrown,
             WatcherTypeEnum::NoNewTraces        => $this->noNewTraces,
-            WatcherTypeEnum::TracesSpike        => $this->tracesSpike,
+            WatcherTypeEnum::ManyTraces         => $this->manyTraces,
             WatcherTypeEnum::SlowTraces         => $this->slowTraces,
         };
     }

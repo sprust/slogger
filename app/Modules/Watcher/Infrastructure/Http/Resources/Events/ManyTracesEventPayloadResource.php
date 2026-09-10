@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Watcher\Infrastructure\Http\Resources\Events;
 
 use App\Modules\Common\Infrastructure\Http\Resources\AbstractApiResource;
-use App\Modules\Watcher\Entities\Events\TracesSpikeEventPayloadObject;
+use App\Modules\Watcher\Entities\Events\ManyTracesEventPayloadObject;
 use App\Modules\Watcher\Infrastructure\Http\Resources\WatcherIncidentEventGroupResource;
 use Ifksco\OpenApiGenerator\Attributes\OaListItemTypeAttribute;
 
@@ -16,20 +16,20 @@ use Ifksco\OpenApiGenerator\Attributes\OaListItemTypeAttribute;
  * The shapes behind it are here because this watcher is about traces. The types that
  * read counters have no groups field at all.
  */
-class TracesSpikeEventPayloadResource extends AbstractApiResource
+class ManyTracesEventPayloadResource extends AbstractApiResource
 {
-    private TracesSpikeEventSettingsResource $settings;
-    private TracesSpikeEventMeasuredResource $measured;
+    private ManyTracesEventSettingsResource $settings;
+    private ManyTracesEventMeasuredResource $measured;
     /** @var WatcherIncidentEventGroupResource[] */
     #[OaListItemTypeAttribute(WatcherIncidentEventGroupResource::class)]
     private array $groups;
 
-    public function __construct(TracesSpikeEventPayloadObject $resource)
+    public function __construct(ManyTracesEventPayloadObject $resource)
     {
         parent::__construct($resource);
 
-        $this->settings = new TracesSpikeEventSettingsResource($resource->settings);
-        $this->measured = new TracesSpikeEventMeasuredResource($resource->measured);
+        $this->settings = new ManyTracesEventSettingsResource($resource->settings);
+        $this->measured = new ManyTracesEventMeasuredResource($resource->measured);
 
         $this->groups = WatcherIncidentEventGroupResource::mapIntoMe($resource->groups);
     }

@@ -14,9 +14,9 @@ use App\Modules\Watcher\Entities\Events\NoNewTracesEventSettingsObject;
 use App\Modules\Watcher\Entities\Events\SlowTracesEventMeasuredObject;
 use App\Modules\Watcher\Entities\Events\SlowTracesEventPayloadObject;
 use App\Modules\Watcher\Entities\Events\SlowTracesEventSettingsObject;
-use App\Modules\Watcher\Entities\Events\TracesSpikeEventMeasuredObject;
-use App\Modules\Watcher\Entities\Events\TracesSpikeEventPayloadObject;
-use App\Modules\Watcher\Entities\Events\TracesSpikeEventSettingsObject;
+use App\Modules\Watcher\Entities\Events\ManyTracesEventMeasuredObject;
+use App\Modules\Watcher\Entities\Events\ManyTracesEventPayloadObject;
+use App\Modules\Watcher\Entities\Events\ManyTracesEventSettingsObject;
 use App\Modules\Watcher\Entities\Events\WatcherEventPayloadInterface;
 use App\Modules\Watcher\Entities\WatcherIncidentEventGroupObject;
 use App\Modules\Watcher\Enums\WatcherTypeEnum;
@@ -51,18 +51,6 @@ class WatcherEventPayloadMapperTest extends TestCase
         }
     }
 
-    /** The one that would have gone wrong quietly: a setting and a measurement sharing a name. */
-    public function testASpikeKeepsItsTwoGrowthPercentsApart(): void
-    {
-        $mapper = $this->watcherTypeRegistry()->for(WatcherTypeEnum::TracesSpike)->eventPayloadMapper();
-
-        $read = $mapper->read($mapper->toDocument($this->payloadOf(WatcherTypeEnum::TracesSpike)));
-
-        $this->assertInstanceOf(TracesSpikeEventPayloadObject::class, $read);
-        $this->assertSame(90, $read->settings->growthPercent);
-        $this->assertSame(140.5, $read->measured->growthPercent);
-    }
-
     /**
      * A document from before a number existed. It reads as nothing rather than as a
      * payload with a hole in it — the event keeps its place, and the panel shows it with
@@ -91,15 +79,15 @@ class WatcherEventPayloadMapperTest extends TestCase
     /** A group nobody can read costs a line in the breakdown, not the whole event. */
     public function testAGroupMissingWhatAGroupIsMadeOfIsDropped(): void
     {
-        $mapper = $this->watcherTypeRegistry()->for(WatcherTypeEnum::TracesSpike)->eventPayloadMapper();
+        $mapper = $this->watcherTypeRegistry()->for(WatcherTypeEnum::ManyTraces)->eventPayloadMapper();
 
-        $document = $mapper->toDocument($this->payloadOf(WatcherTypeEnum::TracesSpike));
+        $document = $mapper->toDocument($this->payloadOf(WatcherTypeEnum::ManyTraces));
 
         $document['groups'][] = ['type' => 'job', 'tags' => [], 'count' => 4];
 
         $read = $mapper->read($document);
 
-        $this->assertInstanceOf(TracesSpikeEventPayloadObject::class, $read);
+        $this->assertInstanceOf(ManyTracesEventPayloadObject::class, $read);
         $this->assertCount(1, $read->groups);
         $this->assertSame('http', $read->groups[0]->type);
     }
@@ -125,18 +113,9 @@ class WatcherEventPayloadMapperTest extends TestCase
                     windowTo: '2026-09-08 19:10:00'
                 )
             ),
-            WatcherTypeEnum::TracesSpike => new TracesSpikeEventPayloadObject(
-                settings: new TracesSpikeEventSettingsObject(
-                    windowMinutes: 5,
-                    baselineMinutes: 60,
-                    growthPercent: 90
-                ),
-                measured: new TracesSpikeEventMeasuredObject(
-                    windowCount: 900,
-                    windowPerMinute: 180.0,
-                    baselinePerMinute: 74.8,
-                    growthPercent: 140.5
-                ),
+            WatcherTypeEnum::ManyTraces => new ManyTracesEventPayloadObject(
+                settings: new ManyTracesEventSettingsObject(windowMinutes: 5, threshold: 1000),
+                measured: new ManyTracesEventMeasuredObject(windowCount: 1200),
                 groups: [$this->group()]
             ),
             WatcherTypeEnum::SlowTraces => new SlowTracesEventPayloadObject(

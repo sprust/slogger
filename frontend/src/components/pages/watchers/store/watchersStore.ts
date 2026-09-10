@@ -65,10 +65,10 @@ const typeEndpoints: Record<string, {
         create: payload => ApiContainer.get().watchersNoNewTracesCreate(payload as any),
         update: (id, payload) => ApiContainer.get().watchersNoNewTracesPartialUpdate(id, payload as any),
     },
-    tracesSpike: {
-        show: id => ApiContainer.get().watchersTracesSpikeDetail(id),
-        create: payload => ApiContainer.get().watchersTracesSpikeCreate(payload as any),
-        update: (id, payload) => ApiContainer.get().watchersTracesSpikePartialUpdate(id, payload as any),
+    manyTraces: {
+        show: id => ApiContainer.get().watchersManyTracesDetail(id),
+        create: payload => ApiContainer.get().watchersManyTracesCreate(payload as any),
+        update: (id, payload) => ApiContainer.get().watchersManyTracesPartialUpdate(id, payload as any),
     },
     slowTraces: {
         show: id => ApiContainer.get().watchersSlowTracesDetail(id),

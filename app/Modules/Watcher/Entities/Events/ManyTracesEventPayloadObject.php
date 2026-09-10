@@ -12,14 +12,14 @@ use App\Modules\Watcher\Entities\WatcherIncidentEventGroupObject;
  * The shapes behind it are here because this watcher is about traces. The ones that
  * read counters have no groups field at all, rather than an empty one.
  */
-readonly class TracesSpikeEventPayloadObject implements HasEventGroupsInterface
+readonly class ManyTracesEventPayloadObject implements HasEventGroupsInterface
 {
     /**
      * @param WatcherIncidentEventGroupObject[] $groups
      */
     public function __construct(
-        public TracesSpikeEventSettingsObject $settings,
-        public TracesSpikeEventMeasuredObject $measured,
+        public ManyTracesEventSettingsObject $settings,
+        public ManyTracesEventMeasuredObject $measured,
         public array $groups
     ) {
     }

@@ -4385,7 +4385,7 @@
                 ]
             }
         },
-        "/admin-api/watchers/incidents/{id}/events/traces-spike": {
+        "/admin-api/watchers/incidents/{id}/events/many-traces": {
             "get": {
                 "parameters": [
                     {
@@ -4446,19 +4446,14 @@
                                                                         "type": "integer",
                                                                         "nullable": false
                                                                     },
-                                                                    "baseline_minutes": {
-                                                                        "type": "integer",
-                                                                        "nullable": false
-                                                                    },
-                                                                    "growth_percent": {
+                                                                    "threshold": {
                                                                         "type": "integer",
                                                                         "nullable": false
                                                                     }
                                                                 },
                                                                 "required": [
                                                                     "window_minutes",
-                                                                    "baseline_minutes",
-                                                                    "growth_percent"
+                                                                    "threshold"
                                                                 ]
                                                             },
                                                             "measured": {
@@ -4466,25 +4461,10 @@
                                                                     "window_count": {
                                                                         "type": "integer",
                                                                         "nullable": false
-                                                                    },
-                                                                    "window_per_minute": {
-                                                                        "type": "number",
-                                                                        "nullable": false
-                                                                    },
-                                                                    "baseline_per_minute": {
-                                                                        "type": "number",
-                                                                        "nullable": false
-                                                                    },
-                                                                    "growth_percent": {
-                                                                        "type": "number",
-                                                                        "nullable": false
                                                                     }
                                                                 },
                                                                 "required": [
-                                                                    "window_count",
-                                                                    "window_per_minute",
-                                                                    "baseline_per_minute",
-                                                                    "growth_percent"
+                                                                    "window_count"
                                                                 ]
                                                             },
                                                             "groups": {
@@ -5532,7 +5512,7 @@
                 ]
             }
         },
-        "/admin-api/watchers/traces-spike": {
+        "/admin-api/watchers/many-traces": {
             "post": {
                 "requestBody": {
                     "required": true,
@@ -5565,12 +5545,7 @@
                                                 "minimum": 1,
                                                 "maximum": 175
                                             },
-                                            "baseline_minutes": {
-                                                "type": "integer",
-                                                "minimum": 1,
-                                                "maximum": 175
-                                            },
-                                            "growth_percent": {
+                                            "threshold": {
                                                 "type": "integer",
                                                 "minimum": 1
                                             },
@@ -5695,7 +5670,7 @@
                 ]
             }
         },
-        "/admin-api/watchers/traces-spike/{id}": {
+        "/admin-api/watchers/many-traces/{id}": {
             "get": {
                 "parameters": [
                     {
@@ -5723,11 +5698,7 @@
                                                     "type": "integer",
                                                     "nullable": false
                                                 },
-                                                "baseline_minutes": {
-                                                    "type": "integer",
-                                                    "nullable": false
-                                                },
-                                                "growth_percent": {
+                                                "threshold": {
                                                     "type": "integer",
                                                     "nullable": false
                                                 },
@@ -5765,8 +5736,7 @@
                                             "required": [
                                                 "id",
                                                 "window_minutes",
-                                                "baseline_minutes",
-                                                "growth_percent",
+                                                "threshold",
                                                 "filter"
                                             ]
                                         }
@@ -5817,12 +5787,7 @@
                                                 "minimum": 1,
                                                 "maximum": 175
                                             },
-                                            "baseline_minutes": {
-                                                "type": "integer",
-                                                "minimum": 1,
-                                                "maximum": 175
-                                            },
-                                            "growth_percent": {
+                                            "threshold": {
                                                 "type": "integer",
                                                 "minimum": 1
                                             },

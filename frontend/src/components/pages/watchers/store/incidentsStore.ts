@@ -10,7 +10,7 @@ export type WatcherIncident = AdminApi.WatchersIncidentsList.ResponseBody['data'
 export type BufferOverflowEvent = AdminApi.WatchersIncidentsEventsBufferOverflowList.ResponseBody['data'][number];
 export type InvalidBufferGrownEvent = AdminApi.WatchersIncidentsEventsInvalidBufferGrownList.ResponseBody['data'][number];
 export type NoNewTracesEvent = AdminApi.WatchersIncidentsEventsNoNewTracesList.ResponseBody['data'][number];
-export type TracesSpikeEvent = AdminApi.WatchersIncidentsEventsTracesSpikeList.ResponseBody['data'][number];
+export type ManyTracesEvent = AdminApi.WatchersIncidentsEventsManyTracesList.ResponseBody['data'][number];
 export type SlowTracesEvent = AdminApi.WatchersIncidentsEventsSlowTracesList.ResponseBody['data'][number];
 
 /**
@@ -24,7 +24,7 @@ export type WatcherIncidentEvent =
     | BufferOverflowEvent
     | InvalidBufferGrownEvent
     | NoNewTracesEvent
-    | TracesSpikeEvent
+    | ManyTracesEvent
     | SlowTracesEvent;
 
 export type WatcherIncidentEventGroup = NonNullable<SlowTracesEvent['payload']>['groups'][number];
@@ -45,7 +45,7 @@ const eventEndpoints: Record<
     bufferOverflow: (id, query) => ApiContainer.get().watchersIncidentsEventsBufferOverflowList(id, query),
     invalidBufferGrown: (id, query) => ApiContainer.get().watchersIncidentsEventsInvalidBufferGrownList(id, query),
     noNewTraces: (id, query) => ApiContainer.get().watchersIncidentsEventsNoNewTracesList(id, query),
-    tracesSpike: (id, query) => ApiContainer.get().watchersIncidentsEventsTracesSpikeList(id, query),
+    manyTraces: (id, query) => ApiContainer.get().watchersIncidentsEventsManyTracesList(id, query),
     slowTraces: (id, query) => ApiContainer.get().watchersIncidentsEventsSlowTracesList(id, query),
 }
 

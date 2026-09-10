@@ -25,12 +25,12 @@ use App\Modules\Watcher\Infrastructure\Http\Controllers\Events\BufferOverflowInc
 use App\Modules\Watcher\Infrastructure\Http\Controllers\Events\InvalidBufferGrownIncidentEventController;
 use App\Modules\Watcher\Infrastructure\Http\Controllers\Events\NoNewTracesIncidentEventController;
 use App\Modules\Watcher\Infrastructure\Http\Controllers\Events\SlowTracesIncidentEventController;
-use App\Modules\Watcher\Infrastructure\Http\Controllers\Events\TracesSpikeIncidentEventController;
+use App\Modules\Watcher\Infrastructure\Http\Controllers\Events\ManyTracesIncidentEventController;
 use App\Modules\Watcher\Infrastructure\Http\Controllers\BufferOverflowWatcherController;
 use App\Modules\Watcher\Infrastructure\Http\Controllers\InvalidBufferGrownWatcherController;
 use App\Modules\Watcher\Infrastructure\Http\Controllers\NoNewTracesWatcherController;
 use App\Modules\Watcher\Infrastructure\Http\Controllers\SlowTracesWatcherController;
-use App\Modules\Watcher\Infrastructure\Http\Controllers\TracesSpikeWatcherController;
+use App\Modules\Watcher\Infrastructure\Http\Controllers\ManyTracesWatcherController;
 use App\Modules\Watcher\Infrastructure\Http\Controllers\WatcherController;
 use App\Modules\Watcher\Infrastructure\Http\Controllers\WatcherIncidentController;
 use Illuminate\Support\Facades\Route;
@@ -151,7 +151,7 @@ Route::prefix('/watchers')
                     'buffer-overflow'      => BufferOverflowIncidentEventController::class,
                     'invalid-buffer-grown' => InvalidBufferGrownIncidentEventController::class,
                     'no-new-traces'        => NoNewTracesIncidentEventController::class,
-                    'traces-spike'         => TracesSpikeIncidentEventController::class,
+                    'many-traces'         => ManyTracesIncidentEventController::class,
                     'slow-traces'          => SlowTracesIncidentEventController::class,
                 ];
 
@@ -168,7 +168,7 @@ Route::prefix('/watchers')
             'buffer-overflow'      => BufferOverflowWatcherController::class,
             'invalid-buffer-grown' => InvalidBufferGrownWatcherController::class,
             'no-new-traces'        => NoNewTracesWatcherController::class,
-            'traces-spike'         => TracesSpikeWatcherController::class,
+            'many-traces'         => ManyTracesWatcherController::class,
             'slow-traces'          => SlowTracesWatcherController::class,
         ];
 

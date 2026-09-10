@@ -168,8 +168,8 @@ readonly class IncidentMessageFactory
                 $group->count === 1 ? '' : 's'
             );
 
-            // Only the slow-traces watcher has a maximum to name; the groups of a spike
-            // carry a count and nothing else.
+            // Only the slow-traces watcher has a maximum to name; the groups of a
+            // counting watcher carry a count and nothing else.
             if (!is_null($group->durationMax)) {
                 $line .= ', up to ' . $sender->escape($this->readable('duration_max', $group->durationMax));
             }

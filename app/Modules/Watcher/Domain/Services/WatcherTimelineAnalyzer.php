@@ -20,7 +20,7 @@ readonly class WatcherTimelineAnalyzer
      * The receiver holds a bucket until it has been closed for fifteen seconds and writes
      * on a fifteen-second tick, so the last few buckets are still filling. Reading them as
      * if they were complete would show every window ending in a dip — which is exactly
-     * what a spike watcher measures against and what a silence watcher would report.
+     * what a counting watcher adds up and what a silence watcher would report.
      */
     public const int LAG_SECONDS = 60;
 

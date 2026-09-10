@@ -6,17 +6,17 @@ namespace App\Modules\Watcher\Infrastructure\Http\Controllers\Events;
 
 use App\Modules\Watcher\Enums\WatcherTypeEnum;
 use App\Modules\Watcher\Infrastructure\Http\Requests\IndexIncidentEventsRequest;
-use App\Modules\Watcher\Infrastructure\Http\Resources\Events\TracesSpikeIncidentEventResource;
+use App\Modules\Watcher\Infrastructure\Http\Resources\Events\ManyTracesIncidentEventResource;
 use Ifksco\OpenApiGenerator\Attributes\OaListItemTypeAttribute;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
-readonly class TracesSpikeIncidentEventController extends AbstractIncidentEventController
+readonly class ManyTracesIncidentEventController extends AbstractIncidentEventController
 {
-    #[OaListItemTypeAttribute(TracesSpikeIncidentEventResource::class)]
+    #[OaListItemTypeAttribute(ManyTracesIncidentEventResource::class)]
     public function index(string $id, IndexIncidentEventsRequest $request): AnonymousResourceCollection
     {
-        return TracesSpikeIncidentEventResource::collection(
-            $this->incidentEvents(WatcherTypeEnum::TracesSpike, $id, $request->validated())
+        return ManyTracesIncidentEventResource::collection(
+            $this->incidentEvents(WatcherTypeEnum::ManyTraces, $id, $request->validated())
         );
     }
 }

@@ -15,8 +15,8 @@ use ReflectionClass;
  *
  * Nothing in the running system reports a window that reaches past its line. The buckets
  * that are not there are simply not counted, and every checker reads what is missing as an
- * absence — a spike watcher divides the part it found by the whole baseline it asked for
- * and calls steady traffic a rise, hour after hour.
+ * absence — no_new_traces takes the part of its window that was never collected for
+ * silence and says so, every cooldown.
  */
 class WatcherTimelineDepthTest extends TestCase
 {

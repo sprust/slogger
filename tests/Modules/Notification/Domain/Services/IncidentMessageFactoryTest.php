@@ -8,9 +8,9 @@ use App\Modules\Notification\Enums\NotificationKindEnum;
 use App\Modules\Watcher\Entities\Events\SlowTracesEventMeasuredObject;
 use App\Modules\Watcher\Entities\Events\SlowTracesEventPayloadObject;
 use App\Modules\Watcher\Entities\Events\SlowTracesEventSettingsObject;
-use App\Modules\Watcher\Entities\Events\TracesSpikeEventMeasuredObject;
-use App\Modules\Watcher\Entities\Events\TracesSpikeEventPayloadObject;
-use App\Modules\Watcher\Entities\Events\TracesSpikeEventSettingsObject;
+use App\Modules\Watcher\Entities\Events\ManyTracesEventMeasuredObject;
+use App\Modules\Watcher\Entities\Events\ManyTracesEventPayloadObject;
+use App\Modules\Watcher\Entities\Events\ManyTracesEventSettingsObject;
 use App\Modules\Watcher\Entities\Settings\BufferOverflowSettingsObject;
 use App\Modules\Watcher\Entities\WatcherIncidentObject;
 use App\Modules\Watcher\Entities\WatcherObject;
@@ -149,29 +149,20 @@ class IncidentMessageFactoryTest extends TestCase
     }
 
     /**
-     * Only slow_traces puts a maximum in a group. The groups of a spike carry a count and
-     * nothing else, and the count used to be printed only beside a duration — so every
-     * spike message listed the shapes without ever saying how many traces were behind
-     * them, which is the whole of what a spike is about.
+     * Only slow_traces puts a maximum in a group. The groups of a counting watcher carry
+     * a count and nothing else, and the count used to be printed only beside a duration —
+     * so every such message listed the shapes without ever saying how many traces were
+     * behind them, which is the whole of what the watcher is about.
      */
-    public function testASpikeGroupWithoutADurationStillSaysHowManyTracesThereWere(): void
+    public function testACountingGroupWithoutADurationStillSaysHowManyTracesThereWere(): void
     {
         $text = $this->factory()->make(
             kind: NotificationKindEnum::Opened,
-            watcher: $this->watcher(type: WatcherTypeEnum::TracesSpike),
+            watcher: $this->watcher(type: WatcherTypeEnum::ManyTraces),
             incident: $this->incident(),
-            event: $this->incidentEvent(new TracesSpikeEventPayloadObject(
-                settings: new TracesSpikeEventSettingsObject(
-                    windowMinutes: 5,
-                    baselineMinutes: 60,
-                    growthPercent: 90
-                ),
-                measured: new TracesSpikeEventMeasuredObject(
-                    windowCount: 900,
-                    windowPerMinute: 180.0,
-                    baselinePerMinute: 15.0,
-                    growthPercent: 1100.0
-                ),
+            event: $this->incidentEvent(new ManyTracesEventPayloadObject(
+                settings: new ManyTracesEventSettingsObject(windowMinutes: 5, threshold: 500),
+                measured: new ManyTracesEventMeasuredObject(windowCount: 900),
                 groups: [
                     $this->eventGroup(type: 'http', tags: ['api'], count: 700),
                     $this->eventGroup(type: 'job', count: 1),

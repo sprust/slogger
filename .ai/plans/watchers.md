@@ -20,7 +20,7 @@
 
 Трейсы считаются там, где они и так проходят по одному, — в приёмнике. Но приёмник только
 **кладёт данные в таймлайн смотрителя**. Он не знает ни типов смотрителей, ни порогов, ни
-окон, ни cooldown, ни того, что такое «спайк» или «долгое выполнение».
+окон, ни cooldown, ни того, что такое «слишком много» или «долгое выполнение».
 
 | Кто | Что делает |
 |---|---|
@@ -162,7 +162,7 @@ $set:  { uat: now }
 Потолок в 720 вёдер — это ещё и предел того, что смотритель может у себя спросить: окно
 длиннее трёх часов читало бы вёдра, которых никто не хранил, и недостающую часть чекер
 принял бы за отсутствие. Поэтому `WatcherTimelineObject::MAX_DEPTH_MINUTES` (175) — общий
-потолок для `period_minutes`, `window_minutes` и суммы окна с базой у спайка. Но потолок
+потолок для `period_minutes` и `window_minutes`. Но потолок
 приёмника считает элементы, а не моменты, поэтому одной этой границы мало: линия, пришедшая
 вровень с `RECEIVER_ELEMENT_CAP`, помечается `truncated`, и чекеры, читающие отсутствие,
 на ней молчат.
@@ -276,7 +276,7 @@ flowchart TB
 | `buffer_overflow` | `buffer.estimatedDocumentCount()` — O(1) по метаданным | `threshold` (1000) |
 | `invalid_buffer_grown` | `invalidBuffer.count({iat: {$gt: last_triggered_at}})` — по существующему индексу `iat` | `threshold` (1) |
 | `no_new_traces` | сумма `c` за окно == 0 | `period_minutes` (10) + `match` |
-| `traces_spike` | сумма `c` за окно против средней за базу | `window_minutes` (5), `baseline_minutes` (60), `growth_percent` (90) + `match` |
+| `many_traces` | сумма `c` за окно против порога | `window_minutes` (5), `threshold` (1000) + `match` |
 | `slow_traces` | группы окна с `dMax >= duration` | `duration` (10) + `match` |
 
 Все числа — поля конкретного смотрителя, в скобках только значения по умолчанию в форме.
@@ -399,7 +399,7 @@ app/Modules/Watcher/
 │       ├── BufferOverflowSettingsObject.php
 │       ├── InvalidBufferGrownSettingsObject.php
 │       ├── NoNewTracesSettingsObject.php
-│       ├── TracesSpikeSettingsObject.php
+│       ├── ManyTracesSettingsObject.php
 │       └── SlowTracesSettingsObject.php
 ├── Parameters/
 │   ├── CreateWatcherParameters.php
@@ -437,7 +437,7 @@ app/Modules/Watcher/
 │   │   ├── BufferOverflowChecker.php
 │   │   ├── InvalidBufferGrownChecker.php
 │   │   ├── NoNewTracesChecker.php
-│   │   ├── TracesSpikeChecker.php
+│   │   ├── ManyTracesChecker.php
 │   │   └── SlowTracesChecker.php
 │   ├── Events/WatcherIncidentChangedEvent.php
 │   └── Exceptions/WatcherNotFoundException.php
@@ -605,8 +605,8 @@ WS-пула — всегда. Считать длину списка вмест�
 и держится мягко удалённой ровно для этого.
 
 Внутри `payload` значения разложены на `settings` и `measured`. Плоско их было не
-различить: у `tracesSpike` порог и измеренный рост оба зовутся `growth_percent`, и по
-именам ключей корзины определялись бы наоборот. Ключи документа знает только маппер типа —
+различить: `window_minutes` — это настройка, а `window_count` — измерение, и по одним
+именам ключей корзины не разделить. Ключи документа знает только маппер типа —
 в обе стороны сразу, поэтому переименование на записи не может разойтись с чтением.
 
 Документ, который эта сборка прочитать не может — написанный до того, как появилось
@@ -655,8 +655,8 @@ Go (`servers/receiver`, образец — `buffer_repository/repository_test.go
 
 PHP:
 
-- `tests/Modules/Watcher/Domain/Services/Checkers/TracesSpikeCheckerTest.php` — расчёт
-  процента роста, пустая база, база из одного ведра, деление на ноль;
+- `tests/Modules/Watcher/Domain/Services/Checkers/ManyTracesCheckerTest.php` — границы
+  окна, порог включительно, свёртка в событии;
 - `.../NoNewTracesCheckerTest.php` — границы окна, прогрев (`collect_since`);
 - `.../SlowTracesCheckerTest.php` — порог по `dMax` группы, доказательства (`tid`);
 - `tests/Modules/Watcher/Repositories/Services/WatcherTimelineReaderTest.php` — склейка
@@ -722,7 +722,7 @@ PHP:
    несколько слотов, и 720 элементов — это уже не три часа. Настройки ограничены 175
    минутами (`MAX_DEPTH_MINUTES`) — столько влезает при идеальной раскладке, — а на случай
    неидеальной `WatcherTimelineReader` помечает линию `truncated`, если массив пришёл вровень
-   с потолком, и чекеры, читающие отсутствие (`traces_spike`, `no_new_traces`), молчат,
+   с потолком, и чекеры, читающие отсутствие (`no_new_traces`), молчат,
    когда линия начинается позже окна. Молчание, за которое смотритель не может ручаться, —
    не молчание.
 3. **Групп в свёртке — 20** на ведро; `c` точный при любом переполнении. В событие уходит до

@@ -5,7 +5,7 @@ namespace Tests\Modules\Watcher\Domain\Services\Types;
 use App\Modules\Watcher\Domain\Services\Types\WatcherTypeRegistry;
 use App\Modules\Watcher\Entities\Settings\NoNewTracesSettingsObject;
 use App\Modules\Watcher\Entities\Settings\SlowTracesSettingsObject;
-use App\Modules\Watcher\Entities\Settings\TracesSpikeSettingsObject;
+use App\Modules\Watcher\Entities\Settings\ManyTracesSettingsObject;
 use App\Modules\Watcher\Enums\WatcherTypeEnum;
 use PHPUnit\Framework\TestCase;
 /**
@@ -29,10 +29,9 @@ class WatcherTypeRegistryTest extends TestCase
 
     public function testSettingsSurviveTheRoundTrip(): void
     {
-        $settings = new TracesSpikeSettingsObject(
+        $settings = new ManyTracesSettingsObject(
             windowMinutes: 3,
-            baselineMinutes: 120,
-            growthPercent: 50,
+            threshold: 250,
             filter: new \App\Modules\Watcher\Entities\Settings\WatcherTraceFilterObject(
                 serviceIds: [4],
                 types: ['http'],
@@ -42,7 +41,7 @@ class WatcherTypeRegistryTest extends TestCase
 
         $this->assertEquals(
             $settings,
-            $this->registry()->for(WatcherTypeEnum::TracesSpike)->makeSettings($settings->toArray())
+            $this->registry()->for(WatcherTypeEnum::ManyTraces)->makeSettings($settings->toArray())
         );
     }
 
@@ -91,7 +90,7 @@ class WatcherTypeRegistryTest extends TestCase
         $this->assertFalse($registry->for(WatcherTypeEnum::BufferOverflow)->describe()->hasTraceFilter);
         $this->assertFalse($registry->for(WatcherTypeEnum::InvalidBufferGrown)->describe()->hasTraceFilter);
         $this->assertTrue($registry->for(WatcherTypeEnum::NoNewTraces)->describe()->hasTraceFilter);
-        $this->assertTrue($registry->for(WatcherTypeEnum::TracesSpike)->describe()->hasTraceFilter);
+        $this->assertTrue($registry->for(WatcherTypeEnum::ManyTraces)->describe()->hasTraceFilter);
         $this->assertTrue($registry->for(WatcherTypeEnum::SlowTraces)->describe()->hasTraceFilter);
     }
 
