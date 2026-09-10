@@ -59,7 +59,7 @@
         </el-space>
         <div class="flex-grow"/>
         <el-form>
-          <el-form-item label="Graph">
+          <el-form-item label="Graph" for="">
             <el-space>
               <el-select
                   v-show="traceAggregatorGraphStore.showGraph"

@@ -24,14 +24,17 @@
         style="margin-top: 10px"
     />
 
+    <!-- for="" on every item: el-form-item otherwise ties its label to the one control
+         inside it, and clicking the title of a parameter works the control — a click on
+         the word "Enabled" flipped the switch. An empty `for` leaves the label a div. -->
     <el-form label-width="180px" style="margin-top: 15px" v-loading="loading">
-      <el-form-item label="Name">
+      <el-form-item label="Name" for="">
         <el-input v-model="form.name" placeholder="A short name, so you know what it is"/>
       </el-form-item>
-      <el-form-item label="Enabled">
+      <el-form-item label="Enabled" for="">
         <el-switch v-model="form.enabled"/>
       </el-form-item>
-      <el-form-item label="Wait between alerts, s">
+      <el-form-item label="Wait between alerts, s" for="">
         <el-input-number
             v-model="form.cooldownSeconds"
             :min="1"
@@ -39,7 +42,7 @@
             :value-on-clear="definition?.default_cooldown_seconds ?? 600"
         />
       </el-form-item>
-      <el-form-item label="Notify through">
+      <el-form-item label="Notify through" for="">
         <el-select
             v-model="form.notificationChannelId"
             clearable
@@ -64,7 +67,7 @@
             Which traces to watch. Leave empty to watch all of them.
           </el-text>
         </el-divider>
-        <el-form-item label="Services">
+        <el-form-item label="Services" for="">
           <el-select
               v-model="form.filter.service_ids"
               multiple
@@ -81,7 +84,7 @@
             />
           </el-select>
         </el-form-item>
-        <el-form-item label="Types">
+        <el-form-item label="Types" for="">
           <el-select
               v-model="form.filter.types"
               multiple
@@ -93,7 +96,7 @@
               style="width: 100%"
           />
         </el-form-item>
-        <el-form-item label="Tags">
+        <el-form-item label="Tags" for="">
           <el-select
               v-model="form.filter.tags"
               multiple
@@ -116,7 +119,7 @@
           v-for="field in definition?.fields ?? []"
           :key="field.key"
           :label="field.title"
-         
+          for=""
       >
         <!-- The bounds come from the server's own rules (/watchers/types), so a number it
              would refuse cannot be typed. A rejected save used to close the dialog and
