@@ -58,24 +58,6 @@
         </el-text>
       </el-form-item>
 
-      <el-form-item
-          v-for="field in definition?.fields ?? []"
-          :key="field.key"
-          :label="field.title"
-      >
-        <!-- The bounds come from the server's own rules (/watchers/types), so a number it
-             would refuse cannot be typed. A rejected save used to close the dialog and
-             take the whole form with it. -->
-        <el-input-number
-            v-model="form.settings[field.key]"
-            :min="field.min"
-            :max="field.max ?? Infinity"
-            :value-on-clear="field.default"
-            :step="field.value_type === 'float' ? 0.1 : 1"
-            :precision="field.value_type === 'float' ? 3 : 0"
-        />
-      </el-form-item>
-
       <template v-if="definition?.has_trace_filter">
         <el-divider content-position="left">
           <el-text type="info">
@@ -124,6 +106,30 @@
           />
         </el-form-item>
       </template>
+
+      <el-divider content-position="left">
+        <el-text type="info">
+          What sets this watcher off.
+        </el-text>
+      </el-divider>
+      <el-form-item
+          v-for="field in definition?.fields ?? []"
+          :key="field.key"
+          :label="field.title"
+         
+      >
+        <!-- The bounds come from the server's own rules (/watchers/types), so a number it
+             would refuse cannot be typed. A rejected save used to close the dialog and
+             take the whole form with it. -->
+        <el-input-number
+            v-model="form.settings[field.key]"
+            :min="field.min"
+            :max="field.max ?? Infinity"
+            :value-on-clear="field.default"
+            :step="field.value_type === 'float' ? 0.1 : 1"
+            :precision="field.value_type === 'float' ? 3 : 0"
+        />
+      </el-form-item>
     </el-form>
 
     <template #footer>
