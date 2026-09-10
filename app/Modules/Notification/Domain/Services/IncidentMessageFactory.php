@@ -7,6 +7,8 @@ namespace App\Modules\Notification\Domain\Services;
 use App\Modules\Notification\Domain\Services\Senders\NotificationSenderInterface;
 use App\Modules\Notification\Enums\NotificationKindEnum;
 use App\Modules\Watcher\Domain\Services\Types\WatcherTypeRegistry;
+use App\Modules\Watcher\Entities\Events\HasEventGroupsInterface;
+use App\Modules\Watcher\Entities\WatcherIncidentEventGroupObject;
 use App\Modules\Watcher\Entities\WatcherIncidentEventObject;
 use App\Modules\Watcher\Entities\WatcherIncidentObject;
 use App\Modules\Watcher\Entities\WatcherObject;
@@ -36,23 +38,35 @@ readonly class IncidentMessageFactory
             implode("\n", $this->head($kind, $watcher, $incident, $sender)),
         ];
 
-        if ($kind === NotificationKindEnum::Closed || is_null($event)) {
+        // A payload that could not be read leaves the message at its head: the event
+        // happened, and saying so with no numbers beats inventing some.
+        if ($kind === NotificationKindEnum::Closed || is_null($event) || is_null($event->payload)) {
             return implode("\n\n", $blocks);
         }
 
-        $settings = $this->values($event->settings, $sender);
+        // The stored document rather than the object: its keys are the names a reader of
+        // the message sees, and the panel shows the same event under the same ones. The
+        // mapper is the one place that holds them.
+        $document = $this->watcherTypes->for($watcher->type)
+            ->eventPayloadMapper()
+            ->toDocument($event->payload);
+
+        $settings = $this->values($document['settings'] ?? null, $sender);
 
         if (count($settings)) {
             $blocks[] = "⚙️ settings:\n" . implode("\n", $settings);
         }
 
-        $measured = $this->values($event->measured, $sender);
+        $measured = $this->values($document['measured'] ?? null, $sender);
 
         if (count($measured)) {
             $blocks[] = "📊 measured:\n" . implode("\n", $measured);
         }
 
-        $traces = $this->traces($event->groups, $sender);
+        $traces = $this->traces(
+            $event->payload instanceof HasEventGroupsInterface ? $event->payload->groups : [],
+            $sender
+        );
 
         if (count($traces)) {
             $blocks[] = "🔎 traces:\n" . implode("\n", $traces);
@@ -106,15 +120,24 @@ readonly class IncidentMessageFactory
     }
 
     /**
-     * @param array<string, scalar> $values
+     * The keys are the stored ones, underscores and all: they are what the reader of a
+     * message sees, and what the panel shows beside the same event.
      *
      * @return string[]
      */
-    private function values(array $values, NotificationSenderInterface $sender): array
+    private function values(mixed $values, NotificationSenderInterface $sender): array
     {
+        if (!is_array($values)) {
+            return [];
+        }
+
         $lines = [];
 
         foreach ($values as $key => $value) {
+            if (!is_string($key) || !is_scalar($value)) {
+                continue;
+            }
+
             $lines[] = sprintf(
                 '• %s: %s',
                 $sender->escape(str_replace('_', ' ', $key)),
@@ -126,7 +149,7 @@ readonly class IncidentMessageFactory
     }
 
     /**
-     * @param array<int, array<string, mixed>> $groups
+     * @param WatcherIncidentEventGroupObject[] $groups
      *
      * @return string[]
      */
@@ -135,39 +158,26 @@ readonly class IncidentMessageFactory
         $lines = [];
 
         foreach (array_slice($groups, 0, self::MAX_GROUPS) as $group) {
-            $named = array_filter(
-                [
-                    $group['type'] ?? null,
-                    ...(is_array($group['tags'] ?? null) ? $group['tags'] : []),
-                ],
-                is_string(...)
+            $lines[] = '• ' . $sender->escape(
+                implode(' ', [$group->type, ...$group->tags])
             );
 
-            $lines[] = '• ' . $sender->escape(implode(' ', $named));
+            $line = sprintf(
+                '  %d trace%s',
+                $group->count,
+                $group->count === 1 ? '' : 's'
+            );
 
-            $count = $group['count'] ?? null;
-            $max   = $group['duration_max'] ?? null;
-
-            // The duration is optional, and its absence used to take the count with it.
-            // Only slow_traces puts a maximum in a group; the groups of a spike carry a
-            // count and nothing else, so every spike message listed the shapes without
-            // ever saying how many traces were behind them.
-            if (is_scalar($count)) {
-                $line = sprintf(
-                    '  %d trace%s',
-                    (int) $count,
-                    (int) $count === 1 ? '' : 's'
-                );
-
-                if (is_scalar($max)) {
-                    $line .= ', up to ' . $sender->escape($this->readable('duration_max', $max));
-                }
-
-                $lines[] = $line;
+            // Only the slow-traces watcher has a maximum to name; the groups of a spike
+            // carry a count and nothing else.
+            if (!is_null($group->durationMax)) {
+                $line .= ', up to ' . $sender->escape($this->readable('duration_max', $group->durationMax));
             }
 
-            if (is_scalar($group['trace_id'] ?? null)) {
-                $lines[] = '  ' . $sender->code($sender->escape($this->readable('trace_id', $group['trace_id'])));
+            $lines[] = $line;
+
+            if (!is_null($group->slowestTraceId)) {
+                $lines[] = '  ' . $sender->code($sender->escape($group->slowestTraceId));
             }
         }
 

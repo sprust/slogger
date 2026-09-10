@@ -33,7 +33,12 @@ readonly class EnqueueNotificationsListener
             $this->enqueueNotificationsAction->handle(
                 watcher: $watcher,
                 incident: $event->incident,
-                event: $this->findIncidentEventsAction->handle($event->incident->id, 1, 1)[0] ?? null
+                event: $this->findIncidentEventsAction->handle(
+                    incidentId: $event->incident->id,
+                    type: $watcher->type,
+                    page: 1,
+                    perPage: 1
+                )[0] ?? null
             );
         } catch (Throwable $exception) {
             $this->logger->error(

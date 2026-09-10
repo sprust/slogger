@@ -4,6 +4,7 @@ namespace Tests\Modules\Watcher\Domain\Services\Checkers;
 
 use App\Modules\Watcher\Domain\Services\Checkers\TracesSpikeChecker;
 use App\Modules\Watcher\Domain\Services\WatcherTimelineAnalyzer;
+use App\Modules\Watcher\Entities\Events\TracesSpikeEventPayloadObject;
 use App\Modules\Watcher\Entities\Settings\TracesSpikeSettingsObject;
 use App\Modules\Watcher\Entities\WatcherCheckContextObject;
 use App\Modules\Watcher\Entities\WatcherObject;
@@ -38,7 +39,7 @@ class TracesSpikeCheckerTest extends TestCase
         );
 
         $this->assertNotNull($trigger);
-        $this->assertSame(100.0, $trigger->measured['growth_percent']);
+        $this->assertSame(100.0, $trigger->measured->growthPercent);
     }
 
     public function testAGrowthBelowTheThresholdSaysNothing(): void
@@ -89,10 +90,10 @@ class TracesSpikeCheckerTest extends TestCase
         $trigger = $this->check(baselinePerMinute: 1, windowTotal: 20);
 
         $this->assertNotNull($trigger);
-        $this->assertSame(20, $trigger->measured['window_count']);
-        $this->assertSame(4.0, $trigger->measured['window_per_minute']);
-        $this->assertSame(1.0, $trigger->measured['baseline_per_minute']);
-        $this->assertSame(90, $trigger->settings['growth_percent']);
+        $this->assertSame(20, $trigger->measured->windowCount);
+        $this->assertSame(4.0, $trigger->measured->windowPerMinute);
+        $this->assertSame(1.0, $trigger->measured->baselinePerMinute);
+        $this->assertSame(90, $trigger->settings->growthPercent);
     }
 
     private function check(
@@ -101,7 +102,7 @@ class TracesSpikeCheckerTest extends TestCase
         ?TracesSpikeSettingsObject $settings = null,
         ?Carbon $collectSince = null,
         bool $collecting = true,
-    ): ?\App\Modules\Watcher\Entities\WatcherTriggerObject {
+    ): ?TracesSpikeEventPayloadObject {
         $settings ??= new TracesSpikeSettingsObject();
 
         $now = Carbon::parse(self::NOW);

@@ -6,11 +6,15 @@ namespace App\Modules\Watcher\Domain\Services\Checkers;
 
 use App\Modules\Watcher\Domain\Services\WatcherTimelineAnalyzer;
 use App\Modules\Watcher\Entities\Settings\TracesSpikeSettingsObject;
+use App\Modules\Watcher\Entities\Events\TracesSpikeEventMeasuredObject;
+use App\Modules\Watcher\Entities\Events\TracesSpikeEventPayloadObject;
+use App\Modules\Watcher\Entities\Events\TracesSpikeEventSettingsObject;
+use App\Modules\Watcher\Entities\Events\WatcherEventPayloadInterface;
 use App\Modules\Watcher\Entities\WatcherCheckContextObject;
+use App\Modules\Watcher\Entities\WatcherIncidentEventGroupObject;
 use App\Modules\Watcher\Entities\WatcherObject;
 use App\Modules\Watcher\Entities\WatcherTimelineGroupObject;
 use App\Modules\Watcher\Entities\WatcherTimelineObject;
-use App\Modules\Watcher\Entities\WatcherTriggerObject;
 use App\Modules\Watcher\Repositories\WatcherTimelineRepository;
 use Illuminate\Support\Carbon;
 
@@ -32,7 +36,7 @@ readonly class TracesSpikeChecker implements WatcherCheckerInterface
     ) {
     }
 
-    public function check(WatcherObject $watcher, WatcherCheckContextObject $context): ?WatcherTriggerObject
+    public function check(WatcherObject $watcher, WatcherCheckContextObject $context): ?WatcherEventPayloadInterface
     {
         $settings = $watcher->settings;
 
@@ -83,24 +87,24 @@ readonly class TracesSpikeChecker implements WatcherCheckerInterface
             return null;
         }
 
-        return new WatcherTriggerObject(
-            settings: [
-                'window_minutes'   => $settings->windowMinutes,
-                'baseline_minutes' => $settings->baselineMinutes,
-                'growth_percent'   => $settings->growthPercent,
-            ],
-            measured: [
-                'window_count'        => $windowCount,
-                'window_per_minute'   => round($windowRate, 2),
-                'baseline_per_minute' => round($baselineRate, 2),
-                'growth_percent'      => round($growthPercent, 2),
-            ],
+        return new TracesSpikeEventPayloadObject(
+            settings: new TracesSpikeEventSettingsObject(
+                windowMinutes: $settings->windowMinutes,
+                baselineMinutes: $settings->baselineMinutes,
+                growthPercent: $settings->growthPercent
+            ),
+            measured: new TracesSpikeEventMeasuredObject(
+                windowCount: $windowCount,
+                windowPerMinute: round($windowRate, 2),
+                baselinePerMinute: round($baselineRate, 2),
+                growthPercent: round($growthPercent, 2)
+            ),
             groups: $this->reportGroups($timeline, $windowFrom, $to)
         );
     }
 
     /**
-     * @return array<int, array<string, mixed>>
+     * @return WatcherIncidentEventGroupObject[]
      */
     private function reportGroups(
         WatcherTimelineObject $timeline,
@@ -115,12 +119,16 @@ readonly class TracesSpikeChecker implements WatcherCheckerInterface
         );
 
         return array_map(
-            static fn(WatcherTimelineGroupObject $group): array => [
-                'service_id' => $group->serviceId,
-                'type'       => $group->type,
-                'tags'       => $group->tags,
-                'count'      => $group->count,
-            ],
+            // Nothing timed here: a spike is a count, and the line's durations belong to
+            // the watcher that is about them.
+            static fn(WatcherTimelineGroupObject $group): WatcherIncidentEventGroupObject => new WatcherIncidentEventGroupObject(
+                serviceId: $group->serviceId,
+                type: $group->type,
+                tags: $group->tags,
+                count: $group->count,
+                durationMax: null,
+                slowestTraceId: null
+            ),
             array_slice($groups, 0, self::MAX_REPORTED_GROUPS)
         );
     }

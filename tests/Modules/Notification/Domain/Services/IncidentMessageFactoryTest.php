@@ -5,19 +5,13 @@ namespace Tests\Modules\Notification\Domain\Services;
 use App\Modules\Notification\Domain\Services\IncidentMessageFactory;
 use App\Modules\Notification\Domain\Services\Senders\TelegramSender;
 use App\Modules\Notification\Enums\NotificationKindEnum;
-use App\Modules\Watcher\Domain\Services\Checkers\BufferOverflowChecker;
-use App\Modules\Watcher\Domain\Services\Checkers\InvalidBufferGrownChecker;
-use App\Modules\Watcher\Domain\Services\Checkers\NoNewTracesChecker;
-use App\Modules\Watcher\Domain\Services\Checkers\SlowTracesChecker;
-use App\Modules\Watcher\Domain\Services\Checkers\TracesSpikeChecker;
-use App\Modules\Watcher\Domain\Services\Types\BufferOverflowWatcherType;
-use App\Modules\Watcher\Domain\Services\Types\InvalidBufferGrownWatcherType;
-use App\Modules\Watcher\Domain\Services\Types\NoNewTracesWatcherType;
-use App\Modules\Watcher\Domain\Services\Types\SlowTracesWatcherType;
-use App\Modules\Watcher\Domain\Services\Types\TracesSpikeWatcherType;
-use App\Modules\Watcher\Domain\Services\Types\WatcherTypeRegistry;
+use App\Modules\Watcher\Entities\Events\SlowTracesEventMeasuredObject;
+use App\Modules\Watcher\Entities\Events\SlowTracesEventPayloadObject;
+use App\Modules\Watcher\Entities\Events\SlowTracesEventSettingsObject;
+use App\Modules\Watcher\Entities\Events\TracesSpikeEventMeasuredObject;
+use App\Modules\Watcher\Entities\Events\TracesSpikeEventPayloadObject;
+use App\Modules\Watcher\Entities\Events\TracesSpikeEventSettingsObject;
 use App\Modules\Watcher\Entities\Settings\BufferOverflowSettingsObject;
-use App\Modules\Watcher\Entities\WatcherIncidentEventObject;
 use App\Modules\Watcher\Entities\WatcherIncidentObject;
 use App\Modules\Watcher\Entities\WatcherObject;
 use App\Modules\Watcher\Enums\WatcherIncidentStatusEnum;
@@ -25,16 +19,21 @@ use App\Modules\Watcher\Enums\WatcherTypeEnum;
 use Illuminate\Support\Carbon;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Client\ClientInterface;
+use Tests\Modules\Watcher\WatcherIncidentEventFactoryTrait;
+use Tests\Modules\Watcher\WatcherTypeRegistryFactoryTrait;
 
 class IncidentMessageFactoryTest extends TestCase
 {
+    use WatcherIncidentEventFactoryTrait;
+    use WatcherTypeRegistryFactoryTrait;
+
     public function testAnOpenedIncidentIsATitleAHeadAndTheDetails(): void
     {
         $text = $this->factory()->make(
             kind: NotificationKindEnum::Opened,
             watcher: $this->watcher(),
             incident: $this->incident(),
-            event: $this->event(settings: ['threshold' => 1000], measured: ['buffer_count' => 12000]),
+            event: $this->incidentEvent(),
             sender: $this->sender()
         );
 
@@ -60,7 +59,7 @@ class IncidentMessageFactoryTest extends TestCase
             kind: NotificationKindEnum::Event,
             watcher: $this->watcher(),
             incident: $this->incident(eventsCount: 4),
-            event: $this->event(measured: ['buffer_count' => 12000]),
+            event: $this->incidentEvent(),
             sender: $this->sender()
         );
 
@@ -78,7 +77,7 @@ class IncidentMessageFactoryTest extends TestCase
                 eventsCount: 4,
                 closedAt: Carbon::parse('2026-09-08 20:00:00')
             ),
-            event: $this->event(measured: ['buffer_count' => 12000]),
+            event: $this->incidentEvent(),
             sender: $this->sender()
         );
 
@@ -116,14 +115,25 @@ class IncidentMessageFactoryTest extends TestCase
             kind: NotificationKindEnum::Opened,
             watcher: $this->watcher(type: WatcherTypeEnum::SlowTraces),
             incident: $this->incident(),
-            event: $this->event(
-                settings: ['duration' => 10.0],
-                measured: ['slowest' => 41.2],
+            event: $this->incidentEvent(new SlowTracesEventPayloadObject(
+                settings: new SlowTracesEventSettingsObject(duration: 10.0, windowMinutes: 5),
+                measured: new SlowTracesEventMeasuredObject(slowest: 41.2),
                 groups: [
-                    ['type' => 'http', 'tags' => ['api'], 'count' => 3, 'duration_max' => 41.2, 'trace_id' => 'abc123'],
-                    ['type' => 'job', 'tags' => [], 'count' => 1, 'duration_max' => 12.7, 'trace_id' => 'def456'],
+                    $this->eventGroup(
+                        type: 'http',
+                        tags: ['api'],
+                        count: 3,
+                        durationMax: 41.2,
+                        slowestTraceId: 'abc123'
+                    ),
+                    $this->eventGroup(
+                        type: 'job',
+                        count: 1,
+                        durationMax: 12.7,
+                        slowestTraceId: 'def456'
+                    ),
                 ]
-            ),
+            )),
             sender: $this->sender()
         );
 
@@ -150,13 +160,23 @@ class IncidentMessageFactoryTest extends TestCase
             kind: NotificationKindEnum::Opened,
             watcher: $this->watcher(type: WatcherTypeEnum::TracesSpike),
             incident: $this->incident(),
-            event: $this->event(
-                measured: ['window_count' => 900],
+            event: $this->incidentEvent(new TracesSpikeEventPayloadObject(
+                settings: new TracesSpikeEventSettingsObject(
+                    windowMinutes: 5,
+                    baselineMinutes: 60,
+                    growthPercent: 90
+                ),
+                measured: new TracesSpikeEventMeasuredObject(
+                    windowCount: 900,
+                    windowPerMinute: 180.0,
+                    baselinePerMinute: 15.0,
+                    growthPercent: 1100.0
+                ),
                 groups: [
-                    ['type' => 'http', 'tags' => ['api'], 'count' => 700],
-                    ['type' => 'job', 'tags' => [], 'count' => 1],
+                    $this->eventGroup(type: 'http', tags: ['api'], count: 700),
+                    $this->eventGroup(type: 'job', count: 1),
                 ]
-            ),
+            )),
             sender: $this->sender()
         );
 
@@ -169,9 +189,13 @@ class IncidentMessageFactoryTest extends TestCase
     {
         $text = $this->factory()->make(
             kind: NotificationKindEnum::Opened,
-            watcher: $this->watcher(name: 'prod <b>buffer</b> & co'),
+            watcher: $this->watcher(type: WatcherTypeEnum::SlowTraces, name: 'prod <b>buffer</b> & co'),
             incident: $this->incident(),
-            event: $this->event(groups: [['type' => '<i>http</i>', 'tags' => []]]),
+            event: $this->incidentEvent(new SlowTracesEventPayloadObject(
+                settings: new SlowTracesEventSettingsObject(duration: 10.0, windowMinutes: 5),
+                measured: new SlowTracesEventMeasuredObject(slowest: 41.2),
+                groups: [$this->eventGroup(type: '<i>http</i>')]
+            )),
             sender: $this->sender()
         );
 
@@ -184,13 +208,7 @@ class IncidentMessageFactoryTest extends TestCase
     {
         return new IncidentMessageFactory(
             appName: 'slogger',
-            watcherTypes: new WatcherTypeRegistry(
-                new BufferOverflowWatcherType($this->createMock(BufferOverflowChecker::class)),
-                new InvalidBufferGrownWatcherType($this->createMock(InvalidBufferGrownChecker::class)),
-                new NoNewTracesWatcherType($this->createMock(NoNewTracesChecker::class)),
-                new TracesSpikeWatcherType($this->createMock(TracesSpikeChecker::class)),
-                new SlowTracesWatcherType($this->createMock(SlowTracesChecker::class))
-            )
+            watcherTypes: $this->watcherTypeRegistry()
         );
     }
 
@@ -236,23 +254,6 @@ class IncidentMessageFactoryTest extends TestCase
             eventsCount: $eventsCount,
             closedAt: $closedAt,
             closedByUserId: null
-        );
-    }
-
-    /**
-     * @param array<string, scalar>            $settings
-     * @param array<string, scalar>            $measured
-     * @param array<int, array<string, mixed>> $groups
-     */
-    private function event(array $settings = [], array $measured = [], array $groups = []): WatcherIncidentEventObject
-    {
-        return new WatcherIncidentEventObject(
-            id: '68be1f000000000000000010',
-            incidentId: '68be1f000000000000000009',
-            settings: $settings,
-            measured: $measured,
-            groups: $groups,
-            occurredAt: Carbon::parse('2026-09-08 19:20:03')
         );
     }
 }

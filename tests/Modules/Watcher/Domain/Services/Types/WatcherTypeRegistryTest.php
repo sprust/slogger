@@ -2,29 +2,22 @@
 
 namespace Tests\Modules\Watcher\Domain\Services\Types;
 
-use App\Modules\Watcher\Domain\Services\Checkers\BufferOverflowChecker;
-use App\Modules\Watcher\Domain\Services\Checkers\InvalidBufferGrownChecker;
-use App\Modules\Watcher\Domain\Services\Checkers\NoNewTracesChecker;
-use App\Modules\Watcher\Domain\Services\Checkers\SlowTracesChecker;
-use App\Modules\Watcher\Domain\Services\Checkers\TracesSpikeChecker;
-use App\Modules\Watcher\Domain\Services\Types\BufferOverflowWatcherType;
-use App\Modules\Watcher\Domain\Services\Types\InvalidBufferGrownWatcherType;
-use App\Modules\Watcher\Domain\Services\Types\NoNewTracesWatcherType;
-use App\Modules\Watcher\Domain\Services\Types\SlowTracesWatcherType;
-use App\Modules\Watcher\Domain\Services\Types\TracesSpikeWatcherType;
 use App\Modules\Watcher\Domain\Services\Types\WatcherTypeRegistry;
 use App\Modules\Watcher\Entities\Settings\NoNewTracesSettingsObject;
 use App\Modules\Watcher\Entities\Settings\SlowTracesSettingsObject;
 use App\Modules\Watcher\Entities\Settings\TracesSpikeSettingsObject;
 use App\Modules\Watcher\Enums\WatcherTypeEnum;
 use PHPUnit\Framework\TestCase;
-
 /**
  * The one place a type turns into behaviour. Everything it answers used to be answered in
  * three different classes, two of them in the repository layer.
  */
+use Tests\Modules\Watcher\WatcherTypeRegistryFactoryTrait;
+
 class WatcherTypeRegistryTest extends TestCase
 {
+    use WatcherTypeRegistryFactoryTrait;
+
     public function testEveryTypeHasADefinition(): void
     {
         $registry = $this->registry();
@@ -104,12 +97,6 @@ class WatcherTypeRegistryTest extends TestCase
 
     private function registry(): WatcherTypeRegistry
     {
-        return new WatcherTypeRegistry(
-            new BufferOverflowWatcherType($this->createMock(BufferOverflowChecker::class)),
-            new InvalidBufferGrownWatcherType($this->createMock(InvalidBufferGrownChecker::class)),
-            new NoNewTracesWatcherType($this->createMock(NoNewTracesChecker::class)),
-            new TracesSpikeWatcherType($this->createMock(TracesSpikeChecker::class)),
-            new SlowTracesWatcherType($this->createMock(SlowTracesChecker::class))
-        );
+        return $this->watcherTypeRegistry();
     }
 }

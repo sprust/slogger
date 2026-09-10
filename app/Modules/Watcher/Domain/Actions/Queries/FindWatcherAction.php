@@ -16,9 +16,13 @@ readonly class FindWatcherAction
     ) {
     }
 
-    public function handle(int $id): ?WatcherObject
+    /**
+     * @param bool $withTrashed a deleted watcher still answers, for the incidents it left
+     *                          behind
+     */
+    public function handle(int $id, bool $withTrashed = false): ?WatcherObject
     {
-        $dto = $this->watcherRepository->findById($id);
+        $dto = $this->watcherRepository->findById($id, $withTrashed);
 
         return is_null($dto) ? null : $this->watcherFactory->make($dto);
     }

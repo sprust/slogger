@@ -32,10 +32,10 @@ readonly class CheckWatcherAction
     public function handle(WatcherObject $watcher, WatcherCheckContextObject $context): void
     {
         try {
-            $trigger = $this->types->for($watcher->type)->checker()->check($watcher, $context);
+            $payload = $this->types->for($watcher->type)->checker()->check($watcher, $context);
 
-            if (!is_null($trigger)) {
-                $this->registerTriggerAction->handle($watcher, $trigger, $context->now);
+            if (!is_null($payload)) {
+                $this->registerTriggerAction->handle($watcher, $payload, $context->now);
             }
 
             $this->trimTimelineAction->handle($watcher, $context->now);

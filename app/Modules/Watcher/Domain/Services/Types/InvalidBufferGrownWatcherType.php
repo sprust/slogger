@@ -6,6 +6,8 @@ namespace App\Modules\Watcher\Domain\Services\Types;
 
 use App\Modules\Common\Helpers\ArrayValueGetter;
 use App\Modules\Watcher\Domain\Services\Checkers\InvalidBufferGrownChecker;
+use App\Modules\Watcher\Domain\Services\Events\InvalidBufferGrownEventPayloadMapper;
+use App\Modules\Watcher\Domain\Services\Events\WatcherEventPayloadMapperInterface;
 use App\Modules\Watcher\Domain\Services\Checkers\WatcherCheckerInterface;
 use App\Modules\Watcher\Entities\Settings\InvalidBufferGrownSettingsObject;
 use App\Modules\Watcher\Entities\Settings\WatcherSettingsInterface;
@@ -16,7 +18,8 @@ use App\Modules\Watcher\Enums\WatcherTypeEnum;
 readonly class InvalidBufferGrownWatcherType implements WatcherTypeDefinitionInterface
 {
     public function __construct(
-        private InvalidBufferGrownChecker $checker
+        private InvalidBufferGrownChecker $checker,
+        private InvalidBufferGrownEventPayloadMapper $eventPayloadMapper
     ) {
     }
 
@@ -44,6 +47,11 @@ readonly class InvalidBufferGrownWatcherType implements WatcherTypeDefinitionInt
                 ),
             ]
         );
+    }
+
+    public function eventPayloadMapper(): WatcherEventPayloadMapperInterface
+    {
+        return $this->eventPayloadMapper;
     }
 
     public function checker(): WatcherCheckerInterface

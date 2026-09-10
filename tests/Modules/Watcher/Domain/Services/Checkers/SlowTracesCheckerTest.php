@@ -4,12 +4,13 @@ namespace Tests\Modules\Watcher\Domain\Services\Checkers;
 
 use App\Modules\Watcher\Domain\Services\Checkers\SlowTracesChecker;
 use App\Modules\Watcher\Domain\Services\WatcherTimelineAnalyzer;
+use App\Modules\Watcher\Entities\WatcherIncidentEventGroupObject;
 use App\Modules\Watcher\Entities\Settings\SlowTracesSettingsObject;
 use App\Modules\Watcher\Entities\WatcherCheckContextObject;
 use App\Modules\Watcher\Entities\WatcherTimelineBucketObject;
 use App\Modules\Watcher\Entities\WatcherTimelineGroupObject;
 use App\Modules\Watcher\Entities\WatcherTimelineObject;
-use App\Modules\Watcher\Entities\WatcherTriggerObject;
+use App\Modules\Watcher\Entities\Events\SlowTracesEventPayloadObject;
 use App\Modules\Watcher\Enums\WatcherTypeEnum;
 use App\Modules\Watcher\Repositories\WatcherTimelineRepository;
 use Illuminate\Support\Carbon;
@@ -27,7 +28,7 @@ class SlowTracesCheckerTest extends TestCase
         $trigger = $this->check(durations: [12.5]);
 
         $this->assertNotNull($trigger);
-        $this->assertSame(12.5, $trigger->measured['slowest']);
+        $this->assertSame(12.5, $trigger->measured->slowest);
     }
 
     public function testTheThresholdIsInclusive(): void
@@ -54,8 +55,8 @@ class SlowTracesCheckerTest extends TestCase
         $trigger = $this->check(durations: [11.0, 30.0, 15.0]);
 
         $this->assertNotNull($trigger);
-        $this->assertSame(30.0, $trigger->groups[0]['duration_max']);
-        $this->assertSame('trace-30', $trigger->groups[0]['trace_id']);
+        $this->assertSame(30.0, $trigger->groups[0]->durationMax);
+        $this->assertSame('trace-30', $trigger->groups[0]->slowestTraceId);
     }
 
     /** Shapes come back slowest first, so the worst is the first thing read. */
@@ -66,14 +67,17 @@ class SlowTracesCheckerTest extends TestCase
         $this->assertNotNull($trigger);
         $this->assertSame(
             [30.0, 15.0, 11.0],
-            array_column($trigger->groups, 'duration_max')
+            array_map(
+                static fn(WatcherIncidentEventGroupObject $group): ?float => $group->durationMax,
+                $trigger->groups
+            )
         );
     }
 
     /**
      * @param float[] $durations
      */
-    private function check(array $durations): ?WatcherTriggerObject
+    private function check(array $durations): ?SlowTracesEventPayloadObject
     {
         $now = Carbon::parse(self::NOW);
 

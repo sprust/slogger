@@ -217,7 +217,9 @@ so a new cross-module edge is added here or is not added.
 - `Domain\Actions\Mutations\EnqueueNotificationsAction` → `Watcher\Entities`,
   `Watcher\Enums` — the incident, its event and its status are what a message is made of.
 - `Domain\Services\IncidentMessageFactory` → `Watcher\Domain\Services\Types\WatcherTypeRegistry`,
-  `Watcher\Entities` — to read a watcher type's title, and the same three objects.
+  `Watcher\Domain\Services\Events\WatcherEventPayloadMapperInterface`, `Watcher\Entities`
+  — to read a watcher type's title, to render an event's numbers under the names they are
+  stored by, and the same three objects.
 - `Infrastructure\Listeners\EnqueueNotificationsListener` → `Watcher\Domain\Events`,
   `Watcher\Domain\Actions\Queries` — it listens for `WatcherIncidentChangedEvent` and
   reads the watcher and the latest event behind it.

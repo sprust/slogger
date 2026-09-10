@@ -6,6 +6,8 @@ namespace App\Modules\Watcher\Domain\Services\Types;
 
 use App\Modules\Common\Helpers\ArrayValueGetter;
 use App\Modules\Watcher\Domain\Services\Checkers\TracesSpikeChecker;
+use App\Modules\Watcher\Domain\Services\Events\TracesSpikeEventPayloadMapper;
+use App\Modules\Watcher\Domain\Services\Events\WatcherEventPayloadMapperInterface;
 use App\Modules\Watcher\Domain\Services\Checkers\WatcherCheckerInterface;
 use App\Modules\Watcher\Entities\Settings\TracesSpikeSettingsObject;
 use App\Modules\Watcher\Entities\Settings\WatcherSettingsInterface;
@@ -19,7 +21,8 @@ readonly class TracesSpikeWatcherType implements WatcherTypeDefinitionInterface
     use WatcherTraceFilterTrait;
 
     public function __construct(
-        private TracesSpikeChecker $checker
+        private TracesSpikeChecker $checker,
+        private TracesSpikeEventPayloadMapper $eventPayloadMapper
     ) {
     }
 
@@ -64,6 +67,11 @@ readonly class TracesSpikeWatcherType implements WatcherTypeDefinitionInterface
                 ),
             ]
         );
+    }
+
+    public function eventPayloadMapper(): WatcherEventPayloadMapperInterface
+    {
+        return $this->eventPayloadMapper;
     }
 
     public function checker(): WatcherCheckerInterface

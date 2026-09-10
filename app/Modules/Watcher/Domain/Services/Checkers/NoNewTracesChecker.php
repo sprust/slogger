@@ -6,9 +6,12 @@ namespace App\Modules\Watcher\Domain\Services\Checkers;
 
 use App\Modules\Watcher\Domain\Services\WatcherTimelineAnalyzer;
 use App\Modules\Watcher\Entities\Settings\NoNewTracesSettingsObject;
+use App\Modules\Watcher\Entities\Events\NoNewTracesEventMeasuredObject;
+use App\Modules\Watcher\Entities\Events\NoNewTracesEventPayloadObject;
+use App\Modules\Watcher\Entities\Events\NoNewTracesEventSettingsObject;
+use App\Modules\Watcher\Entities\Events\WatcherEventPayloadInterface;
 use App\Modules\Watcher\Entities\WatcherCheckContextObject;
 use App\Modules\Watcher\Entities\WatcherObject;
-use App\Modules\Watcher\Entities\WatcherTriggerObject;
 use App\Modules\Watcher\Repositories\WatcherTimelineRepository;
 
 /**
@@ -27,7 +30,7 @@ readonly class NoNewTracesChecker implements WatcherCheckerInterface
     ) {
     }
 
-    public function check(WatcherObject $watcher, WatcherCheckContextObject $context): ?WatcherTriggerObject
+    public function check(WatcherObject $watcher, WatcherCheckContextObject $context): ?WatcherEventPayloadInterface
     {
         $settings = $watcher->settings;
 
@@ -57,12 +60,12 @@ readonly class NoNewTracesChecker implements WatcherCheckerInterface
             return null;
         }
 
-        return new WatcherTriggerObject(
-            settings: ['period_minutes' => $settings->periodMinutes],
-            measured: [
-                'window_from' => $from->toDateTimeString(),
-                'window_to'   => $to->toDateTimeString(),
-            ]
+        return new NoNewTracesEventPayloadObject(
+            settings: new NoNewTracesEventSettingsObject(periodMinutes: $settings->periodMinutes),
+            measured: new NoNewTracesEventMeasuredObject(
+                windowFrom: $from->toDateTimeString(),
+                windowTo: $to->toDateTimeString()
+            )
         );
     }
 }

@@ -6,6 +6,8 @@ namespace App\Modules\Watcher\Domain\Services\Types;
 
 use App\Modules\Common\Helpers\ArrayValueGetter;
 use App\Modules\Watcher\Domain\Services\Checkers\SlowTracesChecker;
+use App\Modules\Watcher\Domain\Services\Events\SlowTracesEventPayloadMapper;
+use App\Modules\Watcher\Domain\Services\Events\WatcherEventPayloadMapperInterface;
 use App\Modules\Watcher\Domain\Services\Checkers\WatcherCheckerInterface;
 use App\Modules\Watcher\Entities\Settings\SlowTracesSettingsObject;
 use App\Modules\Watcher\Entities\Settings\WatcherSettingsInterface;
@@ -19,7 +21,8 @@ readonly class SlowTracesWatcherType implements WatcherTypeDefinitionInterface
     use WatcherTraceFilterTrait;
 
     public function __construct(
-        private SlowTracesChecker $checker
+        private SlowTracesChecker $checker,
+        private SlowTracesEventPayloadMapper $eventPayloadMapper
     ) {
     }
 
@@ -57,6 +60,11 @@ readonly class SlowTracesWatcherType implements WatcherTypeDefinitionInterface
                 ),
             ]
         );
+    }
+
+    public function eventPayloadMapper(): WatcherEventPayloadMapperInterface
+    {
+        return $this->eventPayloadMapper;
     }
 
     public function checker(): WatcherCheckerInterface

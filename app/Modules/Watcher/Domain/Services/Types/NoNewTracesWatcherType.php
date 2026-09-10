@@ -6,6 +6,8 @@ namespace App\Modules\Watcher\Domain\Services\Types;
 
 use App\Modules\Common\Helpers\ArrayValueGetter;
 use App\Modules\Watcher\Domain\Services\Checkers\NoNewTracesChecker;
+use App\Modules\Watcher\Domain\Services\Events\NoNewTracesEventPayloadMapper;
+use App\Modules\Watcher\Domain\Services\Events\WatcherEventPayloadMapperInterface;
 use App\Modules\Watcher\Domain\Services\Checkers\WatcherCheckerInterface;
 use App\Modules\Watcher\Entities\Settings\NoNewTracesSettingsObject;
 use App\Modules\Watcher\Entities\Settings\WatcherSettingsInterface;
@@ -19,7 +21,8 @@ readonly class NoNewTracesWatcherType implements WatcherTypeDefinitionInterface
     use WatcherTraceFilterTrait;
 
     public function __construct(
-        private NoNewTracesChecker $checker
+        private NoNewTracesChecker $checker,
+        private NoNewTracesEventPayloadMapper $eventPayloadMapper
     ) {
     }
 
@@ -49,6 +52,11 @@ readonly class NoNewTracesWatcherType implements WatcherTypeDefinitionInterface
                 ),
             ]
         );
+    }
+
+    public function eventPayloadMapper(): WatcherEventPayloadMapperInterface
+    {
+        return $this->eventPayloadMapper;
     }
 
     public function checker(): WatcherCheckerInterface

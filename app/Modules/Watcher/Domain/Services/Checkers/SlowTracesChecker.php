@@ -6,10 +6,14 @@ namespace App\Modules\Watcher\Domain\Services\Checkers;
 
 use App\Modules\Watcher\Domain\Services\WatcherTimelineAnalyzer;
 use App\Modules\Watcher\Entities\Settings\SlowTracesSettingsObject;
+use App\Modules\Watcher\Entities\Events\SlowTracesEventMeasuredObject;
+use App\Modules\Watcher\Entities\Events\SlowTracesEventPayloadObject;
+use App\Modules\Watcher\Entities\Events\SlowTracesEventSettingsObject;
+use App\Modules\Watcher\Entities\Events\WatcherEventPayloadInterface;
 use App\Modules\Watcher\Entities\WatcherCheckContextObject;
+use App\Modules\Watcher\Entities\WatcherIncidentEventGroupObject;
 use App\Modules\Watcher\Entities\WatcherObject;
 use App\Modules\Watcher\Entities\WatcherTimelineGroupObject;
-use App\Modules\Watcher\Entities\WatcherTriggerObject;
 use App\Modules\Watcher\Repositories\WatcherTimelineRepository;
 
 /**
@@ -32,7 +36,7 @@ readonly class SlowTracesChecker implements WatcherCheckerInterface
     ) {
     }
 
-    public function check(WatcherObject $watcher, WatcherCheckContextObject $context): ?WatcherTriggerObject
+    public function check(WatcherObject $watcher, WatcherCheckContextObject $context): ?WatcherEventPayloadInterface
     {
         $settings = $watcher->settings;
 
@@ -61,21 +65,23 @@ readonly class SlowTracesChecker implements WatcherCheckerInterface
             static fn(WatcherTimelineGroupObject $a, WatcherTimelineGroupObject $b): int => $b->durationMax <=> $a->durationMax
         );
 
-        return new WatcherTriggerObject(
-            settings: [
-                'duration'       => $settings->duration,
-                'window_minutes' => $settings->windowMinutes,
-            ],
-            measured: ['slowest' => round($groups[0]->durationMax, 3)],
+        return new SlowTracesEventPayloadObject(
+            settings: new SlowTracesEventSettingsObject(
+                duration: $settings->duration,
+                windowMinutes: $settings->windowMinutes
+            ),
+            measured: new SlowTracesEventMeasuredObject(
+                slowest: round($groups[0]->durationMax, 3)
+            ),
             groups: array_map(
-                static fn(WatcherTimelineGroupObject $group): array => [
-                    'service_id'   => $group->serviceId,
-                    'type'         => $group->type,
-                    'tags'         => $group->tags,
-                    'count'        => $group->count,
-                    'duration_max' => round($group->durationMax, 3),
-                    'trace_id'     => $group->slowestTraceId,
-                ],
+                static fn(WatcherTimelineGroupObject $group): WatcherIncidentEventGroupObject => new WatcherIncidentEventGroupObject(
+                    serviceId: $group->serviceId,
+                    type: $group->type,
+                    tags: $group->tags,
+                    count: $group->count,
+                    durationMax: round($group->durationMax, 3),
+                    slowestTraceId: $group->slowestTraceId
+                ),
                 array_slice($groups, 0, self::MAX_REPORTED_GROUPS)
             )
         );

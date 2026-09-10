@@ -6,9 +6,12 @@ namespace App\Modules\Watcher\Domain\Services\Checkers;
 
 use App\Modules\Trace\Domain\Actions\Queries\CountInvalidTraceBufferSinceAction;
 use App\Modules\Watcher\Entities\Settings\InvalidBufferGrownSettingsObject;
+use App\Modules\Watcher\Entities\Events\InvalidBufferGrownEventMeasuredObject;
+use App\Modules\Watcher\Entities\Events\InvalidBufferGrownEventPayloadObject;
+use App\Modules\Watcher\Entities\Events\InvalidBufferGrownEventSettingsObject;
+use App\Modules\Watcher\Entities\Events\WatcherEventPayloadInterface;
 use App\Modules\Watcher\Entities\WatcherCheckContextObject;
 use App\Modules\Watcher\Entities\WatcherObject;
-use App\Modules\Watcher\Entities\WatcherTriggerObject;
 use Illuminate\Support\Carbon;
 
 /**
@@ -21,7 +24,7 @@ readonly class InvalidBufferGrownChecker implements WatcherCheckerInterface
     ) {
     }
 
-    public function check(WatcherObject $watcher, WatcherCheckContextObject $context): ?WatcherTriggerObject
+    public function check(WatcherObject $watcher, WatcherCheckContextObject $context): ?WatcherEventPayloadInterface
     {
         $settings = $watcher->settings;
 
@@ -37,12 +40,12 @@ readonly class InvalidBufferGrownChecker implements WatcherCheckerInterface
             return null;
         }
 
-        return new WatcherTriggerObject(
-            settings: ['threshold' => $settings->threshold],
-            measured: [
-                'invalid_count' => $count,
-                'since'         => $since->toDateTimeString(),
-            ]
+        return new InvalidBufferGrownEventPayloadObject(
+            settings: new InvalidBufferGrownEventSettingsObject(threshold: $settings->threshold),
+            measured: new InvalidBufferGrownEventMeasuredObject(
+                invalidCount: $count,
+                since: $since->toDateTimeString()
+            )
         );
     }
 
