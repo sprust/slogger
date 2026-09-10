@@ -74,18 +74,7 @@
                   {{ scope.row.duration_max ?? '' }}
                 </template>
               </el-table-column>
-              <el-table-column label="Slowest trace" min-width="220">
-                <template #default="scope">
-                  <el-button
-                      v-if="scope.row.trace_id"
-                      type="info"
-                      link
-                      @click="openInAggregator(scope.row, props.row.occurred_at, scope.row.trace_id)"
-                  >
-                    {{ scope.row.trace_id }}
-                  </el-button>
-                </template>
-              </el-table-column>
+              <el-table-column label="Slowest trace" prop="trace_id" min-width="220"/>
             </el-table>
           </div>
         </template>
@@ -189,7 +178,7 @@ const columnsByType: Record<string, Array<PayloadColumn>> = {
   ],
   invalidBufferGrown: [
     setting<InvalidBufferGrownEvent>('threshold', 'Limit'),
-    measured<InvalidBufferGrownEvent>('invalid_count', 'Broken traces'),
+    measured<InvalidBufferGrownEvent>('invalid_count', 'Invalid traces'),
     measured<InvalidBufferGrownEvent>('since', 'Counted since'),
   ],
   noNewTraces: [
@@ -284,22 +273,18 @@ export default defineComponent({
           ?? `Service #${serviceId}`
     },
     /**
-     * Opens the aggregator on the traces this shape is made of, and on one of them by id
-     * where the shape names one.
+     * Fills the aggregator's filter with everything this shape knows.
      *
      * The filter is set from here rather than handed over in the url: the aggregator keeps
      * it in a store that survives navigation and reads no query parameters, so this is
      * what "a link to these traces" means on this panel. The search itself is left to
-     * whoever arrives — the filter is a starting point, not a question already asked.
+     * whoever arrives, which is what makes filling all of it useful — the id and the
+     * shape are two questions, and whoever arrives picks one by clearing the other.
      *
      * `initialized` is set because the aggregator resets its filter the first time it is
      * mounted — without it everything set here would be wiped on arrival.
      */
-    openInAggregator(
-      group: WatcherIncidentEventGroup,
-      occurredAt: string,
-      traceId: string | null = null,
-    ) {
+    openInAggregator(group: WatcherIncidentEventGroup, occurredAt: string) {
       const traceAggregatorStore = useTraceAggregatorStore()
 
       // A live graph rewrites the filter's lower bound every second and would take the
@@ -309,9 +294,7 @@ export default defineComponent({
       traceAggregatorStore.resetFilters()
 
       traceAggregatorStore.initialized = true
-      traceAggregatorStore.payload.trace_id = traceId
 
-      // What the group is: the traces of one service, of one type, carrying these tags.
       // Only what the shape actually names — a watcher filtered by nothing leaves the
       // type empty, and an empty value in the filter would ask for traces that have none.
       if (group.service_id) {
@@ -324,6 +307,13 @@ export default defineComponent({
 
       if (group.tags.length) {
         traceAggregatorStore.payload.tags = [...group.tags]
+      }
+
+      // Left in, and it answers on its own: a trace id reduces the search to that trace
+      // and the tree it belongs to, whatever else stands beside it. Clearing it is what
+      // asks the shape's question instead.
+      if (group.trace_id) {
+        traceAggregatorStore.payload.trace_id = group.trace_id
       }
 
       this.applyPeriodAround(traceAggregatorStore, occurredAt)
