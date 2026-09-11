@@ -27,12 +27,9 @@
 </template>
 
 <script lang="ts">
-import {defineAsyncComponent, defineComponent} from "vue";
+import {defineComponent} from "vue";
 import {usePendingRequestStore} from "../store/pendingRequestStore.ts";
-
-const DynamicIndexCollections = defineAsyncComponent(
-    () => import("./pages/trace-aggregator/components/dynamic-indexes/DynamicIndexCollections.vue")
-)
+import DynamicIndexCollections from "./pages/trace-aggregator/components/dynamic-indexes/DynamicIndexCollections.vue";
 
 export default defineComponent({
   components: {DynamicIndexCollections},

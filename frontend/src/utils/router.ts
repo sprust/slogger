@@ -1,12 +1,13 @@
 import {createRouter, createWebHistory, NavigationGuardNext, RouteLocationNormalized} from "vue-router";
 import {useAuthStore} from "../store/authStore.ts";
 import Login from "../components/Login.vue";
-import Dashboard from "../components/pages/dashboard/Dashboard.vue";
-import TraceAggregator from "../components/pages/trace-aggregator/TraceAggregator.vue";
-import TraceCleaner from "../components/pages/trace-cleaner/TraceCleaner.vue";
-import Logs from "../components/pages/logs-viewer/Logs.vue";
-import Watchers from "../components/pages/watchers/Watchers.vue";
-import Sconcur from "../components/pages/sconcur/Sconcur.vue";
+
+const Dashboard = () => import("../components/pages/dashboard/Dashboard.vue")
+const TraceAggregator = () => import("../components/pages/trace-aggregator/TraceAggregator.vue")
+const TraceCleaner = () => import("../components/pages/trace-cleaner/TraceCleaner.vue")
+const Logs = () => import("../components/pages/logs-viewer/Logs.vue")
+const Watchers = () => import("../components/pages/watchers/Watchers.vue")
+const Sconcur = () => import("../components/pages/sconcur/Sconcur.vue")
 
 export const routes = {
     login: {

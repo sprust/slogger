@@ -108,13 +108,12 @@
 </template>
 
 <script lang="ts">
-import {defineAsyncComponent, defineComponent} from 'vue'
+import {defineComponent} from 'vue'
 import {Refresh as IconRefresh} from '@element-plus/icons-vue'
 import {Channel, channelTypeIsKnown, SendResult, useChannelsStore} from "./store/channelsStore.ts";
 import {ChannelType, useChannelTypesStore} from "./store/channelTypesStore.ts";
-
-const ChannelFormDialog = defineAsyncComponent(() => import("./ChannelFormDialog.vue"))
-const ChannelDeliveries = defineAsyncComponent(() => import("./ChannelDeliveries.vue"))
+import ChannelFormDialog from "./ChannelFormDialog.vue";
+import ChannelDeliveries from "./ChannelDeliveries.vue";
 
 export default defineComponent({
   components: {ChannelFormDialog, ChannelDeliveries},

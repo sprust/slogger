@@ -19,12 +19,11 @@
 </template>
 
 <script lang="ts">
-import {defineAsyncComponent, defineComponent} from 'vue'
+import {defineComponent} from 'vue'
 import {useWatcherTabsStore, watcherTabs} from "./store/watcherTabsStore.ts";
-
-const Incidents = defineAsyncComponent(() => import("./components/incidents/Incidents.vue"))
-const WatcherList = defineAsyncComponent(() => import("./components/settings/WatcherList.vue"))
-const ChannelList = defineAsyncComponent(() => import("./components/notifications/ChannelList.vue"))
+import Incidents from "./components/incidents/Incidents.vue";
+import WatcherList from "./components/settings/WatcherList.vue";
+import ChannelList from "./components/notifications/ChannelList.vue";
 
 export default defineComponent({
   components: {Incidents, WatcherList, ChannelList},

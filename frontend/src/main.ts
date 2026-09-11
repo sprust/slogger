@@ -8,6 +8,8 @@ import {createPinia} from "pinia";
 
 const pinia = createPinia()
 
+window.addEventListener('vite:preloadError', () => window.location.reload())
+
 createApp(App)
     .use(router)
     .use(ElementPlus)

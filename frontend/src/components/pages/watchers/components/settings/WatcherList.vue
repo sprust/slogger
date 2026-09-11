@@ -103,13 +103,12 @@
 </template>
 
 <script lang="ts">
-import {defineAsyncComponent, defineComponent} from 'vue'
+import {defineComponent} from 'vue'
 import {Refresh as IconRefresh} from '@element-plus/icons-vue'
 import {useWatchersStore, Watcher, watcherTypeIsKnown} from "../../store/watchersStore.ts";
 import {useWatcherTypesStore, WatcherType} from "../../store/watcherTypesStore.ts";
 import {Channel, useChannelsStore} from "../notifications/store/channelsStore.ts";
-
-const WatcherFormDialog = defineAsyncComponent(() => import("./WatcherFormDialog.vue"))
+import WatcherFormDialog from "./WatcherFormDialog.vue";
 
 export default defineComponent({
   components: {WatcherFormDialog},

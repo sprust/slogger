@@ -115,15 +115,14 @@
 </template>
 
 <script lang="ts">
-import {defineAsyncComponent, defineComponent} from 'vue'
+import {defineComponent} from 'vue'
 import {Refresh as IconRefresh} from '@element-plus/icons-vue'
 import {useIncidentsStore, WatcherIncident} from "../../store/incidentsStore.ts";
 import {WatchersIncidentsListParamsStatusEnum} from "../../../../../api-schema/admin-api-schema.ts";
 import {useWatchersStore} from "../../store/watchersStore.ts";
 import {useWatcherTypesStore} from "../../store/watcherTypesStore.ts";
 import {useWatcherIncidentStatStore} from "../../../../../store/watcherIncidentStatStore.ts";
-
-const IncidentEvents = defineAsyncComponent(() => import("./IncidentEvents.vue"))
+import IncidentEvents from "./IncidentEvents.vue";
 
 export default defineComponent({
   components: {IncidentEvents},

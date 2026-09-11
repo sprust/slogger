@@ -95,14 +95,13 @@
 </template>
 
 <script lang="ts">
-import {defineAsyncComponent, defineComponent} from "vue";
+import {defineComponent} from "vue";
 import {
   TraceDynamicIndex,
   useTraceDynamicIndexesStore
 } from "./store/traceDynamicIndexesStore.ts";
 import {Refresh as IconRefreshList} from "@element-plus/icons-vue";
-
-const DynamicIndexCollections = defineAsyncComponent(() => import("./DynamicIndexCollections.vue"))
+import DynamicIndexCollections from "./DynamicIndexCollections.vue";
 
 interface DeletingIndexes {
   [key: string]: boolean,
