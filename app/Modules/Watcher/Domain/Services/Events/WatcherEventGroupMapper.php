@@ -59,7 +59,8 @@ readonly class WatcherEventGroupMapper
                 tags: array_values(ArrayValueGetter::arrayStringNull($group, 'tags') ?? []),
                 count: $count,
                 durationMax: ArrayValueGetter::floatNull($group, 'duration_max'),
-                slowestTraceId: ArrayValueGetter::stringNull($group, 'trace_id')
+                slowestTraceId: ArrayValueGetter::stringNull($group, 'trace_id'),
+                slowestTraceLoggedAt: ArrayValueGetter::stringNull($group, 'trace_logged_at')
             );
         }
 
@@ -67,8 +68,8 @@ readonly class WatcherEventGroupMapper
     }
 
     /**
-     * The two timing keys are written even when they are null, so that a group document
-     * has the same six keys whichever watcher wrote it.
+     * The timing keys are written even when they are null, so that a group document has
+     * the same keys whichever watcher wrote it.
      *
      * @param WatcherIncidentEventGroupObject[] $groups
      *
@@ -78,12 +79,13 @@ readonly class WatcherEventGroupMapper
     {
         return array_map(
             static fn(WatcherIncidentEventGroupObject $group): array => [
-                'service_id'   => $group->serviceId,
-                'type'         => $group->type,
-                'tags'         => $group->tags,
-                'count'        => $group->count,
-                'duration_max' => $group->durationMax,
-                'trace_id'     => $group->slowestTraceId,
+                'service_id'      => $group->serviceId,
+                'type'            => $group->type,
+                'tags'            => $group->tags,
+                'count'           => $group->count,
+                'duration_max'    => $group->durationMax,
+                'trace_id'        => $group->slowestTraceId,
+                'trace_logged_at' => $group->slowestTraceLoggedAt,
             ],
             $groups
         );

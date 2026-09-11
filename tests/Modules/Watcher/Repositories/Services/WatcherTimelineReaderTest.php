@@ -48,6 +48,32 @@ class WatcherTimelineReaderTest extends TestCase
         $this->assertSame('b', $groups[0]->slowestTraceId);
     }
 
+    public function testTheSlowestTraceKeepsItsStartThroughAMerge(): void
+    {
+        $timeline = new WatcherTimelineReader()->read(1, [
+            $this->bucket('2026-09-07 10:00:00', count: 1, groups: [
+                $this->group(count: 1, durationMax: 3, traceId: 'a', traceLoggedAt: '2026-09-07 09:59:57'),
+            ]),
+            $this->bucket('2026-09-07 10:00:00', count: 1, groups: [
+                $this->group(count: 1, durationMax: 3600, traceId: 'b', traceLoggedAt: '2026-09-07 09:00:00'),
+            ]),
+        ]);
+
+        $group = $timeline->buckets[0]->groups[0];
+
+        $this->assertSame('b', $group->slowestTraceId);
+        $this->assertSame('2026-09-07 09:00:00', $group->slowestTraceLoggedAt?->toDateTimeString());
+    }
+
+    public function testAGroupWrittenBeforeTracesWereDatedHasNoStart(): void
+    {
+        $timeline = new WatcherTimelineReader()->read(1, [
+            $this->bucket('2026-09-07 10:00:00', groups: [$this->group(durationMax: 5)]),
+        ]);
+
+        $this->assertNull($timeline->buckets[0]->groups[0]->slowestTraceLoggedAt);
+    }
+
     /** Tags order is the receiver's, not ours, but it must not split a shape. */
     public function testTagOrderDoesNotSplitAShape(): void
     {
@@ -134,9 +160,10 @@ class WatcherTimelineReaderTest extends TestCase
         int $count = 1,
         float $durationMax = 0,
         string $traceId = 'trace',
-        array $tags = []
+        array $tags = [],
+        ?string $traceLoggedAt = null
     ): array {
-        return [
+        $group = [
             'sid'  => 1,
             'tp'   => 'http',
             'tgs'  => $tags,
@@ -146,5 +173,11 @@ class WatcherTimelineReaderTest extends TestCase
             'dMax' => $durationMax,
             'tid'  => $traceId,
         ];
+
+        if (!is_null($traceLoggedAt)) {
+            $group['tlat'] = new UTCDateTime(Carbon::parse($traceLoggedAt));
+        }
+
+        return $group;
     }
 }

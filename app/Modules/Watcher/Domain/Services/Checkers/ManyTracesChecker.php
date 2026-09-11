@@ -96,7 +96,8 @@ readonly class ManyTracesChecker implements WatcherCheckerInterface
                 tags: $group->tags,
                 count: $group->count,
                 durationMax: null,
-                slowestTraceId: null
+                slowestTraceId: null,
+                slowestTraceLoggedAt: null
             ),
             array_slice($groups, 0, self::MAX_REPORTED_GROUPS)
         );

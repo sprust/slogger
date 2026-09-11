@@ -4498,6 +4498,10 @@
                                                                         "trace_id": {
                                                                             "type": "string",
                                                                             "nullable": true
+                                                                        },
+                                                                        "trace_logged_at": {
+                                                                            "type": "string",
+                                                                            "nullable": true
                                                                         }
                                                                     },
                                                                     "required": [
@@ -4650,6 +4654,10 @@
                                                                             "nullable": true
                                                                         },
                                                                         "trace_id": {
+                                                                            "type": "string",
+                                                                            "nullable": true
+                                                                        },
+                                                                        "trace_logged_at": {
                                                                             "type": "string",
                                                                             "nullable": true
                                                                         }

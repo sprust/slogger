@@ -80,7 +80,8 @@ readonly class SlowTracesChecker implements WatcherCheckerInterface
                     tags: $group->tags,
                     count: $group->count,
                     durationMax: round($group->durationMax, 3),
-                    slowestTraceId: $group->slowestTraceId
+                    slowestTraceId: $group->slowestTraceId,
+                    slowestTraceLoggedAt: $group->slowestTraceLoggedAt?->toDateTimeString()
                 ),
                 array_slice($groups, 0, self::MAX_REPORTED_GROUPS)
             )

@@ -79,6 +79,21 @@ class WatcherEventPayloadMapperTest extends TestCase
         $mapper->toDocument($this->payloadOf(WatcherTypeEnum::SlowTraces));
     }
 
+    public function testAGroupStoredBeforeItsTraceWasDatedReadsWithoutADate(): void
+    {
+        $mapper = $this->watcherTypeRegistry()->for(WatcherTypeEnum::SlowTraces)->eventPayloadMapper();
+
+        $document = $mapper->toDocument($this->payloadOf(WatcherTypeEnum::SlowTraces));
+
+        unset($document['groups'][0]['trace_logged_at']);
+
+        $read = $mapper->read($document);
+
+        $this->assertInstanceOf(SlowTracesEventPayloadObject::class, $read);
+        $this->assertSame('abc123', $read->groups[0]->slowestTraceId);
+        $this->assertNull($read->groups[0]->slowestTraceLoggedAt);
+    }
+
     /** A group nobody can read costs a line in the breakdown, not the whole event. */
     public function testAGroupMissingWhatAGroupIsMadeOfIsDropped(): void
     {
@@ -124,7 +139,7 @@ class WatcherEventPayloadMapperTest extends TestCase
             WatcherTypeEnum::SlowTraces => new SlowTracesEventPayloadObject(
                 settings: new SlowTracesEventSettingsObject(duration: 10.0, windowMinutes: 5),
                 measured: new SlowTracesEventMeasuredObject(slowest: 41.2),
-                groups: [$this->group(durationMax: 41.2, slowestTraceId: 'abc123')]
+                groups: [$this->group(durationMax: 41.2, slowestTraceId: 'abc123', slowestTraceLoggedAt: '2026-09-08 18:10:00')]
             ),
             WatcherTypeEnum::LogErrors => new LogErrorsEventPayloadObject(
                 settings: new LogErrorsEventSettingsObject(threshold: 1),
@@ -139,7 +154,8 @@ class WatcherEventPayloadMapperTest extends TestCase
 
     private function group(
         ?float $durationMax = null,
-        ?string $slowestTraceId = null
+        ?string $slowestTraceId = null,
+        ?string $slowestTraceLoggedAt = null
     ): WatcherIncidentEventGroupObject {
         return new WatcherIncidentEventGroupObject(
             serviceId: 7,
@@ -147,7 +163,8 @@ class WatcherEventPayloadMapperTest extends TestCase
             tags: ['api'],
             count: 3,
             durationMax: $durationMax,
-            slowestTraceId: $slowestTraceId
+            slowestTraceId: $slowestTraceId,
+            slowestTraceLoggedAt: $slowestTraceLoggedAt
         );
     }
 }

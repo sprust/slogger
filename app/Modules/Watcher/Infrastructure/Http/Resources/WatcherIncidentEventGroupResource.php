@@ -22,16 +22,18 @@ class WatcherIncidentEventGroupResource extends AbstractApiResource
     private int $count;
     private ?float $duration_max;
     private ?string $trace_id;
+    private ?string $trace_logged_at;
 
     public function __construct(WatcherIncidentEventGroupObject $resource)
     {
         parent::__construct($resource);
 
-        $this->service_id   = $resource->serviceId;
-        $this->type         = $resource->type;
-        $this->tags         = $resource->tags;
-        $this->count        = $resource->count;
-        $this->duration_max = $resource->durationMax;
-        $this->trace_id     = $resource->slowestTraceId;
+        $this->service_id      = $resource->serviceId;
+        $this->type            = $resource->type;
+        $this->tags            = $resource->tags;
+        $this->count           = $resource->count;
+        $this->duration_max    = $resource->durationMax;
+        $this->trace_id        = $resource->slowestTraceId;
+        $this->trace_logged_at = $resource->slowestTraceLoggedAt;
     }
 }

@@ -45,7 +45,7 @@
                         type="info"
                         link
                         :icon="IconFilter"
-                        @click="openInAggregator(scope.row, props.row.occurred_at)"
+                        @click="openInAggregator(scope.row, props.row)"
                     />
                   </el-tooltip>
                 </template>
@@ -75,6 +75,11 @@
                 </template>
               </el-table-column>
               <el-table-column label="Slowest trace" prop="trace_id" min-width="220"/>
+              <el-table-column label="Slowest started" min-width="160">
+                <template #default="scope">
+                  {{ scope.row.trace_logged_at ?? '' }}
+                </template>
+              </el-table-column>
             </el-table>
           </div>
         </template>
@@ -291,7 +296,7 @@ export default defineComponent({
      * `initialized` is set because the aggregator resets its filter the first time it is
      * mounted — without it everything set here would be wiped on arrival.
      */
-    openInAggregator(group: WatcherIncidentEventGroup, occurredAt: string) {
+    openInAggregator(group: WatcherIncidentEventGroup, event: WatcherIncidentEvent) {
       const traceAggregatorStore = useTraceAggregatorStore()
 
       // A live graph rewrites the filter's lower bound every second and would take the
@@ -323,7 +328,7 @@ export default defineComponent({
         traceAggregatorStore.payload.trace_id = group.trace_id
       }
 
-      this.applyPeriodAround(traceAggregatorStore, occurredAt)
+      this.applyPeriodAround(traceAggregatorStore, group, event)
 
       this.$router.push(routes.traceAggregator)
     },
@@ -331,28 +336,48 @@ export default defineComponent({
       return normalizeUtcDateTime(formatUtcDateTime(new Date(at))) ?? ''
     },
     /**
-     * A quarter of an hour either side of the moment the watcher spoke.
+     * A quarter of an hour either side of the moment the slowest trace started, when the
+     * group names it: traces are searched by their start, and a long one started far
+     * from the moment the watcher spoke.
      *
-     * Narrow on purpose: the search reads a period as a range of hourly shards, so a week
-     * around one known trace is thousands of collections to index and to scan. `Custom`
-     * is what makes the two dates count — any other preset computes `from` itself and
-     * throws them away, see PeriodParameters::fromStringValues().
+     * Without that moment — a counting watcher, or an event stored before groups carried
+     * it — the period reaches back over the watcher's window and the longest duration in
+     * the group, which is as early as any trace behind the event can have started.
+     *
+     * Narrow otherwise on purpose: the search reads a period as a range of hourly shards,
+     * so a week around one known trace is thousands of collections to index and to scan.
+     * `Custom` is what makes the two dates count — any other preset computes `from` itself
+     * and throws them away, see PeriodParameters::fromStringValues().
      */
-    applyPeriodAround(traceAggregatorStore: ReturnType<typeof useTraceAggregatorStore>, occurredAt: string) {
-      const at = utcTimestamp(occurredAt)
+    applyPeriodAround(
+        traceAggregatorStore: ReturnType<typeof useTraceAggregatorStore>,
+        group: WatcherIncidentEventGroup,
+        event: WatcherIncidentEvent,
+    ) {
+      const startedAt = utcTimestamp(group.trace_logged_at)
+      const at = utcTimestamp(event.occurred_at)
 
-      if (at === null) {
+      if (startedAt === null && at === null) {
         traceAggregatorStore.payload.logging_from_preset = PeriodPresetEnum.LastWeek
 
         return
       }
 
+      const from = startedAt ?? (at as number) - this.lookBack(group, event)
+      const to = startedAt ?? (at as number)
+
       traceAggregatorStore.payload.logging_from_preset = PeriodPresetEnum.Custom
       // Through the plain UTC text the pickers use, not straight from the Date:
       // normalizeUtcDateTime reads a Date's local parts and stamps them as UTC, which
       // would shift a real instant by the browser's offset.
-      traceAggregatorStore.payload.logging_from = this.utcBound(at - periodMargin)
-      traceAggregatorStore.payload.logging_to = this.utcBound(at + periodMargin)
+      traceAggregatorStore.payload.logging_from = this.utcBound(from - periodMargin)
+      traceAggregatorStore.payload.logging_to = this.utcBound(to + periodMargin)
+    },
+    lookBack(group: WatcherIncidentEventGroup, event: WatcherIncidentEvent): number {
+      const settings = event.payload?.settings as Record<string, unknown> | undefined
+      const windowMinutes = typeof settings?.window_minutes === 'number' ? settings.window_minutes : 0
+
+      return windowMinutes * 60 * 1000 + (group.duration_max ?? 0) * 1000
     },
   },
 

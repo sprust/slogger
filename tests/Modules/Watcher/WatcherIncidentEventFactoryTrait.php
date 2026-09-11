@@ -46,7 +46,8 @@ trait WatcherIncidentEventFactoryTrait
         int $count = 1,
         int $serviceId = 1,
         ?float $durationMax = null,
-        ?string $slowestTraceId = null
+        ?string $slowestTraceId = null,
+        ?string $slowestTraceLoggedAt = null
     ): WatcherIncidentEventGroupObject {
         return new WatcherIncidentEventGroupObject(
             serviceId: $serviceId,
@@ -54,7 +55,8 @@ trait WatcherIncidentEventFactoryTrait
             tags: $tags,
             count: $count,
             durationMax: $durationMax,
-            slowestTraceId: $slowestTraceId
+            slowestTraceId: $slowestTraceId,
+            slowestTraceLoggedAt: $slowestTraceLoggedAt
         );
     }
 }

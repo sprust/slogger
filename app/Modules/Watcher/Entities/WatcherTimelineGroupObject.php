@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Watcher\Entities;
 
+use Illuminate\Support\Carbon;
+
 /**
  * One shape of trace inside a bucket: the traces of one service, type and set of tags,
  * with the slowest of them named.
@@ -24,7 +26,8 @@ readonly class WatcherTimelineGroupObject
         public int $durationCount,
         public float $durationSum,
         public float $durationMax,
-        public ?string $slowestTraceId
+        public ?string $slowestTraceId,
+        public ?Carbon $slowestTraceLoggedAt
     ) {
     }
 }

@@ -97,6 +97,9 @@ type groupState struct {
 	durSum    float64
 	durMax    float64
 	traceId   string
+	// traceLoggedAt is when the slowest trace started: the moment the panel has to look
+	// at to find it, which for a long trace is far from the bucket it was filed in.
+	traceLoggedAt time.Time
 }
 
 type bucketState struct {
@@ -336,6 +339,9 @@ func (s *Service) AddTrace(
 	// at the tail of the line where the panel's cutoff can never reach it.
 	now := time.Now().UTC()
 
+	// Before the clamp below: this is the value the trace is stored and searched by.
+	traceLoggedAt := loggedAt.UTC()
+
 	if loggedAt.After(now) {
 		loggedAt = now
 	}
@@ -389,6 +395,7 @@ func (s *Service) AddTrace(
 			if *duration > group.durMax || group.traceId == "" {
 				group.durMax = *duration
 				group.traceId = traceId
+				group.traceLoggedAt = traceLoggedAt
 			}
 		}
 	}
@@ -576,7 +583,7 @@ func (b *bucketState) toDocument(at time.Time) watcher_timeline_repository.Bucke
 	groups := make([]watcher_timeline_repository.Group, 0, len(b.groups))
 
 	for _, group := range b.groups {
-		groups = append(groups, watcher_timeline_repository.Group{
+		document := watcher_timeline_repository.Group{
 			ServiceId: group.serviceId,
 			Type:      group.traceType,
 			Tags:      group.tags,
@@ -585,7 +592,13 @@ func (b *bucketState) toDocument(at time.Time) watcher_timeline_repository.Bucke
 			DurSum:    group.durSum,
 			DurMax:    group.durMax,
 			TraceId:   group.traceId,
-		})
+		}
+
+		if !group.traceLoggedAt.IsZero() {
+			document.TraceLoggedAt = primitive.NewDateTimeFromTime(group.traceLoggedAt)
+		}
+
+		groups = append(groups, document)
 	}
 
 	return watcher_timeline_repository.Bucket{

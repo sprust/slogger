@@ -27,16 +27,21 @@ const defaultCollection = "watcherTimelines"
 // would throw away should not be built into the update document in the first place.
 const MaxBuckets = 720
 
-// Group is a bucket's rollup: the traces of one shape, and the slowest of them by name.
+// Group is a bucket's rollup: the traces of one shape, and the slowest of them by name
+// and by the moment it started.
+//
+// TraceLoggedAt is left out of the document for a group whose traces have not finished:
+// there is no slowest trace to date yet.
 type Group struct {
-	ServiceId int      `bson:"sid"`
-	Type      string   `bson:"tp"`
-	Tags      []string `bson:"tgs"`
-	Count     int      `bson:"c"`
-	DurCount  int      `bson:"dc"`
-	DurSum    float64  `bson:"dSum"`
-	DurMax    float64  `bson:"dMax"`
-	TraceId   string   `bson:"tid"`
+	ServiceId     int                `bson:"sid"`
+	Type          string             `bson:"tp"`
+	Tags          []string           `bson:"tgs"`
+	Count         int                `bson:"c"`
+	DurCount      int                `bson:"dc"`
+	DurSum        float64            `bson:"dSum"`
+	DurMax        float64            `bson:"dMax"`
+	TraceId       string             `bson:"tid"`
+	TraceLoggedAt primitive.DateTime `bson:"tlat,omitempty"`
 }
 
 // Bucket is 15 seconds of one watcher's line.

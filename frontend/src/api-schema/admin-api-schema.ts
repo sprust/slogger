@@ -2237,6 +2237,7 @@ export namespace AdminApi {
     count: number,
     duration_max?: number | null,
     trace_id?: string | null,
+    trace_logged_at?: string | null,
 
 })[],
 
@@ -2281,6 +2282,7 @@ export namespace AdminApi {
             count: number;
             duration_max?: number | null;
             trace_id?: string | null;
+            trace_logged_at?: string | null;
           }[];
         };
       }[];
@@ -2314,6 +2316,7 @@ export namespace AdminApi {
     count: number,
     duration_max?: number | null,
     trace_id?: string | null,
+    trace_logged_at?: string | null,
 
 })[],
 
@@ -2358,6 +2361,7 @@ export namespace AdminApi {
             count: number;
             duration_max?: number | null;
             trace_id?: string | null;
+            trace_logged_at?: string | null;
           }[];
         };
       }[];
@@ -6207,6 +6211,7 @@ export class Api<
     count: number,
     duration_max?: number | null,
     trace_id?: string | null,
+    trace_logged_at?: string | null,
 
 })[],
 
@@ -6250,6 +6255,7 @@ export class Api<
                 count: number;
                 duration_max?: number | null;
                 trace_id?: string | null;
+                trace_logged_at?: string | null;
               }[];
             };
           }[];
@@ -6292,6 +6298,7 @@ export class Api<
     count: number,
     duration_max?: number | null,
     trace_id?: string | null,
+    trace_logged_at?: string | null,
 
 })[],
 
@@ -6335,6 +6342,7 @@ export class Api<
                 count: number;
                 duration_max?: number | null;
                 trace_id?: string | null;
+                trace_logged_at?: string | null;
               }[];
             };
           }[];

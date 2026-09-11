@@ -80,8 +80,8 @@ class ManyTracesCheckerTest extends TestCase
             windowCounts: [1000],
             threshold: 1000,
             groups: [
-                new WatcherTimelineGroupObject(1, 'http', ['api'], 400, 0, 0, 0, null),
-                new WatcherTimelineGroupObject(2, 'job', [], 600, 0, 0, 0, null),
+                new WatcherTimelineGroupObject(1, 'http', ['api'], 400, 0, 0, 0, null, null),
+                new WatcherTimelineGroupObject(2, 'job', [], 600, 0, 0, 0, null, null),
             ]
         );
 

@@ -117,7 +117,8 @@ readonly class WatcherTimelineReader
             durationMax: ArrayValueGetter::floatNull($group, 'dMax') ?? 0,
             // An empty string is the receiver's "nothing to point at": a group whose
             // traces have not finished has no slowest one yet.
-            slowestTraceId: $traceId === '' ? null : $traceId
+            slowestTraceId: $traceId === '' ? null : $traceId,
+            slowestTraceLoggedAt: $this->readDate($group, 'tlat')
         );
     }
 
@@ -166,7 +167,8 @@ readonly class WatcherTimelineReader
             // receiver writes the two together, so a group with a maximum always has an
             // id. Falling back to the other group's used to report a trace that ran for
             // less than the number printed next to it.
-            slowestTraceId: $slower->slowestTraceId
+            slowestTraceId: $slower->slowestTraceId,
+            slowestTraceLoggedAt: $slower->slowestTraceLoggedAt
         );
     }
 

@@ -59,6 +59,15 @@ class SlowTracesCheckerTest extends TestCase
         $this->assertSame('trace-30', $trigger->groups[0]->slowestTraceId);
     }
 
+    public function testTheEventDatesTheSlowestTraceByItsStart(): void
+    {
+        $trigger = $this->check(durations: [11.0, 3600.0]);
+
+        $this->assertNotNull($trigger);
+        $this->assertSame('trace-3600', $trigger->groups[0]->slowestTraceId);
+        $this->assertSame('2026-09-07 10:59:00', $trigger->groups[0]->slowestTraceLoggedAt);
+    }
+
     /** Shapes come back slowest first, so the worst is the first thing read. */
     public function testTheShapesAreOrderedBySlowest(): void
     {
@@ -95,7 +104,8 @@ class SlowTracesCheckerTest extends TestCase
                 durationCount: 1,
                 durationSum: $duration,
                 durationMax: $duration,
-                slowestTraceId: 'trace-' . (int) $duration
+                slowestTraceId: 'trace-' . (int) $duration,
+                slowestTraceLoggedAt: $now->clone()->subSeconds((int) $duration + 60)
             );
         }
 

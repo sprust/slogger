@@ -110,7 +110,8 @@ readonly class WatcherTimelineAnalyzer
             // receiver writes the two together, so a group with a maximum always has an
             // id. Falling back to the other group's used to report a trace that ran for
             // less than the number printed next to it.
-            slowestTraceId: $slower->slowestTraceId
+            slowestTraceId: $slower->slowestTraceId,
+            slowestTraceLoggedAt: $slower->slowestTraceLoggedAt
         );
     }
 

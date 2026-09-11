@@ -276,6 +276,44 @@ func TestAGroupKeepsTheSlowestTrace(t *testing.T) {
 	}
 }
 
+// The slowest trace is filed under the moment it finished, and found by the moment it
+// started. Both have to travel together, or the panel looks for it in the wrong hour.
+func TestAGroupDatesItsSlowestTraceByItsStart(t *testing.T) {
+	service := newTestService(1, watcher_repository.Match{Version: 1})
+
+	quickStart := time.Date(2026, 9, 7, 10, 0, 0, 0, time.UTC)
+	slowStart := time.Date(2026, 9, 7, 9, 0, 30, 0, time.UTC)
+
+	quick := 1.0
+	slow := 3600.0
+
+	service.AddTrace(1, "quick", "http", nil, &quick, quickStart, true)
+	service.AddTrace(1, "slow", "http", nil, &slow, slowStart, true)
+
+	bucket := bucketAt(t, bucketsByTime(t, service), time.Date(2026, 9, 7, 10, 0, 30, 0, time.UTC))
+
+	if bucket.Groups[0].TraceId != "slow" {
+		t.Fatalf("expected the slowest trace to be named, got %q", bucket.Groups[0].TraceId)
+	}
+
+	if !bucket.Groups[0].TraceLoggedAt.Time().Equal(slowStart) {
+		t.Fatalf("expected the slowest trace to be dated by its start, got %v", bucket.Groups[0].TraceLoggedAt.Time())
+	}
+}
+
+// A shape whose traces have only started has no slowest trace, and so no date to give.
+func TestAGroupWithoutAFinishedTraceHasNoDate(t *testing.T) {
+	service := newTestService(1, watcher_repository.Match{Version: 1})
+
+	service.AddTrace(1, "running", "http", nil, nil, time.Date(2026, 9, 7, 10, 0, 0, 0, time.UTC), true)
+
+	bucket := onlyBucket(t, service)
+
+	if bucket.Groups[0].TraceLoggedAt != 0 {
+		t.Fatalf("expected no date for a group without a finished trace, got %v", bucket.Groups[0].TraceLoggedAt.Time())
+	}
+}
+
 // The rollup is capped, and the cap must not cost the bucket its count: the breakdown is
 // a convenience, the number is the measurement.
 func TestTheRollupIsCappedButTheCountStaysExact(t *testing.T) {
