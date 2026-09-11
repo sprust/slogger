@@ -88,7 +88,9 @@ router.beforeEach(async (to: RouteLocationNormalized, from: RouteLocationNormali
 
     const authStore = useAuthStore()
 
-    await authStore.auth()
+    if (!authStore.user) {
+        await authStore.auth()
+    }
 
     const authorized = !!authStore.user
 
