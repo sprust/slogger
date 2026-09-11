@@ -602,6 +602,74 @@
                 ]
             }
         },
+        "/admin-api/dashboard/trace-metrics/{serviceId}": {
+            "get": {
+                "parameters": [
+                    {
+                        "name": "serviceId",
+                        "required": true,
+                        "in": "path",
+                        "schema": {}
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "type": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "timestamp": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "logged": {
+                                                        "type": "integer",
+                                                        "nullable": false
+                                                    },
+                                                    "buffered": {
+                                                        "type": "integer",
+                                                        "nullable": false
+                                                    },
+                                                    "stored": {
+                                                        "type": "integer",
+                                                        "nullable": false
+                                                    }
+                                                },
+                                                "required": [
+                                                    "type",
+                                                    "timestamp",
+                                                    "logged",
+                                                    "buffered",
+                                                    "stored"
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/admin-api/tools/links": {
             "get": {
                 "responses": {

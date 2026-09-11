@@ -6,11 +6,13 @@ import (
 	"log/slog"
 	"slogger_receiver/internal/dto"
 	"slogger_receiver/internal/helpers/datetime_helper"
+	"slogger_receiver/internal/services/trace_metric_service"
 	"slogger_receiver/internal/services/trace_sharding_service"
 	"slogger_receiver/internal/services/watcher_service"
 	"slogger_receiver/pkg/foundation/errs"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -306,6 +308,22 @@ func (s *Service) saveTraces(ctx context.Context, serviceId int, traceId string,
 		loggedAt.Time().UTC(),
 		countsAsNew,
 	)
+
+	if countsAsNew {
+		var receivedAt time.Time
+
+		if traces.Creating != nil {
+			receivedAt = traces.Creating.ReceivedAt
+		}
+
+		trace_metric_service.Get().AddTrace(
+			serviceId,
+			traceType,
+			loggedAt.Time().UTC(),
+			receivedAt,
+			currentNow.Time().UTC(),
+		)
+	}
 
 	slog.Debug("saved trace: " + traceId + " for service: " + string(rune(serviceId)) + " to collection: " + coll.Name())
 

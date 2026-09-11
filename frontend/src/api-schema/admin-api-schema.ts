@@ -486,6 +486,41 @@ export namespace AdminApi {
 
   /**
  * No description
+ * @name DashboardTraceMetricsDetail
+ * @request GET:/admin-api/dashboard/trace-metrics/{serviceId}
+ * @secure
+ * @response `200` `{
+    data: ({
+    type: string,
+    timestamp: string,
+    logged: number,
+    buffered: number,
+    stored: number,
+
+})[],
+
+}` description
+*/
+  export namespace DashboardTraceMetricsDetail {
+    export type RequestParams = {
+      serviceId: any;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        type: string;
+        timestamp: string;
+        logged: number;
+        buffered: number;
+        stored: number;
+      }[];
+    };
+  }
+
+  /**
+ * No description
  * @name ToolsLinksList
  * @request GET:/admin-api/tools/links
  * @secure
@@ -4241,6 +4276,44 @@ export class Api<
         any
       >({
         path: `/admin-api/dashboard/sconcur`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name DashboardTraceMetricsDetail
+ * @request GET:/admin-api/dashboard/trace-metrics/{serviceId}
+ * @secure
+ * @response `200` `{
+    data: ({
+    type: string,
+    timestamp: string,
+    logged: number,
+    buffered: number,
+    stored: number,
+
+})[],
+
+}` description
+ */
+    dashboardTraceMetricsDetail: (serviceId: any, params: RequestParams = {}) =>
+      this.request<
+        {
+          data: {
+            type: string;
+            timestamp: string;
+            logged: number;
+            buffered: number;
+            stored: number;
+          }[];
+        },
+        any
+      >({
+        path: `/admin-api/dashboard/trace-metrics/${serviceId}`,
         method: "GET",
         secure: true,
         format: "json",

@@ -193,6 +193,10 @@ func (r *Repository) FindMany(ctx context.Context, limit int) (map[int]*dto.Serv
 				LoggedAt: asLoggedAtString(doc["lat"]),
 			}
 
+			if receivedAt, ok := doc["cat"].(primitive.DateTime); ok {
+				trace.ReceivedAt = receivedAt.Time().UTC()
+			}
+
 			if ptid, ok := doc["ptid"]; ok {
 				ptidStr := asString(ptid)
 				trace.ParentTraceId = &ptidStr

@@ -1,6 +1,10 @@
 package dto
 
-import "go.mongodb.org/mongo-driver/bson/primitive"
+import (
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
 
 type AuthMessage struct {
 	ApiToken string `json:"t"`
@@ -22,6 +26,9 @@ type TraceCreating struct {
 	Memory        *float64      `json:"mem,omitempty"`
 	Cpu           *float64      `json:"cpu,omitempty"`
 	LoggedAt      interface{}   `json:"lat"`
+	// ReceivedAt is when the buffer took the trace in. Not part of the message: it is
+	// read back from the buffer document, which is the only place that knows it.
+	ReceivedAt time.Time `json:"-"`
 }
 
 type TraceUpdating struct {

@@ -9,6 +9,7 @@ import (
 	"runtime"
 	"slogger_receiver/cmd/receiver/socket_server"
 	"slogger_receiver/cmd/receiver/traces_transporter"
+	"slogger_receiver/internal/services/trace_metric_service"
 	"slogger_receiver/internal/services/watcher_service"
 	"slogger_receiver/pkg/foundation/logging"
 	"syscall"
@@ -48,7 +49,7 @@ func main() {
 	socketServer := socket_server.New("tcp", ":"+socketPort)
 	transporterServer := traces_transporter.New()
 
-	done := make(chan error, 3)
+	done := make(chan error, 4)
 
 	go func(ctx context.Context) {
 		done <- socketServer.Run(ctx)
@@ -68,6 +69,14 @@ func main() {
 	// for it is enough.
 	go func(ctx context.Context) {
 		watcher_service.Get().Run(ctx)
+
+		done <- nil
+	}(ctx)
+
+	// The dashboard's counts, written out every fifteen seconds. Waited for for the same
+	// reason as the watchers' loop above: its last write may still be in flight.
+	go func(ctx context.Context) {
+		trace_metric_service.Get().Run(ctx)
 
 		done <- nil
 	}(ctx)
@@ -103,7 +112,7 @@ func main() {
 
 			cancel()
 
-			if waitForShutdown(done, 3, 10*time.Second) {
+			if waitForShutdown(done, 4, 10*time.Second) {
 				slog.Warn("Completed successfully by signal")
 			} else {
 				slog.Error("shutdown by timeout")

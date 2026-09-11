@@ -7,6 +7,7 @@ use App\Modules\Auth\Infrastructure\Http\Middlewares\AuthMiddleware;
 use App\Modules\Cleaner\Infrastructure\Http\Controllers\ProcessController;
 use App\Modules\Dashboard\Infrastructure\Http\Controllers\DatabaseStatController;
 use App\Modules\Dashboard\Infrastructure\Http\Controllers\SconcurStatController;
+use App\Modules\Dashboard\Infrastructure\Http\Controllers\TraceMetricController;
 use App\Modules\Logs\Infrastructure\Http\Controllers\LogController;
 use App\Modules\Notification\Infrastructure\Http\Controllers\NotificationChannelController;
 use App\Modules\Notification\Infrastructure\Http\Controllers\TelegramChannelController;
@@ -50,6 +51,7 @@ Route::prefix('/dashboard')
     ->group(function () {
         Route::get('/database', [DatabaseStatController::class, 'index'])->name('index');
         Route::get('/sconcur', [SconcurStatController::class, 'index'])->name('sconcur');
+        Route::get('/trace-metrics/{serviceId}', [TraceMetricController::class, 'index'])->name('trace-metrics');
     });
 
 Route::prefix('/tools')

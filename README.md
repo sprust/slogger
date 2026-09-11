@@ -15,6 +15,7 @@ It collects data about code execution (HTTP requests, queues, events, commands, 
 - Joining requests across services/microservices into a single end-to-end tree (distributed tracing).
 - Flexible filtering by any field of the trace payload (`data`): numbers, strings, booleans, field-presence checks.
 - Timeline charts for trace metrics — count, duration, memory, CPU — with aggregations and the same filtering as in search.
+- Trace metrics — how many new traces each service sent in every fifteen minutes of the last day, by when they were logged, taken into the buffer and written to storage.
 - Storage dashboard — collection sizes, memory and index usage.
 - Runtime dashboard — live stats of the SConcur HTTP server: worker pool, RPS, CPU, memory, in-flight requests.
 - Watchers — configurable rules that open an incident when the system misbehaves: a buffer growing, traces stopping, too many of them, traces running too long, errors in the application log.
@@ -81,6 +82,14 @@ The master's telemetry panel (`SCONCUR_HTTP_PANEL_PORT`, protected by `SCONCUR_H
 The panel keeps two workload sections that never appear together on one pool — an HTTP pool reports `requests`, a queue-consumer pool reports `consumers`, and the task pool reports its ticks in the consumer section. The backend folds them into one, because the two count the same thing, and the summary and both tables carry a single set of columns for every row: **In process** (handed to PHP and not finished yet), **Finished** (ended, however it ended: completed requests plus deliveries acked or refused), **Refused** (how many of those failed) and **Avg, ms** — cumulative since the worker started, beside the average over the chart's window. Every column name explains itself on hover.
 
 Groups come out in the order `config/sconcur.php` declares them, not the order the panel happens to answer in, and workers follow the same order and then their pid; the panel builds its answer from a map, whose iteration order is not stable between calls. The chart can be pointed at the master, one group or one worker — every source is sampled on each poll, so switching keeps the history already collected — and offers In process, Finished/sec, Avg duration, CPU, RSS and Ext tasks (live tasks in the extension runtime), with Finished/sec and CPU on by default. Finished/sec is derived on the client from the delta of the counter between polls. If the panel host or the token is not configured, or the master is down, the tab shows the runtime as unavailable instead of erroring.
+
+### Trace metrics
+
+The Metrics tab of the Dashboard shows, for each service, how many new traces arrived in every fifteen-minute slot of the last 24 hours, by three clocks: when the source logged the trace (`logged`), when the receiver took it into the buffer (`buffered`) and when the transporter wrote it to its hourly shard (`stored`). The three series drift apart exactly when something is wrong: a buffer that backs up leaves `stored` behind `buffered` and then catches up in one spike, and a source with a clock off, or one that holds traces back and sends them in a batch, moves `logged` away from the other two.
+
+Nothing here reads the shards. The receiver counts every trace once, on the write that first gives it a type — the same point the watchers count at — keeps the counters in memory per service, type and slot, and every 15 seconds adds them to the `traceMetrics` collection, one `$inc` per document. A trace whose three moments fall into different slots adds to each of them. The collection keeps 25 hours, retired by a TTL index on the slot.
+
+Each service has a chart of its own, with a type filter that is applied without a request. The first three services of the list are loaded one after another when the tab is opened; the rest wait for their Refresh button. A service filter above the charts narrows the list, and the two buttons beside it reload either every chart of the list or only those of it already loaded. Nothing refreshes by itself.
 
 ### Hourly database sharding
 
