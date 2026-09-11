@@ -40,7 +40,18 @@
 
 <script lang="ts">
 import {defineComponent, PropType} from 'vue'
-import {BarElement, CategoryScale, Chart as ChartJS, Legend, LinearScale, Title, Tooltip, TooltipItem} from 'chart.js'
+import {
+  ActiveElement,
+  BarElement,
+  CategoryScale,
+  Chart as ChartJS,
+  ChartEvent,
+  Legend,
+  LinearScale,
+  Title,
+  Tooltip,
+  TooltipItem
+} from 'chart.js'
 import {Bar} from 'vue-chartjs'
 import {Refresh as IconRefresh} from '@element-plus/icons-vue'
 import {
@@ -50,6 +61,8 @@ import {
   useDashboardMetricsStore
 } from "./store/dashboardMetricsStore.ts";
 import {formatUtcDateTime, utcTimestamp} from "../../../utils/helpers.ts";
+import {useTraceAggregatorStore} from "../trace-aggregator/components/traces/store/traceAggregatorStore.ts";
+import {routes} from "../../../utils/router.ts";
 import {TraceAggregatorService} from "../trace-aggregator/components/services/store/traceAggregatorServicesStore.ts";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
@@ -187,8 +200,21 @@ export default defineComponent({
           tooltip: {
             callbacks: {
               title: (items: Array<TooltipItem<'bar'>>) => slots[items[0]?.dataIndex ?? 0] ?? '',
+              footer: () => 'Click to open in the aggregator',
             },
           },
+        },
+        onHover: (event: ChartEvent, elements: Array<ActiveElement>) => {
+          const target = event.native?.target as HTMLElement | undefined
+
+          if (target) {
+            target.style.cursor = elements.length ? 'pointer' : 'default'
+          }
+        },
+        onClick: (_event: ChartEvent, elements: Array<ActiveElement>) => {
+          if (elements.length) {
+            this.openInAggregator(elements[0].index)
+          }
         },
         scales: {
           x: {
@@ -213,6 +239,21 @@ export default defineComponent({
   methods: {
     refresh() {
       this.metricsStore.findServiceMetrics(this.service.id)
+    },
+    openInAggregator(slotIndex: number) {
+      const from = utcTimestamp(this.chart.slots[slotIndex])
+
+      if (from === null) {
+        return
+      }
+
+      useTraceAggregatorStore().applyExternalFilter({
+        serviceIds: [this.service.id],
+        types: this.chart.selectedTypes,
+        period: {from, to: from + slotMs},
+      })
+
+      this.$router.push(routes.traceAggregator)
     },
   },
 })

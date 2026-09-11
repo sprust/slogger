@@ -1,9 +1,10 @@
 import {ApiContainer} from "../../../../../../utils/apiContainer.ts";
-import {makeStartOfDay, normalizeUtcDateTime, TypesHelper} from "../../../../../../utils/helpers.ts";
+import {formatUtcDateTime, makeStartOfDay, normalizeUtcDateTime, TypesHelper} from "../../../../../../utils/helpers.ts";
 import {AdminApi} from "../../../../../../api-schema/admin-api-schema.ts";
 import {defineStore} from "pinia";
 import {handleApiRequest} from "../../../../../../utils/handleApiRequest.ts";
 import {useTraceAggregatorServicesStore} from "../../services/store/traceAggregatorServicesStore.ts";
+import {useTraceAggregatorGraphStore} from "../../graph/store/traceAggregatorGraphStore.ts";
 
 type TraceAggregatorResponse = AdminApi.TraceAggregatorTracesCreate.ResponseBody['data'];
 
@@ -12,6 +13,20 @@ export type TraceAggregatorPayload = TraceAggregatorRequest
 export type TraceAggregatorItems = TraceAggregatorResponse['items']
 export type TraceAggregatorItem = TraceAggregatorResponse['items'][number]
 export type TraceAggregatorAdditionalField = TraceAggregatorResponse['items'][number]['trace']['additional_fields'][number]
+
+/**
+ * A filter handed to the aggregator from another page: a watcher's event, a metrics chart.
+ *
+ * The period is two instants in milliseconds, or null for "no idea when" — the aggregator
+ * then looks over the last week.
+ */
+export type TraceAggregatorExternalFilter = {
+    serviceIds?: Array<number>,
+    types?: Array<string>,
+    tags?: Array<string>,
+    traceId?: string | null,
+    period: null | { from: number, to: number },
+}
 
 export type TraceAggregatorCustomField = {
     field: string,
@@ -227,6 +242,54 @@ export const useTraceAggregatorStore = defineStore('traceAggregatorStore', {
                 },
             }
             this.customFields = []
+        },
+        /**
+         * Fills the filter from outside and leaves the search to whoever arrives.
+         *
+         * Only what the caller names is set: an empty value in the filter would ask for
+         * traces that have none. `initialized` is set because the aggregator resets its
+         * filter the first time it is mounted, and without it everything set here would be
+         * wiped on arrival.
+         */
+        applyExternalFilter(filter: TraceAggregatorExternalFilter) {
+            // A live graph rewrites the filter's lower bound every second and would take the
+            // period below with it.
+            useTraceAggregatorGraphStore().playGraph = false
+
+            this.resetFilters()
+
+            this.initialized = true
+
+            if (filter.serviceIds?.length) {
+                this.payload.service_ids = [...filter.serviceIds]
+            }
+
+            if (filter.types?.length) {
+                this.payload.types = [...filter.types]
+            }
+
+            if (filter.tags?.length) {
+                this.payload.tags = [...filter.tags]
+            }
+
+            if (filter.traceId) {
+                this.payload.trace_id = filter.traceId
+            }
+
+            if (filter.period === null) {
+                this.payload.logging_from_preset = PeriodPresetEnum.LastWeek
+
+                return
+            }
+
+            // `Custom` is what makes the two dates count — any other preset computes `from`
+            // itself and throws them away, see PeriodParameters::fromStringValues(). The
+            // dates go through the plain UTC text the pickers use, not straight from a Date:
+            // normalizeUtcDateTime reads a Date's local parts and stamps them as UTC, which
+            // would shift a real instant by the browser's offset.
+            this.payload.logging_from_preset = PeriodPresetEnum.Custom
+            this.payload.logging_from = normalizeUtcDateTime(formatUtcDateTime(new Date(filter.period.from))) ?? ''
+            this.payload.logging_to = normalizeUtcDateTime(formatUtcDateTime(new Date(filter.period.to))) ?? ''
         },
         setPage(page: number) {
             this.payload!.page = page

@@ -91,6 +91,8 @@ Nothing here reads the shards. The receiver counts every trace once, on the writ
 
 Each service has a chart of its own, with a type filter that is applied without a request. The first three services of the list are loaded one after another when the tab is opened; the rest wait for their Refresh button. A service filter above the charts narrows the list, and the two buttons beside it reload either every chart of the list or only those of it already loaded. Nothing refreshes by itself.
 
+A click on a bar opens the aggregator filtered by the chart's service, the types selected above it and the fifteen minutes of the bar. The aggregator searches by logging time, so for a `logged` bar that is exactly the traces behind it; for `buffered` and `stored` it is the traces logged in the same slot, which are the same ones unless the buffer backed up.
+
 ### Hourly database sharding
 
 Traces are stored not in a single collection, but in periodic shard collections split by hour:

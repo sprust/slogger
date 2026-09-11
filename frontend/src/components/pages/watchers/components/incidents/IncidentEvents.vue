@@ -129,15 +129,9 @@ import {useWatchersStore} from "../../store/watchersStore.ts";
 import {
   useTraceAggregatorServicesStore
 } from "../../../trace-aggregator/components/services/store/traceAggregatorServicesStore.ts";
-import {
-  PeriodPresetEnum,
-  useTraceAggregatorStore
-} from "../../../trace-aggregator/components/traces/store/traceAggregatorStore.ts";
-import {
-  useTraceAggregatorGraphStore
-} from "../../../trace-aggregator/components/graph/store/traceAggregatorGraphStore.ts";
+import {useTraceAggregatorStore} from "../../../trace-aggregator/components/traces/store/traceAggregatorStore.ts";
 import {Filter as IconFilter} from '@element-plus/icons-vue'
-import {formatUtcDateTime, normalizeUtcDateTime, utcTimestamp} from "../../../../../utils/helpers.ts";
+import {utcTimestamp} from "../../../../../utils/helpers.ts";
 import {routes} from "../../../../../utils/router.ts";
 
 /** How far either side of an event the aggregator is opened. */
@@ -293,47 +287,20 @@ export default defineComponent({
      * whoever arrives, which is what makes filling all of it useful — the id and the
      * shape are two questions, and whoever arrives picks one by clearing the other.
      *
-     * `initialized` is set because the aggregator resets its filter the first time it is
-     * mounted — without it everything set here would be wiped on arrival.
+     * The trace id is left in, and it answers on its own: it reduces the search to that
+     * trace and the tree it belongs to, whatever else stands beside it. Clearing it is what
+     * asks the shape's question instead.
      */
     openInAggregator(group: WatcherIncidentEventGroup, event: WatcherIncidentEvent) {
-      const traceAggregatorStore = useTraceAggregatorStore()
-
-      // A live graph rewrites the filter's lower bound every second and would take the
-      // window below with it.
-      useTraceAggregatorGraphStore().playGraph = false
-
-      traceAggregatorStore.resetFilters()
-
-      traceAggregatorStore.initialized = true
-
-      // Only what the shape actually names — a watcher filtered by nothing leaves the
-      // type empty, and an empty value in the filter would ask for traces that have none.
-      if (group.service_id) {
-        traceAggregatorStore.payload.service_ids = [group.service_id]
-      }
-
-      if (group.type) {
-        traceAggregatorStore.payload.types = [group.type]
-      }
-
-      if (group.tags.length) {
-        traceAggregatorStore.payload.tags = [...group.tags]
-      }
-
-      // Left in, and it answers on its own: a trace id reduces the search to that trace
-      // and the tree it belongs to, whatever else stands beside it. Clearing it is what
-      // asks the shape's question instead.
-      if (group.trace_id) {
-        traceAggregatorStore.payload.trace_id = group.trace_id
-      }
-
-      this.applyPeriodAround(traceAggregatorStore, group, event)
+      useTraceAggregatorStore().applyExternalFilter({
+        serviceIds: group.service_id ? [group.service_id] : [],
+        types: group.type ? [group.type] : [],
+        tags: group.tags,
+        traceId: group.trace_id,
+        period: this.periodAround(group, event),
+      })
 
       this.$router.push(routes.traceAggregator)
-    },
-    utcBound(at: number): string {
-      return normalizeUtcDateTime(formatUtcDateTime(new Date(at))) ?? ''
     },
     /**
      * A quarter of an hour either side of the moment the slowest trace started, when the
@@ -346,32 +313,19 @@ export default defineComponent({
      *
      * Narrow otherwise on purpose: the search reads a period as a range of hourly shards,
      * so a week around one known trace is thousands of collections to index and to scan.
-     * `Custom` is what makes the two dates count — any other preset computes `from` itself
-     * and throws them away, see PeriodParameters::fromStringValues().
      */
-    applyPeriodAround(
-        traceAggregatorStore: ReturnType<typeof useTraceAggregatorStore>,
-        group: WatcherIncidentEventGroup,
-        event: WatcherIncidentEvent,
-    ) {
+    periodAround(group: WatcherIncidentEventGroup, event: WatcherIncidentEvent): null | { from: number, to: number } {
       const startedAt = utcTimestamp(group.trace_logged_at)
       const at = utcTimestamp(event.occurred_at)
 
       if (startedAt === null && at === null) {
-        traceAggregatorStore.payload.logging_from_preset = PeriodPresetEnum.LastWeek
-
-        return
+        return null
       }
 
       const from = startedAt ?? (at as number) - this.lookBack(group, event)
       const to = startedAt ?? (at as number)
 
-      traceAggregatorStore.payload.logging_from_preset = PeriodPresetEnum.Custom
-      // Through the plain UTC text the pickers use, not straight from the Date:
-      // normalizeUtcDateTime reads a Date's local parts and stamps them as UTC, which
-      // would shift a real instant by the browser's offset.
-      traceAggregatorStore.payload.logging_from = this.utcBound(from - periodMargin)
-      traceAggregatorStore.payload.logging_to = this.utcBound(to + periodMargin)
+      return {from: from - periodMargin, to: to + periodMargin}
     },
     lookBack(group: WatcherIncidentEventGroup, event: WatcherIncidentEvent): number {
       const settings = event.payload?.settings as Record<string, unknown> | undefined
