@@ -124,8 +124,8 @@ export default defineComponent({
       })
 
       return Object.keys(stored)
-          .sort()
           .map(name => ({name, stored: stored[name]}))
+          .sort((a: MetricType, b: MetricType) => b.stored - a.stored || a.name.localeCompare(b.name))
     },
     filteredRows(): Array<DashboardTraceMetric> {
       const selected = this.chart.selectedTypes
