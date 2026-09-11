@@ -66,7 +66,7 @@ readonly class TraceContentRepository
             customMatch: $text
                 ? [
                     'tp' => [
-                        '$regex' => "^.*$text.*$",
+                        '$regex' => '^.*' . preg_quote($text) . '.*$',
                     ],
                 ]
                 : null
@@ -170,7 +170,7 @@ readonly class TraceContentRepository
             $pipeline[] = [
                 '$match' => [
                     '_id' => [
-                        '$regex' => "^.*$text.*$",
+                        '$regex' => '^.*' . preg_quote($text) . '.*$',
                     ],
                 ],
             ];
@@ -245,7 +245,7 @@ readonly class TraceContentRepository
             customMatch: $text
                 ? [
                     'st' => [
-                        '$regex' => "^.*$text.*$",
+                        '$regex' => '^.*' . preg_quote($text) . '.*$',
                     ],
                 ]
                 : null

@@ -132,11 +132,13 @@ class TracePipelineBuilder
                 }
 
                 if (!is_null($filterItem->string)) {
+                    $value = preg_quote($filterItem->string->value ?? '');
+
                     $regex = match ($filterItem->string->comp) {
-                        TraceDataFilterCompStringTypeEnum::Con    => ".*{$filterItem->string->value}.*",
-                        TraceDataFilterCompStringTypeEnum::Starts => "^{$filterItem->string->value}.*",
-                        TraceDataFilterCompStringTypeEnum::Ends   => ".*{$filterItem->string->value}$",
-                        default                                   => $filterItem->string->value,
+                        TraceDataFilterCompStringTypeEnum::Con    => $value,
+                        TraceDataFilterCompStringTypeEnum::Starts => "^$value",
+                        TraceDataFilterCompStringTypeEnum::Ends   => "$value$",
+                        TraceDataFilterCompStringTypeEnum::Eq     => "^$value$",
                     };
 
                     $match[$field] = ['$regex' => $regex];
