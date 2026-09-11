@@ -32,6 +32,14 @@
           Update
         </el-button>
         <el-button
+            v-if="isTraceSelected"
+            @click="showTreeJson"
+            :icon="JsonIcon"
+            :disabled="inProcess || !traceAggregatorTreeStore.tree.length"
+        >
+          JSON
+        </el-button>
+        <el-button
             @click="onShowProcessesDialog"
             :icon="ProcessesIcon"
         >
@@ -177,6 +185,21 @@
     </div>
 
     <el-dialog
+        v-model="jsonDialogVisible"
+        width="80%"
+        top="10px"
+        :append-to-body="true"
+        destroy-on-close
+    >
+      <JsonViewer
+          v-if="traceAggregatorTreeStore.jsonNodes"
+          :value="jsonValue"
+          :expand-depth="jsonExpandDepth"
+          style="height: 80vh"
+      />
+    </el-dialog>
+
+    <el-dialog
         v-model="showProcessesDialog"
         width="80%"
         top="10px"
@@ -253,7 +276,13 @@ import TraceService from "../services/TraceService.vue";
 import TraceAggregatorTraceDataNode from "../trace/TraceAggregatorTraceDataNode.vue";
 import TraceDetail from "../trace/TraceDetail.vue";
 import TraceAggregatorTraceTreeVirtual from "./TraceAggregatorTraceTreeVirtual.vue";
-import {List, Refresh as UpdateIcon} from '@element-plus/icons-vue'
+import JsonViewer from "../../../../json/JsonViewer.vue";
+import {TreeJsonBuilder} from "./store/TreeJsonBuilder.ts";
+import {Document as JsonIcon, List, Refresh as UpdateIcon} from '@element-plus/icons-vue'
+
+const largeTreeTraces = 300
+
+const largeTreeExpandDepth = 4
 
 export default defineComponent({
   components: {
@@ -261,7 +290,8 @@ export default defineComponent({
     TraceAggregatorTraceDataNode,
     TraceService,
     TraceMetrics,
-    TraceAggregatorTraceTreeVirtual
+    TraceAggregatorTraceTreeVirtual,
+    JsonViewer
   },
 
   data() {
@@ -298,7 +328,30 @@ export default defineComponent({
     },
     ProcessesIcon() {
       return List
-    }
+    },
+    JsonIcon() {
+      return JsonIcon
+    },
+    jsonDialogVisible: {
+      get(): boolean {
+        return this.traceAggregatorTreeStore.jsonNodes !== null
+      },
+      set(visible: boolean) {
+        if (!visible) {
+          this.traceAggregatorTreeStore.hideJson()
+        }
+      },
+    },
+    jsonValue(): unknown {
+      return new TreeJsonBuilder(this.traceAggregatorTreeStore.servicesMap)
+          .build(this.traceAggregatorTreeStore.jsonNodes ?? [])
+    },
+    jsonExpandDepth(): number {
+      const count = new TreeJsonBuilder(this.traceAggregatorTreeStore.servicesMap)
+          .count(this.traceAggregatorTreeStore.jsonNodes ?? [])
+
+      return count > largeTreeTraces ? largeTreeExpandDepth : Infinity
+    },
   },
 
   methods: {
@@ -313,6 +366,9 @@ export default defineComponent({
     },
     onShowProcessesDialog() {
       this.showProcessesDialog = true
+    },
+    showTreeJson() {
+      this.traceAggregatorTreeStore.showTreeJson()
     },
     updateProcesses() {
       this.traceAggregatorTreeProcessesStore.findProcesses()

@@ -80,6 +80,7 @@ interface TraceAggregatorTreeStoreInterface {
     selectedTraceServiceIds: Array<number>,
     traceTotalIndicatorsNumber: number,
     traceIndicatingIds: Array<string>,
+    jsonNodes: null | Array<TraceTreeNode>,
 }
 
 export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore', {
@@ -107,7 +108,8 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
             selectedTraceStatuses: new Array<string>(),
             selectedTraceServiceIds: new Array<number>(),
             traceTotalIndicatorsNumber: 0,
-            traceIndicatingIds: []
+            traceIndicatingIds: [],
+            jsonNodes: null,
         }
     },
     getters: {
@@ -550,6 +552,15 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
         },
         toggleCollapse(row: TraceTreeNode) {
             row.collapsed = !row.collapsed
-        }
+        },
+        showTreeJson() {
+            this.jsonNodes = this.tree.filter((node: TraceTreeNode) => node.depth === 0)
+        },
+        showBranchJson(row: TraceTreeNode) {
+            this.jsonNodes = [row]
+        },
+        hideJson() {
+            this.jsonNodes = null
+        },
     },
 })

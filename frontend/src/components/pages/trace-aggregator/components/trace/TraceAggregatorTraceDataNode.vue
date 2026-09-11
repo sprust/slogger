@@ -73,14 +73,7 @@
       top="10px"
       :append-to-body="true"
   >
-    <template #header>
-      <el-button type="info" @click="onCopyJson" link>
-        copy
-      </el-button>
-    </template>
-    <el-row style="min-height: 80vh; overflow: auto">
-      <pre>{{ jsonDialog.data }}</pre>
-    </el-row>
+    <JsonViewer :value="jsonDialog.value" style="height: 80vh"/>
   </el-dialog>
 </template>
 
@@ -93,6 +86,7 @@ import {TraceAggregatorDetailData} from "./store/traceAggregatorDataStore.ts";
 import {useTraceAggregatorDataSearchStore} from "./store/traceAggregatorDataSearchStore.ts";
 import {copyToClipboard} from "../../../../../utils/helpers.ts";
 import FilterTagsSection from "../tags/FilterTagsSection.vue";
+import JsonViewer from "../../../../json/JsonViewer.vue";
 
 type TreeNode = {
   key: string,
@@ -103,7 +97,7 @@ type TreeNode = {
 }
 
 export default defineComponent({
-  components: {FilterTagsSection},
+  components: {FilterTagsSection, JsonViewer},
   emits: ["onCustomFieldClick"],
   props: {
     data: {
@@ -132,7 +126,7 @@ export default defineComponent({
       },
       jsonDialog: {
         visible: false,
-        data: '',
+        value: null as unknown,
       },
       treeProps: {
         children: 'children',
@@ -265,11 +259,8 @@ export default defineComponent({
 
       const keyName: string = original.key ? this.nodeEndKey(original.key) : 'root'
 
-      this.jsonDialog.data = JSON.stringify({[keyName]: this.buildJson(original)}, null, 2)
+      this.jsonDialog.value = {[keyName]: this.buildJson(original)}
       this.jsonDialog.visible = true
-    },
-    onCopyJson() {
-      copyToClipboard(this.jsonDialog.data)
     },
     keyMatches(data: TreeNode, query: string): boolean {
       return typeof data?.key === 'string'

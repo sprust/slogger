@@ -67,6 +67,9 @@ export default defineComponent({
     findByRow() {
       this.traceAggregatorTreeStore.initTreeByRow(this.row)
     },
+    showJson() {
+      this.traceAggregatorTreeStore.showBranchJson(this.row)
+    },
     indicateByRow() {
       this.traceAggregatorTreeStore.fillTreeIndicatorsByRow(this.row)
     },
@@ -135,6 +138,13 @@ export default defineComponent({
           link
       >
         tree
+      </el-button>
+      <el-button
+          type="info"
+          @click="showJson"
+          link
+      >
+        json
       </el-button>
       <el-button
           v-if="row.children.length > 0"
