@@ -3,7 +3,7 @@ import {defineStore} from "pinia";
 export const watcherTabs = {
     incidents: 'incidents',
     settings: 'settings',
-    notifications: 'notifications',
+    channels: 'channels',
 }
 
 interface WatcherTabsStoreInterface {

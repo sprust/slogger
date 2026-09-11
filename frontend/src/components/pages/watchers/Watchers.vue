@@ -12,7 +12,7 @@
     <el-tab-pane label="Settings" :name="watcherTabs.settings" lazy>
       <WatcherList/>
     </el-tab-pane>
-    <el-tab-pane label="Notifications" :name="watcherTabs.notifications" lazy>
+    <el-tab-pane label="Channels" :name="watcherTabs.channels" lazy>
       <ChannelList/>
     </el-tab-pane>
   </el-tabs>
