@@ -4,17 +4,20 @@ namespace Tests\Modules\Watcher;
 
 use App\Modules\Watcher\Domain\Services\Checkers\BufferOverflowChecker;
 use App\Modules\Watcher\Domain\Services\Checkers\InvalidBufferGrownChecker;
+use App\Modules\Watcher\Domain\Services\Checkers\LogErrorsChecker;
 use App\Modules\Watcher\Domain\Services\Checkers\NoNewTracesChecker;
 use App\Modules\Watcher\Domain\Services\Checkers\SlowTracesChecker;
 use App\Modules\Watcher\Domain\Services\Checkers\ManyTracesChecker;
 use App\Modules\Watcher\Domain\Services\Events\BufferOverflowEventPayloadMapper;
 use App\Modules\Watcher\Domain\Services\Events\InvalidBufferGrownEventPayloadMapper;
+use App\Modules\Watcher\Domain\Services\Events\LogErrorsEventPayloadMapper;
 use App\Modules\Watcher\Domain\Services\Events\NoNewTracesEventPayloadMapper;
 use App\Modules\Watcher\Domain\Services\Events\SlowTracesEventPayloadMapper;
 use App\Modules\Watcher\Domain\Services\Events\ManyTracesEventPayloadMapper;
 use App\Modules\Watcher\Domain\Services\Events\WatcherEventGroupMapper;
 use App\Modules\Watcher\Domain\Services\Types\BufferOverflowWatcherType;
 use App\Modules\Watcher\Domain\Services\Types\InvalidBufferGrownWatcherType;
+use App\Modules\Watcher\Domain\Services\Types\LogErrorsWatcherType;
 use App\Modules\Watcher\Domain\Services\Types\NoNewTracesWatcherType;
 use App\Modules\Watcher\Domain\Services\Types\SlowTracesWatcherType;
 use App\Modules\Watcher\Domain\Services\Types\ManyTracesWatcherType;
@@ -33,7 +36,8 @@ trait WatcherTypeRegistryFactoryTrait
         ?InvalidBufferGrownChecker $invalidBufferGrown = null,
         ?NoNewTracesChecker $noNewTraces = null,
         ?ManyTracesChecker $manyTraces = null,
-        ?SlowTracesChecker $slowTraces = null
+        ?SlowTracesChecker $slowTraces = null,
+        ?LogErrorsChecker $logErrors = null
     ): WatcherTypeRegistry {
         $groups = new WatcherEventGroupMapper(new NullLogger());
 
@@ -57,6 +61,10 @@ trait WatcherTypeRegistryFactoryTrait
             new SlowTracesWatcherType(
                 $slowTraces ?? $this->createMock(SlowTracesChecker::class),
                 new SlowTracesEventPayloadMapper($groups)
+            ),
+            new LogErrorsWatcherType(
+                $logErrors ?? $this->createMock(LogErrorsChecker::class),
+                new LogErrorsEventPayloadMapper()
             )
         );
     }

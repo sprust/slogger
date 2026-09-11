@@ -233,6 +233,12 @@ so a new cross-module edge is added here or is not added.
 - `Infrastructure\Tasks\CheckWatchersTask` → `Trace\Domain`, to read the buffer size
   once for a whole pass rather than once per watcher.
 
+`Watcher` → `Logs`.
+
+- `Domain\Services\Checkers\LogErrorsChecker` → `Logs\Domain\Actions\FindLogErrorStatAction`,
+  `Logs\Entities` — to count the errors written to the application log and read the
+  latest of them.
+
 `Watcher` → `Auth`.
 
 - `Infrastructure\Http\Controllers\WatcherIncidentController` → `Auth\Domain\Actions\FindUserByTokenAction`,

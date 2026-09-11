@@ -75,6 +75,11 @@ const typeEndpoints: Record<string, {
         create: payload => ApiContainer.get().watchersSlowTracesCreate(payload as any),
         update: (id, payload) => ApiContainer.get().watchersSlowTracesPartialUpdate(id, payload as any),
     },
+    logErrors: {
+        show: id => ApiContainer.get().watchersLogErrorsDetail(id),
+        create: payload => ApiContainer.get().watchersLogErrorsCreate(payload as any),
+        update: (id, payload) => ApiContainer.get().watchersLogErrorsPartialUpdate(id, payload as any),
+    },
 }
 
 export function watcherTypeIsKnown(type: string): boolean {

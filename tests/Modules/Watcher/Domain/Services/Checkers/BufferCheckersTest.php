@@ -5,6 +5,7 @@ namespace Tests\Modules\Watcher\Domain\Services\Checkers;
 use App\Modules\Trace\Domain\Actions\Queries\CountInvalidTraceBufferSinceAction;
 use App\Modules\Watcher\Domain\Services\Checkers\BufferOverflowChecker;
 use App\Modules\Watcher\Domain\Services\Checkers\InvalidBufferGrownChecker;
+use App\Modules\Watcher\Domain\Services\WatcherCountWindow;
 use App\Modules\Watcher\Entities\Settings\BufferOverflowSettingsObject;
 use App\Modules\Watcher\Entities\Settings\InvalidBufferGrownSettingsObject;
 use App\Modules\Watcher\Entities\WatcherCheckContextObject;
@@ -62,7 +63,7 @@ class BufferCheckersTest extends TestCase
             ))
             ->willReturn(0);
 
-        new InvalidBufferGrownChecker($action)->check(
+        new InvalidBufferGrownChecker($action, new WatcherCountWindow())->check(
             $this->watcher(
                 WatcherTypeEnum::InvalidBufferGrown,
                 new InvalidBufferGrownSettingsObject(),
@@ -119,7 +120,7 @@ class BufferCheckersTest extends TestCase
             ))
             ->willReturn(0);
 
-        new InvalidBufferGrownChecker($action)->check(
+        new InvalidBufferGrownChecker($action, new WatcherCountWindow())->check(
             $this->watcher(
                 WatcherTypeEnum::InvalidBufferGrown,
                 new InvalidBufferGrownSettingsObject(),
@@ -148,7 +149,7 @@ class BufferCheckersTest extends TestCase
         $action = $this->createMock(CountInvalidTraceBufferSinceAction::class);
         $action->method('handle')->willReturn($countSince);
 
-        return new InvalidBufferGrownChecker($action)->check(
+        return new InvalidBufferGrownChecker($action, new WatcherCountWindow())->check(
             $this->watcher(
                 WatcherTypeEnum::InvalidBufferGrown,
                 new InvalidBufferGrownSettingsObject(threshold: $threshold),

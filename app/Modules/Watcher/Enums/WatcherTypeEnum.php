@@ -11,6 +11,7 @@ enum WatcherTypeEnum: string
     case NoNewTraces = 'noNewTraces';
     case ManyTraces = 'manyTraces';
     case SlowTraces = 'slowTraces';
+    case LogErrors = 'logErrors';
 
     /**
      * What the form offers before anybody has an opinion. The stored value is the
@@ -19,7 +20,7 @@ enum WatcherTypeEnum: string
     public function defaultCooldownSeconds(): int
     {
         return match ($this) {
-            self::BufferOverflow, self::InvalidBufferGrown, self::NoNewTraces => 600,
+            self::BufferOverflow, self::InvalidBufferGrown, self::NoNewTraces, self::LogErrors => 600,
             self::ManyTraces, self::SlowTraces => 300,
         };
     }

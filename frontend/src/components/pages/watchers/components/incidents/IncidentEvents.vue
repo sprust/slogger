@@ -111,6 +111,7 @@ import {defineComponent, PropType} from 'vue'
 import {
   BufferOverflowEvent,
   InvalidBufferGrownEvent,
+  LogErrorsEvent,
   NoNewTracesEvent,
   SlowTracesEvent,
   ManyTracesEvent,
@@ -195,6 +196,12 @@ const columnsByType: Record<string, Array<PayloadColumn>> = {
     setting<SlowTracesEvent>('duration', 'Longer than, sec'),
     setting<SlowTracesEvent>('window_minutes', 'Minutes counted'),
     measured<SlowTracesEvent>('slowest', 'Slowest trace, sec'),
+  ],
+  logErrors: [
+    setting<LogErrorsEvent>('threshold', 'Limit'),
+    measured<LogErrorsEvent>('error_count', 'Errors'),
+    measured<LogErrorsEvent>('since', 'Counted since'),
+    measured<LogErrorsEvent>('last_message', 'Last error'),
   ],
 }
 

@@ -23,7 +23,7 @@ use Throwable;
  * schedule:run — so a job's path would be pool, schedule:run, RabbitMQ, consumer pool,
  * job: four links where this is one, and two of them are exactly what a watcher must not
  * depend on. A stalled queue would stop the watchers during the incident they exist for,
- * and one of the five types watches the buffer, which fills for the same reasons a queue
+ * and one of the types watches the buffer, which fills for the same reasons a queue
  * stalls.
  *
  * The pool also makes it the only writer: it holds an flock the kernel releases even on

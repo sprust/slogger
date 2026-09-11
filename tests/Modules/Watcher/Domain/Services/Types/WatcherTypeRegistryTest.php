@@ -92,6 +92,7 @@ class WatcherTypeRegistryTest extends TestCase
         $this->assertTrue($registry->for(WatcherTypeEnum::NoNewTraces)->describe()->hasTraceFilter);
         $this->assertTrue($registry->for(WatcherTypeEnum::ManyTraces)->describe()->hasTraceFilter);
         $this->assertTrue($registry->for(WatcherTypeEnum::SlowTraces)->describe()->hasTraceFilter);
+        $this->assertFalse($registry->for(WatcherTypeEnum::LogErrors)->describe()->hasTraceFilter);
     }
 
     private function registry(): WatcherTypeRegistry

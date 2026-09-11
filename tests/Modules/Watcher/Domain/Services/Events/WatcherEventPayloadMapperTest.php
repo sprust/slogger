@@ -8,6 +8,9 @@ use App\Modules\Watcher\Entities\Events\BufferOverflowEventSettingsObject;
 use App\Modules\Watcher\Entities\Events\InvalidBufferGrownEventMeasuredObject;
 use App\Modules\Watcher\Entities\Events\InvalidBufferGrownEventPayloadObject;
 use App\Modules\Watcher\Entities\Events\InvalidBufferGrownEventSettingsObject;
+use App\Modules\Watcher\Entities\Events\LogErrorsEventMeasuredObject;
+use App\Modules\Watcher\Entities\Events\LogErrorsEventPayloadObject;
+use App\Modules\Watcher\Entities\Events\LogErrorsEventSettingsObject;
 use App\Modules\Watcher\Entities\Events\NoNewTracesEventMeasuredObject;
 use App\Modules\Watcher\Entities\Events\NoNewTracesEventPayloadObject;
 use App\Modules\Watcher\Entities\Events\NoNewTracesEventSettingsObject;
@@ -122,6 +125,14 @@ class WatcherEventPayloadMapperTest extends TestCase
                 settings: new SlowTracesEventSettingsObject(duration: 10.0, windowMinutes: 5),
                 measured: new SlowTracesEventMeasuredObject(slowest: 41.2),
                 groups: [$this->group(durationMax: 41.2, slowestTraceId: 'abc123')]
+            ),
+            WatcherTypeEnum::LogErrors => new LogErrorsEventPayloadObject(
+                settings: new LogErrorsEventSettingsObject(threshold: 1),
+                measured: new LogErrorsEventMeasuredObject(
+                    errorCount: 3,
+                    since: '2026-09-08 19:00:00',
+                    lastMessage: 'connect: IO error: Connection refused (os error 111)'
+                )
             ),
         };
     }

@@ -6,6 +6,7 @@ namespace App\Modules\Logs\Repositories;
 
 use App\Models\Logs\Log;
 use App\Modules\Common\Entities\PaginationInfoObject;
+use App\Modules\Logs\Entities\Log\LogLevelStatObject;
 use App\Modules\Logs\Entities\Log\LogObject;
 use App\Modules\Logs\Entities\Log\LogsPaginationObject;
 use App\Modules\Logs\Parameters\CreateLogParameters;
@@ -77,6 +78,48 @@ readonly class LogRepository
                 perPage: $perPage,
                 currentPage: $page
             )
+        );
+    }
+
+    /**
+     * @param string[] $levels
+     */
+    public function findLevelStatBetween(Carbon $since, Carbon $until, array $levels): LogLevelStatObject
+    {
+        $collection = Log::sconcur();
+
+        $filter = [
+            'loggedAt' => [
+                '$gt'  => new UTCDateTime($since),
+                '$lte' => new UTCDateTime($until),
+            ],
+            'level'    => [
+                '$in' => $levels,
+            ],
+        ];
+
+        $count = $collection->countDocuments($filter);
+
+        if ($count === 0) {
+            return new LogLevelStatObject(count: 0, lastMessage: null);
+        }
+
+        $lastMessage = null;
+
+        foreach (
+            $collection->find(
+                filter: $filter,
+                projection: ['message' => 1],
+                sort: ['loggedAt' => -1],
+                limit: 1,
+            ) as $document
+        ) {
+            $lastMessage = (string) $document['message'];
+        }
+
+        return new LogLevelStatObject(
+            count: $count,
+            lastMessage: $lastMessage
         );
     }
 }

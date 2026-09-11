@@ -20,16 +20,19 @@ use App\Modules\Watcher\Domain\Actions\Queries\FindWatcherAction;
 use App\Modules\Watcher\Domain\Actions\Queries\FindWatchersAction;
 use App\Modules\Watcher\Domain\Services\Checkers\BufferOverflowChecker;
 use App\Modules\Watcher\Domain\Services\Checkers\InvalidBufferGrownChecker;
+use App\Modules\Watcher\Domain\Services\Checkers\LogErrorsChecker;
 use App\Modules\Watcher\Domain\Services\Checkers\NoNewTracesChecker;
 use App\Modules\Watcher\Domain\Services\Checkers\SlowTracesChecker;
 use App\Modules\Watcher\Domain\Services\Checkers\ManyTracesChecker;
 use App\Modules\Watcher\Domain\Services\Types\BufferOverflowWatcherType;
 use App\Modules\Watcher\Domain\Services\Types\InvalidBufferGrownWatcherType;
+use App\Modules\Watcher\Domain\Services\Types\LogErrorsWatcherType;
 use App\Modules\Watcher\Domain\Services\Types\NoNewTracesWatcherType;
 use App\Modules\Watcher\Domain\Services\Types\SlowTracesWatcherType;
 use App\Modules\Watcher\Domain\Services\Types\ManyTracesWatcherType;
 use App\Modules\Watcher\Domain\Services\Types\WatcherTypeRegistry;
 use App\Modules\Watcher\Domain\Services\WatcherCollectionStart;
+use App\Modules\Watcher\Domain\Services\WatcherCountWindow;
 use App\Modules\Watcher\Domain\Services\WatcherFactory;
 use App\Modules\Watcher\Domain\Services\WatcherMatchFactory;
 use App\Modules\Watcher\Domain\Services\WatcherTimelineAnalyzer;
@@ -58,15 +61,18 @@ class WatcherServiceProvider extends BaseServiceProvider
             NoNewTracesChecker::class,
             ManyTracesChecker::class,
             SlowTracesChecker::class,
+            LogErrorsChecker::class,
             BufferOverflowWatcherType::class,
             InvalidBufferGrownWatcherType::class,
             NoNewTracesWatcherType::class,
             ManyTracesWatcherType::class,
             SlowTracesWatcherType::class,
+            LogErrorsWatcherType::class,
             WatcherTypeRegistry::class,
             WatcherMatchFactory::class,
             WatcherFactory::class,
             WatcherCollectionStart::class,
+            WatcherCountWindow::class,
             // actions
             FindWatchersAction::class,
             FindWatcherAction::class,
