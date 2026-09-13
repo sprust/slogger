@@ -31,6 +31,7 @@ export type WatcherSettings = {
         service_ids?: number[],
         types?: string[],
         tags?: string[],
+        statuses?: string[],
     },
 }
 

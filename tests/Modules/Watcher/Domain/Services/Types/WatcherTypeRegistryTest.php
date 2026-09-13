@@ -35,7 +35,8 @@ class WatcherTypeRegistryTest extends TestCase
             filter: new \App\Modules\Watcher\Entities\Settings\WatcherTraceFilterObject(
                 serviceIds: [4],
                 types: ['http'],
-                tags: ['api']
+                tags: ['api'],
+                statuses: ['failed']
             )
         );
 

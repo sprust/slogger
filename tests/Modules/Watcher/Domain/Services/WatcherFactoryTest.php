@@ -38,15 +38,16 @@ class WatcherFactoryTest extends TestCase
     {
         $watcher = $this->factory()->make(
             $this->dto(traceMatch: [
-                'v'           => 1,
+                'v'           => 2,
                 'service_ids' => [3],
                 'types'       => ['http'],
                 'tags'        => [],
+                'statuses'    => ['failed'],
             ])
         );
 
         $this->assertEquals(
-            new WatcherMatchObject(serviceIds: [3], types: ['http'], tags: []),
+            new WatcherMatchObject(serviceIds: [3], types: ['http'], tags: [], statuses: ['failed']),
             $watcher->match
         );
     }

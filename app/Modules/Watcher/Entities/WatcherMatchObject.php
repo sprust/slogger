@@ -14,17 +14,19 @@ namespace App\Modules\Watcher\Entities;
  */
 readonly class WatcherMatchObject
 {
-    public const int VERSION = 1;
+    public const int VERSION = 2;
 
     /**
      * @param int[]    $serviceIds
      * @param string[] $types
      * @param string[] $tags
+     * @param string[] $statuses
      */
     public function __construct(
         public array $serviceIds = [],
         public array $types = [],
         public array $tags = [],
+        public array $statuses = [],
         public int $version = self::VERSION
     ) {
     }

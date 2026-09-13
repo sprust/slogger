@@ -291,11 +291,16 @@ export default defineComponent({
      * trace and the tree it belongs to, whatever else stands beside it. Clearing it is what
      * asks the shape's question instead.
      */
-    openInAggregator(group: WatcherIncidentEventGroup, event: WatcherIncidentEvent) {
+    async openInAggregator(group: WatcherIncidentEventGroup, event: WatcherIncidentEvent) {
+      const settings = this.watcherType
+          ? await this.watchersStore.findSettings(this.watcherType, this.incident.watcher_id)
+          : null
+
       useTraceAggregatorStore().applyExternalFilter({
         serviceIds: group.service_id ? [group.service_id] : [],
         types: group.type ? [group.type] : [],
         tags: group.tags,
+        statuses: settings?.filter?.statuses ?? [],
         traceId: group.trace_id,
         period: this.periodAround(group, event),
       })

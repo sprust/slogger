@@ -27,7 +27,8 @@ class WatcherMatchFactoryTest extends TestCase
                 filter: new WatcherTraceFilterObject(
                     serviceIds: [3, 7],
                     types: ['http'],
-                    tags: ['billing']
+                    tags: ['billing'],
+                    statuses: ['failed']
                 )
             )
         );
@@ -36,6 +37,7 @@ class WatcherMatchFactoryTest extends TestCase
         $this->assertSame([3, 7], $match->serviceIds);
         $this->assertSame(['http'], $match->types);
         $this->assertSame(['billing'], $match->tags);
+        $this->assertSame(['failed'], $match->statuses);
         $this->assertSame(WatcherMatchObject::VERSION, $match->version);
     }
 
@@ -60,19 +62,21 @@ class WatcherMatchFactoryTest extends TestCase
         $this->assertSame([], $match->serviceIds);
         $this->assertSame([], $match->types);
         $this->assertSame([], $match->tags);
+        $this->assertSame([], $match->statuses);
     }
 
     public function testTheStoredShapeIsTheOneTheReceiverReads(): void
     {
         $this->assertSame(
             [
-                'v'           => 1,
+                'v'           => 2,
                 'service_ids' => [3],
                 'types'       => ['db'],
                 'tags'        => ['slow'],
+                'statuses'    => ['failed'],
             ],
             new WatcherMatchFactory()->toArray(
-                new WatcherMatchObject(serviceIds: [3], types: ['db'], tags: ['slow'])
+                new WatcherMatchObject(serviceIds: [3], types: ['db'], tags: ['slow'], statuses: ['failed'])
             )
         );
     }

@@ -2805,6 +2805,7 @@ export namespace AdminApi {
           service_ids?: number[];
           types?: string[];
           tags?: string[];
+          statuses?: string[];
         };
       };
     };
@@ -2842,6 +2843,7 @@ export namespace AdminApi {
     service_ids: (number)[],
     types: (string)[],
     tags: (string)[],
+    statuses: (string)[],
 
 },
 
@@ -2864,6 +2866,7 @@ export namespace AdminApi {
           service_ids: number[];
           types: string[];
           tags: string[];
+          statuses: string[];
         };
       };
     };
@@ -2907,6 +2910,7 @@ export namespace AdminApi {
           service_ids?: number[];
           types?: string[];
           tags?: string[];
+          statuses?: string[];
         };
       };
     };
@@ -2971,6 +2975,7 @@ export namespace AdminApi {
           service_ids?: number[];
           types?: string[];
           tags?: string[];
+          statuses?: string[];
         };
       };
     };
@@ -3009,6 +3014,7 @@ export namespace AdminApi {
     service_ids: (number)[],
     types: (string)[],
     tags: (string)[],
+    statuses: (string)[],
 
 },
 
@@ -3032,6 +3038,7 @@ export namespace AdminApi {
           service_ids: number[];
           types: string[];
           tags: string[];
+          statuses: string[];
         };
       };
     };
@@ -3077,6 +3084,7 @@ export namespace AdminApi {
           service_ids?: number[];
           types?: string[];
           tags?: string[];
+          statuses?: string[];
         };
       };
     };
@@ -3144,6 +3152,7 @@ export namespace AdminApi {
           service_ids?: number[];
           types?: string[];
           tags?: string[];
+          statuses?: string[];
         };
       };
     };
@@ -3182,6 +3191,7 @@ export namespace AdminApi {
     service_ids: (number)[],
     types: (string)[],
     tags: (string)[],
+    statuses: (string)[],
 
 },
 
@@ -3205,6 +3215,7 @@ export namespace AdminApi {
           service_ids: number[];
           types: string[];
           tags: string[];
+          statuses: string[];
         };
       };
     };
@@ -3253,6 +3264,7 @@ export namespace AdminApi {
           service_ids?: number[];
           types?: string[];
           tags?: string[];
+          statuses?: string[];
         };
       };
     };
@@ -6942,6 +6954,7 @@ export class Api<
             service_ids?: number[];
             types?: string[];
             tags?: string[];
+            statuses?: string[];
           };
         };
       },
@@ -6991,6 +7004,7 @@ export class Api<
     service_ids: (number)[],
     types: (string)[],
     tags: (string)[],
+    statuses: (string)[],
 
 },
 
@@ -7008,6 +7022,7 @@ export class Api<
               service_ids: number[];
               types: string[];
               tags: string[];
+              statuses: string[];
             };
           };
         },
@@ -7056,6 +7071,7 @@ export class Api<
             service_ids?: number[];
             types?: string[];
             tags?: string[];
+            statuses?: string[];
           };
         };
       },
@@ -7127,6 +7143,7 @@ export class Api<
             service_ids?: number[];
             types?: string[];
             tags?: string[];
+            statuses?: string[];
           };
         };
       },
@@ -7177,6 +7194,7 @@ export class Api<
     service_ids: (number)[],
     types: (string)[],
     tags: (string)[],
+    statuses: (string)[],
 
 },
 
@@ -7195,6 +7213,7 @@ export class Api<
               service_ids: number[];
               types: string[];
               tags: string[];
+              statuses: string[];
             };
           };
         },
@@ -7245,6 +7264,7 @@ export class Api<
             service_ids?: number[];
             types?: string[];
             tags?: string[];
+            statuses?: string[];
           };
         };
       },
@@ -7319,6 +7339,7 @@ export class Api<
             service_ids?: number[];
             types?: string[];
             tags?: string[];
+            statuses?: string[];
           };
         };
       },
@@ -7369,6 +7390,7 @@ export class Api<
     service_ids: (number)[],
     types: (string)[],
     tags: (string)[],
+    statuses: (string)[],
 
 },
 
@@ -7387,6 +7409,7 @@ export class Api<
               service_ids: number[];
               types: string[];
               tags: string[];
+              statuses: string[];
             };
           };
         },
@@ -7440,6 +7463,7 @@ export class Api<
             service_ids?: number[];
             types?: string[];
             tags?: string[];
+            statuses?: string[];
           };
         };
       },

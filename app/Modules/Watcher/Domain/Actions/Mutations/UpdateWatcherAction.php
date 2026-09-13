@@ -90,7 +90,8 @@ readonly class UpdateWatcherAction
 
         return $this->sorted($first->serviceIds) === $this->sorted($second->serviceIds)
             && $this->sorted($first->types) === $this->sorted($second->types)
-            && $this->sorted($first->tags) === $this->sorted($second->tags);
+            && $this->sorted($first->tags) === $this->sorted($second->tags)
+            && $this->sorted($first->statuses) === $this->sorted($second->statuses);
     }
 
     /**

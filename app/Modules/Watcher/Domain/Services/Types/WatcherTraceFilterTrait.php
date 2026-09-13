@@ -9,7 +9,7 @@ use App\Modules\Watcher\Entities\Settings\WatcherTraceFilterObject;
 
 /**
  * Reading the part of the settings that says which traces a watcher is about — the same
- * three lists for every type that has one.
+ * lists for every type that has one.
  */
 trait WatcherTraceFilterTrait
 {
@@ -29,7 +29,8 @@ trait WatcherTraceFilterTrait
         return new WatcherTraceFilterObject(
             serviceIds: array_values(ArrayValueGetter::arrayIntNull($filter, 'service_ids') ?? []),
             types: array_values(ArrayValueGetter::arrayStringNull($filter, 'types') ?? []),
-            tags: array_values(ArrayValueGetter::arrayStringNull($filter, 'tags') ?? [])
+            tags: array_values(ArrayValueGetter::arrayStringNull($filter, 'tags') ?? []),
+            statuses: array_values(ArrayValueGetter::arrayStringNull($filter, 'statuses') ?? [])
         );
     }
 }

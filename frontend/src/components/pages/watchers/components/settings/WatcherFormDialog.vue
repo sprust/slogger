@@ -128,6 +128,21 @@
               style="width: 100%"
           />
         </el-form-item>
+        <el-form-item label="Statuses" for="">
+          <el-select
+              v-model="form.filter.statuses"
+              multiple
+              filterable
+              allow-create
+              default-first-option
+              clearable
+              placeholder="Any status"
+              style="width: 100%"
+          />
+          <el-text type="info">
+            Matched by the status a trace has when it is written: its count by the status it started with, its duration by the final one.
+          </el-text>
+        </el-form-item>
       </template>
 
       <el-divider content-position="left">
@@ -228,6 +243,7 @@ export default defineComponent({
           service_ids: [] as number[],
           types: [] as string[],
           tags: [] as string[],
+          statuses: [] as string[],
         },
       },
     }
@@ -300,7 +316,7 @@ export default defineComponent({
       this.form.notificationChannelId = null
       this.form.notifyOn = ['opened']
       this.form.settings = {}
-      this.form.filter = {service_ids: [], types: [], tags: []}
+      this.form.filter = {service_ids: [], types: [], tags: [], statuses: []}
 
       definition?.fields.forEach(field => {
         this.form.settings[field.key] = field.default
@@ -363,6 +379,7 @@ export default defineComponent({
         service_ids: settings.filter?.service_ids ?? [],
         types: settings.filter?.types ?? [],
         tags: settings.filter?.tags ?? [],
+        statuses: settings.filter?.statuses ?? [],
       }
     },
     async save() {

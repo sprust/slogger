@@ -24,6 +24,7 @@ export type TraceAggregatorExternalFilter = {
     serviceIds?: Array<number>,
     types?: Array<string>,
     tags?: Array<string>,
+    statuses?: Array<string>,
     traceId?: string | null,
     period: null | { from: number, to: number },
 }
@@ -279,6 +280,10 @@ export const useTraceAggregatorStore = defineStore('traceAggregatorStore', {
 
             if (filter.tags?.length) {
                 this.payload.tags = [...filter.tags]
+            }
+
+            if (filter.statuses?.length) {
+                this.payload.statuses = [...filter.statuses]
             }
 
             if (filter.traceId) {

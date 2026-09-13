@@ -31,6 +31,7 @@ type Match struct {
 	ServiceIds []int    `json:"service_ids"`
 	Types      []string `json:"types"`
 	Tags       []string `json:"tags"`
+	Statuses   []string `json:"statuses"`
 }
 
 type Watcher struct {

@@ -41,7 +41,7 @@ const (
 
 	// The only match format this binary understands. A watcher carrying anything else is
 	// skipped rather than read as if it were this one.
-	supportedMatchVersion = 1
+	supportedMatchVersion = 2
 )
 
 // matcher is one compiled filter and the watchers that share it.
@@ -54,10 +54,17 @@ type matcher struct {
 	serviceIds map[int]struct{}
 	types      map[string]struct{}
 	tags       map[string]struct{}
+	statuses   map[string]struct{}
 }
 
 // matches answers the part of the filter that the service index has not already answered.
-func (m *matcher) matches(traceType string, tags []string) bool {
+func (m *matcher) matches(traceType string, tags []string, status string) bool {
+	if len(m.statuses) > 0 {
+		if _, ok := m.statuses[status]; !ok {
+			return false
+		}
+	}
+
 	if len(m.types) > 0 {
 		if _, ok := m.types[traceType]; !ok {
 			return false
@@ -129,7 +136,7 @@ func Get() *Service {
 // Service counts traces into the lines of the watchers they belong to.
 //
 // It knows nothing about what a watcher is for: not its type, not its thresholds, not its
-// windows. It reads one column, filters on three dimensions, and adds numbers. Everything
+// windows. It reads one column, filters on four dimensions, and adds numbers. Everything
 // that turns those numbers into "something is wrong" lives in the panel.
 type Service struct {
 	watchers  *watcher_repository.Repository
@@ -236,6 +243,7 @@ func (s *Service) compile(watchers []watcher_repository.Watcher) {
 			serviceIds: intSet(watcher.Match.ServiceIds),
 			types:      stringSet(watcher.Match.Types),
 			tags:       stringSet(watcher.Match.Tags),
+			statuses:   stringSet(watcher.Match.Statuses),
 		}
 
 		order = append(order, signature)
@@ -306,6 +314,7 @@ func (s *Service) AddTrace(
 	traceId string,
 	traceType string,
 	tags []string,
+	status string,
 	duration *float64,
 	loggedAt time.Time,
 	isNew bool,
@@ -328,7 +337,7 @@ func (s *Service) AddTrace(
 		return
 	}
 
-	watcherIds := s.watcherIdsFor(serviceId, traceType, tags)
+	watcherIds := s.watcherIdsFor(serviceId, traceType, tags, status)
 
 	if len(watcherIds) == 0 {
 		return
@@ -481,7 +490,7 @@ func lessRemarkable(group *groupState, than *groupState) bool {
 	return group.count < than.count
 }
 
-func (s *Service) watcherIdsFor(serviceId int, traceType string, tags []string) []int {
+func (s *Service) watcherIdsFor(serviceId int, traceType string, tags []string, status string) []int {
 	s.matchersMu.RLock()
 	scoped := s.byService[serviceId]
 	global := s.global
@@ -490,13 +499,13 @@ func (s *Service) watcherIdsFor(serviceId int, traceType string, tags []string) 
 	var watcherIds []int
 
 	for _, item := range scoped {
-		if item.matches(traceType, tags) {
+		if item.matches(traceType, tags, status) {
 			watcherIds = append(watcherIds, item.watcherIds...)
 		}
 	}
 
 	for _, item := range global {
-		if item.matches(traceType, tags) {
+		if item.matches(traceType, tags, status) {
 			watcherIds = append(watcherIds, item.watcherIds...)
 		}
 	}
@@ -655,7 +664,8 @@ func matchSignature(match watcher_repository.Match) string {
 	// traffic.
 	return strings.Join(parts, sep) +
 		sep + sep + strings.Join(sortedUnique(match.Types), sep) +
-		sep + sep + strings.Join(sortedUnique(match.Tags), sep)
+		sep + sep + strings.Join(sortedUnique(match.Tags), sep) +
+		sep + sep + strings.Join(sortedUnique(match.Statuses), sep)
 }
 
 func sortedUnique(values []string) []string {

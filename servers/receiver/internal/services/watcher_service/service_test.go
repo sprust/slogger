@@ -14,7 +14,7 @@ import (
 func TestAnEmptyFilterTakesEveryTrace(t *testing.T) {
 	item := &matcher{}
 
-	if !item.matches("http", nil) {
+	if !item.matches("http", nil, "") {
 		t.Fatal("a filter naming nothing should take every trace")
 	}
 }
@@ -22,11 +22,11 @@ func TestAnEmptyFilterTakesEveryTrace(t *testing.T) {
 func TestATypeFilterTakesOnlyThatType(t *testing.T) {
 	item := &matcher{types: stringSet([]string{"http", "db"})}
 
-	if !item.matches("db", nil) {
+	if !item.matches("db", nil, "") {
 		t.Fatal("a listed type should match")
 	}
 
-	if item.matches("queue", nil) {
+	if item.matches("queue", nil, "") {
 		t.Fatal("a type that is not listed should not match")
 	}
 }
@@ -35,15 +35,15 @@ func TestATypeFilterTakesOnlyThatType(t *testing.T) {
 func TestATagFilterTakesATraceCarryingAnyOfThem(t *testing.T) {
 	item := &matcher{tags: stringSet([]string{"billing", "auth"})}
 
-	if !item.matches("http", []string{"other", "auth"}) {
+	if !item.matches("http", []string{"other", "auth"}, "") {
 		t.Fatal("one listed tag out of several should match")
 	}
 
-	if item.matches("http", []string{"other"}) {
+	if item.matches("http", []string{"other"}, "") {
 		t.Fatal("no listed tag should not match")
 	}
 
-	if item.matches("http", nil) {
+	if item.matches("http", nil, "") {
 		t.Fatal("a trace with no tags cannot satisfy a tag filter")
 	}
 }
@@ -54,16 +54,89 @@ func TestTypeAndTagsHaveToHoldTogether(t *testing.T) {
 		tags:  stringSet([]string{"billing"}),
 	}
 
-	if item.matches("http", []string{"auth"}) {
+	if item.matches("http", []string{"auth"}, "") {
 		t.Fatal("the right type with the wrong tag should not match")
 	}
 
-	if item.matches("db", []string{"billing"}) {
+	if item.matches("db", []string{"billing"}, "") {
 		t.Fatal("the right tag with the wrong type should not match")
 	}
 
-	if !item.matches("http", []string{"billing"}) {
+	if !item.matches("http", []string{"billing"}, "") {
 		t.Fatal("both satisfied should match")
+	}
+}
+
+func TestAStatusFilterTakesOnlyThoseStatuses(t *testing.T) {
+	item := &matcher{statuses: stringSet([]string{"failed", "timeout"})}
+
+	if !item.matches("http", nil, "failed") {
+		t.Fatal("a listed status should match")
+	}
+
+	if item.matches("http", nil, "success") {
+		t.Fatal("a status that is not listed should not match")
+	}
+
+	if item.matches("http", nil, "") {
+		t.Fatal("a trace without a status cannot satisfy a status filter")
+	}
+}
+
+func TestStatusAndTypeHaveToHoldTogether(t *testing.T) {
+	item := &matcher{
+		types:    stringSet([]string{"http"}),
+		statuses: stringSet([]string{"failed"}),
+	}
+
+	if item.matches("db", nil, "failed") {
+		t.Fatal("the right status with the wrong type should not match")
+	}
+
+	if item.matches("http", nil, "success") {
+		t.Fatal("the right type with the wrong status should not match")
+	}
+
+	if !item.matches("http", nil, "failed") {
+		t.Fatal("both satisfied should match")
+	}
+}
+
+func TestFiltersDifferingOnlyInStatusesAreDifferentMatchers(t *testing.T) {
+	first := matchSignature(watcher_repository.Match{Types: []string{"http"}, Statuses: []string{"failed"}})
+	second := matchSignature(watcher_repository.Match{Types: []string{"http"}, Statuses: []string{"success"}})
+	third := matchSignature(watcher_repository.Match{Types: []string{"http"}, Tags: []string{"failed"}})
+
+	if first == second || first == third {
+		t.Fatal("filters that differ in statuses must not share a matcher")
+	}
+}
+
+func TestAStatusFilteredWatcherCountsByTheStatusOfEachWrite(t *testing.T) {
+	service := newTestService(1, watcher_repository.Match{Version: 2, Statuses: []string{"failed"}})
+
+	at := time.Date(2026, 9, 7, 10, 0, 0, 0, time.UTC)
+	duration := 1.0
+
+	service.AddTrace(1, "trace-1", "http", nil, "started", nil, at, true)
+	service.AddTrace(1, "trace-1", "http", nil, "failed", &duration, at, false)
+
+	bucket := onlyBucket(t, service)
+
+	if bucket.Count != 0 {
+		t.Fatalf("the start carried another status and should not be counted, got %d", bucket.Count)
+	}
+
+	if bucket.DurCount != 1 {
+		t.Fatalf("the finish carried the listed status and should bring its duration, got %d", bucket.DurCount)
+	}
+}
+
+func TestAWatcherOfTheOldFilterVersionIsNotCollectedFor(t *testing.T) {
+	service := newTestService(1, watcher_repository.Match{Version: 1})
+
+	if service.active.Load() {
+		t.Fatal("a watcher with a filter of the old version must not make the service active")
 	}
 }
 
@@ -120,13 +193,13 @@ func TestDifferentFiltersAreDifferentMatchers(t *testing.T) {
 // only the first of those is a new trace. Counting both would double every number the
 // watchers are built on.
 func TestATraceIsCountedOnceAndItsDurationArrivesLater(t *testing.T) {
-	service := newTestService(1, watcher_repository.Match{Version: 1})
+	service := newTestService(1, watcher_repository.Match{Version: 2})
 
 	at := time.Date(2026, 9, 7, 10, 0, 3, 0, time.UTC)
 	duration := 12.5
 
-	service.AddTrace(1, "trace-1", "http", nil, nil, at, true)
-	service.AddTrace(1, "trace-1", "http", nil, &duration, at, false)
+	service.AddTrace(1, "trace-1", "http", nil, "", nil, at, true)
+	service.AddTrace(1, "trace-1", "http", nil, "", &duration, at, false)
 
 	byTime := bucketsByTime(t, service)
 
@@ -146,13 +219,13 @@ func TestATraceIsCountedOnceAndItsDurationArrivesLater(t *testing.T) {
 // own window used to land in a bucket the window could never reach, so the slower the
 // trace the more certainly nothing was raised.
 func TestADurationLandsInTheBucketItBecameTrueIn(t *testing.T) {
-	service := newTestService(1, watcher_repository.Match{Version: 1})
+	service := newTestService(1, watcher_repository.Match{Version: 2})
 
 	at := time.Date(2026, 9, 7, 10, 0, 0, 0, time.UTC)
 	duration := 600.0
 
-	service.AddTrace(1, "slow", "http", nil, nil, at, true)
-	service.AddTrace(1, "slow", "http", nil, &duration, at, false)
+	service.AddTrace(1, "slow", "http", nil, "", nil, at, true)
+	service.AddTrace(1, "slow", "http", nil, "", &duration, at, false)
 
 	finished := bucketAt(t, bucketsByTime(t, service), time.Date(2026, 9, 7, 10, 10, 0, 0, time.UTC))
 
@@ -164,12 +237,12 @@ func TestADurationLandsInTheBucketItBecameTrueIn(t *testing.T) {
 // A duration from a clock running ahead is clamped, like the start already was: a bucket
 // in the future is one no window ever closes over.
 func TestADurationRunningPastNowIsClamped(t *testing.T) {
-	service := newTestService(1, watcher_repository.Match{Version: 1})
+	service := newTestService(1, watcher_repository.Match{Version: 2})
 
 	at := time.Now().UTC().Add(-time.Second)
 	duration := 3600.0
 
-	service.AddTrace(1, "wrong-clock", "http", nil, &duration, at, true)
+	service.AddTrace(1, "wrong-clock", "http", nil, "", &duration, at, true)
 
 	buckets := service.takeBuckets(true)
 
@@ -185,9 +258,9 @@ func TestADurationRunningPastNowIsClamped(t *testing.T) {
 // An update that brings nothing — no duration, and not a new trace — must not conjure a
 // bucket out of nothing: an empty bucket in the line reads as "traces were seen here".
 func TestAnUpdateWithoutADurationRecordsNothing(t *testing.T) {
-	service := newTestService(1, watcher_repository.Match{Version: 1})
+	service := newTestService(1, watcher_repository.Match{Version: 2})
 
-	service.AddTrace(1, "trace-1", "http", nil, nil, time.Now().UTC(), false)
+	service.AddTrace(1, "trace-1", "http", nil, "", nil, time.Now().UTC(), false)
 
 	if buckets := service.takeBuckets(true); len(buckets) != 0 {
 		t.Fatalf("expected nothing collected, got %+v", buckets)
@@ -199,9 +272,9 @@ func TestAnUpdateWithoutADurationRecordsNothing(t *testing.T) {
 // flush writes it, sitting at the tail of the line where the panel's cutoff — which
 // deletes by "older than" — can never reach it, holding a slot in the 720-bucket ceiling.
 func TestATraceFromTheFutureLandsInTheCurrentBucket(t *testing.T) {
-	service := newTestService(1, watcher_repository.Match{Version: 1})
+	service := newTestService(1, watcher_repository.Match{Version: 2})
 
-	service.AddTrace(1, "trace-1", "http", nil, nil, time.Now().UTC().AddDate(1, 0, 0), true)
+	service.AddTrace(1, "trace-1", "http", nil, "", nil, time.Now().UTC().AddDate(1, 0, 0), true)
 
 	bucket := onlyBucket(t, service)
 
@@ -211,13 +284,13 @@ func TestATraceFromTheFutureLandsInTheCurrentBucket(t *testing.T) {
 }
 
 func TestTracesOfDifferentShapesLandInDifferentGroups(t *testing.T) {
-	service := newTestService(1, watcher_repository.Match{Version: 1})
+	service := newTestService(1, watcher_repository.Match{Version: 2})
 
 	at := time.Date(2026, 9, 7, 10, 0, 0, 0, time.UTC)
 
-	service.AddTrace(1, "trace-1", "http", []string{"a"}, nil, at, true)
-	service.AddTrace(1, "trace-2", "http", []string{"a"}, nil, at, true)
-	service.AddTrace(1, "trace-3", "db", []string{"a"}, nil, at, true)
+	service.AddTrace(1, "trace-1", "http", []string{"a"}, "", nil, at, true)
+	service.AddTrace(1, "trace-2", "http", []string{"a"}, "", nil, at, true)
+	service.AddTrace(1, "trace-3", "db", []string{"a"}, "", nil, at, true)
 
 	bucket := onlyBucket(t, service)
 
@@ -233,12 +306,12 @@ func TestTracesOfDifferentShapesLandInDifferentGroups(t *testing.T) {
 // The tags of a group are the ones its signature was built from, so two traces carrying
 // the same tags in a different order are one shape rather than two.
 func TestTagOrderDoesNotSplitAGroup(t *testing.T) {
-	service := newTestService(1, watcher_repository.Match{Version: 1})
+	service := newTestService(1, watcher_repository.Match{Version: 2})
 
 	at := time.Date(2026, 9, 7, 10, 0, 0, 0, time.UTC)
 
-	service.AddTrace(1, "trace-1", "http", []string{"b", "a"}, nil, at, true)
-	service.AddTrace(1, "trace-2", "http", []string{"a", "b"}, nil, at, true)
+	service.AddTrace(1, "trace-1", "http", []string{"b", "a"}, "", nil, at, true)
+	service.AddTrace(1, "trace-2", "http", []string{"a", "b"}, "", nil, at, true)
 
 	bucket := onlyBucket(t, service)
 
@@ -254,15 +327,15 @@ func TestTagOrderDoesNotSplitAGroup(t *testing.T) {
 // The group keeps the name of its slowest trace: that is what lets the panel point at
 // something instead of only reporting a number.
 func TestAGroupKeepsTheSlowestTrace(t *testing.T) {
-	service := newTestService(1, watcher_repository.Match{Version: 1})
+	service := newTestService(1, watcher_repository.Match{Version: 2})
 
 	at := time.Date(2026, 9, 7, 10, 0, 0, 0, time.UTC)
 
 	quick := 1.0
 	slow := 30.0
 
-	service.AddTrace(1, "quick", "http", nil, &quick, at, true)
-	service.AddTrace(1, "slow", "http", nil, &slow, at, true)
+	service.AddTrace(1, "quick", "http", nil, "", &quick, at, true)
+	service.AddTrace(1, "slow", "http", nil, "", &slow, at, true)
 
 	// The slow one finishes half a minute on, so its duration is filed there.
 	bucket := bucketAt(t, bucketsByTime(t, service), time.Date(2026, 9, 7, 10, 0, 30, 0, time.UTC))
@@ -279,7 +352,7 @@ func TestAGroupKeepsTheSlowestTrace(t *testing.T) {
 // The slowest trace is filed under the moment it finished, and found by the moment it
 // started. Both have to travel together, or the panel looks for it in the wrong hour.
 func TestAGroupDatesItsSlowestTraceByItsStart(t *testing.T) {
-	service := newTestService(1, watcher_repository.Match{Version: 1})
+	service := newTestService(1, watcher_repository.Match{Version: 2})
 
 	quickStart := time.Date(2026, 9, 7, 10, 0, 0, 0, time.UTC)
 	slowStart := time.Date(2026, 9, 7, 9, 0, 30, 0, time.UTC)
@@ -287,8 +360,8 @@ func TestAGroupDatesItsSlowestTraceByItsStart(t *testing.T) {
 	quick := 1.0
 	slow := 3600.0
 
-	service.AddTrace(1, "quick", "http", nil, &quick, quickStart, true)
-	service.AddTrace(1, "slow", "http", nil, &slow, slowStart, true)
+	service.AddTrace(1, "quick", "http", nil, "", &quick, quickStart, true)
+	service.AddTrace(1, "slow", "http", nil, "", &slow, slowStart, true)
 
 	bucket := bucketAt(t, bucketsByTime(t, service), time.Date(2026, 9, 7, 10, 0, 30, 0, time.UTC))
 
@@ -303,9 +376,9 @@ func TestAGroupDatesItsSlowestTraceByItsStart(t *testing.T) {
 
 // A shape whose traces have only started has no slowest trace, and so no date to give.
 func TestAGroupWithoutAFinishedTraceHasNoDate(t *testing.T) {
-	service := newTestService(1, watcher_repository.Match{Version: 1})
+	service := newTestService(1, watcher_repository.Match{Version: 2})
 
-	service.AddTrace(1, "running", "http", nil, nil, time.Date(2026, 9, 7, 10, 0, 0, 0, time.UTC), true)
+	service.AddTrace(1, "running", "http", nil, "", nil, time.Date(2026, 9, 7, 10, 0, 0, 0, time.UTC), true)
 
 	bucket := onlyBucket(t, service)
 
@@ -317,12 +390,12 @@ func TestAGroupWithoutAFinishedTraceHasNoDate(t *testing.T) {
 // The rollup is capped, and the cap must not cost the bucket its count: the breakdown is
 // a convenience, the number is the measurement.
 func TestTheRollupIsCappedButTheCountStaysExact(t *testing.T) {
-	service := newTestService(1, watcher_repository.Match{Version: 1})
+	service := newTestService(1, watcher_repository.Match{Version: 2})
 
 	at := time.Date(2026, 9, 7, 10, 0, 0, 0, time.UTC)
 
 	for i := 0; i < maxGroups*2; i++ {
-		service.AddTrace(1, "trace", "type-"+string(rune('a'+i)), nil, nil, at, true)
+		service.AddTrace(1, "trace", "type-"+string(rune('a'+i)), nil, "", nil, at, true)
 	}
 
 	bucket := onlyBucket(t, service)
@@ -337,13 +410,13 @@ func TestTheRollupIsCappedButTheCountStaysExact(t *testing.T) {
 }
 
 func TestTracesFallIntoTheBucketOfTheirLoggedAt(t *testing.T) {
-	service := newTestService(1, watcher_repository.Match{Version: 1})
+	service := newTestService(1, watcher_repository.Match{Version: 2})
 
 	base := time.Date(2026, 9, 7, 10, 0, 0, 0, time.UTC)
 
-	service.AddTrace(1, "trace-1", "http", nil, nil, base.Add(2*time.Second), true)
-	service.AddTrace(1, "trace-2", "http", nil, nil, base.Add(14*time.Second), true)
-	service.AddTrace(1, "trace-3", "http", nil, nil, base.Add(16*time.Second), true)
+	service.AddTrace(1, "trace-1", "http", nil, "", nil, base.Add(2*time.Second), true)
+	service.AddTrace(1, "trace-2", "http", nil, "", nil, base.Add(14*time.Second), true)
+	service.AddTrace(1, "trace-3", "http", nil, "", nil, base.Add(16*time.Second), true)
 
 	buckets := service.takeBuckets(true)[1]
 
@@ -369,9 +442,9 @@ func TestTracesFallIntoTheBucketOfTheirLoggedAt(t *testing.T) {
 // A bucket that is still open is not written: a partial one, read as a window, looks like
 // a drop in traffic.
 func TestAnOpenBucketIsNotWrittenYet(t *testing.T) {
-	service := newTestService(1, watcher_repository.Match{Version: 1})
+	service := newTestService(1, watcher_repository.Match{Version: 2})
 
-	service.AddTrace(1, "trace-1", "http", nil, nil, time.Now().UTC(), true)
+	service.AddTrace(1, "trace-1", "http", nil, "", nil, time.Now().UTC(), true)
 
 	if buckets := service.takeBuckets(false); len(buckets) != 0 {
 		t.Fatal("the bucket in progress should not have been written")
@@ -390,7 +463,7 @@ func TestAWatcherOfAnUnknownFilterVersionIsNotCollectedFor(t *testing.T) {
 		t.Fatal("a watcher with an unreadable filter must not make the service active")
 	}
 
-	service.AddTrace(1, "trace-1", "http", nil, nil, time.Now().UTC(), true)
+	service.AddTrace(1, "trace-1", "http", nil, "", nil, time.Now().UTC(), true)
 
 	if buckets := service.takeBuckets(true); len(buckets) != 0 {
 		t.Fatalf("expected nothing collected, got %+v", buckets)
@@ -401,9 +474,9 @@ func TestAWatcherOfAnUnknownFilterVersionIsNotCollectedFor(t *testing.T) {
 // collection has no TTL, so a document recreated after the panel deleted it stays for
 // ever.
 func TestBucketsOfAWatcherThatIsGoneAreDropped(t *testing.T) {
-	service := newTestService(1, watcher_repository.Match{Version: 1})
+	service := newTestService(1, watcher_repository.Match{Version: 2})
 
-	service.AddTrace(1, "trace-1", "http", nil, nil, time.Now().UTC(), true)
+	service.AddTrace(1, "trace-1", "http", nil, "", nil, time.Now().UTC(), true)
 
 	service.dropUnknownBuckets(map[int]struct{}{})
 
@@ -495,15 +568,15 @@ func TestAGroupWithoutTagsCarriesAnEmptyList(t *testing.T) {
 // does not look at service ids at all — the split into byService and global is what does
 // it, so a mistake there would make every scoped watcher watch everything.
 func TestAScopedWatcherIsNotFedAnotherServicesTraces(t *testing.T) {
-	service := newTestService(1, watcher_repository.Match{Version: 1, ServiceIds: []int{3}})
+	service := newTestService(1, watcher_repository.Match{Version: 2, ServiceIds: []int{3}})
 
-	service.AddTrace(4, "other-service", "http", nil, nil, time.Now().UTC(), true)
+	service.AddTrace(4, "other-service", "http", nil, "", nil, time.Now().UTC(), true)
 
 	if len(service.takeBuckets(true)) != 0 {
 		t.Fatal("a watcher scoped to service 3 collected service 4")
 	}
 
-	service.AddTrace(3, "its-own", "http", nil, nil, time.Now().UTC(), true)
+	service.AddTrace(3, "its-own", "http", nil, "", nil, time.Now().UTC(), true)
 
 	if len(service.takeBuckets(true)) != 1 {
 		t.Fatal("a watcher scoped to service 3 did not collect service 3")
@@ -514,20 +587,20 @@ func TestAScopedWatcherIsNotFedAnotherServicesTraces(t *testing.T) {
 // arrived twenty-first was then dropped from the breakdown entirely, which is the one
 // trace a slow_traces watcher is looking for.
 func TestAFullBucketMakesRoomForASlowerShape(t *testing.T) {
-	service := newTestService(1, watcher_repository.Match{Version: 1})
+	service := newTestService(1, watcher_repository.Match{Version: 2})
 
 	at := time.Date(2026, 9, 7, 10, 0, 0, 0, time.UTC)
 	quick := 0.1
 
 	for i := 0; i < maxGroups; i++ {
-		service.AddTrace(1, "quick", "type-"+strconv.Itoa(i), nil, &quick, at, true)
+		service.AddTrace(1, "quick", "type-"+strconv.Itoa(i), nil, "", &quick, at, true)
 	}
 
 	// Inside the same bucket on purpose: what is under test is the cap, not the moment a
 	// duration is filed under.
 	slow := 5.0
 
-	service.AddTrace(1, "the-slow-one", "type-late", nil, &slow, at, true)
+	service.AddTrace(1, "the-slow-one", "type-late", nil, "", &slow, at, true)
 
 	bucket := bucketAt(t, bucketsByTime(t, service), at)
 
@@ -550,17 +623,17 @@ func TestAFullBucketMakesRoomForASlowerShape(t *testing.T) {
 // cap on durMax alone compares zero with zero, never holds, and leaves the choice to map
 // order. The busiest shape of the window was then as likely to go as one seen once.
 func TestAFullBucketOfUnfinishedTracesKeepsTheBusiestShape(t *testing.T) {
-	service := newTestService(1, watcher_repository.Match{Version: 1})
+	service := newTestService(1, watcher_repository.Match{Version: 2})
 
 	at := time.Date(2026, 9, 7, 10, 0, 0, 0, time.UTC)
 
 	for i := 0; i < 100; i++ {
-		service.AddTrace(1, "hot-"+strconv.Itoa(i), "type-hot", nil, nil, at, true)
+		service.AddTrace(1, "hot-"+strconv.Itoa(i), "type-hot", nil, "", nil, at, true)
 	}
 
 	// Every one of these is a shape of its own, so each arrival past the cap evicts.
 	for i := 0; i < maxGroups*2; i++ {
-		service.AddTrace(1, "cold-"+strconv.Itoa(i), "type-cold-"+strconv.Itoa(i), nil, nil, at, true)
+		service.AddTrace(1, "cold-"+strconv.Itoa(i), "type-cold-"+strconv.Itoa(i), nil, "", nil, at, true)
 	}
 
 	bucket := bucketAt(t, bucketsByTime(t, service), at)
@@ -587,14 +660,14 @@ func TestAFullBucketOfUnfinishedTracesKeepsTheBusiestShape(t *testing.T) {
 // watcher. Past 16MB the driver refuses that update, and the buckets have already left
 // memory, so the flush is lost for every watcher rather than for the oversized one.
 func TestAFlushHandsOverNoMoreThanTheLineHolds(t *testing.T) {
-	service := newTestService(1, watcher_repository.Match{Version: 1})
+	service := newTestService(1, watcher_repository.Match{Version: 2})
 
 	at := time.Date(2026, 9, 7, 10, 0, 0, 0, time.UTC)
 
 	total := watcher_timeline_repository.MaxBuckets + 50
 
 	for i := 0; i < total; i++ {
-		service.AddTrace(1, "trace", "http", nil, nil, at.Add(time.Duration(i)*BucketSize), true)
+		service.AddTrace(1, "trace", "http", nil, "", nil, at.Add(time.Duration(i)*BucketSize), true)
 	}
 
 	buckets := service.takeBuckets(true)[1]
@@ -622,11 +695,11 @@ func TestTwoWatchersWithTheSameFilterBothCollect(t *testing.T) {
 	}
 
 	service.compile([]watcher_repository.Watcher{
-		{Id: 1, Match: watcher_repository.Match{Version: 1, Types: []string{"http"}}},
-		{Id: 2, Match: watcher_repository.Match{Version: 1, Types: []string{"http"}}},
+		{Id: 1, Match: watcher_repository.Match{Version: 2, Types: []string{"http"}}},
+		{Id: 2, Match: watcher_repository.Match{Version: 2, Types: []string{"http"}}},
 	})
 
-	service.AddTrace(1, "trace", "http", nil, nil, time.Now().UTC(), true)
+	service.AddTrace(1, "trace", "http", nil, "", nil, time.Now().UTC(), true)
 
 	buckets := service.takeBuckets(true)
 

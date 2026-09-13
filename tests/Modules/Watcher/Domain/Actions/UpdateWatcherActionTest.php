@@ -80,6 +80,21 @@ class UpdateWatcherActionTest extends TestCase
         );
     }
 
+    public function testAChangedStatusFilterThrowsTheLineAway(): void
+    {
+        $timelines = $this->createMock(WatcherTimelineRepository::class);
+        $timelines->expects($this->once())->method('delete')->with(1);
+
+        $this->assertCollectSinceIsNow(
+            stored: new NoNewTracesSettingsObject(
+                periodMinutes: 10,
+                filter: new WatcherTraceFilterObject(statuses: ['failed'])
+            ),
+            edited: ['period_minutes' => 10, 'filter' => ['statuses' => ['success']]],
+            timelines: $timelines
+        );
+    }
+
     /** The same filter written differently is the same filter. */
     public function testTheSameFilterInAnotherOrderIsNotAChange(): void
     {

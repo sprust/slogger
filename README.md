@@ -184,7 +184,7 @@ For duration/memory/CPU the average, minimum, and maximum are computed. Charts c
 
 ### Watchers
 
-Configurable rules that watch the system and open an incident when one of them is broken. Six types: the buffer growing (`bufferOverflow`), invalid traces arriving (`invalidBufferGrown`), traces stopping (`noNewTraces`), more of them than a limit (`manyTraces`), traces running longer than they should (`slowTraces`), and errors written to the application log (`logErrors`). The three trace types among them take a filter — services, trace types, tags — so a watcher can be about one part of the system rather than all of it.
+Configurable rules that watch the system and open an incident when one of them is broken. Six types: the buffer growing (`bufferOverflow`), invalid traces arriving (`invalidBufferGrown`), traces stopping (`noNewTraces`), more of them than a limit (`manyTraces`), traces running longer than they should (`slowTraces`), and errors written to the application log (`logErrors`). The three trace types among them take a filter — services, trace types, tags, statuses — so a watcher can be about one part of the system rather than all of it. The status is matched against each write of a trace as it stands then: a trace is counted with the status it started with, and its duration is taken with its final one.
 
 `logErrors` looks at SLogger's own log rather than at traces: it counts the records of level `ERROR` and above in the `logs` collection — the one the Logs page shows — since the watcher last spoke, and puts the text of the latest one into the event.
 

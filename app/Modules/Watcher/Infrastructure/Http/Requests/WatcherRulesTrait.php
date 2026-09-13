@@ -73,6 +73,8 @@ trait WatcherRulesTrait
             'settings.filter.types.*'       => ['string', 'min:1', 'max:255'],
             'settings.filter.tags'          => ['sometimes', 'array'],
             'settings.filter.tags.*'        => ['string', 'min:1', 'max:255'],
+            'settings.filter.statuses'      => ['sometimes', 'array'],
+            'settings.filter.statuses.*'    => ['string', 'min:1', 'max:255'],
         ];
     }
 }

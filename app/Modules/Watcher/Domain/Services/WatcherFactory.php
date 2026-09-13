@@ -81,6 +81,7 @@ readonly class WatcherFactory
             serviceIds: array_values(ArrayValueGetter::arrayIntNull($raw, 'service_ids') ?? []),
             types: array_values(ArrayValueGetter::arrayStringNull($raw, 'types') ?? []),
             tags: array_values(ArrayValueGetter::arrayStringNull($raw, 'tags') ?? []),
+            statuses: array_values(ArrayValueGetter::arrayStringNull($raw, 'statuses') ?? []),
             version: ArrayValueGetter::intNull($raw, 'v') ?? WatcherMatchObject::VERSION
         );
     }

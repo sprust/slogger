@@ -32,7 +32,8 @@ readonly class WatcherMatchFactory
         return new WatcherMatchObject(
             serviceIds: $filter->serviceIds,
             types: $filter->types,
-            tags: $filter->tags
+            tags: $filter->tags,
+            statuses: $filter->statuses
         );
     }
 
@@ -50,6 +51,7 @@ readonly class WatcherMatchFactory
             'service_ids' => $match->serviceIds,
             'types'       => $match->types,
             'tags'        => $match->tags,
+            'statuses'    => $match->statuses,
         ];
     }
 }

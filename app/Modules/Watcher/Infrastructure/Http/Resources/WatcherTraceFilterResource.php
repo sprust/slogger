@@ -19,6 +19,9 @@ class WatcherTraceFilterResource extends AbstractApiResource
     /** @var string[] */
     #[OaListItemTypeAttribute('string')]
     private array $tags;
+    /** @var string[] */
+    #[OaListItemTypeAttribute('string')]
+    private array $statuses;
 
     public function __construct(WatcherTraceFilterObject $resource)
     {
@@ -27,5 +30,6 @@ class WatcherTraceFilterResource extends AbstractApiResource
         $this->service_ids = $resource->serviceIds;
         $this->types       = $resource->types;
         $this->tags        = $resource->tags;
+        $this->statuses    = $resource->statuses;
     }
 }

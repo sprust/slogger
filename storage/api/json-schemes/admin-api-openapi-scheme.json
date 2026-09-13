@@ -5548,6 +5548,14 @@
                                                             "maxLength": 255,
                                                             "minLength": 1
                                                         }
+                                                    },
+                                                    "statuses": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "string",
+                                                            "maxLength": 255,
+                                                            "minLength": 1
+                                                        }
                                                     }
                                                 }
                                             }
@@ -5713,12 +5721,20 @@
                                                             "items": {
                                                                 "type": "string"
                                                             }
+                                                        },
+                                                        "statuses": {
+                                                            "type": "array",
+                                                            "nullable": false,
+                                                            "items": {
+                                                                "type": "string"
+                                                            }
                                                         }
                                                     },
                                                     "required": [
                                                         "service_ids",
                                                         "types",
-                                                        "tags"
+                                                        "tags",
+                                                        "statuses"
                                                     ]
                                                 }
                                             },
@@ -5802,6 +5818,14 @@
                                                         }
                                                     },
                                                     "tags": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "string",
+                                                            "maxLength": 255,
+                                                            "minLength": 1
+                                                        }
+                                                    },
+                                                    "statuses": {
                                                         "type": "array",
                                                         "items": {
                                                             "type": "string",
@@ -5916,6 +5940,14 @@
                                                         }
                                                     },
                                                     "tags": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "string",
+                                                            "maxLength": 255,
+                                                            "minLength": 1
+                                                        }
+                                                    },
+                                                    "statuses": {
                                                         "type": "array",
                                                         "items": {
                                                             "type": "string",
@@ -6091,12 +6123,20 @@
                                                             "items": {
                                                                 "type": "string"
                                                             }
+                                                        },
+                                                        "statuses": {
+                                                            "type": "array",
+                                                            "nullable": false,
+                                                            "items": {
+                                                                "type": "string"
+                                                            }
                                                         }
                                                     },
                                                     "required": [
                                                         "service_ids",
                                                         "types",
-                                                        "tags"
+                                                        "tags",
+                                                        "statuses"
                                                     ]
                                                 }
                                             },
@@ -6185,6 +6225,14 @@
                                                         }
                                                     },
                                                     "tags": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "string",
+                                                            "maxLength": 255,
+                                                            "minLength": 1
+                                                        }
+                                                    },
+                                                    "statuses": {
                                                         "type": "array",
                                                         "items": {
                                                             "type": "string",
@@ -6300,6 +6348,14 @@
                                                         }
                                                     },
                                                     "tags": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "string",
+                                                            "maxLength": 255,
+                                                            "minLength": 1
+                                                        }
+                                                    },
+                                                    "statuses": {
                                                         "type": "array",
                                                         "items": {
                                                             "type": "string",
@@ -6475,12 +6531,20 @@
                                                             "items": {
                                                                 "type": "string"
                                                             }
+                                                        },
+                                                        "statuses": {
+                                                            "type": "array",
+                                                            "nullable": false,
+                                                            "items": {
+                                                                "type": "string"
+                                                            }
                                                         }
                                                     },
                                                     "required": [
                                                         "service_ids",
                                                         "types",
-                                                        "tags"
+                                                        "tags",
+                                                        "statuses"
                                                     ]
                                                 }
                                             },
@@ -6570,6 +6634,14 @@
                                                         }
                                                     },
                                                     "tags": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "string",
+                                                            "maxLength": 255,
+                                                            "minLength": 1
+                                                        }
+                                                    },
+                                                    "statuses": {
                                                         "type": "array",
                                                         "items": {
                                                             "type": "string",
