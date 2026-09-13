@@ -1,16 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="23 23 124 124">
-  <g transform="translate(-2,0)">
-    <g fill="#94A3B8">
-      <rect x="44" y="29" width="37" height="16" rx="4"/>
-      <rect x="93" y="29" width="22" height="16" rx="4"/>
-      <rect x="44" y="53" width="16" height="16" rx="4"/>
-      <rect x="44" y="77" width="33" height="16" rx="4"/>
-      <rect x="93" y="77" width="20" height="16" rx="4"/>
-      <rect x="59" y="101" width="22" height="16" rx="4"/>
-      <rect x="93" y="101" width="26" height="16" rx="4"/>
-      <rect x="25" y="125" width="56" height="16" rx="4"/>
-      <rect x="93" y="125" width="56" height="16" rx="4"/>
-    </g>
-    <rect x="93" y="53" width="28" height="16" rx="4" fill="#60A5FA"/>
+  <g stroke="#475569" stroke-width="5" fill="none" stroke-linecap="butt" stroke-linejoin="miter">
+    <path d="M34 46 V112 H52"/>
+    <path d="M34 73 H52"/>
+    <path d="M62 121 V132 H84.5"/>
   </g>
+  <g fill="#94A3B8">
+    <rect x="24" y="28" width="122" height="18" rx="5"/>
+    <rect x="52" y="64" width="94" height="18" rx="5"/>
+    <rect x="52" y="103" width="30" height="18" rx="5"/>
+  </g>
+  <rect x="84.5" y="121.5" width="61" height="21" rx="6" fill="none" stroke="#60A5FA" stroke-width="2.5"/>
+  <text x="139" y="137" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, DejaVu Sans Mono, monospace" font-size="15" font-weight="700" fill="#60A5FA">SL</text>
 </svg>
