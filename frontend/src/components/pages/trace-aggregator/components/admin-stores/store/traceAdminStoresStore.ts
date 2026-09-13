@@ -131,7 +131,6 @@ export const useTraceAdminStoresStore = defineStore('traceAdminStoresStore', {
 
             this.createParameters.store_version = stateVersion
             this.createParameters.store_data = this.serializeTraceState()
-            this.findParameters.auto = auto
             this.createParameters.auto = auto
 
             return this.createAdminStore()

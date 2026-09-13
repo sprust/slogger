@@ -1,5 +1,5 @@
 <template>
-  <el-button @click="dialogVisible = true">
+  <el-button @click="open">
     Presets
   </el-button>
 
@@ -7,99 +7,100 @@
       v-model="dialogVisible"
       width="80%"
       top="10px"
+      style="margin-bottom: 0"
       :append-to-body="true"
   >
-    <el-row>
+    <template #header>
+      <el-text size="large">Presets</el-text>
+    </template>
+
+    <el-tabs :model-value="tab" @update:model-value="onTabChange">
+      <el-tab-pane label="Saved" name="saved"/>
+      <el-tab-pane label="History" name="history"/>
+    </el-tabs>
+
+    <el-row class="toolbar-row">
+      <el-input
+          v-model="traceAdminStoresStore.createParameters.title"
+          :disabled="tab !== 'saved'"
+          placeholder="Preset name"
+          class="preset-name-input"
+          style="width: 500px"
+          clearable
+          @keyup.enter="create"
+      >
+        <template #append>
+          <div class="append-buttons">
+            <el-tooltip content="Name from filters" placement="top" :show-after="1000">
+              <el-button :icon="FillTitleIcon" :disabled="tab !== 'saved'" @click="fillTitle"/>
+            </el-tooltip>
+            <el-tooltip content="Save current filters" placement="top" :show-after="1000">
+              <el-button :icon="PlusIcon" :disabled="!canCreate" @click="create"/>
+            </el-tooltip>
+          </div>
+        </template>
+      </el-input>
+    </el-row>
+
+    <el-row class="toolbar-row">
       <el-space>
-        <el-text size="default">
-          Filter
-        </el-text>
         <el-input
             v-model="traceAdminStoresStore.findParameters.search_query"
-            placeholder="Search query"
+            placeholder="Search by title"
             style="width: 300px"
             clearable
-        >
-          <template #append>
-            <el-tooltip content="Requests" placement="top-start">
-              <el-checkbox v-model="traceAdminStoresStore.findParameters.auto"/>
-            </el-tooltip>
-          </template>
-        </el-input>
+            @keyup.enter="search"
+            @clear="search"
+        />
         <el-button
             :icon="SearchIcon"
-            @click="update"
             :loading="traceAdminStoresStore.loading"
-        />
-        <el-text size="default">
-          Create
-        </el-text>
-        <el-input
-            v-model="traceAdminStoresStore.createParameters.title"
-            placeholder="Title"
-            style="width: 500px"
-            clearable
-        >
-          <template #append>
-            <el-tooltip content="Fill title" placement="top-start">
-              <el-button
-                  :icon="FillTitleIcon"
-                  @click="fillTitle"
-              />
-            </el-tooltip>
-          </template>
-        </el-input>
-        <el-button
-            :icon="PlusIcon"
-            @click="create()"
-            :disabled="!traceAdminStoresStore.createParameters.title"
+            @click="search"
         />
       </el-space>
     </el-row>
+
     <el-table
         :data="traceAdminStoresStore.adminStores.items"
-        style="height: 80vh; width: 100%"
+        :empty-text="emptyText"
+        style="height: calc(100vh - 300px); width: 100%"
+        v-loading="traceAdminStoresStore.loading"
     >
       <el-table-column type="expand">
         <template #default="props">
-          <pre>{{ props.row.store_data }}</pre>
+          <pre>{{ prettyData(props.row) }}</pre>
         </template>
       </el-table-column>
-      <el-table-column label="Title">
+      <el-table-column label="Title" prop="title"/>
+      <el-table-column label="Created at" prop="created_at" width="200"/>
+      <el-table-column width="160" align="right">
         <template #default="props">
-          <el-row>
-            {{ makeName(props.row) }}
-          </el-row>
-        </template>
-      </el-table-column>
-      <el-table-column label="Created at" fixed="right" min-width="25">
-        <template #default="props">
-          {{ makeDate(props.row) }}
-        </template>
-      </el-table-column>
-      <el-table-column fixed="right" min-width="20">
-        <template #default="props">
-          <el-space>
-            <el-button
-                type="success"
-                link
-                @click="restore(props.row)"
-            >
-              restore
+          <el-text v-if="traceAdminStoresStore.deletedIds[props.row.id]" type="info">
+            Deleted
+          </el-text>
+          <el-space v-else>
+            <el-button type="primary" link @click="restore(props.row)">
+              Apply
             </el-button>
-            <el-button
-                type="danger"
-                link
-                :disabled="traceAdminStoresStore.deletedIds[props.row.id]"
-                @click="deleteStore(props.row)"
+            <el-popconfirm
+                title="Delete this preset?"
+                confirm-button-text="Delete"
+                cancel-button-text="Cancel"
+                @confirm="deleteStore(props.row)"
             >
-              {{ traceAdminStoresStore.deletedIds[props.row.id] ? 'deleted' : 'delete' }}
-            </el-button>
+              <template #reference>
+                <el-button type="danger" link>
+                  Delete
+                </el-button>
+              </template>
+            </el-popconfirm>
           </el-space>
         </template>
       </el-table-column>
     </el-table>
+
     <el-pagination
+        :class="{'is-hidden': traceAdminStoresStore.adminStores.paginator.total_pages <= 1}"
         v-model:current-page="traceAdminStoresStore.findParameters.page"
         background
         layout="prev, pager, next"
@@ -115,18 +116,10 @@
 import {defineComponent} from "vue";
 import {CaretLeft as FillTitleIcon, Plus as PlusIcon, Search as SearchIcon} from '@element-plus/icons-vue'
 import {AdminStore, useTraceAdminStoresStore} from "./store/traceAdminStoresStore.ts";
-import {useTraceAggregatorStore} from "../traces/store/traceAggregatorStore.ts";
-import TraceAggregatorProfilingNodeData from "../profiling/TraceAggregatorProfilingNodeData.vue";
-import {useTraceAggregatorServicesStore} from "../services/store/traceAggregatorServicesStore.ts";
+
+type PresetsTab = 'saved' | 'history'
 
 export default defineComponent({
-  components: {
-    TraceAggregatorProfilingNodeData,
-    SearchIcon,
-    PlusIcon,
-    FillTitleIcon,
-  },
-
   data() {
     return {
       dialogVisible: false,
@@ -137,33 +130,57 @@ export default defineComponent({
     traceAdminStoresStore() {
       return useTraceAdminStoresStore()
     },
-    traceAggregatorServicesStore() {
-      return useTraceAggregatorServicesStore()
-    },
-    traceAggregatorStore() {
-      return useTraceAggregatorStore()
-    },
     SearchIcon() {
       return SearchIcon
-    },
-    PlusIcon() {
-      return PlusIcon
     },
     FillTitleIcon() {
       return FillTitleIcon
     },
+    PlusIcon() {
+      return PlusIcon
+    },
+    tab(): PresetsTab {
+      return this.traceAdminStoresStore.findParameters.auto ? 'history' : 'saved'
+    },
+    canCreate(): boolean {
+      return this.tab === 'saved' && this.traceAdminStoresStore.createParameters.title.trim() !== ''
+    },
+    emptyText(): string {
+      return this.tab === 'saved'
+          ? 'No saved presets yet. Set up the filters and save them above.'
+          : 'No searches yet'
+    },
   },
 
   methods: {
+    open() {
+      this.dialogVisible = true
+
+      this.update()
+    },
     update() {
       this.traceAdminStoresStore.findAdminStores()
     },
+    search() {
+      this.traceAdminStoresStore.findParameters.page = 1
+
+      this.update()
+    },
+    onTabChange(tab: string | number) {
+      this.traceAdminStoresStore.findParameters.auto = tab === 'history'
+
+      this.search()
+    },
     create() {
+      if (!this.canCreate) {
+        return
+      }
+
       this.traceAdminStoresStore.create(false)
           .then(() => {
             this.traceAdminStoresStore.clearAdminStoreCreateParameters()
 
-            this.update()
+            this.search()
           })
     },
     deleteStore(store: AdminStore) {
@@ -176,25 +193,39 @@ export default defineComponent({
 
       this.traceAdminStoresStore.clearAdminStoreCreateParameters()
     },
-    makeName(store: AdminStore): string {
-      return store.title
-    },
-    makeDate(store: AdminStore): string {
-      return store.created_at
+    prettyData(store: AdminStore): string {
+      try {
+        return JSON.stringify(JSON.parse(store.store_data), null, 2)
+      } catch {
+        return store.store_data
+      }
     },
     fillTitle() {
       this.traceAdminStoresStore.createParameters.title = this.traceAdminStoresStore.generateStoreTitle()
     },
   },
-
-  mounted() {
-    if (this.traceAdminStoresStore.loading) {
-      this.update()
-    }
-  }
 })
 </script>
 
 <style scoped>
+.toolbar-row {
+  padding-bottom: 10px;
+}
 
+.is-hidden {
+  visibility: hidden;
+}
+
+.preset-name-input :deep(.el-input-group__append) {
+  padding: 0;
+}
+
+.append-buttons {
+  display: flex;
+}
+
+.append-buttons :deep(.el-button) {
+  margin: 0;
+  border-radius: 0;
+}
 </style>
