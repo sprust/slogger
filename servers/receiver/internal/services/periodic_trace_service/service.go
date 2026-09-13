@@ -176,16 +176,17 @@ func (s *Service) saveTraces(ctx context.Context, serviceId int, traceId string,
 		tags = []interface{}{}
 	}
 
-	var data interface{}
-	if traces.Updating != nil && traces.Updating.Data != nil {
-		data = traces.Updating.Data
-	} else if existingData, ok := existsTrace["dt"]; ok {
-		data = existingData
-	} else if traces.Creating != nil && traces.Creating.Data != nil {
-		data = traces.Creating.Data
-	} else {
-		data = []interface{}{}
+	var updatingData interface{}
+	if traces.Updating != nil {
+		updatingData = traces.Updating.Data
 	}
+
+	var creatingData interface{}
+	if traces.Creating != nil {
+		creatingData = traces.Creating.Data
+	}
+
+	data := mergeData(updatingData, existsTrace["dt"], creatingData)
 
 	// By value, not by key. The document below is written with every field it has room
 	// for, so a trace stored before its numbers arrived carries nulls under them — and a
@@ -423,6 +424,45 @@ func durationValue(value interface{}) *float64 {
 // isEmptyTags reports whether a stored tgs value holds no tags, so that an
 // empty array written by an out-of-order updating does not shadow the tags
 // of a creating that arrives later.
+func mergeData(updating interface{}, existing interface{}, creating interface{}) interface{} {
+	if updating != nil {
+		return updating
+	}
+
+	if !isEmptyData(existing) {
+		return existing
+	}
+
+	if creating != nil {
+		return creating
+	}
+
+	if existing != nil {
+		return existing
+	}
+
+	return []interface{}{}
+}
+
+func isEmptyData(value interface{}) bool {
+	switch v := value.(type) {
+	case nil:
+		return true
+	case []interface{}:
+		return len(v) == 0
+	case primitive.A:
+		return len(v) == 0
+	case map[string]interface{}:
+		return len(v) == 0
+	case bson.M:
+		return len(v) == 0
+	case bson.D:
+		return len(v) == 0
+	default:
+		return false
+	}
+}
+
 func isEmptyTags(value interface{}) bool {
 	switch v := value.(type) {
 	case nil:

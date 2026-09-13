@@ -1,9 +1,11 @@
 package periodic_trace_service
 
 import (
+	"reflect"
 	"testing"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 // The document is written with every field it has room for, so a trace saved before its
@@ -77,5 +79,43 @@ func TestTheDurationWaitsForARealType(t *testing.T) {
 				t.Fatalf("reportsDuration = %v, wanted %v", got, testCase.want)
 			}
 		})
+	}
+}
+
+func TestAStoredPlaceholderDoesNotHideTheDataOfALateCreate(t *testing.T) {
+	creating := map[string]interface{}{"path": "/x"}
+
+	data := mergeData(nil, primitive.A{}, creating)
+
+	if !reflect.DeepEqual(data, creating) {
+		t.Fatalf("expected the create's data, got %v", data)
+	}
+}
+
+func TestStoredDataWinsOverTheCreate(t *testing.T) {
+	stored := bson.M{"code": 200}
+
+	data := mergeData(nil, stored, map[string]interface{}{"path": "/x"})
+
+	if !reflect.DeepEqual(data, stored) {
+		t.Fatalf("expected the stored data, got %v", data)
+	}
+}
+
+func TestTheUpdateDataWinsOverEverything(t *testing.T) {
+	updating := map[string]interface{}{"code": 500}
+
+	data := mergeData(updating, bson.M{"code": 200}, map[string]interface{}{"path": "/x"})
+
+	if !reflect.DeepEqual(data, updating) {
+		t.Fatalf("expected the update's data, got %v", data)
+	}
+}
+
+func TestNoDataAnywhereIsAnEmptyList(t *testing.T) {
+	data := mergeData(nil, nil, nil)
+
+	if !reflect.DeepEqual(data, []interface{}{}) {
+		t.Fatalf("expected an empty list, got %v", data)
 	}
 }
