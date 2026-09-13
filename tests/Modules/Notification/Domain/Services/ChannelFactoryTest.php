@@ -40,23 +40,13 @@ class ChannelFactoryTest extends TestCase
         $this->assertSame('', $channel->settings->botToken);
     }
 
-    public function testTheSwitchesComeBackAsTheyWereStored(): void
-    {
-        $channel = $this->factory()->make($this->dto(onEvent: true));
-
-        $this->assertTrue($channel->onOpened);
-        $this->assertTrue($channel->onEvent);
-        $this->assertTrue($channel->onClosed);
-    }
-
     /**
      * @param array<string, mixed> $settings
      */
     private function dto(
         string $type = 'telegram',
         array $settings = [],
-        bool $enabled = true,
-        bool $onEvent = false
+        bool $enabled = true
     ): ChannelDto {
         $now = Carbon::parse('2026-09-08 12:00:00');
 
@@ -65,9 +55,6 @@ class ChannelFactoryTest extends TestCase
             name: 'ops chat',
             type: $type,
             enabled: $enabled,
-            onOpened: true,
-            onEvent: $onEvent,
-            onClosed: true,
             settings: $settings,
             createdAt: $now,
             updatedAt: $now

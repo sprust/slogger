@@ -52,6 +52,9 @@ readonly class WatcherRepository
         bool $enabled,
         int $cooldownSeconds,
         ?int $notificationChannelId,
+        bool $notifyOnOpened,
+        bool $notifyOnEvent,
+        bool $notifyOnClosed,
         array $settings,
         ?array $traceMatch,
         ?Carbon $collectSince
@@ -67,6 +70,9 @@ readonly class WatcherRepository
         $watcher->collect_since    = $collectSince;
 
         $watcher->notification_channel_id = $notificationChannelId;
+        $watcher->notify_on_opened        = $notifyOnOpened;
+        $watcher->notify_on_event         = $notifyOnEvent;
+        $watcher->notify_on_closed        = $notifyOnClosed;
 
         $watcher->saveOrFail();
 
@@ -83,6 +89,9 @@ readonly class WatcherRepository
         bool $enabled,
         int $cooldownSeconds,
         ?int $notificationChannelId,
+        bool $notifyOnOpened,
+        bool $notifyOnEvent,
+        bool $notifyOnClosed,
         array $settings,
         ?array $traceMatch,
         ?Carbon $collectSince
@@ -95,6 +104,9 @@ readonly class WatcherRepository
                 'cooldown_seconds'        => $cooldownSeconds,
                 'settings'                => $settings,
                 'notification_channel_id' => $notificationChannelId,
+                'notify_on_opened'        => $notifyOnOpened,
+                'notify_on_event'         => $notifyOnEvent,
+                'notify_on_closed'        => $notifyOnClosed,
                 'trace_match'             => $traceMatch,
                 'collect_since'           => $collectSince,
                 'updated_at'              => Carbon::now(),
@@ -139,6 +151,9 @@ readonly class WatcherRepository
             enabled: $watcher->enabled,
             cooldownSeconds: $watcher->cooldown_seconds,
             notificationChannelId: $watcher->notification_channel_id,
+            notifyOnOpened: $watcher->notify_on_opened,
+            notifyOnEvent: $watcher->notify_on_event,
+            notifyOnClosed: $watcher->notify_on_closed,
             settings: $watcher->settings,
             traceMatch: $watcher->trace_match,
             collectSince: $watcher->collect_since,

@@ -16,9 +16,6 @@ readonly class ChannelDto
         public string $name,
         public string $type,
         public bool $enabled,
-        public bool $onOpened,
-        public bool $onEvent,
-        public bool $onClosed,
         public array $settings,
         public Carbon $createdAt,
         public Carbon $updatedAt

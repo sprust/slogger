@@ -3794,6 +3794,18 @@
                                                         "type": "integer",
                                                         "nullable": true
                                                     },
+                                                    "notify_on_opened": {
+                                                        "type": "boolean",
+                                                        "nullable": false
+                                                    },
+                                                    "notify_on_event": {
+                                                        "type": "boolean",
+                                                        "nullable": false
+                                                    },
+                                                    "notify_on_closed": {
+                                                        "type": "boolean",
+                                                        "nullable": false
+                                                    },
                                                     "collect_since": {
                                                         "type": "string",
                                                         "nullable": true
@@ -3821,6 +3833,9 @@
                                                     "type",
                                                     "enabled",
                                                     "cooldown_seconds",
+                                                    "notify_on_opened",
+                                                    "notify_on_event",
+                                                    "notify_on_closed",
                                                     "created_at",
                                                     "updated_at"
                                                 ]
@@ -4911,6 +4926,15 @@
                                         "type": "integer",
                                         "nullable": true
                                     },
+                                    "notify_on_opened": {
+                                        "type": "boolean"
+                                    },
+                                    "notify_on_event": {
+                                        "type": "boolean"
+                                    },
+                                    "notify_on_closed": {
+                                        "type": "boolean"
+                                    },
                                     "settings": {
                                         "type": "object",
                                         "properties": {
@@ -4924,7 +4948,10 @@
                                 "required": [
                                     "name",
                                     "enabled",
-                                    "cooldown_seconds"
+                                    "cooldown_seconds",
+                                    "notify_on_opened",
+                                    "notify_on_event",
+                                    "notify_on_closed"
                                 ],
                                 "type": "object"
                             }
@@ -4965,6 +4992,18 @@
                                                     "type": "integer",
                                                     "nullable": true
                                                 },
+                                                "notify_on_opened": {
+                                                    "type": "boolean",
+                                                    "nullable": false
+                                                },
+                                                "notify_on_event": {
+                                                    "type": "boolean",
+                                                    "nullable": false
+                                                },
+                                                "notify_on_closed": {
+                                                    "type": "boolean",
+                                                    "nullable": false
+                                                },
                                                 "collect_since": {
                                                     "type": "string",
                                                     "nullable": true
@@ -4992,6 +5031,9 @@
                                                 "type",
                                                 "enabled",
                                                 "cooldown_seconds",
+                                                "notify_on_opened",
+                                                "notify_on_event",
+                                                "notify_on_closed",
                                                 "created_at",
                                                 "updated_at"
                                             ]
@@ -5085,6 +5127,15 @@
                                         "type": "integer",
                                         "nullable": true
                                     },
+                                    "notify_on_opened": {
+                                        "type": "boolean"
+                                    },
+                                    "notify_on_event": {
+                                        "type": "boolean"
+                                    },
+                                    "notify_on_closed": {
+                                        "type": "boolean"
+                                    },
                                     "settings": {
                                         "type": "object",
                                         "properties": {
@@ -5098,7 +5149,10 @@
                                 "required": [
                                     "name",
                                     "enabled",
-                                    "cooldown_seconds"
+                                    "cooldown_seconds",
+                                    "notify_on_opened",
+                                    "notify_on_event",
+                                    "notify_on_closed"
                                 ],
                                 "type": "object"
                             }
@@ -5155,6 +5209,15 @@
                                         "type": "integer",
                                         "nullable": true
                                     },
+                                    "notify_on_opened": {
+                                        "type": "boolean"
+                                    },
+                                    "notify_on_event": {
+                                        "type": "boolean"
+                                    },
+                                    "notify_on_closed": {
+                                        "type": "boolean"
+                                    },
                                     "settings": {
                                         "type": "object",
                                         "properties": {
@@ -5168,7 +5231,10 @@
                                 "required": [
                                     "name",
                                     "enabled",
-                                    "cooldown_seconds"
+                                    "cooldown_seconds",
+                                    "notify_on_opened",
+                                    "notify_on_event",
+                                    "notify_on_closed"
                                 ],
                                 "type": "object"
                             }
@@ -5209,6 +5275,18 @@
                                                     "type": "integer",
                                                     "nullable": true
                                                 },
+                                                "notify_on_opened": {
+                                                    "type": "boolean",
+                                                    "nullable": false
+                                                },
+                                                "notify_on_event": {
+                                                    "type": "boolean",
+                                                    "nullable": false
+                                                },
+                                                "notify_on_closed": {
+                                                    "type": "boolean",
+                                                    "nullable": false
+                                                },
                                                 "collect_since": {
                                                     "type": "string",
                                                     "nullable": true
@@ -5236,6 +5314,9 @@
                                                 "type",
                                                 "enabled",
                                                 "cooldown_seconds",
+                                                "notify_on_opened",
+                                                "notify_on_event",
+                                                "notify_on_closed",
                                                 "created_at",
                                                 "updated_at"
                                             ]
@@ -5329,6 +5410,15 @@
                                         "type": "integer",
                                         "nullable": true
                                     },
+                                    "notify_on_opened": {
+                                        "type": "boolean"
+                                    },
+                                    "notify_on_event": {
+                                        "type": "boolean"
+                                    },
+                                    "notify_on_closed": {
+                                        "type": "boolean"
+                                    },
                                     "settings": {
                                         "type": "object",
                                         "properties": {
@@ -5342,7 +5432,10 @@
                                 "required": [
                                     "name",
                                     "enabled",
-                                    "cooldown_seconds"
+                                    "cooldown_seconds",
+                                    "notify_on_opened",
+                                    "notify_on_event",
+                                    "notify_on_closed"
                                 ],
                                 "type": "object"
                             }
@@ -5399,6 +5492,15 @@
                                         "type": "integer",
                                         "nullable": true
                                     },
+                                    "notify_on_opened": {
+                                        "type": "boolean"
+                                    },
+                                    "notify_on_event": {
+                                        "type": "boolean"
+                                    },
+                                    "notify_on_closed": {
+                                        "type": "boolean"
+                                    },
                                     "settings": {
                                         "type": "object",
                                         "properties": {
@@ -5440,7 +5542,10 @@
                                 "required": [
                                     "name",
                                     "enabled",
-                                    "cooldown_seconds"
+                                    "cooldown_seconds",
+                                    "notify_on_opened",
+                                    "notify_on_event",
+                                    "notify_on_closed"
                                 ],
                                 "type": "object"
                             }
@@ -5481,6 +5586,18 @@
                                                     "type": "integer",
                                                     "nullable": true
                                                 },
+                                                "notify_on_opened": {
+                                                    "type": "boolean",
+                                                    "nullable": false
+                                                },
+                                                "notify_on_event": {
+                                                    "type": "boolean",
+                                                    "nullable": false
+                                                },
+                                                "notify_on_closed": {
+                                                    "type": "boolean",
+                                                    "nullable": false
+                                                },
                                                 "collect_since": {
                                                     "type": "string",
                                                     "nullable": true
@@ -5508,6 +5625,9 @@
                                                 "type",
                                                 "enabled",
                                                 "cooldown_seconds",
+                                                "notify_on_opened",
+                                                "notify_on_event",
+                                                "notify_on_closed",
                                                 "created_at",
                                                 "updated_at"
                                             ]
@@ -5632,6 +5752,15 @@
                                         "type": "integer",
                                         "nullable": true
                                     },
+                                    "notify_on_opened": {
+                                        "type": "boolean"
+                                    },
+                                    "notify_on_event": {
+                                        "type": "boolean"
+                                    },
+                                    "notify_on_closed": {
+                                        "type": "boolean"
+                                    },
                                     "settings": {
                                         "type": "object",
                                         "properties": {
@@ -5673,7 +5802,10 @@
                                 "required": [
                                     "name",
                                     "enabled",
-                                    "cooldown_seconds"
+                                    "cooldown_seconds",
+                                    "notify_on_opened",
+                                    "notify_on_event",
+                                    "notify_on_closed"
                                 ],
                                 "type": "object"
                             }
@@ -5730,6 +5862,15 @@
                                         "type": "integer",
                                         "nullable": true
                                     },
+                                    "notify_on_opened": {
+                                        "type": "boolean"
+                                    },
+                                    "notify_on_event": {
+                                        "type": "boolean"
+                                    },
+                                    "notify_on_closed": {
+                                        "type": "boolean"
+                                    },
                                     "settings": {
                                         "type": "object",
                                         "properties": {
@@ -5775,7 +5916,10 @@
                                 "required": [
                                     "name",
                                     "enabled",
-                                    "cooldown_seconds"
+                                    "cooldown_seconds",
+                                    "notify_on_opened",
+                                    "notify_on_event",
+                                    "notify_on_closed"
                                 ],
                                 "type": "object"
                             }
@@ -5816,6 +5960,18 @@
                                                     "type": "integer",
                                                     "nullable": true
                                                 },
+                                                "notify_on_opened": {
+                                                    "type": "boolean",
+                                                    "nullable": false
+                                                },
+                                                "notify_on_event": {
+                                                    "type": "boolean",
+                                                    "nullable": false
+                                                },
+                                                "notify_on_closed": {
+                                                    "type": "boolean",
+                                                    "nullable": false
+                                                },
                                                 "collect_since": {
                                                     "type": "string",
                                                     "nullable": true
@@ -5843,6 +5999,9 @@
                                                 "type",
                                                 "enabled",
                                                 "cooldown_seconds",
+                                                "notify_on_opened",
+                                                "notify_on_event",
+                                                "notify_on_closed",
                                                 "created_at",
                                                 "updated_at"
                                             ]
@@ -5972,6 +6131,15 @@
                                         "type": "integer",
                                         "nullable": true
                                     },
+                                    "notify_on_opened": {
+                                        "type": "boolean"
+                                    },
+                                    "notify_on_event": {
+                                        "type": "boolean"
+                                    },
+                                    "notify_on_closed": {
+                                        "type": "boolean"
+                                    },
                                     "settings": {
                                         "type": "object",
                                         "properties": {
@@ -6017,7 +6185,10 @@
                                 "required": [
                                     "name",
                                     "enabled",
-                                    "cooldown_seconds"
+                                    "cooldown_seconds",
+                                    "notify_on_opened",
+                                    "notify_on_event",
+                                    "notify_on_closed"
                                 ],
                                 "type": "object"
                             }
@@ -6074,6 +6245,15 @@
                                         "type": "integer",
                                         "nullable": true
                                     },
+                                    "notify_on_opened": {
+                                        "type": "boolean"
+                                    },
+                                    "notify_on_event": {
+                                        "type": "boolean"
+                                    },
+                                    "notify_on_closed": {
+                                        "type": "boolean"
+                                    },
                                     "settings": {
                                         "type": "object",
                                         "properties": {
@@ -6120,7 +6300,10 @@
                                 "required": [
                                     "name",
                                     "enabled",
-                                    "cooldown_seconds"
+                                    "cooldown_seconds",
+                                    "notify_on_opened",
+                                    "notify_on_event",
+                                    "notify_on_closed"
                                 ],
                                 "type": "object"
                             }
@@ -6161,6 +6344,18 @@
                                                     "type": "integer",
                                                     "nullable": true
                                                 },
+                                                "notify_on_opened": {
+                                                    "type": "boolean",
+                                                    "nullable": false
+                                                },
+                                                "notify_on_event": {
+                                                    "type": "boolean",
+                                                    "nullable": false
+                                                },
+                                                "notify_on_closed": {
+                                                    "type": "boolean",
+                                                    "nullable": false
+                                                },
                                                 "collect_since": {
                                                     "type": "string",
                                                     "nullable": true
@@ -6188,6 +6383,9 @@
                                                 "type",
                                                 "enabled",
                                                 "cooldown_seconds",
+                                                "notify_on_opened",
+                                                "notify_on_event",
+                                                "notify_on_closed",
                                                 "created_at",
                                                 "updated_at"
                                             ]
@@ -6317,6 +6515,15 @@
                                         "type": "integer",
                                         "nullable": true
                                     },
+                                    "notify_on_opened": {
+                                        "type": "boolean"
+                                    },
+                                    "notify_on_event": {
+                                        "type": "boolean"
+                                    },
+                                    "notify_on_closed": {
+                                        "type": "boolean"
+                                    },
                                     "settings": {
                                         "type": "object",
                                         "properties": {
@@ -6363,7 +6570,10 @@
                                 "required": [
                                     "name",
                                     "enabled",
-                                    "cooldown_seconds"
+                                    "cooldown_seconds",
+                                    "notify_on_opened",
+                                    "notify_on_event",
+                                    "notify_on_closed"
                                 ],
                                 "type": "object"
                             }
@@ -6420,6 +6630,15 @@
                                         "type": "integer",
                                         "nullable": true
                                     },
+                                    "notify_on_opened": {
+                                        "type": "boolean"
+                                    },
+                                    "notify_on_event": {
+                                        "type": "boolean"
+                                    },
+                                    "notify_on_closed": {
+                                        "type": "boolean"
+                                    },
                                     "settings": {
                                         "type": "object",
                                         "properties": {
@@ -6433,7 +6652,10 @@
                                 "required": [
                                     "name",
                                     "enabled",
-                                    "cooldown_seconds"
+                                    "cooldown_seconds",
+                                    "notify_on_opened",
+                                    "notify_on_event",
+                                    "notify_on_closed"
                                 ],
                                 "type": "object"
                             }
@@ -6474,6 +6696,18 @@
                                                     "type": "integer",
                                                     "nullable": true
                                                 },
+                                                "notify_on_opened": {
+                                                    "type": "boolean",
+                                                    "nullable": false
+                                                },
+                                                "notify_on_event": {
+                                                    "type": "boolean",
+                                                    "nullable": false
+                                                },
+                                                "notify_on_closed": {
+                                                    "type": "boolean",
+                                                    "nullable": false
+                                                },
                                                 "collect_since": {
                                                     "type": "string",
                                                     "nullable": true
@@ -6501,6 +6735,9 @@
                                                 "type",
                                                 "enabled",
                                                 "cooldown_seconds",
+                                                "notify_on_opened",
+                                                "notify_on_event",
+                                                "notify_on_closed",
                                                 "created_at",
                                                 "updated_at"
                                             ]
@@ -6594,6 +6831,15 @@
                                         "type": "integer",
                                         "nullable": true
                                     },
+                                    "notify_on_opened": {
+                                        "type": "boolean"
+                                    },
+                                    "notify_on_event": {
+                                        "type": "boolean"
+                                    },
+                                    "notify_on_closed": {
+                                        "type": "boolean"
+                                    },
                                     "settings": {
                                         "type": "object",
                                         "properties": {
@@ -6607,7 +6853,10 @@
                                 "required": [
                                     "name",
                                     "enabled",
-                                    "cooldown_seconds"
+                                    "cooldown_seconds",
+                                    "notify_on_opened",
+                                    "notify_on_event",
+                                    "notify_on_closed"
                                 ],
                                 "type": "object"
                             }
@@ -6691,18 +6940,6 @@
                                                         "type": "boolean",
                                                         "nullable": false
                                                     },
-                                                    "on_opened": {
-                                                        "type": "boolean",
-                                                        "nullable": false
-                                                    },
-                                                    "on_event": {
-                                                        "type": "boolean",
-                                                        "nullable": false
-                                                    },
-                                                    "on_closed": {
-                                                        "type": "boolean",
-                                                        "nullable": false
-                                                    },
                                                     "created_at": {
                                                         "type": "string",
                                                         "nullable": false
@@ -6717,9 +6954,6 @@
                                                     "name",
                                                     "type",
                                                     "enabled",
-                                                    "on_opened",
-                                                    "on_event",
-                                                    "on_closed",
                                                     "created_at",
                                                     "updated_at"
                                                 ]
@@ -6843,15 +7077,6 @@
                                     "enabled": {
                                         "type": "boolean"
                                     },
-                                    "on_opened": {
-                                        "type": "boolean"
-                                    },
-                                    "on_event": {
-                                        "type": "boolean"
-                                    },
-                                    "on_closed": {
-                                        "type": "boolean"
-                                    },
                                     "settings": {
                                         "type": "object",
                                         "properties": {
@@ -6870,10 +7095,7 @@
                                 },
                                 "required": [
                                     "name",
-                                    "enabled",
-                                    "on_opened",
-                                    "on_event",
-                                    "on_closed"
+                                    "enabled"
                                 ],
                                 "type": "object"
                             }
@@ -6906,18 +7128,6 @@
                                                     "type": "boolean",
                                                     "nullable": false
                                                 },
-                                                "on_opened": {
-                                                    "type": "boolean",
-                                                    "nullable": false
-                                                },
-                                                "on_event": {
-                                                    "type": "boolean",
-                                                    "nullable": false
-                                                },
-                                                "on_closed": {
-                                                    "type": "boolean",
-                                                    "nullable": false
-                                                },
                                                 "created_at": {
                                                     "type": "string",
                                                     "nullable": false
@@ -6932,9 +7142,6 @@
                                                 "name",
                                                 "type",
                                                 "enabled",
-                                                "on_opened",
-                                                "on_event",
-                                                "on_closed",
                                                 "created_at",
                                                 "updated_at"
                                             ]
@@ -7024,15 +7231,6 @@
                                     "enabled": {
                                         "type": "boolean"
                                     },
-                                    "on_opened": {
-                                        "type": "boolean"
-                                    },
-                                    "on_event": {
-                                        "type": "boolean"
-                                    },
-                                    "on_closed": {
-                                        "type": "boolean"
-                                    },
                                     "settings": {
                                         "type": "object",
                                         "properties": {
@@ -7052,10 +7250,7 @@
                                 },
                                 "required": [
                                     "name",
-                                    "enabled",
-                                    "on_opened",
-                                    "on_event",
-                                    "on_closed"
+                                    "enabled"
                                 ],
                                 "type": "object"
                             }

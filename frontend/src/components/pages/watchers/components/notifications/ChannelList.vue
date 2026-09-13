@@ -56,13 +56,6 @@
         </el-tag>
       </template>
     </el-table-column>
-    <el-table-column label="Sends" min-width="180">
-      <template #default="scope">
-        <el-tag v-if="scope.row.on_opened" type="danger">opened</el-tag>
-        <el-tag v-if="scope.row.on_event" type="warning">event</el-tag>
-        <el-tag v-if="scope.row.on_closed" type="success">closed</el-tag>
-      </template>
-    </el-table-column>
     <el-table-column label="Test" min-width="220">
       <template #default="scope">
         <el-tag v-if="results[scope.row.id]" :type="results[scope.row.id].delivered ? 'success' : 'danger'">

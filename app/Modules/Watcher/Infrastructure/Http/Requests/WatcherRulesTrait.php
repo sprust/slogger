@@ -34,6 +34,9 @@ trait WatcherRulesTrait
                 'integer',
                 'exists:notification_channels,id,deleted_at,NULL',
             ],
+            'notify_on_opened' => ['required', 'boolean'],
+            'notify_on_event'  => ['required', 'boolean'],
+            'notify_on_closed' => ['required', 'boolean'],
         ];
     }
 

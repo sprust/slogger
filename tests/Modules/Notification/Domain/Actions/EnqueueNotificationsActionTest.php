@@ -58,8 +58,8 @@ class EnqueueNotificationsActionTest extends TestCase
             ->with(1, 7, '68be1f000000000000000009', NotificationKindEnum::Event)
             ->willReturn($this->notification());
 
-        $this->action($repository, $this->channel(onEvent: true))
-            ->handle($this->watcher(), $this->incident(eventsCount: 3), null);
+        $this->action($repository, $this->channel())
+            ->handle($this->watcher(notifyOnEvent: true), $this->incident(eventsCount: 3), null);
     }
 
     public function testAClosedIncidentIsAClosing(): void
@@ -79,23 +79,32 @@ class EnqueueNotificationsActionTest extends TestCase
             );
     }
 
-    public function testAChannelThatDoesNotWantRepeatsGetsNothing(): void
+    public function testAWatcherThatDoesNotWantOpeningsSaysNothing(): void
     {
         $repository = $this->createMock(NotificationRepository::class);
         $repository->expects($this->never())->method('create');
 
-        $this->action($repository, $this->channel(onEvent: false))
-            ->handle($this->watcher(), $this->incident(eventsCount: 3), null);
+        $this->action($repository, $this->channel())
+            ->handle($this->watcher(notifyOnOpened: false), $this->incident(), null);
     }
 
-    public function testAChannelThatDoesNotWantClosingsGetsNothing(): void
+    public function testAWatcherThatDoesNotWantRepeatsSaysNothing(): void
     {
         $repository = $this->createMock(NotificationRepository::class);
         $repository->expects($this->never())->method('create');
 
-        $this->action($repository, $this->channel(onClosed: false))
+        $this->action($repository, $this->channel())
+            ->handle($this->watcher(notifyOnEvent: false), $this->incident(eventsCount: 3), null);
+    }
+
+    public function testAWatcherThatDoesNotWantClosingsSaysNothing(): void
+    {
+        $repository = $this->createMock(NotificationRepository::class);
+        $repository->expects($this->never())->method('create');
+
+        $this->action($repository, $this->channel())
             ->handle(
-                $this->watcher(),
+                $this->watcher(notifyOnClosed: false),
                 $this->incident(status: WatcherIncidentStatusEnum::Closed),
                 null
             );
@@ -242,12 +251,8 @@ class EnqueueNotificationsActionTest extends TestCase
         );
     }
 
-    private function channel(
-        int $id = 1,
-        bool $onEvent = false,
-        bool $onClosed = true,
-        bool $enabled = true
-    ): ChannelObject {
+    private function channel(int $id = 1, bool $enabled = true): ChannelObject
+    {
         $now = Carbon::parse('2026-09-08 12:00:00');
 
         return new ChannelObject(
@@ -255,17 +260,18 @@ class EnqueueNotificationsActionTest extends TestCase
             name: 'ops chat',
             type: NotificationChannelTypeEnum::Telegram,
             enabled: $enabled,
-            onOpened: true,
-            onEvent: $onEvent,
-            onClosed: $onClosed,
             settings: new TelegramSettingsObject(botToken: '123:abc', chatId: '-100500'),
             createdAt: $now,
             updatedAt: $now
         );
     }
 
-    private function watcher(?int $channelId = 1): WatcherObject
-    {
+    private function watcher(
+        ?int $channelId = 1,
+        bool $notifyOnOpened = true,
+        bool $notifyOnEvent = false,
+        bool $notifyOnClosed = true
+    ): WatcherObject {
         $now = Carbon::parse('2026-09-08 19:00:00');
 
         return new WatcherObject(
@@ -275,6 +281,9 @@ class EnqueueNotificationsActionTest extends TestCase
             enabled: true,
             cooldownSeconds: 600,
             notificationChannelId: $channelId,
+            notifyOnOpened: $notifyOnOpened,
+            notifyOnEvent: $notifyOnEvent,
+            notifyOnClosed: $notifyOnClosed,
             settings: new BufferOverflowSettingsObject(),
             match: null,
             collectSince: $now,

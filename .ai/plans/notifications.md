@@ -134,7 +134,6 @@ RabbitMQ и консьюмер, два звена, а не четыре (`schedu
 | `type` | string(64) | `NotificationChannelTypeEnum` |
 | `enabled` | bool, index | выключенный не получает ничего |
 | `settings` | text | каст `encrypted:array`: там боевой токен бота |
-| `on_opened`, `on_event`, `on_closed` | bool | что именно слать |
 | `created_at` / `updated_at` / `deleted_at` | timestamp | мягкое удаление, как у смотрителей |
 
 **Колонки `watcher_ids` пока нет.** Решено начать с «канал получает всё от всех
@@ -235,7 +234,8 @@ public array $backoff = [15, 60, 300, 900, 3600];
 
 ## Что отправляется
 
-Три переключателя на канал:
+Три переключателя на смотрителя (колонки `notify_on_opened`, `notify_on_event`,
+`notify_on_closed` в `watchers`): канал отвечает только за то, куда и как доставить.
 
 | Событие | По умолчанию | Почему |
 |---|---|---|

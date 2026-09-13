@@ -39,9 +39,6 @@ readonly class UpdateChannelAction
             id: $parameters->id,
             name: $parameters->name,
             enabled: $parameters->enabled,
-            onOpened: $parameters->onOpened,
-            onEvent: $parameters->onEvent,
-            onClosed: $parameters->onClosed,
             settings: $settings->toArray()
         );
     }

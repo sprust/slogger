@@ -80,6 +80,17 @@ class WatcherFactoryTest extends TestCase
         $this->assertSame([], $watcher->match->tags);
     }
 
+    public function testTheNotifySwitchesComeBackAsTheyWereStored(): void
+    {
+        $watcher = $this->factory()->make(
+            $this->dto(notifyOnOpened: false, notifyOnEvent: true, notifyOnClosed: false)
+        );
+
+        $this->assertFalse($watcher->notifyOnOpened);
+        $this->assertTrue($watcher->notifyOnEvent);
+        $this->assertFalse($watcher->notifyOnClosed);
+    }
+
     /**
      * A stored type outlives the code that wrote it — a watcher made by a newer build, or
      * one whose type a rollback took away. Throwing would take out the whole pass, which
@@ -97,7 +108,10 @@ class WatcherFactoryTest extends TestCase
     private function dto(
         string $type = 'slowTraces',
         array $settings = [],
-        ?array $traceMatch = null
+        ?array $traceMatch = null,
+        bool $notifyOnOpened = true,
+        bool $notifyOnEvent = false,
+        bool $notifyOnClosed = true
     ): WatcherDto {
         $now = Carbon::parse('2026-09-07 12:00:00');
 
@@ -108,6 +122,9 @@ class WatcherFactoryTest extends TestCase
             enabled: true,
             cooldownSeconds: 300,
             notificationChannelId: null,
+            notifyOnOpened: $notifyOnOpened,
+            notifyOnEvent: $notifyOnEvent,
+            notifyOnClosed: $notifyOnClosed,
             settings: $settings,
             traceMatch: $traceMatch,
             collectSince: null,

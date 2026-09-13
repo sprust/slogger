@@ -21,7 +21,10 @@ trait WatcherFactoryTrait
         ?Carbon $lastCheckedAt = null,
         int $cooldownSeconds = 300,
         int $id = 1,
-        ?int $notificationChannelId = null
+        ?int $notificationChannelId = null,
+        bool $notifyOnOpened = true,
+        bool $notifyOnEvent = false,
+        bool $notifyOnClosed = true
     ): WatcherObject {
         $now = Carbon::now();
 
@@ -32,6 +35,9 @@ trait WatcherFactoryTrait
             enabled: true,
             cooldownSeconds: $cooldownSeconds,
             notificationChannelId: $notificationChannelId,
+            notifyOnOpened: $notifyOnOpened,
+            notifyOnEvent: $notifyOnEvent,
+            notifyOnClosed: $notifyOnClosed,
             settings: $settings,
             match: null,
             collectSince: $collectSince,

@@ -47,9 +47,6 @@ class TelegramSenderEncodingTest extends TestCase
             name: 'ops chat',
             type: NotificationChannelTypeEnum::Telegram,
             enabled: true,
-            onOpened: true,
-            onEvent: false,
-            onClosed: true,
             settings: new TelegramSettingsObject(botToken: '123:abc', chatId: '-100500'),
             createdAt: $now,
             updatedAt: $now

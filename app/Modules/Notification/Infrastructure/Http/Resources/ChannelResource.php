@@ -13,9 +13,6 @@ class ChannelResource extends AbstractApiResource
     private string $name;
     private string $type;
     private bool $enabled;
-    private bool $on_opened;
-    private bool $on_event;
-    private bool $on_closed;
     private string $created_at;
     private string $updated_at;
 
@@ -27,9 +24,6 @@ class ChannelResource extends AbstractApiResource
         $this->name       = $resource->name;
         $this->type       = $resource->type->value;
         $this->enabled    = $resource->enabled;
-        $this->on_opened  = $resource->onOpened;
-        $this->on_event   = $resource->onEvent;
-        $this->on_closed  = $resource->onClosed;
         $this->created_at = $resource->createdAt->toDateTimeString();
         $this->updated_at = $resource->updatedAt->toDateTimeString();
     }

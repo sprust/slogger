@@ -15,9 +15,6 @@ readonly class ChannelObject
         public string $name,
         public NotificationChannelTypeEnum $type,
         public bool $enabled,
-        public bool $onOpened,
-        public bool $onEvent,
-        public bool $onClosed,
         public ChannelSettingsInterface $settings,
         public Carbon $createdAt,
         public Carbon $updatedAt

@@ -58,6 +58,9 @@ readonly class UpdateWatcherAction
             enabled: $parameters->enabled,
             cooldownSeconds: $parameters->cooldownSeconds,
             notificationChannelId: $parameters->notificationChannelId,
+            notifyOnOpened: $parameters->notifyOnOpened,
+            notifyOnEvent: $parameters->notifyOnEvent,
+            notifyOnClosed: $parameters->notifyOnClosed,
             settings: $settings->toArray(),
             traceMatch: $this->matchFactory->toArray($match),
             collectSince: $filterChanged || $deepened || (!$watcher->enabled && $parameters->enabled)

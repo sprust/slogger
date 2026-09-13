@@ -60,6 +60,9 @@ abstract readonly class AbstractWatcherTypeController
                     enabled: ArrayValueGetter::bool($validated, 'enabled'),
                     cooldownSeconds: ArrayValueGetter::int($validated, 'cooldown_seconds'),
                     notificationChannelId: ArrayValueGetter::intNull($validated, 'notification_channel_id'),
+                    notifyOnOpened: ArrayValueGetter::bool($validated, 'notify_on_opened'),
+                    notifyOnEvent: ArrayValueGetter::bool($validated, 'notify_on_event'),
+                    notifyOnClosed: ArrayValueGetter::bool($validated, 'notify_on_closed'),
                     settings: $this->settingsOf($validated)
                 )
             )
@@ -81,6 +84,9 @@ abstract readonly class AbstractWatcherTypeController
                     enabled: ArrayValueGetter::bool($validated, 'enabled'),
                     cooldownSeconds: ArrayValueGetter::int($validated, 'cooldown_seconds'),
                     notificationChannelId: ArrayValueGetter::intNull($validated, 'notification_channel_id'),
+                    notifyOnOpened: ArrayValueGetter::bool($validated, 'notify_on_opened'),
+                    notifyOnEvent: ArrayValueGetter::bool($validated, 'notify_on_event'),
+                    notifyOnClosed: ArrayValueGetter::bool($validated, 'notify_on_closed'),
                     settings: $this->settingsOf($validated)
                 )
             );

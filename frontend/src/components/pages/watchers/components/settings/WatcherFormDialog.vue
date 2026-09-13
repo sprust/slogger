@@ -2,6 +2,7 @@
   <el-dialog
       :model-value="modelValue"
       width="600px"
+      top="20px"
       :close-on-click-modal="false"
       @update:model-value="$emit('update:modelValue', $event)"
   >
@@ -62,6 +63,22 @@
         <el-text type="info">
           Leave it empty and the watcher opens incidents here without telling anyone.
         </el-text>
+      </el-form-item>
+      <el-form-item for="">
+        <el-select
+            v-model="form.notifyOn"
+            multiple
+            :disabled="!hasChannel"
+            placeholder="Nothing"
+            style="width: 100%"
+        >
+          <el-option
+              v-for="moment in notifyMoments"
+              :key="moment.value"
+              :label="moment.label"
+              :value="moment.value"
+          />
+        </el-select>
       </el-form-item>
 
       <template v-if="definition?.has_trace_filter">
@@ -164,6 +181,8 @@ import {
 import {useChannelsStore} from "../../components/notifications/store/channelsStore.ts";
 
 /** The numbers of one watcher, keyed the way `/watchers/types` names them. */
+type NotifyMoment = 'opened' | 'event' | 'closed'
+
 interface SettingsForm {
   [key: string]: number
 }
@@ -203,6 +222,7 @@ export default defineComponent({
         enabled: true,
         cooldownSeconds: 600,
         notificationChannelId: null as number | null,
+        notifyOn: ['opened'] as NotifyMoment[],
         settings: {} as SettingsForm,
         filter: {
           service_ids: [] as number[],
@@ -228,6 +248,16 @@ export default defineComponent({
     },
     definition(): WatcherType | undefined {
       return this.watcherTypesStore.byType(this.type)
+    },
+    notifyMoments(): { value: NotifyMoment, label: string }[] {
+      return [
+        {value: 'opened', label: 'Opened'},
+        {value: 'event', label: 'Further'},
+        {value: 'closed', label: 'Closed'},
+      ]
+    },
+    hasChannel(): boolean {
+      return (this.form.notificationChannelId ?? null) !== null
     },
     canSave(): boolean {
       return this.form.name.trim() !== '' && !this.loading && !this.loadFailed
@@ -268,6 +298,7 @@ export default defineComponent({
       this.form.enabled = true
       this.form.cooldownSeconds = definition?.default_cooldown_seconds ?? 600
       this.form.notificationChannelId = null
+      this.form.notifyOn = ['opened']
       this.form.settings = {}
       this.form.filter = {service_ids: [], types: [], tags: []}
 
@@ -294,6 +325,11 @@ export default defineComponent({
         this.form.enabled = watcher.enabled
         this.form.cooldownSeconds = watcher.cooldown_seconds
         this.form.notificationChannelId = watcher.notification_channel_id ?? null
+        this.form.notifyOn = [
+          ...(watcher.notify_on_opened ? ['opened' as NotifyMoment] : []),
+          ...(watcher.notify_on_event ? ['event' as NotifyMoment] : []),
+          ...(watcher.notify_on_closed ? ['closed' as NotifyMoment] : []),
+        ]
       }
 
       this.loading = true
@@ -337,6 +373,9 @@ export default defineComponent({
         // element-plus clears a select with undefined, and JSON.stringify drops it —
         // the server wants the key even when it is null.
         notification_channel_id: this.form.notificationChannelId ?? null,
+        notify_on_opened: this.form.notifyOn.includes('opened'),
+        notify_on_event: this.form.notifyOn.includes('event'),
+        notify_on_closed: this.form.notifyOn.includes('closed'),
         settings: {
           ...this.form.settings,
           ...(this.definition?.has_trace_filter ? {filter: this.form.filter} : {}),

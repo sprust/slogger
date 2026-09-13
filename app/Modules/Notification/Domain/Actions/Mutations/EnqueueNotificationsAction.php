@@ -46,7 +46,7 @@ readonly class EnqueueNotificationsAction
 
         $kind = $this->kindOf($incident);
 
-        if (!$this->speaksAbout($channel, $kind)) {
+        if (!$this->speaksAbout($watcher, $kind)) {
             return;
         }
 
@@ -93,12 +93,12 @@ readonly class EnqueueNotificationsAction
             : NotificationKindEnum::Opened;
     }
 
-    private function speaksAbout(ChannelObject $channel, NotificationKindEnum $kind): bool
+    private function speaksAbout(WatcherObject $watcher, NotificationKindEnum $kind): bool
     {
         return match ($kind) {
-            NotificationKindEnum::Opened => $channel->onOpened,
-            NotificationKindEnum::Event  => $channel->onEvent,
-            NotificationKindEnum::Closed => $channel->onClosed,
+            NotificationKindEnum::Opened => $watcher->notifyOnOpened,
+            NotificationKindEnum::Event  => $watcher->notifyOnEvent,
+            NotificationKindEnum::Closed => $watcher->notifyOnClosed,
         };
     }
 }

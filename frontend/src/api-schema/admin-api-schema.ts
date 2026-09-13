@@ -1894,6 +1894,9 @@ export namespace AdminApi {
     enabled: boolean,
     cooldown_seconds: number,
     notification_channel_id?: number | null,
+    notify_on_opened: boolean,
+    notify_on_event: boolean,
+    notify_on_closed: boolean,
     collect_since?: string | null,
     last_checked_at?: string | null,
     last_triggered_at?: string | null,
@@ -1917,6 +1920,9 @@ export namespace AdminApi {
         enabled: boolean;
         cooldown_seconds: number;
         notification_channel_id?: number | null;
+        notify_on_opened: boolean;
+        notify_on_event: boolean;
+        notify_on_closed: boolean;
         collect_since?: string | null;
         last_checked_at?: string | null;
         last_triggered_at?: string | null;
@@ -2478,6 +2484,9 @@ export namespace AdminApi {
     enabled: boolean,
     cooldown_seconds: number,
     notification_channel_id?: number | null,
+    notify_on_opened: boolean,
+    notify_on_event: boolean,
+    notify_on_closed: boolean,
     collect_since?: string | null,
     last_checked_at?: string | null,
     last_triggered_at?: string | null,
@@ -2504,6 +2513,9 @@ export namespace AdminApi {
        */
       cooldown_seconds: number;
       notification_channel_id?: number | null;
+      notify_on_opened: boolean;
+      notify_on_event: boolean;
+      notify_on_closed: boolean;
       settings?: {
         /** @min 1 */
         threshold?: number;
@@ -2518,6 +2530,9 @@ export namespace AdminApi {
         enabled: boolean;
         cooldown_seconds: number;
         notification_channel_id?: number | null;
+        notify_on_opened: boolean;
+        notify_on_event: boolean;
+        notify_on_closed: boolean;
         collect_since?: string | null;
         last_checked_at?: string | null;
         last_triggered_at?: string | null;
@@ -2581,6 +2596,9 @@ export namespace AdminApi {
        */
       cooldown_seconds: number;
       notification_channel_id?: number | null;
+      notify_on_opened: boolean;
+      notify_on_event: boolean;
+      notify_on_closed: boolean;
       settings?: {
         /** @min 1 */
         threshold?: number;
@@ -2603,6 +2621,9 @@ export namespace AdminApi {
     enabled: boolean,
     cooldown_seconds: number,
     notification_channel_id?: number | null,
+    notify_on_opened: boolean,
+    notify_on_event: boolean,
+    notify_on_closed: boolean,
     collect_since?: string | null,
     last_checked_at?: string | null,
     last_triggered_at?: string | null,
@@ -2629,6 +2650,9 @@ export namespace AdminApi {
        */
       cooldown_seconds: number;
       notification_channel_id?: number | null;
+      notify_on_opened: boolean;
+      notify_on_event: boolean;
+      notify_on_closed: boolean;
       settings?: {
         /** @min 1 */
         threshold?: number;
@@ -2643,6 +2667,9 @@ export namespace AdminApi {
         enabled: boolean;
         cooldown_seconds: number;
         notification_channel_id?: number | null;
+        notify_on_opened: boolean;
+        notify_on_event: boolean;
+        notify_on_closed: boolean;
         collect_since?: string | null;
         last_checked_at?: string | null;
         last_triggered_at?: string | null;
@@ -2706,6 +2733,9 @@ export namespace AdminApi {
        */
       cooldown_seconds: number;
       notification_channel_id?: number | null;
+      notify_on_opened: boolean;
+      notify_on_event: boolean;
+      notify_on_closed: boolean;
       settings?: {
         /** @min 1 */
         threshold?: number;
@@ -2728,6 +2758,9 @@ export namespace AdminApi {
     enabled: boolean,
     cooldown_seconds: number,
     notification_channel_id?: number | null,
+    notify_on_opened: boolean,
+    notify_on_event: boolean,
+    notify_on_closed: boolean,
     collect_since?: string | null,
     last_checked_at?: string | null,
     last_triggered_at?: string | null,
@@ -2754,6 +2787,9 @@ export namespace AdminApi {
        */
       cooldown_seconds: number;
       notification_channel_id?: number | null;
+      notify_on_opened: boolean;
+      notify_on_event: boolean;
+      notify_on_closed: boolean;
       settings?: {
         /**
          * @min 1
@@ -2776,6 +2812,9 @@ export namespace AdminApi {
         enabled: boolean;
         cooldown_seconds: number;
         notification_channel_id?: number | null;
+        notify_on_opened: boolean;
+        notify_on_event: boolean;
+        notify_on_closed: boolean;
         collect_since?: string | null;
         last_checked_at?: string | null;
         last_triggered_at?: string | null;
@@ -2850,6 +2889,9 @@ export namespace AdminApi {
        */
       cooldown_seconds: number;
       notification_channel_id?: number | null;
+      notify_on_opened: boolean;
+      notify_on_event: boolean;
+      notify_on_closed: boolean;
       settings?: {
         /**
          * @min 1
@@ -2880,6 +2922,9 @@ export namespace AdminApi {
     enabled: boolean,
     cooldown_seconds: number,
     notification_channel_id?: number | null,
+    notify_on_opened: boolean,
+    notify_on_event: boolean,
+    notify_on_closed: boolean,
     collect_since?: string | null,
     last_checked_at?: string | null,
     last_triggered_at?: string | null,
@@ -2906,6 +2951,9 @@ export namespace AdminApi {
        */
       cooldown_seconds: number;
       notification_channel_id?: number | null;
+      notify_on_opened: boolean;
+      notify_on_event: boolean;
+      notify_on_closed: boolean;
       settings?: {
         /**
          * @min 1
@@ -2930,6 +2978,9 @@ export namespace AdminApi {
         enabled: boolean;
         cooldown_seconds: number;
         notification_channel_id?: number | null;
+        notify_on_opened: boolean;
+        notify_on_event: boolean;
+        notify_on_closed: boolean;
         collect_since?: string | null;
         last_checked_at?: string | null;
         last_triggered_at?: string | null;
@@ -3006,6 +3057,9 @@ export namespace AdminApi {
        */
       cooldown_seconds: number;
       notification_channel_id?: number | null;
+      notify_on_opened: boolean;
+      notify_on_event: boolean;
+      notify_on_closed: boolean;
       settings?: {
         /**
          * @min 1
@@ -3038,6 +3092,9 @@ export namespace AdminApi {
     enabled: boolean,
     cooldown_seconds: number,
     notification_channel_id?: number | null,
+    notify_on_opened: boolean,
+    notify_on_event: boolean,
+    notify_on_closed: boolean,
     collect_since?: string | null,
     last_checked_at?: string | null,
     last_triggered_at?: string | null,
@@ -3064,6 +3121,9 @@ export namespace AdminApi {
        */
       cooldown_seconds: number;
       notification_channel_id?: number | null;
+      notify_on_opened: boolean;
+      notify_on_event: boolean;
+      notify_on_closed: boolean;
       settings?: {
         /**
          * @format float
@@ -3091,6 +3151,9 @@ export namespace AdminApi {
         enabled: boolean;
         cooldown_seconds: number;
         notification_channel_id?: number | null;
+        notify_on_opened: boolean;
+        notify_on_event: boolean;
+        notify_on_closed: boolean;
         collect_since?: string | null;
         last_checked_at?: string | null;
         last_triggered_at?: string | null;
@@ -3167,6 +3230,9 @@ export namespace AdminApi {
        */
       cooldown_seconds: number;
       notification_channel_id?: number | null;
+      notify_on_opened: boolean;
+      notify_on_event: boolean;
+      notify_on_closed: boolean;
       settings?: {
         /**
          * @format float
@@ -3202,6 +3268,9 @@ export namespace AdminApi {
     enabled: boolean,
     cooldown_seconds: number,
     notification_channel_id?: number | null,
+    notify_on_opened: boolean,
+    notify_on_event: boolean,
+    notify_on_closed: boolean,
     collect_since?: string | null,
     last_checked_at?: string | null,
     last_triggered_at?: string | null,
@@ -3228,6 +3297,9 @@ export namespace AdminApi {
        */
       cooldown_seconds: number;
       notification_channel_id?: number | null;
+      notify_on_opened: boolean;
+      notify_on_event: boolean;
+      notify_on_closed: boolean;
       settings?: {
         /** @min 1 */
         threshold?: number;
@@ -3242,6 +3314,9 @@ export namespace AdminApi {
         enabled: boolean;
         cooldown_seconds: number;
         notification_channel_id?: number | null;
+        notify_on_opened: boolean;
+        notify_on_event: boolean;
+        notify_on_closed: boolean;
         collect_since?: string | null;
         last_checked_at?: string | null;
         last_triggered_at?: string | null;
@@ -3305,6 +3380,9 @@ export namespace AdminApi {
        */
       cooldown_seconds: number;
       notification_channel_id?: number | null;
+      notify_on_opened: boolean;
+      notify_on_event: boolean;
+      notify_on_closed: boolean;
       settings?: {
         /** @min 1 */
         threshold?: number;
@@ -3342,9 +3420,6 @@ export namespace AdminApi {
     name: string,
     type: string,
     enabled: boolean,
-    on_opened: boolean,
-    on_event: boolean,
-    on_closed: boolean,
     created_at: string,
     updated_at: string,
 
@@ -3363,9 +3438,6 @@ export namespace AdminApi {
         name: string;
         type: string;
         enabled: boolean;
-        on_opened: boolean;
-        on_event: boolean;
-        on_closed: boolean;
         created_at: string;
         updated_at: string;
       }[];
@@ -3427,9 +3499,6 @@ export namespace AdminApi {
     name: string,
     type: string,
     enabled: boolean,
-    on_opened: boolean,
-    on_event: boolean,
-    on_closed: boolean,
     created_at: string,
     updated_at: string,
 
@@ -3447,9 +3516,6 @@ export namespace AdminApi {
        */
       name: string;
       enabled: boolean;
-      on_opened: boolean;
-      on_event: boolean;
-      on_closed: boolean;
       settings?: {
         /**
          * @minLength 10
@@ -3470,9 +3536,6 @@ export namespace AdminApi {
         name: string;
         type: string;
         enabled: boolean;
-        on_opened: boolean;
-        on_event: boolean;
-        on_closed: boolean;
         created_at: string;
         updated_at: string;
       };
@@ -3529,9 +3592,6 @@ export namespace AdminApi {
        */
       name: string;
       enabled: boolean;
-      on_opened: boolean;
-      on_event: boolean;
-      on_closed: boolean;
       settings?: {
         /**
          * @minLength 10
@@ -5855,6 +5915,9 @@ export class Api<
     enabled: boolean,
     cooldown_seconds: number,
     notification_channel_id?: number | null,
+    notify_on_opened: boolean,
+    notify_on_event: boolean,
+    notify_on_closed: boolean,
     collect_since?: string | null,
     last_checked_at?: string | null,
     last_triggered_at?: string | null,
@@ -5875,6 +5938,9 @@ export class Api<
             enabled: boolean;
             cooldown_seconds: number;
             notification_channel_id?: number | null;
+            notify_on_opened: boolean;
+            notify_on_event: boolean;
+            notify_on_closed: boolean;
             collect_since?: string | null;
             last_checked_at?: string | null;
             last_triggered_at?: string | null;
@@ -6514,6 +6580,9 @@ export class Api<
     enabled: boolean,
     cooldown_seconds: number,
     notification_channel_id?: number | null,
+    notify_on_opened: boolean,
+    notify_on_event: boolean,
+    notify_on_closed: boolean,
     collect_since?: string | null,
     last_checked_at?: string | null,
     last_triggered_at?: string | null,
@@ -6538,6 +6607,9 @@ export class Api<
          */
         cooldown_seconds: number;
         notification_channel_id?: number | null;
+        notify_on_opened: boolean;
+        notify_on_event: boolean;
+        notify_on_closed: boolean;
         settings?: {
           /** @min 1 */
           threshold?: number;
@@ -6554,6 +6626,9 @@ export class Api<
             enabled: boolean;
             cooldown_seconds: number;
             notification_channel_id?: number | null;
+            notify_on_opened: boolean;
+            notify_on_event: boolean;
+            notify_on_closed: boolean;
             collect_since?: string | null;
             last_checked_at?: string | null;
             last_triggered_at?: string | null;
@@ -6627,6 +6702,9 @@ export class Api<
          */
         cooldown_seconds: number;
         notification_channel_id?: number | null;
+        notify_on_opened: boolean;
+        notify_on_event: boolean;
+        notify_on_closed: boolean;
         settings?: {
           /** @min 1 */
           threshold?: number;
@@ -6658,6 +6736,9 @@ export class Api<
     enabled: boolean,
     cooldown_seconds: number,
     notification_channel_id?: number | null,
+    notify_on_opened: boolean,
+    notify_on_event: boolean,
+    notify_on_closed: boolean,
     collect_since?: string | null,
     last_checked_at?: string | null,
     last_triggered_at?: string | null,
@@ -6682,6 +6763,9 @@ export class Api<
          */
         cooldown_seconds: number;
         notification_channel_id?: number | null;
+        notify_on_opened: boolean;
+        notify_on_event: boolean;
+        notify_on_closed: boolean;
         settings?: {
           /** @min 1 */
           threshold?: number;
@@ -6698,6 +6782,9 @@ export class Api<
             enabled: boolean;
             cooldown_seconds: number;
             notification_channel_id?: number | null;
+            notify_on_opened: boolean;
+            notify_on_event: boolean;
+            notify_on_closed: boolean;
             collect_since?: string | null;
             last_checked_at?: string | null;
             last_triggered_at?: string | null;
@@ -6771,6 +6858,9 @@ export class Api<
          */
         cooldown_seconds: number;
         notification_channel_id?: number | null;
+        notify_on_opened: boolean;
+        notify_on_event: boolean;
+        notify_on_closed: boolean;
         settings?: {
           /** @min 1 */
           threshold?: number;
@@ -6802,6 +6892,9 @@ export class Api<
     enabled: boolean,
     cooldown_seconds: number,
     notification_channel_id?: number | null,
+    notify_on_opened: boolean,
+    notify_on_event: boolean,
+    notify_on_closed: boolean,
     collect_since?: string | null,
     last_checked_at?: string | null,
     last_triggered_at?: string | null,
@@ -6826,6 +6919,9 @@ export class Api<
          */
         cooldown_seconds: number;
         notification_channel_id?: number | null;
+        notify_on_opened: boolean;
+        notify_on_event: boolean;
+        notify_on_closed: boolean;
         settings?: {
           /**
            * @min 1
@@ -6850,6 +6946,9 @@ export class Api<
             enabled: boolean;
             cooldown_seconds: number;
             notification_channel_id?: number | null;
+            notify_on_opened: boolean;
+            notify_on_event: boolean;
+            notify_on_closed: boolean;
             collect_since?: string | null;
             last_checked_at?: string | null;
             last_triggered_at?: string | null;
@@ -6934,6 +7033,9 @@ export class Api<
          */
         cooldown_seconds: number;
         notification_channel_id?: number | null;
+        notify_on_opened: boolean;
+        notify_on_event: boolean;
+        notify_on_closed: boolean;
         settings?: {
           /**
            * @min 1
@@ -6973,6 +7075,9 @@ export class Api<
     enabled: boolean,
     cooldown_seconds: number,
     notification_channel_id?: number | null,
+    notify_on_opened: boolean,
+    notify_on_event: boolean,
+    notify_on_closed: boolean,
     collect_since?: string | null,
     last_checked_at?: string | null,
     last_triggered_at?: string | null,
@@ -6997,6 +7102,9 @@ export class Api<
          */
         cooldown_seconds: number;
         notification_channel_id?: number | null;
+        notify_on_opened: boolean;
+        notify_on_event: boolean;
+        notify_on_closed: boolean;
         settings?: {
           /**
            * @min 1
@@ -7023,6 +7131,9 @@ export class Api<
             enabled: boolean;
             cooldown_seconds: number;
             notification_channel_id?: number | null;
+            notify_on_opened: boolean;
+            notify_on_event: boolean;
+            notify_on_closed: boolean;
             collect_since?: string | null;
             last_checked_at?: string | null;
             last_triggered_at?: string | null;
@@ -7109,6 +7220,9 @@ export class Api<
          */
         cooldown_seconds: number;
         notification_channel_id?: number | null;
+        notify_on_opened: boolean;
+        notify_on_event: boolean;
+        notify_on_closed: boolean;
         settings?: {
           /**
            * @min 1
@@ -7150,6 +7264,9 @@ export class Api<
     enabled: boolean,
     cooldown_seconds: number,
     notification_channel_id?: number | null,
+    notify_on_opened: boolean,
+    notify_on_event: boolean,
+    notify_on_closed: boolean,
     collect_since?: string | null,
     last_checked_at?: string | null,
     last_triggered_at?: string | null,
@@ -7174,6 +7291,9 @@ export class Api<
          */
         cooldown_seconds: number;
         notification_channel_id?: number | null;
+        notify_on_opened: boolean;
+        notify_on_event: boolean;
+        notify_on_closed: boolean;
         settings?: {
           /**
            * @format float
@@ -7203,6 +7323,9 @@ export class Api<
             enabled: boolean;
             cooldown_seconds: number;
             notification_channel_id?: number | null;
+            notify_on_opened: boolean;
+            notify_on_event: boolean;
+            notify_on_closed: boolean;
             collect_since?: string | null;
             last_checked_at?: string | null;
             last_triggered_at?: string | null;
@@ -7289,6 +7412,9 @@ export class Api<
          */
         cooldown_seconds: number;
         notification_channel_id?: number | null;
+        notify_on_opened: boolean;
+        notify_on_event: boolean;
+        notify_on_closed: boolean;
         settings?: {
           /**
            * @format float
@@ -7333,6 +7459,9 @@ export class Api<
     enabled: boolean,
     cooldown_seconds: number,
     notification_channel_id?: number | null,
+    notify_on_opened: boolean,
+    notify_on_event: boolean,
+    notify_on_closed: boolean,
     collect_since?: string | null,
     last_checked_at?: string | null,
     last_triggered_at?: string | null,
@@ -7357,6 +7486,9 @@ export class Api<
          */
         cooldown_seconds: number;
         notification_channel_id?: number | null;
+        notify_on_opened: boolean;
+        notify_on_event: boolean;
+        notify_on_closed: boolean;
         settings?: {
           /** @min 1 */
           threshold?: number;
@@ -7373,6 +7505,9 @@ export class Api<
             enabled: boolean;
             cooldown_seconds: number;
             notification_channel_id?: number | null;
+            notify_on_opened: boolean;
+            notify_on_event: boolean;
+            notify_on_closed: boolean;
             collect_since?: string | null;
             last_checked_at?: string | null;
             last_triggered_at?: string | null;
@@ -7446,6 +7581,9 @@ export class Api<
          */
         cooldown_seconds: number;
         notification_channel_id?: number | null;
+        notify_on_opened: boolean;
+        notify_on_event: boolean;
+        notify_on_closed: boolean;
         settings?: {
           /** @min 1 */
           threshold?: number;
@@ -7491,9 +7629,6 @@ export class Api<
     name: string,
     type: string,
     enabled: boolean,
-    on_opened: boolean,
-    on_event: boolean,
-    on_closed: boolean,
     created_at: string,
     updated_at: string,
 
@@ -7509,9 +7644,6 @@ export class Api<
             name: string;
             type: string;
             enabled: boolean;
-            on_opened: boolean;
-            on_event: boolean;
-            on_closed: boolean;
             created_at: string;
             updated_at: string;
           }[];
@@ -7586,9 +7718,6 @@ export class Api<
     name: string,
     type: string,
     enabled: boolean,
-    on_opened: boolean,
-    on_event: boolean,
-    on_closed: boolean,
     created_at: string,
     updated_at: string,
 
@@ -7604,9 +7733,6 @@ export class Api<
          */
         name: string;
         enabled: boolean;
-        on_opened: boolean;
-        on_event: boolean;
-        on_closed: boolean;
         settings?: {
           /**
            * @minLength 10
@@ -7629,9 +7755,6 @@ export class Api<
             name: string;
             type: string;
             enabled: boolean;
-            on_opened: boolean;
-            on_event: boolean;
-            on_closed: boolean;
             created_at: string;
             updated_at: string;
           };
@@ -7698,9 +7821,6 @@ export class Api<
          */
         name: string;
         enabled: boolean;
-        on_opened: boolean;
-        on_event: boolean;
-        on_closed: boolean;
         settings?: {
           /**
            * @minLength 10

@@ -40,20 +40,14 @@ readonly class ChannelRepository
         string $name,
         string $type,
         bool $enabled,
-        bool $onOpened,
-        bool $onEvent,
-        bool $onClosed,
         array $settings
     ): ChannelDto {
         $channel = new NotificationChannel();
 
-        $channel->name      = $name;
-        $channel->type      = $type;
-        $channel->enabled   = $enabled;
-        $channel->on_opened = $onOpened;
-        $channel->on_event  = $onEvent;
-        $channel->on_closed = $onClosed;
-        $channel->settings  = $settings;
+        $channel->name     = $name;
+        $channel->type     = $type;
+        $channel->enabled  = $enabled;
+        $channel->settings = $settings;
 
         $channel->saveOrFail();
 
@@ -67,9 +61,6 @@ readonly class ChannelRepository
         int $id,
         string $name,
         bool $enabled,
-        bool $onOpened,
-        bool $onEvent,
-        bool $onClosed,
         array $settings
     ): void {
         $channel = NotificationChannel::query()->find($id);
@@ -78,12 +69,9 @@ readonly class ChannelRepository
             return;
         }
 
-        $channel->name      = $name;
-        $channel->enabled   = $enabled;
-        $channel->on_opened = $onOpened;
-        $channel->on_event  = $onEvent;
-        $channel->on_closed = $onClosed;
-        $channel->settings  = $settings;
+        $channel->name     = $name;
+        $channel->enabled  = $enabled;
+        $channel->settings = $settings;
 
         $channel->saveOrFail();
     }
@@ -100,9 +88,6 @@ readonly class ChannelRepository
             name: $channel->name,
             type: $channel->type,
             enabled: $channel->enabled,
-            onOpened: $channel->on_opened,
-            onEvent: $channel->on_event,
-            onClosed: $channel->on_closed,
             settings: $channel->settings,
             createdAt: $channel->created_at,
             updatedAt: $channel->updated_at

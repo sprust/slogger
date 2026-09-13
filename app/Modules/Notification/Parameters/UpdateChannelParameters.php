@@ -13,9 +13,6 @@ readonly class UpdateChannelParameters
         public int $id,
         public string $name,
         public bool $enabled,
-        public bool $onOpened,
-        public bool $onEvent,
-        public bool $onClosed,
         public array $settings
     ) {
     }

@@ -165,6 +165,9 @@ class UpdateWatcherActionTest extends TestCase
                 bool $enabled,
                 int $cooldownSeconds,
                 ?int $notificationChannelId,
+                bool $notifyOnOpened,
+                bool $notifyOnEvent,
+                bool $notifyOnClosed,
                 array $settings,
                 ?array $traceMatch,
                 ?Carbon $collectSince
@@ -189,6 +192,9 @@ class UpdateWatcherActionTest extends TestCase
                 enabled: true,
                 cooldownSeconds: 600,
                 notificationChannelId: null,
+                notifyOnOpened: true,
+                notifyOnEvent: false,
+                notifyOnClosed: true,
                 settings: $edited
             )
         );
@@ -211,6 +217,9 @@ class UpdateWatcherActionTest extends TestCase
             enabled: $enabled,
             cooldownSeconds: $watcher->cooldownSeconds,
             notificationChannelId: $watcher->notificationChannelId,
+            notifyOnOpened: $watcher->notifyOnOpened,
+            notifyOnEvent: $watcher->notifyOnEvent,
+            notifyOnClosed: $watcher->notifyOnClosed,
             settings: $watcher->settings,
             match: new WatcherMatchFactory()->make($settings),
             collectSince: $watcher->collectSince,

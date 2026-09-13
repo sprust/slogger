@@ -15,9 +15,6 @@ readonly class CreateChannelParameters
         public string $name,
         public NotificationChannelTypeEnum $type,
         public bool $enabled,
-        public bool $onOpened,
-        public bool $onEvent,
-        public bool $onClosed,
         public array $settings
     ) {
     }

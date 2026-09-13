@@ -36,6 +36,9 @@ readonly class CreateWatcherAction
                 enabled: $parameters->enabled,
                 cooldownSeconds: $parameters->cooldownSeconds,
                 notificationChannelId: $parameters->notificationChannelId,
+                notifyOnOpened: $parameters->notifyOnOpened,
+                notifyOnEvent: $parameters->notifyOnEvent,
+                notifyOnClosed: $parameters->notifyOnClosed,
                 settings: $settings->toArray(),
                 traceMatch: $this->matchFactory->toArray($this->matchFactory->make($settings)),
                 collectSince: $this->collectionStart->afterNextReload(Carbon::now())

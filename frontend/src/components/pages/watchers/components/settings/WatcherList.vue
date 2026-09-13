@@ -61,6 +61,15 @@
         </template>
       </template>
     </el-table-column>
+    <el-table-column label="Sends" min-width="180">
+      <template #default="scope">
+        <template v-if="scope.row.notification_channel_id !== null">
+          <el-tag v-if="scope.row.notify_on_opened" type="danger">opened</el-tag>
+          <el-tag v-if="scope.row.notify_on_event" type="warning">further</el-tag>
+          <el-tag v-if="scope.row.notify_on_closed" type="success">closed</el-tag>
+        </template>
+      </template>
+    </el-table-column>
     <el-table-column label="Collecting since" min-width="160">
       <template #default="scope">
         {{ scope.row.collect_since ?? '' }}

@@ -29,9 +29,6 @@ readonly class CreateChannelAction
                 name: $parameters->name,
                 type: $parameters->type->value,
                 enabled: $parameters->enabled,
-                onOpened: $parameters->onOpened,
-                onEvent: $parameters->onEvent,
-                onClosed: $parameters->onClosed,
                 settings: $settings->toArray()
             )
         );

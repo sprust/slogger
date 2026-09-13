@@ -39,9 +39,6 @@ readonly class ChannelFactory
             name: $dto->name,
             type: $type,
             enabled: $dto->enabled,
-            onOpened: $dto->onOpened,
-            onEvent: $dto->onEvent,
-            onClosed: $dto->onClosed,
             settings: $this->types->for($type)->makeSettings($dto->settings),
             createdAt: $dto->createdAt,
             updatedAt: $dto->updatedAt

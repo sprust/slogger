@@ -15,6 +15,9 @@ use Illuminate\Support\Carbon;
  * @property array<string, mixed>      $settings
  * @property int         $cooldown_seconds
  * @property int|null    $notification_channel_id
+ * @property bool        $notify_on_opened
+ * @property bool        $notify_on_event
+ * @property bool        $notify_on_closed
  * @property Carbon|null $collect_since
  * @property Carbon|null $last_checked_at
  * @property Carbon|null $last_triggered_at
@@ -28,6 +31,9 @@ class Watcher extends AbstractModel
 
     protected $casts = [
         'enabled'           => 'boolean',
+        'notify_on_opened'  => 'boolean',
+        'notify_on_event'   => 'boolean',
+        'notify_on_closed'  => 'boolean',
         'trace_match'       => 'array',
         'settings'          => 'array',
         'collect_since'     => 'datetime',

@@ -49,19 +49,6 @@
         />
         <el-text type="info">{{ field.description }}</el-text>
       </el-form-item>
-
-      <el-divider content-position="left">
-        <el-text type="info">What to send</el-text>
-      </el-divider>
-      <el-form-item label="Incident opened" for="">
-        <el-switch v-model="form.onOpened"/>
-      </el-form-item>
-      <el-form-item label="Further events" for="">
-        <el-switch v-model="form.onEvent"/>
-      </el-form-item>
-      <el-form-item label="Incident closed" for="">
-        <el-switch v-model="form.onClosed"/>
-      </el-form-item>
     </el-form>
 
     <template #footer>
@@ -117,9 +104,6 @@ export default defineComponent({
       form: {
         name: '',
         enabled: true,
-        onOpened: true,
-        onEvent: false,
-        onClosed: true,
         settings: {} as SettingsForm,
       },
     }
@@ -179,9 +163,6 @@ export default defineComponent({
       this.masked = {}
       this.form.name = ''
       this.form.enabled = true
-      this.form.onOpened = true
-      this.form.onEvent = false
-      this.form.onClosed = true
       this.form.settings = {}
 
       this.definition?.fields.forEach(field => {
@@ -197,9 +178,6 @@ export default defineComponent({
       if (channel) {
         this.form.name = channel.name
         this.form.enabled = channel.enabled
-        this.form.onOpened = channel.on_opened
-        this.form.onEvent = channel.on_event
-        this.form.onClosed = channel.on_closed
       }
 
       this.loading = true
@@ -241,9 +219,6 @@ export default defineComponent({
       const payload = {
         name: this.form.name.trim(),
         enabled: this.form.enabled,
-        on_opened: this.form.onOpened,
-        on_event: this.form.onEvent,
-        on_closed: this.form.onClosed,
         settings: this.settingsToSend(),
       } as ChannelPayload
 

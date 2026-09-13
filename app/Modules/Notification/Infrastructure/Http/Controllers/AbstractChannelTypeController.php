@@ -42,9 +42,6 @@ abstract readonly class AbstractChannelTypeController
                     name: ArrayValueGetter::string($validated, 'name'),
                     type: $type,
                     enabled: ArrayValueGetter::bool($validated, 'enabled'),
-                    onOpened: ArrayValueGetter::bool($validated, 'on_opened'),
-                    onEvent: ArrayValueGetter::bool($validated, 'on_event'),
-                    onClosed: ArrayValueGetter::bool($validated, 'on_closed'),
                     settings: $this->settingsOf($validated)
                 )
             )
@@ -64,9 +61,6 @@ abstract readonly class AbstractChannelTypeController
                     id: $id,
                     name: ArrayValueGetter::string($validated, 'name'),
                     enabled: ArrayValueGetter::bool($validated, 'enabled'),
-                    onOpened: ArrayValueGetter::bool($validated, 'on_opened'),
-                    onEvent: ArrayValueGetter::bool($validated, 'on_event'),
-                    onClosed: ArrayValueGetter::bool($validated, 'on_closed'),
                     settings: $this->settingsOf($validated)
                 )
             );
