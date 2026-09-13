@@ -655,6 +655,7 @@ export namespace AdminApi {
         filter?: {
           field?: string;
           null?: boolean;
+          exists?: boolean;
           numeric?: {
             /** @format float */
             value?: number;
@@ -1297,6 +1298,7 @@ export namespace AdminApi {
         filter?: {
           field?: string;
           null?: boolean;
+          exists?: boolean;
           numeric?: {
             /** @format float */
             value?: number;
@@ -1365,6 +1367,7 @@ export namespace AdminApi {
         filter?: {
           field?: string;
           null?: boolean;
+          exists?: boolean;
           numeric?: {
             /** @format float */
             value?: number;
@@ -1434,6 +1437,7 @@ export namespace AdminApi {
         filter?: {
           field?: string;
           null?: boolean;
+          exists?: boolean;
           numeric?: {
             /** @format float */
             value?: number;
@@ -1516,6 +1520,7 @@ export namespace AdminApi {
         filter?: {
           field?: string;
           null?: boolean;
+          exists?: boolean;
           numeric?: {
             /** @format float */
             value?: number;
@@ -4525,6 +4530,7 @@ export class Api<
           filter?: {
             field?: string;
             null?: boolean;
+            exists?: boolean;
             numeric?: {
               /** @format float */
               value?: number;
@@ -5231,6 +5237,7 @@ export class Api<
           filter?: {
             field?: string;
             null?: boolean;
+            exists?: boolean;
             numeric?: {
               /** @format float */
               value?: number;
@@ -5309,6 +5316,7 @@ export class Api<
           filter?: {
             field?: string;
             null?: boolean;
+            exists?: boolean;
             numeric?: {
               /** @format float */
               value?: number;
@@ -5388,6 +5396,7 @@ export class Api<
           filter?: {
             field?: string;
             null?: boolean;
+            exists?: boolean;
             numeric?: {
               /** @format float */
               value?: number;
@@ -5480,6 +5489,7 @@ export class Api<
           filter?: {
             field?: string;
             null?: boolean;
+            exists?: boolean;
             numeric?: {
               /** @format float */
               value?: number;

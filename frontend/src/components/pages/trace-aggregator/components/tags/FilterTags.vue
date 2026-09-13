@@ -1,37 +1,106 @@
 <template>
   <el-form :inline="true">
     <el-form-item label="Types:">
-      <el-check-tag
-          v-for="type in traceAggregatorStore.payload.types"
+      <el-tooltip
+          v-for="type in visibleOf(traceAggregatorStore.payload.types)"
           :key="type"
-          type="success"
-          :checked="true"
-          @click="onTypeClick(type)"
+          :content="type"
+          :disabled="type.length <= maxTagLength"
+          placement="top"
       >
-        {{ type }}
-      </el-check-tag>
+        <el-check-tag
+            type="success"
+            :checked="true"
+            @click="onTypeClick(type)"
+        >
+          {{ truncate(type) }}
+        </el-check-tag>
+      </el-tooltip>
+      <el-tooltip
+          v-if="hiddenOf(traceAggregatorStore.payload.types).length"
+          placement="top"
+      >
+        <template #content>
+          <div v-for="hidden in hiddenOf(traceAggregatorStore.payload.types)" :key="hidden">
+            {{ hidden }}
+          </div>
+        </template>
+        <el-check-tag
+            type="success"
+            :checked="true"
+            @click="traceAggregatorTagsStore.showDialog = true"
+        >
+          +{{ hiddenOf(traceAggregatorStore.payload.types).length }}
+        </el-check-tag>
+      </el-tooltip>
     </el-form-item>
     <el-form-item label="Tags:">
-      <el-check-tag
-          v-for="tag in traceAggregatorStore.payload.tags"
+      <el-tooltip
+          v-for="tag in visibleOf(traceAggregatorStore.payload.tags)"
           :key="tag"
-          type="warning"
-          :checked="true"
-          @click="onTagClick(tag)"
+          :content="tag"
+          :disabled="tag.length <= maxTagLength"
+          placement="top"
       >
-        {{ tag }}
-      </el-check-tag>
+        <el-check-tag
+            type="warning"
+            :checked="true"
+            @click="onTagClick(tag)"
+        >
+          {{ truncate(tag) }}
+        </el-check-tag>
+      </el-tooltip>
+      <el-tooltip
+          v-if="hiddenOf(traceAggregatorStore.payload.tags).length"
+          placement="top"
+      >
+        <template #content>
+          <div v-for="hidden in hiddenOf(traceAggregatorStore.payload.tags)" :key="hidden">
+            {{ hidden }}
+          </div>
+        </template>
+        <el-check-tag
+            type="warning"
+            :checked="true"
+            @click="traceAggregatorTagsStore.showDialog = true"
+        >
+          +{{ hiddenOf(traceAggregatorStore.payload.tags).length }}
+        </el-check-tag>
+      </el-tooltip>
     </el-form-item>
     <el-form-item label="Statuses:">
-      <el-check-tag
-          v-for="status in traceAggregatorStore.payload.statuses"
+      <el-tooltip
+          v-for="status in visibleOf(traceAggregatorStore.payload.statuses)"
           :key="status"
-          type="primary"
-          :checked="true"
-          @click="onStatusClick(status)"
+          :content="status"
+          :disabled="status.length <= maxTagLength"
+          placement="top"
       >
-        {{ status }}
-      </el-check-tag>
+        <el-check-tag
+            type="primary"
+            :checked="true"
+            @click="onStatusClick(status)"
+        >
+          {{ truncate(status) }}
+        </el-check-tag>
+      </el-tooltip>
+      <el-tooltip
+          v-if="hiddenOf(traceAggregatorStore.payload.statuses).length"
+          placement="top"
+      >
+        <template #content>
+          <div v-for="hidden in hiddenOf(traceAggregatorStore.payload.statuses)" :key="hidden">
+            {{ hidden }}
+          </div>
+        </template>
+        <el-check-tag
+            type="primary"
+            :checked="true"
+            @click="traceAggregatorTagsStore.showDialog = true"
+        >
+          +{{ hiddenOf(traceAggregatorStore.payload.statuses).length }}
+        </el-check-tag>
+      </el-tooltip>
     </el-form-item>
     <el-form-item>
       <el-button :icon="TagAddIcon" @click="traceAggregatorTagsStore.showDialog = true"/>
@@ -105,6 +174,8 @@ export default defineComponent({
     return {
       TagAddIcon: shallowRef(TagAddIcon),
       SearchIcon: shallowRef(SearchIcon),
+      maxTagLength: 30,
+      maxVisibleTags: 2,
     }
   },
 
@@ -208,6 +279,17 @@ export default defineComponent({
   },
 
   methods: {
+    visibleOf(values: string[] | undefined): string[] {
+      return (values ?? []).slice(0, this.maxVisibleTags)
+    },
+    hiddenOf(values: string[] | undefined): string[] {
+      return (values ?? []).slice(this.maxVisibleTags)
+    },
+    truncate(value: string): string {
+      return value.length > this.maxTagLength
+          ? `${value.slice(0, this.maxTagLength)}…`
+          : value
+    },
     findTypes(text: string) {
       this.traceAggregatorStore.prepareCommonPayloadData()
 

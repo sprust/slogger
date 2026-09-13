@@ -153,6 +153,10 @@ class RequestFilterRules
                 'sometimes',
                 'bool',
             ],
+            'data.filter.*.exists'        => [
+                'sometimes',
+                'bool',
+            ],
             'data.filter.*.numeric'       => [
                 'sometimes',
                 'array',

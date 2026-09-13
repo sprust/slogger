@@ -62,13 +62,14 @@ class DataFilterParameterTransportTest extends TestCase
                     ['field' => 'code', 'numeric' => ['value' => 500, 'comp' => '>=']],
                     ['field' => 'name', 'string' => ['value' => 'boom', 'comp' => 'contains']],
                     ['field' => 'ok', 'boolean' => ['value' => true]],
-                    ['field' => 'missing', 'null' => true],
+                    ['field' => 'empty', 'null' => true],
+                    ['field' => 'missing', 'exists' => false],
                 ],
             ],
         ]);
 
         $this->assertSame(['user.id'], $parameters->fields);
-        $this->assertCount(4, $parameters->filter);
+        $this->assertCount(5, $parameters->filter);
 
         $this->assertSame('code', $parameters->filter[0]->field);
         $this->assertSame(500, $parameters->filter[0]->numeric?->value);
@@ -79,5 +80,9 @@ class DataFilterParameterTransportTest extends TestCase
 
         $this->assertTrue($parameters->filter[2]->boolean?->value);
         $this->assertTrue($parameters->filter[3]->null);
+        $this->assertNull($parameters->filter[3]->exists);
+
+        $this->assertFalse($parameters->filter[4]->exists);
+        $this->assertNull($parameters->filter[4]->null);
     }
 }

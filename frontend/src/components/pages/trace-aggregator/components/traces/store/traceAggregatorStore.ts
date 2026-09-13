@@ -31,11 +31,14 @@ export type TraceAggregatorExternalFilter = {
 export type TraceAggregatorCustomField = {
     field: string,
     canBeFiltered: boolean,
-    search: false,
+    search: boolean,
     searchData: TraceAggregatorCustomFieldSearchParameter,
     addToTable: boolean,
     addToGraph: boolean,
+    manual?: boolean,
 }
+
+export type TraceAggregatorCustomFieldType = 'string' | 'int' | 'float' | 'bool'
 
 // TODO: get comp from scheme
 export enum PeriodPresetEnum {
@@ -62,6 +65,7 @@ export function getPeriodPresetEnumByValue(value: string) {
 export type TraceAggregatorDataFilter = {
     field?: string,
     null?: boolean,
+    exists?: boolean,
     numeric?: {
         value?: number,
         comp?: "=" | "!=" | ">" | ">=" | "<" | "<="
@@ -111,9 +115,14 @@ export type TraceAggregatorCustomFieldSearchParameter = {
         enabled: boolean
         value: boolean
     },
+    exists?: {
+        enabled: boolean
+        value: boolean
+    },
     number?: {
         value: number,
-        comp: "=" | "!=" | ">" | ">=" | "<" | "<="
+        comp: "=" | "!=" | ">" | ">=" | "<" | "<=",
+        float?: boolean,
     },
     string?: {
         value: string,
@@ -194,7 +203,7 @@ export const useTraceAggregatorStore = defineStore('traceAggregatorStore', {
             this.prepareCommonPayloadData()
 
             this.customFields.map((customField: TraceAggregatorCustomField) => {
-                if (customField.addToTable) {
+                if (customField.addToTable && customField.field.trim() !== '') {
                     this.payload.data!.fields!.push(customField.field)
                 }
             });
@@ -321,6 +330,52 @@ export const useTraceAggregatorStore = defineStore('traceAggregatorStore', {
                 ) ?? []
             }
         },
+        addEmptyCustomField() {
+            this.customFields.push({
+                field: '',
+                canBeFiltered: true,
+                search: false,
+                searchData: this.makeCustomFieldSearchData('string'),
+                addToTable: false,
+                addToGraph: false,
+                manual: true,
+            })
+        },
+        setCustomFieldType(customField: TraceAggregatorCustomField, type: TraceAggregatorCustomFieldType) {
+            customField.searchData = {
+                ...this.makeCustomFieldSearchData(type),
+                null: customField.searchData.null,
+                exists: customField.searchData.exists,
+            }
+
+            if (type !== 'int' && type !== 'float') {
+                customField.addToGraph = false
+            }
+        },
+        makeCustomFieldSearchData(type: TraceAggregatorCustomFieldType): TraceAggregatorCustomFieldSearchParameter {
+            const data: TraceAggregatorCustomFieldSearchParameter = {
+                null: {
+                    enabled: false,
+                    value: false
+                }
+            }
+
+            switch (type) {
+                case 'int':
+                    data.number = {value: 0, comp: '='}
+                    break
+                case 'float':
+                    data.number = {value: 0, comp: '=', float: true}
+                    break
+                case 'bool':
+                    data.boolean = {value: false}
+                    break
+                default:
+                    data.string = {value: '', comp: 'equals'}
+            }
+
+            return data
+        },
         addOrDeleteCustomField(parameters: TraceAggregatorCustomFieldParameter) {
             const customField = parameters.field
 
@@ -392,8 +447,13 @@ export const useTraceAggregatorStore = defineStore('traceAggregatorStore', {
             this.customFields.map((customField: TraceAggregatorCustomField) => {
                 const field = `dt.${customField.field}`
 
-                if (customField.search) {
-                    if (customField.searchData.null.enabled) {
+                if (customField.search && customField.field.trim() !== '') {
+                    if (customField.searchData.exists?.enabled) {
+                        data.filter!.push({
+                            field: field,
+                            exists: customField.searchData.exists.value
+                        })
+                    } else if (customField.searchData.null.enabled) {
                         data.filter!.push({
                             field: field,
                             null: customField.searchData.null.value

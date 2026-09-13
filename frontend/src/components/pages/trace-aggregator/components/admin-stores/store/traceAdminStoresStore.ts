@@ -19,7 +19,7 @@ export type AdminStoresParameters = AdminApi.TraceAggregatorStatesList.RequestQu
 export type AdminStoreCreateParameters = AdminApi.TraceAggregatorStatesCreate.RequestBody
 
 // need for admin stores
-const stateVersion = 3
+const stateVersion = 4
 
 interface DeletedIds {
     [key: string]: boolean

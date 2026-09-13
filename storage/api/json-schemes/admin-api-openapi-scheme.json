@@ -875,6 +875,9 @@
                                                         "null": {
                                                             "type": "boolean"
                                                         },
+                                                        "exists": {
+                                                            "type": "boolean"
+                                                        },
                                                         "numeric": {
                                                             "type": "object",
                                                             "properties": {
@@ -2343,6 +2346,9 @@
                                                         "null": {
                                                             "type": "boolean"
                                                         },
+                                                        "exists": {
+                                                            "type": "boolean"
+                                                        },
                                                         "numeric": {
                                                             "type": "object",
                                                             "properties": {
@@ -2536,6 +2542,9 @@
                                                             "type": "string"
                                                         },
                                                         "null": {
+                                                            "type": "boolean"
+                                                        },
+                                                        "exists": {
                                                             "type": "boolean"
                                                         },
                                                         "numeric": {
@@ -2737,6 +2746,9 @@
                                                             "type": "string"
                                                         },
                                                         "null": {
+                                                            "type": "boolean"
+                                                        },
+                                                        "exists": {
                                                             "type": "boolean"
                                                         },
                                                         "numeric": {
@@ -2972,6 +2984,9 @@
                                                             "type": "string"
                                                         },
                                                         "null": {
+                                                            "type": "boolean"
+                                                        },
+                                                        "exists": {
                                                             "type": "boolean"
                                                         },
                                                         "numeric": {

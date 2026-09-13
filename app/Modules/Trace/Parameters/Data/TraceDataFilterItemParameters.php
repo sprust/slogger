@@ -9,6 +9,7 @@ readonly class TraceDataFilterItemParameters
     public function __construct(
         public string $field,
         public ?bool $null,
+        public ?bool $exists,
         public ?TraceDataFilterNumericParameters $numeric,
         public ?TraceDataFilterStringParameters $string,
         public ?TraceDataFilterBooleanParameters $boolean

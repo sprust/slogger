@@ -25,6 +25,7 @@ class TracePipelineBuilderTest extends TestCase
                     new TraceDataFilterItemParameters(
                         field: 'dt.job',
                         null: null,
+                        exists: null,
                         numeric: null,
                         string: new TraceDataFilterStringParameters(
                             value: 'App\Modules\ExcelExport\Jobs\GenerateExcelExportJob.run',
@@ -40,6 +41,50 @@ class TracePipelineBuilderTest extends TestCase
             [['$match' => ['dt.job' => ['$regex' => $expectedRegex]]]],
             $pipeline
         );
+    }
+
+    /**
+     * @param array<string, mixed> $expectedCondition
+     */
+    #[DataProvider('presenceFilterProvider')]
+    public function testAPresenceFilterMatchesItsCondition(
+        ?bool $null,
+        ?bool $exists,
+        array $expectedCondition
+    ): void {
+        $pipeline = (new TracePipelineBuilder())->make(
+            data: new TraceDataFilterParameters(
+                filter: [
+                    new TraceDataFilterItemParameters(
+                        field: 'dt.job',
+                        null: $null,
+                        exists: $exists,
+                        numeric: null,
+                        string: null,
+                        boolean: null
+                    ),
+                ]
+            )
+        );
+
+        self::assertSame(
+            [['$match' => ['dt.job' => $expectedCondition]]],
+            $pipeline
+        );
+    }
+
+    /**
+     * @return array<string, array{bool|null, bool|null, array<string, mixed>}>
+     */
+    public static function presenceFilterProvider(): array
+    {
+        return [
+            'null'        => [true, null, ['$type' => 'null']],
+            'not null'    => [false, null, ['$ne' => null]],
+            'exists'      => [null, true, ['$exists' => true]],
+            'not exists'  => [null, false, ['$exists' => false]],
+            'exists wins' => [true, false, ['$exists' => false]],
+        ];
     }
 
     /**

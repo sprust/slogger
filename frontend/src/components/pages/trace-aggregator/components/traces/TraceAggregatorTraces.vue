@@ -103,6 +103,14 @@
         />
       </el-row>
       <el-row>
+        <el-button
+            :icon="Plus"
+            link
+            style="margin-right: 10px"
+            @click="traceAggregatorStore.addEmptyCustomField()"
+        >
+          Data field
+        </el-button>
         <OtherFilters/>
         <div class="flex-grow"/>
         <el-space>
@@ -186,7 +194,7 @@ import FilterTags from "../tags/FilterTags.vue";
 import DynamicIndexes from "../dynamic-indexes/DynamicIndexes.vue";
 import AdminStores from "../admin-stores/AdminStores.vue";
 import OtherFilters from "./OtherFilters.vue";
-import {CaretRight, Clock as FromPresetIcon, Close, CloseBold, Loading, SwitchButton} from '@element-plus/icons-vue'
+import {CaretRight, Clock as FromPresetIcon, Close, CloseBold, Loading, Plus, SwitchButton} from '@element-plus/icons-vue'
 import TraceAggregatorGraph from "../graph/TraceAggregatorGraph.vue";
 import TraceAggregatorTimestampPeriods from "../graph/TraceAggregatorTimestampPeriods.vue";
 import {useTraceAggregatorGraphStore} from "../graph/store/traceAggregatorGraphStore.ts";
@@ -257,6 +265,9 @@ export default defineComponent({
     },
     Play() {
       return CaretRight
+    },
+    Plus() {
+      return Plus
     },
     Stop() {
       return Close

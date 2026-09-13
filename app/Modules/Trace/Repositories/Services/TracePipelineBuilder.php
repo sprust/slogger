@@ -110,8 +110,14 @@ class TracePipelineBuilder
             foreach ($data->filter as $filterItem) {
                 $field = $filterItem->field;
 
+                if (!is_null($filterItem->exists)) {
+                    $match[$field] = ['$exists' => $filterItem->exists];
+
+                    continue;
+                }
+
                 if (!is_null($filterItem->null)) {
-                    $match[$field] = $filterItem->null ? ['$exists' => false] : ['$exists' => true];
+                    $match[$field] = $filterItem->null ? ['$type' => 'null'] : ['$ne' => null];
 
                     continue;
                 }

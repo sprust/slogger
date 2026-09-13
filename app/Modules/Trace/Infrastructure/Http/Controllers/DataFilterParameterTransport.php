@@ -31,6 +31,7 @@ class DataFilterParameterTransport
                 fn(array $filterItem) => new TraceDataFilterItemParameters(
                     field: ArrayValueGetter::string($filterItem, 'field'),
                     null: ArrayValueGetter::boolNull($filterItem, 'null'),
+                    exists: ArrayValueGetter::boolNull($filterItem, 'exists'),
                     numeric: array_key_exists('numeric', $filterItem)
                         ? new TraceDataFilterNumericParameters(
                             value: ArrayValueGetter::intFloat($filterItem['numeric'], 'value'),

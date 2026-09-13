@@ -104,7 +104,7 @@ export const useTraceAggregatorGraphStore = defineStore('traceAggregatorGraphSto
             this.payload.data_fields = []
 
             dataFields?.forEach((customField: TraceAggregatorCustomField) => {
-                if (!customField.addToGraph) {
+                if (!customField.addToGraph || customField.field.trim() === '') {
                     return
                 }
 
