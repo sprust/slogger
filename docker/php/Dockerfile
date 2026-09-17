@@ -25,9 +25,8 @@ RUN curl -fSL --connect-timeout 10 --retry 3 \
 # Third-party extensions via PIE (installs and enables them)
 #
 # msgpack is what every payload crossing the PHP-extension boundary is encoded with, and
-# sconcur/sconcur requires it. redis is the cache client named by REDIS_CLIENT.
-RUN pie install phpredis/phpredis \
-    && pie install msgpack/msgpack-php
+# sconcur/sconcur requires it.
+RUN pie install msgpack/msgpack-php
 
 # Bundled (core) extensions
 #

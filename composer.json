@@ -8,7 +8,6 @@
         "php": "^8.4",
         "ext-pcntl": "*",
         "ext-pdo": "*",
-        "ext-redis": "*",
         "guzzlehttp/guzzle": "^7.2",
         "ifksco/openapi-generator": "dev-master",
         "laravel/framework": "^12",

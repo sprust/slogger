@@ -70,7 +70,7 @@ make stop
 - Backend is a Laravel 12 application on PHP 8.4, running on SConcur — a concurrent coroutine HTTP runtime that executes each request in its own PHP Fiber inside a single long-lived process.
 - Frontend lives in `frontend/` and is a separate Vue 3 + Vite + TypeScript app.
 - Receiver is a standalone Go service in `servers/receiver/` that accepts trace payloads over TCP.
-- Storage: MongoDB (traces/logs) + MySQL (users/services/auth) + Redis/RabbitMQ (queues).
+- Storage: MongoDB (traces/logs) + MySQL (users/services/auth) + RabbitMQ (queues) + Redis (cache, through the `sconcur` client and the `sconcur_redis` store).
 - Main orchestration is done through the root `makefile` and Docker Compose.
 - Domain code is organized mostly in `app/Modules`, while Eloquent models remain in `app/Models`.
 

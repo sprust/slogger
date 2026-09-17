@@ -208,7 +208,7 @@ return [
 
     'redis' => [
 
-        'client' => env('REDIS_CLIENT', 'phpredis'),
+        'client' => env('REDIS_CLIENT', 'sconcur'),
 
         'options' => [
             'cluster' => env('REDIS_CLUSTER', 'redis'),
