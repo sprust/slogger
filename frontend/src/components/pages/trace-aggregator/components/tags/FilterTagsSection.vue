@@ -1,6 +1,33 @@
 <template>
   <el-form @submit.prevent="findTags">
-    <el-form-item :label="title">
+    <el-form-item>
+      <div class="section-title">
+        <el-text>{{ title }}</el-text>
+        <el-tooltip
+            content="Move left, to filter it by less"
+            placement="top"
+            :disabled="!canMoveLeft"
+        >
+          <el-button
+              link
+              :icon="ArrowLeftIcon"
+              :disabled="!canMoveLeft"
+              @click="$emit('moveLeft')"
+          />
+        </el-tooltip>
+        <el-tooltip
+            content="Move right, to filter it by more"
+            placement="top"
+            :disabled="!canMoveRight"
+        >
+          <el-button
+              link
+              :icon="ArrowRightIcon"
+              :disabled="!canMoveRight"
+              @click="$emit('moveRight')"
+          />
+        </el-tooltip>
+      </div>
     </el-form-item>
     <el-form-item>
       <div class="search-actions"  style="margin: 3px">
@@ -57,11 +84,17 @@
 
 <script lang="ts">
 import {defineComponent, PropType, shallowRef} from "vue";
-import {ArrowDown, Plus as TagAddIcon, Search as SearchIcon} from '@element-plus/icons-vue'
+import {
+  ArrowDown,
+  ArrowLeft as ArrowLeftIcon,
+  ArrowRight as ArrowRightIcon,
+  Plus as TagAddIcon,
+  Search as SearchIcon
+} from '@element-plus/icons-vue'
 import {TagLoading, TraceTag} from "./store/traceAggregatorTagsStore.ts";
 
 export default defineComponent({
-  emits: ['findTags', 'onTagClick'],
+  emits: ['findTags', 'onTagClick', 'moveLeft', 'moveRight'],
   props: {
     title: {
       type: String,
@@ -87,11 +120,21 @@ export default defineComponent({
       type: Array as PropType<string[]>,
       required: true,
     },
+    canMoveLeft: {
+      type: Boolean,
+      required: true,
+    },
+    canMoveRight: {
+      type: Boolean,
+      required: true,
+    },
   },
   data() {
     return {
       searchQuery: '',
       ArrowDownIcon: shallowRef(ArrowDown),
+      ArrowLeftIcon: shallowRef(ArrowLeftIcon),
+      ArrowRightIcon: shallowRef(ArrowRightIcon),
       TagAddIcon: shallowRef(TagAddIcon),
       SearchIcon: shallowRef(SearchIcon),
     }
@@ -120,6 +163,17 @@ export default defineComponent({
 </script>
 
 <style scoped>
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* element-plus spaces neighbouring buttons apart; the flex gap already does that */
+.section-title :deep(.el-button + .el-button) {
+  margin-left: 0;
+}
+
 .search-actions {
   display: flex;
   align-items: stretch;

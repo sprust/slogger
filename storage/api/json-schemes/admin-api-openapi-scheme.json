@@ -2278,6 +2278,18 @@
                                         "nullable": true,
                                         "minLength": 1
                                     },
+                                    "tags": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "statuses": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
                                     "logging_from_preset": {
                                         "type": "string",
                                         "enum": [
@@ -2471,6 +2483,12 @@
                                         "minLength": 1
                                     },
                                     "types": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "statuses": {
                                         "type": "array",
                                         "items": {
                                             "type": "string"

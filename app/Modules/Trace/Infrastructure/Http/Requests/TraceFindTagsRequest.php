@@ -15,6 +15,7 @@ class TraceFindTagsRequest extends FormRequest
             ...RequestFilterRules::services(),
             ...RequestFilterRules::text(),
             ...RequestFilterRules::types(),
+            ...RequestFilterRules::statuses(),
             ...RequestFilterRules::loggedFromTo(),
             ...RequestFilterRules::durationFromTo(),
             ...RequestFilterRules::memoryFromTo(),

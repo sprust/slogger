@@ -11,12 +11,14 @@ readonly class TraceFindTagsParameters
     /**
      * @param int[]    $serviceIds
      * @param string[] $types
+     * @param string[] $statuses
      */
     public function __construct(
         public array $serviceIds = [],
         public ?string $text = null,
         public ?PeriodParameters $loggingPeriod = null,
         public array $types = [],
+        public array $statuses = [],
         public ?float $durationFrom = null,
         public ?float $durationTo = null,
         public ?float $memoryFrom = null,

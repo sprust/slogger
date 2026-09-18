@@ -1277,6 +1277,8 @@ export namespace AdminApi {
       service_ids?: number[];
       /** @minLength 1 */
       text?: string | null;
+      tags?: string[];
+      statuses?: string[];
       logging_from_preset?: LoggingFromPresetEnum1;
       /** @format date */
       logging_from?: string;
@@ -1346,6 +1348,7 @@ export namespace AdminApi {
       /** @minLength 1 */
       text?: string | null;
       types?: string[];
+      statuses?: string[];
       logging_from_preset?: LoggingFromPresetEnum2;
       /** @format date */
       logging_from?: string;
@@ -5228,6 +5231,8 @@ export class Api<
         service_ids?: number[];
         /** @minLength 1 */
         text?: string | null;
+        tags?: string[];
+        statuses?: string[];
         logging_from_preset?: LoggingFromPresetEnum1;
         /** @format date */
         logging_from?: string;
@@ -5307,6 +5312,7 @@ export class Api<
         /** @minLength 1 */
         text?: string | null;
         types?: string[];
+        statuses?: string[];
         logging_from_preset?: LoggingFromPresetEnum2;
         /** @format date */
         logging_from?: string;

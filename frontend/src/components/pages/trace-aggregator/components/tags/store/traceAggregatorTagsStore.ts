@@ -39,6 +39,8 @@ interface TraceTagHistoryState {
     statuses: string[],
 }
 
+export type TraceTagSectionOrder = TraceTagHistoryType[]
+
 interface TraceAggregatorTagsStoreInterface {
     types: Array<TraceTag>,
     typesPayload: TraceAggregatorFindTypesPayload,
@@ -54,10 +56,42 @@ interface TraceAggregatorTagsStoreInterface {
 
     showDialog: boolean,
     recentSelections: TraceTagHistoryState,
+    sectionOrder: TraceTagSectionOrder,
 }
 
 const RECENT_SELECTIONS_STORAGE_KEY = 'trace-aggregator-tag-recent-selections'
 const RECENT_SELECTIONS_LIMIT = 10
+const SECTION_ORDER_STORAGE_KEY = 'trace-aggregator-tag-section-order'
+
+function getDefaultSectionOrder(): TraceTagSectionOrder {
+    return ['types', 'tags', 'statuses']
+}
+
+// Takes the saved order only when it still lists every section exactly once.
+function loadSectionOrder(): TraceTagSectionOrder {
+    if (typeof localStorage === 'undefined') {
+        return getDefaultSectionOrder()
+    }
+
+    const savedOrder = localStorage.getItem(SECTION_ORDER_STORAGE_KEY)
+
+    if (!savedOrder) {
+        return getDefaultSectionOrder()
+    }
+
+    try {
+        const parsedOrder = JSON.parse(savedOrder) as TraceTagSectionOrder
+        const defaultOrder = getDefaultSectionOrder()
+
+        const isComplete = Array.isArray(parsedOrder)
+            && parsedOrder.length === defaultOrder.length
+            && defaultOrder.every((section: TraceTagHistoryType) => parsedOrder.includes(section))
+
+        return isComplete ? parsedOrder : defaultOrder
+    } catch {
+        return getDefaultSectionOrder()
+    }
+}
 
 function getDefaultRecentSelections(): TraceTagHistoryState {
     return {
@@ -114,6 +148,7 @@ export const useTraceAggregatorTagsStore = defineStore('traceAggregatorTagsStore
 
             showDialog: false,
             recentSelections: loadRecentSelections(),
+            sectionOrder: loadSectionOrder(),
         }
     },
     actions: {
@@ -187,6 +222,27 @@ export const useTraceAggregatorTagsStore = defineStore('traceAggregatorTagsStore
             ].slice(0, RECENT_SELECTIONS_LIMIT)
 
             this.saveRecentSelections()
+        },
+        moveSection(section: TraceTagHistoryType, offset: number) {
+            const currentIndex = this.sectionOrder.indexOf(section)
+            const targetIndex = currentIndex + offset
+
+            if (currentIndex === -1 || targetIndex < 0 || targetIndex >= this.sectionOrder.length) {
+                return
+            }
+
+            const reordered = [...this.sectionOrder]
+
+            reordered[currentIndex] = reordered[targetIndex]
+            reordered[targetIndex] = section
+
+            this.sectionOrder = reordered
+
+            if (typeof localStorage === 'undefined') {
+                return
+            }
+
+            localStorage.setItem(SECTION_ORDER_STORAGE_KEY, JSON.stringify(this.sectionOrder))
         },
         saveRecentSelections() {
             if (typeof localStorage === 'undefined') {

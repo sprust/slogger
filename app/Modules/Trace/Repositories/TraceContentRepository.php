@@ -21,7 +21,9 @@ readonly class TraceContentRepository
     }
 
     /**
-     * @param int[] $serviceIds
+     * @param int[]    $serviceIds
+     * @param string[] $tags
+     * @param string[] $statuses
      *
      * @return TraceStringFieldObject[]
      */
@@ -30,6 +32,8 @@ readonly class TraceContentRepository
         ?string $text = null,
         ?Carbon $loggedAtFrom = null,
         ?Carbon $loggedAtTo = null,
+        array $tags = [],
+        array $statuses = [],
         ?float $durationFrom = null,
         ?float $durationTo = null,
         ?float $memoryFrom = null,
@@ -52,6 +56,8 @@ readonly class TraceContentRepository
             serviceIds: $serviceIds,
             loggedAtFrom: $loggedAtFrom,
             loggedAtTo: $loggedAtTo,
+            tags: $tags,
+            statuses: $statuses,
             durationFrom: $durationFrom,
             durationTo: $durationTo,
             memoryFrom: $memoryFrom,
@@ -96,6 +102,7 @@ readonly class TraceContentRepository
     /**
      * @param int[]    $serviceIds
      * @param string[] $types
+     * @param string[] $statuses
      *
      * @return TraceStringFieldObject[]
      */
@@ -105,6 +112,7 @@ readonly class TraceContentRepository
         ?Carbon $loggedAtFrom = null,
         ?Carbon $loggedAtTo = null,
         array $types = [],
+        array $statuses = [],
         ?float $durationFrom = null,
         ?float $durationTo = null,
         ?float $memoryFrom = null,
@@ -128,6 +136,7 @@ readonly class TraceContentRepository
             loggedAtFrom: $loggedAtFrom,
             loggedAtTo: $loggedAtTo,
             types: $types,
+            statuses: $statuses,
             durationFrom: $durationFrom,
             durationTo: $durationTo,
             memoryFrom: $memoryFrom,
