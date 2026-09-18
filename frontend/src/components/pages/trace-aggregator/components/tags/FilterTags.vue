@@ -1,104 +1,40 @@
 <template>
   <el-form :inline="true">
-    <el-form-item label="Types:">
+    <el-form-item
+        v-for="section in sections"
+        :key="section.key"
+        :label="`${section.label}:`"
+    >
       <el-tooltip
-          v-for="type in visibleOf(traceAggregatorStore.payload.types)"
-          :key="type"
-          :content="type"
-          :disabled="type.length <= maxTagLength"
+          v-for="value in visibleOf(section.selectedTags)"
+          :key="value"
+          :content="value"
+          :disabled="value.length <= maxTagLength"
           placement="top"
       >
         <el-check-tag
-            type="success"
+            :type="section.tagType"
             :checked="true"
-            @click="onSectionTagClick('types', type)"
+            @click="onSectionTagClick(section.key, value)"
         >
-          {{ truncate(type) }}
+          {{ truncate(value) }}
         </el-check-tag>
       </el-tooltip>
       <el-tooltip
-          v-if="hiddenOf(traceAggregatorStore.payload.types).length"
+          v-if="hiddenOf(section.selectedTags).length"
           placement="top"
       >
         <template #content>
-          <div v-for="hidden in hiddenOf(traceAggregatorStore.payload.types)" :key="hidden">
+          <div v-for="hidden in hiddenOf(section.selectedTags)" :key="hidden">
             {{ hidden }}
           </div>
         </template>
         <el-check-tag
-            type="success"
+            :type="section.tagType"
             :checked="true"
             @click="traceAggregatorTagsStore.showDialog = true"
         >
-          +{{ hiddenOf(traceAggregatorStore.payload.types).length }}
-        </el-check-tag>
-      </el-tooltip>
-    </el-form-item>
-    <el-form-item label="Tags:">
-      <el-tooltip
-          v-for="tag in visibleOf(traceAggregatorStore.payload.tags)"
-          :key="tag"
-          :content="tag"
-          :disabled="tag.length <= maxTagLength"
-          placement="top"
-      >
-        <el-check-tag
-            type="warning"
-            :checked="true"
-            @click="onSectionTagClick('tags', tag)"
-        >
-          {{ truncate(tag) }}
-        </el-check-tag>
-      </el-tooltip>
-      <el-tooltip
-          v-if="hiddenOf(traceAggregatorStore.payload.tags).length"
-          placement="top"
-      >
-        <template #content>
-          <div v-for="hidden in hiddenOf(traceAggregatorStore.payload.tags)" :key="hidden">
-            {{ hidden }}
-          </div>
-        </template>
-        <el-check-tag
-            type="warning"
-            :checked="true"
-            @click="traceAggregatorTagsStore.showDialog = true"
-        >
-          +{{ hiddenOf(traceAggregatorStore.payload.tags).length }}
-        </el-check-tag>
-      </el-tooltip>
-    </el-form-item>
-    <el-form-item label="Statuses:">
-      <el-tooltip
-          v-for="status in visibleOf(traceAggregatorStore.payload.statuses)"
-          :key="status"
-          :content="status"
-          :disabled="status.length <= maxTagLength"
-          placement="top"
-      >
-        <el-check-tag
-            type="primary"
-            :checked="true"
-            @click="onSectionTagClick('statuses', status)"
-        >
-          {{ truncate(status) }}
-        </el-check-tag>
-      </el-tooltip>
-      <el-tooltip
-          v-if="hiddenOf(traceAggregatorStore.payload.statuses).length"
-          placement="top"
-      >
-        <template #content>
-          <div v-for="hidden in hiddenOf(traceAggregatorStore.payload.statuses)" :key="hidden">
-            {{ hidden }}
-          </div>
-        </template>
-        <el-check-tag
-            type="primary"
-            :checked="true"
-            @click="traceAggregatorTagsStore.showDialog = true"
-        >
-          +{{ hiddenOf(traceAggregatorStore.payload.statuses).length }}
+          +{{ hiddenOf(section.selectedTags).length }}
         </el-check-tag>
       </el-tooltip>
     </el-form-item>
@@ -160,6 +96,12 @@ type FindPayload = TraceAggregatorCommonPayload & {
   text?: string | null,
 }
 
+const sectionLabels: Record<TraceTagHistoryType, string> = {
+  types: 'Types',
+  tags: 'Tags',
+  statuses: 'Statuses',
+}
+
 const sectionTitles: Record<TraceTagHistoryType, string> = {
   types: 'Types',
   tags: 'Tags (by first 100000)',
@@ -196,6 +138,7 @@ export default defineComponent({
           (key: TraceTagHistoryType) => {
             return {
               key: key,
+              label: sectionLabels[key],
               title: sectionTitles[key],
               tagType: sectionTagTypes[key],
               tags: this.foundTagsOf(key),

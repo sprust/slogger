@@ -61,36 +61,10 @@ interface TraceAggregatorTagsStoreInterface {
 
 const RECENT_SELECTIONS_STORAGE_KEY = 'trace-aggregator-tag-recent-selections'
 const RECENT_SELECTIONS_LIMIT = 10
-const SECTION_ORDER_STORAGE_KEY = 'trace-aggregator-tag-section-order'
 
+// The order is not kept anywhere: a page reload starts from this one again.
 function getDefaultSectionOrder(): TraceTagSectionOrder {
     return ['types', 'tags', 'statuses']
-}
-
-// Takes the saved order only when it still lists every section exactly once.
-function loadSectionOrder(): TraceTagSectionOrder {
-    if (typeof localStorage === 'undefined') {
-        return getDefaultSectionOrder()
-    }
-
-    const savedOrder = localStorage.getItem(SECTION_ORDER_STORAGE_KEY)
-
-    if (!savedOrder) {
-        return getDefaultSectionOrder()
-    }
-
-    try {
-        const parsedOrder = JSON.parse(savedOrder) as TraceTagSectionOrder
-        const defaultOrder = getDefaultSectionOrder()
-
-        const isComplete = Array.isArray(parsedOrder)
-            && parsedOrder.length === defaultOrder.length
-            && defaultOrder.every((section: TraceTagHistoryType) => parsedOrder.includes(section))
-
-        return isComplete ? parsedOrder : defaultOrder
-    } catch {
-        return getDefaultSectionOrder()
-    }
 }
 
 function getDefaultRecentSelections(): TraceTagHistoryState {
@@ -148,7 +122,7 @@ export const useTraceAggregatorTagsStore = defineStore('traceAggregatorTagsStore
 
             showDialog: false,
             recentSelections: loadRecentSelections(),
-            sectionOrder: loadSectionOrder(),
+            sectionOrder: getDefaultSectionOrder(),
         }
     },
     actions: {
@@ -237,12 +211,6 @@ export const useTraceAggregatorTagsStore = defineStore('traceAggregatorTagsStore
             reordered[targetIndex] = section
 
             this.sectionOrder = reordered
-
-            if (typeof localStorage === 'undefined') {
-                return
-            }
-
-            localStorage.setItem(SECTION_ORDER_STORAGE_KEY, JSON.stringify(this.sectionOrder))
         },
         saveRecentSelections() {
             if (typeof localStorage === 'undefined') {
