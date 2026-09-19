@@ -81,4 +81,35 @@ class TraceDataToObjectBuilderTest extends TestCase
             actual: $actual,
         );
     }
+
+    public function testKeepsTheOrderOfTheKeys(): void
+    {
+        $data = [
+            'sql'        => 'select 1',
+            'connection' => 'mysql',
+            'bindings'   => [],
+            '__trace'    => [
+                'zz' => 1,
+                'aa' => 2,
+            ],
+        ];
+
+        $object = new TraceDataToObjectBuilder($data)->build();
+
+        self::assertSame(
+            expected: ['sql', 'connection', 'bindings', '__trace'],
+            actual: array_map(
+                static fn(TraceDataObject $child) => $child->key,
+                $object->children
+            ),
+        );
+
+        self::assertSame(
+            expected: ['__trace.zz', '__trace.aa'],
+            actual: array_map(
+                static fn(TraceDataObject $child) => $child->key,
+                $object->children[3]->children
+            ),
+        );
+    }
 }

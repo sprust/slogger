@@ -119,3 +119,19 @@ func TestNoDataAnywhereIsAnEmptyList(t *testing.T) {
 		t.Fatalf("expected an empty list, got %v", data)
 	}
 }
+
+// The stored data is handed back as it was read, order and all. Rebuilt into a map on the
+// way through, it would be written back to the shard in a new order on every update that
+// carried no data of its own.
+func TestStoredDataKeepsItsOrder(t *testing.T) {
+	stored := bson.D{
+		{Key: "sql", Value: "select 1"},
+		{Key: "connection", Value: "mysql"},
+	}
+
+	data := mergeData(nil, stored, bson.D{{Key: "path", Value: "/x"}})
+
+	if !reflect.DeepEqual(data, stored) {
+		t.Fatalf("expected the stored data, got %v", data)
+	}
+}

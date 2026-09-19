@@ -8,6 +8,7 @@ import (
 	"math"
 	"os"
 	"slogger_receiver/internal/dto"
+	"slogger_receiver/internal/helpers/bson_helper"
 	"slogger_receiver/internal/helpers/datetime_helper"
 	"slogger_receiver/pkg/foundation/errs"
 	"sync"
@@ -183,13 +184,17 @@ func (r *Repository) FindMany(ctx context.Context, limit int) (map[int]*dto.Serv
 			result[serviceId] = &dto.ServiceTraces{}
 		}
 
+		data := dto.Data{
+			Value: bson_helper.OrderedValue(cursor.Current, "dt", doc["dt"]),
+		}
+
 		if parsed.op == "c" {
 			trace := &dto.TraceCreating{
 				TraceId:  parsed.traceId,
 				Type:     asString(doc["tp"]),
 				Status:   asString(doc["st"]),
 				Tags:     asInterfaces(doc["tgs"]),
-				Data:     doc["dt"],
+				Data:     data,
 				LoggedAt: asLoggedAtString(doc["lat"]),
 			}
 
@@ -224,7 +229,7 @@ func (r *Repository) FindMany(ctx context.Context, limit int) (map[int]*dto.Serv
 			trace := &dto.TraceUpdating{
 				TraceId:        parsed.traceId,
 				Status:         asString(doc["st"]),
-				Data:           doc["dt"],
+				Data:           data,
 				ParentLoggedAt: doc["plat"],
 			}
 
@@ -467,7 +472,7 @@ func (r *Repository) makeCreatingTraceDoc(serviceId int, trace dto.TraceCreating
 		"tp":  trace.Type,
 		"st":  trace.Status,
 		"tgs": trace.Tags,
-		"dt":  trace.Data,
+		"dt":  trace.Data.Value,
 		"lat": trace.LoggedAt,
 		"cat": datetime_helper.Now(),
 	}
@@ -497,7 +502,7 @@ func (r *Repository) makeUpdatingTraceDoc(serviceId int, trace dto.TraceUpdating
 		"sid":  serviceId,
 		"tid":  trace.TraceId,
 		"st":   trace.Status,
-		"dt":   trace.Data,
+		"dt":   trace.Data.Value,
 		"plat": trace.ParentLoggedAt,
 		"cat":  datetime_helper.Now(),
 	}

@@ -3,6 +3,7 @@ package buffer_repository
 import (
 	"bytes"
 	"errors"
+	"slogger_receiver/internal/dto"
 	"testing"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -220,5 +221,43 @@ func TestUndecodableDocCapsWhatItKeeps(t *testing.T) {
 
 	if got.Doc["rawLen"] != len(raw) {
 		t.Fatalf("rawLen = %v, want %d", got.Doc["rawLen"], len(raw))
+	}
+}
+
+// What the buffer document is written with is what MongoDB stores. A map here would put
+// the data's keys in whatever order it iterated in, and the order the client sent would
+// be lost between the socket and the buffer.
+func TestABufferDocKeepsTheDataFieldOrder(t *testing.T) {
+	data := bson.D{
+		{Key: "sql", Value: "select 1"},
+		{Key: "connection", Value: "mysql"},
+		{Key: "__add", Value: float64(1)},
+	}
+
+	docs := map[string]bson.M{
+		"creating": Get().makeCreatingTraceDoc(7, dto.TraceCreating{TraceId: "trace-1", Data: dto.Data{Value: data}}),
+		"updating": Get().makeUpdatingTraceDoc(7, dto.TraceUpdating{TraceId: "trace-1", Data: dto.Data{Value: data}}),
+	}
+
+	for name, doc := range docs {
+		t.Run(name, func(t *testing.T) {
+			raw, err := bson.Marshal(doc)
+
+			if err != nil {
+				t.Fatalf("bson.Marshal: %v", err)
+			}
+
+			elements, err := bson.Raw(raw).Lookup("dt").Document().Elements()
+
+			if err != nil {
+				t.Fatalf("elements: %v", err)
+			}
+
+			for index, element := range elements {
+				if element.Key() != data[index].Key {
+					t.Fatalf("key %d is %s, want %s", index, element.Key(), data[index].Key)
+				}
+			}
+		})
 	}
 }

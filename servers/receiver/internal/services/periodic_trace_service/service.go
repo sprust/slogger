@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log/slog"
 	"slogger_receiver/internal/dto"
+	"slogger_receiver/internal/helpers/bson_helper"
 	"slogger_receiver/internal/helpers/datetime_helper"
 	"slogger_receiver/internal/services/trace_metric_service"
 	"slogger_receiver/internal/services/trace_sharding_service"
@@ -126,10 +127,20 @@ func (s *Service) saveTraces(ctx context.Context, serviceId int, traceId string,
 
 	existsTrace := bson.M{}
 
-	err = coll.FindOne(ctx, filter).Decode(&existsTrace)
+	// Read as raw bytes and decoded twice: the map is what the rest of this reads, and
+	// the bytes are what keeps the stored data's field order. Decoded into a map, an
+	// embedded document loses it, and a trace resaved from its stored data would be
+	// written back in whatever order the map iterated in.
+	existsRaw, err := coll.FindOne(ctx, filter).Raw()
 
 	if err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
 		return errs.Err(err)
+	}
+
+	if err == nil {
+		if err := bson.Unmarshal(existsRaw, &existsTrace); err != nil {
+			return errs.Err(err)
+		}
 	}
 
 	// Whether this write creates the trace or completes one already there. It is the only
@@ -178,15 +189,17 @@ func (s *Service) saveTraces(ctx context.Context, serviceId int, traceId string,
 
 	var updatingData interface{}
 	if traces.Updating != nil {
-		updatingData = traces.Updating.Data
+		updatingData = traces.Updating.Data.Value
 	}
 
 	var creatingData interface{}
 	if traces.Creating != nil {
-		creatingData = traces.Creating.Data
+		creatingData = traces.Creating.Data.Value
 	}
 
-	data := mergeData(updatingData, existsTrace["dt"], creatingData)
+	existingData := bson_helper.OrderedValue(existsRaw, "dt", existsTrace["dt"])
+
+	data := mergeData(updatingData, existingData, creatingData)
 
 	// By value, not by key. The document below is written with every field it has room
 	// for, so a trace stored before its numbers arrived carries nulls under them — and a
