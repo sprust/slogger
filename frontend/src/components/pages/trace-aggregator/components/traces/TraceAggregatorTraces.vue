@@ -1,5 +1,21 @@
 <template>
   <el-scrollbar class="height-100" style="padding-right: 10px">
+    <el-row v-if="showCustomFieldKeys" class="custom-fields-summary">
+      <el-space :size="6" wrap>
+        <el-text type="info">
+          data
+        </el-text>
+        <el-tag
+            v-for="field in customFieldKeys"
+            :key="field"
+            type="info"
+            size="small"
+            disable-transitions
+        >
+          {{ field }}
+        </el-tag>
+      </el-space>
+    </el-row>
     <div style="padding-bottom: 10px">
       <el-row>
         <el-space style="padding-right: 5px">
@@ -96,12 +112,14 @@
       <el-row>
         <FilterTags/>
       </el-row>
-      <el-row v-if="traceAggregatorStore.customFields.length" style="padding-bottom: 15px">
-        <TraceAggregatorTracesCustomFields
-            :custom-fields="traceAggregatorStore.customFields"
-            @onCustomFieldClick="onCustomFieldClick"
-        />
-      </el-row>
+      <div ref="customFieldsRef">
+        <el-row v-if="traceAggregatorStore.customFields.length" style="padding-bottom: 15px">
+          <TraceAggregatorTracesCustomFields
+              :custom-fields="traceAggregatorStore.customFields"
+              @onCustomFieldClick="onCustomFieldClick"
+          />
+        </el-row>
+      </div>
       <el-row>
         <el-button
             :icon="Plus"
@@ -182,6 +200,7 @@ import {defineComponent} from "vue";
 import {
   getPeriodPresetEnumByValue,
   PeriodPresetEnum,
+  TraceAggregatorCustomField,
   TraceAggregatorCustomFieldParameter,
   useTraceAggregatorStore
 } from "./store/traceAggregatorStore.ts";
@@ -222,6 +241,8 @@ export default defineComponent({
 
   data() {
     return {
+      customFieldsOutOfView: false,
+      customFieldsObserver: null as IntersectionObserver | null,
       dateTimeShortcuts: [
         {
           text: 'Now',
@@ -236,6 +257,14 @@ export default defineComponent({
   },
 
   computed: {
+    customFieldKeys(): Array<string> {
+      return this.traceAggregatorStore.customFields
+          .map((customField: TraceAggregatorCustomField) => customField.field.trim())
+          .filter((field: string) => field !== '')
+    },
+    showCustomFieldKeys(): boolean {
+      return this.customFieldsOutOfView && this.customFieldKeys.length > 0
+    },
     traceAggregatorStore() {
       return useTraceAggregatorStore()
     },
@@ -306,6 +335,27 @@ export default defineComponent({
     },
   },
   methods: {
+    /**
+     * The data rows are tall and live at the top of the page, so they are gone by the
+     * time the table is being read. While they are out of sight the keys they hold are
+     * shown as a strip that sticks under the header — the answer to "what am I filtered
+     * by" without scrolling back.
+     */
+    watchCustomFields() {
+      const target = this.$refs.customFieldsRef as HTMLElement | undefined
+
+      if (!target) {
+        return
+      }
+
+      this.customFieldsObserver = new IntersectionObserver(
+          (entries: Array<IntersectionObserverEntry>) => {
+            this.customFieldsOutOfView = !entries[0].isIntersecting
+          }
+      )
+
+      this.customFieldsObserver.observe(target)
+    },
     setNow(): string {
       return makeNow()
     },
@@ -368,7 +418,12 @@ export default defineComponent({
       this.traceAggregatorGraphStore.playGraph = false
     }
   },
+  unmounted() {
+    this.customFieldsObserver?.disconnect()
+  },
   mounted() {
+    this.watchCustomFields()
+
     if (!this.traceAggregatorStore.initialized) {
       this.traceAggregatorStore.initialized = true
 
@@ -390,5 +445,13 @@ export default defineComponent({
 <style scoped>
 .flex-grow {
   flex-grow: 1;
+}
+
+.custom-fields-summary {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  padding: 4px 0 8px 10px;
+  background-color: var(--el-bg-color);
 }
 </style>

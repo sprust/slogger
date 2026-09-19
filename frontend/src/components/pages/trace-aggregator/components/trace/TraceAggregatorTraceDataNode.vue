@@ -67,7 +67,13 @@
             <el-button type="info" size="small" link @click="onCopyPath(data)">
               path
             </el-button>
-            <el-button v-if="showCustomButton" type="info" size="small" link @click="onCustomFieldFilter(data)">
+            <el-button
+                v-if="showCustomButton"
+                :type="isCustomField(data) ? 'primary' : 'info'"
+                size="small"
+                link
+                @click="onCustomFieldFilter(data)"
+            >
               custom
             </el-button>
           </el-space>
@@ -100,7 +106,9 @@
 <script lang="ts">
 import {defineComponent, PropType} from "vue";
 import {
+  TraceAggregatorCustomField,
   TraceAggregatorCustomFieldParameter,
+  useTraceAggregatorStore,
 } from "../traces/store/traceAggregatorStore.ts";
 import {TraceAggregatorDetailData} from "./store/traceAggregatorDataStore.ts";
 import {useTraceAggregatorDataSearchStore} from "./store/traceAggregatorDataSearchStore.ts";
@@ -186,6 +194,11 @@ export default defineComponent({
     },
     valueQuery(): string {
       return this.searchStore.inValues ? this.searchStore.query : ''
+    },
+    customFieldNames(): Array<string> {
+      return useTraceAggregatorStore().customFields.map(
+          (customField: TraceAggregatorCustomField) => customField.field
+      )
     },
     matchCount(): number {
       const query: string = this.searchStore.query.trim().toLowerCase()
@@ -294,6 +307,9 @@ export default defineComponent({
       const text: string = this.valueText(data)
 
       return text.length > longValueLength ? String(data.value) : undefined
+    },
+    isCustomField(data: TreeNode): boolean {
+      return this.customFieldNames.includes(this.dataKeys[data.key])
     },
     onCopyPath(data: TreeNode) {
       if (this.isParentData(data)) {
