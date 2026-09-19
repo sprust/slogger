@@ -8,7 +8,6 @@ use App\Modules\Trace\Domain\Actions\Queries\IsShouldContinueBuildTraceTreeCache
 use App\Modules\Trace\Domain\Events\TraceTreeCacheBuildRequestedEvent;
 use App\Modules\Trace\Domain\Events\TraceTreeCacheStateChangedEvent;
 use App\Modules\Trace\Domain\Services\TraceTreeCacheBuilderService;
-use App\Modules\Trace\Repositories\TraceTreeCacheRepository;
 use App\Modules\Trace\Repositories\TraceTreeCacheStateRepository;
 use Illuminate\Contracts\Events\Dispatcher;
 use Throwable;
@@ -17,7 +16,6 @@ readonly class BuildTraceTreeCacheAction
 {
     public function __construct(
         private TraceTreeCacheBuilderService $traceTreeCacheBuilderService,
-        private TraceTreeCacheRepository $traceTreeCacheRepository,
         private TraceTreeCacheStateRepository $traceTreeCacheStateRepository,
         private IsShouldContinueBuildTraceTreeCacheAction $isShouldContinueBuildTraceTreeCacheAction,
         private Dispatcher $events,
@@ -78,7 +76,6 @@ readonly class BuildTraceTreeCacheAction
             return $this->traceTreeCacheStateRepository->markFinished(
                 rootTraceId: $rootTraceId,
                 version: $version,
-                count: $this->traceTreeCacheRepository->findCount($rootTraceId),
             );
         } catch (Throwable $exception) {
             if (!$this->isShouldContinueBuildTraceTreeCacheAction->handle($rootTraceId, $version)) {

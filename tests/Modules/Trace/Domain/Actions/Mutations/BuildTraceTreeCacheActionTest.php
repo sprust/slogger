@@ -10,7 +10,6 @@ use App\Modules\Trace\Entities\Trace\Tree\TraceTreeCacheSliceObject;
 use App\Modules\Trace\Entities\Trace\Tree\TraceTreeCacheStateObject;
 use App\Modules\Trace\Enums\TraceTreeCacheStateStatusEnum;
 use App\Modules\Trace\Domain\Events\TraceTreeCacheBuildRequestedEvent;
-use App\Modules\Trace\Repositories\TraceTreeCacheRepository;
 use App\Modules\Trace\Repositories\TraceTreeCacheStateRepository;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Support\Carbon;
@@ -207,13 +206,10 @@ class BuildTraceTreeCacheActionTest extends TestCase
             $builder->method('handleSlice')->willReturn($builderResult);
         }
 
-        $cache = $this->createMock(TraceTreeCacheRepository::class);
-        $cache->method('findCount')->willReturn(42);
-
         $shouldContinue = $this->createMock(IsShouldContinueBuildTraceTreeCacheAction::class);
         $shouldContinue->method('handle')->willReturn(true);
 
-        return new BuildTraceTreeCacheAction($builder, $cache, $states, $shouldContinue, $events);
+        return new BuildTraceTreeCacheAction($builder, $states, $shouldContinue, $events);
     }
 
     private function state(TraceTreeCacheStateStatusEnum $status): TraceTreeCacheStateObject

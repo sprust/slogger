@@ -138,7 +138,7 @@ readonly class TraceTreeCacheBuilderService
             throw new RuntimeException('Root trace not found.');
         }
 
-        $this->traceTreeCacheRepository->createMany(
+        $created = $this->traceTreeCacheRepository->createMany(
             rootTraceId: $rootTraceId,
             depth: self::ROOT_DEPTH,
             parametersList: [
@@ -160,7 +160,7 @@ readonly class TraceTreeCacheBuilderService
         $this->traceTreeCacheStateRepository->incrementCount(
             rootTraceId: $rootTraceId,
             version: $version,
-            count: 1,
+            count: $created,
         );
     }
 
@@ -243,7 +243,7 @@ readonly class TraceTreeCacheBuilderService
             return;
         }
 
-        $this->traceTreeCacheRepository->createMany(
+        $created = $this->traceTreeCacheRepository->createMany(
             rootTraceId: $rootTraceId,
             depth: $depth,
             parametersList: $cacheParametersList
@@ -252,7 +252,7 @@ readonly class TraceTreeCacheBuilderService
         $this->traceTreeCacheStateRepository->incrementCount(
             rootTraceId: $rootTraceId,
             version: $version,
-            count: count($cacheParametersList),
+            count: $created,
         );
     }
 }

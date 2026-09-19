@@ -50,7 +50,7 @@ class TraceTreeCacheRepository
     /**
      * @param CreateTraceTreeCacheParameters[] $parametersList
      */
-    public function createMany(string $rootTraceId, int $depth, array $parametersList): void
+    public function createMany(string $rootTraceId, int $depth, array $parametersList): int
     {
         $operations = [];
 
@@ -87,7 +87,7 @@ class TraceTreeCacheRepository
             ];
         }
 
-        TraceTreeCache::sconcur()->bulkWrite($operations);
+        return TraceTreeCache::sconcur()->bulkWrite($operations)->upsertedCount;
     }
 
     public function existsByDepth(string $rootTraceId, int $depth): bool

@@ -163,10 +163,12 @@ class TraceTreeCacheBuilderServiceTest extends TestCase
 
         $cache = $this->createMock(TraceTreeCacheRepository::class);
         $cache->method('createMany')->willReturnCallback(
-            function (string $rootTraceId, int $depth, array $parametersList) use (&$written): void {
+            function (string $rootTraceId, int $depth, array $parametersList) use (&$written): int {
                 foreach ($parametersList as $parameters) {
                     $written[$depth][] = $parameters->traceId;
                 }
+
+                return count($parametersList);
             }
         );
         $cache->method('findTraceIdsPage')->willReturnCallback(
