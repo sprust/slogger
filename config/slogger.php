@@ -1,5 +1,6 @@
 <?php
 
+use App\Services\SLogger\TaskWatcher;
 use SLoggerLaravel\Dispatcher\Items\Queue\Jobs\SendTracesJob;
 use SLoggerLaravel\Events\WatcherErrorEvent;
 use SLoggerLaravel\Listeners\WatcherErrorListener;
@@ -276,6 +277,20 @@ return [
                 // job classes to ignore.
                 'excepted' => [
                     SendTracesJob::class,
+                ],
+            ],
+        ],
+        [
+            'class'   => TaskWatcher::class,
+            'enabled' => env('SLOGGER_LOG_TASKS_ENABLED', false),
+            'config'  => [
+                // task names to ignore. every tick of a task is a trace, and the tasks
+                // tick every few seconds, so this is how the chatty ones are silenced.
+                // these two tick once a second and are almost always idle - uncomment
+                // them to keep only cron and the watcher check.
+                'excepted' => [
+                    // \App\Modules\Trace\Infrastructure\Tasks\BuildTraceDynamicIndexesTask::NAME,
+                    // \App\Modules\Trace\Infrastructure\Tasks\PublishTraceDynamicIndexStatsTask::NAME,
                 ],
             ],
         ],
