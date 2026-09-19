@@ -15,17 +15,18 @@ use App\Modules\Trace\Repositories\Dto\Trace\Timestamp\TraceTimestampFieldIndica
 use App\Modules\Trace\Repositories\Dto\Trace\Timestamp\TraceTimestampsDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Timestamp\TraceTimestampsListDto;
 use App\Modules\Trace\Repositories\Services\PeriodicTraceService;
+use App\Modules\Trace\Repositories\Services\TraceMetricAggregationFactory;
 use App\Modules\Trace\Repositories\Services\TracePipelineBuilder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use SConcur\Bson\UTCDateTime;
-use RuntimeException;
 
 readonly class TraceTimestampsRepository
 {
     public function __construct(
         private TracePipelineBuilder $tracePipelineBuilder,
-        private PeriodicTraceService $periodicTraceService
+        private PeriodicTraceService $periodicTraceService,
+        private TraceMetricAggregationFactory $aggregationFactory
     ) {
     }
 
@@ -104,7 +105,7 @@ readonly class TraceTimestampsRepository
             ]
         );
 
-        /** @var array<string, array<string, int|string>> $groups */
+        /** @var array<string, array<string, array<string, mixed>>> $groups */
         $groups = [];
 
         foreach ($fields as $field) {
@@ -129,14 +130,12 @@ readonly class TraceTimestampsRepository
         foreach ($groups as $fieldName => $aggregations) {
             $groupsMatch[$fieldName] = [];
 
-            foreach ($aggregations as $operator => $operatorValue) {
+            foreach ($aggregations as $name => $expression) {
                 $aggregatorKey = Str::uuid()->toString();
 
-                $groupsQuery[$aggregatorKey] = [
-                    $operator => $operatorValue,
-                ];
+                $groupsQuery[$aggregatorKey] = $expression;
 
-                $groupsMatch[$fieldName][$aggregatorKey] = Str::slug($operator);
+                $groupsMatch[$fieldName][$aggregatorKey] = $name;
             }
         }
 
@@ -166,7 +165,7 @@ readonly class TraceTimestampsRepository
                     foreach ($aggregators as $key => $aggregator) {
                         $indicators[] = new TraceTimestampFieldIndicatorDto(
                             name: $aggregator,
-                            value: round((float) (is_numeric($item[$key]) ? $item[$key] : 0), 6),
+                            value: round($this->aggregationFactory->readValue($item[$key] ?? null), 6),
                         );
                     }
 
@@ -211,7 +210,7 @@ readonly class TraceTimestampsRepository
     }
 
     /**
-     * @param array<string, array<string, int|string>> $groups
+     * @param array<string, array<string, array<string, mixed>>> $groups
      */
     private function injectAggregationToGroups(array &$groups, TraceMetricFieldsFilterDto $field): void
     {
@@ -234,41 +233,16 @@ readonly class TraceTimestampsRepository
     }
 
     /**
-     * @param array<string, int|string>        $aggregations
-     * @param TraceMetricFieldAggregatorEnum[] $fieldAggregations
+     * @param array<string, array<string, mixed>> $aggregations
+     * @param TraceMetricFieldAggregatorEnum[]    $fieldAggregations
      */
     private function injectAggregation(array &$aggregations, string $fieldName, array $fieldAggregations): void
     {
         foreach ($fieldAggregations as $aggregation) {
-            if ($aggregation === TraceMetricFieldAggregatorEnum::Sum) {
-                $aggregations['$sum'] = 1;
-
-                continue;
-            }
-
-            if ($aggregation === TraceMetricFieldAggregatorEnum::Avg) {
-                $aggregations['$avg'] = "\$$fieldName";
-
-                continue;
-            }
-
-            if ($aggregation === TraceMetricFieldAggregatorEnum::Min) {
-                $aggregations['$min'] = "\$$fieldName";
-
-                continue;
-            }
-
-            if ($aggregation === TraceMetricFieldAggregatorEnum::Max) {
-                $aggregations['$max'] = "\$$fieldName";
-
-                continue;
-            }
-
-            /**
-             * @phpstan-ignore-next-line
-             * No error to ignore is reported
-             */
-            throw new RuntimeException("Unknown aggregator [$aggregation->value]");
+            $aggregations[$aggregation->value] = $this->aggregationFactory->makeExpression(
+                aggregation: $aggregation,
+                fieldName: $fieldName
+            );
         }
     }
 }

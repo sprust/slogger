@@ -49,6 +49,15 @@ readonly class FindTraceTimestampsAction
             $fields = TraceMetricFieldEnum::cases();
         }
 
+        $aggregations = [
+            TraceMetricFieldAggregatorEnum::Avg,
+            TraceMetricFieldAggregatorEnum::Min,
+            TraceMetricFieldAggregatorEnum::Max,
+            TraceMetricFieldAggregatorEnum::P50,
+            TraceMetricFieldAggregatorEnum::P95,
+            TraceMetricFieldAggregatorEnum::P99,
+        ];
+
         $fieldsFilter = [];
 
         foreach ($fields as $field) {
@@ -65,11 +74,7 @@ readonly class FindTraceTimestampsAction
 
             $fieldsFilter[] = new TraceMetricFieldsFilterDto(
                 field: $field,
-                aggregations: [
-                    TraceMetricFieldAggregatorEnum::Avg,
-                    TraceMetricFieldAggregatorEnum::Min,
-                    TraceMetricFieldAggregatorEnum::Max,
-                ]
+                aggregations: $aggregations
             );
         }
 
@@ -84,11 +89,7 @@ readonly class FindTraceTimestampsAction
             foreach ($parameters->dataFields as $dataField) {
                 $dataFieldsFilter[] = new TraceMetricDataFieldsFilterDto(
                     field: $dataField,
-                    aggregations: [
-                        TraceMetricFieldAggregatorEnum::Avg,
-                        TraceMetricFieldAggregatorEnum::Min,
-                        TraceMetricFieldAggregatorEnum::Max,
-                    ]
+                    aggregations: $aggregations
                 );
             }
         }

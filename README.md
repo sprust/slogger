@@ -14,7 +14,7 @@ It collects data about code execution (HTTP requests, queues, events, commands, 
 - Call tree — a `parent → children` hierarchy with arbitrary nesting depth.
 - Joining requests across services/microservices into a single end-to-end tree (distributed tracing).
 - Flexible filtering by any field of the trace payload (`data`): numbers, strings, booleans, null and presence checks.
-- Timeline charts for trace metrics — count, duration, memory, CPU — with aggregations and the same filtering as in search.
+- Timeline charts for trace metrics — count, duration, memory, CPU — as an average, a minimum and a maximum, with the p50, p95 and p99 percentiles a legend click away, and the same filtering as in search.
 - Presets — saved aggregator filters and an automatic history of searches.
 - Trace metrics — how many new traces each service sent in every fifteen minutes of the last day, by when they were logged, taken into the buffer and written to storage.
 - Storage dashboard — collection sizes, memory and index usage.
@@ -190,7 +190,7 @@ Besides paginated search, timeline charts are built over traces. You pick a peri
 - memory (`memory`);
 - CPU (`cpu`).
 
-For duration/memory/CPU the average, minimum, and maximum are computed. Charts can additionally be built over numeric fields from `data`. The same set of filters as in search applies to charts, so you can watch metric dynamics for a specific service, operation type, tag, or an arbitrary condition on the data. Interval collection is parallelized, which makes charts fast to build even over large periods.
+For duration/memory/CPU the average, minimum and maximum are drawn, and the p50, p95 and p99 percentiles come with them, hidden — the legend, which is where a series is switched off, is where they are switched on, one chart at a time. A percentile answers what the slowest few per cent actually saw, which an average cannot: over an hour of real traces the average duration was 19ms, the p95 58ms and the slowest request 4.4s. Charts can additionally be built over numeric fields from `data`, with the same six. The same set of filters as in search applies to charts, so you can watch metric dynamics for a specific service, operation type, tag, or an arbitrary condition on the data. Interval collection is parallelized, which makes charts fast to build even over large periods.
 
 ### Presets
 

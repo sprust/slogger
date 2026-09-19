@@ -10,4 +10,7 @@ enum TraceMetricFieldAggregatorEnum: string
     case Avg = 'avg';
     case Min = 'min';
     case Max = 'max';
+    case P50 = 'p50';
+    case P95 = 'p95';
+    case P99 = 'p99';
 }
