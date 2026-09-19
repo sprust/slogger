@@ -289,8 +289,8 @@ return [
                 // these two tick once a second and are almost always idle - uncomment
                 // them to keep only cron and the watcher check.
                 'excepted' => [
-                    // \App\Modules\Trace\Infrastructure\Tasks\BuildTraceDynamicIndexesTask::NAME,
-                    // \App\Modules\Trace\Infrastructure\Tasks\PublishTraceDynamicIndexStatsTask::NAME,
+                     \App\Modules\Trace\Infrastructure\Tasks\BuildTraceDynamicIndexesTask::NAME,
+                     \App\Modules\Trace\Infrastructure\Tasks\PublishTraceDynamicIndexStatsTask::NAME,
                 ],
             ],
         ],
