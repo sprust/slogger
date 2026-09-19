@@ -13,11 +13,13 @@ readonly class TraceTreeRepository
 {
     private int $maxDepthForFindParent;
     private int $treeTraversalChunkSize;
+    private int $treeTraversalConcurrency;
 
     public function __construct()
     {
-        $this->maxDepthForFindParent  = 100;
-        $this->treeTraversalChunkSize = 1000;
+        $this->maxDepthForFindParent    = 100;
+        $this->treeTraversalChunkSize   = 1000;
+        $this->treeTraversalConcurrency = 8;
     }
 
     public function findParentTraceId(string $traceId): ?string
@@ -114,39 +116,69 @@ readonly class TraceTreeRepository
             $traceId,
         ];
 
-        $childIds = [];
-
         while (count($frontier) > 0) {
-            $nextFrontier = [];
+            $children = [];
+            $yielded  = 0;
 
-            $waitGroup = WaitGroup::create();
+            foreach ($this->makeFrontierGroups($frontier) as $frontierGroup) {
+                $waitGroup = WaitGroup::create();
 
-            foreach (array_chunk($frontier, $this->treeTraversalChunkSize) as $frontierChunk) {
-                $waitGroup->add(
-                    function () use ($frontierChunk, &$childIds, &$nextFrontier) {
-                        foreach ($this->findDirectChildrenTraceIds($frontierChunk) as $childTraceId) {
-                            $childIds[]     = $childTraceId;
-                            $nextFrontier[] = $childTraceId;
+                foreach ($frontierGroup as $frontierChunk) {
+                    $waitGroup->add(
+                        function () use ($frontierChunk, &$children) {
+                            foreach ($this->findDirectChildrenTraceIds($frontierChunk) as $childTraceId) {
+                                $children[] = $childTraceId;
+                            }
                         }
-                    }
-                );
-            }
-
-            $waitGroup->waitAll();
-
-            $frontier = $nextFrontier;
-
-            if (count($childIds) >= $batchCount) {
-                foreach (array_chunk($childIds, $batchCount) as $childIdsChunk) {
-                    yield $childIdsChunk;
+                    );
                 }
 
-                $childIds = [];
-            }
-        }
+                $waitGroup->waitAll();
 
-        if (count($childIds) > 0) {
-            yield $childIds;
+                while ((count($children) - $yielded) >= $batchCount) {
+                    yield array_slice($children, $yielded, $batchCount);
+
+                    $yielded += $batchCount;
+                }
+            }
+
+            if ($yielded < count($children)) {
+                yield array_slice($children, $yielded);
+            }
+
+            $frontier = $children;
+        }
+    }
+
+    /**
+     * @param string[] $frontier
+     *
+     * @return iterable<int, string[][]>
+     */
+    private function makeFrontierGroups(array $frontier): iterable
+    {
+        $total = count($frontier);
+
+        $groupSize = $this->treeTraversalChunkSize * $this->treeTraversalConcurrency;
+
+        for ($offset = 0; $offset < $total; $offset += $groupSize) {
+            $group = [];
+
+            for ($index = 0; $index < $this->treeTraversalConcurrency; $index++) {
+                $chunk = array_slice(
+                    $frontier,
+                    $offset + $index * $this->treeTraversalChunkSize,
+                    $this->treeTraversalChunkSize
+                );
+
+                if ($chunk === []) {
+                    break;
+                }
+
+                $group[] = $chunk;
+            }
+
+            yield $group;
         }
     }
 
@@ -170,6 +202,7 @@ readonly class TraceTreeRepository
                     ],
                     [
                         '$project' => [
+                            '_id' => 0,
                             'tid' => 1,
                         ],
                     ],
