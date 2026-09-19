@@ -10,7 +10,9 @@ use App\Modules\Notification\Enums\NotificationChannelTypeEnum;
 readonly class NotificationChannelTypeRegistry
 {
     public function __construct(
-        private TelegramChannelType $telegram
+        private TelegramChannelType $telegram,
+        private SlackChannelType $slack,
+        private WebhookChannelType $webhook
     ) {
     }
 
@@ -18,6 +20,8 @@ readonly class NotificationChannelTypeRegistry
     {
         return match ($type) {
             NotificationChannelTypeEnum::Telegram => $this->telegram,
+            NotificationChannelTypeEnum::Slack    => $this->slack,
+            NotificationChannelTypeEnum::Webhook  => $this->webhook,
         };
     }
 

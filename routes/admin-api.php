@@ -10,7 +10,9 @@ use App\Modules\Dashboard\Infrastructure\Http\Controllers\SconcurStatController;
 use App\Modules\Dashboard\Infrastructure\Http\Controllers\TraceMetricController;
 use App\Modules\Logs\Infrastructure\Http\Controllers\LogController;
 use App\Modules\Notification\Infrastructure\Http\Controllers\NotificationChannelController;
+use App\Modules\Notification\Infrastructure\Http\Controllers\SlackChannelController;
 use App\Modules\Notification\Infrastructure\Http\Controllers\TelegramChannelController;
+use App\Modules\Notification\Infrastructure\Http\Controllers\WebhookChannelController;
 use App\Modules\Service\Infrastructure\Http\Controllers\ServiceController;
 use App\Modules\Tools\Infrastructure\Http\Controllers\ToolLinksController;
 use App\Modules\Trace\Infrastructure\Http\Controllers\TraceAdminStoreController;
@@ -201,6 +203,8 @@ Route::prefix('/notification-channels')
         // A route per type, because the body follows the type.
         $types = [
             'telegram' => TelegramChannelController::class,
+            'slack'    => SlackChannelController::class,
+            'webhook'  => WebhookChannelController::class,
         ];
 
         foreach ($types as $segment => $controller) {

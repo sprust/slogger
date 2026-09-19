@@ -125,6 +125,10 @@ export default defineComponent({
       }
 
       return (this.definition?.fields ?? []).every((field: ChannelTypeField) => {
+        if (!field.required) {
+          return true
+        }
+
         if (field.secret && this.channelId !== null) {
           return true
         }
@@ -148,7 +152,7 @@ export default defineComponent({
   methods: {
     placeholderOf(field: ChannelTypeField): string {
       if (!field.secret || this.channelId === null) {
-        return ''
+        return field.required ? '' : 'Optional'
       }
 
       const mask = this.masked[field.key] ?? ''

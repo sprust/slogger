@@ -17,6 +17,9 @@ export type ChannelSettings = {
     id: number,
     bot_token_mask?: string,
     chat_id?: string,
+    webhook_url_mask?: string,
+    url?: string,
+    token_mask?: string,
 }
 
 const typeEndpoints: Record<string, {
@@ -28,6 +31,16 @@ const typeEndpoints: Record<string, {
         show: id => ApiContainer.get().notificationChannelsTelegramDetail(id),
         create: payload => ApiContainer.get().notificationChannelsTelegramCreate(payload as any),
         update: (id, payload) => ApiContainer.get().notificationChannelsTelegramPartialUpdate(id, payload as any),
+    },
+    slack: {
+        show: id => ApiContainer.get().notificationChannelsSlackDetail(id),
+        create: payload => ApiContainer.get().notificationChannelsSlackCreate(payload as any),
+        update: (id, payload) => ApiContainer.get().notificationChannelsSlackPartialUpdate(id, payload as any),
+    },
+    webhook: {
+        show: id => ApiContainer.get().notificationChannelsWebhookDetail(id),
+        create: payload => ApiContainer.get().notificationChannelsWebhookCreate(payload as any),
+        update: (id, payload) => ApiContainer.get().notificationChannelsWebhookPartialUpdate(id, payload as any),
     },
 }
 

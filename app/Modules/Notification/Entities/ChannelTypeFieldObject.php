@@ -11,7 +11,8 @@ readonly class ChannelTypeFieldObject
         public string $title,
         public string $description,
         public bool $secret,
-        public int $maxLength
+        public int $maxLength,
+        public bool $required = true
     ) {
     }
 }

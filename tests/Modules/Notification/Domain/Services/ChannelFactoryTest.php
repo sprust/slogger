@@ -3,18 +3,18 @@
 namespace Tests\Modules\Notification\Domain\Services;
 
 use App\Modules\Notification\Domain\Services\ChannelFactory;
-use App\Modules\Notification\Domain\Services\Senders\TelegramSender;
-use App\Modules\Notification\Domain\Services\Types\NotificationChannelTypeRegistry;
-use App\Modules\Notification\Domain\Services\Types\TelegramChannelType;
 use App\Modules\Notification\Entities\Settings\TelegramSettingsObject;
 use App\Modules\Notification\Enums\NotificationChannelTypeEnum;
 use App\Modules\Notification\Repositories\Dto\ChannelDto;
 use Illuminate\Support\Carbon;
 use PHPUnit\Framework\TestCase;
+use Tests\Modules\Notification\NotificationFactoryTrait;
 use Psr\Log\LoggerInterface;
 
 class ChannelFactoryTest extends TestCase
 {
+    use NotificationFactoryTrait;
+
     public function testTheStoredTypeDecidesHowTheSettingsAreRead(): void
     {
         $channel = $this->factory()->make(
@@ -64,9 +64,7 @@ class ChannelFactoryTest extends TestCase
     private function factory(): ChannelFactory
     {
         return new ChannelFactory(
-            types: new NotificationChannelTypeRegistry(
-                new TelegramChannelType($this->createMock(TelegramSender::class))
-            ),
+            types: $this->channelTypes(),
             logger: $this->createMock(LoggerInterface::class)
         );
     }

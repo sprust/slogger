@@ -7,4 +7,6 @@ namespace App\Modules\Notification\Enums;
 enum NotificationChannelTypeEnum: string
 {
     case Telegram = 'telegram';
+    case Slack = 'slack';
+    case Webhook = 'webhook';
 }

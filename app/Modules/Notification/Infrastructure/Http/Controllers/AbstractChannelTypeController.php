@@ -73,7 +73,6 @@ abstract readonly class AbstractChannelTypeController
     {
         $channel = $this->findChannelAction->handle($id);
 
-        /** @phpstan-ignore notIdentical.alwaysFalse */
         if (is_null($channel) || $channel->type !== $type) {
             abort(ResponseFoundation::HTTP_NOT_FOUND, "Notification channel [$id] not found");
         }

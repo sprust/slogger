@@ -18,9 +18,14 @@ use App\Modules\Notification\Domain\Actions\Queries\FindNotificationsAction;
 use App\Modules\Notification\Domain\Actions\Queries\FindChannelsAction;
 use App\Modules\Notification\Domain\Services\ChannelFactory;
 use App\Modules\Notification\Domain\Services\IncidentMessageFactory;
+use App\Modules\Notification\Domain\Services\Senders\HttpSendResultReader;
+use App\Modules\Notification\Domain\Services\Senders\SlackSender;
 use App\Modules\Notification\Domain\Services\Senders\TelegramSender;
+use App\Modules\Notification\Domain\Services\Senders\WebhookSender;
 use App\Modules\Notification\Domain\Services\Types\NotificationChannelTypeRegistry;
+use App\Modules\Notification\Domain\Services\Types\SlackChannelType;
 use App\Modules\Notification\Domain\Services\Types\TelegramChannelType;
+use App\Modules\Notification\Domain\Services\Types\WebhookChannelType;
 use App\Modules\Notification\Repositories\ChannelRepository;
 use App\Modules\Notification\Repositories\NotificationRepository;
 use App\Modules\Watcher\Domain\Services\Types\WatcherTypeRegistry;
@@ -36,14 +41,23 @@ class NotificationServiceProvider extends BaseServiceProvider
         $this->app->singleton(
             TelegramSender::class,
             static fn(): TelegramSender => new TelegramSender(
-                httpClient: new HttpClient(
-                    responseFactory: new HttpFactory(),
-                    options: new HttpClientOptions(
-                        requestTimeoutMs: 10_000,
-                        connectTimeoutMs: 3_000,
-                        responseHeaderTimeoutMs: 5_000
-                    )
-                )
+                httpClient: self::makeHttpClient()
+            )
+        );
+
+        $this->app->singleton(
+            SlackSender::class,
+            static fn(Application $app): SlackSender => new SlackSender(
+                httpClient: self::makeHttpClient(),
+                resultReader: $app->make(HttpSendResultReader::class)
+            )
+        );
+
+        $this->app->singleton(
+            WebhookSender::class,
+            static fn(Application $app): WebhookSender => new WebhookSender(
+                httpClient: self::makeHttpClient(),
+                resultReader: $app->make(HttpSendResultReader::class)
             )
         );
 
@@ -63,7 +77,10 @@ class NotificationServiceProvider extends BaseServiceProvider
         return [
             ChannelRepository::class,
             NotificationRepository::class,
+            HttpSendResultReader::class,
             TelegramChannelType::class,
+            SlackChannelType::class,
+            WebhookChannelType::class,
             NotificationChannelTypeRegistry::class,
             ChannelFactory::class,
             FindChannelsAction::class,
@@ -78,5 +95,17 @@ class NotificationServiceProvider extends BaseServiceProvider
             SendNotificationAction::class,
             EnqueueNotificationsAction::class,
         ];
+    }
+
+    private static function makeHttpClient(): HttpClient
+    {
+        return new HttpClient(
+            responseFactory: new HttpFactory(),
+            options: new HttpClientOptions(
+                requestTimeoutMs: 10_000,
+                connectTimeoutMs: 3_000,
+                responseHeaderTimeoutMs: 5_000
+            )
+        );
     }
 }

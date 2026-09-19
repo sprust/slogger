@@ -2,6 +2,13 @@
 
 namespace Tests\Modules\Notification;
 
+use App\Modules\Notification\Domain\Services\Senders\SlackSender;
+use App\Modules\Notification\Domain\Services\Senders\TelegramSender;
+use App\Modules\Notification\Domain\Services\Senders\WebhookSender;
+use App\Modules\Notification\Domain\Services\Types\NotificationChannelTypeRegistry;
+use App\Modules\Notification\Domain\Services\Types\SlackChannelType;
+use App\Modules\Notification\Domain\Services\Types\TelegramChannelType;
+use App\Modules\Notification\Domain\Services\Types\WebhookChannelType;
 use App\Modules\Notification\Entities\ChannelObject;
 use App\Modules\Notification\Entities\NotificationObject;
 use App\Modules\Notification\Entities\Settings\TelegramSettingsObject;
@@ -11,6 +18,15 @@ use Illuminate\Support\Carbon;
 
 trait NotificationFactoryTrait
 {
+    private function channelTypes(?TelegramSender $telegramSender = null): NotificationChannelTypeRegistry
+    {
+        return new NotificationChannelTypeRegistry(
+            telegram: new TelegramChannelType($telegramSender ?? $this->createMock(TelegramSender::class)),
+            slack: new SlackChannelType($this->createMock(SlackSender::class)),
+            webhook: new WebhookChannelType($this->createMock(WebhookSender::class))
+        );
+    }
+
     private function channel(int $id = 1, bool $enabled = true): ChannelObject
     {
         $now = Carbon::parse('2026-09-08 12:00:00');

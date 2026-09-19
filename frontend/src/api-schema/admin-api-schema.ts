@@ -3480,6 +3480,7 @@ export namespace AdminApi {
     description: string,
     secret: boolean,
     max_length: number,
+    required: boolean,
 
 })[],
 
@@ -3503,6 +3504,7 @@ export namespace AdminApi {
           description: string;
           secret: boolean;
           max_length: number;
+          required: boolean;
         }[];
       }[];
     };
@@ -3623,6 +3625,236 @@ export namespace AdminApi {
          * @maxLength 255
          */
         chat_id?: string;
+      };
+    };
+    export type RequestHeaders = {};
+    export type ResponseBody = any;
+  }
+
+  /**
+ * No description
+ * @name NotificationChannelsSlackCreate
+ * @request POST:/admin-api/notification-channels/slack
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    name: string,
+    type: string,
+    enabled: boolean,
+    created_at: string,
+    updated_at: string,
+
+},
+
+}` description
+*/
+  export namespace NotificationChannelsSlackCreate {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = {
+      /**
+       * @minLength 1
+       * @maxLength 255
+       */
+      name: string;
+      enabled: boolean;
+      settings?: {
+        /**
+         * @minLength 10
+         * @maxLength 500
+         */
+        webhook_url?: string;
+      };
+    };
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        id: number;
+        name: string;
+        type: string;
+        enabled: boolean;
+        created_at: string;
+        updated_at: string;
+      };
+    };
+  }
+
+  /**
+ * No description
+ * @name NotificationChannelsSlackDetail
+ * @request GET:/admin-api/notification-channels/slack/{id}
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    webhook_url_mask: string,
+
+},
+
+}` description
+*/
+  export namespace NotificationChannelsSlackDetail {
+    export type RequestParams = {
+      id: any;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        id: number;
+        webhook_url_mask: string;
+      };
+    };
+  }
+
+  /**
+   * No description
+   * @name NotificationChannelsSlackPartialUpdate
+   * @request PATCH:/admin-api/notification-channels/slack/{id}
+   * @secure
+   * @response `200` `any` description
+   */
+  export namespace NotificationChannelsSlackPartialUpdate {
+    export type RequestParams = {
+      id: any;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = {
+      /**
+       * @minLength 1
+       * @maxLength 255
+       */
+      name: string;
+      enabled: boolean;
+      settings?: {
+        /**
+         * @minLength 10
+         * @maxLength 500
+         */
+        webhook_url?: string | null;
+      };
+    };
+    export type RequestHeaders = {};
+    export type ResponseBody = any;
+  }
+
+  /**
+ * No description
+ * @name NotificationChannelsWebhookCreate
+ * @request POST:/admin-api/notification-channels/webhook
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    name: string,
+    type: string,
+    enabled: boolean,
+    created_at: string,
+    updated_at: string,
+
+},
+
+}` description
+*/
+  export namespace NotificationChannelsWebhookCreate {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = {
+      /**
+       * @minLength 1
+       * @maxLength 255
+       */
+      name: string;
+      enabled: boolean;
+      settings?: {
+        /**
+         * @minLength 10
+         * @maxLength 500
+         */
+        url?: string;
+        /**
+         * @minLength 1
+         * @maxLength 255
+         */
+        token?: string | null;
+      };
+    };
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        id: number;
+        name: string;
+        type: string;
+        enabled: boolean;
+        created_at: string;
+        updated_at: string;
+      };
+    };
+  }
+
+  /**
+ * No description
+ * @name NotificationChannelsWebhookDetail
+ * @request GET:/admin-api/notification-channels/webhook/{id}
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    url: string,
+    token_mask: string,
+
+},
+
+}` description
+*/
+  export namespace NotificationChannelsWebhookDetail {
+    export type RequestParams = {
+      id: any;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        id: number;
+        url: string;
+        token_mask: string;
+      };
+    };
+  }
+
+  /**
+   * No description
+   * @name NotificationChannelsWebhookPartialUpdate
+   * @request PATCH:/admin-api/notification-channels/webhook/{id}
+   * @secure
+   * @response `200` `any` description
+   */
+  export namespace NotificationChannelsWebhookPartialUpdate {
+    export type RequestParams = {
+      id: any;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = {
+      /**
+       * @minLength 1
+       * @maxLength 255
+       */
+      name: string;
+      enabled: boolean;
+      settings?: {
+        /**
+         * @minLength 10
+         * @maxLength 500
+         */
+        url?: string;
+        /**
+         * @minLength 1
+         * @maxLength 255
+         */
+        token?: string | null;
       };
     };
     export type RequestHeaders = {};
@@ -7714,6 +7946,7 @@ export class Api<
     description: string,
     secret: boolean,
     max_length: number,
+    required: boolean,
 
 })[],
 
@@ -7734,6 +7967,7 @@ export class Api<
               description: string;
               secret: boolean;
               max_length: number;
+              required: boolean;
             }[];
           }[];
         },
@@ -7878,6 +8112,274 @@ export class Api<
     ) =>
       this.request<any, any>({
         path: `/admin-api/notification-channels/telegram/${id}`,
+        method: "PATCH",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name NotificationChannelsSlackCreate
+ * @request POST:/admin-api/notification-channels/slack
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    name: string,
+    type: string,
+    enabled: boolean,
+    created_at: string,
+    updated_at: string,
+
+},
+
+}` description
+ */
+    notificationChannelsSlackCreate: (
+      data: {
+        /**
+         * @minLength 1
+         * @maxLength 255
+         */
+        name: string;
+        enabled: boolean;
+        settings?: {
+          /**
+           * @minLength 10
+           * @maxLength 500
+           */
+          webhook_url?: string;
+        };
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          data: {
+            id: number;
+            name: string;
+            type: string;
+            enabled: boolean;
+            created_at: string;
+            updated_at: string;
+          };
+        },
+        any
+      >({
+        path: `/admin-api/notification-channels/slack`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name NotificationChannelsSlackDetail
+ * @request GET:/admin-api/notification-channels/slack/{id}
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    webhook_url_mask: string,
+
+},
+
+}` description
+ */
+    notificationChannelsSlackDetail: (id: any, params: RequestParams = {}) =>
+      this.request<
+        {
+          data: {
+            id: number;
+            webhook_url_mask: string;
+          };
+        },
+        any
+      >({
+        path: `/admin-api/notification-channels/slack/${id}`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @name NotificationChannelsSlackPartialUpdate
+     * @request PATCH:/admin-api/notification-channels/slack/{id}
+     * @secure
+     * @response `200` `any` description
+     */
+    notificationChannelsSlackPartialUpdate: (
+      id: any,
+      data: {
+        /**
+         * @minLength 1
+         * @maxLength 255
+         */
+        name: string;
+        enabled: boolean;
+        settings?: {
+          /**
+           * @minLength 10
+           * @maxLength 500
+           */
+          webhook_url?: string | null;
+        };
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<any, any>({
+        path: `/admin-api/notification-channels/slack/${id}`,
+        method: "PATCH",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name NotificationChannelsWebhookCreate
+ * @request POST:/admin-api/notification-channels/webhook
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    name: string,
+    type: string,
+    enabled: boolean,
+    created_at: string,
+    updated_at: string,
+
+},
+
+}` description
+ */
+    notificationChannelsWebhookCreate: (
+      data: {
+        /**
+         * @minLength 1
+         * @maxLength 255
+         */
+        name: string;
+        enabled: boolean;
+        settings?: {
+          /**
+           * @minLength 10
+           * @maxLength 500
+           */
+          url?: string;
+          /**
+           * @minLength 1
+           * @maxLength 255
+           */
+          token?: string | null;
+        };
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          data: {
+            id: number;
+            name: string;
+            type: string;
+            enabled: boolean;
+            created_at: string;
+            updated_at: string;
+          };
+        },
+        any
+      >({
+        path: `/admin-api/notification-channels/webhook`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name NotificationChannelsWebhookDetail
+ * @request GET:/admin-api/notification-channels/webhook/{id}
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    url: string,
+    token_mask: string,
+
+},
+
+}` description
+ */
+    notificationChannelsWebhookDetail: (id: any, params: RequestParams = {}) =>
+      this.request<
+        {
+          data: {
+            id: number;
+            url: string;
+            token_mask: string;
+          };
+        },
+        any
+      >({
+        path: `/admin-api/notification-channels/webhook/${id}`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @name NotificationChannelsWebhookPartialUpdate
+     * @request PATCH:/admin-api/notification-channels/webhook/{id}
+     * @secure
+     * @response `200` `any` description
+     */
+    notificationChannelsWebhookPartialUpdate: (
+      id: any,
+      data: {
+        /**
+         * @minLength 1
+         * @maxLength 255
+         */
+        name: string;
+        enabled: boolean;
+        settings?: {
+          /**
+           * @minLength 10
+           * @maxLength 500
+           */
+          url?: string;
+          /**
+           * @minLength 1
+           * @maxLength 255
+           */
+          token?: string | null;
+        };
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<any, any>({
+        path: `/admin-api/notification-channels/webhook/${id}`,
         method: "PATCH",
         body: data,
         secure: true,

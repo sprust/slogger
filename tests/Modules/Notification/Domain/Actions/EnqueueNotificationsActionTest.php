@@ -6,9 +6,6 @@ use App\Modules\Notification\Domain\Actions\Mutations\EnqueueNotificationsAction
 use App\Modules\Notification\Domain\Actions\Queries\FindChannelAction;
 use App\Modules\Notification\Domain\Events\NotificationEnqueuedEvent;
 use App\Modules\Notification\Domain\Services\IncidentMessageFactory;
-use App\Modules\Notification\Domain\Services\Senders\TelegramSender;
-use App\Modules\Notification\Domain\Services\Types\NotificationChannelTypeRegistry;
-use App\Modules\Notification\Domain\Services\Types\TelegramChannelType;
 use App\Modules\Notification\Entities\ChannelObject;
 use App\Modules\Notification\Entities\NotificationObject;
 use App\Modules\Notification\Entities\Settings\TelegramSettingsObject;
@@ -23,10 +20,13 @@ use App\Modules\Watcher\Enums\WatcherTypeEnum;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Support\Carbon;
 use PHPUnit\Framework\TestCase;
+use Tests\Modules\Notification\NotificationFactoryTrait;
 use RuntimeException;
 
 class EnqueueNotificationsActionTest extends TestCase
 {
+    use NotificationFactoryTrait;
+
     private Dispatcher $events;
 
     protected function setUp(): void
@@ -123,7 +123,7 @@ class EnqueueNotificationsActionTest extends TestCase
 
         new EnqueueNotificationsAction(
             findChannelAction: $findChannelAction,
-            types: $this->types(),
+            types: $this->channelTypes(),
             messageFactory: $this->createMock(IncidentMessageFactory::class),
             notificationRepository: $repository,
             events: $this->events
@@ -147,7 +147,7 @@ class EnqueueNotificationsActionTest extends TestCase
 
         new EnqueueNotificationsAction(
             findChannelAction: $findChannelAction,
-            types: $this->types(),
+            types: $this->channelTypes(),
             messageFactory: $messageFactory,
             notificationRepository: $repository,
             events: $this->events
@@ -222,7 +222,7 @@ class EnqueueNotificationsActionTest extends TestCase
 
         return new EnqueueNotificationsAction(
             findChannelAction: $findChannelAction,
-            types: $this->types(),
+            types: $this->channelTypes(),
             messageFactory: $messageFactory,
             notificationRepository: $repository,
             events: $this->events
@@ -241,13 +241,6 @@ class EnqueueNotificationsActionTest extends TestCase
             sentAt: null,
             error: null,
             createdAt: Carbon::parse('2026-09-08 12:00:00')
-        );
-    }
-
-    private function types(): NotificationChannelTypeRegistry
-    {
-        return new NotificationChannelTypeRegistry(
-            new TelegramChannelType($this->createMock(TelegramSender::class))
         );
     }
 

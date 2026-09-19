@@ -2,15 +2,18 @@
 
 namespace Tests\Modules\Notification\Domain\Services\Types;
 
-use App\Modules\Notification\Domain\Services\Senders\TelegramSender;
 use App\Modules\Notification\Domain\Services\Types\NotificationChannelTypeRegistry;
-use App\Modules\Notification\Domain\Services\Types\TelegramChannelType;
+use App\Modules\Notification\Entities\Settings\SlackSettingsObject;
 use App\Modules\Notification\Entities\Settings\TelegramSettingsObject;
+use App\Modules\Notification\Entities\Settings\WebhookSettingsObject;
 use App\Modules\Notification\Enums\NotificationChannelTypeEnum;
 use PHPUnit\Framework\TestCase;
+use Tests\Modules\Notification\NotificationFactoryTrait;
 
 class NotificationChannelTypeRegistryTest extends TestCase
 {
+    use NotificationFactoryTrait;
+
     public function testEveryTypeHasADefinition(): void
     {
         $registry = $this->registry();
@@ -62,10 +65,31 @@ class NotificationChannelTypeRegistryTest extends TestCase
         $this->assertSame('456:def', $settings->botToken);
     }
 
+    public function testAnEmptySlackUrlOnAnEditKeepsTheStoredOne(): void
+    {
+        $settings = $this->registry()->for(NotificationChannelTypeEnum::Slack)->makeUpdatedSettings(
+            submitted: ['webhook_url' => ''],
+            stored: new SlackSettingsObject(webhookUrl: 'https://hooks.slack.com/services/T1/B2/abc')
+        );
+
+        $this->assertInstanceOf(SlackSettingsObject::class, $settings);
+        $this->assertSame('https://hooks.slack.com/services/T1/B2/abc', $settings->webhookUrl);
+    }
+
+    public function testAWebhookKeepsItsTokenWhileItsUrlIsMoved(): void
+    {
+        $settings = $this->registry()->for(NotificationChannelTypeEnum::Webhook)->makeUpdatedSettings(
+            submitted: ['url' => 'https://ops.example.com/new', 'token' => ''],
+            stored: new WebhookSettingsObject(url: 'https://ops.example.com/old', token: 'secret-token')
+        );
+
+        $this->assertInstanceOf(WebhookSettingsObject::class, $settings);
+        $this->assertSame('https://ops.example.com/new', $settings->url);
+        $this->assertSame('secret-token', $settings->token);
+    }
+
     private function registry(): NotificationChannelTypeRegistry
     {
-        return new NotificationChannelTypeRegistry(
-            new TelegramChannelType($this->createMock(TelegramSender::class))
-        );
+        return $this->channelTypes();
     }
 }

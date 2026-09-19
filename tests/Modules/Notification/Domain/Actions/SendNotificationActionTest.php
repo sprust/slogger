@@ -4,8 +4,6 @@ namespace Tests\Modules\Notification\Domain\Actions;
 
 use App\Modules\Notification\Domain\Actions\Mutations\SendNotificationAction;
 use App\Modules\Notification\Domain\Services\Senders\TelegramSender;
-use App\Modules\Notification\Domain\Services\Types\NotificationChannelTypeRegistry;
-use App\Modules\Notification\Domain\Services\Types\TelegramChannelType;
 use App\Modules\Notification\Entities\SendResultObject;
 use App\Modules\Notification\Repositories\NotificationRepository;
 use Illuminate\Support\Carbon;
@@ -56,7 +54,7 @@ class SendNotificationActionTest extends TestCase
             ->willReturn(new SendResultObject(delivered: true));
 
         new SendNotificationAction(
-            types: new NotificationChannelTypeRegistry(new TelegramChannelType($sender)),
+            types: $this->channelTypes($sender),
             notificationRepository: $this->createMock(NotificationRepository::class)
         )->handle($this->notification(), $this->channel());
     }
@@ -104,7 +102,7 @@ class SendNotificationActionTest extends TestCase
         $sender->expects($this->never())->method('send');
 
         $result = new SendNotificationAction(
-            types: new NotificationChannelTypeRegistry(new TelegramChannelType($sender)),
+            types: $this->channelTypes($sender),
             notificationRepository: $repository
         )->handle($this->notification(channelId: 42), null);
 
@@ -123,7 +121,7 @@ class SendNotificationActionTest extends TestCase
         $sender->expects($this->never())->method('send');
 
         $result = new SendNotificationAction(
-            types: new NotificationChannelTypeRegistry(new TelegramChannelType($sender)),
+            types: $this->channelTypes($sender),
             notificationRepository: $repository
         )->handle($this->notification(), $this->channel(enabled: false));
 
@@ -138,7 +136,7 @@ class SendNotificationActionTest extends TestCase
         $sender->method('send')->willReturn($result);
 
         return new SendNotificationAction(
-            types: new NotificationChannelTypeRegistry(new TelegramChannelType($sender)),
+            types: $this->channelTypes($sender),
             notificationRepository: $repository
         );
     }

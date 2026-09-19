@@ -14,6 +14,7 @@ class ChannelTypeFieldResource extends AbstractApiResource
     private string $description;
     private bool $secret;
     private int $max_length;
+    private bool $required;
 
     public function __construct(ChannelTypeFieldObject $resource)
     {
@@ -24,5 +25,6 @@ class ChannelTypeFieldResource extends AbstractApiResource
         $this->description = $resource->description;
         $this->secret      = $resource->secret;
         $this->max_length  = $resource->maxLength;
+        $this->required    = $resource->required;
     }
 }

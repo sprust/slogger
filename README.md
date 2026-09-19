@@ -20,7 +20,7 @@ It collects data about code execution (HTTP requests, queues, events, commands, 
 - Storage dashboard — collection sizes, memory and index usage.
 - Runtime dashboard — live stats of the SConcur HTTP server: worker pool, RPS, CPU, memory, in-flight requests.
 - Watchers — configurable rules that open an incident when the system misbehaves: a buffer growing, traces stopping, too many of them, traces running too long, errors in the application log; trace watchers can be narrowed by service, type, tag and status.
-- Notification channels — a watcher's incidents are sent on to Telegram, with a delivery log per channel.
+- Notification channels — a watcher's incidents are sent on to Telegram, to Slack, or to an address of your own as JSON, with a delivery log per channel.
 - Automatic cleanup of stale data.
 
 ---
@@ -212,13 +212,13 @@ Only a watcher's settings live in MySQL. Everything it produces — the incident
 
 ### Notification channels
 
-An incident is worth nothing to somebody who is not looking at the panel, so a channel carries it out. One type so far, Telegram: a bot posts into a chat, a group or a channel. A channel is only where a message goes and how.
+An incident is worth nothing to somebody who is not looking at the panel, so a channel carries it out. Three types: Telegram, where a bot posts into a chat, a group or a channel; Slack, where an incoming webhook posts into the channel it was made for; and a webhook, which POSTs `{channel, text, sent_at}` as JSON to an address of your own, optionally signed with a token in the `X-Slogger-Token` header. A channel is only where a message goes and how. The message is written in the markup of the type that carries it — Telegram's HTML, Slack's mrkdwn, and none at all for a webhook, whose reader is a program.
 
 Each watcher names the one channel it speaks through, chosen in its own form, and naming none is a real answer: that watcher opens incidents in the panel and tells nobody. Beside the channel the watcher also says which of the three moments it speaks about — the incident being opened, another event under one already open, and the incident being closed — so a noisy watcher can send the openings alone while a critical one sends everything into the same chat. A new watcher sends the openings alone. So two teams can each be sent their own part of the system instead of everybody hearing everything. A channel switched off, or removed after a watcher was pointed at it, silences that watcher rather than piling up deliveries that cannot go anywhere.
 
-Sending is a queued job (`SendNotificationJob`), never the watcher's pass: a Telegram that is slow or down must not hold up the checks. Every message is written to `notifications` before it is sent and updated with what came back, which is what the delivery list under each channel shows — sent, queued, or the error Telegram gave. The delivery log is kept for 30 days. A 429 is released for exactly as long as Telegram asked for, a 4xx is final, everything else is retried with a growing backoff.
+Sending is a queued job (`SendNotificationJob`), never the watcher's pass: a receiver that is slow or down must not hold up the checks. Every message is written to `notifications` before it is sent and updated with what came back, which is what the delivery list under each channel shows — sent, queued, or the error the other side gave. The delivery log is kept for 30 days. A 429 is released for exactly as long as the answer asked for, a 4xx is final, everything else is retried with a growing backoff.
 
-The bot token is stored encrypted (`encrypted:array` over a single column) and never sent back to the panel — the edit form is shown a mask of the last few characters, and left blank it keeps the token already stored. There is a Test button beside each channel, which sends one message through the real credentials and reports what happened.
+A secret — the bot token, the Slack webhook url, the webhook's token — is stored encrypted (`encrypted:array` over a single column) and never sent back to the panel: the edit form is shown a mask of the last few characters, and left blank it keeps what is already stored. There is a Test button beside each channel, which sends one message through the real credentials and reports what happened.
 
 ### Automatic cleanup
 

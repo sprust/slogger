@@ -9,7 +9,7 @@ use App\Modules\Notification\Entities\Settings\TelegramSettingsObject;
 
 class TelegramChannelSettingsResource extends AbstractApiResource
 {
-    private const int VISIBLE_TOKEN_TAIL = 4;
+    use SecretMaskTrait;
 
     private int $id;
     private string $bot_token_mask;
@@ -22,14 +22,5 @@ class TelegramChannelSettingsResource extends AbstractApiResource
         $this->id             = $id;
         $this->bot_token_mask = $this->mask($resource->botToken);
         $this->chat_id        = $resource->chatId;
-    }
-
-    private function mask(string $botToken): string
-    {
-        if ($botToken === '') {
-            return '';
-        }
-
-        return str_repeat('*', 8) . mb_substr($botToken, -self::VISIBLE_TOKEN_TAIL);
     }
 }
