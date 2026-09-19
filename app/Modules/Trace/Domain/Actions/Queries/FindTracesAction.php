@@ -19,16 +19,20 @@ use App\Modules\Trace\Entities\Trace\TraceServiceObject;
 use App\Modules\Trace\Parameters\TraceFindParameters;
 use App\Modules\Trace\Repositories\Dto\Trace\TraceDto;
 use App\Modules\Trace\Repositories\TraceRepository;
+use App\Modules\Trace\Repositories\TraceTreeCacheRepository;
 use App\Modules\Trace\Repositories\TraceTreeRepository;
 use Illuminate\Support\Arr;
 
 readonly class FindTracesAction
 {
+    private const int TREE_IDS_BATCH_COUNT = 50000;
+
     private int $maxPerPage;
 
     public function __construct(
         private TraceRepository $traceRepository,
         private TraceTreeRepository $traceTreeRepository,
+        private TraceTreeCacheRepository $traceTreeCacheRepository,
         private FindTraceServicesAction $findTraceServicesAction,
         private TraceDynamicIndexInitializer $traceDynamicIndexInitializer
     ) {
@@ -46,6 +50,8 @@ readonly class FindTracesAction
         $perPage = min($parameters->perPage ?: $this->maxPerPage, $this->maxPerPage);
 
         $traceIds = null;
+
+        $treeRootTraceId = null;
 
         if ($parameters->traceId) {
             $traceDto = $this->traceRepository->findOneDetailByTraceId($parameters->traceId);
@@ -70,6 +76,10 @@ readonly class FindTracesAction
 
                 if ($parentTraceId === null) {
                     $traceIds = [];
+                } elseif ($this->traceTreeCacheRepository->existsByRootTraceId($parentTraceId)) {
+                    $treeRootTraceId = $parentTraceId;
+
+                    $traceIds = [$parentTraceId];
                 } else {
                     $traceIds[] = $parentTraceId;
 
@@ -108,25 +118,18 @@ readonly class FindTracesAction
             needLoggedAt: true,
         );
 
-        $tracesDto = $this->traceRepository->find(
-            page: $parameters->page,
-            perPage: $perPage,
-            serviceIds: $parameters->serviceIds,
-            traceIds: $traceIds,
-            loggedAtFrom: $parameters->loggingPeriod?->from,
-            loggedAtTo: $parameters->loggingPeriod?->to,
-            types: $parameters->types,
-            tags: $parameters->tags,
-            statuses: $parameters->statuses,
-            durationFrom: $parameters->durationFrom,
-            durationTo: $parameters->durationTo,
-            memoryFrom: $parameters->memoryFrom,
-            memoryTo: $parameters->memoryTo,
-            cpuFrom: $parameters->cpuFrom,
-            cpuTo: $parameters->cpuTo,
-            data: $parameters->data,
-            hasProfiling: $parameters->hasProfiling,
-        );
+        $tracesDto = is_null($treeRootTraceId)
+            ? $this->search(
+                parameters: $parameters,
+                traceIds: $traceIds,
+                page: $parameters->page,
+                perPage: $perPage
+            )
+            : $this->searchInTree(
+                parameters: $parameters,
+                rootTraceId: $treeRootTraceId,
+                perPage: $perPage
+            );
 
         $serviceIds = array_unique(
             array_filter(
@@ -184,6 +187,120 @@ readonly class FindTracesAction
                 currentPage: $parameters->page,
             ),
         );
+    }
+
+    /**
+     * @param string[]|null $traceIds
+     *
+     * @return TraceDto[]
+     */
+    private function search(
+        TraceFindParameters $parameters,
+        ?array $traceIds,
+        int $page,
+        int $perPage
+    ): array {
+        return $this->traceRepository->find(
+            page: $page,
+            perPage: $perPage,
+            serviceIds: $parameters->serviceIds,
+            traceIds: $traceIds,
+            loggedAtFrom: $parameters->loggingPeriod?->from,
+            loggedAtTo: $parameters->loggingPeriod?->to,
+            types: $parameters->types,
+            tags: $parameters->tags,
+            statuses: $parameters->statuses,
+            durationFrom: $parameters->durationFrom,
+            durationTo: $parameters->durationTo,
+            memoryFrom: $parameters->memoryFrom,
+            memoryTo: $parameters->memoryTo,
+            cpuFrom: $parameters->cpuFrom,
+            cpuTo: $parameters->cpuTo,
+            data: $parameters->data,
+            hasProfiling: $parameters->hasProfiling,
+        );
+    }
+
+    /**
+     * @return TraceDto[]
+     */
+    private function searchInTree(
+        TraceFindParameters $parameters,
+        string $rootTraceId,
+        int $perPage
+    ): array {
+        $needed = $parameters->page * $perPage;
+
+        $found = [];
+
+        $traceIdsBatches = $this->traceTreeCacheRepository->findTraceIds(
+            rootTraceId: $rootTraceId,
+            batchCount: self::TREE_IDS_BATCH_COUNT
+        );
+
+        foreach ($traceIdsBatches as $traceIdsBatch) {
+            $found = $this->mergeFound(
+                left: $found,
+                right: $this->search(
+                    parameters: $parameters,
+                    traceIds: $traceIdsBatch,
+                    page: 1,
+                    perPage: $needed
+                ),
+                limit: $needed
+            );
+        }
+
+        return array_slice($found, ($parameters->page - 1) * $perPage, $perPage);
+    }
+
+    /**
+     * @param TraceDto[] $left
+     * @param TraceDto[] $right
+     *
+     * @return TraceDto[]
+     */
+    private function mergeFound(array $left, array $right, int $limit): array
+    {
+        $merged = [];
+
+        $leftIndex  = 0;
+        $rightIndex = 0;
+
+        $leftCount  = count($left);
+        $rightCount = count($right);
+
+        while (count($merged) < $limit && ($leftIndex < $leftCount || $rightIndex < $rightCount)) {
+            if ($leftIndex >= $leftCount) {
+                $merged[] = $right[$rightIndex++];
+
+                continue;
+            }
+
+            if ($rightIndex >= $rightCount) {
+                $merged[] = $left[$leftIndex++];
+
+                continue;
+            }
+
+            $merged[] = $this->isEarlierInOrder($left[$leftIndex], $right[$rightIndex])
+                ? $left[$leftIndex++]
+                : $right[$rightIndex++];
+        }
+
+        return $merged;
+    }
+
+    private function isEarlierInOrder(TraceDto $left, TraceDto $right): bool
+    {
+        $leftLoggedAt  = $left->loggedAt->getTimestampMs();
+        $rightLoggedAt = $right->loggedAt->getTimestampMs();
+
+        if ($leftLoggedAt !== $rightLoggedAt) {
+            return $leftLoggedAt > $rightLoggedAt;
+        }
+
+        return strcmp($left->id, $right->id) <= 0;
     }
 
     /**

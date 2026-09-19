@@ -24,6 +24,14 @@ readonly class TraceTreeCacheBuilderService
      */
     private const float PROGRESS_INTERVAL_SECONDS = 0.5;
 
+    private const int TRAVERSAL_BATCH_COUNT = 1000;
+
+    /**
+     * The depth the traversal never asks for, so what is written with it is cached and
+     * never expanded: the chain above the root belongs to the tree but not below it.
+     */
+    private const int ANCESTOR_DEPTH = -1;
+
     public function __construct(
         private TraceRepository $traceRepository,
         private TraceTreeRepository $traceTreeRepository,
@@ -67,6 +75,7 @@ readonly class TraceTreeCacheBuilderService
 
         $this->traceTreeCacheRepository->createMany(
             rootTraceId: $rootTraceId,
+            depth: 0,
             parametersList: [
                 new CreateTraceTreeCacheParameters(
                     serviceId: $rootTrace->serviceId,
@@ -89,23 +98,51 @@ readonly class TraceTreeCacheBuilderService
             count: 1,
         );
 
-        foreach ($this->traceTreeRepository->findTraceIdsInTreeByParentTraceId($rootTraceId, 1000) as $childIdsChunk) {
-            $canContinue = $this->isShouldContinueBuildTraceTreeCacheAction->handle(
+        $depth = 0;
+
+        while (true) {
+            $hasChildren = false;
+
+            $parentIdsChunks = $this->traceTreeCacheRepository->findTraceIdsByDepth(
                 rootTraceId: $rootTraceId,
-                version: $version
+                depth: $depth,
+                batchCount: self::TRAVERSAL_BATCH_COUNT
             );
 
-            if ($canContinue === false) {
-                return false;
+            foreach ($parentIdsChunks as $parentIdsChunk) {
+                $canContinue = $this->isShouldContinueBuildTraceTreeCacheAction->handle(
+                    rootTraceId: $rootTraceId,
+                    version: $version
+                );
+
+                if ($canContinue === false) {
+                    return false;
+                }
+
+                $childIdsChunks = $this->traceTreeRepository->findChildrenTraceIds(
+                    parentTraceIds: $parentIdsChunk,
+                    batchCount: self::TRAVERSAL_BATCH_COUNT
+                );
+
+                foreach ($childIdsChunks as $childIdsChunk) {
+                    $hasChildren = true;
+
+                    $this->createTraceTree(
+                        rootTraceId: $rootTraceId,
+                        version: $version,
+                        childIdsChunk: $childIdsChunk,
+                        depth: $depth + 1,
+                    );
+
+                    $this->announceProgress($rootTraceId, $lastProgressAt);
+                }
             }
 
-            $this->createTraceTree(
-                rootTraceId: $rootTraceId,
-                version: $version,
-                childIdsChunk: $childIdsChunk,
-            );
+            if ($hasChildren === false) {
+                break;
+            }
 
-            $this->announceProgress($rootTraceId, $lastProgressAt);
+            $depth++;
         }
 
         $additionalTraceIds = $this->traceTreeRepository->findChainToParentTraceId(
@@ -126,6 +163,7 @@ readonly class TraceTreeCacheBuilderService
                 rootTraceId: $rootTraceId,
                 version: $version,
                 childIdsChunk: $additionalTraceIds,
+                depth: self::ANCESTOR_DEPTH,
             );
 
             $this->announceProgress($rootTraceId, $lastProgressAt);
@@ -166,8 +204,12 @@ readonly class TraceTreeCacheBuilderService
     /**
      * @param string[] $childIdsChunk
      */
-    private function createTraceTree(string $rootTraceId, string $version, array $childIdsChunk): void
-    {
+    private function createTraceTree(
+        string $rootTraceId,
+        string $version,
+        array $childIdsChunk,
+        int $depth
+    ): void {
         $foundTraces = $this->traceRepository->findByTraceIds(
             traceIds: $childIdsChunk
         );
@@ -196,6 +238,7 @@ readonly class TraceTreeCacheBuilderService
 
         $this->traceTreeCacheRepository->createMany(
             rootTraceId: $rootTraceId,
+            depth: $depth,
             parametersList: $cacheParametersList
         );
 

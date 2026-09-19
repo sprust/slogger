@@ -51,6 +51,84 @@ class TraceTreeCacheBuilderServiceTest extends TestCase
     }
 
     /**
+     * The walk keeps no frontier of its own: a level is read back from the cache it has
+     * just written, by the depth it was written with. What it writes one level deeper is
+     * therefore the next level, and a level that produced nothing ends the walk.
+     */
+    public function testALevelIsReadBackFromTheCacheAndWrittenOneDeeper(): void
+    {
+        $children = [
+            'root' => ['a', 'b'],
+            'a'    => ['c'],
+        ];
+
+        /** @var array<int, list<string>> $written */
+        $written = [];
+
+        $traces = $this->createMock(TraceRepository::class);
+        $traces->method('findOneDetailByTraceId')->willReturn($this->trace('root'));
+        $traces->method('findByTraceIds')->willReturnCallback(
+            fn(array $traceIds): array => array_map($this->trace(...), $traceIds)
+        );
+
+        $tree = $this->createMock(TraceTreeRepository::class);
+        $tree->method('findChildrenTraceIds')->willReturnCallback(
+            function (array $parentTraceIds) use ($children): array {
+                $found = [];
+
+                foreach ($parentTraceIds as $parentTraceId) {
+                    foreach ($children[$parentTraceId] ?? [] as $childTraceId) {
+                        $found[] = $childTraceId;
+                    }
+                }
+
+                return $found === [] ? [] : [$found];
+            }
+        );
+        $tree->method('findChainToParentTraceId')->willReturn(['ancestor']);
+
+        $cache = $this->createMock(TraceTreeCacheRepository::class);
+        $cache->method('createMany')->willReturnCallback(
+            function (string $rootTraceId, int $depth, array $parametersList) use (&$written): void {
+                foreach ($parametersList as $parameters) {
+                    $written[$depth][] = $parameters->traceId;
+                }
+            }
+        );
+        $cache->method('findTraceIdsByDepth')->willReturnCallback(
+            function (string $rootTraceId, int $depth) use (&$written): array {
+                return isset($written[$depth]) ? [$written[$depth]] : [];
+            }
+        );
+
+        $states = $this->createMock(TraceTreeCacheStateRepository::class);
+        $states->method('incrementCount')->willReturn(true);
+
+        $shouldContinue = $this->createMock(IsShouldContinueBuildTraceTreeCacheAction::class);
+        $shouldContinue->method('handle')->willReturn(true);
+
+        $service = new TraceTreeCacheBuilderService(
+            $traces,
+            $tree,
+            $cache,
+            $states,
+            $shouldContinue,
+            $this->createMock(Dispatcher::class)
+        );
+
+        $service->handle('root', 'v1');
+
+        self::assertSame(['root'], $written[0]);
+        self::assertSame(['a', 'b'], $written[1]);
+        self::assertSame(['c'], $written[2]);
+        self::assertArrayNotHasKey(3, $written);
+
+        // the chain above the root is cached at a depth the walk never asks for, so it
+        // is never expanded upwards
+        self::assertSame(['ancestor'], $written[-1]);
+    }
+
+    /**
      * @param list<list<string>> $chunks the child id chunks the tree walk yields
      */
     private function service(Dispatcher $events, array $chunks): TraceTreeCacheBuilderService
@@ -62,10 +140,19 @@ class TraceTreeCacheBuilderServiceTest extends TestCase
         );
 
         $tree = $this->createMock(TraceTreeRepository::class);
-        $tree->method('findTraceIdsInTreeByParentTraceId')->willReturn($chunks);
+        $tree->method('findChildrenTraceIds')->willReturnCallback(
+            fn(array $parentTraceIds): array => ($parentTraceIds === ['root']) ? $chunks : []
+        );
         $tree->method('findChainToParentTraceId')->willReturn([]);
 
         $cache = $this->createMock(TraceTreeCacheRepository::class);
+        $cache->method('findTraceIdsByDepth')->willReturnCallback(
+            fn(string $rootTraceId, int $depth): array => match ($depth) {
+                0       => [['root']],
+                1       => array_map(static fn(array $chunk): array => $chunk, $chunks),
+                default => [],
+            }
+        );
 
         $states = $this->createMock(TraceTreeCacheStateRepository::class);
         $states->method('incrementCount')->willReturn(true);

@@ -151,6 +151,61 @@ readonly class TraceTreeRepository
     }
 
     /**
+     * @param string[] $parentTraceIds
+     *
+     * @return iterable<int, string[]>
+     */
+    public function findChildrenTraceIds(array $parentTraceIds, int $batchCount): iterable
+    {
+        if ($batchCount <= 0) {
+            throw new InvalidArgumentException('Batch count must be greater than 0');
+        }
+
+        if ($parentTraceIds === []) {
+            return;
+        }
+
+        /** @var Iterator<array{tid: string}> $childrenCursor */
+        $childrenCursor = TraceTree::sconcur()
+            ->aggregate(
+                pipeline: [
+                    [
+                        '$match' => [
+                            'ptid' => [
+                                '$in' => $parentTraceIds,
+                            ],
+                        ],
+                    ],
+                    [
+                        '$project' => [
+                            '_id' => 0,
+                            'tid' => 1,
+                        ],
+                    ],
+                ],
+                batchSize: $batchCount
+            );
+
+        $childIds = [];
+
+        foreach ($childrenCursor as $item) {
+            $childIds[] = $item['tid'];
+
+            if (count($childIds) < $batchCount) {
+                continue;
+            }
+
+            yield $childIds;
+
+            $childIds = [];
+        }
+
+        if ($childIds !== []) {
+            yield $childIds;
+        }
+    }
+
+    /**
      * @param string[] $frontier
      *
      * @return iterable<int, string[][]>
@@ -189,31 +244,12 @@ readonly class TraceTreeRepository
      */
     private function findDirectChildrenTraceIds(array $parentTraceIds): array
     {
-        /** @var Iterator<array{tid: string}> $childrenCursor */
-        $childrenCursor = TraceTree::sconcur()
-            ->aggregate(
-                pipeline: [
-                    [
-                        '$match' => [
-                            'ptid' => [
-                                '$in' => $parentTraceIds,
-                            ],
-                        ],
-                    ],
-                    [
-                        '$project' => [
-                            '_id' => 0,
-                            'tid' => 1,
-                        ],
-                    ],
-                ],
-                batchSize: 500
-            );
-
         $childIds = [];
 
-        foreach ($childrenCursor as $item) {
-            $childIds[] = $item['tid'];
+        foreach ($this->findChildrenTraceIds($parentTraceIds, $this->treeTraversalChunkSize) as $childIdsChunk) {
+            foreach ($childIdsChunk as $childTraceId) {
+                $childIds[] = $childTraceId;
+            }
         }
 
         return $childIds;
