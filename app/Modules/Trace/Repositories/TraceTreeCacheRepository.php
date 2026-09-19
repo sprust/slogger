@@ -9,16 +9,42 @@ use App\Modules\Trace\Entities\Trace\Tree\TraceTreeRawIterator;
 use App\Modules\Trace\Entities\Trace\Tree\TraceTreeRawObject;
 use App\Modules\Trace\Entities\Trace\Tree\TraceTreeStringableObject;
 use App\Modules\Trace\Parameters\CreateTraceTreeCacheParameters;
+use App\Modules\Trace\Repositories\Dto\Trace\Tree\TraceTreeCachePageDto;
 use App\Modules\Trace\Repositories\Dto\Trace\TraceTreeServiceDto;
 use Illuminate\Support\Carbon;
 use InvalidArgumentException;
+use SConcur\Bson\ObjectId;
 use SConcur\Bson\UTCDateTime;
 
 class TraceTreeCacheRepository
 {
-    public function delete(string $rootTraceId): void
+    public function deleteChunk(string $rootTraceId, int $limit): int
     {
-        TraceTreeCache::sconcur()->deleteMany(['rootTraceId' => $rootTraceId]);
+        if ($limit <= 0) {
+            throw new InvalidArgumentException('Limit must be greater than 0');
+        }
+
+        $cursor = TraceTreeCache::sconcur()
+            ->find(
+                filter: ['rootTraceId' => $rootTraceId],
+                projection: ['_id' => 1],
+                limit: $limit,
+                batchSize: $limit
+            );
+
+        $ids = [];
+
+        foreach ($cursor as $item) {
+            $ids[] = $item['_id'];
+        }
+
+        if ($ids === []) {
+            return 0;
+        }
+
+        TraceTreeCache::sconcur()->deleteMany(['_id' => ['$in' => $ids]]);
+
+        return count($ids);
     }
 
     /**
@@ -64,6 +90,64 @@ class TraceTreeCacheRepository
         TraceTreeCache::sconcur()->bulkWrite($operations);
     }
 
+    public function existsByDepth(string $rootTraceId, int $depth): bool
+    {
+        return TraceTreeCache::sconcur()->findOne(
+            filter: [
+                'rootTraceId' => $rootTraceId,
+                'depth'       => $depth,
+            ],
+            projection: ['_id' => 1]
+        ) !== null;
+    }
+
+    public function findTraceIdsPage(
+        string $rootTraceId,
+        int $depth,
+        ?string $afterId,
+        int $limit
+    ): TraceTreeCachePageDto {
+        if ($limit <= 0) {
+            throw new InvalidArgumentException('Limit must be greater than 0');
+        }
+
+        $filter = [
+            'rootTraceId' => $rootTraceId,
+            'depth'       => $depth,
+        ];
+
+        if (!is_null($afterId)) {
+            $filter['_id'] = ['$gt' => new ObjectId($afterId)];
+        }
+
+        $cursor = TraceTreeCache::sconcur()
+            ->find(
+                filter: $filter,
+                projection: [
+                    '_id'     => 1,
+                    'traceId' => 1,
+                ],
+                sort: ['_id' => 1],
+                limit: $limit,
+                batchSize: $limit
+            );
+
+        $traceIds = [];
+
+        $lastId = null;
+
+        foreach ($cursor as $item) {
+            $traceIds[] = $item['traceId'];
+
+            $lastId = (string) $item['_id'];
+        }
+
+        return new TraceTreeCachePageDto(
+            traceIds: $traceIds,
+            lastId: $lastId
+        );
+    }
+
     public function existsByRootTraceId(string $rootTraceId): bool
     {
         return TraceTreeCache::sconcur()->findOne(
@@ -86,47 +170,6 @@ class TraceTreeCacheRepository
                 filter: [
                     'rootTraceId' => $rootTraceId,
                     'depth'       => ['$gte' => 0],
-                ],
-                projection: [
-                    '_id'     => 0,
-                    'traceId' => 1,
-                ],
-                batchSize: $batchCount
-            );
-
-        $traceIds = [];
-
-        foreach ($cursor as $item) {
-            $traceIds[] = $item['traceId'];
-
-            if (count($traceIds) < $batchCount) {
-                continue;
-            }
-
-            yield $traceIds;
-
-            $traceIds = [];
-        }
-
-        if ($traceIds !== []) {
-            yield $traceIds;
-        }
-    }
-
-    /**
-     * @return iterable<int, string[]>
-     */
-    public function findTraceIdsByDepth(string $rootTraceId, int $depth, int $batchCount): iterable
-    {
-        if ($batchCount <= 0) {
-            throw new InvalidArgumentException('Batch count must be greater than 0');
-        }
-
-        $cursor = TraceTreeCache::sconcur()
-            ->find(
-                filter: [
-                    'rootTraceId' => $rootTraceId,
-                    'depth'       => $depth,
                 ],
                 projection: [
                     '_id'     => 0,

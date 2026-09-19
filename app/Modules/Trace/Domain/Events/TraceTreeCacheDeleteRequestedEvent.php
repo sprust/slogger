@@ -4,13 +4,11 @@ declare(strict_types=1);
 
 namespace App\Modules\Trace\Domain\Events;
 
-readonly class TraceTreeCacheBuildRequestedEvent
+readonly class TraceTreeCacheDeleteRequestedEvent
 {
     public function __construct(
         public string $rootTraceId,
-        public string $version,
-        public int $depth = 0,
-        public ?string $afterId = null,
+        public ?string $buildVersion = null,
     ) {
     }
 }

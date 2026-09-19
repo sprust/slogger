@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Modules\Trace\Infrastructure\Jobs;
 
-use App\Modules\Trace\Domain\Actions\Mutations\BuildTraceTreeCacheAction;
+use App\Modules\Trace\Domain\Actions\Mutations\DeleteTraceTreeCacheAction;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 
-class BuildTraceTreeCacheJob implements ShouldQueue
+class DeleteTraceTreeCacheJob implements ShouldQueue
 {
     use InteractsWithQueue;
     use Queueable;
@@ -19,22 +19,18 @@ class BuildTraceTreeCacheJob implements ShouldQueue
 
     public function __construct(
         private readonly string $rootTraceId,
-        private readonly string $version,
-        private readonly int $depth = 0,
-        private readonly ?string $afterId = null,
+        private readonly ?string $buildVersion = null,
     ) {
         $this->onConnection(config('module-trace.queue.connection'))
             ->onQueue(config('module-trace.queue.name'));
     }
 
     public function handle(
-        BuildTraceTreeCacheAction $buildTraceTreeCacheAction,
+        DeleteTraceTreeCacheAction $deleteTraceTreeCacheAction,
     ): void {
-        $buildTraceTreeCacheAction->handle(
+        $deleteTraceTreeCacheAction->handle(
             rootTraceId: $this->rootTraceId,
-            version: $this->version,
-            depth: $this->depth,
-            afterId: $this->afterId,
+            buildVersion: $this->buildVersion,
         );
     }
 }

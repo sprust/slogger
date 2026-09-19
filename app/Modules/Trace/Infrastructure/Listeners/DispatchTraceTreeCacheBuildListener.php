@@ -15,6 +15,8 @@ class DispatchTraceTreeCacheBuildListener
             new BuildTraceTreeCacheJob(
                 rootTraceId: $event->rootTraceId,
                 version: $event->version,
+                depth: $event->depth,
+                afterId: $event->afterId,
             )
         );
     }

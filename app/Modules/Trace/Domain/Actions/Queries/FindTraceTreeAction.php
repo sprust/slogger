@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Trace\Domain\Actions\Queries;
 
-use App\Modules\Trace\Domain\Events\TraceTreeCacheBuildRequestedEvent;
+use App\Modules\Trace\Domain\Events\TraceTreeCacheDeleteRequestedEvent;
 use App\Modules\Trace\Entities\Trace\Tree\TraceTreeResultObject;
 use App\Modules\Trace\Enums\TraceTreeCacheStateStatusEnum;
 use App\Modules\Trace\Repositories\TraceRepository;
@@ -51,9 +51,9 @@ readonly class FindTraceTreeAction
             );
 
             event(
-                new TraceTreeCacheBuildRequestedEvent(
+                new TraceTreeCacheDeleteRequestedEvent(
                     rootTraceId: $state->rootTraceId,
-                    version: $state->version,
+                    buildVersion: $state->version,
                 )
             );
 

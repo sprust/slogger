@@ -14,6 +14,7 @@ use App\Modules\Trace\Domain\Actions\Mutations\BuildTraceTreeCacheAction;
 use App\Modules\Trace\Domain\Actions\Mutations\CancelTraceTreeCacheStateAction;
 use App\Modules\Trace\Domain\Actions\Mutations\DeleteCollectionsAction;
 use App\Modules\Trace\Domain\Actions\Mutations\DeleteExpiredTraceDynamicIndexesAction;
+use App\Modules\Trace\Domain\Actions\Mutations\DeleteTraceTreeCacheAction;
 use App\Modules\Trace\Domain\Actions\Mutations\DeleteTraceTreeCacheStateAction;
 use App\Modules\Trace\Domain\Actions\Mutations\DeleteTraceAdminStoreAction;
 use App\Modules\Trace\Domain\Actions\Mutations\DeleteTraceDynamicIndexAction;
@@ -113,6 +114,7 @@ class TraceServiceProvider extends BaseServiceProvider
             DeleteCollectionsAction::class,
             BuildTraceTreeCacheAction::class,
             CancelTraceTreeCacheStateAction::class,
+            DeleteTraceTreeCacheAction::class,
             DeleteTraceTreeCacheStateAction::class,
             // actions.queries
             FindTraceBufferCountAction::class,

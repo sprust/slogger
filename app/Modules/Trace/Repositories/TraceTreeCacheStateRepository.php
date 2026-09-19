@@ -139,7 +139,7 @@ class TraceTreeCacheStateRepository
             ->deletedCount > 0;
     }
 
-    public function markFinished(string $rootTraceId, string $version): bool
+    public function markFinished(string $rootTraceId, string $version, int $count): bool
     {
         $finishedAt = now();
 
@@ -153,6 +153,7 @@ class TraceTreeCacheStateRepository
                 update: [
                     '$set' => [
                         'status'     => TraceTreeCacheStateStatusEnum::Finished->value,
+                        'count'      => $count,
                         'error'      => null,
                         'finishedAt' => new UTCDateTime($finishedAt),
                         'updatedAt'  => new UTCDateTime($finishedAt),
