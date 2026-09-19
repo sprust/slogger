@@ -908,6 +908,7 @@
                                                                     "type": "string",
                                                                     "enum": [
                                                                         "equals",
+                                                                        "not_equals",
                                                                         "contains",
                                                                         "starts",
                                                                         "ends"
@@ -2391,6 +2392,7 @@
                                                                     "type": "string",
                                                                     "enum": [
                                                                         "equals",
+                                                                        "not_equals",
                                                                         "contains",
                                                                         "starts",
                                                                         "ends"
@@ -2595,6 +2597,7 @@
                                                                     "type": "string",
                                                                     "enum": [
                                                                         "equals",
+                                                                        "not_equals",
                                                                         "contains",
                                                                         "starts",
                                                                         "ends"
@@ -2799,6 +2802,7 @@
                                                                     "type": "string",
                                                                     "enum": [
                                                                         "equals",
+                                                                        "not_equals",
                                                                         "contains",
                                                                         "starts",
                                                                         "ends"
@@ -3037,6 +3041,7 @@
                                                                     "type": "string",
                                                                     "enum": [
                                                                         "equals",
+                                                                        "not_equals",
                                                                         "contains",
                                                                         "starts",
                                                                         "ends"

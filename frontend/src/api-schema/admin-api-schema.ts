@@ -35,6 +35,7 @@ export enum DataCompEnum {
 
 export enum DataCompEnum1 {
   Equals = "equals",
+  NotEquals = "not_equals",
   Contains = "contains",
   Starts = "starts",
   Ends = "ends",
@@ -65,6 +66,7 @@ export enum DataCompEnum2 {
 
 export enum DataCompEnum3 {
   Equals = "equals",
+  NotEquals = "not_equals",
   Contains = "contains",
   Starts = "starts",
   Ends = "ends",
@@ -95,6 +97,7 @@ export enum DataCompEnum4 {
 
 export enum DataCompEnum5 {
   Equals = "equals",
+  NotEquals = "not_equals",
   Contains = "contains",
   Starts = "starts",
   Ends = "ends",
@@ -125,6 +128,7 @@ export enum DataCompEnum6 {
 
 export enum DataCompEnum7 {
   Equals = "equals",
+  NotEquals = "not_equals",
   Contains = "contains",
   Starts = "starts",
   Ends = "ends",
@@ -179,6 +183,7 @@ export enum DataCompEnum8 {
 
 export enum DataCompEnum9 {
   Equals = "equals",
+  NotEquals = "not_equals",
   Contains = "contains",
   Starts = "starts",
   Ends = "ends",

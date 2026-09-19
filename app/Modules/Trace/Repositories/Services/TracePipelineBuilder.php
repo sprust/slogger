@@ -65,7 +65,7 @@ class TracePipelineBuilder
         }
 
         if ($tags) {
-            $match['tgs.nm'] = ['$in' => $tags];
+            $match['tgs.nm'] = ['$all' => $tags];
         }
 
         if ($statuses) {
@@ -140,14 +140,16 @@ class TracePipelineBuilder
                 if (!is_null($filterItem->string)) {
                     $value = preg_quote($filterItem->string->value ?? '');
 
-                    $regex = match ($filterItem->string->comp) {
-                        TraceDataFilterCompStringTypeEnum::Con    => $value,
-                        TraceDataFilterCompStringTypeEnum::Starts => "^$value",
-                        TraceDataFilterCompStringTypeEnum::Ends   => "$value$",
-                        TraceDataFilterCompStringTypeEnum::Eq     => "^$value$",
+                    $match[$field] = match ($filterItem->string->comp) {
+                        TraceDataFilterCompStringTypeEnum::Con    => ['$regex' => $value],
+                        TraceDataFilterCompStringTypeEnum::Starts => ['$regex' => "^$value"],
+                        TraceDataFilterCompStringTypeEnum::Ends   => ['$regex' => "$value$"],
+                        TraceDataFilterCompStringTypeEnum::Eq     => ['$regex' => "^$value$"],
+                        TraceDataFilterCompStringTypeEnum::Neq    => [
+                            '$exists' => true,
+                            '$not'    => ['$regex' => "^$value$"],
+                        ],
                     };
-
-                    $match[$field] = ['$regex' => $regex];
 
                     continue;
                 }

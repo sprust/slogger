@@ -73,7 +73,7 @@ export type TraceAggregatorDataFilter = {
     },
     string?: {
         value?: string,
-        comp?: "equals" | "contains" | "starts" | "ends"
+        comp?: "equals" | "not_equals" | "contains" | "starts" | "ends"
     },
     boolean?: {
         value?: boolean,
@@ -127,7 +127,7 @@ export type TraceAggregatorCustomFieldSearchParameter = {
     },
     string?: {
         value: string,
-        comp: "equals" | "contains" | "starts" | "ends"
+        comp: "equals" | "not_equals" | "contains" | "starts" | "ends"
     },
     boolean?: {
         value: boolean,

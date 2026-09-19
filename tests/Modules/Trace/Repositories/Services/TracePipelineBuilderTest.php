@@ -43,6 +43,51 @@ class TracePipelineBuilderTest extends TestCase
         );
     }
 
+    public function testANotEqualsFilterAsksForAFieldThatIsThereAndDiffers(): void
+    {
+        $pipeline = new TracePipelineBuilder()->make(
+            data: new TraceDataFilterParameters(
+                filter: [
+                    new TraceDataFilterItemParameters(
+                        field: 'dt.job',
+                        null: null,
+                        exists: null,
+                        numeric: null,
+                        string: new TraceDataFilterStringParameters(
+                            value: 'run',
+                            comp: TraceDataFilterCompStringTypeEnum::Neq
+                        ),
+                        boolean: null
+                    ),
+                ]
+            )
+        );
+
+        self::assertSame(
+            [
+                [
+                    '$match' => [
+                        'dt.job' => [
+                            '$exists' => true,
+                            '$not'    => ['$regex' => '^run$'],
+                        ],
+                    ],
+                ],
+            ],
+            $pipeline
+        );
+    }
+
+    public function testEveryTagAskedForHasToBeOnTheTrace(): void
+    {
+        $pipeline = new TracePipelineBuilder()->make(tags: ['api', 'v2']);
+
+        self::assertSame(
+            [['$match' => ['tgs.nm' => ['$all' => ['api', 'v2']]]]],
+            $pipeline
+        );
+    }
+
     /**
      * @param array<string, mixed> $expectedCondition
      */

@@ -66,6 +66,7 @@
             style="width: 100px"
         >
           <el-option label="equals" value="equals"/>
+          <el-option label="not equals" value="not_equals"/>
           <el-option label="contains" value="contains"/>
           <el-option label="starts" value="starts"/>
           <el-option label="ends" value="ends"/>
