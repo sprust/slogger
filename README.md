@@ -177,7 +177,7 @@ You can filter by any payload field, including nested ones (`user.id`, `request.
 - booleans — `true` / `false`;
 - field checks — is null / is not null, exists / does not exist.
 
-These filters are assembled into a MongoDB aggregation pipeline and work together with the base filters (service, type, tags, status, duration/memory/CPU ranges, time period). Several tags narrow rather than widen: a trace has to carry every one of them. A dynamic index is automatically raised for the selected set of fields.
+These filters are assembled into a MongoDB aggregation pipeline and work together with the base filters (service, type, tags, status, duration/memory/CPU ranges, time period). Several tags narrow rather than widen: a trace has to carry every one of them. A dynamic index is automatically raised for the selected set of fields — which is why tags and a `data` field cannot be filtered together: MongoDB indexes at most one array per index, and the tags are one already. Asked for both, the search answers with that rather than building an index that would fail.
 
 A field is added to the filter from a trace's data tree (the custom button beside a value), or by hand with the Data field button beside Other filters. A hand-added row takes a key and a value type (string, int, float, bool), and changing the type resets the value. Each row can also add its field as a column of the results table, and a numeric one as a series of the chart. A row with an empty key is left out of all three.
 

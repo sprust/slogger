@@ -7,6 +7,7 @@ namespace App\Modules\Trace\Domain\Actions\Queries;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexErrorException;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexInProcessException;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexNotInitException;
+use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexParallelArraysException;
 use App\Modules\Trace\Domain\Services\TraceDynamicIndexInitializer;
 use App\Modules\Trace\Entities\Trace\TraceCollectionNameObjects;
 use App\Modules\Trace\Repositories\TraceRepository;
@@ -24,6 +25,7 @@ readonly class FindTraceIdsAction
      * @param string[]|null $excludedTypes
      *
      * @throws TraceDynamicIndexErrorException
+     * @throws TraceDynamicIndexParallelArraysException
      * @throws TraceDynamicIndexInProcessException
      * @throws TraceDynamicIndexNotInitException
      */

@@ -10,6 +10,7 @@ use App\Modules\Trace\Domain\Actions\Queries\FindTraceTimestampsAction;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexErrorException;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexInProcessException;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexNotInitException;
+use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexParallelArraysException;
 use App\Modules\Trace\Enums\TraceMetricFieldEnum;
 use App\Modules\Trace\Enums\TraceTimestampEnum;
 use App\Modules\Trace\Enums\TraceTimestampPeriodEnum;
@@ -33,6 +34,7 @@ readonly class TraceTimestampsController
     /**
      * @throws TraceDynamicIndexNotInitException
      * @throws TraceDynamicIndexErrorException
+     * @throws TraceDynamicIndexParallelArraysException
      * @throws TraceDynamicIndexInProcessException
      */
     public function index(TraceTimestampsRequest $request): TraceTimestampsResource

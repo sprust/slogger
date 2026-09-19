@@ -7,6 +7,7 @@ namespace App\Modules\Trace\Domain\Services;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexErrorException;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexInProcessException;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexNotInitException;
+use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexParallelArraysException;
 
 class TraceDynamicIndexingActionService
 {
@@ -21,6 +22,7 @@ class TraceDynamicIndexingActionService
      * @throws TraceDynamicIndexNotInitException
      * @throws TraceDynamicIndexInProcessException
      * @throws TraceDynamicIndexErrorException
+     * @throws TraceDynamicIndexParallelArraysException
      */
     public function handle(callable $action): mixed
     {

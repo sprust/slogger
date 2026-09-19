@@ -8,6 +8,7 @@ use App\Modules\Trace\Repositories\TraceDynamicIndexRepository;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexErrorException;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexInProcessException;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexNotInitException;
+use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexParallelArraysException;
 use App\Modules\Trace\Enums\TraceTimestampEnum;
 use App\Modules\Trace\Parameters\Data\TraceDataFilterParameters;
 use App\Modules\Trace\Repositories\Dto\DynamicIndex\TraceDynamicIndexDataDto;
@@ -38,6 +39,7 @@ readonly class TraceDynamicIndexInitializer
      * @throws TraceDynamicIndexNotInitException
      * @throws TraceDynamicIndexInProcessException
      * @throws TraceDynamicIndexErrorException
+     * @throws TraceDynamicIndexParallelArraysException
      */
     public function init(
         ?array $serviceIds = null,
@@ -59,6 +61,10 @@ readonly class TraceDynamicIndexInitializer
         ?bool $cleared = null,
         ?bool $needLoggedAt = null,
     ): void {
+        if ($tags && $data?->filter) {
+            throw new TraceDynamicIndexParallelArraysException();
+        }
+
         $indexFields = [];
 
         if (!empty($serviceIds)) {

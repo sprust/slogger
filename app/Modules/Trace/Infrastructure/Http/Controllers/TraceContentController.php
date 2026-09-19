@@ -11,6 +11,7 @@ use App\Modules\Trace\Domain\Actions\Queries\FindTypesAction;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexErrorException;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexInProcessException;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexNotInitException;
+use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexParallelArraysException;
 use App\Modules\Trace\Infrastructure\Http\Requests\TraceFindStatusesRequest;
 use App\Modules\Trace\Infrastructure\Http\Requests\TraceFindTagsRequest;
 use App\Modules\Trace\Infrastructure\Http\Requests\TraceFindTypesRequest;
@@ -104,6 +105,7 @@ readonly class TraceContentController
 
     /**
      * @throws TraceDynamicIndexErrorException
+     * @throws TraceDynamicIndexParallelArraysException
      * @throws TraceDynamicIndexInProcessException
      * @throws TraceDynamicIndexNotInitException
      */

@@ -5,6 +5,7 @@ namespace App\Exceptions;
 use App\Modules\Dashboard\Domain\Exceptions\DatabaseStatCacheNotFoundException;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceDynamicIndexAction;
 use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexInProcessException;
+use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexParallelArraysException;
 use App\Modules\Trace\Infrastructure\Http\Resources\TraceDynamicIndexResource;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Symfony\Component\HttpFoundation\Response;
@@ -37,6 +38,9 @@ class Handler extends ExceptionHandler
                 return false;
             }
 
+            if ($exception instanceof TraceDynamicIndexParallelArraysException) {
+                return false;
+            }
 
             return true;
         });
@@ -49,6 +53,17 @@ class Handler extends ExceptionHandler
                 );
             }
 
+
+            if ($exception instanceof TraceDynamicIndexParallelArraysException) {
+                return response()->json(
+                    data: [
+                        'error' => 'Tags and a data field cannot be filtered together: '
+                            . 'MongoDB indexes at most one array per index, and tags are one. '
+                            . 'Drop the tags or the data field.',
+                    ],
+                    status: Response::HTTP_BAD_REQUEST
+                );
+            }
 
             if ($exception instanceof TraceDynamicIndexInProcessException) {
                 $index = app(FindTraceDynamicIndexAction::class)->handle(
