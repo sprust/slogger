@@ -210,7 +210,7 @@ export default defineComponent({
 
 .json-key {
   flex: none;
-  color: var(--el-color-danger);
+  color: var(--el-color-primary);
 }
 
 .json-index {
@@ -233,7 +233,7 @@ export default defineComponent({
 }
 
 .json-boolean {
-  color: var(--el-color-primary);
+  color: var(--el-color-danger);
 }
 
 .json-null {
@@ -250,7 +250,6 @@ export default defineComponent({
 .json-hint {
   flex: none;
   margin-left: 8px;
-  font-size: 12px;
   color: var(--el-text-color-secondary);
 }
 

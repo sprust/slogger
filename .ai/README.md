@@ -358,6 +358,23 @@ so a new cross-module edge is added here or is not added.
   both as `minLength`/`maxLength`, so a rule changed here needs `make oa-generate`.
 - For SConcur coroutine state, use the library's `SConcur\Context\Context` (`Context::current()->find/has/set/forget`) — do not reimplement a context store. Working-with-context semantics: `vendor/sconcur/sconcur/docs/coroutine-context.ru.md`.
 
+### Frontend Conventions
+
+- Nothing on the page may change its own size. A control that appears on hover, a label
+  that shows up only while something is searching, a spinner that replaces a button's
+  text, a counter that grows from empty — each of them moves everything beside it, and
+  the layout twitches while the user is reading or aiming at a button.
+- Keep the space instead of the element: `visibility: hidden` rather than `display: none`,
+  a fixed `min-width` on a slot whose text comes and goes, a placeholder of the same size
+  as what will replace it. Something that has nothing to say says it as empty space, not
+  by collapsing.
+- The same goes for lists and rows: a row's controls are laid out once, whether they are
+  shown or not, so a table does not re-flow when the pointer crosses it.
+- Do not set a font size. Element's scale is `14px` base, `13px` small, `12px` extra
+  small, and a component sits on it by inheriting — a `font-size` written by hand makes
+  one block quietly smaller than everything around it. Change one only when the task
+  asks for it in those words, and then say so in the report.
+
 ### Migrations
 
 - Name a migration the way the framework does: `Y_m_d_His_snake_case_description.php`, where

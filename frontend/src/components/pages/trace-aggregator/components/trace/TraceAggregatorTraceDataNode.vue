@@ -15,6 +15,9 @@
           inactive-text="keys"
           :width="70"
       />
+      <el-text v-if="matchCount" type="info">
+        {{ matchCount }} found
+      </el-text>
     </el-space>
   </el-row>
 
@@ -25,34 +28,51 @@
       node-key="key"
       :expand-on-click-node="false"
       :filter-node-method="filterNode"
-      default-expand-all
+      :default-expanded-keys="expandedKeys"
+      class="data-tree"
   >
-    <template #default="{ node, data }">
-      <el-row style="width: 100%">
-        <el-text
-            :class="isParentData(data) ? 'parent-tree-node' : ''"
-            style="max-width: 70%; padding-right: 5px"
-            truncated
-        >
-          {{ node.label }}
-        </el-text>
-        <el-space v-if="isParentData(data)">
-          <el-button type="info" @click="onShowNodeJson(data)" link>
-            json
-          </el-button>
-        </el-space>
-        <el-space v-if="!isParentData(data)" spacer="|">
-          <el-button type="info" @click="onCustomFieldShow(data)" link>
-            show
-          </el-button>
-          <el-button type="info" @click="onCustomFieldCopy(data)" link>
-            copy
-          </el-button>
-          <el-button v-if="showCustomButton" type="info" @click="onCustomFieldFilter(data)" link>
-            custom
-          </el-button>
-        </el-space>
-      </el-row>
+    <template #default="{ data }">
+      <div class="data-row">
+        <DataNodeText v-if="isParentData(data)" class="data-branch" :text="data.name" :query="keyQuery"/>
+        <template v-else>
+          <DataNodeText class="data-key" :text="data.name" :query="keyQuery"/>
+          <span class="data-punct">:</span>
+          <DataNodeText
+              :class="['data-value', valueClass(data)]"
+              :text="valueText(data)"
+              :query="valueQuery"
+              :title="valueTitle(data)"
+          />
+        </template>
+        <span v-if="isParentData(data)" class="data-hint">{{ data.hint }}</span>
+        <span class="data-actions">
+          <el-space v-if="isParentData(data)" :size="4" spacer="|">
+            <el-button type="info" size="small" link @click="onShowNodeJson(data)">
+              json
+            </el-button>
+            <el-button type="info" size="small" link @click="expandBranch(data, true)">
+              expand
+            </el-button>
+            <el-button type="info" size="small" link @click="expandBranch(data, false)">
+              collapse
+            </el-button>
+          </el-space>
+          <el-space v-else :size="4" spacer="|">
+            <el-button type="info" size="small" link @click="onCustomFieldShow(data)">
+              show
+            </el-button>
+            <el-button type="info" size="small" link @click="onCustomFieldCopy(data)">
+              copy
+            </el-button>
+            <el-button type="info" size="small" link @click="onCopyPath(data)">
+              path
+            </el-button>
+            <el-button v-if="showCustomButton" type="info" size="small" link @click="onCustomFieldFilter(data)">
+              custom
+            </el-button>
+          </el-space>
+        </span>
+      </div>
     </template>
   </el-tree>
 
@@ -85,19 +105,31 @@ import {
 import {TraceAggregatorDetailData} from "./store/traceAggregatorDataStore.ts";
 import {useTraceAggregatorDataSearchStore} from "./store/traceAggregatorDataSearchStore.ts";
 import {copyToClipboard} from "../../../../../utils/helpers.ts";
+import DataNodeText from "./DataNodeText.vue";
 import FilterTagsSection from "../tags/FilterTagsSection.vue";
 import JsonViewer from "../../../../json/JsonViewer.vue";
 
 type TreeNode = {
   key: string,
+  name: string,
   label: string,
+  value: unknown,
+  hint: string,
   children: null | Array<TreeNode>,
   canBeFiltered: boolean,
   disabled: boolean,
 }
 
+/**
+ * A branch wider than this starts collapsed. The one that always is, is `__trace`: a
+ * backtrace nobody opened the trace to read, sitting on top of the payload they did.
+ */
+const maxExpandedChildren: number = 20
+
+const longValueLength: number = 80
+
 export default defineComponent({
-  components: {FilterTagsSection, JsonViewer},
+  components: {DataNodeText, FilterTagsSection, JsonViewer},
   emits: ["onCustomFieldClick"],
   props: {
     data: {
@@ -142,6 +174,28 @@ export default defineComponent({
     tree(): Array<TreeNode> {
       return [this.dataNodeToTree(this.data, 0, 'root')]
     },
+    expandedKeys(): Array<string> {
+      const keys: Array<string> = []
+
+      this.collectExpandedKeys(this.tree, keys)
+
+      return keys
+    },
+    keyQuery(): string {
+      return this.searchStore.inValues ? '' : this.searchStore.query
+    },
+    valueQuery(): string {
+      return this.searchStore.inValues ? this.searchStore.query : ''
+    },
+    matchCount(): number {
+      const query: string = this.searchStore.query.trim().toLowerCase()
+
+      if (!query) {
+        return 0
+      }
+
+      return this.countMatches(this.tree, query)
+    },
   },
   methods: {
     nodeEndKey(key: string) {
@@ -161,9 +215,14 @@ export default defineComponent({
         this.dataValues[nodeKey] = data.value
         this.dataKeys[nodeKey] = data.key
 
+        const name: string = this.nodeEndKey(nodeKey)
+
         return {
           key: nodeKey,
-          label: this.nodeEndKey(nodeKey) + ' ==> ' + data.value,
+          name: name,
+          label: name + ': ' + data.value,
+          value: data.value,
+          hint: '',
           children: null,
           canBeFiltered: data.can_be_filtered,
           disabled: false,
@@ -177,20 +236,136 @@ export default defineComponent({
           }
       )
 
+      const name: string = data.key ? this.nodeEndKey(data.key) : 'root'
+
       return {
         key: nodeKey,
-        label: data.key ? this.nodeEndKey(data.key) : 'root',
+        name: name,
+        label: name,
+        value: null,
+        hint: this.makeHint(children),
         children: children,
         canBeFiltered: data.can_be_filtered,
         disabled: true,
       }
+    },
+    makeHint(children: Array<TreeNode>): string {
+      const isArray: boolean = children.every(
+          (child: TreeNode, index: number) => child.name === String(index)
+      )
+
+      return isArray ? `[${children.length}]` : `{${children.length}}`
+    },
+    valueText(data: TreeNode): string {
+      const value = data.value
+
+      if (value === null || value === undefined) {
+        return 'null'
+      }
+
+      if (typeof value === 'boolean') {
+        return value ? 'true' : 'false'
+      }
+
+      if (typeof value === 'number') {
+        return String(value)
+      }
+
+      return `"${String(value)}"`
+    },
+    valueClass(data: TreeNode): string {
+      const value = data.value
+
+      if (value === null || value === undefined) {
+        return 'data-value-null'
+      }
+
+      if (typeof value === 'boolean') {
+        return 'data-value-boolean'
+      }
+
+      if (typeof value === 'number') {
+        return 'data-value-number'
+      }
+
+      return 'data-value-string'
+    },
+    valueTitle(data: TreeNode): string | undefined {
+      const text: string = this.valueText(data)
+
+      return text.length > longValueLength ? String(data.value) : undefined
+    },
+    onCopyPath(data: TreeNode) {
+      if (this.isParentData(data)) {
+        return
+      }
+
+      copyToClipboard(this.dataKeys[data.key])
+    },
+    expandBranch(data: TreeNode, expanded: boolean) {
+      // @ts-ignore el-tree exposes its nodes through the store
+      const node = this.$refs.treeRef?.store?.getNode(data.key)
+
+      if (!node) {
+        return
+      }
+
+      this.setExpandedDeep(node, expanded)
+    },
+    setExpandedDeep(node: any, expanded: boolean) {
+      node.expanded = expanded
+
+      const children: Array<any> = node.childNodes ?? []
+
+      children.forEach((child: any) => this.setExpandedDeep(child, expanded))
+    },
+    collectExpandedKeys(nodes: Array<TreeNode>, keys: Array<string>) {
+      nodes.forEach((node: TreeNode) => {
+        if (!node.children) {
+          return
+        }
+
+        keys.push(node.key)
+
+        if (node.children.length > maxExpandedChildren) {
+          return
+        }
+
+        this.collectExpandedKeys(node.children, keys)
+      })
+    },
+    countMatches(nodes: Array<TreeNode>, query: string): number {
+      return nodes.reduce(
+          (count: number, node: TreeNode) => {
+            const matched: boolean = this.searchStore.inValues
+                ? !node.children && this.valueText(node).toLowerCase().includes(query)
+                : node.name.toLowerCase().includes(query)
+
+            return count
+                + (matched ? 1 : 0)
+                + (node.children ? this.countMatches(node.children, query) : 0)
+          },
+          0
+      )
     },
     onCustomFieldShow(data: TreeNode) {
       if (this.isParentData(data)) {
         return
       }
 
-      this.dataDialog.data = this.dataValues[data.key]
+      const value = this.dataValues[data.key]
+
+      const parsed = this.parseValue(String(value))
+
+      // a value that is itself json is worth the viewer rather than one long line
+      if (parsed !== null && typeof parsed === 'object') {
+        this.jsonDialog.value = parsed
+        this.jsonDialog.visible = true
+
+        return
+      }
+
+      this.dataDialog.data = value
       this.dataDialog.visible = true
     },
     onCustomFieldCopy(data: TreeNode) {
@@ -320,9 +495,76 @@ export default defineComponent({
 </script>
 
 <style scoped>
-.parent-tree-node {
-  color: blue;
+.data-tree {
+  --data-row-gap: 6px;
 }
+
+.data-tree :deep(.el-tree-node__content) {
+  height: 24px;
+}
+
+.data-row {
+  display: flex;
+  align-items: center;
+  gap: var(--data-row-gap);
+  width: 100%;
+  min-width: 0;
+}
+
+.data-branch {
+  flex: none;
+  color: var(--el-color-primary);
+}
+
+.data-key {
+  flex: none;
+  color: var(--el-color-primary);
+}
+
+.data-punct {
+  flex: none;
+  color: var(--el-text-color-regular);
+}
+
+.data-value {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.data-value-string {
+  color: var(--el-color-success);
+}
+
+.data-value-number {
+  color: var(--el-color-warning);
+}
+
+.data-value-boolean {
+  color: var(--el-color-danger);
+}
+
+.data-value-null {
+  color: var(--el-text-color-placeholder);
+  font-style: italic;
+}
+
+.data-hint {
+  flex: none;
+  color: var(--el-text-color-secondary);
+}
+
+.data-actions {
+  flex: none;
+  padding-left: 4px;
+  display: inline-flex;
+}
+
+.data-actions :deep(.el-button) {
+  height: 20px;
+}
+
 
 .data-toolbar {
   position: sticky;

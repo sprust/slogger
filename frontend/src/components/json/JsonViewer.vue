@@ -1,18 +1,5 @@
 <template>
   <div class="json-viewer">
-    <el-row class="json-viewer-toolbar" align="middle">
-      <el-space>
-        <el-button size="small" :icon="IconCopy" @click="copyValue(value)">
-          Copy
-        </el-button>
-        <el-button size="small" :icon="IconExpand" @click="expandAll">
-          Expand all
-        </el-button>
-        <el-button size="small" :icon="IconCollapse" @click="collapseAll">
-          Collapse all
-        </el-button>
-      </el-space>
-    </el-row>
     <div class="json-viewer-body">
       <JsonViewerNode
           :value="value"
@@ -28,7 +15,6 @@
 
 <script lang="ts">
 import {defineComponent, PropType} from 'vue'
-import {CopyDocument as IconCopy, Expand as IconExpand, Fold as IconCollapse} from '@element-plus/icons-vue'
 import JsonViewerNode from './JsonViewerNode.vue'
 import {copyToClipboard} from '../../utils/helpers.ts'
 import alerts from '../../utils/alerts.ts'
@@ -74,32 +60,12 @@ export default defineComponent({
     }
   },
 
-  computed: {
-    IconCopy() {
-      return IconCopy
-    },
-    IconExpand() {
-      return IconExpand
-    },
-    IconCollapse() {
-      return IconCollapse
-    },
-  },
-
   methods: {
     isCollapsed(path: string, depth: number): boolean {
       return this.overrides[path] ?? depth >= this.openDepth
     },
     toggle(path: string, depth: number) {
       this.overrides[path] = !this.isCollapsed(path, depth)
-    },
-    expandAll() {
-      this.openDepth = Infinity
-      this.overrides = {}
-    },
-    collapseAll() {
-      this.openDepth = 1
-      this.overrides = {}
     },
     copyValue(value: unknown) {
       copyToClipboard(JSON.stringify(value, null, 2) ?? String(value))
@@ -126,17 +92,9 @@ export default defineComponent({
   min-height: 0;
 }
 
-.json-viewer-toolbar {
-  flex: none;
-  padding-bottom: 10px;
-}
-
 .json-viewer-body {
   flex: 1;
   min-height: 0;
   overflow: auto;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 13px;
-  line-height: 20px;
 }
 </style>
