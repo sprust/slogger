@@ -33,7 +33,7 @@ class TraceTreeCacheBuilderServiceTest extends TestCase
         $service = $this->service(
             written: $written,
             children: ['root' => ['a', 'b']],
-            pages: [0 => ['root']]
+            pages: [0 => [['root']]]
         );
 
         $slice = $service->handleSlice('root', 'v1', 0, null);
@@ -46,25 +46,75 @@ class TraceTreeCacheBuilderServiceTest extends TestCase
     }
 
     /**
-     * A level wider than one slice is handed on with the cursor it stopped at, so the
-     * next job continues the same level rather than starting it again.
+     * A slice that has written its fill hands the level on with the cursor it stopped
+     * at, so the next job continues the same level rather than starting it again.
      */
-    public function testAFullPageAsksForTheSameDepthAfterItsLastId(): void
+    public function testASliceThatWroteItsFillHandsTheLevelOn(): void
+    {
+        $written = [];
+
+        $parents = $this->ids('p', 1000);
+
+        $service = $this->service(
+            written: $written,
+            children: array_fill_keys($parents, $this->ids('c', 6)),
+            pages: [1 => [$parents, $this->ids('q', 1000)]]
+        );
+
+        $slice = $service->handleSlice('root', 'v1', 1, null);
+
+        self::assertCount(6000, $written[2]);
+        self::assertFalse($slice->finished);
+        self::assertSame(1, $slice->nextDepth);
+        self::assertSame('id-p-1000', $slice->nextAfterId);
+    }
+
+    /**
+     * The point of counting children rather than parents: near the leaves a page of a
+     * thousand parents yields nothing, and a slice per page would spend a delivery, a
+     * job and a query on each of them. One slice takes the whole thin level instead.
+     */
+    public function testAThinLevelIsWalkedInOneSlice(): void
     {
         $written = [];
 
         $service = $this->service(
             written: $written,
             children: [],
-            pages: [1 => array_map(static fn(int $index): string => "p-$index", range(1, 1000))],
-            lastId: 'id-1000'
+            pages: [
+                1 => [$this->ids('p', 1000), $this->ids('q', 1000), $this->ids('r', 3)],
+                2 => [],
+            ]
+        );
+
+        $slice = $service->handleSlice('root', 'v1', 1, null);
+
+        self::assertSame([], $written);
+        self::assertFalse($slice->finished);
+        self::assertSame(2, $slice->nextDepth);
+        self::assertNull($slice->nextAfterId);
+    }
+
+    /**
+     * And the other end of it: a slice that is slow rather than productive still hands
+     * over, because a short delivery is why the build is a chain of jobs at all.
+     */
+    public function testASliceOutOfTimeHandsTheLevelOnWithLittleWritten(): void
+    {
+        $written = [];
+
+        $service = $this->service(
+            written: $written,
+            children: [],
+            pages: [1 => [$this->ids('p', 1000), $this->ids('q', 1000)]],
+            timeBudgetSeconds: 0.0
         );
 
         $slice = $service->handleSlice('root', 'v1', 1, null);
 
         self::assertFalse($slice->finished);
         self::assertSame(1, $slice->nextDepth);
-        self::assertSame('id-1000', $slice->nextAfterId);
+        self::assertSame('id-p-1000', $slice->nextAfterId);
     }
 
     public function testALevelWithNoChildrenEndsTheBuildAndWritesTheAncestors(): void
@@ -74,7 +124,7 @@ class TraceTreeCacheBuilderServiceTest extends TestCase
         $service = $this->service(
             written: $written,
             children: [],
-            pages: [2 => ['leaf']],
+            pages: [2 => [['leaf']]],
             ancestors: ['grandparent']
         );
 
@@ -92,7 +142,7 @@ class TraceTreeCacheBuilderServiceTest extends TestCase
         $service = $this->service(
             written: $written,
             children: ['root' => ['a']],
-            pages: [0 => ['root']],
+            pages: [0 => [['root']]],
             canContinue: false
         );
 
@@ -119,25 +169,25 @@ class TraceTreeCacheBuilderServiceTest extends TestCase
         $this->service(
             written: $written,
             children: ['root' => ['a', 'b', 'c']],
-            pages: [0 => ['root']],
+            pages: [0 => [['root']]],
             events: $events
         )->handleSlice('root', 'v1', 0, null);
     }
 
     /**
-     * @param array<int, list<string>>    $written
-     * @param array<string, list<string>> $children
-     * @param array<int, list<string>>    $pages
-     * @param string[]                    $ancestors
+     * @param array<int, list<string>>       $written
+     * @param array<string, list<string>>    $children
+     * @param array<int, list<list<string>>> $pages     the pages of each depth, in order
+     * @param string[]                       $ancestors
      */
     private function service(
         array &$written,
         array $children,
         array $pages,
-        ?string $lastId = null,
         array $ancestors = [],
         bool $canContinue = true,
-        ?Dispatcher $events = null
+        ?Dispatcher $events = null,
+        float $timeBudgetSeconds = 5.0
     ): TraceTreeCacheBuilderService {
         $traces = $this->createMock(TraceRepository::class);
         $traces->method('findOneDetailByTraceId')->willReturn($this->trace('root'));
@@ -171,11 +221,20 @@ class TraceTreeCacheBuilderServiceTest extends TestCase
                 return count($parametersList);
             }
         );
+        // Pages are handed out in order rather than looked up by cursor: what the slice
+        // does with the cursor is its own business, and a mock that indexed by it would
+        // be asserting the implementation rather than the walk.
+        $remainingPages = $pages;
+
         $cache->method('findTraceIdsPage')->willReturnCallback(
-            fn(string $rootTraceId, int $depth): TraceTreeCachePageDto => new TraceTreeCachePageDto(
-                traceIds: $pages[$depth] ?? [],
-                lastId: $lastId
-            )
+            function (string $rootTraceId, int $depth) use (&$remainingPages): TraceTreeCachePageDto {
+                $page = array_shift($remainingPages[$depth]) ?? [];
+
+                return new TraceTreeCachePageDto(
+                    traceIds: $page,
+                    lastId: $page === [] ? null : 'id-' . $page[array_key_last($page)]
+                );
+            }
         );
         $cache->method('existsByDepth')->willReturnCallback(
             fn(string $rootTraceId, int $depth): bool => isset($pages[$depth]) || $depth === 1
@@ -206,8 +265,17 @@ class TraceTreeCacheBuilderServiceTest extends TestCase
             $cache,
             $states,
             $shouldContinue,
-            $events ?? $this->createMock(Dispatcher::class)
+            $events ?? $this->createMock(Dispatcher::class),
+            $timeBudgetSeconds
         );
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function ids(string $prefix, int $count): array
+    {
+        return array_map(static fn(int $index): string => "$prefix-$index", range(1, $count));
     }
 
     private function trace(string $traceId): TraceDto

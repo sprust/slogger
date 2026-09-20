@@ -29,6 +29,23 @@ readonly class TraceTreeCacheBuilderService
 
     private const int SLICE_PARENTS_COUNT = 1000;
 
+    /**
+     * How many children a slice sets out to write before handing the level on, and how
+     * long it may take doing it.
+     *
+     * A page of parents is not a unit of work — its children are. Near the leaves a
+     * thousand parents yield a handful of nodes or none at all, and the slice still pays
+     * for a delivery, a job, the state, the page and an aggregation across every shard;
+     * that is the whole of the slowdown at the end of a large build. So a slice keeps
+     * taking pages until it has written something worth the round trip.
+     *
+     * The budget is what keeps the other end honest, and it is the one that must not be
+     * raised lightly: short deliveries are why the build is a chain of jobs at all, and
+     * it also bounds how long a cancel waits for the page in flight. The target is a
+     * floor rather than a cap — a page whose children run past it is never cut in half.
+     */
+    private const int SLICE_TARGET_CHILDREN = 5000;
+
     private const int ROOT_DEPTH = 0;
 
     /**
@@ -44,6 +61,7 @@ readonly class TraceTreeCacheBuilderService
         private TraceTreeCacheStateRepository $traceTreeCacheStateRepository,
         private IsShouldContinueBuildTraceTreeCacheAction $isShouldContinueBuildTraceTreeCacheAction,
         private Dispatcher $events,
+        private float $sliceTimeBudgetSeconds = 5.0,
     ) {
     }
 
@@ -55,6 +73,10 @@ readonly class TraceTreeCacheBuilderService
     ): TraceTreeCacheSliceObject {
         $lastProgressAt = 0.0;
 
+        $startedAt = microtime(true);
+
+        $writtenCount = 0;
+
         if (!$this->isShouldContinueBuildTraceTreeCacheAction->handle($rootTraceId, $version)) {
             return $this->stopped();
         }
@@ -63,40 +85,56 @@ readonly class TraceTreeCacheBuilderService
             $this->createRoot($rootTraceId, $version);
         }
 
-        $page = $this->traceTreeCacheRepository->findTraceIdsPage(
-            rootTraceId: $rootTraceId,
-            depth: $depth,
-            afterId: $afterId,
-            limit: self::SLICE_PARENTS_COUNT
-        );
+        while (true) {
+            $page = $this->traceTreeCacheRepository->findTraceIdsPage(
+                rootTraceId: $rootTraceId,
+                depth: $depth,
+                afterId: $afterId,
+                limit: self::SLICE_PARENTS_COUNT
+            );
 
-        $childIdsChunks = $this->traceTreeRepository->findChildrenTraceIds(
-            parentTraceIds: $page->traceIds,
-            batchCount: self::TRAVERSAL_BATCH_COUNT
-        );
+            $childIdsChunks = $this->traceTreeRepository->findChildrenTraceIds(
+                parentTraceIds: $page->traceIds,
+                batchCount: self::TRAVERSAL_BATCH_COUNT
+            );
 
-        foreach ($childIdsChunks as $childIdsChunk) {
-            if (!$this->isShouldContinueBuildTraceTreeCacheAction->handle($rootTraceId, $version)) {
-                return $this->stopped();
+            foreach ($childIdsChunks as $childIdsChunk) {
+                if (!$this->isShouldContinueBuildTraceTreeCacheAction->handle($rootTraceId, $version)) {
+                    return $this->stopped();
+                }
+
+                $writtenCount += $this->createTraceTree(
+                    rootTraceId: $rootTraceId,
+                    version: $version,
+                    childIdsChunk: $childIdsChunk,
+                    depth: $depth + 1,
+                );
+
+                $this->announceProgress($rootTraceId, $lastProgressAt);
             }
 
-            $this->createTraceTree(
-                rootTraceId: $rootTraceId,
-                version: $version,
-                childIdsChunk: $childIdsChunk,
-                depth: $depth + 1,
-            );
+            $lastId = $page->lastId;
 
-            $this->announceProgress($rootTraceId, $lastProgressAt);
-        }
+            // The level is done when its last page comes back short. A page that filled
+            // up has more behind it, and $lastId is where the next one starts — from this
+            // slice if there is room left in it, from the next if there is not.
+            if (count($page->traceIds) < self::SLICE_PARENTS_COUNT || $lastId === null) {
+                break;
+            }
 
-        if (count($page->traceIds) >= self::SLICE_PARENTS_COUNT) {
-            return new TraceTreeCacheSliceObject(
-                stopped: false,
-                finished: false,
-                nextDepth: $depth,
-                nextAfterId: $page->lastId
-            );
+            $afterId = $lastId;
+
+            if (
+                $writtenCount >= self::SLICE_TARGET_CHILDREN
+                || (microtime(true) - $startedAt) >= $this->sliceTimeBudgetSeconds
+            ) {
+                return new TraceTreeCacheSliceObject(
+                    stopped: false,
+                    finished: false,
+                    nextDepth: $depth,
+                    nextAfterId: $afterId
+                );
+            }
         }
 
         if ($this->traceTreeCacheRepository->existsByDepth($rootTraceId, $depth + 1)) {
@@ -210,13 +248,15 @@ readonly class TraceTreeCacheBuilderService
 
     /**
      * @param string[] $childIdsChunk
+     *
+     * @return int how many nodes this chunk added to the tree
      */
     private function createTraceTree(
         string $rootTraceId,
         string $version,
         array $childIdsChunk,
         int $depth
-    ): void {
+    ): int {
         $foundTraces = $this->traceRepository->findByTraceIds(
             traceIds: $childIdsChunk
         );
@@ -240,7 +280,7 @@ readonly class TraceTreeCacheBuilderService
         }
 
         if ($cacheParametersList === []) {
-            return;
+            return 0;
         }
 
         $created = $this->traceTreeCacheRepository->createMany(
@@ -254,5 +294,7 @@ readonly class TraceTreeCacheBuilderService
             version: $version,
             count: $created,
         );
+
+        return $created;
     }
 }
