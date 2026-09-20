@@ -3440,16 +3440,16 @@
         },
         {
             "name": "sconcur/laravel",
-            "version": "0.5.1",
+            "version": "0.5.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sprust/sconcur-laravel.git",
-                "reference": "88c03ad1446940ed652b4ad686bea741f57577ab"
+                "reference": "1c0194e249140399e48a76cf7ef7a88c3b330e9f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sprust/sconcur-laravel/zipball/88c03ad1446940ed652b4ad686bea741f57577ab",
-                "reference": "88c03ad1446940ed652b4ad686bea741f57577ab",
+                "url": "https://api.github.com/repos/sprust/sconcur-laravel/zipball/1c0194e249140399e48a76cf7ef7a88c3b330e9f",
+                "reference": "1c0194e249140399e48a76cf7ef7a88c3b330e9f",
                 "shasum": ""
             },
             "require": {
@@ -3502,9 +3502,9 @@
             ],
             "support": {
                 "issues": "https://github.com/sprust/sconcur-laravel/issues",
-                "source": "https://github.com/sprust/sconcur-laravel/tree/v0.5.1"
+                "source": "https://github.com/sprust/sconcur-laravel/tree/v0.5.2"
             },
-            "time": "2026-09-19T05:20:13+00:00"
+            "time": "2026-09-20T10:39:42+00:00"
         },
         {
             "name": "sconcur/sconcur",
