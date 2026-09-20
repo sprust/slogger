@@ -9,6 +9,7 @@ use App\Modules\Trace\Entities\Trace\Data\TraceDataObject;
 use App\Modules\Trace\Entities\Trace\Tree\TraceTreeCacheStateObject;
 use App\Modules\Trace\Enums\TraceTreeCacheStateStatusEnum;
 use App\Modules\Trace\Repositories\Dto\Trace\Tree\TraceTreeCachePageDto;
+use App\Modules\Trace\Repositories\Dto\Trace\Tree\TraceTreeNodeDto;
 use App\Modules\Trace\Repositories\Dto\Trace\TraceDto;
 use App\Modules\Trace\Repositories\TraceRepository;
 use App\Modules\Trace\Repositories\TraceTreeCacheRepository;
@@ -191,8 +192,8 @@ class TraceTreeCacheBuilderServiceTest extends TestCase
     ): TraceTreeCacheBuilderService {
         $traces = $this->createMock(TraceRepository::class);
         $traces->method('findOneDetailByTraceId')->willReturn($this->trace('root'));
-        $traces->method('findByTraceIds')->willReturnCallback(
-            fn(array $traceIds): array => array_map($this->trace(...), $traceIds)
+        $traces->method('findTreeNodesByTraceIds')->willReturnCallback(
+            fn(array $traceIds): array => array_map($this->node(...), $traceIds)
         );
 
         $tree = $this->createMock(TraceTreeRepository::class);
@@ -276,6 +277,22 @@ class TraceTreeCacheBuilderServiceTest extends TestCase
     private function ids(string $prefix, int $count): array
     {
         return array_map(static fn(int $index): string => "$prefix-$index", range(1, $count));
+    }
+
+    private function node(string $traceId): TraceTreeNodeDto
+    {
+        return new TraceTreeNodeDto(
+            serviceId: 1,
+            traceId: $traceId,
+            parentTraceId: null,
+            type: 'http',
+            status: 'success',
+            tags: [],
+            duration: 1.0,
+            memory: 1.0,
+            cpu: 1.0,
+            loggedAt: Carbon::now(),
+        );
     }
 
     private function trace(string $traceId): TraceDto

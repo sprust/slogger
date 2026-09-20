@@ -14,6 +14,7 @@ use App\Modules\Trace\Repositories\Dto\Trace\Profiling\TraceProfilingDataDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Profiling\TraceProfilingDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Profiling\TraceProfilingItemDto;
 use App\Modules\Trace\Repositories\Dto\Trace\TraceDto;
+use App\Modules\Trace\Repositories\Dto\Trace\Tree\TraceTreeNodeDto;
 use App\Modules\Trace\Repositories\Services\PeriodicTraceService;
 use App\Modules\Trace\Repositories\Services\TraceDataToObjectBuilder;
 use App\Modules\Trace\Repositories\Services\TracePipelineBuilder;
@@ -209,29 +210,51 @@ readonly class TraceRepository
     }
 
     /**
+     * The traces of a tree level, read as nodes of it.
+     *
+     * A tree build wants ten fields and reads a thousand traces at a time; a TraceDto —
+     * what this used to answer with — carries the whole trace and parses its data into an
+     * object tree on the way. Asking
+     * the shard for the ten fields, and building nothing else out of them, is three times
+     * cheaper on traces the size of ours — and the saving grows with the data a trace
+     * carries, which is the one part of a trace that has no ceiling.
+     *
      * @param string[] $traceIds
      *
-     * @return TraceDto[]
+     * @return TraceTreeNodeDto[]
      */
-    public function findByTraceIds(array $traceIds): array
+    public function findTreeNodesByTraceIds(array $traceIds): array
     {
-        /** @var TraceDto[] $traces */
-        $traces = [];
+        /** @var TraceTreeNodeDto[] $nodes */
+        $nodes = [];
 
         $collectionNames = $this->periodicTraceService->findCollectionNamesByTraceIds($traceIds);
 
         foreach ($collectionNames->get() as $collectionName => $collectionTraceIds) {
             $documents = $this->periodicTraceService->findMany(
                 collectionName: $collectionName,
-                traceIds: $collectionTraceIds
+                traceIds: $collectionTraceIds,
+                projection: [
+                    '_id'  => 0,
+                    'tid'  => 1,
+                    'ptid' => 1,
+                    'sid'  => 1,
+                    'tp'   => 1,
+                    'st'   => 1,
+                    'tgs'  => 1,
+                    'dur'  => 1,
+                    'mem'  => 1,
+                    'cpu'  => 1,
+                    'lat'  => 1,
+                ]
             );
 
             foreach ($documents as $document) {
-                $traces[] = $this->makeTraceDtoFromDocument($document);
+                $nodes[] = $this->makeTraceTreeNodeDtoFromDocument($document);
             }
         }
 
-        return $traces;
+        return $nodes;
     }
 
     public function findProfilingByTraceId(string $traceId): ?TraceProfilingDto
@@ -439,6 +462,31 @@ readonly class TraceRepository
         return new DeletedTracesObject(
             collectionsCount: $collectionsCount,
             tracesCount: $tracesCount,
+        );
+    }
+
+    /**
+     * @param array<string, mixed> $document
+     */
+    private function makeTraceTreeNodeDtoFromDocument(array $document): TraceTreeNodeDto
+    {
+        /** @var UTCDateTime $loggedAt */
+        $loggedAt = $document['lat'];
+
+        return new TraceTreeNodeDto(
+            serviceId: $document['sid'] ? ((int) $document['sid']) : null,
+            traceId: $document['tid'],
+            parentTraceId: $document['ptid'],
+            type: $document['tp'],
+            status: $document['st'],
+            tags: array_map(
+                static fn(string|array $tag) => is_array($tag) ? $tag['nm'] : $tag,
+                $document['tgs']
+            ),
+            duration: $document['dur'],
+            memory: $document['mem'],
+            cpu: $document['cpu'],
+            loggedAt: new Carbon($loggedAt->toDateTime()),
         );
     }
 

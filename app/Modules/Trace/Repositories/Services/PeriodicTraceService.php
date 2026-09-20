@@ -98,22 +98,29 @@ readonly class PeriodicTraceService
     }
 
     /**
-     * @param string[] $traceIds
+     * @param string[]           $traceIds
+     * @param array<string, int> $projection what to read; everything when empty
      *
      * @return array<int, array<string, mixed>>
      */
-    public function findMany(string $collectionName, array $traceIds): array
+    public function findMany(string $collectionName, array $traceIds, array $projection = []): array
     {
-        $iterator = $this->selectCollectionByName($collectionName)
-            ->aggregate([
-                [
-                    '$match' => [
-                        'tid' => [
-                            '$in' => $traceIds,
-                        ],
+        $pipeline = [
+            [
+                '$match' => [
+                    'tid' => [
+                        '$in' => $traceIds,
                     ],
                 ],
-            ]);
+            ],
+        ];
+
+        if ($projection !== []) {
+            $pipeline[] = ['$project' => $projection];
+        }
+
+        $iterator = $this->selectCollectionByName($collectionName)
+            ->aggregate($pipeline);
 
         $traces = [];
 

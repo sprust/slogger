@@ -257,25 +257,25 @@ readonly class TraceTreeCacheBuilderService
         array $childIdsChunk,
         int $depth
     ): int {
-        $foundTraces = $this->traceRepository->findByTraceIds(
+        $foundNodes = $this->traceRepository->findTreeNodesByTraceIds(
             traceIds: $childIdsChunk
         );
 
         /** @var CreateTraceTreeCacheParameters[] $cacheParametersList */
         $cacheParametersList = [];
 
-        foreach ($foundTraces as $foundTrace) {
+        foreach ($foundNodes as $foundNode) {
             $cacheParametersList[] = new CreateTraceTreeCacheParameters(
-                serviceId: $foundTrace->serviceId,
-                parentTraceId: $foundTrace->parentTraceId,
-                traceId: $foundTrace->traceId,
-                type: $foundTrace->type,
-                tags: $foundTrace->tags,
-                status: $foundTrace->status,
-                duration: $foundTrace->duration,
-                memory: $foundTrace->memory,
-                cpu: $foundTrace->cpu,
-                loggedAt: $foundTrace->loggedAt,
+                serviceId: $foundNode->serviceId,
+                parentTraceId: $foundNode->parentTraceId,
+                traceId: $foundNode->traceId,
+                type: $foundNode->type,
+                tags: $foundNode->tags,
+                status: $foundNode->status,
+                duration: $foundNode->duration,
+                memory: $foundNode->memory,
+                cpu: $foundNode->cpu,
+                loggedAt: $foundNode->loggedAt,
             );
         }
 
