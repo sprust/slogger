@@ -12,6 +12,8 @@ RECEIVER_CLI="docker-compose exec $(RECEIVER_SERVICE) "
 FRONTEND_SERVICE="frontend"
 FRONTEND_CLI="docker-compose run --rm $(FRONTEND_SERVICE) "
 
+RABBITMQ_SERVICE="rabbitmq"
+
 ifneq (,$(wildcard ./.env))
     include .env
     export
@@ -111,6 +113,29 @@ workers-art:
 # consumer pool started before it spins on 404 instead of reading.
 queues-declare:
 	make workers-art c='queues-declare'
+	make queues-policies
+
+# The ws broadcast bus: every ws worker binds a server-named queue (amq.gen-*) to the
+# fanout exchange, and that queue is exclusive but not auto-deleted — the subscriber
+# cancels and re-creates its consumer on every idle wake, and auto-delete would drop the
+# queue in that gap.
+#
+# The cost is paid every time the last browser leaves. The subscriber stands down with
+# the registry, but its queue outlives it with no consumer at all, still bound to the
+# exchange and still taking a copy of every broadcast — measured, not assumed. During a
+# four-million-node tree build that is a progress frame a second, for hours, into a queue
+# nobody will ever read.
+#
+# So the broker is told what these queues are worth. expires removes one that has had no
+# consumer for five minutes — orders of magnitude longer than the millisecond gap a live
+# subscriber leaves, and a subscriber that loses its queue anyway reopens on the 404.
+# max-length and message-ttl bound what an orphan holds in the meantime: a broadcast is a
+# live notification, and a minute-old progress frame is of no use to anybody.
+queues-policies:
+	docker-compose exec -T $(RABBITMQ_SERVICE) rabbitmqctl set_policy \
+		ws-bus '^amq\.gen-' \
+		'{"expires":300000,"max-length":1000,"message-ttl":60000}' \
+		--apply-to queues --priority 0
 
 # The ws pool is on by default and refuses to start without these, so setup and both
 # deploys generate a pair. Existing credentials are kept unless c=--force is passed.
