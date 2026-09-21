@@ -10,6 +10,8 @@ use App\Modules\Trace\Entities\Trace\Tree\TraceTreeRawObject;
 use App\Modules\Trace\Entities\Trace\Tree\TraceTreeStringableObject;
 use App\Modules\Trace\Parameters\CreateTraceTreeCacheParameters;
 use App\Modules\Trace\Repositories\Dto\Trace\Tree\TraceTreeCachePageDto;
+use App\Modules\Trace\Entities\Trace\Tree\TraceTreeChildrenCursorObject;
+use App\Modules\Trace\Repositories\Dto\Trace\Tree\TraceTreeChildrenPageDto;
 use App\Modules\Trace\Repositories\Dto\Trace\TraceTreeServiceDto;
 use Illuminate\Support\Carbon;
 use InvalidArgumentException;
@@ -18,6 +20,37 @@ use SConcur\Bson\UTCDateTime;
 
 class TraceTreeCacheRepository
 {
+    /**
+     * How many nodes a whole-tree read takes from the server per round trip.
+     *
+     * The default leaves a tree of a million nodes to thousands of getMore calls; ten
+     * thousand projected nodes are a few megabytes, which is nothing to hold at once.
+     */
+    private const int DUMP_BATCH_SIZE = 10000;
+
+    /**
+     * What a node of the tree is made of, as the panel reads it.
+     */
+    private const array NODE_PROJECTION = [
+        'serviceId'     => 1,
+        'traceId'       => 1,
+        'parentTraceId' => 1,
+        'type'          => 1,
+        'tags'          => 1,
+        'status'        => 1,
+        'duration'      => 1,
+        'memory'        => 1,
+        'cpu'           => 1,
+        'loggedAt'      => 1,
+    ];
+
+    /**
+     * The depth the chain above a root is written at, and the root's own.
+     */
+    private const int ANCESTOR_DEPTH = -1;
+
+    private const int ROOT_DEPTH = 0;
+
     public function deleteChunk(string $rootTraceId, int $limit): int
     {
         if ($limit <= 0) {
@@ -201,30 +234,168 @@ class TraceTreeCacheRepository
     {
         $cursor = TraceTreeCache::sconcur()
             ->aggregate(
-                [
+                pipeline: [
                     [
                         '$match' => [
                             'rootTraceId' => $rootTraceId,
                         ],
                     ],
-                ]
+                    [
+                        '$project' => ['_id' => 0] + self::NODE_PROJECTION,
+                    ],
+                ],
+                batchSize: self::DUMP_BATCH_SIZE
             );
 
         return new TraceTreeRawIterator(
-            transport: static fn(array $item): TraceTreeRawObject => new TraceTreeRawObject(
-                serviceId: $item['serviceId'],
-                traceId: $item['traceId'],
-                parentTraceId: $item['parentTraceId'],
-                type: $item['type'],
-                tags: (array) $item['tags'],
-                status: $item['status'],
-                duration: $item['duration'],
-                memory: $item['memory'],
-                cpu: $item['cpu'],
-                loggedAt: new Carbon($item['loggedAt']->toDateTime()),
-            ),
+            transport: static fn(array $item): TraceTreeRawObject => self::makeRawObject($item),
             iterator: $cursor
         );
+    }
+
+    /**
+     * The top of a tree: the highest of its nodes the cache holds.
+     *
+     * A tree opened from a trace nested in another keeps the chain above that trace at the
+     * ancestor depth, and its top is the highest link of that chain; otherwise the top is
+     * the root itself. Either way it is the node whose parent the cache does not have.
+     *
+     * @return TraceTreeRawObject[]
+     */
+    public function findTopNodes(string $rootTraceId): array
+    {
+        $cursor = TraceTreeCache::sconcur()
+            ->find(
+                filter: [
+                    'rootTraceId' => $rootTraceId,
+                    'depth'       => ['$gte' => self::ANCESTOR_DEPTH, '$lte' => self::ROOT_DEPTH],
+                ],
+                projection: ['_id' => 0] + self::NODE_PROJECTION
+            );
+
+        /** @var array<string, array<string, mixed>> $items */
+        $items = [];
+
+        foreach ($cursor as $item) {
+            /** @var array<string, mixed> $item */
+            $items[(string) $item['traceId']] = $item;
+        }
+
+        $top = [];
+
+        foreach ($items as $item) {
+            $parentTraceId = $item['parentTraceId'];
+
+            if ($parentTraceId === null || !isset($items[$parentTraceId])) {
+                $top[] = self::makeRawObject($item);
+            }
+        }
+
+        return $top;
+    }
+
+    /**
+     * One page of a node's children, in the order the panel shows them.
+     *
+     * The cursor is where the previous page stopped: the loggedAt of its last node in
+     * milliseconds and that node's _id, since two children can share a millisecond.
+     */
+    public function findChildrenPage(
+        string $rootTraceId,
+        string $parentTraceId,
+        ?TraceTreeChildrenCursorObject $after,
+        int $limit
+    ): TraceTreeChildrenPageDto {
+        if ($limit <= 0) {
+            throw new InvalidArgumentException('Limit must be greater than 0');
+        }
+
+        $filter = [
+            'rootTraceId'   => $rootTraceId,
+            'parentTraceId' => $parentTraceId,
+        ];
+
+        if ($after !== null) {
+            $loggedAt = new UTCDateTime($after->loggedAtMs);
+
+            $filter['$or'] = [
+                ['loggedAt' => ['$gt' => $loggedAt]],
+                ['loggedAt' => $loggedAt, '_id' => ['$gt' => new ObjectId($after->id)]],
+            ];
+        }
+
+        // One more than asked for: whether it comes back is whether there is a next page.
+        $cursor = TraceTreeCache::sconcur()
+            ->find(
+                filter: $filter,
+                projection: ['_id' => 1] + self::NODE_PROJECTION,
+                sort: ['loggedAt' => 1, '_id' => 1],
+                limit: $limit + 1,
+                batchSize: $limit + 1
+            );
+
+        $items = [];
+
+        $next = null;
+
+        foreach ($cursor as $item) {
+            if (count($items) === $limit) {
+                $last = $items[$limit - 1];
+
+                $next = new TraceTreeChildrenCursorObject(
+                    loggedAtMs: $last['loggedAt']->epochMs,
+                    id: (string) $last['_id'],
+                );
+
+                break;
+            }
+
+            $items[] = $item;
+        }
+
+        return new TraceTreeChildrenPageDto(
+            items: array_map(static fn(array $item): TraceTreeRawObject => self::makeRawObject($item), $items),
+            next: $next,
+        );
+    }
+
+    /**
+     * How many children each of these nodes has in the tree — what tells the panel which
+     * rows it can open.
+     *
+     * @param string[] $parentTraceIds
+     *
+     * @return array<string, int>
+     */
+    public function countChildren(string $rootTraceId, array $parentTraceIds): array
+    {
+        if ($parentTraceIds === []) {
+            return [];
+        }
+
+        $cursor = TraceTreeCache::sconcur()
+            ->aggregate([
+                [
+                    '$match' => [
+                        'rootTraceId'   => $rootTraceId,
+                        'parentTraceId' => ['$in' => $parentTraceIds],
+                    ],
+                ],
+                [
+                    '$group' => [
+                        '_id'   => '$parentTraceId',
+                        'count' => ['$sum' => 1],
+                    ],
+                ],
+            ]);
+
+        $counts = [];
+
+        foreach ($cursor as $row) {
+            $counts[(string) $row['_id']] = (int) $row['count'];
+        }
+
+        return $counts;
     }
 
     /**
@@ -384,5 +555,27 @@ class TraceTreeCacheRepository
             ->countDocuments([
                 'rootTraceId' => $rootTraceId,
             ]);
+    }
+
+    /**
+     * @param array<string, mixed> $item
+     */
+    private static function makeRawObject(array $item): TraceTreeRawObject
+    {
+        /** @var UTCDateTime $loggedAt */
+        $loggedAt = $item['loggedAt'];
+
+        return new TraceTreeRawObject(
+            serviceId: $item['serviceId'],
+            traceId: $item['traceId'],
+            parentTraceId: $item['parentTraceId'],
+            type: $item['type'],
+            tags: (array) $item['tags'],
+            status: $item['status'],
+            duration: $item['duration'],
+            memory: $item['memory'],
+            cpu: $item['cpu'],
+            loggedAt: new Carbon($loggedAt->toDateTime()),
+        );
     }
 }

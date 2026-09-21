@@ -20,6 +20,12 @@ export class TreeFilter {
 
     public apply(rows: TraceTreeNode[]): void {
         rows.forEach((row: TraceTreeNode) => {
+            if (row.loadMoreOf) {
+                row.isHiddenByFilter = row.loadMoreOf.isHiddenByFilter
+
+                return
+            }
+
             this.applyForRow(row)
 
             this.apply(row.children)

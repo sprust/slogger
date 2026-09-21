@@ -28,6 +28,17 @@ export const useTraceAggregatorServicesStore = defineStore('traceAggregatorServi
             items: [] as Array<TraceAggregatorService>
         }
     },
+    getters: {
+        byId(store: TraceAggregatorServicesStoreInterface): Record<number, TraceAggregatorService> {
+            const byId: Record<number, TraceAggregatorService> = {}
+
+            store.items.forEach((item: TraceAggregatorService) => {
+                byId[item.id] = item
+            })
+
+            return byId
+        },
+    },
     actions: {
         async findServices() {
             this.loading = true

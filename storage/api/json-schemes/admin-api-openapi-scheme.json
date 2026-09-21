@@ -1434,6 +1434,139 @@
                 ]
             }
         },
+        "/admin-api/trace-aggregator/traces/tree/children": {
+            "post": {
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "root_trace_id": {
+                                        "type": "string"
+                                    },
+                                    "parent_trace_id": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "cursor": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "limit": {
+                                        "type": "integer",
+                                        "nullable": true,
+                                        "minimum": 1,
+                                        "maximum": 1000
+                                    }
+                                },
+                                "required": [
+                                    "root_trace_id"
+                                ],
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "items": {
+                                                    "type": "array",
+                                                    "nullable": false,
+                                                    "items": {
+                                                        "properties": {
+                                                            "service_id": {
+                                                                "type": "integer",
+                                                                "nullable": false
+                                                            },
+                                                            "parent_trace_id": {
+                                                                "type": "string",
+                                                                "nullable": true
+                                                            },
+                                                            "trace_id": {
+                                                                "type": "string",
+                                                                "nullable": false
+                                                            },
+                                                            "type": {
+                                                                "type": "string",
+                                                                "nullable": false
+                                                            },
+                                                            "tags": {
+                                                                "type": "array",
+                                                                "nullable": false,
+                                                                "items": {
+                                                                    "type": "string"
+                                                                }
+                                                            },
+                                                            "status": {
+                                                                "type": "string",
+                                                                "nullable": false
+                                                            },
+                                                            "duration": {
+                                                                "type": "number",
+                                                                "nullable": true
+                                                            },
+                                                            "memory": {
+                                                                "type": "number",
+                                                                "nullable": true
+                                                            },
+                                                            "cpu": {
+                                                                "type": "number",
+                                                                "nullable": true
+                                                            },
+                                                            "logged_at": {
+                                                                "type": "string",
+                                                                "nullable": false
+                                                            },
+                                                            "children_count": {
+                                                                "type": "integer",
+                                                                "nullable": false
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "service_id",
+                                                            "trace_id",
+                                                            "type",
+                                                            "tags",
+                                                            "status",
+                                                            "logged_at",
+                                                            "children_count"
+                                                        ]
+                                                    }
+                                                },
+                                                "next_cursor": {
+                                                    "type": "string",
+                                                    "nullable": true
+                                                }
+                                            },
+                                            "required": [
+                                                "items"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/admin-api/trace-aggregator/traces/tree/processes": {
             "get": {
                 "responses": {

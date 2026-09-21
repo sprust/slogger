@@ -6,9 +6,12 @@ namespace App\Modules\Trace\Infrastructure\Http\Controllers;
 
 use App\Modules\Common\Helpers\ArrayValueGetter;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceTreeAction;
+use App\Modules\Trace\Domain\Actions\Queries\FindTraceTreeChildrenAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceTreeContentAction;
+use App\Modules\Trace\Infrastructure\Http\Requests\TraceTreeChildrenRequest;
 use App\Modules\Trace\Infrastructure\Http\Requests\TraceTreeContentRequest;
 use App\Modules\Trace\Infrastructure\Http\Requests\TraceTreeTreeRequest;
+use App\Modules\Trace\Infrastructure\Http\Resources\Tree\TraceTreeChildrenResource;
 use App\Modules\Trace\Infrastructure\Http\Resources\Tree\TraceTreeResource;
 use App\Modules\Trace\Infrastructure\Http\Resources\Tree\TraceTreeResponse;
 use App\Modules\Trace\Infrastructure\Http\Resources\Tree\TraceTreeContentResource;
@@ -19,6 +22,7 @@ readonly class TraceTreeController
     public function __construct(
         private FindTraceTreeAction $findTraceTreeAction,
         private FindTraceTreeContentAction $findTraceTreeContentAction,
+        private FindTraceTreeChildrenAction $findTraceTreeChildrenAction,
     ) {
     }
 
@@ -54,5 +58,19 @@ readonly class TraceTreeController
         }
 
         return new TraceTreeContentResource($traceTreeObjects);
+    }
+
+    public function children(TraceTreeChildrenRequest $request): TraceTreeChildrenResource
+    {
+        $validated = $request->validated();
+
+        return new TraceTreeChildrenResource(
+            $this->findTraceTreeChildrenAction->handle(
+                rootTraceId: ArrayValueGetter::string($validated, 'root_trace_id'),
+                parentTraceId: ArrayValueGetter::stringNull($validated, 'parent_trace_id'),
+                cursor: ArrayValueGetter::stringNull($validated, 'cursor'),
+                limit: ArrayValueGetter::intNull($validated, 'limit') ?? TraceTreeChildrenRequest::DEFAULT_LIMIT,
+            )
+        );
     }
 }

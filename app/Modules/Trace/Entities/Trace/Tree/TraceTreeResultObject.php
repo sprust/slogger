@@ -9,6 +9,7 @@ readonly class TraceTreeResultObject
     public function __construct(
         public TraceTreeCacheStateObject $state,
         public ?TraceTreeRawIterator $items,
+        public bool $lazy = false,
     ) {
     }
 }

@@ -3,7 +3,11 @@
     <div class="height-100">
       <el-row style="width: 100%; padding-bottom: 10px">
         <el-text v-if="isTraceSelected">
-          {{ traceAggregatorTreeStore.parameters.trace_id }} ({{ traceAggregatorTreeStore.content.count }})
+          {{ traceAggregatorTreeStore.parameters.trace_id }}
+          ({{ traceAggregatorTreeStore.state?.count ?? traceAggregatorTreeStore.content.count }})
+        </el-text>
+        <el-text v-if="traceAggregatorTreeStore.lazy" type="warning" style="padding-left: 12px">
+          large tree: branches load on expand; filters, indicate and json cover loaded nodes
         </el-text>
         <div class="flex-grow"/>
         <el-button
@@ -140,7 +144,7 @@
         </el-text>
       </el-row>
       <el-row v-if="!inProcess" style="width: 100%; height: 100%; position: relative;">
-        <div v-if="traceAggregatorTreeStore.treeNodes.length" class="row-col" style="width: 100%;">
+        <div v-if="traceAggregatorTreeStore.tree.length" class="row-col" style="width: 100%;">
           <TraceAggregatorTraceTreeVirtual :items="traceAggregatorTreeStore.filteredTree"/>
         </div>
         <el-alert

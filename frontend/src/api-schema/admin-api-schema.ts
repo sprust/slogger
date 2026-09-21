@@ -858,6 +858,67 @@ export namespace AdminApi {
 
   /**
  * No description
+ * @name TraceAggregatorTracesTreeChildrenCreate
+ * @request POST:/admin-api/trace-aggregator/traces/tree/children
+ * @secure
+ * @response `200` `{
+    data: {
+    items: ({
+    service_id: number,
+    parent_trace_id?: string | null,
+    trace_id: string,
+    type: string,
+    tags: (string)[],
+    status: string,
+    duration?: number | null,
+    memory?: number | null,
+    cpu?: number | null,
+    logged_at: string,
+    children_count: number,
+
+})[],
+    next_cursor?: string | null,
+
+},
+
+}` description
+*/
+  export namespace TraceAggregatorTracesTreeChildrenCreate {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = {
+      root_trace_id: string;
+      parent_trace_id?: string | null;
+      cursor?: string | null;
+      /**
+       * @min 1
+       * @max 1000
+       */
+      limit?: number | null;
+    };
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        items: {
+          service_id: number;
+          parent_trace_id?: string | null;
+          trace_id: string;
+          type: string;
+          tags: string[];
+          status: string;
+          duration?: number | null;
+          memory?: number | null;
+          cpu?: number | null;
+          logged_at: string;
+          children_count: number;
+        }[];
+        next_cursor?: string | null;
+      };
+    };
+  }
+
+  /**
+ * No description
  * @name TraceAggregatorTracesTreeProcessesList
  * @request GET:/admin-api/trace-aggregator/traces/tree/processes
  * @secure
@@ -5001,6 +5062,77 @@ export class Api<
         any
       >({
         path: `/admin-api/trace-aggregator/traces/tree/content`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name TraceAggregatorTracesTreeChildrenCreate
+ * @request POST:/admin-api/trace-aggregator/traces/tree/children
+ * @secure
+ * @response `200` `{
+    data: {
+    items: ({
+    service_id: number,
+    parent_trace_id?: string | null,
+    trace_id: string,
+    type: string,
+    tags: (string)[],
+    status: string,
+    duration?: number | null,
+    memory?: number | null,
+    cpu?: number | null,
+    logged_at: string,
+    children_count: number,
+
+})[],
+    next_cursor?: string | null,
+
+},
+
+}` description
+ */
+    traceAggregatorTracesTreeChildrenCreate: (
+      data: {
+        root_trace_id: string;
+        parent_trace_id?: string | null;
+        cursor?: string | null;
+        /**
+         * @min 1
+         * @max 1000
+         */
+        limit?: number | null;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          data: {
+            items: {
+              service_id: number;
+              parent_trace_id?: string | null;
+              trace_id: string;
+              type: string;
+              tags: string[];
+              status: string;
+              duration?: number | null;
+              memory?: number | null;
+              cpu?: number | null;
+              logged_at: string;
+              children_count: number;
+            }[];
+            next_cursor?: string | null;
+          };
+        },
+        any
+      >({
+        path: `/admin-api/trace-aggregator/traces/tree/children`,
         method: "POST",
         body: data,
         secure: true,

@@ -8,6 +8,7 @@ import {TreeBuilder} from "./TreeBuilder.ts";
 import {TreeFilter} from "./TreeFilter.ts";
 import {IndicatorSetter} from "./IndicatorSetter.ts";
 import {EchoContainer} from "../../../../../../utils/echoContainer.ts";
+import {useTraceAggregatorServicesStore} from "../../services/store/traceAggregatorServicesStore.ts";
 
 type TraceAggregatorTreeParameters = AdminApi.TraceAggregatorTracesTreeCreate.RequestBody
 export type TraceAggregatorTreeRow = AdminApi.TraceAggregatorTracesTreeCreate.ResponseBody['data'][number]
@@ -15,8 +16,24 @@ export type TraceAggregatorTree = TraceAggregatorTreeRow[]
 type TraceAggregatorTreeState = AdminApi.TraceAggregatorTracesTreeProcessesCancelPartialUpdate.ResponseBody['data']
 type TraceAggregatorTreeStreamResponse = {
     state: TraceAggregatorTreeState,
+    lazy?: boolean,
     items?: TraceAggregatorTree,
 }
+
+type TraceAggregatorTreeChildrenParameters = AdminApi.TraceAggregatorTracesTreeChildrenCreate.RequestBody
+type TraceAggregatorTreeChild = AdminApi.TraceAggregatorTracesTreeChildrenCreate.ResponseBody['data']['items'][number]
+
+/**
+ * How many children a branch of a lazily opened tree takes per request.
+ */
+const LAZY_PAGE_SIZE = 200
+
+/**
+ * How far a lazily opened tree unfolds by itself along nodes with a single child — the
+ * chain from the ancestors down to the root, a job nested in a job. Beyond that the user
+ * opens it.
+ */
+const LAZY_AUTO_EXPAND_LIMIT = 30
 
 type TraceAggregatorTreeContentParameters = AdminApi.TraceAggregatorTracesTreeContentCreate.RequestBody
 type TraceAggregatorTreeContent = NonNullable<AdminApi.TraceAggregatorTracesTreeContentCreate.ResponseBody['data']['content']>
@@ -60,6 +77,14 @@ export interface TraceTreeNode {
     collapsed: boolean,
     isHiddenByFilter: boolean,
     indicatorPercent: number,
+    // A lazily opened tree only: how many children the node has in the whole tree,
+    // where the next page of them starts (null once all are loaded, undefined before
+    // the first page), and whether a page is on its way.
+    childrenCount?: number,
+    childrenCursor?: string | null,
+    childrenLoading?: boolean,
+    // The row at the end of a partly loaded branch that loads its next page.
+    loadMoreOf?: TraceTreeNode,
 }
 
 interface TraceAggregatorTreeStoreInterface {
@@ -81,6 +106,7 @@ interface TraceAggregatorTreeStoreInterface {
     traceTotalIndicatorsNumber: number,
     traceIndicatingIds: Array<string>,
     jsonNodes: null | Array<TraceTreeNode>,
+    lazy: boolean,
 }
 
 export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore', {
@@ -110,6 +136,7 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
             traceTotalIndicatorsNumber: 0,
             traceIndicatingIds: [],
             jsonNodes: null,
+            lazy: false,
         }
     },
     getters: {
@@ -218,6 +245,12 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
             this.loading = true
             this.treeNodes = []
 
+            const servicesStore = useTraceAggregatorServicesStore()
+
+            if (!servicesStore.loaded && !servicesStore.loading) {
+                servicesStore.findServices()
+            }
+
             this.parameters = {
                 trace_id: traceId,
                 fresh: fresh,
@@ -252,8 +285,12 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
 
                 this.setTreeState(data.state)
 
+                this.lazy = data.lazy === true
+
                 if (data.items) {
                     this.setTreeNodes(data.items)
+                } else if (this.lazy) {
+                    await this.loadLazyTop()
                 }
 
                 if (data.state.status === 'inProcess') {
@@ -268,11 +305,14 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
 
                 this.stopWatching()
 
-                if (freshContent) {
-                    await this.findTreeContent(traceId, isChild)
-                }
-
                 this.loading = false
+
+                // Not awaited: the tree is ready to show, and the filters' figures are
+                // aggregations over every node of it — seconds on a tree of millions,
+                // which the tree has no reason to wait for.
+                if (freshContent) {
+                    this.findTreeContent(traceId, isChild)
+                }
 
                 return response
             })
@@ -293,6 +333,12 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
             return handleApiRequest(
                 () => ApiContainer.get().traceAggregatorTracesTreeContentCreate(parameters)
                     .then(response => {
+                        // The tree may have changed while this was on its way: the
+                        // figures of another tree must not land on this one.
+                        if (this.parameters.trace_id !== traceId || this.parameters.is_child !== isChild) {
+                            return
+                        }
+
                         this.setTreeState(response.data.data.state)
 
                         if (response.data.data.content) {
@@ -551,7 +597,146 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
             ).apply(this.tree)
         },
         toggleCollapse(row: TraceTreeNode) {
+            if (this.lazy && row.collapsed && row.childrenCursor === undefined && (row.childrenCount ?? 0) > 0) {
+                return this.loadLazyChildren(row)
+            }
+
             row.collapsed = !row.collapsed
+        },
+        /**
+         * The top of a tree too large to be sent whole — the highest node of it, which is
+         * the root or the highest of its ancestors — unfolded along its single-child chain.
+         */
+        async loadLazyTop() {
+            if (!this.state) {
+                return
+            }
+
+            const items = await this.requestLazyChildren(null, null)
+
+            if (!items) {
+                return
+            }
+
+            this.tree = items.map((item: TraceAggregatorTreeChild) => this.makeLazyNode(item, 0))
+
+            let node: TraceTreeNode | undefined = this.tree[0]
+
+            for (let step = 0; node && step < LAZY_AUTO_EXPAND_LIMIT; step++) {
+                if ((node.childrenCount ?? 0) === 0) {
+                    break
+                }
+
+                await this.loadLazyChildren(node)
+
+                node = node.childrenCount === 1 ? node.children[0] : undefined
+            }
+        },
+        /**
+         * The first or the next page of a node's children, put into the flat tree right
+         * after what of that branch is already there.
+         */
+        async loadLazyChildren(parent: TraceTreeNode) {
+            if (parent.childrenLoading) {
+                return
+            }
+
+            parent.childrenLoading = true
+
+            try {
+                const items = await this.requestLazyChildren(parent.id, parent.childrenCursor ?? null, parent)
+
+                if (!items) {
+                    return
+                }
+
+                const nodes = items.map((item: TraceAggregatorTreeChild) => this.makeLazyNode(item, parent.depth + 1))
+
+                const parentIndex = this.tree.indexOf(parent)
+
+                if (parentIndex === -1) {
+                    return
+                }
+
+                let insertAt = parentIndex + 1
+
+                while (insertAt < this.tree.length && this.tree[insertAt].depth > parent.depth) {
+                    if (this.tree[insertAt].loadMoreOf === parent) {
+                        this.tree.splice(insertAt, 1)
+
+                        break
+                    }
+
+                    insertAt++
+                }
+
+                const inserted: Array<TraceTreeNode> = [...nodes]
+
+                if (parent.childrenCursor) {
+                    inserted.push(this.makeLoadMoreNode(parent))
+                }
+
+                this.tree.splice(insertAt, 0, ...inserted)
+
+                parent.children.push(...nodes)
+                parent.collapsed = false
+            } finally {
+                parent.childrenLoading = false
+            }
+        },
+        async requestLazyChildren(
+            parentTraceId: string | null,
+            cursor: string | null,
+            parent?: TraceTreeNode,
+        ): Promise<Array<TraceAggregatorTreeChild> | null> {
+            const parameters: TraceAggregatorTreeChildrenParameters = {
+                root_trace_id: this.state!.root_trace_id,
+                parent_trace_id: parentTraceId,
+                cursor: cursor,
+                limit: LAZY_PAGE_SIZE,
+            }
+
+            const response = await handleApiRequest(
+                () => ApiContainer.get().traceAggregatorTracesTreeChildrenCreate(parameters)
+            )
+
+            if (!response) {
+                return null
+            }
+
+            if (parent) {
+                parent.childrenCursor = response.data.data.next_cursor ?? null
+            }
+
+            return response.data.data.items
+        },
+        makeLazyNode(item: TraceAggregatorTreeChild, depth: number): TraceTreeNode {
+            const {children_count, ...primary} = item
+
+            return {
+                id: item.trace_id,
+                depth: depth,
+                primary: primary as TraceAggregatorTreeRow,
+                children: [],
+                collapsed: children_count > 0,
+                isHiddenByFilter: false,
+                indicatorPercent: 0,
+                childrenCount: children_count,
+                childrenCursor: undefined,
+                childrenLoading: false,
+            }
+        },
+        makeLoadMoreNode(parent: TraceTreeNode): TraceTreeNode {
+            return {
+                id: `${parent.id}:more`,
+                depth: parent.depth + 1,
+                primary: parent.primary,
+                children: [],
+                collapsed: false,
+                isHiddenByFilter: false,
+                indicatorPercent: 0,
+                loadMoreOf: parent,
+            }
         },
         showTreeJson() {
             this.jsonNodes = this.tree.filter((node: TraceTreeNode) => node.depth === 0)

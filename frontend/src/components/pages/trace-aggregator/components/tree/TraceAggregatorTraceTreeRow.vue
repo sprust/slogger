@@ -4,6 +4,7 @@ import {defineComponent, PropType} from "vue";
 import TraceService from "../services/TraceService.vue";
 import {TraceAggregatorTreeRow, TraceTreeNode, useTraceAggregatorTreeStore} from "./store/traceAggregatorTreeStore.ts";
 import {CaretBottom, CaretRight} from "@element-plus/icons-vue";
+import {useTraceAggregatorServicesStore} from "../services/store/traceAggregatorServicesStore.ts";
 
 export default defineComponent({
   components: {CaretBottom, CaretRight, TraceService},
@@ -18,6 +19,9 @@ export default defineComponent({
   computed: {
     traceAggregatorTreeStore() {
       return useTraceAggregatorTreeStore()
+    },
+    traceAggregatorServicesStore() {
+      return useTraceAggregatorServicesStore()
     },
   },
 
@@ -50,7 +54,11 @@ export default defineComponent({
       this.traceAggregatorTreeStore.findData(treeNode.trace_id)
     },
     getServiceName(treeNode: TraceAggregatorTreeRow) {
-      return this.traceAggregatorTreeStore.servicesMap[treeNode.service_id]?.name ?? 'NO LOAD'
+      // The tree's own figures come with the filters and can take seconds on a large
+      // tree; the plain list of services is there long before, and the name is the same.
+      return this.traceAggregatorTreeStore.servicesMap[treeNode.service_id]?.name
+          ?? this.traceAggregatorServicesStore.byId[treeNode.service_id]?.name
+          ?? 'NO LOAD'
     },
     isServiceIdSelected(serviceId: number): boolean {
       return this.traceAggregatorTreeStore.selectedTraceServiceIds.indexOf(serviceId) != -1
@@ -76,6 +84,19 @@ export default defineComponent({
     toggleCollapse() {
       this.traceAggregatorTreeStore.toggleCollapse(this.row)
     },
+    hasChildren(): boolean {
+      return this.row.children.length > 0 || (this.row.childrenCount ?? 0) > 0
+    },
+    loadMore() {
+      if (this.row.loadMoreOf) {
+        this.traceAggregatorTreeStore.loadLazyChildren(this.row.loadMoreOf)
+      }
+    },
+    loadMoreLabel(): string {
+      const parent = this.row.loadMoreOf!
+
+      return `ещё — загружено ${parent.children.length} из ${parent.childrenCount ?? '?'}`
+    },
     getIndicatorBackground() {
       if (!this.row.indicatorPercent) {
         return ''
@@ -90,18 +111,32 @@ export default defineComponent({
 </script>
 
 <template>
-  <el-row :style="{height: '30px', width: '100%', background: getIndicatorBackground()}">
+  <el-row v-if="row.loadMoreOf" :style="{height: '30px', width: '100%'}">
+    <el-row :style="{width: '100%', 'padding-left': row.depth * 20 + 'px'}">
+      <span class="collapse-placeholder"/>
+      <el-button
+          type="primary"
+          link
+          :loading="row.loadMoreOf.childrenLoading"
+          @click="loadMore"
+      >
+        {{ loadMoreLabel() }}
+      </el-button>
+    </el-row>
+  </el-row>
+  <el-row v-else :style="{height: '30px', width: '100%', background: getIndicatorBackground()}">
     <el-row :style="{width: '100%', 'padding-left': row.depth * 20 + 'px'}">
       <el-space>
         <el-button
-            v-if="row.children.length > 0"
+            v-if="hasChildren()"
             type="info"
             size="small"
+            :loading="row.childrenLoading"
             @click.stop="toggleCollapse"
             link
             class="collapse-toggle"
         >
-          <el-icon>
+          <el-icon v-if="!row.childrenLoading">
             <CaretRight v-if="row.collapsed"/>
             <CaretBottom v-else/>
           </el-icon>
@@ -154,6 +189,9 @@ export default defineComponent({
       >
         indicate
       </el-button>
+      <el-text v-if="row.childrenCount !== undefined && row.childrenCount > 0" type="info">
+        ({{ row.childrenCount }})
+      </el-text>
 
       <div class="flex-grow"/>
 
