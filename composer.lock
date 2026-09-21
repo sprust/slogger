@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "5e9b2fb7b3a451b9c7ec6f9de1447440",
+    "content-hash": "0f8697a0c8f9b429d6a27029f5f7c411",
     "packages": [
         {
             "name": "brick/math",
@@ -307,27 +307,25 @@
         },
         {
             "name": "doctrine/lexer",
-            "version": "3.0.1",
+            "version": "3.0.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/doctrine/lexer.git",
-                "reference": "31ad66abc0fc9e1a1f2d9bc6a42668d2fbbcd6dd"
+                "reference": "e96fe45e92a54233726014a7cc7340abf29bb14c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/doctrine/lexer/zipball/31ad66abc0fc9e1a1f2d9bc6a42668d2fbbcd6dd",
-                "reference": "31ad66abc0fc9e1a1f2d9bc6a42668d2fbbcd6dd",
+                "url": "https://api.github.com/repos/doctrine/lexer/zipball/e96fe45e92a54233726014a7cc7340abf29bb14c",
+                "reference": "e96fe45e92a54233726014a7cc7340abf29bb14c",
                 "shasum": ""
             },
             "require": {
                 "php": "^8.1"
             },
             "require-dev": {
-                "doctrine/coding-standard": "^12",
-                "phpstan/phpstan": "^1.10",
-                "phpunit/phpunit": "^10.5",
-                "psalm/plugin-phpunit": "^0.18.3",
-                "vimeo/psalm": "^5.21"
+                "doctrine/coding-standard": "^14",
+                "phpstan/phpstan": "^2",
+                "phpunit/phpunit": "^10.5.58 || ^12.5.4"
             },
             "type": "library",
             "autoload": {
@@ -364,7 +362,7 @@
             ],
             "support": {
                 "issues": "https://github.com/doctrine/lexer/issues",
-                "source": "https://github.com/doctrine/lexer/tree/3.0.1"
+                "source": "https://github.com/doctrine/lexer/tree/3.0.2"
             },
             "funding": [
                 {
@@ -380,7 +378,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-02-05T11:56:58+00:00"
+            "time": "2026-06-14T20:44:06+00:00"
         },
         {
             "name": "dragonmantank/cron-expression",
@@ -1604,16 +1602,16 @@
         },
         {
             "name": "league/commonmark",
-            "version": "2.10.1",
+            "version": "2.10.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/thephpleague/commonmark.git",
-                "reference": "9d489ab67a02960fd8ffe624d93f751daf95439e"
+                "reference": "692e90b901877bdfd727e51270ce4394633c6e74"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/thephpleague/commonmark/zipball/9d489ab67a02960fd8ffe624d93f751daf95439e",
-                "reference": "9d489ab67a02960fd8ffe624d93f751daf95439e",
+                "url": "https://api.github.com/repos/thephpleague/commonmark/zipball/692e90b901877bdfd727e51270ce4394633c6e74",
+                "reference": "692e90b901877bdfd727e51270ce4394633c6e74",
                 "shasum": ""
             },
             "require": {
@@ -1707,7 +1705,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-09-07T13:44:26+00:00"
+            "time": "2026-09-21T12:28:44+00:00"
         },
         {
             "name": "league/config",
@@ -3440,23 +3438,23 @@
         },
         {
             "name": "sconcur/laravel",
-            "version": "0.5.2",
+            "version": "0.6.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sprust/sconcur-laravel.git",
-                "reference": "1c0194e249140399e48a76cf7ef7a88c3b330e9f"
+                "reference": "d6c219b597f36ec0b6024f975d4abd07107896e3"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sprust/sconcur-laravel/zipball/1c0194e249140399e48a76cf7ef7a88c3b330e9f",
-                "reference": "1c0194e249140399e48a76cf7ef7a88c3b330e9f",
+                "url": "https://api.github.com/repos/sprust/sconcur-laravel/zipball/d6c219b597f36ec0b6024f975d4abd07107896e3",
+                "reference": "d6c219b597f36ec0b6024f975d4abd07107896e3",
                 "shasum": ""
             },
             "require": {
                 "laminas/laminas-diactoros": "^3.0",
                 "laravel/framework": "^12.0",
                 "php": "^8.4",
-                "sconcur/sconcur": "0.13.1",
+                "sconcur/sconcur": "0.14.0",
                 "symfony/psr-http-message-bridge": "^7.0 | ^8.0"
             },
             "require-dev": {
@@ -3502,22 +3500,22 @@
             ],
             "support": {
                 "issues": "https://github.com/sprust/sconcur-laravel/issues",
-                "source": "https://github.com/sprust/sconcur-laravel/tree/v0.5.2"
+                "source": "https://github.com/sprust/sconcur-laravel/tree/v0.6.0"
             },
-            "time": "2026-09-20T10:39:42+00:00"
+            "time": "2026-09-21T12:56:03+00:00"
         },
         {
             "name": "sconcur/sconcur",
-            "version": "0.13.1",
+            "version": "0.14.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sprust/sconcur.git",
-                "reference": "4f5aecd40b028fc0d83e3915c59befc89f97a33b"
+                "reference": "3dd0052594c84735463d08846be08ec4028e4dfb"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sprust/sconcur/zipball/4f5aecd40b028fc0d83e3915c59befc89f97a33b",
-                "reference": "4f5aecd40b028fc0d83e3915c59befc89f97a33b",
+                "url": "https://api.github.com/repos/sprust/sconcur/zipball/3dd0052594c84735463d08846be08ec4028e4dfb",
+                "reference": "3dd0052594c84735463d08846be08ec4028e4dfb",
                 "shasum": ""
             },
             "require": {
@@ -3568,9 +3566,9 @@
             "description": "PHP concurrency library backed by an extension written in Rust",
             "support": {
                 "issues": "https://github.com/sprust/sconcur/issues",
-                "source": "https://github.com/sprust/sconcur/tree/v0.13.1"
+                "source": "https://github.com/sprust/sconcur/tree/v0.14.0"
             },
-            "time": "2026-09-16T19:53:16+00:00"
+            "time": "2026-09-21T07:05:12+00:00"
         },
         {
             "name": "slogger/laravel",

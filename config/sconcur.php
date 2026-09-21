@@ -5,7 +5,9 @@ declare(strict_types=1);
 use App\Modules\Trace\Infrastructure\Tasks\BuildTraceDynamicIndexesTask;
 use App\Modules\Trace\Infrastructure\Tasks\PublishTraceDynamicIndexStatsTask;
 use App\Modules\Watcher\Infrastructure\Tasks\CheckWatchersTask;
+use App\Services\Sconcur\Listeners\ReportWorkerWatchdogListener;
 use App\Services\Tasks\CronTask;
+use SConcur\Laravel\Servers\Events\WorkerWatchdogTriggered;
 
 return [
     /*
@@ -28,6 +30,40 @@ return [
     */
     'scoped_services' => [
         // \Some\Package\Manager::class,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Filesystem
+    |--------------------------------------------------------------------------
+    | `files`: put the File facade (the `files` binding) on the Files feature for
+    | copy, move, hash and replace inside a coroutine. Off by default: the
+    | framework resolves `files` on every request. The `sconcur_local` disk driver
+    | needs nothing here — a disk names it in config/filesystems.php.
+    |
+    | `timeout_ms`: the deadline of one such call; 0 is none, as natively.
+    */
+    'filesystem' => [
+        'files'      => (bool) env('SCONCUR_FILESYSTEM_FILES', false),
+        'timeout_ms' => (int) env('SCONCUR_FILESYSTEM_TIMEOUT_MS', 0),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Listeners
+    |--------------------------------------------------------------------------
+    | Listeners of the package's events, registered by the service provider: an
+    | event class => a list of its listeners, the way EventServiceProvider::$listen
+    | takes them.
+    |
+    | WorkerWatchdogTriggered is raised in the master process when its watchdog
+    | kills a worker whose PHP thread stopped answering. It runs inside the
+    | master's supervision tick, so a listener has to be short.
+    */
+    'listeners' => [
+        WorkerWatchdogTriggered::class => [
+            ReportWorkerWatchdogListener::class,
+        ],
     ],
 
     /*
@@ -58,6 +94,7 @@ return [
         'shutdownTimeoutMs'   => (int) env('SCONCUR_HTTP_SHUTDOWN_TIMEOUT_MS', 10000),
         'restartBackoffMs'    => (int) env('SCONCUR_HTTP_RESTART_BACKOFF_MS', 200),
         'maxRestartBackoffMs' => (int) env('SCONCUR_HTTP_MAX_RESTART_BACKOFF_MS', 30000),
+        'watchdogTimeoutMs'   => (int) env('SCONCUR_HTTP_WATCHDOG_TIMEOUT_MS', 60000),
 
         // array_values, and not for tidiness: array_filter preserves keys, so dropping
         // the conditional rabbitmq group out of the middle leaves [0 => http, 2 => tasks]
@@ -217,8 +254,9 @@ return [
                 // Not the master's `always`: this pool is meant to be stoppable.
                 // `sconcur:tasks:stop` drains the tasks and exits 0, and under `always`
                 // the master would put a fresh pool up within the second — a stop that
-                // does not stop. The one exit that does want a new process, the memory
-                // limit, is non-zero on purpose (TaskPool::EXIT_RESTART).
+                // does not stop. The exits that do want a new process — the memory limit,
+                // and a signal while the master supervises the pool (its watchdog, an
+                // operator's kill) — are non-zero on purpose (TaskPool::EXIT_RESTART).
                 'restartPolicy' => 'on-failure',
                 // Must exceed the pool's own shutdown deadline (20 s), or the master
                 // kills it before the graceful stop can finish; and supervisor's
