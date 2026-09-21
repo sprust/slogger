@@ -7,60 +7,24 @@ namespace App\Modules\Trace\Infrastructure\Http\Resources\Tree;
 use App\Modules\Common\Infrastructure\Http\Resources\AbstractStreamedApiResource;
 use App\Modules\Trace\Entities\Trace\Tree\TraceTreeRawObject;
 use App\Modules\Trace\Entities\Trace\Tree\TraceTreeResultObject;
+use Generator;
 
 class TraceTreeResponse extends AbstractStreamedApiResource
 {
     /**
-     * How many nodes are encoded before they are written out.
+     * How many nodes go into one chunk.
      *
-     * One write per node was a write through the output buffer per node, and a JsonResource
-     * with its reflection per node before that: on three hundred thousand nodes the two
-     * together cost more than reading them.
+     * A chunk per node would be a write per node, and a JSON document is not readable before
+     * its last byte anyway; a thousand nodes are some two hundred kilobytes on the wire.
      */
-    private const int NODES_PER_WRITE = 1000;
+    private const int NODES_PER_CHUNK = 1000;
 
     private const int JSON_FLAGS = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR;
 
     public function __construct(TraceTreeResultObject $resource)
     {
         parent::__construct(
-            callback: static function () use ($resource) {
-                echo '{"data":{"state":' . new TraceTreeStateResource($resource->state)->toJson()
-                    . ',"lazy":' . ($resource->lazy ? 'true' : 'false')
-                    . ',"items":';
-
-                if ($resource->items === null) {
-                    echo 'null}}';
-
-                    return;
-                }
-
-                echo '[';
-
-                $encoded = [];
-
-                $written = false;
-
-                foreach ($resource->items as $item) {
-                    $encoded[] = json_encode(self::node($item), self::JSON_FLAGS);
-
-                    if (count($encoded) < self::NODES_PER_WRITE) {
-                        continue;
-                    }
-
-                    echo ($written ? ',' : '') . implode(',', $encoded);
-
-                    $written = true;
-
-                    $encoded = [];
-                }
-
-                if ($encoded !== []) {
-                    echo ($written ? ',' : '') . implode(',', $encoded);
-                }
-
-                echo ']}}';
-            },
+            chunks: self::chunks($resource),
         );
     }
 
@@ -85,5 +49,50 @@ class TraceTreeResponse extends AbstractStreamedApiResource
             'cpu'             => $item->cpu,
             'logged_at'       => $item->loggedAt->toDateTimeString('microsecond'),
         ];
+    }
+
+    /**
+     * The body, a chunk at a time — read lazily, so the tree is taken from the cache while
+     * the previous chunks are already on their way.
+     *
+     * @return Generator<int, string>
+     */
+    private static function chunks(TraceTreeResultObject $resource): Generator
+    {
+        yield '{"data":{"state":' . new TraceTreeStateResource($resource->state)->toJson()
+            . ',"lazy":' . ($resource->lazy ? 'true' : 'false')
+            . ',"items":';
+
+        if ($resource->items === null) {
+            yield 'null}}';
+
+            return;
+        }
+
+        yield '[';
+
+        $encoded = [];
+
+        $written = false;
+
+        foreach ($resource->items as $item) {
+            $encoded[] = json_encode(self::node($item), self::JSON_FLAGS);
+
+            if (count($encoded) < self::NODES_PER_CHUNK) {
+                continue;
+            }
+
+            yield ($written ? ',' : '') . implode(',', $encoded);
+
+            $written = true;
+
+            $encoded = [];
+        }
+
+        if ($encoded !== []) {
+            yield ($written ? ',' : '') . implode(',', $encoded);
+        }
+
+        yield ']}}';
     }
 }

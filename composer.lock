@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "0f8697a0c8f9b429d6a27029f5f7c411",
+    "content-hash": "66a314d25a79f3c06743c4880854057d",
     "packages": [
         {
             "name": "brick/math",
@@ -1602,16 +1602,16 @@
         },
         {
             "name": "league/commonmark",
-            "version": "2.10.2",
+            "version": "2.10.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/thephpleague/commonmark.git",
-                "reference": "692e90b901877bdfd727e51270ce4394633c6e74"
+                "reference": "6efbd9c472b91db0a3350fcd601c8332c2382e1f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/thephpleague/commonmark/zipball/692e90b901877bdfd727e51270ce4394633c6e74",
-                "reference": "692e90b901877bdfd727e51270ce4394633c6e74",
+                "url": "https://api.github.com/repos/thephpleague/commonmark/zipball/6efbd9c472b91db0a3350fcd601c8332c2382e1f",
+                "reference": "6efbd9c472b91db0a3350fcd601c8332c2382e1f",
                 "shasum": ""
             },
             "require": {
@@ -1705,7 +1705,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-09-21T12:28:44+00:00"
+            "time": "2026-09-21T13:07:34+00:00"
         },
         {
             "name": "league/config",
@@ -3438,16 +3438,16 @@
         },
         {
             "name": "sconcur/laravel",
-            "version": "0.6.0",
+            "version": "0.7.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sprust/sconcur-laravel.git",
-                "reference": "d6c219b597f36ec0b6024f975d4abd07107896e3"
+                "reference": "3b9d1af5042976e5f16e5db09a0c4e3a3518ef25"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sprust/sconcur-laravel/zipball/d6c219b597f36ec0b6024f975d4abd07107896e3",
-                "reference": "d6c219b597f36ec0b6024f975d4abd07107896e3",
+                "url": "https://api.github.com/repos/sprust/sconcur-laravel/zipball/3b9d1af5042976e5f16e5db09a0c4e3a3518ef25",
+                "reference": "3b9d1af5042976e5f16e5db09a0c4e3a3518ef25",
                 "shasum": ""
             },
             "require": {
@@ -3500,9 +3500,9 @@
             ],
             "support": {
                 "issues": "https://github.com/sprust/sconcur-laravel/issues",
-                "source": "https://github.com/sprust/sconcur-laravel/tree/v0.6.0"
+                "source": "https://github.com/sprust/sconcur-laravel/tree/v0.7.0"
             },
-            "time": "2026-09-21T12:56:03+00:00"
+            "time": "2026-09-21T19:54:12+00:00"
         },
         {
             "name": "sconcur/sconcur",

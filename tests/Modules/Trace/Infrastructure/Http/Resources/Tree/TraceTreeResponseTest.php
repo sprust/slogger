@@ -11,6 +11,7 @@ use App\Modules\Trace\Infrastructure\Http\Resources\Tree\TraceTreeResource;
 use App\Modules\Trace\Infrastructure\Http\Resources\Tree\TraceTreeResponse;
 use ArrayIterator;
 use Illuminate\Support\Carbon;
+use SConcur\Laravel\Http\StreamedChunks;
 use Tests\TestCase;
 
 /**
@@ -55,13 +56,34 @@ class TraceTreeResponseTest extends TestCase
         }
     }
 
+    /**
+     * The SConcur bridge streams a response only when it can reach its chunks; one that
+     * prints is run to its end into a temporary file first. Going back to echo would still
+     * produce the right body — nothing but this test would notice the tree stopped streaming.
+     */
+    public function testTheBridgeStreamsTheTreeChunkByChunk(): void
+    {
+        $nodes = [];
+
+        for ($index = 0; $index < 2500; $index++) {
+            $nodes[] = $this->node(serviceId: 1, withMetrics: true, traceId: "t-$index");
+        }
+
+        $chunksFactory = StreamedChunks::of($this->response($nodes));
+
+        self::assertNotNull($chunksFactory);
+
+        $chunks = [...$chunksFactory()];
+
+        self::assertGreaterThan(3, count($chunks));
+        self::assertSame($this->body($nodes), implode('', $chunks));
+    }
+
     public function testATreeStillBeingBuiltHasNoItems(): void
     {
         $response = new TraceTreeResponse(new TraceTreeResultObject(state: $this->state(), items: null));
 
-        ob_start();
-        $response->sendContent();
-        $decoded = json_decode((string) ob_get_clean(), true, flags: JSON_THROW_ON_ERROR);
+        $decoded = json_decode($this->send($response), true, flags: JSON_THROW_ON_ERROR);
 
         self::assertNull($decoded['data']['items']);
     }
@@ -71,7 +93,37 @@ class TraceTreeResponseTest extends TestCase
      */
     private function body(array $nodes): string
     {
-        $response = new TraceTreeResponse(
+        return $this->send($this->response($nodes));
+    }
+
+    /**
+     * What sendContent() prints. Caught by a buffer handler rather than read back with
+     * ob_get_clean(): Symfony flushes the buffer after every chunk, and a flush hands the
+     * buffer to the handler — the only place the whole body passes through.
+     */
+    private function send(TraceTreeResponse $response): string
+    {
+        $body = '';
+
+        ob_start(static function (string $buffer) use (&$body): string {
+            $body .= $buffer;
+
+            return '';
+        });
+
+        $response->sendContent();
+
+        ob_end_flush();
+
+        return $body;
+    }
+
+    /**
+     * @param TraceTreeRawObject[] $nodes
+     */
+    private function response(array $nodes): TraceTreeResponse
+    {
+        return new TraceTreeResponse(
             new TraceTreeResultObject(
                 state: $this->state(),
                 items: new TraceTreeRawIterator(
@@ -80,11 +132,6 @@ class TraceTreeResponseTest extends TestCase
                 ),
             )
         );
-
-        ob_start();
-        $response->sendContent();
-
-        return (string) ob_get_clean();
     }
 
     private function node(?int $serviceId, bool $withMetrics, string $traceId = 'trace'): TraceTreeRawObject
