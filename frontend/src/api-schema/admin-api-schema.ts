@@ -919,6 +919,64 @@ export namespace AdminApi {
 
   /**
  * No description
+ * @name TraceAggregatorTracesTreeFilterCreate
+ * @request POST:/admin-api/trace-aggregator/traces/tree/filter
+ * @secure
+ * @response `200` `{
+    data: {
+    items: ({
+    service_id: number,
+    parent_trace_id?: string | null,
+    trace_id: string,
+    type: string,
+    tags: (string)[],
+    status: string,
+    duration?: number | null,
+    memory?: number | null,
+    cpu?: number | null,
+    logged_at: string,
+
+})[],
+    matched_count: number,
+    truncated: boolean,
+
+},
+
+}` description
+*/
+  export namespace TraceAggregatorTracesTreeFilterCreate {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = {
+      root_trace_id: string;
+      service_ids?: number[];
+      types?: string[];
+      tags?: string[];
+      statuses?: string[];
+    };
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        items: {
+          service_id: number;
+          parent_trace_id?: string | null;
+          trace_id: string;
+          type: string;
+          tags: string[];
+          status: string;
+          duration?: number | null;
+          memory?: number | null;
+          cpu?: number | null;
+          logged_at: string;
+        }[];
+        matched_count: number;
+        truncated: boolean;
+      };
+    };
+  }
+
+  /**
+ * No description
  * @name TraceAggregatorTracesTreeProcessesList
  * @request GET:/admin-api/trace-aggregator/traces/tree/processes
  * @secure
@@ -5133,6 +5191,74 @@ export class Api<
         any
       >({
         path: `/admin-api/trace-aggregator/traces/tree/children`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name TraceAggregatorTracesTreeFilterCreate
+ * @request POST:/admin-api/trace-aggregator/traces/tree/filter
+ * @secure
+ * @response `200` `{
+    data: {
+    items: ({
+    service_id: number,
+    parent_trace_id?: string | null,
+    trace_id: string,
+    type: string,
+    tags: (string)[],
+    status: string,
+    duration?: number | null,
+    memory?: number | null,
+    cpu?: number | null,
+    logged_at: string,
+
+})[],
+    matched_count: number,
+    truncated: boolean,
+
+},
+
+}` description
+ */
+    traceAggregatorTracesTreeFilterCreate: (
+      data: {
+        root_trace_id: string;
+        service_ids?: number[];
+        types?: string[];
+        tags?: string[];
+        statuses?: string[];
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          data: {
+            items: {
+              service_id: number;
+              parent_trace_id?: string | null;
+              trace_id: string;
+              type: string;
+              tags: string[];
+              status: string;
+              duration?: number | null;
+              memory?: number | null;
+              cpu?: number | null;
+              logged_at: string;
+            }[];
+            matched_count: number;
+            truncated: boolean;
+          };
+        },
+        any
+      >({
+        path: `/admin-api/trace-aggregator/traces/tree/filter`,
         method: "POST",
         body: data,
         secure: true,

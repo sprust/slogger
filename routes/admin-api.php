@@ -79,6 +79,7 @@ Route::prefix('/trace-aggregator')
                 Route::post('/tree', [TraceTreeController::class, 'tree'])->name('tree');
                 Route::post('/tree/content', [TraceTreeController::class, 'content'])->name('content');
                 Route::post('/tree/children', [TraceTreeController::class, 'children'])->name('children');
+                Route::post('/tree/filter', [TraceTreeController::class, 'filter'])->name('filter');
                 Route::get('/tree/processes', [TraceTreeStateController::class, 'processes'])->name('processes');
                 Route::patch('/tree/processes/cancel', [TraceTreeStateController::class, 'cancelProcess'])->name('processes.cancel');
                 Route::patch('/tree/processes/delete', [TraceTreeStateController::class, 'deleteProcess'])->name('processes.delete');

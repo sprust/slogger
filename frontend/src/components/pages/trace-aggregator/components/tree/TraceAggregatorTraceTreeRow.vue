@@ -95,7 +95,7 @@ export default defineComponent({
     loadMoreLabel(): string {
       const parent = this.row.loadMoreOf!
 
-      return `ещё — загружено ${parent.children.length} из ${parent.childrenCount ?? '?'}`
+      return `more (${parent.children.length} of ${parent.childrenCount ?? '?'} loaded)`
     },
     getIndicatorBackground() {
       if (!this.row.indicatorPercent) {

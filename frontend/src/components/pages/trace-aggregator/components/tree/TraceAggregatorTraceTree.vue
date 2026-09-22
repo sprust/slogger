@@ -7,7 +7,7 @@
           ({{ traceAggregatorTreeStore.state?.count ?? traceAggregatorTreeStore.content.count }})
         </el-text>
         <el-text v-if="traceAggregatorTreeStore.lazy" type="warning" style="padding-left: 12px">
-          large tree: branches load on expand; filters, indicate and json cover loaded nodes
+          {{ lazyNote }}
         </el-text>
         <div class="flex-grow"/>
         <el-button
@@ -35,6 +35,26 @@
         >
           Update
         </el-button>
+        <el-dropdown
+            v-if="isTraceSelected"
+            trigger="click"
+            :disabled="inProcess || !traceAggregatorTreeStore.tree.length || traceAggregatorTreeStore.expanding || traceAggregatorTreeStore.filtering"
+            style="margin: 0 12px"
+            @command="expandToLevel"
+        >
+          <el-button
+              :disabled="inProcess || !traceAggregatorTreeStore.tree.length || traceAggregatorTreeStore.expanding || traceAggregatorTreeStore.filtering"
+          >
+            Levels
+          </el-button>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item v-for="level in expandLevels" :key="level" :command="level">
+                Level {{ level }}
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
         <el-button
             v-if="isTraceSelected"
             @click="showTreeJson"
@@ -134,7 +154,10 @@
                 :value="item.name"
             />
           </el-select>
-          <el-button @click="applyFilters">
+          <el-button
+              :disabled="traceAggregatorTreeStore.filtering || traceAggregatorTreeStore.expanding"
+              @click="applyFilters"
+          >
             Apply
           </el-button>
         </el-space>
@@ -271,7 +294,7 @@
 
 <script lang="ts">
 import {defineComponent} from "vue";
-import {useTraceAggregatorTreeStore} from "./store/traceAggregatorTreeStore.ts";
+import {LAZY_EXPAND_NODES_LIMIT, useTraceAggregatorTreeStore} from "./store/traceAggregatorTreeStore.ts";
 import {
   useTraceAggregatorTreeProcessesStore
 } from "./store/traceAggregatorTreeProcessesStore.ts";
@@ -287,6 +310,8 @@ import {Document as JsonIcon, List, Refresh as UpdateIcon} from '@element-plus/i
 const largeTreeTraces = 300
 
 const largeTreeExpandDepth = 4
+
+const expandLevelsCount = 10
 
 export default defineComponent({
   components: {
@@ -345,6 +370,32 @@ export default defineComponent({
           this.traceAggregatorTreeStore.hideJson()
         }
       },
+    },
+    expandLevels(): number[] {
+      return Array.from({length: expandLevelsCount}, (_, index) => index + 1)
+    },
+    lazyNote(): string {
+      const store = this.traceAggregatorTreeStore
+
+      const notes = ['large tree: branches load on expand; filters cover the whole tree; indicate and json cover loaded nodes']
+
+      if (store.filtering) {
+        notes.push('filtering...')
+      } else if (store.lazyFilter) {
+        notes.push(
+            store.lazyFilter.truncated
+                ? `showing the first ${store.lazyFilter.matchedCount} matches`
+                : `${store.lazyFilter.matchedCount} matches`
+        )
+      }
+
+      if (store.expanding) {
+        notes.push('expanding...')
+      } else if (store.expandStopped) {
+        notes.push(`expanding stopped at ${LAZY_EXPAND_NODES_LIMIT} loaded nodes`)
+      }
+
+      return notes.join('; ')
     },
     jsonValue(): unknown {
       return new TreeJsonBuilder(this.traceAggregatorTreeStore.servicesMap)
@@ -405,6 +456,9 @@ export default defineComponent({
     },
     applyFilters() {
       this.traceAggregatorTreeStore.applyFilters()
+    },
+    expandToLevel(level: number) {
+      this.traceAggregatorTreeStore.expandToLevel(level)
     }
   },
 })

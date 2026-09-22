@@ -1567,6 +1567,150 @@
                 ]
             }
         },
+        "/admin-api/trace-aggregator/traces/tree/filter": {
+            "post": {
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "root_trace_id": {
+                                        "type": "string"
+                                    },
+                                    "service_ids": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer"
+                                        }
+                                    },
+                                    "types": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "tags": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "statuses": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    }
+                                },
+                                "required": [
+                                    "root_trace_id"
+                                ],
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "items": {
+                                                    "type": "array",
+                                                    "nullable": false,
+                                                    "items": {
+                                                        "properties": {
+                                                            "service_id": {
+                                                                "type": "integer",
+                                                                "nullable": false
+                                                            },
+                                                            "parent_trace_id": {
+                                                                "type": "string",
+                                                                "nullable": true
+                                                            },
+                                                            "trace_id": {
+                                                                "type": "string",
+                                                                "nullable": false
+                                                            },
+                                                            "type": {
+                                                                "type": "string",
+                                                                "nullable": false
+                                                            },
+                                                            "tags": {
+                                                                "type": "array",
+                                                                "nullable": false,
+                                                                "items": {
+                                                                    "type": "string"
+                                                                }
+                                                            },
+                                                            "status": {
+                                                                "type": "string",
+                                                                "nullable": false
+                                                            },
+                                                            "duration": {
+                                                                "type": "number",
+                                                                "nullable": true
+                                                            },
+                                                            "memory": {
+                                                                "type": "number",
+                                                                "nullable": true
+                                                            },
+                                                            "cpu": {
+                                                                "type": "number",
+                                                                "nullable": true
+                                                            },
+                                                            "logged_at": {
+                                                                "type": "string",
+                                                                "nullable": false
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "service_id",
+                                                            "trace_id",
+                                                            "type",
+                                                            "tags",
+                                                            "status",
+                                                            "logged_at"
+                                                        ]
+                                                    }
+                                                },
+                                                "matched_count": {
+                                                    "type": "integer",
+                                                    "nullable": false
+                                                },
+                                                "truncated": {
+                                                    "type": "boolean",
+                                                    "nullable": false
+                                                }
+                                            },
+                                            "required": [
+                                                "items",
+                                                "matched_count",
+                                                "truncated"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/admin-api/trace-aggregator/traces/tree/processes": {
             "get": {
                 "responses": {

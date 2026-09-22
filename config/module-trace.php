@@ -11,5 +11,7 @@ return [
     // node — so it is tuned here rather than guessed in code.
     'tree' => [
         'full_load_limit' => (int) env('TRACE_TREE_FULL_LOAD_LIMIT', 200000),
+        // How many matching nodes a filter over such a tree returns, ancestors aside.
+        'filter_limit'    => (int) env('TRACE_TREE_FILTER_LIMIT', 10000),
     ],
 ];

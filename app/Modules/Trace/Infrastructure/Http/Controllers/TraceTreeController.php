@@ -8,10 +8,14 @@ use App\Modules\Common\Helpers\ArrayValueGetter;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceTreeAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceTreeChildrenAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceTreeContentAction;
+use App\Modules\Trace\Domain\Actions\Queries\FindTraceTreeFilteredAction;
+use App\Modules\Trace\Parameters\TraceTreeFilterParameters;
 use App\Modules\Trace\Infrastructure\Http\Requests\TraceTreeChildrenRequest;
 use App\Modules\Trace\Infrastructure\Http\Requests\TraceTreeContentRequest;
+use App\Modules\Trace\Infrastructure\Http\Requests\TraceTreeFilterRequest;
 use App\Modules\Trace\Infrastructure\Http\Requests\TraceTreeTreeRequest;
 use App\Modules\Trace\Infrastructure\Http\Resources\Tree\TraceTreeChildrenResource;
+use App\Modules\Trace\Infrastructure\Http\Resources\Tree\TraceTreeFilteredResource;
 use App\Modules\Trace\Infrastructure\Http\Resources\Tree\TraceTreeResource;
 use App\Modules\Trace\Infrastructure\Http\Resources\Tree\TraceTreeResponse;
 use App\Modules\Trace\Infrastructure\Http\Resources\Tree\TraceTreeContentResource;
@@ -23,6 +27,7 @@ readonly class TraceTreeController
         private FindTraceTreeAction $findTraceTreeAction,
         private FindTraceTreeContentAction $findTraceTreeContentAction,
         private FindTraceTreeChildrenAction $findTraceTreeChildrenAction,
+        private FindTraceTreeFilteredAction $findTraceTreeFilteredAction,
     ) {
     }
 
@@ -70,6 +75,23 @@ readonly class TraceTreeController
                 parentTraceId: ArrayValueGetter::stringNull($validated, 'parent_trace_id'),
                 cursor: ArrayValueGetter::stringNull($validated, 'cursor'),
                 limit: ArrayValueGetter::intNull($validated, 'limit') ?? TraceTreeChildrenRequest::DEFAULT_LIMIT,
+            )
+        );
+    }
+
+    public function filter(TraceTreeFilterRequest $request): TraceTreeFilteredResource
+    {
+        $validated = $request->validated();
+
+        return new TraceTreeFilteredResource(
+            $this->findTraceTreeFilteredAction->handle(
+                rootTraceId: ArrayValueGetter::string($validated, 'root_trace_id'),
+                parameters: new TraceTreeFilterParameters(
+                    serviceIds: ArrayValueGetter::arrayIntNull($validated, 'service_ids') ?? [],
+                    types: ArrayValueGetter::arrayStringNull($validated, 'types') ?? [],
+                    tags: ArrayValueGetter::arrayStringNull($validated, 'tags') ?? [],
+                    statuses: ArrayValueGetter::arrayStringNull($validated, 'statuses') ?? [],
+                ),
             )
         );
     }

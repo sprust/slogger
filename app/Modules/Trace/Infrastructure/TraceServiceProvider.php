@@ -35,6 +35,7 @@ use App\Modules\Trace\Domain\Actions\Queries\FindTraceServicesAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceTimestampsAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceTreeAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceTreeChildrenAction;
+use App\Modules\Trace\Domain\Actions\Queries\FindTraceTreeFilteredAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceTreeCacheStatesAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceTreeContentAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTypesAction;
@@ -128,6 +129,7 @@ class TraceServiceProvider extends BaseServiceProvider
             FindTraceTimestampsAction::class,
             FindTraceTreeAction::class,
             FindTraceTreeChildrenAction::class,
+            FindTraceTreeFilteredAction::class,
             FindTraceTreeCacheStatesAction::class,
             FindTypesAction::class,
             FindTraceDynamicIndexAction::class,

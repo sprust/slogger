@@ -9,6 +9,7 @@ use App\Modules\Trace\Entities\Trace\Tree\TraceTreeRawIterator;
 use App\Modules\Trace\Entities\Trace\Tree\TraceTreeRawObject;
 use App\Modules\Trace\Entities\Trace\Tree\TraceTreeStringableObject;
 use App\Modules\Trace\Parameters\CreateTraceTreeCacheParameters;
+use App\Modules\Trace\Parameters\TraceTreeFilterParameters;
 use App\Modules\Trace\Repositories\Dto\Trace\Tree\TraceTreeCachePageDto;
 use App\Modules\Trace\Entities\Trace\Tree\TraceTreeChildrenCursorObject;
 use App\Modules\Trace\Repositories\Dto\Trace\Tree\TraceTreeChildrenPageDto;
@@ -396,6 +397,89 @@ class TraceTreeCacheRepository
         }
 
         return $counts;
+    }
+
+    /**
+     * The nodes of a tree that match a filter, shallowest first: the order of the
+     * (rootTraceId, depth, _id) index, so the read stops at the limit without a sort.
+     *
+     * @return TraceTreeRawObject[]
+     */
+    public function findFiltered(string $rootTraceId, TraceTreeFilterParameters $parameters, int $limit): array
+    {
+        if ($limit <= 0) {
+            throw new InvalidArgumentException('Limit must be greater than 0');
+        }
+
+        $filter = [
+            'rootTraceId' => $rootTraceId,
+        ];
+
+        if ($parameters->serviceIds !== []) {
+            $filter['serviceId'] = ['$in' => $parameters->serviceIds];
+        }
+
+        if ($parameters->types !== []) {
+            $filter['type'] = ['$in' => $parameters->types];
+        }
+
+        if ($parameters->tags !== []) {
+            $filter['tags'] = ['$in' => $parameters->tags];
+        }
+
+        if ($parameters->statuses !== []) {
+            $filter['status'] = ['$in' => $parameters->statuses];
+        }
+
+        $cursor = TraceTreeCache::sconcur()
+            ->find(
+                filter: $filter,
+                projection: ['_id' => 0] + self::NODE_PROJECTION,
+                sort: ['depth' => 1, '_id' => 1],
+                limit: $limit,
+                batchSize: min($limit, self::DUMP_BATCH_SIZE),
+                hint: ['rootTraceId' => 1, 'depth' => 1, '_id' => 1]
+            );
+
+        $items = [];
+
+        foreach ($cursor as $item) {
+            /** @var array<string, mixed> $item */
+            $items[] = self::makeRawObject($item);
+        }
+
+        return $items;
+    }
+
+    /**
+     * @param string[] $traceIds
+     *
+     * @return TraceTreeRawObject[]
+     */
+    public function findByTraceIds(string $rootTraceId, array $traceIds): array
+    {
+        if ($traceIds === []) {
+            return [];
+        }
+
+        $cursor = TraceTreeCache::sconcur()
+            ->find(
+                filter: [
+                    'rootTraceId' => $rootTraceId,
+                    'traceId'     => ['$in' => $traceIds],
+                ],
+                projection: ['_id' => 0] + self::NODE_PROJECTION,
+                batchSize: min(count($traceIds), self::DUMP_BATCH_SIZE)
+            );
+
+        $items = [];
+
+        foreach ($cursor as $item) {
+            /** @var array<string, mixed> $item */
+            $items[] = self::makeRawObject($item);
+        }
+
+        return $items;
     }
 
     /**
