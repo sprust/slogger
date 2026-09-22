@@ -130,9 +130,13 @@
               @command="expandToLevel"
           >
             <el-button
+                link
                 :disabled="inProcess || !traceAggregatorTreeStore.tree.length || traceAggregatorTreeStore.expanding || traceAggregatorTreeStore.filtering"
             >
               Levels
+              <el-icon class="el-icon--right">
+                <ArrowDown/>
+              </el-icon>
             </el-button>
             <template #dropdown>
               <el-dropdown-menu>
@@ -287,7 +291,7 @@ import TraceDetail from "../trace/TraceDetail.vue";
 import TraceAggregatorTraceTreeVirtual from "./TraceAggregatorTraceTreeVirtual.vue";
 import JsonViewer from "../../../../json/JsonViewer.vue";
 import {TreeJsonBuilder} from "./store/TreeJsonBuilder.ts";
-import {Document as JsonIcon, List, Refresh as UpdateIcon} from '@element-plus/icons-vue'
+import {ArrowDown, Document as JsonIcon, List, Refresh as UpdateIcon} from '@element-plus/icons-vue'
 
 const largeTreeTraces = 300
 
@@ -297,6 +301,7 @@ const expandLevelsCount = 10
 
 export default defineComponent({
   components: {
+    ArrowDown,
     TraceDetail,
     TraceAggregatorTraceDataNode,
     TraceService,
