@@ -35,26 +35,6 @@
         >
           Update
         </el-button>
-        <el-dropdown
-            v-if="isTraceSelected"
-            trigger="click"
-            :disabled="inProcess || !traceAggregatorTreeStore.tree.length || traceAggregatorTreeStore.expanding || traceAggregatorTreeStore.filtering"
-            style="margin: 0 12px"
-            @command="expandToLevel"
-        >
-          <el-button
-              :disabled="inProcess || !traceAggregatorTreeStore.tree.length || traceAggregatorTreeStore.expanding || traceAggregatorTreeStore.filtering"
-          >
-            Levels
-          </el-button>
-          <template #dropdown>
-            <el-dropdown-menu>
-              <el-dropdown-item v-for="level in expandLevels" :key="level" :command="level">
-                Level {{ level }}
-              </el-dropdown-item>
-            </el-dropdown-menu>
-          </template>
-        </el-dropdown>
         <el-button
             v-if="isTraceSelected"
             @click="showTreeJson"
@@ -84,82 +64,84 @@
       </el-progress>
       <el-row v-else-if="isTraceSelected" style="padding-bottom: 10px">
         <el-space style="padding-right: 5px">
-          <el-select
+          <el-select-v2
               v-model="traceAggregatorTreeStore.selectedTraceServiceIds"
-              :placeholder="'Services ' + '(' + traceAggregatorTreeStore.content.services.length + ')'"
-              style="min-width: 200px"
+              :options="serviceOptions"
+              :placeholder="'Services (' + contentCount('services') + ')'"
+              :disabled="traceAggregatorTreeStore.contentLoading"
+              style="width: 200px"
               collapse-tags
               :max-collapse-tags="2"
               clearable
+              filterable
               multiple
-          >
-            <el-option
-                v-for="item in traceAggregatorTreeStore.content.services"
-                :key="item.id"
-                :label="item.name + ' (' + item.traces_count + ')'"
-                :value="item.id"
-            />
-          </el-select>
+          />
         </el-space>
         <el-space>
-          <el-select
+          <el-select-v2
               v-model="traceAggregatorTreeStore.selectedTraceTypes"
-              :placeholder="'Types ' + '(' + traceAggregatorTreeStore.content.types.length + ')'"
-              style="min-width: 200px"
+              :options="typeOptions"
+              :placeholder="'Types (' + contentCount('types') + ')'"
+              :disabled="traceAggregatorTreeStore.contentLoading"
+              style="width: 200px"
               collapse-tags
               :max-collapse-tags="2"
               clearable
+              filterable
               multiple
-          >
-            <el-option
-                v-for="item in traceAggregatorTreeStore.content.types"
-                :key="item.name"
-                :label="item.name + ' (' + item.traces_count + ')'"
-                :value="item.name"
-            />
-          </el-select>
+          />
         </el-space>
         <el-space>
-          <el-select
+          <el-select-v2
               v-model="traceAggregatorTreeStore.selectedTraceTags"
-              :placeholder="'Tags ' + '(' + traceAggregatorTreeStore.content.tags.length + ')'"
-              style="min-width: 200px"
+              :options="tagOptions"
+              :placeholder="'Tags (' + contentCount('tags') + ')'"
+              :disabled="traceAggregatorTreeStore.contentLoading"
+              style="width: 200px"
               collapse-tags
               :max-collapse-tags="2"
               clearable
+              filterable
               multiple
-          >
-            <el-option
-                v-for="item in traceAggregatorTreeStore.content.tags"
-                :key="item.name"
-                :label="item.name + ' (' + item.traces_count + ')'"
-                :value="item.name"
-            />
-          </el-select>
+          />
         </el-space>
         <el-space>
-          <el-select
+          <el-select-v2
               v-model="traceAggregatorTreeStore.selectedTraceStatuses"
-              :placeholder="'Statuses ' + '(' + traceAggregatorTreeStore.content.statuses.length + ')'"
-              style="min-width: 200px"
+              :options="statusOptions"
+              :placeholder="'Statuses (' + contentCount('statuses') + ')'"
+              :disabled="traceAggregatorTreeStore.contentLoading"
+              style="width: 200px"
               collapse-tags
               :max-collapse-tags="2"
               clearable
+              filterable
               multiple
-          >
-            <el-option
-                v-for="item in traceAggregatorTreeStore.content.statuses"
-                :key="item.name"
-                :label="item.name + ' (' + item.traces_count + ')'"
-                :value="item.name"
-            />
-          </el-select>
+          />
           <el-button
               :disabled="traceAggregatorTreeStore.filtering || traceAggregatorTreeStore.expanding"
               @click="applyFilters"
           >
             Apply
           </el-button>
+          <el-dropdown
+              trigger="click"
+              :disabled="inProcess || !traceAggregatorTreeStore.tree.length || traceAggregatorTreeStore.expanding || traceAggregatorTreeStore.filtering"
+              @command="expandToLevel"
+          >
+            <el-button
+                :disabled="inProcess || !traceAggregatorTreeStore.tree.length || traceAggregatorTreeStore.expanding || traceAggregatorTreeStore.filtering"
+            >
+              Levels
+            </el-button>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item v-for="level in expandLevels" :key="level" :command="level">
+                  Level {{ level }}
+                </el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
         </el-space>
         <div class="flex-grow"/>
         <el-text type="info">
@@ -371,6 +353,22 @@ export default defineComponent({
         }
       },
     },
+    // A virtual list: a tree can carry thousands of tags, and plain options render all.
+    serviceOptions() {
+      return this.traceAggregatorTreeStore.content.services.map(item => ({
+        label: `${item.name} (${item.traces_count})`,
+        value: item.id,
+      }))
+    },
+    typeOptions() {
+      return this.makeOptions(this.traceAggregatorTreeStore.content.types)
+    },
+    tagOptions() {
+      return this.makeOptions(this.traceAggregatorTreeStore.content.tags)
+    },
+    statusOptions() {
+      return this.makeOptions(this.traceAggregatorTreeStore.content.statuses)
+    },
     expandLevels(): number[] {
       return Array.from({length: expandLevelsCount}, (_, index) => index + 1)
     },
@@ -385,7 +383,7 @@ export default defineComponent({
         notes.push(
             store.lazyFilter.truncated
                 ? `showing the first ${store.lazyFilter.matchedCount} matches`
-                : `${store.lazyFilter.matchedCount} matches`
+                : `${store.lazyFilter.matchedCount} ${store.lazyFilter.matchedCount === 1 ? 'match' : 'matches'}`
         )
       }
 
@@ -456,6 +454,19 @@ export default defineComponent({
     },
     applyFilters() {
       this.traceAggregatorTreeStore.applyFilters()
+    },
+    makeOptions(items: Array<{name: string, traces_count: number}>) {
+      return items.map(item => ({
+        label: `${item.name} (${item.traces_count})`,
+        value: item.name,
+      }))
+    },
+    contentCount(field: 'services' | 'types' | 'tags' | 'statuses'): string {
+      if (this.traceAggregatorTreeStore.contentLoading) {
+        return 'loading...'
+      }
+
+      return String(this.traceAggregatorTreeStore.content[field].length)
     },
     expandToLevel(level: number) {
       this.traceAggregatorTreeStore.expandToLevel(level)
