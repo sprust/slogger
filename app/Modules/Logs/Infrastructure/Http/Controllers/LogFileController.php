@@ -6,6 +6,7 @@ namespace App\Modules\Logs\Infrastructure\Http\Controllers;
 
 use App\Modules\Logs\Domain\Actions\FindLogFilesAction;
 use App\Modules\Logs\Domain\Actions\StreamLogFileAction;
+use App\Modules\Logs\Domain\Exceptions\LogFileTooLargeException;
 use App\Modules\Logs\Infrastructure\Http\Resources\LogFileDownloadResponse;
 use App\Modules\Logs\Infrastructure\Http\Resources\LogFileResource;
 use Ifksco\OpenApiGenerator\Attributes\OaListItemTypeAttribute;
@@ -30,7 +31,11 @@ readonly class LogFileController
 
     public function download(string $id): LogFileDownloadResponse
     {
-        $download = $this->streamLogFileAction->handle($id);
+        try {
+            $download = $this->streamLogFileAction->handle($id);
+        } catch (LogFileTooLargeException $exception) {
+            abort(ResponseFoundation::HTTP_UNPROCESSABLE_ENTITY, $exception->getMessage());
+        }
 
         if ($download === null) {
             abort(ResponseFoundation::HTTP_NOT_FOUND, "Log file [$id] not found");

@@ -89,6 +89,13 @@ class LogsHttpTest extends TestCase
         $this->assertSame(file_get_contents($this->path), $response->streamedContent());
     }
 
+    public function testAFileOverTheLimitIsNotDownloaded(): void
+    {
+        config()->set('module-logs.download.max_bytes', 10);
+
+        $this->get(sprintf('/admin-api/logs/files/%s/download', sha1($this->path)))->assertUnprocessable();
+    }
+
     public function testAFileOutsideTheSourcesIsNotDownloaded(): void
     {
         $this->get(sprintf('/admin-api/logs/files/%s/download', sha1('/etc/passwd')))->assertNotFound();

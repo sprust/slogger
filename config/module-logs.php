@@ -93,4 +93,9 @@ return [
         // entry comes cut and marked as truncated.
         'max_entry_bytes' => (int) env('LOGS_MAX_ENTRY_BYTES', 1024 * 1024),
     ],
+
+    'download' => [
+        // The page saves a download through the browser's memory, so a bigger file is refused.
+        'max_bytes' => (int) env('LOGS_DOWNLOAD_MAX_BYTES', 100 * 1024 * 1024),
+    ],
 ];

@@ -7,12 +7,10 @@ namespace App\Modules\Logs\Infrastructure;
 use App\Modules\Cleaner\Infrastructure\Commands\ClearTracesCommand;
 use App\Modules\Common\Infrastructure\BaseServiceProvider;
 use App\Modules\Logs\Domain\Actions\CleanLogsAction;
-use App\Modules\Logs\Domain\Actions\CreateLogAction;
 use App\Modules\Logs\Domain\Actions\FindLogEntriesAction;
 use App\Modules\Logs\Domain\Actions\FindLogErrorStatAction;
 use App\Modules\Logs\Domain\Actions\FindLogFilesAction;
 use App\Modules\Logs\Domain\Actions\IndexLogsAction;
-use App\Modules\Logs\Domain\Actions\PaginateLogsAction;
 use App\Modules\Logs\Domain\Actions\StreamLogFileAction;
 use App\Modules\Logs\Domain\Services\Files\LogFileFinder;
 use App\Modules\Logs\Domain\Services\Formats\LaravelLogFormat;
@@ -32,7 +30,6 @@ use App\Modules\Logs\Infrastructure\Commands\CleanLogsCommand;
 use App\Modules\Logs\Infrastructure\Commands\IndexLogsCommand;
 use App\Modules\Logs\Repositories\LogFileRepository;
 use App\Modules\Logs\Repositories\LogIndexRepository;
-use App\Modules\Logs\Repositories\LogRepository;
 
 class LogsServiceProvider extends BaseServiceProvider
 {
@@ -51,7 +48,6 @@ class LogsServiceProvider extends BaseServiceProvider
     {
         return [
             // repositories
-            LogRepository::class,
             LogFileRepository::class,
             LogIndexRepository::class,
             // services
@@ -75,9 +71,7 @@ class LogsServiceProvider extends BaseServiceProvider
             IndexLogsAction::class,
             CleanLogsAction::class,
             // actions
-            CreateLogAction::class,
             FindLogErrorStatAction::class,
-            PaginateLogsAction::class,
         ];
     }
 }
