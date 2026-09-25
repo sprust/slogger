@@ -41,6 +41,7 @@ trait LogsTempDirTrait
             id: sha1($path),
             path: $path,
             name: $name,
+            source: 'Test',
             folder: $this->tempDir . '/logs',
             type: $type,
             sizeBytes: (int) filesize($path),

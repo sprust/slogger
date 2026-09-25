@@ -12,6 +12,7 @@ readonly class LogFileObject
         public string $id,
         public string $path,
         public string $name,
+        public string $source,
         public string $folder,
         public LogTypeEnum $type,
         public int $sizeBytes,

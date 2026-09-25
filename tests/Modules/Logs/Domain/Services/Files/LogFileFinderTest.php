@@ -21,10 +21,10 @@ class LogFileFinderTest extends TestCase
         mkdir($this->tempDir . '/logs/nginx');
 
         config()->set('module-logs.sources', [
-            ['folder' => $this->tempDir . '/logs', 'pattern' => '*.log', 'type' => 'laravel'],
-            ['folder' => $this->tempDir . '/logs/nginx', 'pattern' => 'access*.log', 'type' => 'nginx_access'],
-            ['folder' => $this->tempDir . '/logs/nginx', 'pattern' => 'error*.log', 'type' => 'nginx_error'],
-            ['folder' => $this->tempDir . '/missing', 'pattern' => '*.log', 'type' => 'laravel'],
+            ['name' => 'Laravel', 'folder' => $this->tempDir . '/logs', 'pattern' => '*.log', 'type' => LogTypeEnum::Laravel],
+            ['name' => 'Nginx', 'folder' => $this->tempDir . '/logs/nginx', 'pattern' => 'access*.log', 'type' => LogTypeEnum::NginxAccess],
+            ['name' => 'Nginx', 'folder' => $this->tempDir . '/logs/nginx', 'pattern' => 'error*.log', 'type' => 'nginx_error'],
+            ['name' => 'Missing', 'folder' => $this->tempDir . '/missing', 'pattern' => '*.log', 'type' => LogTypeEnum::Laravel],
         ]);
     }
 
@@ -46,12 +46,12 @@ class LogFileFinderTest extends TestCase
 
         $this->assertSame(
             [
-                ['laravel-2026-09-25.log', LogTypeEnum::Laravel, 3],
-                ['access-2026-09-25.log', LogTypeEnum::NginxAccess, 1],
-                ['error.log', LogTypeEnum::NginxError, 1],
+                ['laravel-2026-09-25.log', 'Laravel', LogTypeEnum::Laravel, 3],
+                ['access-2026-09-25.log', 'Nginx', LogTypeEnum::NginxAccess, 1],
+                ['error.log', 'Nginx', LogTypeEnum::NginxError, 1],
             ],
             array_map(
-                static fn(LogFileObject $file): array => [$file->name, $file->type, $file->sizeBytes],
+                static fn(LogFileObject $file): array => [$file->name, $file->source, $file->type, $file->sizeBytes],
                 $files
             )
         );

@@ -38,6 +38,7 @@ readonly class LogFileRepository
                 id: sha1($entry->path),
                 path: $entry->path,
                 name: $entry->name,
+                source: $source->name,
                 folder: $source->folder,
                 type: $source->type,
                 sizeBytes: $entry->sizeBytes ?? 0,

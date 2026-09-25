@@ -16,6 +16,9 @@ use App\Modules\Logs\Domain\Services\Formats\LogTimeParser;
 use App\Modules\Logs\Domain\Services\Formats\NginxAccessLogFormat;
 use App\Modules\Logs\Domain\Services\Formats\NginxErrorLogFormat;
 use App\Modules\Logs\Domain\Services\Index\LogIndexer;
+use App\Modules\Logs\Domain\Services\Reading\LogFileStreamFactory;
+use App\Modules\Logs\Domain\Services\Reading\LogIndexSearch;
+use App\Modules\Logs\Domain\Services\Reading\LogTextReader;
 use App\Modules\Logs\Repositories\LogFileRepository;
 use App\Modules\Logs\Repositories\LogIndexRepository;
 use App\Modules\Logs\Repositories\LogRepository;
@@ -46,6 +49,9 @@ class LogsServiceProvider extends BaseServiceProvider
             LogFormatRegistry::class,
             LogFileFinder::class,
             LogIndexer::class,
+            LogIndexSearch::class,
+            LogTextReader::class,
+            LogFileStreamFactory::class,
             // actions
             CreateLogAction::class,
             FindLogErrorStatAction::class,

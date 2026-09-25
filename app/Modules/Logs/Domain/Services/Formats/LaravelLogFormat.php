@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace App\Modules\Logs\Domain\Services\Formats;
 
+use App\Modules\Logs\Entities\Entry\LogEntryDetailsObject;
 use App\Modules\Logs\Entities\Index\LogEntryStartObject;
 use App\Modules\Logs\Enums\LaravelLogLevelEnum;
 
 readonly class LaravelLogFormat implements LogFormatInterface
 {
+    private const string ENTRY_HEADER_PATTERN = '/^\[[^\]]+\] (\S+?)\.[A-Z]+: /';
+    private const int MAX_CONTEXT_CANDIDATES  = 20;
+
     private const string HEADER_PATTERN = '/^\[(\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?)\] \S+?\.([A-Z]+): /m';
 
     public function __construct(
@@ -41,6 +45,71 @@ readonly class LaravelLogFormat implements LogFormatInterface
         }
 
         return $starts;
+    }
+
+    public function parseEntry(string $text): LogEntryDetailsObject
+    {
+        if (preg_match(self::ENTRY_HEADER_PATTERN, $text, $match) !== 1) {
+            return new LogEntryDetailsObject(
+                message: rtrim($text),
+                context: null,
+                fields: []
+            );
+        }
+
+        $body = rtrim(substr($text, strlen($match[0])));
+
+        for ($index = 0; $index < 2 && str_ends_with($body, ' []'); ++$index) {
+            $body = substr($body, 0, -3);
+        }
+
+        [$message, $context] = $this->splitContext($body);
+
+        return new LogEntryDetailsObject(
+            message: $message,
+            context: $context,
+            fields: [
+                'env' => $match[1],
+            ]
+        );
+    }
+
+    public function getLevelNames(): array
+    {
+        $names = [];
+
+        foreach (LaravelLogLevelEnum::cases() as $case) {
+            $names[$case->value] = strtoupper($case->name);
+        }
+
+        return $names;
+    }
+
+    /**
+     * @return array{0: string, 1: array<array-key, mixed>|null}
+     */
+    private function splitContext(string $body): array
+    {
+        if (!str_ends_with($body, '}') && !str_ends_with($body, ']')) {
+            return [$body, null];
+        }
+
+        preg_match_all('/ (?=[{\[])/', $body, $candidates, PREG_OFFSET_CAPTURE);
+
+        foreach (array_slice($candidates[0], 0, self::MAX_CONTEXT_CANDIDATES) as $candidate) {
+            $position = $candidate[1] + 1;
+
+            $context = json_decode(
+                str_replace(["\r", "\n"], ['\r', '\n'], substr($body, $position)),
+                true
+            );
+
+            if (is_array($context)) {
+                return [rtrim(substr($body, 0, $position)), $context];
+            }
+        }
+
+        return [$body, null];
     }
 
     private function parseTime(string $text): ?int

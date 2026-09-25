@@ -9,6 +9,7 @@ use App\Modules\Logs\Enums\LogTypeEnum;
 readonly class LogSourceObject
 {
     public function __construct(
+        public string $name,
         public string $folder,
         public string $pattern,
         public LogTypeEnum $type

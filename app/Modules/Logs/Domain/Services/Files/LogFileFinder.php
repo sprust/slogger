@@ -51,10 +51,13 @@ readonly class LogFileFinder
         $sources = [];
 
         foreach ((array) config('module-logs.sources') as $source) {
+            $type = $source['type'];
+
             $sources[] = new LogSourceObject(
+                name: (string) $source['name'],
                 folder: rtrim((string) $source['folder'], '/'),
                 pattern: (string) $source['pattern'],
-                type: LogTypeEnum::from((string) $source['type'])
+                type: $type instanceof LogTypeEnum ? $type : LogTypeEnum::from((string) $type)
             );
         }
 

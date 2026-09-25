@@ -4,11 +4,52 @@ declare(strict_types=1);
 
 namespace App\Modules\Logs\Domain\Services\Formats;
 
+use App\Modules\Logs\Entities\Entry\LogEntryDetailsObject;
 use App\Modules\Logs\Enums\HttpStatusClassEnum;
 
 readonly class NginxAccessLogFormat extends AbstractLineLogFormat
 {
     private const string LINE_PATTERN = '/^(?:\S+ \S+ \S+ \[(\d{2}\/[A-Za-z]{3}\/\d{4}:\d{2}:\d{2}:\d{2} [+-]\d{4})\] "(?:[^"\\\\]|\\\\.)*" (\d{3}) )?[^\n]*$/m';
+
+    private const string ENTRY_PATTERN = '/^(\S+) \S+ (\S+) \[[^\]]+\] "((?:[^"\\\\]|\\\\.)*)" (\d{3}) (\S+)(?: "((?:[^"\\\\]|\\\\.)*)" "((?:[^"\\\\]|\\\\.)*)")?/';
+
+    public function parseEntry(string $text): LogEntryDetailsObject
+    {
+        $line = rtrim($text, "\r\n");
+
+        if (preg_match(self::ENTRY_PATTERN, $line, $match) !== 1) {
+            return new LogEntryDetailsObject(message: $line, context: null, fields: []);
+        }
+
+        $request = explode(' ', $match[3], 3);
+
+        return new LogEntryDetailsObject(
+            message: $match[3],
+            context: null,
+            fields: [
+                'ip'         => $match[1],
+                'user'       => $this->nullIfDash($match[2]),
+                'method'     => count($request) === 3 ? $request[0] : null,
+                'path'       => count($request) === 3 ? $request[1] : null,
+                'protocol'   => count($request) === 3 ? $request[2] : null,
+                'status'     => $match[4],
+                'bytes'      => $this->nullIfDash($match[5]),
+                'referer'    => $this->nullIfDash($match[6] ?? '-'),
+                'user_agent' => $this->nullIfDash($match[7] ?? '-'),
+            ]
+        );
+    }
+
+    public function getLevelNames(): array
+    {
+        $names = [];
+
+        foreach (HttpStatusClassEnum::cases() as $case) {
+            $names[$case->value] = sprintf('%dxx', $case->value);
+        }
+
+        return $names;
+    }
 
     protected function getLinePattern(): string
     {
@@ -44,5 +85,10 @@ readonly class NginxAccessLogFormat extends AbstractLineLogFormat
             5       => HttpStatusClassEnum::ServerError->value,
             default => 0,
         };
+    }
+
+    private function nullIfDash(string $value): ?string
+    {
+        return $value === '-' || $value === '' ? null : $value;
     }
 }
