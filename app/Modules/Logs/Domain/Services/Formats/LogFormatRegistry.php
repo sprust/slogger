@@ -11,7 +11,8 @@ readonly class LogFormatRegistry
     public function __construct(
         private LaravelLogFormat $laravelLogFormat,
         private NginxAccessLogFormat $nginxAccessLogFormat,
-        private NginxErrorLogFormat $nginxErrorLogFormat
+        private NginxErrorLogFormat $nginxErrorLogFormat,
+        private ReceiverLogFormat $receiverLogFormat
     ) {
     }
 
@@ -21,6 +22,7 @@ readonly class LogFormatRegistry
             LogTypeEnum::Laravel     => $this->laravelLogFormat,
             LogTypeEnum::NginxAccess => $this->nginxAccessLogFormat,
             LogTypeEnum::NginxError  => $this->nginxErrorLogFormat,
+            LogTypeEnum::Receiver    => $this->receiverLogFormat,
         };
     }
 }

@@ -16,7 +16,10 @@ return [
     //           LogTypeEnum::NginxAccess — nginx `combined` format, one line per entry,
     //                                      the status class (1xx…5xx) stands for the level;
     //           LogTypeEnum::NginxError  — nginx error_log, one line per entry,
-    //                                      levels debug…emerg.
+    //                                      levels debug…emerg;
+    //           LogTypeEnum::Receiver    — the receiver's slog: `Y-m-d H:i:s.v LEVEL message`,
+    //                                      an entry runs until the next header (stack traces included),
+    //                                      levels DEBUG, INFO, WARN, ERROR.
     //           A line a format cannot read is still an entry, without a level.
     // keep_days — optional: logs:clean, once a day, deletes the source's files not written
     //           to for longer than this. Leave it out where something else rotates the
@@ -49,6 +52,14 @@ return [
             'folder'  => env('LOGS_NGINX_PATH', storage_path('logs/nginx')),
             'pattern' => 'error*.log',
             'type'    => LogTypeEnum::NginxError,
+        ],
+        // One file a day; the receiver deletes the old ones itself (LOG_KEEP_DAYS). Where the
+        // receiver runs apart from the app, point LOGS_RECEIVER_PATH at its log folder.
+        [
+            'name'    => 'Receiver',
+            'folder'  => env('LOGS_RECEIVER_PATH', base_path('servers/receiver/storage/logs')),
+            'pattern' => '*.log',
+            'type'    => LogTypeEnum::Receiver,
         ],
     ],
 

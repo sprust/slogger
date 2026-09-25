@@ -15,6 +15,7 @@ class LogLevelKeysTest extends TestCase
         $this->assertSame('laravel.ERROR', $keys->makeKey(LogTypeEnum::Laravel, 5));
         $this->assertSame('nginx_access.4xx', $keys->makeKey(LogTypeEnum::NginxAccess, 4));
         $this->assertSame('nginx_error.crit', $keys->makeKey(LogTypeEnum::NginxError, 6));
+        $this->assertSame('receiver.WARN', $keys->makeKey(LogTypeEnum::Receiver, 3));
         $this->assertSame('laravel.none', $keys->makeKey(LogTypeEnum::Laravel, 0));
     }
 

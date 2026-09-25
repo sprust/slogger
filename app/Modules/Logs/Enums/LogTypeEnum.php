@@ -9,4 +9,5 @@ enum LogTypeEnum: string
     case Laravel = 'laravel';
     case NginxAccess = 'nginx_access';
     case NginxError = 'nginx_error';
+    case Receiver = 'receiver';
 }

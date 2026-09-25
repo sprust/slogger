@@ -11,7 +11,8 @@ nginx, через фичу Files из `sconcur/sconcur` (`SConcur\Features\Files
 - Коллекция `logs` удаляется миграцией.
 - Индексы хранятся файлами в `storage/framework/logs-index`, пишутся и читаются через
   sconcur Files.
-- Только просмотр и скачивание. Удаления файлов из UI нет.
+- Просмотр и скачивание. Удалять из UI можно только файлы типа `laravel` (см. «Удаление
+  файлов»).
 - Кроме логов Laravel читаются логи nginx: access и error.
 - Просмотр и поиск работают по нескольким файлам сразу: выбранным, всем файлам источника
   или всем файлам. Один файл — частный случай.
@@ -513,11 +514,81 @@ nginx-логи на проде могут лежать вне `base_path()`.
 
 `LogErrorsCheckerTest` мокает action и не меняется.
 
+## Логи ресивера
+
+Ресивер (`servers/receiver`) пишет в `servers/receiver/storage/logs/Y-m-d.log`, старые
+файлы удаляет сам (`LOG_KEEP_DAYS`). Воркеры видят весь проект в `/app`, новых томов не
+нужно.
+
+- Формат: `2026-09-25 07:00:57.401 ERROR message` (`formatter.go`), время UTC, уровни slog
+  DEBUG, INFO, WARN, ERROR. Ошибка может продолжаться блоком `->stack trace:` …
+  `<-end of trace` — запись длится до следующего заголовка, как у Laravel.
+- При `LOG_LEVELS=any` — до 50 МБ и 450 тысяч записей в день, почти всё DEBUG. Индекс
+  такого файла — около 20 МБ.
+- `LogTypeEnum::Receiver = 'receiver'`, `ReceiverLogLevelEnum` (Debug 1, Info 2, Warn 3,
+  Error 4), `Formats/ReceiverLogFormat` по образцу `LaravelLogFormat`: сообщение — первая
+  строка, полей нет. Регистрация в `LogFormatRegistry`.
+- Источник `Receiver` в `config/module-logs.php`: `env('LOGS_RECEIVER_PATH',
+  base_path('servers/receiver/storage/logs'))`, `*.log`, без `keep_days`. В `.env.example`
+  закомментированный `LOGS_RECEIVER_PATH`.
+- Фронт (`store/logLevels.ts`): группа «Receiver», порядок и цвета уровней. Строка рисуется
+  как строка Laravel.
+- Тесты: `ReceiverLogFormatTest`, ключ `receiver.WARN` в `LogLevelKeysTest`.
+
+### Как сделано (шаг 10)
+
+- Сделано по плану. Сообщение — первая строка после заголовка; stack trace остаётся в
+  полном тексте записи.
+- Живые логи ресивера (4 файла, 77 МБ, 710 тысяч записей) индексируются за ~2.5 с, индексы
+  всех источников — 30 МБ. Счётчики уровней совпадают с grep.
+
+## Watcher `receiverErrors`
+
+Как `logErrors`, только по логам ресивера.
+
+- Logs: подсчёт из `FindLogErrorStatAction` выносится в
+  `Domain/Services/Errors/LogErrorStatCounter` (тип файлов + уровни ошибок).
+  `FindLogErrorStatAction` — `laravel`, ERROR…EMERGENCY, как сейчас. Новый
+  `FindReceiverErrorStatAction` — `receiver`, ERROR, та же сигнатура `handle($since, $until)`.
+  Watcher не зависит от enum-ов Logs.
+- Watcher: `WatcherTypeEnum::ReceiverErrors = 'receiverErrors'` (cooldown 600),
+  `ReceiverErrorsWatcherType` («Errors in receiver logs»), `ReceiverErrorsChecker`, реестр,
+  провайдер, маршруты `watchers/receiver-errors` и `incidents/{id}/events/receiver-errors`,
+  `ReceiverErrorsWatcherController`, `ReceiverErrorsIncidentEventController`.
+- Notification не меняется — работает через реестр. Ресивер на Go не меняется — читает
+  только watcher-ы с `trace_match`.
+- `.ai/README.md`: связь Watcher → Logs `ReceiverErrorsChecker` → `FindReceiverErrorStatAction`.
+- Фронт: `watchersStore.ts` (эндпоинты), `incidentsStore.ts` и `IncidentEvents.vue`
+  (колонки как у `logErrors`). Форма строится из описания типа.
+- Тесты: чекер, реестр, маппер событий, action на временных файлах.
+
+Открытый вопрос: переиспользовать для `receiverErrors` классы `logErrors` (настройки,
+событие, маппер, request, ресурсы — у них одинаковая форма) или завести полный набор
+`ReceiverErrors*`. Рекомендация — переиспользовать: новых классов четыре (тип, чекер, два
+контроллера) вместо ~14.
+
+## Удаление файлов
+
+Только файлы типа `laravel` (Laravel и Slogger).
+
+- `DELETE /admin-api/logs/files/{id}` → `LogFileController@delete` → `DeleteLogFileAction`:
+  под `LogIndexMutex` удаляет файл и каталог его индекса (те же примитивы, что у
+  `logs:clean`). Неизвестный `id` → 404, другой тип → 422, мьютекс не дождались → 409.
+- Фронт: кнопка удаления с `el-popconfirm` рядом со скачиванием, только у `laravel`; у
+  остальных — пустое место той же ширины. После удаления — перечитать файлы, убрать из
+  выбора, перезагрузить записи.
+- Тесты: HTTP и action.
+
+Открытый вопрос: файл, в который сейчас пишут. Воркеры долгоживущие и держат сегодняшний
+файл открытым: после удаления записи до конца дня уходят в удалённый файл. Рекомендация —
+запретить удаление самого нового файла каждого `laravel`-источника (422, кнопка неактивна).
+
 ## Документация
 
 - `README.md` и `README.ru.md` вместе: хранилище логов (строки про MongoDB), watcher
   `logErrors` (считает по файлам, а не по коллекции), страница логов, nginx-логи и
-  `LOGS_NGINX_PATH`, `error.log` без ротации.
+  `LOGS_NGINX_PATH`, `error.log` без ротации, логи ресивера, watcher `receiverErrors`,
+  удаление файлов.
 
 ## Порядок работ
 
@@ -530,9 +601,12 @@ nginx-логи на проде могут лежать вне `base_path()`.
 7. nginx: compose, шаблон, entrypoint-скрипт. Сделано.
 8. Удаление Mongo-логов, миграция. Сделано.
 9. Фронт, `make frontend-npm-build`. Сделано.
-10. README, `make check`.
+10. Логи ресивера: формат, источник, фронт. Сделано.
+11. Watcher `receiverErrors`.
+12. Удаление файлов `laravel`.
+13. README, `make check`.
 
 ## За рамками
 
-Regex-поиск, live-tail через WS, удаление файлов из UI,
-форматы кроме трёх перечисленных (JSON-логи, `main` nginx с дополнительными полями).
+Regex-поиск, live-tail через WS, удаление файлов кроме `laravel`,
+форматы кроме перечисленных (JSON-логи, `main` nginx с дополнительными полями).

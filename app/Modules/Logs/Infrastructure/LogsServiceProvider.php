@@ -19,6 +19,7 @@ use App\Modules\Logs\Domain\Services\Formats\LogLevelKeys;
 use App\Modules\Logs\Domain\Services\Formats\LogTimeParser;
 use App\Modules\Logs\Domain\Services\Formats\NginxAccessLogFormat;
 use App\Modules\Logs\Domain\Services\Formats\NginxErrorLogFormat;
+use App\Modules\Logs\Domain\Services\Formats\ReceiverLogFormat;
 use App\Modules\Logs\Domain\Services\Index\LogIndexBatchRefresher;
 use App\Modules\Logs\Domain\Services\Index\LogIndexer;
 use App\Modules\Logs\Domain\Services\Reading\LogCursorCodec;
@@ -55,6 +56,7 @@ class LogsServiceProvider extends BaseServiceProvider
             LaravelLogFormat::class,
             NginxAccessLogFormat::class,
             NginxErrorLogFormat::class,
+            ReceiverLogFormat::class,
             LogFormatRegistry::class,
             LogFileFinder::class,
             LogIndexer::class,

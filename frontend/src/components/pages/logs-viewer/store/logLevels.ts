@@ -1,5 +1,5 @@
 // Level keys come from the backend as `<type>.<level>`: laravel.ERROR, nginx_error.crit,
-// nginx_access.5xx, and `<type>.none` for an entry without a level.
+// nginx_access.5xx, receiver.WARN, and `<type>.none` for an entry without a level.
 
 export type LogTagType = 'primary' | 'success' | 'info' | 'warning' | 'danger'
 
@@ -7,12 +7,14 @@ const TYPE_TITLES: Record<string, string> = {
     laravel: 'Laravel',
     nginx_access: 'Nginx access',
     nginx_error: 'Nginx errors',
+    receiver: 'Receiver',
 }
 
 const LEVEL_ORDER: Record<string, Array<string>> = {
     laravel: ['DEBUG', 'INFO', 'NOTICE', 'WARNING', 'ERROR', 'CRITICAL', 'ALERT', 'EMERGENCY'],
     nginx_access: ['1xx', '2xx', '3xx', '4xx', '5xx'],
     nginx_error: ['debug', 'info', 'notice', 'warn', 'error', 'crit', 'alert', 'emerg'],
+    receiver: ['DEBUG', 'INFO', 'WARN', 'ERROR'],
 }
 
 const DANGER_LEVELS = new Set([
@@ -21,7 +23,7 @@ const DANGER_LEVELS = new Set([
     '5xx',
 ])
 
-const WARNING_LEVELS = new Set(['WARNING', 'warn', '4xx'])
+const WARNING_LEVELS = new Set(['WARNING', 'WARN', 'warn', '4xx'])
 
 export function logTypeTitle(type: string): string {
     return TYPE_TITLES[type] ?? type
