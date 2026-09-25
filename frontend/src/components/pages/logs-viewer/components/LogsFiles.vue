@@ -122,8 +122,9 @@ export default defineComponent({
 
       this.$emit('change')
     },
-    selectAll(value: any) {
-      this.setSelected(value ? this.store.files.map((file) => file.id) : [])
+    // Everything only from an empty choice; any choice at all is cleared.
+    selectAll() {
+      this.setSelected(this.store.selectedFileIds.length ? [] : this.store.files.map((file) => file.id))
     },
     selectGroup(group: FilesGroup, value: boolean) {
       const groupIds = group.files.map((file) => file.id)
@@ -162,6 +163,8 @@ export default defineComponent({
 .logs-files-header {
   flex: none;
   margin-bottom: 5px;
+  /* Room for the focus outline of the checkbox. */
+  padding: 3px 0 0 3px;
 }
 
 .logs-files-list {
@@ -169,9 +172,9 @@ export default defineComponent({
   min-height: 0;
 }
 
-/* Room for the scrollbar, which is drawn over the content. */
+/* Room for the scrollbar, drawn over the content, and for the focus outline. */
 :deep(.logs-files-list-view) {
-  padding-right: 12px;
+  padding: 3px 12px 0 3px;
 }
 
 .logs-files-group {
