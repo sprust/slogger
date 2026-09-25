@@ -6,11 +6,11 @@ namespace App\Modules\Logs\Domain\Actions;
 
 use App\Modules\Logs\Domain\Services\Errors\LogErrorStatCounter;
 use App\Modules\Logs\Entities\Log\LogLevelStatObject;
-use App\Modules\Logs\Enums\LaravelLogLevelEnum;
 use App\Modules\Logs\Enums\LogTypeEnum;
+use App\Modules\Logs\Enums\ReceiverLogLevelEnum;
 use Illuminate\Support\Carbon;
 
-readonly class FindLogErrorStatAction
+readonly class FindReceiverErrorStatAction
 {
     public function __construct(
         private LogErrorStatCounter $logErrorStatCounter
@@ -20,13 +20,8 @@ readonly class FindLogErrorStatAction
     public function handle(Carbon $since, Carbon $until): LogLevelStatObject
     {
         return $this->logErrorStatCounter->count(
-            type: LogTypeEnum::Laravel,
-            levels: [
-                LaravelLogLevelEnum::Error->value,
-                LaravelLogLevelEnum::Critical->value,
-                LaravelLogLevelEnum::Alert->value,
-                LaravelLogLevelEnum::Emergency->value,
-            ],
+            type: LogTypeEnum::Receiver,
+            levels: [ReceiverLogLevelEnum::Error->value],
             since: $since,
             until: $until
         );

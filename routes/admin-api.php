@@ -28,12 +28,14 @@ use App\Modules\Trace\Infrastructure\Http\Controllers\TraceTreeStateController;
 use App\Modules\Watcher\Infrastructure\Http\Controllers\Events\BufferOverflowIncidentEventController;
 use App\Modules\Watcher\Infrastructure\Http\Controllers\Events\InvalidBufferGrownIncidentEventController;
 use App\Modules\Watcher\Infrastructure\Http\Controllers\Events\LogErrorsIncidentEventController;
+use App\Modules\Watcher\Infrastructure\Http\Controllers\Events\ReceiverErrorsIncidentEventController;
 use App\Modules\Watcher\Infrastructure\Http\Controllers\Events\NoNewTracesIncidentEventController;
 use App\Modules\Watcher\Infrastructure\Http\Controllers\Events\SlowTracesIncidentEventController;
 use App\Modules\Watcher\Infrastructure\Http\Controllers\Events\ManyTracesIncidentEventController;
 use App\Modules\Watcher\Infrastructure\Http\Controllers\BufferOverflowWatcherController;
 use App\Modules\Watcher\Infrastructure\Http\Controllers\InvalidBufferGrownWatcherController;
 use App\Modules\Watcher\Infrastructure\Http\Controllers\LogErrorsWatcherController;
+use App\Modules\Watcher\Infrastructure\Http\Controllers\ReceiverErrorsWatcherController;
 use App\Modules\Watcher\Infrastructure\Http\Controllers\NoNewTracesWatcherController;
 use App\Modules\Watcher\Infrastructure\Http\Controllers\SlowTracesWatcherController;
 use App\Modules\Watcher\Infrastructure\Http\Controllers\ManyTracesWatcherController;
@@ -163,6 +165,7 @@ Route::prefix('/watchers')
                     'many-traces'         => ManyTracesIncidentEventController::class,
                     'slow-traces'          => SlowTracesIncidentEventController::class,
                     'log-errors'           => LogErrorsIncidentEventController::class,
+                    'receiver-errors'      => ReceiverErrorsIncidentEventController::class,
                 ];
 
                 foreach ($eventTypes as $segment => $controller) {
@@ -181,6 +184,7 @@ Route::prefix('/watchers')
             'many-traces'         => ManyTracesWatcherController::class,
             'slow-traces'          => SlowTracesWatcherController::class,
             'log-errors'           => LogErrorsWatcherController::class,
+            'receiver-errors'      => ReceiverErrorsWatcherController::class,
         ];
 
         foreach ($types as $segment => $controller) {

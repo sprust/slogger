@@ -562,10 +562,16 @@ nginx-логи на проде могут лежать вне `base_path()`.
   (колонки как у `logErrors`). Форма строится из описания типа.
 - Тесты: чекер, реестр, маппер событий, action на временных файлах.
 
-Открытый вопрос: переиспользовать для `receiverErrors` классы `logErrors` (настройки,
-событие, маппер, request, ресурсы — у них одинаковая форма) или завести полный набор
-`ReceiverErrors*`. Рекомендация — переиспользовать: новых классов четыре (тип, чекер, два
-контроллера) вместо ~14.
+### Как сделано (шаг 11)
+
+- Классы `logErrors` переиспользованы: `LogErrorsSettingsObject`, объекты события, маппер,
+  `LogErrorsWatcherRequest`, ресурсы. Новые — `ReceiverErrorsWatcherType`,
+  `ReceiverErrorsChecker`, `ReceiverErrorsWatcherController`,
+  `ReceiverErrorsIncidentEventController`. Тип по классу настроек нигде не определяется,
+  поэтому общий класс безопасен.
+- `LogErrorStatCounter::count(type, levels, since, until)` — прежнее тело
+  `FindLogErrorStatAction`; оба action-а — тонкие обёртки над ним.
+- На живых логах: 19 ошибок ресивера за 30 дней, как на странице логов.
 
 ## Удаление файлов
 
@@ -602,7 +608,7 @@ nginx-логи на проде могут лежать вне `base_path()`.
 8. Удаление Mongo-логов, миграция. Сделано.
 9. Фронт, `make frontend-npm-build`. Сделано.
 10. Логи ресивера: формат, источник, фронт. Сделано.
-11. Watcher `receiverErrors`.
+11. Watcher `receiverErrors`. Сделано.
 12. Удаление файлов `laravel`.
 13. README, `make check`.
 

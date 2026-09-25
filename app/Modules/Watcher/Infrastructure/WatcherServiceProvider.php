@@ -21,12 +21,14 @@ use App\Modules\Watcher\Domain\Actions\Queries\FindWatchersAction;
 use App\Modules\Watcher\Domain\Services\Checkers\BufferOverflowChecker;
 use App\Modules\Watcher\Domain\Services\Checkers\InvalidBufferGrownChecker;
 use App\Modules\Watcher\Domain\Services\Checkers\LogErrorsChecker;
+use App\Modules\Watcher\Domain\Services\Checkers\ReceiverErrorsChecker;
 use App\Modules\Watcher\Domain\Services\Checkers\NoNewTracesChecker;
 use App\Modules\Watcher\Domain\Services\Checkers\SlowTracesChecker;
 use App\Modules\Watcher\Domain\Services\Checkers\ManyTracesChecker;
 use App\Modules\Watcher\Domain\Services\Types\BufferOverflowWatcherType;
 use App\Modules\Watcher\Domain\Services\Types\InvalidBufferGrownWatcherType;
 use App\Modules\Watcher\Domain\Services\Types\LogErrorsWatcherType;
+use App\Modules\Watcher\Domain\Services\Types\ReceiverErrorsWatcherType;
 use App\Modules\Watcher\Domain\Services\Types\NoNewTracesWatcherType;
 use App\Modules\Watcher\Domain\Services\Types\SlowTracesWatcherType;
 use App\Modules\Watcher\Domain\Services\Types\ManyTracesWatcherType;
@@ -62,12 +64,14 @@ class WatcherServiceProvider extends BaseServiceProvider
             ManyTracesChecker::class,
             SlowTracesChecker::class,
             LogErrorsChecker::class,
+            ReceiverErrorsChecker::class,
             BufferOverflowWatcherType::class,
             InvalidBufferGrownWatcherType::class,
             NoNewTracesWatcherType::class,
             ManyTracesWatcherType::class,
             SlowTracesWatcherType::class,
             LogErrorsWatcherType::class,
+            ReceiverErrorsWatcherType::class,
             WatcherTypeRegistry::class,
             WatcherMatchFactory::class,
             WatcherFactory::class,

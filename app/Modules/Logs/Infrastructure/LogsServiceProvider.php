@@ -9,9 +9,11 @@ use App\Modules\Common\Infrastructure\BaseServiceProvider;
 use App\Modules\Logs\Domain\Actions\CleanLogsAction;
 use App\Modules\Logs\Domain\Actions\FindLogEntriesAction;
 use App\Modules\Logs\Domain\Actions\FindLogErrorStatAction;
+use App\Modules\Logs\Domain\Actions\FindReceiverErrorStatAction;
 use App\Modules\Logs\Domain\Actions\FindLogFilesAction;
 use App\Modules\Logs\Domain\Actions\IndexLogsAction;
 use App\Modules\Logs\Domain\Actions\StreamLogFileAction;
+use App\Modules\Logs\Domain\Services\Errors\LogErrorStatCounter;
 use App\Modules\Logs\Domain\Services\Files\LogFileFinder;
 use App\Modules\Logs\Domain\Services\Formats\LaravelLogFormat;
 use App\Modules\Logs\Domain\Services\Formats\LogFormatRegistry;
@@ -67,6 +69,7 @@ class LogsServiceProvider extends BaseServiceProvider
             LogEntriesMerger::class,
             LogLevelKeys::class,
             LogIndexBatchRefresher::class,
+            LogErrorStatCounter::class,
             FindLogFilesAction::class,
             FindLogEntriesAction::class,
             StreamLogFileAction::class,
@@ -74,6 +77,7 @@ class LogsServiceProvider extends BaseServiceProvider
             CleanLogsAction::class,
             // actions
             FindLogErrorStatAction::class,
+            FindReceiverErrorStatAction::class,
         ];
     }
 }

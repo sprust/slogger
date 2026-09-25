@@ -2614,6 +2614,68 @@ export namespace AdminApi {
 
   /**
  * No description
+ * @name WatchersIncidentsEventsReceiverErrorsList
+ * @request GET:/admin-api/watchers/incidents/{id}/events/receiver-errors
+ * @secure
+ * @response `200` `{
+    data: ({
+    id: string,
+    incident_id: string,
+    occurred_at: string,
+    payload?: {
+    settings: {
+    threshold: number,
+
+},
+    measured: {
+    error_count: number,
+    since: string,
+    last_message: string,
+
+},
+
+},
+
+})[],
+
+}` description
+*/
+  export namespace WatchersIncidentsEventsReceiverErrorsList {
+    export type RequestParams = {
+      id: any;
+    };
+    export type RequestQuery = {
+      /** @min 1 */
+      page?: number;
+      /**
+       * @min 1
+       * @max 200
+       */
+      per_page?: number;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        id: string;
+        incident_id: string;
+        occurred_at: string;
+        payload?: {
+          settings: {
+            threshold: number;
+          };
+          measured: {
+            error_count: number;
+            since: string;
+            last_message: string;
+          };
+        };
+      }[];
+    };
+  }
+
+  /**
+ * No description
  * @name WatchersBufferOverflowCreate
  * @request POST:/admin-api/watchers/buffer-overflow
  * @secure
@@ -3516,6 +3578,143 @@ export namespace AdminApi {
    * @response `200` `any` description
    */
   export namespace WatchersLogErrorsPartialUpdate {
+    export type RequestParams = {
+      id: any;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = {
+      /**
+       * @minLength 1
+       * @maxLength 255
+       */
+      name: string;
+      enabled: boolean;
+      /**
+       * @min 1
+       * @max 86400
+       */
+      cooldown_seconds: number;
+      notification_channel_id?: number | null;
+      notify_on_opened: boolean;
+      notify_on_event: boolean;
+      notify_on_closed: boolean;
+      settings?: {
+        /** @min 1 */
+        threshold?: number;
+      };
+    };
+    export type RequestHeaders = {};
+    export type ResponseBody = any;
+  }
+
+  /**
+ * No description
+ * @name WatchersReceiverErrorsCreate
+ * @request POST:/admin-api/watchers/receiver-errors
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    name: string,
+    type: string,
+    enabled: boolean,
+    cooldown_seconds: number,
+    notification_channel_id?: number | null,
+    notify_on_opened: boolean,
+    notify_on_event: boolean,
+    notify_on_closed: boolean,
+    collect_since?: string | null,
+    last_checked_at?: string | null,
+    last_triggered_at?: string | null,
+    created_at: string,
+    updated_at: string,
+
+},
+
+}` description
+*/
+  export namespace WatchersReceiverErrorsCreate {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = {
+      /**
+       * @minLength 1
+       * @maxLength 255
+       */
+      name: string;
+      enabled: boolean;
+      /**
+       * @min 1
+       * @max 86400
+       */
+      cooldown_seconds: number;
+      notification_channel_id?: number | null;
+      notify_on_opened: boolean;
+      notify_on_event: boolean;
+      notify_on_closed: boolean;
+      settings?: {
+        /** @min 1 */
+        threshold?: number;
+      };
+    };
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        id: number;
+        name: string;
+        type: string;
+        enabled: boolean;
+        cooldown_seconds: number;
+        notification_channel_id?: number | null;
+        notify_on_opened: boolean;
+        notify_on_event: boolean;
+        notify_on_closed: boolean;
+        collect_since?: string | null;
+        last_checked_at?: string | null;
+        last_triggered_at?: string | null;
+        created_at: string;
+        updated_at: string;
+      };
+    };
+  }
+
+  /**
+ * No description
+ * @name WatchersReceiverErrorsDetail
+ * @request GET:/admin-api/watchers/receiver-errors/{id}
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    threshold: number,
+
+},
+
+}` description
+*/
+  export namespace WatchersReceiverErrorsDetail {
+    export type RequestParams = {
+      id: any;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        id: number;
+        threshold: number;
+      };
+    };
+  }
+
+  /**
+   * No description
+   * @name WatchersReceiverErrorsPartialUpdate
+   * @request PATCH:/admin-api/watchers/receiver-errors/{id}
+   * @secure
+   * @response `200` `any` description
+   */
+  export namespace WatchersReceiverErrorsPartialUpdate {
     export type RequestParams = {
       id: any;
     };
@@ -7206,6 +7405,76 @@ export class Api<
     /**
  * No description
  *
+ * @name WatchersIncidentsEventsReceiverErrorsList
+ * @request GET:/admin-api/watchers/incidents/{id}/events/receiver-errors
+ * @secure
+ * @response `200` `{
+    data: ({
+    id: string,
+    incident_id: string,
+    occurred_at: string,
+    payload?: {
+    settings: {
+    threshold: number,
+
+},
+    measured: {
+    error_count: number,
+    since: string,
+    last_message: string,
+
+},
+
+},
+
+})[],
+
+}` description
+ */
+    watchersIncidentsEventsReceiverErrorsList: (
+      id: any,
+      query?: {
+        /** @min 1 */
+        page?: number;
+        /**
+         * @min 1
+         * @max 200
+         */
+        per_page?: number;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          data: {
+            id: string;
+            incident_id: string;
+            occurred_at: string;
+            payload?: {
+              settings: {
+                threshold: number;
+              };
+              measured: {
+                error_count: number;
+                since: string;
+                last_message: string;
+              };
+            };
+          }[];
+        },
+        any
+      >({
+        path: `/admin-api/watchers/incidents/${id}/events/receiver-errors`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
  * @name WatchersBufferOverflowCreate
  * @request POST:/admin-api/watchers/buffer-overflow
  * @secure
@@ -8242,6 +8511,162 @@ export class Api<
     ) =>
       this.request<any, any>({
         path: `/admin-api/watchers/log-errors/${id}`,
+        method: "PATCH",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name WatchersReceiverErrorsCreate
+ * @request POST:/admin-api/watchers/receiver-errors
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    name: string,
+    type: string,
+    enabled: boolean,
+    cooldown_seconds: number,
+    notification_channel_id?: number | null,
+    notify_on_opened: boolean,
+    notify_on_event: boolean,
+    notify_on_closed: boolean,
+    collect_since?: string | null,
+    last_checked_at?: string | null,
+    last_triggered_at?: string | null,
+    created_at: string,
+    updated_at: string,
+
+},
+
+}` description
+ */
+    watchersReceiverErrorsCreate: (
+      data: {
+        /**
+         * @minLength 1
+         * @maxLength 255
+         */
+        name: string;
+        enabled: boolean;
+        /**
+         * @min 1
+         * @max 86400
+         */
+        cooldown_seconds: number;
+        notification_channel_id?: number | null;
+        notify_on_opened: boolean;
+        notify_on_event: boolean;
+        notify_on_closed: boolean;
+        settings?: {
+          /** @min 1 */
+          threshold?: number;
+        };
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          data: {
+            id: number;
+            name: string;
+            type: string;
+            enabled: boolean;
+            cooldown_seconds: number;
+            notification_channel_id?: number | null;
+            notify_on_opened: boolean;
+            notify_on_event: boolean;
+            notify_on_closed: boolean;
+            collect_since?: string | null;
+            last_checked_at?: string | null;
+            last_triggered_at?: string | null;
+            created_at: string;
+            updated_at: string;
+          };
+        },
+        any
+      >({
+        path: `/admin-api/watchers/receiver-errors`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name WatchersReceiverErrorsDetail
+ * @request GET:/admin-api/watchers/receiver-errors/{id}
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    threshold: number,
+
+},
+
+}` description
+ */
+    watchersReceiverErrorsDetail: (id: any, params: RequestParams = {}) =>
+      this.request<
+        {
+          data: {
+            id: number;
+            threshold: number;
+          };
+        },
+        any
+      >({
+        path: `/admin-api/watchers/receiver-errors/${id}`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @name WatchersReceiverErrorsPartialUpdate
+     * @request PATCH:/admin-api/watchers/receiver-errors/{id}
+     * @secure
+     * @response `200` `any` description
+     */
+    watchersReceiverErrorsPartialUpdate: (
+      id: any,
+      data: {
+        /**
+         * @minLength 1
+         * @maxLength 255
+         */
+        name: string;
+        enabled: boolean;
+        /**
+         * @min 1
+         * @max 86400
+         */
+        cooldown_seconds: number;
+        notification_channel_id?: number | null;
+        notify_on_opened: boolean;
+        notify_on_event: boolean;
+        notify_on_closed: boolean;
+        settings?: {
+          /** @min 1 */
+          threshold?: number;
+        };
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<any, any>({
+        path: `/admin-api/watchers/receiver-errors/${id}`,
         method: "PATCH",
         body: data,
         secure: true,
