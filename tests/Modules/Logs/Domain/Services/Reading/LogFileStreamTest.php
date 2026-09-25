@@ -167,6 +167,38 @@ class LogFileStreamTest extends TestCase
         $this->assertSame($expected, $this->entryNos($this->drain($stream, 500)));
     }
 
+    public function testATimeRangeKeepsOutEntriesWrittenOutOfOrder(): void
+    {
+        $base = gmmktime(0, 0, 0, 9, 25, 2026);
+
+        $lines = [
+            [$base + 3000, 'first, from a clock ahead'],
+            [$base + 10, 'second'],
+            [$base + 20, 'third'],
+            [$base + 30, 'fourth'],
+        ];
+
+        $contents = '';
+
+        foreach ($lines as [$time, $message]) {
+            $contents .= sprintf("[%s] local.INFO: %s \n", gmdate('Y-m-d H:i:s', $time), $message);
+        }
+
+        $this->file = $this->writeLogFile('skewed.log', $contents);
+
+        $entries = $this->drain(
+            $this->makeStream(new LogEntriesFilterParameters(fromTime: $base, toTime: $base + 25)),
+            10
+        );
+
+        foreach ($entries as $entry) {
+            $this->assertGreaterThanOrEqual($base, $entry->loggedAt);
+            $this->assertLessThanOrEqual($base + 25, $entry->loggedAt);
+        }
+
+        $this->assertNotContains(0, $this->entryNos($entries));
+    }
+
     public function testSearchIsCaseInsensitiveForAnyAlphabet(): void
     {
         $stream = $this->makeStream(new LogEntriesFilterParameters(searchQuery: 'пРИВЕТ'));

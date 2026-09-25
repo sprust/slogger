@@ -58,14 +58,15 @@ class LogIndexSearchTest extends TestCase
     {
         $search = $this->app->make(LogIndexSearch::class);
 
-        $this->assertSame(0, $search->lowerBoundByTime('f', self::COUNT, 0));
-        $this->assertSame(2, $search->lowerBoundByTime('f', self::COUNT, 1001));
-        $this->assertSame(2468, $search->lowerBoundByTime('f', self::COUNT, 2234));
-        $this->assertSame(self::COUNT, $search->lowerBoundByTime('f', self::COUNT, 99_999));
+        $this->assertSame(0, $search->lowerBoundByTime('f', null, self::COUNT, 0));
+        $this->assertSame(2, $search->lowerBoundByTime('f', null, self::COUNT, 1001));
+        $this->assertSame(2468, $search->lowerBoundByTime('f', null, self::COUNT, 2234));
+        $this->assertSame(self::COUNT, $search->lowerBoundByTime('f', null, self::COUNT, 99_999));
+        $this->assertSame(2468, $search->lowerBoundByTime('f', 1, self::COUNT, 2234));
     }
 
     public function testAnEmptyIndexHasItsBoundAtZero(): void
     {
-        $this->assertSame(0, $this->app->make(LogIndexSearch::class)->lowerBoundByTime('missing', 0, 10));
+        $this->assertSame(0, $this->app->make(LogIndexSearch::class)->lowerBoundByTime('missing', null, 0, 10));
     }
 }

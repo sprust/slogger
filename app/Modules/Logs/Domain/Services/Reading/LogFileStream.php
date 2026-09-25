@@ -29,6 +29,8 @@ class LogFileStream
         private readonly LogTextReader $logTextReader,
         private readonly LogCursorDirectionEnum $direction,
         private readonly ?string $searchQuery,
+        private readonly ?int $fromTime,
+        private readonly ?int $toTime,
         private readonly int $maxEntryBytes,
         private readonly int $total,
         private readonly int $entriesCount,
@@ -104,6 +106,14 @@ class LogFileStream
 
         $this->scannedRecords += count($records);
         $this->lastTime = $records[count($records) - 1]->loggedAt;
+
+        $records = array_values(
+            array_filter(
+                $records,
+                fn(LogIndexRecordObject $record): bool => ($this->fromTime === null || $record->loggedAt >= $this->fromTime)
+                    && ($this->toTime === null || $record->loggedAt <= $this->toTime)
+            )
+        );
 
         $texts = [];
 

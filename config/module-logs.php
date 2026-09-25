@@ -77,6 +77,13 @@ return [
         'max_per_page'    => 500,
     ],
 
+    // The logErrors watcher counts ERROR and above in the Laravel sources through the same
+    // indexes. When another process is extending an index, the count waits this long and
+    // then reads the index as it is, a little behind the file.
+    'errors' => [
+        'wait_for_lock_sec' => (int) env('LOGS_ERRORS_WAIT_FOR_LOCK_SEC', 5),
+    ],
+
     'reading' => [
         // The most of one entry the page receives and a search looks through; a longer
         // entry comes cut and marked as truncated.

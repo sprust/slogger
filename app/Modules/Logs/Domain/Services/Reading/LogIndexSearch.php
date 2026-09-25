@@ -27,11 +27,11 @@ readonly class LogIndexSearch
         );
     }
 
-    public function lowerBoundByTime(string $fileId, int $count, int $time): int
+    public function lowerBoundByTime(string $fileId, ?int $level, int $count, int $time): int
     {
         return $this->lowerBound(
             fileId: $fileId,
-            level: null,
+            level: $level,
             count: $count,
             isBelow: static fn(LogIndexRecordObject $record): bool => $record->loggedAt < $time
         );
