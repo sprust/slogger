@@ -17,7 +17,9 @@ readonly class LogFileObject
         public LogTypeEnum $type,
         public int $sizeBytes,
         public int $modifiedAtMs,
-        public ?int $keepDays = null
+        public ?int $keepDays = null,
+        // The source allows it and the file is not the newest one of the source.
+        public bool $deletable = false
     ) {
     }
 }

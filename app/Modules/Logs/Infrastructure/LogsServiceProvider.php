@@ -7,6 +7,7 @@ namespace App\Modules\Logs\Infrastructure;
 use App\Modules\Cleaner\Infrastructure\Commands\ClearTracesCommand;
 use App\Modules\Common\Infrastructure\BaseServiceProvider;
 use App\Modules\Logs\Domain\Actions\CleanLogsAction;
+use App\Modules\Logs\Domain\Actions\DeleteLogFileAction;
 use App\Modules\Logs\Domain\Actions\FindLogEntriesAction;
 use App\Modules\Logs\Domain\Actions\FindLogErrorStatAction;
 use App\Modules\Logs\Domain\Actions\FindReceiverErrorStatAction;
@@ -75,6 +76,7 @@ class LogsServiceProvider extends BaseServiceProvider
             StreamLogFileAction::class,
             IndexLogsAction::class,
             CleanLogsAction::class,
+            DeleteLogFileAction::class,
             // actions
             FindLogErrorStatAction::class,
             FindReceiverErrorStatAction::class,

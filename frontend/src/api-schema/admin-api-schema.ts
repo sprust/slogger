@@ -4406,6 +4406,7 @@ export namespace AdminApi {
     folder: string,
     type: string,
     size_bytes: number,
+    can_delete: boolean,
     modified_at: string,
 
 })[],
@@ -4425,6 +4426,7 @@ export namespace AdminApi {
         folder: string;
         type: string;
         size_bytes: number;
+        can_delete: boolean;
         modified_at: string;
       }[];
     };
@@ -4445,6 +4447,23 @@ export namespace AdminApi {
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody = any;
+  }
+
+  /**
+   * No description
+   * @name LogsFilesDelete
+   * @request DELETE:/admin-api/logs/files/{id}
+   * @secure
+   * @response `200` `void` description
+   */
+  export namespace LogsFilesDelete {
+    export type RequestParams = {
+      id: any;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
   }
 }
 
@@ -9419,6 +9438,7 @@ export class Api<
     folder: string,
     type: string,
     size_bytes: number,
+    can_delete: boolean,
     modified_at: string,
 
 })[],
@@ -9435,6 +9455,7 @@ export class Api<
             folder: string;
             type: string;
             size_bytes: number;
+            can_delete: boolean;
             modified_at: string;
           }[];
         },
@@ -9461,6 +9482,22 @@ export class Api<
         method: "GET",
         secure: true,
         format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @name LogsFilesDelete
+     * @request DELETE:/admin-api/logs/files/{id}
+     * @secure
+     * @response `200` `void` description
+     */
+    logsFilesDelete: (id: any, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/admin-api/logs/files/${id}`,
+        method: "DELETE",
+        secure: true,
         ...params,
       }),
   };

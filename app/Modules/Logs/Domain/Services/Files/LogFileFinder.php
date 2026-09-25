@@ -24,7 +24,7 @@ readonly class LogFileFinder
         $files = [];
 
         foreach ($this->makeSources() as $source) {
-            foreach ($this->logFileRepository->findInSource($source) as $file) {
+            foreach ($this->keepNewest($this->logFileRepository->findInSource($source)) as $file) {
                 $files[$file->id] ??= $file;
             }
         }
@@ -44,6 +44,45 @@ readonly class LogFileFinder
     }
 
     /**
+     * The newest file of a source is the one being written: deleted, it takes the rest of
+     * the day's entries with it.
+     *
+     * @param list<LogFileObject> $files
+     *
+     * @return list<LogFileObject>
+     */
+    private function keepNewest(array $files): array
+    {
+        $newest = null;
+
+        foreach ($files as $file) {
+            if ($newest === null || $file->modifiedAtMs > $newest->modifiedAtMs) {
+                $newest = $file;
+            }
+        }
+
+        if ($newest === null || !$newest->deletable) {
+            return $files;
+        }
+
+        return array_map(
+            static fn(LogFileObject $file): LogFileObject => $file !== $newest ? $file : new LogFileObject(
+                id: $file->id,
+                path: $file->path,
+                name: $file->name,
+                source: $file->source,
+                folder: $file->folder,
+                type: $file->type,
+                sizeBytes: $file->sizeBytes,
+                modifiedAtMs: $file->modifiedAtMs,
+                keepDays: $file->keepDays,
+                deletable: false
+            ),
+            $files
+        );
+    }
+
+    /**
      * @return list<LogSourceObject>
      */
     private function makeSources(): array
@@ -58,7 +97,8 @@ readonly class LogFileFinder
                 folder: rtrim((string) $source['folder'], '/'),
                 pattern: (string) $source['pattern'],
                 type: $type instanceof LogTypeEnum ? $type : LogTypeEnum::from((string) $type),
-                keepDays: isset($source['keep_days']) ? (int) $source['keep_days'] : null
+                keepDays: isset($source['keep_days']) ? (int) $source['keep_days'] : null,
+                deletable: (bool) ($source['deletable'] ?? false)
             );
         }
 

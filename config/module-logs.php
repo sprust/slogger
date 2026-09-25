@@ -24,18 +24,22 @@ return [
     // keep_days — optional: logs:clean, once a day, deletes the source's files not written
     //           to for longer than this. Leave it out where something else rotates the
     //           files — Laravel's daily channel keeps its own `days`.
+    // deletable — optional, false by default: the page may delete the source's files. The
+    //           newest file of the source is never deleted: it is the one being written.
     'sources' => [
         [
             'name'    => 'Laravel',
-            'folder'  => storage_path('logs'),
-            'pattern' => '*.log',
-            'type'    => LogTypeEnum::Laravel,
+            'folder'    => storage_path('logs'),
+            'pattern'   => '*.log',
+            'type'      => LogTypeEnum::Laravel,
+            'deletable' => true,
         ],
         [
             'name'    => 'Slogger',
-            'folder'  => storage_path('logs/slogger'),
-            'pattern' => '*.log',
-            'type'    => LogTypeEnum::Laravel,
+            'folder'    => storage_path('logs/slogger'),
+            'pattern'   => '*.log',
+            'type'      => LogTypeEnum::Laravel,
+            'deletable' => true,
         ],
         // nginx writes here through the volume in docker-compose.yml: one access file a
         // day (access-Y-m-d.log) and a single error.log. On a host with its own nginx,

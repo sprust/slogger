@@ -8942,6 +8942,10 @@
                                                         "type": "integer",
                                                         "nullable": false
                                                     },
+                                                    "can_delete": {
+                                                        "type": "boolean",
+                                                        "nullable": false
+                                                    },
                                                     "modified_at": {
                                                         "type": "string",
                                                         "nullable": false
@@ -8954,6 +8958,7 @@
                                                     "folder",
                                                     "type",
                                                     "size_bytes",
+                                                    "can_delete",
                                                     "modified_at"
                                                 ]
                                             }
@@ -8992,6 +8997,28 @@
                                 "schema": {}
                             }
                         }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/admin-api/logs/files/{id}": {
+            "delete": {
+                "parameters": [
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "schema": {}
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "description"
                     }
                 },
                 "security": [

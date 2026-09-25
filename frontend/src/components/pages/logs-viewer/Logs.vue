@@ -82,7 +82,7 @@ export default defineComponent({
 
 .logs-files-panel {
   flex: none;
-  width: 300px;
+  width: 320px;
   margin-right: 10px;
 }
 

@@ -16,6 +16,7 @@ class LogFileResource extends AbstractApiResource
     private string $folder;
     private string $type;
     private int $size_bytes;
+    private bool $can_delete;
     private string $modified_at;
 
     public function __construct(LogFileObject $resource)
@@ -28,6 +29,7 @@ class LogFileResource extends AbstractApiResource
         $this->folder      = $resource->folder;
         $this->type        = $resource->type->value;
         $this->size_bytes  = $resource->sizeBytes;
+        $this->can_delete  = $resource->deletable;
         $this->modified_at = Carbon::createFromTimestampMs($resource->modifiedAtMs)->toDateTimeString();
     }
 }

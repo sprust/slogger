@@ -239,5 +239,6 @@ Route::prefix('/logs')
             ->group(function () {
                 Route::get('/', [LogFileController::class, 'index'])->name('index');
                 Route::get('/{id}/download', [LogFileController::class, 'download'])->name('download');
+                Route::delete('/{id}', [LogFileController::class, 'delete'])->name('delete');
             });
     });

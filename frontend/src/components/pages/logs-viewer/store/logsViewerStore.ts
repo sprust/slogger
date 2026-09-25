@@ -243,6 +243,16 @@ export const useLogsViewerStore = defineStore('logsViewerStore', {
                 this.retryTimerId = null
             }
         },
+        // True when the file is gone; the list is read again either way.
+        async deleteFile(file: LogFile): Promise<boolean> {
+            const response = await handleApiRequest(
+                () => ApiContainer.get().logsFilesDelete(file.id)
+            )
+
+            await this.findFiles()
+
+            return !!response
+        },
         async downloadFile(file: LogFile) {
             try {
                 const response = await ApiContainer.get().logsFilesDownloadList(file.id, {format: 'blob'})

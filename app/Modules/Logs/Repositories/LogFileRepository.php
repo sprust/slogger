@@ -43,7 +43,8 @@ readonly class LogFileRepository
                 type: $source->type,
                 sizeBytes: $entry->sizeBytes ?? 0,
                 modifiedAtMs: $entry->modifiedAtMs ?? 0,
-                keepDays: $source->keepDays
+                keepDays: $source->keepDays,
+                deletable: $source->deletable
             );
         }
 

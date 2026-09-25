@@ -36,15 +36,35 @@
             <span :title="file.folder + '/' + file.name">{{ file.name }}</span>
           </el-checkbox>
           <div class="logs-file-info">
-            <el-text type="info">
+            <el-text type="info" class="logs-file-meta">
               {{ formatSize(file.size_bytes) }} · {{ file.modified_at }}
             </el-text>
-            <el-button
-                :icon="IconDownload"
-                link
-                title="Download"
-                @click="store.downloadFile(file)"
-            />
+            <span class="logs-file-actions">
+              <el-button
+                  :icon="IconDownload"
+                  link
+                  title="Download"
+                  @click="store.downloadFile(file)"
+              />
+              <!-- Laid out for every file, so the rows stay the same whether a file can go or not. -->
+              <el-popconfirm
+                  title="Delete this file?"
+                  confirm-button-text="Delete"
+                  cancel-button-text="Cancel"
+                  @confirm="onDelete(file)"
+              >
+                <template #reference>
+                  <el-button
+                      :icon="IconDelete"
+                      :class="{'logs-file-hidden': !file.can_delete}"
+                      :disabled="!file.can_delete"
+                      link
+                      type="danger"
+                      title="Delete"
+                  />
+                </template>
+              </el-popconfirm>
+            </span>
           </div>
         </div>
       </div>
@@ -54,7 +74,7 @@
 
 <script lang="ts">
 import {defineComponent} from 'vue'
-import {Download as IconDownload, Refresh as IconRefresh} from '@element-plus/icons-vue'
+import {Delete as IconDelete, Download as IconDownload, Refresh as IconRefresh} from '@element-plus/icons-vue'
 import {LogFile, useLogsViewerStore} from "../store/logsViewerStore.ts";
 
 type FilesGroup = {
@@ -74,6 +94,9 @@ export default defineComponent({
     },
     IconDownload() {
       return IconDownload
+    },
+    IconDelete() {
+      return IconDelete
     },
     // Sources in the order the backend lists them, the newest file first.
     groups(): Array<FilesGroup> {
@@ -138,6 +161,17 @@ export default defineComponent({
 
       this.setSelected(value ? [...others, file.id] : others)
     },
+    async onDelete(file: LogFile) {
+      const wasSelected = this.isSelected(file)
+
+      if (!await this.store.deleteFile(file)) {
+        return
+      }
+
+      if (wasSelected) {
+        this.$emit('change')
+      }
+    },
     formatSize(bytes: number): string {
       if (bytes < 1024) {
         return `${bytes} B`
@@ -183,6 +217,19 @@ export default defineComponent({
 
 .logs-file {
   padding-left: 20px;
+}
+
+.logs-file-meta {
+  white-space: nowrap;
+}
+
+.logs-file-actions {
+  display: flex;
+  align-items: center;
+}
+
+.logs-file-hidden {
+  visibility: hidden;
 }
 
 .logs-file-info {
