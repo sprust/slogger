@@ -69,6 +69,17 @@ nginx, через фичу Files из `sconcur/sconcur` (`SConcur\Features\Files
   можно: каталог принадлежит пользователю хоста. `error.log` не ротируется — ограничение, записано в
   README. На проде путь задаётся `LOGS_NGINX_PATH`, ротация остаётся за хостом.
 
+### Как сделано (шаг 7)
+
+- `access_log` с переменной в пути пишется, только пока существует `root` запроса. По
+  умолчанию это `/etc/nginx/html`, которого в `nginx:alpine` нет, и файлы молча не
+  создавались бы. Поэтому в `server` задан `root /usr/share/nginx/html`.
+- Глобальный `error_log` из `/etc/nginx/nginx.conf` (старт, reload, ошибки конфига)
+  остаётся в stderr контейнера. Access-лог в `docker logs` больше не выводится.
+- В `.env.example` добавлены `LOGS_NGINX_KEEP_DAYS` и закомментированный
+  `LOGS_NGINX_PATH`: пустое значение `env()` вернул бы пустой строкой, а не значением по
+  умолчанию.
+
 ## Форматы
 
 Интерфейс `LogFormatInterface` в `Domain/Services/Formats` и по реализации на тип:
@@ -491,7 +502,7 @@ nginx-логи на проде могут лежать вне `base_path()`.
 4. Несколько файлов: потоки, merge, курсор, бюджет. Actions, HTTP, `make oa-generate`. Сделано.
 5. `FindLogErrorStatAction` на индексах. Сделано.
 6. `logs:index` (раз в минуту), `logs:clean` (раз в сутки). Сделано.
-7. nginx: compose, шаблон, entrypoint-скрипт.
+7. nginx: compose, шаблон, entrypoint-скрипт. Сделано.
 8. Удаление Mongo-логов, миграция.
 9. Фронт, `make frontend-npm-build`.
 10. README, `make check`.
