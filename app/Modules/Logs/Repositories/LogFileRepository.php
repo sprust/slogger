@@ -73,4 +73,12 @@ readonly class LogFileRepository
             maxReadBytes: 0
         );
     }
+
+    /**
+     * @return iterable<string>
+     */
+    public function readChunks(string $path): iterable
+    {
+        yield from Files::readChunks(path: $path, bufferSizeBytes: 256 * 1024);
+    }
 }

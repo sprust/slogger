@@ -48,8 +48,8 @@ readonly class MutexManager implements MutexManagerInterface
         if ($holder !== null) {
             $this->saveHolder(
                 key: $key,
-                lock: $holder['lock'],
-                level: $holder['level'] + 1
+                lock: $holder->lock,
+                level: $holder->level + 1
             );
 
             return;
@@ -88,10 +88,10 @@ readonly class MutexManager implements MutexManagerInterface
             return;
         }
 
-        $level = $holder['level'] - 1;
+        $level = $holder->level - 1;
 
         if ($level > 0) {
-            $this->saveHolder(key: $key, lock: $holder['lock'], level: $level);
+            $this->saveHolder(key: $key, lock: $holder->lock, level: $level);
 
             return;
         }
@@ -103,21 +103,17 @@ readonly class MutexManager implements MutexManagerInterface
                 $this->app->call($beforeReleaseHandler);
             }
         } finally {
-            $holder['lock']->release();
+            $holder->lock->release();
 
             Context::current()->forget($this->makeContextKey($key));
         }
     }
 
-    /**
-     * @return array{lock: Lock, level: int, fiber: int}|null
-     */
-    private function findOwnHolder(string $key): ?array
+    private function findOwnHolder(string $key): ?MutexHolder
     {
-        /** @var array{lock: Lock, level: int, fiber: int}|null $holder */
         $holder = Context::current()->find($this->makeContextKey($key));
 
-        if ($holder === null || $holder['fiber'] !== $this->currentFiberId()) {
+        if (!$holder instanceof MutexHolder || $holder->fiberId !== $this->currentFiberId()) {
             return null;
         }
 
@@ -128,11 +124,11 @@ readonly class MutexManager implements MutexManagerInterface
     {
         Context::current()->set(
             key: $this->makeContextKey($key),
-            value: [
-                'lock'  => $lock,
-                'level' => $level,
-                'fiber' => $this->currentFiberId(),
-            ],
+            value: new MutexHolder(
+                lock: $lock,
+                level: $level,
+                fiberId: $this->currentFiberId()
+            ),
             replace: true
         );
     }

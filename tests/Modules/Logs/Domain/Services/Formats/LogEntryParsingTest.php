@@ -2,6 +2,8 @@
 
 namespace Tests\Modules\Logs\Domain\Services\Formats;
 
+use App\Modules\Logs\Entities\Formats\LogLevelNameObject;
+use App\Modules\Logs\Entities\Entry\LogEntryFieldObject;
 use App\Modules\Logs\Domain\Services\Formats\LaravelLogFormat;
 use App\Modules\Logs\Domain\Services\Formats\LogTimeParser;
 use App\Modules\Logs\Domain\Services\Formats\NginxAccessLogFormat;
@@ -15,8 +17,8 @@ class LogEntryParsingTest extends TestCase
         $details = $this->laravel()->parseEntry("[2026-09-25 05:35:30] production.INFO: worker started {\"worker\":1,\"tags\":[\"a\"]} \n");
 
         $this->assertSame('worker started', $details->message);
-        $this->assertSame(['worker' => 1, 'tags' => ['a']], $details->context);
-        $this->assertSame(['env' => 'production'], $details->fields);
+        $this->assertSame('{"worker":1,"tags":["a"]}', $details->context);
+        $this->assertEquals([new LogEntryFieldObject(key: 'env', value: 'production')], $details->fields);
     }
 
     public function testAStackTraceInsideTheContextIsKept(): void
@@ -28,7 +30,7 @@ class LogEntryParsingTest extends TestCase
         $this->assertSame('connect: refused', $details->message);
         $this->assertSame(
             "[object] (E(code: 0): refused at /app/a.php:63)\n[stacktrace]\n#0 /app/a.php(1): f('x')\n#1 {main}\n",
-            $details->context['exception'] ?? null
+            json_decode((string) $details->context, true)['exception'] ?? null
         );
     }
 
@@ -79,7 +81,7 @@ class LogEntryParsingTest extends TestCase
                 'referer'    => 'http://localhost/',
                 'user_agent' => 'Mozilla/5.0 (X11)',
             ],
-            $details->fields
+            $this->fieldValues($details->fields)
         );
     }
 
@@ -87,10 +89,12 @@ class LogEntryParsingTest extends TestCase
     {
         $details = $this->access()->parseEntry('1.1.1.1 - - [25/Sep/2026:10:00:00 +0000] "\x16\x03" 400 0 "-" "-"');
 
-        $this->assertNull($details->fields['user']);
-        $this->assertNull($details->fields['method']);
-        $this->assertNull($details->fields['referer']);
-        $this->assertSame('400', $details->fields['status']);
+        $fields = $this->fieldValues($details->fields);
+
+        $this->assertNull($fields['user']);
+        $this->assertNull($fields['method']);
+        $this->assertNull($fields['referer']);
+        $this->assertSame('400', $fields['status']);
     }
 
     public function testAnErrorLineGivesItsFields(): void
@@ -112,7 +116,7 @@ class LogEntryParsingTest extends TestCase
                 'host'       => 'localhost',
                 'referrer'   => null,
             ],
-            $details->fields
+            $this->fieldValues($details->fields)
         );
     }
 
@@ -121,14 +125,30 @@ class LogEntryParsingTest extends TestCase
         $details = $this->error()->parseEntry("2026/09/25 10:00:00 [notice] 1#1: signal process started\n");
 
         $this->assertSame('signal process started', $details->message);
-        $this->assertNull($details->fields['connection']);
+        $this->assertNull($this->fieldValues($details->fields)['connection']);
     }
 
     public function testLevelNamesAreTheOnesTheLogsUse(): void
     {
-        $this->assertSame('ERROR', $this->laravel()->getLevelNames()[5]);
-        $this->assertSame('5xx', $this->access()->getLevelNames()[5]);
-        $this->assertSame('warn', $this->error()->getLevelNames()[4]);
+        $this->assertContainsEquals(new LogLevelNameObject(level: 5, name: 'ERROR'), $this->laravel()->getLevelNames());
+        $this->assertContainsEquals(new LogLevelNameObject(level: 5, name: '5xx'), $this->access()->getLevelNames());
+        $this->assertContainsEquals(new LogLevelNameObject(level: 4, name: 'warn'), $this->error()->getLevelNames());
+    }
+
+    /**
+     * @param list<LogEntryFieldObject> $fields
+     *
+     * @return array<string, string|null>
+     */
+    private function fieldValues(array $fields): array
+    {
+        $values = [];
+
+        foreach ($fields as $field) {
+            $values[$field->key] = $field->value;
+        }
+
+        return $values;
     }
 
     private function laravel(): LaravelLogFormat

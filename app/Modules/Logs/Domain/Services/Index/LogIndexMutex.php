@@ -9,7 +9,8 @@ use App\Modules\Common\Domain\Services\Mutex\AbstractMutex;
 readonly class LogIndexMutex extends AbstractMutex
 {
     public function __construct(
-        private string $fileId
+        private string $fileId,
+        private int $waitForBlockSec = 20
     ) {
     }
 
@@ -25,6 +26,6 @@ readonly class LogIndexMutex extends AbstractMutex
 
     public function getWaitForBlockSec(): int
     {
-        return 20;
+        return $this->waitForBlockSec;
     }
 }

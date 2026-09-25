@@ -6,6 +6,7 @@ namespace App\Modules\Logs\Repositories;
 
 use App\Modules\Logs\Entities\Index\LogIndexMetaObject;
 use App\Modules\Logs\Entities\Index\LogIndexRecordObject;
+use App\Modules\Logs\Entities\Index\LogLevelCountObject;
 use App\Modules\Logs\Enums\LogTypeEnum;
 use SConcur\Features\Files\Files;
 use SConcur\Features\Files\FileWriteMode;
@@ -47,7 +48,7 @@ readonly class LogIndexRepository
         $levelCounts = [];
 
         foreach ((array) ($data['levelCounts'] ?? []) as $level => $count) {
-            $levelCounts[(int) $level] = (int) $count;
+            $levelCounts[] = new LogLevelCountObject(level: (int) $level, count: (int) $count);
         }
 
         return new LogIndexMetaObject(
@@ -67,6 +68,12 @@ readonly class LogIndexRepository
     {
         $this->makeDirectory($fileId);
 
+        $levelCounts = [];
+
+        foreach ($meta->levelCounts as $levelCount) {
+            $levelCounts[$levelCount->level] = $levelCount->count;
+        }
+
         Files::writeAtomic(
             path: $this->makeMetaPath($fileId),
             contents: (string) json_encode([
@@ -78,7 +85,7 @@ readonly class LogIndexRepository
                 'headLength'    => $meta->headLength,
                 'headHash'      => $meta->headHash,
                 'entriesCount'  => $meta->entriesCount,
-                'levelCounts'   => (object) $meta->levelCounts,
+                'levelCounts'   => (object) $levelCounts,
             ])
         );
     }
@@ -88,7 +95,7 @@ readonly class LogIndexRepository
      */
     public function appendRecords(string $fileId, array $records): void
     {
-        if ($records === []) {
+        if (count($records) === 0) {
             return;
         }
 

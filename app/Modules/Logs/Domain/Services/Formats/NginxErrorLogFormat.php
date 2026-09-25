@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Modules\Logs\Domain\Services\Formats;
 
 use App\Modules\Logs\Entities\Entry\LogEntryDetailsObject;
+use App\Modules\Logs\Entities\Entry\LogEntryFieldObject;
+use App\Modules\Logs\Entities\Formats\LogLevelNameObject;
 use App\Modules\Logs\Enums\NginxErrorLogLevelEnum;
 
 readonly class NginxErrorLogFormat extends AbstractLineLogFormat
@@ -25,24 +27,25 @@ readonly class NginxErrorLogFormat extends AbstractLineLogFormat
 
         $rest = $match[4];
 
-        $fields = [
-            'pid'        => $match[1],
-            'tid'        => $match[2],
-            'connection' => $match[3] === '' ? null : $match[3],
-        ];
-
-        foreach (self::DETAIL_KEYS as $key) {
-            $fields[$key] = null;
-        }
-
         $message = $rest;
+        $values  = [];
 
         if (preg_match_all(self::DETAIL_PATTERN, $rest, $details, PREG_SET_ORDER | PREG_OFFSET_CAPTURE) > 0) {
             $message = substr($rest, 0, $details[0][0][1]);
 
             foreach ($details as $detail) {
-                $fields[$detail[1][0]] = trim($detail[2][0], '"');
+                $values[$detail[1][0]] = trim($detail[2][0], '"');
             }
+        }
+
+        $fields = [
+            new LogEntryFieldObject(key: 'pid', value: $match[1]),
+            new LogEntryFieldObject(key: 'tid', value: $match[2]),
+            new LogEntryFieldObject(key: 'connection', value: $match[3] === '' ? null : $match[3]),
+        ];
+
+        foreach (self::DETAIL_KEYS as $key) {
+            $fields[] = new LogEntryFieldObject(key: $key, value: $values[$key] ?? null);
         }
 
         return new LogEntryDetailsObject(message: $message, context: null, fields: $fields);
@@ -53,7 +56,7 @@ readonly class NginxErrorLogFormat extends AbstractLineLogFormat
         $names = [];
 
         foreach (NginxErrorLogLevelEnum::cases() as $case) {
-            $names[$case->value] = strtolower($case->name);
+            $names[] = new LogLevelNameObject(level: $case->value, name: strtolower($case->name));
         }
 
         return $names;

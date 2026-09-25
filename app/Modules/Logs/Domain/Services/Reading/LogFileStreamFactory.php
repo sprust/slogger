@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Modules\Logs\Domain\Services\Reading;
 
 use App\Modules\Logs\Entities\File\LogFileObject;
+use App\Modules\Logs\Domain\Services\Index\LogLevelCounter;
+use App\Modules\Logs\Entities\Index\LogEntryRangeObject;
 use App\Modules\Logs\Entities\Index\LogIndexMetaObject;
 use App\Modules\Logs\Enums\LogCursorDirectionEnum;
 use App\Modules\Logs\Parameters\LogEntriesFilterParameters;
@@ -26,20 +28,22 @@ readonly class LogFileStreamFactory
         LogCursorDirectionEnum $direction,
         ?int $position = null
     ): LogFileStream {
-        [$lowEntryNo, $highEntryNo] = $this->findEntryRange($file, $meta, $filter);
+        $range = $this->findEntryRange($file, $meta, $filter);
+
+        $levelCounter = new LogLevelCounter($meta->levelCounts);
 
         $lanes = [];
         $total = 0;
 
         foreach ($this->findLevels($meta, $filter) as $level) {
-            $count = $level === null ? $meta->entriesCount : ($meta->levelCounts[$level] ?? 0);
+            $count = $level === null ? $meta->entriesCount : $levelCounter->get($level);
 
-            if ($count === 0 || $lowEntryNo > $highEntryNo) {
+            if ($count === 0 || $range->lowEntryNo > $range->highEntryNo) {
                 continue;
             }
 
-            $low  = $this->findIndex($file, $level, $count, $lowEntryNo);
-            $high = $this->findIndex($file, $level, $count, $highEntryNo + 1) - 1;
+            $low  = $this->findIndex($file, $level, $count, $range->lowEntryNo);
+            $high = $this->findIndex($file, $level, $count, $range->highEntryNo + 1) - 1;
 
             if ($low > $high) {
                 continue;
@@ -55,13 +59,12 @@ readonly class LogFileStreamFactory
                 }
             }
 
-            $lanes[] = [
-                'level'  => $level,
-                'low'    => $low,
-                'high'   => $high,
-                'next'   => $direction === LogCursorDirectionEnum::Older ? $high : $low,
-                'buffer' => [],
-            ];
+            $lanes[] = new LogFileStreamLane(
+                level: $level,
+                low: $low,
+                high: $high,
+                next: $direction === LogCursorDirectionEnum::Older ? $high : $low
+            );
         }
 
         $searchQuery = $filter->searchQuery;
@@ -74,14 +77,12 @@ readonly class LogFileStreamFactory
             searchQuery: $searchQuery === null || $searchQuery === '' ? null : $searchQuery,
             maxEntryBytes: max(1, (int) config('module-logs.reading.max_entry_bytes')),
             total: $total,
+            entriesCount: $meta->entriesCount,
             lanes: $lanes
         );
     }
 
-    /**
-     * @return array{0: int, 1: int}
-     */
-    private function findEntryRange(LogFileObject $file, LogIndexMetaObject $meta, LogEntriesFilterParameters $filter): array
+    private function findEntryRange(LogFileObject $file, LogIndexMetaObject $meta, LogEntriesFilterParameters $filter): LogEntryRangeObject
     {
         $low  = 0;
         $high = $meta->entriesCount - 1;
@@ -94,7 +95,7 @@ readonly class LogFileStreamFactory
             $high = $this->logIndexSearch->lowerBoundByTime($file->id, $meta->entriesCount, $filter->toTime + 1) - 1;
         }
 
-        return [$low, $high];
+        return new LogEntryRangeObject(lowEntryNo: $low, highEntryNo: $high);
     }
 
     /**
@@ -106,11 +107,13 @@ readonly class LogFileStreamFactory
             return [null];
         }
 
+        $levelCounter = new LogLevelCounter($meta->levelCounts);
+
         $levels = array_values(
             array_unique(
                 array_filter(
                     $filter->levels,
-                    static fn(int $level): bool => ($meta->levelCounts[$level] ?? 0) > 0
+                    static fn(int $level): bool => $levelCounter->get($level) > 0
                 )
             )
         );

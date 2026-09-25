@@ -9,6 +9,8 @@ use App\Modules\Dashboard\Infrastructure\Http\Controllers\DatabaseStatController
 use App\Modules\Dashboard\Infrastructure\Http\Controllers\SconcurStatController;
 use App\Modules\Dashboard\Infrastructure\Http\Controllers\TraceMetricController;
 use App\Modules\Logs\Infrastructure\Http\Controllers\LogController;
+use App\Modules\Logs\Infrastructure\Http\Controllers\LogEntryController;
+use App\Modules\Logs\Infrastructure\Http\Controllers\LogFileController;
 use App\Modules\Notification\Infrastructure\Http\Controllers\NotificationChannelController;
 use App\Modules\Notification\Infrastructure\Http\Controllers\SlackChannelController;
 use App\Modules\Notification\Infrastructure\Http\Controllers\TelegramChannelController;
@@ -228,4 +230,12 @@ Route::prefix('/logs')
     ->as('logs.')
     ->group(function () {
         Route::get('/', [LogController::class, 'index'])->name('index');
+        Route::post('/entries', [LogEntryController::class, 'index'])->name('entries.index');
+
+        Route::prefix('/files')
+            ->as('files.')
+            ->group(function () {
+                Route::get('/', [LogFileController::class, 'index'])->name('index');
+                Route::get('/{id}/download', [LogFileController::class, 'download'])->name('download');
+            });
     });

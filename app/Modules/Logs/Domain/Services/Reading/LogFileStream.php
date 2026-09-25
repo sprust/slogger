@@ -14,17 +14,14 @@ class LogFileStream
 {
     private const int BLOCK_RECORDS = 500;
 
-    /**
-     * @var list<LogIndexRecordObject>
-     */
-    private array $buffer = [];
+    private ?LogIndexRecordObject $head = null;
 
     private int $scannedRecords = 0;
     private int $scannedBytes   = 0;
     private ?int $lastTime      = null;
 
     /**
-     * @param list<array{level: int|null, low: int, high: int, next: int, buffer: list<LogIndexRecordObject>}> $lanes
+     * @param list<LogFileStreamLane> $lanes
      */
     public function __construct(
         private readonly LogFileObject $file,
@@ -34,7 +31,8 @@ class LogFileStream
         private readonly ?string $searchQuery,
         private readonly int $maxEntryBytes,
         private readonly int $total,
-        private array $lanes
+        private readonly int $entriesCount,
+        private readonly array $lanes
     ) {
     }
 
@@ -73,6 +71,17 @@ class LogFileStream
         return $this->peek()?->entryNo;
     }
 
+    public function getContinuePosition(): int
+    {
+        return $this->getPosition()
+            ?? ($this->direction === LogCursorDirectionEnum::Older ? -1 : $this->entriesCount);
+    }
+
+    public function getDirection(): LogCursorDirectionEnum
+    {
+        return $this->direction;
+    }
+
     public function getNextTime(): ?int
     {
         return $this->peek()?->loggedAt;
@@ -89,14 +98,18 @@ class LogFileStream
             $records[] = $record;
         }
 
-        if ($records === []) {
+        if (count($records) === 0) {
             return [];
         }
 
         $this->scannedRecords += count($records);
         $this->lastTime = $records[count($records) - 1]->loggedAt;
 
-        $texts = $this->logTextReader->read($this->file->path, $records, $this->maxEntryBytes);
+        $texts = [];
+
+        foreach ($this->logTextReader->read($this->file->path, $records, $this->maxEntryBytes) as $entryText) {
+            $texts[$entryText->entryNo] = $entryText->text;
+        }
 
         $entries = [];
 
@@ -124,57 +137,47 @@ class LogFileStream
 
     private function peek(): ?LogIndexRecordObject
     {
-        if ($this->buffer === []) {
-            $record = $this->pickHead();
-
-            if ($record === null) {
-                return null;
-            }
-
-            $this->buffer[] = $record;
+        if ($this->head === null) {
+            $this->head = $this->pickHead();
         }
 
-        return $this->buffer[0];
+        return $this->head;
     }
 
     private function take(): ?LogIndexRecordObject
     {
-        if ($this->peek() === null) {
-            return null;
-        }
+        $record = $this->peek();
 
-        return array_shift($this->buffer);
+        $this->head = null;
+
+        return $record;
     }
 
     private function pickHead(): ?LogIndexRecordObject
     {
         $bestLane = null;
 
-        foreach ($this->lanes as $index => $lane) {
-            if ($this->lanes[$index]['buffer'] === []) {
-                $this->fillLane($index);
+        foreach ($this->lanes as $lane) {
+            if (count($lane->buffer) === 0) {
+                $this->fillLane($lane);
             }
 
-            $head = $this->lanes[$index]['buffer'][0] ?? null;
-
-            if ($head === null) {
+            if (count($lane->buffer) === 0) {
                 continue;
             }
 
             if ($bestLane === null) {
-                $bestLane = $index;
+                $bestLane = $lane;
 
                 continue;
             }
 
-            $best = $this->lanes[$bestLane]['buffer'][0];
-
             $isBetter = $this->direction === LogCursorDirectionEnum::Older
-                ? $head->entryNo > $best->entryNo
-                : $head->entryNo < $best->entryNo;
+                ? $lane->buffer[0]->entryNo > $bestLane->buffer[0]->entryNo
+                : $lane->buffer[0]->entryNo < $bestLane->buffer[0]->entryNo;
 
             if ($isBetter) {
-                $bestLane = $index;
+                $bestLane = $lane;
             }
         }
 
@@ -182,43 +185,33 @@ class LogFileStream
             return null;
         }
 
-        $lane = $this->lanes[$bestLane];
-
-        $record = array_shift($lane['buffer']);
-
-        $this->lanes[$bestLane] = $lane;
-
-        return $record;
+        return array_shift($bestLane->buffer);
     }
 
-    private function fillLane(int $index): void
+    private function fillLane(LogFileStreamLane $lane): void
     {
-        $lane = $this->lanes[$index];
-
-        if ($lane['next'] < $lane['low'] || $lane['next'] > $lane['high']) {
+        if ($lane->next < $lane->low || $lane->next > $lane->high) {
             return;
         }
 
         if ($this->direction === LogCursorDirectionEnum::Older) {
-            $from  = max($lane['low'], $lane['next'] - self::BLOCK_RECORDS + 1);
-            $count = $lane['next'] - $from + 1;
+            $from  = max($lane->low, $lane->next - self::BLOCK_RECORDS + 1);
+            $count = $lane->next - $from + 1;
 
-            $records = array_reverse(
-                $this->logIndexRepository->readRecords($this->file->id, $lane['level'], $from, $count)
+            $lane->buffer = array_reverse(
+                $this->logIndexRepository->readRecords($this->file->id, $lane->level, $from, $count)
             );
 
-            $lane['next'] = $from - 1;
-        } else {
-            $count = min(self::BLOCK_RECORDS, $lane['high'] - $lane['next'] + 1);
+            $lane->next = $from - 1;
 
-            $records = $this->logIndexRepository->readRecords($this->file->id, $lane['level'], $lane['next'], $count);
-
-            $lane['next'] += $count;
+            return;
         }
 
-        $lane['buffer'] = $records;
+        $count = min(self::BLOCK_RECORDS, $lane->high - $lane->next + 1);
 
-        $this->lanes[$index] = $lane;
+        $lane->buffer = $this->logIndexRepository->readRecords($this->file->id, $lane->level, $lane->next, $count);
+
+        $lane->next += $count;
     }
 
     private function matches(string $text, string $query): bool

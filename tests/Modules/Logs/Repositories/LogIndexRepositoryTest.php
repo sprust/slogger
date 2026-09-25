@@ -2,6 +2,7 @@
 
 namespace Tests\Modules\Logs\Repositories;
 
+use App\Modules\Logs\Entities\Index\LogLevelCountObject;
 use App\Modules\Logs\Entities\Index\LogIndexMetaObject;
 use App\Modules\Logs\Entities\Index\LogIndexRecordObject;
 use App\Modules\Logs\Enums\LogTypeEnum;
@@ -77,7 +78,10 @@ class LogIndexRepositoryTest extends TestCase
             headLength: 1024,
             headHash: md5('head'),
             entriesCount: 3,
-            levelCounts: [0 => 1, 5 => 2]
+            levelCounts: [
+                new LogLevelCountObject(level: 0, count: 1),
+                new LogLevelCountObject(level: 5, count: 2),
+            ]
         );
 
         $this->repository->saveMeta('f', $meta);

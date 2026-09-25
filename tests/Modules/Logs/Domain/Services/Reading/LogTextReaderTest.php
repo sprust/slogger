@@ -2,6 +2,7 @@
 
 namespace Tests\Modules\Logs\Domain\Services\Reading;
 
+use App\Modules\Logs\Entities\Entry\LogEntryTextObject;
 use App\Modules\Logs\Domain\Services\Reading\LogTextReader;
 use App\Modules\Logs\Entities\Index\LogIndexRecordObject;
 use Tests\Modules\Logs\LogsTempDirTrait;
@@ -44,9 +45,17 @@ class LogTextReaderTest extends TestCase
             maxEntryBytes: 1024
         );
 
-        ksort($texts);
+        usort($texts, static fn(LogEntryTextObject $left, LogEntryTextObject $right): int => $left->entryNo <=> $right->entryNo);
 
-        $this->assertSame([0 => 'aaaa', 1 => 'bbbb', 2 => 'cccc', 3 => 'dddd'], $texts);
+        $this->assertEquals(
+            [
+                new LogEntryTextObject(entryNo: 0, text: 'aaaa'),
+                new LogEntryTextObject(entryNo: 1, text: 'bbbb'),
+                new LogEntryTextObject(entryNo: 2, text: 'cccc'),
+                new LogEntryTextObject(entryNo: 3, text: 'dddd'),
+            ],
+            $texts
+        );
     }
 
     public function testATextIsCutToTheLimit(): void
@@ -59,7 +68,7 @@ class LogTextReaderTest extends TestCase
             maxEntryBytes: 3
         );
 
-        $this->assertSame([0 => 'abc'], $texts);
+        $this->assertEquals([new LogEntryTextObject(entryNo: 0, text: 'abc')], $texts);
     }
 
     public function testNoRecordsReadNothing(): void

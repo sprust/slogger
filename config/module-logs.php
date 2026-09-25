@@ -57,6 +57,26 @@ return [
         'window_bytes' => (int) env('LOGS_INDEX_WINDOW_BYTES', 4 * 1024 * 1024),
     ],
 
+    // One request to the entries endpoint, over however many files it names.
+    'search' => [
+        // Most files one request may name.
+        'max_files'       => (int) env('LOGS_SEARCH_MAX_FILES', 200),
+        // How many files are indexed, and read, at the same time.
+        'concurrency'     => (int) env('LOGS_SEARCH_CONCURRENCY', 4),
+        // How long a request may spend bringing indexes up to date before it answers
+        // with indexing: true, and the page asks again.
+        'index_budget_ms' => (int) env('LOGS_SEARCH_INDEX_BUDGET_MS', 5000),
+        // How long, and how many bytes of entries, one request may look through before it
+        // answers with what it has found and a cursor to go on from.
+        'time_budget_ms'  => (int) env('LOGS_SEARCH_TIME_BUDGET_MS', 2000),
+        'bytes_budget'    => (int) env('LOGS_SEARCH_BYTES_BUDGET', 64 * 1024 * 1024),
+        // How many entries of one file a search reads between two looks at the budget.
+        'block_records'   => (int) env('LOGS_SEARCH_BLOCK_RECORDS', 1000),
+        // Entries on one page: the default and the most a request may ask for.
+        'per_page'        => (int) env('LOGS_SEARCH_PER_PAGE', 50),
+        'max_per_page'    => 500,
+    ],
+
     'reading' => [
         // The most of one entry the page receives and a search looks through; a longer
         // entry comes cut and marked as truncated.

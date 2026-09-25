@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Modules\Logs\Domain\Services\Formats;
 
 use App\Modules\Logs\Entities\Entry\LogEntryDetailsObject;
+use App\Modules\Logs\Entities\Entry\LogEntryFieldObject;
+use App\Modules\Logs\Entities\Formats\LogLevelNameObject;
 use App\Modules\Logs\Entities\Index\LogEntryStartObject;
 use App\Modules\Logs\Enums\LaravelLogLevelEnum;
 
@@ -63,13 +65,13 @@ readonly class LaravelLogFormat implements LogFormatInterface
             $body = substr($body, 0, -3);
         }
 
-        [$message, $context] = $this->splitContext($body);
+        $contextPosition = $this->findContextPosition($body);
 
         return new LogEntryDetailsObject(
-            message: $message,
-            context: $context,
+            message: $contextPosition === null ? $body : rtrim(substr($body, 0, $contextPosition)),
+            context: $contextPosition === null ? null : $this->normalizeJson(substr($body, $contextPosition)),
             fields: [
-                'env' => $match[1],
+                new LogEntryFieldObject(key: 'env', value: $match[1]),
             ]
         );
     }
@@ -79,19 +81,16 @@ readonly class LaravelLogFormat implements LogFormatInterface
         $names = [];
 
         foreach (LaravelLogLevelEnum::cases() as $case) {
-            $names[$case->value] = strtoupper($case->name);
+            $names[] = new LogLevelNameObject(level: $case->value, name: strtoupper($case->name));
         }
 
         return $names;
     }
 
-    /**
-     * @return array{0: string, 1: array<array-key, mixed>|null}
-     */
-    private function splitContext(string $body): array
+    private function findContextPosition(string $body): ?int
     {
         if (!str_ends_with($body, '}') && !str_ends_with($body, ']')) {
-            return [$body, null];
+            return null;
         }
 
         preg_match_all('/ (?=[{\[])/', $body, $candidates, PREG_OFFSET_CAPTURE);
@@ -99,17 +98,23 @@ readonly class LaravelLogFormat implements LogFormatInterface
         foreach (array_slice($candidates[0], 0, self::MAX_CONTEXT_CANDIDATES) as $candidate) {
             $position = $candidate[1] + 1;
 
-            $context = json_decode(
-                str_replace(["\r", "\n"], ['\r', '\n'], substr($body, $position)),
-                true
-            );
-
-            if (is_array($context)) {
-                return [rtrim(substr($body, 0, $position)), $context];
+            if ($this->normalizeJson(substr($body, $position)) !== null) {
+                return $position;
             }
         }
 
-        return [$body, null];
+        return null;
+    }
+
+    private function normalizeJson(string $json): ?string
+    {
+        $decoded = json_decode(str_replace(["\r", "\n"], ['\r', '\n'], $json), true);
+
+        if (!is_array($decoded)) {
+            return null;
+        }
+
+        return json_encode($decoded, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE) ?: null;
     }
 
     private function parseTime(string $text): ?int

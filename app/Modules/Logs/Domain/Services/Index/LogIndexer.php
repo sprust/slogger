@@ -13,6 +13,7 @@ use App\Modules\Logs\Entities\File\LogFileStatObject;
 use App\Modules\Logs\Entities\Index\LogEntryStartObject;
 use App\Modules\Logs\Entities\Index\LogIndexMetaObject;
 use App\Modules\Logs\Entities\Index\LogIndexRecordObject;
+use App\Modules\Logs\Entities\Index\LogLevelCountObject;
 use App\Modules\Logs\Repositories\LogFileRepository;
 use App\Modules\Logs\Repositories\LogIndexRepository;
 
@@ -31,7 +32,7 @@ readonly class LogIndexer
     ) {
     }
 
-    public function ensureFresh(LogFileObject $file, int $timeBudgetMs = 0): LogIndexMetaObject
+    public function ensureFresh(LogFileObject $file, int $timeBudgetMs = 0, int $waitForLockSec = 20): LogIndexMetaObject
     {
         $stat = $this->findStat($file);
         $meta = $this->logIndexRepository->findMeta($file->id);
@@ -40,7 +41,7 @@ readonly class LogIndexer
             return $meta;
         }
 
-        $mutex = new LogIndexMutex($file->id);
+        $mutex = new LogIndexMutex(fileId: $file->id, waitForBlockSec: $waitForLockSec);
 
         $this->mutexManager->lock($mutex);
 
@@ -105,14 +106,14 @@ readonly class LogIndexer
             $this->logIndexRepository->delete($file->id);
 
             $entriesCount = 0;
-            $levelCounts  = [];
+            $levelCounter = new LogLevelCounter();
             $position     = 0;
             $lastTime     = null;
         } else {
             $this->dropUncommittedRecords($file->id, $meta);
 
             $entriesCount = $meta->entriesCount;
-            $levelCounts  = $meta->levelCounts;
+            $levelCounter = new LogLevelCounter($meta->levelCounts);
             $position     = $meta->indexedBytes;
             $lastTime     = null;
 
@@ -128,15 +129,11 @@ readonly class LogIndexer
                     $this->logIndexRepository->truncateRecords(
                         fileId: $file->id,
                         level: $lastRecord->level,
-                        count: $levelCounts[$lastRecord->level] - 1
+                        count: $levelCounter->get($lastRecord->level) - 1
                     );
 
                     --$entriesCount;
-                    --$levelCounts[$lastRecord->level];
-
-                    if ($levelCounts[$lastRecord->level] === 0) {
-                        unset($levelCounts[$lastRecord->level]);
-                    }
+                    $levelCounter->add($lastRecord->level, -1);
 
                     $position = $lastRecord->offset;
                 }
@@ -158,7 +155,7 @@ readonly class LogIndexer
             headLength: $headLength,
             headHash: $headHash,
             entriesCount: $entriesCount,
-            levelCounts: $levelCounts
+            levelCounts: $levelCounter->getLevelCounts()
         );
 
         while ($position < $size) {
@@ -215,7 +212,7 @@ readonly class LogIndexer
 
                 ++$entriesCount;
 
-                $levelCounts[$start->level] = ($levelCounts[$start->level] ?? 0) + 1;
+                $levelCounter->add($start->level, 1);
 
                 $lastTime = $loggedAt;
             }
@@ -225,8 +222,6 @@ readonly class LogIndexer
             $position += $consumed;
             $window = $baseWindow;
 
-            ksort($levelCounts);
-
             $meta = $this->makeMeta(
                 file: $file,
                 indexedBytes: $position,
@@ -234,7 +229,7 @@ readonly class LogIndexer
                 headLength: $headLength,
                 headHash: $headHash,
                 entriesCount: $entriesCount,
-                levelCounts: $levelCounts
+                levelCounts: $levelCounter->getLevelCounts()
             );
 
             if ($timeBudgetMs > 0 && (hrtime(true) - $startedAt) / 1_000_000 >= $timeBudgetMs) {
@@ -263,7 +258,11 @@ readonly class LogIndexer
         $this->logIndexRepository->truncateRecords($fileId, null, $meta->entriesCount);
 
         foreach ($this->logIndexRepository->findLevels($fileId) as $level) {
-            $this->logIndexRepository->truncateRecords($fileId, $level, $meta->levelCounts[$level] ?? 0);
+            $this->logIndexRepository->truncateRecords(
+                fileId: $fileId,
+                level: $level,
+                count: new LogLevelCounter($meta->levelCounts)->get($level)
+            );
         }
     }
 
@@ -274,7 +273,7 @@ readonly class LogIndexer
     {
         $starts = $format->findEntryStarts($chunk);
 
-        if ($starts === [] || $starts[0]->offset > 0) {
+        if (count($starts) === 0 || $starts[0]->offset > 0) {
             array_unshift($starts, new LogEntryStartObject(offset: 0, loggedAt: null, level: 0));
         }
 
@@ -296,7 +295,7 @@ readonly class LogIndexer
     }
 
     /**
-     * @param array<int, int> $levelCounts
+     * @param list<LogLevelCountObject> $levelCounts
      */
     private function makeMeta(
         LogFileObject $file,

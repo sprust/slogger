@@ -7,15 +7,22 @@ namespace App\Modules\Logs\Infrastructure;
 use App\Modules\Cleaner\Infrastructure\Commands\ClearTracesCommand;
 use App\Modules\Common\Infrastructure\BaseServiceProvider;
 use App\Modules\Logs\Domain\Actions\CreateLogAction;
+use App\Modules\Logs\Domain\Actions\FindLogEntriesAction;
 use App\Modules\Logs\Domain\Actions\FindLogErrorStatAction;
+use App\Modules\Logs\Domain\Actions\FindLogFilesAction;
 use App\Modules\Logs\Domain\Actions\PaginateLogsAction;
+use App\Modules\Logs\Domain\Actions\StreamLogFileAction;
 use App\Modules\Logs\Domain\Services\Files\LogFileFinder;
 use App\Modules\Logs\Domain\Services\Formats\LaravelLogFormat;
 use App\Modules\Logs\Domain\Services\Formats\LogFormatRegistry;
+use App\Modules\Logs\Domain\Services\Formats\LogLevelKeys;
 use App\Modules\Logs\Domain\Services\Formats\LogTimeParser;
 use App\Modules\Logs\Domain\Services\Formats\NginxAccessLogFormat;
 use App\Modules\Logs\Domain\Services\Formats\NginxErrorLogFormat;
+use App\Modules\Logs\Domain\Services\Index\LogIndexBatchRefresher;
 use App\Modules\Logs\Domain\Services\Index\LogIndexer;
+use App\Modules\Logs\Domain\Services\Reading\LogCursorCodec;
+use App\Modules\Logs\Domain\Services\Reading\LogEntriesMerger;
 use App\Modules\Logs\Domain\Services\Reading\LogFileStreamFactory;
 use App\Modules\Logs\Domain\Services\Reading\LogIndexSearch;
 use App\Modules\Logs\Domain\Services\Reading\LogTextReader;
@@ -52,6 +59,13 @@ class LogsServiceProvider extends BaseServiceProvider
             LogIndexSearch::class,
             LogTextReader::class,
             LogFileStreamFactory::class,
+            LogCursorCodec::class,
+            LogEntriesMerger::class,
+            LogLevelKeys::class,
+            LogIndexBatchRefresher::class,
+            FindLogFilesAction::class,
+            FindLogEntriesAction::class,
+            StreamLogFileAction::class,
             // actions
             CreateLogAction::class,
             FindLogErrorStatAction::class,

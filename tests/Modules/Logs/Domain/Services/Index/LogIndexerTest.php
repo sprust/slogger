@@ -6,6 +6,7 @@ use App\Modules\Logs\Domain\Exceptions\LogFileNotFoundException;
 use App\Modules\Logs\Domain\Services\Index\LogIndexer;
 use App\Modules\Logs\Entities\File\LogFileObject;
 use App\Modules\Logs\Entities\Index\LogIndexRecordObject;
+use App\Modules\Logs\Entities\Index\LogLevelCountObject;
 use App\Modules\Logs\Enums\HttpStatusClassEnum;
 use App\Modules\Logs\Enums\LaravelLogLevelEnum;
 use App\Modules\Logs\Enums\LogTypeEnum;
@@ -47,11 +48,11 @@ class LogIndexerTest extends TestCase
         $this->assertSame($file->sizeBytes, $meta->indexedBytes);
         $this->assertTrue($meta->lastEntryOpen);
         $this->assertSame(3, $meta->entriesCount);
-        $this->assertSame(
+        $this->assertEquals(
             [
-                LaravelLogLevelEnum::Debug->value => 1,
-                LaravelLogLevelEnum::Info->value  => 1,
-                LaravelLogLevelEnum::Error->value => 1,
+                new LogLevelCountObject(level: LaravelLogLevelEnum::Debug->value, count: 1),
+                new LogLevelCountObject(level: LaravelLogLevelEnum::Info->value, count: 1),
+                new LogLevelCountObject(level: LaravelLogLevelEnum::Error->value, count: 1),
             ],
             $meta->levelCounts
         );
@@ -110,7 +111,7 @@ class LogIndexerTest extends TestCase
         $meta = $this->indexer()->ensureFresh($file);
 
         $this->assertSame(1, $meta->entriesCount);
-        $this->assertSame([LaravelLogLevelEnum::Debug->value => 1], $meta->levelCounts);
+        $this->assertEquals([new LogLevelCountObject(level: LaravelLogLevelEnum::Debug->value, count: 1)], $meta->levelCounts);
         $this->assertSame([self::DEBUG_ENTRY], $this->readEntries($file));
         $this->assertLevelFilesMatch($file);
     }
@@ -231,8 +232,12 @@ class LogIndexerTest extends TestCase
 
         $this->assertSame([$first, "broken\n", $third], $this->readEntries($file));
         $this->assertSame([gmmktime(10, 0, 0, 9, 25, 2026), gmmktime(10, 0, 0, 9, 25, 2026)], [$records[0]->loggedAt, $records[1]->loggedAt]);
-        $this->assertSame(
-            [0 => 1, HttpStatusClassEnum::Success->value => 1, HttpStatusClassEnum::ServerError->value => 1],
+        $this->assertEquals(
+            [
+                new LogLevelCountObject(level: 0, count: 1),
+                new LogLevelCountObject(level: HttpStatusClassEnum::Success->value, count: 1),
+                new LogLevelCountObject(level: HttpStatusClassEnum::ServerError->value, count: 1),
+            ],
             $meta->levelCounts
         );
     }
@@ -319,7 +324,7 @@ class LogIndexerTest extends TestCase
 
         $this->assertNotNull($actual);
         $this->assertSame($expected->entriesCount, $actual->entriesCount);
-        $this->assertSame($expected->levelCounts, $actual->levelCounts);
+        $this->assertEquals($expected->levelCounts, $actual->levelCounts);
         $this->assertSame($expected->indexedBytes, $actual->indexedBytes);
         $this->assertEquals($this->readRecords($copy), $this->readRecords($file));
     }

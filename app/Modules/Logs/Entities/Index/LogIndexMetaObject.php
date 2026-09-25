@@ -9,7 +9,7 @@ use App\Modules\Logs\Enums\LogTypeEnum;
 readonly class LogIndexMetaObject
 {
     /**
-     * @param array<int, int> $levelCounts
+     * @param list<LogLevelCountObject> $levelCounts
      */
     public function __construct(
         public int $version,

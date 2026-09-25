@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Logs\Domain\Services\Reading;
 
+use App\Modules\Logs\Entities\Entry\LogEntryTextObject;
+use App\Modules\Logs\Entities\Entry\LogTextRangeObject;
 use App\Modules\Logs\Entities\Index\LogIndexRecordObject;
 use App\Modules\Logs\Repositories\LogFileRepository;
 use SConcur\WaitGroup;
@@ -22,48 +24,29 @@ readonly class LogTextReader
     /**
      * @param list<LogIndexRecordObject> $records
      *
-     * @return array<int, string>
+     * @return list<LogEntryTextObject>
      */
     public function read(string $path, array $records, int $maxEntryBytes): array
     {
-        if ($records === []) {
+        if (count($records) === 0) {
             return [];
         }
 
         $ranges = $this->makeRanges($records, $maxEntryBytes);
 
-        if (count($ranges) === 1) {
-            $chunks = [
-                $this->logFileRepository->read($path, $ranges[0]['offset'], $ranges[0]['length']),
-            ];
-        } else {
-            $waitGroup = WaitGroup::create(self::CONCURRENCY);
-
-            $keys = [];
-
-            foreach ($ranges as $range) {
-                $keys[] = $waitGroup->add(
-                    fn(): string => $this->logFileRepository->read($path, $range['offset'], $range['length'])
-                );
-            }
-
-            $results = $waitGroup->waitResults();
-
-            $chunks = [];
-
-            foreach ($keys as $key) {
-                $chunks[] = (string) $results[$key];
-            }
-        }
+        $chunks = $this->readRanges($path, $ranges);
 
         $texts = [];
 
         foreach ($ranges as $index => $range) {
-            foreach ($range['records'] as $record) {
-                $texts[$record->entryNo] = substr(
-                    $chunks[$index],
-                    $record->offset - $range['offset'],
-                    min($record->length, $maxEntryBytes)
+            foreach ($range->records as $record) {
+                $texts[] = new LogEntryTextObject(
+                    entryNo: $record->entryNo,
+                    text: substr(
+                        $chunks[$index],
+                        $record->offset - $range->offset,
+                        min($record->length, $maxEntryBytes)
+                    )
                 );
             }
         }
@@ -72,9 +55,43 @@ readonly class LogTextReader
     }
 
     /**
+     * @param list<LogTextRangeObject> $ranges
+     *
+     * @return list<string>
+     */
+    private function readRanges(string $path, array $ranges): array
+    {
+        if (count($ranges) === 1) {
+            return [
+                $this->logFileRepository->read($path, $ranges[0]->offset, $ranges[0]->length),
+            ];
+        }
+
+        $waitGroup = WaitGroup::create(self::CONCURRENCY);
+
+        $keys = [];
+
+        foreach ($ranges as $range) {
+            $keys[] = $waitGroup->add(
+                fn(): string => $this->logFileRepository->read($path, $range->offset, $range->length)
+            );
+        }
+
+        $results = $waitGroup->waitResults();
+
+        $chunks = [];
+
+        foreach ($keys as $key) {
+            $chunks[] = (string) $results[$key];
+        }
+
+        return $chunks;
+    }
+
+    /**
      * @param list<LogIndexRecordObject> $records
      *
-     * @return list<array{offset: int, length: int, records: list<LogIndexRecordObject>}>
+     * @return list<LogTextRangeObject>
      */
     private function makeRanges(array $records, int $maxEntryBytes): array
     {
@@ -83,37 +100,41 @@ readonly class LogTextReader
             static fn(LogIndexRecordObject $left, LogIndexRecordObject $right): int => $left->offset <=> $right->offset
         );
 
-        $ranges  = [];
-        $current = null;
+        $ranges = [];
+
+        $rangeOffset  = $records[0]->offset;
+        $rangeEnd     = $rangeOffset;
+        $rangeRecords = [];
 
         foreach ($records as $record) {
             $end = $record->offset + min($record->length, $maxEntryBytes);
 
-            if (
-                $current !== null
-                && $record->offset - ($current['offset'] + $current['length']) <= self::MAX_GAP_BYTES
-                && $end - $current['offset'] <= self::MAX_RANGE_BYTES
-            ) {
-                $current['length']    = max($current['length'], $end - $current['offset']);
-                $current['records'][] = $record;
+            $fits = count($rangeRecords) > 0
+                && $record->offset - $rangeEnd <= self::MAX_GAP_BYTES
+                && $end - $rangeOffset <= self::MAX_RANGE_BYTES;
 
-                continue;
+            if (count($rangeRecords) > 0 && !$fits) {
+                $ranges[] = new LogTextRangeObject(
+                    offset: $rangeOffset,
+                    length: $rangeEnd - $rangeOffset,
+                    records: $rangeRecords
+                );
+
+                $rangeOffset  = $record->offset;
+                $rangeEnd     = $record->offset;
+                $rangeRecords = [];
             }
 
-            if ($current !== null) {
-                $ranges[] = $current;
-            }
+            $rangeRecords[] = $record;
 
-            $current = [
-                'offset'  => $record->offset,
-                'length'  => $end - $record->offset,
-                'records' => [$record],
-            ];
+            $rangeEnd = max($rangeEnd, $end);
         }
 
-        if ($current !== null) {
-            $ranges[] = $current;
-        }
+        $ranges[] = new LogTextRangeObject(
+            offset: $rangeOffset,
+            length: $rangeEnd - $rangeOffset,
+            records: $rangeRecords
+        );
 
         return $ranges;
     }

@@ -194,6 +194,15 @@ export enum WatchersIncidentsListParamsStatusEnum {
   Closed = "closed",
 }
 
+/**
+ * @minLength 1
+ * @maxLength 16
+ */
+export enum DirectionEnum {
+  Older = "older",
+  Newer = "newer",
+}
+
 export namespace AdminApi {
   /**
  * No description
@@ -4132,6 +4141,169 @@ export namespace AdminApi {
         };
       };
     };
+  }
+
+  /**
+ * No description
+ * @name LogsEntriesCreate
+ * @request POST:/admin-api/logs/entries
+ * @secure
+ * @response `200` `{
+    data: {
+    items: ({
+    file_id: string,
+    type: string,
+    entry_no: number,
+    logged_at: string,
+    level: string,
+    message: string,
+    context?: string | null,
+    fields: ({
+    key: string,
+    value?: string | null,
+
+})[],
+    text: string,
+    truncated: boolean,
+
+})[],
+    level_counts: ({
+    key: string,
+    count: number,
+
+})[],
+    total: number,
+    scanned: number,
+    indexing: boolean,
+    indexed_bytes: number,
+    total_bytes: number,
+    restarted_files: (string)[],
+    missing_files: (string)[],
+    older_cursor?: string | null,
+    newer_cursor?: string | null,
+
+},
+
+}` description
+*/
+  export namespace LogsEntriesCreate {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = {
+      files?: string[];
+      levels?: string[];
+      /** @format date */
+      from?: string | null;
+      /** @format date */
+      to?: string | null;
+      /**
+       * @minLength 1
+       * @maxLength 255
+       */
+      search_query?: string | null;
+      /**
+       * @minLength 1
+       * @maxLength 65535
+       */
+      cursor?: string | null;
+      /**
+       * @minLength 1
+       * @maxLength 16
+       */
+      direction?: DirectionEnum | null;
+      /**
+       * @min 1
+       * @max 500
+       */
+      per_page?: number | null;
+    };
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        items: {
+          file_id: string;
+          type: string;
+          entry_no: number;
+          logged_at: string;
+          level: string;
+          message: string;
+          context?: string | null;
+          fields: {
+            key: string;
+            value?: string | null;
+          }[];
+          text: string;
+          truncated: boolean;
+        }[];
+        level_counts: {
+          key: string;
+          count: number;
+        }[];
+        total: number;
+        scanned: number;
+        indexing: boolean;
+        indexed_bytes: number;
+        total_bytes: number;
+        restarted_files: string[];
+        missing_files: string[];
+        older_cursor?: string | null;
+        newer_cursor?: string | null;
+      };
+    };
+  }
+
+  /**
+ * No description
+ * @name LogsFilesList
+ * @request GET:/admin-api/logs/files
+ * @secure
+ * @response `200` `{
+    data: ({
+    id: string,
+    name: string,
+    source: string,
+    folder: string,
+    type: string,
+    size_bytes: number,
+    modified_at: string,
+
+})[],
+
+}` description
+*/
+  export namespace LogsFilesList {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        id: string;
+        name: string;
+        source: string;
+        folder: string;
+        type: string;
+        size_bytes: number;
+        modified_at: string;
+      }[];
+    };
+  }
+
+  /**
+   * No description
+   * @name LogsFilesDownloadList
+   * @request GET:/admin-api/logs/files/{id}/download
+   * @secure
+   * @response `200` `any` description
+   */
+  export namespace LogsFilesDownloadList {
+    export type RequestParams = {
+      id: any;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = any;
   }
 }
 
@@ -8809,6 +8981,184 @@ export class Api<
         path: `/admin-api/logs`,
         method: "GET",
         query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name LogsEntriesCreate
+ * @request POST:/admin-api/logs/entries
+ * @secure
+ * @response `200` `{
+    data: {
+    items: ({
+    file_id: string,
+    type: string,
+    entry_no: number,
+    logged_at: string,
+    level: string,
+    message: string,
+    context?: string | null,
+    fields: ({
+    key: string,
+    value?: string | null,
+
+})[],
+    text: string,
+    truncated: boolean,
+
+})[],
+    level_counts: ({
+    key: string,
+    count: number,
+
+})[],
+    total: number,
+    scanned: number,
+    indexing: boolean,
+    indexed_bytes: number,
+    total_bytes: number,
+    restarted_files: (string)[],
+    missing_files: (string)[],
+    older_cursor?: string | null,
+    newer_cursor?: string | null,
+
+},
+
+}` description
+ */
+    logsEntriesCreate: (
+      data: {
+        files?: string[];
+        levels?: string[];
+        /** @format date */
+        from?: string | null;
+        /** @format date */
+        to?: string | null;
+        /**
+         * @minLength 1
+         * @maxLength 255
+         */
+        search_query?: string | null;
+        /**
+         * @minLength 1
+         * @maxLength 65535
+         */
+        cursor?: string | null;
+        /**
+         * @minLength 1
+         * @maxLength 16
+         */
+        direction?: DirectionEnum | null;
+        /**
+         * @min 1
+         * @max 500
+         */
+        per_page?: number | null;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          data: {
+            items: {
+              file_id: string;
+              type: string;
+              entry_no: number;
+              logged_at: string;
+              level: string;
+              message: string;
+              context?: string | null;
+              fields: {
+                key: string;
+                value?: string | null;
+              }[];
+              text: string;
+              truncated: boolean;
+            }[];
+            level_counts: {
+              key: string;
+              count: number;
+            }[];
+            total: number;
+            scanned: number;
+            indexing: boolean;
+            indexed_bytes: number;
+            total_bytes: number;
+            restarted_files: string[];
+            missing_files: string[];
+            older_cursor?: string | null;
+            newer_cursor?: string | null;
+          };
+        },
+        any
+      >({
+        path: `/admin-api/logs/entries`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name LogsFilesList
+ * @request GET:/admin-api/logs/files
+ * @secure
+ * @response `200` `{
+    data: ({
+    id: string,
+    name: string,
+    source: string,
+    folder: string,
+    type: string,
+    size_bytes: number,
+    modified_at: string,
+
+})[],
+
+}` description
+ */
+    logsFilesList: (params: RequestParams = {}) =>
+      this.request<
+        {
+          data: {
+            id: string;
+            name: string;
+            source: string;
+            folder: string;
+            type: string;
+            size_bytes: number;
+            modified_at: string;
+          }[];
+        },
+        any
+      >({
+        path: `/admin-api/logs/files`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @name LogsFilesDownloadList
+     * @request GET:/admin-api/logs/files/{id}/download
+     * @secure
+     * @response `200` `any` description
+     */
+    logsFilesDownloadList: (id: any, params: RequestParams = {}) =>
+      this.request<any, any>({
+        path: `/admin-api/logs/files/${id}/download`,
+        method: "GET",
         secure: true,
         format: "json",
         ...params,

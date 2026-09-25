@@ -284,7 +284,9 @@ nginx-логи на проде могут лежать вне `base_path()`.
 
 У каждого типа свои уровни, поэтому фильтр — список ключей `<type>.<level>`:
 `laravel.ERROR`, `nginx_access.5xx`, `nginx_error.crit`. Файл берёт из фильтра только
-ключи своего типа. Если для его типа ключей нет, он не фильтруется по уровню.
+ключи своего типа. Если фильтр задан, а для типа файла в нём ключей нет, файл ничего не
+отдаёт: выбранные уровни — это ровно то, что показывается. Пустой список — фильтра нет.
+Уровень 0 (запись без уровня) — ключ `<type>.none`.
 
 ### Индексация перед многофайловым запросом
 
@@ -295,6 +297,32 @@ nginx-логи на проде могут лежать вне `base_path()`.
   обычно дописывает несколько килобайт.
 - Если индексация в запросе не уложилась в бюджет, ответ приходит без записей, с
   `indexing: true` и прогрессом. Фронт повторяет запрос.
+
+### Как сделано (шаг 4)
+
+- `LogEntriesMerger` — k-way merge по `LogMergeSlot` (поток + отложенные совпадения).
+  На каждом шаге головы слотов (`LogMergeHeadObject`: отложенное совпадение или время
+  следующей непросмотренной записи) сортируются; если первая — совпадение, оно уходит в
+  страницу, иначе продвигаются все потоки, чьи головы идут раньше первого совпадения (не
+  больше `search.concurrency`, параллельно в `WaitGroup`). Бюджет проверяется только после
+  первого продвижения, так что запрос всегда двигает курсор.
+- При равном времени порядок — по порядку файлов в запросе; в направлении `newer` обратный,
+  чтобы после разворота страница совпадала со страницей `older`.
+- Курсор: `older_cursor` и `newer_cursor` в каждом ответе. Для страницы `older` курсор
+  `newer` — стартовые позиции + 1 (для первой страницы — текущий конец файлов: «Новее»
+  покажет дописанное после). Файл без позиции в курсоре начинает с начала своего
+  направления.
+- Смена файла под курсором определяется по голове: у позиции курсора хранится
+  `headLength` и `headHash` индекса; при другом `headLength` голова перечитывается.
+- `search.block_records` (1000) — сколько записей файла поиск читает между проверками
+  бюджета.
+- Структуры — объектами, без массивов со смыслом в ключах: `LogLevelCountObject`,
+  `LogLevelNameObject`, `LogEntryFieldObject`, `LogFilePositionObject`,
+  `LogFileIndexObject`, `LogFileStartObject`, `LogTextRangeObject`, `LogEntryTextObject`;
+  контекст записи — строка JSON; счётчики уровней в индексаторе — `LogLevelCounter`.
+- Тесты: `config()->set()` в тесте после загрузки приложения пишется в overlay корневого
+  контекста SConcur (`AsyncConfig`) и доживал до следующих тестов процесса.
+  `Tests\TestCase::tearDown()` теперь его сбрасывает.
 
 ## Бэкенд
 
@@ -347,16 +375,21 @@ nginx-логи на проде могут лежать вне `base_path()`.
 - `GET /admin-api/logs/files` → `LogFileController@index`: `id`, `name`, `folder`, `type`,
   `size_bytes`, `modified_at`.
 - `GET /admin-api/logs/files/{id}/download` → `LogFileController@download`.
-- `GET /admin-api/logs` → `LogController@index`:
+- `POST /admin-api/logs/entries` → `LogEntryController@index` (сделано так вместо
+  `GET /admin-api/logs`: 200 `id` по 40 символов и курсор с позицией на каждый файл не
+  помещаются в строку запроса — лимит заголовков nginx; старый `GET /admin-api/logs`
+  живёт до удаления Mongo-логов):
   - запрос: `files[]` (id, от 1 до `search.max_files`), `levels[]` (`<type>.<level>`),
     `from`, `to`, `search_query` (`min:1`, `max:255`), `cursor`, `direction`,
     `per_page`;
   - ответ: `items[]` (`file_id`, `type`, `entry_no`, `logged_at`, `level`, `message`,
     `text`, `context`, `fields`), `level_counts` (по ключам `<type>.<level>`), `total`,
-    `scanned`, `indexing`, `restarted`, `next_cursor`,
-    `prev_cursor`.
+    `scanned`, `indexing`, `indexed_bytes`, `total_bytes`, `restarted_files`,
+    `missing_files`, `older_cursor`, `newer_cursor`.
 
-Неизвестный `id` → 404. Путь из запроса не принимается: `id` ищется только среди файлов
+Неизвестный `id` в `files[]` не ошибка: файл мог уйти с ротацией между списком и
+запросом, он возвращается в `missing_files`, остальные читаются. Для скачивания
+неизвестный `id` → 404. Путь из запроса не принимается: `id` ищется только среди файлов
 источников, path traversal невозможен. После изменений — `make oa-generate`.
 
 ### Что удаляется
@@ -427,7 +460,7 @@ nginx-логи на проде могут лежать вне `base_path()`.
 1. Мьютекс в `Common`, тесты. Сделано.
 2. Форматы, индекс, индексатор, тесты. Сделано.
 3. Чтение одного файла, поиск. Сделано.
-4. Несколько файлов: потоки, merge, курсор, бюджет. Actions, HTTP, `make oa-generate`.
+4. Несколько файлов: потоки, merge, курсор, бюджет. Actions, HTTP, `make oa-generate`. Сделано.
 5. `FindLogErrorStatAction` на индексах.
 6. `logs:index` (раз в минуту), `logs:clean` (раз в сутки).
 7. nginx: compose, шаблон, entrypoint-скрипт.

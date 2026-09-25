@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Modules\Logs\Domain\Services\Formats;
 
 use App\Modules\Logs\Entities\Entry\LogEntryDetailsObject;
+use App\Modules\Logs\Entities\Entry\LogEntryFieldObject;
+use App\Modules\Logs\Entities\Formats\LogLevelNameObject;
 use App\Modules\Logs\Enums\HttpStatusClassEnum;
 
 readonly class NginxAccessLogFormat extends AbstractLineLogFormat
@@ -27,15 +29,15 @@ readonly class NginxAccessLogFormat extends AbstractLineLogFormat
             message: $match[3],
             context: null,
             fields: [
-                'ip'         => $match[1],
-                'user'       => $this->nullIfDash($match[2]),
-                'method'     => count($request) === 3 ? $request[0] : null,
-                'path'       => count($request) === 3 ? $request[1] : null,
-                'protocol'   => count($request) === 3 ? $request[2] : null,
-                'status'     => $match[4],
-                'bytes'      => $this->nullIfDash($match[5]),
-                'referer'    => $this->nullIfDash($match[6] ?? '-'),
-                'user_agent' => $this->nullIfDash($match[7] ?? '-'),
+                new LogEntryFieldObject(key: 'ip', value: $match[1]),
+                new LogEntryFieldObject(key: 'user', value: $this->nullIfDash($match[2])),
+                new LogEntryFieldObject(key: 'method', value: count($request) === 3 ? $request[0] : null),
+                new LogEntryFieldObject(key: 'path', value: count($request) === 3 ? $request[1] : null),
+                new LogEntryFieldObject(key: 'protocol', value: count($request) === 3 ? $request[2] : null),
+                new LogEntryFieldObject(key: 'status', value: $match[4]),
+                new LogEntryFieldObject(key: 'bytes', value: $this->nullIfDash($match[5])),
+                new LogEntryFieldObject(key: 'referer', value: $this->nullIfDash($match[6] ?? '-')),
+                new LogEntryFieldObject(key: 'user_agent', value: $this->nullIfDash($match[7] ?? '-')),
             ]
         );
     }
@@ -45,7 +47,7 @@ readonly class NginxAccessLogFormat extends AbstractLineLogFormat
         $names = [];
 
         foreach (HttpStatusClassEnum::cases() as $case) {
-            $names[$case->value] = sprintf('%dxx', $case->value);
+            $names[] = new LogLevelNameObject(level: $case->value, name: sprintf('%dxx', $case->value));
         }
 
         return $names;
