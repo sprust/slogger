@@ -57,7 +57,7 @@
           class="logs-filters-level"
           @change="toggleLevel(level.key)"
       >
-        {{ levelKeyName(level.key) }} {{ level.count }}
+        {{ levelKeyName(level.key) }} ({{ level.count }})
       </el-check-tag>
     </div>
   </div>
