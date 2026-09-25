@@ -6,10 +6,12 @@ namespace App\Modules\Logs\Infrastructure;
 
 use App\Modules\Cleaner\Infrastructure\Commands\ClearTracesCommand;
 use App\Modules\Common\Infrastructure\BaseServiceProvider;
+use App\Modules\Logs\Domain\Actions\CleanLogsAction;
 use App\Modules\Logs\Domain\Actions\CreateLogAction;
 use App\Modules\Logs\Domain\Actions\FindLogEntriesAction;
 use App\Modules\Logs\Domain\Actions\FindLogErrorStatAction;
 use App\Modules\Logs\Domain\Actions\FindLogFilesAction;
+use App\Modules\Logs\Domain\Actions\IndexLogsAction;
 use App\Modules\Logs\Domain\Actions\PaginateLogsAction;
 use App\Modules\Logs\Domain\Actions\StreamLogFileAction;
 use App\Modules\Logs\Domain\Services\Files\LogFileFinder;
@@ -26,6 +28,8 @@ use App\Modules\Logs\Domain\Services\Reading\LogEntriesMerger;
 use App\Modules\Logs\Domain\Services\Reading\LogFileStreamFactory;
 use App\Modules\Logs\Domain\Services\Reading\LogIndexSearch;
 use App\Modules\Logs\Domain\Services\Reading\LogTextReader;
+use App\Modules\Logs\Infrastructure\Commands\CleanLogsCommand;
+use App\Modules\Logs\Infrastructure\Commands\IndexLogsCommand;
 use App\Modules\Logs\Repositories\LogFileRepository;
 use App\Modules\Logs\Repositories\LogIndexRepository;
 use App\Modules\Logs\Repositories\LogRepository;
@@ -38,6 +42,8 @@ class LogsServiceProvider extends BaseServiceProvider
 
         $this->commands([
             ClearTracesCommand::class,
+            IndexLogsCommand::class,
+            CleanLogsCommand::class,
         ]);
     }
 
@@ -66,6 +72,8 @@ class LogsServiceProvider extends BaseServiceProvider
             FindLogFilesAction::class,
             FindLogEntriesAction::class,
             StreamLogFileAction::class,
+            IndexLogsAction::class,
+            CleanLogsAction::class,
             // actions
             CreateLogAction::class,
             FindLogErrorStatAction::class,

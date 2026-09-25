@@ -42,7 +42,8 @@ readonly class LogFileRepository
                 folder: $source->folder,
                 type: $source->type,
                 sizeBytes: $entry->sizeBytes ?? 0,
-                modifiedAtMs: $entry->modifiedAtMs ?? 0
+                modifiedAtMs: $entry->modifiedAtMs ?? 0,
+                keepDays: $source->keepDays
             );
         }
 
@@ -72,6 +73,11 @@ readonly class LogFileRepository
             lengthBytes: $length,
             maxReadBytes: 0
         );
+    }
+
+    public function delete(string $path): bool
+    {
+        return Files::delete(path: $path, missingOk: true);
     }
 
     /**

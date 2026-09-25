@@ -57,7 +57,8 @@ readonly class LogFileFinder
                 name: (string) $source['name'],
                 folder: rtrim((string) $source['folder'], '/'),
                 pattern: (string) $source['pattern'],
-                type: $type instanceof LogTypeEnum ? $type : LogTypeEnum::from((string) $type)
+                type: $type instanceof LogTypeEnum ? $type : LogTypeEnum::from((string) $type),
+                keepDays: isset($source['keep_days']) ? (int) $source['keep_days'] : null
             );
         }
 

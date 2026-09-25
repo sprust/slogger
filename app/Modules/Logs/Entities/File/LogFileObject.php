@@ -16,7 +16,8 @@ readonly class LogFileObject
         public string $folder,
         public LogTypeEnum $type,
         public int $sizeBytes,
-        public int $modifiedAtMs
+        public int $modifiedAtMs,
+        public ?int $keepDays = null
     ) {
     }
 }

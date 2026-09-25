@@ -155,6 +155,23 @@ nginx-логи на проде могут лежать вне `base_path()`.
 Каталог индекса удаляется под тем же мьютексом `LogIndexMutex`, что и индексация,
 чтобы не удалить его посреди дозаписи.
 
+### Как сделано (шаг 6)
+
+- Срок хранения — не отдельный `nginx_days`, а ключ источника `keep_days` в
+  `config/module-logs.php` (`LOGS_NGINX_KEEP_DAYS`, 14 для access-логов nginx). У
+  источников Laravel его нет: файлы удаляет daily-канал Monolog по своему `days`.
+  `logs:clean` удаляет файлы источника, не менявшиеся дольше `keep_days`.
+- `logs:clean` (`CleanLogsCommand` → `CleanLogsAction`, `->daily()->withoutOverlapping()`)
+  сначала удаляет просроченные файлы, затем каталоги индексов, чьих файлов больше нет
+  среди источников (`LogIndexRepository::findFileIds()`), — так индекс удалённого файла
+  уходит в тот же проход. Индекс, чей мьютекс занят дольше секунды, остаётся до
+  следующего раза.
+- `logs:index` (`IndexLogsCommand` → `IndexLogsAction`, `->everyMinute()->withoutOverlapping()`)
+  дописывает индексы всех файлов всех источников без бюджета, параллельно по
+  `search.concurrency`. На живых логах: 19 файлов, 3.7 МБ.
+- Команды запускает `schedule:run` из `CronTask` пула задач; Laravel выполняет
+  `command()` отдельным процессом `php artisan`, вне корутин.
+
 ## Мьютекс
 
 Сделан первым шагом. Основа — реализация из другого проекта пользователя, перенесённая в
@@ -473,7 +490,7 @@ nginx-логи на проде могут лежать вне `base_path()`.
 3. Чтение одного файла, поиск. Сделано.
 4. Несколько файлов: потоки, merge, курсор, бюджет. Actions, HTTP, `make oa-generate`. Сделано.
 5. `FindLogErrorStatAction` на индексах. Сделано.
-6. `logs:index` (раз в минуту), `logs:clean` (раз в сутки).
+6. `logs:index` (раз в минуту), `logs:clean` (раз в сутки). Сделано.
 7. nginx: compose, шаблон, entrypoint-скрипт.
 8. Удаление Mongo-логов, миграция.
 9. Фронт, `make frontend-npm-build`.

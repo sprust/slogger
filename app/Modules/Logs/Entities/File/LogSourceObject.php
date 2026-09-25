@@ -12,7 +12,8 @@ readonly class LogSourceObject
         public string $name,
         public string $folder,
         public string $pattern,
-        public LogTypeEnum $type
+        public LogTypeEnum $type,
+        public ?int $keepDays
     ) {
     }
 }

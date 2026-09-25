@@ -214,6 +214,26 @@ readonly class LogIndexRepository
         Files::truncate(path: $path, sizeBytes: $count * self::RECORD_BYTES);
     }
 
+    /**
+     * @return list<string>
+     */
+    public function findFileIds(): array
+    {
+        if (!Files::exists(path: $this->indexPath)) {
+            return [];
+        }
+
+        $fileIds = [];
+
+        foreach (Files::list(path: $this->indexPath) as $entry) {
+            if ($entry->isDirectory) {
+                $fileIds[] = $entry->name;
+            }
+        }
+
+        return $fileIds;
+    }
+
     public function delete(string $fileId): void
     {
         Files::removeDirectory(

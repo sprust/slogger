@@ -18,6 +18,9 @@ return [
     //           LogTypeEnum::NginxError  — nginx error_log, one line per entry,
     //                                      levels debug…emerg.
     //           A line a format cannot read is still an entry, without a level.
+    // keep_days — optional: logs:clean, once a day, deletes the source's files not written
+    //           to for longer than this. Leave it out where something else rotates the
+    //           files — Laravel's daily channel keeps its own `days`.
     'sources' => [
         [
             'name'    => 'Laravel',
@@ -37,8 +40,9 @@ return [
         [
             'name'    => 'Nginx',
             'folder'  => env('LOGS_NGINX_PATH', storage_path('logs/nginx')),
-            'pattern' => 'access*.log',
-            'type'    => LogTypeEnum::NginxAccess,
+            'pattern'   => 'access*.log',
+            'type'      => LogTypeEnum::NginxAccess,
+            'keep_days' => (int) env('LOGS_NGINX_KEEP_DAYS', 14),
         ],
         [
             'name'    => 'Nginx',
