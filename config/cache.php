@@ -17,6 +17,8 @@ return [
 
     'default' => env('CACHE_DRIVER', 'file'),
 
+    'mutex_store' => env('MUTEX_CACHE_STORE', 'sconcur_redis'),
+
     /*
     |--------------------------------------------------------------------------
     | Cache Stores
