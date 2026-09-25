@@ -27,22 +27,11 @@
 
 <script lang="ts">
 import {defineComponent} from 'vue'
-import {LocationQueryValue} from 'vue-router'
 import {DirectionEnum} from "../../../api-schema/admin-api-schema.ts";
 import {useLogsViewerStore} from "./store/logsViewerStore.ts";
 import LogsFiles from "./components/LogsFiles.vue";
 import LogsFilters from "./components/LogsFilters.vue";
 import LogsTable from "./components/LogsTable.vue";
-
-function queryList(value: LocationQueryValue | LocationQueryValue[] | undefined): Array<string> {
-  const values = Array.isArray(value) ? value : [value]
-
-  return values.filter((item): item is string => typeof item === 'string' && item !== '')
-}
-
-function queryString(value: LocationQueryValue | LocationQueryValue[] | undefined): string | null {
-  return queryList(value)[0] ?? null
-}
 
 export default defineComponent({
   name: 'LogsViewer',
@@ -59,47 +48,7 @@ export default defineComponent({
   },
 
   methods: {
-    // The choice lives in the address, so a link opens the same view.
-    readQuery(): boolean {
-      const query = this.$route.query
-
-      const fileIds = queryList(query.files)
-
-      if (!fileIds.length) {
-        return false
-      }
-
-      this.store.selectedFileIds = fileIds
-      this.store.levels = queryList(query.levels)
-      this.store.from = queryString(query.from)
-      this.store.to = queryString(query.to)
-      this.store.searchQuery = queryString(query.q) ?? ''
-
-      return true
-    },
-    writeQuery() {
-      const query: Record<string, string | Array<string>> = {
-        files: this.store.selectedFileIds,
-        levels: this.store.levels,
-      }
-
-      if (this.store.from) {
-        query.from = this.store.from
-      }
-
-      if (this.store.to) {
-        query.to = this.store.to
-      }
-
-      if (this.store.isSearch) {
-        query.q = this.store.searchQuery.trim()
-      }
-
-      this.$router.replace({query: query})
-    },
     onSearch() {
-      this.writeQuery()
-
       this.store.findEntries()
     },
     async onRefresh() {
@@ -110,11 +59,9 @@ export default defineComponent({
   },
 
   async mounted() {
-    const fromQuery = this.readQuery()
-
     await this.store.findFiles()
 
-    if (!fromQuery && !this.store.selectedFileIds.length) {
+    if (!this.store.selectedFileIds.length) {
       this.store.selectDefaultFile()
     }
 
