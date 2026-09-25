@@ -13,6 +13,7 @@ export type NoNewTracesEvent = AdminApi.WatchersIncidentsEventsNoNewTracesList.R
 export type ManyTracesEvent = AdminApi.WatchersIncidentsEventsManyTracesList.ResponseBody['data'][number];
 export type SlowTracesEvent = AdminApi.WatchersIncidentsEventsSlowTracesList.ResponseBody['data'][number];
 export type LogErrorsEvent = AdminApi.WatchersIncidentsEventsLogErrorsList.ResponseBody['data'][number];
+export type ReceiverErrorsEvent = AdminApi.WatchersIncidentsEventsReceiverErrorsList.ResponseBody['data'][number];
 
 /**
  * One event of whichever watcher an incident belongs to.
@@ -27,7 +28,8 @@ export type WatcherIncidentEvent =
     | NoNewTracesEvent
     | ManyTracesEvent
     | SlowTracesEvent
-    | LogErrorsEvent;
+    | LogErrorsEvent
+    | ReceiverErrorsEvent;
 
 export type WatcherIncidentEventGroup = NonNullable<SlowTracesEvent['payload']>['groups'][number];
 
@@ -50,6 +52,7 @@ const eventEndpoints: Record<
     manyTraces: (id, query) => ApiContainer.get().watchersIncidentsEventsManyTracesList(id, query),
     slowTraces: (id, query) => ApiContainer.get().watchersIncidentsEventsSlowTracesList(id, query),
     logErrors: (id, query) => ApiContainer.get().watchersIncidentsEventsLogErrorsList(id, query),
+    receiverErrors: (id, query) => ApiContainer.get().watchersIncidentsEventsReceiverErrorsList(id, query),
 }
 
 const perPage = 50

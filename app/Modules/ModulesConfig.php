@@ -7,6 +7,7 @@ namespace App\Modules;
 use App\Modules\Auth\Infrastructure\AuthServiceProvider;
 use App\Modules\Cleaner\Infrastructure\CleanerServiceProvider;
 use App\Modules\Common\Infrastructure\BaseServiceProvider;
+use App\Modules\Common\Infrastructure\CommonServiceProvider;
 use App\Modules\Dashboard\Infrastructure\DashboardProvider;
 use App\Modules\Logs\Infrastructure\LogsServiceProvider;
 use App\Modules\Notification\Infrastructure\NotificationServiceProvider;
@@ -23,6 +24,7 @@ class ModulesConfig
     public static function getProviders(): array
     {
         return [
+            CommonServiceProvider::class,
             ServiceServiceProvider::class,
             TraceServiceProvider::class,
             AuthServiceProvider::class,

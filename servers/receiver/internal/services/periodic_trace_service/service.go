@@ -11,6 +11,7 @@ import (
 	"slogger_receiver/internal/services/trace_sharding_service"
 	"slogger_receiver/internal/services/watcher_service"
 	"slogger_receiver/pkg/foundation/errs"
+	"strconv"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -340,7 +341,7 @@ func (s *Service) saveTraces(ctx context.Context, serviceId int, traceId string,
 		)
 	}
 
-	slog.Debug("saved trace: " + traceId + " for service: " + string(rune(serviceId)) + " to collection: " + coll.Name())
+	slog.Debug("saved trace: " + traceId + " for service: " + strconv.Itoa(serviceId) + " to collection: " + coll.Name())
 
 	return nil
 }

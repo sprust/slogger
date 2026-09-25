@@ -167,6 +167,7 @@ return [
                     'socketTimeoutMS'=> 1200000 // 20 minutes
                 ],
             ],
+            // TODO: Only the migrations of the old `logs` collection use it; remove after the release.
             'logs' => [
                 'host'     => env('MONGO_HOST'),
                 'port'     => env('MONGO_PORT'),

@@ -5216,6 +5216,123 @@
                 ]
             }
         },
+        "/admin-api/watchers/incidents/{id}/events/receiver-errors": {
+            "get": {
+                "parameters": [
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "schema": {}
+                    },
+                    {
+                        "name": "page",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 200
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "incident_id": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "occurred_at": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "payload": {
+                                                        "properties": {
+                                                            "settings": {
+                                                                "properties": {
+                                                                    "threshold": {
+                                                                        "type": "integer",
+                                                                        "nullable": false
+                                                                    }
+                                                                },
+                                                                "required": [
+                                                                    "threshold"
+                                                                ]
+                                                            },
+                                                            "measured": {
+                                                                "properties": {
+                                                                    "error_count": {
+                                                                        "type": "integer",
+                                                                        "nullable": false
+                                                                    },
+                                                                    "since": {
+                                                                        "type": "string",
+                                                                        "nullable": false
+                                                                    },
+                                                                    "last_message": {
+                                                                        "type": "string",
+                                                                        "nullable": false
+                                                                    }
+                                                                },
+                                                                "required": [
+                                                                    "error_count",
+                                                                    "since",
+                                                                    "last_message"
+                                                                ]
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "settings",
+                                                            "measured"
+                                                        ]
+                                                    }
+                                                },
+                                                "required": [
+                                                    "id",
+                                                    "incident_id",
+                                                    "occurred_at"
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/admin-api/watchers/buffer-overflow": {
             "post": {
                 "requestBody": {
@@ -7275,6 +7392,289 @@
                 ]
             }
         },
+        "/admin-api/watchers/receiver-errors": {
+            "post": {
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "maxLength": 255,
+                                        "minLength": 1
+                                    },
+                                    "enabled": {
+                                        "type": "boolean"
+                                    },
+                                    "cooldown_seconds": {
+                                        "type": "integer",
+                                        "minimum": 1,
+                                        "maximum": 86400
+                                    },
+                                    "notification_channel_id": {
+                                        "type": "integer",
+                                        "nullable": true
+                                    },
+                                    "notify_on_opened": {
+                                        "type": "boolean"
+                                    },
+                                    "notify_on_event": {
+                                        "type": "boolean"
+                                    },
+                                    "notify_on_closed": {
+                                        "type": "boolean"
+                                    },
+                                    "settings": {
+                                        "type": "object",
+                                        "properties": {
+                                            "threshold": {
+                                                "type": "integer",
+                                                "minimum": 1
+                                            }
+                                        }
+                                    }
+                                },
+                                "required": [
+                                    "name",
+                                    "enabled",
+                                    "cooldown_seconds",
+                                    "notify_on_opened",
+                                    "notify_on_event",
+                                    "notify_on_closed"
+                                ],
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "nullable": false
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "nullable": false
+                                                },
+                                                "type": {
+                                                    "type": "string",
+                                                    "nullable": false
+                                                },
+                                                "enabled": {
+                                                    "type": "boolean",
+                                                    "nullable": false
+                                                },
+                                                "cooldown_seconds": {
+                                                    "type": "integer",
+                                                    "nullable": false
+                                                },
+                                                "notification_channel_id": {
+                                                    "type": "integer",
+                                                    "nullable": true
+                                                },
+                                                "notify_on_opened": {
+                                                    "type": "boolean",
+                                                    "nullable": false
+                                                },
+                                                "notify_on_event": {
+                                                    "type": "boolean",
+                                                    "nullable": false
+                                                },
+                                                "notify_on_closed": {
+                                                    "type": "boolean",
+                                                    "nullable": false
+                                                },
+                                                "collect_since": {
+                                                    "type": "string",
+                                                    "nullable": true
+                                                },
+                                                "last_checked_at": {
+                                                    "type": "string",
+                                                    "nullable": true
+                                                },
+                                                "last_triggered_at": {
+                                                    "type": "string",
+                                                    "nullable": true
+                                                },
+                                                "created_at": {
+                                                    "type": "string",
+                                                    "nullable": false
+                                                },
+                                                "updated_at": {
+                                                    "type": "string",
+                                                    "nullable": false
+                                                }
+                                            },
+                                            "required": [
+                                                "id",
+                                                "name",
+                                                "type",
+                                                "enabled",
+                                                "cooldown_seconds",
+                                                "notify_on_opened",
+                                                "notify_on_event",
+                                                "notify_on_closed",
+                                                "created_at",
+                                                "updated_at"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/admin-api/watchers/receiver-errors/{id}": {
+            "get": {
+                "parameters": [
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "schema": {}
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "nullable": false
+                                                },
+                                                "threshold": {
+                                                    "type": "integer",
+                                                    "nullable": false
+                                                }
+                                            },
+                                            "required": [
+                                                "id",
+                                                "threshold"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "patch": {
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "maxLength": 255,
+                                        "minLength": 1
+                                    },
+                                    "enabled": {
+                                        "type": "boolean"
+                                    },
+                                    "cooldown_seconds": {
+                                        "type": "integer",
+                                        "minimum": 1,
+                                        "maximum": 86400
+                                    },
+                                    "notification_channel_id": {
+                                        "type": "integer",
+                                        "nullable": true
+                                    },
+                                    "notify_on_opened": {
+                                        "type": "boolean"
+                                    },
+                                    "notify_on_event": {
+                                        "type": "boolean"
+                                    },
+                                    "notify_on_closed": {
+                                        "type": "boolean"
+                                    },
+                                    "settings": {
+                                        "type": "object",
+                                        "properties": {
+                                            "threshold": {
+                                                "type": "integer",
+                                                "minimum": 1
+                                            }
+                                        }
+                                    }
+                                },
+                                "required": [
+                                    "name",
+                                    "enabled",
+                                    "cooldown_seconds",
+                                    "notify_on_opened",
+                                    "notify_on_event",
+                                    "notify_on_closed"
+                                ],
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "schema": {}
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "description",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/admin-api/watchers/{id}": {
             "delete": {
                 "parameters": [
@@ -8261,39 +8661,74 @@
                 ]
             }
         },
-        "/admin-api/logs": {
-            "get": {
-                "parameters": [
-                    {
-                        "name": "page",
-                        "required": true,
-                        "in": "query",
-                        "schema": {
-                            "type": "integer",
-                            "minimum": 1
-                        }
-                    },
-                    {
-                        "name": "search_query",
-                        "required": false,
-                        "in": "query",
-                        "schema": {
-                            "type": "string",
-                            "nullable": true,
-                            "maxLength": 255
-                        }
-                    },
-                    {
-                        "name": "level",
-                        "required": false,
-                        "in": "query",
-                        "schema": {
-                            "type": "string",
-                            "nullable": true,
-                            "maxLength": 255
+        "/admin-api/logs/entries": {
+            "post": {
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "files": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "maxLength": 40,
+                                            "minLength": 40
+                                        }
+                                    },
+                                    "levels": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "maxLength": 64,
+                                            "minLength": 3
+                                        }
+                                    },
+                                    "from": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "nullable": true
+                                    },
+                                    "to": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "nullable": true
+                                    },
+                                    "search_query": {
+                                        "type": "string",
+                                        "nullable": true,
+                                        "maxLength": 255,
+                                        "minLength": 1
+                                    },
+                                    "cursor": {
+                                        "type": "string",
+                                        "nullable": true,
+                                        "maxLength": 65535,
+                                        "minLength": 1
+                                    },
+                                    "direction": {
+                                        "type": "string",
+                                        "nullable": true,
+                                        "maxLength": 16,
+                                        "minLength": 1,
+                                        "enum": [
+                                            "older",
+                                            "newer"
+                                        ]
+                                    },
+                                    "per_page": {
+                                        "type": "integer",
+                                        "nullable": true,
+                                        "minimum": 1,
+                                        "maximum": 500
+                                    }
+                                },
+                                "type": "object"
+                            }
                         }
                     }
-                ],
+                },
                 "responses": {
                     "200": {
                         "description": "description",
@@ -8309,6 +8744,22 @@
                                                     "nullable": false,
                                                     "items": {
                                                         "properties": {
+                                                            "file_id": {
+                                                                "type": "string",
+                                                                "nullable": false
+                                                            },
+                                                            "type": {
+                                                                "type": "string",
+                                                                "nullable": false
+                                                            },
+                                                            "entry_no": {
+                                                                "type": "integer",
+                                                                "nullable": false
+                                                            },
+                                                            "logged_at": {
+                                                                "type": "string",
+                                                                "nullable": false
+                                                            },
                                                             "level": {
                                                                 "type": "string",
                                                                 "nullable": false
@@ -8319,56 +8770,122 @@
                                                             },
                                                             "context": {
                                                                 "type": "string",
-                                                                "nullable": false
+                                                                "nullable": true
                                                             },
-                                                            "channel": {
+                                                            "fields": {
+                                                                "type": "array",
+                                                                "nullable": false,
+                                                                "items": {
+                                                                    "properties": {
+                                                                        "key": {
+                                                                            "type": "string",
+                                                                            "nullable": false
+                                                                        },
+                                                                        "value": {
+                                                                            "type": "string",
+                                                                            "nullable": true
+                                                                        }
+                                                                    },
+                                                                    "required": [
+                                                                        "key"
+                                                                    ]
+                                                                }
+                                                            },
+                                                            "text": {
                                                                 "type": "string",
                                                                 "nullable": false
                                                             },
-                                                            "logged_at": {
-                                                                "type": "string",
+                                                            "truncated": {
+                                                                "type": "boolean",
                                                                 "nullable": false
                                                             }
                                                         },
                                                         "required": [
+                                                            "file_id",
+                                                            "type",
+                                                            "entry_no",
+                                                            "logged_at",
                                                             "level",
                                                             "message",
-                                                            "context",
-                                                            "channel",
-                                                            "logged_at"
+                                                            "fields",
+                                                            "text",
+                                                            "truncated"
                                                         ]
                                                     }
                                                 },
-                                                "paginator": {
-                                                    "properties": {
-                                                        "total": {
-                                                            "type": "integer",
-                                                            "nullable": false
+                                                "level_counts": {
+                                                    "type": "array",
+                                                    "nullable": false,
+                                                    "items": {
+                                                        "properties": {
+                                                            "key": {
+                                                                "type": "string",
+                                                                "nullable": false
+                                                            },
+                                                            "count": {
+                                                                "type": "integer",
+                                                                "nullable": false
+                                                            }
                                                         },
-                                                        "per_page": {
-                                                            "type": "integer",
-                                                            "nullable": false
-                                                        },
-                                                        "current_page": {
-                                                            "type": "integer",
-                                                            "nullable": false
-                                                        },
-                                                        "total_pages": {
-                                                            "type": "integer",
-                                                            "nullable": false
-                                                        }
-                                                    },
-                                                    "required": [
-                                                        "total",
-                                                        "per_page",
-                                                        "current_page",
-                                                        "total_pages"
-                                                    ]
+                                                        "required": [
+                                                            "key",
+                                                            "count"
+                                                        ]
+                                                    }
+                                                },
+                                                "total": {
+                                                    "type": "integer",
+                                                    "nullable": false
+                                                },
+                                                "scanned": {
+                                                    "type": "integer",
+                                                    "nullable": false
+                                                },
+                                                "indexing": {
+                                                    "type": "boolean",
+                                                    "nullable": false
+                                                },
+                                                "indexed_bytes": {
+                                                    "type": "integer",
+                                                    "nullable": false
+                                                },
+                                                "total_bytes": {
+                                                    "type": "integer",
+                                                    "nullable": false
+                                                },
+                                                "restarted_files": {
+                                                    "type": "array",
+                                                    "nullable": false,
+                                                    "items": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "missing_files": {
+                                                    "type": "array",
+                                                    "nullable": false,
+                                                    "items": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "older_cursor": {
+                                                    "type": "string",
+                                                    "nullable": true
+                                                },
+                                                "newer_cursor": {
+                                                    "type": "string",
+                                                    "nullable": true
                                                 }
                                             },
                                             "required": [
                                                 "items",
-                                                "paginator"
+                                                "level_counts",
+                                                "total",
+                                                "scanned",
+                                                "indexing",
+                                                "indexed_bytes",
+                                                "total_bytes",
+                                                "restarted_files",
+                                                "missing_files"
                                             ]
                                         }
                                     },
@@ -8378,6 +8895,130 @@
                                 }
                             }
                         }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/admin-api/logs/files": {
+            "get": {
+                "responses": {
+                    "200": {
+                        "description": "description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "name": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "source": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "folder": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "type": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "size_bytes": {
+                                                        "type": "integer",
+                                                        "nullable": false
+                                                    },
+                                                    "can_delete": {
+                                                        "type": "boolean",
+                                                        "nullable": false
+                                                    },
+                                                    "modified_at": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    }
+                                                },
+                                                "required": [
+                                                    "id",
+                                                    "name",
+                                                    "source",
+                                                    "folder",
+                                                    "type",
+                                                    "size_bytes",
+                                                    "can_delete",
+                                                    "modified_at"
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/admin-api/logs/files/{id}/download": {
+            "get": {
+                "parameters": [
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "schema": {}
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "description",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/admin-api/logs/files/{id}": {
+            "delete": {
+                "parameters": [
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "schema": {}
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "description"
                     }
                 },
                 "security": [

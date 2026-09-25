@@ -10,7 +10,7 @@ It collects data about code execution (HTTP requests, queues, events, commands, 
 
 ## Features
 
-- Trace collection from any application over a simple socket protocol (the source language/stack does not matter); SLogger's own application log is stored and browsable too.
+- Trace collection from any application over a simple socket protocol (the source language/stack does not matter); the log files of SLogger, its nginx and its receiver are browsable and searchable in the panel.
 - Call tree — a `parent → children` hierarchy with arbitrary nesting depth.
 - Joining requests across services/microservices into a single end-to-end tree (distributed tracing).
 - Flexible filtering by any field of the trace payload (`data`): numbers, strings, booleans, null and presence checks.
@@ -19,7 +19,7 @@ It collects data about code execution (HTTP requests, queues, events, commands, 
 - Trace metrics — how many new traces each service sent in every fifteen minutes of the last day, by when they were logged, taken into the buffer and written to storage.
 - Storage dashboard — collection sizes, memory and index usage.
 - Runtime dashboard — live stats of the SConcur HTTP server: worker pool, RPS, CPU, memory, in-flight requests.
-- Watchers — configurable rules that open an incident when the system misbehaves: a buffer growing, traces stopping, too many of them, traces running too long, errors in the application log; trace watchers can be narrowed by service, type, tag and status.
+- Watchers — configurable rules that open an incident when the system misbehaves: a buffer growing, traces stopping, too many of them, traces running too long, errors in the application or the receiver log; trace watchers can be narrowed by service, type, tag and status.
 - Notification channels — a watcher's incidents are sent on to Telegram, to Slack, or to an address of your own as JSON, with a delivery log per channel.
 - Automatic cleanup of stale data.
 
@@ -52,7 +52,7 @@ flowchart TB
 - [sconcur/laravel](https://github.com/sprust/sconcur-laravel) — a composer package that binds Laravel to SConcur: the coroutine-scoped application, the HTTP worker, and the `sconcur:*` artisan commands.
 - nginx — a reverse proxy in front of the HTTP workers and the only HTTP entry point to the backend (`APP_PORT`, 8097 by default); the workers container publishes no ports. The upstream host is resolved per request, so recreating the workers container does not require an nginx restart.
 - Receiver — a standalone Go service (`servers/receiver/`) that accepts trace payloads over a TCP socket and writes them into the buffer.
-- Storage — MongoDB (traces/logs), MySQL (users/services/auth), RabbitMQ (queues), Redis (cache). Reads and writes from the HTTP workers go through SConcur's non-blocking Mongo, MySQL and Redis drivers.
+- Storage — MongoDB (traces), MySQL (users/services/auth), RabbitMQ (queues), Redis (cache). Reads and writes from the HTTP workers go through SConcur's non-blocking Mongo, MySQL and Redis drivers.
 - Frontend — Vue 3 + Vite + TypeScript (`frontend/`).
 - Tool links — the panel header links to the RabbitMQ management UI, taken from `RABBITMQ_ADMIN_URL`.
 
@@ -196,13 +196,23 @@ For duration/memory/CPU the average, minimum and maximum are drawn, and the p50,
 
 The Presets dialog of the aggregator keeps filters for later. The Saved tab holds presets saved under a name — typed, or built from the current filters — and the History tab holds the filters of every search, written each time Search is pressed. Applying a preset restores the whole filter, the data fields and the chart settings included. Presets are shared by all users and live in the `traceAdminStores` collection with no expiry. Only presets of the current version of the saved state are listed: a change to its shape raises the version, and older saves stop being shown.
 
+### Logs
+
+The Logs page reads log files straight from disk: SLogger's own Laravel log, the log of its `slogger` channel, nginx's access and error logs, and the receiver's log. The sources are listed in `config/module-logs.php` — a folder, a file pattern and a format each. The page shows several files at once as one feed ordered by time, filters it by level, period and a case-insensitive text search, and downloads a file up to `LOGS_DOWNLOAD_MAX_BYTES` (100 MB by default).
+
+A file is read through an index of its own in `storage/framework/logs-index`: the offset, time and level of every entry, so a page or one level of a large file is read without going through the whole file. The index is appended to as the file grows and rebuilt when the file is rotated or replaced. `logs:index` keeps the indexes fresh every minute, so a request usually reads a few kilobytes of new lines. A search has a time and a bytes budget per request; when it runs out, the page shows how many entries were checked and offers to continue.
+
+A file can be deleted from the page when its source allows it (`deletable` in the config — the Laravel and `slogger` logs). The newest file of a source is never deleted: the application still writes to it.
+
+nginx writes into `storage/logs/nginx`: a new `access-YYYY-MM-DD.log` every day and one `error.log`, which is not rotated. `logs:clean` runs once a day, deletes the access files older than `LOGS_NGINX_KEEP_DAYS` (14 by default) and the indexes of files that are gone. The Laravel logs are rotated by the daily channel and the receiver log by the receiver itself (`LOG_KEEP_DAYS` in `servers/receiver/.env`). Where nginx or the receiver keep their logs elsewhere, `LOGS_NGINX_PATH` and `LOGS_RECEIVER_PATH` point the page there.
+
 ### Watchers
 
-Configurable rules that watch the system and open an incident when one of them is broken. Six types: the buffer growing (`bufferOverflow`), invalid traces arriving (`invalidBufferGrown`), traces stopping (`noNewTraces`), more of them than a limit (`manyTraces`), traces running longer than they should (`slowTraces`), and errors written to the application log (`logErrors`). The three trace types among them take a filter — services, trace types, tags, statuses — so a watcher can be about one part of the system rather than all of it. The status is matched against each write of a trace as it stands then: a trace is counted with the status it started with, and its duration is taken with its final one.
+Configurable rules that watch the system and open an incident when one of them is broken. Seven types: the buffer growing (`bufferOverflow`), invalid traces arriving (`invalidBufferGrown`), traces stopping (`noNewTraces`), more of them than a limit (`manyTraces`), traces running longer than they should (`slowTraces`), errors written to the application log (`logErrors`), and errors written to the receiver log (`receiverErrors`). The three trace types among them take a filter — services, trace types, tags, statuses — so a watcher can be about one part of the system rather than all of it. The status is matched against each write of a trace as it stands then: a trace is counted with the status it started with, and its duration is taken with its final one.
 
-`logErrors` looks at SLogger's own log rather than at traces: it counts the records of level `ERROR` and above in the `logs` collection — the one the Logs page shows — since the watcher last spoke, and puts the text of the latest one into the event.
+`logErrors` and `receiverErrors` look at log files rather than at traces, through the same indexes as the Logs page: `logErrors` counts the entries of level `ERROR` and above in the Laravel logs, `receiverErrors` the `ERROR` entries in the receiver log, since the watcher last spoke, and each puts the message of the latest one into the event.
 
-No watcher queries the hourly trace collections, and none uses the dynamic indexes. Traces are counted where they already pass one by one — in the receiver, which matches each of them against the watchers' filters and adds it to a 15-second bucket in the watcher's own timeline (`watcherTimelines`, one document per watcher). The receiver knows nothing about thresholds, windows or cooldowns: a task in the pool reads the timelines once a minute, applies the numbers each watcher was configured with, and decides what has gone wrong. The heaviest query a trace watcher makes is a `findOne` of its own line; the buffer watchers and `logErrors` run a count.
+No watcher queries the hourly trace collections, and none uses the dynamic indexes. Traces are counted where they already pass one by one — in the receiver, which matches each of them against the watchers' filters and adds it to a 15-second bucket in the watcher's own timeline (`watcherTimelines`, one document per watcher). The receiver knows nothing about thresholds, windows or cooldowns: a task in the pool reads the timelines once a minute, applies the numbers each watcher was configured with, and decides what has gone wrong. The heaviest query a trace watcher makes is a `findOne` of its own line; the buffer watchers run a count, and the log watchers read the error levels of the log indexes.
 
 The filter the receiver reads is the `trace_match` column, which the panel writes from the watcher's settings on every save. It carries a version: this receiver reads version 2 only and skips a watcher of any other version with a line in its log. After a release that raises the version, the receiver is deployed before the panel and every trace watcher is saved again.
 
@@ -231,7 +241,7 @@ Stale traces are removed automatically. The retention period is set by the `TRAC
 - PHP 8.4, Laravel 12, PSR-12 style (PHP CS Fixer)
 - SConcur — concurrent coroutine HTTP runtime (long-running application), plus the `sconcur/laravel` bridge
 - nginx — reverse proxy in front of the HTTP workers
-- MongoDB (non-blocking SConcur driver, no ORM package and no `ext-mongodb`) — traces and logs
+- MongoDB (non-blocking SConcur driver, no ORM package and no `ext-mongodb`) — traces
 - MySQL — users, services, auth
 - RabbitMQ — queues; Redis — cache (the `sconcur` client and the `sconcur_redis` store, no `ext-redis` in the image)
 - Go — trace receiver service (`servers/receiver/`)
@@ -352,6 +362,10 @@ FRONTEND_DOCKER_COMMAND=${FRONTEND_DOCKER_SERVER_COMMAND}  # or ${FRONTEND_DOCKE
 FRONTEND_DOCKER_PORT=3075                                  # external port of the web panel
 
 TRACES_LIFETIME_DAYS=3    # trace retention period in days
+
+LOGS_NGINX_KEEP_DAYS=14   # nginx access log files are kept this many days
+#LOGS_NGINX_PATH=         # nginx log folder, storage/logs/nginx when not set
+#LOGS_RECEIVER_PATH=      # receiver log folder, servers/receiver/storage/logs when not set
 
 # SConcur HTTP runtime (the full set of knobs is in .env.example)
 SCONCUR_HTTP_WORKER_COUNT=2    # number of HTTP workers, at least 2 for a rolling reload (0 = one per logical CPU)

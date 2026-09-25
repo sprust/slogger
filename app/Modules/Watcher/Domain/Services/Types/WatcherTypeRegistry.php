@@ -23,7 +23,8 @@ readonly class WatcherTypeRegistry
         private NoNewTracesWatcherType $noNewTraces,
         private ManyTracesWatcherType $manyTraces,
         private SlowTracesWatcherType $slowTraces,
-        private LogErrorsWatcherType $logErrors
+        private LogErrorsWatcherType $logErrors,
+        private ReceiverErrorsWatcherType $receiverErrors
     ) {
     }
 
@@ -40,6 +41,7 @@ readonly class WatcherTypeRegistry
             WatcherTypeEnum::ManyTraces         => $this->manyTraces,
             WatcherTypeEnum::SlowTraces         => $this->slowTraces,
             WatcherTypeEnum::LogErrors          => $this->logErrors,
+            WatcherTypeEnum::ReceiverErrors     => $this->receiverErrors,
         };
     }
 

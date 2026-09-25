@@ -238,6 +238,8 @@ so a new cross-module edge is added here or is not added.
 - `Domain\Services\Checkers\LogErrorsChecker` → `Logs\Domain\Actions\FindLogErrorStatAction`,
   `Logs\Entities` — to count the errors written to the application log and read the
   latest of them.
+- `Domain\Services\Checkers\ReceiverErrorsChecker` → `Logs\Domain\Actions\FindReceiverErrorStatAction`,
+  `Logs\Entities` — the same for the receiver log.
 
 `Watcher` → `Auth`.
 

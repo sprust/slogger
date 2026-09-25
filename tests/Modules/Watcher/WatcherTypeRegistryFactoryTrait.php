@@ -6,6 +6,7 @@ use App\Modules\Watcher\Domain\Services\Checkers\BufferOverflowChecker;
 use App\Modules\Watcher\Domain\Services\Checkers\InvalidBufferGrownChecker;
 use App\Modules\Watcher\Domain\Services\Checkers\LogErrorsChecker;
 use App\Modules\Watcher\Domain\Services\Checkers\NoNewTracesChecker;
+use App\Modules\Watcher\Domain\Services\Checkers\ReceiverErrorsChecker;
 use App\Modules\Watcher\Domain\Services\Checkers\SlowTracesChecker;
 use App\Modules\Watcher\Domain\Services\Checkers\ManyTracesChecker;
 use App\Modules\Watcher\Domain\Services\Events\BufferOverflowEventPayloadMapper;
@@ -19,6 +20,7 @@ use App\Modules\Watcher\Domain\Services\Types\BufferOverflowWatcherType;
 use App\Modules\Watcher\Domain\Services\Types\InvalidBufferGrownWatcherType;
 use App\Modules\Watcher\Domain\Services\Types\LogErrorsWatcherType;
 use App\Modules\Watcher\Domain\Services\Types\NoNewTracesWatcherType;
+use App\Modules\Watcher\Domain\Services\Types\ReceiverErrorsWatcherType;
 use App\Modules\Watcher\Domain\Services\Types\SlowTracesWatcherType;
 use App\Modules\Watcher\Domain\Services\Types\ManyTracesWatcherType;
 use App\Modules\Watcher\Domain\Services\Types\WatcherTypeRegistry;
@@ -37,7 +39,8 @@ trait WatcherTypeRegistryFactoryTrait
         ?NoNewTracesChecker $noNewTraces = null,
         ?ManyTracesChecker $manyTraces = null,
         ?SlowTracesChecker $slowTraces = null,
-        ?LogErrorsChecker $logErrors = null
+        ?LogErrorsChecker $logErrors = null,
+        ?ReceiverErrorsChecker $receiverErrors = null
     ): WatcherTypeRegistry {
         $groups = new WatcherEventGroupMapper(new NullLogger());
 
@@ -64,6 +67,10 @@ trait WatcherTypeRegistryFactoryTrait
             ),
             new LogErrorsWatcherType(
                 $logErrors ?? $this->createMock(LogErrorsChecker::class),
+                new LogErrorsEventPayloadMapper()
+            ),
+            new ReceiverErrorsWatcherType(
+                $receiverErrors ?? $this->createMock(ReceiverErrorsChecker::class),
                 new LogErrorsEventPayloadMapper()
             )
         );

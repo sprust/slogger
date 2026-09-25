@@ -8,7 +8,8 @@ use App\Modules\Cleaner\Infrastructure\Http\Controllers\ProcessController;
 use App\Modules\Dashboard\Infrastructure\Http\Controllers\DatabaseStatController;
 use App\Modules\Dashboard\Infrastructure\Http\Controllers\SconcurStatController;
 use App\Modules\Dashboard\Infrastructure\Http\Controllers\TraceMetricController;
-use App\Modules\Logs\Infrastructure\Http\Controllers\LogController;
+use App\Modules\Logs\Infrastructure\Http\Controllers\LogEntryController;
+use App\Modules\Logs\Infrastructure\Http\Controllers\LogFileController;
 use App\Modules\Notification\Infrastructure\Http\Controllers\NotificationChannelController;
 use App\Modules\Notification\Infrastructure\Http\Controllers\SlackChannelController;
 use App\Modules\Notification\Infrastructure\Http\Controllers\TelegramChannelController;
@@ -27,12 +28,14 @@ use App\Modules\Trace\Infrastructure\Http\Controllers\TraceTreeStateController;
 use App\Modules\Watcher\Infrastructure\Http\Controllers\Events\BufferOverflowIncidentEventController;
 use App\Modules\Watcher\Infrastructure\Http\Controllers\Events\InvalidBufferGrownIncidentEventController;
 use App\Modules\Watcher\Infrastructure\Http\Controllers\Events\LogErrorsIncidentEventController;
+use App\Modules\Watcher\Infrastructure\Http\Controllers\Events\ReceiverErrorsIncidentEventController;
 use App\Modules\Watcher\Infrastructure\Http\Controllers\Events\NoNewTracesIncidentEventController;
 use App\Modules\Watcher\Infrastructure\Http\Controllers\Events\SlowTracesIncidentEventController;
 use App\Modules\Watcher\Infrastructure\Http\Controllers\Events\ManyTracesIncidentEventController;
 use App\Modules\Watcher\Infrastructure\Http\Controllers\BufferOverflowWatcherController;
 use App\Modules\Watcher\Infrastructure\Http\Controllers\InvalidBufferGrownWatcherController;
 use App\Modules\Watcher\Infrastructure\Http\Controllers\LogErrorsWatcherController;
+use App\Modules\Watcher\Infrastructure\Http\Controllers\ReceiverErrorsWatcherController;
 use App\Modules\Watcher\Infrastructure\Http\Controllers\NoNewTracesWatcherController;
 use App\Modules\Watcher\Infrastructure\Http\Controllers\SlowTracesWatcherController;
 use App\Modules\Watcher\Infrastructure\Http\Controllers\ManyTracesWatcherController;
@@ -162,6 +165,7 @@ Route::prefix('/watchers')
                     'many-traces'         => ManyTracesIncidentEventController::class,
                     'slow-traces'          => SlowTracesIncidentEventController::class,
                     'log-errors'           => LogErrorsIncidentEventController::class,
+                    'receiver-errors'      => ReceiverErrorsIncidentEventController::class,
                 ];
 
                 foreach ($eventTypes as $segment => $controller) {
@@ -180,6 +184,7 @@ Route::prefix('/watchers')
             'many-traces'         => ManyTracesWatcherController::class,
             'slow-traces'          => SlowTracesWatcherController::class,
             'log-errors'           => LogErrorsWatcherController::class,
+            'receiver-errors'      => ReceiverErrorsWatcherController::class,
         ];
 
         foreach ($types as $segment => $controller) {
@@ -227,5 +232,13 @@ Route::prefix('/notification-channels')
 Route::prefix('/logs')
     ->as('logs.')
     ->group(function () {
-        Route::get('/', [LogController::class, 'index'])->name('index');
+        Route::post('/entries', [LogEntryController::class, 'index'])->name('entries.index');
+
+        Route::prefix('/files')
+            ->as('files.')
+            ->group(function () {
+                Route::get('/', [LogFileController::class, 'index'])->name('index');
+                Route::get('/{id}/download', [LogFileController::class, 'download'])->name('download');
+                Route::delete('/{id}', [LogFileController::class, 'delete'])->name('delete');
+            });
     });

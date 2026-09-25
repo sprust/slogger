@@ -194,6 +194,15 @@ export enum WatchersIncidentsListParamsStatusEnum {
   Closed = "closed",
 }
 
+/**
+ * @minLength 1
+ * @maxLength 16
+ */
+export enum DirectionEnum {
+  Older = "older",
+  Newer = "newer",
+}
+
 export namespace AdminApi {
   /**
  * No description
@@ -2605,6 +2614,68 @@ export namespace AdminApi {
 
   /**
  * No description
+ * @name WatchersIncidentsEventsReceiverErrorsList
+ * @request GET:/admin-api/watchers/incidents/{id}/events/receiver-errors
+ * @secure
+ * @response `200` `{
+    data: ({
+    id: string,
+    incident_id: string,
+    occurred_at: string,
+    payload?: {
+    settings: {
+    threshold: number,
+
+},
+    measured: {
+    error_count: number,
+    since: string,
+    last_message: string,
+
+},
+
+},
+
+})[],
+
+}` description
+*/
+  export namespace WatchersIncidentsEventsReceiverErrorsList {
+    export type RequestParams = {
+      id: any;
+    };
+    export type RequestQuery = {
+      /** @min 1 */
+      page?: number;
+      /**
+       * @min 1
+       * @max 200
+       */
+      per_page?: number;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        id: string;
+        incident_id: string;
+        occurred_at: string;
+        payload?: {
+          settings: {
+            threshold: number;
+          };
+          measured: {
+            error_count: number;
+            since: string;
+            last_message: string;
+          };
+        };
+      }[];
+    };
+  }
+
+  /**
+ * No description
  * @name WatchersBufferOverflowCreate
  * @request POST:/admin-api/watchers/buffer-overflow
  * @secure
@@ -3537,6 +3608,143 @@ export namespace AdminApi {
   }
 
   /**
+ * No description
+ * @name WatchersReceiverErrorsCreate
+ * @request POST:/admin-api/watchers/receiver-errors
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    name: string,
+    type: string,
+    enabled: boolean,
+    cooldown_seconds: number,
+    notification_channel_id?: number | null,
+    notify_on_opened: boolean,
+    notify_on_event: boolean,
+    notify_on_closed: boolean,
+    collect_since?: string | null,
+    last_checked_at?: string | null,
+    last_triggered_at?: string | null,
+    created_at: string,
+    updated_at: string,
+
+},
+
+}` description
+*/
+  export namespace WatchersReceiverErrorsCreate {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = {
+      /**
+       * @minLength 1
+       * @maxLength 255
+       */
+      name: string;
+      enabled: boolean;
+      /**
+       * @min 1
+       * @max 86400
+       */
+      cooldown_seconds: number;
+      notification_channel_id?: number | null;
+      notify_on_opened: boolean;
+      notify_on_event: boolean;
+      notify_on_closed: boolean;
+      settings?: {
+        /** @min 1 */
+        threshold?: number;
+      };
+    };
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        id: number;
+        name: string;
+        type: string;
+        enabled: boolean;
+        cooldown_seconds: number;
+        notification_channel_id?: number | null;
+        notify_on_opened: boolean;
+        notify_on_event: boolean;
+        notify_on_closed: boolean;
+        collect_since?: string | null;
+        last_checked_at?: string | null;
+        last_triggered_at?: string | null;
+        created_at: string;
+        updated_at: string;
+      };
+    };
+  }
+
+  /**
+ * No description
+ * @name WatchersReceiverErrorsDetail
+ * @request GET:/admin-api/watchers/receiver-errors/{id}
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    threshold: number,
+
+},
+
+}` description
+*/
+  export namespace WatchersReceiverErrorsDetail {
+    export type RequestParams = {
+      id: any;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        id: number;
+        threshold: number;
+      };
+    };
+  }
+
+  /**
+   * No description
+   * @name WatchersReceiverErrorsPartialUpdate
+   * @request PATCH:/admin-api/watchers/receiver-errors/{id}
+   * @secure
+   * @response `200` `any` description
+   */
+  export namespace WatchersReceiverErrorsPartialUpdate {
+    export type RequestParams = {
+      id: any;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = {
+      /**
+       * @minLength 1
+       * @maxLength 255
+       */
+      name: string;
+      enabled: boolean;
+      /**
+       * @min 1
+       * @max 86400
+       */
+      cooldown_seconds: number;
+      notification_channel_id?: number | null;
+      notify_on_opened: boolean;
+      notify_on_event: boolean;
+      notify_on_closed: boolean;
+      settings?: {
+        /** @min 1 */
+        threshold?: number;
+      };
+    };
+    export type RequestHeaders = {};
+    export type ResponseBody = any;
+  }
+
+  /**
    * No description
    * @name WatchersDelete
    * @request DELETE:/admin-api/watchers/{id}
@@ -4078,60 +4286,184 @@ export namespace AdminApi {
 
   /**
  * No description
- * @name LogsList
- * @request GET:/admin-api/logs
+ * @name LogsEntriesCreate
+ * @request POST:/admin-api/logs/entries
  * @secure
  * @response `200` `{
     data: {
     items: ({
+    file_id: string,
+    type: string,
+    entry_no: number,
+    logged_at: string,
     level: string,
     message: string,
-    context: string,
-    channel: string,
-    logged_at: string,
+    context?: string | null,
+    fields: ({
+    key: string,
+    value?: string | null,
 
 })[],
-    paginator: {
-    total: number,
-    per_page: number,
-    current_page: number,
-    total_pages: number,
+    text: string,
+    truncated: boolean,
 
-},
+})[],
+    level_counts: ({
+    key: string,
+    count: number,
+
+})[],
+    total: number,
+    scanned: number,
+    indexing: boolean,
+    indexed_bytes: number,
+    total_bytes: number,
+    restarted_files: (string)[],
+    missing_files: (string)[],
+    older_cursor?: string | null,
+    newer_cursor?: string | null,
 
 },
 
 }` description
 */
-  export namespace LogsList {
+  export namespace LogsEntriesCreate {
     export type RequestParams = {};
-    export type RequestQuery = {
-      /** @min 1 */
-      page: number;
-      /** @maxLength 255 */
+    export type RequestQuery = {};
+    export type RequestBody = {
+      files?: string[];
+      levels?: string[];
+      /** @format date */
+      from?: string | null;
+      /** @format date */
+      to?: string | null;
+      /**
+       * @minLength 1
+       * @maxLength 255
+       */
       search_query?: string | null;
-      /** @maxLength 255 */
-      level?: string | null;
+      /**
+       * @minLength 1
+       * @maxLength 65535
+       */
+      cursor?: string | null;
+      /**
+       * @minLength 1
+       * @maxLength 16
+       */
+      direction?: DirectionEnum | null;
+      /**
+       * @min 1
+       * @max 500
+       */
+      per_page?: number | null;
     };
-    export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody = {
       data: {
         items: {
+          file_id: string;
+          type: string;
+          entry_no: number;
+          logged_at: string;
           level: string;
           message: string;
-          context: string;
-          channel: string;
-          logged_at: string;
+          context?: string | null;
+          fields: {
+            key: string;
+            value?: string | null;
+          }[];
+          text: string;
+          truncated: boolean;
         }[];
-        paginator: {
-          total: number;
-          per_page: number;
-          current_page: number;
-          total_pages: number;
-        };
+        level_counts: {
+          key: string;
+          count: number;
+        }[];
+        total: number;
+        scanned: number;
+        indexing: boolean;
+        indexed_bytes: number;
+        total_bytes: number;
+        restarted_files: string[];
+        missing_files: string[];
+        older_cursor?: string | null;
+        newer_cursor?: string | null;
       };
     };
+  }
+
+  /**
+ * No description
+ * @name LogsFilesList
+ * @request GET:/admin-api/logs/files
+ * @secure
+ * @response `200` `{
+    data: ({
+    id: string,
+    name: string,
+    source: string,
+    folder: string,
+    type: string,
+    size_bytes: number,
+    can_delete: boolean,
+    modified_at: string,
+
+})[],
+
+}` description
+*/
+  export namespace LogsFilesList {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        id: string;
+        name: string;
+        source: string;
+        folder: string;
+        type: string;
+        size_bytes: number;
+        can_delete: boolean;
+        modified_at: string;
+      }[];
+    };
+  }
+
+  /**
+   * No description
+   * @name LogsFilesDownloadList
+   * @request GET:/admin-api/logs/files/{id}/download
+   * @secure
+   * @response `200` `any` description
+   */
+  export namespace LogsFilesDownloadList {
+    export type RequestParams = {
+      id: any;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = any;
+  }
+
+  /**
+   * No description
+   * @name LogsFilesDelete
+   * @request DELETE:/admin-api/logs/files/{id}
+   * @secure
+   * @response `200` `void` description
+   */
+  export namespace LogsFilesDelete {
+    export type RequestParams = {
+      id: any;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
   }
 }
 
@@ -7092,6 +7424,76 @@ export class Api<
     /**
  * No description
  *
+ * @name WatchersIncidentsEventsReceiverErrorsList
+ * @request GET:/admin-api/watchers/incidents/{id}/events/receiver-errors
+ * @secure
+ * @response `200` `{
+    data: ({
+    id: string,
+    incident_id: string,
+    occurred_at: string,
+    payload?: {
+    settings: {
+    threshold: number,
+
+},
+    measured: {
+    error_count: number,
+    since: string,
+    last_message: string,
+
+},
+
+},
+
+})[],
+
+}` description
+ */
+    watchersIncidentsEventsReceiverErrorsList: (
+      id: any,
+      query?: {
+        /** @min 1 */
+        page?: number;
+        /**
+         * @min 1
+         * @max 200
+         */
+        per_page?: number;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          data: {
+            id: string;
+            incident_id: string;
+            occurred_at: string;
+            payload?: {
+              settings: {
+                threshold: number;
+              };
+              measured: {
+                error_count: number;
+                since: string;
+                last_message: string;
+              };
+            };
+          }[];
+        },
+        any
+      >({
+        path: `/admin-api/watchers/incidents/${id}/events/receiver-errors`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
  * @name WatchersBufferOverflowCreate
  * @request POST:/admin-api/watchers/buffer-overflow
  * @secure
@@ -8137,6 +8539,162 @@ export class Api<
       }),
 
     /**
+ * No description
+ *
+ * @name WatchersReceiverErrorsCreate
+ * @request POST:/admin-api/watchers/receiver-errors
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    name: string,
+    type: string,
+    enabled: boolean,
+    cooldown_seconds: number,
+    notification_channel_id?: number | null,
+    notify_on_opened: boolean,
+    notify_on_event: boolean,
+    notify_on_closed: boolean,
+    collect_since?: string | null,
+    last_checked_at?: string | null,
+    last_triggered_at?: string | null,
+    created_at: string,
+    updated_at: string,
+
+},
+
+}` description
+ */
+    watchersReceiverErrorsCreate: (
+      data: {
+        /**
+         * @minLength 1
+         * @maxLength 255
+         */
+        name: string;
+        enabled: boolean;
+        /**
+         * @min 1
+         * @max 86400
+         */
+        cooldown_seconds: number;
+        notification_channel_id?: number | null;
+        notify_on_opened: boolean;
+        notify_on_event: boolean;
+        notify_on_closed: boolean;
+        settings?: {
+          /** @min 1 */
+          threshold?: number;
+        };
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          data: {
+            id: number;
+            name: string;
+            type: string;
+            enabled: boolean;
+            cooldown_seconds: number;
+            notification_channel_id?: number | null;
+            notify_on_opened: boolean;
+            notify_on_event: boolean;
+            notify_on_closed: boolean;
+            collect_since?: string | null;
+            last_checked_at?: string | null;
+            last_triggered_at?: string | null;
+            created_at: string;
+            updated_at: string;
+          };
+        },
+        any
+      >({
+        path: `/admin-api/watchers/receiver-errors`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name WatchersReceiverErrorsDetail
+ * @request GET:/admin-api/watchers/receiver-errors/{id}
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    threshold: number,
+
+},
+
+}` description
+ */
+    watchersReceiverErrorsDetail: (id: any, params: RequestParams = {}) =>
+      this.request<
+        {
+          data: {
+            id: number;
+            threshold: number;
+          };
+        },
+        any
+      >({
+        path: `/admin-api/watchers/receiver-errors/${id}`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @name WatchersReceiverErrorsPartialUpdate
+     * @request PATCH:/admin-api/watchers/receiver-errors/{id}
+     * @secure
+     * @response `200` `any` description
+     */
+    watchersReceiverErrorsPartialUpdate: (
+      id: any,
+      data: {
+        /**
+         * @minLength 1
+         * @maxLength 255
+         */
+        name: string;
+        enabled: boolean;
+        /**
+         * @min 1
+         * @max 86400
+         */
+        cooldown_seconds: number;
+        notification_channel_id?: number | null;
+        notify_on_opened: boolean;
+        notify_on_event: boolean;
+        notify_on_closed: boolean;
+        settings?: {
+          /** @min 1 */
+          threshold?: number;
+        };
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<any, any>({
+        path: `/admin-api/watchers/receiver-errors/${id}`,
+        method: "PATCH",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
      * No description
      *
      * @name WatchersDelete
@@ -8750,39 +9308,75 @@ export class Api<
     /**
  * No description
  *
- * @name LogsList
- * @request GET:/admin-api/logs
+ * @name LogsEntriesCreate
+ * @request POST:/admin-api/logs/entries
  * @secure
  * @response `200` `{
     data: {
     items: ({
+    file_id: string,
+    type: string,
+    entry_no: number,
+    logged_at: string,
     level: string,
     message: string,
-    context: string,
-    channel: string,
-    logged_at: string,
+    context?: string | null,
+    fields: ({
+    key: string,
+    value?: string | null,
 
 })[],
-    paginator: {
-    total: number,
-    per_page: number,
-    current_page: number,
-    total_pages: number,
+    text: string,
+    truncated: boolean,
 
-},
+})[],
+    level_counts: ({
+    key: string,
+    count: number,
+
+})[],
+    total: number,
+    scanned: number,
+    indexing: boolean,
+    indexed_bytes: number,
+    total_bytes: number,
+    restarted_files: (string)[],
+    missing_files: (string)[],
+    older_cursor?: string | null,
+    newer_cursor?: string | null,
 
 },
 
 }` description
  */
-    logsList: (
-      query: {
-        /** @min 1 */
-        page: number;
-        /** @maxLength 255 */
+    logsEntriesCreate: (
+      data: {
+        files?: string[];
+        levels?: string[];
+        /** @format date */
+        from?: string | null;
+        /** @format date */
+        to?: string | null;
+        /**
+         * @minLength 1
+         * @maxLength 255
+         */
         search_query?: string | null;
-        /** @maxLength 255 */
-        level?: string | null;
+        /**
+         * @minLength 1
+         * @maxLength 65535
+         */
+        cursor?: string | null;
+        /**
+         * @minLength 1
+         * @maxLength 16
+         */
+        direction?: DirectionEnum | null;
+        /**
+         * @min 1
+         * @max 500
+         */
+        per_page?: number | null;
       },
       params: RequestParams = {},
     ) =>
@@ -8790,27 +9384,120 @@ export class Api<
         {
           data: {
             items: {
+              file_id: string;
+              type: string;
+              entry_no: number;
+              logged_at: string;
               level: string;
               message: string;
-              context: string;
-              channel: string;
-              logged_at: string;
+              context?: string | null;
+              fields: {
+                key: string;
+                value?: string | null;
+              }[];
+              text: string;
+              truncated: boolean;
             }[];
-            paginator: {
-              total: number;
-              per_page: number;
-              current_page: number;
-              total_pages: number;
-            };
+            level_counts: {
+              key: string;
+              count: number;
+            }[];
+            total: number;
+            scanned: number;
+            indexing: boolean;
+            indexed_bytes: number;
+            total_bytes: number;
+            restarted_files: string[];
+            missing_files: string[];
+            older_cursor?: string | null;
+            newer_cursor?: string | null;
           };
         },
         any
       >({
-        path: `/admin-api/logs`,
+        path: `/admin-api/logs/entries`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name LogsFilesList
+ * @request GET:/admin-api/logs/files
+ * @secure
+ * @response `200` `{
+    data: ({
+    id: string,
+    name: string,
+    source: string,
+    folder: string,
+    type: string,
+    size_bytes: number,
+    can_delete: boolean,
+    modified_at: string,
+
+})[],
+
+}` description
+ */
+    logsFilesList: (params: RequestParams = {}) =>
+      this.request<
+        {
+          data: {
+            id: string;
+            name: string;
+            source: string;
+            folder: string;
+            type: string;
+            size_bytes: number;
+            can_delete: boolean;
+            modified_at: string;
+          }[];
+        },
+        any
+      >({
+        path: `/admin-api/logs/files`,
         method: "GET",
-        query: query,
         secure: true,
         format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @name LogsFilesDownloadList
+     * @request GET:/admin-api/logs/files/{id}/download
+     * @secure
+     * @response `200` `any` description
+     */
+    logsFilesDownloadList: (id: any, params: RequestParams = {}) =>
+      this.request<any, any>({
+        path: `/admin-api/logs/files/${id}/download`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @name LogsFilesDelete
+     * @request DELETE:/admin-api/logs/files/{id}
+     * @secure
+     * @response `200` `void` description
+     */
+    logsFilesDelete: (id: any, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/admin-api/logs/files/${id}`,
+        method: "DELETE",
+        secure: true,
         ...params,
       }),
   };

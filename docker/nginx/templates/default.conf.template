@@ -5,6 +5,13 @@ map $http_upgrade $connection_upgrade {
     ''      close;
 }
 
+# The day of the request for the access file name. A new file starts every day, so the
+# files need no logrotate; logs:clean deletes the old ones.
+map $time_iso8601 $log_date {
+    "~^(?<d>\d{4}-\d{2}-\d{2})" $d;
+    default                       today;
+}
+
 server {
     listen 80;
     listen [::]:80;
@@ -14,7 +21,19 @@ server {
     add_header X-Frame-Options "SAMEORIGIN";
     add_header X-Content-Type-Options "nosniff";
 
-    client_max_body_size 100M;
+    # Matches SCONCUR_HTTP_MAX_REQUEST_BODY, the app refuses more anyway.
+    client_max_body_size 10M;
+
+    # Nothing is served from disk, but an access_log path with variables is written only
+    # while the request's root exists, and the default one (/etc/nginx/html) does not.
+    root /usr/share/nginx/html;
+
+    # The folder is ./storage/logs/nginx on the host, read by the Logs page.
+    access_log /var/log/nginx/app/access-$log_date.log combined;
+    open_log_file_cache max=4;
+
+    # error_log takes no variables, so this is one file without rotation.
+    error_log /var/log/nginx/app/error.log warn;
 
     # Docker's embedded DNS. Needed because the upstream is resolved per request
     # (see below) rather than once at startup.

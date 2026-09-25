@@ -149,6 +149,14 @@ class WatcherEventPayloadMapperTest extends TestCase
                     lastMessage: 'connect: IO error: Connection refused (os error 111)'
                 )
             ),
+            WatcherTypeEnum::ReceiverErrors => new LogErrorsEventPayloadObject(
+                settings: new LogErrorsEventSettingsObject(threshold: 2),
+                measured: new LogErrorsEventMeasuredObject(
+                    errorCount: 5,
+                    since: '2026-09-25 07:00:00',
+                    lastMessage: 'dial tcp 172.20.0.7:3306: connect: connection refused'
+                )
+            ),
         };
     }
 

@@ -118,6 +118,7 @@ import {
   InvalidBufferGrownEvent,
   LogErrorsEvent,
   NoNewTracesEvent,
+  ReceiverErrorsEvent,
   SlowTracesEvent,
   ManyTracesEvent,
   useIncidentsStore,
@@ -201,6 +202,12 @@ const columnsByType: Record<string, Array<PayloadColumn>> = {
     measured<LogErrorsEvent>('error_count', 'Errors'),
     measured<LogErrorsEvent>('since', 'Counted since'),
     measured<LogErrorsEvent>('last_message', 'Last error'),
+  ],
+  receiverErrors: [
+    setting<ReceiverErrorsEvent>('threshold', 'Limit'),
+    measured<ReceiverErrorsEvent>('error_count', 'Errors'),
+    measured<ReceiverErrorsEvent>('since', 'Counted since'),
+    measured<ReceiverErrorsEvent>('last_message', 'Last error'),
   ],
 }
 

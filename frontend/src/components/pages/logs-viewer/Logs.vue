@@ -1,103 +1,75 @@
 <template>
   <div class="logs">
-    <el-row class="logs-filters">
-      <el-input
-          v-model="logsViewerStore.parameters.search_query"
-          style="width: 300px; height: 35px; margin: 3px"
-          placeholder="Search query"
-          clearable
+    <div class="logs-files-panel">
+      <LogsFiles
+          @change="onSearch"
+          @refresh="onRefresh"
       />
-      <el-input
-          v-model="logsViewerStore.parameters.level"
-          style="width: 300px; height: 35px; margin: 3px"
-          placeholder="Level"
-          clearable
+    </div>
+    <div class="logs-entries-panel">
+      <LogsFilters
+          @search="onSearch"
+          @continue="store.continueSearch()"
       />
-      <el-button
-          :icon="SearchIcon"
-          @click="onUpdate"
-          :loading="logsViewerStore.loading"
-          style="height: 35px; margin: 3px"
-      />
-      <el-pagination
-          v-model:current-page="logsViewerStore.parameters.page"
-          layout="prev, pager, next"
-          :page-size="logsViewerStore.logs.paginator.per_page"
-          :total="logsViewerStore.logs.paginator.total"
-          class="mt-4"
-          @current-change="update"
-          :disabled="logsViewerStore.loading"
-          style="height: 35px; margin: 3px"
-      />
-    </el-row>
-    <el-row class="logs-table">
-      <el-scrollbar style="width: 100%">
-        <el-table
-            :data="logsViewerStore.logs.items"
-            :border="true"
-        >
-          <el-table-column type="expand">
-            <template #default="props">
-              <pre style="text-wrap: wrap;">{{ JSON.parse(props.row.context) }}</pre>
-            </template>
-          </el-table-column>
-          <el-table-column label="Logged at" prop="logged_at">
-            <template #default="scope">
-              {{ scope.row.logged_at }}
-            </template>
-          </el-table-column>
-          <el-table-column label="Message" prop="message" min-width="200">
-            <template #default="scope">
-              <el-tooltip
-                  :content="scope.row.message"
-                  placement="top"
-                  :show-after="300"
-                  :disabled="scope.row.message.length <= 120"
-              >
-                <span class="message-cell">{{ scope.row.message }}</span>
-              </el-tooltip>
-            </template>
-          </el-table-column>
-          <el-table-column label="Level" prop="level"/>
-        </el-table>
-      </el-scrollbar>
-    </el-row>
+      <el-text v-if="store.filesLoaded && !store.selectedFileIds.length" type="info">
+        Choose one or more files on the left.
+      </el-text>
+      <div class="logs-table-panel">
+        <LogsTable
+            @newer="store.findEntries(DirectionEnum.Newer, store.page?.newer_cursor ?? null)"
+            @older="store.findEntries(DirectionEnum.Older, store.page?.older_cursor ?? null)"
+            @start="store.findEntries()"
+        />
+      </div>
+    </div>
   </div>
 </template>
 
 <script lang="ts">
 import {defineComponent} from 'vue'
-import {Search as SearchIcon} from '@element-plus/icons-vue'
+import {DirectionEnum} from "../../../api-schema/admin-api-schema.ts";
 import {useLogsViewerStore} from "./store/logsViewerStore.ts";
+import LogsFiles from "./components/LogsFiles.vue";
+import LogsFilters from "./components/LogsFilters.vue";
+import LogsTable from "./components/LogsTable.vue";
 
 export default defineComponent({
   name: 'LogsViewer',
 
+  components: {LogsFiles, LogsFilters, LogsTable},
+
   computed: {
-    logsViewerStore() {
+    store() {
       return useLogsViewerStore()
     },
-    SearchIcon() {
-      return SearchIcon
+    DirectionEnum() {
+      return DirectionEnum
     },
   },
 
   methods: {
-    update() {
-      this.logsViewerStore.findLogs()
+    onSearch() {
+      this.store.findEntries()
     },
-    onUpdate() {
-      this.logsViewerStore.parameters.page = 1
+    async onRefresh() {
+      await this.store.findFiles()
 
-      this.update()
+      this.onSearch()
     },
   },
-  mounted() {
-    if (!this.logsViewerStore.loading) {
-      return
+
+  async mounted() {
+    await this.store.findFiles()
+
+    if (!this.store.selectedFileIds.length) {
+      this.store.selectDefaultFile()
     }
 
-    this.update()
+    this.onSearch()
+  },
+
+  beforeUnmount() {
+    this.store.stopRetry()
   },
 })
 </script>
@@ -105,27 +77,24 @@ export default defineComponent({
 <style scoped>
 .logs {
   display: flex;
-  flex-direction: column;
   height: 100%;
 }
 
-.logs-filters {
+.logs-files-panel {
   flex: none;
-  margin-bottom: 10px;
+  width: 320px;
+  margin-right: 10px;
 }
 
-.logs-table {
+.logs-entries-panel {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.logs-table-panel {
   flex: 1;
   min-height: 0;
-  width: 100%;
-}
-
-.message-cell {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  word-break: break-all;
-  cursor: default;
 }
 </style>
