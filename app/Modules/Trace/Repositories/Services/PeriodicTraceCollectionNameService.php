@@ -73,7 +73,7 @@ readonly class PeriodicTraceCollectionNameService
 
                         if ($collectionNameDay === $fromDay
                             && $collectionFromHour < $fromHour
-                            && $collectionToHour < $fromHour
+                            && $collectionToHour <= $fromHour
                         ) {
                             return false;
                         }
