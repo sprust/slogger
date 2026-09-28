@@ -233,7 +233,21 @@ A secret — the bot token, the Slack webhook url, the webhook's token — is st
 
 ### MCP server
 
-SLogger is an MCP server (protocol revision `2026-07-28`, Streamable HTTP at `POST /mcp`). An LLM client connected to it — Claude Code or another — is asked in plain words, "why do the API requests of billing sometimes fail", and finds the answer with SLogger's tools: services, the hours for which traces are stored, watcher incidents and their events, a trace, its data and its call tree. The model, the agent loop and the tokens are the client's; every tool only reads. A tool whose data has to be prepared first — the call tree of a trace — answers `tree_building` at once and is called again later, instead of holding the request open.
+SLogger is an MCP server (protocol revision `2026-07-28`, Streamable HTTP at `POST /mcp`). An LLM client connected to it — Claude Code or another — is asked in plain words, "why do the API requests of billing sometimes fail", and finds the answer with SLogger's tools. The model, the agent loop and the tokens are the client's; every tool only reads.
+
+| Tools | What they answer |
+|---|---|
+| `list_services`, `get_data_range` | which services there are, for which hours traces are stored |
+| `top_trace_groups`, `compare_trace_groups` | overview in one call: traces grouped by service, type, status, hour or 10 minutes with count and duration percentiles; what failed traces have in common that the others do not (by type, service, tag or a data key) |
+| `trace_facets`, `find_traces`, `list_trace_data_fields` | types, statuses and tags of a period; the traces themselves, with filters and a filter by data; the data keys of a type |
+| `list_incidents`, `get_incident_events` | watcher incidents and the numbers behind them |
+| `get_trace`, `get_trace_data`, `get_trace_tree`, `find_in_trace_tree` | one trace, its data, its call tree and the failed or slow calls in it |
+| `get_index_status`, `list_dynamic_indexes` | the dynamic indexes the queries build |
+| `slogger_logs` | the logs of SLogger itself, not of the services |
+
+Tools that search traces over a period build the same dynamic indexes as the traces page, so the period is `from`/`to` of at most 24 hours rounded to whole hours, and an index is reused whenever only the filter values change. A tool whose data has to be prepared first answers `index_building` or `tree_building` at once and is called again later, instead of holding the request open.
+
+The server also offers prompts — in Claude Code they are commands like `/mcp__slogger-prod__investigate_errors`: `investigate_errors`, `investigate_latency`, `explain_incident`, `explain_trace`.
 
 Access is by connection. The MCP page creates one per person or agent, shows its token and the ready command, and switches a connection off, regenerates its token or removes it: a client with the old token gets `401` at once. A connection sees every service of the installation.
 
