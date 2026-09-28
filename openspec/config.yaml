@@ -1,0 +1,34 @@
+schema: spec-driven
+
+context: |
+  Language: ru
+  All artifacts must be written in ru.
+  Keep OpenSpec structural headings and SHALL/MUST keywords in English.
+
+  Project rules live in .ai/README.md — read it before writing any artifact; it overrides anything here.
+
+  SLogger: observability/logging application (traces and logs).
+  Backend: Laravel 12 / PHP 8.4 on SConcur (coroutine runtime, one PHP Fiber per request in a long-lived process).
+  Frontend: frontend/ — Vue 3 + Vite + TypeScript + Element Plus.
+  Receiver: servers/receiver/ — Go service accepting trace payloads over TCP.
+  Storage: MongoDB (traces/logs), MySQL (users/services/auth), RabbitMQ (queues), Redis (cache).
+  Domain code: app/Modules/<Module> with Deptrac layers Domain / Entities / Parameters / Repositories / Infrastructure.
+  Request path: Route → Controller → Domain Action → Repository → Model.
+
+rules:
+  proposal:
+    - Name the affected modules in app/Modules and the Deptrac layers touched
+  design:
+    - Respect Deptrac layers; Domain depends only on Entities, Parameters, Repositories
+    - Actions expose only handle(...); repositories hold only persistence primitives; no business logic in controllers
+    - Use objects instead of keyed arrays, shapes or tuples
+  tasks:
+    - End with verification tasks per .ai/README.md "Required Commands After Changes" (make check, make frontend-npm-build, make oa-generate as applicable)
+    - Never include a commit or push task
+
+operations:
+  apply:
+    guidance:
+      - Show the plan and wait for explicit user approval before changing any file
+      - Never commit or push without a separate explicit approval
+      - Stop any services or workers started for verification
