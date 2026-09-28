@@ -152,14 +152,17 @@ responses, no sessions, no SSE) at `POST /mcp` (`routes/mcp.php`), outside the a
   validator rules. A tool calls only this module's bridges (`Domain/Actions/Bridges`), never
   another module. New tools are registered in `McpServiceProvider::TOOLS`; the order there
   is the order of `tools/list`.
-- Tools that build a trace dynamic index: `GetTraceMetricsTool` (`get_trace_metrics`, the trace
-  page graph on the UI presets up to one day), `TraceFacetsTool`, `FindTracesTool`,
-  `ListTraceDataFieldsTool`. They share the indexes with the UI and answer `index_building`
-  (`McpToolFormatter::indexBuilding`) instead of waiting; `McpTraceIndexExceptionTranslator` turns
-  the index exceptions of `Trace` into those of `Mcp`. The last three read `service_ids` (optional), `from`,
-  `to` through `McpToolTraceScopeReader`: the period is rounded to hours and at most 24 hours
-  (`McpTracePeriodResolver`). `data_filter` of `find_traces` is parsed by `McpTraceDataFilterParser`.
-- `GetIndexStatusTool` and `ListDynamicIndexesTool` only read the indexes.
+- Tools that build a trace dynamic index: `TraceFacetsTool`, `FindTracesTool`,
+  `ListTraceDataFieldsTool`, `TopTraceGroupsTool`, `CompareTraceGroupsTool`. They share the
+  indexes with the UI and answer `index_building` (`McpToolFormatter::indexBuilding`) instead of
+  waiting; `McpTraceIndexExceptionTranslator` turns the index exceptions of `Trace` into those of
+  `Mcp`. They read `service_ids` (optional), `from`, `to` through `McpToolTraceScopeReader`: the
+  period is rounded to hours and at most 24 hours (`McpTracePeriodResolver`). `data_filter` of
+  `find_traces` is parsed by `McpTraceDataFilterParser`. The groups and the comparison are one
+  aggregation over the hourly collections of the period (`Trace\Repositories\TraceGroupsRepository`,
+  `$unionWith`).
+- `GetIndexStatusTool` and `ListDynamicIndexesTool` only read the indexes. `SloggerLogsTool` reads
+  the logs of SLogger itself through the `Logs` module.
 - `Infrastructure/Prompts/*Prompt` — the prompts, registered in `McpServiceProvider`.
 - `resources/mcp/instructions.md` — the instructions the model gets, in English.
 - Connections are managed through `/admin-api/mcps` and the `/mcps` page.
@@ -276,7 +279,7 @@ so a new cross-module edge is added here or is not added.
 - `Infrastructure\Http\Controllers\WatcherIncidentController` → `Auth\Domain\Actions\FindUserByTokenAction`,
   to record who closed an incident. The only place outside `Auth` that reaches into it.
 
-`Mcp` → `Service`, `Watcher`, `Trace`. One way only: none of them knows about MCP. Tools
+`Mcp` → `Service`, `Watcher`, `Trace`, `Logs`. One way only: none of them knows about MCP. Tools
 never call another module; only the bridge actions in `Mcp\Domain\Actions\Bridges` do,
 and they hand the other module's entities back as they are.
 
@@ -294,10 +297,6 @@ and they hand the other module's entities back as they are.
   `FindTraceTreeAction` (only to start the first build, as the UI does), `FindTraceTreeChildrenAction`.
 - `Domain\Actions\Bridges\FindMcpTraceTreeFilteredAction` → `FindTraceTreeStateAction`,
   `FindTraceTreeFilteredAction`, `Trace\Parameters\TraceTreeFilterParameters`.
-- `Domain\Actions\Bridges\FindMcpTraceMetricsAction` → `Trace\Domain\Actions\Queries\FindTraceTimestampsAction`
-  (the trace page graph, so that the model and the UI share dynamic indexes),
-  `Trace\Domain\Actions\MakeTraceTimestampPeriodsAction` (the steps a period allows),
-  `Trace\Parameters\FindTraceTimestampsParameters`.
 - `Domain\Actions\Bridges\FindMcpTraceFacetsAction` → `Trace\Domain\Actions\Queries\FindTypesAction`,
   `FindStatusesAction`, `FindTagsAction` and their `Trace\Parameters\TraceFind*Parameters`.
 - `Domain\Actions\Bridges\FindMcpTracesAction` → `Trace\Domain\Actions\Queries\FindTracesAction`,
@@ -305,18 +304,24 @@ and they hand the other module's entities back as they are.
 - `Domain\Actions\Bridges\FindMcpTraceDataFieldsAction` → `FindTracesAction`, `FindTraceDetailAction`.
 - `Domain\Actions\Bridges\FindMcpIndexStatusAction` → `FindTraceDynamicIndexAction`,
   `FindTraceDynamicIndexStatsAction`; `FindMcpDynamicIndexesAction` → `FindTraceDynamicIndexesAction`.
+- `Domain\Actions\Bridges\FindMcpTraceGroupsAction` → `Trace\Domain\Actions\Queries\FindTraceGroupsAction`,
+  `CompareMcpTraceGroupsAction` → `CompareTraceGroupsAction`, with `Trace\Parameters\TraceFindGroupsParameters`,
+  `TraceCompareGroupsParameters`, `Trace\Enums\TraceGroupFieldEnum`, `TraceCompareByEnum`.
 - `Domain\Services\McpTraceIndexExceptionTranslator` → `Trace\Domain\Exceptions\TraceDynamicIndex*Exception`:
   the one place that turns the index exceptions of `Trace` into those of `Mcp`.
 - `Domain\Services\McpTraceDataFilterParser` → `Trace\Parameters\Data`, `Trace\Enums\TraceDataFilterComp*Enum`;
   `Domain\Services\McpTracePeriodMapper` → `Trace\Parameters\PeriodParameters`.
 - `Domain\Services\McpTraceTreeNodeFactory` → `Trace\Domain\Actions\Queries\FindTraceServicesAction`,
   to put service names on tree nodes.
+- `Domain\Actions\Bridges\FindMcpLogEntriesAction` → `Logs\Domain\Actions\FindLogFilesAction`,
+  `FindLogEntriesAction`, `Logs\Domain\Services\Formats\LogFormatRegistry` (the level names of a
+  source's format), `Logs\Parameters\FindLogEntriesParameters`, `Logs\Entities`, `Logs\Enums`.
 - `Infrastructure\Tools\GetTraceDataTool` → `Trace\Infrastructure\Http\Resources\Data\TraceDataResource`,
   so that the model gets a trace's data exactly as the UI does. The only edge between two
   modules' `Infrastructure`.
-- `Parameters\FindMcpIncidentsParameters`, `Parameters\FindMcpTraceMetricsParameters`,
-  `Domain\Exceptions`, `Entities\Bridges`, `Infrastructure\Tools` → `Watcher\Enums`, `Watcher\Entities`, `Service\Entities`, `Trace\Entities`, `Trace\Enums` —
-  the objects the bridges return.
+- `Parameters`, `Domain\Exceptions`, `Entities\Bridges`, `Infrastructure\Tools` → `Watcher\Enums`,
+  `Watcher\Entities`, `Service\Entities`, `Trace\Entities`, `Trace\Enums`, `Logs\Entities` — the
+  objects the bridges return.
 
 ### Allowed Dependencies
 

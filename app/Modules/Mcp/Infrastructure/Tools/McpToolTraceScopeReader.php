@@ -93,7 +93,7 @@ readonly class McpToolTraceScopeReader
                 error: 'period_too_wide',
                 hint: sprintf(
                     'The period rounded to hours is longer than %d hours. Find the window you need with '
-                    . 'get_trace_metrics first, then query at most %d hours.',
+                    . 'top_trace_groups by hour first, then query at most %d hours.',
                     $exception->maxHours,
                     $exception->maxHours
                 )

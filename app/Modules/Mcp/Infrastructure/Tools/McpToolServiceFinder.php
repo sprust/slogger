@@ -14,6 +14,11 @@ readonly class McpToolServiceFinder
     ) {
     }
 
+    public function names(): McpToolServiceNames
+    {
+        return new McpToolServiceNames($this->findMcpServicesAction->handle(null));
+    }
+
     /**
      * @param int[] $serviceIds
      *

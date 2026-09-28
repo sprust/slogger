@@ -51,10 +51,13 @@ readonly class InvestigateErrorsPrompt implements McpPromptInterface
             '',
             'Steps:',
             '1. list_services to resolve the service id.',
-            '2. get_trace_metrics with statuses ["failed"] over the period to see when failures happen and how many.',
+            '2. top_trace_groups with statuses ["failed"] and by ["hour"] (or ["minute10"] for a few hours) '
+            . 'to see when failures happen and how many.',
             '3. list_incidents: a watcher may already know when the problem started.',
-            '4. In the window with the most failures: trace_facets with statuses ["failed"] for the failing types '
-            . 'and tags, then find_traces with statuses ["failed"] for the traces themselves.',
+            '4. In the window with the most failures: top_trace_groups with statuses ["failed"] and by '
+            . '["service", "type"] for what fails, compare_trace_groups with group_a_statuses ["failed"] by '
+            . 'type, tag or a data key for what the failed traces have in common, then find_traces with '
+            . 'statuses ["failed"] for the traces themselves.',
             '5. For a few failed traces: get_trace, get_trace_tree and find_in_trace_tree with statuses ["failed"] '
             . 'to find the call that failed; get_trace_data only for the traces that explain it.',
             '',

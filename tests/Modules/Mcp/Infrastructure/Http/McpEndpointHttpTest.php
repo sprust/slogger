@@ -4,7 +4,7 @@ namespace Tests\Modules\Mcp\Infrastructure\Http;
 
 use App\Modules\Mcp\Infrastructure\McpServiceProvider;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolRegistry;
-use App\Modules\Mcp\Infrastructure\Tools\GetTraceMetricsTool;
+use App\Modules\Mcp\Infrastructure\Tools\FindTracesTool;
 use App\Modules\Mcp\Repositories\McpRepository;
 use Illuminate\Support\Carbon;
 use Illuminate\Testing\TestResponse;
@@ -18,6 +18,25 @@ class McpEndpointHttpTest extends TestCase
     use McpFactoryTrait;
 
     private const string TOKEN = 'valid-token';
+
+    private const array TOOL_NAMES = [
+        'list_services',
+        'get_data_range',
+        'trace_facets',
+        'find_traces',
+        'list_trace_data_fields',
+        'top_trace_groups',
+        'compare_trace_groups',
+        'get_index_status',
+        'list_dynamic_indexes',
+        'list_incidents',
+        'get_incident_events',
+        'get_trace',
+        'get_trace_data',
+        'get_trace_tree',
+        'find_in_trace_tree',
+        'slogger_logs',
+    ];
 
     private McpRepository&MockObject $repository;
 
@@ -142,7 +161,7 @@ class McpEndpointHttpTest extends TestCase
             ->assertJsonPath('error.code', -32602);
     }
 
-    public function testTraceMetricsFollowsDataRangeInToolsList(): void
+    public function testToolsListOrder(): void
     {
         /** @var class-string[] $tools */
         $tools = new ReflectionClassConstant(McpServiceProvider::class, 'TOOLS')->getValue();
@@ -152,34 +171,31 @@ class McpEndpointHttpTest extends TestCase
             new McpToolRegistry(array_map(fn(string $tool) => $this->app->make($tool), $tools))
         );
 
-        $names = array_column((array) $this->rpc('tools/list')->assertOk()->json('result.tools'), 'name');
-
-        $position = array_search('get_trace_metrics', $names, true);
-
-        $this->assertIsInt($position);
-        $this->assertSame('get_data_range', $names[$position - 1]);
         $this->assertSame(
-            ['trace_facets', 'find_traces', 'list_trace_data_fields', 'get_index_status', 'list_dynamic_indexes'],
-            array_slice($names, $position + 1, 5)
+            self::TOOL_NAMES,
+            array_column((array) $this->rpc('tools/list')->assertOk()->json('result.tools'), 'name')
         );
     }
 
-    public function testTraceMetricsArgumentsAreValidated(): void
+    public function testTraceQueryArgumentsAreValidated(): void
     {
         $this->app->instance(
             McpToolRegistry::class,
-            new McpToolRegistry([$this->app->make(GetTraceMetricsTool::class)])
+            new McpToolRegistry([$this->app->make(FindTracesTool::class)])
         );
 
-        $response = $this->rpc('tools/call', ['name' => 'get_trace_metrics', 'arguments' => ['period' => '7 days']])
+        $response = $this->rpc('tools/call', ['name' => 'find_traces', 'arguments' => ['to' => '2026-09-28T12:00:00Z']])
             ->assertOk()
             ->assertJsonPath('error.code', -32602);
 
-        $this->assertStringContainsString('period', (string) $response->json('error.message'));
+        $this->assertStringContainsString('from', (string) $response->json('error.message'));
 
         $response = $this->rpc(
             'tools/call',
-            ['name' => 'get_trace_metrics', 'arguments' => ['period' => '1 hour', 'duration_from' => 'abc']]
+            [
+                'name'      => 'find_traces',
+                'arguments' => ['from' => '2026-09-28T10:00:00Z', 'to' => '2026-09-28T12:00:00Z', 'duration_from' => 'abc'],
+            ]
         )
             ->assertOk()
             ->assertJsonPath('error.code', -32602);
@@ -188,7 +204,7 @@ class McpEndpointHttpTest extends TestCase
 
         $this->rpc('tools/list')
             ->assertOk()
-            ->assertJsonPath('result.tools.0.name', 'get_trace_metrics')
+            ->assertJsonPath('result.tools.0.name', 'find_traces')
             ->assertJsonPath('result.tools.0.annotations.readOnlyHint', true)
             ->assertJsonPath('result.tools.0.inputSchema.properties.duration_from.type', 'number');
     }

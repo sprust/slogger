@@ -150,7 +150,7 @@ class TraceQueryToolsTest extends TestCase
             'period_too_wide',
             $this->facetsTool(),
             [...self::SCOPE, 'from' => '2026-09-27T06:00:00Z'],
-            'get_trace_metrics'
+            'top_trace_groups'
         );
         $this->assertToolError('service_not_found', $this->findTool(), [...self::SCOPE, 'service_ids' => [2, 999]], '999');
         $this->assertNull($this->captured);
@@ -207,6 +207,22 @@ class TraceQueryToolsTest extends TestCase
         $tags = $this->createMock(FindTagsAction::class);
         $tags->method('handle')->willReturn([]);
 
+        return new TraceFacetsTool(
+            new FindMcpTraceFacetsAction(
+                $types,
+                $statuses,
+                $tags,
+                new McpTraceIndexExceptionTranslator(),
+                new McpTracePeriodMapper()
+            ),
+            $this->settings(),
+            $this->scopeReader(),
+            new McpToolFormatter()
+        );
+    }
+
+    private function settings(): FindMcpSettingsAction
+    {
         $settings = $this->createMock(FindMcpSettingsAction::class);
         $settings->method('handle')->willReturn(
             new McpSettingsObject(
@@ -221,18 +237,7 @@ class TraceQueryToolsTest extends TestCase
             )
         );
 
-        return new TraceFacetsTool(
-            new FindMcpTraceFacetsAction(
-                $types,
-                $statuses,
-                $tags,
-                new McpTraceIndexExceptionTranslator(),
-                new McpTracePeriodMapper()
-            ),
-            $settings,
-            $this->scopeReader(),
-            new McpToolFormatter()
-        );
+        return $settings;
     }
 
     /**

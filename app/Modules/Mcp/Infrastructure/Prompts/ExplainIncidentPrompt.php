@@ -42,7 +42,7 @@ readonly class ExplainIncidentPrompt implements McpPromptInterface
             '',
             'Steps:',
             '1. get_incident_events for the watcher, its services and the numbers behind each event.',
-            '2. get_trace_metrics around the first and the last event to see what changed.',
+            '2. top_trace_groups by ["minute10"] around the first and the last event to see what changed.',
             '3. find_traces in the window of the incident with the filters the watcher implies, then get_trace and '
             . 'get_trace_tree for a few of them.',
             '',

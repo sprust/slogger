@@ -29,7 +29,7 @@ class McpPromptsTest extends TestCase
         $this->assertStringContainsString('"pms"', $text);
         $this->assertStringContainsString('last 3 hours', $text);
 
-        foreach (['list_services', 'get_trace_metrics', 'list_incidents', 'trace_facets', 'find_traces', 'get_trace_tree'] as $tool) {
+        foreach (['list_services', 'top_trace_groups', 'list_incidents', 'compare_trace_groups', 'find_traces', 'get_trace_tree'] as $tool) {
             $this->assertStringContainsString($tool, $text);
         }
     }
@@ -40,6 +40,7 @@ class McpPromptsTest extends TestCase
 
         $this->assertStringContainsString('of type "request"', $text);
         $this->assertStringContainsString('types ["request"]', $text);
+        $this->assertStringContainsString('top_trace_groups', $text);
         $this->assertStringContainsString('find_in_trace_tree', $text);
     }
 
@@ -47,7 +48,8 @@ class McpPromptsTest extends TestCase
     {
         $text = new InvestigateLatencyPrompt()->text(['service' => 'pms', 'period' => 'today']);
 
-        $this->assertStringNotContainsString('type', $text);
+        $this->assertStringNotContainsString('of type', $text);
+        $this->assertStringNotContainsString('types [', $text);
     }
 
     public function testIncidentAndTracePrompts(): void

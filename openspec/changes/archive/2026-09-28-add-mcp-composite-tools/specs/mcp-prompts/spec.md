@@ -1,23 +1,4 @@
-# mcp-prompts Specification
-
-## Purpose
-Промпты сервера MCP: готовые сценарии расследования, которые клиент показывает пользователю как команды, с аргументами и порядком шагов, согласованным с инструкциями сервера.
-
-## Requirements
-
-### Requirement: Список промптов
-
-`prompts/list` SHALL возвращать четыре промпта в неизменном порядке: `investigate_errors`, `investigate_latency`, `explain_incident`, `explain_trace`. У каждого `name`, `title`, `description` и `arguments` с `name`, `description`, `required`.
-
-Аргументы:
-- `investigate_errors`: `service` (обязательный) — имя или id сервиса, `period` (обязательный) — период словами или временем, например `last 3 hours`;
-- `investigate_latency`: `service` и `period` (обязательные), `type` (необязательный) — тип трейсов;
-- `explain_incident`: `incident_id` (обязательный);
-- `explain_trace`: `trace_id` (обязательный).
-
-#### Scenario: Список
-- **WHEN** клиент вызывает `prompts/list`
-- **THEN** ответ содержит четыре промпта с аргументами, у `investigate_latency` аргумент `type` необязательный
+## MODIFIED Requirements
 
 ### Requirement: Содержание промпта
 

@@ -59,10 +59,11 @@ readonly class InvestigateLatencyPrompt implements McpPromptInterface
             '',
             'Steps:',
             '1. list_services to resolve the service id.',
-            '2. get_trace_metrics with metrics ["count", "duration"] over the period'
-            . (is_null($type) ? '' : sprintf(' and types ["%s"]', $type))
-            . ' to find the window where p95 and p99 of duration grow.',
-            '3. In that window: find_traces with duration_from near the p95 for the slowest traces.',
+            '2. top_trace_groups by ["minute10"] (or ["hour"] for a long period)'
+            . (is_null($type) ? '' : sprintf(' with types ["%s"]', $type))
+            . ' to find the window where duration_p95 grows.',
+            '3. In that window: top_trace_groups by ["service", "type"] for the slowest groups, then '
+            . 'find_traces with duration_from near their duration_p95 for the slowest traces.',
             '4. For a few slow traces: get_trace_tree and find_in_trace_tree to find the slow calls inside; '
             . 'get_trace_data only for the traces that explain the delay.',
             '',
