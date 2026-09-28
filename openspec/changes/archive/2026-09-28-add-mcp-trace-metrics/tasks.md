@@ -31,7 +31,7 @@
 ## 4. Связанные планы
 
 - [x] 4.1 Убрать `trace_timeseries` из `openspec/changes/add-mcp-trace-queries/proposal.md` со ссылкой на `add-mcp-trace-metrics` (сделано при планировании; у того change пока есть только proposal, `openspec validate` на нём падает из-за отсутствия спек — так было и до правки)
-- [ ] 4.2 При архивации поправить `## Purpose` в `openspec/specs/mcp-tools/spec.md`: инструменты читают сервисы, инциденты и трейсы, а `get_trace_metrics` строит динамический индекс, как график UI
+- [x] 4.2 При архивации поправить `## Purpose` в `openspec/specs/mcp-tools/spec.md`: инструменты читают сервисы, инциденты и трейсы, а `get_trace_metrics` строит динамический индекс, как график UI
 
 ## 5. Проверка
 
