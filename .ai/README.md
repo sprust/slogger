@@ -135,6 +135,26 @@ Domain events are emitted for flows that trigger queues or framework side effect
 - Frontend pages: `frontend/src/components/pages`.
 - Frontend state and helpers: `frontend/src/store`, `frontend/src/utils`.
 
+## MCP Server
+
+The `Mcp` module serves the MCP protocol (revision `2026-07-28` only, Streamable HTTP, JSON
+responses, no sessions, no SSE) at `POST /mcp` (`routes/mcp.php`), outside the admin API.
+
+- `Infrastructure/Http/Middlewares/McpOriginMiddleware` rejects a foreign `Origin` with `403`;
+  `McpTokenMiddleware` accepts the Bearer token of an enabled connection from the `mcps` table
+  and touches `last_used_at` in `terminate`.
+- `Infrastructure/Http/Controllers/McpEndpointController` → `Infrastructure/Protocol`: the
+  message parser, the header and version validators, and `McpServer`, which dispatches
+  `server/discover`, `tools/list`, `tools/call`, `prompts/list`, `prompts/get`. Protocol
+  errors are `McpProtocolException`; a tool's own failure is a result with `isError: true`.
+- `Infrastructure/Tools/*Tool` — one class per tool. A tool validates nothing by hand: its
+  `McpToolSchema` is compiled both into the JSON Schema of `tools/list` and into the
+  validator rules. A tool calls only this module's bridges (`Domain/Actions/Bridges`), never
+  another module. New tools are registered in `McpServiceProvider::TOOLS`; the order there
+  is the order of `tools/list`.
+- `resources/mcp/instructions.md` — the instructions the model gets, in English.
+- Connections are managed through `/admin-api/mcps` and the `/mcps` page.
+
 ---
 
 ## Typical Request Flow
@@ -153,6 +173,7 @@ Domain events are emitted for flows that trigger queues or framework side effect
 - `Common` — shared entities, enums, helpers, shared HTTP resources.
 - `Dashboard` — dashboard and aggregated views.
 - `Logs` — log browsing and related read models.
+- `Mcp` — the MCP server: connections (`mcps`), the protocol endpoint `/mcp` and the read-only tools LLM clients call.
 - `Service` — service domain logic and service-related operations.
 - `Tools` — technical/support infrastructure helpers.
 - `Trace` — trace ingestion, aggregation, storage, and trace-oriented APIs.
@@ -245,6 +266,33 @@ so a new cross-module edge is added here or is not added.
 
 - `Infrastructure\Http\Controllers\WatcherIncidentController` → `Auth\Domain\Actions\FindUserByTokenAction`,
   to record who closed an incident. The only place outside `Auth` that reaches into it.
+
+`Mcp` → `Service`, `Watcher`, `Trace`. One way only: none of them knows about MCP. Tools
+never call another module; only the bridge actions in `Mcp\Domain\Actions\Bridges` do,
+and they hand the other module's entities back as they are.
+
+- `Domain\Actions\Bridges\FindMcpServicesAction` → `Service\Domain\Actions\FindServicesAction`,
+  `Service\Entities`.
+- `Domain\Actions\Bridges\FindMcpDataRangeAction` → `Trace\Domain\Actions\Queries\FindTraceDataRangeAction`,
+  `Trace\Entities`.
+- `Domain\Actions\Bridges\FindMcpIncidentsAction` → `Watcher\Domain\Actions\Queries\FindIncidentsAction`,
+  `FindWatcherAction`, `Watcher\Parameters\FindIncidentsParameters`, `Watcher\Entities`.
+- `Domain\Actions\Bridges\FindMcpIncidentEventsAction` → `Watcher\Domain\Actions\Queries\FindIncidentAction`,
+  `FindWatcherAction`, `FindIncidentEventsAction`, `Watcher\Domain\Services\Types\WatcherTypeRegistry`
+  (to render an event's numbers under the names they are stored by), `Watcher\Entities`.
+- `Domain\Actions\Bridges\FindMcpTraceAction` → `Trace\Domain\Actions\Queries\FindTraceDetailAction`.
+- `Domain\Actions\Bridges\FindMcpTraceTreeAction` → `Trace\Domain\Actions\Queries\FindTraceTreeStateAction`,
+  `FindTraceTreeAction` (only to start the first build, as the UI does), `FindTraceTreeChildrenAction`.
+- `Domain\Actions\Bridges\FindMcpTraceTreeFilteredAction` → `FindTraceTreeStateAction`,
+  `FindTraceTreeFilteredAction`, `Trace\Parameters\TraceTreeFilterParameters`.
+- `Domain\Services\McpTraceTreeNodeFactory` → `Trace\Domain\Actions\Queries\FindTraceServicesAction`,
+  to put service names on tree nodes.
+- `Infrastructure\Tools\GetTraceDataTool` → `Trace\Infrastructure\Http\Resources\Data\TraceDataResource`,
+  so that the model gets a trace's data exactly as the UI does. The only edge between two
+  modules' `Infrastructure`.
+- `Parameters\FindMcpIncidentsParameters`, `Entities\Bridges`, `Infrastructure\Tools` →
+  `Watcher\Enums`, `Watcher\Entities`, `Service\Entities`, `Trace\Entities`, `Trace\Enums` —
+  the objects the bridges return.
 
 ### Allowed Dependencies
 

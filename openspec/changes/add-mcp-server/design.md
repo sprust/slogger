@@ -42,7 +42,7 @@ app/Modules/Mcp/
 │   └── Exceptions/
 ├── Entities/            McpObject, объекты результатов мостов
 ├── Parameters/          McpCreateParameters, McpUpdateParameters, параметры мостов
-├── Repositories/        McpRepository, Dto/McpDto
+├── Repositories/        McpRepository (возвращает McpObject, без DTO)
 └── Infrastructure/
     ├── Http/            Controllers, Requests, Resources, Middlewares
     ├── Protocol/        транспорт и JSON-RPC (D4)
@@ -80,6 +80,7 @@ app/Modules/Mcp/
 | `FindMcpTraceAction` | `Trace\...\Queries\FindTraceDetailAction` |
 | `FindMcpTraceTreeAction` | `FindTraceTreeStateAction` (новый, D6), `FindTraceTreeAction`, `FindTraceTreeChildrenAction` |
 | `FindMcpTraceTreeFilteredAction` | `FindTraceTreeStateAction`, `FindTraceTreeFilteredAction` |
+| `Domain\Services\McpTraceTreeNodeFactory` | `Trace\...\Queries\FindTraceServicesAction` — имена сервисов на узлах дерева |
 
 Кроме того, мосты используют `Entities`, `Enums` и `Parameters` этих модулей. `get_trace_data` использует `Trace\Infrastructure\Http\Resources\Data\TraceDataResource` (D5).
 
@@ -112,7 +113,7 @@ POST /mcp
   - `202` — уведомление.
 - Каждый `result` собирается через `McpResultFactory`: он добавляет `resultType: "complete"` и `_meta["io.modelcontextprotocol/serverInfo"]` (`name`, `title`, `version`), для списков ещё `ttlMs` и `cacheScope: "private"`.
 - `McpToolRegistry` хранит инструменты в порядке регистрации в `McpServiceProvider`, поэтому порядок в `tools/list` стабилен. `McpPromptRegistry` в этом изменении пуст.
-- Инструкции — `app/Modules/Mcp/Infrastructure/Protocol/instructions.md`, текст на английском. Блок инсталляции с `server_name` и `APP_URL` подставляется перед ним.
+- Инструкции — `resources/mcp/instructions.md` (в `app/Modules` не-PHP файл ломает проверку `declare-strict-fix`), текст на английском. Блок инсталляции с `server_name` и `APP_URL` подставляется перед ним.
 
 ### D5. Инструменты
 
@@ -133,7 +134,7 @@ POST /mcp
   - `Failed` или `Canceled` — ошибка инструмента;
   - `Finished` — `FindTraceTreeChildrenAction(rootTraceId, parentTraceId, cursor, limit: tree_nodes_limit)`.
 - MCP никогда не читает дерево целиком и не зависит от `module-trace.tree.full_load_limit` (200000).
-- `find_in_trace_tree` читает только состояние. Построения не запускает, при `Finished` вызывает `FindTraceTreeFilteredAction`.
+- `find_in_trace_tree` читает только состояние. Построения не запускает, при `Finished` вызывает `FindTraceTreeFilteredAction`. Тот отдаёт совпавшие узлы вместе с путями до корня, поэтому мост оставляет только совпавшие (те же условия: `$in` по каждому фильтру, все фильтры сразу) и режет их до `tree_nodes_limit`. Числа детей у этих узлов нет: его знает только `FindTraceTreeChildrenAction`.
 
 ### D7. Диапазон данных
 

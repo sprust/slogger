@@ -24,6 +24,7 @@ use App\Modules\Trace\Domain\Actions\Queries\FindStatusesAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceBufferCountAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTagsAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceAdminStoreAction;
+use App\Modules\Trace\Domain\Actions\Queries\FindTraceDataRangeAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceDetailAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceDynamicIndexAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceDynamicIndexesAction;
@@ -34,6 +35,7 @@ use App\Modules\Trace\Domain\Actions\Queries\FindTracesAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceServicesAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceTimestampsAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceTreeAction;
+use App\Modules\Trace\Domain\Actions\Queries\FindTraceTreeStateAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceTreeChildrenAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceTreeFilteredAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceTreeCacheStatesAction;
@@ -124,10 +126,12 @@ class TraceServiceProvider extends BaseServiceProvider
             FindStatusesAction::class,
             FindTagsAction::class,
             FindTraceDetailAction::class,
+            FindTraceDataRangeAction::class,
             FindTraceProfilingAction::class,
             FindTracesAction::class,
             FindTraceTimestampsAction::class,
             FindTraceTreeAction::class,
+            FindTraceTreeStateAction::class,
             FindTraceTreeChildrenAction::class,
             FindTraceTreeFilteredAction::class,
             FindTraceTreeCacheStatesAction::class,

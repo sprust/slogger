@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use App\Modules\Auth\Infrastructure\Http\Middlewares\AuthMiddleware;
+use App\Modules\Mcp\Infrastructure\Http\Middlewares\McpOriginMiddleware;
+use App\Modules\Mcp\Infrastructure\Http\Middlewares\McpTokenMiddleware;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 use Illuminate\Http\Request;
@@ -45,6 +47,12 @@ class RouteServiceProvider extends ServiceProvider
                     SLoggerHttpMiddleware::class
                 ])
                 ->group(base_path('routes/admin-api.php'));
+
+            Route::middleware([
+                McpOriginMiddleware::class,
+                McpTokenMiddleware::class,
+            ])
+                ->group(base_path('routes/mcp.php'));
         });
     }
 }

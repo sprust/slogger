@@ -28,7 +28,18 @@
     <el-menu-item :index="routes.sconcur.path">
       Sconcur
     </el-menu-item>
+    <el-menu-item :index="routes.mcps.path">
+      MCP
+    </el-menu-item>
     <div class="flex-grow"/>
+    <el-menu-item index="" disabled class="installation">
+      <el-tag
+          type="info"
+          :style="{visibility: installationName ? 'visible' : 'hidden'}"
+      >
+        {{ installationName || '—' }}
+      </el-tag>
+    </el-menu-item>
     <ws-status-indicator/>
     <el-menu-item index="" @click="toggleDark">
       <el-button :icon="isDark ? Moon : Sunny" link/>
@@ -52,6 +63,7 @@ import {useDark} from '@vueuse/core'
 import {Moon, Sunny} from '@element-plus/icons-vue'
 import {useToolLinksStore} from "../store/toolLinksStore.ts";
 import {useWatcherIncidentStatStore} from "../store/watcherIncidentStatStore.ts";
+import {useMcpSettingsStore} from "../store/mcpSettingsStore.ts";
 import WsStatusIndicator from "./WsStatusIndicator.vue";
 
 export default defineComponent({
@@ -79,6 +91,12 @@ export default defineComponent({
     },
     watcherIncidentStatStore() {
       return useWatcherIncidentStatStore()
+    },
+    mcpSettingsStore() {
+      return useMcpSettingsStore()
+    },
+    installationName(): string {
+      return this.mcpSettingsStore.settings?.server_name ?? ''
     },
     Sunny() {
       return Sunny
@@ -108,6 +126,10 @@ export default defineComponent({
     // Read from the header rather than from the watchers page: the badge is shown
     // everywhere, so it is filled in wherever the panel was opened.
     this.watcherIncidentStatStore.findStat()
+
+    if (!this.mcpSettingsStore.loaded) {
+      this.mcpSettingsStore.find()
+    }
   }
 })
 
@@ -120,5 +142,12 @@ export default defineComponent({
 
 #header-menu {
   height: 50px;
+}
+
+.installation.is-disabled {
+  min-width: 100px;
+  justify-content: center;
+  cursor: default;
+  opacity: 1;
 }
 </style>

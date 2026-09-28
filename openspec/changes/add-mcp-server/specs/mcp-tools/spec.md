@@ -88,7 +88,7 @@
 
 ### Requirement: get_trace_tree
 
-Инструмент `get_trace_tree` с аргументами `trace_id` и необязательными `parent_trace_id` и `cursor` SHALL возвращать дерево, в которое входит трейс `trace_id`, ветками: без `parent_trace_id` — верхний уровень от корня, с `parent_trace_id` — детей этого узла. На узел: `trace_id`, `service`, `type`, `status`, `duration`, число детей. За вызов отдаётся не больше `MCP_TREE_NODES_LIMIT` узлов (по умолчанию 300); если узлов больше, ответ содержит `next_cursor` для следующего вызова. Инструмент SHALL NOT перестраивать уже построенное дерево.
+Инструмент `get_trace_tree` с аргументами `trace_id` и необязательными `parent_trace_id` и `cursor` SHALL возвращать дерево, в которое входит трейс `trace_id`, ветками: без `parent_trace_id` — верхний уровень от корня, с `parent_trace_id` — детей этого узла. Ответ готового дерева содержит `status: "ready"`, `root_trace_id` и `next_cursor`. На узел: `trace_id`, `parent_trace_id`, `service`, `type`, `status`, `duration`, число детей (`children_count`). За вызов отдаётся не больше `MCP_TREE_NODES_LIMIT` узлов (по умолчанию 300); если узлов больше, ответ содержит `next_cursor` для следующего вызова. Инструмент SHALL NOT перестраивать уже построенное дерево.
 
 Если кэш дерева ещё не построен, первый вызов SHALL запустить его построение, как первое открытие дерева в UI. Пока дерево строится, ответ SHALL быть не ошибкой, а статусом `{"status": "tree_building", "retry_after_seconds": 10, "hint": ...}`, где `hint` просит повторить тот же вызов позже. Если построение завершилось ошибкой или отменено, ответ SHALL быть ошибкой инструмента с текстом, что перестроить дерево можно только в UI.
 
@@ -114,7 +114,7 @@
 
 ### Requirement: find_in_trace_tree
 
-Инструмент `find_in_trace_tree` с аргументами `trace_id` и хотя бы одним из фильтров `service_ids`, `types`, `tags`, `statuses` SHALL возвращать узлы дерева, подходящие под фильтр (в формате узлов `get_trace_tree`), их общее число `matched_count` и признак `truncated`, если совпадений больше, чем отдано. Пока дерево не построено, ответ SHALL быть тем же статусом `tree_building`, что у `get_trace_tree`, и SHALL NOT запускать построение сам.
+Инструмент `find_in_trace_tree` с аргументами `trace_id` и хотя бы одним из фильтров `service_ids`, `types`, `tags`, `statuses` SHALL возвращать только узлы дерева, подходящие под фильтр (в формате узлов `get_trace_tree`, но без `children_count`), не больше `MCP_TREE_NODES_LIMIT`, их общее число `matched_count` и признак `truncated`, если совпадений больше, чем отдано. Пока дерево не построено, ответ SHALL быть тем же статусом `tree_building`, что у `get_trace_tree`, и SHALL NOT запускать построение сам.
 
 #### Scenario: Поиск упавших узлов
 - **WHEN** дерево построено, и модель вызывает `find_in_trace_tree` с `statuses: ["failed"]`

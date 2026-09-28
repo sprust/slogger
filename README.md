@@ -21,6 +21,7 @@ It collects data about code execution (HTTP requests, queues, events, commands, 
 - Runtime dashboard — live stats of the SConcur HTTP server: worker pool, RPS, CPU, memory, in-flight requests.
 - Watchers — configurable rules that open an incident when the system misbehaves: a buffer growing, traces stopping, too many of them, traces running too long, errors in the application or the receiver log; trace watchers can be narrowed by service, type, tag and status.
 - Notification channels — a watcher's incidents are sent on to Telegram, to Slack, or to an address of your own as JSON, with a delivery log per channel.
+- MCP server — LLM clients such as Claude Code connect to SLogger and investigate traces and incidents on their own; every tool only reads.
 - Automatic cleanup of stale data.
 
 ---
@@ -230,6 +231,42 @@ Sending is a queued job (`SendNotificationJob`), never the watcher's pass: a rec
 
 A secret — the bot token, the Slack webhook url, the webhook's token — is stored encrypted (`encrypted:array` over a single column) and never sent back to the panel: the edit form is shown a mask of the last few characters, and left blank it keeps what is already stored. There is a Test button beside each channel, which sends one message through the real credentials and reports what happened.
 
+### MCP server
+
+SLogger is an MCP server (protocol revision `2026-07-28`, Streamable HTTP at `POST /mcp`). An LLM client connected to it — Claude Code or another — is asked in plain words, "why do the API requests of billing sometimes fail", and finds the answer with SLogger's tools: services, the hours for which traces are stored, watcher incidents and their events, a trace, its data and its call tree. The model, the agent loop and the tokens are the client's; every tool only reads. A tool whose data has to be prepared first — the call tree of a trace — answers `tree_building` at once and is called again later, instead of holding the request open.
+
+Access is by connection. The MCP page creates one per person or agent, shows its token and the ready command, and switches a connection off, regenerates its token or removes it: a client with the old token gets `401` at once. A connection sees every service of the installation.
+
+1. Create a connection on the MCP page, for example "Claude Code — Alex".
+2. Copy the command shown for it and run it:
+
+   ```bash
+   claude mcp add --transport http --scope user slogger-prod https://slogger.example.com/mcp \
+     --header "Authorization: Bearer <token>"
+   ```
+
+3. Check it: `claude mcp list`, or `/mcp` inside a Claude Code session — `slogger-prod` must be connected.
+
+`--scope user` adds the server to all your projects; without it (`local`) only to the current one.
+
+Every installation has a name, `MCP_SERVER_NAME` (by default `APP_ENV`, `a-z`, `0-9` and `-`, up to 32 characters), shown in the header of the panel. The command on its MCP page adds it as `slogger-<name>`, so `local`, `stand` and `prod` can be connected side by side. They share no data: say which installation you mean — "on prod" — and when several are connected and none is named, the model asks.
+
+For a whole team, put `.mcp.json` in the root of a project and keep the token out of it — everyone sets their own in the environment. The MCP page shows the file for its installation:
+
+```json
+{
+  "mcpServers": {
+    "slogger-prod": {
+      "type": "http",
+      "url": "https://slogger.example.com/mcp",
+      "headers": { "Authorization": "Bearer ${SLOGGER_PROD_TOKEN}" }
+    }
+  }
+}
+```
+
+Name the service and roughly the period in a question: "over the last day", "yesterday from 14 to 16".
+
 ### Automatic cleanup
 
 Stale traces are removed automatically. The retention period is set by the `TRACES_LIFETIME_DAYS` variable (default 3 days). Cleanup is a queued job (`ClearTracesJob`) scheduled every hour and, thanks to hourly sharding, drops whole shard collections that fell out of the retention window instead of deleting individual documents. This is fast, does not fragment storage, and also removes the dynamic indexes associated with those shards. Each run is recorded, and the Trace cleaner page lists the runs with how many collections and traces were cleared and the error, if any. `make art c=traces-clearing:clear` runs a cleanup by hand.
@@ -366,6 +403,7 @@ TRACES_LIFETIME_DAYS=3    # trace retention period in days
 LOGS_NGINX_KEEP_DAYS=14   # nginx access log files are kept this many days
 #LOGS_NGINX_PATH=         # nginx log folder, storage/logs/nginx when not set
 #LOGS_RECEIVER_PATH=      # receiver log folder, servers/receiver/storage/logs when not set
+#MCP_SERVER_NAME=         # installation name for MCP clients (slogger-<name>), APP_ENV when not set
 
 # SConcur HTTP runtime (the full set of knobs is in .env.example)
 SCONCUR_HTTP_WORKER_COUNT=2    # number of HTTP workers, at least 2 for a rolling reload (0 = one per logical CPU)
