@@ -13,6 +13,7 @@ readonly class McpSettingsObject
         public string $endpointUrl,
         public int $maxStringLength,
         public int $treeNodesLimit,
+        public int $facetsLimit,
         public int $listTtlMs
     ) {
     }

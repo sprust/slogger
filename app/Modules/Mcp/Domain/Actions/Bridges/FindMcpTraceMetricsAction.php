@@ -7,14 +7,11 @@ namespace App\Modules\Mcp\Domain\Actions\Bridges;
 use App\Modules\Mcp\Domain\Exceptions\McpTraceIndexBuildingException;
 use App\Modules\Mcp\Domain\Exceptions\McpTraceIndexFailedException;
 use App\Modules\Mcp\Domain\Exceptions\McpTraceMetricsStepNotAllowedException;
+use App\Modules\Mcp\Domain\Services\McpTraceIndexExceptionTranslator;
 use App\Modules\Mcp\Entities\Bridges\McpTraceMetricsObject;
 use App\Modules\Mcp\Parameters\FindMcpTraceMetricsParameters;
 use App\Modules\Trace\Domain\Actions\MakeTraceTimestampPeriodsAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceTimestampsAction;
-use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexErrorException;
-use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexInProcessException;
-use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexNotInitException;
-use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexParallelArraysException;
 use App\Modules\Trace\Entities\Trace\Timestamp\TraceTimestampObject;
 use App\Modules\Trace\Entities\Trace\Timestamp\TraceTimestampPeriodObject;
 use App\Modules\Trace\Enums\TraceTimestampEnum;
@@ -35,7 +32,8 @@ readonly class FindMcpTraceMetricsAction
 
     public function __construct(
         private MakeTraceTimestampPeriodsAction $makeTraceTimestampPeriodsAction,
-        private FindTraceTimestampsAction $findTraceTimestampsAction
+        private FindTraceTimestampsAction $findTraceTimestampsAction,
+        private McpTraceIndexExceptionTranslator $indexExceptionTranslator
     ) {
     }
 
@@ -58,8 +56,8 @@ readonly class FindMcpTraceMetricsAction
             );
         }
 
-        try {
-            $timestamps = $this->findTraceTimestampsAction->handle(
+        $timestamps = $this->indexExceptionTranslator->call(
+            fn() => $this->findTraceTimestampsAction->handle(
                 new FindTraceTimestampsParameters(
                     timestampPeriod: $parameters->period,
                     timestampStep: $step,
@@ -76,21 +74,13 @@ readonly class FindMcpTraceMetricsAction
                     cpuFrom: $parameters->cpuFrom,
                     cpuTo: $parameters->cpuTo
                 )
-            );
+            )
+        );
 
-            return new McpTraceMetricsObject(
-                step: $step,
-                timestamps: $timestamps
-            );
-        } catch (TraceDynamicIndexInProcessException $exception) {
-            throw new McpTraceIndexBuildingException($exception->indexId);
-        } catch (TraceDynamicIndexErrorException $exception) {
-            throw new McpTraceIndexFailedException($exception->getMessage());
-        } catch (TraceDynamicIndexNotInitException) {
-            throw new McpTraceIndexFailedException('The trace dynamic index could not be initialized.');
-        } catch (TraceDynamicIndexParallelArraysException) {
-            throw new McpTraceIndexFailedException('Tags and a data field cannot be filtered together.');
-        }
+        return new McpTraceMetricsObject(
+            step: $step,
+            timestamps: $timestamps
+        );
     }
 
     private function defaultStep(TraceTimestampPeriodEnum $period): TraceTimestampEnum

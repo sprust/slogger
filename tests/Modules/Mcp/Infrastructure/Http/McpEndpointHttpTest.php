@@ -158,6 +158,10 @@ class McpEndpointHttpTest extends TestCase
 
         $this->assertIsInt($position);
         $this->assertSame('get_data_range', $names[$position - 1]);
+        $this->assertSame(
+            ['trace_facets', 'find_traces', 'list_trace_data_fields', 'get_index_status', 'list_dynamic_indexes'],
+            array_slice($names, $position + 1, 5)
+        );
     }
 
     public function testTraceMetricsArgumentsAreValidated(): void
@@ -191,13 +195,41 @@ class McpEndpointHttpTest extends TestCase
 
     public function testPrompts(): void
     {
-        $this->rpc('prompts/list')
+        $response = $this->rpc('prompts/list')
             ->assertOk()
-            ->assertJsonPath('result.prompts', [])
             ->assertJsonPath('result.cacheScope', 'private');
 
-        $this->rpc('prompts/get', ['name' => 'investigate_errors'])
+        $this->assertSame(
+            ['investigate_errors', 'investigate_latency', 'explain_incident', 'explain_trace'],
+            array_column((array) $response->json('result.prompts'), 'name')
+        );
+        $this->assertSame(
+            [['type', false]],
+            array_map(
+                static fn(array $argument) => [$argument['name'], $argument['required']],
+                array_values(array_filter(
+                    (array) $response->json('result.prompts.1.arguments'),
+                    static fn(array $argument) => $argument['name'] === 'type'
+                ))
+            )
+        );
+
+        $this->rpc('prompts/get', ['name' => 'drop_everything'])
             ->assertJsonPath('error.code', -32602);
+
+        $this->rpc('prompts/get', ['name' => 'explain_trace', 'arguments' => []])
+            ->assertJsonPath('error.code', -32602);
+
+        $text = (string) $this->rpc(
+            'prompts/get',
+            ['name' => 'investigate_errors', 'arguments' => ['service' => 'pms', 'period' => 'last 3 hours']]
+        )
+            ->assertOk()
+            ->assertJsonPath('result.messages.0.role', 'user')
+            ->json('result.messages.0.content.text');
+
+        $this->assertStringContainsString('"pms"', $text);
+        $this->assertStringContainsString('last 3 hours', $text);
     }
 
     public function testUnknownMethodIsNotFound(): void

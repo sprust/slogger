@@ -31,6 +31,7 @@ readonly class FindMcpSettingsAction
             endpointUrl: "$appUrl/mcp",
             maxStringLength: (int) config('mcp.max_string_length'),
             treeNodesLimit: (int) config('mcp.tree_nodes_limit'),
+            facetsLimit: (int) config('mcp.facets_limit'),
             listTtlMs: (int) config('mcp.list_ttl_ms')
         );
     }

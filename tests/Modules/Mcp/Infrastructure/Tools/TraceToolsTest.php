@@ -262,6 +262,7 @@ class TraceToolsTest extends TestCase
                 endpointUrl: 'http://localhost/mcp',
                 maxStringLength: 500,
                 treeNodesLimit: 300,
+                facetsLimit: 50,
                 listTtlMs: 3_600_000
             )
         );

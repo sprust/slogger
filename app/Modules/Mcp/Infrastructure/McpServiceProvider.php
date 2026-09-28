@@ -23,6 +23,10 @@ use App\Modules\Mcp\Domain\Actions\Queries\FindMcpByTokenAction;
 use App\Modules\Mcp\Domain\Actions\Queries\FindMcpsAction;
 use App\Modules\Mcp\Domain\Actions\Queries\FindMcpSettingsAction;
 use App\Modules\Mcp\Infrastructure\Prompts\Contracts\McpPromptRegistry;
+use App\Modules\Mcp\Infrastructure\Prompts\ExplainIncidentPrompt;
+use App\Modules\Mcp\Infrastructure\Prompts\ExplainTracePrompt;
+use App\Modules\Mcp\Infrastructure\Prompts\InvestigateErrorsPrompt;
+use App\Modules\Mcp\Infrastructure\Prompts\InvestigateLatencyPrompt;
 use App\Modules\Mcp\Infrastructure\Protocol\McpHeaderValidator;
 use App\Modules\Mcp\Infrastructure\Protocol\McpInstructionsBuilder;
 use App\Modules\Mcp\Infrastructure\Protocol\McpJsonEncoder;
@@ -37,7 +41,12 @@ use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolSchemaCompiler;
 use App\Modules\Mcp\Infrastructure\Tools\FindInTraceTreeTool;
 use App\Modules\Mcp\Infrastructure\Tools\GetDataRangeTool;
 use App\Modules\Mcp\Infrastructure\Tools\GetTraceDataTool;
+use App\Modules\Mcp\Infrastructure\Tools\FindTracesTool;
+use App\Modules\Mcp\Infrastructure\Tools\GetIndexStatusTool;
 use App\Modules\Mcp\Infrastructure\Tools\GetTraceMetricsTool;
+use App\Modules\Mcp\Infrastructure\Tools\ListDynamicIndexesTool;
+use App\Modules\Mcp\Infrastructure\Tools\ListTraceDataFieldsTool;
+use App\Modules\Mcp\Infrastructure\Tools\TraceFacetsTool;
 use App\Modules\Mcp\Infrastructure\Tools\GetTraceTool;
 use App\Modules\Mcp\Infrastructure\Tools\GetTraceTreeTool;
 use App\Modules\Mcp\Infrastructure\Tools\GetIncidentEventsTool;
@@ -56,6 +65,11 @@ class McpServiceProvider extends BaseServiceProvider
         ListServicesTool::class,
         GetDataRangeTool::class,
         GetTraceMetricsTool::class,
+        TraceFacetsTool::class,
+        FindTracesTool::class,
+        ListTraceDataFieldsTool::class,
+        GetIndexStatusTool::class,
+        ListDynamicIndexesTool::class,
         ListIncidentsTool::class,
         GetIncidentEventsTool::class,
         GetTraceTool::class,
@@ -81,7 +95,12 @@ class McpServiceProvider extends BaseServiceProvider
 
         $this->app->singleton(
             McpPromptRegistry::class,
-            static fn(): McpPromptRegistry => new McpPromptRegistry([])
+            static fn(): McpPromptRegistry => new McpPromptRegistry([
+                new InvestigateErrorsPrompt(),
+                new InvestigateLatencyPrompt(),
+                new ExplainIncidentPrompt(),
+                new ExplainTracePrompt(),
+            ])
         );
 
         parent::boot();

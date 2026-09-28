@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Modules\Mcp\Infrastructure\Tools;
 
-use App\Modules\Mcp\Domain\Actions\Bridges\FindMcpServicesAction;
 use App\Modules\Mcp\Domain\Actions\Bridges\FindMcpTraceMetricsAction;
 use App\Modules\Mcp\Domain\Exceptions\McpTraceIndexBuildingException;
 use App\Modules\Mcp\Domain\Exceptions\McpTraceIndexFailedException;
@@ -16,7 +15,6 @@ use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolPropertyTypeEnum;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolResult;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolSchema;
 use App\Modules\Mcp\Parameters\FindMcpTraceMetricsParameters;
-use App\Modules\Service\Entities\ServiceObject;
 use App\Modules\Trace\Entities\Trace\Timestamp\TraceTimestampFieldIndicatorObject;
 use App\Modules\Trace\Entities\Trace\Timestamp\TraceTimestampFieldObject;
 use App\Modules\Trace\Entities\Trace\Timestamp\TraceTimestampsObject;
@@ -24,20 +22,17 @@ use App\Modules\Trace\Enums\TraceMetricFieldEnum;
 use App\Modules\Trace\Enums\TraceTimestampEnum;
 use App\Modules\Trace\Enums\TraceTimestampPeriodEnum;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Carbon;
-use Throwable;
 
 readonly class GetTraceMetricsTool implements McpToolInterface
 {
     private const int MAX_FILTER_VALUES = 20;
 
-    private const string ISO_8601 = '/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:?\d{2})?$/';
-
     private const array INDICATORS = ['avg', 'min', 'max', 'p50', 'p95', 'p99'];
 
     public function __construct(
         private FindMcpTraceMetricsAction $findMcpTraceMetricsAction,
-        private FindMcpServicesAction $findMcpServicesAction,
+        private McpToolServiceFinder $serviceFinder,
+        private McpToolTimeParser $timeParser,
         private McpToolFormatter $formatter
     ) {
     }
@@ -170,28 +165,19 @@ readonly class GetTraceMetricsTool implements McpToolInterface
         $to = null;
 
         if ($arguments->has('to')) {
-            $to = $this->parseTime($arguments->string('to'));
+            $to = $this->timeParser->parse($arguments->string('to'));
 
             if (is_null($to)) {
-                return $this->formatter->error(
-                    error: 'invalid_time',
-                    hint: 'Argument "to" is not an ISO 8601 time, for example 2026-09-28T20:00:00Z.'
-                );
+                return $this->formatter->invalidTime('to');
             }
         }
 
         $serviceIds = $arguments->intList('service_ids');
 
-        $unknownServiceIds = $this->findUnknownServiceIds($serviceIds);
+        $unknownServiceIds = $this->serviceFinder->findUnknownIds($serviceIds);
 
         if (count($unknownServiceIds) > 0) {
-            return $this->formatter->error(
-                error: 'service_not_found',
-                hint: sprintf(
-                    'No services with ids [%s]. Call list_services to get the ids.',
-                    implode(', ', $unknownServiceIds)
-                )
-            );
+            return $this->formatter->serviceNotFound($unknownServiceIds);
         }
 
         $metrics = array_map(
@@ -227,21 +213,9 @@ readonly class GetTraceMetricsTool implements McpToolInterface
                 )
             );
         } catch (McpTraceIndexBuildingException $exception) {
-            return new McpToolResult(
-                data: [
-                    'status'              => 'index_building',
-                    'index_id'            => $exception->indexId,
-                    'retry_after_seconds' => 10,
-                    'hint'                => 'The trace index for these filters and hours is being built. '
-                        . 'Do something else useful meanwhile, then repeat the SAME call. Another set of '
-                        . 'filters, another step or period would start building another index.',
-                ]
-            );
+            return $this->formatter->indexBuilding($exception->indexId);
         } catch (McpTraceIndexFailedException $exception) {
-            return $this->formatter->error(
-                error: 'index_error',
-                hint: 'Building the trace index failed: ' . $exception->getMessage()
-            );
+            return $this->formatter->indexError($exception->getMessage());
         } catch (McpTraceMetricsStepNotAllowedException $exception) {
             return $this->formatter->error(
                 error: 'step_not_allowed',
@@ -279,38 +253,6 @@ readonly class GetTraceMetricsTool implements McpToolInterface
                 ),
             ]
         );
-    }
-
-    private function parseTime(string $value): ?Carbon
-    {
-        if (!preg_match(self::ISO_8601, $value)) {
-            return null;
-        }
-
-        try {
-            return new Carbon($value);
-        } catch (Throwable) {
-            return null;
-        }
-    }
-
-    /**
-     * @param int[] $serviceIds
-     *
-     * @return int[]
-     */
-    private function findUnknownServiceIds(array $serviceIds): array
-    {
-        if (count($serviceIds) === 0) {
-            return [];
-        }
-
-        $knownIds = array_map(
-            static fn(ServiceObject $service) => $service->id,
-            $this->findMcpServicesAction->handle(null)
-        );
-
-        return array_values(array_diff($serviceIds, $knownIds));
     }
 
     /**

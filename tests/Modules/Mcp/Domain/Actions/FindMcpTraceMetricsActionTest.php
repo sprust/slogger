@@ -3,6 +3,7 @@
 namespace Tests\Modules\Mcp\Domain\Actions;
 
 use App\Modules\Mcp\Domain\Actions\Bridges\FindMcpTraceMetricsAction;
+use App\Modules\Mcp\Domain\Services\McpTraceIndexExceptionTranslator;
 use App\Modules\Mcp\Domain\Exceptions\McpTraceIndexBuildingException;
 use App\Modules\Mcp\Domain\Exceptions\McpTraceIndexFailedException;
 use App\Modules\Mcp\Domain\Exceptions\McpTraceMetricsStepNotAllowedException;
@@ -180,7 +181,8 @@ class FindMcpTraceMetricsActionTest extends TestCase
 
         return new FindMcpTraceMetricsAction(
             new MakeTraceTimestampPeriodsAction(new TraceTimestampMetricsFactory()),
-            $graph
+            $graph,
+            new McpTraceIndexExceptionTranslator()
         );
     }
 
@@ -191,7 +193,8 @@ class FindMcpTraceMetricsActionTest extends TestCase
 
         return new FindMcpTraceMetricsAction(
             new MakeTraceTimestampPeriodsAction(new TraceTimestampMetricsFactory()),
-            $graph
+            $graph,
+            new McpTraceIndexExceptionTranslator()
         );
     }
 }

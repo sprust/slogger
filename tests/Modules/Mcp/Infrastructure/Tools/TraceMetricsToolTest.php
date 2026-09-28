@@ -4,10 +4,13 @@ namespace Tests\Modules\Mcp\Infrastructure\Tools;
 
 use App\Modules\Mcp\Domain\Actions\Bridges\FindMcpServicesAction;
 use App\Modules\Mcp\Domain\Actions\Bridges\FindMcpTraceMetricsAction;
+use App\Modules\Mcp\Domain\Services\McpTraceIndexExceptionTranslator;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolArguments;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolResult;
 use App\Modules\Mcp\Infrastructure\Tools\GetTraceMetricsTool;
 use App\Modules\Mcp\Infrastructure\Tools\McpToolFormatter;
+use App\Modules\Mcp\Infrastructure\Tools\McpToolServiceFinder;
+use App\Modules\Mcp\Infrastructure\Tools\McpToolTimeParser;
 use App\Modules\Service\Domain\Actions\FindServicesAction;
 use App\Modules\Service\Entities\ServiceObject;
 use App\Modules\Trace\Domain\Actions\MakeTraceTimestampPeriodsAction;
@@ -99,6 +102,7 @@ class TraceMetricsToolTest extends TestCase
         $this->assertSame('idx-1', $result->data['index_id']);
         $this->assertSame(10, $result->data['retry_after_seconds']);
         $this->assertStringContainsString('SAME call', $result->data['hint']);
+        $this->assertStringContainsString('get_index_status', $result->data['hint']);
     }
 
     public function testIndexError(): void
@@ -166,9 +170,11 @@ class TraceMetricsToolTest extends TestCase
         return new GetTraceMetricsTool(
             new FindMcpTraceMetricsAction(
                 new MakeTraceTimestampPeriodsAction(new TraceTimestampMetricsFactory()),
-                $graph
+                $graph,
+                new McpTraceIndexExceptionTranslator()
             ),
-            new FindMcpServicesAction($services),
+            new McpToolServiceFinder(new FindMcpServicesAction($services)),
+            new McpToolTimeParser(),
             new McpToolFormatter()
         )->call(new McpToolArguments($arguments));
     }

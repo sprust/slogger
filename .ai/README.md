@@ -152,10 +152,15 @@ responses, no sessions, no SSE) at `POST /mcp` (`routes/mcp.php`), outside the a
   validator rules. A tool calls only this module's bridges (`Domain/Actions/Bridges`), never
   another module. New tools are registered in `McpServiceProvider::TOOLS`; the order there
   is the order of `tools/list`.
-- `GetTraceMetricsTool` (`get_trace_metrics`) is the only tool that builds a trace dynamic
-  index: it serves the trace page graph (`FindTraceTimestampsAction`) on the UI presets up to
-  one day, so the model and the UI share indexes. While the index builds it answers
-  `index_building` instead of waiting.
+- Tools that build a trace dynamic index: `GetTraceMetricsTool` (`get_trace_metrics`, the trace
+  page graph on the UI presets up to one day), `TraceFacetsTool`, `FindTracesTool`,
+  `ListTraceDataFieldsTool`. They share the indexes with the UI and answer `index_building`
+  (`McpToolFormatter::indexBuilding`) instead of waiting; `McpTraceIndexExceptionTranslator` turns
+  the index exceptions of `Trace` into those of `Mcp`. The last three read `service_ids` (optional), `from`,
+  `to` through `McpToolTraceScopeReader`: the period is rounded to hours and at most 24 hours
+  (`McpTracePeriodResolver`). `data_filter` of `find_traces` is parsed by `McpTraceDataFilterParser`.
+- `GetIndexStatusTool` and `ListDynamicIndexesTool` only read the indexes.
+- `Infrastructure/Prompts/*Prompt` — the prompts, registered in `McpServiceProvider`.
 - `resources/mcp/instructions.md` — the instructions the model gets, in English.
 - Connections are managed through `/admin-api/mcps` and the `/mcps` page.
 
@@ -292,8 +297,18 @@ and they hand the other module's entities back as they are.
 - `Domain\Actions\Bridges\FindMcpTraceMetricsAction` → `Trace\Domain\Actions\Queries\FindTraceTimestampsAction`
   (the trace page graph, so that the model and the UI share dynamic indexes),
   `Trace\Domain\Actions\MakeTraceTimestampPeriodsAction` (the steps a period allows),
-  `Trace\Domain\Exceptions\TraceDynamicIndex*Exception` (turned into `Mcp` exceptions there),
   `Trace\Parameters\FindTraceTimestampsParameters`.
+- `Domain\Actions\Bridges\FindMcpTraceFacetsAction` → `Trace\Domain\Actions\Queries\FindTypesAction`,
+  `FindStatusesAction`, `FindTagsAction` and their `Trace\Parameters\TraceFind*Parameters`.
+- `Domain\Actions\Bridges\FindMcpTracesAction` → `Trace\Domain\Actions\Queries\FindTracesAction`,
+  `Trace\Parameters\TraceFindParameters`, `Trace\Parameters\Data\TraceDataFilterParameters`.
+- `Domain\Actions\Bridges\FindMcpTraceDataFieldsAction` → `FindTracesAction`, `FindTraceDetailAction`.
+- `Domain\Actions\Bridges\FindMcpIndexStatusAction` → `FindTraceDynamicIndexAction`,
+  `FindTraceDynamicIndexStatsAction`; `FindMcpDynamicIndexesAction` → `FindTraceDynamicIndexesAction`.
+- `Domain\Services\McpTraceIndexExceptionTranslator` → `Trace\Domain\Exceptions\TraceDynamicIndex*Exception`:
+  the one place that turns the index exceptions of `Trace` into those of `Mcp`.
+- `Domain\Services\McpTraceDataFilterParser` → `Trace\Parameters\Data`, `Trace\Enums\TraceDataFilterComp*Enum`;
+  `Domain\Services\McpTracePeriodMapper` → `Trace\Parameters\PeriodParameters`.
 - `Domain\Services\McpTraceTreeNodeFactory` → `Trace\Domain\Actions\Queries\FindTraceServicesAction`,
   to put service names on tree nodes.
 - `Infrastructure\Tools\GetTraceDataTool` → `Trace\Infrastructure\Http\Resources\Data\TraceDataResource`,

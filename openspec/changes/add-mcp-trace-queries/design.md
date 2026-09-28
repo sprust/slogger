@@ -28,7 +28,7 @@
 - `Mcp\Infrastructure\Tools\McpToolTimeParser` — строгий разбор ISO 8601 (перенос из `GetTraceMetricsTool`, который начинает им пользоваться).
 - `McpToolFormatter::indexBuilding(string $indexId)` и `indexError(string $message)` — общий ответ статуса и ошибки индекса; `GetTraceMetricsTool` переходит на них, его `hint` упоминает `get_index_status`.
 - `Mcp\Domain\Services\McpTracePeriodResolver::resolve(Carbon $from, Carbon $to): McpTracePeriodObject` — выравнивание по часу и проверки; бросает `McpTraceInvalidPeriodException` и `McpTracePeriodTooWideException(maxHours)`. Максимум 24 часа — константа сервиса.
-- Проверка сервиса — существующий мост `FindMcpServicesAction`, как в `get_trace_metrics`.
+- `service_ids` необязателен, как в `get_trace_metrics`: вопросы по нескольким или всем сервисам решаются одним вызовом. Цена — для одних и тех же часов возможны два индекса, с `sid` и без, как в UI. Проверка id — существующий мост `FindMcpServicesAction` через `McpToolServiceFinder`. Разбор `service_ids`, `from`, `to` и правило периода собраны в `McpToolTraceScopeReader`.
 
 Правило периода — доменное (от него зависят индексы), поэтому сервис в `Domain`, а не в инструменте. Разбор строки времени — разбор аргумента, он в `Infrastructure`.
 
@@ -43,7 +43,7 @@
 Каждый мост переводит исключения индекса `Trace` в исключения `Mcp` одинаково; перевод выносится в `Mcp\Domain\Services\McpTraceIndexExceptionTranslator::call(Closure)`, им же начинает пользоваться `FindMcpTraceMetricsAction`.
 
 - `FindMcpTraceFacetsAction::handle(FindMcpTraceFacetsParameters): McpTraceFacetsObject` — три вызова по очереди: типы (фильтр `statuses`), статусы (фильтр `types`), теги (оба фильтра). Первый же строящийся индекс прерывает ответ статусом `index_building`: остальные индексы запустятся на повторном вызове. Сортировка и обрезка по `facetsLimit` — в мосте.
-- `FindMcpTracesAction::handle(FindMcpTracesParameters): TraceItemObjects` — собирает `TraceFindParameters` (`serviceIds: [serviceId]`, `loggingPeriod`, фильтры, `data`, `perPage: 20`, `hasProfiling: null`).
+- `FindMcpTracesAction::handle(FindMcpTracesParameters): TraceItemObjects` — собирает `TraceFindParameters` (`serviceIds` (пустой список — все сервисы), `loggingPeriod`, фильтры, `data`, `perPage: 20`, `hasProfiling: null`).
 - `FindMcpTraceDataFieldsAction::handle(FindMcpTraceDataFieldsParameters): McpTraceDataFieldsObject` — `FindTracesAction` с `types: [type]`, `perPage: 5`, затем `FindTraceDetailAction` по каждому трейсу; обход дерева `data` до листьев, ключи в порядке первого появления, не больше 200.
 - `FindMcpIndexStatusAction::handle(string $indexId): McpIndexStatusObject` — индекс и статистика; `progress` — сумма `progress` записей `indexesInProcess` с именем индекса (`indexName`), делённая на число коллекций индекса; нет записей — `null`.
 - `FindMcpDynamicIndexesAction::handle(): TraceDynamicIndexObject[]` — как есть; часы — из имён коллекций через `PeriodicTraceCollectionNameService::makeHourStart` нельзя (это `Repositories` чужого модуля), поэтому первый и последний час инструмент берёт из имени коллекции по формату `traces_Y_m_d_HH_HH` в своём форматтере.
