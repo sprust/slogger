@@ -27,7 +27,7 @@
 
 ### Мост вызывает действие графика как есть
 
-`Mcp\Domain\Actions\Bridges\FindMcpTraceMetricsAction::handle(FindMcpTraceMetricsParameters): TraceTimestampsObjects`:
+`Mcp\Domain\Actions\Bridges\FindMcpTraceMetricsAction::handle(FindMcpTraceMetricsParameters): McpTraceMetricsObject`:
 
 1. Проверяет шаг: находит пресет в `MakeTraceTimestampPeriodsAction::handle()`. Шаг не из списка — `McpTraceMetricsStepNotAllowedException(allowedSteps)`. Без шага берётся шаг по умолчанию из таблицы моста (см. спеку).
 2. Строит `FindTraceTimestampsParameters`, где `dataFields`, `traceIds`, `data`, `hasProfiling` равны `null`, и вызывает `FindTraceTimestampsAction::handle`.
@@ -36,7 +36,7 @@
    - `TraceDynamicIndexErrorException` и `TraceDynamicIndexNotInitException` → `McpTraceIndexFailedException(message)`;
    - `TraceDynamicIndexParallelArraysException` не возникает: фильтра по `data` нет.
 
-Результат `Trace` отдаётся как есть, по правилу мостов модуля. Инструмент не знает об исключениях `Trace`, поэтому ребро из `Mcp\Infrastructure` в `Trace\Domain` не появляется.
+Результат `Trace` отдаётся как есть, по правилу мостов модуля, вместе с шагом, который выбрал мост: `McpTraceMetricsObject(step, timestamps)` в `Mcp\Entities\Bridges`. Шаг нужен ответу инструмента, а выбирает его только мост. Инструмент не знает об исключениях `Trace`, поэтому ребро из `Mcp\Infrastructure` в `Trace\Domain` не появляется.
 
 Альтернатива — вызвать `TraceDynamicIndexInitializer` и репозиторий напрямую, чтобы свернуть ответ под MCP. Отклонена: расчёт графика разошёлся бы с UI, а общие индексы перестали бы быть общими.
 
@@ -56,7 +56,7 @@
 - строит `FindMcpTraceMetricsParameters`;
 - переводит исключения моста в `index_building` (статус, не ошибка), `index_error`, `step_not_allowed`.
 
-Ответ собирается из `TraceTimestampsObjects`: `from` = `loggedAtFrom`, шаги = `items`. Для `count` берётся индикатор `sum` как целое, для остальных метрик — объект шести индикаторов. Время — через `McpToolFormatter::time`.
+Ответ собирается из `McpTraceMetricsObject`: `step` — шаг моста, `from` = `timestamps->loggedAtFrom`, шаги = `timestamps->items`. Поля графика названы ключами хранилища (`count`, `dur`, `mem`, `cpu`), инструмент сопоставляет их с метриками. Метрика, которой нет в шаге, отдаётся нулём для `count` и `null` для индикаторов. Для `count` берётся индикатор `sum` как целое, для остальных метрик — объект шести индикаторов. Время — через `McpToolFormatter::time`.
 
 ### Числовой тип свойства
 

@@ -59,6 +59,9 @@ readonly class McpToolSchemaCompiler
                 case McpToolPropertyTypeEnum::Integer:
                     $rules[$property->name] = [$presence, 'integer', ...$this->boundRules($property)];
                     break;
+                case McpToolPropertyTypeEnum::Number:
+                    $rules[$property->name] = [$presence, 'numeric', ...$this->boundRules($property)];
+                    break;
                 case McpToolPropertyTypeEnum::Boolean:
                     $rules[$property->name] = [$presence, 'boolean'];
                     break;

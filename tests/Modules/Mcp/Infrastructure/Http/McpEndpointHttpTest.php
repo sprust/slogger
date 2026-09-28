@@ -2,11 +2,14 @@
 
 namespace Tests\Modules\Mcp\Infrastructure\Http;
 
+use App\Modules\Mcp\Infrastructure\McpServiceProvider;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolRegistry;
+use App\Modules\Mcp\Infrastructure\Tools\GetTraceMetricsTool;
 use App\Modules\Mcp\Repositories\McpRepository;
 use Illuminate\Support\Carbon;
 use Illuminate\Testing\TestResponse;
 use PHPUnit\Framework\MockObject\MockObject;
+use ReflectionClassConstant;
 use Tests\Modules\Mcp\McpFactoryTrait;
 use Tests\TestCase;
 
@@ -137,6 +140,53 @@ class McpEndpointHttpTest extends TestCase
 
         $this->rpc('tools/call', ['name' => 'get_thing', 'arguments' => ['thing_id' => 'a', 'extra' => 1]])
             ->assertJsonPath('error.code', -32602);
+    }
+
+    public function testTraceMetricsFollowsDataRangeInToolsList(): void
+    {
+        /** @var class-string[] $tools */
+        $tools = new ReflectionClassConstant(McpServiceProvider::class, 'TOOLS')->getValue();
+
+        $this->app->instance(
+            McpToolRegistry::class,
+            new McpToolRegistry(array_map(fn(string $tool) => $this->app->make($tool), $tools))
+        );
+
+        $names = array_column((array) $this->rpc('tools/list')->assertOk()->json('result.tools'), 'name');
+
+        $position = array_search('get_trace_metrics', $names, true);
+
+        $this->assertIsInt($position);
+        $this->assertSame('get_data_range', $names[$position - 1]);
+    }
+
+    public function testTraceMetricsArgumentsAreValidated(): void
+    {
+        $this->app->instance(
+            McpToolRegistry::class,
+            new McpToolRegistry([$this->app->make(GetTraceMetricsTool::class)])
+        );
+
+        $response = $this->rpc('tools/call', ['name' => 'get_trace_metrics', 'arguments' => ['period' => '7 days']])
+            ->assertOk()
+            ->assertJsonPath('error.code', -32602);
+
+        $this->assertStringContainsString('period', (string) $response->json('error.message'));
+
+        $response = $this->rpc(
+            'tools/call',
+            ['name' => 'get_trace_metrics', 'arguments' => ['period' => '1 hour', 'duration_from' => 'abc']]
+        )
+            ->assertOk()
+            ->assertJsonPath('error.code', -32602);
+
+        $this->assertStringContainsString('duration_from', (string) $response->json('error.message'));
+
+        $this->rpc('tools/list')
+            ->assertOk()
+            ->assertJsonPath('result.tools.0.name', 'get_trace_metrics')
+            ->assertJsonPath('result.tools.0.annotations.readOnlyHint', true)
+            ->assertJsonPath('result.tools.0.inputSchema.properties.duration_from.type', 'number');
     }
 
     public function testPrompts(): void

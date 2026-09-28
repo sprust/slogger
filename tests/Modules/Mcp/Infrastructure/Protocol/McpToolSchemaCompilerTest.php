@@ -24,6 +24,7 @@ class McpToolSchemaCompilerTest extends TestCase
                     'trace_id' => ['type' => 'string', 'description' => 'Trace id', 'minLength' => 1, 'maxLength' => 100],
                     'status'   => ['type' => 'string', 'description' => 'Status', 'enum' => ['opened', 'closed'], 'minLength' => 1],
                     'page'     => ['type' => 'integer', 'description' => 'Page', 'minimum' => 1],
+                    'duration' => ['type' => 'number', 'description' => 'Duration', 'minimum' => 0],
                     'types'    => ['type' => 'array', 'description' => 'Types', 'items' => ['type' => 'string'], 'maxItems' => 5],
                 ],
                 'additionalProperties' => false,
@@ -48,6 +49,7 @@ class McpToolSchemaCompilerTest extends TestCase
                 'trace_id' => ['required', 'string', 'min:1', 'max:100'],
                 'status'   => ['sometimes', 'string', 'min:1', 'in:opened,closed'],
                 'page'     => ['sometimes', 'integer', 'min:1'],
+                'duration' => ['sometimes', 'numeric', 'min:0'],
                 'types'    => ['sometimes', 'array', 'list', 'max:5'],
                 'types.*'  => ['required', 'string', 'min:1'],
             ],
@@ -61,6 +63,7 @@ class McpToolSchemaCompilerTest extends TestCase
             new McpToolProperty('trace_id', McpToolPropertyTypeEnum::String, 'Trace id', required: true, min: 1, max: 100),
             new McpToolProperty('status', McpToolPropertyTypeEnum::String, 'Status', enum: ['opened', 'closed']),
             new McpToolProperty('page', McpToolPropertyTypeEnum::Integer, 'Page', min: 1),
+            new McpToolProperty('duration', McpToolPropertyTypeEnum::Number, 'Duration', min: 0),
             new McpToolProperty('types', McpToolPropertyTypeEnum::StringList, 'Types', max: 5),
         ]);
     }

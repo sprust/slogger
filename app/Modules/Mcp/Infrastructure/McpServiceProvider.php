@@ -37,6 +37,7 @@ use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolSchemaCompiler;
 use App\Modules\Mcp\Infrastructure\Tools\FindInTraceTreeTool;
 use App\Modules\Mcp\Infrastructure\Tools\GetDataRangeTool;
 use App\Modules\Mcp\Infrastructure\Tools\GetTraceDataTool;
+use App\Modules\Mcp\Infrastructure\Tools\GetTraceMetricsTool;
 use App\Modules\Mcp\Infrastructure\Tools\GetTraceTool;
 use App\Modules\Mcp\Infrastructure\Tools\GetTraceTreeTool;
 use App\Modules\Mcp\Infrastructure\Tools\GetIncidentEventsTool;
@@ -54,6 +55,7 @@ class McpServiceProvider extends BaseServiceProvider
     private const array TOOLS = [
         ListServicesTool::class,
         GetDataRangeTool::class,
+        GetTraceMetricsTool::class,
         ListIncidentsTool::class,
         GetIncidentEventsTool::class,
         GetTraceTool::class,

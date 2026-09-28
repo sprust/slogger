@@ -34,6 +34,11 @@ readonly class McpToolArguments
         return $this->has($name) ? (int) $this->values[$name] : null;
     }
 
+    public function floatNull(string $name): ?float
+    {
+        return $this->has($name) ? (float) $this->values[$name] : null;
+    }
+
     /**
      * @return string[]
      */

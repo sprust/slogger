@@ -152,6 +152,10 @@ responses, no sessions, no SSE) at `POST /mcp` (`routes/mcp.php`), outside the a
   validator rules. A tool calls only this module's bridges (`Domain/Actions/Bridges`), never
   another module. New tools are registered in `McpServiceProvider::TOOLS`; the order there
   is the order of `tools/list`.
+- `GetTraceMetricsTool` (`get_trace_metrics`) is the only tool that builds a trace dynamic
+  index: it serves the trace page graph (`FindTraceTimestampsAction`) on the UI presets up to
+  one day, so the model and the UI share indexes. While the index builds it answers
+  `index_building` instead of waiting.
 - `resources/mcp/instructions.md` — the instructions the model gets, in English.
 - Connections are managed through `/admin-api/mcps` and the `/mcps` page.
 
@@ -285,13 +289,18 @@ and they hand the other module's entities back as they are.
   `FindTraceTreeAction` (only to start the first build, as the UI does), `FindTraceTreeChildrenAction`.
 - `Domain\Actions\Bridges\FindMcpTraceTreeFilteredAction` → `FindTraceTreeStateAction`,
   `FindTraceTreeFilteredAction`, `Trace\Parameters\TraceTreeFilterParameters`.
+- `Domain\Actions\Bridges\FindMcpTraceMetricsAction` → `Trace\Domain\Actions\Queries\FindTraceTimestampsAction`
+  (the trace page graph, so that the model and the UI share dynamic indexes),
+  `Trace\Domain\Actions\MakeTraceTimestampPeriodsAction` (the steps a period allows),
+  `Trace\Domain\Exceptions\TraceDynamicIndex*Exception` (turned into `Mcp` exceptions there),
+  `Trace\Parameters\FindTraceTimestampsParameters`.
 - `Domain\Services\McpTraceTreeNodeFactory` → `Trace\Domain\Actions\Queries\FindTraceServicesAction`,
   to put service names on tree nodes.
 - `Infrastructure\Tools\GetTraceDataTool` → `Trace\Infrastructure\Http\Resources\Data\TraceDataResource`,
   so that the model gets a trace's data exactly as the UI does. The only edge between two
   modules' `Infrastructure`.
-- `Parameters\FindMcpIncidentsParameters`, `Entities\Bridges`, `Infrastructure\Tools` →
-  `Watcher\Enums`, `Watcher\Entities`, `Service\Entities`, `Trace\Entities`, `Trace\Enums` —
+- `Parameters\FindMcpIncidentsParameters`, `Parameters\FindMcpTraceMetricsParameters`,
+  `Domain\Exceptions`, `Entities\Bridges`, `Infrastructure\Tools` → `Watcher\Enums`, `Watcher\Entities`, `Service\Entities`, `Trace\Entities`, `Trace\Enums` —
   the objects the bridges return.
 
 ### Allowed Dependencies

@@ -8,6 +8,7 @@ enum McpToolPropertyTypeEnum: string
 {
     case String = 'string';
     case Integer = 'integer';
+    case Number = 'number';
     case Boolean = 'boolean';
     case StringList = 'string_list';
     case IntegerList = 'integer_list';
