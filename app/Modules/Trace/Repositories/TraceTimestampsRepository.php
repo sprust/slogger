@@ -17,6 +17,8 @@ use App\Modules\Trace\Repositories\Dto\Trace\Timestamp\TraceTimestampsListDto;
 use App\Modules\Trace\Repositories\Services\PeriodicTraceService;
 use App\Modules\Trace\Repositories\Services\TraceMetricAggregationFactory;
 use App\Modules\Trace\Repositories\Services\TracePipelineBuilder;
+use App\Modules\Trace\Repositories\Services\TraceTimestampCollectionBatcher;
+use App\Modules\Trace\Repositories\Services\TraceTimestampMetricsFactory;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use SConcur\Bson\UTCDateTime;
@@ -26,7 +28,9 @@ readonly class TraceTimestampsRepository
     public function __construct(
         private TracePipelineBuilder $tracePipelineBuilder,
         private PeriodicTraceService $periodicTraceService,
-        private TraceMetricAggregationFactory $aggregationFactory
+        private TraceMetricAggregationFactory $aggregationFactory,
+        private TraceTimestampMetricsFactory $timestampMetricsFactory,
+        private TraceTimestampCollectionBatcher $collectionBatcher
     ) {
     }
 
@@ -61,7 +65,10 @@ readonly class TraceTimestampsRepository
     ): TraceTimestampsListDto {
         $collectionNames = $this->periodicTraceService->detectCollectionNames(
             loggedAtFrom: $loggedAtFrom,
-            loggedAtTo: $loggedAtTo
+            loggedAtTo: $this->timestampMetricsFactory->makeNextTimestamp(
+                date: $loggedAtTo,
+                timestamp: $timestamp
+            )
         );
 
         if (!count($collectionNames)) {
@@ -139,7 +146,7 @@ readonly class TraceTimestampsRepository
             }
         }
 
-        $pipeline[] = [
+        $groupStage = [
             '$group' => [
                 '_id' => [
                     'timestamp' => "\$tss.$timestampField",
@@ -150,10 +157,22 @@ readonly class TraceTimestampsRepository
 
         $metrics = [];
 
-        foreach ($collectionNames as $collectionName) {
+        foreach ($this->collectionBatcher->make($collectionNames, $timestamp) as $batchCollectionNames) {
             $cursor = $this->periodicTraceService->aggregate(
-                collectionName: $collectionName,
-                pipeline: $pipeline
+                collectionName: $batchCollectionNames[0],
+                pipeline: [
+                    ...$pipeline,
+                    ...array_map(
+                        static fn(string $collectionName) => [
+                            '$unionWith' => [
+                                'coll'     => $collectionName,
+                                'pipeline' => $pipeline,
+                            ],
+                        ],
+                        array_slice($batchCollectionNames, 1)
+                    ),
+                    $groupStage,
+                ]
             );
 
             foreach ($cursor as $item) {
