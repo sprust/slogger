@@ -145,18 +145,6 @@
 - **WHEN** `tools/call` вызывает `list_services` без аргументов
 - **THEN** `result.content[0].type` равно `"text"`, а `result.structuredContent` равен разобранному `result.content[0].text`
 
-### Requirement: Промпты
-
-`prompts/list` SHALL возвращать список промптов с `ttlMs` и `cacheScope: "private"`. В этом изменении список пуст. `prompts/get` с неизвестным именем SHALL давать ошибку `-32602`.
-
-#### Scenario: Пустой список промптов
-- **WHEN** клиент вызывает `prompts/list`
-- **THEN** ответ содержит пустой список `prompts`, `ttlMs` и `cacheScope` `"private"`
-
-#### Scenario: Неизвестный промпт
-- **WHEN** клиент вызывает `prompts/get` с именем `investigate_errors`
-- **THEN** ответ содержит ошибку JSON-RPC `-32602`
-
 ### Requirement: Имя инсталляции
 
 Система SHALL брать имя инсталляции из `MCP_SERVER_NAME`, по умолчанию из `APP_ENV`. Имя SHALL соответствовать `^[a-z0-9-]{1,32}$`, иначе приложение SHALL падать при старте, а не подменять имя. Имя сервера — `slogger-<server_name>`, заголовок — `SLogger (<server_name>)`.
@@ -176,3 +164,15 @@
 #### Scenario: Блок инсталляции
 - **WHEN** клиент вызывает `server/discover` на инсталляции `prod` с `APP_URL=https://slogger.example.com`
 - **THEN** `instructions` начинаются с текста, содержащего `"prod"` и `https://slogger.example.com`
+
+### Requirement: Список и получение промптов
+
+`prompts/list` SHALL возвращать список промптов с `ttlMs` и `cacheScope: "private"`; состав промптов описан в спеке `mcp-prompts`. `prompts/get` с неизвестным именем SHALL давать ошибку `-32602`.
+
+#### Scenario: Список промптов
+- **WHEN** клиент вызывает `prompts/list`
+- **THEN** ответ содержит промпты из `mcp-prompts`, `ttlMs` и `cacheScope` `"private"`
+
+#### Scenario: Неизвестный промпт
+- **WHEN** клиент вызывает `prompts/get` с именем `drop_everything`
+- **THEN** ответ содержит ошибку JSON-RPC `-32602`
