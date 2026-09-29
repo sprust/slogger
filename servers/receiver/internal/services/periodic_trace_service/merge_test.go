@@ -203,10 +203,8 @@ type fakeStore struct {
 	stored    map[clickhouse_trace_repository.Key]clickhouse_trace_repository.StoredTrace
 	keys      []clickhouse_trace_repository.Key
 	inserted  []clickhouse_trace_repository.Row
-	deleted   []clickhouse_trace_repository.Version
 	findErr   error
 	insertErr error
-	deleteErr error
 }
 
 func (s *fakeStore) FindExisting(_ context.Context, keys []clickhouse_trace_repository.Key) (map[clickhouse_trace_repository.Key]clickhouse_trace_repository.StoredTrace, error) {
@@ -219,12 +217,6 @@ func (s *fakeStore) Insert(_ context.Context, rows []clickhouse_trace_repository
 	s.inserted = rows
 
 	return s.insertErr
-}
-
-func (s *fakeStore) Delete(_ context.Context, versions []clickhouse_trace_repository.Version) error {
-	s.deleted = versions
-
-	return s.deleteErr
 }
 
 type fakePending struct {
@@ -277,8 +269,8 @@ func TestAFinalTraceIsInsertedWithoutAnyRead(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if result.Saved != 1 || len(store.inserted) != 1 || len(store.keys) != 0 || len(store.deleted) != 0 {
-		t.Fatalf("expected one insert and no reads, got %+v, %d rows, %d keys, %d deleted", result, len(store.inserted), len(store.keys), len(store.deleted))
+	if result.Saved != 1 || len(store.inserted) != 1 || len(store.keys) != 0 {
+		t.Fatalf("expected one insert and no reads, got %+v, %d rows, %d keys", result, len(store.inserted), len(store.keys))
 	}
 
 	if store.inserted[0].Status != "success" || len(pending.saved) != 0 || len(pending.forgot) != 0 {
@@ -297,8 +289,8 @@ func TestAStartedCreateIsInsertedAndKeptPending(t *testing.T) {
 		t.Fatalf("the create was not inserted: %+v", store.inserted)
 	}
 
-	if len(pending.saved) != 1 || pending.saved[0].HasUpdate || pending.saved[0].InsertedAtMicro == 0 {
-		t.Fatalf("the create was not kept pending with its version: %+v", pending.saved)
+	if len(pending.saved) != 1 || pending.saved[0].HasUpdate || pending.saved[0].Type != "request" {
+		t.Fatalf("the create was not kept pending: %+v", pending.saved)
 	}
 }
 
@@ -326,10 +318,6 @@ func TestTheUpdateCompletesAPendingCreate(t *testing.T) {
 		t.Fatalf("the halves were not merged: %+v", row)
 	}
 
-	if len(store.deleted) != 1 || store.deleted[0].UpdatedAtMicro != waiting.InsertedAtMicro {
-		t.Fatalf("the row of the create was not deleted by its version: %+v", store.deleted)
-	}
-
 	if len(pending.forgot) != 1 || len(pending.saved) != 0 {
 		t.Fatalf("the completed trace is still pending: %+v / %v", pending.saved, pending.forgot)
 	}
@@ -346,7 +334,7 @@ func TestAnUpdateBeforeItsCreateWaitsOutsideClickHouse(t *testing.T) {
 		t.Fatalf("expected one fallback read and no insert, got %d keys, %d rows", len(store.keys), len(store.inserted))
 	}
 
-	if len(pending.saved) != 1 || !pending.saved[0].HasUpdate || pending.saved[0].InsertedAtMicro != 0 {
+	if len(pending.saved) != 1 || !pending.saved[0].HasUpdate {
 		t.Fatalf("the update was not kept pending: %+v", pending.saved)
 	}
 
@@ -358,16 +346,16 @@ func TestAnUpdateBeforeItsCreateWaitsOutsideClickHouse(t *testing.T) {
 
 	row := store.inserted[0]
 
-	if row.Type != "request" || row.Status != "success" || len(store.deleted) != 0 || len(pending.forgot) != 1 {
-		t.Fatalf("the late create did not complete the trace: %+v, deleted %v, forgot %v", row, store.deleted, pending.forgot)
+	if row.Type != "request" || row.Status != "success" || len(pending.forgot) != 1 {
+		t.Fatalf("the late create did not complete the trace: %+v, forgot %v", row, pending.forgot)
 	}
 }
 
-func TestALateUpdateReplacesTheStoredRow(t *testing.T) {
+func TestALateUpdateIsMergedWithTheStoredRow(t *testing.T) {
 	key := clickhouse_trace_repository.Key{ServiceId: 1, LoggedAtMicro: loggedAt.UnixMicro(), TraceId: "trace-1"}
 	store := &fakeStore{
 		stored: map[clickhouse_trace_repository.Key]clickhouse_trace_repository.StoredTrace{
-			key: {Type: "request", Status: "started", CreatedAt: firstAt, UpdatedAt: firstAt},
+			key: {Type: "request", Status: "started", CreatedAt: firstAt},
 		},
 	}
 	pending := &fakePending{}
@@ -376,12 +364,8 @@ func TestALateUpdateReplacesTheStoredRow(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if len(store.inserted) != 1 || store.inserted[0].Status != "success" {
-		t.Fatalf("the late update was not written: %+v", store.inserted)
-	}
-
-	if len(store.deleted) != 1 || store.deleted[0].UpdatedAtMicro != firstAt.UnixMicro() {
-		t.Fatalf("the stored row was not deleted by its version: %+v", store.deleted)
+	if len(store.inserted) != 1 || store.inserted[0].Status != "success" || store.inserted[0].Type != "request" {
+		t.Fatalf("the late update was not merged with the stored row: %+v", store.inserted)
 	}
 }
 
@@ -400,18 +384,6 @@ func TestSaveFailsTheWholeBatchWhenAStoreFails(t *testing.T) {
 		if _, err := New(c.store, c.pending).Save(context.Background(), batch(1, nil, updating(t))); err == nil {
 			t.Fatal("a failed store was not reported")
 		}
-	}
-}
-
-func TestAFailedDeleteDoesNotFailTheBatch(t *testing.T) {
-	key := clickhouse_trace_repository.Key{ServiceId: 1, LoggedAtMicro: loggedAt.UnixMicro(), TraceId: "trace-1"}
-	store := &fakeStore{
-		stored:    map[clickhouse_trace_repository.Key]clickhouse_trace_repository.StoredTrace{key: {Type: "request", CreatedAt: firstAt, UpdatedAt: firstAt}},
-		deleteErr: errors.New("refused"),
-	}
-
-	if _, err := New(store, &fakePending{}).Save(context.Background(), batch(1, nil, updating(t))); err != nil {
-		t.Fatalf("a failed delete failed the batch: %v", err)
 	}
 }
 

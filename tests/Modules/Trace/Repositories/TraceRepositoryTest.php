@@ -118,6 +118,26 @@ class TraceRepositoryTest extends TestCase
             ->deletePartitions(Carbon::parse('2026-09-29 12:00:00', 'UTC'));
     }
 
+    public function testOptimizePartitionsMergesTheClosedHoursInSeveralParts(): void
+    {
+        $count = $this->repository([[
+            ['partition_id' => '1790676000'],
+            ['partition_id' => '1790679600'],
+        ]])->optimizePartitions(Carbon::parse('2026-09-29 12:00:00', 'UTC'));
+
+        $this->assertSame(2, $count);
+        $this->assertStringContainsString('HAVING count() > 1', $this->client->selects[0]['sql']);
+        $this->assertSame("OPTIMIZE TABLE traces PARTITION ID '1790679600' FINAL", $this->client->commands[1]['sql']);
+    }
+
+    public function testOptimizePartitionsRefusesAnUnexpectedId(): void
+    {
+        $this->expectException(RuntimeException::class);
+
+        $this->repository([[['partition_id' => "1'; DROP"]]])
+            ->optimizePartitions(Carbon::parse('2026-09-29 12:00:00', 'UTC'));
+    }
+
     /**
      * @return array<string, mixed>
      */

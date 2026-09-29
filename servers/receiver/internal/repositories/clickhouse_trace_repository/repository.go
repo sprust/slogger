@@ -43,16 +43,6 @@ type StoredTrace struct {
 	Memory        *float64
 	Cpu           *float64
 	CreatedAt     time.Time
-	// UpdatedAt is the version of the stored row, what Delete addresses it by.
-	UpdatedAt time.Time
-}
-
-// Version is one row of a trace: its key and the uat it was written with. A trace can have
-// two rows for a moment — the half written first and the merged one replacing it — and the
-// uat tells them apart.
-type Version struct {
-	Key            Key
-	UpdatedAtMicro int64
 }
 
 // Row is one trace as it is inserted.
@@ -86,7 +76,6 @@ type storedRow struct {
 	Memory        *float64 `json:"mem"`
 	Cpu           *float64 `json:"cpu"`
 	CreatedAt     string   `json:"cat"`
-	UpdatedAt     string   `json:"uat"`
 }
 
 var instance *Repository
@@ -137,7 +126,7 @@ func (r *Repository) FindExisting(ctx context.Context, keys []Key) (map[Key]Stor
 		return result, nil
 	}
 
-	query := "SELECT sid, tid, lat, ptid, tp, st, tgs, dt_raw, dur, mem, cpu, cat, uat FROM traces FINAL " +
+	query := "SELECT sid, tid, lat, ptid, tp, st, tgs, dt_raw, dur, mem, cpu, cat FROM traces FINAL " +
 		"WHERE (sid, lat, tid) IN {keys:Array(Tuple(UInt32, DateTime64(6, 'UTC'), String))} " +
 		"FORMAT JSONEachRow"
 
@@ -182,12 +171,6 @@ func (r *Repository) FindExisting(ctx context.Context, keys []Key) (map[Key]Stor
 			return nil, errs.Err(err)
 		}
 
-		updatedAt, err := time.Parse(TimeLayout, row.UpdatedAt)
-
-		if err != nil {
-			return nil, errs.Err(err)
-		}
-
 		key := Key{ServiceId: row.ServiceId, LoggedAtMicro: loggedAt.UnixMicro(), TraceId: row.TraceId}
 
 		result[key] = StoredTrace{
@@ -200,7 +183,6 @@ func (r *Repository) FindExisting(ctx context.Context, keys []Key) (map[Key]Stor
 			Memory:        row.Memory,
 			Cpu:           row.Cpu,
 			CreatedAt:     createdAt.UTC(),
-			UpdatedAt:     updatedAt.UTC(),
 		}
 	}
 
@@ -244,37 +226,6 @@ func (r *Repository) Insert(ctx context.Context, rows []Row) error {
 		},
 		payload,
 		true,
-	)
-
-	if err != nil {
-		return errs.Err(err)
-	}
-
-	_, _ = io.Copy(io.Discard, body)
-
-	return body.Close()
-}
-
-// Delete removes the given versions of traces in one lightweight DELETE: the rows a
-// merged row has just replaced. By the exact uat, so the merged row, which shares the key,
-// is left alone. Asynchronous: the rows are hidden from reads at once and dropped from
-// disk by the next merge of their parts.
-func (r *Repository) Delete(ctx context.Context, versions []Version) error {
-	if len(versions) == 0 {
-		return nil
-	}
-
-	query := "DELETE FROM traces WHERE (sid, lat, tid, uat) IN " +
-		"{versions:Array(Tuple(UInt32, DateTime64(6, 'UTC'), String, DateTime64(6, 'UTC')))}"
-
-	body, err := r.send(
-		ctx,
-		map[string]string{
-			"param_versions":           formatVersions(versions),
-			"lightweight_deletes_sync": "0",
-		},
-		strings.NewReader(query),
-		false,
 	)
 
 	if err != nil {
@@ -342,31 +293,6 @@ func formatKeys(keys []Key) string {
 		builder.WriteString("',")
 		builder.WriteString(quote(key.TraceId))
 		builder.WriteByte(')')
-	}
-
-	builder.WriteByte(']')
-
-	return builder.String()
-}
-
-func formatVersions(versions []Version) string {
-	builder := strings.Builder{}
-	builder.WriteByte('[')
-
-	for index, version := range versions {
-		if index > 0 {
-			builder.WriteByte(',')
-		}
-
-		builder.WriteByte('(')
-		builder.WriteString(strconv.Itoa(version.Key.ServiceId))
-		builder.WriteString(",'")
-		builder.WriteString(time.UnixMicro(version.Key.LoggedAtMicro).UTC().Format(TimeLayout))
-		builder.WriteString("',")
-		builder.WriteString(quote(version.Key.TraceId))
-		builder.WriteString(",'")
-		builder.WriteString(time.UnixMicro(version.UpdatedAtMicro).UTC().Format(TimeLayout))
-		builder.WriteString("')")
 	}
 
 	builder.WriteByte(']')

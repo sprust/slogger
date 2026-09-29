@@ -259,6 +259,13 @@ so a new cross-module edge is added here or is not added.
 - `Infrastructure\NotificationServiceProvider` → `Watcher\Domain\Services\Types\WatcherTypeRegistry`,
   to build the message factory above.
 
+`Cleaner` → `Trace`. One way only: `Trace` knows nothing about the cleaner.
+
+- `Domain\Actions\ClearTracesAction` → `Trace\Domain\Actions\Mutations\DeletePartitionsAction`,
+  `Trace\Entities` — to drop the hours past the retention.
+- `Domain\Actions\OptimizeTracesAction` → `Trace\Domain\Actions\Mutations\OptimizePartitionsAction`
+  — to merge each closed hour into one part, run hourly by `Infrastructure\Jobs\OptimizeTracesJob`.
+
 `Watcher` → `Trace`.
 
 - `Domain\Services\Checkers\InvalidBufferGrownChecker` → `Trace\Domain`, to count what

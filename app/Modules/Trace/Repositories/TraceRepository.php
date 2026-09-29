@@ -237,6 +237,49 @@ readonly class TraceRepository
     }
 
     /**
+     * Merges each hourly partition that ended before the moment given and is still in more
+     * than one part into a single part, with one row per trace.
+     *
+     * A trace written before it was complete — a create, then its update — has two rows
+     * until their parts merge, and the background merges promise no moment for that. A
+     * partition in one part holds no such pair, and FINAL has nothing to merge in it.
+     * Partitions already in one part are left alone, so the next run costs nothing unless
+     * late traces have reached an old hour since.
+     *
+     * @return int the number of partitions merged
+     *
+     * @throws ClickhouseQueryException
+     */
+    public function optimizePartitions(Carbon $loggedAtTo): int
+    {
+        $partitions = $this->client->select(
+            sql: 'SELECT partition_id FROM system.parts '
+            . "WHERE database = currentDatabase() AND table = 'traces' AND active "
+            . 'AND parseDateTime64BestEffort(partition, 0, \'UTC\') + INTERVAL 1 HOUR <= {to:DateTime64(6, \'UTC\')} '
+            . 'GROUP BY partition_id HAVING count() > 1 ORDER BY partition_id',
+            params: ['to' => $loggedAtTo],
+            queryIdPrefix: 'trace-optimize'
+        );
+
+        foreach ($partitions as $partition) {
+            $partitionId = (string) $partition['partition_id'];
+
+            // An identifier of the statement, which takes no parameters: ClickHouse makes
+            // these ids of hex digits, and nothing else is let through.
+            if (!preg_match('/^[0-9a-f]+$/', $partitionId)) {
+                throw new RuntimeException(sprintf('Unexpected partition id [%s]', $partitionId));
+            }
+
+            $this->client->command(
+                sql: "OPTIMIZE TABLE traces PARTITION ID '$partitionId' FINAL",
+                queryIdPrefix: 'trace-optimize'
+            );
+        }
+
+        return count($partitions);
+    }
+
+    /**
      * @param array<string, mixed> $row
      */
     private function makeTraceDto(array $row): TraceDto

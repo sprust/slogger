@@ -281,6 +281,8 @@ Name the service and roughly the period in a question: "over the last day", "yes
 
 Stale traces are removed automatically. The retention period is set by the `TRACES_LIFETIME_HOURS` variable (default 72). Cleanup is a queued job (`ClearTracesJob`) scheduled every hour: it drops the hourly partitions whose hour ended no later than now minus the retention period (`ALTER TABLE traces DROP PARTITION ID …`), counting their rows from `system.parts`, instead of deleting individual rows. A trace is therefore kept at least `TRACES_LIFETIME_HOURS` and less than `TRACES_LIFETIME_HOURS` + 2 hours. Each run is recorded, and the Trace cleaner page lists the runs with how many partitions (the collections column) and traces were cleared and the error, if any. `make art c=traces-clearing:clear` runs a cleanup by hand.
 
+A second hourly job, `OptimizeTracesJob` (at ten past, on the same queue), merges each hour that closed more than an hour ago and is still in several parts into one part (`OPTIMIZE TABLE traces PARTITION ID … FINAL`). A trace written in two steps has two rows until their parts merge, and background merges promise no moment for it; reads go through `FINAL` and never see both, and after this merge the hour holds one row per trace and `FINAL` has nothing left to do in it. An hour of about 500 thousand traces takes about 7 seconds and 0.8 GB of memory, one partition at a time. An hour already in one part is skipped, so is one a background merge is working on — it is taken the next hour.
+
 ---
 
 ## Tech stack

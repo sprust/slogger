@@ -24,41 +24,37 @@ const defaultCollection = "pendingTraces"
 // missing: a create whose update has not arrived, or an update that came before its
 // create. It holds the merge of everything received so far.
 type PendingTrace struct {
-	ServiceId     int
-	TraceId       string
-	LoggedAtMicro int64
-	ParentTraceId string
-	Type          string
-	Status        string
-	Tags          []string
-	RawData       string
-	Duration      *float64
-	Memory        *float64
-	Cpu           *float64
-	HasUpdate     bool
-	// InsertedAtMicro is the uat of the row this trace already has in ClickHouse, 0 when it
-	// has none: that row is deleted once the merged one replaces it.
-	InsertedAtMicro int64
-	CreatedAtMicro  int64
+	ServiceId      int
+	TraceId        string
+	LoggedAtMicro  int64
+	ParentTraceId  string
+	Type           string
+	Status         string
+	Tags           []string
+	RawData        string
+	Duration       *float64
+	Memory         *float64
+	Cpu            *float64
+	HasUpdate      bool
+	CreatedAtMicro int64
 }
 
 type document struct {
-	Id              string    `bson:"_id"`
-	ServiceId       int       `bson:"sid"`
-	TraceId         string    `bson:"tid"`
-	LoggedAtMicro   int64     `bson:"lat"`
-	ParentTraceId   string    `bson:"ptid"`
-	Type            string    `bson:"tp"`
-	Status          string    `bson:"st"`
-	Tags            []string  `bson:"tgs"`
-	RawData         string    `bson:"dt"`
-	Duration        *float64  `bson:"dur"`
-	Memory          *float64  `bson:"mem"`
-	Cpu             *float64  `bson:"cpu"`
-	HasUpdate       bool      `bson:"hu"`
-	InsertedAtMicro int64     `bson:"iuat"`
-	CreatedAtMicro  int64     `bson:"cat"`
-	UpdatedAt       time.Time `bson:"uat"`
+	Id             string    `bson:"_id"`
+	ServiceId      int       `bson:"sid"`
+	TraceId        string    `bson:"tid"`
+	LoggedAtMicro  int64     `bson:"lat"`
+	ParentTraceId  string    `bson:"ptid"`
+	Type           string    `bson:"tp"`
+	Status         string    `bson:"st"`
+	Tags           []string  `bson:"tgs"`
+	RawData        string    `bson:"dt"`
+	Duration       *float64  `bson:"dur"`
+	Memory         *float64  `bson:"mem"`
+	Cpu            *float64  `bson:"cpu"`
+	HasUpdate      bool      `bson:"hu"`
+	CreatedAtMicro int64     `bson:"cat"`
+	UpdatedAt      time.Time `bson:"uat"`
 }
 
 var instance *Repository
@@ -112,20 +108,19 @@ func (r *Repository) FindMany(ctx context.Context, ids []string) (map[string]Pen
 		}
 
 		result[doc.Id] = PendingTrace{
-			ServiceId:       doc.ServiceId,
-			TraceId:         doc.TraceId,
-			LoggedAtMicro:   doc.LoggedAtMicro,
-			ParentTraceId:   doc.ParentTraceId,
-			Type:            doc.Type,
-			Status:          doc.Status,
-			Tags:            doc.Tags,
-			RawData:         doc.RawData,
-			Duration:        doc.Duration,
-			Memory:          doc.Memory,
-			Cpu:             doc.Cpu,
-			HasUpdate:       doc.HasUpdate,
-			InsertedAtMicro: doc.InsertedAtMicro,
-			CreatedAtMicro:  doc.CreatedAtMicro,
+			ServiceId:      doc.ServiceId,
+			TraceId:        doc.TraceId,
+			LoggedAtMicro:  doc.LoggedAtMicro,
+			ParentTraceId:  doc.ParentTraceId,
+			Type:           doc.Type,
+			Status:         doc.Status,
+			Tags:           doc.Tags,
+			RawData:        doc.RawData,
+			Duration:       doc.Duration,
+			Memory:         doc.Memory,
+			Cpu:            doc.Cpu,
+			HasUpdate:      doc.HasUpdate,
+			CreatedAtMicro: doc.CreatedAtMicro,
 		}
 	}
 
@@ -156,22 +151,21 @@ func (r *Repository) Apply(ctx context.Context, save []PendingTrace, forget []st
 			mongo.NewReplaceOneModel().
 				SetFilter(bson.M{"_id": id}).
 				SetReplacement(document{
-					Id:              id,
-					ServiceId:       trace.ServiceId,
-					TraceId:         trace.TraceId,
-					LoggedAtMicro:   trace.LoggedAtMicro,
-					ParentTraceId:   trace.ParentTraceId,
-					Type:            trace.Type,
-					Status:          trace.Status,
-					Tags:            trace.Tags,
-					RawData:         trace.RawData,
-					Duration:        trace.Duration,
-					Memory:          trace.Memory,
-					Cpu:             trace.Cpu,
-					HasUpdate:       trace.HasUpdate,
-					InsertedAtMicro: trace.InsertedAtMicro,
-					CreatedAtMicro:  trace.CreatedAtMicro,
-					UpdatedAt:       now,
+					Id:             id,
+					ServiceId:      trace.ServiceId,
+					TraceId:        trace.TraceId,
+					LoggedAtMicro:  trace.LoggedAtMicro,
+					ParentTraceId:  trace.ParentTraceId,
+					Type:           trace.Type,
+					Status:         trace.Status,
+					Tags:           trace.Tags,
+					RawData:        trace.RawData,
+					Duration:       trace.Duration,
+					Memory:         trace.Memory,
+					Cpu:            trace.Cpu,
+					HasUpdate:      trace.HasUpdate,
+					CreatedAtMicro: trace.CreatedAtMicro,
+					UpdatedAt:      now,
 				}).
 				SetUpsert(true),
 		)
