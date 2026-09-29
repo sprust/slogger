@@ -14,12 +14,11 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+// The collection and its TTL index on uat are created by the Laravel migration
+// 2026_09_29_194325_mongodb_create_pending_traces_collection: a trace waits 3 hours for its
+// other half. A job running longer still gets its update written — the transporter reads
+// the trace from ClickHouse when it finds nothing here.
 const defaultCollection = "pendingTraces"
-
-// defaultTtl is how long a trace waits for its other half. A job running longer than this
-// still gets its update written: the transporter falls back to reading the trace from
-// ClickHouse when it finds nothing here.
-const defaultTtl = 3 * time.Hour
 
 // PendingTrace is a trace that has come in halves and is waiting for the one still
 // missing: a create whose update has not arrived, or an update that came before its
@@ -218,29 +217,6 @@ func (r *Repository) connect(ctx context.Context) error {
 	}
 
 	collection := client.Database(os.Getenv("MONGODB_DB_TRACES")).Collection(collectionName)
-
-	ttl := defaultTtl
-
-	if value := os.Getenv("PENDING_TRACES_TTL_SECONDS"); value != "" {
-		seconds, err := strconv.Atoi(value)
-
-		if err != nil || seconds <= 0 {
-			return errs.Err(fmt.Errorf("PENDING_TRACES_TTL_SECONDS must be a positive number, got %q", value))
-		}
-
-		ttl = time.Duration(seconds) * time.Second
-	}
-
-	// A trace whose other half never comes is dropped silently: the half that came is
-	// already in ClickHouse, or is an update with nothing to attach to.
-	_, err = collection.Indexes().CreateOne(ctx, mongo.IndexModel{
-		Keys:    bson.D{{Key: "uat", Value: 1}},
-		Options: options.Index().SetExpireAfterSeconds(int32(ttl.Seconds())),
-	})
-
-	if err != nil {
-		return errs.Err(err)
-	}
 
 	r.mColl = collection
 

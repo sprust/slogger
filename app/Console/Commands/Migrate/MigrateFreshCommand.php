@@ -13,7 +13,9 @@ class MigrateFreshCommand extends Command
 {
     use ConfirmableTrait;
 
-    protected $name = 'migrate:fresh';
+    // --force is what ConfirmableTrait reads: without it declared, the command refused
+    // the flag every deploy script passes to skip the production prompt.
+    protected $signature = 'migrate:fresh {--force : Force the operation to run when in production}';
 
     /**
      * @throws ClickhouseQueryException
@@ -72,6 +74,6 @@ class MigrateFreshCommand extends Command
             );
         }
 
-        return $this->call(FreshCommand::class);
+        return $this->call(FreshCommand::class, ['--force' => true]);
     }
 }
