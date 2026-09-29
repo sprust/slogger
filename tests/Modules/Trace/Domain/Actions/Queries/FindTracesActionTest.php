@@ -6,7 +6,6 @@ namespace Tests\Modules\Trace\Domain\Actions\Queries;
 
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceServicesAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTracesAction;
-use App\Modules\Trace\Domain\Services\TraceDynamicIndexInitializer;
 use App\Modules\Trace\Entities\Trace\Data\TraceDataObject;
 use App\Modules\Trace\Entities\Trace\TraceServicesObject;
 use App\Modules\Trace\Parameters\TraceFindParameters;
@@ -157,11 +156,10 @@ class FindTracesActionTest extends TestCase
         $services->method('handle')->willReturn(new TraceServicesObject(services: []));
 
         return new FindTracesAction(
-            $traces,
-            $tree,
-            $treeCache,
-            $services,
-            $this->createMock(TraceDynamicIndexInitializer::class)
+            traceRepository: $traces,
+            traceTreeRepository: $tree,
+            traceTreeCacheRepository: $treeCache,
+            findTraceServicesAction: $services
         );
     }
 

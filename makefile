@@ -37,6 +37,7 @@ setup:
 	make composer c=install
 	make art c=key:generate
 	make art c="migrate --force"
+	make art c=clickhouse:migrate
 	make queues-declare
 	make frontend-npm-i
 	make frontend-npm-build
@@ -96,6 +97,9 @@ bash-workers:
 
 bash-receiver:
 	"$(RECEIVER_CLI)"bash
+
+clickhouse-client:
+	docker-compose exec clickhouse clickhouse-client --user "$(CLICKHOUSE_USERNAME)" --password "$(CLICKHOUSE_PASSWORD)" --database "$(CLICKHOUSE_DATABASE)"
 
 bash-frontend:
 	"$(FRONTEND_CLI)"sh
@@ -197,6 +201,7 @@ deploy-prod:
 	make up
 	make queues-declare
 	make art c='migrate --force'
+	make art c=clickhouse:migrate
 	make sconcur-wait
 	make sconcur-reload
 	make receiver-build
@@ -212,6 +217,7 @@ deploy-dev:
 	make up
 	make queues-declare
 	make art c='migrate --force'
+	make art c=clickhouse:migrate
 	make sconcur-wait
 	make sconcur-reload
 	make receiver-build

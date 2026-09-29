@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace App\Modules\Mcp\Domain\Actions\Bridges;
 
-use App\Modules\Mcp\Domain\Exceptions\McpTraceIndexBuildingException;
-use App\Modules\Mcp\Domain\Exceptions\McpTraceIndexFailedException;
-use App\Modules\Mcp\Domain\Services\McpTraceIndexExceptionTranslator;
 use App\Modules\Mcp\Domain\Services\McpTracePeriodMapper;
 use App\Modules\Mcp\Entities\Bridges\McpTraceDataFieldObject;
 use App\Modules\Mcp\Entities\Bridges\McpTraceDataFieldsObject;
@@ -15,6 +12,7 @@ use App\Modules\Trace\Domain\Actions\Queries\FindTraceDetailAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTracesAction;
 use App\Modules\Trace\Entities\Trace\Data\TraceDataObject;
 use App\Modules\Trace\Parameters\TraceFindParameters;
+use App\Services\Clickhouse\ClickhouseQueryException;
 
 readonly class FindMcpTraceDataFieldsAction
 {
@@ -24,25 +22,21 @@ readonly class FindMcpTraceDataFieldsAction
     public function __construct(
         private FindTracesAction $findTracesAction,
         private FindTraceDetailAction $findTraceDetailAction,
-        private McpTraceIndexExceptionTranslator $indexExceptionTranslator,
         private McpTracePeriodMapper $periodMapper
     ) {
     }
 
     /**
-     * @throws McpTraceIndexBuildingException
-     * @throws McpTraceIndexFailedException
+     * @throws ClickhouseQueryException
      */
     public function handle(FindMcpTraceDataFieldsParameters $parameters): McpTraceDataFieldsObject
     {
-        $traces = $this->indexExceptionTranslator->call(
-            fn() => $this->findTracesAction->handle(
-                new TraceFindParameters(
-                    perPage: self::TRACES_COUNT,
-                    serviceIds: $parameters->serviceIds,
-                    loggingPeriod: $this->periodMapper->toLoggingPeriod($parameters->period),
-                    types: [$parameters->type]
-                )
+        $traces = $this->findTracesAction->handle(
+            new TraceFindParameters(
+                perPage: self::TRACES_COUNT,
+                serviceIds: $parameters->serviceIds,
+                loggingPeriod: $this->periodMapper->toLoggingPeriod($parameters->period),
+                types: [$parameters->type]
             )
         );
 

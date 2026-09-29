@@ -280,7 +280,7 @@ export class EchoContainer {
      * same signal arriving late.
      *
      * Channels are reference-counted because the same one can have several owners at
-     * once: two requests can wait on the same dynamic index, and leaving on the first of
+     * once: two views can wait on the same trace tree, and leaving on the first of
      * them to finish would take the channel away from the other.
      */
     public static listen(

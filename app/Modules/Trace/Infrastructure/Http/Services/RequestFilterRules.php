@@ -11,6 +11,16 @@ use App\Modules\Trace\Enums\TraceDataFilterCompStringTypeEnum;
 class RequestFilterRules
 {
     /**
+     * A data path is written into the query, so it is names joined by dots and nothing else.
+     */
+    public const string DATA_FIELD_RULE = 'regex:/^dt(\.[A-Za-z0-9_]+)+$/';
+
+    /**
+     * The same for a key given without the `dt.` of the stored document.
+     */
+    public const string DATA_KEY_RULE = 'regex:/^[A-Za-z0-9_]+(\.[A-Za-z0-9_]+)*$/';
+
+    /**
      * @return array<string, string[]>
      */
     public static function services(): array
@@ -148,6 +158,9 @@ class RequestFilterRules
             'data.filter.*.field'         => [
                 'required',
                 'string',
+                'min:4',
+                'max:255',
+                self::DATA_FIELD_RULE,
             ],
             'data.filter.*.null'          => [
                 'sometimes',

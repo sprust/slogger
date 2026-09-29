@@ -6,9 +6,6 @@ namespace App\Modules\Mcp\Domain\Actions\Bridges;
 
 use App\Modules\Mcp\Domain\Exceptions\McpTraceGroupByInvalidException;
 use App\Modules\Mcp\Domain\Exceptions\McpTraceGroupsOverlapException;
-use App\Modules\Mcp\Domain\Exceptions\McpTraceIndexBuildingException;
-use App\Modules\Mcp\Domain\Exceptions\McpTraceIndexFailedException;
-use App\Modules\Mcp\Domain\Services\McpTraceIndexExceptionTranslator;
 use App\Modules\Mcp\Domain\Services\McpTracePeriodMapper;
 use App\Modules\Mcp\Parameters\CompareMcpTraceGroupsParameters;
 use App\Modules\Trace\Domain\Actions\Queries\CompareTraceGroupsAction;
@@ -24,7 +21,6 @@ readonly class CompareMcpTraceGroupsAction
 
     public function __construct(
         private CompareTraceGroupsAction $compareTraceGroupsAction,
-        private McpTraceIndexExceptionTranslator $indexExceptionTranslator,
         private McpTracePeriodMapper $periodMapper
     ) {
     }
@@ -32,8 +28,6 @@ readonly class CompareMcpTraceGroupsAction
     /**
      * @throws McpTraceGroupByInvalidException
      * @throws McpTraceGroupsOverlapException
-     * @throws McpTraceIndexBuildingException
-     * @throws McpTraceIndexFailedException
      */
     public function handle(CompareMcpTraceGroupsParameters $parameters): TraceGroupComparisonObject
     {
@@ -48,7 +42,8 @@ readonly class CompareMcpTraceGroupsAction
         if (str_starts_with($parameters->by, self::DATA_PREFIX)) {
             $dataKey = substr($parameters->by, strlen(self::DATA_PREFIX));
 
-            if (preg_match('/^[^\s"$]+$/', $dataKey) !== 1) {
+            // the key is written into the query: names joined by dots and nothing else
+            if (preg_match('/^[A-Za-z0-9_]+(\.[A-Za-z0-9_]+)*$/', $dataKey) !== 1) {
                 throw new McpTraceGroupByInvalidException("Invalid data key in [$parameters->by].");
             }
 
@@ -61,18 +56,16 @@ readonly class CompareMcpTraceGroupsAction
             }
         }
 
-        return $this->indexExceptionTranslator->call(
-            fn() => $this->compareTraceGroupsAction->handle(
-                new TraceCompareGroupsParameters(
-                    loggingPeriod: $this->periodMapper->toLoggingPeriod($parameters->period),
-                    groupAStatuses: $parameters->groupAStatuses,
-                    groupBStatuses: $parameters->groupBStatuses,
-                    by: $by,
-                    dataKey: $dataKey,
-                    limit: self::LIMIT,
-                    serviceIds: $parameters->serviceIds,
-                    types: $parameters->types
-                )
+        return $this->compareTraceGroupsAction->handle(
+            new TraceCompareGroupsParameters(
+                loggingPeriod: $this->periodMapper->toLoggingPeriod($parameters->period),
+                groupAStatuses: $parameters->groupAStatuses,
+                groupBStatuses: $parameters->groupBStatuses,
+                by: $by,
+                dataKey: $dataKey,
+                limit: self::LIMIT,
+                serviceIds: $parameters->serviceIds,
+                types: $parameters->types
             )
         );
     }

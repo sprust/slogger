@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace App\Modules\Mcp\Infrastructure\Tools;
 
 use App\Modules\Mcp\Domain\Actions\Bridges\FindMcpTraceDataFieldsAction;
-use App\Modules\Mcp\Domain\Exceptions\McpTraceIndexBuildingException;
-use App\Modules\Mcp\Domain\Exceptions\McpTraceIndexFailedException;
 use App\Modules\Mcp\Entities\Bridges\McpTraceDataFieldObject;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolArguments;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolInterface;
@@ -21,7 +19,6 @@ readonly class GetTraceDataFieldsTool implements McpToolInterface
     public function __construct(
         private FindMcpTraceDataFieldsAction $findMcpTraceDataFieldsAction,
         private McpToolTraceScopeReader $scopeReader,
-        private McpToolFormatter $formatter
     ) {
     }
 
@@ -39,9 +36,8 @@ readonly class GetTraceDataFieldsTool implements McpToolInterface
     {
         return sprintf(
             'Keys of the data of the latest %d traces of a type over a period, with an example value each: '
-            . 'the keys to use in data_filter and data_fields of search_traces. %s',
-            FindMcpTraceDataFieldsAction::TRACES_COUNT,
-            McpToolTraceScopeReader::INDEX_NOTE
+            . 'the keys to use in data_filter and data_fields of search_traces.',
+            FindMcpTraceDataFieldsAction::TRACES_COUNT
         );
     }
 
@@ -69,19 +65,13 @@ readonly class GetTraceDataFieldsTool implements McpToolInterface
 
         $type = $arguments->string('type');
 
-        try {
-            $result = $this->findMcpTraceDataFieldsAction->handle(
-                new FindMcpTraceDataFieldsParameters(
-                    serviceIds: $scope->serviceIds,
-                    period: $scope->period,
-                    type: $type
-                )
-            );
-        } catch (McpTraceIndexBuildingException $exception) {
-            return $this->formatter->indexBuilding($exception->indexId);
-        } catch (McpTraceIndexFailedException $exception) {
-            return $this->formatter->indexError($exception->getMessage());
-        }
+        $result = $this->findMcpTraceDataFieldsAction->handle(
+            new FindMcpTraceDataFieldsParameters(
+                serviceIds: $scope->serviceIds,
+                period: $scope->period,
+                type: $type
+            )
+        );
 
         return new McpToolResult(
             data: [

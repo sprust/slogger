@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Cleaner\Domain\Actions;
 
 use App\Modules\Cleaner\Repositories\ProcessRepository;
-use App\Modules\Trace\Domain\Actions\Mutations\DeleteCollectionsAction;
+use App\Modules\Trace\Domain\Actions\Mutations\DeletePartitionsAction;
 use Illuminate\Support\Carbon;
 use InvalidArgumentException;
 use RuntimeException;
@@ -15,15 +15,15 @@ readonly class ClearTracesAction
 {
     public function __construct(
         private ProcessRepository $processRepository,
-        private DeleteCollectionsAction $deleteCollectionsAction,
+        private DeletePartitionsAction $deletePartitionsAction,
     ) {
     }
 
-    public function handle(int $lifetimeDays): void
+    public function handle(int $lifetimeHours): void
     {
-        if ($lifetimeDays <= 0) {
+        if ($lifetimeHours <= 0) {
             throw new InvalidArgumentException(
-                'Lifetime days must be greater than 0'
+                'Lifetime hours must be greater than 0'
             );
         }
 
@@ -37,7 +37,7 @@ readonly class ClearTracesAction
             );
         }
 
-        $loggedAtTo = Carbon::now()->clone()->subDays($lifetimeDays);
+        $loggedAtTo = Carbon::now()->clone()->subHours($lifetimeHours);
 
         $process = $this->processRepository->create();
 
@@ -45,7 +45,7 @@ readonly class ClearTracesAction
         $exception     = null;
 
         try {
-            $deletedTraces = $this->deleteCollectionsAction->handle(
+            $deletedTraces = $this->deletePartitionsAction->handle(
                 loggedAtTo: $loggedAtTo
             );
         } catch (Throwable $exception) {
@@ -54,7 +54,7 @@ readonly class ClearTracesAction
 
         if (
             $exception === null &&
-            $deletedTraces->collectionsCount === 0 &&
+            $deletedTraces->partitionsCount === 0 &&
             $deletedTraces->tracesCount === 0
         ) {
             $this->processRepository->deleteByProcessId(
@@ -66,7 +66,8 @@ readonly class ClearTracesAction
 
         $this->processRepository->update(
             processId: $process->id,
-            clearedCollectionsCount: $deletedTraces?->collectionsCount ?: 0,
+            // the column still says collections: the page shows it as the count of what was dropped
+            clearedCollectionsCount: $deletedTraces?->partitionsCount ?: 0,
             clearedTracesCount: $deletedTraces?->tracesCount ?: 0,
             clearedAt: Carbon::now(),
             exception: $exception

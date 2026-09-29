@@ -27,8 +27,6 @@ class McpEndpointHttpTest extends TestCase
         'get_trace_data_fields',
         'aggregate_traces',
         'compare_trace_groups',
-        'get_trace_index_status',
-        'get_trace_indexes',
         'get_incidents',
         'get_incident_events',
         'get_trace',

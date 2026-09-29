@@ -4,14 +4,10 @@ namespace Tests\Modules\Mcp\Domain\Actions\Bridges;
 
 use App\Modules\Mcp\Domain\Actions\Bridges\FindMcpTracesAction;
 use App\Modules\Mcp\Domain\Exceptions\McpTraceDataFilterInvalidException;
-use App\Modules\Mcp\Domain\Exceptions\McpTraceIndexFailedException;
-use App\Modules\Mcp\Domain\Exceptions\McpTraceTagsWithDataFilterException;
 use App\Modules\Mcp\Domain\Services\McpTraceDataFilterParser;
-use App\Modules\Mcp\Domain\Services\McpTraceIndexExceptionTranslator;
 use App\Modules\Mcp\Domain\Services\McpTracePeriodMapper;
 use App\Modules\Mcp\Parameters\FindMcpTracesParameters;
 use App\Modules\Trace\Domain\Actions\Queries\FindTracesAction;
-use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexErrorException;
 use App\Modules\Trace\Parameters\TraceFindParameters;
 use PHPUnit\Framework\TestCase;
 use Tests\Modules\Mcp\McpTraceQueryTestTrait;
@@ -59,22 +55,19 @@ class FindMcpTracesActionTest extends TestCase
         $this->assertNull($this->captured?->data);
     }
 
-    public function testTagsWithDataFilterAreRejectedBeforeTheSearch(): void
+    public function testTagsAndDataFilterGoTogether(): void
     {
-        $this->expectException(McpTraceTagsWithDataFilterException::class);
+        $this->action()->handle(
+            new FindMcpTracesParameters(
+                serviceIds: [2],
+                period: $this->period(),
+                tags: ['api'],
+                dataFilter: ['response.status >= 500']
+            )
+        );
 
-        try {
-            $this->action()->handle(
-                new FindMcpTracesParameters(
-                    serviceIds: [2],
-                    period: $this->period(),
-                    tags: ['api'],
-                    dataFilter: ['user.id exists']
-                )
-            );
-        } finally {
-            $this->assertNull($this->captured);
-        }
+        $this->assertSame(['api'], $this->captured?->tags);
+        $this->assertSame('dt.response.status', $this->captured->data?->filter[0]->field);
     }
 
     public function testInvalidDataFilter(): void
@@ -86,33 +79,19 @@ class FindMcpTracesActionTest extends TestCase
         );
     }
 
-    public function testIndexErrorIsTranslated(): void
+    private function action(): FindMcpTracesAction
     {
         $search = $this->createMock(FindTracesAction::class);
-        $search->method('handle')->willThrowException(new TraceDynamicIndexErrorException('broken'));
+        $search->method('handle')->willReturnCallback(function (TraceFindParameters $parameters) {
+            $this->captured = $parameters;
 
-        $this->expectException(McpTraceIndexFailedException::class);
-        $this->expectExceptionMessage('broken');
-
-        $this->action($search)->handle(new FindMcpTracesParameters(serviceIds: [2], period: $this->period()));
-    }
-
-    private function action(?FindTracesAction $search = null): FindMcpTracesAction
-    {
-        if (is_null($search)) {
-            $search = $this->createMock(FindTracesAction::class);
-            $search->method('handle')->willReturnCallback(function (TraceFindParameters $parameters) {
-                $this->captured = $parameters;
-
-                return $this->traceItems(['t1']);
-            });
-        }
+            return $this->traceItems(['t1']);
+        });
 
         return new FindMcpTracesAction(
-            $search,
-            new McpTraceDataFilterParser(),
-            new McpTraceIndexExceptionTranslator(),
-            new McpTracePeriodMapper()
+            findTracesAction: $search,
+            dataFilterParser: new McpTraceDataFilterParser(),
+            periodMapper: new McpTracePeriodMapper()
         );
     }
 }

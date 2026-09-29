@@ -22,6 +22,7 @@ use App\Modules\Mcp\Domain\Actions\Queries\FindMcpAction;
 use App\Modules\Mcp\Domain\Actions\Queries\FindMcpByTokenAction;
 use App\Modules\Mcp\Domain\Actions\Queries\FindMcpsAction;
 use App\Modules\Mcp\Domain\Actions\Queries\FindMcpSettingsAction;
+use App\Modules\Mcp\Domain\Services\McpTracePeriodResolver;
 use App\Modules\Mcp\Infrastructure\Prompts\Contracts\McpPromptRegistry;
 use App\Modules\Mcp\Infrastructure\Prompts\ExplainIncidentPrompt;
 use App\Modules\Mcp\Infrastructure\Prompts\ExplainTracePrompt;
@@ -43,8 +44,6 @@ use App\Modules\Mcp\Infrastructure\Tools\GetTraceTimeRangeTool;
 use App\Modules\Mcp\Infrastructure\Tools\GetTraceDataTool;
 use App\Modules\Mcp\Infrastructure\Tools\CompareTraceGroupsTool;
 use App\Modules\Mcp\Infrastructure\Tools\SearchTracesTool;
-use App\Modules\Mcp\Infrastructure\Tools\GetTraceIndexStatusTool;
-use App\Modules\Mcp\Infrastructure\Tools\GetTraceIndexesTool;
 use App\Modules\Mcp\Infrastructure\Tools\GetTraceDataFieldsTool;
 use App\Modules\Mcp\Infrastructure\Tools\SearchSloggerLogsTool;
 use App\Modules\Mcp\Infrastructure\Tools\AggregateTracesTool;
@@ -71,8 +70,6 @@ class McpServiceProvider extends BaseServiceProvider
         GetTraceDataFieldsTool::class,
         AggregateTracesTool::class,
         CompareTraceGroupsTool::class,
-        GetTraceIndexStatusTool::class,
-        GetTraceIndexesTool::class,
         GetIncidentsTool::class,
         GetIncidentEventsTool::class,
         GetTraceTool::class,
@@ -105,6 +102,14 @@ class McpServiceProvider extends BaseServiceProvider
                 new ExplainIncidentPrompt(),
                 new ExplainTracePrompt(),
             ])
+        );
+
+        // the period of a trace query may span the whole time traces are kept for
+        $this->app->singleton(
+            McpTracePeriodResolver::class,
+            static fn(): McpTracePeriodResolver => new McpTracePeriodResolver(
+                maxHours: (int) config('cleaner.lifetime_hours')
+            )
         );
 
         parent::boot();

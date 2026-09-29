@@ -3,12 +3,12 @@ package traces_transporter
 import (
 	"context"
 	"log/slog"
+	"slogger_receiver/internal/dto"
 	"slogger_receiver/internal/services/buffer_service"
 	"slogger_receiver/internal/services/periodic_trace_service"
 	"slogger_receiver/internal/services/trace_metric_service"
 	"slogger_receiver/internal/services/watcher_service"
 	"slogger_receiver/pkg/foundation/errs"
-	"sync"
 	"sync/atomic"
 	"time"
 
@@ -83,47 +83,15 @@ func (s *Transporter) Run(ctx context.Context) error {
 			continue
 		}
 
-		var mu sync.Mutex
-		savedIds := make([]primitive.ObjectID, 0)
-		failedIds := make([]primitive.ObjectID, 0)
+		result, err := s.periodicTraceService.Save(ctx, serviceTracesMap)
 
-		wg := sync.WaitGroup{}
-
-		for serviceId, traces := range serviceTracesMap {
-			wg.Add(1)
-
-			go func() {
-				defer wg.Done()
-
-				count, failedTraceIds := s.periodicTraceService.Save(ctx, serviceId, traces)
-
-				go s.totalHandledBufferCount.Add(uint64(count))
-
-				failedSet := make(map[string]bool, len(failedTraceIds))
-
-				for _, traceId := range failedTraceIds {
-					failedSet[traceId] = true
-				}
-
-				localSaved := make([]primitive.ObjectID, 0)
-				localFailed := make([]primitive.ObjectID, 0)
-
-				for traceId, trace := range traces.Items() {
-					if failedSet[traceId] {
-						localFailed = append(localFailed, trace.Ids...)
-					} else {
-						localSaved = append(localSaved, trace.Ids...)
-					}
-				}
-
-				mu.Lock()
-				savedIds = append(savedIds, localSaved...)
-				failedIds = append(failedIds, localFailed...)
-				mu.Unlock()
-			}()
+		if err != nil {
+			slog.Error("Failed to save traces: " + err.Error())
+		} else {
+			go s.totalHandledBufferCount.Add(uint64(result.Saved))
 		}
 
-		wg.Wait()
+		savedIds, failedIds := splitIds(serviceTracesMap, result.Failed, err != nil)
 
 		if len(savedIds) > 0 {
 			deletedCount, err := s.bufferService.DeleteByIds(ctx, savedIds)
@@ -168,6 +136,30 @@ func (s *Transporter) flushCounters() {
 	if err := trace_metric_service.Get().Flush(ctx); err != nil {
 		slog.Error(errs.Err(err).Error())
 	}
+}
+
+// splitIds sorts the buffer documents of a batch into those whose trace was written and
+// those to be tried again: all of them when the batch as a whole failed, otherwise the
+// documents of the traces that could not be merged.
+func splitIds(
+	batch map[int]*dto.ServiceTraces,
+	failedTraces map[int]map[string]bool,
+	batchFailed bool,
+) ([]primitive.ObjectID, []primitive.ObjectID) {
+	savedIds := make([]primitive.ObjectID, 0)
+	failedIds := make([]primitive.ObjectID, 0)
+
+	for serviceId, traces := range batch {
+		for traceId, trace := range traces.Items() {
+			if batchFailed || failedTraces[serviceId][traceId] {
+				failedIds = append(failedIds, trace.Ids...)
+			} else {
+				savedIds = append(savedIds, trace.Ids...)
+			}
+		}
+	}
+
+	return savedIds, failedIds
 }
 
 func (s *Transporter) GetStats() Stats {

@@ -4,31 +4,23 @@ declare(strict_types=1);
 
 namespace App\Modules\Trace\Domain\Actions\Queries;
 
-use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexErrorException;
-use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexInProcessException;
-use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexNotInitException;
-use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexParallelArraysException;
-use App\Modules\Trace\Domain\Services\TraceDynamicIndexInitializer;
 use App\Modules\Trace\Entities\Trace\Groups\TraceGroupComparisonCountObject;
 use App\Modules\Trace\Entities\Trace\Groups\TraceGroupComparisonObject;
 use App\Modules\Trace\Entities\Trace\Groups\TraceGroupComparisonRowObject;
 use App\Modules\Trace\Parameters\TraceCompareGroupsParameters;
 use App\Modules\Trace\Repositories\TraceGroupsRepository;
 use Illuminate\Support\Carbon;
+use App\Services\Clickhouse\ClickhouseQueryException;
 
 readonly class CompareTraceGroupsAction
 {
     public function __construct(
-        private TraceDynamicIndexInitializer $traceDynamicIndexInitializer,
         private TraceGroupsRepository $traceGroupsRepository
     ) {
     }
 
     /**
-     * @throws TraceDynamicIndexNotInitException
-     * @throws TraceDynamicIndexInProcessException
-     * @throws TraceDynamicIndexErrorException
-     * @throws TraceDynamicIndexParallelArraysException
+     * @throws ClickhouseQueryException
      */
     public function handle(TraceCompareGroupsParameters $parameters): TraceGroupComparisonObject
     {
@@ -38,15 +30,6 @@ readonly class CompareTraceGroupsAction
         $statuses = count($parameters->groupBStatuses) > 0
             ? array_values(array_unique([...$parameters->groupAStatuses, ...$parameters->groupBStatuses]))
             : [];
-
-        $this->traceDynamicIndexInitializer->init(
-            serviceIds: $parameters->serviceIds,
-            loggedAtFrom: $loggedAtFrom,
-            loggedAtTo: $loggedAtTo,
-            types: $parameters->types,
-            statuses: $statuses,
-            needLoggedAt: true,
-        );
 
         $counts = $this->traceGroupsRepository->compareGroups(
             loggedAtFrom: $loggedAtFrom,

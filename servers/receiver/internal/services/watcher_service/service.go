@@ -305,7 +305,7 @@ func (s *Service) Flush(ctx context.Context, all bool) error {
 
 // AddTrace files one saved trace into the lines of every watcher it belongs to.
 //
-// isNew says whether the trace was written to its shard for the first time. It is what
+// isNew says whether the trace was written to the traces table for the first time. It is what
 // keeps the count honest: a trace reaches the transporter twice, once as it starts and
 // once as it finishes, and only the first of those is a new trace. The second is where
 // the duration comes from, which is why it is not simply ignored.

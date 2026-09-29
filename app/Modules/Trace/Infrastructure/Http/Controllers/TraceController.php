@@ -7,16 +7,13 @@ namespace App\Modules\Trace\Infrastructure\Http\Controllers;
 use App\Modules\Common\Helpers\ArrayValueGetter;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceDetailAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTracesAction;
-use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexErrorException;
-use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexInProcessException;
-use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexNotInitException;
-use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexParallelArraysException;
 use App\Modules\Trace\Infrastructure\Http\Requests\TraceIndexRequest;
 use App\Modules\Trace\Infrastructure\Http\Resources\TraceDetailResource;
 use App\Modules\Trace\Infrastructure\Http\Resources\TraceItemsResource;
 use App\Modules\Trace\Parameters\PeriodParameters;
 use App\Modules\Trace\Parameters\TraceFindParameters;
 use Symfony\Component\HttpFoundation\Response;
+use App\Services\Clickhouse\ClickhouseQueryException;
 
 readonly class TraceController
 {
@@ -28,10 +25,7 @@ readonly class TraceController
     }
 
     /**
-     * @throws TraceDynamicIndexErrorException
-     * @throws TraceDynamicIndexParallelArraysException
-     * @throws TraceDynamicIndexInProcessException
-     * @throws TraceDynamicIndexNotInitException
+     * @throws ClickhouseQueryException
      */
     public function index(TraceIndexRequest $request): TraceItemsResource
     {

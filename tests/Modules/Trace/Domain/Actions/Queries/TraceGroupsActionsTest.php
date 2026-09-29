@@ -6,13 +6,14 @@ namespace Tests\Modules\Trace\Domain\Actions\Queries;
 
 use App\Modules\Trace\Domain\Actions\Queries\CompareTraceGroupsAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceGroupsAction;
-use App\Modules\Trace\Domain\Services\TraceDynamicIndexInitializer;
 use App\Modules\Trace\Entities\Trace\Groups\TraceGroupComparisonCountObject;
 use App\Modules\Trace\Entities\Trace\Groups\TraceGroupComparisonObject;
 use App\Modules\Trace\Entities\Trace\Groups\TraceGroupComparisonRowObject;
 use App\Modules\Trace\Entities\Trace\Groups\TraceGroupObject;
 use App\Modules\Trace\Enums\TraceCompareByEnum;
 use App\Modules\Trace\Enums\TraceGroupFieldEnum;
+use App\Modules\Trace\Parameters\Data\TraceDataFilterItemParameters;
+use App\Modules\Trace\Parameters\Data\TraceDataFilterParameters;
 use App\Modules\Trace\Parameters\PeriodParameters;
 use App\Modules\Trace\Parameters\TraceCompareGroupsParameters;
 use App\Modules\Trace\Parameters\TraceFindGroupsParameters;
@@ -27,17 +28,15 @@ class TraceGroupsActionsTest extends TestCase
     /**
      * @var array<string, mixed>|null
      */
-    private ?array $initArguments = null;
+    private ?array $repositoryArguments = null;
 
-    public function testGroupsUseTheIndexOfTheTraceSearch(): void
+    public function testGroupsPassTheFiltersOfTheTraceSearch(): void
     {
-        $repository = $this->createMock(TraceGroupsRepository::class);
-        $repository->expects($this->once())
-            ->method('findGroups')
-            ->with($this->anything(), $this->anything(), [TraceGroupFieldEnum::Type], 3)
-            ->willReturn([$this->group(), $this->group(), $this->group()]);
+        $data = new TraceDataFilterParameters(filter: [$this->dataFilterItem()]);
 
-        $result = new FindTraceGroupsAction($this->initializer(), $repository)->handle(
+        $repository = $this->repository('findGroups', [$this->group(), $this->group(), $this->group()]);
+
+        $result = new FindTraceGroupsAction($repository)->handle(
             new TraceFindGroupsParameters(
                 loggingPeriod: $this->period(),
                 groupBy: [TraceGroupFieldEnum::Type],
@@ -46,26 +45,52 @@ class TraceGroupsActionsTest extends TestCase
                 types: ['request'],
                 tags: ['api'],
                 statuses: ['failed'],
-                durationFrom: 0.5
+                durationFrom: 0.5,
+                data: $data
             )
         );
 
         $this->assertCount(2, $result->items);
         $this->assertTrue($result->truncated);
+        $this->assertSame('2026-09-28 10:00:00', $this->repositoryArguments['loggedAtFrom']?->toDateTimeString());
+        $this->assertSame('2026-09-28 10:59:59', $this->repositoryArguments['loggedAtTo']?->toDateTimeString());
         $this->assertSame(
             [
+                'groupBy'      => [TraceGroupFieldEnum::Type],
+                'limit'        => 3,
                 'serviceIds'   => [2],
                 'types'        => ['request'],
                 'tags'         => ['api'],
                 'statuses'     => ['failed'],
                 'durationFrom' => 0.5,
-                'needLoggedAt' => true,
+                'durationTo'   => null,
+                'data'         => $data,
             ],
             array_intersect_key(
-                $this->initArguments ?? [],
-                array_flip(['serviceIds', 'types', 'tags', 'statuses', 'durationFrom', 'needLoggedAt'])
+                $this->repositoryArguments ?? [],
+                array_flip(
+                    ['groupBy', 'limit', 'serviceIds', 'types', 'tags', 'statuses', 'durationFrom', 'durationTo', 'data']
+                )
             )
         );
+    }
+
+    public function testGroupsWithoutDataAreNotFilteredByData(): void
+    {
+        $repository = $this->repository('findGroups', [$this->group()]);
+
+        $result = new FindTraceGroupsAction($repository)->handle(
+            new TraceFindGroupsParameters(
+                loggingPeriod: $this->period(),
+                groupBy: [TraceGroupFieldEnum::Type],
+                limit: 2
+            )
+        );
+
+        $this->assertCount(1, $result->items);
+        $this->assertFalse($result->truncated);
+        $this->assertArrayHasKey('data', $this->repositoryArguments ?? []);
+        $this->assertNull($this->repositoryArguments['data']);
     }
 
     public function testComparisonSharesAndOrder(): void
@@ -97,14 +122,14 @@ class TraceGroupsActionsTest extends TestCase
             )
         );
         $this->assertFalse($result->truncated);
-        $this->assertSame([], $this->initArguments['statuses'] ?? null);
+        $this->assertSame([], $this->repositoryArguments['statuses'] ?? null);
     }
 
     public function testGroupBLimitsTheStatuses(): void
     {
         $this->compare([], groupBStatuses: ['success']);
 
-        $this->assertSame(['failed', 'success'], $this->initArguments['statuses'] ?? null);
+        $this->assertSame(['failed', 'success'], $this->repositoryArguments['statuses'] ?? null);
     }
 
     public function testComparisonRowsAreLimited(): void
@@ -127,10 +152,9 @@ class TraceGroupsActionsTest extends TestCase
      */
     private function compare(array $counts, array $groupBStatuses, int $limit = 30): TraceGroupComparisonObject
     {
-        $repository = $this->createMock(TraceGroupsRepository::class);
-        $repository->method('compareGroups')->willReturn($counts);
+        $repository = $this->repository('compareGroups', $counts);
 
-        return new CompareTraceGroupsAction($this->initializer(), $repository)->handle(
+        return new CompareTraceGroupsAction($repository)->handle(
             new TraceCompareGroupsParameters(
                 loggingPeriod: $this->period(),
                 groupAStatuses: ['failed'],
@@ -142,19 +166,40 @@ class TraceGroupsActionsTest extends TestCase
         );
     }
 
-    private function initializer(): TraceDynamicIndexInitializer
+    /**
+     * A repository mock that remembers the arguments of the method by their names.
+     *
+     * @param mixed[] $result
+     */
+    private function repository(string $method, array $result): TraceGroupsRepository
     {
-        $initializer = $this->createMock(TraceDynamicIndexInitializer::class);
-        $names       = array_map(
+        $repository = $this->createMock(TraceGroupsRepository::class);
+        $names      = array_map(
             static fn(ReflectionParameter $parameter) => $parameter->getName(),
-            new ReflectionMethod(TraceDynamicIndexInitializer::class, 'init')->getParameters()
+            new ReflectionMethod(TraceGroupsRepository::class, $method)->getParameters()
         );
 
-        $initializer->method('init')->willReturnCallback(function (...$arguments) use ($names): void {
-            $this->initArguments = array_combine(array_slice($names, 0, count($arguments)), $arguments);
-        });
+        $repository->expects($this->once())
+            ->method($method)
+            ->willReturnCallback(function (...$arguments) use ($names, $result): array {
+                $this->repositoryArguments = array_combine(array_slice($names, 0, count($arguments)), $arguments);
 
-        return $initializer;
+                return $result;
+            });
+
+        return $repository;
+    }
+
+    private function dataFilterItem(): TraceDataFilterItemParameters
+    {
+        return new TraceDataFilterItemParameters(
+            field: 'dt.response.status',
+            null: null,
+            exists: true,
+            numeric: null,
+            string: null,
+            boolean: null
+        );
     }
 
     private function period(): PeriodParameters

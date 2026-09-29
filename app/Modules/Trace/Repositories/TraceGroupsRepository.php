@@ -8,19 +8,21 @@ use App\Modules\Trace\Entities\Trace\Groups\TraceGroupComparisonCountObject;
 use App\Modules\Trace\Entities\Trace\Groups\TraceGroupObject;
 use App\Modules\Trace\Enums\TraceCompareByEnum;
 use App\Modules\Trace\Enums\TraceGroupFieldEnum;
-use App\Modules\Trace\Enums\TraceMetricFieldAggregatorEnum;
-use App\Modules\Trace\Repositories\Services\PeriodicTraceService;
-use App\Modules\Trace\Repositories\Services\TraceMetricAggregationFactory;
-use App\Modules\Trace\Repositories\Services\TracePipelineBuilder;
+use App\Modules\Trace\Parameters\Data\TraceDataFilterParameters;
+use App\Modules\Trace\Repositories\Services\ClickhouseTraceFilterBuilder;
+use App\Modules\Trace\Repositories\Services\ClickhouseTraceRowReader;
+use App\Modules\Trace\Repositories\Services\TraceDataPathResolver;
+use App\Services\Clickhouse\ClickhouseClient;
+use App\Services\Clickhouse\ClickhouseQueryException;
 use Illuminate\Support\Carbon;
-use SConcur\Bson\UTCDateTime;
 
 readonly class TraceGroupsRepository
 {
     public function __construct(
-        private TracePipelineBuilder $tracePipelineBuilder,
-        private PeriodicTraceService $periodicTraceService,
-        private TraceMetricAggregationFactory $aggregationFactory
+        private ClickhouseClient $client,
+        private ClickhouseTraceFilterBuilder $filterBuilder,
+        private ClickhouseTraceRowReader $rowReader,
+        private TraceDataPathResolver $pathResolver,
     ) {
     }
 
@@ -32,6 +34,8 @@ readonly class TraceGroupsRepository
      * @param string[]              $statuses
      *
      * @return TraceGroupObject[]
+     *
+     * @throws ClickhouseQueryException
      */
     public function findGroups(
         Carbon $loggedAtFrom,
@@ -43,96 +47,106 @@ readonly class TraceGroupsRepository
         array $tags = [],
         array $statuses = [],
         ?float $durationFrom = null,
-        ?float $durationTo = null
+        ?float $durationTo = null,
+        ?TraceDataFilterParameters $data = null,
     ): array {
-        $groupId = [];
+        $condition = $this->filterBuilder->build(
+            serviceIds: $serviceIds,
+            loggedAtFrom: $loggedAtFrom,
+            loggedAtTo: $loggedAtTo,
+            types: $types,
+            tags: $tags,
+            statuses: $statuses,
+            durationFrom: $durationFrom,
+            durationTo: $durationTo,
+            data: $data,
+        );
 
-        foreach ($groupBy as $field) {
-            $groupId[$field->value] = match ($field) {
-                TraceGroupFieldEnum::Service  => '$sid',
-                TraceGroupFieldEnum::Type     => '$tp',
-                TraceGroupFieldEnum::Status   => '$st',
-                TraceGroupFieldEnum::Hour     => ['$dateTrunc' => ['date' => '$lat', 'unit' => 'hour']],
-                TraceGroupFieldEnum::Minute10 => [
-                    '$dateTrunc' => ['date' => '$lat', 'unit' => 'minute', 'binSize' => 10],
-                ],
-            };
-        }
+        $keys    = [];
+        $orderBy = [];
 
         $timeField = null;
 
         foreach ($groupBy as $field) {
+            $keys[] = sprintf(
+                '%s AS %s',
+                match ($field) {
+                    TraceGroupFieldEnum::Service  => 'sid',
+                    TraceGroupFieldEnum::Type     => 'tp',
+                    TraceGroupFieldEnum::Status   => 'st',
+                    TraceGroupFieldEnum::Hour     => "toDateTime64(toStartOfHour(lat), 6, 'UTC')",
+                    TraceGroupFieldEnum::Minute10 => "toDateTime64(toStartOfTenMinutes(lat), 6, 'UTC')",
+                },
+                $field->value
+            );
+
             if ($field === TraceGroupFieldEnum::Hour || $field === TraceGroupFieldEnum::Minute10) {
                 $timeField = $field;
             }
         }
 
-        $sort = is_null($timeField)
-            ? ['count' => -1, '_id' => 1]
-            : ["_id.$timeField->value" => 1, 'count' => -1, '_id' => 1];
+        if (!is_null($timeField)) {
+            $orderBy[] = $timeField->value;
+        }
 
-        $documents = $this->aggregate(
-            loggedAtFrom: $loggedAtFrom,
-            loggedAtTo: $loggedAtTo,
-            match: $this->tracePipelineBuilder->make(
-                serviceIds: $serviceIds,
-                loggedAtFrom: $loggedAtFrom,
-                loggedAtTo: $loggedAtTo,
-                types: $types,
-                tags: $tags,
-                statuses: $statuses,
-                durationFrom: $durationFrom,
-                durationTo: $durationTo
+        $orderBy[] = 'count DESC';
+
+        foreach ($groupBy as $field) {
+            if ($field !== $timeField) {
+                $orderBy[] = $field->value;
+            }
+        }
+
+        $rows = $this->client->select(
+            sql: sprintf(
+                'SELECT %s, count() AS count, avg(dur) AS avg, quantile(0.95)(dur) AS p95, max(dur) AS max, '
+                . 'argMax(tid, coalesce(dur, -1)) AS example FROM traces FINAL WHERE %s '
+                . 'GROUP BY %s ORDER BY %s LIMIT {limit:UInt32}',
+                implode(', ', $keys),
+                $condition->sql,
+                implode(
+                    ', ',
+                    array_map(static fn(TraceGroupFieldEnum $field) => $field->value, $groupBy)
+                ),
+                implode(', ', $orderBy)
             ),
-            stages: [
-                [
-                    '$group' => [
-                        '_id'     => $groupId,
-                        'count'   => ['$sum' => 1],
-                        'avg'     => ['$avg' => '$dur'],
-                        'p95'     => $this->aggregationFactory->makeExpression(
-                            aggregation: TraceMetricFieldAggregatorEnum::P95,
-                            fieldName: 'dur'
-                        ),
-                        'max'     => ['$max' => '$dur'],
-                        'example' => ['$top' => ['sortBy' => ['dur' => -1], 'output' => '$tid']],
-                    ],
-                ],
-                ['$sort'  => $sort],
-                ['$limit' => $limit],
-            ]
+            params: [
+                ...$condition->params,
+                'limit' => $limit,
+            ],
+            queryIdPrefix: 'trace-groups'
         );
 
         return array_map(
-            function (array $document) use ($timeField): TraceGroupObject {
-                /** @var array<string, mixed> $id */
-                $id = is_array($document['_id'] ?? null) ? $document['_id'] : [];
-
-                $startedAt = is_null($timeField) ? null : ($id[$timeField->value] ?? null);
-
+            function (array $row) use ($timeField): TraceGroupObject {
                 return new TraceGroupObject(
-                    serviceId: is_numeric($id['service'] ?? null) ? (int) $id['service'] : null,
-                    type: is_string($id['type'] ?? null) ? $id['type'] : null,
-                    status: is_string($id['status'] ?? null) ? $id['status'] : null,
-                    startedAt: $startedAt instanceof UTCDateTime ? new Carbon($startedAt->toDateTime()) : null,
-                    count: (int) ($document['count'] ?? 0),
-                    durationAvg: $this->readFloat($document['avg'] ?? null),
-                    durationP95: $this->readFloat($document['p95'] ?? null),
-                    durationMax: $this->readFloat($document['max'] ?? null),
-                    exampleTraceId: is_string($document['example'] ?? null) ? $document['example'] : null
+                    serviceId: is_numeric($row['service'] ?? null) ? (int) $row['service'] : null,
+                    type: is_string($row['type'] ?? null) ? $row['type'] : null,
+                    status: is_string($row['status'] ?? null) ? $row['status'] : null,
+                    startedAt: is_null($timeField) ? null : $this->rowReader->time($row[$timeField->value]),
+                    count: (int) $row['count'],
+                    durationAvg: $this->readFloat($row['avg'] ?? null),
+                    durationP95: $this->readFloat($row['p95'] ?? null),
+                    durationMax: $this->readFloat($row['max'] ?? null),
+                    exampleTraceId: ($row['example'] ?? '') === '' ? null : (string) $row['example']
                 );
             },
-            $documents
+            $rows
         );
     }
 
     /**
+     * How the traces of the period split by the value of one field, in group A (the
+     * statuses given) and outside it.
+     *
      * @param string[] $groupAStatuses
      * @param string[] $statuses
      * @param int[]    $serviceIds
      * @param string[] $types
      *
      * @return TraceGroupComparisonCountObject[]
+     *
+     * @throws ClickhouseQueryException
      */
     public function compareGroups(
         Carbon $loggedAtFrom,
@@ -144,117 +158,57 @@ readonly class TraceGroupsRepository
         array $types = [],
         array $statuses = []
     ): array {
-        $stages = [];
-
-        if ($by === TraceCompareByEnum::Tag) {
-            $stages[] = ['$unwind' => ['path' => '$tgs', 'preserveNullAndEmptyArrays' => true]];
-        }
-
-        $value = match ($by) {
-            TraceCompareByEnum::Type    => '$tp',
-            TraceCompareByEnum::Service => '$sid',
-            TraceCompareByEnum::Tag     => '$tgs.nm',
-            TraceCompareByEnum::Data    => '$dt.' . $dataKey,
-        };
-
-        $stages[] = [
-            '$group' => [
-                '_id'   => [
-                    'inA'   => ['$in' => ['$st', array_values($groupAStatuses)]],
-                    'value' => $value,
-                ],
-                'count' => ['$sum' => 1],
-            ],
-        ];
-
-        $documents = $this->aggregate(
+        $condition = $this->filterBuilder->build(
+            serviceIds: $serviceIds,
             loggedAtFrom: $loggedAtFrom,
             loggedAtTo: $loggedAtTo,
-            match: $this->tracePipelineBuilder->make(
-                serviceIds: $serviceIds,
-                loggedAtFrom: $loggedAtFrom,
-                loggedAtTo: $loggedAtTo,
-                types: $types,
-                statuses: $statuses
+            types: $types,
+            statuses: $statuses,
+        );
+
+        $value = match ($by) {
+            TraceCompareByEnum::Type    => 'tp',
+            TraceCompareByEnum::Service => 'sid',
+            // a trace without tags is one row under no value
+            TraceCompareByEnum::Tag     => "nullIf(arrayJoin(if(empty(tgs), [''], tgs)), '')",
+            // the value as stored, its type included: 500 and "500" are two values
+            TraceCompareByEnum::Data    => $this->pathResolver->resolve((string) $dataKey)->objectExpression,
+        };
+
+        $rows = $this->client->select(
+            sql: sprintf(
+                'SELECT st IN {groupA:Array(String)} AS inA, %s AS value, count() AS count '
+                . 'FROM traces FINAL WHERE %s GROUP BY inA, value',
+                $value,
+                $condition->sql
             ),
-            stages: $stages
+            params: [
+                ...$condition->params,
+                'groupA' => array_values($groupAStatuses),
+            ],
+            queryIdPrefix: 'trace-compare',
+            settings: ['allow_suspicious_types_in_group_by' => 1]
         );
 
         return array_map(
-            function (array $document): TraceGroupComparisonCountObject {
-                /** @var array<string, mixed> $id */
-                $id = is_array($document['_id'] ?? null) ? $document['_id'] : [];
-
-                return new TraceGroupComparisonCountObject(
-                    value: $this->readValue($id['value'] ?? null),
-                    inGroupA: (bool) ($id['inA'] ?? false),
-                    count: (int) ($document['count'] ?? 0)
-                );
-            },
-            $documents
+            fn(array $row): TraceGroupComparisonCountObject => new TraceGroupComparisonCountObject(
+                value: $this->readValue($row['value'] ?? null),
+                inGroupA: (bool) $row['inA'],
+                count: (int) $row['count']
+            ),
+            $rows
         );
-    }
-
-    /**
-     * @param array<int, array<string, mixed>> $match
-     * @param array<int, array<string, mixed>> $stages
-     *
-     * @return array<int, array<string, mixed>>
-     */
-    private function aggregate(Carbon $loggedAtFrom, Carbon $loggedAtTo, array $match, array $stages): array
-    {
-        $collectionNames = $this->periodicTraceService->detectCollectionNames(
-            loggedAtFrom: $loggedAtFrom,
-            loggedAtTo: $loggedAtTo
-        );
-
-        if (count($collectionNames) === 0) {
-            return [];
-        }
-
-        $cursor = $this->periodicTraceService->aggregate(
-            collectionName: $collectionNames[0],
-            pipeline: [
-                ...$match,
-                ...array_map(
-                    static fn(string $collectionName) => [
-                        '$unionWith' => [
-                            'coll'     => $collectionName,
-                            'pipeline' => $match,
-                        ],
-                    ],
-                    array_slice($collectionNames, 1)
-                ),
-                ...$stages,
-            ]
-        );
-
-        $documents = [];
-
-        foreach ($cursor as $document) {
-            $documents[] = $document;
-        }
-
-        return $documents;
     }
 
     private function readFloat(mixed $value): ?float
     {
-        if (is_null($value) || (is_array($value) && count($value) === 0)) {
-            return null;
-        }
-
-        return round($this->aggregationFactory->readValue($value), 6);
+        return is_numeric($value) ? round((float) $value, 6) : null;
     }
 
     private function readValue(mixed $value): string|int|float|bool|null
     {
         if (is_null($value) || is_scalar($value)) {
             return $value;
-        }
-
-        if ($value instanceof UTCDateTime) {
-            return new Carbon($value->toDateTime())->toIso8601ZuluString();
         }
 
         return (string) json_encode($value);

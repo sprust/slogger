@@ -2,190 +2,225 @@ package periodic_trace_service
 
 import (
 	"context"
-	"errors"
+	"encoding/json"
 	"log/slog"
 	"slogger_receiver/internal/dto"
-	"slogger_receiver/internal/helpers/bson_helper"
 	"slogger_receiver/internal/helpers/datetime_helper"
+	"slogger_receiver/internal/helpers/json_helper"
+	"slogger_receiver/internal/repositories/clickhouse_trace_repository"
 	"slogger_receiver/internal/services/trace_metric_service"
-	"slogger_receiver/internal/services/trace_sharding_service"
 	"slogger_receiver/internal/services/watcher_service"
 	"slogger_receiver/pkg/foundation/errs"
 	"strconv"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
-
-// maxConcurrentSaves bounds trace-saving goroutines so the transporter does not
-// monopolize the MongoDB connection pool under a large buffered backlog.
-const maxConcurrentSaves = 64
 
 // unknownTraceType is what a trace is stored as until its create arrives. An updating
 // message carries no type, so a trace whose update is persisted first spends a while
 // under this placeholder.
 const unknownTraceType = "__UNKNOWN"
 
+// traceStore is the traces table: the stored half of each merge, and the write of the
+// merged result.
+type traceStore interface {
+	FindExisting(ctx context.Context, keys []clickhouse_trace_repository.Key) (map[clickhouse_trace_repository.Key]clickhouse_trace_repository.StoredTrace, error)
+	Insert(ctx context.Context, rows []clickhouse_trace_repository.Row) error
+}
+
 var instance *Service
 var once sync.Once
 
 func Get() *Service {
 	once.Do(func() {
-		instance = &Service{
-			saveSemaphore: make(chan struct{}, maxConcurrentSaves),
-		}
+		instance = New(clickhouse_trace_repository.Get())
 	})
 
 	return instance
 }
 
-type Service struct {
-	mColl         *mongo.Collection
-	saveSemaphore chan struct{}
+func New(store traceStore) *Service {
+	return &Service{store: store}
 }
 
-func (s *Service) Save(ctx context.Context, serviceId int, serviceTraces *dto.ServiceTraces) (int, []string) {
-	wg := sync.WaitGroup{}
+type Service struct {
+	store traceStore
+}
 
-	counter := atomic.Uint64{}
+// Result is what a batch came to: how many traces were written, and which were not.
+type Result struct {
+	Saved int
+	// Failed holds, per service, the ids of the traces that could not be merged. The rest
+	// of the batch was written without them.
+	Failed map[int]map[string]bool
+}
 
-	var mu sync.Mutex
-	failedTraceIds := make([]string, 0)
+type pendingTrace struct {
+	serviceId int
+	traceId   string
+	traces    *dto.Traces
+	key       clickhouse_trace_repository.Key
+	loggedAt  time.Time
+}
 
-	for traceId, traces := range serviceTraces.Items() {
-		wg.Add(1)
+// Save merges and writes every trace of a batch in one read and one write.
+//
+// The stored versions of all its traces are read in one query and the merged rows go
+// back in one insert, instead of a lookup and an upsert per trace. That is also what
+// keeps a trace from being merged twice at once: a batch holds a trace id once, and the
+// batches run one after another.
+//
+// An error means nothing was written, and the whole batch is to be tried again.
+func (s *Service) Save(ctx context.Context, batch map[int]*dto.ServiceTraces) (Result, error) {
+	result := Result{Failed: map[int]map[string]bool{}}
 
-		s.saveSemaphore <- struct{}{}
+	pending := make([]pendingTrace, 0)
+	keys := make([]clickhouse_trace_repository.Key, 0)
 
-		go func(serviceId int, traceId string, traces *dto.Traces, counter *atomic.Uint64) {
-			defer func() {
-				wg.Done()
+	for serviceId, serviceTraces := range batch {
+		for traceId, traces := range serviceTraces.Items() {
+			loggedAt, ok := loggedAtOf(traces)
 
-				<-s.saveSemaphore
-			}()
+			if !ok {
+				slog.Error("trace " + traceId + " of service " + strconv.Itoa(serviceId) + " has neither a create nor an update")
 
-			err := s.saveTraces(ctx, serviceId, traceId, traces)
+				markFailed(result.Failed, serviceId, traceId)
 
-			if err != nil {
-				slog.Error("failed to save traces" + err.Error())
-
-				mu.Lock()
-				failedTraceIds = append(failedTraceIds, traceId)
-				mu.Unlock()
-
-				return
+				continue
 			}
 
-			counter.Add(1)
-		}(serviceId, traceId, traces, &counter)
-	}
+			key := clickhouse_trace_repository.Key{
+				ServiceId:     serviceId,
+				LoggedAtMicro: loggedAt.UnixMicro(),
+				TraceId:       traceId,
+			}
 
-	wg.Wait()
+			pending = append(pending, pendingTrace{
+				serviceId: serviceId,
+				traceId:   traceId,
+				traces:    traces,
+				key:       key,
+				loggedAt:  loggedAt,
+			})
 
-	return int(counter.Load()), failedTraceIds
-}
-
-func (s *Service) saveTraces(ctx context.Context, serviceId int, traceId string, traces *dto.Traces) error {
-	var loggedAt primitive.DateTime
-	var creatingRawLoggedAt string
-	var updatingRawLoggedAt string
-
-	if traces.Creating != nil {
-		loggedAt = datetime_helper.ConvertLoggedAt(traces.Creating.LoggedAt)
-
-		if v, ok := traces.Creating.LoggedAt.(string); ok {
-			creatingRawLoggedAt = v
-		}
-	} else if traces.Updating != nil {
-		loggedAt = datetime_helper.ConvertLoggedAt(traces.Updating.ParentLoggedAt)
-
-		if v, ok := traces.Updating.ParentLoggedAt.(string); ok {
-			updatingRawLoggedAt = v
+			keys = append(keys, key)
 		}
 	}
 
-	if loggedAt == 0 {
-		return errs.Err(errors.New("loggedAt cannot be zero"))
+	if len(pending) == 0 {
+		return result, nil
 	}
 
-	shardingService := trace_sharding_service.Get()
-
-	coll, err := shardingService.InitCollection(ctx, loggedAt)
+	existing, err := s.store.FindExisting(ctx, keys)
 
 	if err != nil {
-		return errs.Err(err)
+		return Result{}, errs.Err(err)
 	}
 
-	filter := bson.M{
-		"sid": serviceId,
-		"tid": traceId,
-	}
+	now := time.Now().UTC().Truncate(time.Microsecond)
 
-	existsTrace := bson.M{}
+	merged := make([]mergedTrace, 0, len(pending))
+	rows := make([]clickhouse_trace_repository.Row, 0, len(pending))
 
-	// Read as raw bytes and decoded twice: the map is what the rest of this reads, and
-	// the bytes are what keeps the stored data's field order. Decoded into a map, an
-	// embedded document loses it, and a trace resaved from its stored data would be
-	// written back in whatever order the map iterated in.
-	existsRaw, err := coll.FindOne(ctx, filter).Raw()
+	for _, trace := range pending {
+		var stored *clickhouse_trace_repository.StoredTrace
 
-	if err != nil && !errors.Is(err, mongo.ErrNoDocuments) {
-		return errs.Err(err)
-	}
-
-	if err == nil {
-		if err := bson.Unmarshal(existsRaw, &existsTrace); err != nil {
-			return errs.Err(err)
+		if value, found := existing[trace.key]; found {
+			stored = &value
 		}
+
+		item, err := mergeTrace(trace.serviceId, trace.traceId, trace.traces, stored, trace.loggedAt, now)
+
+		if err != nil {
+			slog.Error("failed to merge trace " + trace.traceId + ": " + err.Error())
+
+			markFailed(result.Failed, trace.serviceId, trace.traceId)
+
+			continue
+		}
+
+		merged = append(merged, item)
+		rows = append(rows, item.row)
 	}
 
-	// Whether this write creates the trace or completes one already there. It is the only
-	// place that can tell: a trace passes through here twice, and counting both would
-	// double every number the watchers are built on.
-	isNewTrace := errors.Is(err, mongo.ErrNoDocuments)
+	if err := s.store.Insert(ctx, rows); err != nil {
+		return Result{}, errs.Err(err)
+	}
+
+	for _, item := range merged {
+		report(item, now)
+	}
+
+	result.Saved = len(rows)
+
+	return result, nil
+}
+
+// mergedTrace is a trace ready to be written, together with what the watchers and the
+// trace metrics are told about it once it is.
+type mergedTrace struct {
+	row         clickhouse_trace_repository.Row
+	loggedAt    time.Time
+	tags        []string
+	countsAsNew bool
+	newDuration *float64
+	receivedAt  time.Time
+}
+
+// mergeTrace puts together what the batch brought of a trace and what is stored of it.
+// stored is nil for a trace written for the first time.
+//
+// The order each field is taken in is the one README "Trace message format" describes:
+// the update wins, then what is stored, then the create — except the type, which only
+// a create carries, and the parent, which is never changed once stored.
+func mergeTrace(
+	serviceId int,
+	traceId string,
+	traces *dto.Traces,
+	stored *clickhouse_trace_repository.StoredTrace,
+	loggedAt time.Time,
+	now time.Time,
+) (mergedTrace, error) {
+	isNewTrace := stored == nil
 
 	if isNewTrace {
-		existsTrace = bson.M{}
+		stored = &clickhouse_trace_repository.StoredTrace{}
 	}
 
-	var parentTraceId interface{}
+	parentTraceId := ""
 
-	if existingParentTraceId, ok := existsTrace["ptid"]; ok && existingParentTraceId != nil && existingParentTraceId != "" {
-		parentTraceId = existingParentTraceId
-	} else if traces.Creating != nil && traces.Creating.ParentTraceId != nil && *traces.Creating.ParentTraceId != "" {
+	if stored.ParentTraceId != "" {
+		parentTraceId = stored.ParentTraceId
+	} else if traces.Creating != nil && traces.Creating.ParentTraceId != nil {
 		parentTraceId = *traces.Creating.ParentTraceId
 	}
 
 	traceType := unknownTraceType
 	if traces.Creating != nil && traces.Creating.Type != "" {
 		traceType = traces.Creating.Type
-	} else if existingType, ok := existsTrace["tp"].(string); ok && existingType != "" {
-		traceType = existingType
+	} else if stored.Type != "" {
+		traceType = stored.Type
 	}
 
 	status := ""
 	if traces.Updating != nil {
 		status = traces.Updating.Status
-	} else if existingStatus, ok := existsTrace["st"].(string); ok {
-		status = existingStatus
+	} else if !isNewTrace {
+		status = stored.Status
 	} else if traces.Creating != nil {
 		status = traces.Creating.Status
 	}
 
-	var tags interface{}
+	tags := []string{}
 	if traces.Updating != nil && traces.Updating.Tags != nil {
-		tags = s.convertTags(*traces.Updating.Tags)
-	} else if existingTags, ok := existsTrace["tgs"]; ok && !isEmptyTags(existingTags) {
-		tags = existingTags
+		tags = convertTags(*traces.Updating.Tags)
+	} else if len(stored.Tags) > 0 {
+		tags = stored.Tags
 	} else if traces.Creating != nil && len(traces.Creating.Tags) > 0 {
-		tags = s.convertTags(traces.Creating.Tags)
-	} else {
-		tags = []interface{}{}
+		tags = convertTags(traces.Creating.Tags)
 	}
 
 	var updatingData interface{}
@@ -198,89 +233,55 @@ func (s *Service) saveTraces(ctx context.Context, serviceId int, traceId string,
 		creatingData = traces.Creating.Data.Value
 	}
 
-	existingData := bson_helper.OrderedValue(existsRaw, "dt", existsTrace["dt"])
+	data := mergeData(updatingData, storedData(stored.RawData), creatingData)
 
-	data := mergeData(updatingData, existingData, creatingData)
-
-	// By value, not by key. The document below is written with every field it has room
-	// for, so a trace stored before its numbers arrived carries nulls under them — and a
-	// key holding a null, taken for a stored value, wins over the create that is finally
-	// bringing the real one. A create landing after an update that carried none would lose
-	// its duration, memory and cpu for good.
-	var duration interface{}
+	// By value: a trace stored before its numbers arrived holds nulls under them, and a
+	// null taken for a stored value would win over the create finally bringing the real one.
+	var duration *float64
 	if traces.Updating != nil && traces.Updating.Duration != nil {
-		duration = *traces.Updating.Duration
-	} else if existingDuration := existsTrace["dur"]; existingDuration != nil {
-		duration = existingDuration
+		duration = traces.Updating.Duration
+	} else if stored.Duration != nil {
+		duration = stored.Duration
 	} else if traces.Creating != nil && traces.Creating.Duration != nil {
-		duration = *traces.Creating.Duration
+		duration = traces.Creating.Duration
 	}
 
-	var memory interface{}
+	var memory *float64
 	if traces.Updating != nil && traces.Updating.Memory != nil {
-		memory = *traces.Updating.Memory
-	} else if existingMemory := existsTrace["mem"]; existingMemory != nil {
-		memory = existingMemory
+		memory = traces.Updating.Memory
+	} else if stored.Memory != nil {
+		memory = stored.Memory
 	} else if traces.Creating != nil && traces.Creating.Memory != nil {
-		memory = *traces.Creating.Memory
+		memory = traces.Creating.Memory
 	}
 
-	var cpu interface{}
+	var cpu *float64
 	if traces.Updating != nil && traces.Updating.Cpu != nil {
-		cpu = *traces.Updating.Cpu
-	} else if existingCPU := existsTrace["cpu"]; existingCPU != nil {
-		cpu = existingCPU
+		cpu = traces.Updating.Cpu
+	} else if stored.Cpu != nil {
+		cpu = stored.Cpu
 	} else if traces.Creating != nil && traces.Creating.Cpu != nil {
-		cpu = *traces.Creating.Cpu
+		cpu = traces.Creating.Cpu
 	}
 
-	timestamps, ok := existsTrace["tss"]
-	if !ok || timestamps == nil {
-		timestamps = datetime_helper.MakeTimestampsByLoggedAt(loggedAt)
-	}
-
-	currentNow := datetime_helper.Now()
-
-	document := bson.M{
-		"sid":  serviceId,
-		"tid":  traceId,
-		"ptid": parentTraceId,
-		"tp":   traceType,
-		"st":   status,
-		"tgs":  tags,
-		"dt":   data,
-		"dur":  duration,
-		"mem":  memory,
-		"cpu":  cpu,
-		"tss":  timestamps,
-		"lat":  loggedAt,
-		"hpr":  false,
-		"pr":   []interface{}{},
-		"uat":  currentNow,
-	}
-
-	if creatingRawLoggedAt != "" {
-		document["rcLat"] = creatingRawLoggedAt
-	}
-
-	if updatingRawLoggedAt != "" {
-		document["ucLat"] = updatingRawLoggedAt
-	}
-
-	_, err = coll.UpdateOne(
-		ctx,
-		filter,
-		bson.M{
-			"$set": document,
-			"$setOnInsert": bson.M{
-				"cat": currentNow,
-			},
-		},
-		options.Update().SetUpsert(true),
-	)
+	rawData, err := json_helper.Marshal(data)
 
 	if err != nil {
-		return errs.Err(err)
+		return mergedTrace{}, errs.Err(err)
+	}
+
+	// The JSON column holds objects only; data of any other shape is kept in dt_raw alone,
+	// where it is shown, and no data filter can find it.
+	objectData := json.RawMessage("{}")
+
+	if _, isObject := data.(bson.D); isObject {
+		objectData = rawData
+	}
+
+	createdAt := now
+
+	if !isNewTrace {
+		createdAt = stored.CreatedAt
 	}
 
 	// Which write counts the trace, and which write brings its duration.
@@ -291,101 +292,113 @@ func (s *Service) saveTraces(ctx context.Context, serviceId int, traceId string,
 	// __UNKNOWN with no tags, where no filtered watcher can ever see it, and the create
 	// that follows could not correct it. So the counting write is the one that first gives
 	// the trace a type, whichever of the two that turns out to be.
-	typeWasKnown := isKnownTraceType(existsTrace["tp"])
-
-	// By the value, not by the key: the document is written with every field it has room
-	// for, so a trace saved before its duration arrived carries `dur` as a null. Read as
-	// presence, that null says "already counted" on every write after the first — and then
-	// no duration is ever recorded for anybody, which is every slow_traces watcher going
-	// quiet for good.
-	durationWasStored := durationValue(existsTrace["dur"]) != nil
-
+	typeWasKnown := isKnownTraceType(stored.Type)
 	typeIsKnown := traceType != unknownTraceType
 
-	countsAsNew := typeIsKnown && !typeWasKnown
+	var newDuration *float64
 
-	var newDuration interface{}
-
-	if reportsDuration(typeIsKnown, typeWasKnown, durationWasStored) {
+	if reportsDuration(typeIsKnown, typeWasKnown, stored.Duration != nil) {
 		newDuration = duration
 	}
 
-	// The watchers are fed from here rather than from the socket server because this is
-	// the only point that has the whole trace: an updating message carries no type, and
-	// the merge above has just restored it. Nothing is read for it — every value handed
-	// over is already in a local variable.
-	watcher_service.Get().AddTrace(
-		serviceId,
-		traceId,
-		traceType,
-		tagNames(tags),
-		status,
-		durationValue(newDuration),
-		loggedAt.Time().UTC(),
-		countsAsNew,
-	)
+	var receivedAt time.Time
 
-	if countsAsNew {
-		var receivedAt time.Time
-
-		if traces.Creating != nil {
-			receivedAt = traces.Creating.ReceivedAt
-		}
-
-		trace_metric_service.Get().AddTrace(
-			serviceId,
-			traceType,
-			loggedAt.Time().UTC(),
-			receivedAt,
-			currentNow.Time().UTC(),
-		)
+	if traces.Creating != nil {
+		receivedAt = traces.Creating.ReceivedAt
 	}
 
-	slog.Debug("saved trace: " + traceId + " for service: " + strconv.Itoa(serviceId) + " to collection: " + coll.Name())
-
-	return nil
+	return mergedTrace{
+		row: clickhouse_trace_repository.Row{
+			ServiceId:     serviceId,
+			TraceId:       traceId,
+			ParentTraceId: parentTraceId,
+			Type:          traceType,
+			Status:        status,
+			Tags:          tags,
+			Data:          objectData,
+			RawData:       string(rawData),
+			Duration:      duration,
+			Memory:        memory,
+			Cpu:           cpu,
+			LoggedAt:      loggedAt.Format(clickhouse_trace_repository.TimeLayout),
+			CreatedAt:     createdAt.Format(clickhouse_trace_repository.TimeLayout),
+			UpdatedAt:     now.Format(clickhouse_trace_repository.TimeLayout),
+		},
+		loggedAt:    loggedAt,
+		tags:        tags,
+		countsAsNew: typeIsKnown && !typeWasKnown,
+		newDuration: newDuration,
+		receivedAt:  receivedAt,
+	}, nil
 }
 
-// tagNames pulls the tag names out of whichever shape the merge above left them in: the
-// list this service just built, or the one decoded from the stored document.
-func tagNames(value interface{}) []string {
-	var items []interface{}
+// report hands a written trace to the watchers and the trace metrics.
+//
+// From here rather than from the socket server because this is the only point that has
+// the whole trace: an updating message carries no type, and the merge has just restored
+// it. And only after the insert, so that a batch tried again is not counted twice.
+func report(item mergedTrace, now time.Time) {
+	watcher_service.Get().AddTrace(
+		item.row.ServiceId,
+		item.row.TraceId,
+		item.row.Type,
+		item.tags,
+		item.row.Status,
+		item.newDuration,
+		item.loggedAt,
+		item.countsAsNew,
+	)
 
-	switch v := value.(type) {
-	case []interface{}:
-		items = v
-	case primitive.A:
-		items = []interface{}(v)
-	default:
+	if item.countsAsNew {
+		trace_metric_service.Get().AddTrace(
+			item.row.ServiceId,
+			item.row.Type,
+			item.loggedAt,
+			item.receivedAt,
+			now,
+		)
+	}
+}
+
+// loggedAtOf is the moment a trace is filed under: the create's, or the update's copy of
+// it when the update comes first. Both must give the same moment for the two halves to
+// meet under one key.
+func loggedAtOf(traces *dto.Traces) (time.Time, bool) {
+	if traces.Creating != nil {
+		return datetime_helper.ConvertLoggedAt(traces.Creating.LoggedAt), true
+	}
+
+	if traces.Updating != nil {
+		return datetime_helper.ConvertLoggedAt(traces.Updating.ParentLoggedAt), true
+	}
+
+	return time.Time{}, false
+}
+
+// storedData reads the stored data back in its order, so that a trace resaved from it is
+// written as it was.
+func storedData(raw string) interface{} {
+	if raw == "" {
 		return nil
 	}
 
-	names := make([]string, 0, len(items))
+	var data dto.Data
 
-	for _, item := range items {
-		switch tag := item.(type) {
-		case primitive.M:
-			if name, ok := tag["nm"].(string); ok && name != "" {
-				names = append(names, name)
-			}
-		case primitive.D:
-			for _, element := range tag {
-				if element.Key != "nm" {
-					continue
-				}
+	if err := json.Unmarshal([]byte(raw), &data); err != nil {
+		slog.Error("failed to read stored data: " + err.Error())
 
-				if name, ok := element.Value.(string); ok && name != "" {
-					names = append(names, name)
-				}
-			}
-		case string:
-			if tag != "" {
-				names = append(names, tag)
-			}
-		}
+		return nil
 	}
 
-	return names
+	return data.Value
+}
+
+func markFailed(failed map[int]map[string]bool, serviceId int, traceId string) {
+	if failed[serviceId] == nil {
+		failed[serviceId] = map[string]bool{}
+	}
+
+	failed[serviceId][traceId] = true
 }
 
 // reportsDuration says whether this write is the one to hand the trace's duration to the
@@ -402,42 +415,12 @@ func reportsDuration(typeIsKnown bool, typeWasKnown bool, durationWasStored bool
 
 // isKnownTraceType says whether what is stored is a real type rather than the placeholder
 // a trace wears between its update and its create.
-func isKnownTraceType(stored interface{}) bool {
-	value, ok := stored.(string)
-
-	return ok && value != "" && value != unknownTraceType
+func isKnownTraceType(stored string) bool {
+	return stored != "" && stored != unknownTraceType
 }
 
-// durationValue reads a duration in whatever width it arrived in — the message hands over
-// a float, the stored document whatever bson decoded it to.
-func durationValue(value interface{}) *float64 {
-	switch v := value.(type) {
-	case float64:
-		return &v
-	case float32:
-		duration := float64(v)
-
-		return &duration
-	case int:
-		duration := float64(v)
-
-		return &duration
-	case int32:
-		duration := float64(v)
-
-		return &duration
-	case int64:
-		duration := float64(v)
-
-		return &duration
-	default:
-		return nil
-	}
-}
-
-// isEmptyTags reports whether a stored tgs value holds no tags, so that an
-// empty array written by an out-of-order updating does not shadow the tags
-// of a creating that arrives later.
+// mergeData picks the data a trace is written with: the update's, else what is stored
+// unless it is empty, else the create's.
 func mergeData(updating interface{}, existing interface{}, creating interface{}) interface{} {
 	if updating != nil {
 		return updating
@@ -455,7 +438,7 @@ func mergeData(updating interface{}, existing interface{}, creating interface{})
 		return existing
 	}
 
-	return []interface{}{}
+	return bson.A{}
 }
 
 func isEmptyData(value interface{}) bool {
@@ -477,27 +460,13 @@ func isEmptyData(value interface{}) bool {
 	}
 }
 
-func isEmptyTags(value interface{}) bool {
-	switch v := value.(type) {
-	case nil:
-		return true
-	case []interface{}:
-		return len(v) == 0
-	case primitive.A:
-		return len(v) == 0
-	default:
-		return false
-	}
-}
-
-func (s *Service) convertTags(tags []interface{}) []interface{} {
-	result := make([]interface{}, 0, len(tags))
+// convertTags keeps the string tags of a message; anything else in the list is dropped.
+func convertTags(tags []interface{}) []string {
+	result := make([]string, 0, len(tags))
 
 	for _, tag := range tags {
 		if tagStr, ok := tag.(string); ok {
-			result = append(result, bson.M{
-				"nm": tagStr,
-			})
+			result = append(result, tagStr)
 		}
 	}
 

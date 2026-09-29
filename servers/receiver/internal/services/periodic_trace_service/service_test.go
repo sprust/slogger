@@ -8,33 +8,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-// The document is written with every field it has room for, so a trace saved before its
-// duration arrived carries `dur` as a null rather than not carrying it at all. Deciding
-// "has a duration already been stored?" by the key therefore answered yes for every write
-// after the first — and no duration was ever handed to the watchers, which is every
-// slow_traces watcher silently going quiet.
-func TestAStoredNullDurationIsNotAStoredDuration(t *testing.T) {
-	stored := bson.M{"dur": nil}
-
-	if _, present := stored["dur"]; !present {
-		t.Fatal("the key is there — that is the whole trap")
-	}
-
-	if durationValue(stored["dur"]) != nil {
-		t.Fatal("a null duration read as a duration")
-	}
-}
-
-func TestAStoredDurationIsReadBack(t *testing.T) {
-	stored := bson.M{"dur": 12.5}
-
-	duration := durationValue(stored["dur"])
-
-	if duration == nil || *duration != 12.5 {
-		t.Fatalf("expected 12.5, got %v", duration)
-	}
-}
-
 // A trace whose update was persisted before its create wears the placeholder until the
 // create arrives. Counting it then would file it under a type no filter matches, and the
 // create that follows could not correct it.
@@ -43,7 +16,7 @@ func TestThePlaceholderIsNotAKnownType(t *testing.T) {
 		t.Fatal("the placeholder passed as a real type")
 	}
 
-	if isKnownTraceType("") || isKnownTraceType(nil) {
+	if isKnownTraceType("") {
 		t.Fatal("an absent type passed as a real type")
 	}
 
@@ -115,13 +88,13 @@ func TestTheUpdateDataWinsOverEverything(t *testing.T) {
 func TestNoDataAnywhereIsAnEmptyList(t *testing.T) {
 	data := mergeData(nil, nil, nil)
 
-	if !reflect.DeepEqual(data, []interface{}{}) {
+	if !reflect.DeepEqual(data, bson.A{}) {
 		t.Fatalf("expected an empty list, got %v", data)
 	}
 }
 
 // The stored data is handed back as it was read, order and all. Rebuilt into a map on the
-// way through, it would be written back to the shard in a new order on every update that
+// way through, it would be written back in a new order on every update that
 // carried no data of its own.
 func TestStoredDataKeepsItsOrder(t *testing.T) {
 	stored := bson.D{

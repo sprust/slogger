@@ -6,5 +6,6 @@ return [
         'name'       => env('QUEUE_TRACES_CLEANER_NAME', 'traces-clearing'),
     ],
 
-    'lifetime_days' => (int) env('TRACES_LIFETIME_DAYS', 3),
+    // traces older than this are dropped by the hour (partitions of the traces table)
+    'lifetime_hours' => (int) env('TRACES_LIFETIME_HOURS', 72),
 ];

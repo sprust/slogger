@@ -19,7 +19,8 @@ readonly class McpTraceDataFilterParser
         . 'or "exists", "missing", "is null", "is not null" without a value. '
         . 'Examples: response.status >= 500, request.uri contains "/api", user.id exists.';
 
-    private const string KEY = '(?<key>[^\s"=!<>]+)';
+    // a data path is written into the query, so it is names joined by dots and nothing else
+    private const string KEY = '(?<key>[A-Za-z0-9_]+(?:\.[A-Za-z0-9_]+)*)';
 
     /**
      * @param string[] $conditions

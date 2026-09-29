@@ -123,7 +123,7 @@ export default defineComponent({
      * bounds it, so an upper bound set from anywhere else - a pinned bucket, an applied
      * state, the picker - can be older than it; and a poll that failed never reaches
      * setMetrics, so `loggedAtFrom` is left at the previous window for this tick to
-     * write, and a 412 while a dynamic index builds is routine here.
+     * write.
      *
      * Either way the outcome is the same and is the one to rule out: a lower bound at or
      * after the upper one, which the search answers with nothing while the chart above it

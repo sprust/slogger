@@ -9,16 +9,12 @@ use App\Modules\Trace\Domain\Actions\MakeMetricIndicatorsAction;
 use App\Modules\Trace\Domain\Actions\MakeTraceTimestampPeriodsAction;
 use App\Modules\Trace\Domain\Actions\MakeTraceTimestampsAction;
 use App\Modules\Trace\Domain\Actions\Mutations\CreateTraceAdminStoreAction;
-use App\Modules\Trace\Domain\Actions\Mutations\BuildPendingTraceDynamicIndexesAction;
 use App\Modules\Trace\Domain\Actions\Mutations\BuildTraceTreeCacheAction;
 use App\Modules\Trace\Domain\Actions\Mutations\CancelTraceTreeCacheStateAction;
-use App\Modules\Trace\Domain\Actions\Mutations\DeleteCollectionsAction;
-use App\Modules\Trace\Domain\Actions\Mutations\DeleteExpiredTraceDynamicIndexesAction;
+use App\Modules\Trace\Domain\Actions\Mutations\DeletePartitionsAction;
 use App\Modules\Trace\Domain\Actions\Mutations\DeleteTraceTreeCacheAction;
 use App\Modules\Trace\Domain\Actions\Mutations\DeleteTraceTreeCacheStateAction;
 use App\Modules\Trace\Domain\Actions\Mutations\DeleteTraceAdminStoreAction;
-use App\Modules\Trace\Domain\Actions\Mutations\DeleteTraceDynamicIndexAction;
-use App\Modules\Trace\Domain\Actions\Mutations\FlushDynamicIndexesAction;
 use App\Modules\Trace\Domain\Actions\Queries\CountInvalidTraceBufferSinceAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindStatusesAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceBufferCountAction;
@@ -26,10 +22,6 @@ use App\Modules\Trace\Domain\Actions\Queries\FindTagsAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceAdminStoreAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceDataRangeAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceDetailAction;
-use App\Modules\Trace\Domain\Actions\Queries\FindTraceDynamicIndexAction;
-use App\Modules\Trace\Domain\Actions\Queries\FindTraceDynamicIndexesAction;
-use App\Modules\Trace\Domain\Actions\Queries\FindTraceDynamicIndexStatsAction;
-use App\Modules\Trace\Domain\Actions\Queries\FindTraceIdsAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceProfilingAction;
 use App\Modules\Trace\Domain\Actions\Queries\CompareTraceGroupsAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceGroupsAction;
@@ -43,55 +35,29 @@ use App\Modules\Trace\Domain\Actions\Queries\FindTraceTreeFilteredAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceTreeCacheStatesAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceTreeContentAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTypesAction;
-use App\Modules\Trace\Domain\Services\TraceDynamicIndexInitializer;
 use App\Modules\Trace\Domain\Services\TraceFieldTitlesService;
 use App\Modules\Trace\Domain\Services\TraceTreeCacheBuilderService;
-use App\Modules\Trace\Infrastructure\Commands\FlushDynamicIndexesCommand;
-use App\Modules\Trace\Infrastructure\Commands\StartMonitorTraceDynamicIndexesCommand;
-use App\Modules\Trace\Repositories\Services\PeriodicTraceCollectionNameService;
-use App\Modules\Trace\Repositories\Services\PeriodicTraceService;
-use App\Modules\Trace\Repositories\Services\TracePipelineBuilder;
+use App\Modules\Trace\Repositories\Services\ClickhouseDataPathTypes;
+use App\Modules\Trace\Repositories\Services\ClickhouseTraceFilterBuilder;
+use App\Modules\Trace\Repositories\Services\ClickhouseTraceRowReader;
+use App\Modules\Trace\Repositories\Services\TraceDataPathResolver;
 use App\Modules\Trace\Repositories\TraceAdminStoreRepository;
 use App\Modules\Trace\Repositories\TraceBufferRepository;
 use App\Modules\Trace\Repositories\TraceContentRepository;
-use App\Modules\Trace\Repositories\TraceDynamicIndexRepository;
 use App\Modules\Trace\Repositories\TraceRepository;
 use App\Modules\Trace\Repositories\TraceGroupsRepository;
 use App\Modules\Trace\Repositories\TraceTimestampsRepository;
 use App\Modules\Trace\Repositories\TraceTreeCacheRepository;
 use App\Modules\Trace\Repositories\TraceTreeCacheStateRepository;
 use App\Modules\Trace\Repositories\TraceTreeRepository;
-use App\Services\Mongo\MongoConnectionFactory;
-use Illuminate\Contracts\Foundation\Application;
 
 class TraceServiceProvider extends BaseServiceProvider
 {
     public function boot(): void
     {
-        $this->app->singleton(
-            PeriodicTraceService::class,
-            static function (Application $app) {
-                return new PeriodicTraceService(
-                    // No pool ceiling on this one, as before: its shard collections are
-                    // queried in parallel through a WaitGroup, and a cap would serialise
-                    // the fan-out.
-                    sconcurDatabase: $app->make(MongoConnectionFactory::class)
-                        ->database('mongodb.tracesPeriodic', uriOptions: []),
-                    periodicTraceCollectionNameService: $app->make(PeriodicTraceCollectionNameService::class)
-                );
-            }
-        );
-
         $this->app->singleton(TraceFieldTitlesService::class);
-        $this->app->singleton(TracePipelineBuilder::class);
-        $this->app->singleton(TraceDynamicIndexInitializer::class);
 
         parent::boot();
-
-        $this->commands([
-            StartMonitorTraceDynamicIndexesCommand::class,
-            FlushDynamicIndexesCommand::class,
-        ]);
     }
 
     protected function getContracts(): array
@@ -103,7 +69,6 @@ class TraceServiceProvider extends BaseServiceProvider
             TraceTreeRepository::class,
             TraceTimestampsRepository::class,
             TraceGroupsRepository::class,
-            TraceDynamicIndexRepository::class,
             TraceAdminStoreRepository::class,
             TraceTreeCacheRepository::class,
             TraceTreeCacheStateRepository::class,
@@ -113,13 +78,9 @@ class TraceServiceProvider extends BaseServiceProvider
             MakeTraceTimestampPeriodsAction::class,
             MakeTraceTimestampsAction::class,
             // actions.mutations
-            BuildPendingTraceDynamicIndexesAction::class,
-            DeleteExpiredTraceDynamicIndexesAction::class,
-            FlushDynamicIndexesAction::class,
-            DeleteTraceDynamicIndexAction::class,
             CreateTraceAdminStoreAction::class,
             DeleteTraceAdminStoreAction::class,
-            DeleteCollectionsAction::class,
+            DeletePartitionsAction::class,
             BuildTraceTreeCacheAction::class,
             CancelTraceTreeCacheStateAction::class,
             DeleteTraceTreeCacheAction::class,
@@ -142,16 +103,15 @@ class TraceServiceProvider extends BaseServiceProvider
             FindTraceTreeFilteredAction::class,
             FindTraceTreeCacheStatesAction::class,
             FindTypesAction::class,
-            FindTraceDynamicIndexAction::class,
-            FindTraceDynamicIndexesAction::class,
-            FindTraceDynamicIndexStatsAction::class,
             FindTraceAdminStoreAction::class,
-            FindTraceIdsAction::class,
             FindTraceServicesAction::class,
             FindTraceTreeContentAction::class,
             // services
-            PeriodicTraceCollectionNameService::class,
             TraceTreeCacheBuilderService::class,
+            ClickhouseDataPathTypes::class,
+            TraceDataPathResolver::class,
+            ClickhouseTraceFilterBuilder::class,
+            ClickhouseTraceRowReader::class,
         ];
     }
 }

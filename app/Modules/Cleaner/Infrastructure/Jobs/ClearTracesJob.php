@@ -32,7 +32,7 @@ class ClearTracesJob implements ShouldQueue
     public function handle(ClearTracesAction $clearTracesAction): void
     {
         $clearTracesAction->handle(
-            config('cleaner.lifetime_days')
+            config('cleaner.lifetime_hours')
         );
     }
 }

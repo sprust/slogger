@@ -155,18 +155,6 @@ return [
                     'authSource' => env('MONGO_DATABASE_ADMIN', 'admin'),
                 ],
             ],
-            'tracesPeriodic' => [
-                'host'     => env('MONGO_HOST'),
-                'port'     => env('MONGO_PORT'),
-                'username' => env('MONGO_ADMIN_USERNAME'),
-                'password' => env('MONGO_ADMIN_PASSWORD'),
-                'database' => env('MONGO_DATABASE_TRACES_PERIODIC',  'tracesPeriodic'),
-                'options'  => [
-                    'appname'    => env('APP_NAME'),
-                    'authSource' => env('MONGO_DATABASE_ADMIN', 'admin'),
-                    'socketTimeoutMS'=> 1200000 // 20 minutes
-                ],
-            ],
             // TODO: Only the migrations of the old `logs` collection use it; remove after the release.
             'logs' => [
                 'host'     => env('MONGO_HOST'),
@@ -179,6 +167,20 @@ return [
                     'authSource' => env('MONGO_DATABASE_ADMIN', 'admin'),
                 ],
             ],
+        ],
+
+        /*
+         * Not a connection of the database manager either: read as plain configuration
+         * by App\Services\Clickhouse\ClickhouseConnectionConfig. The traces live here,
+         * reached over the HTTP interface through the non-blocking SConcur client.
+         */
+        'clickhouse' => [
+            'host'     => env('CLICKHOUSE_HOST', 'clickhouse'),
+            'port'     => (int) env('CLICKHOUSE_PORT', 8123),
+            'database' => env('CLICKHOUSE_DATABASE', 'slogger'),
+            'username' => env('CLICKHOUSE_USERNAME', 'slogger'),
+            'password' => env('CLICKHOUSE_PASSWORD', ''),
+            'timeout'  => (int) env('CLICKHOUSE_TIMEOUT_SECONDS', 60),
         ],
 
     ],

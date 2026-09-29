@@ -35,6 +35,8 @@ services:
         condition: service_started
       mongo:
         condition: service_started
+      clickhouse:
+        condition: service_healthy
       rabbitmq:
         condition: service_healthy
     environment:
@@ -63,6 +65,8 @@ services:
         condition: service_started
       mongo:
         condition: service_started
+      clickhouse:
+        condition: service_healthy
       rabbitmq:
         condition: service_healthy
     environment:
@@ -93,6 +97,8 @@ services:
         condition: service_healthy
       mongo:
         condition: service_started
+      clickhouse:
+        condition: service_healthy
     ports:
       - ${RECIEVER_SOCKET_DOCKER_PORT:-10031}:${RECIEVER_SOCKET_PORT:-9030}
     volumes:
@@ -179,6 +185,35 @@ services:
       - ./docker/mongo/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
       - mongo:/data/db
 
+  clickhouse:
+    container_name: ${DOCKER_CONTAINER_PREFIX:-sl}-clickhouse
+    restart: unless-stopped
+    image: clickhouse/clickhouse-server:26.8.14.3
+    environment:
+      CLICKHOUSE_DB: ${CLICKHOUSE_DATABASE:-slogger}
+      CLICKHOUSE_USER: ${CLICKHOUSE_USERNAME:-slogger}
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD}
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: 1
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    mem_limit: ${CLICKHOUSE_MEM_LIMIT:-6g}
+    # the HTTP interface stays inside the compose network: php and the receiver reach
+    # it as clickhouse:8123, `make clickhouse-client` goes through docker exec
+    volumes:
+      # single files, not the directories: the image's entrypoint writes its own user
+      # file into users.d when CLICKHOUSE_USER is set
+      - ./docker/clickhouse/config.d/low-memory.xml:/etc/clickhouse-server/config.d/low-memory.xml:ro
+      - ./docker/clickhouse/users.d/profile.xml:/etc/clickhouse-server/users.d/profile.xml:ro
+      - clickhouse:/var/lib/clickhouse
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:8123/ping" ]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
   frontend:
     container_name: ${DOCKER_CONTAINER_PREFIX:-sl}-frontend
     restart: unless-stopped
@@ -197,6 +232,8 @@ volumes:
   redis:
     driver: local
   mongo:
+    driver: local
+  clickhouse:
     driver: local
   rabbitmq-data:
     driver: local

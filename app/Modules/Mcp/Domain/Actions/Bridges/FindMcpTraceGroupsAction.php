@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Modules\Mcp\Domain\Actions\Bridges;
 
+use App\Modules\Mcp\Domain\Exceptions\McpTraceDataFilterInvalidException;
 use App\Modules\Mcp\Domain\Exceptions\McpTraceGroupByInvalidException;
-use App\Modules\Mcp\Domain\Exceptions\McpTraceIndexBuildingException;
-use App\Modules\Mcp\Domain\Exceptions\McpTraceIndexFailedException;
-use App\Modules\Mcp\Domain\Services\McpTraceIndexExceptionTranslator;
+use App\Modules\Mcp\Domain\Services\McpTraceDataFilterParser;
 use App\Modules\Mcp\Domain\Services\McpTracePeriodMapper;
 use App\Modules\Mcp\Parameters\FindMcpTraceGroupsParameters;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceGroupsAction;
 use App\Modules\Trace\Entities\Trace\Groups\TraceGroupsObject;
 use App\Modules\Trace\Enums\TraceGroupFieldEnum;
+use App\Modules\Trace\Parameters\Data\TraceDataFilterParameters;
 use App\Modules\Trace\Parameters\TraceFindGroupsParameters;
 
 readonly class FindMcpTraceGroupsAction
@@ -22,33 +22,33 @@ readonly class FindMcpTraceGroupsAction
 
     public function __construct(
         private FindTraceGroupsAction $findTraceGroupsAction,
-        private McpTraceIndexExceptionTranslator $indexExceptionTranslator,
+        private McpTraceDataFilterParser $dataFilterParser,
         private McpTracePeriodMapper $periodMapper
     ) {
     }
 
     /**
      * @throws McpTraceGroupByInvalidException
-     * @throws McpTraceIndexBuildingException
-     * @throws McpTraceIndexFailedException
+     * @throws McpTraceDataFilterInvalidException
      */
     public function handle(FindMcpTraceGroupsParameters $parameters): TraceGroupsObject
     {
         $groupBy = $this->parseGroupBy($parameters->groupBy);
 
-        return $this->indexExceptionTranslator->call(
-            fn() => $this->findTraceGroupsAction->handle(
-                new TraceFindGroupsParameters(
-                    loggingPeriod: $this->periodMapper->toLoggingPeriod($parameters->period),
-                    groupBy: $groupBy,
-                    limit: self::LIMIT,
-                    serviceIds: $parameters->serviceIds,
-                    types: $parameters->types,
-                    tags: $parameters->tags,
-                    statuses: $parameters->statuses,
-                    durationFrom: $parameters->durationFrom,
-                    durationTo: $parameters->durationTo
-                )
+        $filter = $this->dataFilterParser->parse($parameters->dataFilter);
+
+        return $this->findTraceGroupsAction->handle(
+            new TraceFindGroupsParameters(
+                loggingPeriod: $this->periodMapper->toLoggingPeriod($parameters->period),
+                groupBy: $groupBy,
+                limit: self::LIMIT,
+                serviceIds: $parameters->serviceIds,
+                types: $parameters->types,
+                tags: $parameters->tags,
+                statuses: $parameters->statuses,
+                durationFrom: $parameters->durationFrom,
+                durationTo: $parameters->durationTo,
+                data: count($filter) > 0 ? new TraceDataFilterParameters(filter: $filter) : null
             )
         );
     }

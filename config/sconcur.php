@@ -2,8 +2,6 @@
 
 declare(strict_types=1);
 
-use App\Modules\Trace\Infrastructure\Tasks\BuildTraceDynamicIndexesTask;
-use App\Modules\Trace\Infrastructure\Tasks\PublishTraceDynamicIndexStatsTask;
 use App\Modules\Watcher\Infrastructure\Tasks\CheckWatchersTask;
 use App\Services\Sconcur\Listeners\ReportWorkerWatchdogListener;
 use App\Services\Tasks\CronTask;
@@ -455,14 +453,6 @@ return [
                 'backoff' => 5,
             ],
             [
-                'name'    => BuildTraceDynamicIndexesTask::NAME,
-                'task'    => BuildTraceDynamicIndexesTask::class,
-                'idle'    => 1,
-                // There was work, so take the next batch straight away.
-                'busy'    => 0,
-                'backoff' => 3,
-            ],
-            [
                 // Looks at every enabled watcher once a minute. It ticks more often than
                 // that and watches the minute itself, so a tick delayed by a busy pool
                 // still serves the minute it belongs to.
@@ -473,18 +463,6 @@ return [
                 // straight back for.
                 'busy'    => 5,
                 'backoff' => 30,
-            ],
-            [
-                // The panel's view of the task above, which cannot report on itself: a
-                // tick of it does not return until its batch is built.
-                'name'    => PublishTraceDynamicIndexStatsTask::NAME,
-                'task'    => PublishTraceDynamicIndexStatsTask::class,
-                // Two seconds is the cost of an idle installation — one reading, thrown
-                // away. A second is what a progress bar is worth once there is something
-                // to put in it.
-                'idle'    => 2,
-                'busy'    => 1,
-                'backoff' => 5,
             ],
         ],
     ],

@@ -16,7 +16,7 @@ import (
 // order: the field order the client sent is gone before the trace reaches the buffer, and
 // what MongoDB ends up storing is whatever order the map happened to iterate in. The
 // tokens are read by hand instead, so an object becomes a bson.D and keeps its order all
-// the way to the shard.
+// the way to the traces table.
 type Data struct {
 	Value interface{}
 }
@@ -57,8 +57,8 @@ func decodeJsonToken(decoder *json.Decoder, token json.Token) (interface{}, erro
 	delimiter, ok := token.(json.Delim)
 
 	// Numbers arrive as float64, which is what json.Unmarshal gave before this type
-	// existed. Reading them as integers would change the BSON types under the dynamic
-	// indexes and the data filters, and that is not what this is about.
+	// existed. The buffer stores them that way, and the data filters of the panel compare
+	// numbers by value whatever width ClickHouse reads them in.
 	if !ok {
 		return token, nil
 	}

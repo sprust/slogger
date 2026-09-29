@@ -12,9 +12,10 @@ class TraceDataToObjectBuilder
     private string $key;
 
     /**
-     * @param array<array-key, mixed> $data
+     * @param array<array-key, mixed>|string|bool|int|float|null $data data that is not an
+     *                                                                 object is shown as it is
      */
-    public function __construct(private readonly array $data)
+    public function __construct(private readonly array|string|bool|int|float|null $data)
     {
     }
 

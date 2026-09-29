@@ -47,6 +47,9 @@ class TraceIndexRequest extends FormRequest
             'data.fields.*'      => [
                 'required',
                 'string',
+                'min:1',
+                'max:255',
+                RequestFilterRules::DATA_KEY_RULE,
             ],
             ...RequestFilterRules::hasProfiling(),
         ];

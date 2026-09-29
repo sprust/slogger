@@ -7,8 +7,6 @@ namespace App\Modules\Mcp\Infrastructure\Tools;
 use App\Modules\Mcp\Domain\Actions\Bridges\CompareMcpTraceGroupsAction;
 use App\Modules\Mcp\Domain\Exceptions\McpTraceGroupByInvalidException;
 use App\Modules\Mcp\Domain\Exceptions\McpTraceGroupsOverlapException;
-use App\Modules\Mcp\Domain\Exceptions\McpTraceIndexBuildingException;
-use App\Modules\Mcp\Domain\Exceptions\McpTraceIndexFailedException;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolArguments;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolInterface;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolProperty;
@@ -46,9 +44,9 @@ readonly class CompareTraceGroupsTool implements McpToolInterface
             'Compares two groups of traces over a period by status (group A, and group B or all other '
             . 'statuses) across the values of type, service, tag or a data key (data.<key>): counts and '
             . 'shares in each group, the values most typical of group A first, at most %d. Answers what '
-            . 'failed traces have in common that the others do not. ',
+            . 'failed traces have in common that the others do not.',
             CompareMcpTraceGroupsAction::LIMIT
-        ) . McpToolTraceScopeReader::INDEX_NOTE;
+        );
     }
 
     public function schema(): McpToolSchema
@@ -116,10 +114,6 @@ readonly class CompareTraceGroupsTool implements McpToolInterface
                 error: 'overlapping_groups',
                 hint: sprintf('Statuses [%s] are in both groups.', implode(', ', $exception->statuses))
             );
-        } catch (McpTraceIndexBuildingException $exception) {
-            return $this->formatter->indexBuilding($exception->indexId);
-        } catch (McpTraceIndexFailedException $exception) {
-            return $this->formatter->indexError($exception->getMessage());
         }
 
         $names = $this->serviceFinder->names();

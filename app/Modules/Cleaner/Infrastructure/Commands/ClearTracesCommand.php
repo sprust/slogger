@@ -29,7 +29,7 @@ class ClearTracesCommand extends Command
     public function handle(ClearTracesAction $clearTracesAction): int
     {
         $clearTracesAction->handle(
-            config('cleaner.lifetime_days')
+            config('cleaner.lifetime_hours')
         );
 
         return self::SUCCESS;

@@ -69,8 +69,8 @@ func TestNestedObjectsKeepTheirOrder(t *testing.T) {
 	}
 }
 
-// Reading numbers as integers would change the BSON types the dynamic indexes and the
-// data filters are built on. This is about order and nothing else.
+// Reading numbers as integers would change the types the buffer stores and the merge
+// compares. This is about order and nothing else.
 func TestNumbersStayFloats(t *testing.T) {
 	var data Data
 

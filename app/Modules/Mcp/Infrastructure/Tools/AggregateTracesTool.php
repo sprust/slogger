@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Modules\Mcp\Infrastructure\Tools;
 
 use App\Modules\Mcp\Domain\Actions\Bridges\FindMcpTraceGroupsAction;
+use App\Modules\Mcp\Domain\Exceptions\McpTraceDataFilterInvalidException;
 use App\Modules\Mcp\Domain\Exceptions\McpTraceGroupByInvalidException;
-use App\Modules\Mcp\Domain\Exceptions\McpTraceIndexBuildingException;
-use App\Modules\Mcp\Domain\Exceptions\McpTraceIndexFailedException;
+use App\Modules\Mcp\Domain\Services\McpTraceDataFilterParser;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolArguments;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolInterface;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolProperty;
@@ -21,6 +21,7 @@ use App\Modules\Trace\Enums\TraceGroupFieldEnum;
 readonly class AggregateTracesTool implements McpToolInterface
 {
     private const int MAX_FILTER_VALUES = 20;
+    private const int MAX_DATA_FILTER   = 3;
 
     public function __construct(
         private FindMcpTraceGroupsAction $findMcpTraceGroupsAction,
@@ -47,11 +48,11 @@ readonly class AggregateTracesTool implements McpToolInterface
             . 'the two times), with count, average, p95 and max duration and the slowest trace of each group. '
             . 'Groups by time come in time order, the rest most frequent first; at most %d groups. Use it '
             . 'first for overview questions (which services and types, when failures happen, how latency '
-            . 'changes), then search_traces for the traces themselves. It uses the same index as search_traces '
-            . 'with the same filters. ',
+            . 'changes), then search_traces for the traces themselves. Takes the filters of search_traces, '
+            . 'data_filter included.',
             FindMcpTraceGroupsAction::MAX_FIELDS,
             FindMcpTraceGroupsAction::LIMIT
-        ) . McpToolTraceScopeReader::INDEX_NOTE;
+        );
     }
 
     public function schema(): McpToolSchema
@@ -100,6 +101,12 @@ readonly class AggregateTracesTool implements McpToolInterface
                 description: 'Maximal duration, in the units of get_trace.',
                 min: 0
             ),
+            new McpToolProperty(
+                name: 'data_filter',
+                type: McpToolPropertyTypeEnum::StringList,
+                description: 'Conditions on the trace data, all must hold. ' . McpTraceDataFilterParser::FORMAT,
+                max: self::MAX_DATA_FILTER
+            ),
         ]);
     }
 
@@ -123,15 +130,21 @@ readonly class AggregateTracesTool implements McpToolInterface
                     tags: $arguments->stringList('tags'),
                     statuses: $arguments->stringList('statuses'),
                     durationFrom: $arguments->floatNull('duration_from'),
-                    durationTo: $arguments->floatNull('duration_to')
+                    durationTo: $arguments->floatNull('duration_to'),
+                    dataFilter: $arguments->stringList('data_filter')
                 )
             );
         } catch (McpTraceGroupByInvalidException $exception) {
             return $this->formatter->error(error: 'invalid_group_by', hint: $exception->getMessage());
-        } catch (McpTraceIndexBuildingException $exception) {
-            return $this->formatter->indexBuilding($exception->indexId);
-        } catch (McpTraceIndexFailedException $exception) {
-            return $this->formatter->indexError($exception->getMessage());
+        } catch (McpTraceDataFilterInvalidException $exception) {
+            return $this->formatter->error(
+                error: 'invalid_data_filter',
+                hint: sprintf(
+                    'Condition "%s" is not valid. Format: %s',
+                    $exception->condition,
+                    McpTraceDataFilterParser::FORMAT
+                )
+            );
         }
 
         $names = $this->serviceFinder->names();

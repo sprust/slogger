@@ -6,32 +6,29 @@ namespace Tests\Modules\Trace\Repositories;
 
 use App\Modules\Trace\Enums\TraceCompareByEnum;
 use App\Modules\Trace\Enums\TraceGroupFieldEnum;
-use App\Modules\Trace\Repositories\Services\PeriodicTraceService;
-use App\Modules\Trace\Repositories\Services\TraceMetricAggregationFactory;
-use App\Modules\Trace\Repositories\Services\TracePipelineBuilder;
+use App\Modules\Trace\Repositories\Services\ClickhouseDataPathTypes;
+use App\Modules\Trace\Repositories\Services\ClickhouseTraceFilterBuilder;
+use App\Modules\Trace\Repositories\Services\ClickhouseTraceRowReader;
+use App\Modules\Trace\Repositories\Services\TraceDataPathResolver;
 use App\Modules\Trace\Repositories\TraceGroupsRepository;
-use ArrayIterator;
 use Illuminate\Support\Carbon;
 use PHPUnit\Framework\TestCase;
-use SConcur\Bson\UTCDateTime;
+use Tests\Services\Clickhouse\FakeClickhouseClient;
 
 class TraceGroupsRepositoryTest extends TestCase
 {
-    private ?string $collectionName = null;
+    private FakeClickhouseClient $client;
 
-    /**
-     * @var array<int, array<string, mixed>>|null
-     */
-    private ?array $pipeline = null;
-
-    public function testGroupsOverAllCollectionsOfThePeriod(): void
+    public function testGroupsOfThePeriodInTimeOrder(): void
     {
         $groups = $this->repository([
             [
-                '_id'     => ['service' => 2, 'type' => 'request', 'hour' => new UTCDateTime(Carbon::parse('2026-09-28 10:00:00', 'UTC'))],
+                'service' => 2,
+                'type'    => 'request',
+                'hour'    => '2026-09-28 10:00:00.000000',
                 'count'   => 12,
                 'avg'     => 0.5,
-                'p95'     => [1.25],
+                'p95'     => 1.25,
                 'max'     => 2.0,
                 'example' => 'slow-1',
             ],
@@ -44,63 +41,57 @@ class TraceGroupsRepositoryTest extends TestCase
             statuses: ['failed']
         );
 
-        $this->assertSame('traces_2026_09_28_10_11', $this->collectionName);
-        $this->assertSame(['sid' => ['$in' => [2]]], array_intersect_key($this->pipeline[0]['$match'] ?? [], ['sid' => 1]));
-        $this->assertSame(['st' => ['$in' => ['failed']]], array_intersect_key($this->pipeline[0]['$match'] ?? [], ['st' => 1]));
-        $this->assertSame('traces_2026_09_28_11_12', $this->pipeline[1]['$unionWith']['coll'] ?? null);
-        $this->assertSame([$this->pipeline[0]], $this->pipeline[1]['$unionWith']['pipeline'] ?? null);
+        $query = $this->client->selects[0];
 
-        $group = $this->pipeline[2]['$group'] ?? [];
-
-        $this->assertSame(
-            ['service' => '$sid', 'type' => '$tp', 'hour' => ['$dateTrunc' => ['date' => '$lat', 'unit' => 'hour']]],
-            $group['_id'] ?? null
+        $this->assertStringContainsString(
+            "SELECT sid AS service, tp AS type, toDateTime64(toStartOfHour(lat), 6, 'UTC') AS hour, count() AS count",
+            $query['sql']
         );
-        $this->assertSame(['$top' => ['sortBy' => ['dur' => -1], 'output' => '$tid']], $group['example'] ?? null);
-        $this->assertSame(['_id.hour' => 1, 'count' => -1, '_id' => 1], $this->pipeline[3]['$sort'] ?? null);
-        $this->assertSame(['$limit' => 11], $this->pipeline[4]);
+        $this->assertStringContainsString('argMax(tid, coalesce(dur, -1)) AS example', $query['sql']);
+        $this->assertStringContainsString('sid IN {f0:Array(UInt32)}', $query['sql']);
+        $this->assertStringContainsString('GROUP BY service, type, hour ORDER BY hour, count DESC, service, type', $query['sql']);
+        $this->assertSame([2], $query['params']['f0']);
+        $this->assertSame(11, $query['params']['limit']);
 
         $this->assertCount(1, $groups);
         $this->assertSame(2, $groups[0]->serviceId);
         $this->assertSame('request', $groups[0]->type);
         $this->assertNull($groups[0]->status);
-        $this->assertSame('2026-09-28 10:00:00', $groups[0]->startedAt?->utc()->toDateTimeString());
+        $this->assertSame('2026-09-28T10:00:00Z', $groups[0]->startedAt?->toIso8601ZuluString());
         $this->assertSame(12, $groups[0]->count);
         $this->assertSame(1.25, $groups[0]->durationP95);
         $this->assertSame('slow-1', $groups[0]->exampleTraceId);
     }
 
-    public function testTenMinutesAndSortByCountWithoutTime(): void
+    public function testTenMinutesAndGroupsWithoutDuration(): void
     {
-        $repository = $this->repository([]);
-
-        $repository->findGroups(
+        $groups = $this->repository([
+            [
+                'minute10' => '2026-09-28 10:10:00.000000',
+                'count'    => 3,
+                'avg'      => null,
+                'p95'      => null,
+                'max'      => null,
+                'example'  => '',
+            ],
+        ])->findGroups(
             loggedAtFrom: Carbon::parse('2026-09-28 10:00:00', 'UTC'),
             loggedAtTo: Carbon::parse('2026-09-28 10:59:59', 'UTC'),
             groupBy: [TraceGroupFieldEnum::Minute10],
-            limit: 5
+            limit: 11
         );
 
-        $this->assertSame(
-            ['minute10' => ['$dateTrunc' => ['date' => '$lat', 'unit' => 'minute', 'binSize' => 10]]],
-            $this->pipeline[1]['$group']['_id'] ?? null
-        );
-
-        $repository->findGroups(
-            loggedAtFrom: Carbon::parse('2026-09-28 10:00:00', 'UTC'),
-            loggedAtTo: Carbon::parse('2026-09-28 10:59:59', 'UTC'),
-            groupBy: [TraceGroupFieldEnum::Status],
-            limit: 5
-        );
-
-        $this->assertSame(['count' => -1, '_id' => 1], $this->pipeline[2]['$sort'] ?? null);
+        $this->assertStringContainsString("toDateTime64(toStartOfTenMinutes(lat), 6, 'UTC') AS minute10", $this->client->selects[0]['sql']);
+        $this->assertNull($groups[0]->durationAvg);
+        $this->assertNull($groups[0]->exampleTraceId);
+        $this->assertSame('2026-09-28T10:10:00Z', $groups[0]->startedAt?->toIso8601ZuluString());
     }
 
-    public function testCompareByTagUnwindsTags(): void
+    public function testCompareByTagCountsATraceWithoutTagsUnderNoValue(): void
     {
         $counts = $this->repository([
-            ['_id' => ['inA' => true, 'value' => 'api'], 'count' => 3],
-            ['_id' => ['inA' => false], 'count' => 7],
+            ['inA' => 1, 'value' => 'api', 'count' => 4],
+            ['inA' => 0, 'value' => null, 'count' => 2],
         ])->compareGroups(
             loggedAtFrom: Carbon::parse('2026-09-28 10:00:00', 'UTC'),
             loggedAtTo: Carbon::parse('2026-09-28 10:59:59', 'UTC'),
@@ -109,21 +100,24 @@ class TraceGroupsRepositoryTest extends TestCase
             dataKey: null
         );
 
-        $this->assertSame(['$unwind' => ['path' => '$tgs', 'preserveNullAndEmptyArrays' => true]], $this->pipeline[1]);
-        $this->assertSame(
-            ['inA' => ['$in' => ['$st', ['failed']]], 'value' => '$tgs.nm'],
-            $this->pipeline[2]['$group']['_id'] ?? null
-        );
+        $query = $this->client->selects[0];
+
+        $this->assertStringContainsString("nullIf(arrayJoin(if(empty(tgs), [''], tgs)), '') AS value", $query['sql']);
+        $this->assertSame(['failed'], $query['params']['groupA']);
+        $this->assertSame(1, $query['settings']['allow_suspicious_types_in_group_by']);
+
         $this->assertSame('api', $counts[0]->value);
         $this->assertTrue($counts[0]->inGroupA);
         $this->assertNull($counts[1]->value);
         $this->assertFalse($counts[1]->inGroupA);
-        $this->assertSame(7, $counts[1]->count);
     }
 
-    public function testCompareByDataKey(): void
+    public function testCompareByDataKeyKeepsTheTypeOfTheValue(): void
     {
-        $this->repository([])->compareGroups(
+        $counts = $this->repository([
+            ['inA' => 1, 'value' => 500, 'count' => 4],
+            ['inA' => 0, 'value' => '500', 'count' => 1],
+        ])->compareGroups(
             loggedAtFrom: Carbon::parse('2026-09-28 10:00:00', 'UTC'),
             loggedAtTo: Carbon::parse('2026-09-28 10:59:59', 'UTC'),
             groupAStatuses: ['failed'],
@@ -131,46 +125,28 @@ class TraceGroupsRepositoryTest extends TestCase
             dataKey: 'response.status'
         );
 
-        $this->assertSame('$dt.response.status', $this->pipeline[1]['$group']['_id']['value'] ?? null);
-    }
-
-    public function testNoCollectionsNoQuery(): void
-    {
-        $service = $this->createMock(PeriodicTraceService::class);
-        $service->method('detectCollectionNames')->willReturn([]);
-        $service->expects($this->never())->method('aggregate');
-
-        $groups = new TraceGroupsRepository(new TracePipelineBuilder(), $service, new TraceMetricAggregationFactory())
-            ->findGroups(
-                loggedAtFrom: Carbon::parse('2026-09-28 10:00:00', 'UTC'),
-                loggedAtTo: Carbon::parse('2026-09-28 10:59:59', 'UTC'),
-                groupBy: [TraceGroupFieldEnum::Type],
-                limit: 5
-            );
-
-        $this->assertSame([], $groups);
+        $this->assertStringContainsString('dt.`response`.`status` AS value', $this->client->selects[0]['sql']);
+        $this->assertSame(500, $counts[0]->value);
+        $this->assertSame('500', $counts[1]->value);
     }
 
     /**
-     * @param array<int, array<string, mixed>> $documents
+     * @param list<array<string, mixed>> $rows
      */
-    private function repository(array $documents): TraceGroupsRepository
+    private function repository(array $rows): TraceGroupsRepository
     {
-        $service = $this->createMock(PeriodicTraceService::class);
-        $service->method('detectCollectionNames')->willReturnCallback(
-            static fn(Carbon $loggedAtFrom, Carbon $loggedAtTo) => $loggedAtTo->hour === 11
-                ? ['traces_2026_09_28_10_11', 'traces_2026_09_28_11_12']
-                : ['traces_2026_09_28_10_11']
-        );
-        $service->method('aggregate')->willReturnCallback(
-            function (string $collectionName, array $pipeline) use ($documents): ArrayIterator {
-                $this->collectionName = $collectionName;
-                $this->pipeline       = $pipeline;
+        $this->client = new FakeClickhouseClient([$rows]);
 
-                return new ArrayIterator($documents);
-            }
-        );
+        $pathTypes = $this->createMock(ClickhouseDataPathTypes::class);
+        $pathTypes->method('arrayPaths')->willReturn([]);
 
-        return new TraceGroupsRepository(new TracePipelineBuilder(), $service, new TraceMetricAggregationFactory());
+        $pathResolver = new TraceDataPathResolver($pathTypes);
+
+        return new TraceGroupsRepository(
+            client: $this->client,
+            filterBuilder: new ClickhouseTraceFilterBuilder($pathResolver),
+            rowReader: new ClickhouseTraceRowReader(),
+            pathResolver: $pathResolver,
+        );
     }
 }

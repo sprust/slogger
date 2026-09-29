@@ -3,14 +3,11 @@
 namespace Tests\Modules\Mcp\Domain\Actions\Bridges;
 
 use App\Modules\Mcp\Domain\Actions\Bridges\FindMcpTraceFacetsAction;
-use App\Modules\Mcp\Domain\Exceptions\McpTraceIndexBuildingException;
-use App\Modules\Mcp\Domain\Services\McpTraceIndexExceptionTranslator;
 use App\Modules\Mcp\Domain\Services\McpTracePeriodMapper;
 use App\Modules\Mcp\Parameters\FindMcpTraceFacetsParameters;
 use App\Modules\Trace\Domain\Actions\Queries\FindStatusesAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTagsAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTypesAction;
-use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexInProcessException;
 use App\Modules\Trace\Entities\Trace\TraceStringFieldObject;
 use App\Modules\Trace\Parameters\TraceFindStatusesParameters;
 use App\Modules\Trace\Parameters\TraceFindTagsParameters;
@@ -62,19 +59,6 @@ class FindMcpTraceFacetsActionTest extends TestCase
         $this->assertFalse($facets->statuses->truncated);
     }
 
-    public function testBuildingIndexStopsTheAnswer(): void
-    {
-        $statuses = $this->createMock(FindStatusesAction::class);
-        $statuses->method('handle')->willThrowException(new TraceDynamicIndexInProcessException('idx-st'));
-
-        $tags = $this->createMock(FindTagsAction::class);
-        $tags->expects($this->never())->method('handle');
-
-        $this->expectException(McpTraceIndexBuildingException::class);
-
-        $this->action(statuses: $statuses, tags: $tags)->handle($this->parameters());
-    }
-
     /**
      * @param string[] $types
      * @param string[] $statuses
@@ -90,7 +74,7 @@ class FindMcpTraceFacetsActionTest extends TestCase
         );
     }
 
-    private function action(?FindStatusesAction $statuses = null, ?FindTagsAction $tags = null): FindMcpTraceFacetsAction
+    private function action(): FindMcpTraceFacetsAction
     {
         $types = $this->createMock(FindTypesAction::class);
         $types->method('handle')->willReturnCallback(function (TraceFindTypesParameters $parameters): array {
@@ -103,30 +87,25 @@ class FindMcpTraceFacetsActionTest extends TestCase
             ];
         });
 
-        if (is_null($statuses)) {
-            $statuses = $this->createMock(FindStatusesAction::class);
-            $statuses->method('handle')->willReturnCallback(function (TraceFindStatusesParameters $parameters): array {
-                $this->statusesParameters = $parameters;
+        $statuses = $this->createMock(FindStatusesAction::class);
+        $statuses->method('handle')->willReturnCallback(function (TraceFindStatusesParameters $parameters): array {
+            $this->statusesParameters = $parameters;
 
-                return [new TraceStringFieldObject(name: 'failed', count: 3)];
-            });
-        }
+            return [new TraceStringFieldObject(name: 'failed', count: 3)];
+        });
 
-        if (is_null($tags)) {
-            $tags = $this->createMock(FindTagsAction::class);
-            $tags->method('handle')->willReturnCallback(function (TraceFindTagsParameters $parameters): array {
-                $this->tagsParameters = $parameters;
+        $tags = $this->createMock(FindTagsAction::class);
+        $tags->method('handle')->willReturnCallback(function (TraceFindTagsParameters $parameters): array {
+            $this->tagsParameters = $parameters;
 
-                return [];
-            });
-        }
+            return [];
+        });
 
         return new FindMcpTraceFacetsAction(
-            $types,
-            $statuses,
-            $tags,
-            new McpTraceIndexExceptionTranslator(),
-            new McpTracePeriodMapper()
+            findTypesAction: $types,
+            findStatusesAction: $statuses,
+            findTagsAction: $tags,
+            periodMapper: new McpTracePeriodMapper()
         );
     }
 }

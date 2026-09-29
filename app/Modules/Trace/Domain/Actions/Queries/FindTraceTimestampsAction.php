@@ -4,11 +4,6 @@ declare(strict_types=1);
 
 namespace App\Modules\Trace\Domain\Actions\Queries;
 
-use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexErrorException;
-use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexInProcessException;
-use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexNotInitException;
-use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexParallelArraysException;
-use App\Modules\Trace\Domain\Services\TraceDynamicIndexInitializer;
 use App\Modules\Trace\Entities\Trace\Timestamp\TraceTimestampFieldIndicatorObject;
 use App\Modules\Trace\Entities\Trace\Timestamp\TraceTimestampFieldObject;
 use App\Modules\Trace\Entities\Trace\Timestamp\TraceTimestampsObject;
@@ -27,21 +22,18 @@ use App\Modules\Trace\Repositories\Services\TraceTimestampMetricsFactory;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use SConcur\WaitGroup;
+use App\Services\Clickhouse\ClickhouseQueryException;
 
 readonly class FindTraceTimestampsAction
 {
     public function __construct(
-        private TraceDynamicIndexInitializer $traceDynamicIndexInitializer,
         private TraceTimestampMetricsFactory $traceTimestampMetricsFactory,
         private TraceTimestampsRepository $timestampsRepository,
     ) {
     }
 
     /**
-     * @throws TraceDynamicIndexErrorException
-     * @throws TraceDynamicIndexParallelArraysException
-     * @throws TraceDynamicIndexInProcessException
-     * @throws TraceDynamicIndexNotInitException
+     * @throws ClickhouseQueryException
      */
     public function handle(FindTraceTimestampsParameters $parameters): TraceTimestampsObjects
     {
@@ -109,25 +101,6 @@ readonly class FindTraceTimestampsAction
         );
 
         $data = $parameters->data;
-
-        $this->traceDynamicIndexInitializer->init(
-            serviceIds: $parameters->serviceIds,
-            timestampStep: $parameters->timestampStep,
-            traceIds: $parameters->traceIds,
-            loggedAtFrom: $loggedAtFrom,
-            loggedAtTo: $loggedAtTo,
-            types: $parameters->types,
-            tags: $parameters->tags,
-            statuses: $parameters->statuses,
-            durationFrom: $parameters->durationFrom,
-            durationTo: $parameters->durationTo,
-            memoryFrom: $parameters->memoryFrom,
-            memoryTo: $parameters->memoryTo,
-            cpuFrom: $parameters->cpuFrom,
-            cpuTo: $parameters->cpuTo,
-            data: $data,
-            hasProfiling: $parameters->hasProfiling,
-        );
 
         $stepInSeconds = (int) ceil($loggedAtFrom->diffInSeconds($loggedAtTo) / 10);
 

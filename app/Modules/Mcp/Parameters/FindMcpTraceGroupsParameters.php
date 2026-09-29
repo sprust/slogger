@@ -14,6 +14,7 @@ readonly class FindMcpTraceGroupsParameters
      * @param string[] $types
      * @param string[] $tags
      * @param string[] $statuses
+     * @param string[] $dataFilter conditions in the format of McpTraceDataFilterParser
      */
     public function __construct(
         public array $serviceIds,
@@ -23,7 +24,8 @@ readonly class FindMcpTraceGroupsParameters
         public array $tags = [],
         public array $statuses = [],
         public ?float $durationFrom = null,
-        public ?float $durationTo = null
+        public ?float $durationTo = null,
+        public array $dataFilter = []
     ) {
     }
 }

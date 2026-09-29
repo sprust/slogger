@@ -7,9 +7,6 @@ import {EchoContainer} from "../utils/echoContainer.ts";
 import {
     useTraceAggregatorTreeStore
 } from "../components/pages/trace-aggregator/components/tree/store/traceAggregatorTreeStore.ts";
-import {
-    useTraceDynamicIndexesStore
-} from "../components/pages/trace-aggregator/components/dynamic-indexes/store/traceDynamicIndexesStore.ts";
 import {useWatcherIncidentStatStore} from "./watcherIncidentStatStore.ts";
 import {useIncidentsStore} from "../components/pages/watchers/store/incidentsStore.ts";
 import {useWatchersStore} from "../components/pages/watchers/store/watchersStore.ts";
@@ -106,7 +103,6 @@ export const useAuthStore = defineStore('authStore', {
             // Disconnecting takes every subscription with it, but not the polls that
             // stand in for them when there is no ws pool.
             useTraceAggregatorTreeStore().stopWatching()
-            useTraceDynamicIndexesStore().stopWatchingStats()
 
             // Incidents, watchers, the types they come in and the number in the badge are
             // read once per session and held; the next person to sign in on this tab would
