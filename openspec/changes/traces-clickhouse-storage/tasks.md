@@ -8,16 +8,16 @@
 ## 2. PHP-клиент и миграции ClickHouse
 
 - [x] 2.1 Создать `app/Services/Clickhouse`: `ClickhouseClient` поверх `SConcur\Features\HttpClient\HttpClient` (`select` с построчным разбором `JSONEachRow`, `command`), `ClickhouseConnectionConfig`, `ClickhouseQueryException` с кодом из `X-ClickHouse-Exception-Code`. Значения передаются только через `param_<name>`, каждый запрос получает `query_id` с префиксом сценария. Проверка: юнит-тесты на сборку URL и параметров, разбор ответа и ошибки на фейковом `ClientInterface`.
-- [x] 2.2 Команда `clickhouse:migrate` в `app/Console/Commands/Migrate`: таблица `schema_migrations`, файлы `database/clickhouse/*.sql` по порядку, один файл — одна команда, повторный запуск ничего не делает. Проверка: два запуска подряд — второй сообщает, что применять нечего.
-- [x] 2.3 Миграция `database/clickhouse/001_traces.sql` с таблицей из design (`ReplacingMergeTree(uat)`, `PARTITION BY toStartOfHour(lat)`, `ORDER BY (sid, lat, tid)`, skip-индексы). Проверка: `SHOW CREATE TABLE traces` совпадает с design.
-- [x] 2.4 Добавить `clickhouse:migrate` в `make setup` и `make deploy-prod` рядом с `migrate`. Проверка: `make setup` на чистом окружении создаёт таблицу.
+- [x] 2.2 Команда `clickhouse:migrate` в `app/Console/Commands/Migrate`: таблица `schema_migrations`, файлы `database/clickhouse/*.sql` по порядку, один файл — одна команда, повторный запуск ничего не делает. Проверка: два запуска подряд — второй сообщает, что применять нечего. Заменено задачей 12.6.
+- [x] 2.3 Миграция `database/clickhouse/001_traces.sql` с таблицей из design (`ReplacingMergeTree(uat)`, `PARTITION BY toStartOfHour(lat)`, `ORDER BY (sid, lat, tid)`, skip-индексы). Проверка: `SHOW CREATE TABLE traces` совпадает с design. Таблица создаётся Laravel-миграцией, `dt` — по 12.4 (задачи 12.4, 12.6).
+- [x] 2.4 Добавить `clickhouse:migrate` в `make setup` и `make deploy-prod` рядом с `migrate`. Проверка: `make setup` на чистом окружении создаёт таблицу. Заменено задачей 12.6: таблицу создаёт `migrate`.
 
 ## 3. Receiver: запись в ClickHouse
 
 - [x] 3.1 Хелпер `internal/helpers/json_helper`: сериализатор `bson.D`/`bson.A` → JSON с сохранением порядка ключей. Проверка: `go test` на порядок ключей, вложенные массивы, `float64`, `null`, пустой объект и не-объектный корень.
 - [x] 3.2 Пакет `internal/repositories/clickhouse_trace_repository`: `FindExisting(ctx, keys)` — `SELECT … FROM traces FINAL WHERE (sid, lat, tid) IN (…)`, и `Insert(ctx, rows)` — `INSERT … FORMAT JSONEachRow` по HTTP с basic auth, gzip и таймаутом. Строка содержит `sid, tid, ptid ('' вместо nil), tp, st, tgs, dt ({} для не-объекта), dt_raw, dur, mem, cpu, lat, cat, uat`. Проверка: `go test` на сборку строки и разбор ответа; интеграционный тест с тегом `integration` против локального ClickHouse — вставка, повторная вставка той же трейсы и чтение `FINAL` дают одну строку.
-- [x] 3.3 Переписать `periodic_trace_service.Save` на пачку: один `FindExisting` на проход, склейка по текущим правилам из найденной строки (`dt_raw` вместо `bson` документа), `cat` из найденной строки или текущее время, одна вставка на проход. Семафор на 64 сохранения удалить. `countsAsNew` и передача длительности в watchers остаются. Проверка: существующие тесты склейки проходят, новые — «update раньше create», «повторный create», «create без update».
-- [x] 3.4 В `traces_transporter` ошибка `FindExisting` или `Insert` помечает всю пачку через `MarkFailed`, успех удаляет её из `buffer`. Проверка: `go test` транспортёра с фейковым репозиторием на оба исхода.
+- [x] 3.3 Переписать `periodic_trace_service.Save` на пачку: один `FindExisting` на проход, склейка по текущим правилам из найденной строки (`dt_raw` вместо `bson` документа), `cat` из найденной строки или текущее время, одна вставка на проход. Семафор на 64 сохранения удалить. `countsAsNew` и передача длительности в watchers остаются. Проверка: существующие тесты склейки проходят, новые — «update раньше create», «повторный create», «create без update». Поиск сохранённой половины заменён задачей 12.1.
+- [x] 3.4 В `traces_transporter` ошибка `FindExisting` или `Insert` помечает всю пачку через `MarkFailed`, успех удаляет её из `buffer`. Проверка: `go test` транспортёра с фейковым репозиторием на оба исхода. Недоступность хранилища обрабатывается по 12.3.
 - [x] 3.5 Удалить `trace_sharding_service`, создание почасовых коллекций, их индексов и view `_traceTreesView`, переменную `MONGODB_DB_PERIODIC_TRACES`; убрать `tss`, `hpr`, `pr`, `rcLat`, `ucLat` из записи. Проверка: `go build ./...`, `go vet ./...`, `go test ./...` в `servers/receiver`; `grep` не находит `tracesPeriodic` и `trace_sharding_service`.
 
 ## 4. PHP: репозитории трейсов на ClickHouse
@@ -73,5 +73,23 @@
 - [x] 11.3 `make frontend-npm-build` проходит.
 - [x] 11.4 В `servers/receiver`: `go build ./...`, `go vet ./...`, `go test ./...` и интеграционные тесты с тегом `integration` против локального ClickHouse проходят.
 - [x] 11.5 Сквозная проверка на этом инстансе: отправить трейсы через сокет receiver (create и update, update раньше create, дерево с детьми, `data` с массивом объектов). В панели поиск, график, фасеты, детальная и дерево показывают их; `SELECT count(), uniqExact(sid, tid) FROM traces FINAL` совпадают; `buffer` пустеет.
-- [ ] 11.6 Сравнение со вторым инстансом (`../slogger.back`, контейнеры `sl-*`): память (`docker stats`), диск (`system.parts` против `$collStats` по `tracesPeriodic`), время списка, графика, фасетов, детальной и дерева на одинаковых запросах; результат записать в `.ai/plans/clickhouse-traces-prototype.md`, раздел «Результаты».
-- [ ] 11.7 Остановить процессы и контейнеры, запущенные только для проверки.
+- [x] 11.6 ~~Сравнение со вторым инстансом~~ заменено стресс-тестом на этом инстансе (раздел 12): 12 млн трейс через receiver, отказ ClickHouse посреди приёма, дерево в 200 тыс. узлов, время чтения. Результат — `.ai/plans/clickhouse-traces-prototype.md`, раздел «Результаты».
+- [x] 11.7 Остановить процессы и контейнеры, запущенные только для проверки.
+
+## 12. Стресс-тест и доработки по его итогам
+
+- [x] 12.1 Receiver: вторая половина трейсы ищется в MongoDB `pendingTraces` (`internal/repositories/pending_trace_repository`, `FindMany` по `_id` `"sid:tid"`, `Apply` одним `BulkWrite`), ClickHouse читается только для update без ожидающей половины. Финальная трейса вставляется, create со `started` вставляется и ждёт, update без create только ждёт. Проверка: тесты `periodic_trace_service` на каждый исход и на отказ каждого хранилища; прогон 1 млн — ни одного `SELECT FINAL` на трейсы, пришедшие целиком.
+- [x] 12.2 Пачка транспортёра — `TRANSPORTER_BATCH_SIZE` (по умолчанию 5000) в `buffer_service`, переменная в `servers/receiver/.env.example`. Проверка: `go test ./...`.
+- [x] 12.3 Недоступность хранилища (сеть, таймаут, коды 159, 202, 209, 210, 241, 242, 252) не тратит попытки: пауза от 1 до 30 секунд и повтор пачки как есть. Проверка: тест `isUnavailable`; перезапуск ClickHouse во время приёма 300 тыс. трейс — все в хранилище, `invalidBuffer` пуст.
+- [x] 12.4 `dt JSON(max_dynamic_paths = 256, SKIP REGEXP '^cache\\.')`. Проверка: в части нет файлов `dt.cache.*`; пик памяти слияний ниже 2 ГБ на прогоне 12 млн.
+- [x] 12.5 Конфигурация ClickHouse: `max_server_memory_usage` 5 ГБ, `background_pool_size` 4 и пороги `merge_tree` в свободных слотах пула, `log_queries_cut_to_length` 10000. Проверка: `system.server_settings` и `system.settings` показывают значения, сервер стартует.
+- [x] 12.6 Миграции ClickHouse — Laravel-миграция `2026_09_29_192649_clickhouse_create_traces_table` через `ClickhouseClient`; удалены `clickhouse:migrate`, `database/clickhouse` и `schema_migrations`, цели makefile; `migrate:fresh` удаляет таблицы ClickHouse. Проверка: `make art c="migrate:fresh --force"` пересоздаёт `traces`.
+- [x] 12.7 Коллекция `pendingTraces` и её TTL-индекс `uat_1` (3 часа) — Laravel-миграция `2026_09_29_194325_mongodb_create_pending_traces_collection`; receiver индекс не создаёт. Проверка: после `migrate:fresh` индекс есть, повторный `migrate` его не трогает.
+- [x] 12.8 `migrate:fresh` объявляет `--force`. Проверка: `make art c="help migrate:fresh"` показывает опцию.
+- [x] 12.9 Пакетный lightweight `DELETE` вытесненной половины убран: на потоке 12 тыс. трейс в секунду мутации заняли весь пул и остановили слияния. Проверка: прогон 12 млн — частей не больше 14 на партицию, мутаций нет.
+- [x] 12.10 `OptimizeTracesJob` в 10 минут каждого часа: `Cleaner\OptimizeTracesAction` → `Trace\OptimizePartitionsAction` → `TraceRepository::optimizePartitions` (`OPTIMIZE … PARTITION ID … FINAL` для часов, закрытых больше часа назад и лежащих в нескольких частях). Связь `Cleaner` → `Trace` — в `.ai/README.md`. Проверка: тесты `optimizePartitions`; запуск под потоком — 24 партиции за 179 секунд без ошибок, в слитом часе одна строка на трейсу.
+- [x] 12.11 Генератор нагрузки `servers/receiver/cmd/loadgen`. Проверка: 12 019 381 трейс отправлено, `uniqExact(sid, tid)` совпадает.
+- [x] 12.12 README (оба языка): склейка через `pendingTraces`, пачка и повторы транспортёра, миграции, ежечасное слияние. `.ai/plans/clickhouse-traces-prototype.md`: результаты стресс-теста.
+- [x] 12.13 `make check` проходит; в `servers/receiver` — `go vet ./...`, `go test ./...`.
+- [ ] 12.14 Код 60 (`UNKNOWN_TABLE`) считать недоступностью хранилища: во время `migrate:fresh` собственные трейсы панели уходили в `invalidBuffer`.
+- [ ] 12.15 Карту путей `ClickhouseDataPathTypes` строить в фоне, а не в запросе пользователя.
