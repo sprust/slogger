@@ -41,6 +41,11 @@
         />
       </template>
     </el-table-column>
+    <el-table-column label="Requests" width="110">
+      <template #default="scope">
+        {{ scope.row.requests_count }}
+      </template>
+    </el-table-column>
     <el-table-column label="Last used (UTC)" width="190">
       <template #default="scope">
         {{ scope.row.last_used_at ?? 'never' }}

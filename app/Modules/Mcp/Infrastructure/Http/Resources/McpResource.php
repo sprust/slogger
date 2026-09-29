@@ -13,6 +13,7 @@ class McpResource extends AbstractApiResource
     private string $name;
     private string $token;
     private bool $enabled;
+    private int $requests_count;
     private ?string $last_used_at;
     private string $created_at;
     private string $updated_at;
@@ -21,12 +22,13 @@ class McpResource extends AbstractApiResource
     {
         parent::__construct($resource);
 
-        $this->id           = $resource->id;
-        $this->name         = $resource->name;
-        $this->token        = $resource->token;
-        $this->enabled      = $resource->enabled;
-        $this->last_used_at = $resource->lastUsedAt?->toDateTimeString();
-        $this->created_at   = $resource->createdAt->toDateTimeString();
-        $this->updated_at   = $resource->updatedAt->toDateTimeString();
+        $this->id             = $resource->id;
+        $this->name           = $resource->name;
+        $this->token          = $resource->token;
+        $this->enabled        = $resource->enabled;
+        $this->requests_count = $resource->requestsCount;
+        $this->last_used_at   = $resource->lastUsedAt?->toDateTimeString();
+        $this->created_at     = $resource->createdAt->toDateTimeString();
+        $this->updated_at     = $resource->updatedAt->toDateTimeString();
     }
 }

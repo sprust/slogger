@@ -142,7 +142,7 @@ responses, no sessions, no SSE) at `POST /mcp` (`routes/mcp.php`), outside the a
 
 - `Infrastructure/Http/Middlewares/McpOriginMiddleware` rejects a foreign `Origin` with `403`;
   `McpTokenMiddleware` accepts the Bearer token of an enabled connection from the `mcps` table
-  and touches `last_used_at` in `terminate`.
+  and in `terminate` adds one to `requests_count` and sets `last_used_at`, in one `UPDATE`.
 - `Infrastructure/Http/Controllers/McpEndpointController` → `Infrastructure/Protocol`: the
   message parser, the header and version validators, and `McpServer`, which dispatches
   `server/discover`, `tools/list`, `tools/call`, `prompts/list`, `prompts/get`. Protocol

@@ -33,13 +33,14 @@ class McpAdminHttpTest extends TestCase
     {
         $this->withoutAuth();
 
-        $this->repository->method('find')->willReturn([$this->mcpObject(id: 3)]);
+        $this->repository->method('find')->willReturn([$this->mcpObject(id: 3, requestsCount: 42)]);
 
         $this->getJson('/admin-api/mcps')
             ->assertOk()
             ->assertJsonPath('data.0.id', 3)
             ->assertJsonPath('data.0.token', 'token')
             ->assertJsonPath('data.0.enabled', true)
+            ->assertJsonPath('data.0.requests_count', 42)
             ->assertJsonPath('data.0.last_used_at', null);
     }
 

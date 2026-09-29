@@ -329,13 +329,13 @@ class McpEndpointHttpTest extends TestCase
         $this->rpc('tools/list', headers: ['Origin' => 'https://slogger.stand.example.com'])->assertOk();
     }
 
-    public function testLastUsedAtIsTouched(): void
+    public function testRequestIsCounted(): void
     {
         Carbon::setTestNow('2026-09-28 12:00:00');
 
         $this->repository->expects($this->once())
-            ->method('updateLastUsedAt')
-            ->with(5, $this->isInstanceOf(Carbon::class));
+            ->method('incrementRequestsCount')
+            ->with(5, $this->callback(static fn(Carbon $at): bool => $at->eq(Carbon::now())));
 
         $this->rpc('tools/list')->assertOk();
     }

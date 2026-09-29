@@ -249,7 +249,7 @@ Tools that search traces over a period build the same dynamic indexes as the tra
 
 The server also offers prompts — in Claude Code they are commands like `/mcp__slogger-prod__investigate_errors`: `investigate_errors`, `investigate_latency`, `explain_incident`, `explain_trace`.
 
-Access is by connection. The MCP page creates one per person or agent, shows its token and the ready command, and switches a connection off, regenerates its token or removes it: a client with the old token gets `401` at once. A connection sees every service of the installation.
+Access is by connection. The MCP page creates one per person or agent, shows its token and the ready command, and switches a connection off, regenerates its token or removes it: a client with the old token gets `401` at once. The page also shows how many requests each connection has made and when it made the last one. A connection sees every service of the installation.
 
 1. Create a connection on the MCP page, for example "Claude Code — Alex".
 2. Copy the command shown for it and run it:

@@ -8,10 +8,8 @@ use App\Modules\Mcp\Entities\McpObject;
 use App\Modules\Mcp\Repositories\McpRepository;
 use Illuminate\Support\Carbon;
 
-readonly class TouchMcpAction
+readonly class CountMcpRequestAction
 {
-    private const int INTERVAL_SECONDS = 60;
-
     public function __construct(
         private McpRepository $mcpRepository
     ) {
@@ -19,15 +17,9 @@ readonly class TouchMcpAction
 
     public function handle(McpObject $mcp): void
     {
-        $now = Carbon::now();
-
-        if (!is_null($mcp->lastUsedAt) && $mcp->lastUsedAt->diffInSeconds($now) < self::INTERVAL_SECONDS) {
-            return;
-        }
-
-        $this->mcpRepository->updateLastUsedAt(
+        $this->mcpRepository->incrementRequestsCount(
             id: $mcp->id,
-            lastUsedAt: $now
+            lastUsedAt: Carbon::now()
         );
     }
 }

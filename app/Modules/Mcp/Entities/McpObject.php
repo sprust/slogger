@@ -13,6 +13,7 @@ readonly class McpObject
         public string $name,
         public string $token,
         public bool $enabled,
+        public int $requestsCount,
         public ?Carbon $lastUsedAt,
         public Carbon $createdAt,
         public Carbon $updatedAt

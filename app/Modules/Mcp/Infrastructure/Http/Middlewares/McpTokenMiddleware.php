@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Mcp\Infrastructure\Http\Middlewares;
 
-use App\Modules\Mcp\Domain\Actions\Mutations\TouchMcpAction;
+use App\Modules\Mcp\Domain\Actions\Mutations\CountMcpRequestAction;
 use App\Modules\Mcp\Domain\Actions\Queries\FindMcpByTokenAction;
 use App\Modules\Mcp\Entities\McpObject;
 use Closure;
@@ -17,7 +17,7 @@ readonly class McpTokenMiddleware
 
     public function __construct(
         private FindMcpByTokenAction $findMcpByTokenAction,
-        private TouchMcpAction $touchMcpAction
+        private CountMcpRequestAction $countMcpRequestAction
     ) {
     }
 
@@ -48,6 +48,6 @@ readonly class McpTokenMiddleware
             return;
         }
 
-        $this->touchMcpAction->handle($mcp);
+        $this->countMcpRequestAction->handle($mcp);
     }
 }

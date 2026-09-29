@@ -8691,6 +8691,10 @@
                                                         "type": "boolean",
                                                         "nullable": false
                                                     },
+                                                    "requests_count": {
+                                                        "type": "integer",
+                                                        "nullable": false
+                                                    },
                                                     "last_used_at": {
                                                         "type": "string",
                                                         "nullable": true
@@ -8709,6 +8713,7 @@
                                                     "name",
                                                     "token",
                                                     "enabled",
+                                                    "requests_count",
                                                     "created_at",
                                                     "updated_at"
                                                 ]
@@ -8776,6 +8781,10 @@
                                                     "type": "boolean",
                                                     "nullable": false
                                                 },
+                                                "requests_count": {
+                                                    "type": "integer",
+                                                    "nullable": false
+                                                },
                                                 "last_used_at": {
                                                     "type": "string",
                                                     "nullable": true
@@ -8794,6 +8803,7 @@
                                                 "name",
                                                 "token",
                                                 "enabled",
+                                                "requests_count",
                                                 "created_at",
                                                 "updated_at"
                                             ]
@@ -8892,6 +8902,10 @@
                                                     "type": "boolean",
                                                     "nullable": false
                                                 },
+                                                "requests_count": {
+                                                    "type": "integer",
+                                                    "nullable": false
+                                                },
                                                 "last_used_at": {
                                                     "type": "string",
                                                     "nullable": true
@@ -8910,6 +8924,7 @@
                                                 "name",
                                                 "token",
                                                 "enabled",
+                                                "requests_count",
                                                 "created_at",
                                                 "updated_at"
                                             ]
@@ -8988,6 +9003,10 @@
                                                     "type": "boolean",
                                                     "nullable": false
                                                 },
+                                                "requests_count": {
+                                                    "type": "integer",
+                                                    "nullable": false
+                                                },
                                                 "last_used_at": {
                                                     "type": "string",
                                                     "nullable": true
@@ -9006,6 +9025,7 @@
                                                 "name",
                                                 "token",
                                                 "enabled",
+                                                "requests_count",
                                                 "created_at",
                                                 "updated_at"
                                             ]
@@ -9082,6 +9102,10 @@
                                                     "type": "boolean",
                                                     "nullable": false
                                                 },
+                                                "requests_count": {
+                                                    "type": "integer",
+                                                    "nullable": false
+                                                },
                                                 "last_used_at": {
                                                     "type": "string",
                                                     "nullable": true
@@ -9100,6 +9124,7 @@
                                                 "name",
                                                 "token",
                                                 "enabled",
+                                                "requests_count",
                                                 "created_at",
                                                 "updated_at"
                                             ]

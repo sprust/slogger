@@ -11,6 +11,7 @@ use Illuminate\Support\Carbon;
  * @property string      $name
  * @property string      $token
  * @property bool        $enabled
+ * @property int         $requests_count
  * @property Carbon|null $last_used_at
  * @property Carbon      $created_at
  * @property Carbon      $updated_at
@@ -20,7 +21,8 @@ class Mcp extends AbstractModel
     use HasFactory;
 
     protected $casts = [
-        'enabled'      => 'boolean',
-        'last_used_at' => 'datetime',
+        'enabled'        => 'boolean',
+        'requests_count' => 'integer',
+        'last_used_at'   => 'datetime',
     ];
 }

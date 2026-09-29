@@ -4295,6 +4295,7 @@ export namespace AdminApi {
     name: string,
     token: string,
     enabled: boolean,
+    requests_count: number,
     last_used_at?: string | null,
     created_at: string,
     updated_at: string,
@@ -4314,6 +4315,7 @@ export namespace AdminApi {
         name: string;
         token: string;
         enabled: boolean;
+        requests_count: number;
         last_used_at?: string | null;
         created_at: string;
         updated_at: string;
@@ -4332,6 +4334,7 @@ export namespace AdminApi {
     name: string,
     token: string,
     enabled: boolean,
+    requests_count: number,
     last_used_at?: string | null,
     created_at: string,
     updated_at: string,
@@ -4357,6 +4360,7 @@ export namespace AdminApi {
         name: string;
         token: string;
         enabled: boolean;
+        requests_count: number;
         last_used_at?: string | null;
         created_at: string;
         updated_at: string;
@@ -4402,6 +4406,7 @@ export namespace AdminApi {
     name: string,
     token: string,
     enabled: boolean,
+    requests_count: number,
     last_used_at?: string | null,
     created_at: string,
     updated_at: string,
@@ -4423,6 +4428,7 @@ export namespace AdminApi {
         name: string;
         token: string;
         enabled: boolean;
+        requests_count: number;
         last_used_at?: string | null;
         created_at: string;
         updated_at: string;
@@ -4441,6 +4447,7 @@ export namespace AdminApi {
     name: string,
     token: string,
     enabled: boolean,
+    requests_count: number,
     last_used_at?: string | null,
     created_at: string,
     updated_at: string,
@@ -4469,6 +4476,7 @@ export namespace AdminApi {
         name: string;
         token: string;
         enabled: boolean;
+        requests_count: number;
         last_used_at?: string | null;
         created_at: string;
         updated_at: string;
@@ -4504,6 +4512,7 @@ export namespace AdminApi {
     name: string,
     token: string,
     enabled: boolean,
+    requests_count: number,
     last_used_at?: string | null,
     created_at: string,
     updated_at: string,
@@ -4525,6 +4534,7 @@ export namespace AdminApi {
         name: string;
         token: string;
         enabled: boolean;
+        requests_count: number;
         last_used_at?: string | null;
         created_at: string;
         updated_at: string;
@@ -9565,6 +9575,7 @@ export class Api<
     name: string,
     token: string,
     enabled: boolean,
+    requests_count: number,
     last_used_at?: string | null,
     created_at: string,
     updated_at: string,
@@ -9581,6 +9592,7 @@ export class Api<
             name: string;
             token: string;
             enabled: boolean;
+            requests_count: number;
             last_used_at?: string | null;
             created_at: string;
             updated_at: string;
@@ -9607,6 +9619,7 @@ export class Api<
     name: string,
     token: string,
     enabled: boolean,
+    requests_count: number,
     last_used_at?: string | null,
     created_at: string,
     updated_at: string,
@@ -9632,6 +9645,7 @@ export class Api<
             name: string;
             token: string;
             enabled: boolean;
+            requests_count: number;
             last_used_at?: string | null;
             created_at: string;
             updated_at: string;
@@ -9692,6 +9706,7 @@ export class Api<
     name: string,
     token: string,
     enabled: boolean,
+    requests_count: number,
     last_used_at?: string | null,
     created_at: string,
     updated_at: string,
@@ -9708,6 +9723,7 @@ export class Api<
             name: string;
             token: string;
             enabled: boolean;
+            requests_count: number;
             last_used_at?: string | null;
             created_at: string;
             updated_at: string;
@@ -9734,6 +9750,7 @@ export class Api<
     name: string,
     token: string,
     enabled: boolean,
+    requests_count: number,
     last_used_at?: string | null,
     created_at: string,
     updated_at: string,
@@ -9761,6 +9778,7 @@ export class Api<
             name: string;
             token: string;
             enabled: boolean;
+            requests_count: number;
             last_used_at?: string | null;
             created_at: string;
             updated_at: string;
@@ -9805,6 +9823,7 @@ export class Api<
     name: string,
     token: string,
     enabled: boolean,
+    requests_count: number,
     last_used_at?: string | null,
     created_at: string,
     updated_at: string,
@@ -9821,6 +9840,7 @@ export class Api<
             name: string;
             token: string;
             enabled: boolean;
+            requests_count: number;
             last_used_at?: string | null;
             created_at: string;
             updated_at: string;

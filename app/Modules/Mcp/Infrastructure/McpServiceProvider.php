@@ -13,10 +13,10 @@ use App\Modules\Mcp\Domain\Actions\Bridges\FindMcpTraceAction;
 use App\Modules\Mcp\Domain\Actions\Bridges\FindMcpTraceTreeAction;
 use App\Modules\Mcp\Domain\Actions\Bridges\FindMcpTraceTreeFilteredAction;
 use App\Modules\Mcp\Domain\Services\McpTraceTreeNodeFactory;
+use App\Modules\Mcp\Domain\Actions\Mutations\CountMcpRequestAction;
 use App\Modules\Mcp\Domain\Actions\Mutations\CreateMcpAction;
 use App\Modules\Mcp\Domain\Actions\Mutations\DeleteMcpAction;
 use App\Modules\Mcp\Domain\Actions\Mutations\RegenerateMcpTokenAction;
-use App\Modules\Mcp\Domain\Actions\Mutations\TouchMcpAction;
 use App\Modules\Mcp\Domain\Actions\Mutations\UpdateMcpAction;
 use App\Modules\Mcp\Domain\Actions\Queries\FindMcpAction;
 use App\Modules\Mcp\Domain\Actions\Queries\FindMcpByTokenAction;
@@ -124,7 +124,7 @@ class McpServiceProvider extends BaseServiceProvider
             UpdateMcpAction::class,
             RegenerateMcpTokenAction::class,
             DeleteMcpAction::class,
-            TouchMcpAction::class,
+            CountMcpRequestAction::class,
             McpMessageParser::class,
             McpHeaderValidator::class,
             McpVersionValidator::class,

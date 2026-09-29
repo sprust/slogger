@@ -70,11 +70,11 @@ readonly class McpRepository
             ]);
     }
 
-    public function updateLastUsedAt(int $id, Carbon $lastUsedAt): void
+    public function incrementRequestsCount(int $id, Carbon $lastUsedAt): void
     {
         Mcp::query()
             ->where('id', $id)
-            ->update([
+            ->increment('requests_count', extra: [
                 'last_used_at' => $lastUsedAt,
             ]);
     }
@@ -91,6 +91,7 @@ readonly class McpRepository
             name: $mcp->name,
             token: $mcp->token,
             enabled: $mcp->enabled,
+            requestsCount: $mcp->requests_count,
             lastUsedAt: $mcp->last_used_at,
             createdAt: $mcp->created_at,
             updatedAt: $mcp->updated_at
