@@ -165,6 +165,9 @@ responses, no sessions, no SSE) at `POST /mcp` (`routes/mcp.php`), outside the a
   the logs of SLogger itself through the `Logs` module.
 - `Infrastructure/Prompts/*Prompt` — the prompts, registered in `McpServiceProvider`.
 - `resources/mcp/instructions.md` — the instructions the model gets, in English.
+- With `SLOGGER_LOG_REQUESTS_ENABLED` `/mcp` is traced like the admin API. `App\Services\SLogger\RequestWatcher`
+  adds the JSON-RPC method and `params.name` to the tags of a successful answer; the answer
+  body is not recorded (`mcp` in the output `hidden_paths` of `config/slogger.php`).
 - Connections are managed through `/admin-api/mcps` and the `/mcps` page.
 
 ---

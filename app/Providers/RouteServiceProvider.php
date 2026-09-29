@@ -51,6 +51,7 @@ class RouteServiceProvider extends ServiceProvider
             Route::middleware([
                 McpOriginMiddleware::class,
                 McpTokenMiddleware::class,
+                SLoggerHttpMiddleware::class,
             ])
                 ->group(base_path('routes/mcp.php'));
         });
