@@ -406,6 +406,7 @@ APP_DEBUG=false           # true for local
 # to find user id and group id on linux: `id -u` and `id -g`
 DOCKER_USER_ID=1000
 DOCKER_GROUP_ID=1000
+DOCKER_CONTAINER_PREFIX=sl  # prefix of the container names
 
 APP_PORT=8097             # external port of nginx in front of the SConcur HTTP workers
 
@@ -457,6 +458,12 @@ The panel shows the connection as a dot beside the theme switch: green connected
 connecting, red unreachable, grey not configured. Red is not a broken panel — every view
 that subscribes falls back to polling, and the connection is retried once a second until
 it comes back.
+
+A second instance on the same machine goes into a folder with another name, with its own
+`DOCKER_CONTAINER_PREFIX` and its own external ports (`APP_PORT`, `FRONTEND_DOCKER_PORT`,
+`RECIEVER_SOCKET_DOCKER_PORT`, `DB_DOCKER_PORT`, `REDIS_DOCKER_PORT`, `RABBITMQ_DOCKER_PORT`,
+`RABBITMQ_DOCKER_ADMIN_PORT`, `MONGO_DOCKER_PORT`). Docker Compose names the volumes after the
+folder, so the data of the two instances stays apart.
 
 ### Setup
 

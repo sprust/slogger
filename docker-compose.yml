@@ -1,6 +1,6 @@
 services:
   nginx:
-    container_name: sl-nginx
+    container_name: ${DOCKER_CONTAINER_PREFIX:-sl}-nginx
     restart: unless-stopped
     image: nginx:alpine
     depends_on:
@@ -18,7 +18,7 @@ services:
       - ./storage/logs/nginx:/var/log/nginx/app
 
   php-fpm:
-    container_name: sl-php-fpm
+    container_name: ${DOCKER_CONTAINER_PREFIX:-sl}-php-fpm
     restart: unless-stopped
     build:
       context: .
@@ -47,7 +47,7 @@ services:
       - "host.docker.internal:host-gateway"
 
   workers:
-    container_name: sl-workers
+    container_name: ${DOCKER_CONTAINER_PREFIX:-sl}-workers
     restart: unless-stopped
     build:
       context: .
@@ -80,7 +80,7 @@ services:
     command: supervisord -n
 
   receiver:
-    container_name: sl-receiver
+    container_name: ${DOCKER_CONTAINER_PREFIX:-sl}-receiver
     restart: unless-stopped
     build:
       context: .
@@ -104,7 +104,7 @@ services:
     command: /app/bin/receiver
 
   mysql:
-    container_name: sl-mysql
+    container_name: ${DOCKER_CONTAINER_PREFIX:-sl}-mysql
     restart: unless-stopped
     image: mysql:8.0
     ports:
@@ -123,7 +123,7 @@ services:
       timeout: 5s
 
   redis:
-    container_name: sl-redis
+    container_name: ${DOCKER_CONTAINER_PREFIX:-sl}-redis
     restart: unless-stopped
     image: redis:alpine
     ports:
@@ -137,12 +137,13 @@ services:
 
   rabbitmq:
     image: rabbitmq:4.0-management-alpine
-    container_name: sl-rabbitmq
+    container_name: ${DOCKER_CONTAINER_PREFIX:-sl}-rabbitmq
     # Pins the node name. RabbitMQ calls its node rabbit@$(hostname) and keeps its
     # database under mnesia/rabbit@$(hostname); without this, Docker hands a recreated
     # container a fresh hostname, so the broker comes up as a brand new empty node and
     # the previous one's queues are simply left behind in the volume — which is how the
     # consumer pool ended up on 404 NOT_FOUND after a plain `make restart`.
+    # It stays fixed whatever DOCKER_CONTAINER_PREFIX is: a hostname is local to the container.
     hostname: sl-rabbitmq
     restart: unless-stopped
     environment:
@@ -161,7 +162,7 @@ services:
       - ${RABBITMQ_DOCKER_ADMIN_PORT:-25672}:15672
 
   mongo:
-    container_name: sl-mongo
+    container_name: ${DOCKER_CONTAINER_PREFIX:-sl}-mongo
     restart: unless-stopped
     image: mongo:8.0.5
     command: ["mongod", "--wiredTigerCacheSizeGB", "${MONGO_WIRED_TIGER_CACHE_SIZE_GB:-10}"]
@@ -177,7 +178,7 @@ services:
       - mongo:/data/db
 
   frontend:
-    container_name: sl-frontend
+    container_name: ${DOCKER_CONTAINER_PREFIX:-sl}-frontend
     restart: unless-stopped
     image: node:22-alpine
     working_dir: /app

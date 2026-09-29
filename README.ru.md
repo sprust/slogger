@@ -406,6 +406,7 @@ APP_DEBUG=false           # true для local
 # узнать user id и group id в linux: `id -u` и `id -g`
 DOCKER_USER_ID=1000
 DOCKER_GROUP_ID=1000
+DOCKER_CONTAINER_PREFIX=sl  # префикс имён контейнеров
 
 APP_PORT=8097             # внешний порт nginx перед HTTP-воркерами SConcur
 
@@ -457,6 +458,12 @@ make ws-keys-generate c=--force  # перезаписывает их
 подключено, жёлтая — подключается, красная — недоступно, серая — не настроено. Красная не
 означает сломанную панель: всё, что подписывалось, возвращается к опросу, а соединение
 переустанавливается раз в секунду, пока не поднимется.
+
+Второй инстанс на той же машине ставится в папку с другим именем, со своим
+`DOCKER_CONTAINER_PREFIX` и своими внешними портами (`APP_PORT`, `FRONTEND_DOCKER_PORT`,
+`RECIEVER_SOCKET_DOCKER_PORT`, `DB_DOCKER_PORT`, `REDIS_DOCKER_PORT`, `RABBITMQ_DOCKER_PORT`,
+`RABBITMQ_DOCKER_ADMIN_PORT`, `MONGO_DOCKER_PORT`). Docker Compose называет volumes по имени
+папки, поэтому данные двух инстансов не пересекаются.
 
 ### Setup
 
