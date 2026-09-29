@@ -16,7 +16,7 @@ use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolResult;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolSchema;
 use App\Modules\Mcp\Parameters\FindMcpTraceDataFieldsParameters;
 
-readonly class ListTraceDataFieldsTool implements McpToolInterface
+readonly class GetTraceDataFieldsTool implements McpToolInterface
 {
     public function __construct(
         private FindMcpTraceDataFieldsAction $findMcpTraceDataFieldsAction,
@@ -27,7 +27,7 @@ readonly class ListTraceDataFieldsTool implements McpToolInterface
 
     public function name(): string
     {
-        return 'list_trace_data_fields';
+        return 'get_trace_data_fields';
     }
 
     public function title(): string
@@ -39,7 +39,7 @@ readonly class ListTraceDataFieldsTool implements McpToolInterface
     {
         return sprintf(
             'Keys of the data of the latest %d traces of a type over a period, with an example value each: '
-            . 'the keys to use in data_filter and data_fields of find_traces. %s',
+            . 'the keys to use in data_filter and data_fields of search_traces. %s',
             FindMcpTraceDataFieldsAction::TRACES_COUNT,
             McpToolTraceScopeReader::INDEX_NOTE
         );

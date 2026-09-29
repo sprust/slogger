@@ -5,8 +5,8 @@ namespace Tests\Modules\Mcp\Infrastructure\Tools;
 use App\Modules\Mcp\Domain\Actions\Bridges\FindMcpDynamicIndexesAction;
 use App\Modules\Mcp\Domain\Actions\Bridges\FindMcpIndexStatusAction;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolArguments;
-use App\Modules\Mcp\Infrastructure\Tools\GetIndexStatusTool;
-use App\Modules\Mcp\Infrastructure\Tools\ListDynamicIndexesTool;
+use App\Modules\Mcp\Infrastructure\Tools\GetTraceIndexStatusTool;
+use App\Modules\Mcp\Infrastructure\Tools\GetTraceIndexesTool;
 use App\Modules\Mcp\Infrastructure\Tools\McpToolFormatter;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceDynamicIndexAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceDynamicIndexesAction;
@@ -61,7 +61,7 @@ class IndexToolsTest extends TestCase
             $this->index(inProcess: true, id: 'idx-2', collectionNames: ['broken']),
         ]);
 
-        $result = new ListDynamicIndexesTool(new FindMcpDynamicIndexesAction($action), new McpToolFormatter())
+        $result = new GetTraceIndexesTool(new FindMcpDynamicIndexesAction($action), new McpToolFormatter())
             ->call(new McpToolArguments([]));
 
         $this->assertSame(
@@ -79,7 +79,7 @@ class IndexToolsTest extends TestCase
         $this->assertNull($result->data['indexes'][1]['first_hour']);
     }
 
-    private function statusTool(?TraceDynamicIndexObject $index): GetIndexStatusTool
+    private function statusTool(?TraceDynamicIndexObject $index): GetTraceIndexStatusTool
     {
         $find = $this->createMock(FindTraceDynamicIndexAction::class);
         $find->method('handle')->willReturn($index);
@@ -89,7 +89,7 @@ class IndexToolsTest extends TestCase
             new TraceDynamicIndexStatsObject(inProcessCount: 0, errorsCount: 0, totalCount: 0, indexesInProcess: [])
         );
 
-        return new GetIndexStatusTool(new FindMcpIndexStatusAction($find, $stats));
+        return new GetTraceIndexStatusTool(new FindMcpIndexStatusAction($find, $stats));
     }
 
     /**

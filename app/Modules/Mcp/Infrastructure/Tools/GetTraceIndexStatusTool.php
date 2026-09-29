@@ -13,7 +13,7 @@ use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolPropertyTypeEnum;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolResult;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolSchema;
 
-readonly class GetIndexStatusTool implements McpToolInterface
+readonly class GetTraceIndexStatusTool implements McpToolInterface
 {
     public function __construct(
         private FindMcpIndexStatusAction $findMcpIndexStatusAction
@@ -22,7 +22,7 @@ readonly class GetIndexStatusTool implements McpToolInterface
 
     public function name(): string
     {
-        return 'get_index_status';
+        return 'get_trace_index_status';
     }
 
     public function title(): string

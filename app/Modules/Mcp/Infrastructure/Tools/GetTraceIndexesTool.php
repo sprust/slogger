@@ -13,7 +13,7 @@ use App\Modules\Trace\Entities\DynamicIndex\TraceDynamicIndexFieldObject;
 use App\Modules\Trace\Entities\DynamicIndex\TraceDynamicIndexObject;
 use Illuminate\Support\Carbon;
 
-readonly class ListDynamicIndexesTool implements McpToolInterface
+readonly class GetTraceIndexesTool implements McpToolInterface
 {
     public function __construct(
         private FindMcpDynamicIndexesAction $findMcpDynamicIndexesAction,
@@ -23,7 +23,7 @@ readonly class ListDynamicIndexesTool implements McpToolInterface
 
     public function name(): string
     {
-        return 'list_dynamic_indexes';
+        return 'get_trace_indexes';
     }
 
     public function title(): string

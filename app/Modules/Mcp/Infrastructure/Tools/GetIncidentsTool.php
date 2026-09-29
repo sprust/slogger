@@ -15,7 +15,7 @@ use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolSchema;
 use App\Modules\Mcp\Parameters\FindMcpIncidentsParameters;
 use App\Modules\Watcher\Enums\WatcherIncidentStatusEnum;
 
-readonly class ListIncidentsTool implements McpToolInterface
+readonly class GetIncidentsTool implements McpToolInterface
 {
     public function __construct(
         private FindMcpIncidentsAction $findMcpIncidentsAction,
@@ -25,7 +25,7 @@ readonly class ListIncidentsTool implements McpToolInterface
 
     public function name(): string
     {
-        return 'list_incidents';
+        return 'get_incidents';
     }
 
     public function title(): string

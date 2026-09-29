@@ -13,7 +13,7 @@ use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolResult;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolSchema;
 use App\Modules\Service\Entities\ServiceObject;
 
-readonly class ListServicesTool implements McpToolInterface
+readonly class GetServicesTool implements McpToolInterface
 {
     public function __construct(
         private FindMcpServicesAction $findMcpServicesAction
@@ -22,7 +22,7 @@ readonly class ListServicesTool implements McpToolInterface
 
     public function name(): string
     {
-        return 'list_services';
+        return 'get_services';
     }
 
     public function title(): string

@@ -42,7 +42,7 @@ readonly class ExplainTracePrompt implements McpPromptInterface
             '',
             'Steps:',
             '1. get_trace for the summary.',
-            '2. get_trace_tree to walk the calls it made; find_in_trace_tree for failed or slow calls in a large tree.',
+            '2. get_trace_tree to walk the calls it made; search_trace_tree for failed or slow calls in a large tree.',
             '3. get_trace_data only for the nodes that explain the result.',
             '',
             'Answer with what happened step by step, the trace ids behind every claim and what was not checked.',

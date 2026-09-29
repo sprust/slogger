@@ -6,7 +6,7 @@ use App\Modules\Mcp\Domain\Actions\Bridges\FindMcpIncidentEventsAction;
 use App\Modules\Mcp\Domain\Actions\Bridges\FindMcpIncidentsAction;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolArguments;
 use App\Modules\Mcp\Infrastructure\Tools\GetIncidentEventsTool;
-use App\Modules\Mcp\Infrastructure\Tools\ListIncidentsTool;
+use App\Modules\Mcp\Infrastructure\Tools\GetIncidentsTool;
 use App\Modules\Mcp\Infrastructure\Tools\McpToolFormatter;
 use App\Modules\Watcher\Domain\Actions\Queries\FindIncidentAction;
 use App\Modules\Watcher\Domain\Actions\Queries\FindIncidentEventsAction;
@@ -40,7 +40,7 @@ class IncidentToolsTest extends TestCase
             ->with(4, true)
             ->willReturn($this->watcherWithServices(serviceIds: [7]));
 
-        $result = new ListIncidentsTool(
+        $result = new GetIncidentsTool(
             new FindMcpIncidentsAction($incidents, $watchers),
             new McpToolFormatter()
         )->call(new McpToolArguments(['status' => 'opened']));
@@ -74,7 +74,7 @@ class IncidentToolsTest extends TestCase
             }
         );
 
-        $result = new ListIncidentsTool(
+        $result = new GetIncidentsTool(
             new FindMcpIncidentsAction($incidents, $this->createMock(FindWatcherAction::class)),
             new McpToolFormatter()
         )->call(new McpToolArguments(['status' => 'closed', 'page' => 2]));

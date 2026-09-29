@@ -5,8 +5,8 @@ namespace Tests\Modules\Mcp\Infrastructure\Tools;
 use App\Modules\Mcp\Domain\Actions\Bridges\FindMcpDataRangeAction;
 use App\Modules\Mcp\Domain\Actions\Bridges\FindMcpServicesAction;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolArguments;
-use App\Modules\Mcp\Infrastructure\Tools\GetDataRangeTool;
-use App\Modules\Mcp\Infrastructure\Tools\ListServicesTool;
+use App\Modules\Mcp\Infrastructure\Tools\GetTraceTimeRangeTool;
+use App\Modules\Mcp\Infrastructure\Tools\GetServicesTool;
 use App\Modules\Mcp\Infrastructure\Tools\McpToolFormatter;
 use App\Modules\Service\Domain\Actions\FindServicesAction;
 use App\Modules\Service\Entities\ServiceObject;
@@ -45,7 +45,7 @@ class ServiceAndRangeToolsTest extends TestCase
             )
         );
 
-        $result = new GetDataRangeTool(new FindMcpDataRangeAction($action), new McpToolFormatter())
+        $result = new GetTraceTimeRangeTool(new FindMcpDataRangeAction($action), new McpToolFormatter())
             ->call(new McpToolArguments([]));
 
         $this->assertSame(
@@ -60,13 +60,13 @@ class ServiceAndRangeToolsTest extends TestCase
 
         $action->method('handle')->willReturn(new TraceDataRangeObject(firstHour: null, lastHour: null));
 
-        $result = new GetDataRangeTool(new FindMcpDataRangeAction($action), new McpToolFormatter())
+        $result = new GetTraceTimeRangeTool(new FindMcpDataRangeAction($action), new McpToolFormatter())
             ->call(new McpToolArguments([]));
 
         $this->assertSame(['first_hour' => null, 'last_hour' => null], $result->data);
     }
 
-    private function servicesTool(): ListServicesTool
+    private function servicesTool(): GetServicesTool
     {
         $action = $this->createMock(FindServicesAction::class);
 
@@ -75,6 +75,6 @@ class ServiceAndRangeToolsTest extends TestCase
             new ServiceObject(id: 2, name: 'auth', apiToken: 'b'),
         ]);
 
-        return new ListServicesTool(new FindMcpServicesAction($action));
+        return new GetServicesTool(new FindMcpServicesAction($action));
     }
 }

@@ -7,7 +7,7 @@
 
 ### Requirement: Общий формат ответа
 
-Каждый ответ инструмента SHALL быть объектом JSON и содержать поле `installation` со значением `server_name` инсталляции. Время SHALL отдаваться в ISO 8601 UTC. Строковые значения длиннее `MCP_MAX_STRING_LENGTH` (по умолчанию 500) SHALL обрезаться с явной пометкой об обрезке; исключение — `get_trace_data`. Ни один инструмент SHALL NOT изменять данные; допустимые побочные эффекты — построение кэша дерева трейса, как при открытии дерева в UI, построение динамических индексов трейсов инструментами `mcp-trace-queries`, как при поиске на странице трейсов в UI, и обновление индекса файлов логов в `slogger_logs`, как при поиске на странице логов в UI.
+Каждый ответ инструмента SHALL быть объектом JSON и содержать поле `installation` со значением `server_name` инсталляции. Время SHALL отдаваться в ISO 8601 UTC. Строковые значения длиннее `MCP_MAX_STRING_LENGTH` (по умолчанию 500) SHALL обрезаться с явной пометкой об обрезке; исключение — `get_trace_data`. Ни один инструмент SHALL NOT изменять данные; допустимые побочные эффекты — построение кэша дерева трейса, как при открытии дерева в UI, построение динамических индексов трейсов инструментами `mcp-trace-queries`, как при поиске на странице трейсов в UI, и обновление индекса файлов логов в `search_slogger_logs`, как при поиске на странице логов в UI.
 
 #### Scenario: Поле installation
 - **WHEN** модель вызывает любой инструмент на инсталляции `stand`
@@ -17,21 +17,21 @@
 - **WHEN** тег трейса длиннее 500 символов, а модель вызывает `get_trace`
 - **THEN** в ответе тег обрезан до 500 символов и помечен как обрезанный
 
-### Requirement: list_services
+### Requirement: get_services
 
-Инструмент `list_services` с необязательным аргументом `query` SHALL возвращать сервисы инсталляции (`id`, `name`). С `query` SHALL возвращаться только сервисы, имя которых содержит `query` без учёта регистра.
+Инструмент `get_services` с необязательным аргументом `query` SHALL возвращать сервисы инсталляции (`id`, `name`). С `query` SHALL возвращаться только сервисы, имя которых содержит `query` без учёта регистра.
 
 #### Scenario: Все сервисы
-- **WHEN** модель вызывает `list_services` без аргументов
+- **WHEN** модель вызывает `get_services` без аргументов
 - **THEN** ответ содержит все сервисы с `id` и `name`
 
 #### Scenario: Поиск
-- **WHEN** есть сервисы `billing` и `auth`, а модель вызывает `list_services` с `query: "BILL"`
+- **WHEN** есть сервисы `billing` и `auth`, а модель вызывает `get_services` с `query: "BILL"`
 - **THEN** ответ содержит только `billing`
 
-### Requirement: get_data_range
+### Requirement: get_trace_time_range
 
-Инструмент `get_data_range` без аргументов SHALL возвращать первый и последний час, за которые хранятся трейсы (`first_hour`, `last_hour`). Если трейсов нет, оба значения SHALL быть `null`.
+Инструмент `get_trace_time_range` без аргументов SHALL возвращать первый и последний час, за которые хранятся трейсы (`first_hour`, `last_hour`). Если трейсов нет, оба значения SHALL быть `null`.
 
 #### Scenario: Есть трейсы
 - **WHEN** трейсы хранятся за часы с 2026-09-25 10:00 по 2026-09-28 14:00 UTC
@@ -41,21 +41,21 @@
 - **WHEN** трейсов нет
 - **THEN** `first_hour` и `last_hour` равны `null`
 
-### Requirement: list_incidents
+### Requirement: get_incidents
 
-Инструмент `list_incidents` с необязательными аргументами `status` (`opened` или `closed`), `watcher_id` и `page` SHALL возвращать инциденты смотрителей в порядке, в котором их показывает UI: открытые первыми, затем новые первыми. На инцидент: `id`, `status`, `first_event_at`, `last_event_at`, `events_count`, `closed_at` и смотритель — `id`, `name`, `type` и `service_ids` из его фильтра по трейсам (пустой список, если фильтр по сервисам не задан). Страница — до 50 инцидентов, ответ содержит `has_more`.
+Инструмент `get_incidents` с необязательными аргументами `status` (`opened` или `closed`), `watcher_id` и `page` SHALL возвращать инциденты смотрителей в порядке, в котором их показывает UI: открытые первыми, затем новые первыми. На инцидент: `id`, `status`, `first_event_at`, `last_event_at`, `events_count`, `closed_at` и смотритель — `id`, `name`, `type` и `service_ids` из его фильтра по трейсам (пустой список, если фильтр по сервисам не задан). Страница — до 50 инцидентов, ответ содержит `has_more`.
 
 #### Scenario: Открытые инциденты
-- **WHEN** модель вызывает `list_incidents` с `status: "opened"`
+- **WHEN** модель вызывает `get_incidents` с `status: "opened"`
 - **THEN** ответ содержит только открытые инциденты, у каждого есть смотритель с `name`, `type` и `service_ids`
 
 #### Scenario: Несколько страниц
-- **WHEN** инцидентов 70, и модель вызывает `list_incidents` без `page`
+- **WHEN** инцидентов 70, и модель вызывает `get_incidents` без `page`
 - **THEN** ответ содержит 50 инцидентов и `has_more: true`
 
 ### Requirement: get_incident_events
 
-Инструмент `get_incident_events` с аргументами `incident_id` и необязательным `page` SHALL возвращать инцидент (как в `list_incidents`) и его события: `occurred_at` и числа события под теми именами, под которыми они хранятся для типа смотрителя. Страница — до 50 событий, ответ содержит `has_more`. Неизвестный `incident_id` SHALL давать ошибку инструмента.
+Инструмент `get_incident_events` с аргументами `incident_id` и необязательным `page` SHALL возвращать инцидент (как в `get_incidents`) и его события: `occurred_at` и числа события под теми именами, под которыми они хранятся для типа смотрителя. Страница — до 50 событий, ответ содержит `has_more`. Неизвестный `incident_id` SHALL давать ошибку инструмента.
 
 #### Scenario: События инцидента
 - **WHEN** модель вызывает `get_incident_events` с `id` существующего инцидента
@@ -111,36 +111,36 @@
 - **WHEN** модель вызывает `get_trace_tree` с несуществующим `trace_id`
 - **THEN** ответ — ошибка инструмента с текстом, что трейс не найден
 
-### Requirement: find_in_trace_tree
+### Requirement: search_trace_tree
 
-Инструмент `find_in_trace_tree` с аргументами `trace_id` и хотя бы одним из фильтров `service_ids`, `types`, `tags`, `statuses` SHALL возвращать только узлы дерева, подходящие под фильтр (в формате узлов `get_trace_tree`, но без `children_count`), не больше `MCP_TREE_NODES_LIMIT`, их общее число `matched_count` и признак `truncated`, если совпадений больше, чем отдано. Пока дерево не построено, ответ SHALL быть тем же статусом `tree_building`, что у `get_trace_tree`, и SHALL NOT запускать построение сам.
+Инструмент `search_trace_tree` с аргументами `trace_id` и хотя бы одним из фильтров `service_ids`, `types`, `tags`, `statuses` SHALL возвращать только узлы дерева, подходящие под фильтр (в формате узлов `get_trace_tree`, но без `children_count`), не больше `MCP_TREE_NODES_LIMIT`, их общее число `matched_count` и признак `truncated`, если совпадений больше, чем отдано. Пока дерево не построено, ответ SHALL быть тем же статусом `tree_building`, что у `get_trace_tree`, и SHALL NOT запускать построение сам.
 
 #### Scenario: Поиск упавших узлов
-- **WHEN** дерево построено, и модель вызывает `find_in_trace_tree` с `statuses: ["failed"]`
+- **WHEN** дерево построено, и модель вызывает `search_trace_tree` с `statuses: ["failed"]`
 - **THEN** ответ содержит только узлы со статусом `failed`, `matched_count` и `truncated`
 
 #### Scenario: Без фильтров
-- **WHEN** модель вызывает `find_in_trace_tree` только с `trace_id`
+- **WHEN** модель вызывает `search_trace_tree` только с `trace_id`
 - **THEN** ответ — ошибка JSON-RPC `-32602`
 
 #### Scenario: Дерево не построено
-- **WHEN** дерево трейса не строилось, и модель вызывает `find_in_trace_tree`
+- **WHEN** дерево трейса не строилось, и модель вызывает `search_trace_tree`
 - **THEN** ответ — статус `tree_building` с подсказкой сначала вызвать `get_trace_tree`
 
-### Requirement: slogger_logs
+### Requirement: search_slogger_logs
 
-Инструмент `slogger_logs` SHALL искать записи логов самого SLogger (не сервисов клиентов) по источникам модуля Logs и возвращать их новыми первыми. Аргументы: `source` (обязательный, имя источника из настроек модуля Logs), необязательные `levels` (имена уровней формата источника без учёта регистра, например `error`, `critical`), `from`, `to` (ISO 8601), `query` (текст) и `limit` (до 50, по умолчанию 20). На запись: `time`, `level`, `file` (имя файла), `text` (обрезается по общему правилу). Ответ SHALL содержать `total` найденных записей. Неизвестный источник SHALL давать ошибку инструмента `source_not_found` со списком источников, неизвестный уровень — `level_not_found` со списком уровней источника, неверное время — `invalid_time`. Пока файлы источника индексируются, ответ SHALL быть статусом `{"status": "indexing", "retry_after_seconds": 5, ...}` без `isError`. Описание инструмента SHALL говорить, что это логи SLogger, а не сервисов.
+Инструмент `search_slogger_logs` SHALL искать записи логов самого SLogger (не сервисов клиентов) по источникам модуля Logs и возвращать их новыми первыми. Аргументы: `source` (обязательный, имя источника из настроек модуля Logs), необязательные `levels` (имена уровней формата источника без учёта регистра, например `error`, `critical`), `from`, `to` (ISO 8601), `query` (текст) и `limit` (до 50, по умолчанию 20). На запись: `time`, `level`, `file` (имя файла), `text` (обрезается по общему правилу). Ответ SHALL содержать `total` найденных записей. Неизвестный источник SHALL давать ошибку инструмента `source_not_found` со списком источников, неизвестный уровень — `level_not_found` со списком уровней источника, неверное время — `invalid_time`. Пока файлы источника индексируются, ответ SHALL быть статусом `{"status": "indexing", "retry_after_seconds": 5, ...}` без `isError`. Описание инструмента SHALL говорить, что это логи SLogger, а не сервисов.
 
 #### Scenario: Ошибки Laravel за час
-- **WHEN** модель вызывает `slogger_logs` с `source: "Laravel"`, `levels: ["error"]` и периодом в час
+- **WHEN** модель вызывает `search_slogger_logs` с `source: "Laravel"`, `levels: ["error"]` и периодом в час
 - **THEN** ответ содержит записи уровня `ERROR` за этот час, новые первыми, с `time`, `level`, `file` и `text`
 
 #### Scenario: Неизвестный источник
-- **WHEN** модель вызывает `slogger_logs` с `source: "Mongo"`
+- **WHEN** модель вызывает `search_slogger_logs` с `source: "Mongo"`
 - **THEN** ответ — ошибка инструмента `source_not_found` со списком источников
 
 #### Scenario: Неизвестный уровень
-- **WHEN** модель вызывает `slogger_logs` с `source: "Laravel"` и `levels: ["fatal"]`
+- **WHEN** модель вызывает `search_slogger_logs` с `source: "Laravel"` и `levels: ["fatal"]`
 - **THEN** ответ — ошибка инструмента `level_not_found` со списком уровней Laravel
 
 #### Scenario: Идёт индексация

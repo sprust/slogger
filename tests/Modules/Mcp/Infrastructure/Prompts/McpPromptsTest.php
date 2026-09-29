@@ -29,7 +29,7 @@ class McpPromptsTest extends TestCase
         $this->assertStringContainsString('"pms"', $text);
         $this->assertStringContainsString('last 3 hours', $text);
 
-        foreach (['list_services', 'top_trace_groups', 'list_incidents', 'compare_trace_groups', 'find_traces', 'get_trace_tree'] as $tool) {
+        foreach (['get_services', 'aggregate_traces', 'get_incidents', 'compare_trace_groups', 'search_traces', 'get_trace_tree'] as $tool) {
             $this->assertStringContainsString($tool, $text);
         }
     }
@@ -40,8 +40,8 @@ class McpPromptsTest extends TestCase
 
         $this->assertStringContainsString('of type "request"', $text);
         $this->assertStringContainsString('types ["request"]', $text);
-        $this->assertStringContainsString('top_trace_groups', $text);
-        $this->assertStringContainsString('find_in_trace_tree', $text);
+        $this->assertStringContainsString('aggregate_traces', $text);
+        $this->assertStringContainsString('search_trace_tree', $text);
     }
 
     public function testLatencyPromptWithoutTypeDoesNotMentionIt(): void

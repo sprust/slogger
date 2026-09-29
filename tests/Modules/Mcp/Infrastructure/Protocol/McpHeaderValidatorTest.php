@@ -62,7 +62,7 @@ class McpHeaderValidatorTest extends TestCase
     {
         $this->failure(
             $this->message('tools/call', ['name' => 'get_trace']),
-            new McpRequestHeaders('2026-07-28', 'tools/call', 'list_services')
+            new McpRequestHeaders('2026-07-28', 'tools/call', 'get_services')
         );
     }
 

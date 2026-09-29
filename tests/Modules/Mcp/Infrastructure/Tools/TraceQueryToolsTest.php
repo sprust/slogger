@@ -13,13 +13,13 @@ use App\Modules\Mcp\Domain\Services\McpTracePeriodMapper;
 use App\Modules\Mcp\Domain\Services\McpTracePeriodResolver;
 use App\Modules\Mcp\Entities\McpSettingsObject;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolArguments;
-use App\Modules\Mcp\Infrastructure\Tools\FindTracesTool;
-use App\Modules\Mcp\Infrastructure\Tools\ListTraceDataFieldsTool;
+use App\Modules\Mcp\Infrastructure\Tools\SearchTracesTool;
+use App\Modules\Mcp\Infrastructure\Tools\GetTraceDataFieldsTool;
 use App\Modules\Mcp\Infrastructure\Tools\McpToolFormatter;
 use App\Modules\Mcp\Infrastructure\Tools\McpToolServiceFinder;
 use App\Modules\Mcp\Infrastructure\Tools\McpToolTimeParser;
 use App\Modules\Mcp\Infrastructure\Tools\McpToolTraceScopeReader;
-use App\Modules\Mcp\Infrastructure\Tools\TraceFacetsTool;
+use App\Modules\Mcp\Infrastructure\Tools\GetTraceFacetsTool;
 use App\Modules\Service\Domain\Actions\FindServicesAction;
 use App\Modules\Service\Entities\ServiceObject;
 use App\Modules\Trace\Domain\Actions\Queries\FindStatusesAction;
@@ -72,7 +72,7 @@ class TraceQueryToolsTest extends TestCase
         $this->assertSame('idx-1', $result->data['index_id']);
     }
 
-    public function testFindTraces(): void
+    public function testSearchTraces(): void
     {
         $result = $this->findTool()->call(
             new McpToolArguments([
@@ -129,7 +129,7 @@ class TraceQueryToolsTest extends TestCase
         $this->assertSame(2, $this->captured?->page);
     }
 
-    public function testFindTracesErrors(): void
+    public function testSearchTracesErrors(): void
     {
         $this->assertToolError('invalid_data_filter', $this->findTool(), [...self::SCOPE, 'data_filter' => ['status ~ 5']]);
         $this->assertToolError(
@@ -150,7 +150,7 @@ class TraceQueryToolsTest extends TestCase
             'period_too_wide',
             $this->facetsTool(),
             [...self::SCOPE, 'from' => '2026-09-27T06:00:00Z'],
-            'top_trace_groups'
+            'aggregate_traces'
         );
         $this->assertToolError('service_not_found', $this->findTool(), [...self::SCOPE, 'service_ids' => [2, 999]], '999');
         $this->assertNull($this->captured);
@@ -177,7 +177,7 @@ class TraceQueryToolsTest extends TestCase
      */
     private function assertToolError(string $error, object $tool, array $arguments, ?string $hintPart = null): void
     {
-        /** @var FindTracesTool|TraceFacetsTool $tool */
+        /** @var SearchTracesTool|GetTraceFacetsTool $tool */
         $result = $tool->call(new McpToolArguments($arguments));
 
         $this->assertTrue($result->isError, $error);
@@ -188,7 +188,7 @@ class TraceQueryToolsTest extends TestCase
         }
     }
 
-    private function facetsTool(?Throwable $exception = null): TraceFacetsTool
+    private function facetsTool(?Throwable $exception = null): GetTraceFacetsTool
     {
         $types = $this->createMock(FindTypesAction::class);
 
@@ -207,7 +207,7 @@ class TraceQueryToolsTest extends TestCase
         $tags = $this->createMock(FindTagsAction::class);
         $tags->method('handle')->willReturn([]);
 
-        return new TraceFacetsTool(
+        return new GetTraceFacetsTool(
             new FindMcpTraceFacetsAction(
                 $types,
                 $statuses,
@@ -243,7 +243,7 @@ class TraceQueryToolsTest extends TestCase
     /**
      * @param string[] $traceIds
      */
-    private function findTool(array $traceIds = ['t1'], ?Throwable $exception = null): FindTracesTool
+    private function findTool(array $traceIds = ['t1'], ?Throwable $exception = null): SearchTracesTool
     {
         $search = $this->createMock(FindTracesAction::class);
 
@@ -260,7 +260,7 @@ class TraceQueryToolsTest extends TestCase
             });
         }
 
-        return new FindTracesTool(
+        return new SearchTracesTool(
             new FindMcpTracesAction(
                 $search,
                 new McpTraceDataFilterParser(),
@@ -272,7 +272,7 @@ class TraceQueryToolsTest extends TestCase
         );
     }
 
-    private function dataFieldsTool(): ListTraceDataFieldsTool
+    private function dataFieldsTool(): GetTraceDataFieldsTool
     {
         $search = $this->createMock(FindTracesAction::class);
         $search->method('handle')->willReturn($this->traceItems(['t1']));
@@ -282,7 +282,7 @@ class TraceQueryToolsTest extends TestCase
             $this->detailWithData('t1', [$this->dataNode('request', null, [$this->dataNode('request.uri', '/api/pay')])])
         );
 
-        return new ListTraceDataFieldsTool(
+        return new GetTraceDataFieldsTool(
             new FindMcpTraceDataFieldsAction(
                 $search,
                 $detail,

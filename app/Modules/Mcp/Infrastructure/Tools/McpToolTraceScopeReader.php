@@ -36,7 +36,7 @@ readonly class McpToolTraceScopeReader
             new McpToolProperty(
                 name: 'service_ids',
                 type: McpToolPropertyTypeEnum::IntegerList,
-                description: 'Service ids from list_services. All services when omitted.',
+                description: 'Service ids from get_services. All services when omitted.',
                 max: self::MAX_SERVICES
             ),
             new McpToolProperty(
@@ -93,7 +93,7 @@ readonly class McpToolTraceScopeReader
                 error: 'period_too_wide',
                 hint: sprintf(
                     'The period rounded to hours is longer than %d hours. Find the window you need with '
-                    . 'top_trace_groups by hour first, then query at most %d hours.',
+                    . 'aggregate_traces by hour first, then query at most %d hours.',
                     $exception->maxHours,
                     $exception->maxHours
                 )

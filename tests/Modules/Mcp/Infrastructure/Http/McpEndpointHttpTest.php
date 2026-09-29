@@ -4,7 +4,7 @@ namespace Tests\Modules\Mcp\Infrastructure\Http;
 
 use App\Modules\Mcp\Infrastructure\McpServiceProvider;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolRegistry;
-use App\Modules\Mcp\Infrastructure\Tools\FindTracesTool;
+use App\Modules\Mcp\Infrastructure\Tools\SearchTracesTool;
 use App\Modules\Mcp\Repositories\McpRepository;
 use Illuminate\Support\Carbon;
 use Illuminate\Testing\TestResponse;
@@ -20,22 +20,22 @@ class McpEndpointHttpTest extends TestCase
     private const string TOKEN = 'valid-token';
 
     private const array TOOL_NAMES = [
-        'list_services',
-        'get_data_range',
-        'trace_facets',
-        'find_traces',
-        'list_trace_data_fields',
-        'top_trace_groups',
+        'get_services',
+        'get_trace_time_range',
+        'get_trace_facets',
+        'search_traces',
+        'get_trace_data_fields',
+        'aggregate_traces',
         'compare_trace_groups',
-        'get_index_status',
-        'list_dynamic_indexes',
-        'list_incidents',
+        'get_trace_index_status',
+        'get_trace_indexes',
+        'get_incidents',
         'get_incident_events',
         'get_trace',
         'get_trace_data',
         'get_trace_tree',
-        'find_in_trace_tree',
-        'slogger_logs',
+        'search_trace_tree',
+        'search_slogger_logs',
     ];
 
     private McpRepository&MockObject $repository;
@@ -181,10 +181,10 @@ class McpEndpointHttpTest extends TestCase
     {
         $this->app->instance(
             McpToolRegistry::class,
-            new McpToolRegistry([$this->app->make(FindTracesTool::class)])
+            new McpToolRegistry([$this->app->make(SearchTracesTool::class)])
         );
 
-        $response = $this->rpc('tools/call', ['name' => 'find_traces', 'arguments' => ['to' => '2026-09-28T12:00:00Z']])
+        $response = $this->rpc('tools/call', ['name' => 'search_traces', 'arguments' => ['to' => '2026-09-28T12:00:00Z']])
             ->assertOk()
             ->assertJsonPath('error.code', -32602);
 
@@ -193,7 +193,7 @@ class McpEndpointHttpTest extends TestCase
         $response = $this->rpc(
             'tools/call',
             [
-                'name'      => 'find_traces',
+                'name'      => 'search_traces',
                 'arguments' => ['from' => '2026-09-28T10:00:00Z', 'to' => '2026-09-28T12:00:00Z', 'duration_from' => 'abc'],
             ]
         )
@@ -204,7 +204,7 @@ class McpEndpointHttpTest extends TestCase
 
         $this->rpc('tools/list')
             ->assertOk()
-            ->assertJsonPath('result.tools.0.name', 'find_traces')
+            ->assertJsonPath('result.tools.0.name', 'search_traces')
             ->assertJsonPath('result.tools.0.annotations.readOnlyHint', true)
             ->assertJsonPath('result.tools.0.inputSchema.properties.duration_from.type', 'number');
     }

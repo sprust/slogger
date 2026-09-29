@@ -18,7 +18,7 @@ use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolSchema;
 use App\Modules\Mcp\Parameters\FindMcpTraceFacetsParameters;
 use App\Modules\Trace\Entities\Trace\TraceStringFieldObject;
 
-readonly class TraceFacetsTool implements McpToolInterface
+readonly class GetTraceFacetsTool implements McpToolInterface
 {
     private const int MAX_FILTER_VALUES = 20;
 
@@ -32,7 +32,7 @@ readonly class TraceFacetsTool implements McpToolInterface
 
     public function name(): string
     {
-        return 'trace_facets';
+        return 'get_trace_facets';
     }
 
     public function title(): string

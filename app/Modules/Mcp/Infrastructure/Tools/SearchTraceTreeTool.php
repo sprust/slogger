@@ -16,7 +16,7 @@ use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolResult;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolSchema;
 use App\Modules\Trace\Parameters\TraceTreeFilterParameters;
 
-readonly class FindInTraceTreeTool implements McpToolInterface
+readonly class SearchTraceTreeTool implements McpToolInterface
 {
     private const int MAX_FILTER_VALUES = 20;
 
@@ -29,7 +29,7 @@ readonly class FindInTraceTreeTool implements McpToolInterface
 
     public function name(): string
     {
-        return 'find_in_trace_tree';
+        return 'search_trace_tree';
     }
 
     public function title(): string
@@ -57,7 +57,7 @@ readonly class FindInTraceTreeTool implements McpToolInterface
             new McpToolProperty(
                 name: 'service_ids',
                 type: McpToolPropertyTypeEnum::IntegerList,
-                description: 'Service ids from list_services.',
+                description: 'Service ids from get_services.',
                 max: self::MAX_FILTER_VALUES
             ),
             new McpToolProperty(

@@ -142,7 +142,7 @@
 - **THEN** ответ — `result` с `isError: true` и текстом ошибки, без поля `error` JSON-RPC
 
 #### Scenario: Успешный вызов
-- **WHEN** `tools/call` вызывает `list_services` без аргументов
+- **WHEN** `tools/call` вызывает `get_services` без аргументов
 - **THEN** `result.content[0].type` равно `"text"`, а `result.structuredContent` равен разобранному `result.content[0].text`
 
 ### Requirement: Имя инсталляции

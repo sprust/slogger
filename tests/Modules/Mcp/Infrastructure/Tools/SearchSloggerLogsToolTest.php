@@ -17,10 +17,10 @@ use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolArguments;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolResult;
 use App\Modules\Mcp\Infrastructure\Tools\McpToolFormatter;
 use App\Modules\Mcp\Infrastructure\Tools\McpToolTimeParser;
-use App\Modules\Mcp\Infrastructure\Tools\SloggerLogsTool;
+use App\Modules\Mcp\Infrastructure\Tools\SearchSloggerLogsTool;
 use Tests\TestCase;
 
-class SloggerLogsToolTest extends TestCase
+class SearchSloggerLogsToolTest extends TestCase
 {
     private ?FindLogEntriesParameters $captured = null;
 
@@ -139,7 +139,7 @@ class SloggerLogsToolTest extends TestCase
             );
         });
 
-        return new SloggerLogsTool(
+        return new SearchSloggerLogsTool(
             new FindMcpLogEntriesAction($files, $entries, $this->app->make(LogFormatRegistry::class)),
             new McpToolTimeParser(),
             new McpToolFormatter()

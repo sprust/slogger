@@ -237,13 +237,13 @@ SLogger is an MCP server (protocol revision `2026-07-28`, Streamable HTTP at `PO
 
 | Tools | What they answer |
 |---|---|
-| `list_services`, `get_data_range` | which services there are, for which hours traces are stored |
-| `top_trace_groups`, `compare_trace_groups` | overview in one call: traces grouped by service, type, status, hour or 10 minutes with count and duration percentiles; what failed traces have in common that the others do not (by type, service, tag or a data key) |
-| `trace_facets`, `find_traces`, `list_trace_data_fields` | types, statuses and tags of a period; the traces themselves, with filters and a filter by data; the data keys of a type |
-| `list_incidents`, `get_incident_events` | watcher incidents and the numbers behind them |
-| `get_trace`, `get_trace_data`, `get_trace_tree`, `find_in_trace_tree` | one trace, its data, its call tree and the failed or slow calls in it |
-| `get_index_status`, `list_dynamic_indexes` | the dynamic indexes the queries build |
-| `slogger_logs` | the logs of SLogger itself, not of the services |
+| `get_services`, `get_trace_time_range` | which services there are, for which hours traces are stored |
+| `aggregate_traces`, `compare_trace_groups` | overview in one call: traces grouped by service, type, status, hour or 10 minutes with count and duration percentiles; what failed traces have in common that the others do not (by type, service, tag or a data key) |
+| `get_trace_facets`, `search_traces`, `get_trace_data_fields` | types, statuses and tags of a period; the traces themselves, with filters and a filter by data; the data keys of a type |
+| `get_incidents`, `get_incident_events` | watcher incidents and the numbers behind them |
+| `get_trace`, `get_trace_data`, `get_trace_tree`, `search_trace_tree` | one trace, its data, its call tree and the failed or slow calls in it |
+| `get_trace_index_status`, `get_trace_indexes` | the dynamic indexes the queries build |
+| `search_slogger_logs` | the logs of SLogger itself, not of the services |
 
 Tools that search traces over a period build the same dynamic indexes as the traces page, so the period is `from`/`to` of at most 24 hours rounded to whole hours, and an index is reused whenever only the filter values change. A tool whose data has to be prepared first answers `index_building` or `tree_building` at once and is called again later, instead of holding the request open.
 

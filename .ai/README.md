@@ -152,16 +152,16 @@ responses, no sessions, no SSE) at `POST /mcp` (`routes/mcp.php`), outside the a
   validator rules. A tool calls only this module's bridges (`Domain/Actions/Bridges`), never
   another module. New tools are registered in `McpServiceProvider::TOOLS`; the order there
   is the order of `tools/list`.
-- Tools that build a trace dynamic index: `TraceFacetsTool`, `FindTracesTool`,
-  `ListTraceDataFieldsTool`, `TopTraceGroupsTool`, `CompareTraceGroupsTool`. They share the
+- Tools that build a trace dynamic index: `GetTraceFacetsTool`, `SearchTracesTool`,
+  `GetTraceDataFieldsTool`, `AggregateTracesTool`, `CompareTraceGroupsTool`. They share the
   indexes with the UI and answer `index_building` (`McpToolFormatter::indexBuilding`) instead of
   waiting; `McpTraceIndexExceptionTranslator` turns the index exceptions of `Trace` into those of
   `Mcp`. They read `service_ids` (optional), `from`, `to` through `McpToolTraceScopeReader`: the
   period is rounded to hours and at most 24 hours (`McpTracePeriodResolver`). `data_filter` of
-  `find_traces` is parsed by `McpTraceDataFilterParser`. The groups and the comparison are one
+  `search_traces` is parsed by `McpTraceDataFilterParser`. The groups and the comparison are one
   aggregation over the hourly collections of the period (`Trace\Repositories\TraceGroupsRepository`,
   `$unionWith`).
-- `GetIndexStatusTool` and `ListDynamicIndexesTool` only read the indexes. `SloggerLogsTool` reads
+- `GetTraceIndexStatusTool` and `GetTraceIndexesTool` only read the indexes. `SearchSloggerLogsTool` reads
   the logs of SLogger itself through the `Logs` module.
 - `Infrastructure/Prompts/*Prompt` — the prompts, registered in `McpServiceProvider`.
 - `resources/mcp/instructions.md` — the instructions the model gets, in English.

@@ -16,7 +16,7 @@ use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolResult;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolSchema;
 use App\Modules\Mcp\Parameters\FindMcpLogEntriesParameters;
 
-readonly class SloggerLogsTool implements McpToolInterface
+readonly class SearchSloggerLogsTool implements McpToolInterface
 {
     private const int DEFAULT_LIMIT = 20;
 
@@ -29,7 +29,7 @@ readonly class SloggerLogsTool implements McpToolInterface
 
     public function name(): string
     {
-        return 'slogger_logs';
+        return 'search_slogger_logs';
     }
 
     public function title(): string

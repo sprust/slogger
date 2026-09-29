@@ -46,7 +46,7 @@ readonly class McpToolFormatter
         return $this->error(
             error: 'service_not_found',
             hint: sprintf(
-                'No services with ids [%s]. Call list_services to get the ids.',
+                'No services with ids [%s]. Call get_services to get the ids.',
                 implode(', ', $serviceIds)
             )
         );
@@ -61,7 +61,7 @@ readonly class McpToolFormatter
                 'retry_after_seconds' => 10,
                 'hint'                => 'The trace index for these filters and hours is being built. '
                     . 'Do something else useful meanwhile, then repeat the SAME call, or follow the index '
-                    . 'with get_index_status. Another set of filters or other hours would start building '
+                    . 'with get_trace_index_status. Another set of filters or other hours would start building '
                     . 'another index.',
             ]
         );

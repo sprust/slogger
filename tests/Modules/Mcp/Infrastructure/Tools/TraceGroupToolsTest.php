@@ -14,7 +14,7 @@ use App\Modules\Mcp\Infrastructure\Tools\McpToolFormatter;
 use App\Modules\Mcp\Infrastructure\Tools\McpToolServiceFinder;
 use App\Modules\Mcp\Infrastructure\Tools\McpToolTimeParser;
 use App\Modules\Mcp\Infrastructure\Tools\McpToolTraceScopeReader;
-use App\Modules\Mcp\Infrastructure\Tools\TopTraceGroupsTool;
+use App\Modules\Mcp\Infrastructure\Tools\AggregateTracesTool;
 use App\Modules\Service\Domain\Actions\FindServicesAction;
 use App\Modules\Service\Entities\ServiceObject;
 use App\Modules\Trace\Domain\Actions\Queries\CompareTraceGroupsAction;
@@ -173,7 +173,7 @@ class TraceGroupToolsTest extends TestCase
         $this->assertNull($this->compareParameters);
     }
 
-    private function topTool(?Throwable $exception = null): TopTraceGroupsTool
+    private function topTool(?Throwable $exception = null): AggregateTracesTool
     {
         $action = $this->createMock(FindTraceGroupsAction::class);
 
@@ -202,7 +202,7 @@ class TraceGroupToolsTest extends TestCase
             });
         }
 
-        return new TopTraceGroupsTool(
+        return new AggregateTracesTool(
             new FindMcpTraceGroupsAction($action, new McpTraceIndexExceptionTranslator(), new McpTracePeriodMapper()),
             $this->scopeReader(),
             $this->serviceFinder(),

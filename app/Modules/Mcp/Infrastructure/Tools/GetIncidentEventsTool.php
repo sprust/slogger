@@ -46,7 +46,7 @@ readonly class GetIncidentEventsTool implements McpToolInterface
             new McpToolProperty(
                 name: 'incident_id',
                 type: McpToolPropertyTypeEnum::String,
-                description: 'Incident id from list_incidents.',
+                description: 'Incident id from get_incidents.',
                 required: true,
                 max: 64
             ),
@@ -69,7 +69,7 @@ readonly class GetIncidentEventsTool implements McpToolInterface
         if (is_null($result)) {
             return $this->formatter->error(
                 error: 'incident_not_found',
-                hint: "Incident [$incidentId] not found. Take ids from list_incidents of the same installation."
+                hint: "Incident [$incidentId] not found. Take ids from get_incidents of the same installation."
             );
         }
 

@@ -18,7 +18,7 @@ use App\Modules\Mcp\Parameters\FindMcpTraceGroupsParameters;
 use App\Modules\Trace\Entities\Trace\Groups\TraceGroupObject;
 use App\Modules\Trace\Enums\TraceGroupFieldEnum;
 
-readonly class TopTraceGroupsTool implements McpToolInterface
+readonly class AggregateTracesTool implements McpToolInterface
 {
     private const int MAX_FILTER_VALUES = 20;
 
@@ -32,7 +32,7 @@ readonly class TopTraceGroupsTool implements McpToolInterface
 
     public function name(): string
     {
-        return 'top_trace_groups';
+        return 'aggregate_traces';
     }
 
     public function title(): string
@@ -47,7 +47,7 @@ readonly class TopTraceGroupsTool implements McpToolInterface
             . 'the two times), with count, average, p95 and max duration and the slowest trace of each group. '
             . 'Groups by time come in time order, the rest most frequent first; at most %d groups. Use it '
             . 'first for overview questions (which services and types, when failures happen, how latency '
-            . 'changes), then find_traces for the traces themselves. It uses the same index as find_traces '
+            . 'changes), then search_traces for the traces themselves. It uses the same index as search_traces '
             . 'with the same filters. ',
             FindMcpTraceGroupsAction::MAX_FIELDS,
             FindMcpTraceGroupsAction::LIMIT

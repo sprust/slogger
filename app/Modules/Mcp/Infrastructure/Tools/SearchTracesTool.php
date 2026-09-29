@@ -21,7 +21,7 @@ use App\Modules\Trace\Entities\Trace\Data\TraceDataAdditionalFieldObject;
 use App\Modules\Trace\Entities\Trace\TraceItemObject;
 use stdClass;
 
-readonly class FindTracesTool implements McpToolInterface
+readonly class SearchTracesTool implements McpToolInterface
 {
     private const int MAX_FILTER_VALUES = 20;
     private const int MAX_DATA_FILTER   = 3;
@@ -36,7 +36,7 @@ readonly class FindTracesTool implements McpToolInterface
 
     public function name(): string
     {
-        return 'find_traces';
+        return 'search_traces';
     }
 
     public function title(): string
@@ -49,7 +49,7 @@ readonly class FindTracesTool implements McpToolInterface
         return sprintf(
             'Traces of a service over a period, newest first, %d per page, with filters, a filter by '
             . 'fields of their data and chosen data fields returned with each trace. Use '
-            . 'list_trace_data_fields to learn the data keys first. %s',
+            . 'get_trace_data_fields to learn the data keys first. %s',
             FindMcpTracesAction::PER_PAGE,
             McpToolTraceScopeReader::INDEX_NOTE
         );

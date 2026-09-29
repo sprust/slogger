@@ -10,7 +10,7 @@ use App\Modules\Mcp\Domain\Services\McpTraceTreeNodeFactory;
 use App\Modules\Mcp\Entities\McpSettingsObject;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolArguments;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolArgumentsException;
-use App\Modules\Mcp\Infrastructure\Tools\FindInTraceTreeTool;
+use App\Modules\Mcp\Infrastructure\Tools\SearchTraceTreeTool;
 use App\Modules\Mcp\Infrastructure\Tools\GetTraceDataTool;
 use App\Modules\Mcp\Infrastructure\Tools\GetTraceTool;
 use App\Modules\Mcp\Infrastructure\Tools\GetTraceTreeTool;
@@ -230,9 +230,9 @@ class TraceToolsTest extends TestCase
         );
     }
 
-    private function findTool(): FindInTraceTreeTool
+    private function findTool(): SearchTraceTreeTool
     {
-        return new FindInTraceTreeTool(
+        return new SearchTraceTreeTool(
             new FindMcpTraceTreeFilteredAction($this->stateAction, $this->filteredAction, $this->nodeFactory()),
             $this->settings(),
             new McpToolFormatter()

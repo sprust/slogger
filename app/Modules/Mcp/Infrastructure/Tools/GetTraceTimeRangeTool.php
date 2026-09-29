@@ -10,7 +10,7 @@ use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolInterface;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolResult;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolSchema;
 
-readonly class GetDataRangeTool implements McpToolInterface
+readonly class GetTraceTimeRangeTool implements McpToolInterface
 {
     public function __construct(
         private FindMcpDataRangeAction $findMcpDataRangeAction,
@@ -20,7 +20,7 @@ readonly class GetDataRangeTool implements McpToolInterface
 
     public function name(): string
     {
-        return 'get_data_range';
+        return 'get_trace_time_range';
     }
 
     public function title(): string
