@@ -11,6 +11,8 @@ use App\Services\Mongo\MongoConnectionFactory;
 use Illuminate\Support\Arr;
 use RuntimeException;
 use SConcur\Bson\Int64;
+use SConcur\Exceptions\TaskErrorException;
+use SConcur\Exceptions\TaskExecutionException;
 use SConcur\Features\Mongodb\Connection\Client;
 use SConcur\Features\Mongodb\Connection\Database;
 
@@ -64,6 +66,10 @@ readonly class DatabaseStatRepository
 
             foreach ($this->collectionNames($database) as $collectionName) {
                 $collection = $this->collectionStat($database, $collectionName);
+
+                if (is_null($collection)) {
+                    continue;
+                }
 
                 $totalDocumentsCount += $collection->count;
 
@@ -137,24 +143,35 @@ readonly class DatabaseStatRepository
         return $names;
     }
 
-    private function collectionStat(Database $database, string $collectionName): DatabaseCollectionStatObject
+    /**
+     * Null when the collection is gone since it was listed: the hourly trace cleaning drops them.
+     */
+    private function collectionStat(Database $database, string $collectionName): ?DatabaseCollectionStatObject
     {
         $collection = $database->selectCollection($collectionName);
 
-        $storageStats = iterator_to_array(
-            $collection->aggregate([
-                [
-                    '$collStats' => [
-                        'storageStats' => (object) [],
+        try {
+            $storageStats = iterator_to_array(
+                $collection->aggregate([
+                    [
+                        '$collStats' => [
+                            'storageStats' => (object) [],
+                        ],
                     ],
-                ],
-            ])
-        )[0]['storageStats'];
+                ])
+            )[0]['storageStats'];
 
-        $indexUsageByName = Arr::mapWithKeys(
-            iterator_to_array($collection->aggregate([['$indexStats' => (object) []]])),
-            fn(array $indexStat): array => [$indexStat['name'] => (int) $this->number($indexStat['accesses']['ops'])]
-        );
+            $indexUsageByName = Arr::mapWithKeys(
+                iterator_to_array($collection->aggregate([['$indexStats' => (object) []]])),
+                fn(array $indexStat): array => [$indexStat['name'] => (int) $this->number($indexStat['accesses']['ops'])]
+            );
+        } catch (TaskErrorException|TaskExecutionException $exception) {
+            if ($this->collectionExists($database, $collectionName)) {
+                throw $exception;
+            }
+
+            return null;
+        }
 
         return new DatabaseCollectionStatObject(
             name: $collectionName,
@@ -177,6 +194,17 @@ readonly class DatabaseStatRepository
                 )
             ),
         );
+    }
+
+    private function collectionExists(Database $database, string $collectionName): bool
+    {
+        $result = $database->command([
+            'listCollections' => 1,
+            'filter'          => ['name' => $collectionName],
+            'nameOnly'        => true,
+        ]);
+
+        return count($result['cursor']['firstBatch']) > 0;
     }
 
     private function bitesToMb(Int64|int|float $bites): float

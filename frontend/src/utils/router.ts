@@ -8,6 +8,7 @@ const TraceCleaner = () => import("../components/pages/trace-cleaner/TraceCleane
 const Logs = () => import("../components/pages/logs-viewer/Logs.vue")
 const Watchers = () => import("../components/pages/watchers/Watchers.vue")
 const Sconcur = () => import("../components/pages/sconcur/Sconcur.vue")
+const Mcps = () => import("../components/pages/mcps/Mcps.vue")
 
 export const routes = {
     login: {
@@ -37,6 +38,10 @@ export const routes = {
     sconcur: {
         path: '/sconcur',
         name: 'sconcur',
+    },
+    mcps: {
+        path: '/mcps',
+        name: 'mcps',
     },
 }
 
@@ -77,6 +82,11 @@ export const router = createRouter({
             path: routes.sconcur.path,
             component: Sconcur,
             name: routes.sconcur.name
+        },
+        {
+            path: routes.mcps.path,
+            component: Mcps,
+            name: routes.mcps.name
         },
     ],
 });

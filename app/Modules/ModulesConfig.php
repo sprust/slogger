@@ -10,6 +10,7 @@ use App\Modules\Common\Infrastructure\BaseServiceProvider;
 use App\Modules\Common\Infrastructure\CommonServiceProvider;
 use App\Modules\Dashboard\Infrastructure\DashboardProvider;
 use App\Modules\Logs\Infrastructure\LogsServiceProvider;
+use App\Modules\Mcp\Infrastructure\McpServiceProvider;
 use App\Modules\Notification\Infrastructure\NotificationServiceProvider;
 use App\Modules\Service\Infrastructure\ServiceServiceProvider;
 use App\Modules\Trace\Infrastructure\TraceServiceProvider;
@@ -34,6 +35,7 @@ class ModulesConfig
             LogsServiceProvider::class,
             WatcherServiceProvider::class,
             NotificationServiceProvider::class,
+            McpServiceProvider::class,
         ];
     }
 }

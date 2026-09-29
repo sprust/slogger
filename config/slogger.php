@@ -1,5 +1,6 @@
 <?php
 
+use App\Services\SLogger\RequestWatcher;
 use App\Services\SLogger\TaskWatcher;
 use SLoggerLaravel\Dispatcher\Items\Queue\Jobs\SendTracesJob;
 use SLoggerLaravel\Events\WatcherErrorEvent;
@@ -17,7 +18,6 @@ use SLoggerLaravel\Watchers\Children\NotificationWatcher;
 use SLoggerLaravel\Watchers\Children\ScheduleWatcher;
 use SLoggerLaravel\Watchers\Parents\CommandWatcher;
 use SLoggerLaravel\Watchers\Parents\JobWatcher;
-use SLoggerLaravel\Watchers\Parents\RequestWatcher;
 
 $defaultQueueConnection = env('QUEUE_CONNECTION');
 
@@ -263,6 +263,8 @@ return [
                     'hidden_paths'       => [
                         'admin-api/auth/*',
                         'admin-api/trace-aggregator/trace-metrics',
+                        // tool results are large and hold the data of other services' traces
+                        'mcp',
                     ],
 
                     // the same for the response body

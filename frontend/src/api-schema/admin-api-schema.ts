@@ -4286,6 +4286,264 @@ export namespace AdminApi {
 
   /**
  * No description
+ * @name McpsList
+ * @request GET:/admin-api/mcps
+ * @secure
+ * @response `200` `{
+    data: ({
+    id: number,
+    name: string,
+    token: string,
+    enabled: boolean,
+    requests_count: number,
+    last_used_at?: string | null,
+    created_at: string,
+    updated_at: string,
+
+})[],
+
+}` description
+*/
+  export namespace McpsList {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        id: number;
+        name: string;
+        token: string;
+        enabled: boolean;
+        requests_count: number;
+        last_used_at?: string | null;
+        created_at: string;
+        updated_at: string;
+      }[];
+    };
+  }
+
+  /**
+ * No description
+ * @name McpsCreate
+ * @request POST:/admin-api/mcps
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    name: string,
+    token: string,
+    enabled: boolean,
+    requests_count: number,
+    last_used_at?: string | null,
+    created_at: string,
+    updated_at: string,
+
+},
+
+}` description
+*/
+  export namespace McpsCreate {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = {
+      /**
+       * @minLength 1
+       * @maxLength 255
+       */
+      name: string;
+    };
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        id: number;
+        name: string;
+        token: string;
+        enabled: boolean;
+        requests_count: number;
+        last_used_at?: string | null;
+        created_at: string;
+        updated_at: string;
+      };
+    };
+  }
+
+  /**
+ * No description
+ * @name McpsSettingsList
+ * @request GET:/admin-api/mcps/settings
+ * @secure
+ * @response `200` `{
+    data: {
+    server_name: string,
+    endpoint_url: string,
+
+},
+
+}` description
+*/
+  export namespace McpsSettingsList {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        server_name: string;
+        endpoint_url: string;
+      };
+    };
+  }
+
+  /**
+ * No description
+ * @name McpsDetail
+ * @request GET:/admin-api/mcps/{id}
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    name: string,
+    token: string,
+    enabled: boolean,
+    requests_count: number,
+    last_used_at?: string | null,
+    created_at: string,
+    updated_at: string,
+
+},
+
+}` description
+*/
+  export namespace McpsDetail {
+    export type RequestParams = {
+      id: any;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        id: number;
+        name: string;
+        token: string;
+        enabled: boolean;
+        requests_count: number;
+        last_used_at?: string | null;
+        created_at: string;
+        updated_at: string;
+      };
+    };
+  }
+
+  /**
+ * No description
+ * @name McpsPartialUpdate
+ * @request PATCH:/admin-api/mcps/{id}
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    name: string,
+    token: string,
+    enabled: boolean,
+    requests_count: number,
+    last_used_at?: string | null,
+    created_at: string,
+    updated_at: string,
+
+},
+
+}` description
+*/
+  export namespace McpsPartialUpdate {
+    export type RequestParams = {
+      id: any;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = {
+      /**
+       * @minLength 1
+       * @maxLength 255
+       */
+      name: string;
+      enabled: boolean;
+    };
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        id: number;
+        name: string;
+        token: string;
+        enabled: boolean;
+        requests_count: number;
+        last_used_at?: string | null;
+        created_at: string;
+        updated_at: string;
+      };
+    };
+  }
+
+  /**
+   * No description
+   * @name McpsDelete
+   * @request DELETE:/admin-api/mcps/{id}
+   * @secure
+   * @response `200` `void` description
+   */
+  export namespace McpsDelete {
+    export type RequestParams = {
+      id: any;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
+  }
+
+  /**
+ * No description
+ * @name McpsTokenPartialUpdate
+ * @request PATCH:/admin-api/mcps/{id}/token
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    name: string,
+    token: string,
+    enabled: boolean,
+    requests_count: number,
+    last_used_at?: string | null,
+    created_at: string,
+    updated_at: string,
+
+},
+
+}` description
+*/
+  export namespace McpsTokenPartialUpdate {
+    export type RequestParams = {
+      id: any;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        id: number;
+        name: string;
+        token: string;
+        enabled: boolean;
+        requests_count: number;
+        last_used_at?: string | null;
+        created_at: string;
+        updated_at: string;
+      };
+    };
+  }
+
+  /**
+ * No description
  * @name LogsEntriesCreate
  * @request POST:/admin-api/logs/entries
  * @secure
@@ -9302,6 +9560,298 @@ export class Api<
         path: `/admin-api/notification-channels/${id}`,
         method: "DELETE",
         secure: true,
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name McpsList
+ * @request GET:/admin-api/mcps
+ * @secure
+ * @response `200` `{
+    data: ({
+    id: number,
+    name: string,
+    token: string,
+    enabled: boolean,
+    requests_count: number,
+    last_used_at?: string | null,
+    created_at: string,
+    updated_at: string,
+
+})[],
+
+}` description
+ */
+    mcpsList: (params: RequestParams = {}) =>
+      this.request<
+        {
+          data: {
+            id: number;
+            name: string;
+            token: string;
+            enabled: boolean;
+            requests_count: number;
+            last_used_at?: string | null;
+            created_at: string;
+            updated_at: string;
+          }[];
+        },
+        any
+      >({
+        path: `/admin-api/mcps`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name McpsCreate
+ * @request POST:/admin-api/mcps
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    name: string,
+    token: string,
+    enabled: boolean,
+    requests_count: number,
+    last_used_at?: string | null,
+    created_at: string,
+    updated_at: string,
+
+},
+
+}` description
+ */
+    mcpsCreate: (
+      data: {
+        /**
+         * @minLength 1
+         * @maxLength 255
+         */
+        name: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          data: {
+            id: number;
+            name: string;
+            token: string;
+            enabled: boolean;
+            requests_count: number;
+            last_used_at?: string | null;
+            created_at: string;
+            updated_at: string;
+          };
+        },
+        any
+      >({
+        path: `/admin-api/mcps`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name McpsSettingsList
+ * @request GET:/admin-api/mcps/settings
+ * @secure
+ * @response `200` `{
+    data: {
+    server_name: string,
+    endpoint_url: string,
+
+},
+
+}` description
+ */
+    mcpsSettingsList: (params: RequestParams = {}) =>
+      this.request<
+        {
+          data: {
+            server_name: string;
+            endpoint_url: string;
+          };
+        },
+        any
+      >({
+        path: `/admin-api/mcps/settings`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name McpsDetail
+ * @request GET:/admin-api/mcps/{id}
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    name: string,
+    token: string,
+    enabled: boolean,
+    requests_count: number,
+    last_used_at?: string | null,
+    created_at: string,
+    updated_at: string,
+
+},
+
+}` description
+ */
+    mcpsDetail: (id: any, params: RequestParams = {}) =>
+      this.request<
+        {
+          data: {
+            id: number;
+            name: string;
+            token: string;
+            enabled: boolean;
+            requests_count: number;
+            last_used_at?: string | null;
+            created_at: string;
+            updated_at: string;
+          };
+        },
+        any
+      >({
+        path: `/admin-api/mcps/${id}`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name McpsPartialUpdate
+ * @request PATCH:/admin-api/mcps/{id}
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    name: string,
+    token: string,
+    enabled: boolean,
+    requests_count: number,
+    last_used_at?: string | null,
+    created_at: string,
+    updated_at: string,
+
+},
+
+}` description
+ */
+    mcpsPartialUpdate: (
+      id: any,
+      data: {
+        /**
+         * @minLength 1
+         * @maxLength 255
+         */
+        name: string;
+        enabled: boolean;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          data: {
+            id: number;
+            name: string;
+            token: string;
+            enabled: boolean;
+            requests_count: number;
+            last_used_at?: string | null;
+            created_at: string;
+            updated_at: string;
+          };
+        },
+        any
+      >({
+        path: `/admin-api/mcps/${id}`,
+        method: "PATCH",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @name McpsDelete
+     * @request DELETE:/admin-api/mcps/{id}
+     * @secure
+     * @response `200` `void` description
+     */
+    mcpsDelete: (id: any, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/admin-api/mcps/${id}`,
+        method: "DELETE",
+        secure: true,
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name McpsTokenPartialUpdate
+ * @request PATCH:/admin-api/mcps/{id}/token
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    name: string,
+    token: string,
+    enabled: boolean,
+    requests_count: number,
+    last_used_at?: string | null,
+    created_at: string,
+    updated_at: string,
+
+},
+
+}` description
+ */
+    mcpsTokenPartialUpdate: (id: any, params: RequestParams = {}) =>
+      this.request<
+        {
+          data: {
+            id: number;
+            name: string;
+            token: string;
+            enabled: boolean;
+            requests_count: number;
+            last_used_at?: string | null;
+            created_at: string;
+            updated_at: string;
+          };
+        },
+        any
+      >({
+        path: `/admin-api/mcps/${id}/token`,
+        method: "PATCH",
+        secure: true,
+        format: "json",
         ...params,
       }),
 

@@ -135,6 +135,41 @@ Domain events are emitted for flows that trigger queues or framework side effect
 - Frontend pages: `frontend/src/components/pages`.
 - Frontend state and helpers: `frontend/src/store`, `frontend/src/utils`.
 
+## MCP Server
+
+The `Mcp` module serves the MCP protocol (revision `2026-07-28` only, Streamable HTTP, JSON
+responses, no sessions, no SSE) at `POST /mcp` (`routes/mcp.php`), outside the admin API.
+
+- `Infrastructure/Http/Middlewares/McpOriginMiddleware` rejects a foreign `Origin` with `403`;
+  `McpTokenMiddleware` accepts the Bearer token of an enabled connection from the `mcps` table
+  and in `terminate` adds one to `requests_count` and sets `last_used_at`, in one `UPDATE`.
+- `Infrastructure/Http/Controllers/McpEndpointController` → `Infrastructure/Protocol`: the
+  message parser, the header and version validators, and `McpServer`, which dispatches
+  `server/discover`, `tools/list`, `tools/call`, `prompts/list`, `prompts/get`. Protocol
+  errors are `McpProtocolException`; a tool's own failure is a result with `isError: true`.
+- `Infrastructure/Tools/*Tool` — one class per tool. A tool validates nothing by hand: its
+  `McpToolSchema` is compiled both into the JSON Schema of `tools/list` and into the
+  validator rules. A tool calls only this module's bridges (`Domain/Actions/Bridges`), never
+  another module. New tools are registered in `McpServiceProvider::TOOLS`; the order there
+  is the order of `tools/list`.
+- Tools that build a trace dynamic index: `GetTraceFacetsTool`, `SearchTracesTool`,
+  `GetTraceDataFieldsTool`, `AggregateTracesTool`, `CompareTraceGroupsTool`. They share the
+  indexes with the UI and answer `index_building` (`McpToolFormatter::indexBuilding`) instead of
+  waiting; `McpTraceIndexExceptionTranslator` turns the index exceptions of `Trace` into those of
+  `Mcp`. They read `service_ids` (optional), `from`, `to` through `McpToolTraceScopeReader`: the
+  period is rounded to hours and at most 24 hours (`McpTracePeriodResolver`). `data_filter` of
+  `search_traces` is parsed by `McpTraceDataFilterParser`. The groups and the comparison are one
+  aggregation over the hourly collections of the period (`Trace\Repositories\TraceGroupsRepository`,
+  `$unionWith`).
+- `GetTraceIndexStatusTool` and `GetTraceIndexesTool` only read the indexes. `SearchSloggerLogsTool` reads
+  the logs of SLogger itself through the `Logs` module.
+- `Infrastructure/Prompts/*Prompt` — the prompts, registered in `McpServiceProvider`.
+- `resources/mcp/instructions.md` — the instructions the model gets, in English.
+- With `SLOGGER_LOG_REQUESTS_ENABLED` `/mcp` is traced like the admin API. `App\Services\SLogger\RequestWatcher`
+  adds the JSON-RPC method and `params.name` to the tags of a successful answer; the answer
+  body is not recorded (`mcp` in the output `hidden_paths` of `config/slogger.php`).
+- Connections are managed through `/admin-api/mcps` and the `/mcps` page.
+
 ---
 
 ## Typical Request Flow
@@ -153,6 +188,7 @@ Domain events are emitted for flows that trigger queues or framework side effect
 - `Common` — shared entities, enums, helpers, shared HTTP resources.
 - `Dashboard` — dashboard and aggregated views.
 - `Logs` — log browsing and related read models.
+- `Mcp` — the MCP server: connections (`mcps`), the protocol endpoint `/mcp` and the read-only tools LLM clients call.
 - `Service` — service domain logic and service-related operations.
 - `Tools` — technical/support infrastructure helpers.
 - `Trace` — trace ingestion, aggregation, storage, and trace-oriented APIs.
@@ -246,6 +282,50 @@ so a new cross-module edge is added here or is not added.
 - `Infrastructure\Http\Controllers\WatcherIncidentController` → `Auth\Domain\Actions\FindUserByTokenAction`,
   to record who closed an incident. The only place outside `Auth` that reaches into it.
 
+`Mcp` → `Service`, `Watcher`, `Trace`, `Logs`. One way only: none of them knows about MCP. Tools
+never call another module; only the bridge actions in `Mcp\Domain\Actions\Bridges` do,
+and they hand the other module's entities back as they are.
+
+- `Domain\Actions\Bridges\FindMcpServicesAction` → `Service\Domain\Actions\FindServicesAction`,
+  `Service\Entities`.
+- `Domain\Actions\Bridges\FindMcpDataRangeAction` → `Trace\Domain\Actions\Queries\FindTraceDataRangeAction`,
+  `Trace\Entities`.
+- `Domain\Actions\Bridges\FindMcpIncidentsAction` → `Watcher\Domain\Actions\Queries\FindIncidentsAction`,
+  `FindWatcherAction`, `Watcher\Parameters\FindIncidentsParameters`, `Watcher\Entities`.
+- `Domain\Actions\Bridges\FindMcpIncidentEventsAction` → `Watcher\Domain\Actions\Queries\FindIncidentAction`,
+  `FindWatcherAction`, `FindIncidentEventsAction`, `Watcher\Domain\Services\Types\WatcherTypeRegistry`
+  (to render an event's numbers under the names they are stored by), `Watcher\Entities`.
+- `Domain\Actions\Bridges\FindMcpTraceAction` → `Trace\Domain\Actions\Queries\FindTraceDetailAction`.
+- `Domain\Actions\Bridges\FindMcpTraceTreeAction` → `Trace\Domain\Actions\Queries\FindTraceTreeStateAction`,
+  `FindTraceTreeAction` (only to start the first build, as the UI does), `FindTraceTreeChildrenAction`.
+- `Domain\Actions\Bridges\FindMcpTraceTreeFilteredAction` → `FindTraceTreeStateAction`,
+  `FindTraceTreeFilteredAction`, `Trace\Parameters\TraceTreeFilterParameters`.
+- `Domain\Actions\Bridges\FindMcpTraceFacetsAction` → `Trace\Domain\Actions\Queries\FindTypesAction`,
+  `FindStatusesAction`, `FindTagsAction` and their `Trace\Parameters\TraceFind*Parameters`.
+- `Domain\Actions\Bridges\FindMcpTracesAction` → `Trace\Domain\Actions\Queries\FindTracesAction`,
+  `Trace\Parameters\TraceFindParameters`, `Trace\Parameters\Data\TraceDataFilterParameters`.
+- `Domain\Actions\Bridges\FindMcpTraceDataFieldsAction` → `FindTracesAction`, `FindTraceDetailAction`.
+- `Domain\Actions\Bridges\FindMcpIndexStatusAction` → `FindTraceDynamicIndexAction`,
+  `FindTraceDynamicIndexStatsAction`; `FindMcpDynamicIndexesAction` → `FindTraceDynamicIndexesAction`.
+- `Domain\Actions\Bridges\FindMcpTraceGroupsAction` → `Trace\Domain\Actions\Queries\FindTraceGroupsAction`,
+  `CompareMcpTraceGroupsAction` → `CompareTraceGroupsAction`, with `Trace\Parameters\TraceFindGroupsParameters`,
+  `TraceCompareGroupsParameters`, `Trace\Enums\TraceGroupFieldEnum`, `TraceCompareByEnum`.
+- `Domain\Services\McpTraceIndexExceptionTranslator` → `Trace\Domain\Exceptions\TraceDynamicIndex*Exception`:
+  the one place that turns the index exceptions of `Trace` into those of `Mcp`.
+- `Domain\Services\McpTraceDataFilterParser` → `Trace\Parameters\Data`, `Trace\Enums\TraceDataFilterComp*Enum`;
+  `Domain\Services\McpTracePeriodMapper` → `Trace\Parameters\PeriodParameters`.
+- `Domain\Services\McpTraceTreeNodeFactory` → `Trace\Domain\Actions\Queries\FindTraceServicesAction`,
+  to put service names on tree nodes.
+- `Domain\Actions\Bridges\FindMcpLogEntriesAction` → `Logs\Domain\Actions\FindLogFilesAction`,
+  `FindLogEntriesAction`, `Logs\Domain\Services\Formats\LogFormatRegistry` (the level names of a
+  source's format), `Logs\Parameters\FindLogEntriesParameters`, `Logs\Entities`, `Logs\Enums`.
+- `Infrastructure\Tools\GetTraceDataTool` → `Trace\Infrastructure\Http\Resources\Data\TraceDataResource`,
+  so that the model gets a trace's data exactly as the UI does. The only edge between two
+  modules' `Infrastructure`.
+- `Parameters`, `Domain\Exceptions`, `Entities\Bridges`, `Infrastructure\Tools` → `Watcher\Enums`,
+  `Watcher\Entities`, `Service\Entities`, `Trace\Entities`, `Trace\Enums`, `Logs\Entities` — the
+  objects the bridges return.
+
 ### Allowed Dependencies
 
 - `Domain` may depend only on `Entities`, `Parameters`, `Repositories`.
@@ -268,6 +348,7 @@ so a new cross-module edge is added here or is not added.
 - `frontend/src/api-schema/**` is generated from OpenAPI. Prefer regeneration over manual edits.
 - `storage/api/**` contains generated API artifacts.
 - Documentation and operational files such as `*.md` and `.env*` are not treated as source changes unless they alter committed executable behavior.
+- `.claude/commands/opsx/**` and `.claude/skills/openspec-*/**` are generated by the OpenSpec CLI. Refresh them with `openspec update` instead of editing by hand.
 
 ---
 
@@ -460,6 +541,23 @@ this file wins — drop them and commit with `Co-Authored-By` alone.
 
 ---
 
+## Spec Workflow (OpenSpec)
+
+New features and behavior changes are specified with [OpenSpec](https://openspec.dev/) before implementation.
+
+- `openspec/specs/` — the current specs of the system, one folder per capability.
+- `openspec/changes/<name>/` — a proposed change: `proposal.md`, `design.md`, `tasks.md` and delta specs.
+- `openspec/changes/archive/` — finished changes, merged into `openspec/specs/`.
+- `openspec/config.yaml` — project context and per-artifact rules fed to every artifact. Artifacts are written in Russian.
+
+Cycle: `/opsx:explore` (optional) → `/opsx:propose <idea>` → review → `/opsx:apply` → `/opsx:archive`. `/opsx:update` revises the artifacts of an open change, and `/opsx:sync` merges its delta specs without archiving.
+
+OpenSpec does not relax the Approval Policy: a proposal is the plan to approve, and `/opsx:apply` starts only after explicit approval. Commits and pushes still need their own approval.
+
+Existing `.ai/plans/` files stay where they are; new work goes through `openspec/changes/`.
+
+---
+
 ## Agents
 
 Helper agent definitions for common roles. Use them as role prompts for the corresponding tasks.
@@ -525,6 +623,7 @@ If `FAILED` — clearly state what needs to be fixed so implementation can resum
 
 ### spec-writer
 
+> Legacy: new specifications go through OpenSpec (`/opsx:propose`), see Spec Workflow above.
 > Writes a technical specification before implementation. Invoke when you need to define requirements, design, and an implementation plan.
 > Tools: Read, Grep, Glob. Mode: plan.
 

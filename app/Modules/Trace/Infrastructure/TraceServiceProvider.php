@@ -24,16 +24,20 @@ use App\Modules\Trace\Domain\Actions\Queries\FindStatusesAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceBufferCountAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTagsAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceAdminStoreAction;
+use App\Modules\Trace\Domain\Actions\Queries\FindTraceDataRangeAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceDetailAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceDynamicIndexAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceDynamicIndexesAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceDynamicIndexStatsAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceIdsAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceProfilingAction;
+use App\Modules\Trace\Domain\Actions\Queries\CompareTraceGroupsAction;
+use App\Modules\Trace\Domain\Actions\Queries\FindTraceGroupsAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTracesAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceServicesAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceTimestampsAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceTreeAction;
+use App\Modules\Trace\Domain\Actions\Queries\FindTraceTreeStateAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceTreeChildrenAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceTreeFilteredAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceTreeCacheStatesAction;
@@ -52,6 +56,7 @@ use App\Modules\Trace\Repositories\TraceBufferRepository;
 use App\Modules\Trace\Repositories\TraceContentRepository;
 use App\Modules\Trace\Repositories\TraceDynamicIndexRepository;
 use App\Modules\Trace\Repositories\TraceRepository;
+use App\Modules\Trace\Repositories\TraceGroupsRepository;
 use App\Modules\Trace\Repositories\TraceTimestampsRepository;
 use App\Modules\Trace\Repositories\TraceTreeCacheRepository;
 use App\Modules\Trace\Repositories\TraceTreeCacheStateRepository;
@@ -97,6 +102,7 @@ class TraceServiceProvider extends BaseServiceProvider
             TraceContentRepository::class,
             TraceTreeRepository::class,
             TraceTimestampsRepository::class,
+            TraceGroupsRepository::class,
             TraceDynamicIndexRepository::class,
             TraceAdminStoreRepository::class,
             TraceTreeCacheRepository::class,
@@ -124,10 +130,14 @@ class TraceServiceProvider extends BaseServiceProvider
             FindStatusesAction::class,
             FindTagsAction::class,
             FindTraceDetailAction::class,
+            FindTraceDataRangeAction::class,
             FindTraceProfilingAction::class,
             FindTracesAction::class,
+            FindTraceGroupsAction::class,
+            CompareTraceGroupsAction::class,
             FindTraceTimestampsAction::class,
             FindTraceTreeAction::class,
+            FindTraceTreeStateAction::class,
             FindTraceTreeChildrenAction::class,
             FindTraceTreeFilteredAction::class,
             FindTraceTreeCacheStatesAction::class,

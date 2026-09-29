@@ -10,6 +10,8 @@ use App\Modules\Dashboard\Infrastructure\Http\Controllers\SconcurStatController;
 use App\Modules\Dashboard\Infrastructure\Http\Controllers\TraceMetricController;
 use App\Modules\Logs\Infrastructure\Http\Controllers\LogEntryController;
 use App\Modules\Logs\Infrastructure\Http\Controllers\LogFileController;
+use App\Modules\Mcp\Infrastructure\Http\Controllers\McpController;
+use App\Modules\Mcp\Infrastructure\Http\Controllers\McpSettingsController;
 use App\Modules\Notification\Infrastructure\Http\Controllers\NotificationChannelController;
 use App\Modules\Notification\Infrastructure\Http\Controllers\SlackChannelController;
 use App\Modules\Notification\Infrastructure\Http\Controllers\TelegramChannelController;
@@ -227,6 +229,18 @@ Route::prefix('/notification-channels')
         Route::get('/{id}/deliveries', [NotificationChannelController::class, 'deliveries'])->name('deliveries');
         Route::post('/{id}/test', [NotificationChannelController::class, 'test'])->name('test');
         Route::delete('/{id}', [NotificationChannelController::class, 'delete'])->name('delete');
+    });
+
+Route::prefix('/mcps')
+    ->as('mcps.')
+    ->group(function () {
+        Route::get('', [McpController::class, 'index'])->name('index');
+        Route::post('', [McpController::class, 'create'])->name('create');
+        Route::get('/settings', [McpSettingsController::class, 'show'])->name('settings');
+        Route::get('/{id}', [McpController::class, 'show'])->whereNumber('id')->name('show');
+        Route::patch('/{id}', [McpController::class, 'update'])->whereNumber('id')->name('update');
+        Route::patch('/{id}/token', [McpController::class, 'regenerateToken'])->whereNumber('id')->name('token');
+        Route::delete('/{id}', [McpController::class, 'delete'])->whereNumber('id')->name('delete');
     });
 
 Route::prefix('/logs')

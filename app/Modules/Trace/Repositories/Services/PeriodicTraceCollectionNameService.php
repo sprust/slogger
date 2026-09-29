@@ -6,6 +6,7 @@ namespace App\Modules\Trace\Repositories\Services;
 
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
+use LogicException;
 
 readonly class PeriodicTraceCollectionNameService
 {
@@ -72,7 +73,7 @@ readonly class PeriodicTraceCollectionNameService
 
                         if ($collectionNameDay === $fromDay
                             && $collectionFromHour < $fromHour
-                            && $collectionToHour < $fromHour
+                            && $collectionToHour <= $fromHour
                         ) {
                             return false;
                         }
@@ -95,6 +96,21 @@ readonly class PeriodicTraceCollectionNameService
                 }
             )
         );
+    }
+
+    public function makeHourStart(string $collectionName): Carbon
+    {
+        $hourStart = Carbon::createFromFormat(
+            'Y_m_d H',
+            sprintf('%s %s', mb_substr($collectionName, 7, 10), mb_substr($collectionName, 18, 2)),
+            'UTC'
+        );
+
+        if (!$hourStart instanceof Carbon) {
+            throw new LogicException("Trace collection name [$collectionName] has no hour");
+        }
+
+        return $hourStart->startOfHour();
     }
 
     private function makeDayString(Carbon $datetime): string
