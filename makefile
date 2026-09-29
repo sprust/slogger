@@ -28,14 +28,14 @@ env-copy:
 	cp -i frontend/.env.example frontend/.env
 
 setup:
-	make env-copy
 	docker-compose stop
 	docker-compose down
 	make build
+	docker-compose run --rm --no-deps $(RECEIVER_SERVICE) make build stats-build
+	make ws-keys-init
 	make up
 	make composer c=install
 	make art c=key:generate
-	make ws-keys-generate
 	make art c="migrate --force"
 	make queues-declare
 	make frontend-npm-i
@@ -140,6 +140,18 @@ queues-policies:
 # The ws pool is on by default and refuses to start without these, so setup and both
 # deploys generate a pair. Existing credentials are kept unless c=--force is passed.
 #
+# setup uses ws-keys-init: artisan does not boot while the keys are empty (the package
+# throws from routes/channels.php), and on a fresh install composer's package:discover
+# is the first thing to boot it. So the first pair is made in the shell, in the same
+# shape the artisan command makes it.
+ws-keys-init:
+	@grep -qE '^SCONCUR_WS_APP_KEY=.+' .env && grep -qE '^SCONCUR_WS_APP_SECRET=.+' .env \
+		|| { key=$$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c 32); \
+			secret=$$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c 48); \
+			sed -i -E "s/^SCONCUR_WS_APP_KEY=.*/SCONCUR_WS_APP_KEY=$$key/; s/^SCONCUR_WS_APP_SECRET=.*/SCONCUR_WS_APP_SECRET=$$secret/" .env; \
+			sed -i -E "s/^SCONCUR_WS_KEY=.*/SCONCUR_WS_KEY=$$key/" frontend/.env; \
+			echo 'SCONCUR_WS_APP_KEY/SCONCUR_WS_APP_SECRET written to .env, the key mirrored into frontend/.env'; }
+
 # `run`, not `exec`, for the same reason as composer-fresh: the deploys call this before
 # `up`, so that the workers come up with the key already in place instead of restarting
 # until somebody notices.
