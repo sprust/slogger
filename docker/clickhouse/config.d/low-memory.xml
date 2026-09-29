@@ -4,7 +4,21 @@
     restart the container. Keep it below CLICKHOUSE_MEM_LIMIT of docker-compose.
 -->
 <clickhouse>
-    <max_server_memory_usage>4294967296</max_server_memory_usage>
+    <max_server_memory_usage>5368709120</max_server_memory_usage>
+
+    <!--
+        Threads for merges and mutations (16 by default). Each merge of a traces part takes
+        memory in proportion to its columns, and with every thread busy they left nothing
+        to the queries: fewer at once, each finishing later.
+    -->
+    <background_pool_size>4</background_pool_size>
+
+    <!-- thresholds counted in free pool slots (4 threads x ratio 2 = 8), each at most that -->
+    <merge_tree>
+        <number_of_free_entries_in_pool_to_execute_mutation>4</number_of_free_entries_in_pool_to_execute_mutation>
+        <number_of_free_entries_in_pool_to_execute_optimize_entire_partition>4</number_of_free_entries_in_pool_to_execute_optimize_entire_partition>
+        <number_of_free_entries_in_pool_to_lower_max_size_of_merge>4</number_of_free_entries_in_pool_to_lower_max_size_of_merge>
+    </merge_tree>
 
     <mark_cache_size>536870912</mark_cache_size>
     <uncompressed_cache_size>0</uncompressed_cache_size>

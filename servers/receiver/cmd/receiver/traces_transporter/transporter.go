@@ -9,6 +9,7 @@ import (
 	"slogger_receiver/internal/services/trace_metric_service"
 	"slogger_receiver/internal/services/watcher_service"
 	"slogger_receiver/pkg/foundation/errs"
+	"strings"
 	"sync/atomic"
 	"time"
 
@@ -16,6 +17,51 @@ import (
 )
 
 const maxSaveAttempts = 5
+
+// The pause after a batch that failed because a store was out of reach, doubled on each
+// such failure in a row.
+const (
+	minUnavailablePause = time.Second
+	maxUnavailablePause = 30 * time.Second
+)
+
+// unavailableSigns are the texts of errors that say a store could not take the batch at
+// the moment, not that something is wrong with the batch: the network, a timeout, and the
+// ClickHouse codes of a server under load — 159 timeout, 202 too many queries, 209/210
+// socket and network, 241 memory limit, 242 table read-only, 252 too many parts.
+var unavailableSigns = []string{
+	"connection refused",
+	"connection reset",
+	"no such host",
+	"i/o timeout",
+	"context deadline exceeded",
+	"Client.Timeout",
+	"server selection error",
+	"EOF",
+	"Code: 159.",
+	"Code: 202.",
+	"Code: 209.",
+	"Code: 210.",
+	"Code: 241.",
+	"Code: 242.",
+	"Code: 252.",
+}
+
+// isUnavailable says whether a failed batch is to wait and be tried again as it is, without
+// spending the attempts of its documents.
+//
+// By the text: errs.Err keeps only the message of what it wraps.
+func isUnavailable(err error) bool {
+	message := err.Error()
+
+	for _, sign := range unavailableSigns {
+		if strings.Contains(message, sign) {
+			return true
+		}
+	}
+
+	return false
+}
 
 type Transporter struct {
 	ctx                     context.Context
@@ -57,6 +103,8 @@ func (s *Transporter) Run(ctx context.Context) error {
 
 	// The context as well as the flag: a shutdown cancels it first, and the flush below
 	// is the point of getting out of here at all.
+	var unavailablePause time.Duration
+
 	for !s.closing.Load() && ctx.Err() == nil {
 		serviceTracesMap, invalidDocs, err := s.bufferService.FindForTransporter(ctx)
 
@@ -87,7 +135,23 @@ func (s *Transporter) Run(ctx context.Context) error {
 
 		if err != nil {
 			slog.Error("Failed to save traces: " + err.Error())
+
+			// A store out of reach — ClickHouse restarting, over its memory limit, MongoDB
+			// failing over — fails every batch alike. Counted as attempts, it would move a
+			// whole buffer to the invalid one within seconds of an outage.
+			if isUnavailable(err) {
+				unavailablePause = min(max(unavailablePause*2, minUnavailablePause), maxUnavailablePause)
+
+				select {
+				case <-ctx.Done():
+				case <-time.After(unavailablePause):
+				}
+
+				continue
+			}
 		} else {
+			unavailablePause = 0
+
 			go s.totalHandledBufferCount.Add(uint64(result.Saved))
 		}
 

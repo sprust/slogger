@@ -41,7 +41,7 @@ flowchart TB
     ui["Web panel (Vue 3) / API clients"]
     src -->|"TCP socket: 4-byte length prefix + JSON"| receiver
     receiver -->|"write to buffer"| buffer
-    buffer -->|"transporter: batches of up to 1000 — SELECT … FINAL, merge, INSERT"| traces
+    buffer -->|"transporter: batches of up to 5000 — merge with pendingTraces, INSERT"| traces
     traces -->|"ClickhouseClient::select (HTTP interface)"| backend
     ui -->|"HTTP"| nginx
     nginx -->|"proxy_pass → workers:SCONCUR_HTTP_PORT"| backend
@@ -98,7 +98,7 @@ A click on a bar opens the aggregator filtered by the chart's service, the types
 
 ### Traces table (ClickHouse)
 
-Traces are stored in ClickHouse, in one table `traces` (`database/clickhouse/001_traces.sql`), one row per trace:
+Traces are stored in ClickHouse, in one table `traces` (migration `database/migrations/2026_09_29_192649_clickhouse_create_traces_table.php`), one row per trace:
 
 ```
 ENGINE = ReplacingMergeTree(uat)
@@ -112,7 +112,7 @@ ORDER BY (sid, lat, tid)
 - The data is stored twice: `dt JSON`, which filters and aggregations read, and `dt_raw String`, the data as the client sent it, with its key order. Data that is not an object goes into `dt_raw` only.
 - `ptid` is an empty string for a root trace.
 
-Migrations are the files of `database/clickhouse/`, applied in name order by `make art c=clickhouse:migrate`; the applied ones are recorded in the `schema_migrations` table of ClickHouse. `make setup`, `make deploy-prod` and `make deploy-dev` run it. `make clickhouse-client` opens the ClickHouse client in the container. The `clickhouse` service of docker-compose (image `clickhouse/clickhouse-server:26.8.14.3`) publishes no port: PHP and the receiver reach it as `clickhouse:8123`. Its memory settings are in `docker/clickhouse/config.d/low-memory.xml` (server) and `docker/clickhouse/users.d/profile.xml` (query limits); the container limit is `CLICKHOUSE_MEM_LIMIT`.
+The table is created by an ordinary Laravel migration, which sends the DDL through `ClickhouseClient`: `migrate` applies it with the rest, and `migrate:fresh` drops the ClickHouse tables along with the MongoDB collections. `make clickhouse-client` opens the ClickHouse client in the container. The `clickhouse` service of docker-compose (image `clickhouse/clickhouse-server:26.8.14.3`) publishes no port: PHP and the receiver reach it as `clickhouse:8123`. Its memory settings are in `docker/clickhouse/config.d/low-memory.xml` (server) and `docker/clickhouse/users.d/profile.xml` (query limits); the container limit is `CLICKHOUSE_MEM_LIMIT`.
 
 MongoDB keeps the rest: `buffer`, `invalidBuffer`, `traceMetrics`, `watcherTimelines`, `traceTreeCache`, `traceTreeCacheStates`, `traceAdminStores`, `traceClearingProcesses`, `watcherIncidents`, `watcherIncidentEvents`, `notifications`. The `tracesPeriodic` database of earlier versions, with its hourly `traces_*` collections and `_traceTreesView`, is left as it is: nothing reads or cleans it any more.
 
@@ -121,9 +121,14 @@ MongoDB keeps the rest: `buffer`, `invalidBuffer`, `traceMetrics`, `watcherTimel
 Intake and write are decoupled to absorb load spikes:
 
 1. Intake. The receiver accepts the payload over TCP and puts it into a buffer collection in MongoDB as a set of two kinds of operations: create (`c`) and update (`u`). The creates and the updates of a message are each written with one unordered `InsertMany` rather than a call per trace.
-2. Transport. A background transporter continuously pulls batches from the buffer (up to 1000 records in FIFO order) and writes them into the `traces` table. It pauses for one second only when the buffer is empty (or after a read error), then checks again.
-3. Merge. For each batch the transporter reads the stored versions of all its traces in one query, `SELECT … FROM traces FINAL WHERE (sid, lat, tid) IN (…)`, merges each with the create and update of the batch (the field order is in "Trace message format"), and writes the merged rows in one `INSERT … FORMAT JSONEachRow`. A batch holds a trace once and batches run one after another, so a trace is never merged twice at the same time.
-4. Reliability. After a successful insert the batch's traces are passed to the watchers and the trace metrics, and their records are removed from the buffer. If the select or the insert fails, the whole batch is marked for retry; a trace that cannot be merged is marked alone. After 5 failed attempts — or at once, if the record cannot be read — it is moved to the invalid-trace buffer, which keeps records for 3 days. A record that stays in the buffer for 6 hours without being written or rejected is dropped by a TTL index.
+2. Transport. A background transporter continuously pulls batches from the buffer (up to `TRANSPORTER_BATCH_SIZE` records, 5000 by default, in FIFO order; each batch is one insert, and fewer, larger inserts leave ClickHouse fewer parts to merge) and writes them into the `traces` table. It pauses for one second only when the buffer is empty (or after a read error), then checks again.
+3. Merge. A trace that comes in halves — a create now, its update later — waits for the other half in the MongoDB collection `pendingTraces` (one document per service and trace, dropped by a TTL index after `PENDING_TRACES_TTL_SECONDS`, 3 hours by default). For each batch the transporter reads the pending traces of all its traces in one query by id and merges each with the create and update of the batch (the field order is in "Trace message format"); ClickHouse is not read. Then:
+   - a trace that is final — it has a type and either its update or a status other than `started` — is inserted, and the half written before it, if any, is deleted by one lightweight `DELETE … WHERE (sid, lat, tid, uat) IN (…)` per batch, by the exact `uat`, so that the merged row sharing the key stays; its pending document is removed. Children, tasks and a create that came with its update never touch `pendingTraces`;
+   - a create still waiting for its update is inserted, so that it is seen as `started`, and kept pending with the `uat` it was written with;
+   - an update without its create is only kept pending: it has no type or tags to be shown with.
+
+   Only an update that finds nothing pending reads ClickHouse, `SELECT … FROM traces FINAL WHERE (sid, lat, tid) IN (…)`: one whose create was already final, or whose trace waited longer than the TTL. All the rows of a batch go in one `INSERT … FORMAT JSONEachRow`. A batch holds a trace once and batches run one after another, so a trace is never merged twice at the same time.
+4. Reliability. After a successful insert the batch's traces are passed to the watchers and the trace metrics, and their records are removed from the buffer. If a store is out of reach — the network, a timeout, or ClickHouse under load (codes 159, 202, 209, 210, 241, 242, 252) — the batch waits and is tried again as it is, the pause doubling from 1 to 30 seconds, and the attempts of its records are not spent: an outage does not move the buffer to the invalid one. Any other failure of the batch marks the whole batch for retry; a trace that cannot be merged is marked alone. After 5 failed attempts — or at once, if the record cannot be read — it is moved to the invalid-trace buffer, which keeps records for 3 days. A record that stays in the buffer for 6 hours without being written or rejected is dropped by a TTL index.
 
 The buffer smooths out peaks: the client hands off data quickly and does not wait for the write into the main storage.
 

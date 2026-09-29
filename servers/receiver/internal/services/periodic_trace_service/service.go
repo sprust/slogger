@@ -8,6 +8,7 @@ import (
 	"slogger_receiver/internal/helpers/datetime_helper"
 	"slogger_receiver/internal/helpers/json_helper"
 	"slogger_receiver/internal/repositories/clickhouse_trace_repository"
+	"slogger_receiver/internal/repositories/pending_trace_repository"
 	"slogger_receiver/internal/services/trace_metric_service"
 	"slogger_receiver/internal/services/watcher_service"
 	"slogger_receiver/pkg/foundation/errs"
@@ -24,11 +25,21 @@ import (
 // under this placeholder.
 const unknownTraceType = "__UNKNOWN"
 
-// traceStore is the traces table: the stored half of each merge, and the write of the
-// merged result.
+// startedStatus is the status of a create that has an update to come.
+const startedStatus = "started"
+
+// traceStore is the traces table: the write of merged traces, the removal of the halves
+// they replace, and the read of a stored trace when nothing is pending for it.
 type traceStore interface {
 	FindExisting(ctx context.Context, keys []clickhouse_trace_repository.Key) (map[clickhouse_trace_repository.Key]clickhouse_trace_repository.StoredTrace, error)
 	Insert(ctx context.Context, rows []clickhouse_trace_repository.Row) error
+	Delete(ctx context.Context, versions []clickhouse_trace_repository.Version) error
+}
+
+// pendingStore holds the traces waiting for their other half.
+type pendingStore interface {
+	FindMany(ctx context.Context, ids []string) (map[string]pending_trace_repository.PendingTrace, error)
+	Apply(ctx context.Context, save []pending_trace_repository.PendingTrace, forget []string, now time.Time) error
 }
 
 var instance *Service
@@ -36,18 +47,19 @@ var once sync.Once
 
 func Get() *Service {
 	once.Do(func() {
-		instance = New(clickhouse_trace_repository.Get())
+		instance = New(clickhouse_trace_repository.Get(), pending_trace_repository.Get())
 	})
 
 	return instance
 }
 
-func New(store traceStore) *Service {
-	return &Service{store: store}
+func New(store traceStore, pending pendingStore) *Service {
+	return &Service{store: store, pending: pending}
 }
 
 type Service struct {
-	store traceStore
+	store   traceStore
+	pending pendingStore
 }
 
 // Result is what a batch came to: how many traces were written, and which were not.
@@ -58,27 +70,39 @@ type Result struct {
 	Failed map[int]map[string]bool
 }
 
-type pendingTrace struct {
+type batchTrace struct {
 	serviceId int
 	traceId   string
 	traces    *dto.Traces
 	key       clickhouse_trace_repository.Key
+	id        string
 	loggedAt  time.Time
 }
 
-// Save merges and writes every trace of a batch in one read and one write.
+// Save merges and writes every trace of a batch.
 //
-// The stored versions of all its traces are read in one query and the merged rows go
-// back in one insert, instead of a lookup and an upsert per trace. That is also what
-// keeps a trace from being merged twice at once: a batch holds a trace id once, and the
-// batches run one after another.
+// The other half of a trace is looked for among the pending traces in MongoDB, not in
+// ClickHouse: a point read by id, where a read of the traces table has to go through
+// FINAL and every granule a key can be in. Most traces never need it — a child, a task or
+// a create that came with its update is final as it is and goes straight to the insert.
 //
-// An error means nothing was written, and the whole batch is to be tried again.
+//   - a trace that is final (a type and either its update or a status other than started)
+//     is inserted, and the half written before it, if any, is deleted;
+//   - a create still waiting for its update is inserted, so that it is seen in progress,
+//     and kept pending with the version it was written with;
+//   - an update without its create is only kept pending: it has no type or tags to be
+//     shown with.
+//
+// Only an update that finds nothing pending reads ClickHouse: one whose trace waited
+// longer than the pending traces live, or whose create was already final.
+//
+// An error means the batch is to be tried again. Inserting a trace twice does no harm:
+// the table keeps the row with the latest uat.
 func (s *Service) Save(ctx context.Context, batch map[int]*dto.ServiceTraces) (Result, error) {
 	result := Result{Failed: map[int]map[string]bool{}}
 
-	pending := make([]pendingTrace, 0)
-	keys := make([]clickhouse_trace_repository.Key, 0)
+	items := make([]batchTrace, 0)
+	ids := make([]string, 0)
 
 	for serviceId, serviceTraces := range batch {
 		for traceId, traces := range serviceTraces.Items() {
@@ -92,29 +116,43 @@ func (s *Service) Save(ctx context.Context, batch map[int]*dto.ServiceTraces) (R
 				continue
 			}
 
-			key := clickhouse_trace_repository.Key{
-				ServiceId:     serviceId,
-				LoggedAtMicro: loggedAt.UnixMicro(),
-				TraceId:       traceId,
-			}
-
-			pending = append(pending, pendingTrace{
+			item := batchTrace{
 				serviceId: serviceId,
 				traceId:   traceId,
 				traces:    traces,
-				key:       key,
-				loggedAt:  loggedAt,
-			})
+				key: clickhouse_trace_repository.Key{
+					ServiceId:     serviceId,
+					LoggedAtMicro: loggedAt.UnixMicro(),
+					TraceId:       traceId,
+				},
+				id:       pending_trace_repository.Id(serviceId, traceId),
+				loggedAt: loggedAt,
+			}
 
-			keys = append(keys, key)
+			items = append(items, item)
+			ids = append(ids, item.id)
 		}
 	}
 
-	if len(pending) == 0 {
+	if len(items) == 0 {
 		return result, nil
 	}
 
-	existing, err := s.store.FindExisting(ctx, keys)
+	pendingTraces, err := s.pending.FindMany(ctx, ids)
+
+	if err != nil {
+		return Result{}, errs.Err(err)
+	}
+
+	fallbackKeys := make([]clickhouse_trace_repository.Key, 0)
+
+	for _, item := range items {
+		if _, found := pendingTraces[item.id]; !found && item.traces.Creating == nil {
+			fallbackKeys = append(fallbackKeys, item.key)
+		}
+	}
+
+	existing, err := s.store.FindExisting(ctx, fallbackKeys)
 
 	if err != nil {
 		return Result{}, errs.Err(err)
@@ -122,31 +160,81 @@ func (s *Service) Save(ctx context.Context, batch map[int]*dto.ServiceTraces) (R
 
 	now := time.Now().UTC().Truncate(time.Microsecond)
 
-	merged := make([]mergedTrace, 0, len(pending))
-	rows := make([]clickhouse_trace_repository.Row, 0, len(pending))
+	merged := make([]mergedTrace, 0, len(items))
+	rows := make([]clickhouse_trace_repository.Row, 0, len(items))
+	replaced := make([]clickhouse_trace_repository.Version, 0)
+	save := make([]pending_trace_repository.PendingTrace, 0)
+	forget := make([]string, 0)
+	unmerged := 0
 
-	for _, trace := range pending {
+	for _, item := range items {
 		var stored *clickhouse_trace_repository.StoredTrace
+		var previous *clickhouse_trace_repository.Version
 
-		if value, found := existing[trace.key]; found {
+		hasUpdate := item.traces.Updating != nil
+		pendingTrace, isPending := pendingTraces[item.id]
+
+		if isPending {
+			value := storedFromPending(pendingTrace)
 			stored = &value
+			hasUpdate = hasUpdate || pendingTrace.HasUpdate
+
+			if pendingTrace.InsertedAtMicro != 0 {
+				previous = &clickhouse_trace_repository.Version{Key: item.key, UpdatedAtMicro: pendingTrace.InsertedAtMicro}
+			}
+		} else if value, found := existing[item.key]; found {
+			stored = &value
+			previous = &clickhouse_trace_repository.Version{Key: item.key, UpdatedAtMicro: value.UpdatedAt.UnixMicro()}
 		}
 
-		item, err := mergeTrace(trace.serviceId, trace.traceId, trace.traces, stored, trace.loggedAt, now)
+		trace, err := mergeTrace(item.serviceId, item.traceId, item.traces, stored, item.loggedAt, now)
 
 		if err != nil {
-			slog.Error("failed to merge trace " + trace.traceId + ": " + err.Error())
+			slog.Error("failed to merge trace " + item.traceId + ": " + err.Error())
 
-			markFailed(result.Failed, trace.serviceId, trace.traceId)
+			markFailed(result.Failed, item.serviceId, item.traceId)
+
+			unmerged++
 
 			continue
 		}
 
-		merged = append(merged, item)
-		rows = append(rows, item.row)
+		if trace.row.Type == unknownTraceType {
+			save = append(save, pendingFromRow(trace.row, item.loggedAt, true, 0, now))
+
+			continue
+		}
+
+		merged = append(merged, trace)
+		rows = append(rows, trace.row)
+
+		if previous != nil {
+			replaced = append(replaced, *previous)
+		}
+
+		if hasUpdate || trace.row.Status != startedStatus {
+			if isPending {
+				forget = append(forget, item.id)
+			}
+
+			continue
+		}
+
+		save = append(save, pendingFromRow(trace.row, item.loggedAt, false, now.UnixMicro(), now))
 	}
 
 	if err := s.store.Insert(ctx, rows); err != nil {
+		return Result{}, errs.Err(err)
+	}
+
+	// Not a reason to try the batch again: the merged rows are in, and the table keeps the
+	// latest of two rows of a trace when it merges their parts. Reads that go through FINAL
+	// see the right one meanwhile.
+	if err := s.store.Delete(ctx, replaced); err != nil {
+		slog.Error("failed to delete replaced trace rows: " + err.Error())
+	}
+
+	if err := s.pending.Apply(ctx, save, forget, now); err != nil {
 		return Result{}, errs.Err(err)
 	}
 
@@ -154,9 +242,56 @@ func (s *Service) Save(ctx context.Context, batch map[int]*dto.ServiceTraces) (R
 		report(item, now)
 	}
 
-	result.Saved = len(rows)
+	result.Saved = len(items) - unmerged
 
 	return result, nil
+}
+
+// storedFromPending is a pending trace as the other half of a merge.
+func storedFromPending(trace pending_trace_repository.PendingTrace) clickhouse_trace_repository.StoredTrace {
+	return clickhouse_trace_repository.StoredTrace{
+		ParentTraceId: trace.ParentTraceId,
+		Type:          trace.Type,
+		Status:        trace.Status,
+		Tags:          trace.Tags,
+		RawData:       trace.RawData,
+		Duration:      trace.Duration,
+		Memory:        trace.Memory,
+		Cpu:           trace.Cpu,
+		CreatedAt:     time.UnixMicro(trace.CreatedAtMicro).UTC(),
+	}
+}
+
+// pendingFromRow is what is kept of a merged trace while it waits for its other half.
+func pendingFromRow(
+	row clickhouse_trace_repository.Row,
+	loggedAt time.Time,
+	hasUpdate bool,
+	insertedAtMicro int64,
+	now time.Time,
+) pending_trace_repository.PendingTrace {
+	createdAt, err := time.Parse(clickhouse_trace_repository.TimeLayout, row.CreatedAt)
+
+	if err != nil {
+		createdAt = now
+	}
+
+	return pending_trace_repository.PendingTrace{
+		ServiceId:       row.ServiceId,
+		TraceId:         row.TraceId,
+		LoggedAtMicro:   loggedAt.UnixMicro(),
+		ParentTraceId:   row.ParentTraceId,
+		Type:            row.Type,
+		Status:          row.Status,
+		Tags:            row.Tags,
+		RawData:         row.RawData,
+		Duration:        row.Duration,
+		Memory:          row.Memory,
+		Cpu:             row.Cpu,
+		HasUpdate:       hasUpdate,
+		InsertedAtMicro: insertedAtMicro,
+		CreatedAtMicro:  createdAt.UnixMicro(),
+	}
 }
 
 // mergedTrace is a trace ready to be written, together with what the watchers and the

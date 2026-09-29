@@ -37,7 +37,6 @@ setup:
 	make composer c=install
 	make art c=key:generate
 	make art c="migrate --force"
-	make art c=clickhouse:migrate
 	make queues-declare
 	make frontend-npm-i
 	make frontend-npm-build
@@ -201,7 +200,6 @@ deploy-prod:
 	make up
 	make queues-declare
 	make art c='migrate --force'
-	make art c=clickhouse:migrate
 	make sconcur-wait
 	make sconcur-reload
 	make receiver-build
@@ -217,7 +215,6 @@ deploy-dev:
 	make up
 	make queues-declare
 	make art c='migrate --force'
-	make art c=clickhouse:migrate
 	make sconcur-wait
 	make sconcur-reload
 	make receiver-build

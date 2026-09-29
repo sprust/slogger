@@ -1,7 +1,9 @@
 package traces_transporter
 
 import (
+	"errors"
 	"slogger_receiver/internal/dto"
+	"slogger_receiver/pkg/foundation/errs"
 	"testing"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -46,5 +48,31 @@ func TestSplitIdsSendsTheWholeBatchBackWhenItFailed(t *testing.T) {
 
 	if len(saved) != 0 || len(failed) != 2 {
 		t.Fatalf("unexpected split %v / %v", saved, failed)
+	}
+}
+
+func TestAStoreOutOfReachIsNotTheBatchsFault(t *testing.T) {
+	unavailable := []string{
+		`Post "http://clickhouse:8123/?database=slogger": dial tcp 172.18.0.5:8123: connect: connection refused`,
+		"clickhouse: Code: 241. DB::Exception: (total) memory limit exceeded: would use 4.01 GiB",
+		"clickhouse: Code: 252. DB::Exception: Too many parts (3001) in table",
+		"server selection error: context deadline exceeded",
+	}
+
+	for _, message := range unavailable {
+		if !isUnavailable(errs.Err(errors.New(message))) {
+			t.Fatalf("taken for a fault of the batch: %s", message)
+		}
+	}
+
+	faults := []string{
+		"clickhouse: Code: 27. DB::Exception: Cannot parse input: expected '\"' before: 'x'",
+		"clickhouse: Code: 53. DB::Exception: Type mismatch",
+	}
+
+	for _, message := range faults {
+		if isUnavailable(errs.Err(errors.New(message))) {
+			t.Fatalf("taken for an outage: %s", message)
+		}
 	}
 }
