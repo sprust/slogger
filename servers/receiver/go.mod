@@ -6,13 +6,13 @@ require (
 	github.com/go-sql-driver/mysql v1.10.0
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/joho/godotenv v1.5.1
+	github.com/klauspost/compress v1.18.6
 	go.mongodb.org/mongo-driver v1.17.9
 )
 
 require (
 	filippo.io/edwards25519 v1.2.0 // indirect
 	github.com/golang/snappy v1.0.0 // indirect
-	github.com/klauspost/compress v1.18.6 // indirect
 	github.com/montanaflynn/stats v0.9.0 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
 	github.com/xdg-go/scram v1.2.0 // indirect

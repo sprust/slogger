@@ -31,7 +31,7 @@ func TestInsertTwiceAndReadTheLatestVersion(t *testing.T) {
 	serviceId := 4_000_000_000 - int(time.Now().Unix()%1_000_000)
 
 	defer func() {
-		body, err := repository.send(ctx, map[string]string{"query": fmt.Sprintf("DELETE FROM traces WHERE sid = %d", serviceId)}, strings.NewReader(""), false)
+		body, err := repository.send(ctx, map[string]string{"query": fmt.Sprintf("DELETE FROM traces WHERE sid = %d", serviceId)}, strings.NewReader(""), "")
 
 		if err == nil {
 			_ = body.Close()
