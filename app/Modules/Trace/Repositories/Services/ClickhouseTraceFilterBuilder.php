@@ -10,7 +10,6 @@ use App\Modules\Trace\Parameters\Data\TraceDataFilterItemParameters;
 use App\Modules\Trace\Parameters\Data\TraceDataFilterParameters;
 use App\Modules\Trace\Repositories\Dto\Trace\TraceDataPathDto;
 use App\Modules\Trace\Repositories\Dto\Trace\TraceSqlConditionDto;
-use App\Services\Clickhouse\ClickhouseQueryException;
 use Closure;
 use Illuminate\Support\Carbon;
 
@@ -47,8 +46,6 @@ readonly class ClickhouseTraceFilterBuilder
      * @param string[]      $types
      * @param string[]      $tags
      * @param string[]      $statuses
-     *
-     * @throws ClickhouseQueryException
      */
     public function build(
         ?array $serviceIds = null,
@@ -131,8 +128,6 @@ readonly class ClickhouseTraceFilterBuilder
 
     /**
      * @param array<string, mixed> $params
-     *
-     * @throws ClickhouseQueryException
      */
     private function makeDataCondition(TraceDataFilterItemParameters $filterItem, array &$params): ?string
     {

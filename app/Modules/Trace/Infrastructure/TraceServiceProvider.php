@@ -12,6 +12,7 @@ use App\Modules\Trace\Domain\Actions\Mutations\CreateTraceAdminStoreAction;
 use App\Modules\Trace\Domain\Actions\Mutations\BuildTraceTreeCacheAction;
 use App\Modules\Trace\Domain\Actions\Mutations\CancelTraceTreeCacheStateAction;
 use App\Modules\Trace\Domain\Actions\Mutations\DeletePartitionsAction;
+use App\Modules\Trace\Domain\Actions\Mutations\RefreshTraceDataPathTypesAction;
 use App\Modules\Trace\Domain\Actions\Mutations\OptimizePartitionsAction;
 use App\Modules\Trace\Domain\Actions\Mutations\DeleteTraceTreeCacheAction;
 use App\Modules\Trace\Domain\Actions\Mutations\DeleteTraceTreeCacheStateAction;
@@ -82,6 +83,7 @@ class TraceServiceProvider extends BaseServiceProvider
             CreateTraceAdminStoreAction::class,
             DeleteTraceAdminStoreAction::class,
             DeletePartitionsAction::class,
+            RefreshTraceDataPathTypesAction::class,
             OptimizePartitionsAction::class,
             BuildTraceTreeCacheAction::class,
             CancelTraceTreeCacheStateAction::class,

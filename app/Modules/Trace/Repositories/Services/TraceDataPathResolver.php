@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Modules\Trace\Repositories\Services;
 
 use App\Modules\Trace\Repositories\Dto\Trace\TraceDataPathDto;
-use App\Services\Clickhouse\ClickhouseQueryException;
 use InvalidArgumentException;
 
 /**
@@ -24,9 +23,6 @@ readonly class TraceDataPathResolver
     ) {
     }
 
-    /**
-     * @throws ClickhouseQueryException
-     */
     public function resolve(string $path): TraceDataPathDto
     {
         $path = str_starts_with($path, 'dt.') ? substr($path, 3) : $path;
@@ -51,8 +47,6 @@ readonly class TraceDataPathResolver
      * and the path inside each of its objects.
      *
      * @param string[] $segments
-     *
-     * @throws ClickhouseQueryException
      */
     private function makeArrayExpression(array $segments): ?string
     {

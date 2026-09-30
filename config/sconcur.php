@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Modules\Trace\Infrastructure\Tasks\RefreshTraceDataPathTypesTask;
 use App\Modules\Watcher\Infrastructure\Tasks\CheckWatchersTask;
 use App\Services\Sconcur\Listeners\ReportWorkerWatchdogListener;
 use App\Services\Tasks\CronTask;
@@ -462,6 +463,17 @@ return [
                 // A pass is over for this minute either way, so there is nothing to come
                 // straight back for.
                 'busy'    => 5,
+                'backoff' => 30,
+            ],
+            [
+                // The map of the array paths of the trace data, read by the data filters.
+                // It refreshes every five minutes and watches the time itself; ticking
+                // more often only lets it notice sooner.
+                'name'    => RefreshTraceDataPathTypesTask::NAME,
+                'task'    => RefreshTraceDataPathTypesTask::class,
+                'idle'    => 5,
+                'busy'    => 5,
+                // ClickHouse out of reach: the last map stays in use meanwhile
                 'backoff' => 30,
             ],
         ],
