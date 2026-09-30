@@ -150,18 +150,25 @@ class TraceTreeResponseTest extends TestCase
         );
     }
 
+    /**
+     * A fixed moment, not now(): a test builds the same response twice and compares the
+     * bodies, and the state is written to the second. Two builds on either side of a
+     * second's boundary made the bodies differ, about one run in a hundred.
+     */
     private function state(): TraceTreeCacheStateObject
     {
+        $at = Carbon::parse('2026-09-21 10:11:12');
+
         return new TraceTreeCacheStateObject(
             rootTraceId: 'root',
             version: 'v1',
             status: TraceTreeCacheStateStatusEnum::Finished,
             count: 1,
             error: null,
-            startedAt: Carbon::now(),
-            finishedAt: Carbon::now(),
-            createdAt: Carbon::now(),
-            updatedAt: Carbon::now(),
+            startedAt: $at->clone(),
+            finishedAt: $at->clone(),
+            createdAt: $at->clone(),
+            updatedAt: $at->clone(),
         );
     }
 }
