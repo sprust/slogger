@@ -2,9 +2,11 @@ package traces_transporter
 
 import (
 	"errors"
+	"slices"
 	"slogger_receiver/internal/dto"
 	"slogger_receiver/pkg/foundation/errs"
 	"testing"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -74,5 +76,26 @@ func TestAStoreOutOfReachIsNotTheBatchsFault(t *testing.T) {
 		if isUnavailable(errs.Err(errors.New(message))) {
 			t.Fatalf("taken for an outage: %s", message)
 		}
+	}
+}
+
+func TestFailedBatchesWaitLongerEachTime(t *testing.T) {
+	var pause time.Duration
+
+	got := make([]time.Duration, 0)
+
+	for range 7 {
+		pause = nextPause(pause, minFailedPause, maxFailedPause)
+
+		got = append(got, pause)
+	}
+
+	want := []time.Duration{
+		time.Second, 2 * time.Second, 4 * time.Second, 8 * time.Second,
+		16 * time.Second, 30 * time.Second, 30 * time.Second,
+	}
+
+	if !slices.Equal(got, want) {
+		t.Fatalf("pauses %v, want %v", got, want)
 	}
 }

@@ -128,7 +128,7 @@ Intake and write are decoupled to absorb load spikes:
    - an update without its create is only kept pending: it has no type or tags to be shown with.
 
    Only an update that finds nothing pending reads ClickHouse, `SELECT … FROM traces FINAL WHERE (sid, lat, tid) IN (…)`: one whose create was already final, or whose trace waited longer than the TTL. All the rows of a batch go in one `INSERT … FORMAT JSONEachRow`. A batch holds a trace once and batches run one after another, so a trace is never merged twice at the same time.
-4. Reliability. After a successful insert the batch's traces are passed to the watchers and the trace metrics, and their records are removed from the buffer. If a store is out of reach — the network, a timeout, or ClickHouse under load (codes 159, 202, 209, 210, 241, 242, 252) — the batch waits and is tried again as it is, the pause doubling from 1 to 30 seconds, and the attempts of its records are not spent: an outage does not move the buffer to the invalid one. Any other failure of the batch marks the whole batch for retry; a trace that cannot be merged is marked alone. After 5 failed attempts — or at once, if the record cannot be read — it is moved to the invalid-trace buffer, which keeps records for 3 days. A record that stays in the buffer for 6 hours without being written or rejected is dropped by a TTL index.
+4. Reliability. After a successful insert the batch's traces are passed to the watchers and the trace metrics, and their records are removed from the buffer. If a store is out of reach — the network, a timeout, or ClickHouse under load (codes 159, 202, 209, 210, 241, 242, 252) — the batch waits and is tried again as it is, the pause doubling from 1 to 30 seconds, and the attempts of its records are not spent: an outage does not move the buffer to the invalid one. Any other failure of the batch marks the whole batch for retry and makes the transporter wait before the next pass, 1, 2, 4, 8 seconds and so on up to 30, so the five attempts outlast an error of a few seconds such as the traces table being recreated; a trace that cannot be merged is marked alone and holds nothing up. After 5 failed attempts — or at once, if the record cannot be read — it is moved to the invalid-trace buffer, which keeps records for 3 days. A record that stays in the buffer for 6 hours without being written or rejected is dropped by a TTL index.
 
 The buffer smooths out peaks: the client hands off data quickly and does not wait for the write into the main storage.
 
@@ -320,7 +320,7 @@ Communication is over TCP. Every message, in both directions, is sent with a 4-b
    { "t": "<api_token>" }
    ```
 
-   The token determines which service the traces belong to (created via `make art c=service:create`). The server replies with `ok`, or with an error text and closes the connection.
+   The token determines which service the traces belong to (created via `make art c=service:create`). The server replies with `ok`, or with an error text and closes the connection. The receiver remembers which service a token names for 30 seconds, so a removed service or a reinstalled database takes up to that long to show.
 
 2. Sending traces. Then, within the same connection, the client sends trace messages in a loop; the server replies `received` to each one as soon as it is read, before it is parsed or buffered, so a message that does not parse is only logged. While the server is shutting down it replies `server_is_closing` instead.
 

@@ -25,6 +25,22 @@ const (
 	maxUnavailablePause = 30 * time.Second
 )
 
+// The pause after a batch that failed for any other reason and spent an attempt of its
+// documents, doubled on each such failure in a row: 1, 2, 4, 8 seconds between the five
+// attempts. Without it the attempts run back to back, and an error that lasts a second —
+// the traces table being recreated by migrate:fresh — moves the batch to the invalid
+// buffer before it is over.
+const (
+	minFailedPause = time.Second
+	maxFailedPause = 30 * time.Second
+)
+
+// nextPause doubles the pause of the previous failure in a row, within its bounds; the
+// first failure waits the lower bound.
+func nextPause(previous time.Duration, lower time.Duration, upper time.Duration) time.Duration {
+	return min(max(previous*2, lower), upper)
+}
+
 // unavailableSigns are the texts of errors that say a store could not take the batch at
 // the moment, not that something is wrong with the batch: the network, a timeout, and the
 // ClickHouse codes of a server under load — 159 timeout, 202 too many queries, 209/210
@@ -104,6 +120,7 @@ func (s *Transporter) Run(ctx context.Context) error {
 	// The context as well as the flag: a shutdown cancels it first, and the flush below
 	// is the point of getting out of here at all.
 	var unavailablePause time.Duration
+	var failedPause time.Duration
 
 	for !s.closing.Load() && ctx.Err() == nil {
 		serviceTracesMap, invalidDocs, err := s.bufferService.FindForTransporter(ctx)
@@ -140,17 +157,15 @@ func (s *Transporter) Run(ctx context.Context) error {
 			// failing over — fails every batch alike. Counted as attempts, it would move a
 			// whole buffer to the invalid one within seconds of an outage.
 			if isUnavailable(err) {
-				unavailablePause = min(max(unavailablePause*2, minUnavailablePause), maxUnavailablePause)
+				unavailablePause = nextPause(unavailablePause, minUnavailablePause, maxUnavailablePause)
 
-				select {
-				case <-ctx.Done():
-				case <-time.After(unavailablePause):
-				}
+				s.pause(ctx, unavailablePause)
 
 				continue
 			}
 		} else {
 			unavailablePause = 0
+			failedPause = 0
 
 			go s.totalHandledBufferCount.Add(uint64(result.Saved))
 		}
@@ -171,6 +186,14 @@ func (s *Transporter) Run(ctx context.Context) error {
 			if err := s.bufferService.MarkFailed(ctx, failedIds, maxSaveAttempts); err != nil {
 				slog.Error(errs.Err(err).Error())
 			}
+		}
+
+		// Only a batch that failed as a whole: the traces that could not be merged spend
+		// their own attempts, and the rest of the buffer need not wait for them.
+		if err != nil {
+			failedPause = nextPause(failedPause, minFailedPause, maxFailedPause)
+
+			s.pause(ctx, failedPause)
 		}
 	}
 
@@ -230,6 +253,15 @@ func (s *Transporter) GetStats() Stats {
 	return Stats{
 		Handled: s.totalHandledBufferCount.Load(),
 		Deleted: s.totalDeletedBufferCount.Load(),
+	}
+}
+
+// pause waits the time given or until the transporter is being stopped, whichever comes
+// first.
+func (s *Transporter) pause(ctx context.Context, duration time.Duration) {
+	select {
+	case <-ctx.Done():
+	case <-time.After(duration):
 	}
 }
 

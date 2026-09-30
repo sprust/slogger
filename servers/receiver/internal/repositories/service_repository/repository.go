@@ -14,6 +14,11 @@ import (
 var instance *Repository
 var once sync.Once
 
+// tokenCacheTtl is how long a token is taken to name the same service without asking
+// MySQL. Short, because a token that stopped existing — a service removed, the database
+// installed afresh — keeps filing traces under the old service until it runs out.
+const tokenCacheTtl = 30 * time.Second
+
 type cacheEntry struct {
 	serviceId int
 	expiresAt time.Time
@@ -95,7 +100,7 @@ func (s *Repository) FindIdByApiToken(ctx context.Context, apiToken string) (int
 
 	s.cache[apiToken] = cacheEntry{
 		serviceId: serviceId,
-		expiresAt: time.Now().Add(1 * time.Minute),
+		expiresAt: time.Now().Add(tokenCacheTtl),
 	}
 
 	return serviceId, nil
