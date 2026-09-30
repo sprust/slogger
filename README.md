@@ -420,7 +420,7 @@ CLICKHOUSE_PORT=8123      # HTTP interface
 CLICKHOUSE_DATABASE=slogger
 CLICKHOUSE_USERNAME=slogger
 CLICKHOUSE_PASSWORD=      # the same password goes into servers/receiver/.env
-CLICKHOUSE_MEM_LIMIT=6g   # memory limit of the clickhouse container
+CLICKHOUSE_MEM_LIMIT=6g   # memory limit of the clickhouse container; the server takes 0.85 of it
 
 LOGS_NGINX_KEEP_DAYS=14   # nginx access log files are kept this many days
 #LOGS_NGINX_PATH=         # nginx log folder, storage/logs/nginx when not set

@@ -1,10 +1,14 @@
 <!--
     Server settings for a machine that also runs MongoDB, MySQL and the application.
-    max_server_memory_usage cannot come from the environment: change it here and
-    restart the container. Keep it below CLICKHOUSE_MEM_LIMIT of docker-compose.
 -->
 <clickhouse>
-    <max_server_memory_usage>5368709120</max_server_memory_usage>
+    <!--
+        The server's memory as a share of the container's, which ClickHouse reads from the
+        cgroup: CLICKHOUSE_MEM_LIMIT (mem_limit of docker-compose) is the one knob, and the
+        server stays under it whatever it is set to. 0.85 of 6g is about the 5 GB this was
+        set to by hand; the rest is left to the process outside its own accounting.
+    -->
+    <max_server_memory_usage_to_ram_ratio>0.85</max_server_memory_usage_to_ram_ratio>
 
     <!--
         Threads for merges and mutations (16 by default). Each merge of a traces part takes
