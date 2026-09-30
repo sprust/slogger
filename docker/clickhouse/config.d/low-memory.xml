@@ -41,7 +41,7 @@
     <query_log replace="1">
         <database>system</database>
         <table>query_log</table>
-        <engine>ENGINE = MergeTree PARTITION BY event_date ORDER BY event_time TTL event_date + INTERVAL 3 DAY</engine>
+        <engine>ENGINE = MergeTree PARTITION BY event_date ORDER BY event_time TTL event_date + INTERVAL 1 DAY</engine>
         <flush_interval_milliseconds>7500</flush_interval_milliseconds>
     </query_log>
 </clickhouse>

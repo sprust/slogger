@@ -173,7 +173,7 @@ services:
     container_name: ${DOCKER_CONTAINER_PREFIX:-sl}-mongo
     restart: unless-stopped
     image: mongo:8.0.5
-    command: ["mongod", "--wiredTigerCacheSizeGB", "${MONGO_WIRED_TIGER_CACHE_SIZE_GB:-10}"]
+    command: ["mongod", "--wiredTigerCacheSizeGB", "${MONGO_WIRED_TIGER_CACHE_SIZE_GB:-5}", "--wiredTigerCollectionBlockCompressor", "zstd"]
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_ADMIN_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ADMIN_PASSWORD}

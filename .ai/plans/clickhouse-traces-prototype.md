@@ -568,6 +568,25 @@ update раньше create, create дважды, create без update. Три с
 ленивый, страница детей по 100 — 0.02–0.04 с. Пики: ClickHouse 2.3 ГБ, воркеры 362 МБ,
 MongoDB 1.4 ГБ.
 
+#### Прогон 5: память и диск, 1M
+
+Настройки: кэш WiredTiger 10 → 1 ГБ, zstd для коллекций MongoDB (`--wiredTigerCollectionBlockCompressor`),
+`max_server_memory_usage` 5 → 3 ГБ, `mark_cache_size` 512 → 256 МБ, `query_log` TTL 3 → 1 день. Кодеки
+ClickHouse не менялись: CPU тоже важен.
+
+| Что | До | После |
+|---|---|---|
+| Время 1M | 82 с | 81 с |
+| MongoDB, память (среднее / пик) | 991 / 1123 МБ | 533 / 653 МБ |
+| MongoDB, кэш WiredTiger (пик) | 850 МБ | 386 МБ |
+| MongoDB, диск на пике буфера | 197 МБ | 124 МБ |
+| ClickHouse, память контейнера (среднее / пик) | 789 / 1255 МБ | 593 / 1054 МБ |
+| Таблица трейсов | 135 МБ | 134 МБ |
+| Ошибки, потери | 0 | 0 |
+
+В итоговой конфигурации кэш WiredTiger по умолчанию 5 ГБ (`MONGO_WIRED_TIGER_CACHE_SIZE_GB`), zstd и `query_log`
+на 1 день остались, а `max_server_memory_usage` и `mark_cache_size` возвращены к 5 ГБ и 512 МБ.
+
 Осталось:
 
 - Код 60 (`UNKNOWN_TABLE`) тратит попытки документов: во время `migrate:fresh` 106 собственных
