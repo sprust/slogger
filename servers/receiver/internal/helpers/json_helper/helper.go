@@ -10,12 +10,8 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-// Marshal writes a trace's data as JSON with its objects in the order they arrived.
-//
-// The data is decoded into bson.D and bson.A to keep that order (dto.Data), and
-// json.Marshal turns a bson.D into an array of {Key, Value} pairs: the stored `dt_raw`
-// would no longer be the object the client sent. Maps have no order to keep, so their
-// keys are written sorted, which at least makes the output stable.
+// Marshal writes the BSON `dt` of a buffer doc from before `dj` as JSON, objects in order.
+// json.Marshal would turn a bson.D into {Key, Value} pairs; maps are written key-sorted.
 func Marshal(value interface{}) ([]byte, error) {
 	buffer := &bytes.Buffer{}
 

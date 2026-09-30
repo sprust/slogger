@@ -6,7 +6,6 @@ import (
 	"log/slog"
 	"slogger_receiver/internal/dto"
 	"slogger_receiver/internal/helpers/datetime_helper"
-	"slogger_receiver/internal/helpers/json_helper"
 	"slogger_receiver/internal/repositories/clickhouse_trace_repository"
 	"slogger_receiver/internal/repositories/pending_trace_repository"
 	"slogger_receiver/internal/services/trace_metric_service"
@@ -15,9 +14,6 @@ import (
 	"strconv"
 	"sync"
 	"time"
-
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 // unknownTraceType is what a trace is stored as until its create arrives. An updating
@@ -344,17 +340,17 @@ func mergeTrace(
 		tags = convertTags(traces.Creating.Tags)
 	}
 
-	var updatingData interface{}
+	var updatingData json.RawMessage
 	if traces.Updating != nil {
-		updatingData = traces.Updating.Data.Value
+		updatingData = traces.Updating.Data.Raw
 	}
 
-	var creatingData interface{}
+	var creatingData json.RawMessage
 	if traces.Creating != nil {
-		creatingData = traces.Creating.Data.Value
+		creatingData = traces.Creating.Data.Raw
 	}
 
-	data := mergeData(updatingData, storedData(stored.RawData), creatingData)
+	data := mergeData(updatingData, json.RawMessage(stored.RawData), creatingData)
 
 	// By value: a trace stored before its numbers arrived holds nulls under them, and a
 	// null taken for a stored value would win over the create finally bringing the real one.
@@ -385,18 +381,12 @@ func mergeTrace(
 		cpu = traces.Creating.Cpu
 	}
 
-	rawData, err := json_helper.Marshal(data)
-
-	if err != nil {
-		return mergedTrace{}, errs.Err(err)
-	}
-
 	// The JSON column holds objects only; data of any other shape is kept in dt_raw alone,
 	// where it is shown, and no data filter can find it.
 	objectData := json.RawMessage("{}")
 
-	if _, isObject := data.(bson.D); isObject {
-		objectData = rawData
+	if dto.IsObjectJson(data) {
+		objectData = data
 	}
 
 	createdAt := now
@@ -437,7 +427,7 @@ func mergeTrace(
 			Status:        status,
 			Tags:          tags,
 			Data:          objectData,
-			RawData:       string(rawData),
+			RawData:       string(data),
 			Duration:      duration,
 			Memory:        memory,
 			Cpu:           cpu,
@@ -496,24 +486,6 @@ func loggedAtOf(traces *dto.Traces) (time.Time, bool) {
 	return time.Time{}, false
 }
 
-// storedData reads the stored data back in its order, so that a trace resaved from it is
-// written as it was.
-func storedData(raw string) interface{} {
-	if raw == "" {
-		return nil
-	}
-
-	var data dto.Data
-
-	if err := json.Unmarshal([]byte(raw), &data); err != nil {
-		slog.Error("failed to read stored data: " + err.Error())
-
-		return nil
-	}
-
-	return data.Value
-}
-
 func markFailed(failed map[int]map[string]bool, serviceId int, traceId string) {
 	if failed[serviceId] == nil {
 		failed[serviceId] = map[string]bool{}
@@ -542,43 +514,24 @@ func isKnownTraceType(stored string) bool {
 
 // mergeData picks the data a trace is written with: the update's, else what is stored
 // unless it is empty, else the create's.
-func mergeData(updating interface{}, existing interface{}, creating interface{}) interface{} {
-	if updating != nil {
+func mergeData(updating json.RawMessage, existing json.RawMessage, creating json.RawMessage) json.RawMessage {
+	if !dto.IsNullJson(updating) {
 		return updating
 	}
 
-	if !isEmptyData(existing) {
+	if !dto.IsEmptyJson(existing) {
 		return existing
 	}
 
-	if creating != nil {
+	if !dto.IsNullJson(creating) {
 		return creating
 	}
 
-	if existing != nil {
+	if !dto.IsNullJson(existing) {
 		return existing
 	}
 
-	return bson.A{}
-}
-
-func isEmptyData(value interface{}) bool {
-	switch v := value.(type) {
-	case nil:
-		return true
-	case []interface{}:
-		return len(v) == 0
-	case primitive.A:
-		return len(v) == 0
-	case map[string]interface{}:
-		return len(v) == 0
-	case bson.M:
-		return len(v) == 0
-	case bson.D:
-		return len(v) == 0
-	default:
-		return false
-	}
+	return json.RawMessage("[]")
 }
 
 // convertTags keeps the string tags of a message; anything else in the list is dropped.

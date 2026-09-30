@@ -1,11 +1,8 @@
 package periodic_trace_service
 
 import (
-	"reflect"
+	"encoding/json"
 	"testing"
-
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 // A trace whose update was persisted before its create wears the placeholder until the
@@ -55,56 +52,52 @@ func TestTheDurationWaitsForARealType(t *testing.T) {
 	}
 }
 
-func TestAStoredPlaceholderDoesNotHideTheDataOfALateCreate(t *testing.T) {
-	creating := map[string]interface{}{"path": "/x"}
+func raw(value string) json.RawMessage {
+	if value == "" {
+		return nil
+	}
 
-	data := mergeData(nil, primitive.A{}, creating)
+	return json.RawMessage(value)
+}
 
-	if !reflect.DeepEqual(data, creating) {
-		t.Fatalf("expected the create's data, got %v", data)
+// The table the merge picks the data by: update, else stored unless empty, else create,
+// else stored, else an empty list. "" stands for a field that is not there.
+func TestMergeDataPicksByTheTable(t *testing.T) {
+	cases := []struct {
+		name     string
+		updating string
+		existing string
+		creating string
+		want     string
+	}{
+		{"the update wins over everything", `{"code":500}`, `{"code":200}`, `{"path":"/x"}`, `{"code":500}`},
+		{"an update of null brings nothing", `null`, `{"code":200}`, `{"path":"/x"}`, `{"code":200}`},
+		{"stored data wins over the create", ``, `{"code":200}`, `{"path":"/x"}`, `{"code":200}`},
+		{"an empty stored list does not hide a late create", ``, `[]`, `{"path":"/x"}`, `{"path":"/x"}`},
+		{"an empty stored object does not hide a late create", ``, `{ }`, `{"path":"/x"}`, `{"path":"/x"}`},
+		{"stored null does not hide a late create", ``, `null`, `{"path":"/x"}`, `{"path":"/x"}`},
+		{"an empty stored object stays when nothing else comes", ``, `{}`, ``, `{}`},
+		{"a create of null leaves the stored empty list", ``, `[]`, `null`, `[]`},
+		{"an empty update still wins", `[]`, `{"code":200}`, ``, `[]`},
+		{"no data anywhere is an empty list", ``, ``, ``, `[]`},
+	}
+
+	for _, testCase := range cases {
+		t.Run(testCase.name, func(t *testing.T) {
+			got := mergeData(raw(testCase.updating), raw(testCase.existing), raw(testCase.creating))
+
+			if string(got) != testCase.want {
+				t.Fatalf("expected %s, got %s", testCase.want, got)
+			}
+		})
 	}
 }
 
-func TestStoredDataWinsOverTheCreate(t *testing.T) {
-	stored := bson.M{"code": 200}
-
-	data := mergeData(nil, stored, map[string]interface{}{"path": "/x"})
-
-	if !reflect.DeepEqual(data, stored) {
-		t.Fatalf("expected the stored data, got %v", data)
-	}
-}
-
-func TestTheUpdateDataWinsOverEverything(t *testing.T) {
-	updating := map[string]interface{}{"code": 500}
-
-	data := mergeData(updating, bson.M{"code": 200}, map[string]interface{}{"path": "/x"})
-
-	if !reflect.DeepEqual(data, updating) {
-		t.Fatalf("expected the update's data, got %v", data)
-	}
-}
-
-func TestNoDataAnywhereIsAnEmptyList(t *testing.T) {
-	data := mergeData(nil, nil, nil)
-
-	if !reflect.DeepEqual(data, bson.A{}) {
-		t.Fatalf("expected an empty list, got %v", data)
-	}
-}
-
-// The stored data is handed back as it was read, order and all. Rebuilt into a map on the
-// way through, it would be written back in a new order on every update that
-// carried no data of its own.
+// Stored data goes back as its bytes, so an update without data cannot reorder it.
 func TestStoredDataKeepsItsOrder(t *testing.T) {
-	stored := bson.D{
-		{Key: "sql", Value: "select 1"},
-		{Key: "connection", Value: "mysql"},
-	}
+	stored := `{"sql":"select 1","connection":"mysql"}`
 
-	data := mergeData(nil, stored, bson.D{{Key: "path", Value: "/x"}})
-
-	if !reflect.DeepEqual(data, stored) {
-		t.Fatalf("expected the stored data, got %v", data)
+	if got := mergeData(nil, raw(stored), raw(`{"path":"/x"}`)); string(got) != stored {
+		t.Fatalf("expected the stored data, got %s", got)
 	}
 }

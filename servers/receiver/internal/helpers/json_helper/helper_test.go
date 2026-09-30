@@ -1,12 +1,10 @@
 package json_helper
 
 import (
-	"encoding/json"
 	"math"
 	"testing"
 
 	"go.mongodb.org/mongo-driver/bson"
-	"slogger_receiver/internal/dto"
 )
 
 func TestKeepsTheOrderOfObjects(t *testing.T) {
@@ -19,16 +17,16 @@ func TestKeepsTheOrderOfObjects(t *testing.T) {
 	assertJson(t, value, `{"sql":"select 1","connection":{"z":1,"a":null},"bindings":["x",2.5,true,{"b":"c","a":"d"}]}`)
 }
 
-func TestRoundTripsTheDataOfAMessage(t *testing.T) {
+func TestRoundTripsADocument(t *testing.T) {
 	source := `{"b":1,"a":{"y":[1,{"q":null,"p":"<tag>&"}],"x":false},"c":""}`
 
-	var data dto.Data
+	var data bson.D
 
-	if err := json.Unmarshal([]byte(source), &data); err != nil {
+	if err := bson.UnmarshalExtJSON([]byte(source), false, &data); err != nil {
 		t.Fatal(err)
 	}
 
-	assertJson(t, data.Value, source)
+	assertJson(t, data, source)
 }
 
 func TestWritesScalarsAndEmptyValues(t *testing.T) {

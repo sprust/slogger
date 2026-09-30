@@ -2,6 +2,7 @@ package buffer_repository
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"slogger_receiver/internal/dto"
 	"testing"
@@ -224,40 +225,86 @@ func TestUndecodableDocCapsWhatItKeeps(t *testing.T) {
 	}
 }
 
-// What the buffer document is written with is what MongoDB stores. A map here would put
-// the data's keys in whatever order it iterated in, and the order the client sent would
-// be lost between the socket and the buffer.
-func TestABufferDocKeepsTheDataFieldOrder(t *testing.T) {
-	data := bson.D{
-		{Key: "sql", Value: "select 1"},
-		{Key: "connection", Value: "mysql"},
-		{Key: "__add", Value: float64(1)},
-	}
+// The data goes into the buffer as the bytes the client sent, under dj and nowhere else.
+func TestABufferDocKeepsTheDataAsItArrived(t *testing.T) {
+	data := dto.Data{Raw: json.RawMessage(`{"sql":"select 1","connection":"mysql","id":9007199254740993,"amount":500.0}`)}
 
 	docs := map[string]bson.M{
-		"creating": Get().makeCreatingTraceDoc(7, dto.TraceCreating{TraceId: "trace-1", Data: dto.Data{Value: data}}),
-		"updating": Get().makeUpdatingTraceDoc(7, dto.TraceUpdating{TraceId: "trace-1", Data: dto.Data{Value: data}}),
+		"creating": Get().makeCreatingTraceDoc(7, dto.TraceCreating{TraceId: "trace-1", Data: data}),
+		"updating": Get().makeUpdatingTraceDoc(7, dto.TraceUpdating{TraceId: "trace-1", Data: data}),
 	}
 
 	for name, doc := range docs {
 		t.Run(name, func(t *testing.T) {
-			raw, err := bson.Marshal(doc)
-
-			if err != nil {
-				t.Fatalf("bson.Marshal: %v", err)
+			if _, ok := doc["dt"]; ok {
+				t.Fatal("the doc still carries dt")
 			}
 
-			elements, err := bson.Raw(raw).Lookup("dt").Document().Elements()
+			read := readStored(t, doc)
 
-			if err != nil {
-				t.Fatalf("elements: %v", err)
-			}
-
-			for index, element := range elements {
-				if element.Key() != data[index].Key {
-					t.Fatalf("key %d is %s, want %s", index, element.Key(), data[index].Key)
-				}
+			if string(read.Raw) != string(data.Raw) {
+				t.Fatalf("expected %s, got %s", data.Raw, read.Raw)
 			}
 		})
 	}
+}
+
+// A doc written by the version before dj, with dt as a BSON document, reads back as the
+// JSON the client sent.
+func TestADocOfTheEarlierFormatReadsAsTheSameJson(t *testing.T) {
+	doc := bson.M{
+		"op": "c",
+		"dt": bson.D{
+			{Key: "sql", Value: "select 1"},
+			{Key: "connection", Value: bson.D{{Key: "z", Value: float64(1)}, {Key: "a", Value: nil}}},
+			{Key: "bindings", Value: bson.A{"x", 2.5}},
+		},
+	}
+
+	expected := `{"sql":"select 1","connection":{"z":1,"a":null},"bindings":["x",2.5]}`
+
+	if read := readStored(t, doc); string(read.Raw) != expected {
+		t.Fatalf("expected %s, got %s", expected, read.Raw)
+	}
+}
+
+func TestNoDataReadsAsNull(t *testing.T) {
+	docs := map[string]bson.M{
+		"new format, not sent":     Get().makeUpdatingTraceDoc(7, dto.TraceUpdating{TraceId: "trace-1"}),
+		"earlier format, null":     {"op": "u", "dt": nil},
+		"earlier format, not sent": {"op": "u"},
+	}
+
+	for name, doc := range docs {
+		t.Run(name, func(t *testing.T) {
+			if read := readStored(t, doc); !read.IsNull() {
+				t.Fatalf("expected no data, got %s", read.Raw)
+			}
+		})
+	}
+}
+
+// readStored passes a doc through BSON, as MongoDB would store it, and reads its data back.
+func readStored(t *testing.T, doc bson.M) dto.Data {
+	t.Helper()
+
+	raw, err := bson.Marshal(doc)
+
+	if err != nil {
+		t.Fatalf("bson.Marshal: %v", err)
+	}
+
+	var decoded bson.M
+
+	if err := bson.Unmarshal(raw, &decoded); err != nil {
+		t.Fatalf("bson.Unmarshal: %v", err)
+	}
+
+	data, err := readData(raw, decoded)
+
+	if err != nil {
+		t.Fatalf("readData: %v", err)
+	}
+
+	return data
 }

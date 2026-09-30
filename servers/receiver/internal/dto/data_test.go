@@ -2,144 +2,63 @@ package dto
 
 import (
 	"encoding/json"
-	"reflect"
 	"testing"
-
-	"go.mongodb.org/mongo-driver/bson"
 )
 
-func documentKeys(value interface{}) []string {
-	document, ok := value.(bson.D)
+func decodeData(t *testing.T, payload string) Data {
+	t.Helper()
 
-	if !ok {
-		return nil
-	}
-
-	keys := make([]string, 0, len(document))
-
-	for _, element := range document {
-		keys = append(keys, element.Key)
-	}
-
-	return keys
-}
-
-// The order the client sent is the whole point. A map would answer this test correctly
-// about one key in six by luck, so the keys are in no order any sort would produce.
-func TestTheFieldOrderSurvivesTheDecode(t *testing.T) {
 	var data Data
 
-	if err := json.Unmarshal([]byte(`{"sql":"select 1","connection":"mysql","bindings":[],"__trace":"x","__add":1,"aaa":2}`), &data); err != nil {
+	if err := json.Unmarshal([]byte(payload), &data); err != nil {
 		t.Fatal(err)
 	}
 
-	keys := documentKeys(data.Value)
-	expected := []string{"sql", "connection", "bindings", "__trace", "__add", "aaa"}
-
-	if !reflect.DeepEqual(keys, expected) {
-		t.Fatalf("expected %v, got %v", expected, keys)
-	}
+	return data
 }
 
-func TestNestedObjectsKeepTheirOrder(t *testing.T) {
-	var data Data
-
-	if err := json.Unmarshal([]byte(`{"z":{"y":1,"b":2},"a":[{"q":1,"p":2}]}`), &data); err != nil {
-		t.Fatal(err)
+// Order, numbers, a repeated key and escapes all live in the bytes, and the bytes are kept.
+func TestTheDataIsKeptAsItWasSent(t *testing.T) {
+	payloads := []string{
+		`{"sql":"select 1","connection":"mysql","bindings":[],"__trace":"x","__add":1,"aaa":2}`,
+		`{"z":{"y":1,"b":2},"a":[{"q":1,"p":2}]}`,
+		`{"id":9007199254740993,"amount":500.0,"rate":1.50,"small":1e-7}`,
+		`{"a":1,"b":2,"a":3}`,
+		`{"path":"\/x","name":"Ж","html":"<b>&"}`,
 	}
 
-	document, ok := data.Value.(bson.D)
-
-	if !ok {
-		t.Fatalf("expected a document, got %T", data.Value)
-	}
-
-	if keys := documentKeys(document[0].Value); !reflect.DeepEqual(keys, []string{"y", "b"}) {
-		t.Fatalf("nested object: got %v", keys)
-	}
-
-	array, ok := document[1].Value.(bson.A)
-
-	if !ok || len(array) != 1 {
-		t.Fatalf("expected an array of one, got %v", document[1].Value)
-	}
-
-	if keys := documentKeys(array[0]); !reflect.DeepEqual(keys, []string{"q", "p"}) {
-		t.Fatalf("object inside an array: got %v", keys)
-	}
-}
-
-// Reading numbers as integers would change the types the buffer stores and the merge
-// compares. This is about order and nothing else.
-func TestNumbersStayFloats(t *testing.T) {
-	var data Data
-
-	if err := json.Unmarshal([]byte(`{"code":200,"duration":1.5}`), &data); err != nil {
-		t.Fatal(err)
-	}
-
-	document := data.Value.(bson.D)
-
-	for _, element := range document {
-		if _, ok := element.Value.(float64); !ok {
-			t.Fatalf("%s decoded as %T", element.Key, element.Value)
+	for _, payload := range payloads {
+		if data := decodeData(t, payload); string(data.Raw) != payload {
+			t.Fatalf("expected %s, got %s", payload, data.Raw)
 		}
-	}
-}
-
-// A map kept one value per key whatever the payload said. A document can hold the key
-// twice, which is a shape nothing downstream has ever seen.
-func TestARepeatedKeyKeepsItsPlaceAndTakesTheLastValue(t *testing.T) {
-	var data Data
-
-	if err := json.Unmarshal([]byte(`{"a":1,"b":2,"a":3}`), &data); err != nil {
-		t.Fatal(err)
-	}
-
-	expected := bson.D{{Key: "a", Value: float64(3)}, {Key: "b", Value: float64(2)}}
-
-	if !reflect.DeepEqual(data.Value, expected) {
-		t.Fatalf("expected %v, got %v", expected, data.Value)
 	}
 }
 
 func TestAValueThatIsNotAnObject(t *testing.T) {
-	cases := map[string]interface{}{
-		`null`:      nil,
-		`"text"`:    "text",
-		`7`:         float64(7),
-		`true`:      true,
-		`[1,"two"]`: bson.A{float64(1), "two"},
-		`{}`:        bson.D{},
-		`[]`:        bson.A{},
-	}
-
-	for payload, expected := range cases {
-		var data Data
-
-		if err := json.Unmarshal([]byte(payload), &data); err != nil {
-			t.Fatalf("%s: %v", payload, err)
-		}
-
-		if !reflect.DeepEqual(data.Value, expected) {
-			t.Fatalf("%s: expected %v, got %v", payload, expected, data.Value)
+	for _, payload := range []string{`"text"`, `7`, `true`, `[1,"two"]`, `{}`, `[]`} {
+		if data := decodeData(t, payload); string(data.Raw) != payload {
+			t.Fatalf("expected %s, got %s", payload, data.Raw)
 		}
 	}
 }
 
-func TestBrokenPayloadsAreErrors(t *testing.T) {
-	for _, payload := range []string{`{"a":`, `{"a":1} {"b":2}`, `{`, `}`} {
-		var data Data
+// The message is what is validated: a broken dt is a broken message.
+func TestABrokenMessageIsAnError(t *testing.T) {
+	for _, payload := range []string{
+		`[{"tid":"1","dt":{"a":}]`,
+		`[{"tid":"1","dt":{"a":1} {"b":2}}]`,
+		`[{"tid":"1","dt":{]`,
+	} {
+		var creating []TraceCreating
 
-		if err := json.Unmarshal([]byte(payload), &data); err == nil {
-			t.Fatalf("%s decoded into %v", payload, data.Value)
+		if err := json.Unmarshal([]byte(payload), &creating); err == nil {
+			t.Fatalf("%s decoded", payload)
 		}
 	}
 }
 
-// The message, not just the field: the trace list is decoded into these structs, and a
-// field that decodes on its own can still be wired into the struct by the wrong tag.
-func TestATraceMessageCarriesItsDataInOrder(t *testing.T) {
+// The whole message, so a wrong struct tag would show.
+func TestATraceMessageCarriesItsData(t *testing.T) {
 	var creating []TraceCreating
 
 	payload := `[{"tid":"1","tp":"http","st":"success","tgs":[],"dt":{"url":"/x","method":"GET","code":200},"lat":"2026-09-19 03:04:05"}]`
@@ -148,22 +67,82 @@ func TestATraceMessageCarriesItsDataInOrder(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	keys := documentKeys(creating[0].Data.Value)
-	expected := []string{"url", "method", "code"}
+	if expected := `{"url":"/x","method":"GET","code":200}`; string(creating[0].Data.Raw) != expected {
+		t.Fatalf("expected %s, got %s", expected, creating[0].Data.Raw)
+	}
+}
 
-	if !reflect.DeepEqual(keys, expected) {
-		t.Fatalf("expected %v, got %v", expected, keys)
+// The message buffer is reused, so the data must be its own copy.
+func TestTheDataIsACopy(t *testing.T) {
+	payload := []byte(`[{"tid":"1","st":"success","dt":{"a":1},"plat":"2026-09-19 03:04:05"}]`)
+
+	var updating []TraceUpdating
+
+	if err := json.Unmarshal(payload, &updating); err != nil {
+		t.Fatal(err)
+	}
+
+	for index := range payload {
+		payload[index] = ' '
+	}
+
+	if string(updating[0].Data.Raw) != `{"a":1}` {
+		t.Fatalf("the data changed with the message: %s", updating[0].Data.Raw)
 	}
 }
 
 func TestATraceWithoutDataCarriesNothing(t *testing.T) {
 	var updating []TraceUpdating
 
-	if err := json.Unmarshal([]byte(`[{"tid":"1","st":"success","plat":"2026-09-19 03:04:05"}]`), &updating); err != nil {
+	if err := json.Unmarshal([]byte(`[{"tid":"1","st":"success","plat":"2026-09-19 03:04:05"},{"tid":"2","st":"success","dt":null,"plat":"2026-09-19 03:04:05"}]`), &updating); err != nil {
 		t.Fatal(err)
 	}
 
-	if updating[0].Data.Value != nil {
-		t.Fatalf("expected no data, got %v", updating[0].Data.Value)
+	for _, trace := range updating {
+		if !trace.Data.IsNull() {
+			t.Fatalf("trace %s: expected no data, got %s", trace.TraceId, trace.Data.Raw)
+		}
+	}
+}
+
+func TestWhatCountsAsEmpty(t *testing.T) {
+	cases := map[string]bool{
+		``:          true,
+		`null`:      true,
+		` null `:    true,
+		`[]`:        true,
+		`{}`:        true,
+		`[ ]`:       true,
+		`{ }`:       true,
+		`[0]`:       false,
+		`{"a":1}`:   false,
+		`""`:        false,
+		`0`:         false,
+		`false`:     false,
+		`"[]"`:      false,
+		`[1,"two"]`: false,
+	}
+
+	for raw, expected := range cases {
+		if IsEmptyJson([]byte(raw)) != expected {
+			t.Fatalf("%q: expected empty = %v", raw, expected)
+		}
+	}
+}
+
+func TestWhatCountsAsAnObject(t *testing.T) {
+	cases := map[string]bool{
+		`{"a":1}`: true,
+		` {}`:     true,
+		`[{}]`:    false,
+		`"{"`:     false,
+		`null`:    false,
+		``:        false,
+	}
+
+	for raw, expected := range cases {
+		if IsObjectJson([]byte(raw)) != expected {
+			t.Fatalf("%q: expected object = %v", raw, expected)
+		}
 	}
 }
