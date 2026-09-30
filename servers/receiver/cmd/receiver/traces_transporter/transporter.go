@@ -42,9 +42,12 @@ func nextPause(previous time.Duration, lower time.Duration, upper time.Duration)
 }
 
 // unavailableSigns are the texts of errors that say a store could not take the batch at
-// the moment, not that something is wrong with the batch: the network, a timeout, and the
+// the moment, not that something is wrong with the batch: the network, a timeout, the
 // ClickHouse codes of a server under load — 159 timeout, 202 too many queries, 209/210
-// socket and network, 241 memory limit, 242 table read-only, 252 too many parts.
+// socket and network, 241 memory limit, 242 table read-only, 252 too many parts — and 60,
+// the traces table missing while migrate:fresh or a migration recreates it. A table that
+// never comes back keeps the buffer waiting until its 6-hour TTL, rather than moving
+// every trace of those hours to the invalid buffer.
 var unavailableSigns = []string{
 	"connection refused",
 	"connection reset",
@@ -54,6 +57,7 @@ var unavailableSigns = []string{
 	"Client.Timeout",
 	"server selection error",
 	"EOF",
+	"Code: 60.",
 	"Code: 159.",
 	"Code: 202.",
 	"Code: 209.",

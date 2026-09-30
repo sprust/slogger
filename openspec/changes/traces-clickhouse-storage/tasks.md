@@ -91,7 +91,7 @@
 - [x] 12.11 Генератор нагрузки `servers/receiver/cmd/loadgen`. Проверка: 12 019 381 трейс отправлено, `uniqExact(sid, tid)` совпадает.
 - [x] 12.12 README (оба языка): склейка через `pendingTraces`, пачка и повторы транспортёра, миграции, ежечасное слияние. `.ai/plans/clickhouse-traces-prototype.md`: результаты стресс-теста.
 - [x] 12.13 `make check` проходит; в `servers/receiver` — `go vet ./...`, `go test ./...`.
-- [ ] 12.14 Код 60 (`UNKNOWN_TABLE`) считать недоступностью хранилища: во время `migrate:fresh` собственные трейсы панели уходили в `invalidBuffer`.
+- [x] 12.14 Код 60 (`UNKNOWN_TABLE`) считать недоступностью хранилища: во время `migrate:fresh` собственные трейсы панели уходили в `invalidBuffer`. Проверка: тест `isUnavailable`; таблица `traces` пропадает на 40 секунд — попытки не тратятся, `invalidBuffer` не растёт, после возврата буфер разбирается.
 - [x] 12.15 Карту путей `ClickhouseDataPathTypes` строить в фоне, а не в запросе пользователя: `RefreshTraceDataPathTypesTask` в пуле `tasks` при старте и раз в 5 минут, кэш 30 минут, `arrayPaths()` только читает. Проверка: `ClickhouseDataPathTypesTest`, `RefreshTraceDataPathTypesTaskTest`; после перезапуска воркеров карта появляется в кэше без запросов.
 - [x] 12.16 Миграции сжаты: одна миграция создания на таблицу или коллекцию в текущем состоянии, под прежним именем файла; миграции изменений и удалённых фич (`trace_clearing_settings`, `traceDynamicIndexes`, `logs`) удалены. Проверка: снимок схемы MySQL, MongoDB (опции, валидаторы, индексы) и ClickHouse после `migrate:fresh --force` совпадает со снимком до сжатия.
 - [x] 12.17 Соединение `mongodb.logs` и `MONGO_DATABASE_LOGS` удалены: логи читаются с диска, `migrate:fresh` эту базу больше не обходит.

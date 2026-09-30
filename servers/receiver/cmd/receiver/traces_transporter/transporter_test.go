@@ -58,6 +58,7 @@ func TestAStoreOutOfReachIsNotTheBatchsFault(t *testing.T) {
 		`Post "http://clickhouse:8123/?database=slogger": dial tcp 172.18.0.5:8123: connect: connection refused`,
 		"clickhouse: Code: 241. DB::Exception: (total) memory limit exceeded: would use 4.01 GiB",
 		"clickhouse: Code: 252. DB::Exception: Too many parts (3001) in table",
+		"clickhouse: Code: 60. DB::Exception: Unknown table expression identifier 'traces' in scope SELECT",
 		"server selection error: context deadline exceeded",
 	}
 
