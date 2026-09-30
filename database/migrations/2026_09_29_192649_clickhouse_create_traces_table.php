@@ -56,12 +56,6 @@ return new class extends Migration {
                 SQL,
             queryIdPrefix: 'migrate'
         );
-
-        // where the applied ClickHouse migrations were recorded before they became these
-        $client->command(
-            sql: 'DROP TABLE IF EXISTS schema_migrations',
-            queryIdPrefix: 'migrate'
-        );
     }
 
     public function down(): void

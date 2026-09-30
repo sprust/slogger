@@ -204,7 +204,7 @@ flowchart TB
 - в MCP — `GetTraceIndexStatusTool`, `GetTraceIndexesTool`, бриджи индексов, `McpTraceIndexExceptionTranslator` и `McpToolFormatter::indexBuilding`;
 - во фронтенде — диалог `dynamic-indexes`, ожидание индекса в `PendingRequestDialog` и `pendingRequestStore`.
 
-Коллекция `traceDynamicIndexes` удаляется миграцией. Строки `Purpose` в `openspec/specs/mcp-trace-queries` и `openspec/specs/mcp-tools` упоминают динамические индексы. Delta их не меняет, поэтому их правят напрямую при архивации. Задача в пуле `tasks` исчезает из `config/sconcur.php`.
+Коллекции `traceDynamicIndexes` больше нет: её миграция создания удалена вместе с остальными миграциями удалённых фич (раздел 9). Строки `Purpose` в `openspec/specs/mcp-trace-queries` и `openspec/specs/mcp-tools` упоминают динамические индексы. Delta их не меняет, поэтому их правят напрямую при архивации. Задача в пуле `tasks` исчезает из `config/sconcur.php`.
 
 ### 6a. MCP без индексов
 
@@ -246,6 +246,7 @@ TTL в DDL не используется: он зашил бы срок в сх�
   - `max_server_memory_usage` 5 ГБ при `CLICKHOUSE_MEM_LIMIT` 6g, уменьшенные кэши, выключенные системные логи, кроме `query_log` с TTL 3 дня;
   - `background_pool_size` 4 (по умолчанию 16): слияния берут память пропорционально числу столбцов, и 16 сразу не оставляли её запросам. Пороги `merge_tree` в свободных слотах пула (`number_of_free_entries_in_pool_to_execute_mutation`, `…_to_execute_optimize_entire_partition`, `…_to_lower_max_size_of_merge`) — 4: больше, чем слотов (4 × 2), сервер не запускается;
   - профиль: `max_memory_usage`, внешняя сортировка и группировка, `do_not_merge_across_partitions_select_final = 1`, `log_queries_cut_to_length` 10000 — `query_log` хранит текст с подставленными параметрами, и запрос по тысячам ключей занимал бы в нём мегабайт.
+- Миграции сжаты: одна миграция создания на таблицу или коллекцию, сразу в текущем состоянии, под существующим именем файла её создания. Миграции изменений (`add_*`, `reconcile_*`, `replace_*`, `relax_*`, `drop_*`, `rename_*`, `move_*`) и миграции удалённых фич (`trace_clearing_settings`, `traceDynamicIndexes`, коллекция `logs`) удалены. Внешний ключ `watchers.notification_channel_id` создаёт миграция `notification_channels`: таблица `watchers` создаётся раньше. Соединение `mongodb.logs` и `MONGO_DATABASE_LOGS` удалены: логи читаются с диска. Схема после `migrate:fresh` совпадает со схемой до сжатия.
 - Миграции ClickHouse — обычные Laravel-миграции (`database/migrations`), DDL отправляется через `ClickhouseClient`: `migrate` применяет их вместе с остальными. Отдельной команды, каталога `database/clickhouse` и таблицы `schema_migrations` нет. Свой `migrate:fresh` удаляет таблицы ClickHouse вместе с коллекциями MongoDB, чтобы они не пережили таблицу `migrations`, и принимает `--force`.
 - Переменные окружения:
   - PHP: `CLICKHOUSE_HOST`, `CLICKHOUSE_PORT`, `CLICKHOUSE_DATABASE`, `CLICKHOUSE_USERNAME`, `CLICKHOUSE_PASSWORD`, `CLICKHOUSE_MEM_LIMIT`;
@@ -275,12 +276,13 @@ TTL в DDL не используется: он зашил бы срок в сх�
 
 ## Migration Plan
 
-1. Поднять `clickhouse`, выполнить `migrate`: он создаёт таблицу `traces` и коллекцию `pendingTraces`.
-2. Выкатить receiver и PHP одновременно (`make deploy-prod`). С этого момента трейсы пишутся и читаются только в ClickHouse.
-3. Миграция MongoDB удаляет `traceDynamicIndexes`. База `tracesPeriodic` (коллекции `traces_*`, их индексы и `_traceTreesView`) остаётся как есть: код её больше не читает, Cleaner её не чистит. Что с ней делать, решается отдельно, вне этого change.
-4. Нагрузить приём и чтение `loadgen` на этом инстансе: 12 млн трейс за сутки, отказ ClickHouse посреди приёма, дерево в 200 тыс. узлов, время списка, графиков, фасетов, детальной и дерева. Сравнение со вторым инстансом (`../slogger.back`) заменено этим тестом. Результаты — в `.ai/plans/clickhouse-traces-prototype.md`, раздел «Результаты».
+Переход не накатывается обновлением на работающий инстанс: версия с ClickHouse ставится начисто. Поэтому миграции не несут совместимости со старыми установками (раздел 9).
 
-Откат — прежняя версия receiver и PHP. Данные, записанные в ClickHouse, при откате не возвращаются в MongoDB.
+1. Поднять стек (`make setup`): `migrate` создаёт таблицы MySQL, коллекции MongoDB, таблицу `traces` в ClickHouse и коллекцию `pendingTraces`.
+2. Старый инстанс с трейсами в MongoDB не обновляется. Его база `tracesPeriodic` этой версией не читается и не чистится.
+3. Нагрузить приём и чтение `loadgen` на этом инстансе: 12 млн трейс за сутки, отказ ClickHouse посреди приёма, дерево в 200 тыс. узлов, время списка, графиков, фасетов, детальной и дерева. Сравнение со вторым инстансом (`../slogger.back`) заменено этим тестом. Результаты — в `.ai/plans/clickhouse-traces-prototype.md`, раздел «Результаты».
+
+Отката как такового нет: прежний инстанс продолжает работать на прежней версии.
 
 ## Open Questions
 

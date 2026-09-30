@@ -12,6 +12,7 @@ return new class extends Migration {
             $table->string('name');
             $table->string('token', 50)->unique();
             $table->boolean('enabled')->default(true);
+            $table->unsignedBigInteger('requests_count')->default(0);
             $table->timestamp('last_used_at')->nullable();
             $table->timestamps();
         });

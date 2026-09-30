@@ -155,18 +155,6 @@ return [
                     'authSource' => env('MONGO_DATABASE_ADMIN', 'admin'),
                 ],
             ],
-            // TODO: Only the migrations of the old `logs` collection use it; remove after the release.
-            'logs' => [
-                'host'     => env('MONGO_HOST'),
-                'port'     => env('MONGO_PORT'),
-                'username' => env('MONGO_ADMIN_USERNAME'),
-                'password' => env('MONGO_ADMIN_PASSWORD'),
-                'database' => env('MONGO_DATABASE_LOGS',  'logs'),
-                'options'  => [
-                    'appname'    => env('APP_NAME'),
-                    'authSource' => env('MONGO_DATABASE_ADMIN', 'admin'),
-                ],
-            ],
         ],
 
         /*

@@ -4,6 +4,9 @@ use Illuminate\Database\Migrations\Migration;
 use SConcur\Features\Mongodb\Connection\Client;
 use SConcur\Features\Mongodb\Connection\Database;
 
+/**
+ * The nodes of built trace trees, one document per node, kept for a day.
+ */
 return new class extends Migration {
     // Not Migration::$connection: the database manager has no Mongo driver registered.
     // This names a `database.connections.mongodb.*` entry, read below as plain config.
@@ -14,9 +17,6 @@ return new class extends Migration {
     // open is on the default MySQL connection, which none of this touches.
     public $withinTransaction = false;
 
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         $database = $this->database();
@@ -31,36 +31,35 @@ return new class extends Migration {
                     'name' => 'rootTraceId_1',
                 ],
                 [
+                    'key'  => ['rootTraceId' => 1, 'traceId' => 1],
+                    'name' => 'rootTraceId_1_traceId_1',
+                ],
+                [
+                    'key'  => ['rootTraceId' => 1, 'depth' => 1, '_id' => 1],
+                    'name' => 'rootTraceId_1_depth_1__id_1',
+                ],
+                [
+                    // The children of a node in the order they are paged through.
+                    'key'  => ['rootTraceId' => 1, 'parentTraceId' => 1, 'loggedAt' => 1, '_id' => 1],
+                    'name' => 'rootTraceId_1_parentTraceId_1_loggedAt_1__id_1',
+                ],
+                [
                     'key'                => ['createdAt' => 1],
                     'name'               => 'createdAt_1',
-                    'expireAfterSeconds' => 60 * 60, // 1 hour
+                    'expireAfterSeconds' => 60 * 60 * 24,
                 ],
             ],
         ]);
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        $database = $this->database();
-
-        $database->command([
-            'dropIndexes' => $this->collectionName,
-            'index'       => '*',
-        ]);
-
-        $database->command(['drop' => $this->collectionName]);
+        $this->database()->command(['drop' => $this->collectionName]);
     }
 
     /**
-     * The connection, built here rather than taken from an application service.
-     *
-     * A migration has to keep meaning what it meant on the day it ran, and application
-     * code moves on. What it may lean on is what does not: the configuration keys and the
-     * driver. Index names are spelled out for the same reason — they are what the
-     * collection actually carries, not what a helper would derive today.
+     * The connection, built here rather than taken from an application service: a
+     * migration has to keep meaning what it meant on the day it ran.
      */
     private function database(): Database
     {

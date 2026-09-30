@@ -31,26 +31,7 @@ return new class extends Migration {
     {
         $database = $this->database();
 
-        if (!in_array($this->collectionName, $database->listCollections(), true)) {
-            $database->command(['create' => $this->collectionName]);
-        }
-
-        // Same name with different options is IndexOptionsConflict, not a no-op. Before
-        // this migration the receiver created the index itself, with a TTL of its own
-        // configuration, so an installation that ran it may carry a different one.
-        foreach ($database->selectCollection($this->collectionName)->listIndexes() as $index) {
-            if ($index['name'] !== self::TTL_INDEX_NAME) {
-                continue;
-            }
-
-            if (($index['expireAfterSeconds'] ?? null) === self::TTL_SECONDS) {
-                return;
-            }
-
-            $database->selectCollection($this->collectionName)->dropIndex(self::TTL_INDEX_NAME);
-
-            break;
-        }
+        $database->command(['create' => $this->collectionName]);
 
         $database->command([
             'createIndexes' => $this->collectionName,
@@ -68,11 +49,7 @@ return new class extends Migration {
 
     public function down(): void
     {
-        $database = $this->database();
-
-        if (in_array($this->collectionName, $database->listCollections(), true)) {
-            $database->command(['drop' => $this->collectionName]);
-        }
+        $this->database()->command(['drop' => $this->collectionName]);
     }
 
     /**

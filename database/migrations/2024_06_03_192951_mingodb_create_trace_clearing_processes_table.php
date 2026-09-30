@@ -4,6 +4,9 @@ use Illuminate\Database\Migrations\Migration;
 use SConcur\Features\Mongodb\Connection\Client;
 use SConcur\Features\Mongodb\Connection\Database;
 
+/**
+ * The runs of the trace cleaner, shown on the Trace cleaner page, kept for 12 hours.
+ */
 return new class extends Migration {
     // Not Migration::$connection: the database manager has no Mongo driver registered.
     // This names a `database.connections.mongodb.*` entry, read below as plain config.
@@ -14,47 +17,48 @@ return new class extends Migration {
     // open is on the default MySQL connection, which none of this touches.
     public $withinTransaction = false;
 
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         $database = $this->database();
 
         $database->command([
-            'create' => $this->collectionName,
+            'create'    => $this->collectionName,
             'validator' => [
                 '$jsonSchema' => [
                     'bsonType'   => 'object',
                     'required'   => [
-                        'settingId',
-                        'clearedCount',
+                        'clearedCollectionsCount',
+                        'clearedTracesCount',
+                        'error',
+                        'errorTrace',
                         'clearedAt',
-                        'createdAt',
-                        'updatedAt',
                     ],
                     'properties' => [
-                        'settingId'    => [
+                        'clearedCollectionsCount' => [
                             'bsonType' => 'number',
                         ],
-                        'clearedCount' => [
+                        'clearedTracesCount'      => [
                             'bsonType' => 'number',
                         ],
-                        'clearedAt'    => [
+                        'error'                   => [
+                            'bsonType' => ['string', 'null'],
+                        ],
+                        'errorTrace'              => [
+                            'bsonType' => ['string', 'null'],
+                        ],
+                        'clearedAt'               => [
                             'bsonType' => ['date', 'null'],
                         ],
-                        'createdAt'    => [
+                        'createdAt'               => [
                             'bsonType' => 'date',
                         ],
-                        'updatedAt'    => [
+                        'updatedAt'               => [
                             'bsonType' => 'date',
                         ],
                     ],
                 ],
             ],
         ]);
-
-        $secondsPerHour = 60 * 60;
 
         $database->command([
             'createIndexes' => $this->collectionName,
@@ -62,34 +66,20 @@ return new class extends Migration {
                 [
                     'key'                => ['createdAt' => 1],
                     'name'               => 'createdAt_1',
-                    'expireAfterSeconds' => $secondsPerHour * 24, // 24 hours
+                    'expireAfterSeconds' => 60 * 60 * 12,
                 ],
             ],
         ]);
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        $database = $this->database();
-
-        $database->command([
-            'dropIndexes' => $this->collectionName,
-            'index'       => '*',
-        ]);
-
-        $database->command(['drop' => $this->collectionName]);
+        $this->database()->command(['drop' => $this->collectionName]);
     }
 
     /**
-     * The connection, built here rather than taken from an application service.
-     *
-     * A migration has to keep meaning what it meant on the day it ran, and application
-     * code moves on. What it may lean on is what does not: the configuration keys and the
-     * driver. Index names are spelled out for the same reason — they are what the
-     * collection actually carries, not what a helper would derive today.
+     * The connection, built here rather than taken from an application service: a
+     * migration has to keep meaning what it meant on the day it ran.
      */
     private function database(): Database
     {

@@ -36,7 +36,7 @@
 
 - [x] 5.1 Удалить из `Trace` инициализатор, исключения, события, сущности, DTO, репозиторий, модель `TraceDynamicIndex`, actions построения, удаления, flush и поиска индексов, таски, команды, broadcast'ы, listener, контроллер и ресурсы. Убрать вызовы инициализатора из `FindTracesAction`, `FindTraceIdsAction`, `FindTraceTimestampsAction`, `FindTypesAction`, `FindTagsAction`, `FindStatusesAction`, `FindTraceGroupsAction`, `CompareTraceGroupsAction`. Проверка: `grep -ri dynamicindex app config routes` пуст; `make check` проходит.
 - [x] 5.2 Убрать задачи индексов из `config/sconcur.php` и `config/slogger.php`, слушатель из `EventServiceProvider`, маршруты `/admin-api/dynamic-indexes` из `routes/admin-api.php`, обработку `412` и «parallel arrays» из `app/Exceptions/Handler.php`. Проверка: `make art c="route:list"` не показывает `dynamic-indexes`; пул `tasks` стартует без них.
-- [x] 5.3 Laravel-миграция MongoDB (имя с UTC-меткой из `date -u +%Y_%m_%d_%H%M%S`), удаляющая коллекцию `traceDynamicIndexes`. Проверка: `make art c="migrate"` удаляет коллекцию, повторный запуск ничего не делает.
+- [x] 5.3 Laravel-миграция MongoDB (имя с UTC-меткой из `date -u +%Y_%m_%d_%H%M%S`), удаляющая коллекцию `traceDynamicIndexes`. Проверка: `make art c="migrate"` удаляет коллекцию, повторный запуск ничего не делает. Заменено задачей 12.16: миграции создания и удаления коллекции удалены.
 - [x] 5.4 Удалить тесты удалённого кода (`TraceDynamicIndexInitializerTest`, тесты actions индексов, broadcast'ов и `PublishTraceDynamicIndexStatsTaskTest`) и поправить `FindTracesActionTest` и `TraceGroupsActionsTest` без инициализатора. Проверка: `make test` проходит.
 
 ## 6. Admin API и фронтенд
@@ -93,3 +93,5 @@
 - [x] 12.13 `make check` проходит; в `servers/receiver` — `go vet ./...`, `go test ./...`.
 - [ ] 12.14 Код 60 (`UNKNOWN_TABLE`) считать недоступностью хранилища: во время `migrate:fresh` собственные трейсы панели уходили в `invalidBuffer`.
 - [ ] 12.15 Карту путей `ClickhouseDataPathTypes` строить в фоне, а не в запросе пользователя.
+- [x] 12.16 Миграции сжаты: одна миграция создания на таблицу или коллекцию в текущем состоянии, под прежним именем файла; миграции изменений и удалённых фич (`trace_clearing_settings`, `traceDynamicIndexes`, `logs`) удалены. Проверка: снимок схемы MySQL, MongoDB (опции, валидаторы, индексы) и ClickHouse после `migrate:fresh --force` совпадает со снимком до сжатия.
+- [x] 12.17 Соединение `mongodb.logs` и `MONGO_DATABASE_LOGS` удалены: логи читаются с диска, `migrate:fresh` эту базу больше не обходит.

@@ -4,6 +4,9 @@ use Illuminate\Database\Migrations\Migration;
 use SConcur\Features\Mongodb\Connection\Client;
 use SConcur\Features\Mongodb\Connection\Database;
 
+/**
+ * The receiver's queue of creates and updates, read by the transporter oldest first.
+ */
 return new class extends Migration {
     // Not Migration::$connection: the database manager has no Mongo driver registered.
     // This names a `database.connections.mongodb.*` entry, read below as plain config.
@@ -14,70 +17,35 @@ return new class extends Migration {
     // open is on the default MySQL connection, which none of this touches.
     public $withinTransaction = false;
 
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         $database = $this->database();
 
         $database->command(['create' => $this->collectionName]);
 
-        $secondsPerHour = 60 * 60;
-
         $database->command([
             'createIndexes' => $this->collectionName,
             'indexes'       => [
                 [
-                    'key'  => ['tid' => 1],
-                    'name' => 'tid_1',
-                ],
-                [
-                    'key'  => [
-                        'sid' => 1,
-                        'tid' => 1,
-                    ],
-                    'name' => 'sid_1_tid_1',
-                ],
-                [
-                    'key'  => [
-                        'lat'   => 1,
-                        '__ins' => 1,
-                        '__upd' => 1,
-                    ],
-                    'name' => 'lat_1___ins_1___upd_1',
-                ],
-                [
-                    'key'                => ['lat' => 1],
-                    'name'               => 'lat_1',
-                    'expireAfterSeconds' => $secondsPerHour, // 1 hour
+                    // The order the transporter reads in, and a TTL: the buffer is a queue, not a store.
+                    // A document still here six hours after it arrived is one no pass managed to save or
+                    // to reject, and keeping it costs more than it is worth.
+                    'key'                => ['cat' => 1],
+                    'name'               => 'cat_1',
+                    'expireAfterSeconds' => 60 * 60 * 6,
                 ],
             ],
         ]);
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        $database = $this->database();
-
-        $database->command([
-            'dropIndexes' => $this->collectionName,
-            'index'       => '*',
-        ]);
-
-        $database->command(['drop' => $this->collectionName]);
+        $this->database()->command(['drop' => $this->collectionName]);
     }
 
     /**
-     * The connection, built here rather than taken from an application service.
-     *
-     * A migration has to keep meaning what it meant on the day it ran, and application
-     * code moves on. What it may lean on is what does not: the configuration keys and the
-     * driver. Index names are spelled out for the same reason — they are what the
-     * collection actually carries, not what a helper would derive today.
+     * The connection, built here rather than taken from an application service: a
+     * migration has to keep meaning what it meant on the day it ran.
      */
     private function database(): Database
     {
