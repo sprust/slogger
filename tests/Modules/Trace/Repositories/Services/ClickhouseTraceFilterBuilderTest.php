@@ -70,9 +70,9 @@ class ClickhouseTraceFilterBuilderTest extends TestCase
             data: $this->data(numeric: new TraceDataFilterNumericParameters(500, TraceDataFilterCompNumericTypeEnum::Gte))
         );
 
-        self::assertSame(
-            "coalesce(if(dynamicType(dt.`response`.`status`) IN ('Int64', 'UInt64', 'Float64'), "
-            . "accurateCastOrNull(dt.`response`.`status`, 'Float64'), NULL) >= {f0:Float64}, 0)",
+        self::assertStringStartsWith(
+            "(coalesce(if(dynamicType(dt.`response`.`status`) IN ('Int64', 'UInt64', 'Float64'), "
+            . "accurateCastOrNull(dt.`response`.`status`, 'Float64'), NULL) >= {f0:Float64}, 0) OR ",
             $condition->sql
         );
         self::assertSame(500.0, $condition->params['f0']);
@@ -84,7 +84,7 @@ class ClickhouseTraceFilterBuilderTest extends TestCase
             data: $this->data(numeric: new TraceDataFilterNumericParameters(5, TraceDataFilterCompNumericTypeEnum::Neq))
         );
 
-        self::assertStringStartsWith('NOT coalesce(', $condition->sql);
+        self::assertStringStartsWith('NOT (coalesce(', $condition->sql);
         self::assertStringContainsString(' = {f0:Float64}', $condition->sql);
     }
 
@@ -94,10 +94,10 @@ class ClickhouseTraceFilterBuilderTest extends TestCase
     public static function stringProvider(): array
     {
         return [
-            'equals'      => [TraceDataFilterCompStringTypeEnum::Eq, "coalesce(dynamicElement(dt.`response`.`status`, 'String') = {f0:String}, 0)"],
-            'contains'    => [TraceDataFilterCompStringTypeEnum::Con, "coalesce(position(dynamicElement(dt.`response`.`status`, 'String'), {f0:String}) > 0, 0)"],
-            'starts with' => [TraceDataFilterCompStringTypeEnum::Starts, "coalesce(startsWith(dynamicElement(dt.`response`.`status`, 'String'), {f0:String}), 0)"],
-            'ends with'   => [TraceDataFilterCompStringTypeEnum::Ends, "coalesce(endsWith(dynamicElement(dt.`response`.`status`, 'String'), {f0:String}), 0)"],
+            'equals'      => [TraceDataFilterCompStringTypeEnum::Eq, "(coalesce(dynamicElement(dt.`response`.`status`, 'String') = {f0:String}, 0) OR "],
+            'contains'    => [TraceDataFilterCompStringTypeEnum::Con, "(coalesce(position(dynamicElement(dt.`response`.`status`, 'String'), {f0:String}) > 0, 0) OR "],
+            'starts with' => [TraceDataFilterCompStringTypeEnum::Starts, "(coalesce(startsWith(dynamicElement(dt.`response`.`status`, 'String'), {f0:String}), 0) OR "],
+            'ends with'   => [TraceDataFilterCompStringTypeEnum::Ends, "(coalesce(endsWith(dynamicElement(dt.`response`.`status`, 'String'), {f0:String}), 0) OR "],
         ];
     }
 
@@ -108,7 +108,7 @@ class ClickhouseTraceFilterBuilderTest extends TestCase
             data: $this->data(string: new TraceDataFilterStringParameters('a.b', $comp))
         );
 
-        self::assertSame($sql, $condition->sql);
+        self::assertStringStartsWith($sql, $condition->sql);
         self::assertSame('a.b', $condition->params['f0']);
     }
 
@@ -118,9 +118,9 @@ class ClickhouseTraceFilterBuilderTest extends TestCase
             data: $this->data(string: new TraceDataFilterStringParameters('ok', TraceDataFilterCompStringTypeEnum::Neq))
         );
 
-        self::assertSame(
+        self::assertStringStartsWith(
             "(JSONHas(dt_raw, 'response', 'status') AND NOT "
-            . "coalesce(dynamicElement(dt.`response`.`status`, 'String') = {f0:String}, 0))",
+            . "(coalesce(dynamicElement(dt.`response`.`status`, 'String') = {f0:String}, 0) OR ",
             $condition->sql
         );
     }
@@ -131,7 +131,7 @@ class ClickhouseTraceFilterBuilderTest extends TestCase
             data: $this->data(boolean: new TraceDataFilterBooleanParameters(true))
         );
 
-        self::assertSame("coalesce(dynamicElement(dt.`response`.`status`, 'Bool') = {f0:Bool}, 0)", $condition->sql);
+        self::assertStringStartsWith("(coalesce(dynamicElement(dt.`response`.`status`, 'Bool') = {f0:Bool}, 0) OR ", $condition->sql);
         self::assertTrue($condition->params['f0']);
     }
 
@@ -153,6 +153,27 @@ class ClickhouseTraceFilterBuilderTest extends TestCase
             "(JSONHas(dt_raw, 'response', 'status') AND JSONType(dt_raw, 'response', 'status') != 'Null')",
             $this->builder()->build(data: $this->data(null: false))->sql
         );
+    }
+
+    public function testAnArrayOfScalarsMatchesAnyElement(): void
+    {
+        $condition = $this->builder()->build(
+            data: $this->data(string: new TraceDataFilterStringParameters('admin', TraceDataFilterCompStringTypeEnum::Eq))
+        );
+
+        self::assertStringContainsString(
+            "arrayExists(__e -> coalesce(dynamicElement(__e, 'String') = {f0:String}, 0), arrayConcat(",
+            $condition->sql
+        );
+
+        foreach (['String', 'Int64', 'UInt64', 'Float64', 'Bool'] as $type) {
+            self::assertStringContainsString(
+                "CAST(dynamicElement(dt.`response`.`status`, 'Array(Nullable($type))'), 'Array(Dynamic)')",
+                $condition->sql
+            );
+        }
+
+        self::assertStringContainsString("dynamicElement(dt.`response`.`status`, 'Array(Dynamic)'))", $condition->sql);
     }
 
     public function testPathThroughAnArrayOfObjectsMatchesAnyElement(): void

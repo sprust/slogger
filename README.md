@@ -173,7 +173,7 @@ You can filter by any payload field, including nested ones (`user.id`, `request.
 - booleans — `true` / `false`;
 - field checks — is null / is not null, exists / does not exist. A key holding null exists, and `is null` matches only a key that is there and holds null.
 
-When a part of a path holds an array of objects (`items.price` over `"items": [{"price": 5}, …]`), the condition matches if any element matches. Which paths hold arrays of objects is learned from the data of the last day and cached for 5 minutes (`ClickhouseDataPathTypes`). An array inside the elements of another array is not walked into.
+When the value at a path is an array of scalars (`roles` over `"roles": ["admin", "dev"]`), or a part of the path holds an array of objects (`items.price` over `"items": [{"price": 5}, …]`), the condition matches if any element matches; several such arrays, and tags beside them, can be filtered on at once. Which paths hold arrays of objects is learned from the data of the last day and cached for 5 minutes (`ClickhouseDataPathTypes`). An array inside the elements of another array is not walked into.
 
 These filters are built into the `WHERE` of a ClickHouse query (`ClickhouseTraceFilterBuilder`), every value as a `{name:Type}` parameter, and work together with the base filters (service, type, tags, status, duration/memory/CPU ranges, time period). Several tags narrow rather than widen: a trace has to carry every one of them. Tags and `data` fields can be used in one filter.
 

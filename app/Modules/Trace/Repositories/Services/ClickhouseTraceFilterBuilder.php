@@ -31,6 +31,11 @@ use Illuminate\Support\Carbon;
  */
 readonly class ClickhouseTraceFilterBuilder
 {
+    /**
+     * The element types the JSON column stores an array of scalars under.
+     */
+    private const array SCALAR_ARRAY_TYPES = ['String', 'Int64', 'UInt64', 'Float64', 'Bool'];
+
     public function __construct(
         private TraceDataPathResolver $pathResolver,
     ) {
@@ -205,25 +210,57 @@ readonly class ClickhouseTraceFilterBuilder
     }
 
     /**
-     * The condition holds for the value at the path, or, when a part of the path is an
-     * array of objects, for any of its elements — MongoDB's reading of a path.
+     * The condition holds for the value at the path, for any element when that value is an
+     * array of scalars, or, when a part of the path is an array of objects, for any of its
+     * elements — MongoDB's reading of a path.
      *
      * @param Closure(string): string $condition
      */
     private function anyValue(TraceDataPathDto $path, Closure $condition): string
     {
-        $objectCondition = sprintf('coalesce(%s, 0)', $condition($path->objectExpression));
+        $conditions = [
+            sprintf('coalesce(%s, 0)', $condition($path->objectExpression)),
+            sprintf(
+                'arrayExists(__e -> coalesce(%s, 0), %s)',
+                $condition('__e'),
+                $this->scalarArrayElements($path->objectExpression)
+            ),
+        ];
 
-        if (is_null($path->arrayExpression)) {
-            return $objectCondition;
+        if (!is_null($path->arrayExpression)) {
+            $conditions[] = sprintf(
+                'arrayExists(__v -> coalesce(%s, 0), %s)',
+                $condition('__v'),
+                $path->arrayExpression
+            );
         }
 
-        return sprintf(
-            '(%s OR arrayExists(__v -> coalesce(%s, 0), %s))',
-            $objectCondition,
-            $condition('__v'),
-            $path->arrayExpression
+        return '(' . implode(' OR ', $conditions) . ')';
+    }
+
+    /**
+     * The elements of the value when it is an array of scalars, as values of their own
+     * type; an empty array when it is anything else.
+     *
+     * The JSON column stores such an array under the type its elements share —
+     * `Array(Nullable(String))`, `Array(Nullable(Int64))` and so on — or as
+     * `Array(Dynamic)` when they differ. Each of those is read and brought to
+     * `Array(Dynamic)`, so the condition sees every element by its own type.
+     */
+    private function scalarArrayElements(string $value): string
+    {
+        $arrays = array_map(
+            static fn(string $type): string => sprintf(
+                "CAST(dynamicElement(%s, 'Array(Nullable(%s))'), 'Array(Dynamic)')",
+                $value,
+                $type
+            ),
+            self::SCALAR_ARRAY_TYPES
         );
+
+        $arrays[] = sprintf("dynamicElement(%s, 'Array(Dynamic)')", $value);
+
+        return sprintf('arrayConcat(%s)', implode(', ', $arrays));
     }
 
     private function makeExists(TraceDataPathDto $path): string
