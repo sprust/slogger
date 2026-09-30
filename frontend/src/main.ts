@@ -5,8 +5,11 @@ import 'element-plus/dist/index.css'
 import 'element-plus/theme-chalk/dark/css-vars.css'
 import {router} from "./utils/router.ts";
 import {createPinia} from "pinia";
+import {trackSessionStores} from "./store/sessionStores.ts";
 
 const pinia = createPinia()
+
+pinia.use(trackSessionStores)
 
 window.addEventListener('vite:preloadError', () => window.location.reload())
 
