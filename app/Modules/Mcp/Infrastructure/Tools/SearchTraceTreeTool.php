@@ -41,7 +41,7 @@ readonly class SearchTraceTreeTool implements McpToolInterface
     {
         return 'Nodes of an already built trace tree that match the filters: any of the given values per '
             . 'filter, all given filters at once. Pass at least one filter. It does not build the tree: '
-            . 'call get_trace_tree first. No index needed.';
+            . 'call get_trace_tree first.';
     }
 
     public function schema(): McpToolSchema

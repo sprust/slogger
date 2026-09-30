@@ -42,7 +42,7 @@ readonly class SearchSloggerLogsTool implements McpToolInterface
         return 'Log entries of SLogger itself (its Laravel app, nginx, receiver), NOT of the client services: '
             . 'use it only for questions about how SLogger works. Newest first, by source, levels, period '
             . 'and text. While the files of a source are being indexed the answer is "indexing": repeat the '
-            . 'call later. No trace index needed.';
+            . 'call later.';
     }
 
     public function schema(): McpToolSchema

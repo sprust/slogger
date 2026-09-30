@@ -2,7 +2,7 @@
 
 Мотивация — в `proposal.md`. Здесь описано, как трейсы движутся сейчас и что в этом пути меняется.
 
-Сейчас:
+До перехода:
 
 - Receiver кладёт create и update в `buffer` (MongoDB). Транспортёр читает до 1000 записей, группирует их по сервису и трейсу и на каждую трейсу делает `FindOne{sid,tid}`, склейку и upsert в коллекцию `traces_YYYY_MM_DD_HH_HH` по часу `lat` (`periodic_trace_service`). Параллельно идёт не больше 64 сохранений. Новую коллекцию, её индексы и view `_traceTreesView` создаёт receiver (`trace_sharding_service`).
 - После записи receiver по склеенной трейсе считает `traceMetrics` (`countsAsNew`) и корзины `watcherTimelines`. Для этого нужно знать, какой трейса была до записи.
@@ -37,8 +37,8 @@
 flowchart TB
     client["Клиент — TCP-сокет, create (c) и update (u)"]
     receiver["Receiver (Go) — socket server"]
-    buffer["MongoDB buffer — очередь c/u, TTL 6h"]
     transporter["Transporter — пачка до 5000, группировка sid/tid"]
+    buffer["MongoDB buffer — очередь c/u, TTL 6h"]
     pending["MongoDB pendingTraces — половины, ждущие пару, TTL 3h"]
     ch["ClickHouse traces — ReplacingMergeTree(uat)"]
     side["MongoDB traceMetrics, watcherTimelines"]
@@ -47,9 +47,9 @@ flowchart TB
     ui["Панель и MCP"]
     client -->|"4-byte length + JSON"| receiver
     receiver -->|"InsertMany"| buffer
-    buffer -->|"FindMany / DeleteMany"| transporter
-    transporter <-->|"FindMany по _id / BulkWrite"| pending
-    transporter -->|"INSERT JSONEachRow"| ch
+    transporter <-->|"FindForTransporter / DeleteByIds / MarkFailed"| buffer
+    transporter <-->|"FindMany по _id / Apply (BulkWrite)"| pending
+    transporter <-->|"FindExisting (SELECT … FINAL) / Insert (INSERT … FORMAT JSONEachRow)"| ch
     transporter -->|"AddTrace после записи"| side
     ui <-->|"admin-api, /mcp"| php
     php <-->|"HTTP 8123, SQL с параметрами"| ch
@@ -116,7 +116,7 @@ sequenceDiagram
     T->>C: INSERT INTO traces FORMAT JSONEachRow (одна вставка на пачку)
     T->>P: BulkWrite — сохранить ждущие, удалить завершённые
     T->>S: AddTrace для записанных трейс (countsAsNew, длительность)
-    T->>B: DeleteMany сохранённых или MarkFailed
+    T->>B: DeleteByIds сохранённых или MarkFailed
 ```
 
 - Вторую половину трейсы транспортёр ищет в `pendingTraces`, а не в ClickHouse. Первый вариант — один `SELECT … FINAL … IN (ключи пачки)` на проход — в стресс-тесте читал до 380 тыс. строк на пачку из 1000: ключи разбросаны по часу, каждый попадает в свою гранулу, и цена росла с размером партиции. Скорость падала с 5 до 2.5 тыс. трейс в секунду. Точечное чтение MongoDB по `_id` от размера таблицы не зависит.
@@ -127,7 +127,7 @@ sequenceDiagram
 - ClickHouse читается только для update, не нашедшего ожидающей половины: create был финальным, или трейса ждала дольше TTL `pendingTraces` (3 часа, долгий job). Это единицы на пачку.
 - Строка, записанная раньше (create со `started`), не удаляется: её вытесняет строка с большим `uat` при слиянии частей, а до слияния чтение идёт через `FINAL`. Пакетный lightweight `DELETE` на проход пробовали: это мутация на проход, и на потоке 12 тыс. трейс в секунду они заняли весь фоновый пул, слияния встали, частей стало 1700, ClickHouse упёрся в память. Дубли конечны за счёт ежечасного слияния закрытых часов (раздел 7a).
 - Правила приоритета полей и тесты `periodic_trace_service` остаются. Источник «сохранённой половины» — документ `pendingTraces` или строка из `SELECT`, где `dt` приходит как `dt_raw`.
-- `cat` берётся из сохранённой половины, а для новой трейсы — текущее время (сейчас это `$setOnInsert`). `uat` — время записи, оно же версия `ReplacingMergeTree`.
+- `cat` берётся из сохранённой половины, а для новой трейсы — текущее время (до перехода это был `$setOnInsert`). `uat` — время записи, оно же версия `ReplacingMergeTree`.
 - Пачка — до `TRANSPORTER_BATCH_SIZE` записей (по умолчанию 5000), вставка одна на пачку: меньше крупных вставок — меньше частей, которые ClickHouse потом сливает.
 - Ошибки:
   - недоступность хранилища — сеть, таймаут, коды ClickHouse 159, 202, 209, 210, 241, 242, 252 (таймаут, число запросов, сокет, память, read-only, число частей) и 60 (нет таблицы, пока миграция её пересоздаёт) — не тратит попытки: пачка ждёт и повторяется как есть, пауза удваивается от 1 до 30 секунд. Иначе 5 попыток сгорают за секунды перезапуска ClickHouse, и пачки уходят в `invalidBuffer` (в стресс-тесте так ушли 10% трейс). Таблица, которая так и не вернулась, держит буфер до его TTL в 6 часов;
@@ -135,7 +135,7 @@ sequenceDiagram
   - прочие ошибки пачки помечают её неудачной (`MarkFailed`, `att + 1`), как раньше; после 5 попыток записи уходят в `invalidBuffer`.
   - `errs.Err` сохраняет только текст ошибки, поэтому недоступность распознаётся по тексту.
 - `pendingTraces`: документ на сервис и трейсу, `_id` = `"<sid>:<tid>"`, склеенное на сейчас состояние и `hu` (был ли update). TTL-индекс `uat_1` на 3 часа по времени последней записи. Коллекцию и индекс создаёт Laravel-миграция, как у `buffer`: receiver, создававший индекс при первом подключении, терял его, когда коллекцию удаляли под ним (`migrate:fresh`).
-- Клиент — HTTP-интерфейс ClickHouse (`POST /?query=…`, basic auth, gzip тела), пакет `internal/repositories/clickhouse_trace_repository`. Отдельной Go-библиотеки не нужно: `JSONEachRow` одинаков для записи из Go и чтения из PHP.
+- Клиент — HTTP-интерфейс ClickHouse (`POST`, пользователь и пароль в заголовках `X-ClickHouse-User` и `X-ClickHouse-Key`), пакет `internal/repositories/clickhouse_trace_repository`. Отдельной Go-библиотеки не нужно: `JSONEachRow` одинаков для записи из Go и чтения из PHP. SQL в `?query=` передаёт только вставка, её тело — строки в gzip; `FindExisting` шлёт SQL в теле, ключи — параметром `param_keys`.
 - `dt` в receiver хранится как `bson.D`. Для `dt_raw` нужен сериализатор `bson.D`/`bson.A` → JSON с сохранением порядка ключей.
 - Удаляются `trace_sharding_service`, почасовые коллекции и view.
 
@@ -146,7 +146,7 @@ flowchart TB
     actions["Domain Actions — FindTraces, FindTraceTimestamps, FindTypes/Tags/Statuses, FindTraceGroups, FindTraceDetail, FindTraceTree"]
     repos["Trace Repositories — TraceRepository, TraceTimestampsRepository, TraceContentRepository, TraceGroupsRepository, TraceTreeRepository"]
     filter["ClickhouseTraceFilterBuilder — WHERE и параметры"]
-    client["App Services — ClickhouseClient: select, insert, command"]
+    client["App Services — ClickhouseClient: select, command"]
     http["SConcur HttpClient — неблокирующий POST"]
     actions -->|"handle(...)"| repos
     repos -->|"build(parameters)"| filter
@@ -163,7 +163,7 @@ flowchart TB
 | Сценарий | Запрос |
 |---|---|
 | Список | `SELECT … FROM traces FINAL WHERE … ORDER BY lat DESC, tid LIMIT … OFFSET …` |
-| Графики | `GROUP BY toStartOfInterval(lat, INTERVAL …)` (для `m` — `toStartOfMonth`), `count()`, `avg`, `min`, `max`, `quantiles(0.5, 0.95, 0.99)` |
+| Графики | `GROUP BY toStartOfInterval(lat, INTERVAL …)` (для `d` — `toStartOfDay`, для `m` — `toStartOfMonth`), `count()`, `avg`, `min`, `max`, `quantile(0.5)`, `quantile(0.95)`, `quantile(0.99)` |
 | Фасеты | `GROUP BY tp` / `arrayJoin(tgs)` / `GROUP BY st`, `count()`, поиск — `positionCaseInsensitive` |
 | Группы и сравнение | `GROUP BY sid, tp, st, toStartOfHour` / `toStartOfTenMinutes`, `quantile(0.95)(dur)`, `argMax(tid, dur)` |
 | Диапазон данных | `SELECT min(lat), max(lat) FROM traces` |
@@ -219,7 +219,7 @@ flowchart TB
 
 ### 7. Очистка
 
-Остаётся `ClearTracesJob` раз в час и страница Trace cleaner. `DeleteCollectionsAction` становится удалением партиций: `ALTER TABLE traces DROP PARTITION` для часов старше `TRACES_LIFETIME_HOURS` (по умолчанию 72) — так же, как сейчас удаляются часовые коллекции. `TRACES_LIFETIME_DAYS` удаляется из `config/cleaner.php` и `.env.example`. Число строк перед удалением берётся из `system.parts`. В `ProcessObject` поле `clearedCollectionsCount` считает партиции: API и страница не меняются.
+Остаётся `ClearTracesJob` раз в час и страница Trace cleaner. Вместо `DeleteCollectionsAction` партиции удаляет `DeletePartitionsAction`: `ALTER TABLE traces DROP PARTITION` для часов старше `TRACES_LIFETIME_HOURS` (по умолчанию 72) — так же, как сейчас удаляются часовые коллекции. `TRACES_LIFETIME_DAYS` удаляется из `config/cleaner.php` и `.env.example`. Число строк перед удалением берётся из `system.parts`. В `ProcessObject` поле `clearedCollectionsCount` считает партиции: API и страница не меняются.
 
 TTL в DDL не используется: он зашил бы срок в схему, а сейчас срок — переменная окружения.
 
@@ -252,7 +252,7 @@ TTL в DDL не используется: он зашил бы срок в сх�
 - Миграции сжаты: одна миграция создания на таблицу или коллекцию, сразу в текущем состоянии, под существующим именем файла её создания. Миграции изменений (`add_*`, `reconcile_*`, `replace_*`, `relax_*`, `drop_*`, `rename_*`, `move_*`) и миграции удалённых фич (`trace_clearing_settings`, `traceDynamicIndexes`, коллекция `logs`) удалены. Внешний ключ `watchers.notification_channel_id` создаёт миграция `notification_channels`: таблица `watchers` создаётся раньше. Соединение `mongodb.logs` и `MONGO_DATABASE_LOGS` удалены: логи читаются с диска. Схема после `migrate:fresh` совпадает со схемой до сжатия.
 - Миграции ClickHouse — обычные Laravel-миграции (`database/migrations`), DDL отправляется через `ClickhouseClient`: `migrate` применяет их вместе с остальными. Отдельной команды, каталога `database/clickhouse` и таблицы `schema_migrations` нет. Свой `migrate:fresh` удаляет таблицы ClickHouse вместе с коллекциями MongoDB, чтобы они не пережили таблицу `migrations`, и принимает `--force`.
 - Переменные окружения:
-  - PHP: `CLICKHOUSE_HOST`, `CLICKHOUSE_PORT`, `CLICKHOUSE_DATABASE`, `CLICKHOUSE_USERNAME`, `CLICKHOUSE_PASSWORD`, `CLICKHOUSE_MEM_LIMIT`;
+  - PHP: `CLICKHOUSE_HOST`, `CLICKHOUSE_PORT`, `CLICKHOUSE_DATABASE`, `CLICKHOUSE_USERNAME`, `CLICKHOUSE_PASSWORD`, `CLICKHOUSE_MEM_LIMIT` и необязательная `CLICKHOUSE_TIMEOUT_SECONDS` (по умолчанию 60);
   - receiver: `CLICKHOUSE_URL`, `CLICKHOUSE_DATABASE`, `CLICKHOUSE_USERNAME`, `CLICKHOUSE_PASSWORD`, `MONGODB_COLL_PENDING_TRACES` (по умолчанию `pendingTraces`), `TRANSPORTER_BATCH_SIZE` (по умолчанию 5000);
   - у receiver удаляется `MONGODB_DB_PERIODIC_TRACES`, у PHP — соединение `mongodb.tracesPeriodic`.
 - `make clickhouse-client`.
@@ -267,15 +267,15 @@ TTL в DDL не используется: он зашил бы срок в сх�
 - [Две строки у трейсы, записанной в два шага, до слияния частей] → чтение через `FINAL`, ежечасный `OPTIMIZE … FINAL` закрытых часов. `FINAL` из чтения поэтому не убирается.
 - [`OPTIMIZE … FINAL` раз в час] → около 7 секунд и 0.8 ГБ на час в 500 тыс. трейс, по одной партиции. Если в этот момент система уже у лимита памяти, тяжёлый запрос панели может получить ошибку 241; запись её пережидает.
 - [Update долгого job'а приходит позже TTL `pendingTraces`] → транспортёр читает трейсу из ClickHouse; update без create, пролежавший 3 часа, отбрасывается.
-- [Трейсы, пришедшие, пока таблица `traces` пересоздаётся (`migrate:fresh`)] → код 60 не считается недоступностью, и после 5 попыток записи уходят в `invalidBuffer`: в стресс-тесте 106 собственных трейс панели за 6 секунд.
+- [Трейсы, пришедшие, пока таблица `traces` пересоздаётся (`migrate:fresh`)] → код 60 считается недоступностью хранилища: пачки ждут, попытки не тратятся (задача 12.14). До этого в стресс-тесте за 6 секунд в `invalidBuffer` ушли 106 собственных трейс панели.
 - [Клиент шлёт update без `plat` или с неверным `plat`] → create и update получают разный `lat` и не склеиваются. Сейчас такой update попадает в чужой шард — дубль тот же, поведение не хуже.
 - [`FINAL` в каждом запросе чтения] → `do_not_merge_across_partitions_select_final` и то, что склейка никогда не пересекает партицию. Если дорого, сравнить с чтением без `FINAL` и `LIMIT 1 BY (sid, tid)`.
 - [Точечный поиск по `tid` без `sid` (детальная, цепочка до корня дерева до 100 шагов) идёт по bloom-фильтру всей таблицы] → замерить. Если медленно, добавить projection `ORDER BY tid` или `ptid` отдельной миграцией.
 - [Фильтры по `data` в краевых случаях — массивы, смешанные типы по одному пути, `null` — разойдутся с MongoDB] → юнит-тесты построителя на каждое условие.
 - [Больше 256 путей в `dt`] → лишние пути уходят в общий shared-столбец и фильтруются медленнее, но корректно. Число путей видно через `distinctJSONPathsAndTypes`; при необходимости лимит поднимается миграцией.
-- [Карта путей для фильтра по `data` строится в запросе пользователя раз в 5 минут] → после уменьшения числа путей холодное построение — 0.4 секунды (было 6). Перенос в фон — отдельная задача.
+- [Карта путей для фильтра по `data` строится выборкой за сутки] → её строит `RefreshTraceDataPathTypesTask` при старте пула и раз в 5 минут, кэш 30 минут; запрос пользователя только читает карту и никогда не ждёт её построения (задача 12.15). Холодное построение — 0.4 секунды (было 6).
 - [Ответ `HttpClient` грузится в память целиком] → проверено на дереве в 200 тыс. узлов: построение 56 секунд, воркеры до 362 МБ, страница детей 0.02–0.04 секунды.
-- [Трейсы из MongoDB после перехода недоступны] → принято. Они и так живут 3 дня.
+- [Трейсы из MongoDB после перехода недоступны] → принято. Они остаются в базе `tracesPeriodic`, и её ничто не удаляет.
 
 ## Migration Plan
 
@@ -289,4 +289,4 @@ TTL в DDL не используется: он зашил бы срок в сх�
 
 ## Open Questions
 
-Нет. Тег образа зафиксирован — `clickhouse/clickhouse-server:26.8.14.3`. Сравнение со вторым инстансом заменено стресс-тестом на этом (Migration Plan, п. 4).
+Нет. Тег образа зафиксирован — `clickhouse/clickhouse-server:26.8.14.3`. Сравнение со вторым инстансом заменено стресс-тестом на этом (Migration Plan, п. 3).

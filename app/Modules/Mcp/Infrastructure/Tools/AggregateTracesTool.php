@@ -86,7 +86,7 @@ readonly class AggregateTracesTool implements McpToolInterface
             new McpToolProperty(
                 name: 'tags',
                 type: McpToolPropertyTypeEnum::StringList,
-                description: 'Trace tags.',
+                description: 'Trace tags, all must be on a trace.',
                 max: self::MAX_FILTER_VALUES
             ),
             new McpToolProperty(

@@ -3,7 +3,7 @@ All tools only read data.
 
 Method:
 1. get_services to resolve the service the user means.
-2. get_trace_time_range to see which hours have traces.
+2. get_trace_time_range to see the first and the last hour with traces.
 3. Overview first, with one call each: aggregate_traces for how many traces of which
    services, types and statuses there were and how slow (by hour or minute10 for when),
    compare_trace_groups for what failed traces have in common that the others do not.

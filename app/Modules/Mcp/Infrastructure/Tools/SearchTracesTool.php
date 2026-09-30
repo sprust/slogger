@@ -44,8 +44,9 @@ readonly class SearchTracesTool implements McpToolInterface
     public function description(): string
     {
         return sprintf(
-            'Traces of a service over a period, newest first, %d per page, with filters, a filter by '
-            . 'fields of their data and chosen data fields returned with each trace. Use '
+            'Traces of the chosen services (all when omitted) over a period, newest first, %d per page, '
+            . 'with filters, a filter by fields of their data and chosen data fields returned with each '
+            . 'trace. Use '
             . 'get_trace_data_fields to learn the data keys first.',
             FindMcpTracesAction::PER_PAGE
         );

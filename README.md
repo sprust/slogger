@@ -32,19 +32,23 @@ It collects data about code execution (HTTP requests, queues, events, commands, 
 
 ```mermaid
 flowchart TB
-    src["Data source — any client that writes to a TCP socket (e.g. the Laravel library): trace start … finish"]
+    src["Data source — any client that writes to a TCP socket (e.g. the Laravel library)"]
     receiver["Receiver (Go, TCP socket) — payload intake"]
-    buffer["Buffer (MongoDB collection) — create (c) and update (u) operations"]
-    traces["ClickHouse — table traces, partitioned by hour"]
-    backend["Backend (Laravel/SConcur) — master + HTTP workers, a request per fiber"]
-    nginx["nginx (APP_PORT) — reverse proxy"]
+    transporter["Transporter (Go) — batches of up to TRANSPORTER_BATCH_SIZE (5000)"]
+    buffer["Buffer (MongoDB buffer) — create (c) and update (u) operations"]
+    pending["MongoDB pendingTraces — halves waiting for their pair, TTL 3 h"]
     ui["Web panel (Vue 3) / API clients"]
-    src -->|"TCP socket: 4-byte length prefix + JSON"| receiver
-    receiver -->|"write to buffer"| buffer
-    buffer -->|"transporter: batches of up to 5000 — merge with pendingTraces, INSERT"| traces
-    traces -->|"ClickhouseClient::select (HTTP interface)"| backend
-    ui -->|"HTTP"| nginx
-    nginx -->|"proxy_pass → workers:SCONCUR_HTTP_PORT"| backend
+    nginx["nginx (APP_PORT) — reverse proxy"]
+    backend["Backend (Laravel/SConcur) — master + HTTP workers, a request per fiber"]
+    traces["ClickHouse — table traces, partitioned by hour"]
+    src <-->|"TCP: 4-byte length prefix + JSON"| receiver
+    receiver -->|"Save (InsertMany)"| buffer
+    transporter <-->|"FindForTransporter / DeleteByIds / MarkFailed"| buffer
+    transporter <-->|"FindMany / Apply (BulkWrite)"| pending
+    transporter <-->|"FindExisting (SELECT … FINAL) / Insert (INSERT … FORMAT JSONEachRow)"| traces
+    ui <-->|"HTTP"| nginx
+    nginx <-->|"proxy_pass → workers:SCONCUR_HTTP_PORT"| backend
+    backend <-->|"ClickhouseClient::select (HTTP interface)"| traces
 ```
 
 ### Components
@@ -121,10 +125,10 @@ MongoDB keeps the rest: `buffer`, `invalidBuffer`, `pendingTraces`, `traceMetric
 Intake and write are decoupled to absorb load spikes:
 
 1. Intake. The receiver accepts the payload over TCP and puts it into a buffer collection in MongoDB as a set of two kinds of operations: create (`c`) and update (`u`). The creates and the updates of a message are each written with one unordered `InsertMany` rather than a call per trace.
-2. Transport. A background transporter continuously pulls batches from the buffer (up to `TRANSPORTER_BATCH_SIZE` records, 5000 by default, in FIFO order; each batch is one insert, and fewer, larger inserts leave ClickHouse fewer parts to merge) and writes them into the `traces` table. It pauses for one second only when the buffer is empty (or after a read error), then checks again.
+2. Transport. A background transporter continuously pulls batches from the buffer (up to `TRANSPORTER_BATCH_SIZE` records, 5000 by default, in FIFO order; each batch is one insert, and fewer, larger inserts leave ClickHouse fewer parts to merge) and writes them into the `traces` table. It pauses for one second when the buffer is empty (or after a read error), then checks again; the pauses after a failed batch are described under Reliability.
 3. Merge. A trace that comes in halves — a create now, its update later — waits for the other half in the MongoDB collection `pendingTraces` (one document per service and trace, dropped by a TTL index 3 hours after its last write). For each batch the transporter reads the pending traces of all its traces in one query by id and merges each with the create and update of the batch (the field order is in "Trace message format"); ClickHouse is not read. Then:
-   - a trace that is final — it has a type and either its update or a status other than `started` — is inserted, and the half written before it, if any, is deleted by one lightweight `DELETE … WHERE (sid, lat, tid, uat) IN (…)` per batch, by the exact `uat`, so that the merged row sharing the key stays; its pending document is removed. Children, tasks and a create that came with its update never touch `pendingTraces`;
-   - a create still waiting for its update is inserted, so that it is seen as `started`, and kept pending with the `uat` it was written with;
+   - a trace that is final — it has a type and either its update or a status other than `started` — is inserted and its pending document removed. The half written before it is not deleted: both rows share the sorting key, `ReplacingMergeTree` keeps the one with the latest `uat` when their parts merge, reads go through `FINAL` until then, and the hourly `OPTIMIZE … FINAL` (see "Automatic cleanup") merges each closed hour. Children, tasks and a create that came with its update are final as they come and are never written to `pendingTraces`;
+   - a create still waiting for its update is inserted, so that it is seen as `started`, and kept pending;
    - an update without its create is only kept pending: it has no type or tags to be shown with.
 
    Only an update that finds nothing pending reads ClickHouse, `SELECT … FROM traces FINAL WHERE (sid, lat, tid) IN (…)`: one whose create was already final, or whose trace waited longer than the TTL. All the rows of a batch go in one `INSERT … FORMAT JSONEachRow`. A batch holds a trace once and batches run one after another, so a trace is never merged twice at the same time.
@@ -162,7 +166,7 @@ This forms an end-to-end call tree across microservice boundaries: a single inbo
 
 ### Building the call tree
 
-A tree is built in the background rather than inside the request. Opening one records a build state and queues the build on the `trace-tree` queue; the panel shows the state and loads the tree once it is finished, and the refresh button builds it again. The build walks the `ptid` links of the `traces` table level by level. A built tree is cached for an hour. The list of builds that have not finished is shown beside the tree, where a build can be canceled or deleted.
+A tree is built in the background rather than inside the request. Opening one records a build state and queues the build on the `trace-tree` queue; the panel shows the state and loads the tree once it is finished, and the refresh button builds it again. The build walks the `ptid` links of the `traces` table level by level. A built tree is kept in `traceTreeCache` and its build state in `traceTreeCacheStates` until a TTL index removes them: the nodes 24 hours after they were written, the state 20 hours after its last update. The list of builds that have not finished is shown beside the tree, where a build can be canceled or deleted.
 
 ### Flexible filtering by trace data
 
@@ -188,7 +192,7 @@ Besides paginated search, timeline charts are built over traces. You pick a peri
 - memory (`memory`);
 - CPU (`cpu`).
 
-For duration/memory/CPU the average, minimum and maximum are drawn, and the p50, p95 and p99 percentiles come with them, hidden — the legend, which is where a series is switched off, is where they are switched on, one chart at a time. A percentile answers what the slowest few per cent actually saw, which an average cannot: over an hour of real traces the average duration was 19ms, the p95 58ms and the slowest request 4.4s. Charts can additionally be built over numeric fields from `data`, with the same six. The same set of filters as in search applies to charts, so you can watch metric dynamics for a specific service, operation type, tag, or an arbitrary condition on the data. The period is cut into about ten ranges, queried in parallel through `SConcur\WaitGroup`; each range is one `GROUP BY` over `toStartOfInterval(lat, …)` (`toStartOfDay` and `toStartOfMonth` for the day and month steps) that computes `count`, `avg`, `min`, `max` and the `quantile` p50, p95 and p99 in ClickHouse.
+For duration/memory/CPU the average, minimum and maximum are drawn, and the p50, p95 and p99 percentiles come with them, hidden — the legend, which is where a series is switched off, is where they are switched on, and each chart keeps its own choice. A percentile answers what the slowest few per cent actually saw, which an average cannot: over an hour of real traces the average duration was 19ms, the p95 58ms and the slowest request 4.4s. Charts can additionally be built over numeric fields from `data`, with the same six. The same set of filters as in search applies to charts, so you can watch metric dynamics for a specific service, operation type, tag, or an arbitrary condition on the data. The period is cut into about ten ranges, queried in parallel through `SConcur\WaitGroup`; each range is one `GROUP BY` over `toStartOfInterval(lat, …)` (`toStartOfDay` and `toStartOfMonth` for the day and month steps) that computes `count`, `avg`, `min`, `max` and the `quantile` p50, p95 and p99 in ClickHouse.
 
 ### Presets
 
@@ -214,7 +218,7 @@ No watcher queries the `traces` table. Traces are counted where they already pas
 
 The filter the receiver reads is the `trace_match` column, which the panel writes from the watcher's settings on every save. It carries a version: this receiver reads version 2 only and skips a watcher of any other version with a line in its log. After a release that raises the version, the receiver is deployed before the panel and every trace watcher is saved again.
 
-A trigger opens an incident, or adds an event to the one already open — a watcher speaks at most once per its cooldown, so a problem lasting an hour does not fill the incident with sixty identical events. An event carries what the watcher saw: the value, the threshold, and, for `manyTraces` and `slowTraces`, up to five shapes of trace behind it (service, type, tags, how many; for `slowTraces` also the slowest one by id and the moment it started). The filter button beside a shape opens the aggregator on that shape and the watcher's statuses, around the start of the slowest trace when the shape names one rather than around the event: traces are searched by when they started, and a trace that ran for an hour started an hour before the watcher said anything. Incidents are closed by a person, from the panel: a watcher going quiet means the symptom stopped, not that the cause was found. The badge in the header counts the open ones, and is read when a page is opened or the list beside it is refreshed — nothing follows the incidents in the background.
+A trigger opens an incident, or adds an event to the one already open — a watcher speaks at most once per its cooldown, so a problem lasting an hour does not fill the incident with sixty identical events. An event carries what the watcher saw: the value, the threshold, and, for `manyTraces` and `slowTraces`, up to five shapes of trace behind it (service, type, tags, how many; for `slowTraces` also the slowest one by `trace_id` and the moment it started). The filter button beside a shape opens the aggregator on that shape and the watcher's statuses, around the start of the slowest trace when the shape names one rather than around the event: traces are searched by when they started, and a trace that ran for an hour started an hour before the watcher said anything. Incidents are closed by a person, from the panel: a watcher going quiet means the symptom stopped, not that the cause was found. The badge in the header counts the open ones, and is read when a page is opened or the list beside it is refreshed — nothing follows the incidents in the background.
 
 Only a watcher's settings live in MySQL. Everything it produces — the incidents, the events under them, the lines behind those — accumulates while the system runs, so it lives in MongoDB and is retired by a TTL index: a month after closing for incidents (an open one is kept), a month for events, three days for a line nothing has been written to. Removing a watcher therefore leaves all of it alone, and the removal is soft, so the incidents it found still have a name to show against.
 
@@ -505,7 +509,7 @@ make art c=service:create
 make sconcur-status   # status of the sconcur PHP extension
 make sconcur-restart  # stop the master; supervisor starts it back up with the fresh code
 make sconcur-update   # update sconcur/laravel (and the sconcur/sconcur it pins): update → rebuild the image → dump-autoload → recreate containers
-make deploy-prod      # pull, build the image, install dependencies, declare queues, migrate MySQL and ClickHouse, reload the workers, rebuild the receiver and the frontend
+make deploy-prod      # pull, build the image, install dependencies, generate missing ws keys, declare queues, migrate MySQL, MongoDB and ClickHouse, reload the workers, rebuild the receiver and the frontend
 make clickhouse-client # ClickHouse client in the clickhouse container
 make receiver-monitor # live receiver stats from servers/receiver/storage/stats.json
 ```

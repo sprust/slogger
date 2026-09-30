@@ -17,6 +17,8 @@ readonly class McpTraceDataFilterParser
     public const string FORMAT = '<key> <operator> <value>: "= != > >= < <=" with a number, '
         . '"= !=" with true or false, "= != contains starts ends" with a "double-quoted" string, '
         . 'or "exists", "missing", "is null", "is not null" without a value. '
+        . '<key> is names of letters, digits and _ joined by dots; on an array, of objects or of '
+        . 'values, a condition holds when any element matches. '
         . 'Examples: response.status >= 500, request.uri contains "/api", user.id exists.';
 
     // a data path is written into the query, so it is names joined by dots and nothing else

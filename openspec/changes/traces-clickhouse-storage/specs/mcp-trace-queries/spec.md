@@ -50,9 +50,9 @@
 
 ### Requirement: search_traces
 
-Инструмент `search_traces` с аргументами правила периода и необязательными `types`, `statuses`, `tags` (до 20 значений), `duration_from`, `duration_to`, `data_filter`, `data_fields` и `page` SHALL возвращать страницу трейсов за период, новые первыми, до 20 трейсов. На трейс: `trace_id`, `parent_trace_id`, `type`, `status`, `tags`, `duration`, `memory`, `cpu`, `logged_at` и `data` — значения запрошенных `data_fields` по их ключам (ключа нет в `data`, если в трейсе нет поля). Ответ SHALL содержать `page` и `has_more` (страница полная).
+Инструмент `search_traces` с аргументами правила периода и необязательными `types`, `statuses`, `tags` (до 20 значений; `tags` — все должны быть у трейса), `duration_from`, `duration_to`, `data_filter`, `data_fields` и `page` SHALL возвращать страницу трейсов за период, новые первыми, до 20 трейсов. На трейс: `trace_id`, `parent_trace_id`, `type`, `status`, `tags`, `duration`, `memory`, `cpu`, `logged_at` и `data` — значения запрошенных `data_fields` по их ключам (ключа нет в `data`, если в трейсе нет поля). Ответ SHALL содержать `page` и `has_more` (страница полная).
 
-`data_filter` — до 3 условий строкой `<ключ> <оператор> <значение>`, где ключ — путь в `data` через точку:
+`data_filter` — до 3 условий строкой `<ключ> <оператор> <значение>`, где ключ — путь в `data` через точку из латинских букв, цифр и `_`; по пути через массив объектов и по пути к массиву скаляров условие выполняется, если подходит любой элемент:
 - `= != > >= < <=` с числом — числовое сравнение;
 - `= !=` с `true` или `false` — логическое сравнение (`!=` инвертирует значение);
 - `= != contains starts ends` со строкой в двойных кавычках — строковое сравнение;
@@ -99,6 +99,22 @@
 #### Scenario: Неверные поля
 - **WHEN** модель вызывает `aggregate_traces` с `by: ["hour", "minute10"]`
 - **THEN** ответ — ошибка инструмента `invalid_group_by`
+
+### Requirement: compare_trace_groups
+
+Инструмент `compare_trace_groups` с аргументами правила периода, необязательным `types`, обязательными `group_a_statuses` (до 20), необязательным `group_b_statuses` (до 20; без него группа B — трейсы с любыми другими статусами) и обязательным `by` — `type`, `service`, `tag` или `data.<ключ>` — SHALL распределять трейсы обеих групп по значениям `by` одной агрегацией и возвращать `group_a_total`, `group_b_total` и строки: `value` (для `service` — `{id, name}`), `group_a_count`, `group_a_share`, `group_b_count`, `group_b_share` (доли от 0 до 1, округлённые до четырёх знаков). Строки SHALL быть отсортированы по `group_a_share − group_b_share` по убыванию; их SHALL быть не больше 30, ответ SHALL содержать `truncated`. Трейс без значения `by` (без тегов, без ключа `data`) SHALL попадать в строку с `value: null`. При `by: tag` трейс SHALL учитываться по разу на каждый свой тег, поэтому `group_a_total`, `group_b_total` и доли считаются по употреблениям тегов. `data.<ключ>` SHALL читать значение по ключу как есть, не заходя в массивы. Статус из `group_b_statuses`, который есть и в `group_a_statuses`, SHALL давать ошибку инструмента `overlapping_groups`; `by` не по формату — `invalid_group_by`.
+
+#### Scenario: Чем упавшие отличаются
+- **WHEN** модель вызывает `compare_trace_groups` с `group_a_statuses: ["failed"]` и `by: "type"`
+- **THEN** первой строкой идёт тип, доля которого среди упавших больше всего превышает его долю среди остальных
+
+#### Scenario: По ключу data
+- **WHEN** модель вызывает `compare_trace_groups` с `by: "data.response.status"`
+- **THEN** строки содержат значения `response.status` с количеством и долями в обеих группах
+
+#### Scenario: Пересекающиеся группы
+- **WHEN** модель вызывает `compare_trace_groups` с `group_a_statuses: ["failed"]` и `group_b_statuses: ["failed", "success"]`
+- **THEN** ответ — ошибка инструмента `overlapping_groups`
 
 ## REMOVED Requirements
 

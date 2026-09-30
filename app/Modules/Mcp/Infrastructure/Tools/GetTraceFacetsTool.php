@@ -39,9 +39,9 @@ readonly class GetTraceFacetsTool implements McpToolInterface
 
     public function description(): string
     {
-        return 'Trace types, statuses and tags of a service over a period with their counts, most frequent '
-            . 'first, as the filters of the SLogger traces page. Types are counted without the types '
-            . 'filter, statuses without the statuses filter.';
+        return 'Trace types, statuses and tags of the chosen services (all when omitted) over a period '
+            . 'with their counts, most frequent first, as the filters of the SLogger traces page. Types are '
+            . 'counted without the types filter, statuses without the statuses filter.';
     }
 
     public function schema(): McpToolSchema

@@ -28,7 +28,7 @@ readonly class FakeMcpTool implements McpToolInterface
 
     public function description(): string
     {
-        return 'Fake tool, no index needed.';
+        return 'Fake tool.';
     }
 
     public function schema(): McpToolSchema

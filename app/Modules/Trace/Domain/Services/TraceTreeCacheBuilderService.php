@@ -35,7 +35,7 @@ readonly class TraceTreeCacheBuilderService
      *
      * A page of parents is not a unit of work — its children are. Near the leaves a
      * thousand parents yield a handful of nodes or none at all, and the slice still pays
-     * for a delivery, a job, the state, the page and an aggregation across every shard;
+     * for a delivery, a job, the state, the page and a query of the traces table;
      * that is the whole of the slowdown at the end of a large build. So a slice keeps
      * taking pages until it has written something worth the round trip.
      *

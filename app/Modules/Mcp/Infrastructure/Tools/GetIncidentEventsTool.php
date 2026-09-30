@@ -35,7 +35,7 @@ readonly class GetIncidentEventsTool implements McpToolInterface
     {
         return sprintf(
             'One incident and its events, newest first, %d per page: when each event occurred and the '
-            . 'numbers the watcher recorded for it. No index needed.',
+            . 'numbers the watcher recorded for it.',
             FindMcpIncidentEventsAction::PER_PAGE
         );
     }

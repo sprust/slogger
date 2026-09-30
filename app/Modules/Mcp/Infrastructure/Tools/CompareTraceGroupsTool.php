@@ -44,7 +44,9 @@ readonly class CompareTraceGroupsTool implements McpToolInterface
             'Compares two groups of traces over a period by status (group A, and group B or all other '
             . 'statuses) across the values of type, service, tag or a data key (data.<key>): counts and '
             . 'shares in each group, the values most typical of group A first, at most %d. Answers what '
-            . 'failed traces have in common that the others do not.',
+            . 'failed traces have in common that the others do not. By tag a trace counts once for each of '
+            . 'its tags, so the totals are tag uses; data.<key> reads the value at the key and does not '
+            . 'walk into arrays.',
             CompareMcpTraceGroupsAction::LIMIT
         );
     }

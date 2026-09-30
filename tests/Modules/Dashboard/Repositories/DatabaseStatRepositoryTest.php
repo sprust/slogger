@@ -18,7 +18,7 @@ class DatabaseStatRepositoryTest extends TestCase
 
         $client = new FakeClickhouseClient([
             [
-                ['table' => 'schema_migrations', 'rows' => 1, 'total' => 1024, 'data' => 512, 'indexes' => 0],
+                ['table' => 'another_table', 'rows' => 1, 'total' => 1024, 'data' => 512, 'indexes' => 0],
                 ['table' => 'traces', 'rows' => 4, 'total' => 4 * 1024 * 1024, 'data' => 3 * 1024 * 1024, 'indexes' => 1024 * 1024],
             ],
             [
@@ -38,7 +38,7 @@ class DatabaseStatRepositoryTest extends TestCase
         $this->assertSame('clickhouse', $clickhouse->name);
         $this->assertSame(5, $clickhouse->totalDocumentsCount);
         $this->assertSame(2.0, $clickhouse->memoryUsage);
-        $this->assertSame(['schema_migrations', 'traces'], array_map(static fn($table) => $table->name, $clickhouse->collections));
+        $this->assertSame(['another_table', 'traces'], array_map(static fn($table) => $table->name, $clickhouse->collections));
 
         $traces = $clickhouse->collections[1];
 

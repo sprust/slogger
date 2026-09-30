@@ -84,8 +84,8 @@ Domain events are emitted for flows that trigger queues or framework side effect
 
 - `app/Console` — artisan commands, cron commands, local utilities, make-style generators, migration helpers.
 - `app/Http` — HTTP controllers and middleware.
-- `app/Models` — Laravel/MongoDB models grouped by bounded area such as `Logs`, `Services`, `Traces`, `Users`.
-- `app/Modules` — modular business code. Current modules include `Auth`, `Cleaner`, `Dashboard`, `Logs`, `Service`, `Trace`, `User`, plus shared/support modules such as `Common` and `Tools`.
+- `app/Models` — Laravel/MongoDB models grouped by bounded area: `Mcps`, `Notifications`, `Services`, `Traces`, `Users`, `Watchers`.
+- `app/Modules` — modular business code. Current modules include `Auth`, `Cleaner`, `Dashboard`, `Logs`, `Mcp`, `Notification`, `Service`, `Trace`, `User`, `Watcher`, plus shared/support modules such as `Common` and `Tools`.
 - `app/Providers` — Laravel service providers.
 - `app/Services` — cross-cutting services outside module folders, including logging integrations.
 - `code-analyse` — static analysis and architecture rules: PHPStan, PHP CS Fixer, Deptrac.
@@ -110,6 +110,7 @@ Domain events are emitted for flows that trigger queues or framework side effect
 
 - `servers/receiver/cmd/receiver/main.go` — main binary entrypoint. Loads `.env`, starts socket server and transporter, handles shutdown signals, and periodically saves runtime stats.
 - `servers/receiver/cmd/stats/main.go` — local stats viewer that reads `storage/stats.json` and refreshes it in terminal.
+- `servers/receiver/cmd/loadgen` — load generator for stress tests: sends generated trace trees through the receiver socket (a share of them with the update before the create, the create twice, or no update), pauses while the MongoDB `buffer` holds more than `-buffer-max` documents, and writes progress to `-progress-file` as JSON.
 - `servers/receiver/internal/dto` — DTO definitions for incoming auth and trace messages.
 - `servers/receiver/makefile` — local build/run commands for the Go service and stats binary.
 - `servers/receiver/go.mod` and `servers/receiver/go.sum` — isolated Go module definition and dependencies.

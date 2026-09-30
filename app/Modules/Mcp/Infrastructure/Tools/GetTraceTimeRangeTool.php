@@ -25,13 +25,13 @@ readonly class GetTraceTimeRangeTool implements McpToolInterface
 
     public function title(): string
     {
-        return 'Get data range';
+        return 'Trace time range';
     }
 
     public function description(): string
     {
         return 'The first and the last hour (UTC) for which traces are stored. '
-            . 'Both are null when there are no traces. No index needed.';
+            . 'Both are null when there are no traces.';
     }
 
     public function schema(): McpToolSchema

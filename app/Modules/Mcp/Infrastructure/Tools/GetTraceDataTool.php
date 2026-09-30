@@ -35,7 +35,7 @@ readonly class GetTraceDataTool implements McpToolInterface
     public function description(): string
     {
         return 'The full payload (data) of one trace, exactly as the SLogger UI shows it: a tree of '
-            . 'key, value and children, not truncated. Call it only for traces you examine. No index needed.';
+            . 'key, value and children, not truncated. Call it only for traces you examine.';
     }
 
     public function schema(): McpToolSchema

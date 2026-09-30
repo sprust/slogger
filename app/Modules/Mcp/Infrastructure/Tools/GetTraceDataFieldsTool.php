@@ -35,8 +35,10 @@ readonly class GetTraceDataFieldsTool implements McpToolInterface
     public function description(): string
     {
         return sprintf(
-            'Keys of the data of the latest %d traces of a type over a period, with an example value each: '
-            . 'the keys to use in data_filter and data_fields of search_traces.',
+            'Keys of the data of the latest %d traces of a type over a period, with an example value each. '
+            . 'For data_fields of search_traces use a key as listed. For data_filter drop the index of an '
+            . 'array element: items.0.price becomes items.price (any element matches), tags.0 becomes tags; '
+            . 'only keys of letters, digits and _ can be filtered on.',
             FindMcpTraceDataFieldsAction::TRACES_COUNT
         );
     }
