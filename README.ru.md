@@ -116,7 +116,7 @@ ORDER BY (sid, lat, tid)
 - Данные хранятся дважды: `dt JSON`, которое читают фильтры и агрегации, и `dt_raw String` — данные в том виде, в каком их прислал клиент, с порядком ключей. Данные, не являющиеся объектом, попадают только в `dt_raw`.
 - `ptid` у корневого трейса — пустая строка.
 
-Таблицу создаёт обычная Laravel-миграция, которая отправляет DDL через `ClickhouseClient`: `migrate` применяет её вместе с остальными, а `migrate:fresh` удаляет таблицы ClickHouse вместе с коллекциями MongoDB. `make clickhouse-client` открывает клиент ClickHouse в контейнере. Сервис `clickhouse` в docker-compose (образ `clickhouse/clickhouse-server:26.8.14.3`) портов наружу не публикует: PHP и приёмник ходят в него как `clickhouse:8123`. Настройки памяти — в `docker/clickhouse/config.d/low-memory.xml` (сервер) и `docker/clickhouse/users.d/profile.xml` (лимиты запросов); лимит контейнера — `CLICKHOUSE_MEM_LIMIT`.
+Таблицу создаёт обычная Laravel-миграция, которая отправляет DDL через `ClickhouseClient`: `migrate` применяет её вместе с остальными, а `migrate:fresh` удаляет таблицы ClickHouse вместе с коллекциями MongoDB. `make clickhouse-client` открывает клиент ClickHouse в контейнере. Сервис `clickhouse` в docker-compose (образ `clickhouse/clickhouse-server:26.8.14.3`) доступен PHP и приёмнику как `clickhouse:8123`; его HTTP-интерфейс также опубликован на хосте на порту `CLICKHOUSE_DOCKER_PORT` (по умолчанию 18123) — для просмотрщика. Настройки памяти — в `docker/clickhouse/config.d/low-memory.xml` (сервер) и `docker/clickhouse/users.d/profile.xml` (лимиты запросов); лимит контейнера — `CLICKHOUSE_MEM_LIMIT`.
 
 В MongoDB остаётся всё прочее: `buffer`, `invalidBuffer`, `pendingTraces`, `traceMetrics`, `watcherTimelines`, `traceTreeCache`, `traceTreeCacheStates`, `traceAdminStores`, `traceClearingProcesses`, `watcherIncidents`, `watcherIncidentEvents`, `notifications`. База `tracesPeriodic` прежних версий, с часовыми коллекциями `traces_*` и `_traceTreesView`, остаётся как есть: её больше никто не читает и не чистит.
 
@@ -424,6 +424,7 @@ CLICKHOUSE_PORT=8123      # HTTP-интерфейс
 CLICKHOUSE_DATABASE=slogger
 CLICKHOUSE_USERNAME=slogger
 CLICKHOUSE_PASSWORD=      # тот же пароль указывается в servers/receiver/.env
+CLICKHOUSE_DOCKER_PORT=18123  # HTTP-интерфейс на хосте, для просмотрщика
 CLICKHOUSE_MEM_LIMIT=6g   # лимит памяти контейнера clickhouse; сервер берёт от него 0.85
 
 LOGS_NGINX_KEEP_DAYS=14   # сколько дней хранятся access-логи nginx

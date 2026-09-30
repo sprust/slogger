@@ -116,7 +116,7 @@ ORDER BY (sid, lat, tid)
 - The data is stored twice: `dt JSON`, which filters and aggregations read, and `dt_raw String`, the data as the client sent it, with its key order. Data that is not an object goes into `dt_raw` only.
 - `ptid` is an empty string for a root trace.
 
-The table is created by an ordinary Laravel migration, which sends the DDL through `ClickhouseClient`: `migrate` applies it with the rest, and `migrate:fresh` drops the ClickHouse tables along with the MongoDB collections. `make clickhouse-client` opens the ClickHouse client in the container. The `clickhouse` service of docker-compose (image `clickhouse/clickhouse-server:26.8.14.3`) publishes no port: PHP and the receiver reach it as `clickhouse:8123`. Its memory settings are in `docker/clickhouse/config.d/low-memory.xml` (server) and `docker/clickhouse/users.d/profile.xml` (query limits); the container limit is `CLICKHOUSE_MEM_LIMIT`.
+The table is created by an ordinary Laravel migration, which sends the DDL through `ClickhouseClient`: `migrate` applies it with the rest, and `migrate:fresh` drops the ClickHouse tables along with the MongoDB collections. `make clickhouse-client` opens the ClickHouse client in the container. The `clickhouse` service of docker-compose (image `clickhouse/clickhouse-server:26.8.14.3`) is reached by PHP and the receiver as `clickhouse:8123`; its HTTP interface is also published on the host at `CLICKHOUSE_DOCKER_PORT` (18123 by default) for a viewer. Its memory settings are in `docker/clickhouse/config.d/low-memory.xml` (server) and `docker/clickhouse/users.d/profile.xml` (query limits); the container limit is `CLICKHOUSE_MEM_LIMIT`.
 
 MongoDB keeps the rest: `buffer`, `invalidBuffer`, `pendingTraces`, `traceMetrics`, `watcherTimelines`, `traceTreeCache`, `traceTreeCacheStates`, `traceAdminStores`, `traceClearingProcesses`, `watcherIncidents`, `watcherIncidentEvents`, `notifications`. The `tracesPeriodic` database of earlier versions, with its hourly `traces_*` collections and `_traceTreesView`, is left as it is: nothing reads or cleans it any more.
 
@@ -424,6 +424,7 @@ CLICKHOUSE_PORT=8123      # HTTP interface
 CLICKHOUSE_DATABASE=slogger
 CLICKHOUSE_USERNAME=slogger
 CLICKHOUSE_PASSWORD=      # the same password goes into servers/receiver/.env
+CLICKHOUSE_DOCKER_PORT=18123  # HTTP interface published on the host, for a viewer
 CLICKHOUSE_MEM_LIMIT=6g   # memory limit of the clickhouse container; the server takes 0.85 of it
 
 LOGS_NGINX_KEEP_DAYS=14   # nginx access log files are kept this many days
