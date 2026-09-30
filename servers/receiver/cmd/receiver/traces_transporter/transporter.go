@@ -4,6 +4,7 @@ import (
 	"context"
 	"log/slog"
 	"slogger_receiver/internal/dto"
+	"slogger_receiver/internal/repositories/buffer_repository"
 	"slogger_receiver/internal/services/buffer_service"
 	"slogger_receiver/internal/services/periodic_trace_service"
 	"slogger_receiver/internal/services/trace_metric_service"
@@ -83,11 +84,25 @@ func isUnavailable(err error) bool {
 	return false
 }
 
+// buffer is what the transporter needs of the buffer.
+type buffer interface {
+	FindForTransporter(ctx context.Context) (map[int]*dto.ServiceTraces, []buffer_repository.InvalidDoc, error)
+	MoveToInvalid(ctx context.Context, docs []buffer_repository.InvalidDoc) error
+	DeleteByIds(ctx context.Context, ids []primitive.ObjectID) (int64, error)
+	MarkFailed(ctx context.Context, ids []primitive.ObjectID, maxAttempts int) error
+}
+
+// store merges a batch and writes it to ClickHouse.
+type store interface {
+	Save(ctx context.Context, batch map[int]*dto.ServiceTraces) (periodic_trace_service.Result, error)
+}
+
 type Transporter struct {
 	ctx                     context.Context
 	cancel                  context.CancelFunc
-	bufferService           *buffer_service.Service
-	periodicTraceService    *periodic_trace_service.Service
+	bufferService           buffer
+	periodicTraceService    store
+	flush                   func()
 	totalHandledBufferCount atomic.Uint64
 	totalDeletedBufferCount atomic.Uint64
 	closing                 atomic.Bool
@@ -101,12 +116,16 @@ type Stats struct {
 func New() *Transporter {
 	ctx, cancel := context.WithCancel(context.Background())
 
-	return &Transporter{
+	transporter := &Transporter{
 		ctx:                  ctx,
 		cancel:               cancel,
 		bufferService:        buffer_service.Get(),
 		periodicTraceService: periodic_trace_service.Get(),
 	}
+
+	transporter.flush = transporter.flushCounters
+
+	return transporter
 }
 
 func (s *Transporter) Run(ctx context.Context) error {
@@ -125,6 +144,10 @@ func (s *Transporter) Run(ctx context.Context) error {
 	// is the point of getting out of here at all.
 	var unavailablePause time.Duration
 	var failedPause time.Duration
+
+	// Not cancelled with ctx: a stop lets the batch being saved finish, insert and delete,
+	// rather than cutting off an insert ClickHouse may have taken and saving it again later.
+	batchCtx := context.WithoutCancel(ctx)
 
 	for !s.closing.Load() && ctx.Err() == nil {
 		serviceTracesMap, invalidDocs, err := s.bufferService.FindForTransporter(ctx)
@@ -152,7 +175,7 @@ func (s *Transporter) Run(ctx context.Context) error {
 			continue
 		}
 
-		result, err := s.periodicTraceService.Save(ctx, serviceTracesMap)
+		result, err := s.periodicTraceService.Save(batchCtx, serviceTracesMap)
 
 		if err != nil {
 			slog.Error("Failed to save traces: " + err.Error())
@@ -177,7 +200,7 @@ func (s *Transporter) Run(ctx context.Context) error {
 		savedIds, failedIds := splitIds(serviceTracesMap, result.Failed, err != nil)
 
 		if len(savedIds) > 0 {
-			deletedCount, err := s.bufferService.DeleteByIds(ctx, savedIds)
+			deletedCount, err := s.bufferService.DeleteByIds(batchCtx, savedIds)
 
 			if err != nil {
 				slog.Error(errs.Err(err).Error())
@@ -187,7 +210,7 @@ func (s *Transporter) Run(ctx context.Context) error {
 		}
 
 		if len(failedIds) > 0 {
-			if err := s.bufferService.MarkFailed(ctx, failedIds, maxSaveAttempts); err != nil {
+			if err := s.bufferService.MarkFailed(batchCtx, failedIds, maxSaveAttempts); err != nil {
 				slog.Error(errs.Err(err).Error())
 			}
 		}
@@ -201,7 +224,7 @@ func (s *Transporter) Run(ctx context.Context) error {
 		}
 	}
 
-	s.flushCounters()
+	s.flush()
 
 	return nil
 }
