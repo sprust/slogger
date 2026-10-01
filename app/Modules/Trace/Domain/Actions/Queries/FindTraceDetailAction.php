@@ -6,6 +6,7 @@ namespace App\Modules\Trace\Domain\Actions\Queries;
 
 use App\Modules\Trace\Entities\Trace\TraceDetailObject;
 use App\Modules\Trace\Repositories\TraceRepository;
+use App\Services\Clickhouse\ClickhouseQueryException;
 
 readonly class FindTraceDetailAction
 {
@@ -15,6 +16,9 @@ readonly class FindTraceDetailAction
     ) {
     }
 
+    /**
+     * @throws ClickhouseQueryException
+     */
     public function handle(string $traceId): ?TraceDetailObject
     {
         $trace = $this->repository->findOneDetailByTraceId($traceId);

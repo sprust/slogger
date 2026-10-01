@@ -94,6 +94,21 @@ class TraceReadRepositoriesTest extends TestCase
         $this->assertCount(3, $result->emptyIndicators);
     }
 
+    public function testTimestampsOfADataKeyNamedDt(): void
+    {
+        $client = new FakeClickhouseClient([[]]);
+
+        $this->timestampsRepository($client)->find(
+            loggedAtFrom: Carbon::parse('2026-09-29 10:00:00', 'UTC'),
+            loggedAtTo: Carbon::parse('2026-09-29 10:00:00', 'UTC'),
+            timestamp: TraceTimestampEnum::Min,
+            fields: [],
+            dataFields: [new TraceMetricDataFieldsFilterDto('dt.size', [TraceMetricFieldAggregatorEnum::Max])]
+        );
+
+        $this->assertStringContainsString('max(if(dynamicType(dt.`dt`.`size`)', $client->selects[0]['sql']);
+    }
+
     public function testFacetsAreCountedMostFrequentFirst(): void
     {
         $client = new FakeClickhouseClient([[['name' => 'api', 'count' => 5]]]);

@@ -49,6 +49,27 @@ class ClickhouseParameterFormatterTest extends TestCase
         self::assertSame("['2026-09-29 10:00:00.123456']", new ClickhouseParameterFormatter()->format([$value]));
     }
 
+    /**
+     * @return array<string, array{mixed}>
+     */
+    public static function nonFiniteProvider(): array
+    {
+        return [
+            'infinity'          => [INF],
+            'negative infinity' => [-INF],
+            'not a number'      => [NAN],
+            'inside an array'   => [[1.5, INF]],
+        ];
+    }
+
+    #[DataProvider('nonFiniteProvider')]
+    public function testRefusesNonFiniteFloat(mixed $value): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        new ClickhouseParameterFormatter()->format($value);
+    }
+
     public function testRefusesObject(): void
     {
         $this->expectException(InvalidArgumentException::class);

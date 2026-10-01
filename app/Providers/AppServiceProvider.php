@@ -22,38 +22,44 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->singleton(ClickhouseConnectionConfig::class, static function (): ClickhouseConnectionConfig {
-            $config = config('database.connections.clickhouse');
+        $this->app->singleton(
+            abstract: ClickhouseConnectionConfig::class,
+            concrete: static function (): ClickhouseConnectionConfig {
+                $config = config('database.connections.clickhouse');
 
-            return new ClickhouseConnectionConfig(
-                host: (string) $config['host'],
-                port: (int) $config['port'],
-                database: (string) $config['database'],
-                username: (string) $config['username'],
-                password: (string) $config['password'],
-                timeoutSeconds: (int) $config['timeout'],
-            );
-        });
+                return new ClickhouseConnectionConfig(
+                    host: (string) $config['host'],
+                    port: (int) $config['port'],
+                    database: (string) $config['database'],
+                    username: (string) $config['username'],
+                    password: (string) $config['password'],
+                    timeoutSeconds: (int) $config['timeout'],
+                );
+            }
+        );
 
-        $this->app->singleton(ClickhouseClient::class, static function ($app): ClickhouseClient {
-            $config      = $app->make(ClickhouseConnectionConfig::class);
-            $httpFactory = new HttpFactory();
+        $this->app->singleton(
+            abstract: ClickhouseClient::class,
+            concrete: static function ($app): ClickhouseClient {
+                $config      = $app->make(ClickhouseConnectionConfig::class);
+                $httpFactory = new HttpFactory();
 
-            return new ClickhouseClient(
-                httpClient: new HttpClient(
-                    responseFactory: $httpFactory,
-                    options: new HttpClientOptions(
-                        requestTimeoutMs: $config->timeoutSeconds * 1000,
-                        connectTimeoutMs: 3_000,
-                        responseHeaderTimeoutMs: $config->timeoutSeconds * 1000
-                    )
-                ),
-                requestFactory: $httpFactory,
-                streamFactory: $httpFactory,
-                config: $config,
-                parameterFormatter: new ClickhouseParameterFormatter(),
-            );
-        });
+                return new ClickhouseClient(
+                    httpClient: new HttpClient(
+                        responseFactory: $httpFactory,
+                        options: new HttpClientOptions(
+                            requestTimeoutMs: $config->timeoutSeconds * 1000,
+                            connectTimeoutMs: 3_000,
+                            responseHeaderTimeoutMs: $config->timeoutSeconds * 1000
+                        )
+                    ),
+                    requestFactory: $httpFactory,
+                    streamFactory: $httpFactory,
+                    config: $config,
+                    parameterFormatter: new ClickhouseParameterFormatter(),
+                );
+            }
+        );
     }
 
     /**

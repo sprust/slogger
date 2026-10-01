@@ -653,17 +653,41 @@ export namespace AdminApi {
       types?: string[];
       tags?: string[];
       statuses?: string[];
-      /** @format float */
+      /**
+       * @format float
+       * @min 0
+       * @max 1000000000000000
+       */
       duration_from?: number | null;
-      /** @format float */
+      /**
+       * @format float
+       * @min 0
+       * @max 1000000000000000
+       */
       duration_to?: number | null;
-      /** @format float */
+      /**
+       * @format float
+       * @min 0
+       * @max 1000000000000000
+       */
       memory_from?: number | null;
-      /** @format float */
+      /**
+       * @format float
+       * @min 0
+       * @max 1000000000000000
+       */
       memory_to?: number | null;
-      /** @format float */
+      /**
+       * @format float
+       * @min 0
+       * @max 1000000000000000
+       */
       cpu_from?: number | null;
-      /** @format float */
+      /**
+       * @format float
+       * @min 0
+       * @max 1000000000000000
+       */
       cpu_to?: number | null;
       data?: {
         filter?: {
@@ -675,7 +699,11 @@ export namespace AdminApi {
           null?: boolean;
           exists?: boolean;
           numeric?: {
-            /** @format float */
+            /**
+             * @format float
+             * @min -100000000000000000000
+             * @max 100000000000000000000
+             */
             value?: number;
             comp?: DataCompEnum;
           };
@@ -1421,17 +1449,41 @@ export namespace AdminApi {
       logging_from?: string;
       /** @format date */
       logging_to?: string;
-      /** @format float */
+      /**
+       * @format float
+       * @min 0
+       * @max 1000000000000000
+       */
       duration_from?: number | null;
-      /** @format float */
+      /**
+       * @format float
+       * @min 0
+       * @max 1000000000000000
+       */
       duration_to?: number | null;
-      /** @format float */
+      /**
+       * @format float
+       * @min 0
+       * @max 1000000000000000
+       */
       memory_from?: number | null;
-      /** @format float */
+      /**
+       * @format float
+       * @min 0
+       * @max 1000000000000000
+       */
       memory_to?: number | null;
-      /** @format float */
+      /**
+       * @format float
+       * @min 0
+       * @max 1000000000000000
+       */
       cpu_from?: number | null;
-      /** @format float */
+      /**
+       * @format float
+       * @min 0
+       * @max 1000000000000000
+       */
       cpu_to?: number | null;
       data?: {
         filter?: {
@@ -1443,7 +1495,11 @@ export namespace AdminApi {
           null?: boolean;
           exists?: boolean;
           numeric?: {
-            /** @format float */
+            /**
+             * @format float
+             * @min -100000000000000000000
+             * @max 100000000000000000000
+             */
             value?: number;
             comp?: DataCompEnum2;
           };
@@ -1495,17 +1551,41 @@ export namespace AdminApi {
       logging_from?: string;
       /** @format date */
       logging_to?: string;
-      /** @format float */
+      /**
+       * @format float
+       * @min 0
+       * @max 1000000000000000
+       */
       duration_from?: number | null;
-      /** @format float */
+      /**
+       * @format float
+       * @min 0
+       * @max 1000000000000000
+       */
       duration_to?: number | null;
-      /** @format float */
+      /**
+       * @format float
+       * @min 0
+       * @max 1000000000000000
+       */
       memory_from?: number | null;
-      /** @format float */
+      /**
+       * @format float
+       * @min 0
+       * @max 1000000000000000
+       */
       memory_to?: number | null;
-      /** @format float */
+      /**
+       * @format float
+       * @min 0
+       * @max 1000000000000000
+       */
       cpu_from?: number | null;
-      /** @format float */
+      /**
+       * @format float
+       * @min 0
+       * @max 1000000000000000
+       */
       cpu_to?: number | null;
       data?: {
         filter?: {
@@ -1517,7 +1597,11 @@ export namespace AdminApi {
           null?: boolean;
           exists?: boolean;
           numeric?: {
-            /** @format float */
+            /**
+             * @format float
+             * @min -100000000000000000000
+             * @max 100000000000000000000
+             */
             value?: number;
             comp?: DataCompEnum4;
           };
@@ -1569,17 +1653,41 @@ export namespace AdminApi {
       logging_from?: string;
       /** @format date */
       logging_to?: string;
-      /** @format float */
+      /**
+       * @format float
+       * @min 0
+       * @max 1000000000000000
+       */
       duration_from?: number | null;
-      /** @format float */
+      /**
+       * @format float
+       * @min 0
+       * @max 1000000000000000
+       */
       duration_to?: number | null;
-      /** @format float */
+      /**
+       * @format float
+       * @min 0
+       * @max 1000000000000000
+       */
       memory_from?: number | null;
-      /** @format float */
+      /**
+       * @format float
+       * @min 0
+       * @max 1000000000000000
+       */
       memory_to?: number | null;
-      /** @format float */
+      /**
+       * @format float
+       * @min 0
+       * @max 1000000000000000
+       */
       cpu_from?: number | null;
-      /** @format float */
+      /**
+       * @format float
+       * @min 0
+       * @max 1000000000000000
+       */
       cpu_to?: number | null;
       data?: {
         filter?: {
@@ -1591,7 +1699,11 @@ export namespace AdminApi {
           null?: boolean;
           exists?: boolean;
           numeric?: {
-            /** @format float */
+            /**
+             * @format float
+             * @min -100000000000000000000
+             * @max 100000000000000000000
+             */
             value?: number;
             comp?: DataCompEnum6;
           };
@@ -1656,17 +1768,41 @@ export namespace AdminApi {
       types?: string[];
       tags?: string[];
       statuses?: string[];
-      /** @format float */
+      /**
+       * @format float
+       * @min 0
+       * @max 1000000000000000
+       */
       duration_from?: number | null;
-      /** @format float */
+      /**
+       * @format float
+       * @min 0
+       * @max 1000000000000000
+       */
       duration_to?: number | null;
-      /** @format float */
+      /**
+       * @format float
+       * @min 0
+       * @max 1000000000000000
+       */
       memory_from?: number | null;
-      /** @format float */
+      /**
+       * @format float
+       * @min 0
+       * @max 1000000000000000
+       */
       memory_to?: number | null;
-      /** @format float */
+      /**
+       * @format float
+       * @min 0
+       * @max 1000000000000000
+       */
       cpu_from?: number | null;
-      /** @format float */
+      /**
+       * @format float
+       * @min 0
+       * @max 1000000000000000
+       */
       cpu_to?: number | null;
       data?: {
         filter?: {
@@ -1678,7 +1814,11 @@ export namespace AdminApi {
           null?: boolean;
           exists?: boolean;
           numeric?: {
-            /** @format float */
+            /**
+             * @format float
+             * @min -100000000000000000000
+             * @max 100000000000000000000
+             */
             value?: number;
             comp?: DataCompEnum8;
           };
@@ -5388,17 +5528,41 @@ export class Api<
         types?: string[];
         tags?: string[];
         statuses?: string[];
-        /** @format float */
+        /**
+         * @format float
+         * @min 0
+         * @max 1000000000000000
+         */
         duration_from?: number | null;
-        /** @format float */
+        /**
+         * @format float
+         * @min 0
+         * @max 1000000000000000
+         */
         duration_to?: number | null;
-        /** @format float */
+        /**
+         * @format float
+         * @min 0
+         * @max 1000000000000000
+         */
         memory_from?: number | null;
-        /** @format float */
+        /**
+         * @format float
+         * @min 0
+         * @max 1000000000000000
+         */
         memory_to?: number | null;
-        /** @format float */
+        /**
+         * @format float
+         * @min 0
+         * @max 1000000000000000
+         */
         cpu_from?: number | null;
-        /** @format float */
+        /**
+         * @format float
+         * @min 0
+         * @max 1000000000000000
+         */
         cpu_to?: number | null;
         data?: {
           filter?: {
@@ -5410,7 +5574,11 @@ export class Api<
             null?: boolean;
             exists?: boolean;
             numeric?: {
-              /** @format float */
+              /**
+               * @format float
+               * @min -100000000000000000000
+               * @max 100000000000000000000
+               */
               value?: number;
               comp?: DataCompEnum;
             };
@@ -6240,17 +6408,41 @@ export class Api<
         logging_from?: string;
         /** @format date */
         logging_to?: string;
-        /** @format float */
+        /**
+         * @format float
+         * @min 0
+         * @max 1000000000000000
+         */
         duration_from?: number | null;
-        /** @format float */
+        /**
+         * @format float
+         * @min 0
+         * @max 1000000000000000
+         */
         duration_to?: number | null;
-        /** @format float */
+        /**
+         * @format float
+         * @min 0
+         * @max 1000000000000000
+         */
         memory_from?: number | null;
-        /** @format float */
+        /**
+         * @format float
+         * @min 0
+         * @max 1000000000000000
+         */
         memory_to?: number | null;
-        /** @format float */
+        /**
+         * @format float
+         * @min 0
+         * @max 1000000000000000
+         */
         cpu_from?: number | null;
-        /** @format float */
+        /**
+         * @format float
+         * @min 0
+         * @max 1000000000000000
+         */
         cpu_to?: number | null;
         data?: {
           filter?: {
@@ -6262,7 +6454,11 @@ export class Api<
             null?: boolean;
             exists?: boolean;
             numeric?: {
-              /** @format float */
+              /**
+               * @format float
+               * @min -100000000000000000000
+               * @max 100000000000000000000
+               */
               value?: number;
               comp?: DataCompEnum2;
             };
@@ -6324,17 +6520,41 @@ export class Api<
         logging_from?: string;
         /** @format date */
         logging_to?: string;
-        /** @format float */
+        /**
+         * @format float
+         * @min 0
+         * @max 1000000000000000
+         */
         duration_from?: number | null;
-        /** @format float */
+        /**
+         * @format float
+         * @min 0
+         * @max 1000000000000000
+         */
         duration_to?: number | null;
-        /** @format float */
+        /**
+         * @format float
+         * @min 0
+         * @max 1000000000000000
+         */
         memory_from?: number | null;
-        /** @format float */
+        /**
+         * @format float
+         * @min 0
+         * @max 1000000000000000
+         */
         memory_to?: number | null;
-        /** @format float */
+        /**
+         * @format float
+         * @min 0
+         * @max 1000000000000000
+         */
         cpu_from?: number | null;
-        /** @format float */
+        /**
+         * @format float
+         * @min 0
+         * @max 1000000000000000
+         */
         cpu_to?: number | null;
         data?: {
           filter?: {
@@ -6346,7 +6566,11 @@ export class Api<
             null?: boolean;
             exists?: boolean;
             numeric?: {
-              /** @format float */
+              /**
+               * @format float
+               * @min -100000000000000000000
+               * @max 100000000000000000000
+               */
               value?: number;
               comp?: DataCompEnum4;
             };
@@ -6408,17 +6632,41 @@ export class Api<
         logging_from?: string;
         /** @format date */
         logging_to?: string;
-        /** @format float */
+        /**
+         * @format float
+         * @min 0
+         * @max 1000000000000000
+         */
         duration_from?: number | null;
-        /** @format float */
+        /**
+         * @format float
+         * @min 0
+         * @max 1000000000000000
+         */
         duration_to?: number | null;
-        /** @format float */
+        /**
+         * @format float
+         * @min 0
+         * @max 1000000000000000
+         */
         memory_from?: number | null;
-        /** @format float */
+        /**
+         * @format float
+         * @min 0
+         * @max 1000000000000000
+         */
         memory_to?: number | null;
-        /** @format float */
+        /**
+         * @format float
+         * @min 0
+         * @max 1000000000000000
+         */
         cpu_from?: number | null;
-        /** @format float */
+        /**
+         * @format float
+         * @min 0
+         * @max 1000000000000000
+         */
         cpu_to?: number | null;
         data?: {
           filter?: {
@@ -6430,7 +6678,11 @@ export class Api<
             null?: boolean;
             exists?: boolean;
             numeric?: {
-              /** @format float */
+              /**
+               * @format float
+               * @min -100000000000000000000
+               * @max 100000000000000000000
+               */
               value?: number;
               comp?: DataCompEnum6;
             };
@@ -6505,17 +6757,41 @@ export class Api<
         types?: string[];
         tags?: string[];
         statuses?: string[];
-        /** @format float */
+        /**
+         * @format float
+         * @min 0
+         * @max 1000000000000000
+         */
         duration_from?: number | null;
-        /** @format float */
+        /**
+         * @format float
+         * @min 0
+         * @max 1000000000000000
+         */
         duration_to?: number | null;
-        /** @format float */
+        /**
+         * @format float
+         * @min 0
+         * @max 1000000000000000
+         */
         memory_from?: number | null;
-        /** @format float */
+        /**
+         * @format float
+         * @min 0
+         * @max 1000000000000000
+         */
         memory_to?: number | null;
-        /** @format float */
+        /**
+         * @format float
+         * @min 0
+         * @max 1000000000000000
+         */
         cpu_from?: number | null;
-        /** @format float */
+        /**
+         * @format float
+         * @min 0
+         * @max 1000000000000000
+         */
         cpu_to?: number | null;
         data?: {
           filter?: {
@@ -6527,7 +6803,11 @@ export class Api<
             null?: boolean;
             exists?: boolean;
             numeric?: {
-              /** @format float */
+              /**
+               * @format float
+               * @min -100000000000000000000
+               * @max 100000000000000000000
+               */
               value?: number;
               comp?: DataCompEnum8;
             };

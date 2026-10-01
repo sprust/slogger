@@ -39,6 +39,18 @@ readonly class McpToolFormatter
     }
 
     /**
+     * The trace storage refused the query or did not answer it in time.
+     */
+    public function queryFailed(): McpToolResult
+    {
+        return $this->error(
+            error: 'query_failed',
+            hint: 'The trace storage could not answer this query. Try a shorter period, fewer services '
+            . 'or narrower filters.'
+        );
+    }
+
+    /**
      * @param int[] $serviceIds
      */
     public function serviceNotFound(array $serviceIds): McpToolResult

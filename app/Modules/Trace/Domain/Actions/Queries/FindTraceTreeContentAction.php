@@ -13,6 +13,7 @@ use App\Modules\Trace\Repositories\TraceTreeCacheRepository;
 use App\Modules\Trace\Repositories\TraceTreeCacheStateRepository;
 use App\Modules\Trace\Repositories\TraceTreeRepository;
 use SConcur\WaitGroup;
+use App\Services\Clickhouse\ClickhouseQueryException;
 
 readonly class FindTraceTreeContentAction
 {
@@ -24,6 +25,9 @@ readonly class FindTraceTreeContentAction
     ) {
     }
 
+    /**
+     * @throws ClickhouseQueryException
+     */
     public function handle(string $traceId, bool $isChild): ?TraceTreeContentResultObject
     {
         $rootTraceId = $isChild

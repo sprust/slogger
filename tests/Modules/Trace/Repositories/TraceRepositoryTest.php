@@ -98,24 +98,57 @@ class TraceRepositoryTest extends TestCase
         $this->assertNull($empty->lastHour);
     }
 
-    public function testDeletePartitionsDropsTheHoursThatEnded(): void
+    public function testEndedPartitionsAreTheHoursThatEndedByTheRetentionBoundary(): void
     {
-        $deleted = $this->repository([[
+        $to = Carbon::parse('2026-09-29 12:00:00', 'UTC');
+
+        $partitions = $this->repository([[
             ['partition_id' => '1790676000', 'rows' => 10],
             ['partition_id' => '1790679600', 'rows' => 5],
-        ]])->deletePartitions(Carbon::parse('2026-09-29 12:00:00', 'UTC'));
+        ]])->findEndedPartitions($to);
 
-        $this->assertSame(2, $deleted->partitionsCount);
-        $this->assertSame(15, $deleted->tracesCount);
+        $query = $this->client->selects[0];
+
+        // an hour is dropped once its end, not its start, is past the boundary
+        $this->assertStringContainsString(
+            "parseDateTime64BestEffort(partition, 0, 'UTC') + INTERVAL 1 HOUR <= {to:DateTime64(6, 'UTC')}",
+            $query['sql']
+        );
+        $this->assertSame($to, $query['params']['to']);
+        $this->assertSame(['1790676000', '1790679600'], array_map(static fn($partition) => $partition->id, $partitions));
+        $this->assertSame([10, 5], array_map(static fn($partition) => $partition->rowsCount, $partitions));
+    }
+
+    public function testDropPartition(): void
+    {
+        $this->repository()->dropPartition('1790676000');
+
         $this->assertSame("ALTER TABLE traces DROP PARTITION ID '1790676000'", $this->client->commands[0]['sql']);
     }
 
-    public function testDeletePartitionsRefusesAnUnexpectedId(): void
+    public function testEndedPartitionsRefuseAnUnexpectedId(): void
     {
         $this->expectException(RuntimeException::class);
 
         $this->repository([[['partition_id' => "1'; DROP", 'rows' => 1]]])
-            ->deletePartitions(Carbon::parse('2026-09-29 12:00:00', 'UTC'));
+            ->findEndedPartitions(Carbon::parse('2026-09-29 12:00:00', 'UTC'));
+    }
+
+    public function testDropPartitionRefusesAnUnexpectedId(): void
+    {
+        $this->expectException(RuntimeException::class);
+
+        $this->repository()->dropPartition("1790676000\n");
+    }
+
+    public function testTreeNodesAreReadInBatchesOfIds(): void
+    {
+        $traceIds = array_map(static fn(int $index) => "trace-$index", range(1, 12_001));
+
+        $nodes = $this->repository([[$this->row()], [], [$this->row(parentTraceId: 'root')]])->findTreeNodesByTraceIds($traceIds);
+
+        $this->assertSame([5000, 5000, 2001], array_map(static fn($select) => count($select['params']['tids']), $this->client->selects));
+        $this->assertCount(2, $nodes);
     }
 
     public function testOptimizePartitionsMergesTheClosedHoursInSeveralParts(): void

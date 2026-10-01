@@ -134,6 +134,72 @@ class FindTracesActionTest extends TestCase
         self::assertCount(1, $found->items);
     }
 
+    public function testALargeTreeWithoutACacheIsSearchedInBatchesOfIds(): void
+    {
+        $asked = [];
+
+        $traces = $this->createMock(TraceRepository::class);
+        $traces->method('findOneDetailByTraceId')->willReturn($this->trace('child', 5));
+        $traces->method('find')->willReturnCallback(
+            function (...$arguments) use (&$asked): array {
+                $asked[] = $arguments[3];
+
+                return $arguments[3][0] === 'root' ? [$this->trace('root', 1)] : [$this->trace('n-6000', 9)];
+            }
+        );
+
+        $tree = $this->createMock(TraceTreeRepository::class);
+        $tree->method('findParentTraceId')->willReturn('root');
+        $tree->method('findTraceIdsInTreeByParentTraceId')->willReturn(
+            array_chunk(array_map(static fn(int $index) => "n-$index", range(1, 12_000)), 300)
+        );
+
+        $found = $this->action($traces, treeCacheExists: false, treeIdsBatches: [], tree: $tree)->handle(
+            new TraceFindParameters(
+                page: 1,
+                perPage: 20,
+                traceId: 'child',
+                allTracesInTree: true
+            )
+        );
+
+        self::assertSame([5000, 5000, 2001], array_map(count(...), $asked));
+        self::assertSame(['n-6000', 'n-6000', 'root'], array_map(static fn($item) => $item->trace->traceId, $found->items));
+    }
+
+    public function testACachedTreeIsReadInBatchesOfIds(): void
+    {
+        $traces = $this->createMock(TraceRepository::class);
+        $traces->method('findOneDetailByTraceId')->willReturn($this->trace('child', 5));
+
+        $tree = $this->createMock(TraceTreeRepository::class);
+        $tree->method('findParentTraceId')->willReturn('root');
+
+        $treeCache = $this->createMock(TraceTreeCacheRepository::class);
+        $treeCache->method('existsByRootTraceId')->willReturn(true);
+        $treeCache->expects($this->once())
+            ->method('findTraceIds')
+            ->with('root', 5000)
+            ->willReturn([]);
+
+        $services = $this->createMock(FindTraceServicesAction::class);
+        $services->method('handle')->willReturn(new TraceServicesObject(services: []));
+
+        new FindTracesAction(
+            traceRepository: $traces,
+            traceTreeRepository: $tree,
+            traceTreeCacheRepository: $treeCache,
+            findTraceServicesAction: $services
+        )->handle(
+            new TraceFindParameters(
+                page: 1,
+                perPage: 20,
+                traceId: 'child',
+                allTracesInTree: true
+            )
+        );
+    }
+
     /**
      * @param list<list<string>> $treeIdsBatches
      */

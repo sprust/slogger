@@ -8,6 +8,7 @@ use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolProperty;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolPropertyTypeEnum;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolResult;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolSchema;
+use App\Services\Clickhouse\ClickhouseQueryException;
 
 readonly class FakeMcpTool implements McpToolInterface
 {
@@ -40,6 +41,10 @@ readonly class FakeMcpTool implements McpToolInterface
 
     public function call(McpToolArguments $arguments): McpToolResult
     {
+        if ($arguments->string('thing_id') === 'too_wide') {
+            throw new ClickhouseQueryException(message: 'Code: 159. Timeout exceeded', code: 159);
+        }
+
         if ($arguments->string('thing_id') === 'missing') {
             return new McpToolResult(
                 data: ['error' => 'not_found', 'hint' => 'Thing not found.'],

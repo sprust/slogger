@@ -106,8 +106,8 @@ class McpServiceProvider extends BaseServiceProvider
 
         // the period of a trace query may span the whole time traces are kept for
         $this->app->singleton(
-            McpTracePeriodResolver::class,
-            static fn(): McpTracePeriodResolver => new McpTracePeriodResolver(
+            abstract: McpTracePeriodResolver::class,
+            concrete: static fn(): McpTracePeriodResolver => new McpTracePeriodResolver(
                 maxHours: (int) config('cleaner.lifetime_hours')
             )
         );

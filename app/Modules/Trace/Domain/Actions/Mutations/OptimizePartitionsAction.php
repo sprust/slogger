@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Trace\Domain\Actions\Mutations;
 
 use App\Modules\Trace\Repositories\TraceRepository;
+use App\Services\Clickhouse\ClickhouseQueryException;
 use Illuminate\Support\Carbon;
 
 /**
@@ -18,6 +19,9 @@ readonly class OptimizePartitionsAction
     ) {
     }
 
+    /**
+     * @throws ClickhouseQueryException
+     */
     public function handle(Carbon $loggedAtTo): int
     {
         return $this->traceRepository->optimizePartitions(

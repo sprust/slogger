@@ -93,13 +93,15 @@ readonly class AggregateTracesTool implements McpToolInterface
                 name: 'duration_from',
                 type: McpToolPropertyTypeEnum::Number,
                 description: 'Minimal duration, in the units of get_trace.',
-                min: 0
+                min: 0,
+                max: McpToolTraceScopeReader::MAX_DURATION
             ),
             new McpToolProperty(
                 name: 'duration_to',
                 type: McpToolPropertyTypeEnum::Number,
                 description: 'Maximal duration, in the units of get_trace.',
-                min: 0
+                min: 0,
+                max: McpToolTraceScopeReader::MAX_DURATION
             ),
             new McpToolProperty(
                 name: 'data_filter',

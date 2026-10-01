@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Trace\Repositories;
 
-use App\Modules\Trace\Entities\Trace\DeletedTracesObject;
 use App\Modules\Trace\Entities\Trace\TraceDataRangeObject;
 use App\Modules\Trace\Parameters\Data\TraceDataFilterParameters;
+use App\Modules\Trace\Repositories\Dto\Trace\Partition\TracePartitionDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Profiling\TraceProfilingDto;
 use App\Modules\Trace\Repositories\Dto\Trace\TraceDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Tree\TraceTreeNodeDto;
@@ -23,6 +23,9 @@ readonly class TraceRepository
     private const string TRACE_COLUMNS = 'sid, tid, ptid, tp, st, tgs, dt_raw, dur, mem, cpu, lat, cat, uat';
 
     private const string NODE_COLUMNS = 'sid, tid, ptid, tp, st, tgs, dur, mem, cpu, lat';
+
+    // the ids travel in the URL of the query, which ClickHouse caps at 1 MiB
+    private const int TRACE_IDS_PER_QUERY = 5000;
 
     public function __construct(
         private ClickhouseClient $client,
@@ -128,18 +131,20 @@ readonly class TraceRepository
      */
     public function findTreeNodesByTraceIds(array $traceIds): array
     {
-        if ($traceIds === []) {
-            return [];
-        }
+        $rows = [];
 
-        $rows = $this->client->select(
-            sql: sprintf(
-                'SELECT %s FROM traces WHERE tid IN {tids:Array(String)} ORDER BY uat DESC LIMIT 1 BY sid, tid',
-                self::NODE_COLUMNS
-            ),
-            params: ['tids' => array_values($traceIds)],
-            queryIdPrefix: 'trace-tree-nodes'
-        );
+        foreach (array_chunk(array_values($traceIds), self::TRACE_IDS_PER_QUERY) as $traceIdsChunk) {
+            $chunkRows = $this->client->select(
+                sql: sprintf(
+                    'SELECT %s FROM traces WHERE tid IN {tids:Array(String)} ORDER BY uat DESC LIMIT 1 BY sid, tid',
+                    self::NODE_COLUMNS
+                ),
+                params: ['tids' => $traceIdsChunk],
+                queryIdPrefix: 'trace-tree-nodes'
+            );
+
+            array_push($rows, ...$chunkRows);
+        }
 
         return array_map(
             fn(array $row): TraceTreeNodeDto => new TraceTreeNodeDto(
@@ -194,11 +199,13 @@ readonly class TraceRepository
     }
 
     /**
-     * Drops the hourly partitions that ended before the moment given.
+     * The hourly partitions whose hour ended no later than the moment given, oldest first.
+     *
+     * @return TracePartitionDto[]
      *
      * @throws ClickhouseQueryException
      */
-    public function deletePartitions(Carbon $loggedAtTo): DeletedTracesObject
+    public function findEndedPartitions(Carbon $loggedAtTo): array
     {
         $partitions = $this->client->select(
             sql: 'SELECT partition_id, sum(rows) AS rows FROM system.parts '
@@ -209,30 +216,23 @@ readonly class TraceRepository
             queryIdPrefix: 'trace-clear'
         );
 
-        $partitionsCount = 0;
-        $tracesCount     = 0;
+        return array_map(
+            fn(array $partition): TracePartitionDto => new TracePartitionDto(
+                id: $this->checkPartitionId((string) $partition['partition_id']),
+                rowsCount: (int) $partition['rows'],
+            ),
+            $partitions
+        );
+    }
 
-        foreach ($partitions as $partition) {
-            $partitionId = (string) $partition['partition_id'];
-
-            // An identifier of the statement, which takes no parameters: ClickHouse makes
-            // these ids of hex digits, and nothing else is let through.
-            if (!preg_match('/^[0-9a-f]+$/', $partitionId)) {
-                throw new RuntimeException(sprintf('Unexpected partition id [%s]', $partitionId));
-            }
-
-            $this->client->command(
-                sql: "ALTER TABLE traces DROP PARTITION ID '$partitionId'",
-                queryIdPrefix: 'trace-clear'
-            );
-
-            ++$partitionsCount;
-            $tracesCount += (int) $partition['rows'];
-        }
-
-        return new DeletedTracesObject(
-            partitionsCount: $partitionsCount,
-            tracesCount: $tracesCount,
+    /**
+     * @throws ClickhouseQueryException
+     */
+    public function dropPartition(string $partitionId): void
+    {
+        $this->client->command(
+            sql: sprintf("ALTER TABLE traces DROP PARTITION ID '%s'", $this->checkPartitionId($partitionId)),
+            queryIdPrefix: 'trace-clear'
         );
     }
 
@@ -262,13 +262,7 @@ readonly class TraceRepository
         );
 
         foreach ($partitions as $partition) {
-            $partitionId = (string) $partition['partition_id'];
-
-            // An identifier of the statement, which takes no parameters: ClickHouse makes
-            // these ids of hex digits, and nothing else is let through.
-            if (!preg_match('/^[0-9a-f]+$/', $partitionId)) {
-                throw new RuntimeException(sprintf('Unexpected partition id [%s]', $partitionId));
-            }
+            $partitionId = $this->checkPartitionId((string) $partition['partition_id']);
 
             $this->client->command(
                 sql: "OPTIMIZE TABLE traces PARTITION ID '$partitionId' FINAL",
@@ -277,6 +271,19 @@ readonly class TraceRepository
         }
 
         return count($partitions);
+    }
+
+    /**
+     * A partition id is an identifier of the statement, which takes no parameters:
+     * ClickHouse makes these ids of hex digits, and nothing else is let through.
+     */
+    private function checkPartitionId(string $partitionId): string
+    {
+        if (!preg_match('/^[0-9a-f]+\z/', $partitionId)) {
+            throw new RuntimeException(sprintf('Unexpected partition id [%s]', $partitionId));
+        }
+
+        return $partitionId;
     }
 
     /**

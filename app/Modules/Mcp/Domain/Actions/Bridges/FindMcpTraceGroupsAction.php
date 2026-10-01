@@ -14,6 +14,7 @@ use App\Modules\Trace\Entities\Trace\Groups\TraceGroupsObject;
 use App\Modules\Trace\Enums\TraceGroupFieldEnum;
 use App\Modules\Trace\Parameters\Data\TraceDataFilterParameters;
 use App\Modules\Trace\Parameters\TraceFindGroupsParameters;
+use App\Services\Clickhouse\ClickhouseQueryException;
 
 readonly class FindMcpTraceGroupsAction
 {
@@ -30,6 +31,7 @@ readonly class FindMcpTraceGroupsAction
     /**
      * @throws McpTraceGroupByInvalidException
      * @throws McpTraceDataFilterInvalidException
+     * @throws ClickhouseQueryException
      */
     public function handle(FindMcpTraceGroupsParameters $parameters): TraceGroupsObject
     {

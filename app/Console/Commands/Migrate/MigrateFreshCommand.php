@@ -61,8 +61,8 @@ class MigrateFreshCommand extends Command
 
         foreach (array_column($tables, 'name') as $tableName) {
             $this->components->task(
-                "Drop clickhouse.$tableName",
-                static function () use ($clickhouse, $tableName): bool {
+                description: "Drop clickhouse.$tableName",
+                task: static function () use ($clickhouse, $tableName): bool {
                     $clickhouse->command(
                         sql: 'DROP TABLE IF EXISTS {table:Identifier}',
                         params: ['table' => $tableName],

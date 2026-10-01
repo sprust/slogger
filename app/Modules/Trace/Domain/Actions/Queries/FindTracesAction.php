@@ -21,7 +21,8 @@ use App\Services\Clickhouse\ClickhouseQueryException;
 
 readonly class FindTracesAction
 {
-    private const int TREE_IDS_BATCH_COUNT = 50000;
+    // the ids travel in the URL of the query, which ClickHouse caps at 1 MiB
+    private const int TRACE_IDS_PER_QUERY = 5000;
 
     private int $maxPerPage;
 
@@ -91,18 +92,29 @@ readonly class FindTracesAction
 
         $traceIds = ($traceIds === null) ? null : array_filter($traceIds);
 
-        $tracesDto = is_null($treeRootTraceId)
-            ? $this->search(
+        if (!is_null($treeRootTraceId)) {
+            $tracesDto = $this->searchInBatches(
+                parameters: $parameters,
+                traceIdsBatches: $this->traceTreeCacheRepository->findTraceIds(
+                    rootTraceId: $treeRootTraceId,
+                    batchCount: self::TRACE_IDS_PER_QUERY
+                ),
+                perPage: $perPage
+            );
+        } elseif (!is_null($traceIds) && count($traceIds) > self::TRACE_IDS_PER_QUERY) {
+            $tracesDto = $this->searchInBatches(
+                parameters: $parameters,
+                traceIdsBatches: array_chunk(array_values($traceIds), self::TRACE_IDS_PER_QUERY),
+                perPage: $perPage
+            );
+        } else {
+            $tracesDto = $this->search(
                 parameters: $parameters,
                 traceIds: $traceIds,
                 page: $parameters->page,
                 perPage: $perPage
-            )
-            : $this->searchInTree(
-                parameters: $parameters,
-                rootTraceId: $treeRootTraceId,
-                perPage: $perPage
             );
+        }
 
         $serviceIds = array_unique(
             array_filter(
@@ -166,6 +178,8 @@ readonly class FindTracesAction
      * @param string[]|null $traceIds
      *
      * @return TraceDto[]
+     *
+     * @throws ClickhouseQueryException
      */
     private function search(
         TraceFindParameters $parameters,
@@ -195,21 +209,23 @@ readonly class FindTracesAction
     }
 
     /**
+     * A page of the traces among too many ids for one query: each batch gives its first
+     * traces up to the page, and they are merged in the order of the list.
+     *
+     * @param iterable<int, string[]> $traceIdsBatches
+     *
      * @return TraceDto[]
+     *
+     * @throws ClickhouseQueryException
      */
-    private function searchInTree(
+    private function searchInBatches(
         TraceFindParameters $parameters,
-        string $rootTraceId,
+        iterable $traceIdsBatches,
         int $perPage
     ): array {
         $needed = $parameters->page * $perPage;
 
         $found = [];
-
-        $traceIdsBatches = $this->traceTreeCacheRepository->findTraceIds(
-            rootTraceId: $rootTraceId,
-            batchCount: self::TREE_IDS_BATCH_COUNT
-        );
 
         foreach ($traceIdsBatches as $traceIdsBatch) {
             $found = $this->mergeFound(

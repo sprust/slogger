@@ -130,6 +130,19 @@ class TraceGroupsRepositoryTest extends TestCase
         $this->assertSame('500', $counts[1]->value);
     }
 
+    public function testCompareByADataKeyNamedDt(): void
+    {
+        $this->repository([])->compareGroups(
+            loggedAtFrom: Carbon::parse('2026-09-28 10:00:00', 'UTC'),
+            loggedAtTo: Carbon::parse('2026-09-28 10:59:59', 'UTC'),
+            groupAStatuses: ['failed'],
+            by: TraceCompareByEnum::Data,
+            dataKey: 'dt.x'
+        );
+
+        $this->assertStringContainsString('dt.`dt`.`x` AS value', $this->client->selects[0]['sql']);
+    }
+
     /**
      * @param list<array<string, mixed>> $rows
      */

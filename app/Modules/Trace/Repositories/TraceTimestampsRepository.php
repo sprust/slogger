@@ -21,6 +21,7 @@ use App\Modules\Trace\Repositories\Services\TraceTimestampMetricsFactory;
 use App\Services\Clickhouse\ClickhouseClient;
 use App\Services\Clickhouse\ClickhouseQueryException;
 use Illuminate\Support\Carbon;
+use InvalidArgumentException;
 
 readonly class TraceTimestampsRepository
 {
@@ -49,6 +50,7 @@ readonly class TraceTimestampsRepository
      * @param string[]                              $statuses
      *
      * @throws ClickhouseQueryException
+     * @throws InvalidArgumentException
      */
     public function find(
         Carbon $loggedAtFrom,
@@ -119,7 +121,7 @@ readonly class TraceTimestampsRepository
         }
 
         foreach ($dataFields ?? [] as $dataField) {
-            $fieldName = "dt.$dataField->field";
+            $fieldName = sprintf('dt.%s', $dataField->field);
 
             $fieldAggregations[$fieldName] = $dataField->aggregations;
 

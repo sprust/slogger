@@ -12,6 +12,7 @@ use App\Modules\Trace\Repositories\TraceTreeCacheStateRepository;
 use App\Modules\Trace\Repositories\TraceTreeCacheRepository;
 use App\Modules\Trace\Repositories\TraceTreeRepository;
 use Illuminate\Support\Str;
+use App\Services\Clickhouse\ClickhouseQueryException;
 
 readonly class FindTraceTreeAction
 {
@@ -23,6 +24,9 @@ readonly class FindTraceTreeAction
     ) {
     }
 
+    /**
+     * @throws ClickhouseQueryException
+     */
     public function handle(string $traceId, bool $fresh, bool $isChild): ?TraceTreeResultObject
     {
         $rootTraceId = $isChild

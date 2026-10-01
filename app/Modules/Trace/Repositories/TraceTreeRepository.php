@@ -11,6 +11,9 @@ use SConcur\WaitGroup;
 
 readonly class TraceTreeRepository
 {
+    // the ids travel in the URL of the query, which ClickHouse caps at 1 MiB
+    private const int TRACE_IDS_PER_QUERY = 5000;
+
     private int $maxDepthForFindParent;
     private int $treeTraversalChunkSize;
     private int $treeTraversalConcurrency;
@@ -23,6 +26,9 @@ readonly class TraceTreeRepository
         $this->treeTraversalConcurrency = 8;
     }
 
+    /**
+     * @throws ClickhouseQueryException
+     */
     public function findParentTraceId(string $traceId): ?string
     {
         $trace = $this->findLink($traceId);
@@ -56,6 +62,8 @@ readonly class TraceTreeRepository
 
     /**
      * @return string[]
+     *
+     * @throws ClickhouseQueryException
      */
     public function findChainToParentTraceId(string $traceId): array
     {
@@ -93,7 +101,13 @@ readonly class TraceTreeRepository
     }
 
     /**
+     * The ids under the trace, level by level. A trace already met is not walked again, so
+     * parent links that make a cycle end the walk instead of looping forever.
+     *
      * @return iterable<int, string[]>
+     *
+     * @throws ClickhouseQueryException
+     * @throws InvalidArgumentException
      */
     public function findTraceIdsInTreeByParentTraceId(string $traceId, int $batchCount): iterable
     {
@@ -105,6 +119,11 @@ readonly class TraceTreeRepository
             $traceId,
         ];
 
+        /** @var array<string, true> $visited */
+        $visited = [
+            $traceId => true,
+        ];
+
         while (count($frontier) > 0) {
             $children = [];
             $yielded  = 0;
@@ -114,8 +133,14 @@ readonly class TraceTreeRepository
 
                 foreach ($frontierGroup as $frontierChunk) {
                     $waitGroup->add(
-                        function () use ($frontierChunk, &$children) {
+                        function () use ($frontierChunk, &$children, &$visited) {
                             foreach ($this->findDirectChildrenTraceIds($frontierChunk) as $childTraceId) {
+                                if (isset($visited[$childTraceId])) {
+                                    continue;
+                                }
+
+                                $visited[$childTraceId] = true;
+
                                 $children[] = $childTraceId;
                             }
                         }
@@ -143,6 +168,9 @@ readonly class TraceTreeRepository
      * @param string[] $parentTraceIds
      *
      * @return iterable<int, string[]>
+     *
+     * @throws ClickhouseQueryException
+     * @throws InvalidArgumentException
      */
     public function findChildrenTraceIds(array $parentTraceIds, int $batchCount): iterable
     {
@@ -150,28 +178,26 @@ readonly class TraceTreeRepository
             throw new InvalidArgumentException('Batch count must be greater than 0');
         }
 
-        if ($parentTraceIds === []) {
-            return;
-        }
-
-        $rows = $this->client->select(
-            sql: 'SELECT DISTINCT tid FROM traces WHERE ptid IN {parents:Array(String)}',
-            params: ['parents' => array_values($parentTraceIds)],
-            queryIdPrefix: 'trace-tree-children'
-        );
-
         $childIds = [];
 
-        foreach ($rows as $row) {
-            $childIds[] = (string) $row['tid'];
+        foreach (array_chunk(array_values($parentTraceIds), self::TRACE_IDS_PER_QUERY) as $parentTraceIdsChunk) {
+            $rows = $this->client->select(
+                sql: 'SELECT DISTINCT tid FROM traces WHERE ptid IN {parents:Array(String)}',
+                params: ['parents' => $parentTraceIdsChunk],
+                queryIdPrefix: 'trace-tree-children'
+            );
 
-            if (count($childIds) < $batchCount) {
-                continue;
+            foreach ($rows as $row) {
+                $childIds[] = (string) $row['tid'];
+
+                if (count($childIds) < $batchCount) {
+                    continue;
+                }
+
+                yield $childIds;
+
+                $childIds = [];
             }
-
-            yield $childIds;
-
-            $childIds = [];
         }
 
         if ($childIds !== []) {
@@ -240,6 +266,8 @@ readonly class TraceTreeRepository
      * @param string[] $parentTraceIds
      *
      * @return string[]
+     *
+     * @throws ClickhouseQueryException
      */
     private function findDirectChildrenTraceIds(array $parentTraceIds): array
     {

@@ -46,7 +46,7 @@ readonly class McpTraceDataFilterParser
     {
         $value = trim($condition);
 
-        if (preg_match('/^' . self::KEY . '\s+(?<presence>exists|missing|is null|is not null)$/', $value, $matches)) {
+        if (preg_match('/^' . self::KEY . '\s+(?<presence>exists|missing|is null|is not null)\z/', $value, $matches)) {
             return new TraceDataFilterItemParameters(
                 field: $this->field($matches['key']),
                 null: match ($matches['presence']) {
@@ -65,7 +65,7 @@ readonly class McpTraceDataFilterParser
             );
         }
 
-        if (preg_match('/^' . self::KEY . '\s*(?<op>=|!=)\s*(?<value>true|false)$/', $value, $matches)) {
+        if (preg_match('/^' . self::KEY . '\s*(?<op>=|!=)\s*(?<value>true|false)\z/', $value, $matches)) {
             $isTrue = $matches['value'] === 'true';
 
             return $this->item(
@@ -74,18 +74,25 @@ readonly class McpTraceDataFilterParser
             );
         }
 
-        if (preg_match('/^' . self::KEY . '\s*(?<op>>=|<=|!=|=|>|<)\s*(?<value>-?\d+(\.\d+)?)$/', $value, $matches)) {
+        if (preg_match('/^' . self::KEY . '\s*(?<op>>=|<=|!=|=|>|<)\s*(?<value>-?\d+(\.\d+)?)\z/', $value, $matches)) {
+            $number = str_contains($matches['value'], '.') ? (float) $matches['value'] : (int) $matches['value'];
+
+            // a number too long for a float reads as infinity, which no query takes
+            if (!is_finite((float) $number)) {
+                throw new McpTraceDataFilterInvalidException($condition);
+            }
+
             return $this->item(
                 key: $matches['key'],
                 numeric: new TraceDataFilterNumericParameters(
-                    value: str_contains($matches['value'], '.') ? (float) $matches['value'] : (int) $matches['value'],
+                    value: $number,
                     comp: TraceDataFilterCompNumericTypeEnum::from($matches['op'])
                 )
             );
         }
 
         if (preg_match(
-            '/^' . self::KEY . '\s*(?<op>!=|=|contains|starts|ends)\s*"(?<value>.*)"$/',
+            '/^' . self::KEY . '\s*(?<op>!=|=|contains|starts|ends)\s*"(?<value>.*)"\z/',
             $value,
             $matches
         )) {

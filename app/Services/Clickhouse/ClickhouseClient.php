@@ -58,6 +58,8 @@ class ClickhouseClient
             settings: [
                 'default_format'                         => 'JSONEachRow',
                 'output_format_json_quote_64bit_integers' => 0,
+                // the client gives up after the timeout, so the server stops the query then too
+                'max_execution_time'                      => $this->config->timeoutSeconds,
                 ...$settings,
             ]
         );

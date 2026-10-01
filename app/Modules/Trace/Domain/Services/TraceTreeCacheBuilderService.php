@@ -14,6 +14,7 @@ use App\Modules\Trace\Repositories\TraceTreeCacheStateRepository;
 use App\Modules\Trace\Repositories\TraceTreeRepository;
 use Illuminate\Contracts\Events\Dispatcher;
 use RuntimeException;
+use App\Services\Clickhouse\ClickhouseQueryException;
 
 readonly class TraceTreeCacheBuilderService
 {
@@ -65,6 +66,9 @@ readonly class TraceTreeCacheBuilderService
     ) {
     }
 
+    /**
+     * @throws ClickhouseQueryException
+     */
     public function handleSlice(
         string $rootTraceId,
         string $version,
@@ -166,6 +170,9 @@ readonly class TraceTreeCacheBuilderService
         );
     }
 
+    /**
+     * @throws ClickhouseQueryException
+     */
     private function createRoot(string $rootTraceId, string $version): void
     {
         $rootTrace = $this->traceRepository->findOneDetailByTraceId(
@@ -202,6 +209,9 @@ readonly class TraceTreeCacheBuilderService
         );
     }
 
+    /**
+     * @throws ClickhouseQueryException
+     */
     private function createAncestors(string $rootTraceId, string $version): void
     {
         $ancestorTraceIds = $this->traceTreeRepository->findChainToParentTraceId(
@@ -250,6 +260,8 @@ readonly class TraceTreeCacheBuilderService
      * @param string[] $childIdsChunk
      *
      * @return int how many nodes this chunk added to the tree
+     *
+     * @throws ClickhouseQueryException
      */
     private function createTraceTree(
         string $rootTraceId,

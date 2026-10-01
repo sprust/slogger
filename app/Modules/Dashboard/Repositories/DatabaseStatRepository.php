@@ -35,11 +35,10 @@ readonly class DatabaseStatRepository
     }
 
     /**
-     * The MongoDB databases, then the ClickHouse one that holds the traces.
+     * The MongoDB databases, then the ClickHouse one that holds the traces. ClickHouse out of
+     * reach leaves its entry out and is reported, so the MongoDB stats still refresh.
      *
      * @return DatabaseStatObject[]
-     *
-     * @throws ClickhouseQueryException
      */
     public function find(): array
     {
@@ -93,7 +92,11 @@ readonly class DatabaseStatRepository
             );
         }
 
-        $databases[] = $this->clickhouseStat();
+        try {
+            $databases[] = $this->clickhouseStat();
+        } catch (ClickhouseQueryException $exception) {
+            report($exception);
+        }
 
         return $databases;
     }

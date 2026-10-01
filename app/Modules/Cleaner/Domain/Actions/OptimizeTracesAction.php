@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Cleaner\Domain\Actions;
 
 use App\Modules\Trace\Domain\Actions\Mutations\OptimizePartitionsAction;
+use App\Services\Clickhouse\ClickhouseQueryException;
 use Illuminate\Support\Carbon;
 
 /**
@@ -21,6 +22,9 @@ readonly class OptimizeTracesAction
     ) {
     }
 
+    /**
+     * @throws ClickhouseQueryException
+     */
     public function handle(): int
     {
         return $this->optimizePartitionsAction->handle(

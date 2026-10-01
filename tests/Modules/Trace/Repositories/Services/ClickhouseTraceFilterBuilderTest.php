@@ -84,7 +84,7 @@ class ClickhouseTraceFilterBuilderTest extends TestCase
             data: $this->data(numeric: new TraceDataFilterNumericParameters(5, TraceDataFilterCompNumericTypeEnum::Neq))
         );
 
-        self::assertStringStartsWith('NOT (coalesce(', $condition->sql);
+        self::assertStringStartsWith("(JSONType(dt_raw) = 'Object' AND NOT (coalesce(", $condition->sql);
         self::assertStringContainsString(' = {f0:Float64}', $condition->sql);
     }
 
@@ -119,7 +119,7 @@ class ClickhouseTraceFilterBuilderTest extends TestCase
         );
 
         self::assertStringStartsWith(
-            "(JSONHas(dt_raw, 'response', 'status') AND NOT "
+            "(JSONType(dt_raw) = 'Object' AND JSONHas(dt_raw, 'response', 'status') AND NOT "
             . "(coalesce(dynamicElement(dt.`response`.`status`, 'String') = {f0:String}, 0) OR ",
             $condition->sql
         );
@@ -138,21 +138,108 @@ class ClickhouseTraceFilterBuilderTest extends TestCase
     public function testPresenceAndNullAreReadFromTheRawData(): void
     {
         self::assertSame(
-            "JSONHas(dt_raw, 'response', 'status')",
+            "(JSONType(dt_raw) = 'Object' AND JSONHas(dt_raw, 'response', 'status'))",
             $this->builder()->build(data: $this->data(exists: true))->sql
         );
         self::assertSame(
-            "NOT JSONHas(dt_raw, 'response', 'status')",
+            "(JSONType(dt_raw) = 'Object' AND NOT JSONHas(dt_raw, 'response', 'status'))",
             $this->builder()->build(data: $this->data(exists: false))->sql
         );
         self::assertSame(
-            "(JSONHas(dt_raw, 'response', 'status') AND JSONType(dt_raw, 'response', 'status') = 'Null')",
+            "(JSONType(dt_raw) = 'Object' AND "
+            . "(JSONHas(dt_raw, 'response', 'status') AND JSONType(dt_raw, 'response', 'status') = 'Null'))",
             $this->builder()->build(data: $this->data(null: true))->sql
         );
         self::assertSame(
-            "(JSONHas(dt_raw, 'response', 'status') AND JSONType(dt_raw, 'response', 'status') != 'Null')",
+            "(JSONType(dt_raw) = 'Object' AND "
+            . "(JSONHas(dt_raw, 'response', 'status') AND JSONType(dt_raw, 'response', 'status') != 'Null'))",
             $this->builder()->build(data: $this->data(null: false))->sql
         );
+    }
+
+    public function testPresenceAndNullThroughAnArrayOfObjectsReadEachElement(): void
+    {
+        $build = fn(?bool $null, ?bool $exists): string => $this->builder(arrayPaths: ['order.items'])->build(
+            data: $this->data(null: $null, exists: $exists, field: 'dt.order.items.price.value')
+        )->sql;
+
+        self::assertSame(
+            "(JSONType(dt_raw) = 'Object' AND (JSONHas(dt_raw, 'order', 'items', 'price', 'value') "
+            . "OR arrayExists(__e -> JSONHas(__e, 'price', 'value'), JSONExtractArrayRaw(dt_raw, 'order', 'items'))))",
+            $build(null, true)
+        );
+        self::assertStringStartsWith("(JSONType(dt_raw) = 'Object' AND NOT (JSONHas(", $build(null, false));
+        self::assertStringContainsString(
+            "arrayExists(__e -> (JSONHas(__e, 'price', 'value') AND JSONType(__e, 'price', 'value') = 'Null'), "
+            . "JSONExtractArrayRaw(dt_raw, 'order', 'items'))",
+            $build(true, null)
+        );
+        self::assertStringContainsString(
+            "arrayExists(__e -> (JSONHas(__e, 'price', 'value') AND JSONType(__e, 'price', 'value') != 'Null'), "
+            . "JSONExtractArrayRaw(dt_raw, 'order', 'items'))",
+            $build(false, null)
+        );
+    }
+
+    /**
+     * @return array<string, array{TraceDataFilterParameters}>
+     */
+    public static function cacheProvider(): array
+    {
+        $item = static fn(
+            ?bool $null                                = null,
+            ?bool $exists                              = null,
+            ?TraceDataFilterNumericParameters $numeric = null,
+            ?TraceDataFilterStringParameters $string   = null,
+            ?TraceDataFilterBooleanParameters $boolean = null,
+        ): TraceDataFilterParameters => new TraceDataFilterParameters(
+            filter: [
+                new TraceDataFilterItemParameters(
+                    field: 'dt.cache.product_12.value',
+                    null: $null,
+                    exists: $exists,
+                    numeric: $numeric,
+                    string: $string,
+                    boolean: $boolean
+                ),
+            ]
+        );
+
+        return [
+            'exists'         => [$item(exists: true)],
+            'does not exist' => [$item(exists: false)],
+            'is null'        => [$item(null: true)],
+            'is not null'    => [$item(null: false)],
+            'number'         => [$item(numeric: new TraceDataFilterNumericParameters(1, TraceDataFilterCompNumericTypeEnum::Eq))],
+            'not a number'   => [$item(numeric: new TraceDataFilterNumericParameters(1, TraceDataFilterCompNumericTypeEnum::Neq))],
+            'string'         => [$item(string: new TraceDataFilterStringParameters('x', TraceDataFilterCompStringTypeEnum::Eq))],
+            'not a string'   => [$item(string: new TraceDataFilterStringParameters('x', TraceDataFilterCompStringTypeEnum::Neq))],
+            'boolean'        => [$item(boolean: new TraceDataFilterBooleanParameters(true))],
+        ];
+    }
+
+    #[\PHPUnit\Framework\Attributes\DataProvider('cacheProvider')]
+    public function testCachePathFindsNothing(TraceDataFilterParameters $data): void
+    {
+        $condition = $this->builder()->build(data: $data);
+
+        self::assertSame('0', $condition->sql);
+        self::assertSame([], $condition->params);
+    }
+
+    public function testKeyNamedDtIsAKeyLikeAnyOther(): void
+    {
+        self::assertSame(
+            "(JSONType(dt_raw) = 'Object' AND JSONHas(dt_raw, 'dt', 'x'))",
+            $this->builder()->build(data: $this->data(exists: true, field: 'dt.dt.x'))->sql
+        );
+    }
+
+    public function testFieldWithoutTheDataPrefixIsRefused(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        $this->builder()->build(data: $this->data(exists: true, field: 'response.status'));
     }
 
     public function testAnArrayOfScalarsMatchesAnyElement(): void
@@ -233,11 +320,12 @@ class ClickhouseTraceFilterBuilderTest extends TestCase
         ?TraceDataFilterNumericParameters $numeric = null,
         ?TraceDataFilterStringParameters $string = null,
         ?TraceDataFilterBooleanParameters $boolean = null,
+        string $field = 'dt.response.status',
     ): TraceDataFilterParameters {
         return new TraceDataFilterParameters(
             filter: [
                 new TraceDataFilterItemParameters(
-                    field: 'dt.response.status',
+                    field: $field,
                     null: $null,
                     exists: $exists,
                     numeric: $numeric,

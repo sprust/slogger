@@ -14,6 +14,9 @@ use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolResult;
 
 readonly class McpToolTraceScopeReader
 {
+    // a bound for the duration filters: a number past what a float holds would reach the query as infinity
+    public const int MAX_DURATION = 1_000_000_000_000_000;
+
     private const int MAX_SERVICES = 20;
 
     public function __construct(

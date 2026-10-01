@@ -9,16 +9,22 @@ use App\Modules\Trace\Domain\Actions\Mutations\DeletePartitionsAction;
 use Illuminate\Support\Carbon;
 use InvalidArgumentException;
 use RuntimeException;
-use Throwable;
 
 readonly class ClearTracesAction
 {
+    // a run takes seconds; one still open after this long died before it could close itself
+    private const int STALE_PROCESS_MINUTES = 60;
+
     public function __construct(
         private ProcessRepository $processRepository,
         private DeletePartitionsAction $deletePartitionsAction,
     ) {
     }
 
+    /**
+     * @throws InvalidArgumentException
+     * @throws RuntimeException
+     */
     public function handle(int $lifetimeHours): void
     {
         if ($lifetimeHours <= 0) {
@@ -27,33 +33,18 @@ readonly class ClearTracesAction
             );
         }
 
-        $exists = $this->processRepository->exists(
-            clearedAtIsNull: true
-        );
-
-        if ($exists) {
-            throw new RuntimeException(
-                'Clearing process already active'
-            );
-        }
+        $this->closeStaleProcess();
 
         $loggedAtTo = Carbon::now()->clone()->subHours($lifetimeHours);
 
         $process = $this->processRepository->create();
 
-        $deletedTraces = null;
-        $exception     = null;
-
-        try {
-            $deletedTraces = $this->deletePartitionsAction->handle(
-                loggedAtTo: $loggedAtTo
-            );
-        } catch (Throwable $exception) {
-            //
-        }
+        $deletedTraces = $this->deletePartitionsAction->handle(
+            loggedAtTo: $loggedAtTo
+        );
 
         if (
-            $exception === null &&
+            $deletedTraces->exception === null &&
             $deletedTraces->partitionsCount === 0 &&
             $deletedTraces->tracesCount === 0
         ) {
@@ -67,10 +58,43 @@ readonly class ClearTracesAction
         $this->processRepository->update(
             processId: $process->id,
             // the column still says collections: the page shows it as the count of what was dropped
-            clearedCollectionsCount: $deletedTraces?->partitionsCount ?: 0,
-            clearedTracesCount: $deletedTraces?->tracesCount ?: 0,
+            clearedCollectionsCount: $deletedTraces->partitionsCount,
+            clearedTracesCount: $deletedTraces->tracesCount,
             clearedAt: Carbon::now(),
-            exception: $exception
+            exception: $deletedTraces->exception
+        );
+    }
+
+    /**
+     * A run that crashed before it closed itself would block every later one: once it is
+     * old enough it is closed with an error, while a fresh one still blocks.
+     *
+     * @throws RuntimeException
+     */
+    private function closeStaleProcess(): void
+    {
+        $process = $this->processRepository->exists(
+            clearedAtIsNull: true
+        );
+
+        if ($process === null) {
+            return;
+        }
+
+        if ($process->createdAt->gt(Carbon::now()->subMinutes(self::STALE_PROCESS_MINUTES))) {
+            throw new RuntimeException(
+                'Clearing process already active'
+            );
+        }
+
+        $this->processRepository->update(
+            processId: $process->id,
+            clearedCollectionsCount: $process->clearedCollectionsCount,
+            clearedTracesCount: $process->clearedTracesCount,
+            clearedAt: Carbon::now(),
+            exception: new RuntimeException(
+                sprintf('The run did not finish within %d minutes', self::STALE_PROCESS_MINUTES)
+            )
         );
     }
 }

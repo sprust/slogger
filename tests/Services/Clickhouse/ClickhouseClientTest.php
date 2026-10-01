@@ -111,6 +111,17 @@ class ClickhouseClientTest extends TestCase
         $client->select('SELECT a');
     }
 
+    public function testSelectStopsOnTheServerWhenTheClientGivesUp(): void
+    {
+        $client = $this->makeClient(new Response(200, body: ''));
+
+        $client->select('SELECT 1');
+
+        parse_str((string) $this->sentRequest?->getUri()->getQuery(), $query);
+
+        self::assertSame('60', $query['max_execution_time']);
+    }
+
     public function testCommandSendsStatement(): void
     {
         $client = $this->makeClient(new Response(200, body: ''));

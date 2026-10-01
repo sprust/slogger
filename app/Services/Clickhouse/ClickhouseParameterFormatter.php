@@ -22,6 +22,9 @@ class ClickhouseParameterFormatter
 {
     private const string DATE_TIME_FORMAT = 'Y-m-d H:i:s.u';
 
+    /**
+     * @throws InvalidArgumentException
+     */
     public function format(mixed $value): string
     {
         return match (true) {
@@ -38,8 +41,17 @@ class ClickhouseParameterFormatter
         };
     }
 
+    /**
+     * @throws InvalidArgumentException
+     */
     private function formatFloat(float $value): string
     {
+        if (!is_finite($value)) {
+            throw new InvalidArgumentException(
+                sprintf('A ClickHouse parameter must be a finite number, [%s] given', $value)
+            );
+        }
+
         return json_encode($value, JSON_PRESERVE_ZERO_FRACTION | JSON_THROW_ON_ERROR);
     }
 

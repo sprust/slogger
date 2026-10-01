@@ -173,6 +173,28 @@ class TraceGroupToolsTest extends TestCase
         $this->assertSame('response.status', $this->compareParameters->dataKey);
     }
 
+    public function testCompareByADataKeyNamedDt(): void
+    {
+        $this->compareTool()->call(
+            new McpToolArguments([...self::SCOPE, 'group_a_statuses' => ['failed'], 'by' => 'data.dt.x'])
+        );
+
+        $this->assertSame('dt.x', $this->compareParameters?->dataKey);
+    }
+
+    public function testDataFilterWithARestrictedKeyIsAToolError(): void
+    {
+        foreach (['user-agent exists', "a'b exists", 'a..b exists'] as $condition) {
+            $result = $this->topTool()->call(
+                new McpToolArguments([...self::SCOPE, 'by' => ['type'], 'data_filter' => [$condition]])
+            );
+
+            $this->assertSame('invalid_data_filter', $result->data['error'] ?? null, $condition);
+        }
+
+        $this->assertNull($this->groupsParameters);
+    }
+
     public function testCompareByServiceNamesTheService(): void
     {
         $result = $this->compareTool(serviceValue: true)->call(
@@ -184,7 +206,7 @@ class TraceGroupToolsTest extends TestCase
 
     public function testCompareErrors(): void
     {
-        foreach (['data.', 'data.a b', 'data', 'hour'] as $by) {
+        foreach (['data.', 'data.a b', 'data', 'hour', 'data.a-b', "data.a'b", 'data.a..b', "data.abc\n"] as $by) {
             $result = $this->compareTool()->call(
                 new McpToolArguments([...self::SCOPE, 'group_a_statuses' => ['failed'], 'by' => $by])
             );

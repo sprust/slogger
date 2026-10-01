@@ -20,6 +20,7 @@ use App\Modules\Trace\Infrastructure\Http\Resources\Tree\TraceTreeResource;
 use App\Modules\Trace\Infrastructure\Http\Resources\Tree\TraceTreeResponse;
 use App\Modules\Trace\Infrastructure\Http\Resources\Tree\TraceTreeContentResource;
 use Ifksco\OpenApiGenerator\Attributes\OaListItemTypeAttribute;
+use App\Services\Clickhouse\ClickhouseQueryException;
 
 readonly class TraceTreeController
 {
@@ -31,6 +32,9 @@ readonly class TraceTreeController
     ) {
     }
 
+    /**
+     * @throws ClickhouseQueryException
+     */
     #[OaListItemTypeAttribute(TraceTreeResource::class)]
     public function tree(TraceTreeTreeRequest $request): TraceTreeResponse
     {
@@ -49,6 +53,9 @@ readonly class TraceTreeController
         return new TraceTreeResponse($traceTree);
     }
 
+    /**
+     * @throws ClickhouseQueryException
+     */
     public function content(TraceTreeContentRequest $request): TraceTreeContentResource
     {
         $validated = $request->validated();

@@ -12,6 +12,7 @@ use App\Modules\Trace\Domain\Actions\Queries\CompareTraceGroupsAction;
 use App\Modules\Trace\Entities\Trace\Groups\TraceGroupComparisonObject;
 use App\Modules\Trace\Enums\TraceCompareByEnum;
 use App\Modules\Trace\Parameters\TraceCompareGroupsParameters;
+use App\Services\Clickhouse\ClickhouseQueryException;
 
 readonly class CompareMcpTraceGroupsAction
 {
@@ -28,6 +29,7 @@ readonly class CompareMcpTraceGroupsAction
     /**
      * @throws McpTraceGroupByInvalidException
      * @throws McpTraceGroupsOverlapException
+     * @throws ClickhouseQueryException
      */
     public function handle(CompareMcpTraceGroupsParameters $parameters): TraceGroupComparisonObject
     {
@@ -43,7 +45,7 @@ readonly class CompareMcpTraceGroupsAction
             $dataKey = substr($parameters->by, strlen(self::DATA_PREFIX));
 
             // the key is written into the query: names joined by dots and nothing else
-            if (preg_match('/^[A-Za-z0-9_]+(\.[A-Za-z0-9_]+)*$/', $dataKey) !== 1) {
+            if (preg_match('/^[A-Za-z0-9_]+(\.[A-Za-z0-9_]+)*\z/', $dataKey) !== 1) {
                 throw new McpTraceGroupByInvalidException("Invalid data key in [$parameters->by].");
             }
 

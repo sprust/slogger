@@ -12,6 +12,7 @@ use App\Modules\Trace\Repositories\Dto\Trace\TraceDataPathDto;
 use App\Modules\Trace\Repositories\Dto\Trace\TraceSqlConditionDto;
 use Closure;
 use Illuminate\Support\Carbon;
+use InvalidArgumentException;
 
 /**
  * The WHERE of a trace query, built from the filters of the traces page and of MCP.
@@ -23,7 +24,7 @@ use Illuminate\Support\Carbon;
  * condition matches numbers only (a string "500" is not 500), a string condition
  * strings only. Whether a key is there, and whether it holds null, is read from the
  * data as it arrived (`dt_raw`): the JSON column stores no nulls and cannot tell the two
- * apart.
+ * apart. Paths under `cache` and data that is not an object are found by no filter.
  *
  * Holds no state between calls: a data path may be resolved through the cache, which
  * under SConcur hands the process to another request mid-build.
@@ -34,6 +35,9 @@ readonly class ClickhouseTraceFilterBuilder
      * The element types the JSON column stores an array of scalars under.
      */
     private const array SCALAR_ARRAY_TYPES = ['String', 'Int64', 'UInt64', 'Float64', 'Bool'];
+
+    // the top-level key the JSON column skips (`SKIP REGEXP '^cache\\.'`)
+    private const string CACHE_SEGMENT = 'cache';
 
     public function __construct(
         private TraceDataPathResolver $pathResolver,
@@ -46,6 +50,8 @@ readonly class ClickhouseTraceFilterBuilder
      * @param string[]      $types
      * @param string[]      $tags
      * @param string[]      $statuses
+     *
+     * @throws InvalidArgumentException
      */
     public function build(
         ?array $serviceIds = null,
@@ -128,28 +134,43 @@ readonly class ClickhouseTraceFilterBuilder
 
     /**
      * @param array<string, mixed> $params
+     *
+     * @throws InvalidArgumentException
      */
     private function makeDataCondition(TraceDataFilterItemParameters $filterItem, array &$params): ?string
     {
-        $path = $this->pathResolver->resolve($filterItem->field);
+        $path = $this->pathResolver->resolveField($filterItem->field);
+
+        if ($this->isEmpty($filterItem)) {
+            return null;
+        }
+
+        // The JSON column skips the cache entries, and a filter finds none of them, negated or not.
+        if ($path->segments[0] === self::CACHE_SEGMENT) {
+            return '0';
+        }
 
         if (!is_null($filterItem->exists)) {
             $exists = $this->makeExists($path);
 
-            return $filterItem->exists ? $exists : "NOT $exists";
+            return $this->onObject($filterItem->exists ? $exists : "NOT $exists");
         }
 
         if (!is_null($filterItem->null)) {
-            return $filterItem->null
-                ? $this->makeIsNull($path)
-                : $this->makeIsNotNull($path);
+            return $this->onObject(
+                $filterItem->null
+                    ? $this->makeIsNull($path)
+                    : $this->makeIsNotNull($path)
+            );
         }
 
         if (!is_null($filterItem->numeric)) {
             $value = $this->param($params, (float) $filterItem->numeric->value, 'Float64');
 
             if ($filterItem->numeric->comp === TraceDataFilterCompNumericTypeEnum::Neq) {
-                return 'NOT ' . $this->anyValue($path, fn(string $v) => sprintf('%s = %s', $this->number($v), $value));
+                return $this->onObject(
+                    'NOT ' . $this->anyValue($path, fn(string $v) => sprintf('%s = %s', $this->number($v), $value))
+                );
             }
 
             $operator = match ($filterItem->numeric->comp) {
@@ -171,23 +192,25 @@ readonly class ClickhouseTraceFilterBuilder
             return match ($filterItem->string->comp) {
                 TraceDataFilterCompStringTypeEnum::Eq     => $this->anyValue($path, $equals),
                 TraceDataFilterCompStringTypeEnum::Con    => $this->anyValue(
-                    $path,
-                    fn(string $v) => sprintf('position(%s, %s) > 0', $this->string($v), $value)
+                    path: $path,
+                    condition: fn(string $v) => sprintf('position(%s, %s) > 0', $this->string($v), $value)
                 ),
                 TraceDataFilterCompStringTypeEnum::Starts => $this->anyValue(
-                    $path,
-                    fn(string $v) => sprintf('startsWith(%s, %s)', $this->string($v), $value)
+                    path: $path,
+                    condition: fn(string $v) => sprintf('startsWith(%s, %s)', $this->string($v), $value)
                 ),
                 TraceDataFilterCompStringTypeEnum::Ends   => $this->anyValue(
-                    $path,
-                    fn(string $v) => sprintf('endsWith(%s, %s)', $this->string($v), $value)
+                    path: $path,
+                    condition: fn(string $v) => sprintf('endsWith(%s, %s)', $this->string($v), $value)
                 ),
                 // A trace carrying no such key is not an answer to "not equal" — asking
                 // for that is what "does not exist" is for.
-                TraceDataFilterCompStringTypeEnum::Neq    => sprintf(
-                    '(%s AND NOT %s)',
-                    $this->makeExists($path),
-                    $this->anyValue($path, $equals)
+                TraceDataFilterCompStringTypeEnum::Neq    => $this->onObject(
+                    sprintf(
+                        '%s AND NOT %s',
+                        $this->makeExists($path),
+                        $this->anyValue($path, $equals)
+                    )
                 ),
             };
         }
@@ -196,12 +219,29 @@ readonly class ClickhouseTraceFilterBuilder
             $value = $this->param($params, $filterItem->boolean->value, 'Bool');
 
             return $this->anyValue(
-                $path,
-                static fn(string $v) => sprintf("dynamicElement(%s, 'Bool') = %s", $v, $value)
+                path: $path,
+                condition: static fn(string $v) => sprintf("dynamicElement(%s, 'Bool') = %s", $v, $value)
             );
         }
 
         return null;
+    }
+
+    private function isEmpty(TraceDataFilterItemParameters $filterItem): bool
+    {
+        return is_null($filterItem->exists)
+            && is_null($filterItem->null)
+            && is_null($filterItem->numeric)
+            && is_null($filterItem->string)
+            && is_null($filterItem->boolean);
+    }
+
+    /**
+     * Data that is not an object is found by no data filter, a negated one included.
+     */
+    private function onObject(string $condition): string
+    {
+        return sprintf("(JSONType(dt_raw) = 'Object' AND %s)", $condition);
     }
 
     /**
@@ -260,54 +300,76 @@ readonly class ClickhouseTraceFilterBuilder
 
     private function makeExists(TraceDataPathDto $path): string
     {
-        $exists = sprintf('JSONHas(dt_raw, %s)', $this->rawPath($path));
-
-        if (is_null($path->arrayExpression)) {
-            return $exists;
-        }
-
-        return sprintf(
-            "(%s OR arrayExists(__v -> dynamicType(__v) != 'None', %s))",
-            $exists,
-            $path->arrayExpression
+        return $this->rawValue(
+            path: $path,
+            condition: static fn(string $json, string $keys): string => sprintf('JSONHas(%s, %s)', $json, $keys)
         );
     }
 
     private function makeIsNull(TraceDataPathDto $path): string
     {
-        $rawPath = $this->rawPath($path);
-
-        return sprintf("(JSONHas(dt_raw, %s) AND JSONType(dt_raw, %s) = 'Null')", $rawPath, $rawPath);
+        return $this->rawValue(
+            path: $path,
+            condition: static fn(string $json, string $keys): string => sprintf(
+                "(JSONHas(%s, %s) AND JSONType(%s, %s) = 'Null')",
+                $json,
+                $keys,
+                $json,
+                $keys
+            )
+        );
     }
 
     private function makeIsNotNull(TraceDataPathDto $path): string
     {
-        $rawPath = $this->rawPath($path);
-
-        $isNotNull = sprintf("(JSONHas(dt_raw, %s) AND JSONType(dt_raw, %s) != 'Null')", $rawPath, $rawPath);
-
-        if (is_null($path->arrayExpression)) {
-            return $isNotNull;
-        }
-
-        return sprintf(
-            "(%s OR arrayExists(__v -> dynamicType(__v) != 'None', %s))",
-            $isNotNull,
-            $path->arrayExpression
+        return $this->rawValue(
+            path: $path,
+            condition: static fn(string $json, string $keys): string => sprintf(
+                "(JSONHas(%s, %s) AND JSONType(%s, %s) != 'Null')",
+                $json,
+                $keys,
+                $json,
+                $keys
+            )
         );
     }
 
     /**
-     * The keys of the path as the JSON functions take them. The segments are plain names,
-     * checked by the resolver, so they are written as literals.
+     * The condition on the data as it arrived, which keeps the nulls the JSON column drops: on
+     * the value at the path, or, when a part of the path is an array of objects, on any of
+     * its elements. Only that one level of arrays is walked into.
+     *
+     * @param Closure(string, string): string $condition takes the JSON and the keys inside it
      */
-    private function rawPath(TraceDataPathDto $path): string
+    private function rawValue(TraceDataPathDto $path, Closure $condition): string
+    {
+        $value = $condition('dt_raw', $this->rawKeys($path->segments));
+
+        if ($path->arraySegments === []) {
+            return $value;
+        }
+
+        return sprintf(
+            '(%s OR arrayExists(__e -> %s, JSONExtractArrayRaw(dt_raw, %s)))',
+            $value,
+            $condition('__e', $this->rawKeys(array_slice($path->segments, count($path->arraySegments)))),
+            $this->rawKeys($path->arraySegments)
+        );
+    }
+
+    /**
+     * The keys as the JSON functions take them. They are plain names, checked by the
+     * resolver, so they are written as literals.
+     *
+     * @param string[] $segments
+     */
+    private function rawKeys(array $segments): string
     {
         return implode(
             ', ',
             array_map(
                 static fn(string $segment): string => "'$segment'",
-                $path->segments
+                $segments
             )
         );
     }

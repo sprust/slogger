@@ -10,7 +10,8 @@ namespace App\Modules\Trace\Repositories\Dto\Trace;
 readonly class TraceDataPathDto
 {
     /**
-     * @param string[] $segments the parts of the path, each one checked to be a plain name
+     * @param string[] $segments      the parts of the path, each one checked to be a plain name
+     * @param string[] $arraySegments the first parts of the path that hold an array of objects, empty if none
      */
     public function __construct(
         public array $segments,
@@ -18,6 +19,7 @@ readonly class TraceDataPathDto
         public string $objectExpression,
         // `dt.a[].b`: the values when a part of the path is an array of objects, else null
         public ?string $arrayExpression,
+        public array $arraySegments = [],
     ) {
     }
 }

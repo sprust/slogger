@@ -15,6 +15,7 @@ use App\Modules\Trace\Repositories\Services\TraceDataPathResolver;
 use App\Services\Clickhouse\ClickhouseClient;
 use App\Services\Clickhouse\ClickhouseQueryException;
 use Illuminate\Support\Carbon;
+use InvalidArgumentException;
 
 readonly class TraceGroupsRepository
 {
@@ -147,6 +148,7 @@ readonly class TraceGroupsRepository
      * @return TraceGroupComparisonCountObject[]
      *
      * @throws ClickhouseQueryException
+     * @throws InvalidArgumentException
      */
     public function compareGroups(
         Carbon $loggedAtFrom,

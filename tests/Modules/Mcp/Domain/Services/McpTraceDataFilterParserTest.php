@@ -41,6 +41,7 @@ class McpTraceDataFilterParserTest extends TestCase
     public function testKeyGetsDataPrefix(): void
     {
         $this->assertSame('dt.response.status', $this->parseOne('response.status >= 500')->field);
+        $this->assertSame('dt.dt.x', $this->parseOne('dt.x exists')->field);
     }
 
     /**
@@ -120,6 +121,11 @@ class McpTraceDataFilterParserTest extends TestCase
             'boolean comparison' => ['cache.hit > true'],
             'no value'           => ['status >='],
             'no key'             => ['>= 500'],
+            'dash in the key'    => ['user-agent exists'],
+            'quote in the key'   => ["a'b exists"],
+            'empty key segment'  => ['a..b exists'],
+            'line break in key'  => ["a\nb exists"],
+            'infinite number'    => ['size > 1' . str_repeat('0', 400) . '.5'],
         ];
     }
 

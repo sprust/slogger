@@ -6,7 +6,9 @@ use App\Modules\Mcp\Infrastructure\McpServiceProvider;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolRegistry;
 use App\Modules\Mcp\Infrastructure\Tools\SearchTracesTool;
 use App\Modules\Mcp\Repositories\McpRepository;
+use App\Services\Clickhouse\ClickhouseQueryException;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Testing\TestResponse;
 use PHPUnit\Framework\MockObject\MockObject;
 use ReflectionClassConstant;
@@ -138,6 +140,20 @@ class McpEndpointHttpTest extends TestCase
             ->assertJsonPath('result.isError', true)
             ->assertJsonPath('result.structuredContent.error', 'not_found')
             ->assertJsonMissingPath('error');
+    }
+
+    public function testFailedQueryIsAToolError(): void
+    {
+        Exceptions::fake();
+
+        $this->rpc('tools/call', ['name' => 'get_thing', 'arguments' => ['thing_id' => 'too_wide']])
+            ->assertOk()
+            ->assertJsonPath('result.isError', true)
+            ->assertJsonPath('result.structuredContent.error', 'query_failed')
+            ->assertJsonPath('result.structuredContent.installation', 'stand')
+            ->assertJsonMissingPath('error');
+
+        Exceptions::assertReported(ClickhouseQueryException::class);
     }
 
     public function testUnknownToolIsInvalidParams(): void

@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace Tests\Services\Clickhouse;
 
 use App\Services\Clickhouse\ClickhouseClient;
+use Throwable;
 
 /**
- * Records the queries it is sent and answers each select with the next prepared rows.
+ * Records the queries it is sent and answers each select with the next prepared rows, or
+ * throws the next prepared exception.
  */
 class FakeClickhouseClient extends ClickhouseClient
 {
@@ -18,7 +20,7 @@ class FakeClickhouseClient extends ClickhouseClient
     public array $commands = [];
 
     /**
-     * @param list<list<array<string, mixed>>> $answers the rows of each select, in order
+     * @param list<list<array<string, mixed>>|Throwable> $answers the rows of each select, in order
      */
     public function __construct(
         private array $answers = []
@@ -34,7 +36,13 @@ class FakeClickhouseClient extends ClickhouseClient
             'settings'      => $settings,
         ];
 
-        return array_shift($this->answers) ?? [];
+        $answer = array_shift($this->answers) ?? [];
+
+        if ($answer instanceof Throwable) {
+            throw $answer;
+        }
+
+        return $answer;
     }
 
     public function command(string $sql, array $params = [], string $queryIdPrefix = 'command'): void

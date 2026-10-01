@@ -816,50 +816,68 @@
                                     "types": {
                                         "type": "array",
                                         "items": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "maxLength": 2000,
+                                            "minLength": 1
                                         }
                                     },
                                     "tags": {
                                         "type": "array",
                                         "items": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "maxLength": 2000,
+                                            "minLength": 1
                                         }
                                     },
                                     "statuses": {
                                         "type": "array",
                                         "items": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "maxLength": 2000,
+                                            "minLength": 1
                                         }
                                     },
                                     "duration_from": {
                                         "type": "number",
                                         "format": "float",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 0,
+                                        "maximum": 1000000000000000
                                     },
                                     "duration_to": {
                                         "type": "number",
                                         "format": "float",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 0,
+                                        "maximum": 1000000000000000
                                     },
                                     "memory_from": {
                                         "type": "number",
                                         "format": "float",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 0,
+                                        "maximum": 1000000000000000
                                     },
                                     "memory_to": {
                                         "type": "number",
                                         "format": "float",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 0,
+                                        "maximum": 1000000000000000
                                     },
                                     "cpu_from": {
                                         "type": "number",
                                         "format": "float",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 0,
+                                        "maximum": 1000000000000000
                                     },
                                     "cpu_to": {
                                         "type": "number",
                                         "format": "float",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 0,
+                                        "maximum": 1000000000000000
                                     },
                                     "data": {
                                         "type": "object",
@@ -885,7 +903,9 @@
                                                             "properties": {
                                                                 "value": {
                                                                     "type": "number",
-                                                                    "format": "float"
+                                                                    "format": "float",
+                                                                    "minimum": -1.0e+20,
+                                                                    "maximum": 1.0e+20
                                                                 },
                                                                 "comp": {
                                                                     "type": "string",
@@ -1591,19 +1611,25 @@
                                     "types": {
                                         "type": "array",
                                         "items": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "maxLength": 2000,
+                                            "minLength": 1
                                         }
                                     },
                                     "tags": {
                                         "type": "array",
                                         "items": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "maxLength": 2000,
+                                            "minLength": 1
                                         }
                                     },
                                     "statuses": {
                                         "type": "array",
                                         "items": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "maxLength": 2000,
+                                            "minLength": 1
                                         }
                                     }
                                 },
@@ -2563,13 +2589,17 @@
                                     "tags": {
                                         "type": "array",
                                         "items": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "maxLength": 2000,
+                                            "minLength": 1
                                         }
                                     },
                                     "statuses": {
                                         "type": "array",
                                         "items": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "maxLength": 2000,
+                                            "minLength": 1
                                         }
                                     },
                                     "logging_from_preset": {
@@ -2599,32 +2629,44 @@
                                     "duration_from": {
                                         "type": "number",
                                         "format": "float",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 0,
+                                        "maximum": 1000000000000000
                                     },
                                     "duration_to": {
                                         "type": "number",
                                         "format": "float",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 0,
+                                        "maximum": 1000000000000000
                                     },
                                     "memory_from": {
                                         "type": "number",
                                         "format": "float",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 0,
+                                        "maximum": 1000000000000000
                                     },
                                     "memory_to": {
                                         "type": "number",
                                         "format": "float",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 0,
+                                        "maximum": 1000000000000000
                                     },
                                     "cpu_from": {
                                         "type": "number",
                                         "format": "float",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 0,
+                                        "maximum": 1000000000000000
                                     },
                                     "cpu_to": {
                                         "type": "number",
                                         "format": "float",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 0,
+                                        "maximum": 1000000000000000
                                     },
                                     "data": {
                                         "type": "object",
@@ -2650,7 +2692,9 @@
                                                             "properties": {
                                                                 "value": {
                                                                     "type": "number",
-                                                                    "format": "float"
+                                                                    "format": "float",
+                                                                    "minimum": -1.0e+20,
+                                                                    "maximum": 1.0e+20
                                                                 },
                                                                 "comp": {
                                                                     "type": "string",
@@ -2770,13 +2814,17 @@
                                     "types": {
                                         "type": "array",
                                         "items": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "maxLength": 2000,
+                                            "minLength": 1
                                         }
                                     },
                                     "statuses": {
                                         "type": "array",
                                         "items": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "maxLength": 2000,
+                                            "minLength": 1
                                         }
                                     },
                                     "logging_from_preset": {
@@ -2806,32 +2854,44 @@
                                     "duration_from": {
                                         "type": "number",
                                         "format": "float",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 0,
+                                        "maximum": 1000000000000000
                                     },
                                     "duration_to": {
                                         "type": "number",
                                         "format": "float",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 0,
+                                        "maximum": 1000000000000000
                                     },
                                     "memory_from": {
                                         "type": "number",
                                         "format": "float",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 0,
+                                        "maximum": 1000000000000000
                                     },
                                     "memory_to": {
                                         "type": "number",
                                         "format": "float",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 0,
+                                        "maximum": 1000000000000000
                                     },
                                     "cpu_from": {
                                         "type": "number",
                                         "format": "float",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 0,
+                                        "maximum": 1000000000000000
                                     },
                                     "cpu_to": {
                                         "type": "number",
                                         "format": "float",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 0,
+                                        "maximum": 1000000000000000
                                     },
                                     "data": {
                                         "type": "object",
@@ -2857,7 +2917,9 @@
                                                             "properties": {
                                                                 "value": {
                                                                     "type": "number",
-                                                                    "format": "float"
+                                                                    "format": "float",
+                                                                    "minimum": -1.0e+20,
+                                                                    "maximum": 1.0e+20
                                                                 },
                                                                 "comp": {
                                                                     "type": "string",
@@ -2977,13 +3039,17 @@
                                     "types": {
                                         "type": "array",
                                         "items": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "maxLength": 2000,
+                                            "minLength": 1
                                         }
                                     },
                                     "tags": {
                                         "type": "array",
                                         "items": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "maxLength": 2000,
+                                            "minLength": 1
                                         }
                                     },
                                     "logging_from_preset": {
@@ -3013,32 +3079,44 @@
                                     "duration_from": {
                                         "type": "number",
                                         "format": "float",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 0,
+                                        "maximum": 1000000000000000
                                     },
                                     "duration_to": {
                                         "type": "number",
                                         "format": "float",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 0,
+                                        "maximum": 1000000000000000
                                     },
                                     "memory_from": {
                                         "type": "number",
                                         "format": "float",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 0,
+                                        "maximum": 1000000000000000
                                     },
                                     "memory_to": {
                                         "type": "number",
                                         "format": "float",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 0,
+                                        "maximum": 1000000000000000
                                     },
                                     "cpu_from": {
                                         "type": "number",
                                         "format": "float",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 0,
+                                        "maximum": 1000000000000000
                                     },
                                     "cpu_to": {
                                         "type": "number",
                                         "format": "float",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 0,
+                                        "maximum": 1000000000000000
                                     },
                                     "data": {
                                         "type": "object",
@@ -3064,7 +3142,9 @@
                                                             "properties": {
                                                                 "value": {
                                                                     "type": "number",
-                                                                    "format": "float"
+                                                                    "format": "float",
+                                                                    "minimum": -1.0e+20,
+                                                                    "maximum": 1.0e+20
                                                                 },
                                                                 "comp": {
                                                                     "type": "string",
@@ -3238,50 +3318,68 @@
                                     "types": {
                                         "type": "array",
                                         "items": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "maxLength": 2000,
+                                            "minLength": 1
                                         }
                                     },
                                     "tags": {
                                         "type": "array",
                                         "items": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "maxLength": 2000,
+                                            "minLength": 1
                                         }
                                     },
                                     "statuses": {
                                         "type": "array",
                                         "items": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "maxLength": 2000,
+                                            "minLength": 1
                                         }
                                     },
                                     "duration_from": {
                                         "type": "number",
                                         "format": "float",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 0,
+                                        "maximum": 1000000000000000
                                     },
                                     "duration_to": {
                                         "type": "number",
                                         "format": "float",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 0,
+                                        "maximum": 1000000000000000
                                     },
                                     "memory_from": {
                                         "type": "number",
                                         "format": "float",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 0,
+                                        "maximum": 1000000000000000
                                     },
                                     "memory_to": {
                                         "type": "number",
                                         "format": "float",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 0,
+                                        "maximum": 1000000000000000
                                     },
                                     "cpu_from": {
                                         "type": "number",
                                         "format": "float",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 0,
+                                        "maximum": 1000000000000000
                                     },
                                     "cpu_to": {
                                         "type": "number",
                                         "format": "float",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 0,
+                                        "maximum": 1000000000000000
                                     },
                                     "data": {
                                         "type": "object",
@@ -3307,7 +3405,9 @@
                                                             "properties": {
                                                                 "value": {
                                                                     "type": "number",
-                                                                    "format": "float"
+                                                                    "format": "float",
+                                                                    "minimum": -1.0e+20,
+                                                                    "maximum": 1.0e+20
                                                                 },
                                                                 "comp": {
                                                                     "type": "string",

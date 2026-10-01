@@ -12,6 +12,7 @@ use App\Modules\Trace\Domain\Actions\Queries\FindTracesAction;
 use App\Modules\Trace\Entities\Trace\TraceItemObjects;
 use App\Modules\Trace\Parameters\Data\TraceDataFilterParameters;
 use App\Modules\Trace\Parameters\TraceFindParameters;
+use App\Services\Clickhouse\ClickhouseQueryException;
 
 readonly class FindMcpTracesAction
 {
@@ -26,6 +27,7 @@ readonly class FindMcpTracesAction
 
     /**
      * @throws McpTraceDataFilterInvalidException
+     * @throws ClickhouseQueryException
      */
     public function handle(FindMcpTracesParameters $parameters): TraceItemObjects
     {
