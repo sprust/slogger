@@ -6,8 +6,6 @@ namespace App\Modules\Mcp\Infrastructure\Tools;
 
 use App\Modules\Mcp\Domain\Actions\Bridges\FindMcpTraceFacetsAction;
 use App\Modules\Mcp\Domain\Actions\Queries\FindMcpSettingsAction;
-use App\Modules\Mcp\Domain\Exceptions\McpTraceIndexBuildingException;
-use App\Modules\Mcp\Domain\Exceptions\McpTraceIndexFailedException;
 use App\Modules\Mcp\Entities\Bridges\McpTraceFacetListObject;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolArguments;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolInterface;
@@ -26,7 +24,6 @@ readonly class GetTraceFacetsTool implements McpToolInterface
         private FindMcpTraceFacetsAction $findMcpTraceFacetsAction,
         private FindMcpSettingsAction $findMcpSettingsAction,
         private McpToolTraceScopeReader $scopeReader,
-        private McpToolFormatter $formatter
     ) {
     }
 
@@ -42,9 +39,9 @@ readonly class GetTraceFacetsTool implements McpToolInterface
 
     public function description(): string
     {
-        return 'Trace types, statuses and tags of a service over a period with their counts, most frequent '
-            . 'first, as the filters of the SLogger traces page. Types are counted without the types '
-            . 'filter, statuses without the statuses filter. ' . McpToolTraceScopeReader::INDEX_NOTE;
+        return 'Trace types, statuses and tags of the chosen services (all when omitted) over a period '
+            . 'with their counts, most frequent first, as the filters of the SLogger traces page. Types are '
+            . 'counted without the types filter, statuses without the statuses filter.';
     }
 
     public function schema(): McpToolSchema
@@ -74,21 +71,15 @@ readonly class GetTraceFacetsTool implements McpToolInterface
             return $scope;
         }
 
-        try {
-            $facets = $this->findMcpTraceFacetsAction->handle(
-                new FindMcpTraceFacetsParameters(
-                    serviceIds: $scope->serviceIds,
-                    period: $scope->period,
-                    types: $arguments->stringList('types'),
-                    statuses: $arguments->stringList('statuses'),
-                    limit: $this->findMcpSettingsAction->handle()->facetsLimit
-                )
-            );
-        } catch (McpTraceIndexBuildingException $exception) {
-            return $this->formatter->indexBuilding($exception->indexId);
-        } catch (McpTraceIndexFailedException $exception) {
-            return $this->formatter->indexError($exception->getMessage());
-        }
+        $facets = $this->findMcpTraceFacetsAction->handle(
+            new FindMcpTraceFacetsParameters(
+                serviceIds: $scope->serviceIds,
+                period: $scope->period,
+                types: $arguments->stringList('types'),
+                statuses: $arguments->stringList('statuses'),
+                limit: $this->findMcpSettingsAction->handle()->facetsLimit
+            )
+        );
 
         return new McpToolResult(
             data: [

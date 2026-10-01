@@ -9,7 +9,7 @@ use App\Models\AbstractTraceModel;
  *
  * Nothing here writes to it. The panel reads how full it is, which is a symptom: a buffer
  * that stops draining means the transporter is behind, and traces are not reaching the
- * shards.
+ * traces table.
  */
 class TraceBuffer extends AbstractTraceModel
 {

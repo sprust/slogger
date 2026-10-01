@@ -59,6 +59,9 @@ class TraceTimestampsRequest extends FormRequest
             'data_fields.*'    => [
                 'required',
                 'string',
+                'min:1',
+                'max:255',
+                RequestFilterRules::DATA_KEY_RULE,
             ],
             ...RequestFilterRules::services(),
             ...RequestFilterRules::loggedTo(),

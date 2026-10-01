@@ -6,9 +6,6 @@ namespace App\Modules\Mcp\Infrastructure\Tools;
 
 use App\Modules\Mcp\Domain\Actions\Bridges\FindMcpTracesAction;
 use App\Modules\Mcp\Domain\Exceptions\McpTraceDataFilterInvalidException;
-use App\Modules\Mcp\Domain\Exceptions\McpTraceIndexBuildingException;
-use App\Modules\Mcp\Domain\Exceptions\McpTraceIndexFailedException;
-use App\Modules\Mcp\Domain\Exceptions\McpTraceTagsWithDataFilterException;
 use App\Modules\Mcp\Domain\Services\McpTraceDataFilterParser;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolArguments;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolInterface;
@@ -47,11 +44,11 @@ readonly class SearchTracesTool implements McpToolInterface
     public function description(): string
     {
         return sprintf(
-            'Traces of a service over a period, newest first, %d per page, with filters, a filter by '
-            . 'fields of their data and chosen data fields returned with each trace. Use '
-            . 'get_trace_data_fields to learn the data keys first. %s',
-            FindMcpTracesAction::PER_PAGE,
-            McpToolTraceScopeReader::INDEX_NOTE
+            'Traces of the chosen services (all when omitted) over a period, newest first, %d per page, '
+            . 'with filters, a filter by fields of their data and chosen data fields returned with each '
+            . 'trace. Use '
+            . 'get_trace_data_fields to learn the data keys first.',
+            FindMcpTracesAction::PER_PAGE
         );
     }
 
@@ -74,20 +71,22 @@ readonly class SearchTracesTool implements McpToolInterface
             new McpToolProperty(
                 name: 'tags',
                 type: McpToolPropertyTypeEnum::StringList,
-                description: 'Trace tags. Cannot be combined with data_filter.',
+                description: 'Trace tags, all must be on a trace.',
                 max: self::MAX_FILTER_VALUES
             ),
             new McpToolProperty(
                 name: 'duration_from',
                 type: McpToolPropertyTypeEnum::Number,
                 description: 'Minimal duration, in the units of get_trace.',
-                min: 0
+                min: 0,
+                max: McpToolTraceScopeReader::MAX_DURATION
             ),
             new McpToolProperty(
                 name: 'duration_to',
                 type: McpToolPropertyTypeEnum::Number,
                 description: 'Maximal duration, in the units of get_trace.',
-                min: 0
+                min: 0,
+                max: McpToolTraceScopeReader::MAX_DURATION
             ),
             new McpToolProperty(
                 name: 'data_filter',
@@ -144,16 +143,6 @@ readonly class SearchTracesTool implements McpToolInterface
                     McpTraceDataFilterParser::FORMAT
                 )
             );
-        } catch (McpTraceTagsWithDataFilterException) {
-            return $this->formatter->error(
-                error: 'tags_with_data_filter',
-                hint: 'Tags and data_filter cannot be used together: MongoDB indexes at most one array per '
-                . 'index, and tags are one. Drop the tags or the data filter.'
-            );
-        } catch (McpTraceIndexBuildingException $exception) {
-            return $this->formatter->indexBuilding($exception->indexId);
-        } catch (McpTraceIndexFailedException $exception) {
-            return $this->formatter->indexError($exception->getMessage());
         }
 
         return new McpToolResult(

@@ -33,7 +33,7 @@ readonly class GetServicesTool implements McpToolInterface
     public function description(): string
     {
         return 'Services that send traces to this SLogger installation: id and name. '
-            . 'Use it to resolve the service the user means. No index needed.';
+            . 'Use it to resolve the service the user means.';
     }
 
     public function schema(): McpToolSchema

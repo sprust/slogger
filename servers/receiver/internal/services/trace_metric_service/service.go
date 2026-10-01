@@ -49,7 +49,7 @@ func newService(repository pusher) *Service {
 
 // Service counts new traces per service, type and fifteen-minute slot, by the three clocks a
 // trace carries: when the source logged it, when the buffer took it in, and when it was
-// written to its shard.
+// written to the traces table.
 type Service struct {
 	repository pusher
 
@@ -101,7 +101,7 @@ func (s *Service) Flush(ctx context.Context) error {
 
 // AddTrace counts one new trace.
 //
-// storedAt is the moment it was written to its shard, and the clock the other two are
+// storedAt is the moment it was written to the traces table, and the clock the other two are
 // held against: a logging time ahead of it is a client clock running fast and is counted
 // as now, and a receiving time that was never read falls back to it.
 func (s *Service) AddTrace(serviceId int, traceType string, loggedAt time.Time, receivedAt time.Time, storedAt time.Time) {

@@ -3,7 +3,7 @@ parameters:
         - ../app
 
     excludePaths:
-        - ../app/Console/Commands/Local
+        - ../app/Console/Commands/Local (?)
         - ../app/Models
 
     level: 8

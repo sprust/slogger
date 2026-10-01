@@ -38,7 +38,7 @@ readonly class GetTraceTreeTool implements McpToolInterface
         return 'The tree of calls a trace belongs to, branch by branch: without parent_trace_id the top '
             . 'of the tree, with it the children of that node, paged by cursor. The first call for a tree '
             . 'starts building it in the background and answers "tree_building": repeat the same call '
-            . 'later. No index needed.';
+            . 'later.';
     }
 
     public function schema(): McpToolSchema

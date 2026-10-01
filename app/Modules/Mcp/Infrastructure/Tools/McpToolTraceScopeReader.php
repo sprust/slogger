@@ -14,9 +14,9 @@ use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolResult;
 
 readonly class McpToolTraceScopeReader
 {
-    public const string INDEX_NOTE = 'It builds a trace dynamic index in the background: while it is building '
-        . 'the answer is "index_building", repeat the SAME call later. The index depends on which filters are '
-        . 'set and the hours of the period, not on the filter values.';
+    // a bound for the duration filters: a number past what a float holds would reach the query as infinity
+    public const int MAX_DURATION = 1_000_000_000_000_000;
+
     private const int MAX_SERVICES = 20;
 
     public function __construct(
@@ -42,7 +42,7 @@ readonly class McpToolTraceScopeReader
             new McpToolProperty(
                 name: 'from',
                 type: McpToolPropertyTypeEnum::String,
-                description: 'Start of the period, ISO 8601. Rounded down to the hour (UTC).',
+                description: 'Start of the period, ISO 8601, inclusive.',
                 required: true,
                 max: 64
             ),
@@ -50,8 +50,8 @@ readonly class McpToolTraceScopeReader
                 name: 'to',
                 type: McpToolPropertyTypeEnum::String,
                 description: sprintf(
-                    'End of the period, ISO 8601. Rounded up to the hour (UTC); at most %d hours after "from".',
-                    McpTracePeriodResolver::MAX_HOURS
+                    'End of the period, ISO 8601, exclusive; at most %d hours after "from" (the time traces are kept).',
+                    $this->periodResolver->maxHours
                 ),
                 required: true,
                 max: 64
@@ -86,14 +86,14 @@ readonly class McpToolTraceScopeReader
         } catch (McpTraceInvalidPeriodException) {
             return $this->formatter->error(
                 error: 'invalid_period',
-                hint: '"from" is later than "to".'
+                hint: '"from" must be earlier than "to".'
             );
         } catch (McpTracePeriodTooWideException $exception) {
             return $this->formatter->error(
                 error: 'period_too_wide',
                 hint: sprintf(
-                    'The period rounded to hours is longer than %d hours. Find the window you need with '
-                    . 'aggregate_traces by hour first, then query at most %d hours.',
+                    'The period is longer than %d hours, the time traces are kept for: older traces are gone. '
+                    . 'Narrow it to at most %d hours.',
                     $exception->maxHours,
                     $exception->maxHours
                 )

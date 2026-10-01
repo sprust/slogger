@@ -4,53 +4,51 @@ declare(strict_types=1);
 
 namespace App\Modules\Trace\Repositories;
 
-use App\Models\Traces\TraceDynamicIndex;
-use App\Modules\Trace\Entities\Trace\DeletedTracesObject;
-use App\Modules\Trace\Entities\Trace\TraceCollectionNameObjects;
-use App\Modules\Trace\Entities\Trace\TraceIndexInfoObject;
+use App\Modules\Trace\Entities\Trace\TraceDataRangeObject;
 use App\Modules\Trace\Parameters\Data\TraceDataFilterParameters;
-use App\Modules\Trace\Repositories\Dto\DynamicIndex\TraceDynamicIndexFieldDto;
-use App\Modules\Trace\Repositories\Dto\Trace\Profiling\TraceProfilingDataDto;
+use App\Modules\Trace\Repositories\Dto\Trace\Partition\TracePartitionDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Profiling\TraceProfilingDto;
-use App\Modules\Trace\Repositories\Dto\Trace\Profiling\TraceProfilingItemDto;
 use App\Modules\Trace\Repositories\Dto\Trace\TraceDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Tree\TraceTreeNodeDto;
-use App\Modules\Trace\Repositories\Services\PeriodicTraceService;
+use App\Modules\Trace\Repositories\Services\ClickhouseTraceFilterBuilder;
+use App\Modules\Trace\Repositories\Services\ClickhouseTraceRowReader;
 use App\Modules\Trace\Repositories\Services\TraceDataToObjectBuilder;
-use App\Modules\Trace\Repositories\Services\TracePipelineBuilder;
+use App\Services\Clickhouse\ClickhouseClient;
+use App\Services\Clickhouse\ClickhouseQueryException;
 use Illuminate\Support\Carbon;
-use SConcur\Bson\ObjectId;
-use SConcur\Bson\UTCDateTime;
 use RuntimeException;
-use SConcur\WaitGroup;
-use Throwable;
 
 readonly class TraceRepository
 {
+    private const string TRACE_COLUMNS = 'sid, tid, ptid, tp, st, tgs, dt_raw, dur, mem, cpu, lat, cat, uat';
+
+    private const string NODE_COLUMNS = 'sid, tid, ptid, tp, st, tgs, dur, mem, cpu, lat';
+
+    // the ids travel in the URL of the query, which ClickHouse caps at 1 MiB
+    private const int TRACE_IDS_PER_QUERY = 5000;
+
     public function __construct(
-        private TracePipelineBuilder $tracePipelineBuilder,
-        private PeriodicTraceService $periodicTraceService,
+        private ClickhouseClient $client,
+        private ClickhouseTraceFilterBuilder $filterBuilder,
+        private ClickhouseTraceRowReader $rowReader,
     ) {
     }
 
+    /**
+     * The latest version of the trace, read without FINAL: the one row the id points to
+     * is sorted out here instead of merging every part it may be in.
+     *
+     * @throws ClickhouseQueryException
+     */
     public function findOneDetailByTraceId(string $traceId): ?TraceDto
     {
-        $collectionName = $this->periodicTraceService->findCollectionNameByTraceId($traceId);
-
-        if (is_null($collectionName)) {
-            return null;
-        }
-
-        $document = $this->periodicTraceService->findOne(
-            collectionName: $collectionName,
-            traceId: $traceId
+        $rows = $this->client->select(
+            sql: 'SELECT ' . self::TRACE_COLUMNS . ' FROM traces WHERE tid = {tid:String} ORDER BY uat DESC LIMIT 1',
+            params: ['tid' => $traceId],
+            queryIdPrefix: 'trace-detail'
         );
 
-        if (!$document) {
-            return null;
-        }
-
-        return $this->makeTraceDtoFromDocument($document);
+        return isset($rows[0]) ? $this->makeTraceDto($rows[0]) : null;
     }
 
     /**
@@ -61,6 +59,8 @@ readonly class TraceRepository
      * @param string[]      $statuses
      *
      * @return TraceDto[]
+     *
+     * @throws ClickhouseQueryException
      */
     public function find(
         int $page = 1,
@@ -81,16 +81,7 @@ readonly class TraceRepository
         ?TraceDataFilterParameters $data = null,
         ?bool $hasProfiling = null,
     ): array {
-        $collectionNames = $this->periodicTraceService->detectCollectionNamesReverse(
-            loggedAtFrom: $loggedAtFrom,
-            loggedAtTo: $loggedAtTo
-        );
-
-        if (!count($collectionNames)) {
-            return [];
-        }
-
-        $pipeline = $this->tracePipelineBuilder->make(
+        $condition = $this->filterBuilder->build(
             serviceIds: $serviceIds,
             traceIds: $traceIds,
             loggedAtFrom: $loggedAtFrom,
@@ -108,424 +99,216 @@ readonly class TraceRepository
             hasProfiling: $hasProfiling,
         );
 
-        $pipeline[] = [
-            '$sort' => [
-                'lat' => -1,
-                '_id' => 1,
+        $rows = $this->client->select(
+            sql: sprintf(
+                'SELECT %s FROM traces FINAL WHERE %s ORDER BY lat DESC, tid LIMIT {limit:UInt32} OFFSET {offset:UInt32}',
+                self::TRACE_COLUMNS,
+                $condition->sql
+            ),
+            params: [
+                ...$condition->params,
+                'limit'  => $perPage,
+                'offset' => max(0, $page - 1) * $perPage,
             ],
-        ];
+            queryIdPrefix: 'trace-list'
+        );
 
-        return $this->periodicTraceService->paginate(
-            collectionNames: $collectionNames,
-            pipeline: $pipeline,
-            page: $page,
-            perPage: $perPage,
-            documentPreparer: function (string $collectionName, array $document): TraceDto {
-                return $this->makeTraceDtoFromDocument($document);
-            }
+        return array_map(
+            fn(array $row): TraceDto => $this->makeTraceDto($row),
+            $rows
         );
     }
 
     /**
-     * @param string[]|null $excludedTypes
-     */
-    public function findTraceIds(
-        int $limit,
-        ?Carbon $loggedAtTo = null,
-        ?string $type = null,
-        ?array $excludedTypes = null,
-        ?bool $noCleared = null
-    ): TraceCollectionNameObjects {
-        $collectionNames = $this->periodicTraceService->detectCollectionNames(
-            loggedAtTo: $loggedAtTo
-        );
-
-        if (!count($collectionNames)) {
-            return new TraceCollectionNameObjects();
-        }
-
-        $customMatch = [];
-
-        if (is_null($type) && !is_null($excludedTypes)) {
-            $customMatch['tp'] = ['$nin' => $excludedTypes];
-        }
-
-        $pipeline = $this->tracePipelineBuilder->make(
-            loggedAtTo: $loggedAtTo,
-            types: is_null($type) ? [] : [$type],
-            customMatch: count($customMatch) ? $customMatch : null
-        );
-
-        if ($noCleared) {
-            $pipeline[] = [
-                '$match' => [
-                    '$or' => [
-                        ['cl' => false],
-                        ['cl' => ['$exists' => false]],
-                    ],
-                ],
-            ];
-        }
-
-        $pipeline[] = [
-            '$sort' => [
-                'lat' => -1,
-                '_id' => 1,
-            ],
-        ];
-
-        $pipeline[] = [
-            '$project' => [
-                'tid' => 1,
-            ],
-        ];
-
-        $traceCollectionNamesRaw = $this->periodicTraceService->paginate(
-            collectionNames: $collectionNames,
-            pipeline: $pipeline,
-            page: 1,
-            perPage: $limit,
-            documentPreparer: static function (string $collectionName, array $document) {
-                return [
-                    'cn'  => $collectionName,
-                    'tid' => $document['tid'],
-                ];
-            }
-        );
-
-        $traceCollectionNames = [];
-
-        foreach ($traceCollectionNamesRaw as $item) {
-            $traceCollectionNames[$item['cn']] ??= [];
-            $traceCollectionNames[$item['cn']][] = $item['tid'];
-        }
-
-        $result = new TraceCollectionNameObjects();
-
-        foreach ($traceCollectionNames as $collectionName => $traceIds) {
-            $result->add($collectionName, $traceIds);
-        }
-
-        return $result;
-    }
-
-    /**
-     * The traces of a tree level, read as nodes of it.
-     *
-     * A tree build wants ten fields and reads a thousand traces at a time; a TraceDto —
-     * what this used to answer with — carries the whole trace and parses its data into an
-     * object tree on the way. Asking
-     * the shard for the ten fields, and building nothing else out of them, is three times
-     * cheaper on traces the size of ours — and the saving grows with the data a trace
-     * carries, which is the one part of a trace that has no ceiling.
+     * The traces of a tree level, read as nodes of it: the ten fields a tree node shows,
+     * without the data, which is the one part of a trace that has no ceiling.
      *
      * @param string[] $traceIds
      *
      * @return TraceTreeNodeDto[]
+     *
+     * @throws ClickhouseQueryException
      */
     public function findTreeNodesByTraceIds(array $traceIds): array
     {
-        /** @var TraceTreeNodeDto[] $nodes */
-        $nodes = [];
+        $rows = [];
 
-        $collectionNames = $this->periodicTraceService->findCollectionNamesByTraceIds($traceIds);
-
-        foreach ($collectionNames->get() as $collectionName => $collectionTraceIds) {
-            $documents = $this->periodicTraceService->findMany(
-                collectionName: $collectionName,
-                traceIds: $collectionTraceIds,
-                projection: [
-                    '_id'  => 0,
-                    'tid'  => 1,
-                    'ptid' => 1,
-                    'sid'  => 1,
-                    'tp'   => 1,
-                    'st'   => 1,
-                    'tgs'  => 1,
-                    'dur'  => 1,
-                    'mem'  => 1,
-                    'cpu'  => 1,
-                    'lat'  => 1,
-                ]
+        foreach (array_chunk(array_values($traceIds), self::TRACE_IDS_PER_QUERY) as $traceIdsChunk) {
+            $chunkRows = $this->client->select(
+                sql: sprintf(
+                    'SELECT %s FROM traces WHERE tid IN {tids:Array(String)} ORDER BY uat DESC LIMIT 1 BY sid, tid',
+                    self::NODE_COLUMNS
+                ),
+                params: ['tids' => $traceIdsChunk],
+                queryIdPrefix: 'trace-tree-nodes'
             );
 
-            foreach ($documents as $document) {
-                $nodes[] = $this->makeTraceTreeNodeDtoFromDocument($document);
-            }
+            array_push($rows, ...$chunkRows);
         }
 
-        return $nodes;
+        return array_map(
+            fn(array $row): TraceTreeNodeDto => new TraceTreeNodeDto(
+                serviceId: $this->rowReader->serviceId($row),
+                traceId: (string) $row['tid'],
+                parentTraceId: $this->rowReader->parentTraceId($row),
+                type: (string) $row['tp'],
+                status: (string) $row['st'],
+                tags: $this->rowReader->tags($row),
+                duration: $this->rowReader->float($row['dur'] ?? null),
+                memory: $this->rowReader->float($row['mem'] ?? null),
+                cpu: $this->rowReader->float($row['cpu'] ?? null),
+                loggedAt: $this->rowReader->time($row['lat']),
+            ),
+            $rows
+        );
     }
 
+    /**
+     * The first and the last hour traces are stored for, both null when there are none.
+     *
+     * Read from the partitions, which are hours, rather than from the rows.
+     *
+     * @throws ClickhouseQueryException
+     */
+    public function findHourRange(): TraceDataRangeObject
+    {
+        $rows = $this->client->select(
+            sql: "SELECT min(hour) AS first, max(hour) AS last FROM (SELECT DISTINCT "
+            . "toDateTime64(parseDateTime64BestEffort(partition, 0, 'UTC'), 6, 'UTC') AS hour "
+            . "FROM system.parts WHERE database = currentDatabase() AND table = 'traces' AND active AND rows > 0) "
+            . 'HAVING count() > 0',
+            queryIdPrefix: 'trace-range'
+        );
+
+        if (!isset($rows[0])) {
+            return new TraceDataRangeObject(firstHour: null, lastHour: null);
+        }
+
+        return new TraceDataRangeObject(
+            firstHour: $this->rowReader->time($rows[0]['first']),
+            lastHour: $this->rowReader->time($rows[0]['last'])
+        );
+    }
+
+    /**
+     * Profiling is not stored: the receiver has never written it.
+     */
     public function findProfilingByTraceId(string $traceId): ?TraceProfilingDto
     {
-        $collectionName = $this->periodicTraceService->findCollectionNameByTraceId($traceId);
-
-        if ($collectionName === null) {
-            return null;
-        }
-
-        $trace = $this->periodicTraceService->findOne(
-            collectionName: $collectionName,
-            traceId: $traceId
-        );
-
-        $profilingData = is_null($trace) ? null : ($trace['pr'] ?? null);
-
-        // A trace without profiling still carries the field: the receiver writes every
-        // document with `hpr => false, pr => []` (periodic_trace_service), so absence is
-        // spelled as an empty array rather than as a missing key or a null. Reading
-        // `mainCaller` out of that answered the endpoint with a 500 instead of the 404 the
-        // controller turns a null into.
-        if (!is_array($profilingData) || $profilingData === []) {
-            return null;
-        }
-
-        return new TraceProfilingDto(
-            mainCaller: (string) ($profilingData['mainCaller'] ?? ''),
-            items: array_map(
-                fn(array $itemData) => new TraceProfilingItemDto(
-                    raw: $itemData['raw'],
-                    calling: $itemData['calling'],
-                    callable: $itemData['callable'],
-                    data: array_map(
-                        fn(array $itemDataItem) => new TraceProfilingDataDto(
-                            name: $itemDataItem['name'],
-                            value: $itemDataItem['value']
-                        ),
-                        $itemData['data']
-                    ),
-                ),
-                is_array($profilingData['items'] ?? null) ? $profilingData['items'] : []
-            )
-        );
+        return null;
     }
 
     /**
-     * @param string[]                    $collectionNames
-     * @param TraceDynamicIndexFieldDto[] $fields
+     * The hourly partitions whose hour ended no later than the moment given, oldest first.
+     *
+     * @return TracePartitionDto[]
+     *
+     * @throws ClickhouseQueryException
      */
-    public function createIndex(string $name, array $collectionNames, array $fields): bool
+    public function findEndedPartitions(Carbon $loggedAtTo): array
     {
-        if (empty($collectionNames) || empty($fields)) {
-            return false;
-        }
-
-        /** @var array<string, int> $index */
-        $index = [];
-
-        foreach ($fields as $field) {
-            $index[$field->fieldName] = 1;
-        }
-
-        $waitGroup = WaitGroup::create();
-
-        $periodicTraceService = $this->periodicTraceService;
-
-        foreach ($collectionNames as $collectionName) {
-            $waitGroup->add(
-                static function () use (
-                    $periodicTraceService,
-                    $name,
-                    $index,
-                    $collectionName
-                ) {
-                    try {
-                        $periodicTraceService->createIndex(
-                            indexName: $name,
-                            collectionName: $collectionName,
-                            index: $index
-                        );
-                    } catch (Throwable $exception) {
-                        if (str_contains($exception->getMessage(), 'already exists')) {
-                            return;
-                        }
-
-                        throw $exception;
-                    }
-                }
-            );
-        }
-
-        // TODO: timeout?
-        $waitGroup->waitAll();
-
-        return true;
-    }
-
-    /**
-     * @return TraceIndexInfoObject[]
-     */
-    public function getIndexProgressesInfo(): array
-    {
-        try {
-            $commandResult = TraceDynamicIndex::sconcur()
-                ->database
-                ->client
-                ->selectDatabase('admin')
-                ->command(
-                    [
-                        'currentOp' => true,
-                        '$and'      => [
-                            [
-                                'op' => 'command',
-                            ],
-                            [
-                                'command.createIndexes' => [
-                                    '$exists' => true,
-                                ],
-                            ],
-                            [
-                                'progress' => [
-                                    '$exists' => true,
-                                ],
-                            ],
-                        ],
-                    ]
-                );
-        } catch (Throwable $exception) {
-            throw new RuntimeException(
-                message: $exception->getMessage(),
-                previous: $exception
-            );
-        }
-
-        /** @var array<int, array<string, mixed>> $operations */
-        $operations = $commandResult['inprog'] ?? [];
-
-        $infoList = [];
-
-        foreach ($operations as $operation) {
-            $progressTotal = $operation['progress']['total'] ?? null;
-            $progressDone  = $operation['progress']['done'] ?? null;
-
-            $infoList[] = new TraceIndexInfoObject(
-                collectionName: $operation['command']['createIndexes'] ?? 'undefined',
-                name: ($operation['command']['indexes'][0]['name'] ?? null) ?: 'untitled',
-                progress: ($progressTotal && $progressDone) ? round($progressDone / $progressTotal * 100, 2) : 0
-            );
-        }
-
-        return $infoList;
-    }
-
-    /**
-     * @param string[] $collectionNames
-     */
-    public function deleteIndexByName(string $indexName, array $collectionNames): void
-    {
-        foreach ($collectionNames as $collectionName) {
-            $this->periodicTraceService->deleteIndex(
-                collectionName: $collectionName,
-                indexName: $indexName
-            );
-        }
-    }
-
-    public function deleteCollections(Carbon $loggedAtTo): DeletedTracesObject
-    {
-        $collectionNames = $this->periodicTraceService->detectCollectionNames(
-            loggedAtTo: $loggedAtTo
+        $partitions = $this->client->select(
+            sql: 'SELECT partition_id, sum(rows) AS rows FROM system.parts '
+            . "WHERE database = currentDatabase() AND table = 'traces' AND active "
+            . 'AND parseDateTime64BestEffort(partition, 0, \'UTC\') + INTERVAL 1 HOUR <= {to:DateTime64(6, \'UTC\')} '
+            . 'GROUP BY partition_id ORDER BY partition_id',
+            params: ['to' => $loggedAtTo],
+            queryIdPrefix: 'trace-clear'
         );
 
-        if (count($collectionNames) === 0) {
-            return new DeletedTracesObject(
-                collectionsCount: 0,
-                tracesCount: 0,
-            );
-        }
-
-        $collectionsCount = 0;
-        $tracesCount      = 0;
-
-        foreach ($collectionNames as $collectionName) {
-            $collection = $this->periodicTraceService->selectCollectionByName($collectionName);
-
-            $collStats = iterator_to_array(
-                $collection->aggregate([
-                    [
-                        '$collStats' => [
-                            'storageStats' => (object) [],
-                        ],
-                    ],
-                ])
-            )[0];
-
-            $documentsCount = $collStats['storageStats']['count'] ?? null;
-
-            $collection->drop();
-
-            ++$collectionsCount;
-            $tracesCount += $documentsCount;
-        }
-
-        return new DeletedTracesObject(
-            collectionsCount: $collectionsCount,
-            tracesCount: $tracesCount,
-        );
-    }
-
-    /**
-     * @param array<string, mixed> $document
-     */
-    private function makeTraceTreeNodeDtoFromDocument(array $document): TraceTreeNodeDto
-    {
-        /** @var UTCDateTime $loggedAt */
-        $loggedAt = $document['lat'];
-
-        return new TraceTreeNodeDto(
-            serviceId: $document['sid'] ? ((int) $document['sid']) : null,
-            traceId: $document['tid'],
-            parentTraceId: $document['ptid'],
-            type: $document['tp'],
-            status: $document['st'],
-            tags: array_map(
-                static fn(string|array $tag) => is_array($tag) ? $tag['nm'] : $tag,
-                $document['tgs']
+        return array_map(
+            fn(array $partition): TracePartitionDto => new TracePartitionDto(
+                id: $this->checkPartitionId((string) $partition['partition_id']),
+                rowsCount: (int) $partition['rows'],
             ),
-            duration: $document['dur'],
-            memory: $document['mem'],
-            cpu: $document['cpu'],
-            loggedAt: new Carbon($loggedAt->toDateTime()),
+            $partitions
         );
     }
 
     /**
-     * @param array<string, mixed> $document
+     * @throws ClickhouseQueryException
      */
-    private function makeTraceDtoFromDocument(array $document): TraceDto
+    public function dropPartition(string $partitionId): void
     {
-        /** @var ObjectId $objectId */
-        $objectId = $document['_id'];
+        $this->client->command(
+            sql: sprintf("ALTER TABLE traces DROP PARTITION ID '%s'", $this->checkPartitionId($partitionId)),
+            queryIdPrefix: 'trace-clear'
+        );
+    }
 
-        /** @var UTCDateTime $loggedAt */
-        $loggedAt = $document['lat'];
+    /**
+     * Merges each hourly partition that ended before the moment given and is still in more
+     * than one part into a single part, with one row per trace.
+     *
+     * A trace written before it was complete — a create, then its update — has two rows
+     * until their parts merge, and the background merges promise no moment for that. A
+     * partition in one part holds no such pair, and FINAL has nothing to merge in it.
+     * Partitions already in one part are left alone, so the next run costs nothing unless
+     * late traces have reached an old hour since.
+     *
+     * @return int the number of partitions merged
+     *
+     * @throws ClickhouseQueryException
+     */
+    public function optimizePartitions(Carbon $loggedAtTo): int
+    {
+        $partitions = $this->client->select(
+            sql: 'SELECT partition_id FROM system.parts '
+            . "WHERE database = currentDatabase() AND table = 'traces' AND active "
+            . 'AND parseDateTime64BestEffort(partition, 0, \'UTC\') + INTERVAL 1 HOUR <= {to:DateTime64(6, \'UTC\')} '
+            . 'GROUP BY partition_id HAVING count() > 1 ORDER BY partition_id',
+            params: ['to' => $loggedAtTo],
+            queryIdPrefix: 'trace-optimize'
+        );
 
-        /** @var UTCDateTime $createdAt */
-        $createdAt = $document['cat'];
+        foreach ($partitions as $partition) {
+            $partitionId = $this->checkPartitionId((string) $partition['partition_id']);
 
-        /** @var UTCDateTime $updatedAt */
-        $updatedAt = $document['uat'];
+            $this->client->command(
+                sql: "OPTIMIZE TABLE traces PARTITION ID '$partitionId' FINAL",
+                queryIdPrefix: 'trace-optimize'
+            );
+        }
 
+        return count($partitions);
+    }
+
+    /**
+     * A partition id is an identifier of the statement, which takes no parameters:
+     * ClickHouse makes these ids of hex digits, and nothing else is let through.
+     */
+    private function checkPartitionId(string $partitionId): string
+    {
+        if (!preg_match('/^[0-9a-f]+\z/', $partitionId)) {
+            throw new RuntimeException(sprintf('Unexpected partition id [%s]', $partitionId));
+        }
+
+        return $partitionId;
+    }
+
+    /**
+     * @param array<string, mixed> $row
+     */
+    private function makeTraceDto(array $row): TraceDto
+    {
         return new TraceDto(
-            id: (string) $objectId,
-            serviceId: $document['sid'] ? ((int) $document['sid']) : null,
-            traceId: $document['tid'],
-            parentTraceId: $document['ptid'],
-            type: $document['tp'],
-            status: $document['st'],
-            tags: array_map(
-                static fn(string|array $tag) => is_array($tag) ? $tag['nm'] : $tag,
-                $document['tgs']
-            ),
-            data: new TraceDataToObjectBuilder($document['dt'])->build(),
-            duration: $document['dur'],
-            memory: $document['mem'],
-            cpu: $document['cpu'],
-            hasProfiling: $document['hpr'] ?? false,
-            loggedAt: new Carbon($loggedAt->toDateTime()),
-            createdAt: new Carbon($createdAt->toDateTime()),
-            updatedAt: new Carbon($updatedAt->toDateTime())
+            id: (string) $row['tid'],
+            serviceId: $this->rowReader->serviceId($row),
+            traceId: (string) $row['tid'],
+            parentTraceId: $this->rowReader->parentTraceId($row),
+            type: (string) $row['tp'],
+            status: (string) $row['st'],
+            tags: $this->rowReader->tags($row),
+            data: new TraceDataToObjectBuilder(
+                $this->rowReader->data((string) $row['dt_raw'])
+            )->build(),
+            duration: $this->rowReader->float($row['dur'] ?? null),
+            memory: $this->rowReader->float($row['mem'] ?? null),
+            cpu: $this->rowReader->float($row['cpu'] ?? null),
+            hasProfiling: false,
+            loggedAt: $this->rowReader->time($row['lat']),
+            createdAt: $this->rowReader->time($row['cat']),
+            updatedAt: $this->rowReader->time($row['uat'])
         );
     }
 }

@@ -97,6 +97,9 @@ bash-workers:
 bash-receiver:
 	"$(RECEIVER_CLI)"bash
 
+clickhouse-client:
+	docker-compose exec clickhouse clickhouse-client --user "$(CLICKHOUSE_USERNAME)" --password "$(CLICKHOUSE_PASSWORD)" --database "$(CLICKHOUSE_DATABASE)"
+
 bash-frontend:
 	"$(FRONTEND_CLI)"sh
 
@@ -235,8 +238,13 @@ receiver-monitor:
 	make art c=receiver:monitor
 
 receiver-build:
-	docker-compose run --rm --no-deps $(RECEIVER_SERVICE) make build stats-build
+	docker-compose run --rm --no-deps $(RECEIVER_SERVICE) make build stats-build migrate-build
 	docker-compose up -d --force-recreate $(RECEIVER_SERVICE)
+
+# Single use: moves the traces of the MongoDB tracesPeriodic database to ClickHouse and
+# deletes each batch from MongoDB once ClickHouse has it; run again, it goes on from there.
+traces-migrate-mongo-clickhouse:
+	"$(RECEIVER_CLI)"/app/bin/traces-migrate ${c}
 
 # sconcur/sconcur is not required directly: sconcur/laravel pins it to an exact
 # version, because the .so and the PHP side cross a protocol boundary that changes

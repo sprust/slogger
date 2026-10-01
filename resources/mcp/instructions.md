@@ -3,7 +3,7 @@ All tools only read data.
 
 Method:
 1. get_services to resolve the service the user means.
-2. get_trace_time_range to see which hours have traces.
+2. get_trace_time_range to see the first and the last hour with traces.
 3. Overview first, with one call each: aggregate_traces for how many traces of which
    services, types and statuses there were and how slow (by hour or minute10 for when),
    compare_trace_groups for what failed traces have in common that the others do not.
@@ -22,15 +22,11 @@ Rules:
   else useful meanwhile, then repeat the SAME get_trace_tree call.
 - A trace tree that failed to build can be rebuilt only by the user in the SLogger UI.
 - get_trace_facets, search_traces, get_trace_data_fields, aggregate_traces and
-  compare_trace_groups build a trace index for the set of filters and the hours of the
-  period. To compare services, types or statuses change the filter values and keep the
-  same set of filters and hours: the index is reused. aggregate_traces and search_traces
-  with the same filters share one. get_trace_indexes shows the indexes that exist.
-- Status "index_building" works like "tree_building": do something else useful, then
-  repeat the SAME call; get_trace_index_status shows how far the index is.
-- These tools need "from"/"to" of at most 24 hours, rounded to whole hours: moving the
-  window inside the same hours is free, a new hour builds a new index. Without
-  service_ids they look at all services.
+  compare_trace_groups need "from"/"to": exact bounds, "to" exclusive, the period at most
+  as long as traces are kept (the description of "to" says how long). Without
+  service_ids they look at all services. They answer at once, whatever the filters.
+- aggregate_traces takes the same data_filter as search_traces: count first, then fetch
+  the traces.
 - search_slogger_logs reads the logs of SLogger itself, not of the services: use it only for
   questions about SLogger.
 - In the answer, cite trace ids for every claim and state what was not checked.

@@ -14,27 +14,33 @@ use App\Modules\Trace\Repositories\Dto\Trace\Timestamp\TraceTimestampFieldDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Timestamp\TraceTimestampFieldIndicatorDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Timestamp\TraceTimestampsDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Timestamp\TraceTimestampsListDto;
-use App\Modules\Trace\Repositories\Services\PeriodicTraceService;
-use App\Modules\Trace\Repositories\Services\TraceMetricAggregationFactory;
-use App\Modules\Trace\Repositories\Services\TracePipelineBuilder;
-use App\Modules\Trace\Repositories\Services\TraceTimestampCollectionBatcher;
+use App\Modules\Trace\Repositories\Services\ClickhouseTraceFilterBuilder;
+use App\Modules\Trace\Repositories\Services\ClickhouseTraceRowReader;
+use App\Modules\Trace\Repositories\Services\TraceDataPathResolver;
 use App\Modules\Trace\Repositories\Services\TraceTimestampMetricsFactory;
+use App\Services\Clickhouse\ClickhouseClient;
+use App\Services\Clickhouse\ClickhouseQueryException;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Str;
-use SConcur\Bson\UTCDateTime;
+use InvalidArgumentException;
 
 readonly class TraceTimestampsRepository
 {
     public function __construct(
-        private TracePipelineBuilder $tracePipelineBuilder,
-        private PeriodicTraceService $periodicTraceService,
-        private TraceMetricAggregationFactory $aggregationFactory,
+        private ClickhouseClient $client,
+        private ClickhouseTraceFilterBuilder $filterBuilder,
+        private ClickhouseTraceRowReader $rowReader,
+        private TraceDataPathResolver $pathResolver,
         private TraceTimestampMetricsFactory $timestampMetricsFactory,
-        private TraceTimestampCollectionBatcher $collectionBatcher
     ) {
     }
 
     /**
+     * The metrics of the traces per step of the timeline.
+     *
+     * A trace falls into the step its logged-at moment starts; the steps are the same as
+     * the ones the receiver used to precompute (`tss`): aligned to the epoch in UTC, days
+     * and months to their calendar start.
+     *
      * @param int[]|null                            $serviceIds
      * @param string[]|null                         $traceIds
      * @param TraceMetricFieldsFilterDto[]          $fields
@@ -42,6 +48,9 @@ readonly class TraceTimestampsRepository
      * @param string[]                              $types
      * @param string[]                              $tags
      * @param string[]                              $statuses
+     *
+     * @throws ClickhouseQueryException
+     * @throws InvalidArgumentException
      */
     public function find(
         Carbon $loggedAtFrom,
@@ -63,28 +72,15 @@ readonly class TraceTimestampsRepository
         ?TraceDataFilterParameters $data = null,
         ?bool $hasProfiling = null
     ): TraceTimestampsListDto {
-        $collectionNames = $this->periodicTraceService->detectCollectionNames(
+        $condition = $this->filterBuilder->build(
+            serviceIds: $serviceIds,
+            traceIds: $traceIds,
+            // the last step runs to its end, not to the moment it starts
             loggedAtFrom: $loggedAtFrom,
             loggedAtTo: $this->timestampMetricsFactory->makeNextTimestamp(
                 date: $loggedAtTo,
                 timestamp: $timestamp
-            )
-        );
-
-        if (!count($collectionNames)) {
-            return new TraceTimestampsListDto(
-                timestamps: [],
-                emptyIndicators: [],
-            );
-        }
-
-        $timestampField = $timestamp->value;
-
-        $timestampFieldKey = "tss.$timestampField";
-
-        $pipeline = $this->tracePipelineBuilder->make(
-            serviceIds: $serviceIds,
-            traceIds: $traceIds,
+            ),
             types: $types,
             tags: $tags,
             statuses: $statuses,
@@ -96,129 +92,112 @@ readonly class TraceTimestampsRepository
             cpuTo: $cpuTo,
             data: $data,
             hasProfiling: $hasProfiling,
-            customMatch: [
-                '$and' => [
-                    [
-                        $timestampFieldKey => [
-                            '$gte' => new UTCDateTime($loggedAtFrom),
-                        ],
-                    ],
-                    [
-                        $timestampFieldKey => [
-                            '$lte' => new UTCDateTime($loggedAtTo),
-                        ],
-                    ],
-                ],
-            ]
         );
 
-        /** @var array<string, array<string, array<string, mixed>>> $groups */
-        $groups = [];
+        /**
+         * The aggregations of the query by alias: which field and which indicator each is.
+         *
+         * @var array<string, array{field: string, aggregation: TraceMetricFieldAggregatorEnum}> $aliases
+         */
+        $aliases = [];
+
+        /** @var string[] $expressions */
+        $expressions = [];
+
+        /** @var array<string, TraceMetricFieldAggregatorEnum[]> $fieldAggregations */
+        $fieldAggregations = [];
 
         foreach ($fields as $field) {
-            $this->injectAggregationToGroups($groups, $field);
+            $fieldName = match ($field->field) {
+                TraceMetricFieldEnum::Count    => 'count',
+                TraceMetricFieldEnum::Duration => 'dur',
+                TraceMetricFieldEnum::Memory   => 'mem',
+                TraceMetricFieldEnum::Cpu      => 'cpu',
+            };
+
+            $fieldAggregations[$fieldName] = $field->aggregations;
+
+            $this->addAggregations($aliases, $expressions, $fieldName, $fieldName, $field->aggregations);
         }
 
         foreach ($dataFields ?? [] as $dataField) {
-            $fieldName = "dt.$dataField->field";
+            $fieldName = sprintf('dt.%s', $dataField->field);
 
-            $groups[$fieldName] = [];
+            $fieldAggregations[$fieldName] = $dataField->aggregations;
 
-            $this->injectAggregation(
-                aggregations: $groups[$fieldName],
-                fieldName: $fieldName,
-                fieldAggregations: $dataField->aggregations
+            $path = $this->pathResolver->resolve($dataField->field);
+
+            // numbers only, as MongoDB read them: a string under the key adds nothing
+            $value = sprintf(
+                "if(dynamicType(%s) IN ('Int64', 'UInt64', 'Float64'), accurateCastOrNull(%s, 'Float64'), NULL)",
+                $path->objectExpression,
+                $path->objectExpression
             );
+
+            $this->addAggregations($aliases, $expressions, $fieldName, $value, $dataField->aggregations);
         }
 
-        $groupsMatch = [];
-        $groupsQuery = [];
+        $bucket = $this->makeBucketExpression($timestamp);
 
-        foreach ($groups as $fieldName => $aggregations) {
-            $groupsMatch[$fieldName] = [];
-
-            foreach ($aggregations as $name => $expression) {
-                $aggregatorKey = Str::uuid()->toString();
-
-                $groupsQuery[$aggregatorKey] = $expression;
-
-                $groupsMatch[$fieldName][$aggregatorKey] = $name;
-            }
-        }
-
-        $groupStage = [
-            '$group' => [
-                '_id' => [
-                    'timestamp' => "\$tss.$timestampField",
-                ],
-                ...$groupsQuery,
+        $rows = $this->client->select(
+            sql: sprintf(
+                'SELECT %s AS bucket%s FROM traces FINAL WHERE %s AND %s >= {bucketFrom:DateTime64(6, \'UTC\')} '
+                . 'GROUP BY bucket ORDER BY bucket',
+                $bucket,
+                $expressions === [] ? '' : ', ' . implode(', ', $expressions),
+                $condition->sql,
+                $bucket
+            ),
+            params: [
+                ...$condition->params,
+                'bucketFrom' => $loggedAtFrom,
             ],
-        ];
+            queryIdPrefix: 'trace-timestamps'
+        );
 
         $metrics = [];
 
-        foreach ($this->collectionBatcher->make($collectionNames, $timestamp) as $batchCollectionNames) {
-            $cursor = $this->periodicTraceService->aggregate(
-                collectionName: $batchCollectionNames[0],
-                pipeline: [
-                    ...$pipeline,
-                    ...array_map(
-                        static fn(string $collectionName) => [
-                            '$unionWith' => [
-                                'coll'     => $collectionName,
-                                'pipeline' => $pipeline,
-                            ],
-                        ],
-                        array_slice($batchCollectionNames, 1)
-                    ),
-                    $groupStage,
-                ]
-            );
+        foreach ($rows as $row) {
+            $indicators = [];
 
-            foreach ($cursor as $item) {
-                $groupIndicatorsDtoList = [];
+            foreach ($fieldAggregations as $fieldName => $aggregations) {
+                $fieldIndicators = [];
 
-                foreach ($groupsMatch as $fieldName => $aggregators) {
-                    $indicators = [];
-
-                    foreach ($aggregators as $key => $aggregator) {
-                        $indicators[] = new TraceTimestampFieldIndicatorDto(
-                            name: $aggregator,
-                            value: round($this->aggregationFactory->readValue($item[$key] ?? null), 6),
-                        );
+                foreach ($aliases as $alias => $aliasTarget) {
+                    if ($aliasTarget['field'] !== $fieldName) {
+                        continue;
                     }
 
-                    $groupIndicatorsDtoList[] = new TraceTimestampFieldDto(
-                        field: $fieldName,
-                        indicators: $indicators
+                    $fieldIndicators[] = new TraceTimestampFieldIndicatorDto(
+                        name: $aliasTarget['aggregation']->value,
+                        value: round(is_numeric($row[$alias] ?? null) ? (float) $row[$alias] : 0.0, 6),
                     );
                 }
 
-                /** @var UTCDateTime $metricTimestamp */
-                $metricTimestamp = $item['_id']['timestamp'];
-
-                $metrics[] = new TraceTimestampsDto(
-                    timestamp: new Carbon($metricTimestamp->toDateTime()),
-                    indicators: $groupIndicatorsDtoList
+                $indicators[] = new TraceTimestampFieldDto(
+                    field: $fieldName,
+                    indicators: $fieldIndicators
                 );
             }
+
+            $metrics[] = new TraceTimestampsDto(
+                timestamp: $this->rowReader->time($row['bucket']),
+                indicators: $indicators
+            );
         }
 
         $emptyIndicators = [];
 
-        foreach ($groupsMatch as $fieldName => $aggregators) {
-            $indicators = [];
-
-            foreach ($aggregators as $aggregator) {
-                $indicators[] = new TraceTimestampFieldIndicatorDto(
-                    name: $aggregator,
-                    value: 0,
-                );
-            }
-
+        foreach ($fieldAggregations as $fieldName => $aggregations) {
             $emptyIndicators[] = new TraceTimestampFieldDto(
                 field: $fieldName,
-                indicators: $indicators
+                indicators: array_map(
+                    static fn(TraceMetricFieldAggregatorEnum $aggregation) => new TraceTimestampFieldIndicatorDto(
+                        name: $aggregation->value,
+                        value: 0,
+                    ),
+                    $aggregations
+                )
             );
         }
 
@@ -229,39 +208,58 @@ readonly class TraceTimestampsRepository
     }
 
     /**
-     * @param array<string, array<string, array<string, mixed>>> $groups
+     * @param array<string, array{field: string, aggregation: TraceMetricFieldAggregatorEnum}> $aliases
+     * @param string[]                                                                         $expressions
+     * @param TraceMetricFieldAggregatorEnum[]                                                 $aggregations
      */
-    private function injectAggregationToGroups(array &$groups, TraceMetricFieldsFilterDto $field): void
-    {
-        $fieldName = match ($field->field) {
-            TraceMetricFieldEnum::Count    => 'count',
-            TraceMetricFieldEnum::Duration => 'dur',
-            TraceMetricFieldEnum::Memory   => 'mem',
-            TraceMetricFieldEnum::Cpu      => 'cpu',
-        };
+    private function addAggregations(
+        array &$aliases,
+        array &$expressions,
+        string $fieldName,
+        string $value,
+        array $aggregations
+    ): void {
+        foreach ($aggregations as $aggregation) {
+            $alias = 'a' . count($aliases);
 
-        $aggregations = [];
+            $aliases[$alias] = [
+                'field'       => $fieldName,
+                'aggregation' => $aggregation,
+            ];
 
-        $this->injectAggregation(
-            aggregations: $aggregations,
-            fieldName: $fieldName,
-            fieldAggregations: $field->aggregations
-        );
-
-        $groups[$fieldName] = $aggregations;
-    }
-
-    /**
-     * @param array<string, array<string, mixed>> $aggregations
-     * @param TraceMetricFieldAggregatorEnum[]    $fieldAggregations
-     */
-    private function injectAggregation(array &$aggregations, string $fieldName, array $fieldAggregations): void
-    {
-        foreach ($fieldAggregations as $aggregation) {
-            $aggregations[$aggregation->value] = $this->aggregationFactory->makeExpression(
-                aggregation: $aggregation,
-                fieldName: $fieldName
+            $expressions[] = sprintf(
+                '%s AS %s',
+                match ($aggregation) {
+                    TraceMetricFieldAggregatorEnum::Sum => 'count()',
+                    TraceMetricFieldAggregatorEnum::Avg => "avg($value)",
+                    TraceMetricFieldAggregatorEnum::Min => "min($value)",
+                    TraceMetricFieldAggregatorEnum::Max => "max($value)",
+                    TraceMetricFieldAggregatorEnum::P50 => "quantile(0.5)($value)",
+                    TraceMetricFieldAggregatorEnum::P95 => "quantile(0.95)($value)",
+                    TraceMetricFieldAggregatorEnum::P99 => "quantile(0.99)($value)",
+                },
+                $alias
             );
         }
+    }
+
+    private function makeBucketExpression(TraceTimestampEnum $timestamp): string
+    {
+        $start = match ($timestamp) {
+            TraceTimestampEnum::S5    => 'toStartOfInterval(lat, INTERVAL 5 SECOND)',
+            TraceTimestampEnum::S10   => 'toStartOfInterval(lat, INTERVAL 10 SECOND)',
+            TraceTimestampEnum::S30   => 'toStartOfInterval(lat, INTERVAL 30 SECOND)',
+            TraceTimestampEnum::Min   => 'toStartOfInterval(lat, INTERVAL 1 MINUTE)',
+            TraceTimestampEnum::Min5  => 'toStartOfInterval(lat, INTERVAL 5 MINUTE)',
+            TraceTimestampEnum::Min10 => 'toStartOfInterval(lat, INTERVAL 10 MINUTE)',
+            TraceTimestampEnum::Min30 => 'toStartOfInterval(lat, INTERVAL 30 MINUTE)',
+            TraceTimestampEnum::H     => 'toStartOfInterval(lat, INTERVAL 1 HOUR)',
+            TraceTimestampEnum::H4    => 'toStartOfInterval(lat, INTERVAL 4 HOUR)',
+            TraceTimestampEnum::H12   => 'toStartOfInterval(lat, INTERVAL 12 HOUR)',
+            TraceTimestampEnum::D     => 'toStartOfDay(lat)',
+            TraceTimestampEnum::M     => 'toStartOfMonth(lat)',
+        };
+
+        return "toDateTime64($start, 6, 'UTC')";
     }
 }

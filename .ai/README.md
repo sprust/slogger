@@ -70,7 +70,7 @@ make stop
 - Backend is a Laravel 12 application on PHP 8.4, running on SConcur — a concurrent coroutine HTTP runtime that executes each request in its own PHP Fiber inside a single long-lived process.
 - Frontend lives in `frontend/` and is a separate Vue 3 + Vite + TypeScript app.
 - Receiver is a standalone Go service in `servers/receiver/` that accepts trace payloads over TCP.
-- Storage: MongoDB (traces/logs) + MySQL (users/services/auth) + RabbitMQ (queues) + Redis (cache, through the `sconcur` client and the `sconcur_redis` store).
+- Storage: ClickHouse (traces, one `traces` table over the HTTP interface, `app/Services/Clickhouse`) + MongoDB (the receiver's buffer, counters, tree cache, incidents, notifications) + MySQL (users/services/auth) + RabbitMQ (queues) + Redis (cache, through the `sconcur` client and the `sconcur_redis` store).
 - Main orchestration is done through the root `makefile` and Docker Compose.
 - Domain code is organized mostly in `app/Modules`, while Eloquent models remain in `app/Models`.
 
@@ -84,8 +84,8 @@ Domain events are emitted for flows that trigger queues or framework side effect
 
 - `app/Console` — artisan commands, cron commands, local utilities, make-style generators, migration helpers.
 - `app/Http` — HTTP controllers and middleware.
-- `app/Models` — Laravel/MongoDB models grouped by bounded area such as `Logs`, `Services`, `Traces`, `Users`.
-- `app/Modules` — modular business code. Current modules include `Auth`, `Cleaner`, `Dashboard`, `Logs`, `Service`, `Trace`, `User`, plus shared/support modules such as `Common` and `Tools`.
+- `app/Models` — Laravel/MongoDB models grouped by bounded area: `Mcps`, `Notifications`, `Services`, `Traces`, `Users`, `Watchers`.
+- `app/Modules` — modular business code. Current modules include `Auth`, `Cleaner`, `Dashboard`, `Logs`, `Mcp`, `Notification`, `Service`, `Trace`, `User`, `Watcher`, plus shared/support modules such as `Common` and `Tools`.
 - `app/Providers` — Laravel service providers.
 - `app/Services` — cross-cutting services outside module folders, including logging integrations.
 - `code-analyse` — static analysis and architecture rules: PHPStan, PHP CS Fixer, Deptrac.
@@ -110,6 +110,8 @@ Domain events are emitted for flows that trigger queues or framework side effect
 
 - `servers/receiver/cmd/receiver/main.go` — main binary entrypoint. Loads `.env`, starts socket server and transporter, handles shutdown signals, and periodically saves runtime stats.
 - `servers/receiver/cmd/stats/main.go` — local stats viewer that reads `storage/stats.json` and refreshes it in terminal.
+- `servers/receiver/cmd/traces-migrate` — single-use migration of an installation that stored traces in MongoDB: moves the `tracesPeriodic` hourly collections into the ClickHouse `traces` table newest hour first, deleting each batch from MongoDB once ClickHouse has it. Built with the receiver (`make migrate-build`), run by `make traces-migrate-mongo-clickhouse`.
+- `servers/receiver/cmd/loadgen` — load generator for stress tests: sends generated trace trees through the receiver socket (a share of them with the update before the create, the create twice, or no update), pauses while the MongoDB `buffer` holds more than `-buffer-max` documents, and writes progress to `-progress-file` as JSON.
 - `servers/receiver/internal/dto` — DTO definitions for incoming auth and trace messages.
 - `servers/receiver/makefile` — local build/run commands for the Go service and stats binary.
 - `servers/receiver/go.mod` and `servers/receiver/go.sum` — isolated Go module definition and dependencies.
@@ -146,23 +148,20 @@ responses, no sessions, no SSE) at `POST /mcp` (`routes/mcp.php`), outside the a
 - `Infrastructure/Http/Controllers/McpEndpointController` → `Infrastructure/Protocol`: the
   message parser, the header and version validators, and `McpServer`, which dispatches
   `server/discover`, `tools/list`, `tools/call`, `prompts/list`, `prompts/get`. Protocol
-  errors are `McpProtocolException`; a tool's own failure is a result with `isError: true`.
+  errors are `McpProtocolException`; a tool's own failure is a result with `isError: true`. A `ClickhouseQueryException` thrown by a tool is reported and answered as the tool error `query_failed`.
 - `Infrastructure/Tools/*Tool` — one class per tool. A tool validates nothing by hand: its
   `McpToolSchema` is compiled both into the JSON Schema of `tools/list` and into the
   validator rules. A tool calls only this module's bridges (`Domain/Actions/Bridges`), never
   another module. New tools are registered in `McpServiceProvider::TOOLS`; the order there
   is the order of `tools/list`.
-- Tools that build a trace dynamic index: `GetTraceFacetsTool`, `SearchTracesTool`,
-  `GetTraceDataFieldsTool`, `AggregateTracesTool`, `CompareTraceGroupsTool`. They share the
-  indexes with the UI and answer `index_building` (`McpToolFormatter::indexBuilding`) instead of
-  waiting; `McpTraceIndexExceptionTranslator` turns the index exceptions of `Trace` into those of
-  `Mcp`. They read `service_ids` (optional), `from`, `to` through `McpToolTraceScopeReader`: the
-  period is rounded to hours and at most 24 hours (`McpTracePeriodResolver`). `data_filter` of
-  `search_traces` is parsed by `McpTraceDataFilterParser`. The groups and the comparison are one
-  aggregation over the hourly collections of the period (`Trace\Repositories\TraceGroupsRepository`,
-  `$unionWith`).
-- `GetTraceIndexStatusTool` and `GetTraceIndexesTool` only read the indexes. `SearchSloggerLogsTool` reads
-  the logs of SLogger itself through the `Logs` module.
+- Tools that query traces over a period: `GetTraceFacetsTool`, `SearchTracesTool`,
+  `GetTraceDataFieldsTool`, `AggregateTracesTool`, `CompareTraceGroupsTool`. They read
+  `service_ids` (optional), `from`, `to` through `McpToolTraceScopeReader`: the period is taken
+  exactly and is at most `cleaner.lifetime_hours` long (`McpTracePeriodResolver`, bound in
+  `McpServiceProvider`). `data_filter` of `search_traces` and `aggregate_traces` is parsed by
+  `McpTraceDataFilterParser`. The groups and the comparison are one aggregation over the traces
+  table (`Trace\Repositories\TraceGroupsRepository`).
+- `SearchSloggerLogsTool` reads the logs of SLogger itself through the `Logs` module.
 - `Infrastructure/Prompts/*Prompt` — the prompts, registered in `McpServiceProvider`.
 - `resources/mcp/instructions.md` — the instructions the model gets, in English.
 - With `SLOGGER_LOG_REQUESTS_ENABLED` `/mcp` is traced like the admin API. `App\Services\SLogger\RequestWatcher`
@@ -262,6 +261,13 @@ so a new cross-module edge is added here or is not added.
 - `Infrastructure\NotificationServiceProvider` → `Watcher\Domain\Services\Types\WatcherTypeRegistry`,
   to build the message factory above.
 
+`Cleaner` → `Trace`. One way only: `Trace` knows nothing about the cleaner.
+
+- `Domain\Actions\ClearTracesAction` → `Trace\Domain\Actions\Mutations\DeletePartitionsAction`,
+  `Trace\Entities` — to drop the hours past the retention.
+- `Domain\Actions\OptimizeTracesAction` → `Trace\Domain\Actions\Mutations\OptimizePartitionsAction`
+  — to merge each closed hour into one part, run hourly by `Infrastructure\Jobs\OptimizeTracesJob`.
+
 `Watcher` → `Trace`.
 
 - `Domain\Services\Checkers\InvalidBufferGrownChecker` → `Trace\Domain`, to count what
@@ -305,13 +311,10 @@ and they hand the other module's entities back as they are.
 - `Domain\Actions\Bridges\FindMcpTracesAction` → `Trace\Domain\Actions\Queries\FindTracesAction`,
   `Trace\Parameters\TraceFindParameters`, `Trace\Parameters\Data\TraceDataFilterParameters`.
 - `Domain\Actions\Bridges\FindMcpTraceDataFieldsAction` → `FindTracesAction`, `FindTraceDetailAction`.
-- `Domain\Actions\Bridges\FindMcpIndexStatusAction` → `FindTraceDynamicIndexAction`,
-  `FindTraceDynamicIndexStatsAction`; `FindMcpDynamicIndexesAction` → `FindTraceDynamicIndexesAction`.
 - `Domain\Actions\Bridges\FindMcpTraceGroupsAction` → `Trace\Domain\Actions\Queries\FindTraceGroupsAction`,
   `CompareMcpTraceGroupsAction` → `CompareTraceGroupsAction`, with `Trace\Parameters\TraceFindGroupsParameters`,
-  `TraceCompareGroupsParameters`, `Trace\Enums\TraceGroupFieldEnum`, `TraceCompareByEnum`.
-- `Domain\Services\McpTraceIndexExceptionTranslator` → `Trace\Domain\Exceptions\TraceDynamicIndex*Exception`:
-  the one place that turns the index exceptions of `Trace` into those of `Mcp`.
+  `TraceCompareGroupsParameters`, `Trace\Parameters\Data\TraceDataFilterParameters` (the `data_filter` of
+  `aggregate_traces`), `Trace\Enums\TraceGroupFieldEnum`, `TraceCompareByEnum`.
 - `Domain\Services\McpTraceDataFilterParser` → `Trace\Parameters\Data`, `Trace\Enums\TraceDataFilterComp*Enum`;
   `Domain\Services\McpTracePeriodMapper` → `Trace\Parameters\PeriodParameters`.
 - `Domain\Services\McpTraceTreeNodeFactory` → `Trace\Domain\Actions\Queries\FindTraceServicesAction`,

@@ -7,9 +7,28 @@ namespace App\Modules\Trace\Infrastructure\Http\Services;
 use App\Modules\Trace\Enums\PeriodPresetEnum;
 use App\Modules\Trace\Enums\TraceDataFilterCompNumericTypeEnum;
 use App\Modules\Trace\Enums\TraceDataFilterCompStringTypeEnum;
+use Closure;
 
 class RequestFilterRules
 {
+    /**
+     * A data path is written into the query, so it is names joined by dots and nothing else.
+     */
+    public const string DATA_FIELD_RULE = 'regex:/^dt(\.[A-Za-z0-9_]+)+\z/';
+
+    /**
+     * The same for a key given without the `dt.` of the stored document.
+     */
+    public const string DATA_KEY_RULE = 'regex:/^[A-Za-z0-9_]+(\.[A-Za-z0-9_]+)*\z/';
+
+    /**
+     * Bounds of a number in a filter: a number past what a float holds reaches the query as infinity.
+     */
+    private const string METRIC_MAX      = '1000000000000000';
+    private const string DATA_NUMBER_MAX = '100000000000000000000';
+
+    private const string FACET_VALUE_MAX = '2000';
+
     /**
      * @return array<string, string[]>
      */
@@ -93,6 +112,8 @@ class RequestFilterRules
             'types.*' => [
                 'required',
                 'string',
+                'min:1',
+                'max:' . self::FACET_VALUE_MAX,
             ],
         ];
     }
@@ -110,6 +131,8 @@ class RequestFilterRules
             'tags.*' => [
                 'required',
                 'string',
+                'min:1',
+                'max:' . self::FACET_VALUE_MAX,
             ],
         ];
     }
@@ -127,12 +150,14 @@ class RequestFilterRules
             'statuses.*' => [
                 'required',
                 'string',
+                'min:1',
+                'max:' . self::FACET_VALUE_MAX,
             ],
         ];
     }
 
     /**
-     * @return array<string, string[]>
+     * @return array<string, array<int, string|Closure>>
      */
     public static function data(): array
     {
@@ -148,6 +173,9 @@ class RequestFilterRules
             'data.filter.*.field'         => [
                 'required',
                 'string',
+                'min:4',
+                'max:255',
+                self::DATA_FIELD_RULE,
             ],
             'data.filter.*.null'          => [
                 'sometimes',
@@ -161,9 +189,13 @@ class RequestFilterRules
                 'sometimes',
                 'array',
             ],
-            "data.filter.*.numeric.value" => [
+            'data.filter.*.numeric.value' => [
                 'sometimes',
+                'bail',
                 'numeric',
+                self::finiteRule(),
+                'min:-' . self::DATA_NUMBER_MAX,
+                'max:' . self::DATA_NUMBER_MAX,
             ],
             'data.filter.*.numeric.comp'  => [
                 'sometimes',
@@ -220,59 +252,96 @@ class RequestFilterRules
     }
 
     /**
-     * @return array<string, string[]>
+     * @return array<string, array<int, string|Closure>>
      */
     public static function durationFromTo(): array
     {
         return [
             'duration_from' => [
                 'sometimes',
+                'bail',
                 'numeric',
                 'nullable',
+                self::finiteRule(),
+                'min:0',
+                'max:' . self::METRIC_MAX,
             ],
             'duration_to'   => [
                 'sometimes',
+                'bail',
                 'numeric',
                 'nullable',
+                self::finiteRule(),
+                'min:0',
+                'max:' . self::METRIC_MAX,
             ],
         ];
     }
 
     /**
-     * @return array<string, string[]>
+     * @return array<string, array<int, string|Closure>>
      */
     public static function memoryFromTo(): array
     {
         return [
             'memory_from' => [
                 'sometimes',
+                'bail',
                 'numeric',
                 'nullable',
+                self::finiteRule(),
+                'min:0',
+                'max:' . self::METRIC_MAX,
             ],
             'memory_to'   => [
                 'sometimes',
+                'bail',
                 'numeric',
                 'nullable',
+                self::finiteRule(),
+                'min:0',
+                'max:' . self::METRIC_MAX,
             ],
         ];
     }
 
     /**
-     * @return array<string, string[]>
+     * @return array<string, array<int, string|Closure>>
      */
     public static function cpuFromTo(): array
     {
         return [
             'cpu_from' => [
                 'sometimes',
+                'bail',
                 'numeric',
                 'nullable',
+                self::finiteRule(),
+                'min:0',
+                'max:' . self::METRIC_MAX,
             ],
             'cpu_to'   => [
                 'sometimes',
+                'bail',
                 'numeric',
                 'nullable',
+                self::finiteRule(),
+                'min:0',
+                'max:' . self::METRIC_MAX,
             ],
         ];
+    }
+
+    /**
+     * A JSON number too large for a float is decoded as infinity, which min and max cannot
+     * compare: they throw rather than fail.
+     */
+    private static function finiteRule(): Closure
+    {
+        return static function (string $attribute, mixed $value, Closure $fail): void {
+            if (is_float($value) && !is_finite($value)) {
+                $fail('The :attribute field is out of range.');
+            }
+        };
     }
 }

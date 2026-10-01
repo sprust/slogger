@@ -2,26 +2,122 @@ package traces_transporter
 
 import (
 	"context"
+	"errors"
+	"io"
 	"log/slog"
+	"net"
+	"slogger_receiver/internal/dto"
+	"slogger_receiver/internal/repositories/buffer_repository"
+	"slogger_receiver/internal/repositories/clickhouse_trace_repository"
 	"slogger_receiver/internal/services/buffer_service"
 	"slogger_receiver/internal/services/periodic_trace_service"
 	"slogger_receiver/internal/services/trace_metric_service"
 	"slogger_receiver/internal/services/watcher_service"
 	"slogger_receiver/pkg/foundation/errs"
-	"sync"
+	"strings"
 	"sync/atomic"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 const maxSaveAttempts = 5
 
+// batchStopGrace is how long a stop lets the batch being saved run on, short of the 10
+// seconds main waits for the transporter. A variable for the tests.
+var batchStopGrace = 7 * time.Second
+
+// The pause after a batch that failed because a store was out of reach, doubled on each
+// such failure in a row.
+const (
+	minUnavailablePause = time.Second
+	maxUnavailablePause = 30 * time.Second
+)
+
+// The pause after a batch that failed for any other reason and spent an attempt of its
+// documents, doubled on each such failure in a row: 1, 2, 4, 8 seconds between the five
+// attempts. Without it the attempts run back to back, and an error that lasts a second —
+// the traces table being recreated by migrate:fresh — moves the batch to the invalid
+// buffer before it is over.
+const (
+	minFailedPause = time.Second
+	maxFailedPause = 30 * time.Second
+)
+
+// nextPause doubles the pause of the previous failure in a row, within its bounds; the
+// first failure waits the lower bound.
+func nextPause(previous time.Duration, lower time.Duration, upper time.Duration) time.Duration {
+	return min(max(previous*2, lower), upper)
+}
+
+// unavailableCodes are the ClickHouse codes of a server that could not take the batch at
+// the moment, not of a batch that is wrong: 159 timeout, 202 too many queries, 209/210 socket
+// and network, 241 memory limit, 242 table read-only, 252 too many parts — and 60, the
+// traces table missing while migrate:fresh or a migration recreates it. A table that never
+// comes back keeps the buffer waiting until its 6-hour TTL, rather than moving every trace
+// of those hours to the invalid buffer.
+var unavailableCodes = map[int]bool{60: true, 159: true, 202: true, 209: true, 210: true, 241: true, 242: true, 252: true}
+
+// unavailableSigns are the texts of network and MongoDB errors that say the same. Never
+// matched against a ClickHouse answer: that one may quote the rejected data.
+var unavailableSigns = []string{
+	"connection refused",
+	"connection reset",
+	"no such host",
+	"i/o timeout",
+	"context deadline exceeded",
+	"Client.Timeout",
+	"server selection error",
+	"EOF",
+}
+
+// isUnavailable says whether a failed batch is to wait and be tried again as it is, without
+// spending the attempts of its documents.
+func isUnavailable(err error) bool {
+	var queryError *clickhouse_trace_repository.QueryError
+
+	if errors.As(err, &queryError) {
+		return unavailableCodes[queryError.Code]
+	}
+
+	var netError net.Error
+
+	if errors.As(err, &netError) || errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF) ||
+		errors.Is(err, context.DeadlineExceeded) || mongo.IsNetworkError(err) || mongo.IsTimeout(err) {
+		return true
+	}
+
+	message := err.Error()
+
+	for _, sign := range unavailableSigns {
+		if strings.Contains(message, sign) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// buffer is what the transporter needs of the buffer.
+type buffer interface {
+	FindForTransporter(ctx context.Context) (map[int]*dto.ServiceTraces, []buffer_repository.InvalidDoc, error)
+	MoveToInvalid(ctx context.Context, docs []buffer_repository.InvalidDoc) error
+	DeleteByIds(ctx context.Context, ids []primitive.ObjectID) (int64, error)
+	MarkFailed(ctx context.Context, ids []primitive.ObjectID, maxAttempts int) error
+}
+
+// store merges a batch and writes it to ClickHouse.
+type store interface {
+	Save(ctx context.Context, batch map[int]*dto.ServiceTraces) (periodic_trace_service.Result, error)
+}
+
 type Transporter struct {
 	ctx                     context.Context
 	cancel                  context.CancelFunc
-	bufferService           *buffer_service.Service
-	periodicTraceService    *periodic_trace_service.Service
+	bufferService           buffer
+	periodicTraceService    store
+	flush                   func()
 	totalHandledBufferCount atomic.Uint64
 	totalDeletedBufferCount atomic.Uint64
 	closing                 atomic.Bool
@@ -35,12 +131,16 @@ type Stats struct {
 func New() *Transporter {
 	ctx, cancel := context.WithCancel(context.Background())
 
-	return &Transporter{
+	transporter := &Transporter{
 		ctx:                  ctx,
 		cancel:               cancel,
 		bufferService:        buffer_service.Get(),
 		periodicTraceService: periodic_trace_service.Get(),
 	}
+
+	transporter.flush = transporter.flushCounters
+
+	return transporter
 }
 
 func (s *Transporter) Run(ctx context.Context) error {
@@ -54,6 +154,21 @@ func (s *Transporter) Run(ctx context.Context) error {
 			s.stop()
 		}
 	}()
+
+	var unavailablePause time.Duration
+	var failedPause time.Duration
+
+	// A stop lets the batch being saved finish, insert and delete, rather than cutting off an
+	// insert ClickHouse may have taken; within a deadline that ends before main stops waiting.
+	batchCtx, cancelBatch := context.WithCancel(context.WithoutCancel(ctx))
+	defer cancelBatch()
+
+	grace := batchStopGrace
+
+	stopBatchLater := context.AfterFunc(ctx, func() {
+		time.AfterFunc(grace, cancelBatch)
+	})
+	defer stopBatchLater()
 
 	// The context as well as the flag: a shutdown cancels it first, and the flush below
 	// is the point of getting out of here at all.
@@ -83,50 +198,37 @@ func (s *Transporter) Run(ctx context.Context) error {
 			continue
 		}
 
-		var mu sync.Mutex
-		savedIds := make([]primitive.ObjectID, 0)
-		failedIds := make([]primitive.ObjectID, 0)
+		result, err := s.periodicTraceService.Save(batchCtx, serviceTracesMap)
 
-		wg := sync.WaitGroup{}
+		if err != nil {
+			slog.Error("Failed to save traces: " + err.Error())
 
-		for serviceId, traces := range serviceTracesMap {
-			wg.Add(1)
+			// A store out of reach — ClickHouse restarting, over its memory limit, MongoDB
+			// failing over — fails every batch alike. Counted as attempts, it would move a
+			// whole buffer to the invalid one within seconds of an outage.
+			// A save cut off by the stop's deadline is not the batch's fault either.
+			if ctx.Err() != nil {
+				continue
+			}
 
-			go func() {
-				defer wg.Done()
+			if isUnavailable(err) {
+				unavailablePause = nextPause(unavailablePause, minUnavailablePause, maxUnavailablePause)
 
-				count, failedTraceIds := s.periodicTraceService.Save(ctx, serviceId, traces)
+				s.pause(ctx, unavailablePause)
 
-				go s.totalHandledBufferCount.Add(uint64(count))
+				continue
+			}
+		} else {
+			unavailablePause = 0
+			failedPause = 0
 
-				failedSet := make(map[string]bool, len(failedTraceIds))
-
-				for _, traceId := range failedTraceIds {
-					failedSet[traceId] = true
-				}
-
-				localSaved := make([]primitive.ObjectID, 0)
-				localFailed := make([]primitive.ObjectID, 0)
-
-				for traceId, trace := range traces.Items() {
-					if failedSet[traceId] {
-						localFailed = append(localFailed, trace.Ids...)
-					} else {
-						localSaved = append(localSaved, trace.Ids...)
-					}
-				}
-
-				mu.Lock()
-				savedIds = append(savedIds, localSaved...)
-				failedIds = append(failedIds, localFailed...)
-				mu.Unlock()
-			}()
+			go s.totalHandledBufferCount.Add(uint64(result.Saved))
 		}
 
-		wg.Wait()
+		savedIds, failedIds := splitIds(serviceTracesMap, result.Failed, err != nil)
 
 		if len(savedIds) > 0 {
-			deletedCount, err := s.bufferService.DeleteByIds(ctx, savedIds)
+			deletedCount, err := s.bufferService.DeleteByIds(batchCtx, savedIds)
 
 			if err != nil {
 				slog.Error(errs.Err(err).Error())
@@ -136,13 +238,21 @@ func (s *Transporter) Run(ctx context.Context) error {
 		}
 
 		if len(failedIds) > 0 {
-			if err := s.bufferService.MarkFailed(ctx, failedIds, maxSaveAttempts); err != nil {
+			if err := s.bufferService.MarkFailed(batchCtx, failedIds, maxSaveAttempts); err != nil {
 				slog.Error(errs.Err(err).Error())
 			}
 		}
+
+		// Only a batch that failed as a whole: the traces that could not be merged spend
+		// their own attempts, and the rest of the buffer need not wait for them.
+		if err != nil {
+			failedPause = nextPause(failedPause, minFailedPause, maxFailedPause)
+
+			s.pause(ctx, failedPause)
+		}
 	}
 
-	s.flushCounters()
+	s.flush()
 
 	return nil
 }
@@ -170,10 +280,43 @@ func (s *Transporter) flushCounters() {
 	}
 }
 
+// splitIds sorts the buffer documents of a batch into those whose trace was written and
+// those to be tried again: all of them when the batch as a whole failed, otherwise the
+// documents of the traces that could not be merged.
+func splitIds(
+	batch map[int]*dto.ServiceTraces,
+	failedTraces map[int]map[string]bool,
+	batchFailed bool,
+) ([]primitive.ObjectID, []primitive.ObjectID) {
+	savedIds := make([]primitive.ObjectID, 0)
+	failedIds := make([]primitive.ObjectID, 0)
+
+	for serviceId, traces := range batch {
+		for traceId, trace := range traces.Items() {
+			if batchFailed || failedTraces[serviceId][traceId] {
+				failedIds = append(failedIds, trace.Ids...)
+			} else {
+				savedIds = append(savedIds, trace.Ids...)
+			}
+		}
+	}
+
+	return savedIds, failedIds
+}
+
 func (s *Transporter) GetStats() Stats {
 	return Stats{
 		Handled: s.totalHandledBufferCount.Load(),
 		Deleted: s.totalDeletedBufferCount.Load(),
+	}
+}
+
+// pause waits the time given or until the transporter is being stopped, whichever comes
+// first.
+func (s *Transporter) pause(ctx context.Context, duration time.Duration) {
+	select {
+	case <-ctx.Done():
+	case <-time.After(duration):
 	}
 }
 

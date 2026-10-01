@@ -5,11 +5,9 @@ namespace App\Providers;
 use App\Modules\Notification\Domain\Events\NotificationEnqueuedEvent;
 use App\Modules\Notification\Infrastructure\Listeners\DispatchNotificationListener;
 use App\Modules\Notification\Infrastructure\Listeners\EnqueueNotificationsListener;
-use App\Modules\Trace\Domain\Events\TraceDynamicIndexBuiltEvent;
 use App\Modules\Trace\Domain\Events\TraceTreeCacheBuildRequestedEvent;
 use App\Modules\Trace\Domain\Events\TraceTreeCacheDeleteRequestedEvent;
 use App\Modules\Trace\Domain\Events\TraceTreeCacheStateChangedEvent;
-use App\Modules\Trace\Infrastructure\Listeners\BroadcastTraceDynamicIndexBuiltListener;
 use App\Modules\Trace\Infrastructure\Listeners\BroadcastTraceTreeStateListener;
 use App\Modules\Trace\Infrastructure\Listeners\DispatchTraceTreeCacheBuildListener;
 use App\Modules\Trace\Infrastructure\Listeners\DispatchTraceTreeCacheDeleteListener;
@@ -32,9 +30,6 @@ class EventServiceProvider extends ServiceProvider
         ],
         TraceTreeCacheStateChangedEvent::class   => [
             BroadcastTraceTreeStateListener::class,
-        ],
-        TraceDynamicIndexBuiltEvent::class       => [
-            BroadcastTraceDynamicIndexBuiltListener::class,
         ],
         NotificationEnqueuedEvent::class         => [
             DispatchNotificationListener::class,

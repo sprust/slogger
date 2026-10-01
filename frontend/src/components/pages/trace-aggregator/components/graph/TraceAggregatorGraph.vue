@@ -40,6 +40,15 @@ export default defineComponent({
     Bar,
   },
 
+  data() {
+    return {
+      // The pause before the live graph's next round; held so that leaving the page
+      // cancels it rather than letting it ask again from a component that is gone.
+      playTimerId: null as number | null,
+      unmounted: false,
+    }
+  },
+
   computed: {
     traceAggregatorGraphStore() {
       return useTraceAggregatorGraphStore()
@@ -98,7 +107,7 @@ export default defineComponent({
               this.traceAggregatorStore.customFields,
           )
           .finally(() => {
-            if (!this.traceAggregatorGraphStore.playGraph) {
+            if (this.unmounted || !this.traceAggregatorGraphStore.playGraph) {
               return
             }
 
@@ -106,7 +115,9 @@ export default defineComponent({
 
             this.traceAggregatorGraphStore.waiting = true
 
-            setTimeout(() => {
+            this.playTimerId = window.setTimeout(() => {
+              this.playTimerId = null
+
               this.traceAggregatorGraphStore.waiting = false
 
               this.update()
@@ -123,7 +134,7 @@ export default defineComponent({
      * bounds it, so an upper bound set from anywhere else - a pinned bucket, an applied
      * state, the picker - can be older than it; and a poll that failed never reaches
      * setMetrics, so `loggedAtFrom` is left at the previous window for this tick to
-     * write, and a 412 while a dynamic index builds is routine here.
+     * write.
      *
      * Either way the outcome is the same and is the one to rule out: a lower bound at or
      * after the upper one, which the search answers with nothing while the chart above it
@@ -169,6 +180,19 @@ export default defineComponent({
 
       this.traceAggregatorGraphStore.showGraph = false
     }
+  },
+  beforeUnmount() {
+    this.unmounted = true
+
+    if (this.playTimerId !== null) {
+      window.clearTimeout(this.playTimerId)
+
+      this.playTimerId = null
+    }
+
+    // The round that was waiting will not come; left raised, the flag would keep the
+    // graph from starting again when the page is opened next.
+    this.traceAggregatorGraphStore.waiting = false
   },
   watch: {
     'traceAggregatorGraphStore.playGraph'() {

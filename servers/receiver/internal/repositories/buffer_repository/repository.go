@@ -2,6 +2,7 @@ package buffer_repository
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -10,6 +11,7 @@ import (
 	"slogger_receiver/internal/dto"
 	"slogger_receiver/internal/helpers/bson_helper"
 	"slogger_receiver/internal/helpers/datetime_helper"
+	"slogger_receiver/internal/helpers/json_helper"
 	"slogger_receiver/pkg/foundation/errs"
 	"sync"
 	"time"
@@ -27,6 +29,9 @@ type InvalidDoc struct {
 	Doc    bson.M
 	Reason string
 }
+
+// maxBatchBytes stops a batch early once its documents add up to this much.
+const maxBatchBytes = 32 << 20
 
 // How much of an undecodable document's raw bytes is kept beside it.
 //
@@ -153,8 +158,12 @@ func (r *Repository) FindMany(ctx context.Context, limit int) (map[int]*dto.Serv
 
 	result := make(map[int]*dto.ServiceTraces)
 	invalid := make([]InvalidDoc, 0)
+	read := 0
 
-	for cursor.Next(ctx) {
+	// The size as well as the count: the batch is held several times over until its insert.
+	for read < maxBatchBytes && cursor.Next(ctx) {
+		read += len(cursor.Current)
+
 		var doc bson.M
 
 		if err := cursor.Decode(&doc); err != nil {
@@ -184,8 +193,12 @@ func (r *Repository) FindMany(ctx context.Context, limit int) (map[int]*dto.Serv
 			result[serviceId] = &dto.ServiceTraces{}
 		}
 
-		data := dto.Data{
-			Value: bson_helper.OrderedValue(cursor.Current, "dt", doc["dt"]),
+		data, err := readData(cursor.Current, doc)
+
+		if err != nil {
+			invalid = append(invalid, InvalidDoc{Doc: doc, Reason: "dt cannot be written as JSON"})
+
+			continue
 		}
 
 		if parsed.op == "c" {
@@ -472,7 +485,7 @@ func (r *Repository) makeCreatingTraceDoc(serviceId int, trace dto.TraceCreating
 		"tp":  trace.Type,
 		"st":  trace.Status,
 		"tgs": trace.Tags,
-		"dt":  trace.Data.Value,
+		"dj":  string(trace.Data.Raw),
 		"lat": trace.LoggedAt,
 		"cat": datetime_helper.Now(),
 	}
@@ -502,7 +515,7 @@ func (r *Repository) makeUpdatingTraceDoc(serviceId int, trace dto.TraceUpdating
 		"sid":  serviceId,
 		"tid":  trace.TraceId,
 		"st":   trace.Status,
-		"dt":   trace.Data.Value,
+		"dj":   string(trace.Data.Raw),
 		"plat": trace.ParentLoggedAt,
 		"cat":  datetime_helper.Now(),
 	}
@@ -558,6 +571,28 @@ func (r *Repository) connect(ctx context.Context) error {
 	r.mInvalidColl = database.Collection(os.Getenv("MONGODB_COLL_INVALID_BUFFER"))
 
 	return nil
+}
+
+// readData takes `dj`, the JSON as it arrived, and turns the BSON `dt` of a document
+// written by an earlier version into the same JSON.
+func readData(raw bson.Raw, doc bson.M) (dto.Data, error) {
+	if dj, ok := doc["dj"].(string); ok {
+		return dto.Data{Raw: json.RawMessage(dj)}, nil
+	}
+
+	value := bson_helper.OrderedValue(raw, "dt", doc["dt"])
+
+	if value == nil {
+		return dto.Data{}, nil
+	}
+
+	encoded, err := json_helper.Marshal(value)
+
+	if err != nil {
+		return dto.Data{}, err
+	}
+
+	return dto.Data{Raw: encoded}, nil
 }
 
 // readBufferDoc pulls out the fields the transporter cannot work without, and says why it

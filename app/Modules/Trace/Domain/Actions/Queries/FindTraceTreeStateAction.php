@@ -8,6 +8,7 @@ use App\Modules\Trace\Entities\Trace\Tree\TraceTreeStateObject;
 use App\Modules\Trace\Repositories\TraceRepository;
 use App\Modules\Trace\Repositories\TraceTreeCacheStateRepository;
 use App\Modules\Trace\Repositories\TraceTreeRepository;
+use App\Services\Clickhouse\ClickhouseQueryException;
 
 readonly class FindTraceTreeStateAction
 {
@@ -18,6 +19,9 @@ readonly class FindTraceTreeStateAction
     ) {
     }
 
+    /**
+     * @throws ClickhouseQueryException
+     */
     public function handle(string $traceId): ?TraceTreeStateObject
     {
         $rootTraceId = $this->traceTreeRepository->findParentTraceId(

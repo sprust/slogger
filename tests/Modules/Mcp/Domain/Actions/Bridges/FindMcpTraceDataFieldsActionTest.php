@@ -3,7 +3,6 @@
 namespace Tests\Modules\Mcp\Domain\Actions\Bridges;
 
 use App\Modules\Mcp\Domain\Actions\Bridges\FindMcpTraceDataFieldsAction;
-use App\Modules\Mcp\Domain\Services\McpTraceIndexExceptionTranslator;
 use App\Modules\Mcp\Domain\Services\McpTracePeriodMapper;
 use App\Modules\Mcp\Entities\Bridges\McpTraceDataFieldObject;
 use App\Modules\Mcp\Parameters\FindMcpTraceDataFieldsParameters;
@@ -84,10 +83,9 @@ class FindMcpTraceDataFieldsActionTest extends TestCase
         $detail->method('handle')->willReturnCallback(static fn(string $traceId) => $details[$traceId] ?? null);
 
         return new FindMcpTraceDataFieldsAction(
-            $search,
-            $detail,
-            new McpTraceIndexExceptionTranslator(),
-            new McpTracePeriodMapper()
+            findTracesAction: $search,
+            findTraceDetailAction: $detail,
+            periodMapper: new McpTracePeriodMapper()
         );
     }
 }

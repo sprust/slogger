@@ -7,6 +7,8 @@ namespace App\Modules\Dashboard\Repositories;
 use App\Modules\Dashboard\Entities\DatabaseCollectionIndexStatObject;
 use App\Modules\Dashboard\Entities\DatabaseCollectionStatObject;
 use App\Modules\Dashboard\Entities\DatabaseStatObject;
+use App\Services\Clickhouse\ClickhouseClient;
+use App\Services\Clickhouse\ClickhouseQueryException;
 use App\Services\Mongo\MongoConnectionFactory;
 use Illuminate\Support\Arr;
 use RuntimeException;
@@ -26,11 +28,16 @@ readonly class DatabaseStatRepository
      */
     private const int LIST_COLLECTIONS_BATCH_SIZE = 10000;
 
-    public function __construct(private MongoConnectionFactory $connections)
-    {
+    public function __construct(
+        private MongoConnectionFactory $connections,
+        private ClickhouseClient $clickhouse,
+    ) {
     }
 
     /**
+     * The MongoDB databases, then the ClickHouse one that holds the traces. ClickHouse out of
+     * reach leaves its entry out and is reported, so the MongoDB stats still refresh.
+     *
      * @return DatabaseStatObject[]
      */
     public function find(): array
@@ -85,7 +92,78 @@ readonly class DatabaseStatRepository
             );
         }
 
+        try {
+            $databases[] = $this->clickhouseStat();
+        } catch (ClickhouseQueryException $exception) {
+            report($exception);
+        }
+
         return $databases;
+    }
+
+    /**
+     * The tables of the ClickHouse database in the shape of collections: the active parts
+     * give the rows and the bytes, the skipping indexes their own size. Rows of a trace
+     * written twice count twice until its parts are merged.
+     *
+     * @throws ClickhouseQueryException
+     */
+    private function clickhouseStat(): DatabaseStatObject
+    {
+        $tables = $this->clickhouse->select(
+            sql: 'SELECT table, sum(rows) AS rows, sum(bytes_on_disk) AS total, '
+            . 'sum(data_compressed_bytes) AS data, sum(secondary_indices_compressed_bytes) AS indexes '
+            . 'FROM system.parts WHERE database = currentDatabase() AND active GROUP BY table ORDER BY table',
+            queryIdPrefix: 'dashboard-database'
+        );
+
+        $indexes = $this->clickhouse->select(
+            sql: 'SELECT table, name, data_compressed_bytes AS size FROM system.data_skipping_indices '
+            . 'WHERE database = currentDatabase() ORDER BY table, name',
+            queryIdPrefix: 'dashboard-database'
+        );
+
+        $memory = $this->clickhouse->select(
+            sql: "SELECT value FROM system.metrics WHERE metric = 'MemoryTracking'",
+            queryIdPrefix: 'dashboard-database'
+        );
+
+        $collections = [];
+
+        foreach ($tables as $table) {
+            $rows = (int) $table['rows'];
+
+            $collections[] = new DatabaseCollectionStatObject(
+                name: (string) $table['table'],
+                size: $this->bitesToMb((int) $table['data']),
+                indexesSize: $this->bitesToMb((int) $table['indexes']),
+                totalSize: $this->bitesToMb((int) $table['total']),
+                count: $rows,
+                avgObjSize: $rows === 0 ? 0 : $this->bitesToMb((int) $table['total'] / $rows),
+                indexes: array_values(
+                    array_map(
+                        fn(array $index) => new DatabaseCollectionIndexStatObject(
+                            name: (string) $index['name'],
+                            size: $this->bitesToMb((int) $index['size']),
+                            // ClickHouse keeps no per-index access counter
+                            usage: 0
+                        ),
+                        array_filter(
+                            $indexes,
+                            static fn(array $index): bool => $index['table'] === $table['table']
+                        )
+                    )
+                ),
+            );
+        }
+
+        return new DatabaseStatObject(
+            name: 'clickhouse',
+            size: $this->bitesToMb(array_sum(array_map(static fn(array $table) => (int) $table['total'], $tables))),
+            totalDocumentsCount: array_sum(array_map(static fn(array $table) => (int) $table['rows'], $tables)),
+            memoryUsage: $this->bitesToMb((int) ($memory[0]['value'] ?? 0)),
+            collections: $collections
+        );
     }
 
     /** The server's own memory, which is per process rather than per database. */

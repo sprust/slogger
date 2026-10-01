@@ -7,10 +7,6 @@ namespace App\Modules\Trace\Infrastructure\Http\Controllers;
 use App\Modules\Common\Helpers\ArrayValueGetter;
 use App\Modules\Trace\Domain\Actions\MakeMetricIndicatorsAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceTimestampsAction;
-use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexErrorException;
-use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexInProcessException;
-use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexNotInitException;
-use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexParallelArraysException;
 use App\Modules\Trace\Enums\TraceMetricFieldEnum;
 use App\Modules\Trace\Enums\TraceTimestampEnum;
 use App\Modules\Trace\Enums\TraceTimestampPeriodEnum;
@@ -21,6 +17,7 @@ use App\Modules\Trace\Parameters\FindTraceTimestampsParameters;
 use Ifksco\OpenApiGenerator\Attributes\OaListItemTypeAttribute;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Carbon;
+use App\Services\Clickhouse\ClickhouseQueryException;
 
 readonly class TraceTimestampsController
 {
@@ -32,10 +29,7 @@ readonly class TraceTimestampsController
     }
 
     /**
-     * @throws TraceDynamicIndexNotInitException
-     * @throws TraceDynamicIndexErrorException
-     * @throws TraceDynamicIndexParallelArraysException
-     * @throws TraceDynamicIndexInProcessException
+     * @throws ClickhouseQueryException
      */
     public function index(TraceTimestampsRequest $request): TraceTimestampsResource
     {

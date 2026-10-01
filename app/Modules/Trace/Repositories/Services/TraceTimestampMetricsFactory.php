@@ -125,12 +125,10 @@ class TraceTimestampMetricsFactory
     /**
      * The last instant the bucket holds, not the start of its last unit.
      *
-     * A trace joins a bucket by the truncated timestamp stored in its `tss` map, so the
+     * A trace joins the bucket its logged-at moment falls into (toStartOfInterval), so the
      * bucket is half-open - [start, start + step). A click on it opens a search that
      * filters `lat` inclusively, which makes the end it needs one tick before the next
-     * bucket begins. That tick is a microsecond: Mongo stores milliseconds today, but the
-     * boundary should not have to be revisited if the traces ever move to a store that
-     * keeps more.
+     * bucket begins. That tick is a microsecond, the precision `lat` is stored with.
      */
     public function makeNextTimestamp(Carbon $date, TraceTimestampEnum $timestamp): Carbon
     {

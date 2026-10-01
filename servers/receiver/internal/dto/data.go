@@ -3,144 +3,60 @@ package dto
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
-	"fmt"
-	"io"
-
-	"go.mongodb.org/mongo-driver/bson"
+	"unicode/utf8"
 )
 
-// Data is a trace's `dt` payload, held in the order it arrived.
-//
-// json.Unmarshal into an interface{} turns a JSON object into a map, and a Go map has no
-// order: the field order the client sent is gone before the trace reaches the buffer, and
-// what MongoDB ends up storing is whatever order the map happened to iterate in. The
-// tokens are read by hand instead, so an object becomes a bson.D and keeps its order all
-// the way to the shard.
+// Data is a trace's `dt` as the client sent it, byte for byte: nothing looks inside it, and
+// the message it came in was validated as a whole.
 type Data struct {
-	Value interface{}
+	Raw json.RawMessage
 }
 
+// UnmarshalJSON copies: encoding/json does not promise the bytes outlive the call. Invalid
+// UTF-8, which can only sit inside a string, becomes U+FFFD: ClickHouse refuses the whole insert.
 func (d *Data) UnmarshalJSON(data []byte) error {
-	decoder := json.NewDecoder(bytes.NewReader(data))
+	if !utf8.Valid(data) {
+		d.Raw = bytes.ToValidUTF8(data, []byte("\uFFFD"))
 
-	value, err := decodeJsonValue(decoder)
-
-	if err != nil {
-		return err
+		return nil
 	}
 
-	// What json.Unmarshal does with trailing content, kept because a payload with two
-	// values in it is a broken payload however it is read.
-	if _, err := decoder.Token(); !errors.Is(err, io.EOF) {
-		return errors.New("unexpected content after the data value")
-	}
-
-	d.Value = value
+	d.Raw = append(json.RawMessage(nil), data...)
 
 	return nil
 }
 
-func decodeJsonValue(decoder *json.Decoder) (interface{}, error) {
-	token, err := decoder.Token()
-
-	if err != nil {
-		return nil, err
-	}
-
-	return decodeJsonToken(decoder, token)
+// IsNull says whether there is no data: the field was not sent, or was sent as null.
+func (d Data) IsNull() bool {
+	return IsNullJson(d.Raw)
 }
 
-// decodeJsonToken takes the token already read, because an array reads one to know
-// whether the array has ended before it knows it is reading a value.
-func decodeJsonToken(decoder *json.Decoder, token json.Token) (interface{}, error) {
-	delimiter, ok := token.(json.Delim)
+// IsNullJson says whether raw holds no value: nothing at all, or null.
+func IsNullJson(raw []byte) bool {
+	trimmed := bytes.TrimSpace(raw)
 
-	// Numbers arrive as float64, which is what json.Unmarshal gave before this type
-	// existed. Reading them as integers would change the BSON types under the dynamic
-	// indexes and the data filters, and that is not what this is about.
-	if !ok {
-		return token, nil
-	}
-
-	switch delimiter {
-	case '{':
-		return decodeJsonObject(decoder)
-	case '[':
-		return decodeJsonArray(decoder)
-	}
-
-	return nil, fmt.Errorf("unexpected delimiter %q", delimiter)
+	return len(trimmed) == 0 || bytes.Equal(trimmed, []byte("null"))
 }
 
-func decodeJsonObject(decoder *json.Decoder) (bson.D, error) {
-	document := bson.D{}
-
-	for {
-		token, err := decoder.Token()
-
-		if err != nil {
-			return nil, err
-		}
-
-		if delimiter, ok := token.(json.Delim); ok && delimiter == '}' {
-			return document, nil
-		}
-
-		key, ok := token.(string)
-
-		if !ok {
-			return nil, fmt.Errorf("unexpected object key %v", token)
-		}
-
-		value, err := decodeJsonValue(decoder)
-
-		if err != nil {
-			return nil, err
-		}
-
-		document = setDocumentValue(document, key, value)
+// IsEmptyJson says whether raw holds no data: no value, an empty array or an empty object.
+func IsEmptyJson(raw []byte) bool {
+	if IsNullJson(raw) {
+		return true
 	}
+
+	trimmed := bytes.TrimSpace(raw)
+	first, last := trimmed[0], trimmed[len(trimmed)-1]
+
+	if !(first == '[' && last == ']') && !(first == '{' && last == '}') {
+		return false
+	}
+
+	return len(bytes.TrimSpace(trimmed[1:len(trimmed)-1])) == 0
 }
 
-func decodeJsonArray(decoder *json.Decoder) (bson.A, error) {
-	array := bson.A{}
+// IsObjectJson says whether raw holds a JSON object, the only shape the JSON column takes.
+func IsObjectJson(raw []byte) bool {
+	trimmed := bytes.TrimSpace(raw)
 
-	for {
-		token, err := decoder.Token()
-
-		if err != nil {
-			return nil, err
-		}
-
-		if delimiter, ok := token.(json.Delim); ok && delimiter == ']' {
-			return array, nil
-		}
-
-		value, err := decodeJsonToken(decoder, token)
-
-		if err != nil {
-			return nil, err
-		}
-
-		array = append(array, value)
-	}
-}
-
-// setDocumentValue writes a key the way the map did: the last value of a repeated key
-// wins. Without it a bson.D would carry the key twice, which a map could never produce
-// and nothing downstream expects.
-//
-// The scan is linear because the objects in trace data are small, and a second index per
-// object would cost more than it saves.
-func setDocumentValue(document bson.D, key string, value interface{}) bson.D {
-	for index := range document {
-		if document[index].Key == key {
-			document[index].Value = value
-
-			return document
-		}
-	}
-
-	return append(document, bson.E{Key: key, Value: value})
+	return len(trimmed) > 0 && trimmed[0] == '{'
 }

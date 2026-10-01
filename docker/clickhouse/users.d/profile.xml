@@ -1,0 +1,19 @@
+<!--
+    Query limits of the default profile, which every user of the image gets.
+    A query over the memory limit spills its sort or group by to disk instead of failing.
+-->
+<clickhouse>
+    <profiles>
+        <default>
+            <max_memory_usage>2147483648</max_memory_usage>
+            <max_bytes_before_external_group_by>1073741824</max_bytes_before_external_group_by>
+            <max_bytes_before_external_sort>1073741824</max_bytes_before_external_sort>
+            <max_threads>4</max_threads>
+            <!-- query_log keeps the text with its parameters substituted: a lookup of a few
+                 thousand keys would store a megabyte per query -->
+            <log_queries_cut_to_length>10000</log_queries_cut_to_length>
+            <!-- create and update of a trace always share a partition (the hour of lat) -->
+            <do_not_merge_across_partitions_select_final>1</do_not_merge_across_partitions_select_final>
+        </default>
+    </profiles>
+</clickhouse>

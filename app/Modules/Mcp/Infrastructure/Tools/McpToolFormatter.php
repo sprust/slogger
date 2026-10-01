@@ -39,6 +39,18 @@ readonly class McpToolFormatter
     }
 
     /**
+     * The trace storage refused the query or did not answer it in time.
+     */
+    public function queryFailed(): McpToolResult
+    {
+        return $this->error(
+            error: 'query_failed',
+            hint: 'The trace storage could not answer this query. Try a shorter period, fewer services '
+            . 'or narrower filters.'
+        );
+    }
+
+    /**
      * @param int[] $serviceIds
      */
     public function serviceNotFound(array $serviceIds): McpToolResult
@@ -49,29 +61,6 @@ readonly class McpToolFormatter
                 'No services with ids [%s]. Call get_services to get the ids.',
                 implode(', ', $serviceIds)
             )
-        );
-    }
-
-    public function indexBuilding(string $indexId): McpToolResult
-    {
-        return new McpToolResult(
-            data: [
-                'status'              => 'index_building',
-                'index_id'            => $indexId,
-                'retry_after_seconds' => 10,
-                'hint'                => 'The trace index for these filters and hours is being built. '
-                    . 'Do something else useful meanwhile, then repeat the SAME call, or follow the index '
-                    . 'with get_trace_index_status. Another set of filters or other hours would start building '
-                    . 'another index.',
-            ]
-        );
-    }
-
-    public function indexError(string $message): McpToolResult
-    {
-        return $this->error(
-            error: 'index_error',
-            hint: 'Building the trace index failed: ' . $message
         );
     }
 

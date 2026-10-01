@@ -3,6 +3,7 @@
 namespace App\Console;
 
 use App\Modules\Cleaner\Infrastructure\Jobs\ClearTracesJob;
+use App\Modules\Cleaner\Infrastructure\Jobs\OptimizeTracesJob;
 use App\Modules\Dashboard\Infrastructure\Jobs\RefreshDatabaseStatCacheJob;
 use App\Modules\Logs\Infrastructure\Commands\CleanLogsCommand;
 use App\Modules\Logs\Infrastructure\Commands\IndexLogsCommand;
@@ -18,6 +19,7 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule): void
     {
         $schedule->job(ClearTracesJob::class)->hourly();
+        $schedule->job(OptimizeTracesJob::class)->hourlyAt(10);
         $schedule->job(RefreshDatabaseStatCacheJob::class)->everyFiveMinutes();
         $schedule->command(DeleteExpiredUserTokensCommand::class)->daily();
         $schedule->command(IndexLogsCommand::class)->everyMinute()->withoutOverlapping();

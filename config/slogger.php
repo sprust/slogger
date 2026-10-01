@@ -213,7 +213,6 @@ return [
                     'queue:work',
                     'queue:listen',
                     'slogger:dispatcher:start',
-                    'trace-dynamic-indexes:monitor:start',
                     'receiver:monitor',
                     'sconcur:servers:master:start',
                     'sconcur:servers:http:start',
@@ -288,12 +287,7 @@ return [
             'config'  => [
                 // task names to ignore. every tick of a task is a trace, and the tasks
                 // tick every few seconds, so this is how the chatty ones are silenced.
-                // these two tick once a second and are almost always idle - uncomment
-                // them to keep only cron and the watcher check.
-                'excepted' => [
-                     \App\Modules\Trace\Infrastructure\Tasks\BuildTraceDynamicIndexesTask::NAME,
-                     \App\Modules\Trace\Infrastructure\Tasks\PublishTraceDynamicIndexStatsTask::NAME,
-                ],
+                'excepted' => [],
             ],
         ],
 

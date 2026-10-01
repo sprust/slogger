@@ -14,6 +14,8 @@ use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolArgumentsException;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolInterface;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolRegistry;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolSchemaCompiler;
+use App\Modules\Mcp\Infrastructure\Tools\McpToolFormatter;
+use App\Services\Clickhouse\ClickhouseQueryException;
 use Illuminate\Contracts\Validation\Factory as ValidationFactory;
 use stdClass;
 use Symfony\Component\HttpFoundation\Response;
@@ -29,6 +31,7 @@ readonly class McpServer
         private McpInstructionsBuilder $instructionsBuilder,
         private McpStringTruncator $stringTruncator,
         private McpJsonEncoder $jsonEncoder,
+        private McpToolFormatter $toolFormatter,
         private ValidationFactory $validationFactory
     ) {
     }
@@ -124,6 +127,11 @@ readonly class McpServer
             $result = $tool->call($arguments);
         } catch (McpToolArgumentsException $exception) {
             throw $this->invalidParams($message, 'Invalid params: ' . $exception->getMessage());
+        } catch (ClickhouseQueryException $exception) {
+            // the model can retry with a narrower query, so it is told so rather than given -32603
+            report($exception);
+
+            $result = $this->toolFormatter->queryFailed();
         }
 
         $data = [

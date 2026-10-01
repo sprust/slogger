@@ -1,0 +1,51 @@
+<!--
+    Server settings for a machine that also runs MongoDB, MySQL and the application.
+-->
+<clickhouse>
+    <!--
+        The server's memory as a share of the container's, which ClickHouse reads from the
+        cgroup: CLICKHOUSE_MEM_LIMIT (mem_limit of docker-compose) is the one knob, and the
+        server stays under it whatever it is set to. 0.85 of 6g is about the 5 GB this was
+        set to by hand; the rest is left to the process outside its own accounting.
+    -->
+    <max_server_memory_usage_to_ram_ratio>0.85</max_server_memory_usage_to_ram_ratio>
+
+    <!--
+        Threads for merges and mutations (16 by default). Each merge of a traces part takes
+        memory in proportion to its columns, and with every thread busy they left nothing
+        to the queries: fewer at once, each finishing later.
+    -->
+    <background_pool_size>4</background_pool_size>
+
+    <!-- thresholds counted in free pool slots (4 threads x ratio 2 = 8), each at most that -->
+    <merge_tree>
+        <number_of_free_entries_in_pool_to_execute_mutation>4</number_of_free_entries_in_pool_to_execute_mutation>
+        <number_of_free_entries_in_pool_to_execute_optimize_entire_partition>4</number_of_free_entries_in_pool_to_execute_optimize_entire_partition>
+        <number_of_free_entries_in_pool_to_lower_max_size_of_merge>4</number_of_free_entries_in_pool_to_lower_max_size_of_merge>
+    </merge_tree>
+
+    <mark_cache_size>536870912</mark_cache_size>
+    <uncompressed_cache_size>0</uncompressed_cache_size>
+    <index_mark_cache_size>134217728</index_mark_cache_size>
+    <index_uncompressed_cache_size>134217728</index_uncompressed_cache_size>
+
+    <!-- system logs nobody reads here; query_log stays, it is how a slow query is found -->
+    <metric_log remove="1"/>
+    <asynchronous_metric_log remove="1"/>
+    <trace_log remove="1"/>
+    <text_log remove="1"/>
+    <part_log remove="1"/>
+    <latency_log remove="1"/>
+    <error_log remove="1"/>
+    <query_metric_log remove="1"/>
+    <processors_profile_log remove="1"/>
+    <opentelemetry_span_log remove="1"/>
+    <background_schedule_pool_log remove="1"/>
+
+    <query_log replace="1">
+        <database>system</database>
+        <table>query_log</table>
+        <engine>ENGINE = MergeTree PARTITION BY event_date ORDER BY event_time TTL event_date + INTERVAL 1 DAY</engine>
+        <flush_interval_milliseconds>7500</flush_interval_milliseconds>
+    </query_log>
+</clickhouse>

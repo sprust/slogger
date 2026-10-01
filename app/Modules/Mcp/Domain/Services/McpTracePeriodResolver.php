@@ -9,9 +9,18 @@ use App\Modules\Mcp\Domain\Exceptions\McpTracePeriodTooWideException;
 use App\Modules\Mcp\Entities\McpTracePeriodObject;
 use Illuminate\Support\Carbon;
 
+/**
+ * The period of a trace query, taken exactly as asked: `from` inclusive, `to` exclusive.
+ *
+ * It may span the whole time traces are kept for and no more — a longer one would ask
+ * for hours that are no longer there.
+ */
 readonly class McpTracePeriodResolver
 {
-    public const int MAX_HOURS = 24;
+    public function __construct(
+        public int $maxHours,
+    ) {
+    }
 
     /**
      * @throws McpTraceInvalidPeriodException
@@ -19,28 +28,20 @@ readonly class McpTracePeriodResolver
      */
     public function resolve(Carbon $from, Carbon $to): McpTracePeriodObject
     {
-        if ($from->gt($to)) {
+        $from = $from->clone()->utc();
+        $to   = $to->clone()->utc();
+
+        if ($from->gte($to)) {
             throw new McpTraceInvalidPeriodException();
         }
 
-        $alignedFrom = $from->clone()->utc()->startOfHour();
-        $alignedTo   = $to->clone()->utc()->startOfHour();
-
-        if ($alignedTo->lt($to)) {
-            $alignedTo->addHour();
-        }
-
-        if ($alignedTo->eq($alignedFrom)) {
-            $alignedTo->addHour();
-        }
-
-        if ($alignedFrom->diffInHours($alignedTo) > self::MAX_HOURS) {
-            throw new McpTracePeriodTooWideException(self::MAX_HOURS);
+        if ($from->clone()->addHours($this->maxHours)->lt($to)) {
+            throw new McpTracePeriodTooWideException($this->maxHours);
         }
 
         return new McpTracePeriodObject(
-            from: $alignedFrom,
-            to: $alignedTo
+            from: $from,
+            to: $to
         );
     }
 }

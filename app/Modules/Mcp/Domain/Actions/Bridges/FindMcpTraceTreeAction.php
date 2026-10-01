@@ -10,6 +10,7 @@ use App\Modules\Trace\Domain\Actions\Queries\FindTraceTreeAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceTreeChildrenAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceTreeStateAction;
 use App\Modules\Trace\Enums\TraceTreeCacheStateStatusEnum;
+use App\Services\Clickhouse\ClickhouseQueryException;
 
 readonly class FindMcpTraceTreeAction
 {
@@ -21,6 +22,9 @@ readonly class FindMcpTraceTreeAction
     ) {
     }
 
+    /**
+     * @throws ClickhouseQueryException
+     */
     public function handle(string $traceId, ?string $parentTraceId, ?string $cursor, int $limit): ?McpTraceTreeObject
     {
         $tree = $this->findTraceTreeStateAction->handle($traceId);

@@ -17,7 +17,6 @@
     <el-scrollbar class="height-100" style="padding: 0 20px 20px 20px" view-style="height: 100%">
       <router-view/>
     </el-scrollbar>
-    <PendingRequestDialog/>
   </el-container>
 </template>
 
@@ -26,10 +25,9 @@
 import {defineComponent} from "vue";
 import {useAuthStore} from "./store/authStore.ts";
 import Header from "./components/Header.vue";
-import PendingRequestDialog from "./components/PendingRequestDialog.vue";
 
 export default defineComponent({
-  components: {Header, PendingRequestDialog},
+  components: {Header},
 
   data() {
     return {

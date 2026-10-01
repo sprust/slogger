@@ -1,93 +1,212 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Modules\Trace\Repositories;
 
-use App\Modules\Trace\Repositories\Services\PeriodicTraceService;
-use App\Modules\Trace\Repositories\Services\TracePipelineBuilder;
+use App\Modules\Trace\Repositories\Services\ClickhouseDataPathTypes;
+use App\Modules\Trace\Repositories\Services\ClickhouseTraceFilterBuilder;
+use App\Modules\Trace\Repositories\Services\ClickhouseTraceRowReader;
+use App\Modules\Trace\Repositories\Services\TraceDataPathResolver;
 use App\Modules\Trace\Repositories\TraceRepository;
+use Illuminate\Support\Carbon;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
+use Tests\Services\Clickhouse\FakeClickhouseClient;
 
-/**
- * Reading the profiling of one trace.
- *
- * Absence is the case worth pinning down. The receiver writes every trace document with
- * `hpr => false, pr => []`, so a trace without profiling does not lack the field — it
- * carries an empty one. Read as if it were filled, that answered the endpoint with a 500
- * where the controller turns a null into a 404.
- */
 class TraceRepositoryTest extends TestCase
 {
-    public function testATraceWithoutProfilingReadsAsAbsent(): void
+    private FakeClickhouseClient $client;
+
+    public function testPageOfTracesNewestFirst(): void
     {
-        $this->assertNull($this->repository(['tid' => 'trace-1', 'hpr' => false, 'pr' => []])->findProfilingByTraceId('trace-1'));
+        $traces = $this->repository([[$this->row()]])->find(
+            page: 3,
+            perPage: 20,
+            serviceIds: [1],
+            loggedAtFrom: Carbon::parse('2026-09-29 10:00:00', 'UTC')
+        );
+
+        $query = $this->client->selects[0];
+
+        $this->assertStringContainsString('FROM traces FINAL WHERE sid IN {f0:Array(UInt32)} AND lat >= ', $query['sql']);
+        $this->assertStringEndsWith('ORDER BY lat DESC, tid LIMIT {limit:UInt32} OFFSET {offset:UInt32}', $query['sql']);
+        $this->assertSame(20, $query['params']['limit']);
+        $this->assertSame(40, $query['params']['offset']);
+
+        $trace = $traces[0];
+
+        $this->assertSame('trace-1', $trace->traceId);
+        $this->assertSame(2, $trace->serviceId);
+        $this->assertNull($trace->parentTraceId);
+        $this->assertSame(['api'], $trace->tags);
+        $this->assertSame(0.2, $trace->duration);
+        $this->assertNull($trace->memory);
+        $this->assertFalse($trace->hasProfiling);
+        $this->assertSame('2026-09-29 10:00:00.123456', $trace->loggedAt->format('Y-m-d H:i:s.u'));
     }
 
-    /** A document that never carried the field at all is absent for the same reason. */
-    public function testATraceWithNoProfilingFieldReadsAsAbsent(): void
+    public function testDetailKeepsTheOrderOfTheData(): void
     {
-        $this->assertNull($this->repository(['tid' => 'trace-1'])->findProfilingByTraceId('trace-1'));
+        $trace = $this->repository([[$this->row(rawData: '{"b":1,"a":{"y":null,"x":[1,2]}}')]])
+            ->findOneDetailByTraceId('trace-1');
+
+        $this->assertNotNull($trace);
+        $this->assertSame(['b', 'a'], array_map(static fn($child) => $child->key, $trace->data->children ?? []));
+        $this->assertSame(['a.y', 'a.x'], array_map(static fn($child) => $child->key, $trace->data->children[1]->children ?? []));
+        $this->assertSame(['tid' => 'trace-1'], $this->client->selects[0]['params']);
     }
 
-    public function testATraceThatIsNotThereReadsAsAbsent(): void
+    public function testDetailOfDataThatIsNotAnObject(): void
     {
-        $this->assertNull($this->repository(null)->findProfilingByTraceId('trace-1'));
+        $trace = $this->repository([[$this->row(rawData: '"just text"')]])->findOneDetailByTraceId('trace-1');
+
+        $this->assertSame('just text', $trace?->data->value);
     }
 
-    /** A trace whose collection is unknown never reaches the document read. */
-    public function testATraceWithNoCollectionReadsAsAbsent(): void
+    public function testMissingTraceReadsAsAbsent(): void
     {
-        $service = $this->createMock(PeriodicTraceService::class);
+        $this->assertNull($this->repository([[]])->findOneDetailByTraceId('trace-1'));
+    }
 
-        $service->method('findCollectionNameByTraceId')->willReturn(null);
-        $service->expects($this->never())->method('findOne');
+    public function testProfilingIsNotStored(): void
+    {
+        $this->assertNull($this->repository()->findProfilingByTraceId('trace-1'));
+        $this->assertSame([], $this->client->selects);
+    }
 
-        $repository = new TraceRepository($this->createMock(TracePipelineBuilder::class), $service);
+    public function testTreeNodesReadTheLatestVersionOfEachTrace(): void
+    {
+        $nodes = $this->repository([[$this->row(parentTraceId: 'root')]])->findTreeNodesByTraceIds(['trace-1']);
 
-        $this->assertNull($repository->findProfilingByTraceId('trace-1'));
+        $this->assertStringContainsString('WHERE tid IN {tids:Array(String)} ORDER BY uat DESC LIMIT 1 BY sid, tid', $this->client->selects[0]['sql']);
+        $this->assertSame('root', $nodes[0]->parentTraceId);
+        $this->assertSame([], $this->repository()->findTreeNodesByTraceIds([]));
+    }
+
+    public function testHourRange(): void
+    {
+        $range = $this->repository([[['first' => '2026-09-26 10:00:00.000000', 'last' => '2026-09-29 11:00:00.000000']]])
+            ->findHourRange();
+
+        $this->assertSame('2026-09-26T10:00:00Z', $range->firstHour?->toIso8601ZuluString());
+        $this->assertSame('2026-09-29T11:00:00Z', $range->lastHour?->toIso8601ZuluString());
+
+        $empty = $this->repository([[]])->findHourRange();
+
+        $this->assertNull($empty->firstHour);
+        $this->assertNull($empty->lastHour);
+    }
+
+    public function testEndedPartitionsAreTheHoursThatEndedByTheRetentionBoundary(): void
+    {
+        $to = Carbon::parse('2026-09-29 12:00:00', 'UTC');
+
+        $partitions = $this->repository([[
+            ['partition_id' => '1790676000', 'rows' => 10],
+            ['partition_id' => '1790679600', 'rows' => 5],
+        ]])->findEndedPartitions($to);
+
+        $query = $this->client->selects[0];
+
+        // an hour is dropped once its end, not its start, is past the boundary
+        $this->assertStringContainsString(
+            "parseDateTime64BestEffort(partition, 0, 'UTC') + INTERVAL 1 HOUR <= {to:DateTime64(6, 'UTC')}",
+            $query['sql']
+        );
+        $this->assertSame($to, $query['params']['to']);
+        $this->assertSame(['1790676000', '1790679600'], array_map(static fn($partition) => $partition->id, $partitions));
+        $this->assertSame([10, 5], array_map(static fn($partition) => $partition->rowsCount, $partitions));
+    }
+
+    public function testDropPartition(): void
+    {
+        $this->repository()->dropPartition('1790676000');
+
+        $this->assertSame("ALTER TABLE traces DROP PARTITION ID '1790676000'", $this->client->commands[0]['sql']);
+    }
+
+    public function testEndedPartitionsRefuseAnUnexpectedId(): void
+    {
+        $this->expectException(RuntimeException::class);
+
+        $this->repository([[['partition_id' => "1'; DROP", 'rows' => 1]]])
+            ->findEndedPartitions(Carbon::parse('2026-09-29 12:00:00', 'UTC'));
+    }
+
+    public function testDropPartitionRefusesAnUnexpectedId(): void
+    {
+        $this->expectException(RuntimeException::class);
+
+        $this->repository()->dropPartition("1790676000\n");
+    }
+
+    public function testTreeNodesAreReadInBatchesOfIds(): void
+    {
+        $traceIds = array_map(static fn(int $index) => "trace-$index", range(1, 12_001));
+
+        $nodes = $this->repository([[$this->row()], [], [$this->row(parentTraceId: 'root')]])->findTreeNodesByTraceIds($traceIds);
+
+        $this->assertSame([5000, 5000, 2001], array_map(static fn($select) => count($select['params']['tids']), $this->client->selects));
+        $this->assertCount(2, $nodes);
+    }
+
+    public function testOptimizePartitionsMergesTheClosedHoursInSeveralParts(): void
+    {
+        $count = $this->repository([[
+            ['partition_id' => '1790676000'],
+            ['partition_id' => '1790679600'],
+        ]])->optimizePartitions(Carbon::parse('2026-09-29 12:00:00', 'UTC'));
+
+        $this->assertSame(2, $count);
+        $this->assertStringContainsString('HAVING count() > 1', $this->client->selects[0]['sql']);
+        $this->assertSame("OPTIMIZE TABLE traces PARTITION ID '1790679600' FINAL", $this->client->commands[1]['sql']);
+    }
+
+    public function testOptimizePartitionsRefusesAnUnexpectedId(): void
+    {
+        $this->expectException(RuntimeException::class);
+
+        $this->repository([[['partition_id' => "1'; DROP"]]])
+            ->optimizePartitions(Carbon::parse('2026-09-29 12:00:00', 'UTC'));
     }
 
     /**
-     * The filled case, so the guard added for the empty one cannot start swallowing real
-     * profiling.
+     * @return array<string, mixed>
      */
-    public function testAFilledProfilingIsCarriedThroughIntact(): void
+    private function row(string $rawData = '{"code":200}', string $parentTraceId = ''): array
     {
-        $profiling = $this->repository([
-            'tid' => 'trace-1',
-            'hpr' => true,
-            'pr'  => [
-                'mainCaller' => 'App\\Http\\Kernel::handle',
-                'items'      => [
-                    [
-                        'raw'      => 'App\\Foo::bar',
-                        'calling'  => 'App\\Http\\Kernel::handle',
-                        'callable' => 'App\\Foo::bar',
-                        'data'     => [
-                            ['name' => 'wt', 'value' => 12.5],
-                        ],
-                    ],
-                ],
-            ],
-        ])->findProfilingByTraceId('trace-1');
-
-        $this->assertNotNull($profiling);
-        $this->assertSame('App\\Http\\Kernel::handle', $profiling->mainCaller);
-        $this->assertCount(1, $profiling->items);
-        $this->assertSame('App\\Foo::bar', $profiling->items[0]->callable);
-        $this->assertSame('wt', $profiling->items[0]->data[0]->name);
-        $this->assertSame(12.5, $profiling->items[0]->data[0]->value);
+        return [
+            'sid'    => 2,
+            'tid'    => 'trace-1',
+            'ptid'   => $parentTraceId,
+            'tp'     => 'request',
+            'st'     => 'success',
+            'tgs'    => ['api'],
+            'dt_raw' => $rawData,
+            'dur'    => 0.2,
+            'mem'    => null,
+            'cpu'    => null,
+            'lat'    => '2026-09-29 10:00:00.123456',
+            'cat'    => '2026-09-29 10:00:01.000000',
+            'uat'    => '2026-09-29 10:00:02.000000',
+        ];
     }
 
     /**
-     * @param array<string, mixed>|null $document
+     * @param list<list<array<string, mixed>>> $answers
      */
-    private function repository(?array $document): TraceRepository
+    private function repository(array $answers = []): TraceRepository
     {
-        $service = $this->createMock(PeriodicTraceService::class);
+        $this->client = new FakeClickhouseClient($answers);
 
-        $service->method('findCollectionNameByTraceId')->willReturn('traces_2026_09_05_12_13');
-        $service->method('findOne')->willReturn($document);
+        $pathTypes = $this->createMock(ClickhouseDataPathTypes::class);
+        $pathTypes->method('arrayPaths')->willReturn([]);
 
-        return new TraceRepository($this->createMock(TracePipelineBuilder::class), $service);
+        return new TraceRepository(
+            client: $this->client,
+            filterBuilder: new ClickhouseTraceFilterBuilder(new TraceDataPathResolver($pathTypes)),
+            rowReader: new ClickhouseTraceRowReader(),
+        );
     }
 }

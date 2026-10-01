@@ -46,6 +46,7 @@ return [
             /** @see OaRuleAsStringConverter */
             'excluded_for_fill_rule_as_strings' => [
                 'json',
+                'bail',
             ],
         ],
     ],

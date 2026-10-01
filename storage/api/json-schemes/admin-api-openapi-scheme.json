@@ -816,50 +816,68 @@
                                     "types": {
                                         "type": "array",
                                         "items": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "maxLength": 2000,
+                                            "minLength": 1
                                         }
                                     },
                                     "tags": {
                                         "type": "array",
                                         "items": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "maxLength": 2000,
+                                            "minLength": 1
                                         }
                                     },
                                     "statuses": {
                                         "type": "array",
                                         "items": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "maxLength": 2000,
+                                            "minLength": 1
                                         }
                                     },
                                     "duration_from": {
                                         "type": "number",
                                         "format": "float",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 0,
+                                        "maximum": 1000000000000000
                                     },
                                     "duration_to": {
                                         "type": "number",
                                         "format": "float",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 0,
+                                        "maximum": 1000000000000000
                                     },
                                     "memory_from": {
                                         "type": "number",
                                         "format": "float",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 0,
+                                        "maximum": 1000000000000000
                                     },
                                     "memory_to": {
                                         "type": "number",
                                         "format": "float",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 0,
+                                        "maximum": 1000000000000000
                                     },
                                     "cpu_from": {
                                         "type": "number",
                                         "format": "float",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 0,
+                                        "maximum": 1000000000000000
                                     },
                                     "cpu_to": {
                                         "type": "number",
                                         "format": "float",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 0,
+                                        "maximum": 1000000000000000
                                     },
                                     "data": {
                                         "type": "object",
@@ -870,7 +888,9 @@
                                                     "type": "object",
                                                     "properties": {
                                                         "field": {
-                                                            "type": "string"
+                                                            "type": "string",
+                                                            "maxLength": 255,
+                                                            "minLength": 4
                                                         },
                                                         "null": {
                                                             "type": "boolean"
@@ -883,7 +903,9 @@
                                                             "properties": {
                                                                 "value": {
                                                                     "type": "number",
-                                                                    "format": "float"
+                                                                    "format": "float",
+                                                                    "minimum": -1.0e+20,
+                                                                    "maximum": 1.0e+20
                                                                 },
                                                                 "comp": {
                                                                     "type": "string",
@@ -930,7 +952,9 @@
                                             "fields": {
                                                 "type": "array",
                                                 "items": {
-                                                    "type": "string"
+                                                    "type": "string",
+                                                    "maxLength": 255,
+                                                    "minLength": 1
                                                 }
                                             }
                                         }
@@ -1587,19 +1611,25 @@
                                     "types": {
                                         "type": "array",
                                         "items": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "maxLength": 2000,
+                                            "minLength": 1
                                         }
                                     },
                                     "tags": {
                                         "type": "array",
                                         "items": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "maxLength": 2000,
+                                            "minLength": 1
                                         }
                                     },
                                     "statuses": {
                                         "type": "array",
                                         "items": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "maxLength": 2000,
+                                            "minLength": 1
                                         }
                                     }
                                 },
@@ -2559,13 +2589,17 @@
                                     "tags": {
                                         "type": "array",
                                         "items": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "maxLength": 2000,
+                                            "minLength": 1
                                         }
                                     },
                                     "statuses": {
                                         "type": "array",
                                         "items": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "maxLength": 2000,
+                                            "minLength": 1
                                         }
                                     },
                                     "logging_from_preset": {
@@ -2595,32 +2629,44 @@
                                     "duration_from": {
                                         "type": "number",
                                         "format": "float",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 0,
+                                        "maximum": 1000000000000000
                                     },
                                     "duration_to": {
                                         "type": "number",
                                         "format": "float",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 0,
+                                        "maximum": 1000000000000000
                                     },
                                     "memory_from": {
                                         "type": "number",
                                         "format": "float",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 0,
+                                        "maximum": 1000000000000000
                                     },
                                     "memory_to": {
                                         "type": "number",
                                         "format": "float",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 0,
+                                        "maximum": 1000000000000000
                                     },
                                     "cpu_from": {
                                         "type": "number",
                                         "format": "float",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 0,
+                                        "maximum": 1000000000000000
                                     },
                                     "cpu_to": {
                                         "type": "number",
                                         "format": "float",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 0,
+                                        "maximum": 1000000000000000
                                     },
                                     "data": {
                                         "type": "object",
@@ -2631,7 +2677,9 @@
                                                     "type": "object",
                                                     "properties": {
                                                         "field": {
-                                                            "type": "string"
+                                                            "type": "string",
+                                                            "maxLength": 255,
+                                                            "minLength": 4
                                                         },
                                                         "null": {
                                                             "type": "boolean"
@@ -2644,7 +2692,9 @@
                                                             "properties": {
                                                                 "value": {
                                                                     "type": "number",
-                                                                    "format": "float"
+                                                                    "format": "float",
+                                                                    "minimum": -1.0e+20,
+                                                                    "maximum": 1.0e+20
                                                                 },
                                                                 "comp": {
                                                                     "type": "string",
@@ -2764,13 +2814,17 @@
                                     "types": {
                                         "type": "array",
                                         "items": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "maxLength": 2000,
+                                            "minLength": 1
                                         }
                                     },
                                     "statuses": {
                                         "type": "array",
                                         "items": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "maxLength": 2000,
+                                            "minLength": 1
                                         }
                                     },
                                     "logging_from_preset": {
@@ -2800,32 +2854,44 @@
                                     "duration_from": {
                                         "type": "number",
                                         "format": "float",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 0,
+                                        "maximum": 1000000000000000
                                     },
                                     "duration_to": {
                                         "type": "number",
                                         "format": "float",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 0,
+                                        "maximum": 1000000000000000
                                     },
                                     "memory_from": {
                                         "type": "number",
                                         "format": "float",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 0,
+                                        "maximum": 1000000000000000
                                     },
                                     "memory_to": {
                                         "type": "number",
                                         "format": "float",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 0,
+                                        "maximum": 1000000000000000
                                     },
                                     "cpu_from": {
                                         "type": "number",
                                         "format": "float",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 0,
+                                        "maximum": 1000000000000000
                                     },
                                     "cpu_to": {
                                         "type": "number",
                                         "format": "float",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 0,
+                                        "maximum": 1000000000000000
                                     },
                                     "data": {
                                         "type": "object",
@@ -2836,7 +2902,9 @@
                                                     "type": "object",
                                                     "properties": {
                                                         "field": {
-                                                            "type": "string"
+                                                            "type": "string",
+                                                            "maxLength": 255,
+                                                            "minLength": 4
                                                         },
                                                         "null": {
                                                             "type": "boolean"
@@ -2849,7 +2917,9 @@
                                                             "properties": {
                                                                 "value": {
                                                                     "type": "number",
-                                                                    "format": "float"
+                                                                    "format": "float",
+                                                                    "minimum": -1.0e+20,
+                                                                    "maximum": 1.0e+20
                                                                 },
                                                                 "comp": {
                                                                     "type": "string",
@@ -2969,13 +3039,17 @@
                                     "types": {
                                         "type": "array",
                                         "items": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "maxLength": 2000,
+                                            "minLength": 1
                                         }
                                     },
                                     "tags": {
                                         "type": "array",
                                         "items": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "maxLength": 2000,
+                                            "minLength": 1
                                         }
                                     },
                                     "logging_from_preset": {
@@ -3005,32 +3079,44 @@
                                     "duration_from": {
                                         "type": "number",
                                         "format": "float",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 0,
+                                        "maximum": 1000000000000000
                                     },
                                     "duration_to": {
                                         "type": "number",
                                         "format": "float",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 0,
+                                        "maximum": 1000000000000000
                                     },
                                     "memory_from": {
                                         "type": "number",
                                         "format": "float",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 0,
+                                        "maximum": 1000000000000000
                                     },
                                     "memory_to": {
                                         "type": "number",
                                         "format": "float",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 0,
+                                        "maximum": 1000000000000000
                                     },
                                     "cpu_from": {
                                         "type": "number",
                                         "format": "float",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 0,
+                                        "maximum": 1000000000000000
                                     },
                                     "cpu_to": {
                                         "type": "number",
                                         "format": "float",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 0,
+                                        "maximum": 1000000000000000
                                     },
                                     "data": {
                                         "type": "object",
@@ -3041,7 +3127,9 @@
                                                     "type": "object",
                                                     "properties": {
                                                         "field": {
-                                                            "type": "string"
+                                                            "type": "string",
+                                                            "maxLength": 255,
+                                                            "minLength": 4
                                                         },
                                                         "null": {
                                                             "type": "boolean"
@@ -3054,7 +3142,9 @@
                                                             "properties": {
                                                                 "value": {
                                                                     "type": "number",
-                                                                    "format": "float"
+                                                                    "format": "float",
+                                                                    "minimum": -1.0e+20,
+                                                                    "maximum": 1.0e+20
                                                                 },
                                                                 "comp": {
                                                                     "type": "string",
@@ -3210,7 +3300,9 @@
                                     "data_fields": {
                                         "type": "array",
                                         "items": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "maxLength": 255,
+                                            "minLength": 1
                                         }
                                     },
                                     "service_ids": {
@@ -3226,50 +3318,68 @@
                                     "types": {
                                         "type": "array",
                                         "items": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "maxLength": 2000,
+                                            "minLength": 1
                                         }
                                     },
                                     "tags": {
                                         "type": "array",
                                         "items": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "maxLength": 2000,
+                                            "minLength": 1
                                         }
                                     },
                                     "statuses": {
                                         "type": "array",
                                         "items": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "maxLength": 2000,
+                                            "minLength": 1
                                         }
                                     },
                                     "duration_from": {
                                         "type": "number",
                                         "format": "float",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 0,
+                                        "maximum": 1000000000000000
                                     },
                                     "duration_to": {
                                         "type": "number",
                                         "format": "float",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 0,
+                                        "maximum": 1000000000000000
                                     },
                                     "memory_from": {
                                         "type": "number",
                                         "format": "float",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 0,
+                                        "maximum": 1000000000000000
                                     },
                                     "memory_to": {
                                         "type": "number",
                                         "format": "float",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 0,
+                                        "maximum": 1000000000000000
                                     },
                                     "cpu_from": {
                                         "type": "number",
                                         "format": "float",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 0,
+                                        "maximum": 1000000000000000
                                     },
                                     "cpu_to": {
                                         "type": "number",
                                         "format": "float",
-                                        "nullable": true
+                                        "nullable": true,
+                                        "minimum": 0,
+                                        "maximum": 1000000000000000
                                     },
                                     "data": {
                                         "type": "object",
@@ -3280,7 +3390,9 @@
                                                     "type": "object",
                                                     "properties": {
                                                         "field": {
-                                                            "type": "string"
+                                                            "type": "string",
+                                                            "maxLength": 255,
+                                                            "minLength": 4
                                                         },
                                                         "null": {
                                                             "type": "boolean"
@@ -3293,7 +3405,9 @@
                                                             "properties": {
                                                                 "value": {
                                                                     "type": "number",
-                                                                    "format": "float"
+                                                                    "format": "float",
+                                                                    "minimum": -1.0e+20,
+                                                                    "maximum": 1.0e+20
                                                                 },
                                                                 "comp": {
                                                                     "type": "string",
@@ -3554,204 +3668,6 @@
                                 }
                             }
                         }
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/admin-api/trace-aggregator/dynamic-indexes": {
-            "get": {
-                "responses": {
-                    "200": {
-                        "description": "description",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "properties": {
-                                                    "id": {
-                                                        "type": "string",
-                                                        "nullable": false
-                                                    },
-                                                    "name": {
-                                                        "type": "string",
-                                                        "nullable": false
-                                                    },
-                                                    "indexName": {
-                                                        "type": "string",
-                                                        "nullable": false
-                                                    },
-                                                    "collectionNames": {
-                                                        "type": "array",
-                                                        "nullable": false,
-                                                        "items": {
-                                                            "type": "string"
-                                                        }
-                                                    },
-                                                    "fields": {
-                                                        "type": "array",
-                                                        "nullable": false,
-                                                        "items": {
-                                                            "properties": {
-                                                                "name": {
-                                                                    "type": "string",
-                                                                    "nullable": false
-                                                                },
-                                                                "title": {
-                                                                    "type": "string",
-                                                                    "nullable": false
-                                                                }
-                                                            },
-                                                            "required": [
-                                                                "name",
-                                                                "title"
-                                                            ]
-                                                        }
-                                                    },
-                                                    "inProcess": {
-                                                        "type": "boolean",
-                                                        "nullable": false
-                                                    },
-                                                    "created": {
-                                                        "type": "boolean",
-                                                        "nullable": false
-                                                    },
-                                                    "error": {
-                                                        "type": "string",
-                                                        "nullable": true
-                                                    },
-                                                    "actualUntilAt": {
-                                                        "type": "string",
-                                                        "nullable": false
-                                                    },
-                                                    "createdAt": {
-                                                        "type": "string",
-                                                        "nullable": false
-                                                    }
-                                                },
-                                                "required": [
-                                                    "id",
-                                                    "name",
-                                                    "indexName",
-                                                    "collectionNames",
-                                                    "fields",
-                                                    "inProcess",
-                                                    "created",
-                                                    "actualUntilAt",
-                                                    "createdAt"
-                                                ]
-                                            }
-                                        }
-                                    },
-                                    "required": [
-                                        "data"
-                                    ]
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/admin-api/trace-aggregator/dynamic-indexes/stats": {
-            "get": {
-                "responses": {
-                    "200": {
-                        "description": "description",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "properties": {
-                                                "in_process_count": {
-                                                    "type": "integer",
-                                                    "nullable": false
-                                                },
-                                                "errors_count": {
-                                                    "type": "integer",
-                                                    "nullable": false
-                                                },
-                                                "total_count": {
-                                                    "type": "integer",
-                                                    "nullable": false
-                                                },
-                                                "indexes_in_process": {
-                                                    "type": "array",
-                                                    "nullable": false,
-                                                    "items": {
-                                                        "properties": {
-                                                            "collectionName": {
-                                                                "type": "string",
-                                                                "nullable": false
-                                                            },
-                                                            "name": {
-                                                                "type": "string",
-                                                                "nullable": false
-                                                            },
-                                                            "progress": {
-                                                                "type": "number",
-                                                                "nullable": false
-                                                            }
-                                                        },
-                                                        "required": [
-                                                            "collectionName",
-                                                            "name",
-                                                            "progress"
-                                                        ]
-                                                    }
-                                                }
-                                            },
-                                            "required": [
-                                                "in_process_count",
-                                                "errors_count",
-                                                "total_count",
-                                                "indexes_in_process"
-                                            ]
-                                        }
-                                    },
-                                    "required": [
-                                        "data"
-                                    ]
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/admin-api/trace-aggregator/dynamic-indexes/{id}": {
-            "delete": {
-                "parameters": [
-                    {
-                        "name": "id",
-                        "required": true,
-                        "in": "path",
-                        "schema": {}
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "description"
                     }
                 },
                 "security": [

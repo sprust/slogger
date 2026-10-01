@@ -5,56 +5,47 @@ declare(strict_types=1);
 namespace App\Modules\Cleaner\Domain\Actions;
 
 use App\Modules\Cleaner\Repositories\ProcessRepository;
-use App\Modules\Trace\Domain\Actions\Mutations\DeleteCollectionsAction;
+use App\Modules\Trace\Domain\Actions\Mutations\DeletePartitionsAction;
 use Illuminate\Support\Carbon;
 use InvalidArgumentException;
 use RuntimeException;
-use Throwable;
 
 readonly class ClearTracesAction
 {
+    // a run takes seconds; one still open after this long died before it could close itself
+    private const int STALE_PROCESS_MINUTES = 60;
+
     public function __construct(
         private ProcessRepository $processRepository,
-        private DeleteCollectionsAction $deleteCollectionsAction,
+        private DeletePartitionsAction $deletePartitionsAction,
     ) {
     }
 
-    public function handle(int $lifetimeDays): void
+    /**
+     * @throws InvalidArgumentException
+     * @throws RuntimeException
+     */
+    public function handle(int $lifetimeHours): void
     {
-        if ($lifetimeDays <= 0) {
+        if ($lifetimeHours <= 0) {
             throw new InvalidArgumentException(
-                'Lifetime days must be greater than 0'
+                'Lifetime hours must be greater than 0'
             );
         }
 
-        $exists = $this->processRepository->exists(
-            clearedAtIsNull: true
-        );
+        $this->closeStaleProcess();
 
-        if ($exists) {
-            throw new RuntimeException(
-                'Clearing process already active'
-            );
-        }
-
-        $loggedAtTo = Carbon::now()->clone()->subDays($lifetimeDays);
+        $loggedAtTo = Carbon::now()->clone()->subHours($lifetimeHours);
 
         $process = $this->processRepository->create();
 
-        $deletedTraces = null;
-        $exception     = null;
-
-        try {
-            $deletedTraces = $this->deleteCollectionsAction->handle(
-                loggedAtTo: $loggedAtTo
-            );
-        } catch (Throwable $exception) {
-            //
-        }
+        $deletedTraces = $this->deletePartitionsAction->handle(
+            loggedAtTo: $loggedAtTo
+        );
 
         if (
-            $exception === null &&
-            $deletedTraces->collectionsCount === 0 &&
+            $deletedTraces->exception === null &&
+            $deletedTraces->partitionsCount === 0 &&
             $deletedTraces->tracesCount === 0
         ) {
             $this->processRepository->deleteByProcessId(
@@ -66,10 +57,44 @@ readonly class ClearTracesAction
 
         $this->processRepository->update(
             processId: $process->id,
-            clearedCollectionsCount: $deletedTraces?->collectionsCount ?: 0,
-            clearedTracesCount: $deletedTraces?->tracesCount ?: 0,
+            // the column still says collections: the page shows it as the count of what was dropped
+            clearedCollectionsCount: $deletedTraces->partitionsCount,
+            clearedTracesCount: $deletedTraces->tracesCount,
             clearedAt: Carbon::now(),
-            exception: $exception
+            exception: $deletedTraces->exception
+        );
+    }
+
+    /**
+     * A run that crashed before it closed itself would block every later one: once it is
+     * old enough it is closed with an error, while a fresh one still blocks.
+     *
+     * @throws RuntimeException
+     */
+    private function closeStaleProcess(): void
+    {
+        $process = $this->processRepository->exists(
+            clearedAtIsNull: true
+        );
+
+        if ($process === null) {
+            return;
+        }
+
+        if ($process->createdAt->gt(Carbon::now()->subMinutes(self::STALE_PROCESS_MINUTES))) {
+            throw new RuntimeException(
+                'Clearing process already active'
+            );
+        }
+
+        $this->processRepository->update(
+            processId: $process->id,
+            clearedCollectionsCount: $process->clearedCollectionsCount,
+            clearedTracesCount: $process->clearedTracesCount,
+            clearedAt: Carbon::now(),
+            exception: new RuntimeException(
+                sprintf('The run did not finish within %d minutes', self::STALE_PROCESS_MINUTES)
+            )
         );
     }
 }

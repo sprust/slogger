@@ -6,6 +6,7 @@ namespace App\Modules\Mcp\Domain\Actions\Bridges;
 
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceDetailAction;
 use App\Modules\Trace\Entities\Trace\TraceDetailObject;
+use App\Services\Clickhouse\ClickhouseQueryException;
 
 readonly class FindMcpTraceAction
 {
@@ -14,6 +15,9 @@ readonly class FindMcpTraceAction
     ) {
     }
 
+    /**
+     * @throws ClickhouseQueryException
+     */
     public function handle(string $traceId): ?TraceDetailObject
     {
         return $this->findTraceDetailAction->handle($traceId);

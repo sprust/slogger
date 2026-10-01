@@ -132,7 +132,6 @@
         <OtherFilters/>
         <div class="flex-grow"/>
         <el-space>
-          <DynamicIndexes/>
           <AdminStores ref="adminStoresRef"/>
           <el-button @click="reset" :disabled="traceAggregatorStore.loading">
             Reset
@@ -210,7 +209,6 @@ import TraceAggregatorTracesPagination from "./TraceAggregatorTracesPagination.v
 import TraceAggregatorTracesCustomFields from "./TraceAggregatorTracesCustomFields.vue";
 import TraceAggregatorServices from "../services/TraceAggregatorServices.vue";
 import FilterTags from "../tags/FilterTags.vue";
-import DynamicIndexes from "../dynamic-indexes/DynamicIndexes.vue";
 import AdminStores from "../admin-stores/AdminStores.vue";
 import OtherFilters from "./OtherFilters.vue";
 import {CaretRight, Clock as FromPresetIcon, Close, CloseBold, Loading, Plus, SwitchButton} from '@element-plus/icons-vue'
@@ -229,7 +227,6 @@ export default defineComponent({
     TraceAggregatorTracesTable,
     TraceAggregatorTracesPagination,
     FilterTags,
-    DynamicIndexes,
     AdminStores,
     OtherFilters,
     TraceAggregatorTraceDataNode,

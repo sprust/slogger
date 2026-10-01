@@ -3,10 +3,6 @@
 namespace App\Exceptions;
 
 use App\Modules\Dashboard\Domain\Exceptions\DatabaseStatCacheNotFoundException;
-use App\Modules\Trace\Domain\Actions\Queries\FindTraceDynamicIndexAction;
-use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexInProcessException;
-use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexParallelArraysException;
-use App\Modules\Trace\Infrastructure\Http\Resources\TraceDynamicIndexResource;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
@@ -30,15 +26,7 @@ class Handler extends ExceptionHandler
     public function register(): void
     {
         $this->reportable(function (Throwable $exception) {
-            if ($exception instanceof TraceDynamicIndexInProcessException) {
-                return false;
-            }
-
             if ($exception instanceof DatabaseStatCacheNotFoundException) {
-                return false;
-            }
-
-            if ($exception instanceof TraceDynamicIndexParallelArraysException) {
                 return false;
             }
 
@@ -50,34 +38,6 @@ class Handler extends ExceptionHandler
                 return response()->json(
                     data: ['error' => 'No data yet. Please wait for the first cache refresh.'],
                     status: Response::HTTP_SERVICE_UNAVAILABLE
-                );
-            }
-
-
-            if ($exception instanceof TraceDynamicIndexParallelArraysException) {
-                return response()->json(
-                    data: [
-                        'error' => 'Tags and a data field cannot be filtered together: '
-                            . 'MongoDB indexes at most one array per index, and tags are one. '
-                            . 'Drop the tags or the data field.',
-                    ],
-                    status: Response::HTTP_BAD_REQUEST
-                );
-            }
-
-            if ($exception instanceof TraceDynamicIndexInProcessException) {
-                $index = app(FindTraceDynamicIndexAction::class)->handle(
-                    indexId: $exception->indexId
-                );
-
-                return response()->json(
-                    data: [
-                        'error' => 'Trace dynamic index is in process.',
-                        'data'  => ($index === null)
-                            ? null
-                            : new TraceDynamicIndexResource($index)->toArray(),
-                    ],
-                    status: Response::HTTP_PRECONDITION_FAILED
                 );
             }
 

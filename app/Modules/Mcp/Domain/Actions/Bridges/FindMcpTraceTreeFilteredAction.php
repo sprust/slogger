@@ -11,6 +11,7 @@ use App\Modules\Trace\Domain\Actions\Queries\FindTraceTreeStateAction;
 use App\Modules\Trace\Entities\Trace\Tree\TraceTreeRawObject;
 use App\Modules\Trace\Enums\TraceTreeCacheStateStatusEnum;
 use App\Modules\Trace\Parameters\TraceTreeFilterParameters;
+use App\Services\Clickhouse\ClickhouseQueryException;
 
 readonly class FindMcpTraceTreeFilteredAction
 {
@@ -21,6 +22,9 @@ readonly class FindMcpTraceTreeFilteredAction
     ) {
     }
 
+    /**
+     * @throws ClickhouseQueryException
+     */
     public function handle(string $traceId, TraceTreeFilterParameters $parameters, int $limit): ?McpTraceTreeObject
     {
         $tree = $this->findTraceTreeStateAction->handle($traceId);

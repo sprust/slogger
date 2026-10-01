@@ -653,25 +653,57 @@ export namespace AdminApi {
       types?: string[];
       tags?: string[];
       statuses?: string[];
-      /** @format float */
+      /**
+       * @format float
+       * @min 0
+       * @max 1000000000000000
+       */
       duration_from?: number | null;
-      /** @format float */
+      /**
+       * @format float
+       * @min 0
+       * @max 1000000000000000
+       */
       duration_to?: number | null;
-      /** @format float */
+      /**
+       * @format float
+       * @min 0
+       * @max 1000000000000000
+       */
       memory_from?: number | null;
-      /** @format float */
+      /**
+       * @format float
+       * @min 0
+       * @max 1000000000000000
+       */
       memory_to?: number | null;
-      /** @format float */
+      /**
+       * @format float
+       * @min 0
+       * @max 1000000000000000
+       */
       cpu_from?: number | null;
-      /** @format float */
+      /**
+       * @format float
+       * @min 0
+       * @max 1000000000000000
+       */
       cpu_to?: number | null;
       data?: {
         filter?: {
+          /**
+           * @minLength 4
+           * @maxLength 255
+           */
           field?: string;
           null?: boolean;
           exists?: boolean;
           numeric?: {
-            /** @format float */
+            /**
+             * @format float
+             * @min -100000000000000000000
+             * @max 100000000000000000000
+             */
             value?: number;
             comp?: DataCompEnum;
           };
@@ -1417,25 +1449,57 @@ export namespace AdminApi {
       logging_from?: string;
       /** @format date */
       logging_to?: string;
-      /** @format float */
+      /**
+       * @format float
+       * @min 0
+       * @max 1000000000000000
+       */
       duration_from?: number | null;
-      /** @format float */
+      /**
+       * @format float
+       * @min 0
+       * @max 1000000000000000
+       */
       duration_to?: number | null;
-      /** @format float */
+      /**
+       * @format float
+       * @min 0
+       * @max 1000000000000000
+       */
       memory_from?: number | null;
-      /** @format float */
+      /**
+       * @format float
+       * @min 0
+       * @max 1000000000000000
+       */
       memory_to?: number | null;
-      /** @format float */
+      /**
+       * @format float
+       * @min 0
+       * @max 1000000000000000
+       */
       cpu_from?: number | null;
-      /** @format float */
+      /**
+       * @format float
+       * @min 0
+       * @max 1000000000000000
+       */
       cpu_to?: number | null;
       data?: {
         filter?: {
+          /**
+           * @minLength 4
+           * @maxLength 255
+           */
           field?: string;
           null?: boolean;
           exists?: boolean;
           numeric?: {
-            /** @format float */
+            /**
+             * @format float
+             * @min -100000000000000000000
+             * @max 100000000000000000000
+             */
             value?: number;
             comp?: DataCompEnum2;
           };
@@ -1487,25 +1551,57 @@ export namespace AdminApi {
       logging_from?: string;
       /** @format date */
       logging_to?: string;
-      /** @format float */
+      /**
+       * @format float
+       * @min 0
+       * @max 1000000000000000
+       */
       duration_from?: number | null;
-      /** @format float */
+      /**
+       * @format float
+       * @min 0
+       * @max 1000000000000000
+       */
       duration_to?: number | null;
-      /** @format float */
+      /**
+       * @format float
+       * @min 0
+       * @max 1000000000000000
+       */
       memory_from?: number | null;
-      /** @format float */
+      /**
+       * @format float
+       * @min 0
+       * @max 1000000000000000
+       */
       memory_to?: number | null;
-      /** @format float */
+      /**
+       * @format float
+       * @min 0
+       * @max 1000000000000000
+       */
       cpu_from?: number | null;
-      /** @format float */
+      /**
+       * @format float
+       * @min 0
+       * @max 1000000000000000
+       */
       cpu_to?: number | null;
       data?: {
         filter?: {
+          /**
+           * @minLength 4
+           * @maxLength 255
+           */
           field?: string;
           null?: boolean;
           exists?: boolean;
           numeric?: {
-            /** @format float */
+            /**
+             * @format float
+             * @min -100000000000000000000
+             * @max 100000000000000000000
+             */
             value?: number;
             comp?: DataCompEnum4;
           };
@@ -1557,25 +1653,57 @@ export namespace AdminApi {
       logging_from?: string;
       /** @format date */
       logging_to?: string;
-      /** @format float */
+      /**
+       * @format float
+       * @min 0
+       * @max 1000000000000000
+       */
       duration_from?: number | null;
-      /** @format float */
+      /**
+       * @format float
+       * @min 0
+       * @max 1000000000000000
+       */
       duration_to?: number | null;
-      /** @format float */
+      /**
+       * @format float
+       * @min 0
+       * @max 1000000000000000
+       */
       memory_from?: number | null;
-      /** @format float */
+      /**
+       * @format float
+       * @min 0
+       * @max 1000000000000000
+       */
       memory_to?: number | null;
-      /** @format float */
+      /**
+       * @format float
+       * @min 0
+       * @max 1000000000000000
+       */
       cpu_from?: number | null;
-      /** @format float */
+      /**
+       * @format float
+       * @min 0
+       * @max 1000000000000000
+       */
       cpu_to?: number | null;
       data?: {
         filter?: {
+          /**
+           * @minLength 4
+           * @maxLength 255
+           */
           field?: string;
           null?: boolean;
           exists?: boolean;
           numeric?: {
-            /** @format float */
+            /**
+             * @format float
+             * @min -100000000000000000000
+             * @max 100000000000000000000
+             */
             value?: number;
             comp?: DataCompEnum6;
           };
@@ -1640,25 +1768,57 @@ export namespace AdminApi {
       types?: string[];
       tags?: string[];
       statuses?: string[];
-      /** @format float */
+      /**
+       * @format float
+       * @min 0
+       * @max 1000000000000000
+       */
       duration_from?: number | null;
-      /** @format float */
+      /**
+       * @format float
+       * @min 0
+       * @max 1000000000000000
+       */
       duration_to?: number | null;
-      /** @format float */
+      /**
+       * @format float
+       * @min 0
+       * @max 1000000000000000
+       */
       memory_from?: number | null;
-      /** @format float */
+      /**
+       * @format float
+       * @min 0
+       * @max 1000000000000000
+       */
       memory_to?: number | null;
-      /** @format float */
+      /**
+       * @format float
+       * @min 0
+       * @max 1000000000000000
+       */
       cpu_from?: number | null;
-      /** @format float */
+      /**
+       * @format float
+       * @min 0
+       * @max 1000000000000000
+       */
       cpu_to?: number | null;
       data?: {
         filter?: {
+          /**
+           * @minLength 4
+           * @maxLength 255
+           */
           field?: string;
           null?: boolean;
           exists?: boolean;
           numeric?: {
-            /** @format float */
+            /**
+             * @format float
+             * @min -100000000000000000000
+             * @max 100000000000000000000
+             */
             value?: number;
             comp?: DataCompEnum8;
           };
@@ -1758,113 +1918,6 @@ export namespace AdminApi {
         }[];
       }[];
     };
-  }
-
-  /**
- * No description
- * @name TraceAggregatorDynamicIndexesList
- * @request GET:/admin-api/trace-aggregator/dynamic-indexes
- * @secure
- * @response `200` `{
-    data: ({
-    id: string,
-    name: string,
-    indexName: string,
-    collectionNames: (string)[],
-    fields: ({
-    name: string,
-    title: string,
-
-})[],
-    inProcess: boolean,
-    created: boolean,
-    error?: string | null,
-    actualUntilAt: string,
-    createdAt: string,
-
-})[],
-
-}` description
-*/
-  export namespace TraceAggregatorDynamicIndexesList {
-    export type RequestParams = {};
-    export type RequestQuery = {};
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = {
-      data: {
-        id: string;
-        name: string;
-        indexName: string;
-        collectionNames: string[];
-        fields: {
-          name: string;
-          title: string;
-        }[];
-        inProcess: boolean;
-        created: boolean;
-        error?: string | null;
-        actualUntilAt: string;
-        createdAt: string;
-      }[];
-    };
-  }
-
-  /**
- * No description
- * @name TraceAggregatorDynamicIndexesStatsList
- * @request GET:/admin-api/trace-aggregator/dynamic-indexes/stats
- * @secure
- * @response `200` `{
-    data: {
-    in_process_count: number,
-    errors_count: number,
-    total_count: number,
-    indexes_in_process: ({
-    collectionName: string,
-    name: string,
-    progress: number,
-
-})[],
-
-},
-
-}` description
-*/
-  export namespace TraceAggregatorDynamicIndexesStatsList {
-    export type RequestParams = {};
-    export type RequestQuery = {};
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = {
-      data: {
-        in_process_count: number;
-        errors_count: number;
-        total_count: number;
-        indexes_in_process: {
-          collectionName: string;
-          name: string;
-          progress: number;
-        }[];
-      };
-    };
-  }
-
-  /**
-   * No description
-   * @name TraceAggregatorDynamicIndexesDelete
-   * @request DELETE:/admin-api/trace-aggregator/dynamic-indexes/{id}
-   * @secure
-   * @response `200` `void` description
-   */
-  export namespace TraceAggregatorDynamicIndexesDelete {
-    export type RequestParams = {
-      id: any;
-    };
-    export type RequestQuery = {};
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = void;
   }
 
   /**
@@ -5475,25 +5528,57 @@ export class Api<
         types?: string[];
         tags?: string[];
         statuses?: string[];
-        /** @format float */
+        /**
+         * @format float
+         * @min 0
+         * @max 1000000000000000
+         */
         duration_from?: number | null;
-        /** @format float */
+        /**
+         * @format float
+         * @min 0
+         * @max 1000000000000000
+         */
         duration_to?: number | null;
-        /** @format float */
+        /**
+         * @format float
+         * @min 0
+         * @max 1000000000000000
+         */
         memory_from?: number | null;
-        /** @format float */
+        /**
+         * @format float
+         * @min 0
+         * @max 1000000000000000
+         */
         memory_to?: number | null;
-        /** @format float */
+        /**
+         * @format float
+         * @min 0
+         * @max 1000000000000000
+         */
         cpu_from?: number | null;
-        /** @format float */
+        /**
+         * @format float
+         * @min 0
+         * @max 1000000000000000
+         */
         cpu_to?: number | null;
         data?: {
           filter?: {
+            /**
+             * @minLength 4
+             * @maxLength 255
+             */
             field?: string;
             null?: boolean;
             exists?: boolean;
             numeric?: {
-              /** @format float */
+              /**
+               * @format float
+               * @min -100000000000000000000
+               * @max 100000000000000000000
+               */
               value?: number;
               comp?: DataCompEnum;
             };
@@ -6323,25 +6408,57 @@ export class Api<
         logging_from?: string;
         /** @format date */
         logging_to?: string;
-        /** @format float */
+        /**
+         * @format float
+         * @min 0
+         * @max 1000000000000000
+         */
         duration_from?: number | null;
-        /** @format float */
+        /**
+         * @format float
+         * @min 0
+         * @max 1000000000000000
+         */
         duration_to?: number | null;
-        /** @format float */
+        /**
+         * @format float
+         * @min 0
+         * @max 1000000000000000
+         */
         memory_from?: number | null;
-        /** @format float */
+        /**
+         * @format float
+         * @min 0
+         * @max 1000000000000000
+         */
         memory_to?: number | null;
-        /** @format float */
+        /**
+         * @format float
+         * @min 0
+         * @max 1000000000000000
+         */
         cpu_from?: number | null;
-        /** @format float */
+        /**
+         * @format float
+         * @min 0
+         * @max 1000000000000000
+         */
         cpu_to?: number | null;
         data?: {
           filter?: {
+            /**
+             * @minLength 4
+             * @maxLength 255
+             */
             field?: string;
             null?: boolean;
             exists?: boolean;
             numeric?: {
-              /** @format float */
+              /**
+               * @format float
+               * @min -100000000000000000000
+               * @max 100000000000000000000
+               */
               value?: number;
               comp?: DataCompEnum2;
             };
@@ -6403,25 +6520,57 @@ export class Api<
         logging_from?: string;
         /** @format date */
         logging_to?: string;
-        /** @format float */
+        /**
+         * @format float
+         * @min 0
+         * @max 1000000000000000
+         */
         duration_from?: number | null;
-        /** @format float */
+        /**
+         * @format float
+         * @min 0
+         * @max 1000000000000000
+         */
         duration_to?: number | null;
-        /** @format float */
+        /**
+         * @format float
+         * @min 0
+         * @max 1000000000000000
+         */
         memory_from?: number | null;
-        /** @format float */
+        /**
+         * @format float
+         * @min 0
+         * @max 1000000000000000
+         */
         memory_to?: number | null;
-        /** @format float */
+        /**
+         * @format float
+         * @min 0
+         * @max 1000000000000000
+         */
         cpu_from?: number | null;
-        /** @format float */
+        /**
+         * @format float
+         * @min 0
+         * @max 1000000000000000
+         */
         cpu_to?: number | null;
         data?: {
           filter?: {
+            /**
+             * @minLength 4
+             * @maxLength 255
+             */
             field?: string;
             null?: boolean;
             exists?: boolean;
             numeric?: {
-              /** @format float */
+              /**
+               * @format float
+               * @min -100000000000000000000
+               * @max 100000000000000000000
+               */
               value?: number;
               comp?: DataCompEnum4;
             };
@@ -6483,25 +6632,57 @@ export class Api<
         logging_from?: string;
         /** @format date */
         logging_to?: string;
-        /** @format float */
+        /**
+         * @format float
+         * @min 0
+         * @max 1000000000000000
+         */
         duration_from?: number | null;
-        /** @format float */
+        /**
+         * @format float
+         * @min 0
+         * @max 1000000000000000
+         */
         duration_to?: number | null;
-        /** @format float */
+        /**
+         * @format float
+         * @min 0
+         * @max 1000000000000000
+         */
         memory_from?: number | null;
-        /** @format float */
+        /**
+         * @format float
+         * @min 0
+         * @max 1000000000000000
+         */
         memory_to?: number | null;
-        /** @format float */
+        /**
+         * @format float
+         * @min 0
+         * @max 1000000000000000
+         */
         cpu_from?: number | null;
-        /** @format float */
+        /**
+         * @format float
+         * @min 0
+         * @max 1000000000000000
+         */
         cpu_to?: number | null;
         data?: {
           filter?: {
+            /**
+             * @minLength 4
+             * @maxLength 255
+             */
             field?: string;
             null?: boolean;
             exists?: boolean;
             numeric?: {
-              /** @format float */
+              /**
+               * @format float
+               * @min -100000000000000000000
+               * @max 100000000000000000000
+               */
               value?: number;
               comp?: DataCompEnum6;
             };
@@ -6576,25 +6757,57 @@ export class Api<
         types?: string[];
         tags?: string[];
         statuses?: string[];
-        /** @format float */
+        /**
+         * @format float
+         * @min 0
+         * @max 1000000000000000
+         */
         duration_from?: number | null;
-        /** @format float */
+        /**
+         * @format float
+         * @min 0
+         * @max 1000000000000000
+         */
         duration_to?: number | null;
-        /** @format float */
+        /**
+         * @format float
+         * @min 0
+         * @max 1000000000000000
+         */
         memory_from?: number | null;
-        /** @format float */
+        /**
+         * @format float
+         * @min 0
+         * @max 1000000000000000
+         */
         memory_to?: number | null;
-        /** @format float */
+        /**
+         * @format float
+         * @min 0
+         * @max 1000000000000000
+         */
         cpu_from?: number | null;
-        /** @format float */
+        /**
+         * @format float
+         * @min 0
+         * @max 1000000000000000
+         */
         cpu_to?: number | null;
         data?: {
           filter?: {
+            /**
+             * @minLength 4
+             * @maxLength 255
+             */
             field?: string;
             null?: boolean;
             exists?: boolean;
             numeric?: {
-              /** @format float */
+              /**
+               * @format float
+               * @min -100000000000000000000
+               * @max 100000000000000000000
+               */
               value?: number;
               comp?: DataCompEnum8;
             };
@@ -6714,125 +6927,6 @@ export class Api<
         method: "GET",
         secure: true,
         format: "json",
-        ...params,
-      }),
-
-    /**
- * No description
- *
- * @name TraceAggregatorDynamicIndexesList
- * @request GET:/admin-api/trace-aggregator/dynamic-indexes
- * @secure
- * @response `200` `{
-    data: ({
-    id: string,
-    name: string,
-    indexName: string,
-    collectionNames: (string)[],
-    fields: ({
-    name: string,
-    title: string,
-
-})[],
-    inProcess: boolean,
-    created: boolean,
-    error?: string | null,
-    actualUntilAt: string,
-    createdAt: string,
-
-})[],
-
-}` description
- */
-    traceAggregatorDynamicIndexesList: (params: RequestParams = {}) =>
-      this.request<
-        {
-          data: {
-            id: string;
-            name: string;
-            indexName: string;
-            collectionNames: string[];
-            fields: {
-              name: string;
-              title: string;
-            }[];
-            inProcess: boolean;
-            created: boolean;
-            error?: string | null;
-            actualUntilAt: string;
-            createdAt: string;
-          }[];
-        },
-        any
-      >({
-        path: `/admin-api/trace-aggregator/dynamic-indexes`,
-        method: "GET",
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-
-    /**
- * No description
- *
- * @name TraceAggregatorDynamicIndexesStatsList
- * @request GET:/admin-api/trace-aggregator/dynamic-indexes/stats
- * @secure
- * @response `200` `{
-    data: {
-    in_process_count: number,
-    errors_count: number,
-    total_count: number,
-    indexes_in_process: ({
-    collectionName: string,
-    name: string,
-    progress: number,
-
-})[],
-
-},
-
-}` description
- */
-    traceAggregatorDynamicIndexesStatsList: (params: RequestParams = {}) =>
-      this.request<
-        {
-          data: {
-            in_process_count: number;
-            errors_count: number;
-            total_count: number;
-            indexes_in_process: {
-              collectionName: string;
-              name: string;
-              progress: number;
-            }[];
-          };
-        },
-        any
-      >({
-        path: `/admin-api/trace-aggregator/dynamic-indexes/stats`,
-        method: "GET",
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @name TraceAggregatorDynamicIndexesDelete
-     * @request DELETE:/admin-api/trace-aggregator/dynamic-indexes/{id}
-     * @secure
-     * @response `200` `void` description
-     */
-    traceAggregatorDynamicIndexesDelete: (
-      id: any,
-      params: RequestParams = {},
-    ) =>
-      this.request<void, any>({
-        path: `/admin-api/trace-aggregator/dynamic-indexes/${id}`,
-        method: "DELETE",
-        secure: true,
         ...params,
       }),
 

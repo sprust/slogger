@@ -8,10 +8,6 @@ use App\Modules\Common\Helpers\ArrayValueGetter;
 use App\Modules\Trace\Domain\Actions\Queries\FindStatusesAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTagsAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTypesAction;
-use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexErrorException;
-use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexInProcessException;
-use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexNotInitException;
-use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexParallelArraysException;
 use App\Modules\Trace\Infrastructure\Http\Requests\TraceFindStatusesRequest;
 use App\Modules\Trace\Infrastructure\Http\Requests\TraceFindTagsRequest;
 use App\Modules\Trace\Infrastructure\Http\Requests\TraceFindTypesRequest;
@@ -22,6 +18,7 @@ use App\Modules\Trace\Parameters\TraceFindTagsParameters;
 use App\Modules\Trace\Parameters\TraceFindTypesParameters;
 use Ifksco\OpenApiGenerator\Attributes\OaListItemTypeAttribute;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use App\Services\Clickhouse\ClickhouseQueryException;
 
 readonly class TraceContentController
 {
@@ -34,9 +31,7 @@ readonly class TraceContentController
     }
 
     /**
-     * @throws TraceDynamicIndexErrorException
-     * @throws TraceDynamicIndexInProcessException
-     * @throws TraceDynamicIndexNotInitException
+     * @throws ClickhouseQueryException
      */
     #[OaListItemTypeAttribute(TraceStringFieldResource::class)]
     public function types(TraceFindTypesRequest $request): AnonymousResourceCollection
@@ -69,9 +64,7 @@ readonly class TraceContentController
     }
 
     /**
-     * @throws TraceDynamicIndexErrorException
-     * @throws TraceDynamicIndexInProcessException
-     * @throws TraceDynamicIndexNotInitException
+     * @throws ClickhouseQueryException
      */
     #[OaListItemTypeAttribute(TraceStringFieldResource::class)]
     public function tags(TraceFindTagsRequest $request): AnonymousResourceCollection
@@ -104,10 +97,7 @@ readonly class TraceContentController
     }
 
     /**
-     * @throws TraceDynamicIndexErrorException
-     * @throws TraceDynamicIndexParallelArraysException
-     * @throws TraceDynamicIndexInProcessException
-     * @throws TraceDynamicIndexNotInitException
+     * @throws ClickhouseQueryException
      */
     #[OaListItemTypeAttribute(TraceStringFieldResource::class)]
     public function statuses(TraceFindStatusesRequest $request): AnonymousResourceCollection

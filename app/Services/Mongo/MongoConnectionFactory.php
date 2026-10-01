@@ -19,10 +19,6 @@ class MongoConnectionFactory
 {
     /**
      * The pool ceiling the application's collections are read through.
-     *
-     * Not applied everywhere: the tracesPeriodic database is opened without it, as it was
-     * before this factory existed. Its shard collections are queried in parallel through
-     * a WaitGroup, and capping the pool there would serialise the fan-out.
      */
     public const array DEFAULT_URI_OPTIONS = [
         'maxPoolSize'    => 20,

@@ -38,7 +38,7 @@ readonly class GetIncidentsTool implements McpToolInterface
         return sprintf(
             'Incidents raised by SLogger watchers, open ones first, then newest first, %d per page. '
             . 'Each incident carries its watcher with the service ids the watcher is limited to '
-            . '(empty means all services): filter by service yourself. No index needed.',
+            . '(empty means all services): filter by service yourself.',
             FindMcpIncidentsAction::PER_PAGE
         );
     }

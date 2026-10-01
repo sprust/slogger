@@ -13,6 +13,7 @@ RUN chmod 777 -R /app
 #RUN CGO_ENABLED=0 GOOS=linux go build -v -a -o /app/bin/receiver /app/cmd/server/main.go && chmod +x /app/bin/receiver
 RUN make build
 RUN make stats-build
+RUN make migrate-build
 
 # Container user & group
 ARG USER_ID

@@ -2,6 +2,8 @@
 
 namespace App\Console\Commands\Migrate;
 
+use App\Services\Clickhouse\ClickhouseClient;
+use App\Services\Clickhouse\ClickhouseQueryException;
 use App\Services\Mongo\MongoConnectionFactory;
 use Illuminate\Console\Command;
 use Illuminate\Console\ConfirmableTrait;
@@ -11,9 +13,14 @@ class MigrateFreshCommand extends Command
 {
     use ConfirmableTrait;
 
-    protected $name = 'migrate:fresh';
+    // --force is what ConfirmableTrait reads: without it declared, the command refused
+    // the flag every deploy script passes to skip the production prompt.
+    protected $signature = 'migrate:fresh {--force : Force the operation to run when in production}';
 
-    public function handle(MongoConnectionFactory $connections): int
+    /**
+     * @throws ClickhouseQueryException
+     */
+    public function handle(MongoConnectionFactory $connections, ClickhouseClient $clickhouse): int
     {
         if (!$this->confirmToProceed()) {
             return 1;
@@ -43,6 +50,30 @@ class MigrateFreshCommand extends Command
             }
         }
 
-        return $this->call(FreshCommand::class);
+        // The ClickHouse tables are created by migrations too: left in place, they would
+        // outlive the migrations table that says they exist.
+        $this->components->info('Dropping all clickhouse tables');
+
+        $tables = $clickhouse->select(
+            sql: 'SELECT name FROM system.tables WHERE database = currentDatabase()',
+            queryIdPrefix: 'migrate'
+        );
+
+        foreach (array_column($tables, 'name') as $tableName) {
+            $this->components->task(
+                description: "Drop clickhouse.$tableName",
+                task: static function () use ($clickhouse, $tableName): bool {
+                    $clickhouse->command(
+                        sql: 'DROP TABLE IF EXISTS {table:Identifier}',
+                        params: ['table' => $tableName],
+                        queryIdPrefix: 'migrate'
+                    );
+
+                    return true;
+                }
+            );
+        }
+
+        return $this->call(FreshCommand::class, ['--force' => true]);
     }
 }

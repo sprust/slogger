@@ -5,7 +5,7 @@ namespace Tests\Modules\Mcp\Infrastructure\Tools;
 use App\Modules\Mcp\Domain\Actions\Bridges\CompareMcpTraceGroupsAction;
 use App\Modules\Mcp\Domain\Actions\Bridges\FindMcpServicesAction;
 use App\Modules\Mcp\Domain\Actions\Bridges\FindMcpTraceGroupsAction;
-use App\Modules\Mcp\Domain\Services\McpTraceIndexExceptionTranslator;
+use App\Modules\Mcp\Domain\Services\McpTraceDataFilterParser;
 use App\Modules\Mcp\Domain\Services\McpTracePeriodMapper;
 use App\Modules\Mcp\Domain\Services\McpTracePeriodResolver;
 use App\Modules\Mcp\Infrastructure\Tools\CompareTraceGroupsTool;
@@ -19,7 +19,6 @@ use App\Modules\Service\Domain\Actions\FindServicesAction;
 use App\Modules\Service\Entities\ServiceObject;
 use App\Modules\Trace\Domain\Actions\Queries\CompareTraceGroupsAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceGroupsAction;
-use App\Modules\Trace\Domain\Exceptions\TraceDynamicIndexInProcessException;
 use App\Modules\Trace\Entities\Trace\Groups\TraceGroupComparisonObject;
 use App\Modules\Trace\Entities\Trace\Groups\TraceGroupComparisonRowObject;
 use App\Modules\Trace\Entities\Trace\Groups\TraceGroupObject;
@@ -31,7 +30,6 @@ use App\Modules\Trace\Parameters\TraceFindGroupsParameters;
 use Illuminate\Support\Carbon;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
-use Throwable;
 
 class TraceGroupToolsTest extends TestCase
 {
@@ -104,13 +102,48 @@ class TraceGroupToolsTest extends TestCase
         $this->assertNull($this->groupsParameters);
     }
 
-    public function testGroupsIndexBuilding(): void
+    public function testGroupsWithDataFilter(): void
     {
-        $result = $this->topTool(new TraceDynamicIndexInProcessException('idx-1'))
-            ->call(new McpToolArguments([...self::SCOPE, 'by' => ['type']]));
+        $result = $this->topTool()->call(
+            new McpToolArguments([...self::SCOPE, 'by' => ['type'], 'data_filter' => ['response.status >= 500']])
+        );
 
         $this->assertFalse($result->isError);
-        $this->assertSame('index_building', $result->data['status']);
+        $this->assertCount(1, $this->groupsParameters?->data?->filter ?? []);
+        $this->assertSame('dt.response.status', $this->groupsParameters->data->filter[0]->field);
+        $this->assertSame(500.0, (float) $this->groupsParameters->data->filter[0]->numeric?->value);
+    }
+
+    public function testGroupsWithoutDataFilterAreNotFilteredByData(): void
+    {
+        $this->topTool()->call(new McpToolArguments([...self::SCOPE, 'by' => ['type']]));
+
+        $this->assertNotNull($this->groupsParameters);
+        $this->assertNull($this->groupsParameters->data);
+    }
+
+    public function testInvalidDataFilter(): void
+    {
+        $result = $this->topTool()->call(
+            new McpToolArguments([...self::SCOPE, 'by' => ['type'], 'data_filter' => ['status ~ 5']])
+        );
+
+        $this->assertTrue($result->isError);
+        $this->assertSame('invalid_data_filter', $result->data['error']);
+        $this->assertStringContainsString('status ~ 5', $result->data['hint']);
+        $this->assertNull($this->groupsParameters);
+    }
+
+    public function testWholeRetentionIsAggregated(): void
+    {
+        $result = $this->topTool()->call(
+            new McpToolArguments(['from' => '2026-09-25T11:00:00Z', 'to' => '2026-09-28T11:00:00Z', 'by' => ['type']])
+        );
+
+        $this->assertFalse($result->isError);
+        $this->assertSame('2026-09-25T11:00:00Z', $result->data['from']);
+        $this->assertSame('2026-09-28T11:00:00Z', $result->data['to']);
+        $this->assertSame('2026-09-25 11:00:00', $this->groupsParameters?->loggingPeriod->from?->toDateTimeString());
     }
 
     public function testCompareByType(): void
@@ -140,6 +173,28 @@ class TraceGroupToolsTest extends TestCase
         $this->assertSame('response.status', $this->compareParameters->dataKey);
     }
 
+    public function testCompareByADataKeyNamedDt(): void
+    {
+        $this->compareTool()->call(
+            new McpToolArguments([...self::SCOPE, 'group_a_statuses' => ['failed'], 'by' => 'data.dt.x'])
+        );
+
+        $this->assertSame('dt.x', $this->compareParameters?->dataKey);
+    }
+
+    public function testDataFilterWithARestrictedKeyIsAToolError(): void
+    {
+        foreach (['user-agent exists', "a'b exists", 'a..b exists'] as $condition) {
+            $result = $this->topTool()->call(
+                new McpToolArguments([...self::SCOPE, 'by' => ['type'], 'data_filter' => [$condition]])
+            );
+
+            $this->assertSame('invalid_data_filter', $result->data['error'] ?? null, $condition);
+        }
+
+        $this->assertNull($this->groupsParameters);
+    }
+
     public function testCompareByServiceNamesTheService(): void
     {
         $result = $this->compareTool(serviceValue: true)->call(
@@ -151,7 +206,7 @@ class TraceGroupToolsTest extends TestCase
 
     public function testCompareErrors(): void
     {
-        foreach (['data.', 'data.a b', 'data', 'hour'] as $by) {
+        foreach (['data.', 'data.a b', 'data', 'hour', 'data.a-b', "data.a'b", 'data.a..b', "data.abc\n"] as $by) {
             $result = $this->compareTool()->call(
                 new McpToolArguments([...self::SCOPE, 'group_a_statuses' => ['failed'], 'by' => $by])
             );
@@ -173,40 +228,39 @@ class TraceGroupToolsTest extends TestCase
         $this->assertNull($this->compareParameters);
     }
 
-    private function topTool(?Throwable $exception = null): AggregateTracesTool
+    private function topTool(): AggregateTracesTool
     {
         $action = $this->createMock(FindTraceGroupsAction::class);
+        $action->method('handle')->willReturnCallback(function (TraceFindGroupsParameters $parameters) {
+            $this->groupsParameters = $parameters;
 
-        if ($exception) {
-            $action->method('handle')->willThrowException($exception);
-        } else {
-            $action->method('handle')->willReturnCallback(function (TraceFindGroupsParameters $parameters) {
-                $this->groupsParameters = $parameters;
-
-                return new TraceGroupsObject(
-                    items: [
-                        new TraceGroupObject(
-                            serviceId: 2,
-                            type: 'request',
-                            status: 'failed',
-                            startedAt: Carbon::parse('2026-09-28 10:10:00', 'UTC'),
-                            count: 12,
-                            durationAvg: 0.5,
-                            durationP95: 1.25,
-                            durationMax: 2.0,
-                            exampleTraceId: 'slow-1'
-                        ),
-                    ],
-                    truncated: false
-                );
-            });
-        }
+            return new TraceGroupsObject(
+                items: [
+                    new TraceGroupObject(
+                        serviceId: 2,
+                        type: 'request',
+                        status: 'failed',
+                        startedAt: Carbon::parse('2026-09-28 10:10:00', 'UTC'),
+                        count: 12,
+                        durationAvg: 0.5,
+                        durationP95: 1.25,
+                        durationMax: 2.0,
+                        exampleTraceId: 'slow-1'
+                    ),
+                ],
+                truncated: false
+            );
+        });
 
         return new AggregateTracesTool(
-            new FindMcpTraceGroupsAction($action, new McpTraceIndexExceptionTranslator(), new McpTracePeriodMapper()),
-            $this->scopeReader(),
-            $this->serviceFinder(),
-            new McpToolFormatter()
+            findMcpTraceGroupsAction: new FindMcpTraceGroupsAction(
+                findTraceGroupsAction: $action,
+                dataFilterParser: new McpTraceDataFilterParser(),
+                periodMapper: new McpTracePeriodMapper()
+            ),
+            scopeReader: $this->scopeReader(),
+            serviceFinder: $this->serviceFinder(),
+            formatter: new McpToolFormatter()
         );
     }
 
@@ -233,10 +287,13 @@ class TraceGroupToolsTest extends TestCase
         });
 
         return new CompareTraceGroupsTool(
-            new CompareMcpTraceGroupsAction($action, new McpTraceIndexExceptionTranslator(), new McpTracePeriodMapper()),
-            $this->scopeReader(),
-            $this->serviceFinder(),
-            new McpToolFormatter()
+            compareMcpTraceGroupsAction: new CompareMcpTraceGroupsAction(
+                compareTraceGroupsAction: $action,
+                periodMapper: new McpTracePeriodMapper()
+            ),
+            scopeReader: $this->scopeReader(),
+            serviceFinder: $this->serviceFinder(),
+            formatter: new McpToolFormatter()
         );
     }
 
@@ -251,10 +308,10 @@ class TraceGroupToolsTest extends TestCase
     private function scopeReader(): McpToolTraceScopeReader
     {
         return new McpToolTraceScopeReader(
-            new McpToolTimeParser(),
-            $this->serviceFinder(),
-            new McpTracePeriodResolver(),
-            new McpToolFormatter()
+            timeParser: new McpToolTimeParser(),
+            serviceFinder: $this->serviceFinder(),
+            periodResolver: new McpTracePeriodResolver(maxHours: 72),
+            formatter: new McpToolFormatter()
         );
     }
 }

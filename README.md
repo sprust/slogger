@@ -17,7 +17,7 @@ It collects data about code execution (HTTP requests, queues, events, commands, 
 - Timeline charts for trace metrics — count, duration, memory, CPU — as an average, a minimum and a maximum, with the p50, p95 and p99 percentiles a legend click away, and the same filtering as in search.
 - Presets — saved aggregator filters and an automatic history of searches.
 - Trace metrics — how many new traces each service sent in every fifteen minutes of the last day, by when they were logged, taken into the buffer and written to storage.
-- Storage dashboard — collection sizes, memory and index usage.
+- Storage dashboard — sizes of the MongoDB collections and the ClickHouse tables, memory and index usage.
 - Runtime dashboard — live stats of the SConcur HTTP server: worker pool, RPS, CPU, memory, in-flight requests.
 - Watchers — configurable rules that open an incident when the system misbehaves: a buffer growing, traces stopping, too many of them, traces running too long, errors in the application or the receiver log; trace watchers can be narrowed by service, type, tag and status.
 - Notification channels — a watcher's incidents are sent on to Telegram, to Slack, or to an address of your own as JSON, with a delivery log per channel.
@@ -32,28 +32,32 @@ It collects data about code execution (HTTP requests, queues, events, commands, 
 
 ```mermaid
 flowchart TB
-    src["Data source — any client that writes to a TCP socket (e.g. the Laravel library): trace start … finish"]
+    src["Data source — any client that writes to a TCP socket (e.g. the Laravel library)"]
     receiver["Receiver (Go, TCP socket) — payload intake"]
-    buffer["Buffer (MongoDB collection) — create (c) and update (u) operations"]
-    shards["Hourly shards (MongoDB) traces_YYYY_MM_DD_HH_HH + view _traceTreesView"]
-    backend["Backend (Laravel/SConcur) — master + HTTP workers, a request per fiber"]
-    nginx["nginx (APP_PORT) — reverse proxy"]
+    transporter["Transporter (Go) — batches of up to TRANSPORTER_BATCH_SIZE (5000)"]
+    buffer["Buffer (MongoDB buffer) — create (c) and update (u) operations"]
+    pending["MongoDB pendingTraces — halves waiting for their pair, TTL 3 h"]
     ui["Web panel (Vue 3) / API clients"]
-    src -->|"TCP socket: 4-byte length prefix + JSON"| receiver
-    receiver -->|"write to buffer"| buffer
-    buffer -->|"transporter: continuous batches, upsert-merge"| shards
-    shards -->|"reads (aggregations)"| backend
-    ui -->|"HTTP"| nginx
-    nginx -->|"proxy_pass → workers:SCONCUR_HTTP_PORT"| backend
+    nginx["nginx (APP_PORT) — reverse proxy"]
+    backend["Backend (Laravel/SConcur) — master + HTTP workers, a request per fiber"]
+    traces["ClickHouse — table traces, partitioned by hour"]
+    src <-->|"TCP: 4-byte length prefix + JSON"| receiver
+    receiver -->|"Save (InsertMany)"| buffer
+    transporter <-->|"FindForTransporter / DeleteByIds / MarkFailed"| buffer
+    transporter <-->|"FindMany / Apply (BulkWrite)"| pending
+    transporter <-->|"FindExisting (SELECT … FINAL) / Insert (INSERT … FORMAT JSONEachRow)"| traces
+    ui <-->|"HTTP"| nginx
+    nginx <-->|"proxy_pass → workers:SCONCUR_HTTP_PORT"| backend
+    backend <-->|"ClickhouseClient::select (HTTP interface)"| traces
 ```
 
 ### Components
 
-- Backend — Laravel 12 / PHP 8.4 on [SConcur](https://github.com/sprust/sconcur), a concurrent coroutine HTTP runtime that executes each request in its own PHP Fiber inside a single long-lived process. The application stays in memory between requests, removing framework-bootstrap overhead and giving high throughput when ingesting and reading large volumes of traces. Heavy parallel shard queries are parallelized through `SConcur\WaitGroup`. See "SConcur runtime" below.
+- Backend — Laravel 12 / PHP 8.4 on [SConcur](https://github.com/sprust/sconcur), a concurrent coroutine HTTP runtime that executes each request in its own PHP Fiber inside a single long-lived process. The application stays in memory between requests, removing framework-bootstrap overhead and giving high throughput when ingesting and reading large volumes of traces. Where one request needs several queries at once (chart ranges, tree levels), they run in parallel through `SConcur\WaitGroup`. See "SConcur runtime" below.
 - [sconcur/laravel](https://github.com/sprust/sconcur-laravel) — a composer package that binds Laravel to SConcur: the coroutine-scoped application, the HTTP worker, and the `sconcur:*` artisan commands.
 - nginx — a reverse proxy in front of the HTTP workers and the only HTTP entry point to the backend (`APP_PORT`, 8097 by default); the workers container publishes no ports. The upstream host is resolved per request, so recreating the workers container does not require an nginx restart.
-- Receiver — a standalone Go service (`servers/receiver/`) that accepts trace payloads over a TCP socket and writes them into the buffer.
-- Storage — MongoDB (traces), MySQL (users/services/auth), RabbitMQ (queues), Redis (cache). Reads and writes from the HTTP workers go through SConcur's non-blocking Mongo, MySQL and Redis drivers.
+- Receiver — a standalone Go service (`servers/receiver/`) that accepts trace payloads over a TCP socket and writes them into the buffer; its transporter moves them from the buffer into ClickHouse.
+- Storage — ClickHouse (traces), MongoDB (the buffer, counters, caches, incidents, notifications), MySQL (users/services/auth), RabbitMQ (queues), Redis (cache). Reads and writes from the HTTP workers go through SConcur's non-blocking Mongo, MySQL and Redis drivers, and ClickHouse is reached through SConcur's non-blocking HTTP client.
 - Frontend — Vue 3 + Vite + TypeScript (`frontend/`).
 - Tool links — the panel header links to the RabbitMQ management UI, taken from `RABBITMQ_ADMIN_URL`.
 
@@ -69,12 +73,12 @@ The backend does not run under php-fpm or Octane. HTTP requests are served by SC
 
 - Master and workers. `sconcur:servers:master:start` (started by supervisor in the `workers` container) is a supervisor over the worker pools: it spawns `SCONCUR_HTTP_WORKER_COUNT` processes as `php artisan sconcur:servers:http:start --masterPid=N`, restarts crashed ones, replaces a worker whose PHP thread has not come back to the scheduler for `SCONCUR_HTTP_WATCHDOG_TIMEOUT_MS` (60 s by default, `0` turns the watchdog off; each kill goes to the error log through `ReportWorkerWatchdogListener`), and exposes a telemetry panel. A pool is a `groups` entry of the master config, and one master can supervise several unlike pools under one lock and one journal; here up to four: `http`, `rabbitmq` (when `SCONCUR_RABBITMQ_WORKER_COUNT` is at least 1), `ws` (when `SCONCUR_WS_WORKER_COUNT` is at least 1) and `tasks`. All workers of it listen on the same port via `SO_REUSEPORT`; nginx proxies to them without knowing about the pool. A single worker can also be run standalone by the same `sconcur:servers:http:start` command. `sconcur:servers:master:status` and `:reload` take an optional `--group=NAME` to act on one pool instead of all of them.
 - Coroutine-scoped application. Under concurrent fibers, the Octane model (clone the app + swap the global container) is unsafe: neighbouring requests would see each other's state. Instead, `bootstrap/app.php` builds `SConcur\Laravel\Foundation\AsyncApplication` — a drop-in subclass of `Illuminate\Foundation\Application` that moves per-request state into the coroutine context: `request`, `auth`, `session`, `cookie`, the config overlay (`config()->set`), the current route, the locale, `View::share`, and `defer`. There is nothing to enable and no mode to detect: the adapters are installed in every process, and outside a coroutine each of them has a single caller, which is what the stock implementations are.
-- Non-blocking I/O. MongoDB goes through the SConcur driver and nothing else: `Model::sconcur()` hands back a collection of it, and the model is a facade over that collection rather than an active record — it declares where the documents live and what they hold, and no read or write passes through Eloquent. There is no Mongo ORM package and no `ext-mongodb` in the image. MySQL goes through the `sconcur_mysql` Laravel connection — an ordinary connection whose statements run in the sconcur extension instead of on PDO, so Eloquent and the query builder work as usual while a fiber waiting on the database yields the process to other requests instead of blocking it. It is simply what `DB_CONNECTION` names: the same calls are synchronous outside a coroutine, so nothing picks a connection at runtime, and migrations run over it too. The PDO `mysql` connection stays configured for the few things that need a PDO object (`schema:dump` shells out to `mysqldump`, and the `database` queue driver asks PDO for its name and version). Redis goes through the `sconcur` client (`REDIS_CLIENT`) and the cache through the `sconcur_redis` store (`CACHE_DRIVER`): commands run in the extension, and the image carries no `ext-redis`. The framework's `redis` cache store is gone, because its `putMany()` opens a transaction with `multi()`, which that client refuses. Where a single request needs several shard queries at once, they are run in parallel through `SConcur\WaitGroup` (search, charts, tree building).
+- Non-blocking I/O. MongoDB goes through the SConcur driver and nothing else: `Model::sconcur()` hands back a collection of it, and the model is a facade over that collection rather than an active record — it declares where the documents live and what they hold, and no read or write passes through Eloquent. There is no Mongo ORM package and no `ext-mongodb` in the image. MySQL goes through the `sconcur_mysql` Laravel connection — an ordinary connection whose statements run in the sconcur extension instead of on PDO, so Eloquent and the query builder work as usual while a fiber waiting on the database yields the process to other requests instead of blocking it. It is simply what `DB_CONNECTION` names: the same calls are synchronous outside a coroutine, so nothing picks a connection at runtime, and migrations run over it too. The PDO `mysql` connection stays configured for the few things that need a PDO object (`schema:dump` shells out to `mysqldump`, and the `database` queue driver asks PDO for its name and version). Redis goes through the `sconcur` client (`REDIS_CLIENT`) and the cache through the `sconcur_redis` store (`CACHE_DRIVER`): commands run in the extension, and the image carries no `ext-redis`. The framework's `redis` cache store is gone, because its `putMany()` opens a transaction with `multi()`, which that client refuses. ClickHouse is read over its HTTP interface by `App\Services\Clickhouse\ClickhouseClient`, which sends each request through SConcur's non-blocking `HttpClient`, so a coroutine waiting on ClickHouse yields the process too; values go into a query only as `{name:Type}` parameters, never into the SQL text. Where a single request needs several queries at once, they are run in parallel through `SConcur\WaitGroup` (charts, tree building).
 - Transaction caveat, for the PDO connection only. On the plain `mysql` connection, nothing may switch coroutines while a transaction is open — not only an await, but a `WaitGroup`, automatic preemption, or a `Fiber::suspend()` inside some package you called: the blocking PDO connection is shared by the process, so the coroutine that runs next can end up inside your transaction. On `sconcur_mysql` this does not apply, because the extension pins a transaction to a physical connection of its own; its nesting level lives in the coroutine context, so concurrent transactions cannot see one another and one spawned inside another joins it.
 - Row-count caveat, for `sconcur_mysql` only. An `UPDATE` answers with the rows it **matched**, not the rows it changed: the driver negotiates `CLIENT_FOUND_ROWS` in the handshake and PDO does not, so `DB::update()` on a row that already holds the new value returns 1 here and 0 on the `mysql` connection. There is no switch for it. Code that reads that count as "did anything actually change" has to ask the question in the statement instead — exclude the rows that would not change with `whereRaw('NOT (col <=> ?)', [$value])`, and matched is changed.
 - Queues on the same runtime. `QUEUE_CONNECTION` is `sconcur_rabbitmq`: a Laravel queue driver over the SConcur AMQP feature, read by a consumer pool that is another group of the same master. One process holds all four queues at once (`default`, `trace-tree`, `traces-clearing`, `slogger`) with a coroutine per delivery, and how many coroutines each gets is set by `SCONCUR_RABBITMQ_DEFAULT_CONSUMERS`, `QUEUE_TRACE_TREE_WORKERS_COUNT`, `SCONCUR_RABBITMQ_CLEANER_CONSUMERS` and `SLOGGER_DISPATCHER_QUEUE_WORKERS_COUNT`. A slow job costs one message rather than a worker. It is the only way to RabbitMQ here, the slogger dispatcher included: `SLOGGER_DISPATCHER_QUEUE_CONNECTION` names it too, so a trace batch is published from the coroutine that produced it rather than down a blocking socket in the middle of a request. The wire format is still the one `vladimir-yuldashev/laravel-queue-rabbitmq` wrote — the same body, the same message properties, the same `laravel.attempts` header — so a message that package left in a queue is read and run without ceremony. `SendTracesJob` carries its own `$tries` and `$backoff`, and a job's own values win over the pool's. Details: `vendor/sconcur/laravel/README.md`.
 
-- Periodic tasks on the same runtime. The cron, the dynamic index builder, the watcher check and the publisher of dynamic index stats are four tasks of one coroutine pool, the `tasks` group of the same master (`sconcur:tasks:start`, exactly one worker: a second would tick the same minute twice). A task implements `tick()` and nothing else — one pass of work — while the loop, the pauses, the error handling and the stop belong to the pool. A native `sleep()` would freeze the whole process, so the pause goes through `Sleeper` and suspends only its own coroutine: while the monitor builds an index in Mongo, the cron keeps ticking. Control is `sconcur:tasks:stop [--task=]` and `sconcur:tasks:restart [--task=]`: the command goes through the cache, so the pool is manageable from another container without knowing its pid. `cron:start` and `trace-dynamic-indexes:monitor:start` run a single task on its own. The pool reports its own telemetry — it runs no extension-side runtime to do that for it — so the `tasks` group has CPU, RSS and the In process / Finished / Refused columns counted over its ticks. Details: `vendor/sconcur/laravel/docs/task-pool.md`.
+- Periodic tasks on the same runtime. The cron, the watcher check and the refresh of the trace data's array paths are three tasks of one coroutine pool, the `tasks` group of the same master (`sconcur:tasks:start`, exactly one worker: a second would tick the same minute twice). A task implements `tick()` and nothing else — one pass of work — while the loop, the pauses, the error handling and the stop belong to the pool. A native `sleep()` would freeze the whole process, so the pause goes through `Sleeper` and suspends only its own coroutine: while the watcher check waits on Mongo, the cron keeps ticking. Control is `sconcur:tasks:stop [--task=]` and `sconcur:tasks:restart [--task=]`: the command goes through the cache, so the pool is manageable from another container without knowing its pid. `cron:start` runs the cron task on its own. The pool reports its own telemetry — it runs no extension-side runtime to do that for it — so the `tasks` group has CPU, RSS and the In process / Finished / Refused columns counted over its ticks. Details: `vendor/sconcur/laravel/docs/task-pool.md`.
 
 Details on the bridge and the coroutine context: `vendor/sconcur/laravel/README.md` and its `docs/`.
 
@@ -88,44 +92,51 @@ Groups come out in the order `config/sconcur.php` declares them, not the order t
 
 ### Trace metrics
 
-The Metrics tab of the Dashboard shows, for each service, how many new traces arrived in every fifteen-minute slot of the last 24 hours, by three clocks: when the source logged the trace (`logged`), when the receiver took it into the buffer (`buffered`) and when the transporter wrote it to its hourly shard (`stored`). The three series drift apart exactly when something is wrong: a buffer that backs up leaves `stored` behind `buffered` and then catches up in one spike, and a source with a clock off, or one that holds traces back and sends them in a batch, moves `logged` away from the other two.
+The Metrics tab of the Dashboard shows, for each service, how many new traces arrived in every fifteen-minute slot of the last 24 hours, by three clocks: when the source logged the trace (`logged`), when the receiver took it into the buffer (`buffered`) and when the transporter wrote it to the ClickHouse `traces` table (`stored`). The three series drift apart exactly when something is wrong: a buffer that backs up leaves `stored` behind `buffered` and then catches up in one spike, and a source with a clock off, or one that holds traces back and sends them in a batch, moves `logged` away from the other two.
 
-Nothing here reads the shards. The receiver counts every trace once, on the write that first gives it a type — the same point the watchers count at — keeps the counters in memory per service, type and slot, and every 15 seconds adds them to the `traceMetrics` collection, one `$inc` per document. A trace whose three moments fall into different slots adds to each of them. The collection keeps 25 hours, retired by a TTL index on the slot.
+Nothing here reads the `traces` table. The receiver counts every trace once, on the write that first gives it a type — the same point the watchers count at — keeps the counters in memory per service, type and slot, and every 15 seconds adds them to the `traceMetrics` collection, one `$inc` per document. A trace whose three moments fall into different slots adds to each of them. The collection keeps 25 hours, retired by a TTL index on the slot.
 
 Each service has a chart of its own, with a type filter that is applied without a request. The first three services of the list are loaded one after another when the tab is opened; the rest wait for their Refresh button. A service filter above the charts narrows the list, and the two buttons beside it reload either every chart of the list or only those of it already loaded. Nothing refreshes by itself.
 
 A click on a bar opens the aggregator filtered by the chart's service, the types selected above it and the fifteen minutes of the bar. The aggregator searches by logging time, so for a `logged` bar that is exactly the traces behind it; for `buffered` and `stored` it is the traces logged in the same slot, which are the same ones unless the buffer backed up.
 
-### Hourly database sharding
+### Traces table (ClickHouse)
 
-Traces are stored not in a single collection, but in periodic shard collections split by hour:
+Traces are stored in ClickHouse, in one table `traces` (migration `database/migrations/2026_09_29_192649_clickhouse_create_traces_table.php`), one row per trace:
 
 ```
-traces_YYYY_MM_DD_HH_HH      example: traces_2026_06_21_14_15  (hour 14:00–15:00)
+ENGINE = ReplacingMergeTree(uat)
+PARTITION BY toStartOfHour(lat)
+ORDER BY (sid, lat, tid)
 ```
 
-On the first access to a given hour, the shard is created on demand and a set of base indexes is set up on it: `sid` (service), `tid` (trace), `ptid` (parent), `tp` (type), `st` (status), tags, `lat` (logged-at time), plus composite indexes. Active shard names are cached in memory.
+- A partition holds one hour of logged-at time (`lat`). A query over a period reads only the partitions of that period, and cleanup drops whole partitions instead of deleting rows (see "Automatic cleanup").
+- The sorting key is service, logged-at time, trace. The create and the update of a trace are written as versions of the same key, and `ReplacingMergeTree` keeps the one with the latest `uat` when parts merge; until then, queries read with `FINAL` or take the row with the latest `uat`.
+- Skip indexes: `bloom_filter` on `tid`, `ptid` and `tgs`, `set` on `tp` and `st`, `minmax` on `dur`. They are part of the table, so there are no indexes to build for a query: searches, charts and facets answer at once.
+- The data is stored twice: `dt JSON`, which filters and aggregations read, and `dt_raw String`, the data as the client sent it, with its key order. Data that is not an object goes into `dt_raw` only.
+- `ptid` is an empty string for a root trace.
 
-Hourly slicing gives three advantages:
+The table is created by an ordinary Laravel migration, which sends the DDL through `ClickhouseClient`: `migrate` applies it with the rest, and `migrate:fresh` drops the ClickHouse tables along with the MongoDB collections. `make clickhouse-client` opens the ClickHouse client in the container. The `clickhouse` service of docker-compose (image `clickhouse/clickhouse-server:26.8.14.3`) is reached by PHP and the receiver as `clickhouse:8123`; its HTTP interface is also published on the host's `127.0.0.1` at `CLICKHOUSE_DOCKER_PORT` (18123 by default) for a viewer. Its memory settings are in `docker/clickhouse/config.d/low-memory.xml` (server) and `docker/clickhouse/users.d/profile.xml` (query limits); the container limit is `CLICKHOUSE_MEM_LIMIT`. Every select carries `max_execution_time` equal to `CLICKHOUSE_TIMEOUT_SECONDS`, so ClickHouse stops a query the client has given up on.
 
-1. Period queries read only the relevant shards. A search over the last hour does not scan week-old data — it touches one or two collections instead of a single large one.
-2. Deleting old data means dropping whole collections. Cleanup does not run an expensive `delete` over millions of documents — it drops the shards that fell out of the retention window (see "Automatic cleanup"). This is fast and does not load the database.
-3. Dynamic indexes live together with their shards and are removed along with them, so they do not accumulate indefinitely (see "Per-query auto-indexing").
+MongoDB keeps the rest: `buffer`, `invalidBuffer`, `pendingTraces`, `traceMetrics`, `watcherTimelines`, `traceTreeCache`, `traceTreeCacheStates`, `traceAdminStores`, `traceClearingProcesses`, `watcherIncidents`, `watcherIncidentEvents`, `notifications`. The `tracesPeriodic` database of earlier versions, with its hourly `traces_*` collections and `_traceTreesView`, is moved to ClickHouse and dropped by `make traces-migrate-mongo-clickhouse` (see "Upgrading from the MongoDB trace storage").
 
-On top of all shards, MongoDB exposes a unifying view `_traceTreesView` — it combines the `tid` and `ptid` of every periodic collection into a single logical set and tags each document with the name of its collection (`__cn`). The call tree is built through this view even when a parent and its children landed in different hourly shards.
-
-### Buffer → write to shard
+### Buffer → write to ClickHouse
 
 Intake and write are decoupled to absorb load spikes:
 
-1. Intake. The receiver accepts the payload over TCP and puts it into a buffer collection in MongoDB as a set of two kinds of operations: create (`c`) and update (`u`). The creates and the updates of a message are each written with one unordered `InsertMany` rather than a call per trace.
-2. Transport. A background transporter continuously pulls batches from the buffer (up to ~1000 records in FIFO order) and writes them into the corresponding hourly shards. It pauses for one second only when the buffer is empty (or after a read error), then checks again.
-3. Merge (upsert-merge). Writing to a shard is an `upsert` keyed by service + trace: the create and update operations of the same trace are merged into one resulting document.
-4. Reliability. After a successful write the record is removed from the buffer; on error it is marked for retry. After 5 failed attempts — or at once, if the record cannot be read — it is moved to the invalid-trace buffer, which keeps records for 3 days. A record that stays in the buffer for 6 hours without being written or rejected is dropped by a TTL index.
+1. Intake. The receiver accepts the payload over TCP and puts it into a buffer collection in MongoDB as a set of two kinds of operations: create (`c`) and update (`u`). The creates and the updates of a message are each written with one unordered `InsertMany` rather than a call per trace. A trace's `dt` is not parsed: it lies in the buffer as a JSON string in the `dj` field and reaches `dt_raw` as the same bytes, so key order and numbers stay as the client wrote them; invalid UTF-8 in it becomes U+FFFD, since ClickHouse would refuse the whole insert over it. Buffer records of the previous format, with `dt` as a BSON document, are still read. Roll the receiver back to a version without `dj` only on an empty buffer: that version would write such traces with empty data.
+2. Transport. A background transporter continuously pulls batches from the buffer (up to `TRANSPORTER_BATCH_SIZE` records, 5000 by default, in FIFO order; each batch is one insert, and fewer, larger inserts leave ClickHouse fewer parts to merge) and writes them into the `traces` table. It pauses for one second when the buffer is empty (or after a read error), then checks again; the pauses after a failed batch are described under Reliability.
+3. Merge. A trace that comes in halves — a create now, its update later — waits for the other half in the MongoDB collection `pendingTraces` (one document per service and trace, dropped by a TTL index 3 hours after its last write). For each batch the transporter reads the pending traces of all its traces in one query by id and merges each with the create and update of the batch (the field order is in "Trace message format"); ClickHouse is not read. Then:
+   - a trace that is final — it has a type and either its update or a status other than `started` — is inserted. If it had an update, its pending document is replaced by a done mark — the id alone, under the same TTL — so that its create arriving again is dropped as a repeat instead of reopening the finished trace as `started`. The half written before it is not deleted: both rows share the sorting key, `ReplacingMergeTree` keeps the one with the latest `uat` when their parts merge, reads go through `FINAL` until then, and the hourly `OPTIMIZE … FINAL` (see "Automatic cleanup") merges each closed hour. Children and tasks are final as they come, and a create that came with its update leaves only the done mark;
+   - a create still waiting for its update is inserted, so that it is seen as `started`, and kept pending;
+   - an update without its create is only kept pending: it has no type or tags to be shown with.
+
+   Only an update that finds nothing pending, or only the done mark, reads ClickHouse, `SELECT … FROM traces FINAL WHERE (sid, lat, tid) IN (…)`: one whose trace came complete already, or waited longer than the TTL. All the rows of a batch go in one `INSERT … FORMAT JSONEachRow`. A batch holds a trace once and batches run one after another, so a trace is never merged twice at the same time.
+4. Reliability. After a successful insert the batch's traces are passed to the watchers and the trace metrics, and their records are removed from the buffer. If a store is out of reach — the network, a timeout, ClickHouse under load (codes 159, 202, 209, 210, 241, 242, 252), or the traces table missing while a migration recreates it (code 60) — told apart by the ClickHouse code at the start of the answer and by the type of a network error, never by text the answer quotes from the data — the batch waits and is tried again as it is, the pause doubling from 1 to 30 seconds, and the attempts of its records are not spent: an outage does not move the buffer to the invalid one. Any other failure of the batch marks the whole batch for retry and makes the transporter wait before the next pass, 1, 2, 4, 8 seconds and so on up to 30, so the five attempts outlast an error of a few seconds such as the traces table being recreated. On shutdown the batch being saved is given 7 seconds to finish; one that does not stays in the buffer without spending an attempt. After 5 failed attempts — or at once, if the record cannot be read — it is moved to the invalid-trace buffer, which keeps records for 3 days. A record that stays in the buffer for 6 hours without being written or rejected is dropped by a TTL index.
 
 The buffer smooths out peaks: the client hands off data quickly and does not wait for the write into the main storage.
 
-Concurrency in the receiver is bounded rather than unlimited: at most 512 messages are handled at once, and at most 64 shard writes run in parallel in the transporter. When the limits are reached, the next socket read is simply delayed — backpressure reaches the sender instead of the process piling up a multi-gigabyte backlog, and the transporter does not starve the intake path of Mongo connections.
+Concurrency in the receiver is bounded rather than unlimited: at most 512 messages are handled at once. When the limit is reached, the next socket read is simply delayed — backpressure reaches the sender instead of the process piling up a multi-gigabyte backlog. The transporter writes one batch at a time.
 
 ### Trace timeline: start separately → finish separately
 
@@ -143,7 +154,7 @@ A trace may be written in two stages, when the operation's outcome is not yet kn
    - memory and CPU are updated, and tags/data are supplemented if needed;
    - the previous parent is restored from the stack.
 
-On the storage side, the creation and the finish are merged into one document (upsert by `tid`). This two-stage mechanism forms a timeline of nested operations: from the `parent → child` links and the start time / duration you can reconstruct what ran inside a request and in what order, which operations were nested into one another, and how long each took. Unfinished traces (a start with no finish) are visible with status `started`, which lets you catch operations that hung or crashed without a finish.
+On the storage side, the creation and the finish are merged into one row, keyed by service, logged-at time and trace (see "Traces table"). For the two halves to meet, the update's `plat` must equal the create's `lat`. This two-stage mechanism forms a timeline of nested operations: from the `parent → child` links and the start time / duration you can reconstruct what ran inside a request and in what order, which operations were nested into one another, and how long each took. Unfinished traces (a start with no finish) are visible with status `started`, which lets you catch operations that hung or crashed without a finish.
 
 Update is not mandatory. Two stages are just one scenario, not a requirement. A trace can be written with a single creation message — for example, when it is not a parent but a single operation whose outcome is known immediately (a database query, an outbound HTTP call, sending an email, etc.). In that case the final `status`, `duration`, `memory`, `cpu` are set right in the creation, and no update is sent at all. Likewise, `ptid` is optional: a trace with no parent is a root trace (the top of the tree). So the minimum is a single creation object with its fields filled in; a parent and/or a subsequent update are added only when they are actually needed.
 
@@ -151,34 +162,26 @@ Update is not mandatory. Two stages are just one scenario, not a requirement. A 
 
 The `parent → child` link is built on the `parentTraceId` / `traceId` identifiers and is not tied to a specific service. If service A passes its `traceId` to service B as the parent when starting an operation, then service B's traces will appear in the tree as children of service A's trace.
 
-This forms an end-to-end call tree across microservice boundaries: a single inbound HTTP request can fan out into a chain of calls to several services, and all of it is assembled into one tree through `_traceTreesView`. Search, tree, and charts can be filtered by several services at once (`serviceIds`) — or built with no service binding at all.
+This forms an end-to-end call tree across microservice boundaries: a single inbound HTTP request can fan out into a chain of calls to several services, and all of it is assembled into one tree by following `ptid` in the `traces` table, whatever service and hour each trace belongs to. Search, tree, and charts can be filtered by several services at once (`serviceIds`) — or built with no service binding at all.
 
 ### Building the call tree
 
-A tree is built in the background rather than inside the request. Opening one records a build state and queues the build on the `trace-tree` queue; the panel shows the state and loads the tree once it is finished, and the refresh button builds it again. A built tree is cached for an hour. The list of builds that have not finished is shown beside the tree, where a build can be canceled or deleted.
-
-### Per-query auto-indexing (dynamic indexes)
-
-Traces are filtered by arbitrary `data` fields, and it is impossible to index all possible field combinations in advance. Therefore indexes are created automatically for a specific query:
-
-- before a search, the system analyzes the set of filters (services, types, tags, statuses, duration/memory/CPU ranges, arbitrary `data` fields) and determines the required set of index fields;
-- if a suitable index does not exist yet, it is created asynchronously and marked in-progress; the request answers that the index is being built, and the panel repeats it once the index is ready (notified over WebSocket, or by polling when the ws pool is off);
-- subsequent identical queries use the ready index and run fast.
-
-Why dynamic indexes rather than permanent ones: indexes take up disk space and slow down writes, so keeping an index for every conceivable `data` field is expensive and wasteful. Dynamic indexes are therefore short-term (12 hours since the last query that used them) and are deleted automatically once they stop being used. Hourly sharding works in tandem here: an index is bound to its shards and is removed with them during cleanup, so it never accumulates indefinitely. The result is fast search over arbitrary fields combined with space savings — the system pays for an index only while it is actually needed.
-
-The Dynamic indexes dialog of the aggregator lists the indexes with their state and deletes one on request; `make art c=trace-dynamic-indexes:flush` deletes every index that is not being built.
+A tree is built in the background rather than inside the request. Opening one records a build state and queues the build on the `trace-tree` queue; the panel shows the state and loads the tree once it is finished, and the refresh button builds it again. The build walks the `ptid` links of the `traces` table level by level. A built tree is kept in `traceTreeCache` and its build state in `traceTreeCacheStates` until a TTL index removes them: the nodes 24 hours after they were written, the state 20 hours after its last update. The list of builds that have not finished is shown beside the tree, where a build can be canceled or deleted.
 
 ### Flexible filtering by trace data
 
-You can filter by any payload field, including nested ones (`user.id`, `request.path`, etc.):
+You can filter by any payload field, including nested ones (`user.id`, `request.path`, etc.). A path is names of `A-Z`, `a-z`, `0-9` and `_` joined by dots; the request validation refuses anything else.
 
-- numbers — `=`, `≠`, `>`, `≥`, `<`, `≤`;
-- strings — equals, not equals, contains, starts with, ends with. Not equals asks for a field that is there and differs: a trace carrying no such field at all is not an answer to it, and `does not exist` is how that is asked;
+- numbers — `=`, `≠`, `>`, `≥`, `<`, `≤`. Compared as numbers, integers and floats alike; a string `"500"` does not match a numeric condition;
+- strings — equals, not equals, contains, starts with, ends with. Compared as text, case-sensitively. Not equals asks for a field that is there and differs: a trace carrying no such field at all is not an answer to it, and `does not exist` is how that is asked;
 - booleans — `true` / `false`;
-- field checks — is null / is not null, exists / does not exist.
+- field checks — is null / is not null, exists / does not exist. A key holding null exists, and `is null` matches only a key that is there and holds null.
 
-These filters are assembled into a MongoDB aggregation pipeline and work together with the base filters (service, type, tags, status, duration/memory/CPU ranges, time period). Several tags narrow rather than widen: a trace has to carry every one of them. A dynamic index is automatically raised for the selected set of fields — which is why tags and a `data` field cannot be filtered together: MongoDB indexes at most one array per index, and the tags are one already. Asked for both, the search answers with that rather than building an index that would fail.
+When the value at a path is an array of scalars (`roles` over `"roles": ["admin", "dev"]`), or a part of the path holds an array of objects (`items.price` over `"items": [{"price": 5}, …]`), the condition matches if any element matches; several such arrays, and tags beside them, can be filtered on at once. Which paths hold arrays of objects is learned from a sample of the last day's data by a task of the pool, when it starts and then every 5 minutes (`RefreshTraceDataPathTypesTask`), and a search only reads the result; until the first refresh no path is walked as an array of objects. An array inside the elements of another array is not walked into.
+
+Through an array of objects, exists, is null and is not null read each element as it arrived, so an element holding null counts as present. Paths under `cache` find nothing, negated filters included. Data that is not an object is found by no data filter. A number in a filter is at most 1e20 either way (duration, memory and CPU: 0 to 1e15); a larger one is a validation error.
+
+These filters are built into the `WHERE` of a ClickHouse query (`ClickhouseTraceFilterBuilder`), every value as a `{name:Type}` parameter, and work together with the base filters (service, type, tags, status, duration/memory/CPU ranges, time period). Several tags narrow rather than widen: a trace has to carry every one of them. Tags and `data` fields can be used in one filter.
 
 A field is added to the filter from a trace's data tree (the custom button beside a value), or by hand with the Data field button beside Other filters. A hand-added row takes a key and a value type (string, int, float, bool), and changing the type resets the value. Each row can also add its field as a column of the results table, and a numeric one as a series of the chart. A row with an empty key is left out of all three.
 
@@ -191,7 +194,7 @@ Besides paginated search, timeline charts are built over traces. You pick a peri
 - memory (`memory`);
 - CPU (`cpu`).
 
-For duration/memory/CPU the average, minimum and maximum are drawn, and the p50, p95 and p99 percentiles come with them, hidden — the legend, which is where a series is switched off, is where they are switched on, one chart at a time. A percentile answers what the slowest few per cent actually saw, which an average cannot: over an hour of real traces the average duration was 19ms, the p95 58ms and the slowest request 4.4s. Charts can additionally be built over numeric fields from `data`, with the same six. The same set of filters as in search applies to charts, so you can watch metric dynamics for a specific service, operation type, tag, or an arbitrary condition on the data. Interval collection is parallelized, which makes charts fast to build even over large periods.
+For duration/memory/CPU the average, minimum and maximum are drawn, and the p50, p95 and p99 percentiles come with them, hidden — the legend, which is where a series is switched off, is where they are switched on, and each chart keeps its own choice. A percentile answers what the slowest few per cent actually saw, which an average cannot: over an hour of real traces the average duration was 19ms, the p95 58ms and the slowest request 4.4s. Charts can additionally be built over numeric fields from `data`, with the same six. The same set of filters as in search applies to charts, so you can watch metric dynamics for a specific service, operation type, tag, or an arbitrary condition on the data. The period is cut into about ten ranges, queried in parallel through `SConcur\WaitGroup`; each range is one `GROUP BY` over `toStartOfInterval(lat, …)` (`toStartOfDay` and `toStartOfMonth` for the day and month steps) that computes `count`, `avg`, `min`, `max` and the `quantile` p50, p95 and p99 in ClickHouse.
 
 ### Presets
 
@@ -213,11 +216,11 @@ Configurable rules that watch the system and open an incident when one of them i
 
 `logErrors` and `receiverErrors` look at log files rather than at traces, through the same indexes as the Logs page: `logErrors` counts the entries of level `ERROR` and above in the Laravel logs, `receiverErrors` the `ERROR` entries in the receiver log, since the watcher last spoke, and each puts the message of the latest one into the event.
 
-No watcher queries the hourly trace collections, and none uses the dynamic indexes. Traces are counted where they already pass one by one — in the receiver, which matches each of them against the watchers' filters and adds it to a 15-second bucket in the watcher's own timeline (`watcherTimelines`, one document per watcher). The receiver knows nothing about thresholds, windows or cooldowns: a task in the pool reads the timelines once a minute, applies the numbers each watcher was configured with, and decides what has gone wrong. The heaviest query a trace watcher makes is a `findOne` of its own line; the buffer watchers run a count, and the log watchers read the error levels of the log indexes.
+No watcher queries the `traces` table. Traces are counted where they already pass one by one — in the receiver, which matches each of them against the watchers' filters and adds it to a 15-second bucket in the watcher's own timeline (`watcherTimelines`, one document per watcher). The receiver knows nothing about thresholds, windows or cooldowns: a task in the pool reads the timelines once a minute, applies the numbers each watcher was configured with, and decides what has gone wrong. The heaviest query a trace watcher makes is a `findOne` of its own line; the buffer watchers run a count, and the log watchers read the error levels of the log indexes.
 
 The filter the receiver reads is the `trace_match` column, which the panel writes from the watcher's settings on every save. It carries a version: this receiver reads version 2 only and skips a watcher of any other version with a line in its log. After a release that raises the version, the receiver is deployed before the panel and every trace watcher is saved again.
 
-A trigger opens an incident, or adds an event to the one already open — a watcher speaks at most once per its cooldown, so a problem lasting an hour does not fill the incident with sixty identical events. An event carries what the watcher saw: the value, the threshold, and, for `manyTraces` and `slowTraces`, up to five shapes of trace behind it (service, type, tags, how many; for `slowTraces` also the slowest one by id and the moment it started). The filter button beside a shape opens the aggregator on that shape and the watcher's statuses, around the start of the slowest trace when the shape names one rather than around the event: traces are searched by when they started, and a trace that ran for an hour started an hour before the watcher said anything. Incidents are closed by a person, from the panel: a watcher going quiet means the symptom stopped, not that the cause was found. The badge in the header counts the open ones, and is read when a page is opened or the list beside it is refreshed — nothing follows the incidents in the background.
+A trigger opens an incident, or adds an event to the one already open — a watcher speaks at most once per its cooldown, so a problem lasting an hour does not fill the incident with sixty identical events. An event carries what the watcher saw: the value, the threshold, and, for `manyTraces` and `slowTraces`, up to five shapes of trace behind it (service, type, tags, how many; for `slowTraces` also the slowest one by `trace_id` and the moment it started). The filter button beside a shape opens the aggregator on that shape and the watcher's statuses, around the start of the slowest trace when the shape names one rather than around the event: traces are searched by when they started, and a trace that ran for an hour started an hour before the watcher said anything. Incidents are closed by a person, from the panel: a watcher going quiet means the symptom stopped, not that the cause was found. The badge in the header counts the open ones, and is read when a page is opened or the list beside it is refreshed — nothing follows the incidents in the background.
 
 Only a watcher's settings live in MySQL. Everything it produces — the incidents, the events under them, the lines behind those — accumulates while the system runs, so it lives in MongoDB and is retired by a TTL index: a month after closing for incidents (an open one is kept), a month for events, three days for a line nothing has been written to. Removing a watcher therefore leaves all of it alone, and the removal is soft, so the incidents it found still have a name to show against.
 
@@ -242,10 +245,9 @@ SLogger is an MCP server (protocol revision `2026-07-28`, Streamable HTTP at `PO
 | `get_trace_facets`, `search_traces`, `get_trace_data_fields` | types, statuses and tags of a period; the traces themselves, with filters and a filter by data; the data keys of a type |
 | `get_incidents`, `get_incident_events` | watcher incidents and the numbers behind them |
 | `get_trace`, `get_trace_data`, `get_trace_tree`, `search_trace_tree` | one trace, its data, its call tree and the failed or slow calls in it |
-| `get_trace_index_status`, `get_trace_indexes` | the dynamic indexes the queries build |
 | `search_slogger_logs` | the logs of SLogger itself, not of the services |
 
-Tools that search traces over a period build the same dynamic indexes as the traces page, so the period is `from`/`to` of at most 24 hours rounded to whole hours, and an index is reused whenever only the filter values change. A tool whose data has to be prepared first answers `index_building` or `tree_building` at once and is called again later, instead of holding the request open.
+Tools that search traces over a period take `from`/`to` exactly as given — `from` inclusive, `to` exclusive — and the period may be at most as long as traces are kept (`TRACES_LIFETIME_HOURS`). They answer at once, whatever the filters. `aggregate_traces` takes the same `data_filter` as `search_traces`, and tags and `data_filter` can be used together. `get_trace_tree`, whose tree is built in the background, answers `tree_building` at once and is called again later, instead of holding the request open. A query the trace storage refuses or does not finish in time is answered as the tool error `query_failed`, with a hint to narrow the period or the filters.
 
 The server also offers prompts — in Claude Code they are commands like `/mcp__slogger-prod__investigate_errors`: `investigate_errors`, `investigate_latency`, `explain_incident`, `explain_trace`.
 
@@ -283,7 +285,9 @@ Name the service and roughly the period in a question: "over the last day", "yes
 
 ### Automatic cleanup
 
-Stale traces are removed automatically. The retention period is set by the `TRACES_LIFETIME_DAYS` variable (default 3 days). Cleanup is a queued job (`ClearTracesJob`) scheduled every hour and, thanks to hourly sharding, drops whole shard collections that fell out of the retention window instead of deleting individual documents. This is fast, does not fragment storage, and also removes the dynamic indexes associated with those shards. Each run is recorded, and the Trace cleaner page lists the runs with how many collections and traces were cleared and the error, if any. `make art c=traces-clearing:clear` runs a cleanup by hand.
+Stale traces are removed automatically. The retention period is set by the `TRACES_LIFETIME_HOURS` variable (default 72). Cleanup is a queued job (`ClearTracesJob`) scheduled every hour: it drops the hourly partitions whose hour ended no later than now minus the retention period (`ALTER TABLE traces DROP PARTITION ID …`), counting their rows from `system.parts`, instead of deleting individual rows. A trace is therefore kept at least `TRACES_LIFETIME_HOURS` and less than `TRACES_LIFETIME_HOURS` + 2 hours. Each run is recorded, and the Trace cleaner page lists the runs with how many partitions (the collections column) and traces were cleared and the error, if any. If dropping an hour fails, the run is recorded with the hours and traces dropped before the failure and with the error. A run still open after 60 minutes is taken as dead: the next run closes it with an error and goes on. `make art c=traces-clearing:clear` runs a cleanup by hand.
+
+A second hourly job, `OptimizeTracesJob` (at ten past, on the same queue), merges each hour that closed more than an hour ago and is still in several parts into one part (`OPTIMIZE TABLE traces PARTITION ID … FINAL`). A trace written in two steps has two rows until their parts merge, and background merges promise no moment for it; reads go through `FINAL` and never see both, and after this merge the hour holds one row per trace and `FINAL` has nothing left to do in it. An hour of about 500 thousand traces takes about 7 seconds and 0.8 GB of memory, one partition at a time. An hour already in one part is skipped, so is one a background merge is working on — it is taken the next hour.
 
 ---
 
@@ -292,7 +296,8 @@ Stale traces are removed automatically. The retention period is set by the `TRAC
 - PHP 8.4, Laravel 12, PSR-12 style (PHP CS Fixer)
 - SConcur — concurrent coroutine HTTP runtime (long-running application), plus the `sconcur/laravel` bridge
 - nginx — reverse proxy in front of the HTTP workers
-- MongoDB (non-blocking SConcur driver, no ORM package and no `ext-mongodb`) — traces
+- ClickHouse (HTTP interface through the SConcur HTTP client) — traces
+- MongoDB (non-blocking SConcur driver, no ORM package and no `ext-mongodb`) — the buffer, counters, caches, incidents, notifications
 - MySQL — users, services, auth
 - RabbitMQ — queues; Redis — cache (the `sconcur` client and the `sconcur_redis` store, no `ext-redis` in the image)
 - Go — trace receiver service (`servers/receiver/`)
@@ -321,7 +326,7 @@ Communication is over TCP. Every message, in both directions, is sent with a 4-b
    { "t": "<api_token>" }
    ```
 
-   The token determines which service the traces belong to (created via `make art c=service:create`). The server replies with `ok`, or with an error text and closes the connection.
+   The token determines which service the traces belong to (created via `make art c=service:create`). The server replies with `ok`, or with an error text and closes the connection. The receiver remembers which service a token names for 30 seconds, so a removed service or a reinstalled database takes up to that long to show.
 
 2. Sending traces. Then, within the same connection, the client sends trace messages in a loop; the server replies `received` to each one as soon as it is read, before it is parsed or buffered, so a message that does not parse is only logged. While the server is shutting down it replies `server_is_closing` instead.
 
@@ -366,21 +371,21 @@ Trace update (the finish stage):
   "dur":  0.137,            // actual duration
   "mem":  43.1,             // memory, %
   "cpu":  15.0,             // CPU, %
-  "plat": "2026-06-21 14:00:00.000000"  // the trace's own logged-at time (lat of its create); picks the hourly shard when the update is stored first
+  "plat": "2026-06-21 14:00:00.000000"  // the trace's own logged-at time; must equal lat of its create, or the two are stored as separate rows
 }
 ```
 
 The field names are intentionally short (`tid`, `ptid`, `tp`, …) — this reduces the volume of transmitted and stored data.
 
-Merging create and update. On the receiver side, a create and an update with the same `tid` are merged into one document (see "Buffer → write to shard" and "Trace timeline"). The update overwrites a field rather than appending to it, but only a field it actually carries. The order in which each field's value is taken:
+Merging create and update. On the receiver side, a create and an update with the same `tid` are merged into one row (see "Buffer → write to ClickHouse" and "Trace timeline"). The update overwrites a field rather than appending to it, but only a field it actually carries. The order in which each field's value is taken:
 
 | Field | Order |
 |---|---|
-| `st` | update → stored document → create |
-| `tgs`, `dt` | update → stored document, if not empty → create |
-| `dur`, `mem`, `cpu` | update → stored document, if not null → create |
-| `tp` | create → stored document (an update carries no type) |
-| `ptid` | stored document → create (an update carries no parent) |
+| `st` | update → stored row → create |
+| `tgs`, `dt` | update → stored row, if not empty → create |
+| `dur`, `mem`, `cpu` | update → stored row, if not null → create |
+| `tp` | create → stored row (an update carries no type) |
+| `ptid` | stored row → create (an update carries no parent) |
 
 Therefore, if an update is persisted before the create, the update's data takes priority: a create that arrives later does not overwrite it, only backfills the missing fields (for example, the type `tp`).
 
@@ -413,7 +418,16 @@ APP_PORT=8097             # external port of nginx in front of the SConcur HTTP 
 FRONTEND_DOCKER_COMMAND=${FRONTEND_DOCKER_SERVER_COMMAND}  # or ${FRONTEND_DOCKER_LOCAL_COMMAND}
 FRONTEND_DOCKER_PORT=3075                                  # external port of the web panel
 
-TRACES_LIFETIME_DAYS=3    # trace retention period in days
+TRACES_LIFETIME_HOURS=72  # trace retention period in hours
+
+# ClickHouse (traces): the clickhouse service of docker-compose
+CLICKHOUSE_HOST=clickhouse
+CLICKHOUSE_PORT=8123      # HTTP interface
+CLICKHOUSE_DATABASE=slogger
+CLICKHOUSE_USERNAME=slogger
+CLICKHOUSE_PASSWORD=      # required; the same password goes into servers/receiver/.env
+CLICKHOUSE_DOCKER_PORT=18123  # HTTP interface published on the host, for a viewer
+CLICKHOUSE_MEM_LIMIT=6g   # memory limit of the clickhouse container; the server takes 0.85 of it
 
 LOGS_NGINX_KEEP_DAYS=14   # nginx access log files are kept this many days
 #LOGS_NGINX_PATH=         # nginx log folder, storage/logs/nginx when not set
@@ -428,7 +442,7 @@ SCONCUR_HTTP_ADMIN_TOKEN=      # panel bearer token; empty = panel off and no ru
 SCONCUR_PANEL_HOST=http://workers:28081/api/stats  # panel stats URL as seen from the app
 
 # sconcur WebSocket pool: the panel subscribes to it instead of polling for a trace tree
-# or a dynamic index being built
+# being built
 SCONCUR_WS_WORKER_COUNT=1   # 0 = pool off; the panel falls back to polling
 SCONCUR_WS_PORT=28090       # internal port the ws workers listen on (nginx upstream for /app/)
 SCONCUR_WS_APP_KEY=         # generated by `make setup`; the browser carries it
@@ -440,6 +454,15 @@ SCONCUR_WS_APP_SECRET=      # generated by `make setup`; signs channel subscript
 ```dotenv
 BACKEND_URL=http://localhost:8097  # nginx in front of the SConcur HTTP server; see the port in .env → APP_PORT
 SCONCUR_WS_KEY=                    # the same key as .env → SCONCUR_WS_APP_KEY; generated by `make setup`
+```
+
+`servers/receiver/.env`:
+
+```dotenv
+CLICKHOUSE_URL=http://clickhouse:8123  # the same ClickHouse as .env → CLICKHOUSE_HOST and CLICKHOUSE_PORT
+CLICKHOUSE_DATABASE=slogger
+CLICKHOUSE_USERNAME=slogger
+CLICKHOUSE_PASSWORD=                   # the same as .env → CLICKHOUSE_PASSWORD
 ```
 
 The ws credentials are not shipped in the example files — a secret published in a
@@ -462,7 +485,7 @@ it comes back.
 A second instance on the same machine goes into a folder with another name, with its own
 `DOCKER_CONTAINER_PREFIX` and its own external ports (`APP_PORT`, `FRONTEND_DOCKER_PORT`,
 `RECIEVER_SOCKET_DOCKER_PORT`, `DB_DOCKER_PORT`, `REDIS_DOCKER_PORT`, `RABBITMQ_DOCKER_PORT`,
-`RABBITMQ_DOCKER_ADMIN_PORT`, `MONGO_DOCKER_PORT`). Docker Compose names the volumes after the
+`RABBITMQ_DOCKER_ADMIN_PORT`, `MONGO_DOCKER_PORT`, `CLICKHOUSE_DOCKER_PORT`). Docker Compose names the volumes after the
 folder, so the data of the two instances stays apart.
 
 ### Setup
@@ -470,6 +493,16 @@ folder, so the data of the two instances stays apart.
 ```bash
 make setup
 ```
+
+### Upgrading from the MongoDB trace storage
+
+An installation that kept its traces in MongoDB (the `tracesPeriodic` database) is upgraded in place:
+
+1. Add to `.env` the `CLICKHOUSE_*` variables (the password is required) and `TRACES_LIFETIME_HOURS`, which replaces `TRACES_LIFETIME_DAYS`. Add to `servers/receiver/.env` `CLICKHOUSE_URL`, `CLICKHOUSE_DATABASE`, `CLICKHOUSE_USERNAME` and `CLICKHOUSE_PASSWORD`, and keep `MONGODB_DB_PERIODIC_TRACES`.
+2. `make deploy-prod`. The migrations create the `traces` table and `pendingTraces` and drop the collections nothing reads any more (`traceDynamicIndexes`, `bufferInvalid`). From the moment the receiver is rebuilt, new traces go to ClickHouse; what the previous receiver left in the buffer is read as it is.
+3. `make traces-migrate-mongo-clickhouse`. It runs `bin/traces-migrate` in the receiver container: the traces of `tracesPeriodic` go to ClickHouse newest hour first, each batch is deleted from MongoDB once ClickHouse has it, then each emptied collection and, at the end, the database. Stopped, it goes on from where it was when run again. A document it cannot read stays in MongoDB with its collection, and the run says how many. It moves about 6,000 traces a second.
+
+Until step 3 is through, the panel shows the traces received after the deploy and the older ones as they are moved. An update that arrives for a trace not moved yet is lost, and the trace stays `started`; moving the newest hours first keeps that window short.
 
 ### Create a user
 
@@ -489,7 +522,8 @@ make art c=service:create
 make sconcur-status   # status of the sconcur PHP extension
 make sconcur-restart  # stop the master; supervisor starts it back up with the fresh code
 make sconcur-update   # update sconcur/laravel (and the sconcur/sconcur it pins): update → rebuild the image → dump-autoload → recreate containers
-make deploy-prod      # pull, build the image, install dependencies, declare queues, migrate, reload the workers, rebuild the receiver and the frontend
+make deploy-prod      # pull, build the image, install dependencies, generate missing ws keys, declare queues, migrate MySQL, MongoDB and ClickHouse, reload the workers, rebuild the receiver and the frontend
+make clickhouse-client # ClickHouse client in the clickhouse container
 make receiver-monitor # live receiver stats from servers/receiver/storage/stats.json
 ```
 
