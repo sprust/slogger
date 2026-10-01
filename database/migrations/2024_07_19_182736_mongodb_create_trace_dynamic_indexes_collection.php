@@ -8,7 +8,7 @@ return new class extends Migration {
     // Not Migration::$connection: the database manager has no Mongo driver registered.
     // This names a `database.connections.mongodb.*` entry, read below as plain config.
     protected string $connectionName = 'mongodb.traces';
-    protected string $collectionName = 'buffer';
+    protected string $collectionName = 'traceDynamicIndexes';
 
     // Nothing here is transactional, and the transaction the migrator would otherwise
     // open is on the default MySQL connection, which none of this touches.
@@ -21,36 +21,58 @@ return new class extends Migration {
     {
         $database = $this->database();
 
-        $database->command(['create' => $this->collectionName]);
-
-        $secondsPerHour = 60 * 60;
+        $database->command([
+            'create'    => $this->collectionName,
+            'validator' => [
+                '$jsonSchema' => [
+                    'bsonType'   => 'object',
+                    'required'   => [
+                        'indexName',
+                        'name',
+                        'collectionNames',
+                        'fields',
+                        'inProcess',
+                        'created',
+                        'actualUntilAt',
+                        'createdAt',
+                    ],
+                    'properties' => [
+                        'name'            => [
+                            'bsonType' => 'string',
+                        ],
+                        'indexName'       => [
+                            'bsonType' => 'string',
+                        ],
+                        'collectionNames' => [
+                            'bsonType' => 'array',
+                        ],
+                        'fields'          => [
+                            'bsonType' => 'array',
+                        ],
+                        'inProcess'       => [
+                            'bsonType' => 'bool',
+                        ],
+                        'created'         => [
+                            'bsonType' => 'bool',
+                        ],
+                        'actualUntilAt'   => [
+                            'bsonType' => 'date',
+                        ],
+                        'createdAt'       => [
+                            'bsonType' => 'date',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
 
         $database->command([
             'createIndexes' => $this->collectionName,
             'indexes'       => [
                 [
-                    'key'  => ['tid' => 1],
-                    'name' => 'tid_1',
-                ],
-                [
-                    'key'  => [
-                        'sid' => 1,
-                        'tid' => 1,
-                    ],
-                    'name' => 'sid_1_tid_1',
-                ],
-                [
-                    'key'  => [
-                        'lat'   => 1,
-                        '__ins' => 1,
-                        '__upd' => 1,
-                    ],
-                    'name' => 'lat_1___ins_1___upd_1',
-                ],
-                [
-                    'key'                => ['lat' => 1],
-                    'name'               => 'lat_1',
-                    'expireAfterSeconds' => $secondsPerHour, // 1 hour
+                    'key'    => ['name' => 1],
+                    'name'   => 'name_1',
+                    'unique' => true,
                 ],
             ],
         ]);

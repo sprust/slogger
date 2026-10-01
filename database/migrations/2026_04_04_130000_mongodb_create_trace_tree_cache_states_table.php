@@ -4,10 +4,6 @@ use Illuminate\Database\Migrations\Migration;
 use SConcur\Features\Mongodb\Connection\Client;
 use SConcur\Features\Mongodb\Connection\Database;
 
-/**
- * The build state of each trace tree: one document per root, kept 20 hours after its
- * last change — longer than the nodes it describes.
- */
 return new class extends Migration {
     // Not Migration::$connection: the database manager has no Mongo driver registered.
     // This names a `database.connections.mongodb.*` entry, read below as plain config.
@@ -35,7 +31,7 @@ return new class extends Migration {
                 [
                     'key'                => ['updatedAt' => 1],
                     'name'               => 'updatedAt_1',
-                    'expireAfterSeconds' => 60 * 60 * 20,
+                    'expireAfterSeconds' => 60 * 60,
                 ],
             ],
         ]);
@@ -47,8 +43,12 @@ return new class extends Migration {
     }
 
     /**
-     * The connection, built here rather than taken from an application service: a
-     * migration has to keep meaning what it meant on the day it ran.
+     * The connection, built here rather than taken from an application service.
+     *
+     * A migration has to keep meaning what it meant on the day it ran, and application
+     * code moves on. What it may lean on is what does not: the configuration keys and the
+     * driver. Index names are spelled out for the same reason — they are what the
+     * collection actually carries, not what a helper would derive today.
      */
     private function database(): Database
     {

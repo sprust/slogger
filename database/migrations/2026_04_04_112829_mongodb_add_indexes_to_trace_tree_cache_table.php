@@ -8,7 +8,7 @@ return new class extends Migration {
     // Not Migration::$connection: the database manager has no Mongo driver registered.
     // This names a `database.connections.mongodb.*` entry, read below as plain config.
     protected string $connectionName = 'mongodb.traces';
-    protected string $collectionName = 'buffer';
+    protected string $collectionName = 'traceTreeCache';
 
     // Nothing here is transactional, and the transaction the migrator would otherwise
     // open is on the default MySQL connection, which none of this touches.
@@ -21,36 +21,19 @@ return new class extends Migration {
     {
         $database = $this->database();
 
+        // Already created by an earlier migration; repeating it with the same (absent)
+        // options is what the server lets through, and keeps this one standalone.
         $database->command(['create' => $this->collectionName]);
-
-        $secondsPerHour = 60 * 60;
 
         $database->command([
             'createIndexes' => $this->collectionName,
             'indexes'       => [
                 [
-                    'key'  => ['tid' => 1],
-                    'name' => 'tid_1',
-                ],
-                [
                     'key'  => [
-                        'sid' => 1,
-                        'tid' => 1,
+                        'rootTraceId' => 1,
+                        'traceId'     => 1,
                     ],
-                    'name' => 'sid_1_tid_1',
-                ],
-                [
-                    'key'  => [
-                        'lat'   => 1,
-                        '__ins' => 1,
-                        '__upd' => 1,
-                    ],
-                    'name' => 'lat_1___ins_1___upd_1',
-                ],
-                [
-                    'key'                => ['lat' => 1],
-                    'name'               => 'lat_1',
-                    'expireAfterSeconds' => $secondsPerHour, // 1 hour
+                    'name' => 'rootTraceId_1_traceId_1',
                 ],
             ],
         ]);
@@ -61,14 +44,10 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        $database = $this->database();
-
-        $database->command([
+        $this->database()->command([
             'dropIndexes' => $this->collectionName,
-            'index'       => '*',
+            'index'       => 'rootTraceId_1_traceId_1',
         ]);
-
-        $database->command(['drop' => $this->collectionName]);
     }
 
     /**

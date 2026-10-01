@@ -4,48 +4,61 @@ use Illuminate\Database\Migrations\Migration;
 use SConcur\Features\Mongodb\Connection\Client;
 use SConcur\Features\Mongodb\Connection\Database;
 
-/**
- * Buffer documents the transporter could not act on, kept for 3 days with the reason.
- */
 return new class extends Migration {
     // Not Migration::$connection: the database manager has no Mongo driver registered.
     // This names a `database.connections.mongodb.*` entry, read below as plain config.
     protected string $connectionName = 'mongodb.traces';
-    protected string $collectionName = 'invalidBuffer';
+    protected string $collectionName = 'bufferInvalid';
 
     // Nothing here is transactional, and the transaction the migrator would otherwise
     // open is on the default MySQL connection, which none of this touches.
     public $withinTransaction = false;
 
+    /**
+     * Run the migrations.
+     */
     public function up(): void
     {
         $database = $this->database();
 
         $database->command(['create' => $this->collectionName]);
 
+        $secondsPerHour = 60 * 60;
+
         $database->command([
             'createIndexes' => $this->collectionName,
             'indexes'       => [
                 [
-                    // `iat`, not `cat`: the receiver stamps `iat` on everything it moves here, while `cat`
-                    // is only on documents that came from the buffer whole — those that failed to decode
-                    // carry their id, their raw bytes and the error, and nothing else.
-                    'key'                => ['iat' => 1],
-                    'name'               => 'iat_1',
-                    'expireAfterSeconds' => 60 * 60 * 24 * 3,
+                    'key'                => ['cat' => 1],
+                    'name'               => 'cat_1',
+                    'expireAfterSeconds' => $secondsPerHour * 36, // 3 days
                 ],
             ],
         ]);
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
-        $this->database()->command(['drop' => $this->collectionName]);
+        $database = $this->database();
+
+        $database->command([
+            'dropIndexes' => $this->collectionName,
+            'index'       => '*',
+        ]);
+
+        $database->command(['drop' => $this->collectionName]);
     }
 
     /**
-     * The connection, built here rather than taken from an application service: a
-     * migration has to keep meaning what it meant on the day it ran.
+     * The connection, built here rather than taken from an application service.
+     *
+     * A migration has to keep meaning what it meant on the day it ran, and application
+     * code moves on. What it may lean on is what does not: the configuration keys and the
+     * driver. Index names are spelled out for the same reason — they are what the
+     * collection actually carries, not what a helper would derive today.
      */
     private function database(): Database
     {

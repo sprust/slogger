@@ -21,6 +21,8 @@ return new class extends Migration {
     {
         $database = $this->database();
 
+        // The collection is already there; `create` with the same (absent) options is
+        // what the server lets through, and this keeps the migration standalone.
         $database->command(['create' => $this->collectionName]);
 
         $secondsPerHour = 60 * 60;
@@ -29,28 +31,16 @@ return new class extends Migration {
             'createIndexes' => $this->collectionName,
             'indexes'       => [
                 [
-                    'key'  => ['tid' => 1],
-                    'name' => 'tid_1',
-                ],
-                [
                     'key'  => [
-                        'sid' => 1,
-                        'tid' => 1,
+                        'op'  => 1,
+                        'cat' => 1,
                     ],
-                    'name' => 'sid_1_tid_1',
+                    'name' => 'op_1_cat_1',
                 ],
                 [
-                    'key'  => [
-                        'lat'   => 1,
-                        '__ins' => 1,
-                        '__upd' => 1,
-                    ],
-                    'name' => 'lat_1___ins_1___upd_1',
-                ],
-                [
-                    'key'                => ['lat' => 1],
-                    'name'               => 'lat_1',
-                    'expireAfterSeconds' => $secondsPerHour, // 1 hour
+                    'key'                => ['cat' => 1],
+                    'name'               => 'cat_1',
+                    'expireAfterSeconds' => $secondsPerHour * 6, // 6 hours
                 ],
             ],
         ]);
@@ -63,12 +53,12 @@ return new class extends Migration {
     {
         $database = $this->database();
 
-        $database->command([
-            'dropIndexes' => $this->collectionName,
-            'index'       => '*',
-        ]);
-
-        $database->command(['drop' => $this->collectionName]);
+        foreach (['op_1_cat_1', 'cat_1'] as $indexName) {
+            $database->command([
+                'dropIndexes' => $this->collectionName,
+                'index'       => $indexName,
+            ]);
+        }
     }
 
     /**

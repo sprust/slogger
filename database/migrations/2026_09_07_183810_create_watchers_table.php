@@ -39,16 +39,6 @@ return new class extends Migration {
 
             $table->unsignedInteger('cooldown_seconds');
 
-            // Which channel the watcher speaks through, null for none: the incident is still
-            // opened in the panel, it is just not carried out of it. The foreign key is added
-            // by the migration of notification_channels, which is created after this table.
-            $table->unsignedBigInteger('notification_channel_id')->nullable();
-
-            // Which changes of an incident go out through the channel.
-            $table->boolean('notify_on_opened')->default(true);
-            $table->boolean('notify_on_event')->default(false);
-            $table->boolean('notify_on_closed')->default(false);
-
             // Since when the watcher's timeline is worth believing. A check that needs a
             // whole window waits until one has been collected, instead of reporting
             // silence that is only the absence of collection.

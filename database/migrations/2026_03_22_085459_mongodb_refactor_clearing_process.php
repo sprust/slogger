@@ -21,6 +21,70 @@ return new class extends Migration {
     {
         $database = $this->database();
 
+        $database->command(['drop' => $this->collectionName]);
+
+        $database->command([
+            'create'    => $this->collectionName,
+            'validator' => [
+                '$jsonSchema' => [
+                    'bsonType'   => 'object',
+                    'required'   => [
+                        'clearedCollectionsCount',
+                        'clearedTracesCount',
+                        'error',
+                        'errorTrace',
+                        'clearedAt',
+                    ],
+                    'properties' => [
+                        'clearedCollectionsCount' => [
+                            'bsonType' => 'number',
+                        ],
+                        'clearedTracesCount'      => [
+                            'bsonType' => 'number',
+                        ],
+                        'error'                   => [
+                            'bsonType' => ['string', 'null'],
+                        ],
+                        'errorTrace'              => [
+                            'bsonType' => ['string', 'null'],
+                        ],
+                        'clearedAt'               => [
+                            'bsonType' => ['date', 'null'],
+                        ],
+                        'createdAt'               => [
+                            'bsonType' => 'date',
+                        ],
+                        'updatedAt'               => [
+                            'bsonType' => 'date',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $secondsPerHour = 60 * 60;
+
+        $database->command([
+            'createIndexes' => $this->collectionName,
+            'indexes'       => [
+                [
+                    'key'                => ['createdAt' => 1],
+                    'name'               => 'createdAt_1',
+                    'expireAfterSeconds' => $secondsPerHour * 12, // 12 hours
+                ],
+            ],
+        ]);
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        $database = $this->database();
+
+        $database->command(['drop' => $this->collectionName]);
+
         $database->command([
             'create' => $this->collectionName,
             'validator' => [
@@ -66,21 +130,6 @@ return new class extends Migration {
                 ],
             ],
         ]);
-    }
-
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
-    {
-        $database = $this->database();
-
-        $database->command([
-            'dropIndexes' => $this->collectionName,
-            'index'       => '*',
-        ]);
-
-        $database->command(['drop' => $this->collectionName]);
     }
 
     /**

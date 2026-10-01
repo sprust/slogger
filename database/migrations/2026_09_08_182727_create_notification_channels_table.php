@@ -15,26 +15,17 @@ return new class extends Migration {
 
             $table->text('settings');
 
+            $table->boolean('on_opened')->default(true);
+            $table->boolean('on_event')->default(false);
+            $table->boolean('on_closed')->default(true);
+
             $table->timestamps();
             $table->softDeletes();
-        });
-
-        // Here rather than with the watchers, which are created first. nullOnDelete rather
-        // than a cascade: losing the channel must not take the watcher with it.
-        Schema::table('watchers', function (Blueprint $table) {
-            $table->foreign('notification_channel_id')
-                ->references('id')
-                ->on('notification_channels')
-                ->nullOnDelete();
         });
     }
 
     public function down(): void
     {
-        Schema::table('watchers', function (Blueprint $table) {
-            $table->dropForeign(['notification_channel_id']);
-        });
-
         Schema::dropIfExists('notification_channels');
     }
 };
