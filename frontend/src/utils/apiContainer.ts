@@ -29,13 +29,28 @@ export class ApiTokenStorage {
 let sessionAbort = new AbortController()
 
 function sessionFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
-    const signals = [sessionAbort.signal]
+    return fetch(input, {...init, signal: anySignal(sessionAbort.signal, init?.signal)})
+}
 
-    if (init?.signal) {
-        signals.push(init.signal)
+/** AbortSignal.any by hand: it is too recent for the browsers the panel still has to serve. */
+function anySignal(session: AbortSignal, own?: AbortSignal | null): AbortSignal {
+    if (!own) {
+        return session
     }
 
-    return fetch(input, {...init, signal: AbortSignal.any(signals)})
+    const combined = new AbortController()
+
+    for (const signal of [session, own]) {
+        if (signal.aborted) {
+            combined.abort(signal.reason)
+
+            return combined.signal
+        }
+
+        signal.addEventListener("abort", () => combined.abort(signal.reason), {once: true, signal: combined.signal})
+    }
+
+    return combined.signal
 }
 
 export class ApiContainer {

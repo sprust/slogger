@@ -147,7 +147,7 @@ responses, no sessions, no SSE) at `POST /mcp` (`routes/mcp.php`), outside the a
 - `Infrastructure/Http/Controllers/McpEndpointController` → `Infrastructure/Protocol`: the
   message parser, the header and version validators, and `McpServer`, which dispatches
   `server/discover`, `tools/list`, `tools/call`, `prompts/list`, `prompts/get`. Protocol
-  errors are `McpProtocolException`; a tool's own failure is a result with `isError: true`.
+  errors are `McpProtocolException`; a tool's own failure is a result with `isError: true`. A `ClickhouseQueryException` thrown by a tool is reported and answered as the tool error `query_failed`.
 - `Infrastructure/Tools/*Tool` — one class per tool. A tool validates nothing by hand: its
   `McpToolSchema` is compiled both into the JSON Schema of `tools/list` and into the
   validator rules. A tool calls only this module's bridges (`Domain/Actions/Bridges`), never

@@ -199,9 +199,9 @@ services:
         soft: 262144
         hard: 262144
     mem_limit: ${CLICKHOUSE_MEM_LIMIT:-6g}
-    # php and the receiver reach it as clickhouse:8123; the published port is for a viewer on the host
+    # php and the receiver reach it as clickhouse:8123; the published port is for a viewer on this host only
     ports:
-      - ${CLICKHOUSE_DOCKER_PORT:-18123}:8123
+      - 127.0.0.1:${CLICKHOUSE_DOCKER_PORT:-18123}:8123
     volumes:
       # single files, not the directories: the image's entrypoint writes its own user
       # file into users.d when CLICKHOUSE_USER is set

@@ -8,7 +8,8 @@
  * along with a `loaded` flag that stops anything reading them again.
  *
  * So every action that assigns to a store takes the number first and checks it before it
- * writes. Nothing is aborted: an answer nobody wants any more is simply not believed.
+ * writes, and the requests of the session are aborted besides (ApiContainer.abortSession):
+ * an answer that still arrives is simply not believed.
  */
 let session = 0
 

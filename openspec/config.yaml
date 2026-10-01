@@ -11,7 +11,7 @@ context: |
   Backend: Laravel 12 / PHP 8.4 on SConcur (coroutine runtime, one PHP Fiber per request in a long-lived process).
   Frontend: frontend/ — Vue 3 + Vite + TypeScript + Element Plus.
   Receiver: servers/receiver/ — Go service accepting trace payloads over TCP.
-  Storage: MongoDB (traces/logs), MySQL (users/services/auth), RabbitMQ (queues), Redis (cache).
+  Storage: ClickHouse (traces), MongoDB (the receiver's buffer, counters, caches, incidents), MySQL (users/services/auth), RabbitMQ (queues), Redis (cache).
   Domain code: app/Modules/<Module> with Deptrac layers Domain / Entities / Parameters / Repositories / Infrastructure.
   Request path: Route → Controller → Domain Action → Repository → Model.
 
