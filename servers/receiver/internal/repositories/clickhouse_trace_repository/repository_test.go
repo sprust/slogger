@@ -25,3 +25,17 @@ func TestQuoteEscapesLineBreaks(t *testing.T) {
 		t.Fatalf("got %s", got)
 	}
 }
+
+func TestTheCodeIsReadFromTheStartOfTheAnswerOnly(t *testing.T) {
+	cases := map[string]int{
+		"Code: 241. DB::Exception: (total) memory limit exceeded":                      241,
+		"Code: 27. DB::Exception: Cannot parse input: 'Code: 241. connection refused'": 27,
+		"Unknown answer with Code: 60. inside":                                         0,
+	}
+
+	for message, code := range cases {
+		if got := newQueryError(message).Code; got != code {
+			t.Fatalf("%q: code %d, want %d", message, got, code)
+		}
+	}
+}

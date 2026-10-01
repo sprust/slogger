@@ -77,11 +77,7 @@ func storedFrom(row clickhouse_trace_repository.Row) *clickhouse_trace_repositor
 }
 
 func TestCreateAndUpdateInOneBatch(t *testing.T) {
-	merged, err := mergeTrace(1, "trace-1", &dto.Traces{Creating: creating(t), Updating: updating(t)}, nil, loggedAt, firstAt)
-
-	if err != nil {
-		t.Fatal(err)
-	}
+	merged := mergeTrace(1, "trace-1", &dto.Traces{Creating: creating(t), Updating: updating(t)}, nil, loggedAt, firstAt)
 
 	row := merged.row
 
@@ -111,21 +107,13 @@ func TestCreateAndUpdateInOneBatch(t *testing.T) {
 }
 
 func TestUpdateBeforeCreate(t *testing.T) {
-	first, err := mergeTrace(1, "trace-1", &dto.Traces{Updating: updating(t)}, nil, loggedAt, firstAt)
-
-	if err != nil {
-		t.Fatal(err)
-	}
+	first := mergeTrace(1, "trace-1", &dto.Traces{Updating: updating(t)}, nil, loggedAt, firstAt)
 
 	if first.row.Type != unknownTraceType || first.countsAsNew || first.newDuration != nil {
 		t.Fatalf("an update alone was counted: %+v", first)
 	}
 
-	second, err := mergeTrace(1, "trace-1", &dto.Traces{Creating: creating(t)}, storedFrom(first.row), loggedAt, secondAt)
-
-	if err != nil {
-		t.Fatal(err)
-	}
+	second := mergeTrace(1, "trace-1", &dto.Traces{Creating: creating(t)}, storedFrom(first.row), loggedAt, secondAt)
 
 	row := second.row
 
@@ -151,13 +139,9 @@ func TestUpdateBeforeCreate(t *testing.T) {
 }
 
 func TestRepeatedCreateChangesNothing(t *testing.T) {
-	first, _ := mergeTrace(1, "trace-1", &dto.Traces{Creating: creating(t), Updating: updating(t)}, nil, loggedAt, firstAt)
+	first := mergeTrace(1, "trace-1", &dto.Traces{Creating: creating(t), Updating: updating(t)}, nil, loggedAt, firstAt)
 
-	second, err := mergeTrace(1, "trace-1", &dto.Traces{Creating: creating(t)}, storedFrom(first.row), loggedAt, secondAt)
-
-	if err != nil {
-		t.Fatal(err)
-	}
+	second := mergeTrace(1, "trace-1", &dto.Traces{Creating: creating(t)}, storedFrom(first.row), loggedAt, secondAt)
 
 	if second.row.Status != "success" || *second.row.Duration != 0.2 || second.row.RawData != `{"code":200}` {
 		t.Fatalf("a repeated create overwrote the trace: %+v", second.row)
@@ -169,11 +153,7 @@ func TestRepeatedCreateChangesNothing(t *testing.T) {
 }
 
 func TestCreateWithoutUpdate(t *testing.T) {
-	merged, err := mergeTrace(1, "trace-1", &dto.Traces{Creating: creating(t)}, nil, loggedAt, firstAt)
-
-	if err != nil {
-		t.Fatal(err)
-	}
+	merged := mergeTrace(1, "trace-1", &dto.Traces{Creating: creating(t)}, nil, loggedAt, firstAt)
 
 	if merged.row.Status != "started" || merged.row.Duration != nil {
 		t.Fatalf("unexpected row %+v", merged.row)
@@ -188,11 +168,7 @@ func TestDataThatIsNotAnObjectStaysOutOfTheJsonColumn(t *testing.T) {
 	trace := creating(t)
 	trace.Data = data(t, `[1,2]`)
 
-	merged, err := mergeTrace(1, "trace-1", &dto.Traces{Creating: trace}, nil, loggedAt, firstAt)
-
-	if err != nil {
-		t.Fatal(err)
-	}
+	merged := mergeTrace(1, "trace-1", &dto.Traces{Creating: trace}, nil, loggedAt, firstAt)
 
 	if string(merged.row.Data) != `{}` || merged.row.RawData != `[1,2]` {
 		t.Fatalf("unexpected data %s / %s", merged.row.Data, merged.row.RawData)
@@ -273,9 +249,14 @@ func TestAFinalTraceIsInsertedWithoutAnyRead(t *testing.T) {
 		t.Fatalf("expected one insert and no reads, got %+v, %d rows, %d keys", result, len(store.inserted), len(store.keys))
 	}
 
-	if store.inserted[0].Status != "success" || len(pending.saved) != 0 || len(pending.forgot) != 0 {
+	if store.inserted[0].Status != "success" || !isDoneMark(pending.saved) || len(pending.forgot) != 0 {
 		t.Fatalf("unexpected write %+v, pending %+v / %v", store.inserted[0], pending.saved, pending.forgot)
 	}
+}
+
+// isDoneMark says whether what was kept is the done mark of trace-1 and nothing else.
+func isDoneMark(saved []pending_trace_repository.PendingTrace) bool {
+	return len(saved) == 1 && saved[0].Done && saved[0].TraceId == "trace-1" && saved[0].RawData == ""
 }
 
 func TestAStartedCreateIsInsertedAndKeptPending(t *testing.T) {
@@ -318,8 +299,8 @@ func TestTheUpdateCompletesAPendingCreate(t *testing.T) {
 		t.Fatalf("the halves were not merged: %+v", row)
 	}
 
-	if len(pending.forgot) != 1 || len(pending.saved) != 0 {
-		t.Fatalf("the completed trace is still pending: %+v / %v", pending.saved, pending.forgot)
+	if len(pending.forgot) != 0 || !isDoneMark(pending.saved) {
+		t.Fatalf("the completed trace did not leave its done mark: %+v / %v", pending.saved, pending.forgot)
 	}
 }
 
@@ -346,8 +327,8 @@ func TestAnUpdateBeforeItsCreateWaitsOutsideClickHouse(t *testing.T) {
 
 	row := store.inserted[0]
 
-	if row.Type != "request" || row.Status != "success" || len(pending.forgot) != 1 {
-		t.Fatalf("the late create did not complete the trace: %+v, forgot %v", row, pending.forgot)
+	if row.Type != "request" || row.Status != "success" || !isDoneMark(pending.saved) {
+		t.Fatalf("the late create did not complete the trace: %+v, pending %+v", row, pending.saved)
 	}
 }
 
@@ -399,5 +380,93 @@ func TestATraceWithNeitherHalfFailsAlone(t *testing.T) {
 
 	if !result.Failed[1]["empty"] || result.Saved != 1 {
 		t.Fatalf("unexpected result %+v", result)
+	}
+}
+
+func doneMark() map[string]pending_trace_repository.PendingTrace {
+	return map[string]pending_trace_repository.PendingTrace{
+		pending_trace_repository.Id(1, "trace-1"): {ServiceId: 1, TraceId: "trace-1", Done: true},
+	}
+}
+
+// A create arriving again after its trace came complete is a repeat. Merged as a new trace,
+// it would reopen the finished trace as started and count it a second time.
+func TestARepeatedCreateAfterTheTraceCameCompleteIsDropped(t *testing.T) {
+	store, pending := &fakeStore{}, &fakePending{traces: doneMark()}
+
+	result, err := New(store, pending).Save(context.Background(), batch(1, creating(t), nil))
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if result.Saved != 1 || len(store.inserted) != 0 || len(store.keys) != 0 || len(pending.saved) != 0 || len(pending.forgot) != 0 {
+		t.Fatalf("the repeat was written: %+v, %d rows, %d keys, pending %+v / %v", result, len(store.inserted), len(store.keys), pending.saved, pending.forgot)
+	}
+}
+
+// The whole sequence through Save: create with update, then the same create alone.
+func TestACreateSentTwiceDoesNotReopenTheTrace(t *testing.T) {
+	store, pending := &fakeStore{}, &fakePending{}
+
+	if _, err := New(store, pending).Save(context.Background(), batch(1, creating(t), updating(t))); err != nil {
+		t.Fatal(err)
+	}
+
+	pending.traces = map[string]pending_trace_repository.PendingTrace{pending_trace_repository.Id(1, "trace-1"): pending.saved[0]}
+	store.inserted = nil
+
+	if _, err := New(store, pending).Save(context.Background(), batch(1, creating(t), nil)); err != nil {
+		t.Fatal(err)
+	}
+
+	if len(store.inserted) != 0 {
+		t.Fatalf("the repeated create was written: %+v", store.inserted)
+	}
+}
+
+// An update after the done mark merges with the stored trace, which only ClickHouse holds.
+func TestAnUpdateAfterTheDoneMarkReadsTheStoredTrace(t *testing.T) {
+	key := clickhouse_trace_repository.Key{ServiceId: 1, LoggedAtMicro: loggedAt.UnixMicro(), TraceId: "trace-1"}
+	store := &fakeStore{
+		stored: map[clickhouse_trace_repository.Key]clickhouse_trace_repository.StoredTrace{
+			key: {Type: "request", Status: "success", Tags: []string{"api"}, CreatedAt: firstAt},
+		},
+	}
+	pending := &fakePending{traces: doneMark()}
+
+	update := updating(t)
+	update.Status = "failed"
+
+	if _, err := New(store, pending).Save(context.Background(), batch(1, creating(t), update)); err != nil {
+		t.Fatal(err)
+	}
+
+	if len(store.keys) != 1 || len(store.inserted) != 1 {
+		t.Fatalf("expected the stored trace read and one insert, got %d keys, %d rows", len(store.keys), len(store.inserted))
+	}
+
+	row := store.inserted[0]
+
+	if row.Type != "request" || row.Status != "failed" || row.CreatedAt != firstAt.Format(clickhouse_trace_repository.TimeLayout) || !isDoneMark(pending.saved) {
+		t.Fatalf("the update was not merged with the stored trace: %+v, pending %+v", row, pending.saved)
+	}
+}
+
+// A create that brought no type is still a create: it is written under the placeholder
+// rather than left waiting for a create that has already come.
+func TestACreateWithoutATypeIsWritten(t *testing.T) {
+	store, pending := &fakeStore{}, &fakePending{}
+
+	trace := creating(t)
+	trace.Type = ""
+	trace.Status = "success"
+
+	if _, err := New(store, pending).Save(context.Background(), batch(1, trace, nil)); err != nil {
+		t.Fatal(err)
+	}
+
+	if len(store.inserted) != 1 || store.inserted[0].Type != unknownTraceType || len(pending.saved) != 0 {
+		t.Fatalf("the create was not written: %+v, pending %+v", store.inserted, pending.saved)
 	}
 }

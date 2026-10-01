@@ -1,7 +1,6 @@
 package errs
 
 import (
-	"errors"
 	"runtime"
 	"strconv"
 	"strings"
@@ -30,7 +29,21 @@ func Err(err error) error {
 		msg = cleanMsg + traceText + getCaller() + traceSuffix
 	}
 
-	return errors.New(msg)
+	return &tracedError{message: msg, cause: err}
+}
+
+// tracedError carries the stack trace in its text and keeps the error it wraps for errors.As.
+type tracedError struct {
+	message string
+	cause   error
+}
+
+func (e *tracedError) Error() string {
+	return e.message
+}
+
+func (e *tracedError) Unwrap() error {
+	return e.cause
 }
 
 func getCaller() string {

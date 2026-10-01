@@ -30,6 +30,9 @@ type InvalidDoc struct {
 	Reason string
 }
 
+// maxBatchBytes stops a batch early once its documents add up to this much.
+const maxBatchBytes = 32 << 20
+
 // How much of an undecodable document's raw bytes is kept beside it.
 //
 // Enough to see what arrived, and far short of what would make the copy unwritable: the
@@ -155,8 +158,12 @@ func (r *Repository) FindMany(ctx context.Context, limit int) (map[int]*dto.Serv
 
 	result := make(map[int]*dto.ServiceTraces)
 	invalid := make([]InvalidDoc, 0)
+	read := 0
 
-	for cursor.Next(ctx) {
+	// The size as well as the count: the batch is held several times over until its insert.
+	for read < maxBatchBytes && cursor.Next(ctx) {
+		read += len(cursor.Current)
+
 		var doc bson.M
 
 		if err := cursor.Decode(&doc); err != nil {

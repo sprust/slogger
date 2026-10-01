@@ -2,9 +2,13 @@ package traces_transporter
 
 import (
 	"context"
+	"errors"
+	"io"
 	"log/slog"
+	"net"
 	"slogger_receiver/internal/dto"
 	"slogger_receiver/internal/repositories/buffer_repository"
+	"slogger_receiver/internal/repositories/clickhouse_trace_repository"
 	"slogger_receiver/internal/services/buffer_service"
 	"slogger_receiver/internal/services/periodic_trace_service"
 	"slogger_receiver/internal/services/trace_metric_service"
@@ -15,9 +19,14 @@ import (
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 const maxSaveAttempts = 5
+
+// batchStopGrace is how long a stop lets the batch being saved run on, short of the 10
+// seconds main waits for the transporter. A variable for the tests.
+var batchStopGrace = 7 * time.Second
 
 // The pause after a batch that failed because a store was out of reach, doubled on each
 // such failure in a row.
@@ -42,13 +51,16 @@ func nextPause(previous time.Duration, lower time.Duration, upper time.Duration)
 	return min(max(previous*2, lower), upper)
 }
 
-// unavailableSigns are the texts of errors that say a store could not take the batch at
-// the moment, not that something is wrong with the batch: the network, a timeout, the
-// ClickHouse codes of a server under load — 159 timeout, 202 too many queries, 209/210
-// socket and network, 241 memory limit, 242 table read-only, 252 too many parts — and 60,
-// the traces table missing while migrate:fresh or a migration recreates it. A table that
-// never comes back keeps the buffer waiting until its 6-hour TTL, rather than moving
-// every trace of those hours to the invalid buffer.
+// unavailableCodes are the ClickHouse codes of a server that could not take the batch at
+// the moment, not of a batch that is wrong: 159 timeout, 202 too many queries, 209/210 socket
+// and network, 241 memory limit, 242 table read-only, 252 too many parts — and 60, the
+// traces table missing while migrate:fresh or a migration recreates it. A table that never
+// comes back keeps the buffer waiting until its 6-hour TTL, rather than moving every trace
+// of those hours to the invalid buffer.
+var unavailableCodes = map[int]bool{60: true, 159: true, 202: true, 209: true, 210: true, 241: true, 242: true, 252: true}
+
+// unavailableSigns are the texts of network and MongoDB errors that say the same. Never
+// matched against a ClickHouse answer: that one may quote the rejected data.
 var unavailableSigns = []string{
 	"connection refused",
 	"connection reset",
@@ -58,21 +70,24 @@ var unavailableSigns = []string{
 	"Client.Timeout",
 	"server selection error",
 	"EOF",
-	"Code: 60.",
-	"Code: 159.",
-	"Code: 202.",
-	"Code: 209.",
-	"Code: 210.",
-	"Code: 241.",
-	"Code: 242.",
-	"Code: 252.",
 }
 
 // isUnavailable says whether a failed batch is to wait and be tried again as it is, without
 // spending the attempts of its documents.
-//
-// By the text: errs.Err keeps only the message of what it wraps.
 func isUnavailable(err error) bool {
+	var queryError *clickhouse_trace_repository.QueryError
+
+	if errors.As(err, &queryError) {
+		return unavailableCodes[queryError.Code]
+	}
+
+	var netError net.Error
+
+	if errors.As(err, &netError) || errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF) ||
+		errors.Is(err, context.DeadlineExceeded) || mongo.IsNetworkError(err) || mongo.IsTimeout(err) {
+		return true
+	}
+
 	message := err.Error()
 
 	for _, sign := range unavailableSigns {
@@ -140,15 +155,23 @@ func (s *Transporter) Run(ctx context.Context) error {
 		}
 	}()
 
-	// The context as well as the flag: a shutdown cancels it first, and the flush below
-	// is the point of getting out of here at all.
 	var unavailablePause time.Duration
 	var failedPause time.Duration
 
-	// Not cancelled with ctx: a stop lets the batch being saved finish, insert and delete,
-	// rather than cutting off an insert ClickHouse may have taken and saving it again later.
-	batchCtx := context.WithoutCancel(ctx)
+	// A stop lets the batch being saved finish, insert and delete, rather than cutting off an
+	// insert ClickHouse may have taken; within a deadline that ends before main stops waiting.
+	batchCtx, cancelBatch := context.WithCancel(context.WithoutCancel(ctx))
+	defer cancelBatch()
 
+	grace := batchStopGrace
+
+	stopBatchLater := context.AfterFunc(ctx, func() {
+		time.AfterFunc(grace, cancelBatch)
+	})
+	defer stopBatchLater()
+
+	// The context as well as the flag: a shutdown cancels it first, and the flush below
+	// is the point of getting out of here at all.
 	for !s.closing.Load() && ctx.Err() == nil {
 		serviceTracesMap, invalidDocs, err := s.bufferService.FindForTransporter(ctx)
 
@@ -183,6 +206,11 @@ func (s *Transporter) Run(ctx context.Context) error {
 			// A store out of reach — ClickHouse restarting, over its memory limit, MongoDB
 			// failing over — fails every batch alike. Counted as attempts, it would move a
 			// whole buffer to the invalid one within seconds of an outage.
+			// A save cut off by the stop's deadline is not the batch's fault either.
+			if ctx.Err() != nil {
+				continue
+			}
+
 			if isUnavailable(err) {
 				unavailablePause = nextPause(unavailablePause, minUnavailablePause, maxUnavailablePause)
 

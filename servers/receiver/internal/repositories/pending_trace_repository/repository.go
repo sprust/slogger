@@ -15,10 +15,10 @@ import (
 )
 
 // The collection and its TTL index on uat are created by the Laravel migration
-// 2026_09_29_194325_mongodb_create_pending_traces_collection: a trace waits 3 hours for its
-// other half. A job running longer still gets its update written — the transporter reads
-// the trace from ClickHouse when it finds nothing here.
-const defaultCollection = "pendingTraces"
+// 2026_09_29_194325_mongodb_create_pending_traces_collection, under this very name: a trace
+// waits 3 hours for its other half. A job running longer still gets its update written —
+// the transporter reads the trace from ClickHouse when it finds nothing here.
+const collection = "pendingTraces"
 
 // PendingTrace is a trace that has come in halves and is waiting for the one still
 // missing: a create whose update has not arrived, or an update that came before its
@@ -37,6 +37,9 @@ type PendingTrace struct {
 	Cpu            *float64
 	HasUpdate      bool
 	CreatedAtMicro int64
+	// Done marks a trace that came complete: nothing but the id is kept, so that a create
+	// arriving again is known for a repeat rather than taken for a new trace.
+	Done bool
 }
 
 type document struct {
@@ -54,6 +57,7 @@ type document struct {
 	Cpu            *float64  `bson:"cpu"`
 	HasUpdate      bool      `bson:"hu"`
 	CreatedAtMicro int64     `bson:"cat"`
+	Done           bool      `bson:"dn,omitempty"`
 	UpdatedAt      time.Time `bson:"uat"`
 }
 
@@ -121,6 +125,7 @@ func (r *Repository) FindMany(ctx context.Context, ids []string) (map[string]Pen
 			Cpu:            doc.Cpu,
 			HasUpdate:      doc.HasUpdate,
 			CreatedAtMicro: doc.CreatedAtMicro,
+			Done:           doc.Done,
 		}
 	}
 
@@ -165,6 +170,7 @@ func (r *Repository) Apply(ctx context.Context, save []PendingTrace, forget []st
 					Cpu:            trace.Cpu,
 					HasUpdate:      trace.HasUpdate,
 					CreatedAtMicro: trace.CreatedAtMicro,
+					Done:           trace.Done,
 					UpdatedAt:      now,
 				}).
 				SetUpsert(true),
@@ -204,15 +210,7 @@ func (r *Repository) connect(ctx context.Context) error {
 		return errs.Err(err)
 	}
 
-	collectionName := os.Getenv("MONGODB_COLL_PENDING_TRACES")
-
-	if collectionName == "" {
-		collectionName = defaultCollection
-	}
-
-	collection := client.Database(os.Getenv("MONGODB_DB_TRACES")).Collection(collectionName)
-
-	r.mColl = collection
+	r.mColl = client.Database(os.Getenv("MONGODB_DB_TRACES")).Collection(collection)
 
 	return nil
 }

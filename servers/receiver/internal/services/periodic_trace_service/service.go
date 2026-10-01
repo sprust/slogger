@@ -82,14 +82,15 @@ type batchTrace struct {
 // a create that came with its update is final as it is and goes straight to the insert.
 //
 //   - a trace that is final (a type and either its update or a status other than started)
-//     is inserted;
+//     is inserted; one that had an update leaves a done mark in its place, so that its
+//     create arriving again is dropped as a repeat instead of reopening the trace;
 //   - a create still waiting for its update is inserted, so that it is seen in progress,
 //     and kept pending;
 //   - an update without its create is only kept pending: it has no type or tags to be
 //     shown with.
 //
-// Only an update that finds nothing pending reads ClickHouse: one whose trace waited
-// longer than the pending traces live, or whose create was already final.
+// Only an update that finds nothing pending, or only the done mark, reads ClickHouse: one
+// whose trace waited longer than the pending traces live, or came complete already.
 //
 // A trace written before it was complete has two rows until their parts merge, and the
 // table keeps the one with the latest uat. Nothing deletes the older one: a lightweight
@@ -147,11 +148,27 @@ func (s *Service) Save(ctx context.Context, batch map[int]*dto.ServiceTraces) (R
 	}
 
 	fallbackKeys := make([]clickhouse_trace_repository.Key, 0)
+	merging := make([]batchTrace, 0, len(items))
 
 	for _, item := range items {
+		if pendingTrace, found := pendingTraces[item.id]; found && pendingTrace.Done {
+			// The trace came complete already: its create is a repeat, and only an update
+			// still has anything to say. Written again as a new trace, a repeated started
+			// create would take the place of the finished one.
+			if item.traces.Updating == nil {
+				continue
+			}
+
+			item.traces = &dto.Traces{Updating: item.traces.Updating, Ids: item.traces.Ids}
+
+			delete(pendingTraces, item.id)
+		}
+
 		if _, found := pendingTraces[item.id]; !found && item.traces.Creating == nil {
 			fallbackKeys = append(fallbackKeys, item.key)
 		}
+
+		merging = append(merging, item)
 	}
 
 	existing, err := s.store.FindExisting(ctx, fallbackKeys)
@@ -162,39 +179,34 @@ func (s *Service) Save(ctx context.Context, batch map[int]*dto.ServiceTraces) (R
 
 	now := time.Now().UTC().Truncate(time.Microsecond)
 
-	merged := make([]mergedTrace, 0, len(items))
-	rows := make([]clickhouse_trace_repository.Row, 0, len(items))
+	merged := make([]mergedTrace, 0, len(merging))
+	rows := make([]clickhouse_trace_repository.Row, 0, len(merging))
 	save := make([]pending_trace_repository.PendingTrace, 0)
 	forget := make([]string, 0)
-	unmerged := 0
 
-	for _, item := range items {
+	for _, item := range merging {
 		var stored *clickhouse_trace_repository.StoredTrace
 
 		hasUpdate := item.traces.Updating != nil
+		hasCreate := item.traces.Creating != nil
 		pendingTrace, isPending := pendingTraces[item.id]
 
 		if isPending {
 			value := storedFromPending(pendingTrace)
 			stored = &value
 			hasUpdate = hasUpdate || pendingTrace.HasUpdate
+			// a pending trace without an update came from its create
+			hasCreate = hasCreate || !pendingTrace.HasUpdate
 		} else if value, found := existing[item.key]; found {
 			stored = &value
+			hasCreate = true
 		}
 
-		trace, err := mergeTrace(item.serviceId, item.traceId, item.traces, stored, item.loggedAt, now)
+		trace := mergeTrace(item.serviceId, item.traceId, item.traces, stored, item.loggedAt, now)
 
-		if err != nil {
-			slog.Error("failed to merge trace " + item.traceId + ": " + err.Error())
-
-			markFailed(result.Failed, item.serviceId, item.traceId)
-
-			unmerged++
-
-			continue
-		}
-
-		if trace.row.Type == unknownTraceType {
+		// An update with no create yet has no type or tags to be shown with. A create that
+		// brought no type is written under the placeholder all the same.
+		if trace.row.Type == unknownTraceType && !hasCreate {
 			save = append(save, pendingFromRow(trace.row, item.loggedAt, true, now))
 
 			continue
@@ -203,7 +215,13 @@ func (s *Service) Save(ctx context.Context, batch map[int]*dto.ServiceTraces) (R
 		merged = append(merged, trace)
 		rows = append(rows, trace.row)
 
-		if hasUpdate || trace.row.Status != startedStatus {
+		if hasUpdate {
+			save = append(save, pending_trace_repository.PendingTrace{ServiceId: item.serviceId, TraceId: item.traceId, Done: true})
+
+			continue
+		}
+
+		if trace.row.Status != startedStatus {
 			if isPending {
 				forget = append(forget, item.id)
 			}
@@ -226,7 +244,7 @@ func (s *Service) Save(ctx context.Context, batch map[int]*dto.ServiceTraces) (R
 		report(item, now)
 	}
 
-	result.Saved = len(items) - unmerged
+	result.Saved = len(items)
 
 	return result, nil
 }
@@ -300,7 +318,7 @@ func mergeTrace(
 	stored *clickhouse_trace_repository.StoredTrace,
 	loggedAt time.Time,
 	now time.Time,
-) (mergedTrace, error) {
+) mergedTrace {
 	isNewTrace := stored == nil
 
 	if isNewTrace {
@@ -440,7 +458,7 @@ func mergeTrace(
 		countsAsNew: typeIsKnown && !typeWasKnown,
 		newDuration: newDuration,
 		receivedAt:  receivedAt,
-	}, nil
+	}
 }
 
 // report hands a written trace to the watchers and the trace metrics.

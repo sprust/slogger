@@ -3,6 +3,7 @@ package dto
 import (
 	"encoding/json"
 	"testing"
+	"unicode/utf8"
 )
 
 func decodeData(t *testing.T, payload string) Data {
@@ -144,5 +145,20 @@ func TestWhatCountsAsAnObject(t *testing.T) {
 		if IsObjectJson([]byte(raw)) != expected {
 			t.Fatalf("%q: expected object = %v", raw, expected)
 		}
+	}
+}
+
+// ClickHouse refuses a whole insert over one invalid byte in a JSON column.
+func TestInvalidUtf8BecomesTheReplacementCharacter(t *testing.T) {
+	var creating []TraceCreating
+
+	if err := json.Unmarshal([]byte("[{\"tid\":\"1\",\"dt\":{\"a\":\"bad \xff\xfe here\"}}]"), &creating); err != nil {
+		t.Fatal(err)
+	}
+
+	raw := creating[0].Data.Raw
+
+	if !utf8.Valid(raw) || !json.Valid(raw) || string(raw) != "{\"a\":\"bad \uFFFD here\"}" {
+		t.Fatalf("got %q", raw)
 	}
 }

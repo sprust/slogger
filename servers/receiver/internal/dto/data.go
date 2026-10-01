@@ -3,6 +3,7 @@ package dto
 import (
 	"bytes"
 	"encoding/json"
+	"unicode/utf8"
 )
 
 // Data is a trace's `dt` as the client sent it, byte for byte: nothing looks inside it, and
@@ -11,8 +12,15 @@ type Data struct {
 	Raw json.RawMessage
 }
 
-// UnmarshalJSON copies: encoding/json does not promise the bytes outlive the call.
+// UnmarshalJSON copies: encoding/json does not promise the bytes outlive the call. Invalid
+// UTF-8, which can only sit inside a string, becomes U+FFFD: ClickHouse refuses the whole insert.
 func (d *Data) UnmarshalJSON(data []byte) error {
+	if !utf8.Valid(data) {
+		d.Raw = bytes.ToValidUTF8(data, []byte("\uFFFD"))
+
+		return nil
+	}
+
 	d.Raw = append(json.RawMessage(nil), data...)
 
 	return nil

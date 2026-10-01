@@ -67,6 +67,7 @@ type progress struct {
 	Updated        int64            `json:"updated"`
 	Messages       int64            `json:"messages"`
 	Errors         int64            `json:"errors"`
+	Dropped        int64            `json:"dropped"`
 	LastError      string           `json:"last_error,omitempty"`
 	RatePerSecond  float64          `json:"rate_per_second"`
 	AckAvgMs       float64          `json:"ack_avg_ms"`
@@ -81,6 +82,7 @@ type counters struct {
 	messages  atomic.Int64
 	errors    atomic.Int64
 	throttled atomic.Int64
+	dropped   atomic.Int64
 	buffer    atomic.Int64
 	byToken   []atomic.Int64
 
@@ -189,8 +191,8 @@ func main() {
 
 	writeProgress(cfg, stats, startedAt, target, 0, true)
 
-	log.Printf("done: created %d, updated %d, messages %d, errors %d in %s",
-		stats.created.Load(), stats.updated.Load(), stats.messages.Load(), stats.errors.Load(), time.Since(startedAt).Round(time.Second))
+	log.Printf("done: created %d, updated %d, messages %d, errors %d, dropped %d in %s",
+		stats.created.Load(), stats.updated.Load(), stats.messages.Load(), stats.errors.Load(), stats.dropped.Load(), time.Since(startedAt).Round(time.Second))
 }
 
 func parseFlags() config {
@@ -284,13 +286,17 @@ func runWorker(ctx context.Context, cfg config, stats *counters, index int, chun
 			return true
 		}
 
-		if !send(ctx, cfg, stats, s, creating, updating) {
+		delivered, ok := send(ctx, cfg, stats, s, creating, updating)
+
+		if !ok {
 			return false
 		}
 
-		stats.created.Add(batchCreated)
-		stats.byToken[tokenIndex].Add(batchCreated)
-		stats.updated.Add(int64(len(updating)))
+		if delivered {
+			stats.created.Add(batchCreated)
+			stats.byToken[tokenIndex].Add(batchCreated)
+			stats.updated.Add(int64(len(updating)))
+		}
 
 		// what was held back goes in the next message: an update already sent without its
 		// create, or a create sent a second time
@@ -347,11 +353,13 @@ func runWorker(ctx context.Context, cfg config, stats *counters, index int, chun
 	flush()
 }
 
-func send(ctx context.Context, cfg config, stats *counters, s *sender, creating []traceCreating, updating []traceUpdating) bool {
+// send says whether the message was delivered, and whether to go on: a message given up after
+// its attempts is not delivered, but the run goes on.
+func send(ctx context.Context, cfg config, stats *counters, s *sender, creating []traceCreating, updating []traceUpdating) (bool, bool) {
 	for cfg.bufferMax > 0 && stats.buffer.Load() > cfg.bufferMax {
 		select {
 		case <-ctx.Done():
-			return false
+			return false, false
 		case <-time.After(500 * time.Millisecond):
 			stats.throttled.Add(500)
 		}
@@ -359,7 +367,7 @@ func send(ctx context.Context, cfg config, stats *counters, s *sender, creating 
 
 	for attempt := 1; ; attempt++ {
 		if ctx.Err() != nil {
-			return false
+			return false, false
 		}
 
 		startedAt := time.Now()
@@ -369,7 +377,7 @@ func send(ctx context.Context, cfg config, stats *counters, s *sender, creating 
 			stats.messages.Add(1)
 			stats.ack(float64(time.Since(startedAt).Microseconds()) / 1000)
 
-			return true
+			return true, true
 		}
 
 		stats.fail(err)
@@ -377,12 +385,14 @@ func send(ctx context.Context, cfg config, stats *counters, s *sender, creating 
 		if attempt >= 10 {
 			log.Printf("giving up a message after %d attempts: %v", attempt, err)
 
-			return true
+			stats.dropped.Add(1)
+
+			return false, true
 		}
 
 		select {
 		case <-ctx.Done():
-			return false
+			return false, false
 		case <-time.After(time.Duration(attempt) * time.Second):
 		}
 	}
@@ -400,15 +410,19 @@ func sendHuge(ctx context.Context, cfg config, stats *counters) {
 	for i := 0; i < len(t.creating); i += cfg.batch * 5 {
 		part := t.creating[i:min(i+cfg.batch*5, len(t.creating))]
 
-		if !send(ctx, cfg, stats, s, part, nil) {
+		delivered, ok := send(ctx, cfg, stats, s, part, nil)
+
+		if !ok {
 			return
 		}
 
-		stats.created.Add(int64(len(part)))
-		stats.byToken[0].Add(int64(len(part)))
+		if delivered {
+			stats.created.Add(int64(len(part)))
+			stats.byToken[0].Add(int64(len(part)))
+		}
 	}
 
-	if send(ctx, cfg, stats, s, nil, t.updating) {
+	if delivered, _ := send(ctx, cfg, stats, s, nil, t.updating); delivered {
 		stats.updated.Add(int64(len(t.updating)))
 	}
 }
@@ -478,6 +492,7 @@ func writeProgress(cfg config, stats *counters, startedAt time.Time, target int6
 		Updated:        stats.updated.Load(),
 		Messages:       stats.messages.Load(),
 		Errors:         stats.errors.Load(),
+		Dropped:        stats.dropped.Load(),
 		LastError:      lastError,
 		RatePerSecond:  rate,
 		AckAvgMs:       avg,

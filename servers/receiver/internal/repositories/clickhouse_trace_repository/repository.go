@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -24,6 +23,9 @@ import (
 const TimeLayout = "2006-01-02 15:04:05.000000"
 
 const requestTimeout = 30 * time.Second
+
+// findExistingChunk keeps the keys of one query well under the 1 MiB URL limit.
+const findExistingChunk = 1000
 
 // Key is what a trace is found by: the sorting key of the table. The logged-at moment is
 // in unix microseconds, the precision of the column, so that equal moments are equal keys.
@@ -123,10 +125,17 @@ type Repository struct {
 func (r *Repository) FindExisting(ctx context.Context, keys []Key) (map[Key]StoredTrace, error) {
 	result := make(map[Key]StoredTrace, len(keys))
 
-	if len(keys) == 0 {
-		return result, nil
+	// The keys travel in the URL, which ClickHouse caps at 1 MiB.
+	for start := 0; start < len(keys); start += findExistingChunk {
+		if err := r.findExisting(ctx, keys[start:min(start+findExistingChunk, len(keys))], result); err != nil {
+			return nil, err
+		}
 	}
 
+	return result, nil
+}
+
+func (r *Repository) findExisting(ctx context.Context, keys []Key, result map[Key]StoredTrace) error {
 	query := "SELECT sid, tid, lat, ptid, tp, st, tgs, dt_raw, dur, mem, cpu, cat FROM traces FINAL " +
 		"WHERE (sid, lat, tid) IN {keys:Array(Tuple(UInt32, DateTime64(6, 'UTC'), String))} " +
 		"FORMAT JSONEachRow"
@@ -139,7 +148,7 @@ func (r *Repository) FindExisting(ctx context.Context, keys []Key) (map[Key]Stor
 	)
 
 	if err != nil {
-		return nil, errs.Err(err)
+		return errs.Err(err)
 	}
 
 	defer body.Close()
@@ -157,19 +166,19 @@ func (r *Repository) FindExisting(ctx context.Context, keys []Key) (map[Key]Stor
 		var row storedRow
 
 		if err := json.Unmarshal(line, &row); err != nil {
-			return nil, errs.Err(fmt.Errorf("clickhouse answered %q: %w", truncate(string(line)), err))
+			return errs.Err(fmt.Errorf("clickhouse answered %q: %w", truncate(string(line)), err))
 		}
 
 		loggedAt, err := time.Parse(TimeLayout, row.LoggedAt)
 
 		if err != nil {
-			return nil, errs.Err(err)
+			return errs.Err(err)
 		}
 
 		createdAt, err := time.Parse(TimeLayout, row.CreatedAt)
 
 		if err != nil {
-			return nil, errs.Err(err)
+			return errs.Err(err)
 		}
 
 		key := Key{ServiceId: row.ServiceId, LoggedAtMicro: loggedAt.UnixMicro(), TraceId: row.TraceId}
@@ -188,10 +197,10 @@ func (r *Repository) FindExisting(ctx context.Context, keys []Key) (map[Key]Stor
 	}
 
 	if err := scanner.Err(); err != nil {
-		return nil, errs.Err(err)
+		return errs.Err(err)
 	}
 
-	return result, nil
+	return nil
 }
 
 // Insert writes the rows in one INSERT. Synchronous: the next pass of the transporter
@@ -227,6 +236,9 @@ func (r *Repository) Insert(ctx context.Context, rows []Row) error {
 			// a key with a dot beside the same path nested (`a.b` and `a: {b}`) would refuse
 			// the whole batch; dt keeps the first, dt_raw keeps both
 			"type_json_skip_duplicated_paths": "1",
+			// a string that looks like a date stays a string, or text filters would miss it
+			"input_format_try_infer_dates":     "0",
+			"input_format_try_infer_datetimes": "0",
 		},
 		bytes.NewReader(payload),
 		"zstd",
@@ -273,7 +285,7 @@ func (r *Repository) send(ctx context.Context, params map[string]string, body io
 
 		_ = response.Body.Close()
 
-		return nil, errors.New("clickhouse: " + strings.TrimSpace(string(message)))
+		return nil, newQueryError(strings.TrimSpace(string(message)))
 	}
 
 	return response.Body, nil

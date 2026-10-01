@@ -3,9 +3,11 @@ package traces_transporter
 import (
 	"context"
 	"errors"
+	"io"
 	"slices"
 	"slogger_receiver/internal/dto"
 	"slogger_receiver/internal/repositories/buffer_repository"
+	"slogger_receiver/internal/repositories/clickhouse_trace_repository"
 	"slogger_receiver/internal/services/periodic_trace_service"
 	"slogger_receiver/pkg/foundation/errs"
 	"sync"
@@ -58,28 +60,32 @@ func TestSplitIdsSendsTheWholeBatchBackWhenItFailed(t *testing.T) {
 }
 
 func TestAStoreOutOfReachIsNotTheBatchsFault(t *testing.T) {
-	unavailable := []string{
-		`Post "http://clickhouse:8123/?database=slogger": dial tcp 172.18.0.5:8123: connect: connection refused`,
-		"clickhouse: Code: 241. DB::Exception: (total) memory limit exceeded: would use 4.01 GiB",
-		"clickhouse: Code: 252. DB::Exception: Too many parts (3001) in table",
-		"clickhouse: Code: 60. DB::Exception: Unknown table expression identifier 'traces' in scope SELECT",
-		"server selection error: context deadline exceeded",
+	unavailable := []error{
+		errors.New(`Post "http://clickhouse:8123/?database=slogger": dial tcp 172.18.0.5:8123: connect: connection refused`),
+		&clickhouse_trace_repository.QueryError{Code: 241, Message: "Code: 241. DB::Exception: (total) memory limit exceeded: would use 4.01 GiB"},
+		&clickhouse_trace_repository.QueryError{Code: 252, Message: "Code: 252. DB::Exception: Too many parts (3001) in table"},
+		&clickhouse_trace_repository.QueryError{Code: 60, Message: "Code: 60. DB::Exception: Unknown table expression identifier 'traces' in scope SELECT"},
+		errors.New("server selection error: context deadline exceeded"),
+		io.ErrUnexpectedEOF,
+		context.DeadlineExceeded,
 	}
 
-	for _, message := range unavailable {
-		if !isUnavailable(errs.Err(errors.New(message))) {
-			t.Fatalf("taken for a fault of the batch: %s", message)
+	for _, err := range unavailable {
+		if !isUnavailable(errs.Err(errs.Err(err))) {
+			t.Fatalf("taken for a fault of the batch: %v", err)
 		}
 	}
 
-	faults := []string{
-		"clickhouse: Code: 27. DB::Exception: Cannot parse input: expected '\"' before: 'x'",
-		"clickhouse: Code: 53. DB::Exception: Type mismatch",
+	// The answer quotes the rejected data, and the data may say anything.
+	faults := []error{
+		&clickhouse_trace_repository.QueryError{Code: 27, Message: `Code: 27. DB::Exception: Cannot parse input: expected '"' before: 'connection refused, unexpected EOF, Code: 241.'`},
+		&clickhouse_trace_repository.QueryError{Code: 117, Message: `Code: 117. DB::Exception: Cannot parse JSON object here: {"error":"i/o timeout"}`},
+		&clickhouse_trace_repository.QueryError{Code: 53, Message: "Code: 53. DB::Exception: Type mismatch"},
 	}
 
-	for _, message := range faults {
-		if isUnavailable(errs.Err(errors.New(message))) {
-			t.Fatalf("taken for an outage: %s", message)
+	for _, err := range faults {
+		if isUnavailable(errs.Err(errs.Err(err))) {
+			t.Fatalf("taken for an outage: %v", err)
 		}
 	}
 }
@@ -216,5 +222,53 @@ func TestAStopLetsTheBatchBeingSavedFinish(t *testing.T) {
 
 	if len(buffer.ids) != 3 {
 		t.Fatalf("left %d in the buffer, want the 3 never read", len(buffer.ids))
+	}
+}
+
+// hangingStore never answers until its context is cancelled.
+type hangingStore struct {
+	cancel context.CancelFunc
+}
+
+func (s *hangingStore) Save(ctx context.Context, _ map[int]*dto.ServiceTraces) (periodic_trace_service.Result, error) {
+	s.cancel()
+
+	<-ctx.Done()
+
+	return periodic_trace_service.Result{}, ctx.Err()
+}
+
+// A save that does not finish within the stop's deadline is cut off, and its batch stays in
+// the buffer without an attempt spent.
+func TestAStopCutsOffASaveThatHangs(t *testing.T) {
+	grace := batchStopGrace
+	batchStopGrace = 50 * time.Millisecond
+
+	defer func() { batchStopGrace = grace }()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	buffer := &fakeBuffer{limit: 5, deleted: map[primitive.ObjectID]int{}, marked: map[primitive.ObjectID]int{}}
+
+	for index := range 5 {
+		buffer.ids = append(buffer.ids, primitive.ObjectID{byte(index + 1)})
+	}
+
+	transporter := &Transporter{bufferService: buffer, periodicTraceService: &hangingStore{cancel: cancel}}
+	transporter.flush = func() {}
+
+	started := time.Now()
+
+	if err := transporter.Run(ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	if elapsed := time.Since(started); elapsed > 2*time.Second {
+		t.Fatalf("the stop waited %s", elapsed)
+	}
+
+	if len(buffer.marked) != 0 || len(buffer.deleted) != 0 || len(buffer.ids) != 5 {
+		t.Fatalf("marked %d, deleted %d, left %d", len(buffer.marked), len(buffer.deleted), len(buffer.ids))
 	}
 }
