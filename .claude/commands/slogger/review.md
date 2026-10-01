@@ -69,7 +69,7 @@ Order of attention:
    Fix: what exactly to do.
 
 ### Important
-...
+2. ...
 
 ### Minor / style
 ...
@@ -82,6 +82,7 @@ Order of attention:
 ```
 
 - Every finding — the full path from the project root and the line number.
+- Number the findings once through the whole report, not per section: the numbering goes on from one section to the next, so every finding has its own number to refer to.
 - Within a section — by severity. Leave out empty sections.
 - The same violation in several places — one item with the list of places.
 - No findings — one line; do not invent remarks to fill space.
