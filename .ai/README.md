@@ -110,6 +110,7 @@ Domain events are emitted for flows that trigger queues or framework side effect
 
 - `servers/receiver/cmd/receiver/main.go` — main binary entrypoint. Loads `.env`, starts socket server and transporter, handles shutdown signals, and periodically saves runtime stats.
 - `servers/receiver/cmd/stats/main.go` — local stats viewer that reads `storage/stats.json` and refreshes it in terminal.
+- `servers/receiver/cmd/traces-migrate` — single-use migration of an installation that stored traces in MongoDB: moves the `tracesPeriodic` hourly collections into the ClickHouse `traces` table newest hour first, deleting each batch from MongoDB once ClickHouse has it. Built with the receiver (`make migrate-build`), run by `make traces-migrate-mongo-clickhouse`.
 - `servers/receiver/cmd/loadgen` — load generator for stress tests: sends generated trace trees through the receiver socket (a share of them with the update before the create, the create twice, or no update), pauses while the MongoDB `buffer` holds more than `-buffer-max` documents, and writes progress to `-progress-file` as JSON.
 - `servers/receiver/internal/dto` — DTO definitions for incoming auth and trace messages.
 - `servers/receiver/makefile` — local build/run commands for the Go service and stats binary.

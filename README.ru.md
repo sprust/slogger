@@ -118,7 +118,7 @@ ORDER BY (sid, lat, tid)
 
 Таблицу создаёт обычная Laravel-миграция, которая отправляет DDL через `ClickhouseClient`: `migrate` применяет её вместе с остальными, а `migrate:fresh` удаляет таблицы ClickHouse вместе с коллекциями MongoDB. `make clickhouse-client` открывает клиент ClickHouse в контейнере. Сервис `clickhouse` в docker-compose (образ `clickhouse/clickhouse-server:26.8.14.3`) доступен PHP и приёмнику как `clickhouse:8123`; его HTTP-интерфейс также опубликован на `127.0.0.1` хоста на порту `CLICKHOUSE_DOCKER_PORT` (по умолчанию 18123) — для просмотрщика. Настройки памяти — в `docker/clickhouse/config.d/low-memory.xml` (сервер) и `docker/clickhouse/users.d/profile.xml` (лимиты запросов); лимит контейнера — `CLICKHOUSE_MEM_LIMIT`. Каждый select передаёт `max_execution_time`, равный `CLICKHOUSE_TIMEOUT_SECONDS`, чтобы ClickHouse остановил запрос, который клиент уже бросил.
 
-В MongoDB остаётся всё прочее: `buffer`, `invalidBuffer`, `pendingTraces`, `traceMetrics`, `watcherTimelines`, `traceTreeCache`, `traceTreeCacheStates`, `traceAdminStores`, `traceClearingProcesses`, `watcherIncidents`, `watcherIncidentEvents`, `notifications`. База `tracesPeriodic` прежних версий, с часовыми коллекциями `traces_*` и `_traceTreesView`, остаётся как есть: её больше никто не читает и не чистит.
+В MongoDB остаётся всё прочее: `buffer`, `invalidBuffer`, `pendingTraces`, `traceMetrics`, `watcherTimelines`, `traceTreeCache`, `traceTreeCacheStates`, `traceAdminStores`, `traceClearingProcesses`, `watcherIncidents`, `watcherIncidentEvents`, `notifications`. База `tracesPeriodic` прежних версий, с часовыми коллекциями `traces_*` и `_traceTreesView`, переносится в ClickHouse и удаляется командой `make traces-migrate-mongo-clickhouse` (см. «Обновление с хранения трейсов в MongoDB»).
 
 ### Буфер → запись в ClickHouse
 
@@ -493,6 +493,16 @@ make ws-keys-generate c=--force  # перезаписывает их
 ```bash
 make setup
 ```
+
+### Обновление с хранения трейсов в MongoDB
+
+Установка, хранившая трейсы в MongoDB (база `tracesPeriodic`), обновляется на месте:
+
+1. Добавить в `.env` переменные `CLICKHOUSE_*` (пароль обязателен) и `TRACES_LIFETIME_HOURS`, которая заменяет `TRACES_LIFETIME_DAYS`. Добавить в `servers/receiver/.env` `CLICKHOUSE_URL`, `CLICKHOUSE_DATABASE`, `CLICKHOUSE_USERNAME` и `CLICKHOUSE_PASSWORD` и оставить `MONGODB_DB_PERIODIC_TRACES`.
+2. `make deploy-prod`. Миграции создают таблицу `traces` и коллекцию `pendingTraces` и удаляют коллекции, которые больше никто не читает (`traceDynamicIndexes`, `bufferInvalid`). С момента пересборки приёмника новые трейсы идут в ClickHouse; то, что прежний приёмник оставил в буфере, читается как есть.
+3. `make traces-migrate-mongo-clickhouse`. Команда запускает `bin/traces-migrate` в контейнере приёмника: трейсы `tracesPeriodic` переносятся в ClickHouse начиная с самого свежего часа, каждая пачка удаляется из MongoDB, как только ClickHouse её принял, затем удаляется опустевшая коллекция, а в конце — сама база. Остановленная, при повторном запуске команда продолжает с того места, где остановилась. Документ, который не удалось прочитать, остаётся в MongoDB вместе со своей коллекцией, и запуск сообщает, сколько таких. Скорость — около 6 000 трейсов в секунду.
+
+Пока шаг 3 не закончен, панель показывает трейсы, принятые после деплоя, а более старые — по мере переноса. Обновление, пришедшее для ещё не перенесённого трейса, теряется, и трейс остаётся `started`; перенос с самых свежих часов делает это окно коротким.
 
 ### Создание пользователя
 

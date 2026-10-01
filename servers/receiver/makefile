@@ -15,5 +15,9 @@ stats-build:
 	CGO_ENABLED=0 GOOS=linux go build -v -a -o ./bin/stats ./cmd/stats/main.go \
 		&& chmod +x ./bin/stats
 
+migrate-build:
+	CGO_ENABLED=0 GOOS=linux go build -v -a -o ./bin/traces-migrate ./cmd/traces-migrate \
+		&& chmod +x ./bin/traces-migrate
+
 stats-bin-start:
 	./bin/stats ${c}

@@ -118,7 +118,7 @@ ORDER BY (sid, lat, tid)
 
 The table is created by an ordinary Laravel migration, which sends the DDL through `ClickhouseClient`: `migrate` applies it with the rest, and `migrate:fresh` drops the ClickHouse tables along with the MongoDB collections. `make clickhouse-client` opens the ClickHouse client in the container. The `clickhouse` service of docker-compose (image `clickhouse/clickhouse-server:26.8.14.3`) is reached by PHP and the receiver as `clickhouse:8123`; its HTTP interface is also published on the host's `127.0.0.1` at `CLICKHOUSE_DOCKER_PORT` (18123 by default) for a viewer. Its memory settings are in `docker/clickhouse/config.d/low-memory.xml` (server) and `docker/clickhouse/users.d/profile.xml` (query limits); the container limit is `CLICKHOUSE_MEM_LIMIT`. Every select carries `max_execution_time` equal to `CLICKHOUSE_TIMEOUT_SECONDS`, so ClickHouse stops a query the client has given up on.
 
-MongoDB keeps the rest: `buffer`, `invalidBuffer`, `pendingTraces`, `traceMetrics`, `watcherTimelines`, `traceTreeCache`, `traceTreeCacheStates`, `traceAdminStores`, `traceClearingProcesses`, `watcherIncidents`, `watcherIncidentEvents`, `notifications`. The `tracesPeriodic` database of earlier versions, with its hourly `traces_*` collections and `_traceTreesView`, is left as it is: nothing reads or cleans it any more.
+MongoDB keeps the rest: `buffer`, `invalidBuffer`, `pendingTraces`, `traceMetrics`, `watcherTimelines`, `traceTreeCache`, `traceTreeCacheStates`, `traceAdminStores`, `traceClearingProcesses`, `watcherIncidents`, `watcherIncidentEvents`, `notifications`. The `tracesPeriodic` database of earlier versions, with its hourly `traces_*` collections and `_traceTreesView`, is moved to ClickHouse and dropped by `make traces-migrate-mongo-clickhouse` (see "Upgrading from the MongoDB trace storage").
 
 ### Buffer → write to ClickHouse
 
@@ -493,6 +493,16 @@ folder, so the data of the two instances stays apart.
 ```bash
 make setup
 ```
+
+### Upgrading from the MongoDB trace storage
+
+An installation that kept its traces in MongoDB (the `tracesPeriodic` database) is upgraded in place:
+
+1. Add to `.env` the `CLICKHOUSE_*` variables (the password is required) and `TRACES_LIFETIME_HOURS`, which replaces `TRACES_LIFETIME_DAYS`. Add to `servers/receiver/.env` `CLICKHOUSE_URL`, `CLICKHOUSE_DATABASE`, `CLICKHOUSE_USERNAME` and `CLICKHOUSE_PASSWORD`, and keep `MONGODB_DB_PERIODIC_TRACES`.
+2. `make deploy-prod`. The migrations create the `traces` table and `pendingTraces` and drop the collections nothing reads any more (`traceDynamicIndexes`, `bufferInvalid`). From the moment the receiver is rebuilt, new traces go to ClickHouse; what the previous receiver left in the buffer is read as it is.
+3. `make traces-migrate-mongo-clickhouse`. It runs `bin/traces-migrate` in the receiver container: the traces of `tracesPeriodic` go to ClickHouse newest hour first, each batch is deleted from MongoDB once ClickHouse has it, then each emptied collection and, at the end, the database. Stopped, it goes on from where it was when run again. A document it cannot read stays in MongoDB with its collection, and the run says how many. It moves about 6,000 traces a second.
+
+Until step 3 is through, the panel shows the traces received after the deploy and the older ones as they are moved. An update that arrives for a trace not moved yet is lost, and the trace stays `started`; moving the newest hours first keeps that window short.
 
 ### Create a user
 
