@@ -254,12 +254,7 @@ export default defineComponent({
 }
 
 .json-copy {
-  visibility: hidden;
   margin-left: 8px;
   height: 20px;
-}
-
-.json-line:hover > .json-copy {
-  visibility: visible;
 }
 </style>
