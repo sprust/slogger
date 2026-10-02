@@ -265,8 +265,6 @@ so a new cross-module edge is added here or is not added.
 
 - `Domain\Actions\ClearTracesAction` → `Trace\Domain\Actions\Mutations\DeletePartitionsAction`,
   `Trace\Entities` — to drop the hours past the retention.
-- `Domain\Actions\OptimizeTracesAction` → `Trace\Domain\Actions\Mutations\OptimizePartitionsAction`
-  — to merge each closed hour into one part, run hourly by `Infrastructure\Jobs\OptimizeTracesJob`.
 
 `Watcher` → `Trace`.
 

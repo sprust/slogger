@@ -20,7 +20,8 @@
     <!-- thresholds counted in free pool slots (4 threads x ratio 2 = 8), each at most that -->
     <merge_tree>
         <number_of_free_entries_in_pool_to_execute_mutation>4</number_of_free_entries_in_pool_to_execute_mutation>
-        <number_of_free_entries_in_pool_to_execute_optimize_entire_partition>4</number_of_free_entries_in_pool_to_execute_optimize_entire_partition>
+        <!-- merges of a whole closed hour (min_age_to_force_merge_seconds): at most two at once -->
+        <number_of_free_entries_in_pool_to_execute_optimize_entire_partition>7</number_of_free_entries_in_pool_to_execute_optimize_entire_partition>
         <number_of_free_entries_in_pool_to_lower_max_size_of_merge>4</number_of_free_entries_in_pool_to_lower_max_size_of_merge>
     </merge_tree>
 
