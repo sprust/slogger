@@ -193,6 +193,8 @@ export default defineComponent({
     // The round that was waiting will not come; left raised, the flag would keep the
     // graph from starting again when the page is opened next.
     this.traceAggregatorGraphStore.waiting = false
+
+    this.traceAggregatorGraphStore.playGraph = false
   },
   watch: {
     'traceAggregatorGraphStore.playGraph'() {
