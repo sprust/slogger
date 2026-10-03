@@ -1,10 +1,15 @@
 import {ApiContainer} from "../../../../../../utils/apiContainer.ts";
-import {formatUtcDateTime, makeStartOfDay, normalizeUtcDateTime, TypesHelper} from "../../../../../../utils/helpers.ts";
+import {formatUtcDateTime, makeStartOfDay, normalizeUtcDateTime} from "../../../../../../utils/helpers.ts";
 import {AdminApi} from "../../../../../../api-schema/admin-api-schema.ts";
 import {defineStore} from "pinia";
 import {handleApiRequest} from "../../../../../../utils/handleApiRequest.ts";
 import {useTraceAggregatorServicesStore} from "../../services/store/traceAggregatorServicesStore.ts";
 import {useTraceAggregatorGraphStore} from "../../graph/store/traceAggregatorGraphStore.ts";
+import {
+    addOrDeleteCustomField,
+    makeEmptyCustomField,
+    setCustomFieldType
+} from "../customFields.ts";
 
 type TraceAggregatorResponse = AdminApi.TraceAggregatorTracesCreate.ResponseBody['data'];
 
@@ -336,100 +341,13 @@ export const useTraceAggregatorStore = defineStore('traceAggregatorStore', {
             }
         },
         addEmptyCustomField() {
-            this.customFields.push({
-                field: '',
-                canBeFiltered: true,
-                search: false,
-                searchData: this.makeCustomFieldSearchData('string'),
-                addToTable: false,
-                addToGraph: false,
-                manual: true,
-            })
+            this.customFields.push(makeEmptyCustomField())
         },
         setCustomFieldType(customField: TraceAggregatorCustomField, type: TraceAggregatorCustomFieldType) {
-            customField.searchData = {
-                ...this.makeCustomFieldSearchData(type),
-                null: customField.searchData.null,
-                exists: customField.searchData.exists,
-            }
-
-            if (type !== 'int' && type !== 'float') {
-                customField.addToGraph = false
-            }
-        },
-        makeCustomFieldSearchData(type: TraceAggregatorCustomFieldType): TraceAggregatorCustomFieldSearchParameter {
-            const data: TraceAggregatorCustomFieldSearchParameter = {
-                null: {
-                    enabled: false,
-                    value: false
-                }
-            }
-
-            switch (type) {
-                case 'int':
-                    data.number = {value: 0, comp: '='}
-                    break
-                case 'float':
-                    data.number = {value: 0, comp: '=', float: true}
-                    break
-                case 'bool':
-                    data.boolean = {value: false}
-                    break
-                default:
-                    data.string = {value: '', comp: 'equals'}
-            }
-
-            return data
+            setCustomFieldType(customField, type)
         },
         addOrDeleteCustomField(parameters: TraceAggregatorCustomFieldParameter) {
-            const customField = parameters.field
-
-            const index = this.customFields.findIndex(
-                (customFieldsItem: TraceAggregatorCustomField) => customFieldsItem.field === customField
-            )
-
-            if (index !== -1) {
-                this.customFields.splice(index, 1)
-            } else {
-                const data: TraceAggregatorCustomFieldSearchParameter = {
-                    null: {
-                        enabled: false,
-                        value: false
-                    }
-                }
-
-                const value = parameters.value
-
-                if (TypesHelper.isValueInt(value) || TypesHelper.isValueFloat(value)) {
-                    data.number = {
-                        value: value,
-                        comp: "="
-                    }
-                } else if (TypesHelper.isValueBool(value)) {
-                    data.boolean = {
-                        value: value
-                    }
-                } else {
-                    data.string = {
-                        value: value,
-                        comp: "equals"
-                    }
-                }
-
-                const searchData: TracesAddCustomFieldParameter = {
-                    field: customField,
-                    data: data
-                }
-
-                this.customFields.push({
-                    field: customField,
-                    canBeFiltered: parameters.canBeFiltered,
-                    search: false,
-                    searchData: searchData.data,
-                    addToTable: false,
-                    addToGraph: false,
-                })
-            }
+            addOrDeleteCustomField(this.customFields, parameters)
         },
         prepareCommonPayloadData() {
             if (!this.payload.logging_from) {

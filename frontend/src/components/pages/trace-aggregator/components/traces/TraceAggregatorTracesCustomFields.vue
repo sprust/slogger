@@ -139,20 +139,19 @@
 
 <script lang="ts">
 import {defineComponent, PropType, shallowRef} from 'vue'
-import {
+import type {
   TraceAggregatorCustomField,
   TraceAggregatorCustomFieldParameter,
   TraceAggregatorCustomFieldSearchParameter,
   TraceAggregatorCustomFieldType,
-  useTraceAggregatorStore
 } from "./store/traceAggregatorStore.ts";
 import {Delete} from '@element-plus/icons-vue'
 
 type FilterMode = 'none' | 'value' | 'null' | 'not_null' | 'exists' | 'not_exists'
-import {TypesHelper} from '../../../../../utils/helpers.ts'
+import {TypesHelper} from '../../../../../utils/typesHelper.ts'
 
 export default defineComponent({
-  emits: ["onCustomFieldClick"],
+  emits: ["onCustomFieldClick", "onCustomFieldTypeChange"],
 
   props: {
     customFields: {
@@ -167,12 +166,6 @@ export default defineComponent({
       Delete: shallowRef(Delete),
       TypesHelper,
     }
-  },
-
-  computed: {
-    traceAggregatorStore() {
-      return useTraceAggregatorStore()
-    },
   },
 
   methods: {
@@ -233,7 +226,7 @@ export default defineComponent({
       }
     },
     onTypeChange(customField: TraceAggregatorCustomField, type: TraceAggregatorCustomFieldType) {
-      this.traceAggregatorStore.setCustomFieldType(customField, type)
+      this.$emit('onCustomFieldTypeChange', customField, type)
     },
     isValueInt(searchData: TraceAggregatorCustomFieldSearchParameter): boolean {
       return !!(searchData.number

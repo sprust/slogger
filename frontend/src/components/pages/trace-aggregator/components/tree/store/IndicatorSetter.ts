@@ -1,4 +1,4 @@
-import {TraceTreeNode} from "./traceAggregatorTreeStore.ts";
+import type {TraceTreeNode} from "./traceAggregatorTreeStore.ts";
 
 export class IndicatorSetter {
     private max: number = 0;

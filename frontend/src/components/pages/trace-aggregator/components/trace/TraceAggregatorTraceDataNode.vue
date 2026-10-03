@@ -2,13 +2,15 @@
   <el-row v-if="showToolbar" class="data-toolbar" align="middle">
     <el-space>
       <el-input
-          v-model="searchStore.query"
+          :model-value="searchQuery"
+          @update:model-value="$emit('update:searchQuery', $event)"
           placeholder="search in data"
           clearable
           style="width: 220px"
       />
       <el-switch
-          v-model="searchStore.inValues"
+          :model-value="searchInValues"
+          @update:model-value="$emit('update:searchInValues', $event)"
           class="data-search-switch"
           inline-prompt
           active-text="values"
@@ -105,14 +107,9 @@
 
 <script lang="ts">
 import {defineComponent, PropType} from "vue";
-import {
-  TraceAggregatorCustomField,
-  TraceAggregatorCustomFieldParameter,
-  useTraceAggregatorStore,
-} from "../traces/store/traceAggregatorStore.ts";
-import {TraceAggregatorDetailData} from "./store/traceAggregatorDataStore.ts";
-import {useTraceAggregatorDataSearchStore} from "./store/traceAggregatorDataSearchStore.ts";
-import {copyToClipboard} from "../../../../../utils/helpers.ts";
+import type {TraceAggregatorCustomFieldParameter} from "../traces/store/traceAggregatorStore.ts";
+import type {TraceAggregatorDetailData} from "./store/traceAggregatorDataStore.ts";
+import {copyToClipboard} from "../../../../../utils/clipboard.ts";
 import DataNodeText from "./DataNodeText.vue";
 import FilterTagsSection from "../tags/FilterTagsSection.vue";
 import JsonViewer from "../../../../json/JsonViewer.vue";
@@ -138,7 +135,7 @@ const longValueLength: number = 80
 
 export default defineComponent({
   components: {DataNodeText, FilterTagsSection, JsonViewer},
-  emits: ["onCustomFieldClick"],
+  emits: ["onCustomFieldClick", "update:searchQuery", "update:searchInValues"],
   props: {
     data: {
       type: Object as PropType<TraceAggregatorDetailData>,
@@ -153,6 +150,18 @@ export default defineComponent({
       type: Boolean,
       required: false,
       default: true
+    },
+    searchQuery: {
+      type: String,
+      required: true,
+    },
+    searchInValues: {
+      type: Boolean,
+      required: true,
+    },
+    customFieldNames: {
+      type: Array as PropType<Array<string>>,
+      default: () => [],
     },
   },
   data() {
@@ -176,9 +185,6 @@ export default defineComponent({
     }
   },
   computed: {
-    searchStore() {
-      return useTraceAggregatorDataSearchStore()
-    },
     tree(): Array<TreeNode> {
       return [this.dataNodeToTree(this.data, 0, 'root')]
     },
@@ -190,18 +196,13 @@ export default defineComponent({
       return keys
     },
     keyQuery(): string {
-      return this.searchStore.inValues ? '' : this.searchStore.query
+      return this.searchInValues ? '' : this.searchQuery
     },
     valueQuery(): string {
-      return this.searchStore.inValues ? this.searchStore.query : ''
-    },
-    customFieldNames(): Array<string> {
-      return useTraceAggregatorStore().customFields.map(
-          (customField: TraceAggregatorCustomField) => customField.field
-      )
+      return this.searchInValues ? this.searchQuery : ''
     },
     matchCount(): number {
-      const query: string = this.searchStore.query.trim().toLowerCase()
+      const query: string = this.searchQuery.trim().toLowerCase()
 
       if (!query) {
         return 0
@@ -353,7 +354,7 @@ export default defineComponent({
     countMatches(nodes: Array<TreeNode>, query: string): number {
       return nodes.reduce(
           (count: number, node: TreeNode) => {
-            const matched: boolean = this.searchStore.inValues
+            const matched: boolean = this.searchInValues
                 ? !node.children && this.valueText(node).toLowerCase().includes(query)
                 : node.name.toLowerCase().includes(query)
 
@@ -464,7 +465,7 @@ export default defineComponent({
 
       const query = value.toLowerCase()
 
-      if (this.searchStore.inValues) {
+      if (this.searchInValues) {
         const nodeValue = this.dataValues[data.key]
 
         return nodeValue !== undefined
@@ -488,14 +489,14 @@ export default defineComponent({
     },
     applyFilter() {
       // @ts-ignore el-tree exposes filter() via ref
-      this.$refs.treeRef?.filter(this.searchStore.query)
+      this.$refs.treeRef?.filter(this.searchQuery)
     },
   },
   watch: {
-    'searchStore.query'() {
+    searchQuery() {
       this.applyFilter()
     },
-    'searchStore.inValues'() {
+    searchInValues() {
       this.applyFilter()
     },
     tree() {
@@ -503,7 +504,7 @@ export default defineComponent({
     },
   },
   mounted() {
-    if (this.searchStore.query) {
+    if (this.searchQuery) {
       this.applyFilter()
     }
   },
