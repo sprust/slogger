@@ -18,6 +18,11 @@ import (
 // 2026_09_29_194325_mongodb_create_pending_traces_collection, under this very name: a trace
 // waits 3 hours for its other half. A job running longer still gets its update written —
 // the transporter reads the trace from ClickHouse when it finds nothing here.
+//
+// A done mark has no uat and lives by its own TTL index on dat, an hour, created by
+// 2026_10_03_060320_mongodb_add_done_mark_ttl_to_pending_traces_collection: a repeated
+// create comes within minutes, and the marks of every complete trace kept for 3 hours
+// made up most of the collection.
 const collection = "pendingTraces"
 
 // PendingTrace is a trace that has come in halves and is waiting for the one still
@@ -40,6 +45,13 @@ type PendingTrace struct {
 	// Done marks a trace that came complete: nothing but the id is kept, so that a create
 	// arriving again is known for a repeat rather than taken for a new trace.
 	Done bool
+}
+
+// doneDocument is what a done mark is stored as: the id alone, under its own TTL field.
+type doneDocument struct {
+	Id     string    `bson:"_id"`
+	Done   bool      `bson:"dn"`
+	DoneAt time.Time `bson:"dat"`
 }
 
 type document struct {
@@ -151,6 +163,18 @@ func (r *Repository) Apply(ctx context.Context, save []PendingTrace, forget []st
 	for _, trace := range save {
 		id := Id(trace.ServiceId, trace.TraceId)
 
+		if trace.Done {
+			models = append(
+				models,
+				mongo.NewReplaceOneModel().
+					SetFilter(bson.M{"_id": id}).
+					SetReplacement(doneDocument{Id: id, Done: true, DoneAt: now}).
+					SetUpsert(true),
+			)
+
+			continue
+		}
+
 		models = append(
 			models,
 			mongo.NewReplaceOneModel().
@@ -170,7 +194,6 @@ func (r *Repository) Apply(ctx context.Context, save []PendingTrace, forget []st
 					Cpu:            trace.Cpu,
 					HasUpdate:      trace.HasUpdate,
 					CreatedAtMicro: trace.CreatedAtMicro,
-					Done:           trace.Done,
 					UpdatedAt:      now,
 				}).
 				SetUpsert(true),
