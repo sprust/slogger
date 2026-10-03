@@ -1,47 +1,9 @@
 <template>
-  <el-form :inline="true">
-    <el-form-item
-        v-for="section in sections"
-        :key="section.key"
-        :label="`${section.label}:`"
-    >
-      <el-tooltip
-          v-for="value in visibleOf(section.selectedTags)"
-          :key="value"
-          :content="value"
-          :disabled="value.length <= maxTagLength"
-          placement="top"
-      >
-        <el-check-tag
-            :type="section.tagType"
-            :checked="true"
-            @click="onSectionTagClick(section.key, value)"
-        >
-          {{ truncate(value) }}
-        </el-check-tag>
-      </el-tooltip>
-      <el-tooltip
-          v-if="hiddenOf(section.selectedTags).length"
-          placement="top"
-      >
-        <template #content>
-          <div v-for="hidden in hiddenOf(section.selectedTags)" :key="hidden">
-            {{ hidden }}
-          </div>
-        </template>
-        <el-check-tag
-            :type="section.tagType"
-            :checked="true"
-            @click="traceAggregatorTagsStore.showDialog = true"
-        >
-          +{{ hiddenOf(section.selectedTags).length }}
-        </el-check-tag>
-      </el-tooltip>
-    </el-form-item>
-    <el-form-item>
-      <el-button :icon="TagAddIcon" @click="traceAggregatorTagsStore.showDialog = true"/>
-    </el-form-item>
-  </el-form>
+  <FilterTagsBarView
+      :sections="sections"
+      @tag-click="onSectionTagClick"
+      @open-dialog="traceAggregatorTagsStore.showDialog = true"
+  />
 
   <el-dialog
       v-model="traceAggregatorTagsStore.showDialog"
@@ -82,7 +44,7 @@
 
 <script lang="ts">
 import {defineComponent, shallowRef} from "vue";
-import {Plus as TagAddIcon, Search as SearchIcon} from '@element-plus/icons-vue'
+import {Search as SearchIcon} from '@element-plus/icons-vue'
 import {
   TagLoading,
   TraceTag,
@@ -91,6 +53,7 @@ import {
 } from "./store/traceAggregatorTagsStore.ts";
 import {TraceAggregatorCommonPayload, useTraceAggregatorStore} from "../traces/store/traceAggregatorStore.ts";
 import FilterTagsSection from "./FilterTagsSection.vue";
+import FilterTagsBarView from "./FilterTagsBarView.vue";
 
 type FindPayload = TraceAggregatorCommonPayload & {
   text?: string | null,
@@ -115,14 +78,11 @@ const sectionTagTypes: Record<TraceTagHistoryType, string> = {
 }
 
 export default defineComponent({
-  components: {FilterTagsSection},
+  components: {FilterTagsSection, FilterTagsBarView},
 
   data() {
     return {
-      TagAddIcon: shallowRef(TagAddIcon),
       SearchIcon: shallowRef(SearchIcon),
-      maxTagLength: 30,
-      maxVisibleTags: 2,
     }
   },
 
@@ -151,17 +111,6 @@ export default defineComponent({
   },
 
   methods: {
-    visibleOf(values: string[] | undefined): string[] {
-      return (values ?? []).slice(0, this.maxVisibleTags)
-    },
-    hiddenOf(values: string[] | undefined): string[] {
-      return (values ?? []).slice(this.maxVisibleTags)
-    },
-    truncate(value: string): string {
-      return value.length > this.maxTagLength
-          ? `${value.slice(0, this.maxTagLength)}…`
-          : value
-    },
     loadingOf(key: TraceTagHistoryType): TagLoading {
       if (key === 'types') {
         return this.traceAggregatorTagsStore.typesLoading

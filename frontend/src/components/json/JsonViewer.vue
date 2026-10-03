@@ -16,7 +16,7 @@
 <script lang="ts">
 import {defineComponent, PropType} from 'vue'
 import JsonViewerNode from './JsonViewerNode.vue'
-import {copyToClipboard} from '../../utils/helpers.ts'
+import {copyToClipboard} from '../../utils/clipboard.ts'
 import alerts from '../../utils/alerts.ts'
 
 export type JsonViewerContext = {

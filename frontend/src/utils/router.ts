@@ -1,6 +1,5 @@
-import {createRouter, createWebHistory, NavigationGuardNext, RouteLocationNormalized} from "vue-router";
+import {createRouter, createWebHistory, NavigationGuardNext, RouteLocationNormalized, RouteLocationRaw} from "vue-router";
 import {useAuthStore} from "../store/authStore.ts";
-import Login from "../components/Login.vue";
 
 const Dashboard = () => import("../components/pages/dashboard/Dashboard.vue")
 const TraceAggregator = () => import("../components/pages/trace-aggregator/TraceAggregator.vue")
@@ -9,12 +8,9 @@ const Logs = () => import("../components/pages/logs-viewer/Logs.vue")
 const Watchers = () => import("../components/pages/watchers/Watchers.vue")
 const Sconcur = () => import("../components/pages/sconcur/Sconcur.vue")
 const Mcps = () => import("../components/pages/mcps/Mcps.vue")
+const Landing = () => import("../components/pages/landing/Landing.vue")
 
 export const routes = {
-    login: {
-        path: '/login',
-        name: 'login',
-    },
     traceAggregator: {
         path: '/trace-aggregator',
         name: 'trace-aggregator',
@@ -43,16 +39,17 @@ export const routes = {
         path: '/mcps',
         name: 'mcps',
     },
+    landing: {
+        path: '/',
+        name: 'landing',
+    },
 }
+
+export const loginRoute: RouteLocationRaw = {name: routes.landing.name, query: {login: '1'}}
 
 export const router = createRouter({
     history: createWebHistory(),
     routes: [
-        {
-            path: routes.login.path,
-            component: Login,
-            name: routes.login.name
-        },
         {
             path: routes.dashboard.path,
             component: Dashboard,
@@ -88,6 +85,12 @@ export const router = createRouter({
             component: Mcps,
             name: routes.mcps.name
         },
+        {
+            path: routes.landing.path,
+            component: Landing,
+            name: routes.landing.name,
+            meta: {public: true},
+        },
     ],
 });
 
@@ -95,6 +98,12 @@ export const defaultRouteName: string = routes.dashboard.name
 
 router.beforeEach(async (to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) => {
     console.log('route', {from: from.name, to: to.name})
+
+    if (to.meta.public) {
+        next()
+
+        return
+    }
 
     const authStore = useAuthStore()
 
@@ -104,24 +113,16 @@ router.beforeEach(async (to: RouteLocationNormalized, from: RouteLocationNormali
 
     const authorized = !!authStore.user
 
-    if (to.name === routes.login.name) {
-        if (authorized) {
-            next({name: defaultRouteName})
+    if (!authorized) {
+        next(loginRoute)
 
-            return
-        }
-    } else {
-        if (!authorized) {
-            next({name: routes.login.name})
+        return
+    }
 
-            return
-        }
+    if (to.name === undefined) {
+        next({name: defaultRouteName})
 
-        if (to.name === undefined) {
-            next({name: defaultRouteName})
-
-            return
-        }
+        return
     }
 
     next()

@@ -115,7 +115,7 @@ export default defineComponent({
       // just dropped.
       await this.authStore.logout()
 
-      this.router.push(this.routes.login)
+      this.router.push(this.routes.landing)
     }
   },
   mounted() {

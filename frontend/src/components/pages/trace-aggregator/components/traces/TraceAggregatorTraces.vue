@@ -117,6 +117,7 @@
           <TraceAggregatorTracesCustomFields
               :custom-fields="traceAggregatorStore.customFields"
               @onCustomFieldClick="onCustomFieldClick"
+              @onCustomFieldTypeChange="traceAggregatorStore.setCustomFieldType"
           />
         </el-row>
       </div>

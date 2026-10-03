@@ -31,78 +31,16 @@
     />
   </el-space>
 
-  <el-table
-      :data="watchersStore.items"
-      :border="true"
-      v-loading="watchersStore.loading"
-  >
-    <el-table-column label="Name" prop="name" min-width="180"/>
-    <el-table-column label="Type" min-width="160">
-      <template #default="scope">
-        {{ watcherTypesStore.titleOf(scope.row.type) }}
-      </template>
-    </el-table-column>
-    <el-table-column label="Enabled" width="100">
-      <template #default="scope">
-        <el-tag :type="scope.row.enabled ? 'success' : 'info'">
-          {{ scope.row.enabled ? 'yes' : 'no' }}
-        </el-tag>
-      </template>
-    </el-table-column>
-    <el-table-column label="Wait between alerts, sec" prop="cooldown_seconds" width="140"/>
-    <el-table-column label="Notifies" min-width="140">
-      <template #default="scope">
-        <!-- A watcher that tells nobody looks like one that does until you open it. -->
-        <el-text v-if="scope.row.notification_channel_id === null" type="info">
-          nobody
-        </el-text>
-        <template v-else>
-          {{ channelName(scope.row.notification_channel_id) }}
-        </template>
-      </template>
-    </el-table-column>
-    <el-table-column label="Sends" min-width="180">
-      <template #default="scope">
-        <template v-if="scope.row.notification_channel_id !== null">
-          <el-tag v-if="scope.row.notify_on_opened" type="danger">opened</el-tag>
-          <el-tag v-if="scope.row.notify_on_event" type="warning">further</el-tag>
-          <el-tag v-if="scope.row.notify_on_closed" type="success">closed</el-tag>
-        </template>
-      </template>
-    </el-table-column>
-    <el-table-column label="Collecting since" min-width="160">
-      <template #default="scope">
-        {{ scope.row.collect_since ?? '' }}
-      </template>
-    </el-table-column>
-    <el-table-column label="Last check / last alert" min-width="180">
-      <template #default="scope">
-        {{ scope.row.last_checked_at ?? '' }}
-        <br>
-        {{ scope.row.last_triggered_at ?? '' }}
-      </template>
-    </el-table-column>
-    <el-table-column width="140" fixed="right">
-      <template #default="scope">
-        <el-button
-            type="primary"
-            link
-            :disabled="!watcherTypeIsKnown(scope.row.type)"
-            @click="editWatcher(scope.row)"
-        >
-          Edit
-        </el-button>
-        <el-button
-            type="danger"
-            link
-            :loading="deleting[scope.row.id]"
-            @click="deleteWatcher(scope.row)"
-        >
-          Delete
-        </el-button>
-      </template>
-    </el-table-column>
-  </el-table>
+  <WatcherListView
+      :items="watchersStore.items"
+      :type-titles="typeTitles"
+      :channel-names="channelNames"
+      :editable-types="editableTypes"
+      :deleting="deleting"
+      :loading="watchersStore.loading"
+      @edit="editWatcher"
+      @delete="deleteWatcher"
+  />
 
   <WatcherFormDialog
       v-model="dialogVisible"
@@ -118,9 +56,10 @@ import {useWatchersStore, Watcher, watcherTypeIsKnown} from "../../store/watcher
 import {useWatcherTypesStore, WatcherType} from "../../store/watcherTypesStore.ts";
 import {Channel, useChannelsStore} from "../notifications/store/channelsStore.ts";
 import WatcherFormDialog from "./WatcherFormDialog.vue";
+import WatcherListView from "./WatcherListView.vue";
 
 export default defineComponent({
-  components: {WatcherFormDialog},
+  components: {WatcherFormDialog, WatcherListView},
 
   data() {
     return {
@@ -154,15 +93,33 @@ export default defineComponent({
     IconRefresh() {
       return IconRefresh
     },
+    typeTitles(): Record<string, string> {
+      const titles: Record<string, string> = {}
+
+      this.watchersStore.items.forEach((watcher: Watcher) => {
+        titles[watcher.type] = this.watcherTypesStore.titleOf(watcher.type)
+      })
+
+      return titles
+    },
+    /** A row can still name a channel that is gone; the view falls back to the id. */
+    channelNames(): Record<number, string> {
+      const names: Record<number, string> = {}
+
+      this.channelsStore.items.forEach((channel: Channel) => {
+        names[channel.id] = channel.name
+      })
+
+      return names
+    },
+    editableTypes(): Array<string> {
+      return this.watchersStore.items
+          .map((watcher: Watcher) => watcher.type)
+          .filter((type: string) => watcherTypeIsKnown(type))
+    },
   },
 
   methods: {
-    watcherTypeIsKnown,
-    /** A row can still name a channel that is gone, so fall back to the id. */
-    channelName(channelId: number): string {
-      return this.channelsStore.items.find((channel: Channel) => channel.id === channelId)?.name
-          ?? `Channel #${channelId}`
-    },
     update() {
       this.watchersStore.find()
     },

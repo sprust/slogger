@@ -1,5 +1,8 @@
 <template>
-  <el-container class="common-layout">
+  <div v-if="$route.meta.public" class="public-layout">
+    <router-view/>
+  </div>
+  <el-container v-else class="common-layout">
     <el-header>
       <Header v-if="authStore.user"/>
     </el-header>
@@ -49,6 +52,13 @@ export default defineComponent({
 </script>
 
 <style scoped>
+.public-layout {
+  box-sizing: border-box;
+  min-height: 100%;
+  padding: 0 24px 24px 24px;
+  background-color: var(--el-bg-color);
+}
+
 .common-layout {
   width: 100%;
   height: 100%;

@@ -1,4 +1,4 @@
-import {router, routes} from "./router.ts";
+import {loginRoute, router} from "./router.ts";
 import alerts from "./alerts.ts";
 import {useAuthStore} from "../store/authStore.ts";
 
@@ -9,7 +9,7 @@ export async function handleApiRequest<T>(request: () => Promise<T>): Promise<T>
         if (error?.status === 401) {
             await useAuthStore().logout()
 
-            await router.push(routes.login)
+            await router.push(loginRoute)
 
             return undefined as T
         }
