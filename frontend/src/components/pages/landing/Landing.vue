@@ -23,13 +23,13 @@
     <LandingLoginDialog v-model="loginVisible"/>
 
     <LandingAbout/>
-    <LandingDataPath/>
     <LandingSearch/>
     <LandingTraceTree/>
     <LandingGraphs/>
     <LandingMetrics/>
     <LandingWatchers/>
     <LandingMcp/>
+    <LandingDataPath/>
     <LandingStack/>
   </div>
 </template>

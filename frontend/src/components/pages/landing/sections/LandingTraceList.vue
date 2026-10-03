@@ -53,8 +53,11 @@
             @onCustomFieldTypeChange="setCustomFieldType"
         />
       </el-row>
-      <el-row>
+      <el-row align="middle">
         <el-button :icon="Plus" link @click="addField">Data field</el-button>
+        <div class="flex-grow"/>
+        <el-button @click="reset">Reset</el-button>
+        <el-button @click="search">Search</el-button>
       </el-row>
     </el-scrollbar>
   </el-card>
@@ -148,7 +151,7 @@ import type {TraceTagHistoryType} from "../../trace-aggregator/components/tags/s
 import type {LandingTraceListText} from "../content/types.ts";
 import {landingText} from "../content/locale.ts";
 import {DemoTrace, demoTraces, toTraceDetailData} from "../demo/demoTraces.ts";
-import {filterDemoTraces} from "../demo/demoTraceFilter.ts";
+import {DemoTraceFilter, filterDemoTraces} from "../demo/demoTraceFilter.ts";
 import {makeFilterExample} from "../demo/demoFilterExamples.ts";
 import {demoServiceNames} from "../demo/demoTraceTree.ts";
 
@@ -175,6 +178,22 @@ const sectionTagTypes: Record<TraceTagHistoryType, string> = {
   types: 'success',
   tags: 'warning',
   statuses: 'primary',
+}
+
+function makeAppliedFilter(
+    serviceIds: Array<number>,
+    types: Array<string>,
+    tags: Array<string>,
+    statuses: Array<string>,
+    customFields: Array<TraceAggregatorCustomField>,
+): DemoTraceFilter {
+  return {
+    serviceIds: [...serviceIds],
+    types: [...types],
+    tags: [...tags],
+    statuses: [...statuses],
+    customFields: JSON.parse(JSON.stringify(customFields)),
+  }
 }
 
 function valuesOf(item: TraceAggregatorItem, key: TraceTagHistoryType): Array<string> {
@@ -209,6 +228,7 @@ export default defineComponent({
       statuses: [] as Array<string>,
       customFields: makeFilterExample('items') as Array<TraceAggregatorCustomField>,
       activeExample: 'items',
+      applied: makeAppliedFilter([], [], [], [], makeFilterExample('items')),
       searchQuery: '',
       searchInValues: false,
       tagsDialogVisible: false,
@@ -230,16 +250,10 @@ export default defineComponent({
       return demoTraces.length
     },
     items(): Array<TraceAggregatorItem> {
-      return filterDemoTraces(demoTraces, {
-        serviceIds: this.serviceIds,
-        types: this.types,
-        tags: this.tags,
-        statuses: this.statuses,
-        customFields: this.customFields,
-      })
+      return filterDemoTraces(demoTraces, this.applied)
     },
     tableFields(): Array<string> {
-      return this.customFields
+      return this.applied.customFields
           .filter(customField => customField.addToTable && customField.field.trim() !== '')
           .map(customField => customField.field.trim())
     },
@@ -348,6 +362,17 @@ export default defineComponent({
 
       this.activeExample = 'custom'
     },
+    search() {
+      this.applied = makeAppliedFilter(this.serviceIds, this.types, this.tags, this.statuses, this.customFields)
+    },
+    reset() {
+      this.serviceIds = []
+      this.types = []
+      this.tags = []
+      this.statuses = []
+      this.customFields = []
+      this.activeExample = ''
+    },
     applyExample(name: string) {
       this.customFields = makeFilterExample(name)
       this.activeExample = name
@@ -381,6 +406,10 @@ export default defineComponent({
 .landing-filters-row {
   gap: 10px;
   padding-bottom: 10px;
+}
+
+.flex-grow {
+  flex-grow: 1;
 }
 
 .landing-custom-fields {

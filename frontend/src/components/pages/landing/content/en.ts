@@ -19,7 +19,7 @@ export const en: LandingText = {
         title: 'What it is',
         paragraphs: [
             'SLogger receives traces from applications and microservices, stores them and gives a panel to search them, build call trees, filter by trace data and chart their figures.',
-            'A trace is a record of one operation: an HTTP request, a database query, a queue job, a command or any operation of your own. The source can be any application that writes to the receiver\'s TCP socket using a simple protocol. For Laravel there is a ready library, slogger/laravel.',
+            'A trace is a record of one operation: an HTTP request, a database query, a queue job, a command or any operation of your own. The source can be any application that writes to the receiver\'s TCP socket using a simple protocol.',
         ],
         features: [
             {title: 'Call tree', text: 'A parent → children hierarchy of any depth, across service boundaries too.'},
@@ -72,14 +72,14 @@ export const en: LandingText = {
         title: 'Trace search',
         paragraphs: [
             'Search filters traces by services, types, tags, statuses, duration, memory, CPU and by any data field, nested ones included, such as user.id or request.path. Numbers are compared as numbers, strings by equality, containment, prefix and suffix, and there are checks for null and for field presence.',
-            'Filters are saved as presets, and the filters of every search are written to the history.',
+            'Filters are saved as presets, and the filters of every search are written to the history. A preset or a history entry can be applied again later with Apply.',
         ],
         traceList: {
             paragraphs: [
-                'Below is the aggregator list on demo traces, and its filters work. A click on a type, tag or status in the list adds it to the filter, a second click removes it. A row expands into the trace data with search by keys and values, and the button next to a data field adds it to the conditions.',
+                'Below is the aggregator list on demo traces, and its filters work. A click on a type, tag or status in the list adds it to the filter, a second click removes it; as in the panel, the list is updated by Search. A row expands into the trace data with search by keys and values, and the button next to a data field adds it to the conditions.',
                 'Trace data is arbitrary JSON without a common schema: a request has request and response, an invoice has an array of items, a queue job has fields of its own. A condition is a dotted path and is checked on every trace that has such a path. If the path goes through an array of objects or ends in an array of values, the condition holds when at least one element matches. A trace without the field does not match a condition on its value; there is the "not exists" check for that. "Add to table" shows the field values in a column of their own.',
             ],
-            examplesCaption: 'Data condition examples',
+            examplesCaption: 'Data condition examples: an example fills the filter, Search applies it',
             examples: [
                 {name: 'items', label: 'invoice.items.price > 10000', text: 'Array of objects: matches if at least one item costs more than 10 000.'},
                 {name: 'roles', label: 'user.roles = "admin"', text: 'Array of values: matches if admin is among the roles.'},
