@@ -52,14 +52,14 @@ frontend/src/components/pages/landing/
   Landing.vue                  - top bar and the section order
   sections/
     LandingAbout.vue           - 1. what it is
-    LandingDataPath.vue        - 2. data path (vue-flow)
-    LandingSearch.vue          - 3. trace search (LandingTraceList inside)
+    LandingSearch.vue          - 2. trace search (LandingTraceList inside)
     LandingTraceList.vue       - trace list, filters, data examples
-    LandingTraceTree.vue       - 4. trace tree
-    LandingGraphs.vue          - 5. graphs
-    LandingMetrics.vue         - 6. intake metrics
-    LandingWatchers.vue        - 7. watchers and notifications
-    LandingMcp.vue             - 8. MCP
+    LandingTraceTree.vue       - 3. trace tree
+    LandingGraphs.vue          - 4. graphs
+    LandingMetrics.vue         - 5. intake metrics
+    LandingWatchers.vue        - 6. watchers and notifications
+    LandingMcp.vue             - 7. MCP
+    LandingDataPath.vue        - 8. data path (vue-flow)
     LandingStack.vue           - 9. runtime and storage
   content/
     ru.ts                      - texts of all sections
@@ -134,6 +134,8 @@ frontend/src/components/pages/landing/
 На лендинге список стоит в разделе «Поиск трейсов» (`LandingTraceList` внутри `LandingSearch`), за ним идут «Трейс и дерево вызовов» и «Графики». Период и сервис — `el-date-picker` и `el-select` с демо-значениями. Типы, теги и статусы — `FilterTagsBarView`. Условия — `TraceAggregatorTracesCustomFields`. Список — `TraceTracesTableView` на демо-трейсах из `demo/demoTraces.ts`.
 
 Кнопка «+» в `FilterTagsBarView` открывает тот же диалог, что в `FilterTags`: три колонки `FilterTagsSection` (компонент работает на props, из модуля store берёт только типы). Значения и количество считаются по демо-трейсам с учётом сервисов, условий по data и выбора в колонках левее, поиск в колонке фильтрует значения по вхождению, недавние выборы и порядок колонок хранятся в состоянии блока.
+
+Как в панели, список меняется только по кнопке Search: клики по типам, тегам и статусам, условия, сервисы и кнопки примеров меняют фильтр, а Search снимает с него копию (`applied`), по которой строятся список и колонки «Add to table». Reset очищает фильтр. Пресеты панели по Apply тоже только восстанавливают фильтр без поиска.
 
 Фильтрация идёт локально, функцией из `demo/demoTraceFilter.ts`. Её смысл повторяет README «Гибкая фильтрация»:
 - путь — имена через точку;
