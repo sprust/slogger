@@ -14,22 +14,17 @@
         :style="{ transform: `translateY(${offsetY}px)` }"
     >
       <el-row v-for="row in visibleItems" style="width: 100%; height: 30px" class="current-tree-row">
-        <TraceAggregatorTraceTreeRow :row="row"/>
+        <slot name="row" :row="row"/>
       </el-row>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import {TraceTreeNode} from "./store/traceAggregatorTreeStore.ts";
-import TraceAggregatorTraceTreeRow from "./TraceAggregatorTraceTreeRow.vue";
+import type {TraceTreeNode} from "./store/traceAggregatorTreeStore.ts";
 
 export default {
   name: 'VirtualList',
-
-  components: {
-    TraceAggregatorTraceTreeRow,
-  },
 
   props: {
     items: {

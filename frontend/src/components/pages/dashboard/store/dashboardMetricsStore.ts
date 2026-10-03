@@ -3,10 +3,11 @@ import {AdminApi} from "../../../../api-schema/admin-api-schema.ts";
 import {defineStore} from "pinia";
 import {handleApiRequest} from "../../../../utils/handleApiRequest.ts";
 import {formatUtcDateTime} from "../../../../utils/helpers.ts";
+import {metricSlotMinutes} from "../traceMetricsValues.ts";
 
 export type DashboardTraceMetric = AdminApi.DashboardTraceMetricsDetail.ResponseBody['data'][number];
 
-export const metricSlotMinutes = 15
+export {metricSlotMinutes}
 
 export const metricSlotsCount = 96
 

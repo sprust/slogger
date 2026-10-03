@@ -1,13 +1,12 @@
 <script lang="ts">
 
 import {defineComponent, PropType} from "vue";
-import TraceService from "../services/TraceService.vue";
+import TraceTreeRowView from "./TraceTreeRowView.vue";
 import {TraceAggregatorTreeRow, TraceTreeNode, useTraceAggregatorTreeStore} from "./store/traceAggregatorTreeStore.ts";
-import {CaretBottom, CaretRight} from "@element-plus/icons-vue";
 import {useTraceAggregatorServicesStore} from "../services/store/traceAggregatorServicesStore.ts";
 
 export default defineComponent({
-  components: {CaretBottom, CaretRight, TraceService},
+  components: {TraceTreeRowView},
 
   props: {
     row: {
@@ -26,29 +25,20 @@ export default defineComponent({
   },
 
   methods: {
-    makeTreeNodeStyle(trace: TraceAggregatorTreeRow) {
-      const style: { 'background-color'?: string, 'border'?: string } = {}
-
-      if (trace.trace_id === this.traceAggregatorTreeStore.selectedTrace.trace_id) {
-        style['background-color'] = 'red'
-      }
-
-      if (trace.trace_id === this.traceAggregatorTreeStore.parameters.trace_id) {
-        style['border'] = '1px solid green'
-      }
-
-      return style
+    isSelected(trace: TraceAggregatorTreeRow): boolean {
+      return trace.trace_id === this.traceAggregatorTreeStore.selectedTrace.trace_id
     },
-    makeTraceIndicatorStyle(trace: TraceAggregatorTreeRow) {
+    isHighlighted(trace: TraceAggregatorTreeRow): boolean {
+      return trace.trace_id === this.traceAggregatorTreeStore.parameters.trace_id
+    },
+    makeIndicatorWidthPercent(trace: TraceAggregatorTreeRow): number {
       let percent = 0
 
       if (trace.duration && this.traceAggregatorTreeStore.traceIndicatingIds.indexOf(trace.trace_id) !== -1) {
         percent = (trace.duration / this.traceAggregatorTreeStore.traceTotalIndicatorsNumber) * 50
       }
 
-      return {
-        width: percent + 'vw',
-      }
+      return percent
     },
     onClickOnRow(treeNode: TraceAggregatorTreeRow) {
       this.traceAggregatorTreeStore.findData(treeNode.trace_id)
@@ -66,9 +56,6 @@ export default defineComponent({
     isTypeSelected(item: string): boolean {
       return this.traceAggregatorTreeStore.selectedTraceTypes.indexOf(item) != -1
     },
-    isTagSelected(item: string): boolean {
-      return this.traceAggregatorTreeStore.selectedTraceTags.indexOf(item) != -1
-    },
     isStatusSelected(item: string): boolean {
       return this.traceAggregatorTreeStore.selectedTraceStatuses.indexOf(item) != -1
     },
@@ -84,165 +71,37 @@ export default defineComponent({
     toggleCollapse() {
       this.traceAggregatorTreeStore.toggleCollapse(this.row)
     },
-    hasChildren(): boolean {
-      return this.row.children.length > 0 || (this.row.childrenCount ?? 0) > 0
-    },
     loadMore() {
       if (this.row.loadMoreOf) {
         this.traceAggregatorTreeStore.loadLazyChildren(this.row.loadMoreOf)
       }
     },
-    loadMoreLabel(): string {
-      const parent = this.row.loadMoreOf!
-
-      return `more (${parent.children.length} of ${parent.childrenCount ?? '?'} loaded)`
-    },
-    getIndicatorBackground() {
-      if (!this.row.indicatorPercent) {
-        return ''
-      }
-
-      const indicatorPercent = Math.round(this.row.indicatorPercent / 2)
-
-      return `linear-gradient(to left, #ff000030 ${indicatorPercent}%, transparent ${indicatorPercent}%)`
-    }
   },
 })
 </script>
 
 <template>
-  <el-row v-if="row.loadMoreOf" :style="{height: '30px', width: '100%'}">
-    <el-row :style="{width: '100%', 'padding-left': row.depth * 20 + 'px'}">
-      <span class="collapse-placeholder"/>
-      <el-button
-          type="primary"
-          link
-          :loading="row.loadMoreOf.childrenLoading"
-          @click="loadMore"
-      >
-        {{ loadMoreLabel() }}
-      </el-button>
-    </el-row>
-  </el-row>
-  <el-row v-else :style="{height: '30px', width: '100%', background: getIndicatorBackground()}">
-    <el-row :style="{width: '100%', 'padding-left': row.depth * 20 + 'px'}">
-      <el-space>
-        <el-button
-            v-if="hasChildren()"
-            type="info"
-            size="small"
-            :loading="row.childrenLoading"
-            @click.stop="toggleCollapse"
-            link
-            class="collapse-toggle"
-        >
-          <el-icon v-if="!row.childrenLoading">
-            <CaretRight v-if="row.collapsed"/>
-            <CaretBottom v-else/>
-          </el-icon>
-        </el-button>
-        <span v-else class="collapse-placeholder"/>
-        <div class="trace-tree-metric-indicator" :style="makeTraceIndicatorStyle(row.primary)"/>
-        <div class="trace-tree-select-indicator" :style="makeTreeNodeStyle(row.primary)"/>
-      </el-space>
-
-      <el-space spacer=":" @click="onClickOnRow(row.primary)" style="cursor: pointer">
-        <div>
-          <el-text :type="isServiceIdSelected(row.primary.service_id) ? 'danger': 'primary'">
-            {{ getServiceName(row.primary) }}
-          </el-text>
-        </div>
-        <div>
-          <el-text :type="isTypeSelected(row.primary.type) ? 'danger': 'success'">
-            {{ row.primary.type }}
-          </el-text>
-        </div>
-        <el-space v-if="row.primary.tags.length" spacer="/">
-          <el-text
-              v-for="tag in row.primary.tags"
-              :type="isTagSelected(tag) ? 'danger': 'warning'"
-              style="padding-right: 3px"
-          >
-            {{ tag.slice(0, 100) }}
-          </el-text>
-        </el-space>
-      </el-space>
-      <el-button
-          type="info"
-          @click="findByRow"
-          link
-      >
-        tree
-      </el-button>
-      <el-button
-          type="info"
-          @click="showJson"
-          link
-      >
-        json
-      </el-button>
-      <el-button
-          v-if="row.children.length > 0"
-          type="info"
-          @click="indicateByRow"
-          link
-      >
-        indicate
-      </el-button>
-      <el-text v-if="row.childrenCount !== undefined && row.childrenCount > 0" type="info">
-        ({{ row.childrenCount }})
-      </el-text>
-
-      <div class="flex-grow"/>
-
-      <el-space spacer="|">
-          <el-text :type="isStatusSelected(row.primary.status) ? 'danger': ''">
-            {{ row.primary.status }}
-          </el-text>
-          <el-text>
-            {{ row.primary.logged_at }}
-          </el-text>
-          <el-text>
-            {{ row.primary.memory }}
-          </el-text>
-          <el-text>
-            {{ row.primary.cpu }}
-          </el-text>
-          <el-text>
-            {{ row.primary.duration }}
-          </el-text>
-      </el-space>
-    </el-row>
-  </el-row>
+  <TraceTreeRowView
+      v-if="row.loadMoreOf"
+      :row="row"
+      service-name=""
+      @load-more="loadMore"
+  />
+  <TraceTreeRowView
+      v-else
+      :row="row"
+      :service-name="getServiceName(row.primary)"
+      :selected="isSelected(row.primary)"
+      :highlighted="isHighlighted(row.primary)"
+      :indicator-width-percent="makeIndicatorWidthPercent(row.primary)"
+      :service-selected="isServiceIdSelected(row.primary.service_id)"
+      :type-selected="isTypeSelected(row.primary.type)"
+      :status-selected="isStatusSelected(row.primary.status)"
+      :selected-tags="traceAggregatorTreeStore.selectedTraceTags"
+      @select="onClickOnRow(row.primary)"
+      @toggle-collapse="toggleCollapse"
+      @find-tree="findByRow"
+      @show-json="showJson"
+      @indicate="indicateByRow"
+  />
 </template>
-
-<style scoped>
-.trace-tree-select-indicator {
-  margin-right: 3px;
-  width: 10px;
-  height: 10px;
-  border-radius: 20px 20px 20px 20px;
-}
-
-.trace-tree-metric-indicator {
-  position: absolute;
-  display: flex;
-  background-color: rgb(139, 0, 0, 30%);
-  right: 0;
-  height: 20px;
-}
-
-.flex-grow {
-  flex-grow: 1;
-}
-
-.collapse-toggle {
-  width: 20px;
-  padding: 0;
-}
-
-.collapse-placeholder {
-  width: 20px;
-  display: inline-block;
-}
-</style>

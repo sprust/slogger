@@ -154,7 +154,11 @@
       </el-row>
       <el-row v-if="!inProcess" style="width: 100%; height: 100%; position: relative;">
         <div v-if="traceAggregatorTreeStore.tree.length" class="row-col" style="width: 100%;">
-          <TraceAggregatorTraceTreeVirtual :items="traceAggregatorTreeStore.filteredTree"/>
+          <TraceAggregatorTraceTreeVirtual :items="traceAggregatorTreeStore.filteredTree">
+            <template #row="{row}">
+              <TraceAggregatorTraceTreeRow :row="row"/>
+            </template>
+          </TraceAggregatorTraceTreeVirtual>
         </div>
         <el-alert
             v-else-if="!traceAggregatorTreeStore.dataLoading && traceAggregatorTreeStore.state?.status === 'failed'"
@@ -289,6 +293,7 @@ import TraceService from "../services/TraceService.vue";
 import TraceAggregatorTraceDataNode from "../trace/TraceAggregatorTraceDataNode.vue";
 import TraceDetail from "../trace/TraceDetail.vue";
 import TraceAggregatorTraceTreeVirtual from "./TraceAggregatorTraceTreeVirtual.vue";
+import TraceAggregatorTraceTreeRow from "./TraceAggregatorTraceTreeRow.vue";
 import JsonViewer from "../../../../json/JsonViewer.vue";
 import {TreeJsonBuilder} from "./store/TreeJsonBuilder.ts";
 import {ArrowDown, Document as JsonIcon, List, Refresh as UpdateIcon} from '@element-plus/icons-vue'
@@ -307,6 +312,7 @@ export default defineComponent({
     TraceService,
     TraceMetrics,
     TraceAggregatorTraceTreeVirtual,
+    TraceAggregatorTraceTreeRow,
     JsonViewer
   },
 

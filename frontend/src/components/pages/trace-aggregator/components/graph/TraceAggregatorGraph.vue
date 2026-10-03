@@ -3,29 +3,18 @@
     <el-row>
       {{ graph.name }}
     </el-row>
-    <Bar
-        ref="tracesGraphRef"
-        :style="`min-height: ${graphItemHeight}; max-height: ${graphItemHeight}`"
-        :data="graph.data as any"
-        :options="traceAggregatorGraphStore.graphOptions as any"
-        @click="onGraphClick"
+    <TraceTimelineChart
+        :data="graph.data"
+        :options="traceAggregatorGraphStore.graphOptions"
+        :height="graphItemHeight"
+        @bar-click="onGraphClick"
     />
   </div>
 </template>
 
 <script lang="ts">
 import {defineComponent} from "vue";
-import {
-  BarElement,
-  CategoryScale,
-  Chart as ChartJS,
-  InteractionItem,
-  Legend,
-  LinearScale,
-  Title,
-  Tooltip
-} from 'chart.js'
-import {Bar, getElementAtEvent} from 'vue-chartjs'
+import TraceTimelineChart from "./TraceTimelineChart.vue";
 
 import {useTraceAggregatorGraphStore} from "./store/traceAggregatorGraphStore.ts";
 import {useTraceAggregatorTimestampPeriodStore} from "./store/traceAggregatorTimestampPeriodsStore.ts";
@@ -33,11 +22,9 @@ import {PeriodPresetEnum, useTraceAggregatorStore} from "../traces/store/traceAg
 import {useTraceAggregatorTimestampFieldsStore} from "./store/traceAggregatorTimestampFieldsStore.ts";
 import {utcTimestamp} from "../../../../../utils/helpers.ts";
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
-
 export default defineComponent({
   components: {
-    Bar,
+    TraceTimelineChart,
   },
 
   data() {
@@ -158,22 +145,7 @@ export default defineComponent({
 
       this.traceAggregatorStore.payload.logging_from = windowFrom
     },
-    onGraphClick(mouseEvent: MouseEvent) {
-      // @ts-ignore TODO
-      const chart = this.$refs.tracesGraphRef[0].chart
-
-      if (!chart) {
-        return
-      }
-
-      const elements: InteractionItem[] = getElementAtEvent(chart, mouseEvent)
-
-      if (!elements.length) {
-        return;
-      }
-
-      const {index} = elements[0]
-
+    onGraphClick(index: number) {
       this.traceAggregatorStore.payload.logging_from_preset = PeriodPresetEnum.Custom
       this.traceAggregatorStore.payload.logging_from = this.traceAggregatorGraphStore.metrics[index].timestamp
       this.traceAggregatorStore.payload.logging_to = this.traceAggregatorGraphStore.metrics[index].timestamp_to
