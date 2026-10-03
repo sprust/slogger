@@ -13,7 +13,7 @@
 
 **Goals:**
 - Публичный маршрут без запросов к установке.
-- Страница из девяти разделов на демо-данных, собранная из компонентов панели.
+- Страница из одиннадцати разделов на демо-данных, собранная из компонентов панели.
 - Тексты отделены от разметки, чтобы позже добавить английский.
 
 **Non-Goals:**
@@ -43,7 +43,7 @@
 
 На маршруте с `$route.meta.public` `App.vue` рисует страницу в простом блоке с отступами по бокам, без `el-container`, `el-header` и `el-scrollbar`. Прокрутка остаётся одна, у `#app`, как у обычной страницы. Внутри `el-scrollbar` центрирование через `margin: auto` не работает, а в обычном блоке страница шириной до 1280px стоит по центру.
 
-Верхняя строка лендинга — часть самой страницы: название SLogger, краткая подпись, переключатель EN/RU, переключатель темы, ссылка на репозиторий https://github.com/sprust/slogger и кнопка «Open panel» — `el-button` без типа: с рамкой и без заливки. Якорных ссылок на разделы нет.
+Верхняя строка лендинга — часть самой страницы: название SLogger, краткая подпись, переключатель EN/RU, переключатель темы, ссылка на репозиторий https://github.com/sprust/slogger и кнопка «Open panel» — `el-button` без типа: с рамкой и без заливки. Якорных ссылок на разделы нет. Строка закреплена у верхнего края (`position: sticky`) и выровнена по краям с содержимым, без внутренних отступов по бокам. У страницы и строки один фон, `--el-bg-color`: без явного фона у раскладки была бы видна подложка браузера, чуть другого оттенка, чем строка: прокручивается `#app`, а строка лежит в нём без промежуточных прокручиваемых блоков.
 
 ### 3. Структура папки
 
@@ -61,6 +61,9 @@ frontend/src/components/pages/landing/
     LandingMcp.vue             - 7. MCP
     LandingDataPath.vue        - 8. data path (vue-flow)
     LandingStack.vue           - 9. runtime and storage
+    LandingInstall.vue         - 10. installation
+    LandingProtocol.vue        - 11. sending traces (socket protocol, message format)
+    LandingCode.vue            - code block
   content/
     ru.ts                      - texts of all sections
     mcpScenarios.ru.ts         - MCP scenarios: question, steps, answer
