@@ -1,0 +1,312 @@
+export interface LandingNavItem {
+    anchor: string,
+    label: string,
+}
+
+export interface LandingTopBarText {
+    title: string,
+    subtitle: string,
+    login: string,
+    nav: Array<LandingNavItem>,
+}
+
+export interface LandingFeature {
+    title: string,
+    text: string,
+}
+
+export interface LandingAboutText {
+    title: string,
+    paragraphs: Array<string>,
+    features: Array<LandingFeature>,
+}
+
+export interface LandingDataPathNodes {
+    client: string,
+    receiver: string,
+    buffer: string,
+    transporter: string,
+    pending: string,
+    clickhouse: string,
+    backend: string,
+    panel: string,
+}
+
+export interface LandingDataPathEdges {
+    clientReceiver: string,
+    receiverBuffer: string,
+    transporterBuffer: string,
+    transporterPending: string,
+    transporterClickhouse: string,
+    backendClickhouse: string,
+    panelBackend: string,
+}
+
+export interface LandingDataPathText {
+    title: string,
+    paragraphs: Array<string>,
+    nodes: LandingDataPathNodes,
+    edges: LandingDataPathEdges,
+}
+
+export interface LandingTraceTreeText {
+    title: string,
+    paragraphs: Array<string>,
+    demoCaption: string,
+}
+
+export interface LandingFilterExampleText {
+    name: string,
+    label: string,
+    text: string,
+}
+
+export interface LandingTraceListText {
+    paragraphs: Array<string>,
+    examplesCaption: string,
+    examples: Array<LandingFilterExampleText>,
+    resetExample: string,
+    found: string,
+    of: string,
+    empty: string,
+}
+
+export interface LandingSearchText {
+    title: string,
+    paragraphs: Array<string>,
+    traceList: LandingTraceListText,
+}
+
+export interface LandingGraphsText {
+    title: string,
+    paragraphs: Array<string>,
+    filtersCaption: string,
+    filters: Array<string>,
+    demoCaption: string,
+}
+
+export interface LandingMetricsText {
+    title: string,
+    paragraphs: Array<string>,
+    demoCaption: string,
+}
+
+export interface LandingChannel {
+    name: string,
+    text: string,
+}
+
+export interface LandingWatchersText {
+    title: string,
+    paragraphs: Array<string>,
+    ruleCaption: string,
+    eventsCaption: string,
+    channelsCaption: string,
+    channels: Array<LandingChannel>,
+    channelsNote: string,
+}
+
+export interface LandingMcpText {
+    title: string,
+    paragraphs: Array<string>,
+    scenariosCaption: string,
+    answerCaption: string,
+    connectCaption: string,
+    connectCommand: string,
+    connectNote: string,
+}
+
+export interface LandingStorage {
+    name: string,
+    role: string,
+}
+
+export interface LandingStackText {
+    title: string,
+    runtimeCaption: string,
+    runtime: Array<string>,
+    storageCaption: string,
+    storageNameColumn: string,
+    storageRoleColumn: string,
+    storages: Array<LandingStorage>,
+    cleanupCaption: string,
+    cleanup: Array<string>,
+}
+
+export interface LandingText {
+    topBar: LandingTopBarText,
+    about: LandingAboutText,
+    dataPath: LandingDataPathText,
+    traceTree: LandingTraceTreeText,
+    search: LandingSearchText,
+    graphs: LandingGraphsText,
+    metrics: LandingMetricsText,
+    watchers: LandingWatchersText,
+    mcp: LandingMcpText,
+    stack: LandingStackText,
+}
+
+export const landingText: LandingText = {
+    topBar: {
+        title: 'SLogger',
+        subtitle: 'трейсы и логи приложений и микросервисов',
+        login: 'Войти в панель',
+        nav: [
+            {anchor: 'about', label: 'Что это'},
+            {anchor: 'data-path', label: 'Путь данных'},
+            {anchor: 'search', label: 'Поиск'},
+            {anchor: 'trace-tree', label: 'Дерево'},
+            {anchor: 'graphs', label: 'Графики'},
+            {anchor: 'metrics', label: 'Метрики'},
+            {anchor: 'watchers', label: 'Смотрители'},
+            {anchor: 'mcp', label: 'MCP'},
+            {anchor: 'stack', label: 'Устройство'},
+        ],
+    },
+    about: {
+        title: 'Что это',
+        paragraphs: [
+            'SLogger принимает трейсы приложений и микросервисов, хранит их и даёт панель для поиска, построения дерева вызовов, фильтрации по данным трейса и графиков по показателям.',
+            'Трейс — запись об одной операции: HTTP-запросе, запросе в базу, задаче очереди, команде или любой своей операции. Источником может быть любое приложение, которое пишет в TCP-сокет приёмника по простому протоколу. Для Laravel есть готовая библиотека slogger/laravel.',
+        ],
+        features: [
+            {title: 'Дерево вызовов', text: 'Иерархия родитель → потомки любой глубины, в том числе через границы сервисов.'},
+            {title: 'Фильтрация по данным', text: 'Условия по любому полю полезной нагрузки трейса: числа, строки, булевы значения, null, наличие поля.'},
+            {title: 'Графики', text: 'Количество, длительность, память и CPU по интервалам времени, с перцентилями p50, p95 и p99.'},
+            {title: 'Метрики приёма', text: 'Сколько трейсов каждый сервис прислал, принял в буфер и записал за каждые 15 минут последних суток.'},
+            {title: 'Смотрители', text: 'Правила, которые заводят инцидент, когда растёт буфер, пропадают трейсы, их слишком много или они долгие.'},
+            {title: 'Уведомления', text: 'Инциденты уходят в Telegram, Slack или JSON на свой адрес, с журналом отправок.'},
+            {title: 'MCP-сервер', text: 'LLM-клиенты вроде Claude Code подключаются к SLogger и разбирают трейсы и инциденты. Инструменты только читают.'},
+            {title: 'Логи и очистка', text: 'Логи SLogger, nginx и приёмника видны в панели. Устаревшие трейсы удаляются автоматически.'},
+        ],
+    },
+    dataPath: {
+        title: 'Путь данных',
+        paragraphs: [
+            'Приём и запись разделены, чтобы выдерживать всплески нагрузки. Приёмник на Go принимает сообщения по TCP и складывает их в буфер MongoDB как операции создания и обновления. Транспортёр забирает из буфера батчи до 5000 записей и записывает каждый одной вставкой в таблицу traces ClickHouse.',
+            'Трейс может прийти половинами: создание при старте операции и обновление при её завершении. Половина, которая ждёт пару, лежит в коллекции pendingTraces до 3 часов после последней записи. Слияние половин идёт без чтения ClickHouse.',
+            'Если хранилище недоступно, батч повторяется как есть с паузой от 1 до 30 секунд, и попытки его записей не тратятся. Запись, которая не прошла 5 попыток, переносится в буфер некорректных трейсов и хранится там 3 дня.',
+        ],
+        nodes: {
+            client: 'Клиент: любое приложение с TCP-сокетом',
+            receiver: 'Приёмник (Go)',
+            buffer: 'Буфер MongoDB: создания и обновления',
+            transporter: 'Транспортёр: батчи до 5000 записей',
+            pending: 'pendingTraces: половины, ждущие пару',
+            clickhouse: 'ClickHouse: таблица traces',
+            backend: 'Backend: Laravel на SConcur',
+            panel: 'Панель и MCP-клиенты',
+        },
+        edges: {
+            clientReceiver: 'TCP: префикс длины + JSON',
+            receiverBuffer: 'Save (InsertMany)',
+            transporterBuffer: 'FindForTransporter / DeleteByIds',
+            transporterPending: 'FindMany / Apply (BulkWrite)',
+            transporterClickhouse: 'Insert (JSONEachRow)',
+            backendClickhouse: 'ClickhouseClient::select',
+            panelBackend: 'HTTP через nginx',
+        },
+    },
+    traceTree: {
+        title: 'Трейс и дерево вызовов',
+        paragraphs: [
+            'У трейса есть сервис, тип, теги, статус, данные, время логирования, длительность, память и CPU. Трейс можно записать в два этапа: при старте со статусом started и при завершении с итоговым статусом и длительностью. Незавершённые трейсы видны со статусом started, поэтому зависшие операции не теряются.',
+            'Связь родитель → потомок задаётся идентификатором родителя и не привязана к сервису. Если сервис передаёт свой идентификатор трейса другому сервису как родительский, трейсы второго сервиса встают в то же дерево. Так один запрос на входе собирается в сквозное дерево вызовов через границы сервисов.',
+            'Дерево строится в фоне и хранится 24 часа. Дерево больше 200 000 узлов открывается по веткам.',
+        ],
+        demoCaption: 'Демо: запрос POST /api/invoices в gateway вызывает billing, а тот — crm. Стрелка сворачивает ветку, клик по строке открывает данные трейса справа, как в панели. json показывает ветку целиком, indicate подсвечивает длительность вызовов внутри ветки, tree отмечает строку как текущую.',
+    },
+    search: {
+        title: 'Поиск трейсов',
+        paragraphs: [
+            'Поиск фильтрует трейсы по сервисам, типам, тегам, статусам, длительности, памяти, CPU и по любому полю данных, включая вложенные, например user.id или request.path. Числа сравниваются как числа, строки — на равенство, вхождение, начало и конец, есть проверки на null и на наличие поля.',
+            'Фильтры сохраняются в пресеты, а фильтры каждого поиска записываются в историю.',
+        ],
+        traceList: {
+            paragraphs: [
+                'Ниже — список агрегатора на демо-трейсах, и фильтры в нём работают. Клик по типу, тегу или статусу в списке добавляет его в фильтр, повторный клик убирает. Строка раскрывается в данные трейса с поиском по ключам и значениям, а кнопка у поля в данных добавляет его в условия.',
+                'Данные трейса — произвольный JSON без общей схемы: у запроса есть request и response, у счёта — массив позиций, у задачи очереди — свои поля. Условие задаётся путём через точку и проверяется у каждого трейса, у которого такой путь есть. Если на пути встречается массив объектов или в конце пути массив значений, условие выполняется, когда подходит хотя бы один элемент. Трейс, у которого поля нет, условию по значению не соответствует, для этого есть проверка «не существует». Отметка «Add to table» выводит значения поля отдельной колонкой.',
+            ],
+            examplesCaption: 'Примеры условий по данным',
+            examples: [
+                {name: 'items', label: 'invoice.items.price > 10000', text: 'Массив объектов: подходит, если хотя бы у одной позиции цена больше 10 000.'},
+                {name: 'roles', label: 'user.roles = "admin"', text: 'Массив значений: подходит, если среди ролей есть admin.'},
+                {name: 'error', label: 'error.code существует', text: 'Поле есть только у трейсов, в которых записали ошибку.'},
+                {name: 'manager', label: 'client.manager = null', text: 'Ключ есть и равен null. Трейсы без этого ключа не подходят.'},
+                {name: 'status', label: 'response.status >= 500', text: 'Вложенное поле есть не у всех трейсов: событие и задача очереди без response не подходят.'},
+            ],
+            resetExample: 'Без условий',
+            found: 'Найдено',
+            of: 'из',
+            empty: 'Под условия не подходит ни один демо-трейс.',
+        },
+    },
+    graphs: {
+        title: 'Графики',
+        paragraphs: [
+            'По тем же фильтрам строятся графики за период от 5 минут до года: количество трейсов, длительность, память и CPU. Для длительности, памяти и CPU рисуются среднее, минимум и максимум, а перцентили p50, p95 и p99 включаются в легенде. Графики можно строить и по числовым полям данных.',
+        ],
+        filtersCaption: 'Фильтр демо-графика',
+        filters: ['сервис: billing', 'тип: request', 'теги: POST /internal/invoices'],
+        demoCaption: 'Демо: количество и длительность запросов по 5-минутным интервалам. Всплеск — с 14:20 до 14:40.',
+    },
+    metrics: {
+        title: 'Метрики приёма',
+        paragraphs: [
+            'Для каждого сервиса видно, сколько новых трейсов пришло в каждый 15-минутный интервал последних суток, по трём моментам: когда источник залогировал трейс (logged), когда приёмник принял его в буфер (buffered) и когда транспортёр записал его в ClickHouse (stored).',
+            'Серии расходятся, когда что-то не так: забившийся буфер оставляет stored позади buffered и потом догоняет одним всплеском, а источник со сбитыми часами уводит logged от двух других. Счётчики ведёт приёмник, таблица traces для этого не читается.',
+        ],
+        demoCaption: 'Демо: billing за сутки. В 14:30 запись отстала от приёма и догнала его в следующем интервале.',
+    },
+    watchers: {
+        title: 'Смотрители и уведомления',
+        paragraphs: [
+            'Смотритель — правило, которое заводит инцидент, когда с системой что-то не так. Типов семь: растёт буфер, приходят некорректные трейсы, трейсы перестали появляться, их стало больше порога, они стали долгими, в логе приложения или в логе приёмника появились ошибки. Трейсовые смотрители сужаются фильтром по сервисам, типам, тегам и статусам.',
+            'Трейсы для смотрителей считает приёмник по 15-секундным интервалам, а раз в минуту задача сверяет их с порогами. Таблица traces для этого не читается. Каждое срабатывание под открытым инцидентом записывается событием с числами, по которым оно сработало.',
+        ],
+        ruleCaption: 'Смотритель в списке настроек. Порог 2 секунды, окно 5 минут и фильтр по сервису billing и типу request задаются в его форме.',
+        eventsCaption: 'События инцидента. Строка раскрывается в группы трейсов.',
+        channelsCaption: 'Каналы',
+        channels: [
+            {name: 'Telegram', text: 'Бот пишет в чат, группу или канал.'},
+            {name: 'Slack', text: 'Входящий webhook пишет в свой канал.'},
+            {name: 'Webhook', text: 'POST JSON {channel, text, sent_at} на ваш адрес, по желанию с заголовком X-Slogger-Token.'},
+        ],
+        channelsNote: 'Смотритель сообщает о заведении инцидента, о новом событии под открытым инцидентом или о закрытии — что выбрано в его настройках. Журнал отправок хранится 30 дней.',
+    },
+    mcp: {
+        title: 'MCP',
+        paragraphs: [
+            'SLogger работает как MCP-сервер. Подключённому LLM-клиенту, например Claude Code, задают вопрос обычными словами, и он ищет ответ инструментами SLogger: сводками по трейсам, поиском, деревьями вызовов, инцидентами и логами самого SLogger. Модель и её токены — на стороне клиента. Все инструменты только читают.',
+            'Доступ выдаётся по подключениям: у каждого человека или агента свой токен, который можно выключить, перевыпустить или удалить. Для частых задач сервер отдаёт промпты: investigate_errors, investigate_latency, explain_incident, explain_trace.',
+        ],
+        scenariosCaption: 'Сценарии. Шаги — вызовы инструментов, которые делает модель.',
+        answerCaption: 'Ответ',
+        connectCaption: 'Подключение',
+        connectCommand: 'claude mcp add --transport http --scope user slogger-prod https://slogger.example.com/mcp \\\n  --header "Authorization: Bearer <token>"',
+        connectNote: 'Токен и готовую команду для своей установки показывает страница MCP в панели.',
+    },
+    stack: {
+        title: 'Устройство и хранилища',
+        runtimeCaption: 'Рантайм',
+        runtime: [
+            'Backend — Laravel 12 на PHP 8.4 поверх SConcur: каждый HTTP-запрос выполняется в отдельном PHP-Fiber внутри постоянно живущего процесса. Приложение не загружается заново на каждый запрос.',
+            'Если одному запросу нужно несколько независимых обращений к хранилищу, например диапазоны графика или уровни дерева, они выполняются параллельно. Обращения к MongoDB, MySQL, Redis и ClickHouse идут через неблокирующие клиенты SConcur.',
+            'Приёмник трейсов — отдельный сервис на Go. Панель — Vue 3, Vite и TypeScript.',
+        ],
+        storageCaption: 'Хранилища',
+        storageNameColumn: 'Хранилище',
+        storageRoleColumn: 'Что хранит',
+        storages: [
+            {name: 'ClickHouse', role: 'Трейсы: таблица traces с партициями по часам.'},
+            {name: 'MongoDB', role: 'Буфер приёмника, половины трейсов, ждущие пару, счётчики метрик, кэш деревьев, инциденты и их события, журнал уведомлений.'},
+            {name: 'MySQL', role: 'Пользователи, сервисы, авторизация, настройки смотрителей и каналов.'},
+            {name: 'RabbitMQ', role: 'Очереди: сборка деревьев, отправка уведомлений, очистка трейсов.'},
+            {name: 'Redis', role: 'Кэш.'},
+        ],
+        cleanupCaption: 'Автоочистка',
+        cleanup: [
+            'Трейсы хранятся TRACES_LIFETIME_HOURS часов, по умолчанию 72. Раз в час задача удаляет целые часовые партиции старше этого срока, а не отдельные строки.',
+        ],
+    },
+}

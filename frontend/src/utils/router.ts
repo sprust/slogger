@@ -9,6 +9,7 @@ const Logs = () => import("../components/pages/logs-viewer/Logs.vue")
 const Watchers = () => import("../components/pages/watchers/Watchers.vue")
 const Sconcur = () => import("../components/pages/sconcur/Sconcur.vue")
 const Mcps = () => import("../components/pages/mcps/Mcps.vue")
+const Landing = () => import("../components/pages/landing/Landing.vue")
 
 export const routes = {
     login: {
@@ -42,6 +43,10 @@ export const routes = {
     mcps: {
         path: '/mcps',
         name: 'mcps',
+    },
+    landing: {
+        path: '/landing',
+        name: 'landing',
     },
 }
 
@@ -88,6 +93,12 @@ export const router = createRouter({
             component: Mcps,
             name: routes.mcps.name
         },
+        {
+            path: routes.landing.path,
+            component: Landing,
+            name: routes.landing.name,
+            meta: {public: true},
+        },
     ],
 });
 
@@ -95,6 +106,12 @@ export const defaultRouteName: string = routes.dashboard.name
 
 router.beforeEach(async (to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) => {
     console.log('route', {from: from.name, to: to.name})
+
+    if (to.meta.public) {
+        next()
+
+        return
+    }
 
     const authStore = useAuthStore()
 
