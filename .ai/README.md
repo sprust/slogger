@@ -459,6 +459,32 @@ and they hand the other module's entities back as they are.
   one block quietly smaller than everything around it. Change one only when the task
   asks for it in those words, and then say so in the report.
 
+### Landing Page
+
+The public page at `/` (`frontend/src/components/pages/landing`) describes the system in
+words and shows it with the panel's own views on demo data. It goes stale silently: nothing
+fails when the system changes and the page does not. So any change to what it describes or
+to what it reuses includes checking it:
+
+- What it describes: trace intake and the socket protocol (message format, ports, the
+  receiver, the buffer, pending traces, ClickHouse), search and data filters, graphs, intake
+  metrics, watchers and notification channels, the MCP tools and prompts (names and
+  parameters in `content/mcpScenarios.*.ts`), the runtime and stores, cleanup, installation
+  (`make` commands, env variables, default ports). When any of it changes, update the texts
+  in `content/en.ts` and `content/ru.ts` together — the two languages never drift apart —
+  and the demo data in `demo/` if its shape follows the changed format.
+- What it reuses: the props-only views of the admin (`TraceTreeRowView`,
+  `TraceTracesTableView`, `TraceDetailView`, `TraceAggregatorTraceDataNode`,
+  `TraceAggregatorTracesCustomFields`, `FilterTagsBarView`, `FilterTagsSection`,
+  `TraceTimelineChart`, `TraceMetricsChart`, `IncidentEventsTable`, `WatcherListView`) and the
+  helpers beside them (`customFields.ts`, `traceMetricsValues.ts`, `traceTimelineSeries.ts`,
+  `incidentEventColumns.ts`, `IndicatorSetter`, `TreeJsonBuilder`). A change to their props,
+  events or data shape is a change to the landing too: open `/` and check the section that
+  uses it.
+- Apart from the sign-in dialog (`LandingLoginDialog`, which uses `authStore`), the landing
+  imports no stores and no API client at runtime (`import type` only), so it makes no
+  requests until the visitor signs in.
+
 ### Migrations
 
 - Name a migration the way the framework does: `Y_m_d_His_snake_case_description.php`, where

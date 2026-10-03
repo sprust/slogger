@@ -31,6 +31,8 @@
     <LandingMcp/>
     <LandingDataPath/>
     <LandingStack/>
+    <LandingInstall/>
+    <LandingProtocol/>
   </div>
 </template>
 
@@ -53,6 +55,8 @@ import LandingMetrics from "./sections/LandingMetrics.vue";
 import LandingWatchers from "./sections/LandingWatchers.vue";
 import LandingMcp from "./sections/LandingMcp.vue";
 import LandingStack from "./sections/LandingStack.vue";
+import LandingInstall from "./sections/LandingInstall.vue";
+import LandingProtocol from "./sections/LandingProtocol.vue";
 
 export default defineComponent({
   components: {
@@ -66,6 +70,8 @@ export default defineComponent({
     LandingWatchers,
     LandingMcp,
     LandingStack,
+    LandingInstall,
+    LandingProtocol,
   },
 
   data() {
@@ -146,6 +152,10 @@ export default defineComponent({
 }
 
 .landing-top-bar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background-color: var(--el-bg-color);
   padding: 16px 0;
   gap: 12px;
   border-bottom: 1px solid var(--el-border-color-lighter);

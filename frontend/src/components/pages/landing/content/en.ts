@@ -164,4 +164,62 @@ export const en: LandingText = {
             'Traces are kept for TRACES_LIFETIME_HOURS hours, 72 by default. Once an hour a task drops whole hourly partitions older than that, not individual rows.',
         ],
     },
+    install: {
+        title: 'Installation',
+        paragraphs: [
+            'SLogger runs in Docker Compose and is managed with make commands. You need Git, Docker with Docker Compose and make.',
+        ],
+        steps: [
+            {title: '1. Clone the repository', text: '', code: `git clone https://github.com/sprust/slogger.git
+cd slogger`},
+            {title: '2. Copy the env files', text: 'Creates .env, servers/receiver/.env and frontend/.env from the examples. The values from the examples work as they are; for a public installation change the passwords and ports in .env.', code: `make env-copy`},
+            {title: '3. Set up and start', text: 'Builds the images and the receiver, generates the WebSocket keys, starts the containers, installs dependencies, runs migrations, declares queues and builds the panel.', code: `make setup`},
+            {title: '4. Create a user', text: 'Asks for a name, email and password (8 to 10 characters) to sign in to the panel.', code: `make art c=user:create`},
+            {title: '5. Create a service', text: 'Asks for a service name and prints its API token. A client authenticates on the receiver socket with this token, and its traces belong to this service.', code: `make art c=service:create`},
+            {title: '6. Open the panel', text: 'The panel is at http://<host>:3075 (FRONTEND_DOCKER_PORT), the receiver takes traces at <host>:10031 (RECIEVER_SOCKET_DOCKER_PORT).', code: ''},
+        ],
+    },
+    protocol: {
+        title: 'Sending traces',
+        paragraphs: [
+            'Traces are sent over TCP to the receiver socket: port 10031 on the host by default (RECIEVER_SOCKET_DOCKER_PORT), receiver:9030 inside the Docker network. Every message, in both directions, is a 4-byte length prefix (big-endian uint32) followed by a UTF-8 JSON body of up to 10 MB.',
+            'Any application in any language that can write to a TCP socket can be a source.',
+        ],
+        authCaption: 'Right after connecting the client sends the service API token. The server replies ok, or an error text and closes the connection.',
+        authCode: `{ "t": "<api_token>" }`,
+        messageCaption: 'Then, in the same connection, the client sends trace messages, and the server replies received to each. c is a batch of traces to create, u a batch of updates; both are JSON strings with serialized arrays, and both are optional.',
+        messageCode: `{
+  "c": "[ <traces to create> ]",
+  "u": "[ <trace updates> ]"
+}`,
+        createCaption: 'Trace to create, the start of an operation:',
+        createCode: `{
+  "tid":  "9f1c…",          // trace id (required)
+  "ptid": "0b8a…",          // parent trace id (optional)
+  "tp":   "request",        // operation type: request, job, …
+  "st":   "started",        // status
+  "tgs":  ["api", "v2"],    // tags
+  "dt":   { "path": "/x" }, // arbitrary JSON data
+  "dur":  null,             // duration, usually unknown at the start
+  "mem":  41.5,             // memory, % (optional)
+  "cpu":  12.3,             // CPU, % (optional)
+  "lat":  "2026-06-21 14:00:00.000000"  // logged-at time
+}`,
+        updateCaption: 'Trace update, the end of an operation:',
+        updateCode: `{
+  "tid":  "9f1c…",          // the same trace id
+  "st":   "success",        // final status: success, failed or your own
+  "tgs":  ["api", "v2"],    // tags, replace the stored ones if present
+  "dt":   { "code": 200 },  // data, replaces the stored data if present
+  "dur":  0.137,            // actual duration
+  "mem":  43.1,             // memory, %
+  "cpu":  15.0,             // CPU, %
+  "plat": "2026-06-21 14:00:00.000000"  // must equal lat of the create
+}`,
+        notes: [
+            'A trace can be sent in one create message if its result is known at once; the update is optional.',
+            'The create and the update with the same tid are merged into one row. The update replaces only the fields it carries.',
+            'The connection is long-lived: the server does not close an idle connection, so a client can keep an authenticated socket between bursts of traces.',
+        ],
+    },
 }

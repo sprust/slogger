@@ -153,6 +153,32 @@ export interface LandingLoginDialogText {
     invalid: string,
 }
 
+export interface LandingInstallStep {
+    title: string,
+    text: string,
+    code: string,
+}
+
+export interface LandingInstallText {
+    title: string,
+    paragraphs: Array<string>,
+    steps: Array<LandingInstallStep>,
+}
+
+export interface LandingProtocolText {
+    title: string,
+    paragraphs: Array<string>,
+    authCaption: string,
+    authCode: string,
+    messageCaption: string,
+    messageCode: string,
+    createCaption: string,
+    createCode: string,
+    updateCaption: string,
+    updateCode: string,
+    notes: Array<string>,
+}
+
 export interface LandingText {
     topBar: LandingTopBarText,
     loginDialog: LandingLoginDialogText,
@@ -165,4 +191,6 @@ export interface LandingText {
     watchers: LandingWatchersText,
     mcp: LandingMcpText,
     stack: LandingStackText,
+    install: LandingInstallText,
+    protocol: LandingProtocolText,
 }

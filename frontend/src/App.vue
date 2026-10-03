@@ -53,7 +53,10 @@ export default defineComponent({
 
 <style scoped>
 .public-layout {
+  box-sizing: border-box;
+  min-height: 100%;
   padding: 0 24px 24px 24px;
+  background-color: var(--el-bg-color);
 }
 
 .common-layout {
