@@ -25,7 +25,8 @@ import LandingSection from "./LandingSection.vue";
 import TraceMetricsChart from "../../dashboard/TraceMetricsChart.vue";
 import type {DashboardTraceMetric} from "../../dashboard/store/dashboardMetricsStore.ts";
 import {makeMetricTotals, makeMetricValues, MetricTotals} from "../../dashboard/traceMetricsValues.ts";
-import {LandingMetricsText, landingText} from "../content/ru.ts";
+import type {LandingMetricsText} from "../content/types.ts";
+import {landingText} from "../content/locale.ts";
 import {demoMetricRows, demoMetricSlots} from "../demo/demoMetrics.ts";
 
 export default defineComponent({
@@ -33,7 +34,7 @@ export default defineComponent({
 
   computed: {
     text(): LandingMetricsText {
-      return landingText.metrics
+      return landingText().metrics
     },
     slots(): Array<string> {
       return demoMetricSlots

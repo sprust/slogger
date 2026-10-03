@@ -6,21 +6,21 @@
         <el-text type="info">{{ text.topBar.subtitle }}</el-text>
       </el-space>
       <div class="flex-grow"/>
-      <el-space :size="4" wrap>
-        <el-button
-            v-for="item in text.topBar.nav"
-            :key="item.anchor"
-            link
-            @click="scrollTo(item.anchor)"
-        >
-          {{ item.label }}
-        </el-button>
-      </el-space>
-      <el-button :icon="isDark ? Moon : Sunny" link class="landing-theme" @click="toggleDark"/>
-      <router-link to="/login" class="landing-login">
-        <el-button type="primary">{{ text.topBar.login }}</el-button>
-      </router-link>
+      <el-segmented v-model="language" :options="languages" size="small"/>
+      <el-button :icon="isDark ? Moon : Sunny" link class="landing-action" @click="toggleDark"/>
+      <el-link
+          href="https://github.com/sprust/slogger"
+          target="_blank"
+          rel="noopener"
+          :underline="false"
+          class="landing-action"
+      >
+        {{ text.topBar.github }}
+      </el-link>
+      <el-button class="landing-action" @click="signIn">{{ text.topBar.login }}</el-button>
     </el-row>
+
+    <LandingLoginDialog v-model="loginVisible"/>
 
     <LandingAbout/>
     <LandingDataPath/>
@@ -39,7 +39,11 @@ import {defineComponent} from "vue";
 import {useToggle} from '@vueuse/shared'
 import {useDark} from '@vueuse/core'
 import {Moon, Sunny} from '@element-plus/icons-vue'
-import {landingText} from "./content/ru.ts";
+import {LandingLanguage, landingLocale, landingText, setLandingLanguage} from "./content/locale.ts";
+import type {LandingText} from "./content/types.ts";
+import LandingLoginDialog from "./LandingLoginDialog.vue";
+import {ApiTokenStorage} from "../../../utils/apiContainer.ts";
+import {defaultRouteName} from "../../../utils/router.ts";
 import LandingAbout from "./sections/LandingAbout.vue";
 import LandingDataPath from "./sections/LandingDataPath.vue";
 import LandingTraceTree from "./sections/LandingTraceTree.vue";
@@ -52,6 +56,7 @@ import LandingStack from "./sections/LandingStack.vue";
 
 export default defineComponent({
   components: {
+    LandingLoginDialog,
     LandingAbout,
     LandingDataPath,
     LandingTraceTree,
@@ -69,14 +74,29 @@ export default defineComponent({
     })
 
     return {
+      loginVisible: false,
       isDark,
       toggleDarkUsing: useToggle(isDark),
     }
   },
 
   computed: {
-    text() {
-      return landingText
+    text(): LandingText {
+      return landingText()
+    },
+    language: {
+      get(): LandingLanguage {
+        return landingLocale.language
+      },
+      set(language: LandingLanguage) {
+        setLandingLanguage(language)
+      },
+    },
+    languages(): Array<{ label: string, value: LandingLanguage }> {
+      return [
+        {label: 'EN', value: 'en'},
+        {label: 'RU', value: 'ru'},
+      ]
     },
     Sunny() {
       return Sunny
@@ -86,12 +106,34 @@ export default defineComponent({
     },
   },
 
+  watch: {
+    '$route.query.login': {
+      immediate: true,
+      handler(value: unknown) {
+        if (value) {
+          this.loginVisible = true
+        }
+      },
+    },
+    loginVisible(visible: boolean) {
+      if (!visible && this.$route.query.login) {
+        this.$router.replace({name: this.$route.name ?? undefined, query: {}})
+      }
+    },
+  },
+
   methods: {
+    signIn() {
+      if (ApiTokenStorage.getToken()) {
+        this.$router.push({name: defaultRouteName})
+
+        return
+      }
+
+      this.loginVisible = true
+    },
     toggleDark() {
       this.toggleDarkUsing()
-    },
-    scrollTo(anchor: string) {
-      document.getElementById(anchor)?.scrollIntoView({behavior: 'smooth', block: 'start'})
     },
   },
 })
@@ -109,12 +151,8 @@ export default defineComponent({
   border-bottom: 1px solid var(--el-border-color-lighter);
 }
 
-.landing-theme {
-  margin-left: 12px;
-}
-
-.landing-login {
-  margin-left: 12px;
+.landing-action {
+  margin-left: 16px;
 }
 
 .flex-grow {

@@ -1,167 +1,19 @@
-export interface LandingNavItem {
-    anchor: string,
-    label: string,
-}
+import type {LandingText} from "./types.ts";
+import {mcpScenariosRu} from "./mcpScenarios.ru.ts";
 
-export interface LandingTopBarText {
-    title: string,
-    subtitle: string,
-    login: string,
-    nav: Array<LandingNavItem>,
-}
-
-export interface LandingFeature {
-    title: string,
-    text: string,
-}
-
-export interface LandingAboutText {
-    title: string,
-    paragraphs: Array<string>,
-    features: Array<LandingFeature>,
-}
-
-export interface LandingDataPathNodes {
-    client: string,
-    receiver: string,
-    buffer: string,
-    transporter: string,
-    pending: string,
-    clickhouse: string,
-    backend: string,
-    panel: string,
-}
-
-export interface LandingDataPathEdges {
-    clientReceiver: string,
-    receiverBuffer: string,
-    transporterBuffer: string,
-    transporterPending: string,
-    transporterClickhouse: string,
-    backendClickhouse: string,
-    panelBackend: string,
-}
-
-export interface LandingDataPathText {
-    title: string,
-    paragraphs: Array<string>,
-    nodes: LandingDataPathNodes,
-    edges: LandingDataPathEdges,
-}
-
-export interface LandingTraceTreeText {
-    title: string,
-    paragraphs: Array<string>,
-    demoCaption: string,
-}
-
-export interface LandingFilterExampleText {
-    name: string,
-    label: string,
-    text: string,
-}
-
-export interface LandingTraceListText {
-    paragraphs: Array<string>,
-    examplesCaption: string,
-    examples: Array<LandingFilterExampleText>,
-    resetExample: string,
-    found: string,
-    of: string,
-    empty: string,
-}
-
-export interface LandingSearchText {
-    title: string,
-    paragraphs: Array<string>,
-    traceList: LandingTraceListText,
-}
-
-export interface LandingGraphsText {
-    title: string,
-    paragraphs: Array<string>,
-    filtersCaption: string,
-    filters: Array<string>,
-    demoCaption: string,
-}
-
-export interface LandingMetricsText {
-    title: string,
-    paragraphs: Array<string>,
-    demoCaption: string,
-}
-
-export interface LandingChannel {
-    name: string,
-    text: string,
-}
-
-export interface LandingWatchersText {
-    title: string,
-    paragraphs: Array<string>,
-    ruleCaption: string,
-    eventsCaption: string,
-    channelsCaption: string,
-    channels: Array<LandingChannel>,
-    channelsNote: string,
-}
-
-export interface LandingMcpText {
-    title: string,
-    paragraphs: Array<string>,
-    scenariosCaption: string,
-    answerCaption: string,
-    connectCaption: string,
-    connectCommand: string,
-    connectNote: string,
-}
-
-export interface LandingStorage {
-    name: string,
-    role: string,
-}
-
-export interface LandingStackText {
-    title: string,
-    runtimeCaption: string,
-    runtime: Array<string>,
-    storageCaption: string,
-    storageNameColumn: string,
-    storageRoleColumn: string,
-    storages: Array<LandingStorage>,
-    cleanupCaption: string,
-    cleanup: Array<string>,
-}
-
-export interface LandingText {
-    topBar: LandingTopBarText,
-    about: LandingAboutText,
-    dataPath: LandingDataPathText,
-    traceTree: LandingTraceTreeText,
-    search: LandingSearchText,
-    graphs: LandingGraphsText,
-    metrics: LandingMetricsText,
-    watchers: LandingWatchersText,
-    mcp: LandingMcpText,
-    stack: LandingStackText,
-}
-
-export const landingText: LandingText = {
+export const ru: LandingText = {
     topBar: {
         title: 'SLogger',
         subtitle: 'трейсы и логи приложений и микросервисов',
-        login: 'Войти в панель',
-        nav: [
-            {anchor: 'about', label: 'Что это'},
-            {anchor: 'data-path', label: 'Путь данных'},
-            {anchor: 'search', label: 'Поиск'},
-            {anchor: 'trace-tree', label: 'Дерево'},
-            {anchor: 'graphs', label: 'Графики'},
-            {anchor: 'metrics', label: 'Метрики'},
-            {anchor: 'watchers', label: 'Смотрители'},
-            {anchor: 'mcp', label: 'MCP'},
-            {anchor: 'stack', label: 'Устройство'},
-        ],
+        login: 'Открыть панель',
+        github: 'GitHub',
+    },
+    loginDialog: {
+        title: 'Вход в панель',
+        email: 'Email',
+        password: 'Пароль',
+        submit: 'Войти',
+        invalid: 'Неверный email или пароль.',
     },
     about: {
         title: 'Что это',
@@ -260,6 +112,8 @@ export const landingText: LandingText = {
     },
     watchers: {
         title: 'Смотрители и уведомления',
+        demoWatcherName: 'billing: запросы дольше 2 секунд',
+        demoChannelName: 'Telegram: дежурные',
         paragraphs: [
             'Смотритель — правило, которое заводит инцидент, когда с системой что-то не так. Типов семь: растёт буфер, приходят некорректные трейсы, трейсы перестали появляться, их стало больше порога, они стали долгими, в логе приложения или в логе приёмника появились ошибки. Трейсовые смотрители сужаются фильтром по сервисам, типам, тегам и статусам.',
             'Трейсы для смотрителей считает приёмник по 15-секундным интервалам, а раз в минуту задача сверяет их с порогами. Таблица traces для этого не читается. Каждое срабатывание под открытым инцидентом записывается событием с числами, по которым оно сработало.',
@@ -276,6 +130,7 @@ export const landingText: LandingText = {
     },
     mcp: {
         title: 'MCP',
+        scenarios: mcpScenariosRu,
         paragraphs: [
             'SLogger работает как MCP-сервер. Подключённому LLM-клиенту, например Claude Code, задают вопрос обычными словами, и он ищет ответ инструментами SLogger: сводками по трейсам, поиском, деревьями вызовов, инцидентами и логами самого SLogger. Модель и её токены — на стороне клиента. Все инструменты только читают.',
             'Доступ выдаётся по подключениям: у каждого человека или агента свой токен, который можно выключить, перевыпустить или удалить. Для частых задач сервер отдаёт промпты: investigate_errors, investigate_latency, explain_incident, explain_trace.',

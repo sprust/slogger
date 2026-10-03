@@ -16,14 +16,15 @@
 <script lang="ts">
 import {defineComponent} from "vue";
 import LandingSection from "./LandingSection.vue";
-import {LandingAboutText, landingText} from "../content/ru.ts";
+import type {LandingAboutText} from "../content/types.ts";
+import {landingText} from "../content/locale.ts";
 
 export default defineComponent({
   components: {LandingSection},
 
   computed: {
     text(): LandingAboutText {
-      return landingText.about
+      return landingText().about
     },
   },
 })

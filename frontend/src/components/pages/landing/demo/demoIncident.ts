@@ -76,14 +76,16 @@ export const demoIncidentEvents: Array<SlowTracesEvent> = [
     },
 ]
 
+export const demoChannelId = 1
+
 export const demoWatchers: Array<Watcher> = [
     {
         id: 1,
-        name: 'billing: запросы дольше 2 секунд',
+        name: '',
         type: 'slowTraces',
         enabled: true,
         cooldown_seconds: 600,
-        notification_channel_id: 1,
+        notification_channel_id: demoChannelId,
         notify_on_opened: true,
         notify_on_event: true,
         notify_on_closed: false,
@@ -99,6 +101,3 @@ export const demoWatcherTypeTitles: Record<string, string> = {
     slowTraces: 'Slow traces',
 }
 
-export const demoChannelNames: Record<number, string> = {
-    1: 'Telegram: дежурные',
-}

@@ -54,9 +54,10 @@ import WatcherListView from "../../watchers/components/settings/WatcherListView.
 import type {Watcher} from "../../watchers/store/watchersStore.ts";
 import type {PayloadColumn} from "../../watchers/components/incidents/incidentEventColumns.ts";
 import type {WatcherIncidentEvent} from "../../watchers/store/incidentsStore.ts";
-import {LandingWatchersText, landingText} from "../content/ru.ts";
+import type {LandingWatchersText} from "../content/types.ts";
+import {landingText} from "../content/locale.ts";
 import {
-  demoChannelNames,
+  demoChannelId,
   demoIncidentColumns,
   demoIncidentEvents,
   demoWatchers,
@@ -75,7 +76,7 @@ export default defineComponent({
 
   computed: {
     text(): LandingWatchersText {
-      return landingText.watchers
+      return landingText().watchers
     },
     events(): Array<WatcherIncidentEvent> {
       return demoIncidentEvents
@@ -87,13 +88,13 @@ export default defineComponent({
       return demoServiceNames
     },
     watchers(): Array<Watcher> {
-      return demoWatchers
+      return demoWatchers.map((watcher: Watcher) => ({...watcher, name: this.text.demoWatcherName}))
     },
     typeTitles(): Record<string, string> {
       return demoWatcherTypeTitles
     },
     channelNames(): Record<number, string> {
-      return demoChannelNames
+      return {[demoChannelId]: this.text.demoChannelName}
     },
   },
 })

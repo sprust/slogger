@@ -36,7 +36,8 @@
 import {defineComponent} from "vue";
 import {Edge, Handle, HandleType, Node, Position, VueFlow} from '@vue-flow/core'
 import LandingSection from "./LandingSection.vue";
-import {LandingDataPathText, landingText} from "../content/ru.ts";
+import type {LandingDataPathText} from "../content/types.ts";
+import {landingText} from "../content/locale.ts";
 
 interface FlowHandle {
   id: string,
@@ -77,7 +78,7 @@ export default defineComponent({
 
   computed: {
     text(): LandingDataPathText {
-      return landingText.dataPath
+      return landingText().dataPath
     },
     handles(): Array<FlowHandle> {
       return flowHandles
@@ -140,6 +141,18 @@ export default defineComponent({
 
 .landing-flow-handle {
   opacity: 0;
+}
+
+.landing-flow :deep(.vue-flow__pane),
+.landing-flow :deep(.vue-flow__node),
+.landing-flow :deep(.vue-flow__handle) {
+  cursor: default;
+}
+
+.landing-flow :deep(.vue-flow__edge),
+.landing-flow :deep(.vue-flow__edge *) {
+  pointer-events: none;
+  cursor: default;
 }
 
 :deep(.vue-flow__edge-textbg) {

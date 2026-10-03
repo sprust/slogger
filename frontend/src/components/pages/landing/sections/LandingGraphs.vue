@@ -21,7 +21,8 @@ import {defineComponent} from "vue";
 import type {ChartOptions} from 'chart.js'
 import LandingSection from "./LandingSection.vue";
 import TraceTimelineChart from "../../trace-aggregator/components/graph/TraceTimelineChart.vue";
-import {LandingGraphsText, landingText} from "../content/ru.ts";
+import type {LandingGraphsText} from "../content/types.ts";
+import {landingText} from "../content/locale.ts";
 import {DemoTimelineGraph, demoTimelineGraphs, demoTimelineOptions} from "../demo/demoTimeline.ts";
 
 export default defineComponent({
@@ -29,7 +30,7 @@ export default defineComponent({
 
   computed: {
     text(): LandingGraphsText {
-      return landingText.graphs
+      return landingText().graphs
     },
     graphs(): Array<DemoTimelineGraph> {
       return demoTimelineGraphs

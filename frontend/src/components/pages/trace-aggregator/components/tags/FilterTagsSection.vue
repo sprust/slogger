@@ -91,7 +91,7 @@ import {
   Plus as TagAddIcon,
   Search as SearchIcon
 } from '@element-plus/icons-vue'
-import {TagLoading, TraceTag} from "./store/traceAggregatorTagsStore.ts";
+import type {TagLoading, TraceTag} from "./store/traceAggregatorTagsStore.ts";
 
 export default defineComponent({
   emits: ['findTags', 'onTagClick', 'moveLeft', 'moveRight'],

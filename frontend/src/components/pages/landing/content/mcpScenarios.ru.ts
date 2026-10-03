@@ -1,18 +1,6 @@
-export interface McpScenarioStep {
-    tool: string,
-    params: string,
-    result: string,
-}
+import type {McpScenario} from "./types.ts";
 
-export interface McpScenario {
-    name: string,
-    title: string,
-    question: string,
-    steps: Array<McpScenarioStep>,
-    answer: string,
-}
-
-export const mcpScenarios: Array<McpScenario> = [
+export const mcpScenariosRu: Array<McpScenario> = [
     {
         name: 'load',
         title: 'Кто нагружает',

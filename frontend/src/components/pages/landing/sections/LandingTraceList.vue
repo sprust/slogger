@@ -40,7 +40,11 @@
         </el-select>
       </el-row>
       <el-row>
-        <FilterTagsBarView :sections="tagSections" @tag-click="onTagSectionClick"/>
+        <FilterTagsBarView
+            :sections="tagSections"
+            @tag-click="onTagSectionClick"
+            @open-dialog="tagsDialogVisible = true"
+        />
       </el-row>
       <el-row v-if="customFields.length" class="landing-custom-fields">
         <TraceAggregatorTracesCustomFields
@@ -54,6 +58,42 @@
       </el-row>
     </el-scrollbar>
   </el-card>
+
+  <el-dialog
+      v-model="tagsDialogVisible"
+      width="80%"
+      top="10px"
+      :append-to-body="false"
+      style="opacity: .9"
+  >
+    <template #header>
+      <el-text>
+        * every column is filtered by period, services and by what is chosen in the columns on its left
+      </el-text>
+    </template>
+    <el-row style="min-height: 60vh">
+      <el-col
+          v-for="(section, index) in dialogSections"
+          :key="section.key"
+          :span="8"
+      >
+        <FilterTagsSection
+            :title="section.title"
+            :tagType="section.tagType"
+            :tags="section.tags"
+            :selectedTags="section.selectedTags"
+            :recentTags="recentTags[section.key]"
+            :loading="notLoading"
+            :canMoveLeft="index > 0"
+            :canMoveRight="index < dialogSections.length - 1"
+            @findTags="(value: string) => searchTexts[section.key] = value"
+            @onTagClick="(tag: string) => onTagSectionClick(section.key, tag)"
+            @moveLeft="moveSection(section.key, -1)"
+            @moveRight="moveSection(section.key, 1)"
+        />
+      </el-col>
+    </el-row>
+  </el-dialog>
 
   <p class="landing-caption">
     <el-text type="info">{{ text.found }} {{ items.length }} {{ text.of }} {{ total }}</el-text>
@@ -91,6 +131,8 @@ import TraceTracesTableView, {TraceTableDataItem} from "../../trace-aggregator/c
 import TraceAggregatorTracesCustomFields
   from "../../trace-aggregator/components/traces/TraceAggregatorTracesCustomFields.vue";
 import FilterTagsBarView, {FilterTagsBarSection} from "../../trace-aggregator/components/tags/FilterTagsBarView.vue";
+import FilterTagsSection from "../../trace-aggregator/components/tags/FilterTagsSection.vue";
+import type {TraceTag} from "../../trace-aggregator/components/tags/store/traceAggregatorTagsStore.ts";
 import {
   addOrDeleteCustomField,
   makeEmptyCustomField,
@@ -103,7 +145,8 @@ import type {
   TraceAggregatorItem,
 } from "../../trace-aggregator/components/traces/store/traceAggregatorStore.ts";
 import type {TraceTagHistoryType} from "../../trace-aggregator/components/tags/store/traceAggregatorTagsStore.ts";
-import {LandingTraceListText, landingText} from "../content/ru.ts";
+import type {LandingTraceListText} from "../content/types.ts";
+import {landingText} from "../content/locale.ts";
 import {DemoTrace, demoTraces, toTraceDetailData} from "../demo/demoTraces.ts";
 import {filterDemoTraces} from "../demo/demoTraceFilter.ts";
 import {makeFilterExample} from "../demo/demoFilterExamples.ts";
@@ -114,6 +157,38 @@ interface DemoService {
   name: string,
 }
 
+interface DialogSection {
+  key: TraceTagHistoryType,
+  title: string,
+  tagType: string,
+  tags: Array<TraceTag>,
+  selectedTags: Array<string>,
+}
+
+const sectionTitles: Record<TraceTagHistoryType, string> = {
+  types: 'Types',
+  tags: 'Tags (by first 100000)',
+  statuses: 'Statuses',
+}
+
+const sectionTagTypes: Record<TraceTagHistoryType, string> = {
+  types: 'success',
+  tags: 'warning',
+  statuses: 'primary',
+}
+
+function valuesOf(item: TraceAggregatorItem, key: TraceTagHistoryType): Array<string> {
+  if (key === 'types') {
+    return [item.trace.type]
+  }
+
+  if (key === 'tags') {
+    return item.trace.tags
+  }
+
+  return [item.trace.status]
+}
+
 const dataItems: Record<string, TraceTableDataItem> = Object.fromEntries(
     demoTraces.map((trace: DemoTrace) => [
       trace.item.trace.trace_id,
@@ -122,7 +197,7 @@ const dataItems: Record<string, TraceTableDataItem> = Object.fromEntries(
 )
 
 export default defineComponent({
-  components: {TraceTracesTableView, TraceAggregatorTracesCustomFields, FilterTagsBarView},
+  components: {TraceTracesTableView, TraceAggregatorTracesCustomFields, FilterTagsBarView, FilterTagsSection},
 
   data() {
     return {
@@ -136,12 +211,17 @@ export default defineComponent({
       activeExample: 'items',
       searchQuery: '',
       searchInValues: false,
+      tagsDialogVisible: false,
+      sectionOrder: ['types', 'tags', 'statuses'] as Array<TraceTagHistoryType>,
+      searchTexts: {types: '', tags: '', statuses: ''} as Record<TraceTagHistoryType, string>,
+      recentTags: {types: [], tags: [], statuses: []} as Record<TraceTagHistoryType, Array<string>>,
+      notLoading: {loading: false},
     }
   },
 
   computed: {
     text(): LandingTraceListText {
-      return landingText.search.traceList
+      return landingText().search.traceList
     },
     services(): Array<DemoService> {
       return Object.entries(demoServiceNames).map(([id, name]) => ({id: Number(id), name}))
@@ -176,6 +256,46 @@ export default defineComponent({
         {key: 'statuses', label: 'Statuses', tagType: 'primary', selectedTags: this.statuses},
       ]
     },
+    dialogSections(): Array<DialogSection> {
+      return this.sectionOrder.map((key: TraceTagHistoryType, index: number) => {
+        const left = this.sectionOrder.slice(0, index)
+
+        const traces = filterDemoTraces(demoTraces, {
+          serviceIds: this.serviceIds,
+          types: left.includes('types') ? this.types : [],
+          tags: left.includes('tags') ? this.tags : [],
+          statuses: left.includes('statuses') ? this.statuses : [],
+          customFields: this.customFields,
+        })
+
+        const counts: Record<string, number> = {}
+
+        traces.forEach((item: TraceAggregatorItem) => {
+          valuesOf(item, key).forEach((value: string) => {
+            counts[value] = (counts[value] ?? 0) + 1
+          })
+        })
+
+        const query = this.searchTexts[key].trim().toLowerCase()
+        const found: Array<TraceTag> = Object.keys(counts)
+            .filter((name: string) => !query || name.toLowerCase().includes(query))
+            .map((name: string) => ({name, count: counts[name]}))
+            .sort((a: TraceTag, b: TraceTag) => b.count - a.count || a.name.localeCompare(b.name))
+
+        const selected = this[key]
+        const missing: Array<TraceTag> = selected
+            .filter((name: string) => !found.find((tag: TraceTag) => tag.name === name))
+            .map((name: string) => ({name, count: 0}))
+
+        return {
+          key,
+          title: sectionTitles[key],
+          tagType: sectionTagTypes[key],
+          tags: [...missing, ...found],
+          selectedTags: selected,
+        }
+      })
+    },
     activeExampleText(): string {
       return this.text.examples.find(example => example.name === this.activeExample)?.text ?? ''
     },
@@ -192,7 +312,28 @@ export default defineComponent({
       }
     },
     onTagSectionClick(key: TraceTagHistoryType, value: string) {
+      const wasSelected = this[key].includes(value)
+
       this.toggle(this[key], value)
+
+      if (!wasSelected) {
+        this.recentTags[key] = [value, ...this.recentTags[key].filter((tag: string) => tag !== value)].slice(0, 10)
+      }
+    },
+    moveSection(key: TraceTagHistoryType, shift: number) {
+      const from = this.sectionOrder.indexOf(key)
+      const to = from + shift
+
+      if (to < 0 || to >= this.sectionOrder.length) {
+        return
+      }
+
+      const order = [...this.sectionOrder]
+
+      order.splice(from, 1)
+      order.splice(to, 0, key)
+
+      this.sectionOrder = order
     },
     onCustomFieldClick(parameters: TraceAggregatorCustomFieldParameter) {
       addOrDeleteCustomField(this.customFields, parameters)

@@ -47,24 +47,25 @@
 <script lang="ts">
 import {defineComponent} from "vue";
 import LandingSection from "./LandingSection.vue";
-import {LandingMcpText, landingText} from "../content/ru.ts";
-import {McpScenario, mcpScenarios} from "../content/mcpScenarios.ru.ts";
+import type {LandingMcpText} from "../content/types.ts";
+import {landingText} from "../content/locale.ts";
+import type {McpScenario} from "../content/types.ts";
 
 export default defineComponent({
   components: {LandingSection},
 
   data() {
     return {
-      activeScenario: mcpScenarios[0].name,
+      activeScenario: landingText().mcp.scenarios[0].name,
     }
   },
 
   computed: {
     text(): LandingMcpText {
-      return landingText.mcp
+      return landingText().mcp
     },
     scenarios(): Array<McpScenario> {
-      return mcpScenarios
+      return this.text.scenarios
     },
   },
 })

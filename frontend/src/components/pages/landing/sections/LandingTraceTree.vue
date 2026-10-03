@@ -42,7 +42,7 @@
         v-model="jsonDialogVisible"
         width="80%"
         top="10px"
-        :append-to-body="true"
+        :append-to-body="false"
         destroy-on-close
     >
       <JsonViewer
@@ -66,7 +66,8 @@ import {IndicatorSetter} from "../../trace-aggregator/components/tree/store/Indi
 import {TreeJsonBuilder} from "../../trace-aggregator/components/tree/store/TreeJsonBuilder.ts";
 import type {TraceTreeNode} from "../../trace-aggregator/components/tree/store/traceAggregatorTreeStore.ts";
 import type {TraceAggregatorDetail} from "../../trace-aggregator/components/trace/store/traceAggregatorDataStore.ts";
-import {LandingTraceTreeText, landingText} from "../content/ru.ts";
+import type {LandingTraceTreeText} from "../content/types.ts";
+import {landingText} from "../content/locale.ts";
 import {demoServiceNames, demoTraceData, makeDemoTree, visibleTreeNodes} from "../demo/demoTraceTree.ts";
 import {DemoJson, toTraceDetailData} from "../demo/demoTraces.ts";
 
@@ -86,7 +87,7 @@ export default defineComponent({
 
   computed: {
     text(): LandingTraceTreeText {
-      return landingText.traceTree
+      return landingText().traceTree
     },
     visibleNodes(): Array<TraceTreeNode> {
       return visibleTreeNodes(this.nodes)

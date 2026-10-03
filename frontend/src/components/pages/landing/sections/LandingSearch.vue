@@ -8,14 +8,15 @@
 import {defineComponent} from "vue";
 import LandingSection from "./LandingSection.vue";
 import LandingTraceList from "./LandingTraceList.vue";
-import {LandingSearchText, landingText} from "../content/ru.ts";
+import type {LandingSearchText} from "../content/types.ts";
+import {landingText} from "../content/locale.ts";
 
 export default defineComponent({
   components: {LandingSection, LandingTraceList},
 
   computed: {
     text(): LandingSearchText {
-      return landingText.search
+      return landingText().search
     },
   },
 })
