@@ -38,6 +38,7 @@
         <el-select v-model="serviceIds" multiple clearable placeholder="Select" style="width: 300px">
           <el-option v-for="service in services" :key="service.id" :label="service.name" :value="service.id"/>
         </el-select>
+        <el-tag v-if="traceId" type="info" closable @close="traceId = ''">Trace id: {{ traceId }}</el-tag>
       </el-row>
       <el-row>
         <FilterTagsBarView
@@ -115,6 +116,9 @@
           :search-in-values="searchInValues"
           :custom-field-names="customFieldNames"
           expanded-width="100%"
+          :show-tree-buttons="false"
+          :highlighted-trace-id="traceId || null"
+          @trace-id-filter="toggleTraceId"
           @type-click="(value: string) => toggle(types, value)"
           @tag-click="(value: string) => toggle(tags, value)"
           @status-click="(value: string) => toggle(statuses, value)"
@@ -181,6 +185,7 @@ const sectionTagTypes: Record<TraceTagHistoryType, string> = {
 }
 
 function makeAppliedFilter(
+    traceId: string,
     serviceIds: Array<number>,
     types: Array<string>,
     tags: Array<string>,
@@ -188,6 +193,7 @@ function makeAppliedFilter(
     customFields: Array<TraceAggregatorCustomField>,
 ): DemoTraceFilter {
   return {
+    traceId: traceId,
     serviceIds: [...serviceIds],
     types: [...types],
     tags: [...tags],
@@ -228,7 +234,8 @@ export default defineComponent({
       statuses: [] as Array<string>,
       customFields: makeFilterExample('items') as Array<TraceAggregatorCustomField>,
       activeExample: 'items',
-      applied: makeAppliedFilter([], [], [], [], makeFilterExample('items')),
+      applied: makeAppliedFilter('', [], [], [], [], makeFilterExample('items')),
+      traceId: '',
       searchQuery: '',
       searchInValues: false,
       tagsDialogVisible: false,
@@ -275,6 +282,7 @@ export default defineComponent({
         const left = this.sectionOrder.slice(0, index)
 
         const traces = filterDemoTraces(demoTraces, {
+          traceId: this.traceId,
           serviceIds: this.serviceIds,
           types: left.includes('types') ? this.types : [],
           tags: left.includes('tags') ? this.tags : [],
@@ -312,6 +320,19 @@ export default defineComponent({
     },
     activeExampleText(): string {
       return this.text.examples.find(example => example.name === this.activeExample)?.text ?? ''
+    },
+  },
+
+  watch: {
+    customFields: {
+      deep: true,
+      handler(customFields: Array<TraceAggregatorCustomField>) {
+        const example = JSON.stringify(makeFilterExample(this.activeExample))
+
+        if (this.activeExample !== 'custom' && JSON.stringify(customFields) !== example) {
+          this.activeExample = 'custom'
+        }
+      },
     },
   },
 
@@ -363,15 +384,19 @@ export default defineComponent({
       this.activeExample = 'custom'
     },
     search() {
-      this.applied = makeAppliedFilter(this.serviceIds, this.types, this.tags, this.statuses, this.customFields)
+      this.applied = makeAppliedFilter(this.traceId, this.serviceIds, this.types, this.tags, this.statuses, this.customFields)
     },
     reset() {
+      this.traceId = ''
       this.serviceIds = []
       this.types = []
       this.tags = []
       this.statuses = []
       this.customFields = []
       this.activeExample = ''
+    },
+    toggleTraceId(traceId: string) {
+      this.traceId = this.traceId === traceId ? '' : traceId
     },
     applyExample(name: string) {
       this.customFields = makeFilterExample(name)

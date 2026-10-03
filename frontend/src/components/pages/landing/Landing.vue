@@ -20,7 +20,7 @@
       <el-button class="landing-action" @click="signIn">{{ text.topBar.login }}</el-button>
     </el-row>
 
-    <LandingLoginDialog v-model="loginVisible"/>
+    <LandingLoginDialog ref="loginDialog" v-model="loginVisible"/>
 
     <LandingAbout/>
     <LandingSearch/>
@@ -44,8 +44,6 @@ import {Moon, Sunny} from '@element-plus/icons-vue'
 import {LandingLanguage, landingLocale, landingText, setLandingLanguage} from "./content/locale.ts";
 import type {LandingText} from "./content/types.ts";
 import LandingLoginDialog from "./LandingLoginDialog.vue";
-import {ApiTokenStorage} from "../../../utils/apiContainer.ts";
-import {defaultRouteName} from "../../../utils/router.ts";
 import LandingAbout from "./sections/LandingAbout.vue";
 import LandingDataPath from "./sections/LandingDataPath.vue";
 import LandingTraceTree from "./sections/LandingTraceTree.vue";
@@ -130,13 +128,7 @@ export default defineComponent({
 
   methods: {
     signIn() {
-      if (ApiTokenStorage.getToken()) {
-        this.$router.push({name: defaultRouteName})
-
-        return
-      }
-
-      this.loginVisible = true
+      (this.$refs.loginDialog as { open: () => void }).open()
     },
     toggleDark() {
       this.toggleDarkUsing()

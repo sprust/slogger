@@ -10,7 +10,7 @@
     </el-row>
     <el-row>
       <el-space>
-        <el-dropdown trigger="click">
+        <el-dropdown v-if="showTreeButton" trigger="click">
           <el-space>
             <el-button
                 type="info"
@@ -58,6 +58,11 @@ export default defineComponent({
       required: true,
     },
     showFilterButton: {
+      type: Boolean,
+      required: false,
+      default: true,
+    },
+    showTreeButton: {
       type: Boolean,
       required: false,
       default: true,

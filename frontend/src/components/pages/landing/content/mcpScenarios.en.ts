@@ -46,17 +46,17 @@ export const mcpScenariosEn: Array<McpScenario> = [
             },
             {
                 tool: 'compare_trace_groups',
-                params: 'group_a_statuses: ["failed"], by: "data.response.status"',
+                params: 'from, to: the error wave, group_a_statuses: ["failed"], by: "data.response.status"',
                 result: 'failed traces almost always have 504, the rest 200',
             },
             {
                 tool: 'compare_trace_groups',
-                params: 'group_a_statuses: ["failed"], by: "tag"',
+                params: 'from, to: the error wave, group_a_statuses: ["failed"], by: "tag"',
                 result: 'failed traces mostly carry the POST /internal/invoices tag',
             },
             {
                 tool: 'search_traces',
-                params: 'statuses: ["failed"], data_filter: ["response.status = 504"]',
+                params: 'from, to: the error wave, statuses: ["failed"], data_filter: ["response.status = 504"]',
                 result: 'examples of failed traces',
             },
             {
@@ -84,7 +84,7 @@ export const mcpScenariosEn: Array<McpScenario> = [
             },
             {
                 tool: 'search_traces',
-                params: 'types: ["request"], duration_from: 1.5',
+                params: 'from: 19:00, to: now, types: ["request"], duration_from: 1.5',
                 result: 'the slow requests are the GET /api/reports report',
             },
             {
@@ -181,12 +181,12 @@ export const mcpScenariosEn: Array<McpScenario> = [
         steps: [
             {
                 tool: 'get_trace_data_fields',
-                params: 'type: "request"',
+                params: 'from, to: the last day, type: "request"',
                 result: 'there are request.uri, invoice.amount, response.status keys',
             },
             {
                 tool: 'search_traces',
-                params: 'statuses: ["failed"], data_filter: ["invoice.amount > 10000"], data_fields: ["invoice.amount"]',
+                params: 'from, to: the last day, statuses: ["failed"], data_filter: ["invoice.amount > 10000"], data_fields: ["invoice.amount"]',
                 result: 'a list of traces with amounts',
             },
         ],
@@ -222,12 +222,12 @@ export const mcpScenariosEn: Array<McpScenario> = [
         steps: [
             {
                 tool: 'slogger-stand: aggregate_traces',
-                params: 'statuses: ["failed"], by: ["type"]',
+                params: 'from, to: the last day, statuses: ["failed"], by: ["type"]',
                 result: 'stand errors by type',
             },
             {
                 tool: 'slogger-prod: aggregate_traces',
-                params: 'statuses: ["failed"], by: ["type"]',
+                params: 'from, to: the last day, statuses: ["failed"], by: ["type"]',
                 result: 'prod errors by type',
             },
         ],

@@ -56,6 +56,7 @@
         <el-row>
           <TraceId
               title="id"
+              :show-tree-button="showTreeButtons"
               :traceId="props.row.trace.trace_id"
               @onClickTraceIdTreeParent="(traceId: string) => $emit('tree-parent', traceId)"
               @onClickTraceIdTreeCurrent="(traceId: string) => $emit('tree-current', traceId)"
@@ -66,6 +67,7 @@
         <el-row v-if="props.row.trace.parent_trace_id">
           <TraceId
               title="parent id"
+              :show-tree-button="showTreeButtons"
               :trace-id="props.row.trace.parent_trace_id"
               @onClickTraceIdTreeParent="(traceId: string) => $emit('tree-parent', traceId)"
               @onClickTraceIdTreeCurrent="(traceId: string) => $emit('tree-current', traceId)"
@@ -246,6 +248,10 @@ export default defineComponent({
     expandedWidth: {
       type: String,
       default: '90vw',
+    },
+    showTreeButtons: {
+      type: Boolean,
+      default: true,
     },
   },
 

@@ -46,17 +46,17 @@ export const mcpScenariosRu: Array<McpScenario> = [
             },
             {
                 tool: 'compare_trace_groups',
-                params: 'group_a_statuses: ["failed"], by: "data.response.status"',
+                params: 'from, to: волна ошибок, group_a_statuses: ["failed"], by: "data.response.status"',
                 result: 'у упавших почти всегда 504, у остальных 200',
             },
             {
                 tool: 'compare_trace_groups',
-                params: 'group_a_statuses: ["failed"], by: "tag"',
+                params: 'from, to: волна ошибок, group_a_statuses: ["failed"], by: "tag"',
                 result: 'упавшие чаще всего с тегом POST /internal/invoices',
             },
             {
                 tool: 'search_traces',
-                params: 'statuses: ["failed"], data_filter: ["response.status = 504"]',
+                params: 'from, to: волна ошибок, statuses: ["failed"], data_filter: ["response.status = 504"]',
                 result: 'примеры упавших трейсов',
             },
             {
@@ -84,7 +84,7 @@ export const mcpScenariosRu: Array<McpScenario> = [
             },
             {
                 tool: 'search_traces',
-                params: 'types: ["request"], duration_from: 1.5',
+                params: 'from: 19:00, to: сейчас, types: ["request"], duration_from: 1.5',
                 result: 'медленные запросы — отчёт GET /api/reports',
             },
             {
@@ -181,12 +181,12 @@ export const mcpScenariosRu: Array<McpScenario> = [
         steps: [
             {
                 tool: 'get_trace_data_fields',
-                params: 'type: "request"',
+                params: 'from, to: последние сутки, type: "request"',
                 result: 'есть ключи request.uri, invoice.amount, response.status',
             },
             {
                 tool: 'search_traces',
-                params: 'statuses: ["failed"], data_filter: ["invoice.amount > 10000"], data_fields: ["invoice.amount"]',
+                params: 'from, to: последние сутки, statuses: ["failed"], data_filter: ["invoice.amount > 10000"], data_fields: ["invoice.amount"]',
                 result: 'список трейсов с суммами',
             },
         ],
@@ -222,12 +222,12 @@ export const mcpScenariosRu: Array<McpScenario> = [
         steps: [
             {
                 tool: 'slogger-stand: aggregate_traces',
-                params: 'statuses: ["failed"], by: ["type"]',
+                params: 'from, to: последние сутки, statuses: ["failed"], by: ["type"]',
                 result: 'ошибки stand по типам',
             },
             {
                 tool: 'slogger-prod: aggregate_traces',
-                params: 'statuses: ["failed"], by: ["type"]',
+                params: 'from, to: последние сутки, statuses: ["failed"], by: ["type"]',
                 result: 'ошибки prod по типам',
             },
         ],

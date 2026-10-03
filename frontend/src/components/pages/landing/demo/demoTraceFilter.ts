@@ -5,6 +5,7 @@ import type {
 import type {DemoJson, DemoTrace} from "./demoTraces.ts";
 
 export interface DemoTraceFilter {
+    traceId: string,
     serviceIds: Array<number>,
     types: Array<string>,
     tags: Array<string>,
@@ -21,18 +22,33 @@ function isObject(value: DemoJson): value is { [key: string]: DemoJson } {
     return value !== null && typeof value === 'object' && !Array.isArray(value)
 }
 
+interface DemoPathItem {
+    value: DemoJson,
+    insideArray: boolean,
+}
+
 export function findPathValues(data: DemoJson, path: string): DemoPathValues {
-    let current: Array<DemoJson> = [data]
+    let current: Array<DemoPathItem> = [{value: data, insideArray: false}]
 
     for (const segment of path.split('.')) {
-        const next: Array<DemoJson> = []
+        const next: Array<DemoPathItem> = []
 
-        current.forEach((value: DemoJson) => {
-            const objects = Array.isArray(value) ? value.filter(isObject) : (isObject(value) ? [value] : [])
+        current.forEach((item: DemoPathItem) => {
+            const objects: Array<DemoPathItem> = []
 
-            objects.forEach(object => {
-                if (segment in object) {
-                    next.push(object[segment])
+            if (Array.isArray(item.value)) {
+                if (!item.insideArray) {
+                    item.value.filter(isObject).forEach(element => objects.push({value: element, insideArray: true}))
+                }
+            } else if (isObject(item.value)) {
+                objects.push(item)
+            }
+
+            objects.forEach((object: DemoPathItem) => {
+                const value = object.value as { [key: string]: DemoJson }
+
+                if (segment in value) {
+                    next.push({value: value[segment], insideArray: object.insideArray})
                 }
             })
         })
@@ -46,7 +62,7 @@ export function findPathValues(data: DemoJson, path: string): DemoPathValues {
 
     return {
         found: true,
-        values: current.flatMap((value: DemoJson) => Array.isArray(value) ? value : [value]),
+        values: current.flatMap((item: DemoPathItem) => Array.isArray(item.value) && !item.insideArray ? item.value : [item.value]),
     }
 }
 
@@ -89,6 +105,10 @@ export function matchesCustomField(data: DemoJson, customField: TraceAggregatorC
         return true
     }
 
+    if (!isObject(data)) {
+        return false
+    }
+
     const {found, values} = findPathValues(data, field)
     const search = customField.searchData
 
@@ -125,12 +145,31 @@ function stringifyValue(value: DemoJson): string {
     return typeof value === 'string' ? value : JSON.stringify(value)
 }
 
+function treeRootOf(traces: Array<DemoTrace>, traceId: string): string {
+    const parents: Record<string, string | null | undefined> = {}
+
+    traces.forEach((trace: DemoTrace) => {
+        parents[trace.item.trace.trace_id] = trace.item.trace.parent_trace_id
+    })
+
+    let current = traceId
+
+    while (parents[current]) {
+        current = parents[current] as string
+    }
+
+    return current
+}
+
 export function filterDemoTraces(traces: Array<DemoTrace>, filter: DemoTraceFilter): Array<TraceAggregatorItem> {
+    const treeRoot = filter.traceId ? treeRootOf(traces, filter.traceId) : null
+
     const tableFields = filter.customFields
         .filter(customField => customField.addToTable && customField.field.trim() !== '')
         .map(customField => customField.field.trim())
 
     return traces
+        .filter(trace => treeRoot === null || treeRootOf(traces, trace.item.trace.trace_id) === treeRoot)
         .filter(trace => !filter.serviceIds.length || filter.serviceIds.includes(trace.item.trace.service?.id ?? 0))
         .filter(trace => !filter.types.length || filter.types.includes(trace.item.trace.type))
         .filter(trace => !filter.tags.length || filter.tags.every(tag => trace.item.trace.tags.includes(tag)))

@@ -481,9 +481,9 @@ to what it reuses includes checking it:
   `incidentEventColumns.ts`, `IndicatorSetter`, `TreeJsonBuilder`). A change to their props,
   events or data shape is a change to the landing too: open `/` and check the section that
   uses it.
-- Apart from the sign-in dialog (`LandingLoginDialog`, which uses `authStore`), the landing
-  imports no stores and no API client at runtime (`import type` only), so it makes no
-  requests until the visitor signs in.
+- Apart from the sign-in dialog (`LandingLoginDialog`, which uses `authStore`, the token
+  storage and the router), the landing imports no stores and no API client at runtime
+  (`import type` only), so it makes no requests until the visitor signs in.
 
 ### Migrations
 

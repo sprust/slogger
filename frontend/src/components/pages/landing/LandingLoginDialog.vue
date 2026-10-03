@@ -43,7 +43,8 @@
 import {defineComponent, shallowRef} from "vue";
 import {Lock, Message} from '@element-plus/icons-vue'
 import {useAuthStore} from "../../../store/authStore.ts";
-import {defaultRouteName} from "../../../utils/router.ts";
+import {routes} from "../../../utils/router.ts";
+import {ApiTokenStorage} from "../../../utils/apiContainer.ts";
 import type {LandingLoginDialogText} from "./content/types.ts";
 import {landingText} from "./content/locale.ts";
 
@@ -78,6 +79,15 @@ export default defineComponent({
   },
 
   methods: {
+    open() {
+      if (ApiTokenStorage.getToken()) {
+        this.$router.push({name: routes.traceAggregator.name})
+
+        return
+      }
+
+      this.$emit('update:modelValue', true)
+    },
     focusEmail() {
       (this.$refs.emailInput as { focus?: () => void } | undefined)?.focus?.()
     },
@@ -95,7 +105,7 @@ export default defineComponent({
         await authStore.login(this.email, this.password)
 
         if (authStore.user) {
-          await this.$router.push({name: defaultRouteName})
+          await this.$router.push({name: routes.traceAggregator.name})
 
           this.$emit('update:modelValue', false)
         } else {
