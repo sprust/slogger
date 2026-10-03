@@ -13,7 +13,7 @@
 
 **Goals:**
 - Публичный маршрут без запросов к установке.
-- Страница из восьми разделов на демо-данных, собранная из компонентов панели.
+- Страница из девяти разделов на демо-данных, собранная из компонентов панели.
 - Тексты отделены от разметки, чтобы позже добавить английский.
 
 **Non-Goals:**
@@ -33,7 +33,7 @@
 
 ### 2. Своя раскладка на публичных маршрутах
 
-`App.vue` не рисует `el-header`, если `$route.meta.public`. Пустой `el-header` всё равно занимает 60px, поэтому скрывается весь заголовок, а не только `Header`. `el-scrollbar` остаётся, и прокрутка страницы такая же, как в панели.
+На маршруте с `$route.meta.public` `App.vue` рисует страницу в простом блоке с отступами по бокам, без `el-container`, `el-header` и `el-scrollbar`. Прокрутка остаётся одна, у `#app`, как у обычной страницы. Внутри `el-scrollbar` центрирование через `margin: auto` не работает, а в обычном блоке страница шириной до 1280px стоит по центру.
 
 Верхняя строка лендинга — часть самой страницы: название SLogger, краткая подпись, якорные ссылки на разделы и `router-link` на `/login` с подписью «Войти в панель».
 
@@ -45,12 +45,14 @@ frontend/src/components/pages/landing/
   sections/
     LandingAbout.vue           - 1. what it is
     LandingDataPath.vue        - 2. data path (vue-flow)
-    LandingTraceTree.vue       - 3. trace tree
-    LandingSearch.vue          - 4. search and charts
-    LandingMetrics.vue         - 5. intake metrics
-    LandingWatchers.vue        - 6. watchers and notifications
-    LandingMcp.vue             - 7. MCP
-    LandingStack.vue           - 8. runtime and storage
+    LandingSearch.vue          - 3. trace search (LandingTraceList inside)
+    LandingTraceList.vue       - trace list, filters, data examples
+    LandingTraceTree.vue       - 4. trace tree
+    LandingGraphs.vue          - 5. graphs
+    LandingMetrics.vue         - 6. intake metrics
+    LandingWatchers.vue        - 7. watchers and notifications
+    LandingMcp.vue             - 8. MCP
+    LandingStack.vue           - 9. runtime and storage
   content/
     ru.ts                      - texts of all sections
     mcpScenarios.ru.ts         - MCP scenarios: question, steps, answer
@@ -77,17 +79,17 @@ frontend/src/components/pages/landing/
 
 ### 6. Демо-дерево: локальное состояние
 
-`LandingTraceTree` держит иерархию узлов и множество свёрнутых id в своём `data`. Видимые строки он разворачивает в плоский список `TraceTreeNode` с `depth` так же, как это делает store дерева, и передаёт список в `TraceAggregatorTraceTreeVirtual`. В слот `#row` идёт `TraceTreeRowView`. События `toggle-collapse` и `select` меняют локальное состояние: выбранная строка подсвечивается, под деревом показываются её данные в `JsonViewer`. `find-tree`, `show-json`, `indicate` и `load-more` на лендинге не обрабатываются. Узлы получают `childrenCount`, только если дети уже лежат в демо-данных, поэтому кнопки «more» не появляется.
+`LandingTraceTree` держит иерархию узлов и множество свёрнутых id в своём `data`. Видимые строки он разворачивает в плоский список `TraceTreeNode` с `depth` так же, как это делает store дерева, и передаёт список в `TraceAggregatorTraceTreeVirtual`. В слот `#row` идёт `TraceTreeRowView`. События `toggle-collapse` и `select` меняют локальное состояние: выбранная строка подсвечивается, а её данные открываются поверх правой половины дерева так же, как в панели, — в `TraceDetailView` с поиском по данным и кнопкой Close. `TraceDetailView` выделяется из `TraceDetail` тем же способом, что остальные компоненты: строку поиска, режим «ключи/значения» и имена полей-условий получает через props, а `TraceDetail` остаётся обёрткой со store. `show-json` открывает диалог с JSON ветки через `TreeJsonBuilder` и `JsonViewer`, `indicate` подсвечивает длительности через `IndicatorSetter` — те же классы, что в панели. Как и в панели, при открытии `indicate` уже включён для первого корневого трейса. `find-tree` переносит зелёную рамку текущего трейса на строку: в панели он перестраивает дерево вокруг этого трейса, а демо-дерево одно. `load-more` не нужен, у демо-дерева нет ленивых веток. Узлы получают `childrenCount`, только если дети уже лежат в демо-данных, поэтому кнопки «more» не появляется.
 
-Блок дерева фиксированной высоты (например, 360px), блок данных узла тоже. Раскрытие и выбор не меняют размеров (требование «Стабильная раскладка»).
+Блок дерева фиксированной высоты, 360px, панель данных занимает его правую половину. Раскрытие и выбор не меняют размеров (требование «Стабильная раскладка»).
 
 ### 7. Схема пути данных
 
-`LandingDataPath` рисует `VueFlow` со статичными узлами и рёбрами без перетаскивания и масштабирования колёсиком: клиент → сокет приёмника → буфер MongoDB → транспортёр (слияние с `pendingTraces`) → ClickHouse `traces` → панель и MCP. Подписи рёбер — настоящие имена шагов из README («Поток данных»). Узлы — `el-card` с одной строкой текста. Под схемой — короткие абзацы про слияние половин трейса и надёжность буфера.
+`LandingDataPath` рисует `VueFlow` в масштабе 1:1 (`default-viewport`, без `fit-view`, чтобы текст не уменьшался) со статичными узлами и рёбрами без перетаскивания и масштабирования колёсиком. Подписи рёбер берут размер из шкалы Element (`--el-font-size-extra-small`) вместо 10px темы vue-flow: клиент → сокет приёмника → буфер MongoDB → транспортёр (слияние с `pendingTraces`) → ClickHouse `traces` → панель и MCP. Раскладка — сетка 3×3 на всю ширину блока: первый ряд идёт слева направо (клиент, приёмник, буфер), второй — справа налево (транспортёр, `pendingTraces`), третий — справа налево (ClickHouse, backend, панель). Узлы одного размера, 220×64, поэтому точки подключения на одной линии и рёбра прямые. Подписи рёбер — настоящие имена шагов из README («Поток данных»). Узлы — `el-card` с одной строкой текста. Под схемой — короткие абзацы про слияние половин трейса и надёжность буфера.
 
 ### 8. Графики и метрики
 
-`LandingSearch`: `TraceTimelineChart` с демо-`data` и `options` по формату store графиков агрегатора. Над графиком — статичная строка фильтров из `el-tag` (сервис, тип, `data.response.status >= 500`), показывающая, чем можно сузить график. Это иллюстрация, без интерактивного фильтра.
+`LandingGraphs`: `TraceTimelineChart` с демо-`data` и `options` по формату store графиков агрегатора. Над графиком — статичная строка фильтров из `el-tag` (сервис, тип, `data.response.status >= 500`), показывающая, чем можно сузить график. Это иллюстрация, без интерактивного фильтра.
 
 `LandingMetrics`: `TraceMetricsChart` с демо-слотами и строками, без `clickHint`. Над ним — та же шапка, что в панели, только итоги из `traceMetricsValues.ts`, без выбора типов и Refresh.
 
@@ -95,7 +97,7 @@ frontend/src/components/pages/landing/
 
 ### 9. Смотрители
 
-`LandingWatchers`: карточка правила (тип «медленные трейсы», порог, окно, фильтр по сервису) из `el-descriptions`. Под ней — `IncidentEventsTable` с демо-событиями и колонками из `incidentEventColumns.ts`, `canOpenInAggregator = false`, `exhausted = true`. Справа — список каналов (Telegram, Slack, JSON) с иконкой и одной строкой описания. Раскрытие строки таблицы меняет её высоту, поэтому таблица лежит в блоке фиксированной высоты с внутренней прокруткой.
+`LandingWatchers`: смотритель показан строкой той же таблицы, что список смотрителей в настройках, — `WatcherListView` без колонки Edit/Delete. `WatcherListView` выделяется из `WatcherList` тем же способом: строки, названия типов и каналов, редактируемые типы получает через props, а `WatcherList` остаётся обёрткой со store, кнопками над таблицей и диалогом. Порог, окно и фильтр, которых в списке нет, названы в подписи над таблицей. Под ней — `IncidentEventsTable` с демо-событиями и колонками из `incidentEventColumns.ts`, `canOpenInAggregator = false`, `exhausted = true`. Справа — список каналов (Telegram, Slack, JSON) с иконкой и одной строкой описания. Раскрытие строки таблицы меняет её высоту, поэтому таблица лежит в блоке фиксированной высоты с внутренней прокруткой.
 
 ### 10. MCP
 
@@ -103,7 +105,38 @@ frontend/src/components/pages/landing/
 
 Имена инструментов и параметров сверены с `app/Modules/Mcp/Infrastructure/Tools`: у `aggregate_traces` группировка задаётся параметром `by` (`service`, `type`, `status`, `hour`, `minute10`), у `search_traces` есть `duration_from`, `data_filter`, `data_fields`, у `compare_trace_groups` — `group_a_statuses`, `group_b_statuses`, `by` (`type`, `service`, `tag`, `data.<key>`). У `search_trace_tree` есть фильтры `service_ids`, `types`, `tags`, `statuses`, фильтра по длительности нет, поэтому сценарии не обещают с его помощью найти медленные вызовы. В сценарии «кто даёт нагрузку» источник определяется по выборке трейсов через `data_fields` и по родителю в дереве, без обещания точного подсчёта.
 
-### 11. Без шрифтов и сдвигов
+### 11. Общие модули без store
+
+Лендинг не должен тянуть store панели в свой чанк. Поэтому ещё две вещи переезжают из модулей, которые импортируют store, без изменения поведения, как в `landing-reusable-components`:
+- `copyToClipboard` — из `utils/helpers.ts` в `utils/clipboard.ts`. `helpers.ts` его реэкспортирует, `JsonViewer` импортирует напрямую.
+- Цвета серий, скрытые по умолчанию перцентили и опции графика агрегатора — из `traceAggregatorGraphStore.ts` в `graph/traceTimelineSeries.ts` (`makeTraceTimelineOptions()`). Store и демо-данные лендинга берут их оттуда.
+
+### 12. Список трейсов и его фильтры
+
+Четыре части агрегатора переходят на props тем же способом, что в `landing-reusable-components`. Старые компоненты остаются обёртками, поведение панели не меняется:
+- `TraceTracesTableView` — таблица из `TraceAggregatorTracesTable`. На вход: трейсы, выбранные типы, теги и статусы, подсвеченный trace id, поля data для колонок, загруженные данные трейсов, строка поиска по данным. Наружу: раскрытие строки, клики по типу, тегу и статусу, tree parent/current, фильтр по id, профилирование, клик по полю данных, изменение строки поиска.
+- `TraceAggregatorTraceDataNode` — строку поиска, режим «ключи/значения» и имена полей-условий получает через props и отдаёт изменения событиями `update:*`. Обёртки (`TraceTracesTableView` через таблицу и `TraceDetail` в дереве) передают значения `traceAggregatorDataSearchStore` и store агрегатора.
+- `TraceAggregatorTracesCustomFields` — вместо `store.setCustomFieldType` отдаёт событие смены типа поля, его обрабатывает `TraceAggregatorTraces`.
+- `FilterTagsBarView` — панель выбранных типов, тегов и статусов из `FilterTags`. Диалог выбора тегов и запросы остаются в `FilterTags`.
+
+Логика условий по полям данных (`makeCustomFieldSearchData`, смена типа поля, добавление и удаление поля по клику в данных) переезжает из store в `traces/customFields.ts` чистыми функциями. Store вызывает их, лендинг использует их для своего локального списка условий. `TypesHelper` переезжает из `utils/helpers.ts` в `utils/typesHelper.ts` с реэкспортом.
+
+На лендинге список стоит в разделе «Поиск трейсов» (`LandingTraceList` внутри `LandingSearch`), за ним идут «Трейс и дерево вызовов» и «Графики». Период и сервис — `el-date-picker` и `el-select` с демо-значениями. Типы, теги и статусы — `FilterTagsBarView`. Условия — `TraceAggregatorTracesCustomFields`. Список — `TraceTracesTableView` на демо-трейсах из `demo/demoTraces.ts`.
+
+Фильтрация идёт локально, функцией из `demo/demoTraceFilter.ts`. Её смысл повторяет README «Гибкая фильтрация»:
+- путь — имена через точку;
+- массив объектов на пути и массив значений в конце пути проверяются поэлементно, условие выполняется, если подходит хотя бы один элемент;
+- числа сравниваются только с числами, строки — с учётом регистра;
+- «не равно» требует, чтобы поле было;
+- «null» — ключ есть и равен null, «существует» — ключ есть, в том числе с null.
+
+Поле с отметкой «в таблицу» выводится колонкой: значения собираются из данных той же функцией обхода пути.
+
+Демо-трейсы разной формы: у запросов есть `request` и `response`, у счетов — `invoice.items` (массив объектов), у пользователя — `user.roles` (массив строк), у клиента — `client.manager: null`, у упавшего — `error.code`. Кнопки примеров ставят одно условие: `invoice.items.price > 10000`, `user.roles = "admin"`, `error.code exists`, `client.manager is null`, `response.status >= 500`.
+
+Список и данные лежат в блоке фиксированной высоты с внутренней прокруткой: раскрытие строки меняет высоту таблицы, но не страницы.
+
+### 13. Без шрифтов и сдвигов
 
 По правилам фронтенда размер шрифта не задаётся. Заголовки разделов — `h2` и `h3` со стилями браузера и Element, текст — `el-text`. Место под всё, что появляется и исчезает, резервируется заранее.
 
