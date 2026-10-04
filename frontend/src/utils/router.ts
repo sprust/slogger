@@ -10,8 +10,8 @@ const Landing = () => import("../components/pages/landing/Landing.vue")
 
 export const routes = {
     traceAggregator: {
-        path: '/trace-aggregator',
-        name: 'trace-aggregator',
+        path: '/aggregator',
+        name: 'aggregator',
     },
     dashboard: {
         path: '/dashboard',
@@ -74,7 +74,7 @@ export const router = createRouter({
     ],
 });
 
-export const defaultRouteName: string = routes.dashboard.name
+export const defaultRouteName: string = routes.traceAggregator.name
 
 router.beforeEach(async (to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) => {
     console.log('route', {from: from.name, to: to.name})
