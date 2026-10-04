@@ -769,6 +769,7 @@ export namespace AdminApi {
     duration?: number | null,
     memory?: number | null,
     cpu?: number | null,
+    pid?: number | null,
     logged_at: string,
 
 })[],
@@ -795,6 +796,7 @@ export namespace AdminApi {
         duration?: number | null;
         memory?: number | null;
         cpu?: number | null;
+        pid?: number | null;
         logged_at: string;
       }[];
     };
@@ -911,6 +913,7 @@ export namespace AdminApi {
     duration?: number | null,
     memory?: number | null,
     cpu?: number | null,
+    pid?: number | null,
     logged_at: string,
     children_count: number,
 
@@ -947,6 +950,7 @@ export namespace AdminApi {
           duration?: number | null;
           memory?: number | null;
           cpu?: number | null;
+          pid?: number | null;
           logged_at: string;
           children_count: number;
         }[];
@@ -972,6 +976,7 @@ export namespace AdminApi {
     duration?: number | null,
     memory?: number | null,
     cpu?: number | null,
+    pid?: number | null,
     logged_at: string,
 
 })[],
@@ -1005,6 +1010,7 @@ export namespace AdminApi {
           duration?: number | null;
           memory?: number | null;
           cpu?: number | null;
+          pid?: number | null;
           logged_at: string;
         }[];
         matched_count: number;
@@ -5481,6 +5487,7 @@ export class Api<
     duration?: number | null,
     memory?: number | null,
     cpu?: number | null,
+    pid?: number | null,
     logged_at: string,
 
 })[],
@@ -5507,6 +5514,7 @@ export class Api<
             duration?: number | null;
             memory?: number | null;
             cpu?: number | null;
+            pid?: number | null;
             logged_at: string;
           }[];
         },
@@ -5643,6 +5651,7 @@ export class Api<
     duration?: number | null,
     memory?: number | null,
     cpu?: number | null,
+    pid?: number | null,
     logged_at: string,
     children_count: number,
 
@@ -5679,6 +5688,7 @@ export class Api<
               duration?: number | null;
               memory?: number | null;
               cpu?: number | null;
+              pid?: number | null;
               logged_at: string;
               children_count: number;
             }[];
@@ -5714,6 +5724,7 @@ export class Api<
     duration?: number | null,
     memory?: number | null,
     cpu?: number | null,
+    pid?: number | null,
     logged_at: string,
 
 })[],
@@ -5747,6 +5758,7 @@ export class Api<
               duration?: number | null;
               memory?: number | null;
               cpu?: number | null;
+              pid?: number | null;
               logged_at: string;
             }[];
             matched_count: number;

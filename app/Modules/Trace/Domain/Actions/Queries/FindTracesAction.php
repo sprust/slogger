@@ -152,6 +152,7 @@ readonly class FindTracesAction
                     duration: $traceDto->duration,
                     memory: $traceDto->memory,
                     cpu: $traceDto->cpu,
+                    pid: $traceDto->pid,
                     additionalFields: $this->makeTraceAdditionalFields(
                         data: $traceDto->data,
                         additionalFields: $parameters->data?->fields ?: []

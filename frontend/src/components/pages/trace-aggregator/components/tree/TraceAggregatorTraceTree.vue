@@ -148,6 +148,9 @@
           </el-dropdown>
         </el-space>
         <div class="flex-grow"/>
+        <el-checkbox v-model="traceAggregatorTreeSettingsStore.showPid" style="padding-right: 12px">
+          pid
+        </el-checkbox>
         <el-text type="info">
           status | logged at | memory | cpu | duration
         </el-text>
@@ -285,6 +288,7 @@
 <script lang="ts">
 import {defineComponent} from "vue";
 import {LAZY_EXPAND_NODES_LIMIT, useTraceAggregatorTreeStore} from "./store/traceAggregatorTreeStore.ts";
+import {useTraceAggregatorTreeSettingsStore} from "./store/traceAggregatorTreeSettingsStore.ts";
 import {
   useTraceAggregatorTreeProcessesStore
 } from "./store/traceAggregatorTreeProcessesStore.ts";
@@ -329,6 +333,9 @@ export default defineComponent({
   computed: {
     traceAggregatorTreeStore() {
       return useTraceAggregatorTreeStore()
+    },
+    traceAggregatorTreeSettingsStore() {
+      return useTraceAggregatorTreeSettingsStore()
     },
     traceAggregatorTreeProcessesStore() {
       return useTraceAggregatorTreeProcessesStore()

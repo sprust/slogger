@@ -19,9 +19,9 @@ use RuntimeException;
 
 readonly class TraceRepository
 {
-    private const string TRACE_COLUMNS = 'sid, tid, ptid, tp, st, tgs, dt_raw, dur, mem, cpu, lat, cat, uat';
+    private const string TRACE_COLUMNS = 'sid, tid, ptid, tp, st, tgs, dt_raw, dur, mem, cpu, pid, lat, cat, uat';
 
-    private const string NODE_COLUMNS = 'sid, tid, ptid, tp, st, tgs, dur, mem, cpu, lat';
+    private const string NODE_COLUMNS = 'sid, tid, ptid, tp, st, tgs, dur, mem, cpu, pid, lat';
 
     // the ids travel in the URL of the query, which ClickHouse caps at 1 MiB
     private const int TRACE_IDS_PER_QUERY = 5000;
@@ -154,6 +154,7 @@ readonly class TraceRepository
                 duration: $this->rowReader->float($row['dur'] ?? null),
                 memory: $this->rowReader->float($row['mem'] ?? null),
                 cpu: $this->rowReader->float($row['cpu'] ?? null),
+                pid: $this->rowReader->int($row['pid'] ?? null),
                 loggedAt: $this->rowReader->time($row['lat']),
             ),
             $rows
@@ -257,6 +258,7 @@ readonly class TraceRepository
             duration: $this->rowReader->float($row['dur'] ?? null),
             memory: $this->rowReader->float($row['mem'] ?? null),
             cpu: $this->rowReader->float($row['cpu'] ?? null),
+            pid: $this->rowReader->int($row['pid'] ?? null),
             loggedAt: $this->rowReader->time($row['lat']),
             createdAt: $this->rowReader->time($row['cat']),
             updatedAt: $this->rowReader->time($row['uat'])

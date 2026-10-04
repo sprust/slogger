@@ -44,6 +44,7 @@ readonly class FindTraceDetailAction
             duration: $trace->duration,
             memory: $trace->memory,
             cpu: $trace->cpu,
+            pid: $trace->pid,
             loggedAt: $trace->loggedAt,
             createdAt: $trace->createdAt,
             updatedAt: $trace->updatedAt,

@@ -20,6 +20,7 @@ class TraceTreeResource extends AbstractApiResource
     private ?float $duration;
     private ?float $memory;
     private ?float $cpu;
+    private ?int $pid;
     private string $logged_at;
 
     public function __construct(TraceTreeRawObject $resource)
@@ -35,6 +36,7 @@ class TraceTreeResource extends AbstractApiResource
         $this->duration        = $resource->duration;
         $this->memory          = $resource->memory;
         $this->cpu             = $resource->cpu;
+        $this->pid             = $resource->pid;
         $this->logged_at       = $resource->loggedAt->toDateTimeString('microsecond');
     }
 }

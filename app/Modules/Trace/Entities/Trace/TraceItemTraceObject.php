@@ -23,6 +23,7 @@ readonly class TraceItemTraceObject
         public ?float $duration,
         public ?float $memory,
         public ?float $cpu,
+        public ?int $pid,
         public array $additionalFields,
         public Carbon $loggedAt,
         public Carbon $createdAt,

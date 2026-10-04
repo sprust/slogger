@@ -291,6 +291,7 @@ class TraceTreeCacheBuilderServiceTest extends TestCase
             duration: 1.0,
             memory: 1.0,
             cpu: 1.0,
+            pid: null,
             loggedAt: Carbon::now(),
         );
     }
@@ -309,6 +310,7 @@ class TraceTreeCacheBuilderServiceTest extends TestCase
             duration: 1.0,
             memory: 1.0,
             cpu: 1.0,
+            pid: null,
             loggedAt: Carbon::now(),
             createdAt: Carbon::now(),
             updatedAt: Carbon::now(),

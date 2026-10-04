@@ -21,6 +21,7 @@ readonly class CreateTraceTreeCacheParameters
         public ?float $duration,
         public ?float $memory,
         public ?float $cpu,
+        public ?int $pid,
         public Carbon $loggedAt,
     ) {
     }

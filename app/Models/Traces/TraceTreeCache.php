@@ -17,6 +17,7 @@ use Illuminate\Support\Carbon;
  * @property  float|null  $duration
  * @property  float|null  $memory
  * @property  float|null  $cpu
+ * @property  int|null    $pid
  * @property  int|null    $order
  * @property  int|null    $depth
  * @property  Carbon      $loggedAt

@@ -33,7 +33,7 @@ readonly class GetTraceTool implements McpToolInterface
     public function description(): string
     {
         return 'Summary of one trace by its id: service, type, status, tags, duration, memory, cpu, '
-            . 'time. Without the payload: call get_trace_data for it.';
+            . 'pid of the process, time. Without the payload: call get_trace_data for it.';
     }
 
     public function schema(): McpToolSchema
@@ -69,6 +69,7 @@ readonly class GetTraceTool implements McpToolInterface
                 'duration'        => $trace->duration,
                 'memory'          => $trace->memory,
                 'cpu'             => $trace->cpu,
+                'pid'             => $trace->pid,
                 'logged_at'       => $this->formatter->time($trace->loggedAt),
             ]
         );

@@ -19,17 +19,11 @@
         Watchers
       </el-badge>
     </el-menu-item>
-    <el-menu-item :index="routes.traceCleaner.path">
-      Cleaner
+    <el-menu-item :index="routes.mcps.path">
+      MCP
     </el-menu-item>
     <el-menu-item :index="routes.logs.path">
       Logs
-    </el-menu-item>
-    <el-menu-item :index="routes.sconcur.path">
-      Sconcur
-    </el-menu-item>
-    <el-menu-item :index="routes.mcps.path">
-      MCP
     </el-menu-item>
     <div class="flex-grow"/>
     <el-menu-item index="" disabled class="installation">

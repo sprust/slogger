@@ -42,6 +42,7 @@ class TraceRepositoryTest extends TestCase
         $this->assertSame(['api'], $trace->tags);
         $this->assertSame(0.2, $trace->duration);
         $this->assertNull($trace->memory);
+        $this->assertSame(4321, $trace->pid);
         $this->assertSame('2026-09-29 10:00:00.123456', $trace->loggedAt->format('Y-m-d H:i:s.u'));
     }
 
@@ -74,6 +75,7 @@ class TraceRepositoryTest extends TestCase
 
         $this->assertStringContainsString('WHERE tid IN {tids:Array(String)} ORDER BY uat DESC LIMIT 1 BY sid, tid', $this->client->selects[0]['sql']);
         $this->assertSame('root', $nodes[0]->parentTraceId);
+        $this->assertSame(4321, $nodes[0]->pid);
         $this->assertSame([], $this->repository()->findTreeNodesByTraceIds([]));
     }
 
@@ -160,6 +162,7 @@ class TraceRepositoryTest extends TestCase
             'dur'    => 0.2,
             'mem'    => null,
             'cpu'    => null,
+            'pid'    => '4321',
             'lat'    => '2026-09-29 10:00:00.123456',
             'cat'    => '2026-09-29 10:00:01.000000',
             'uat'    => '2026-09-29 10:00:02.000000',

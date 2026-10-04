@@ -3,6 +3,8 @@ import {defineStore} from "pinia";
 export const dashboardTabs = {
     metrics: 'metrics',
     databases: 'databases',
+    sconcur: 'sconcur',
+    cleaner: 'cleaner',
 }
 
 interface DashboardTabsStoreInterface {

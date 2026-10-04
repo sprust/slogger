@@ -97,6 +97,7 @@ class FindTraceTreeStateActionTest extends TestCase
             duration: 1.0,
             memory: 1.0,
             cpu: 1.0,
+            pid: null,
             loggedAt: $now,
             createdAt: $now,
             updatedAt: $now,

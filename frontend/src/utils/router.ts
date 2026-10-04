@@ -3,10 +3,8 @@ import {useAuthStore} from "../store/authStore.ts";
 
 const Dashboard = () => import("../components/pages/dashboard/Dashboard.vue")
 const TraceAggregator = () => import("../components/pages/trace-aggregator/TraceAggregator.vue")
-const TraceCleaner = () => import("../components/pages/trace-cleaner/TraceCleaner.vue")
 const Logs = () => import("../components/pages/logs-viewer/Logs.vue")
 const Watchers = () => import("../components/pages/watchers/Watchers.vue")
-const Sconcur = () => import("../components/pages/sconcur/Sconcur.vue")
 const Mcps = () => import("../components/pages/mcps/Mcps.vue")
 const Landing = () => import("../components/pages/landing/Landing.vue")
 
@@ -19,10 +17,6 @@ export const routes = {
         path: '/dashboard',
         name: 'dashboard',
     },
-    traceCleaner: {
-        path: '/trace-cleaner',
-        name: 'trace-cleaner',
-    },
     watchers: {
         path: '/watchers',
         name: 'watchers',
@@ -30,10 +24,6 @@ export const routes = {
     logs: {
         path: '/logs',
         name: 'logs',
-    },
-    sconcur: {
-        path: '/sconcur',
-        name: 'sconcur',
     },
     mcps: {
         path: '/mcps',
@@ -61,11 +51,6 @@ export const router = createRouter({
             name: routes.traceAggregator.name
         },
         {
-            path: routes.traceCleaner.path,
-            component: TraceCleaner,
-            name: routes.traceCleaner.name
-        },
-        {
             path: routes.watchers.path,
             component: Watchers,
             name: routes.watchers.name
@@ -74,11 +59,6 @@ export const router = createRouter({
             path: routes.logs.path,
             component: Logs,
             name: routes.logs.name
-        },
-        {
-            path: routes.sconcur.path,
-            component: Sconcur,
-            name: routes.sconcur.name
         },
         {
             path: routes.mcps.path,

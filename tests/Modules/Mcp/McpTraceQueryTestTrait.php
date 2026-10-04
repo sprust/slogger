@@ -44,6 +44,7 @@ trait McpTraceQueryTestTrait
                         duration: 1.5,
                         memory: 12.0,
                         cpu: 0.4,
+                        pid: 4321,
                         additionalFields: $additionalFields,
                         loggedAt: $loggedAt,
                         createdAt: $loggedAt,
@@ -75,6 +76,7 @@ trait McpTraceQueryTestTrait
             duration: 0.5,
             memory: 1.0,
             cpu: 0.1,
+            pid: 4321,
             loggedAt: $loggedAt,
             createdAt: $loggedAt,
             updatedAt: $loggedAt

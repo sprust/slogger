@@ -4,6 +4,7 @@ import {defineComponent, PropType} from "vue";
 import TraceTreeRowView from "./TraceTreeRowView.vue";
 import {TraceAggregatorTreeRow, TraceTreeNode, useTraceAggregatorTreeStore} from "./store/traceAggregatorTreeStore.ts";
 import {useTraceAggregatorServicesStore} from "../services/store/traceAggregatorServicesStore.ts";
+import {useTraceAggregatorTreeSettingsStore} from "./store/traceAggregatorTreeSettingsStore.ts";
 
 export default defineComponent({
   components: {TraceTreeRowView},
@@ -21,6 +22,9 @@ export default defineComponent({
     },
     traceAggregatorServicesStore() {
       return useTraceAggregatorServicesStore()
+    },
+    traceAggregatorTreeSettingsStore() {
+      return useTraceAggregatorTreeSettingsStore()
     },
   },
 
@@ -49,6 +53,16 @@ export default defineComponent({
       return this.traceAggregatorTreeStore.servicesMap[treeNode.service_id]?.name
           ?? this.traceAggregatorServicesStore.byId[treeNode.service_id]?.name
           ?? 'NO LOAD'
+    },
+    isPidChanged(treeNode: TraceAggregatorTreeRow): boolean {
+      if (!treeNode.parent_trace_id) {
+        return false
+      }
+
+      const parentPid = this.traceAggregatorTreeStore.pidByTraceId[treeNode.parent_trace_id] ?? null
+      const pid = treeNode.pid ?? null
+
+      return parentPid !== null && pid !== null && parentPid !== pid
     },
     isServiceIdSelected(serviceId: number): boolean {
       return this.traceAggregatorTreeStore.selectedTraceServiceIds.indexOf(serviceId) != -1
@@ -91,6 +105,8 @@ export default defineComponent({
       v-else
       :row="row"
       :service-name="getServiceName(row.primary)"
+      :show-pid="traceAggregatorTreeSettingsStore.showPid"
+      :pid-changed="traceAggregatorTreeSettingsStore.showPid && isPidChanged(row.primary)"
       :selected="isSelected(row.primary)"
       :highlighted="isHighlighted(row.primary)"
       :indicator-width-percent="makeIndicatorWidthPercent(row.primary)"

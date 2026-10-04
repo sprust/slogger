@@ -16,6 +16,14 @@ export default defineComponent({
       type: String,
       required: true
     },
+    showPid: {
+      type: Boolean,
+      default: false
+    },
+    pidChanged: {
+      type: Boolean,
+      default: false
+    },
     selected: {
       type: Boolean,
       default: false
@@ -131,6 +139,11 @@ export default defineComponent({
         <div>
           <el-text :type="serviceSelected ? 'danger': 'primary'">
             {{ serviceName }}
+          </el-text>
+        </div>
+        <div v-if="showPid">
+          <el-text :type="pidChanged ? 'danger' : 'info'">
+            {{ row.primary.pid ?? 'null' }}
           </el-text>
         </div>
         <div>

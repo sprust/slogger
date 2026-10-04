@@ -181,6 +181,7 @@ readonly class SearchTracesTool implements McpToolInterface
             'duration'        => $trace->duration,
             'memory'          => $trace->memory,
             'cpu'             => $trace->cpu,
+            'pid'             => $trace->pid,
             'logged_at'       => $this->formatter->time($trace->loggedAt),
             'data'            => $data,
         ];

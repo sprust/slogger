@@ -123,6 +123,7 @@ readonly class McpToolFormatter
             'type'            => $object->node->type,
             'status'          => $object->node->status,
             'duration'        => $object->node->duration,
+            'pid'             => $object->node->pid,
         ];
 
         if (!is_null($object->childrenCount)) {

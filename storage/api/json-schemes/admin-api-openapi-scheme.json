@@ -1216,6 +1216,10 @@
                                                         "type": "number",
                                                         "nullable": true
                                                     },
+                                                    "pid": {
+                                                        "type": "integer",
+                                                        "nullable": true
+                                                    },
                                                     "logged_at": {
                                                         "type": "string",
                                                         "nullable": false
@@ -1538,6 +1542,10 @@
                                                                 "type": "number",
                                                                 "nullable": true
                                                             },
+                                                            "pid": {
+                                                                "type": "integer",
+                                                                "nullable": true
+                                                            },
                                                             "logged_at": {
                                                                 "type": "string",
                                                                 "nullable": false
@@ -1685,6 +1693,10 @@
                                                             },
                                                             "cpu": {
                                                                 "type": "number",
+                                                                "nullable": true
+                                                            },
+                                                            "pid": {
+                                                                "type": "integer",
                                                                 "nullable": true
                                                             },
                                                             "logged_at": {

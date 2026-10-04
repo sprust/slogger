@@ -79,10 +79,11 @@ class TraceQueryToolsTest extends TestCase
         $trace = $result->data['traces'][0];
 
         $this->assertSame(
-            ['trace_id', 'parent_trace_id', 'type', 'status', 'tags', 'duration', 'memory', 'cpu', 'logged_at', 'data'],
+            ['trace_id', 'parent_trace_id', 'type', 'status', 'tags', 'duration', 'memory', 'cpu', 'pid', 'logged_at', 'data'],
             array_keys($trace)
         );
         $this->assertSame('t1', $trace['trace_id']);
+        $this->assertSame(4321, $trace['pid']);
         $this->assertSame('2026-09-28T12:30:00Z', $trace['logged_at']);
         $this->assertSame('{"request.uri":"\/api\/pay"}', json_encode($trace['data']));
         $this->assertSame(['failed'], $this->captured?->statuses);

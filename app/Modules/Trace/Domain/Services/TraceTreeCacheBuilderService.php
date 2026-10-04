@@ -197,6 +197,7 @@ readonly class TraceTreeCacheBuilderService
                     duration: $rootTrace->duration,
                     memory: $rootTrace->memory,
                     cpu: $rootTrace->cpu,
+                    pid: $rootTrace->pid,
                     loggedAt: $rootTrace->loggedAt,
                 ),
             ]
@@ -287,6 +288,7 @@ readonly class TraceTreeCacheBuilderService
                 duration: $foundNode->duration,
                 memory: $foundNode->memory,
                 cpu: $foundNode->cpu,
+                pid: $foundNode->pid,
                 loggedAt: $foundNode->loggedAt,
             );
         }

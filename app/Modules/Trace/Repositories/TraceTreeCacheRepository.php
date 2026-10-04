@@ -42,6 +42,7 @@ class TraceTreeCacheRepository
         'duration'      => 1,
         'memory'        => 1,
         'cpu'           => 1,
+        'pid'           => 1,
         'loggedAt'      => 1,
     ];
 
@@ -107,6 +108,7 @@ class TraceTreeCacheRepository
                             'duration'      => $parameters->duration,
                             'memory'        => $parameters->memory,
                             'cpu'           => $parameters->cpu,
+                            'pid'           => $parameters->pid,
                             'loggedAt'      => new UTCDateTime($parameters->loggedAt),
                         ],
                         '$setOnInsert' => [
@@ -659,6 +661,7 @@ class TraceTreeCacheRepository
             duration: $item['duration'],
             memory: $item['memory'],
             cpu: $item['cpu'],
+            pid: $item['pid'] ?? null,
             loggedAt: new Carbon($loggedAt->toDateTime()),
         );
     }

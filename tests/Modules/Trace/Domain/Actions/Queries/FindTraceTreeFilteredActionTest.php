@@ -117,6 +117,7 @@ class FindTraceTreeFilteredActionTest extends TestCase
             duration: null,
             memory: null,
             cpu: null,
+            pid: null,
             loggedAt: Carbon::now(),
         );
     }

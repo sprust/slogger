@@ -47,6 +47,7 @@ class TraceTreeResponse extends AbstractStreamedApiResource
             'duration'        => $item->duration,
             'memory'          => $item->memory,
             'cpu'             => $item->cpu,
+            'pid'             => $item->pid,
             'logged_at'       => $item->loggedAt->toDateTimeString('microsecond'),
         ];
     }

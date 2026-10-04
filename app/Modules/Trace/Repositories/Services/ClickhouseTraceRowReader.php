@@ -56,6 +56,11 @@ class ClickhouseTraceRowReader
         return is_numeric($value) ? (float) $value : null;
     }
 
+    public function int(mixed $value): ?int
+    {
+        return is_numeric($value) ? (int) $value : null;
+    }
+
     public function time(mixed $value): Carbon
     {
         /** @var Carbon $time */

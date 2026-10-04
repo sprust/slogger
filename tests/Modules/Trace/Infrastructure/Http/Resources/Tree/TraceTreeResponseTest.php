@@ -146,6 +146,7 @@ class TraceTreeResponseTest extends TestCase
             duration: $withMetrics ? 1.25 : null,
             memory: $withMetrics ? 2.5 : null,
             cpu: $withMetrics ? 3.75 : null,
+            pid: $withMetrics ? 4242 : null,
             loggedAt: Carbon::parse('2026-09-21 10:11:12.345678'),
         );
     }

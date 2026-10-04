@@ -62,6 +62,7 @@ class TraceToolsTest extends TestCase
         $this->assertArrayNotHasKey('data', $result->data);
         $this->assertSame(['id' => 3, 'name' => 'billing'], $result->data['service']);
         $this->assertSame('2026-09-28T12:00:00Z', $result->data['logged_at']);
+        $this->assertSame(4321, $result->data['pid']);
     }
 
     public function testUnknownTraceIsAToolError(): void
@@ -166,6 +167,7 @@ class TraceToolsTest extends TestCase
                 'type'            => 'http',
                 'status'          => 'failed',
                 'duration'        => 1.5,
+                'pid'             => 77,
                 'children_count'  => 4,
             ],
             $result->data['nodes'][0]
@@ -299,6 +301,7 @@ class TraceToolsTest extends TestCase
             duration: 1.5,
             memory: null,
             cpu: null,
+            pid: 77,
             loggedAt: Carbon::parse('2026-09-28 12:00:00')
         );
     }
@@ -324,6 +327,7 @@ class TraceToolsTest extends TestCase
             duration: 0.5,
             memory: 12.0,
             cpu: 1.0,
+            pid: 4321,
             loggedAt: $now,
             createdAt: $now,
             updatedAt: $now

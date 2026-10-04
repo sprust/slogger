@@ -165,6 +165,17 @@ export const useTraceAggregatorTreeStore = defineStore('traceAggregatorTreeStore
         }
     },
     getters: {
+        pidByTraceId(store: TraceAggregatorTreeStoreInterface): Record<string, number | null> {
+            const pids: Record<string, number | null> = {}
+
+            store.tree.forEach((node: TraceTreeNode) => {
+                if (!node.loadMoreOf) {
+                    pids[node.primary.trace_id] = node.primary.pid ?? null
+                }
+            })
+
+            return pids
+        },
         filteredTree(store: TraceAggregatorTreeStoreInterface) {
             const visibleNodes: TraceTreeNode[] = []
             let collapsedDepth: number | null = null
