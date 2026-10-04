@@ -46,8 +46,6 @@ return [
             // queue worker connection and name.
             'connection'  => env('SLOGGER_DISPATCHER_QUEUE_CONNECTION', $defaultQueueConnection),
             'name'        => env('SLOGGER_DISPATCHER_QUEUE_NAME', 'slogger'),
-            // number of worker processes.
-            'workers_num' => env('SLOGGER_DISPATCHER_QUEUE_WORKERS_COUNT', 3),
 
             'api_clients' => [
                 // socket is the only client the package ships since 2.0 - anything
@@ -62,11 +60,6 @@ return [
                 ],
             ],
         ],
-    ],
-
-    // profiling for http client traces (requires xhprof extension).
-    'profiling'                       => [
-        'enabled' => env('SLOGGER_PROFILING_ENABLED', false),
     ],
 
     // channel for internal errors/logs.
@@ -163,8 +156,8 @@ return [
         // matched against the value and masked in place, for what no key name points
         // at - an address in a log line. an invalid pattern is ignored, not fatal.
         //
-        // order matters: first match wins, so narrow before broad. a capture group
-        // masks the group and keeps the rest.
+        // order matters: each pattern runs on what the previous ones left, so narrow
+        // before broad. a capture group masks the group and keeps the rest.
         'value_patterns' => [
             // postgres://app:secret@db. a scheme is required, so `//assets:v2@2x.png`
             // is left alone; the group runs to the last `@`
@@ -212,7 +205,6 @@ return [
                     'schedule:run',
                     'queue:work',
                     'queue:listen',
-                    'slogger:dispatcher:start',
                     'receiver:monitor',
                     'sconcur:servers:master:start',
                     'sconcur:servers:http:start',

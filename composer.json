@@ -27,9 +27,6 @@
         "phpunit/phpunit": "^11",
         "spatie/laravel-ignition": "^2.0"
     },
-    "suggest": {
-        "ext-xhprof": "Enables XHProf profiling; install the xhprof PHP extension manually"
-    },
     "repositories": [
         {
             "type": "path",

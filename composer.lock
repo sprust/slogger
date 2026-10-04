@@ -3572,24 +3572,21 @@
         },
         {
             "name": "slogger/laravel",
-            "version": "2.1.2",
+            "version": "2.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sprust/slogger-laravel.git",
-                "reference": "e93f76b0193f661a96331d271dd0fd0714eb968a"
+                "reference": "269a159d2fb0d2be0a0d1bb8b04c6441e17ae7be"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sprust/slogger-laravel/zipball/e93f76b0193f661a96331d271dd0fd0714eb968a",
-                "reference": "e93f76b0193f661a96331d271dd0fd0714eb968a",
+                "url": "https://api.github.com/repos/sprust/slogger-laravel/zipball/269a159d2fb0d2be0a0d1bb8b04c6441e17ae7be",
+                "reference": "269a159d2fb0d2be0a0d1bb8b04c6441e17ae7be",
                 "shasum": ""
             },
             "require": {
-                "ext-pcntl": "*",
-                "ext-posix": "*",
                 "laravel/framework": "^10.26 | ^11.0 | ^12.0",
-                "php": "^8.2",
-                "symfony/process": "^6.4|^7.0"
+                "php": "^8.2"
             },
             "require-dev": {
                 "friendsofphp/php-cs-fixer": "^3.94",
@@ -3621,21 +3618,20 @@
                     "email": "sppetrovich@mail.ru"
                 }
             ],
-            "description": "Tracing and observability for Laravel with dispatchers, masking, and profiling.",
+            "description": "Tracing and observability for Laravel with dispatchers and masking.",
             "keywords": [
                 "debugging",
                 "laravel",
                 "logging",
                 "monitoring",
                 "observability",
-                "profiling",
                 "tracing"
             ],
             "support": {
                 "issues": "https://github.com/sprust/slogger-laravel/issues",
-                "source": "https://github.com/sprust/slogger-laravel/tree/v2.1.2"
+                "source": "https://github.com/sprust/slogger-laravel/tree/v2.2.0"
             },
-            "time": "2026-08-30T20:04:39+00:00"
+            "time": "2026-10-04T05:45:34+00:00"
         },
         {
             "name": "symfony/clock",
