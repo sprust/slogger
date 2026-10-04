@@ -18,7 +18,7 @@ export const en: LandingText = {
     about: {
         title: 'What it is',
         paragraphs: [
-            'SLogger receives traces from applications and microservices, stores them and gives a panel to search them, build call trees, filter by trace data and chart their figures.',
+            'SLogger receives traces from applications and microservices, stores them and gives a panel and an MCP server to search them, build call trees and filter by trace data.',
             'A trace is a record of one operation: an HTTP request, a database query, a queue job, a command or any operation of your own. The source can be any application that writes to the receiver\'s TCP socket using a simple protocol.',
         ],
         features: [
@@ -220,7 +220,7 @@ cd slogger`},
 }`,
         notes: [
             'A trace can be sent in one create message if its result is known at once; the update is optional.',
-            'isP of the create says whether an update follows: true keeps the trace waiting for it, false writes it as final.',
+            'isP of the create says whether an update follows: true writes the trace and keeps it waiting for the update, false writes it as final.',
             'The create and the update with the same tid are merged into one row. The update replaces only the fields it carries.',
             'The connection is long-lived: the server does not close an idle connection, so a client can keep an authenticated socket between bursts of traces.',
         ],
