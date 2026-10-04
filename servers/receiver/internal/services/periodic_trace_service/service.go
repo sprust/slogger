@@ -21,6 +21,10 @@ import (
 // under this placeholder.
 const unknownTraceType = "__UNKNOWN"
 
+// startedStatus is the status of a create that has an update to come, when the create
+// does not say so itself with isP.
+const startedStatus = "started"
+
 // traceStore is the traces table: the write of merged traces, and the read of a stored
 // trace when nothing is pending for it.
 type traceStore interface {
@@ -75,14 +79,15 @@ type batchTrace struct {
 //
 // The other half of a trace is looked for among the pending traces in MongoDB, not in
 // ClickHouse: a point read by id, where a read of the traces table has to go through
-// FINAL and every granule a key can be in. Most traces never need it — a create sent with
-// isP false or one that came with its update is final as it is and goes straight to the insert.
+// FINAL and every granule a key can be in. Most traces never need it — a child, a task or
+// a create that came with its update is final as it is and goes straight to the insert.
 //
-//   - a trace that is final (a type and either its update or a create with isP false) is
-//     inserted; one that had an update leaves a done mark in its place, so that its create
-//     arriving again is dropped as a repeat instead of reopening the trace;
-//   - any other create is still waiting for its update: it is inserted, so that it is seen
-//     in progress, and kept pending;
+//   - a trace that is final (a type and either its update, or a create with isP false, or
+//     without isP a status other than started) is inserted; one that had an update leaves
+//     a done mark in its place, so that its create arriving again is dropped as a repeat
+//     instead of reopening the trace;
+//   - a create still waiting for its update (isP true, or without isP the status started)
+//     is inserted, so that it is seen in progress, and kept pending;
 //   - an update without its create is only kept pending: it has no type or tags to be
 //     shown with.
 //
@@ -218,7 +223,7 @@ func (s *Service) Save(ctx context.Context, batch map[int]*dto.ServiceTraces) (R
 			continue
 		}
 
-		if !waitsForUpdate(item.traces.Creating) {
+		if !waitsForUpdate(item.traces.Creating, trace.row.Status) {
 			if isPending {
 				forget = append(forget, item.id)
 			}
@@ -247,10 +252,14 @@ func (s *Service) Save(ctx context.Context, batch map[int]*dto.ServiceTraces) (R
 }
 
 // waitsForUpdate says whether a trace written without its update is kept pending for it.
-// Only a create with isP false says that no update follows; the status means nothing here,
-// so a create that says nothing waits.
-func waitsForUpdate(creating *dto.TraceCreating) bool {
-	return creating == nil || creating.IsParent == nil || *creating.IsParent
+// The create's isP decides when it was sent; without it, a started trace waits.
+func waitsForUpdate(creating *dto.TraceCreating, status string) bool {
+	if creating != nil && creating.IsParent != nil {
+		return *creating.IsParent
+	}
+
+	// TODO: temporary — a create without isP waits only when started; drop once clients send isP.
+	return status == startedStatus
 }
 
 // storedFromPending is a pending trace as the other half of a merge.

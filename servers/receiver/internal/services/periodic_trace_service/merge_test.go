@@ -260,7 +260,7 @@ func isDoneMark(saved []pending_trace_repository.PendingTrace) bool {
 	return len(saved) == 1 && saved[0].Done && saved[0].TraceId == "trace-1" && saved[0].RawData == ""
 }
 
-func TestACreateWithoutIsPIsInsertedAndKeptPending(t *testing.T) {
+func TestAStartedCreateIsInsertedAndKeptPending(t *testing.T) {
 	store, pending := &fakeStore{}, &fakePending{}
 
 	if _, err := New(store, pending).Save(context.Background(), batch(1, creating(t), nil)); err != nil {
@@ -462,7 +462,6 @@ func TestACreateWithoutATypeIsWritten(t *testing.T) {
 	trace := creating(t)
 	trace.Type = ""
 	trace.Status = "success"
-	trace.IsParent = boolean(false)
 
 	if _, err := New(store, pending).Save(context.Background(), batch(1, trace, nil)); err != nil {
 		t.Fatal(err)
@@ -520,9 +519,7 @@ func TestACreateWithNoUpdateToComeIsNotKeptPending(t *testing.T) {
 	}
 }
 
-// The status means nothing to the receiver: a create that does not say isP false waits
-// for its update whatever status it brought.
-func TestACreateWithoutIsPWaitsWhateverItsStatus(t *testing.T) {
+func TestAFinishedCreateWithoutIsPIsNotKeptPending(t *testing.T) {
 	store, pending := &fakeStore{}, &fakePending{}
 
 	create := creating(t)
@@ -532,8 +529,8 @@ func TestACreateWithoutIsPWaitsWhateverItsStatus(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if len(store.inserted) != 1 || len(pending.saved) != 1 || pending.saved[0].Done {
-		t.Fatalf("expected an insert and the create pending, got %+v / %+v", store.inserted, pending.saved)
+	if len(store.inserted) != 1 || len(pending.saved) != 0 {
+		t.Fatalf("expected an insert and nothing pending, got %+v / %+v", store.inserted, pending.saved)
 	}
 }
 
