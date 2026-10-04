@@ -8,12 +8,12 @@ use PHPUnit\Framework\TestCase;
 
 class UserTokenLifetimeServiceTest extends TestCase
 {
-    public function testASessionLastsFifteenDaysFromItsLastUse(): void
+    public function testASessionLastsFiveDaysFromItsLastUse(): void
     {
         $now = Carbon::parse('2026-09-06 10:00:00');
 
         $this->assertSame(
-            '2026-09-21 10:00:00',
+            '2026-09-11 10:00:00',
             new UserTokenLifetimeService()->expiresAt($now)->toDateTimeString()
         );
     }
@@ -25,7 +25,7 @@ class UserTokenLifetimeServiceTest extends TestCase
         new UserTokenLifetimeService()->expiresAt($now);
 
         // Carbon mutates in place. The caller writes this same instance as `last_used_at`
-        // beside the expiry, and a shifted one would date the session a fortnight ahead.
+        // beside the expiry, and a shifted one would date the session five days ahead.
         $this->assertSame('2026-09-06 10:00:00', $now->toDateTimeString());
     }
 }

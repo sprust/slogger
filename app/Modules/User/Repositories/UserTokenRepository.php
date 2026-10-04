@@ -53,7 +53,7 @@ class UserTokenRepository
      * Pushes a session's expiry out, provided it has not already lapsed as of $now.
      *
      * The predicate is the whole point. Without it a token presented after its window had
-     * closed — refused, but presented — would carry its own row forward another fifteen
+     * closed — refused, but presented — would carry its own row forward another five
      * days, and a session could be kept alive for ever by the requests it is rejecting.
      */
     public function touch(string $token, Carbon $now, Carbon $expiresAt): bool

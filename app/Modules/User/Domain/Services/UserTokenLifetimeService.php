@@ -19,7 +19,7 @@ use Illuminate\Support\Carbon;
  */
 readonly class UserTokenLifetimeService
 {
-    public const int IDLE_DAYS = 15;
+    public const int IDLE_DAYS = 5;
 
     public function expiresAt(Carbon $now): Carbon
     {
