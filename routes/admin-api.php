@@ -21,7 +21,6 @@ use App\Modules\Tools\Infrastructure\Http\Controllers\ToolLinksController;
 use App\Modules\Trace\Infrastructure\Http\Controllers\TraceAdminStoreController;
 use App\Modules\Trace\Infrastructure\Http\Controllers\TraceContentController;
 use App\Modules\Trace\Infrastructure\Http\Controllers\TraceController;
-use App\Modules\Trace\Infrastructure\Http\Controllers\TraceProfilingController;
 use App\Modules\Trace\Infrastructure\Http\Controllers\TraceTimestampPeriodsController;
 use App\Modules\Trace\Infrastructure\Http\Controllers\TraceTimestampsController;
 use App\Modules\Trace\Infrastructure\Http\Controllers\TraceTreeController;
@@ -91,7 +90,6 @@ Route::prefix('/trace-aggregator')
                 Route::prefix('{traceId}')
                     ->group(function () {
                         Route::get('', [TraceController::class, 'show'])->name('show');
-                        Route::post('/profiling', [TraceProfilingController::class, 'index'])->name('profiling');
                     });
             });
 

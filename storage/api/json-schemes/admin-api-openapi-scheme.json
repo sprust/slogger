@@ -958,9 +958,6 @@
                                                 }
                                             }
                                         }
-                                    },
-                                    "has_profiling": {
-                                        "type": "boolean"
                                     }
                                 },
                                 "required": [
@@ -1039,10 +1036,6 @@
                                                                         "type": "number",
                                                                         "nullable": true
                                                                     },
-                                                                    "has_profiling": {
-                                                                        "type": "boolean",
-                                                                        "nullable": false
-                                                                    },
                                                                     "additional_fields": {
                                                                         "type": "array",
                                                                         "nullable": false,
@@ -1084,7 +1077,6 @@
                                                                     "type",
                                                                     "status",
                                                                     "tags",
-                                                                    "has_profiling",
                                                                     "additional_fields",
                                                                     "logged_at",
                                                                     "created_at",
@@ -2212,361 +2204,6 @@
                 ]
             }
         },
-        "/admin-api/trace-aggregator/traces/{traceId}/profiling": {
-            "post": {
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "properties": {
-                                    "caller": {
-                                        "type": "string",
-                                        "nullable": true,
-                                        "minLength": 1
-                                    },
-                                    "excluded_callers": {
-                                        "type": "array",
-                                        "items": {
-                                            "type": "string"
-                                        }
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "parameters": [
-                    {
-                        "name": "traceId",
-                        "required": true,
-                        "in": "path",
-                        "schema": {}
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "description",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "properties": {
-                                                "nodes": {
-                                                    "type": "array",
-                                                    "nullable": false,
-                                                    "items": {
-                                                        "properties": {
-                                                            "id": {
-                                                                "type": "integer",
-                                                                "nullable": false
-                                                            },
-                                                            "calling": {
-                                                                "type": "string",
-                                                                "nullable": false
-                                                            },
-                                                            "data": {
-                                                                "type": "array",
-                                                                "nullable": false,
-                                                                "items": {
-                                                                    "properties": {
-                                                                        "name": {
-                                                                            "type": "string",
-                                                                            "nullable": false
-                                                                        },
-                                                                        "value": {
-                                                                            "type": "integer",
-                                                                            "nullable": false
-                                                                        },
-                                                                        "weight_percent": {
-                                                                            "type": "number",
-                                                                            "nullable": false
-                                                                        }
-                                                                    },
-                                                                    "required": [
-                                                                        "name",
-                                                                        "value",
-                                                                        "weight_percent"
-                                                                    ]
-                                                                }
-                                                            },
-                                                            "recursionNodeId": {
-                                                                "type": "integer",
-                                                                "nullable": true
-                                                            },
-                                                            "children": {
-                                                                "type": "array",
-                                                                "nullable": true,
-                                                                "items": {
-                                                                    "properties": {
-                                                                        "id": {
-                                                                            "type": "integer",
-                                                                            "nullable": false
-                                                                        },
-                                                                        "calling": {
-                                                                            "type": "string",
-                                                                            "nullable": false
-                                                                        },
-                                                                        "data": {
-                                                                            "type": "array",
-                                                                            "nullable": false,
-                                                                            "items": {
-                                                                                "properties": {
-                                                                                    "name": {
-                                                                                        "type": "string",
-                                                                                        "nullable": false
-                                                                                    },
-                                                                                    "value": {
-                                                                                        "type": "integer",
-                                                                                        "nullable": false
-                                                                                    },
-                                                                                    "weight_percent": {
-                                                                                        "type": "number",
-                                                                                        "nullable": false
-                                                                                    }
-                                                                                },
-                                                                                "required": [
-                                                                                    "name",
-                                                                                    "value",
-                                                                                    "weight_percent"
-                                                                                ]
-                                                                            }
-                                                                        },
-                                                                        "recursionNodeId": {
-                                                                            "type": "integer",
-                                                                            "nullable": true
-                                                                        },
-                                                                        "children": {
-                                                                            "type": "array",
-                                                                            "nullable": true,
-                                                                            "items": {
-                                                                                "properties": {
-                                                                                    "id": {
-                                                                                        "type": "integer",
-                                                                                        "nullable": false
-                                                                                    },
-                                                                                    "calling": {
-                                                                                        "type": "string",
-                                                                                        "nullable": false
-                                                                                    },
-                                                                                    "data": {
-                                                                                        "type": "array",
-                                                                                        "nullable": false,
-                                                                                        "items": {
-                                                                                            "properties": {
-                                                                                                "name": {
-                                                                                                    "type": "string",
-                                                                                                    "nullable": false
-                                                                                                },
-                                                                                                "value": {
-                                                                                                    "type": "integer",
-                                                                                                    "nullable": false
-                                                                                                },
-                                                                                                "weight_percent": {
-                                                                                                    "type": "number",
-                                                                                                    "nullable": false
-                                                                                                }
-                                                                                            },
-                                                                                            "required": [
-                                                                                                "name",
-                                                                                                "value",
-                                                                                                "weight_percent"
-                                                                                            ]
-                                                                                        }
-                                                                                    },
-                                                                                    "recursionNodeId": {
-                                                                                        "type": "integer",
-                                                                                        "nullable": true
-                                                                                    },
-                                                                                    "children": {
-                                                                                        "type": "array",
-                                                                                        "nullable": true,
-                                                                                        "items": {
-                                                                                            "properties": {
-                                                                                                "id": {
-                                                                                                    "type": "integer",
-                                                                                                    "nullable": false
-                                                                                                },
-                                                                                                "calling": {
-                                                                                                    "type": "string",
-                                                                                                    "nullable": false
-                                                                                                },
-                                                                                                "data": {
-                                                                                                    "type": "array",
-                                                                                                    "nullable": false,
-                                                                                                    "items": {
-                                                                                                        "properties": {
-                                                                                                            "name": {
-                                                                                                                "type": "string",
-                                                                                                                "nullable": false
-                                                                                                            },
-                                                                                                            "value": {
-                                                                                                                "type": "integer",
-                                                                                                                "nullable": false
-                                                                                                            },
-                                                                                                            "weight_percent": {
-                                                                                                                "type": "number",
-                                                                                                                "nullable": false
-                                                                                                            }
-                                                                                                        },
-                                                                                                        "required": [
-                                                                                                            "name",
-                                                                                                            "value",
-                                                                                                            "weight_percent"
-                                                                                                        ]
-                                                                                                    }
-                                                                                                },
-                                                                                                "recursionNodeId": {
-                                                                                                    "type": "integer",
-                                                                                                    "nullable": true
-                                                                                                },
-                                                                                                "children": {
-                                                                                                    "type": "array",
-                                                                                                    "nullable": true,
-                                                                                                    "items": {
-                                                                                                        "properties": {
-                                                                                                            "id": {
-                                                                                                                "type": "integer",
-                                                                                                                "nullable": false
-                                                                                                            },
-                                                                                                            "calling": {
-                                                                                                                "type": "string",
-                                                                                                                "nullable": false
-                                                                                                            },
-                                                                                                            "data": {
-                                                                                                                "type": "array",
-                                                                                                                "nullable": false,
-                                                                                                                "items": {
-                                                                                                                    "properties": {
-                                                                                                                        "name": {
-                                                                                                                            "type": "string",
-                                                                                                                            "nullable": false
-                                                                                                                        },
-                                                                                                                        "value": {
-                                                                                                                            "type": "integer",
-                                                                                                                            "nullable": false
-                                                                                                                        },
-                                                                                                                        "weight_percent": {
-                                                                                                                            "type": "number",
-                                                                                                                            "nullable": false
-                                                                                                                        }
-                                                                                                                    },
-                                                                                                                    "required": [
-                                                                                                                        "name",
-                                                                                                                        "value",
-                                                                                                                        "weight_percent"
-                                                                                                                    ]
-                                                                                                                }
-                                                                                                            },
-                                                                                                            "recursionNodeId": {
-                                                                                                                "type": "integer",
-                                                                                                                "nullable": true
-                                                                                                            },
-                                                                                                            "children": {
-                                                                                                                "type": "array",
-                                                                                                                "nullable": true,
-                                                                                                                "items": {
-                                                                                                                    "properties": {
-                                                                                                                        "id": {
-                                                                                                                            "type": "integer",
-                                                                                                                            "nullable": false
-                                                                                                                        },
-                                                                                                                        "calling": {
-                                                                                                                            "type": "string",
-                                                                                                                            "nullable": false
-                                                                                                                        },
-                                                                                                                        "data": {
-                                                                                                                            "type": "array",
-                                                                                                                            "nullable": false,
-                                                                                                                            "maxItems": 0,
-                                                                                                                            "items": {
-                                                                                                                                "type": "string"
-                                                                                                                            }
-                                                                                                                        },
-                                                                                                                        "recursionNodeId": {
-                                                                                                                            "type": "integer",
-                                                                                                                            "nullable": true
-                                                                                                                        },
-                                                                                                                        "children": {
-                                                                                                                            "type": "array",
-                                                                                                                            "nullable": true,
-                                                                                                                            "maxItems": 0,
-                                                                                                                            "items": {
-                                                                                                                                "type": "string"
-                                                                                                                            }
-                                                                                                                        }
-                                                                                                                    },
-                                                                                                                    "required": [
-                                                                                                                        "id",
-                                                                                                                        "calling",
-                                                                                                                        "data"
-                                                                                                                    ]
-                                                                                                                }
-                                                                                                            }
-                                                                                                        },
-                                                                                                        "required": [
-                                                                                                            "id",
-                                                                                                            "calling",
-                                                                                                            "data"
-                                                                                                        ]
-                                                                                                    }
-                                                                                                }
-                                                                                            },
-                                                                                            "required": [
-                                                                                                "id",
-                                                                                                "calling",
-                                                                                                "data"
-                                                                                            ]
-                                                                                        }
-                                                                                    }
-                                                                                },
-                                                                                "required": [
-                                                                                    "id",
-                                                                                    "calling",
-                                                                                    "data"
-                                                                                ]
-                                                                            }
-                                                                        }
-                                                                    },
-                                                                    "required": [
-                                                                        "id",
-                                                                        "calling",
-                                                                        "data"
-                                                                    ]
-                                                                }
-                                                            }
-                                                        },
-                                                        "required": [
-                                                            "id",
-                                                            "calling",
-                                                            "data"
-                                                        ]
-                                                    }
-                                                }
-                                            },
-                                            "required": [
-                                                "nodes"
-                                            ]
-                                        }
-                                    },
-                                    "required": [
-                                        "data"
-                                    ]
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
         "/admin-api/trace-aggregator/traces-content/types": {
             "post": {
                 "requestBody": {
@@ -2739,9 +2376,6 @@
                                                 }
                                             }
                                         }
-                                    },
-                                    "has_profiling": {
-                                        "type": "boolean"
                                     }
                                 },
                                 "type": "object"
@@ -2964,9 +2598,6 @@
                                                 }
                                             }
                                         }
-                                    },
-                                    "has_profiling": {
-                                        "type": "boolean"
                                     }
                                 },
                                 "type": "object"
@@ -3189,9 +2820,6 @@
                                                 }
                                             }
                                         }
-                                    },
-                                    "has_profiling": {
-                                        "type": "boolean"
                                     }
                                 },
                                 "type": "object"
@@ -3452,9 +3080,6 @@
                                                 }
                                             }
                                         }
-                                    },
-                                    "has_profiling": {
-                                        "type": "boolean"
                                     }
                                 },
                                 "required": [

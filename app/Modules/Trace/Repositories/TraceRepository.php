@@ -7,7 +7,6 @@ namespace App\Modules\Trace\Repositories;
 use App\Modules\Trace\Entities\Trace\TraceDataRangeObject;
 use App\Modules\Trace\Parameters\Data\TraceDataFilterParameters;
 use App\Modules\Trace\Repositories\Dto\Trace\Partition\TracePartitionDto;
-use App\Modules\Trace\Repositories\Dto\Trace\Profiling\TraceProfilingDto;
 use App\Modules\Trace\Repositories\Dto\Trace\TraceDto;
 use App\Modules\Trace\Repositories\Dto\Trace\Tree\TraceTreeNodeDto;
 use App\Modules\Trace\Repositories\Services\ClickhouseTraceFilterBuilder;
@@ -79,7 +78,6 @@ readonly class TraceRepository
         ?float $cpuFrom = null,
         ?float $cpuTo = null,
         ?TraceDataFilterParameters $data = null,
-        ?bool $hasProfiling = null,
     ): array {
         $condition = $this->filterBuilder->build(
             serviceIds: $serviceIds,
@@ -96,7 +94,6 @@ readonly class TraceRepository
             cpuFrom: $cpuFrom,
             cpuTo: $cpuTo,
             data: $data,
-            hasProfiling: $hasProfiling,
         );
 
         $rows = $this->client->select(
@@ -191,14 +188,6 @@ readonly class TraceRepository
     }
 
     /**
-     * Profiling is not stored: the receiver has never written it.
-     */
-    public function findProfilingByTraceId(string $traceId): ?TraceProfilingDto
-    {
-        return null;
-    }
-
-    /**
      * The hourly partitions whose hour ended no later than the moment given, oldest first.
      *
      * @return TracePartitionDto[]
@@ -268,7 +257,6 @@ readonly class TraceRepository
             duration: $this->rowReader->float($row['dur'] ?? null),
             memory: $this->rowReader->float($row['mem'] ?? null),
             cpu: $this->rowReader->float($row['cpu'] ?? null),
-            hasProfiling: false,
             loggedAt: $this->rowReader->time($row['lat']),
             createdAt: $this->rowReader->time($row['cat']),
             updatedAt: $this->rowReader->time($row['uat'])

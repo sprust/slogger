@@ -37,7 +37,6 @@ readonly class FindTagsAction
             cpuFrom: $parameters->cpuFrom,
             cpuTo: $parameters->cpuTo,
             data: $parameters->data,
-            hasProfiling: $parameters->hasProfiling,
         );
     }
 }

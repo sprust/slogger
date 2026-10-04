@@ -49,7 +49,6 @@ readonly class TraceContentRepository
         ?float $cpuFrom = null,
         ?float $cpuTo = null,
         ?TraceDataFilterParameters $data = null,
-        ?bool $hasProfiling = null,
     ): array {
         return $this->findValues(
             value: 'tp',
@@ -67,7 +66,6 @@ readonly class TraceContentRepository
                 cpuFrom: $cpuFrom,
                 cpuTo: $cpuTo,
                 data: $data,
-                hasProfiling: $hasProfiling,
             ),
             queryIdPrefix: 'trace-types'
         );
@@ -96,7 +94,6 @@ readonly class TraceContentRepository
         ?float $cpuFrom = null,
         ?float $cpuTo = null,
         ?TraceDataFilterParameters $data = null,
-        ?bool $hasProfiling = null,
     ): array {
         return $this->findValues(
             value: 'arrayJoin(tgs)',
@@ -114,7 +111,6 @@ readonly class TraceContentRepository
                 cpuFrom: $cpuFrom,
                 cpuTo: $cpuTo,
                 data: $data,
-                hasProfiling: $hasProfiling,
             ),
             queryIdPrefix: 'trace-tags'
         );
@@ -143,7 +139,6 @@ readonly class TraceContentRepository
         ?float $cpuFrom = null,
         ?float $cpuTo = null,
         ?TraceDataFilterParameters $data = null,
-        ?bool $hasProfiling = null,
     ): array {
         return $this->findValues(
             value: 'st',
@@ -161,7 +156,6 @@ readonly class TraceContentRepository
                 cpuFrom: $cpuFrom,
                 cpuTo: $cpuTo,
                 data: $data,
-                hasProfiling: $hasProfiling,
             ),
             queryIdPrefix: 'trace-statuses'
         );

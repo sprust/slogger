@@ -24,8 +24,6 @@ readonly class TraceFieldTitlesService
             'dur'  => 'duration',
             'mem'  => 'memory',
             'cpu'  => 'cpu',
-            'hpr'  => 'has profiling',
-            'pr'   => 'profiling',
             'lat'  => 'loggedAt',
             'tss'  => 'timestamps',
             'cl'   => 'cleared',

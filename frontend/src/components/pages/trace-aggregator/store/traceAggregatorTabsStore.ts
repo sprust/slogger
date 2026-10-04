@@ -3,7 +3,6 @@ import {defineStore} from "pinia";
 export const traceAggregatorTabs = {
     traces: 'traces',
     tree: 'tree',
-    profiling: 'profiling',
 }
 
 interface TraceAggregatorTabsStoreInterface {

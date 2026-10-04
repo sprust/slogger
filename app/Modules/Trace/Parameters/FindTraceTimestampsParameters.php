@@ -39,7 +39,6 @@ readonly class FindTraceTimestampsParameters
         public ?float $cpuFrom = null,
         public ?float $cpuTo = null,
         public ?TraceDataFilterParameters $data = null,
-        public ?bool $hasProfiling = null,
     ) {
     }
 }

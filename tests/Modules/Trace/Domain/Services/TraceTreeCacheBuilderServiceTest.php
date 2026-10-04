@@ -309,7 +309,6 @@ class TraceTreeCacheBuilderServiceTest extends TestCase
             duration: 1.0,
             memory: 1.0,
             cpu: 1.0,
-            hasProfiling: false,
             loggedAt: Carbon::now(),
             createdAt: Carbon::now(),
             updatedAt: Carbon::now(),

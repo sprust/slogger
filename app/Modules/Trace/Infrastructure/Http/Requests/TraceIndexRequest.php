@@ -51,7 +51,6 @@ class TraceIndexRequest extends FormRequest
                 'max:255',
                 RequestFilterRules::DATA_KEY_RULE,
             ],
-            ...RequestFilterRules::hasProfiling(),
         ];
     }
 }

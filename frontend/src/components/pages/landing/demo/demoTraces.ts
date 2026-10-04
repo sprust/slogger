@@ -219,7 +219,6 @@ export const demoTraces: Array<DemoTrace> = specs.map((spec: DemoTraceSpec) => (
             duration: spec.duration,
             memory: spec.memory,
             cpu: spec.cpu,
-            has_profiling: false,
             additional_fields: [],
             logged_at: spec.loggedAt,
             created_at: spec.loggedAt,

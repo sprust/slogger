@@ -63,7 +63,6 @@ readonly class TraceTimestampsController
                     cpuFrom: ArrayValueGetter::floatNull($validated, 'cpu_from'),
                     cpuTo: ArrayValueGetter::floatNull($validated, 'cpu_to'),
                     data: $this->dataFilterParameterTransport->make($validated),
-                    hasProfiling: ArrayValueGetter::boolNull($validated, 'has_profiling')
                 )
             )
         );

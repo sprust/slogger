@@ -107,7 +107,6 @@ export interface TraceAggregatorCommonPayload {
     cpu_from?: number | null,
     cpu_to?: number | null,
     data?: TraceAggregatorDataPayload,
-    has_profiling?: boolean,
 }
 
 type TraceAggregatorRequest = TraceAggregatorCommonPayload & {

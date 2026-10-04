@@ -67,7 +67,7 @@
 
 #### Scenario: Упавшие трейсы
 - **WHEN** модель вызывает `search_traces` с `statuses: ["failed"]`
-- **THEN** ответ содержит до 20 упавших трейсов сервиса за период, новые первыми, без `has_profiling`
+- **THEN** ответ содержит до 20 упавших трейсов сервиса за период, новые первыми
 
 #### Scenario: Фильтр и поля data
 - **WHEN** модель вызывает `search_traces` с `data_filter: ["response.status >= 500"]` и `data_fields: ["request.uri"]`

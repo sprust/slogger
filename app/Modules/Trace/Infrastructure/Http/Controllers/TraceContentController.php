@@ -57,7 +57,6 @@ readonly class TraceContentController
                     cpuFrom: $validated['cpu_from'] ?? null,
                     cpuTo: $validated['cpu_to'] ?? null,
                     data: $this->dataFilterParameterTransport->make($validated),
-                    hasProfiling: ($validated['has_profiling'] ?? null) ?: null,
                 )
             )
         );
@@ -90,7 +89,6 @@ readonly class TraceContentController
                     cpuFrom: $validated['cpu_from'] ?? null,
                     cpuTo: $validated['cpu_to'] ?? null,
                     data: $this->dataFilterParameterTransport->make($validated),
-                    hasProfiling: ($validated['has_profiling'] ?? null) ?: null,
                 )
             )
         );
@@ -123,7 +121,6 @@ readonly class TraceContentController
                     cpuFrom: $validated['cpu_from'] ?? null,
                     cpuTo: $validated['cpu_to'] ?? null,
                     data: $this->dataFilterParameterTransport->make($validated),
-                    hasProfiling: ($validated['has_profiling'] ?? null) ?: null,
                 )
             )
         );

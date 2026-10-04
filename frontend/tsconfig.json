@@ -10,9 +10,6 @@
         ],
         "skipLibCheck": true,
 
-        // TODO: for TraceAggregatorProfilingFlowEdge.vue. delete after refactoring
-        "allowJs": true,
-
         /* Bundler mode */
         "moduleResolution": "bundler",
         "allowImportingTsExtensions": true,

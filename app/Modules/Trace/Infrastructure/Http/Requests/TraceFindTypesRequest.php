@@ -21,7 +21,6 @@ class TraceFindTypesRequest extends FormRequest
             ...RequestFilterRules::memoryFromTo(),
             ...RequestFilterRules::cpuFromTo(),
             ...RequestFilterRules::data(),
-            ...RequestFilterRules::hasProfiling(),
         ];
     }
 }

@@ -171,7 +171,6 @@ export default defineComponent({
         cpu_from: this.traceAggregatorStore.payload.cpu_from,
         cpu_to: this.traceAggregatorStore.payload.cpu_to,
         data: this.traceAggregatorStore.payload.data,
-        has_profiling: this.traceAggregatorStore.payload.has_profiling,
       }
 
       const order = this.traceAggregatorTagsStore.sectionOrder

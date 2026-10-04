@@ -44,7 +44,6 @@ trait McpTraceQueryTestTrait
                         duration: 1.5,
                         memory: 12.0,
                         cpu: 0.4,
-                        hasProfiling: true,
                         additionalFields: $additionalFields,
                         loggedAt: $loggedAt,
                         createdAt: $loggedAt,
@@ -76,7 +75,6 @@ trait McpTraceQueryTestTrait
             duration: 0.5,
             memory: 1.0,
             cpu: 0.1,
-            hasProfiling: false,
             loggedAt: $loggedAt,
             createdAt: $loggedAt,
             updatedAt: $loggedAt

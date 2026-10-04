@@ -42,7 +42,6 @@ class TraceRepositoryTest extends TestCase
         $this->assertSame(['api'], $trace->tags);
         $this->assertSame(0.2, $trace->duration);
         $this->assertNull($trace->memory);
-        $this->assertFalse($trace->hasProfiling);
         $this->assertSame('2026-09-29 10:00:00.123456', $trace->loggedAt->format('Y-m-d H:i:s.u'));
     }
 
@@ -67,12 +66,6 @@ class TraceRepositoryTest extends TestCase
     public function testMissingTraceReadsAsAbsent(): void
     {
         $this->assertNull($this->repository([[]])->findOneDetailByTraceId('trace-1'));
-    }
-
-    public function testProfilingIsNotStored(): void
-    {
-        $this->assertNull($this->repository()->findProfilingByTraceId('trace-1'));
-        $this->assertSame([], $this->client->selects);
     }
 
     public function testTreeNodesReadTheLatestVersionOfEachTrace(): void

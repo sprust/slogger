@@ -23,7 +23,6 @@ use App\Modules\Trace\Domain\Actions\Queries\FindTagsAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceAdminStoreAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceDataRangeAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceDetailAction;
-use App\Modules\Trace\Domain\Actions\Queries\FindTraceProfilingAction;
 use App\Modules\Trace\Domain\Actions\Queries\CompareTraceGroupsAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceGroupsAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTracesAction;
@@ -94,7 +93,6 @@ class TraceServiceProvider extends BaseServiceProvider
             FindTagsAction::class,
             FindTraceDetailAction::class,
             FindTraceDataRangeAction::class,
-            FindTraceProfilingAction::class,
             FindTracesAction::class,
             FindTraceGroupsAction::class,
             CompareTraceGroupsAction::class,

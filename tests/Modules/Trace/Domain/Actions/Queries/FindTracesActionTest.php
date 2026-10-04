@@ -243,7 +243,6 @@ class FindTracesActionTest extends TestCase
             duration: 1.0,
             memory: 1.0,
             cpu: 1.0,
-            hasProfiling: false,
             loggedAt: Carbon::parse('2026-09-19 12:00:00')->addMinutes($loggedAtMinute),
             createdAt: Carbon::parse('2026-09-19 12:00:00'),
             updatedAt: Carbon::parse('2026-09-19 12:00:00'),

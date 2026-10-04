@@ -99,15 +99,6 @@
         >
         </el-button>
       </el-form-item>
-      <el-form-item label="Profiling" for="">
-        <el-switch
-            v-model="traceAggregatorStore.payload.has_profiling"
-            size="small"
-            active-text="has"
-            inactive-text="off"
-            active-color="green"
-        />
-      </el-form-item>
     </el-form>
   </el-popover>
 </template>

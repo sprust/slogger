@@ -152,7 +152,6 @@ readonly class FindTracesAction
                     duration: $traceDto->duration,
                     memory: $traceDto->memory,
                     cpu: $traceDto->cpu,
-                    hasProfiling: $traceDto->hasProfiling,
                     additionalFields: $this->makeTraceAdditionalFields(
                         data: $traceDto->data,
                         additionalFields: $parameters->data?->fields ?: []
@@ -204,7 +203,6 @@ readonly class FindTracesAction
             cpuFrom: $parameters->cpuFrom,
             cpuTo: $parameters->cpuTo,
             data: $parameters->data,
-            hasProfiling: $parameters->hasProfiling,
         );
     }
 

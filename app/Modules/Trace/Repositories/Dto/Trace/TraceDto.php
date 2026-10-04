@@ -24,7 +24,6 @@ readonly class TraceDto
         public ?float $duration,
         public ?float $memory,
         public ?float $cpu,
-        public bool $hasProfiling,
         public Carbon $loggedAt,
         public Carbon $createdAt,
         public Carbon $updatedAt

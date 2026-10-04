@@ -115,10 +115,6 @@ export function makeOtherFiltersTitles(payload: TraceAggregatorPayload): string[
         )
     }
 
-    if (payload.has_profiling) {
-        titles.push('Has profiling')
-    }
-
     return titles
 }
 

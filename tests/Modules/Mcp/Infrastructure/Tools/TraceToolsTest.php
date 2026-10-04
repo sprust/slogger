@@ -324,7 +324,6 @@ class TraceToolsTest extends TestCase
             duration: 0.5,
             memory: 12.0,
             cpu: 1.0,
-            hasProfiling: false,
             loggedAt: $now,
             createdAt: $now,
             updatedAt: $now

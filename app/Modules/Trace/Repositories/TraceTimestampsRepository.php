@@ -70,7 +70,6 @@ readonly class TraceTimestampsRepository
         ?float $cpuFrom = null,
         ?float $cpuTo = null,
         ?TraceDataFilterParameters $data = null,
-        ?bool $hasProfiling = null
     ): TraceTimestampsListDto {
         $condition = $this->filterBuilder->build(
             serviceIds: $serviceIds,
@@ -91,7 +90,6 @@ readonly class TraceTimestampsRepository
             cpuFrom: $cpuFrom,
             cpuTo: $cpuTo,
             data: $data,
-            hasProfiling: $hasProfiling,
         );
 
         /**

@@ -137,7 +137,6 @@ readonly class FindTraceTimestampsAction
                     cpuFrom: $parameters->cpuFrom,
                     cpuTo: $parameters->cpuTo,
                     data: $data,
-                    hasProfiling: $parameters->hasProfiling,
                 )
             );
 

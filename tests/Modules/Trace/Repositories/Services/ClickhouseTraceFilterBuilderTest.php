@@ -58,12 +58,6 @@ class ClickhouseTraceFilterBuilderTest extends TestCase
         self::assertSame(0.5, $condition->params['f7']);
     }
 
-    public function testNoTraceHasProfiling(): void
-    {
-        self::assertSame('0', $this->builder()->build(hasProfiling: true)->sql);
-        self::assertSame('1', $this->builder()->build(hasProfiling: false)->sql);
-    }
-
     public function testNumberIsComparedAsANumber(): void
     {
         $condition = $this->builder()->build(

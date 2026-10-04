@@ -44,7 +44,6 @@ readonly class FindTraceDetailAction
             duration: $trace->duration,
             memory: $trace->memory,
             cpu: $trace->cpu,
-            hasProfiling: $trace->hasProfiling,
             loggedAt: $trace->loggedAt,
             createdAt: $trace->createdAt,
             updatedAt: $trace->updatedAt,

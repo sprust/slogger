@@ -239,19 +239,6 @@ class RequestFilterRules
     }
 
     /**
-     * @return array<string, string[]>
-     */
-    public static function hasProfiling(): array
-    {
-        return [
-            'has_profiling' => [
-                'sometimes',
-                'boolean',
-            ],
-        ];
-    }
-
-    /**
      * @return array<string, array<int, string|Closure>>
      */
     public static function durationFromTo(): array

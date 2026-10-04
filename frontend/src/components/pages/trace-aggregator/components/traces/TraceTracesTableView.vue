@@ -43,14 +43,6 @@
             <el-text>
               {{ props.row.trace.logged_at }}
             </el-text>
-            <el-button
-                v-if="props.row.trace.has_profiling"
-                type="info"
-                @click="$emit('profiling', props.row.trace.trace_id)"
-                link
-            >
-              profiling
-            </el-button>
           </el-space>
         </el-row>
         <el-row>
@@ -199,7 +191,6 @@ export default defineComponent({
     'tree-parent',
     'tree-current',
     'trace-id-filter',
-    'profiling',
     'update:searchQuery',
     'update:searchInValues',
   ],

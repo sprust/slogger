@@ -609,7 +609,6 @@ export namespace AdminApi {
     duration?: number | null,
     memory?: number | null,
     cpu?: number | null,
-    has_profiling: boolean,
     additional_fields: ({
     key: string,
     values: (string)[],
@@ -717,7 +716,6 @@ export namespace AdminApi {
         }[];
         fields?: string[];
       };
-      has_profiling?: boolean;
     };
     export type RequestHeaders = {};
     export type ResponseBody = {
@@ -736,7 +734,6 @@ export namespace AdminApi {
             duration?: number | null;
             memory?: number | null;
             cpu?: number | null;
-            has_profiling: boolean;
             additional_fields: {
               key: string;
               values: string[];
@@ -1255,174 +1252,6 @@ export namespace AdminApi {
 
   /**
  * No description
- * @name TraceAggregatorTracesProfilingCreate
- * @request POST:/admin-api/trace-aggregator/traces/{traceId}/profiling
- * @secure
- * @response `200` `{
-    data: {
-    nodes: ({
-    id: number,
-    calling: string,
-    data: ({
-    name: string,
-    value: number,
-    weight_percent: number,
-
-})[],
-    recursionNodeId?: number | null,
-    children?: ({
-    id: number,
-    calling: string,
-    data: ({
-    name: string,
-    value: number,
-    weight_percent: number,
-
-})[],
-    recursionNodeId?: number | null,
-    children?: ({
-    id: number,
-    calling: string,
-    data: ({
-    name: string,
-    value: number,
-    weight_percent: number,
-
-})[],
-    recursionNodeId?: number | null,
-    children?: ({
-    id: number,
-    calling: string,
-    data: ({
-    name: string,
-    value: number,
-    weight_percent: number,
-
-})[],
-    recursionNodeId?: number | null,
-    children?: ({
-    id: number,
-    calling: string,
-    data: ({
-    name: string,
-    value: number,
-    weight_percent: number,
-
-})[],
-    recursionNodeId?: number | null,
-    children?: ({
-    id: number,
-    calling: string,
-  /** @maxItems 0 *\/
-    data: (string)[],
-    recursionNodeId?: number | null,
-  /** @maxItems 0 *\/
-    children?: (string)[] | null,
-
-})[] | null,
-
-})[] | null,
-
-})[] | null,
-
-})[] | null,
-
-})[] | null,
-
-})[],
-
-},
-
-}` description
-*/
-  export namespace TraceAggregatorTracesProfilingCreate {
-    export type RequestParams = {
-      traceId: any;
-    };
-    export type RequestQuery = {};
-    export type RequestBody = {
-      /** @minLength 1 */
-      caller?: string | null;
-      excluded_callers?: string[];
-    };
-    export type RequestHeaders = {};
-    export type ResponseBody = {
-      data: {
-        nodes: {
-          id: number;
-          calling: string;
-          data: {
-            name: string;
-            value: number;
-            weight_percent: number;
-          }[];
-          recursionNodeId?: number | null;
-          children?:
-            | {
-                id: number;
-                calling: string;
-                data: {
-                  name: string;
-                  value: number;
-                  weight_percent: number;
-                }[];
-                recursionNodeId?: number | null;
-                children?:
-                  | {
-                      id: number;
-                      calling: string;
-                      data: {
-                        name: string;
-                        value: number;
-                        weight_percent: number;
-                      }[];
-                      recursionNodeId?: number | null;
-                      children?:
-                        | {
-                            id: number;
-                            calling: string;
-                            data: {
-                              name: string;
-                              value: number;
-                              weight_percent: number;
-                            }[];
-                            recursionNodeId?: number | null;
-                            children?:
-                              | {
-                                  id: number;
-                                  calling: string;
-                                  data: {
-                                    name: string;
-                                    value: number;
-                                    weight_percent: number;
-                                  }[];
-                                  recursionNodeId?: number | null;
-                                  children?:
-                                    | {
-                                        id: number;
-                                        calling: string;
-                                        /** @maxItems 0 */
-                                        data: string[];
-                                        recursionNodeId?: number | null;
-                                        /** @maxItems 0 */
-                                        children?: string[] | null;
-                                      }[]
-                                    | null;
-                                }[]
-                              | null;
-                          }[]
-                        | null;
-                    }[]
-                  | null;
-              }[]
-            | null;
-        }[];
-      };
-    };
-  }
-
-  /**
- * No description
  * @name TraceAggregatorTracesContentTypesCreate
  * @request POST:/admin-api/trace-aggregator/traces-content/types
  * @secure
@@ -1512,7 +1341,6 @@ export namespace AdminApi {
           };
         }[];
       };
-      has_profiling?: boolean;
     };
     export type RequestHeaders = {};
     export type ResponseBody = {
@@ -1614,7 +1442,6 @@ export namespace AdminApi {
           };
         }[];
       };
-      has_profiling?: boolean;
     };
     export type RequestHeaders = {};
     export type ResponseBody = {
@@ -1716,7 +1543,6 @@ export namespace AdminApi {
           };
         }[];
       };
-      has_profiling?: boolean;
     };
     export type RequestHeaders = {};
     export type ResponseBody = {
@@ -1831,7 +1657,6 @@ export namespace AdminApi {
           };
         }[];
       };
-      has_profiling?: boolean;
     };
     export type RequestHeaders = {};
     export type ResponseBody = {
@@ -5486,7 +5311,6 @@ export class Api<
     duration?: number | null,
     memory?: number | null,
     cpu?: number | null,
-    has_profiling: boolean,
     additional_fields: ({
     key: string,
     values: (string)[],
@@ -5592,7 +5416,6 @@ export class Api<
           }[];
           fields?: string[];
         };
-        has_profiling?: boolean;
       },
       params: RequestParams = {},
     ) =>
@@ -5613,7 +5436,6 @@ export class Api<
                 duration?: number | null;
                 memory?: number | null;
                 cpu?: number | null;
-                has_profiling: boolean;
                 additional_fields: {
                   key: string;
                   values: string[];
@@ -6207,183 +6029,6 @@ export class Api<
     /**
  * No description
  *
- * @name TraceAggregatorTracesProfilingCreate
- * @request POST:/admin-api/trace-aggregator/traces/{traceId}/profiling
- * @secure
- * @response `200` `{
-    data: {
-    nodes: ({
-    id: number,
-    calling: string,
-    data: ({
-    name: string,
-    value: number,
-    weight_percent: number,
-
-})[],
-    recursionNodeId?: number | null,
-    children?: ({
-    id: number,
-    calling: string,
-    data: ({
-    name: string,
-    value: number,
-    weight_percent: number,
-
-})[],
-    recursionNodeId?: number | null,
-    children?: ({
-    id: number,
-    calling: string,
-    data: ({
-    name: string,
-    value: number,
-    weight_percent: number,
-
-})[],
-    recursionNodeId?: number | null,
-    children?: ({
-    id: number,
-    calling: string,
-    data: ({
-    name: string,
-    value: number,
-    weight_percent: number,
-
-})[],
-    recursionNodeId?: number | null,
-    children?: ({
-    id: number,
-    calling: string,
-    data: ({
-    name: string,
-    value: number,
-    weight_percent: number,
-
-})[],
-    recursionNodeId?: number | null,
-    children?: ({
-    id: number,
-    calling: string,
-  /** @maxItems 0 *\/
-    data: (string)[],
-    recursionNodeId?: number | null,
-  /** @maxItems 0 *\/
-    children?: (string)[] | null,
-
-})[] | null,
-
-})[] | null,
-
-})[] | null,
-
-})[] | null,
-
-})[] | null,
-
-})[],
-
-},
-
-}` description
- */
-    traceAggregatorTracesProfilingCreate: (
-      traceId: any,
-      data: {
-        /** @minLength 1 */
-        caller?: string | null;
-        excluded_callers?: string[];
-      },
-      params: RequestParams = {},
-    ) =>
-      this.request<
-        {
-          data: {
-            nodes: {
-              id: number;
-              calling: string;
-              data: {
-                name: string;
-                value: number;
-                weight_percent: number;
-              }[];
-              recursionNodeId?: number | null;
-              children?:
-                | {
-                    id: number;
-                    calling: string;
-                    data: {
-                      name: string;
-                      value: number;
-                      weight_percent: number;
-                    }[];
-                    recursionNodeId?: number | null;
-                    children?:
-                      | {
-                          id: number;
-                          calling: string;
-                          data: {
-                            name: string;
-                            value: number;
-                            weight_percent: number;
-                          }[];
-                          recursionNodeId?: number | null;
-                          children?:
-                            | {
-                                id: number;
-                                calling: string;
-                                data: {
-                                  name: string;
-                                  value: number;
-                                  weight_percent: number;
-                                }[];
-                                recursionNodeId?: number | null;
-                                children?:
-                                  | {
-                                      id: number;
-                                      calling: string;
-                                      data: {
-                                        name: string;
-                                        value: number;
-                                        weight_percent: number;
-                                      }[];
-                                      recursionNodeId?: number | null;
-                                      children?:
-                                        | {
-                                            id: number;
-                                            calling: string;
-                                            /** @maxItems 0 */
-                                            data: string[];
-                                            recursionNodeId?: number | null;
-                                            /** @maxItems 0 */
-                                            children?: string[] | null;
-                                          }[]
-                                        | null;
-                                    }[]
-                                  | null;
-                              }[]
-                            | null;
-                        }[]
-                      | null;
-                  }[]
-                | null;
-            }[];
-          };
-        },
-        any
-      >({
-        path: `/admin-api/trace-aggregator/traces/${traceId}/profiling`,
-        method: "POST",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
- * No description
- *
  * @name TraceAggregatorTracesContentTypesCreate
  * @request POST:/admin-api/trace-aggregator/traces-content/types
  * @secure
@@ -6471,7 +6116,6 @@ export class Api<
             };
           }[];
         };
-        has_profiling?: boolean;
       },
       params: RequestParams = {},
     ) =>
@@ -6583,7 +6227,6 @@ export class Api<
             };
           }[];
         };
-        has_profiling?: boolean;
       },
       params: RequestParams = {},
     ) =>
@@ -6695,7 +6338,6 @@ export class Api<
             };
           }[];
         };
-        has_profiling?: boolean;
       },
       params: RequestParams = {},
     ) =>
@@ -6820,7 +6462,6 @@ export class Api<
             };
           }[];
         };
-        has_profiling?: boolean;
       },
       params: RequestParams = {},
     ) =>

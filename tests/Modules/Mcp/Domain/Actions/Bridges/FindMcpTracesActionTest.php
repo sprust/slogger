@@ -43,7 +43,6 @@ class FindMcpTracesActionTest extends TestCase
         $this->assertSame(3.0, $this->captured->durationTo);
         $this->assertSame('dt.response.status', $this->captured->data?->filter[0]->field);
         $this->assertSame(['request.uri'], $this->captured->data->fields);
-        $this->assertNull($this->captured->hasProfiling);
         $this->assertNull($this->captured->traceId);
         $this->assertSame('2026-09-28 10:00:00', $this->captured->loggingPeriod?->from?->toDateTimeString());
     }

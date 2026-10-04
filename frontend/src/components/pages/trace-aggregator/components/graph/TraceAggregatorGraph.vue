@@ -85,7 +85,6 @@ export default defineComponent({
       this.traceAggregatorGraphStore.payload.cpu_from = this.traceAggregatorStore.payload.cpu_from
       this.traceAggregatorGraphStore.payload.cpu_to = this.traceAggregatorStore.payload.cpu_to
       this.traceAggregatorGraphStore.payload.data = this.traceAggregatorStore.payload.data
-      this.traceAggregatorGraphStore.payload.has_profiling = this.traceAggregatorStore.payload.has_profiling
 
       this.traceAggregatorGraphStore
           .findMetrics(

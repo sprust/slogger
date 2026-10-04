@@ -37,7 +37,6 @@ readonly class FindTypesAction
             cpuFrom: $parameters->cpuFrom,
             cpuTo: $parameters->cpuTo,
             data: $parameters->data,
-            hasProfiling: $parameters->hasProfiling,
         );
     }
 }

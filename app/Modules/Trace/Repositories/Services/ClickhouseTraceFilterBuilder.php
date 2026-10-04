@@ -68,7 +68,6 @@ readonly class ClickhouseTraceFilterBuilder
         ?float $cpuFrom = null,
         ?float $cpuTo = null,
         ?TraceDataFilterParameters $data = null,
-        ?bool $hasProfiling = null,
     ): TraceSqlConditionDto {
         /** @var array<string, mixed> $params */
         $params = [];
@@ -111,11 +110,6 @@ readonly class ClickhouseTraceFilterBuilder
             if (!is_null($to)) {
                 $conditions[] = sprintf('%s <= %s', $column, $this->param($params, $to, 'Float64'));
             }
-        }
-
-        // Profiling is not stored: nothing has it.
-        if ($hasProfiling === true) {
-            $conditions[] = '0';
         }
 
         foreach ($data === null ? [] : $data->filter as $filterItem) {

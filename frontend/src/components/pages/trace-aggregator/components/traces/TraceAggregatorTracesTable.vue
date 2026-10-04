@@ -18,7 +18,6 @@
       @tree-parent="onClickTraceIdTreeParent"
       @tree-current="onClickTraceIdTreeCurrent"
       @trace-id-filter="onClickTraceIdFilter"
-      @profiling="onShowProfiling"
       @update:search-query="(value: string) => searchStore.query = value"
       @update:search-in-values="(value: boolean) => searchStore.inValues = value"
   />
@@ -38,7 +37,6 @@ import {traceAggregatorTabs, useTraceAggregatorTabsStore} from "../../store/trac
 import {useTraceAggregatorTreeStore} from "../tree/store/traceAggregatorTreeStore.ts";
 import {useTraceAggregatorDataStore} from "../trace/store/traceAggregatorDataStore.ts";
 import {useTraceAggregatorDataSearchStore} from "../trace/store/traceAggregatorDataSearchStore.ts";
-import {useTraceAggregatorProfilingStore} from "../profiling/store/traceAggregatorProfilingStore.ts";
 
 export default defineComponent({
   components: {TraceTracesTableView},
@@ -65,9 +63,6 @@ export default defineComponent({
     },
     traceAggregatorTabsStore() {
       return useTraceAggregatorTabsStore()
-    },
-    traceAggregatorProfilingStore() {
-      return useTraceAggregatorProfilingStore()
     },
     searchStore() {
       return useTraceAggregatorDataSearchStore()
@@ -102,11 +97,6 @@ export default defineComponent({
       this.traceAggregatorTreeStore.initTreeCurrent(traceId)
 
       this.traceAggregatorTabsStore.setCurrentTab(traceAggregatorTabs.tree)
-    },
-    onShowProfiling(traceId: string) {
-      this.traceAggregatorProfilingStore.findProfiling(traceId)
-
-      this.traceAggregatorTabsStore.setCurrentTab(traceAggregatorTabs.profiling)
     },
     onClickTraceIdFilter(traceId: string) {
       if (traceId === this.payload.trace_id) {
