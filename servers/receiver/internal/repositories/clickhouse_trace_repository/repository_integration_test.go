@@ -40,6 +40,7 @@ func TestInsertTwiceAndReadTheLatestVersion(t *testing.T) {
 
 	loggedAt := time.Date(2026, 9, 29, 10, 0, 0, 123456000, time.UTC)
 	duration := 0.2
+	pid := uint32(4194304)
 
 	row := func(status string, updatedAt time.Time) Row {
 		return Row{
@@ -51,6 +52,7 @@ func TestInsertTwiceAndReadTheLatestVersion(t *testing.T) {
 			Data:      json.RawMessage(`{"code":200}`),
 			RawData:   `{"code":200}`,
 			Duration:  &duration,
+			Pid:       &pid,
 			LoggedAt:  loggedAt.Format(TimeLayout),
 			CreatedAt: loggedAt.Format(TimeLayout),
 			UpdatedAt: updatedAt.Format(TimeLayout),
@@ -79,7 +81,7 @@ func TestInsertTwiceAndReadTheLatestVersion(t *testing.T) {
 
 	stored := found[key]
 
-	if stored.Status != "success" || stored.Type != "request" || *stored.Duration != 0.2 || stored.RawData != `{"code":200}` {
+	if stored.Status != "success" || stored.Type != "request" || *stored.Duration != 0.2 || stored.Pid == nil || *stored.Pid != pid || stored.RawData != `{"code":200}` {
 		t.Fatalf("expected the latest version, got %+v", stored)
 	}
 

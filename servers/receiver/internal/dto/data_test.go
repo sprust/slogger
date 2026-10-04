@@ -162,3 +162,25 @@ func TestInvalidUtf8BecomesTheReplacementCharacter(t *testing.T) {
 		t.Fatalf("got %q", raw)
 	}
 }
+
+func TestACreateCarriesIsPAndPid(t *testing.T) {
+	var creating []TraceCreating
+
+	payload := `[{"tid":"1","isP":true,"pid":4194304},{"tid":"2","isP":false,"pid":null},{"tid":"3"}]`
+
+	if err := json.Unmarshal([]byte(payload), &creating); err != nil {
+		t.Fatal(err)
+	}
+
+	if creating[0].IsParent == nil || !*creating[0].IsParent || creating[0].Pid == nil || *creating[0].Pid != 4194304 {
+		t.Fatalf("trace 1: isP %v, pid %v", creating[0].IsParent, creating[0].Pid)
+	}
+
+	if creating[1].IsParent == nil || *creating[1].IsParent || creating[1].Pid != nil {
+		t.Fatalf("trace 2: isP %v, pid %v", creating[1].IsParent, creating[1].Pid)
+	}
+
+	if creating[2].IsParent != nil || creating[2].Pid != nil {
+		t.Fatalf("trace 3: isP %v, pid %v", creating[2].IsParent, creating[2].Pid)
+	}
+}

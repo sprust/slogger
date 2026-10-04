@@ -35,6 +35,7 @@ type PendingTrace struct {
 	Duration       *float64
 	Memory         *float64
 	Cpu            *float64
+	Pid            *uint32
 	HasUpdate      bool
 	CreatedAtMicro int64
 	// Done marks a trace that came complete: nothing but the id is kept, so that a create
@@ -62,6 +63,7 @@ type document struct {
 	Duration       *float64  `bson:"dur"`
 	Memory         *float64  `bson:"mem"`
 	Cpu            *float64  `bson:"cpu"`
+	Pid            *uint32   `bson:"pid"`
 	HasUpdate      bool      `bson:"hu"`
 	CreatedAtMicro int64     `bson:"cat"`
 	Done           bool      `bson:"dn,omitempty"`
@@ -130,6 +132,7 @@ func (r *Repository) FindMany(ctx context.Context, ids []string) (map[string]Pen
 			Duration:       doc.Duration,
 			Memory:         doc.Memory,
 			Cpu:            doc.Cpu,
+			Pid:            doc.Pid,
 			HasUpdate:      doc.HasUpdate,
 			CreatedAtMicro: doc.CreatedAtMicro,
 			Done:           doc.Done,
@@ -187,6 +190,7 @@ func (r *Repository) Apply(ctx context.Context, save []PendingTrace, forget []st
 					Duration:       trace.Duration,
 					Memory:         trace.Memory,
 					Cpu:            trace.Cpu,
+					Pid:            trace.Pid,
 					HasUpdate:      trace.HasUpdate,
 					CreatedAtMicro: trace.CreatedAtMicro,
 					UpdatedAt:      now,

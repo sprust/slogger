@@ -308,3 +308,40 @@ func readStored(t *testing.T, doc bson.M) dto.Data {
 
 	return data
 }
+
+// isP and pid of a create travel through the buffer, and a create without them reads back
+// without them.
+func TestACreateKeepsIsPAndPidThroughTheBuffer(t *testing.T) {
+	isParent := false
+	pid := uint32(4194304)
+
+	read := creatingFromStored(t, Get().makeCreatingTraceDoc(7, dto.TraceCreating{TraceId: "trace-1", IsParent: &isParent, Pid: &pid}))
+
+	if read.IsParent == nil || *read.IsParent || read.Pid == nil || *read.Pid != pid {
+		t.Fatalf("isP and pid did not come back: %v, %v", read.IsParent, read.Pid)
+	}
+
+	read = creatingFromStored(t, Get().makeCreatingTraceDoc(7, dto.TraceCreating{TraceId: "trace-1"}))
+
+	if read.IsParent != nil || read.Pid != nil {
+		t.Fatalf("a create without isP and pid came back with them: %v, %v", read.IsParent, read.Pid)
+	}
+}
+
+func creatingFromStored(t *testing.T, doc bson.M) *dto.TraceCreating {
+	t.Helper()
+
+	raw, err := bson.Marshal(doc)
+
+	if err != nil {
+		t.Fatalf("bson.Marshal: %v", err)
+	}
+
+	var decoded bson.M
+
+	if err := bson.Unmarshal(raw, &decoded); err != nil {
+		t.Fatalf("bson.Unmarshal: %v", err)
+	}
+
+	return creatingFromDoc(decoded, "trace-1", dto.Data{})
+}

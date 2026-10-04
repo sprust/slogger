@@ -45,6 +45,7 @@ type StoredTrace struct {
 	Duration      *float64
 	Memory        *float64
 	Cpu           *float64
+	Pid           *uint32
 	CreatedAt     time.Time
 }
 
@@ -61,6 +62,7 @@ type Row struct {
 	Duration      *float64        `json:"dur"`
 	Memory        *float64        `json:"mem"`
 	Cpu           *float64        `json:"cpu"`
+	Pid           *uint32         `json:"pid"`
 	LoggedAt      string          `json:"lat"`
 	CreatedAt     string          `json:"cat"`
 	UpdatedAt     string          `json:"uat"`
@@ -78,6 +80,7 @@ type storedRow struct {
 	Duration      *float64 `json:"dur"`
 	Memory        *float64 `json:"mem"`
 	Cpu           *float64 `json:"cpu"`
+	Pid           *uint32  `json:"pid"`
 	CreatedAt     string   `json:"cat"`
 }
 
@@ -136,7 +139,7 @@ func (r *Repository) FindExisting(ctx context.Context, keys []Key) (map[Key]Stor
 }
 
 func (r *Repository) findExisting(ctx context.Context, keys []Key, result map[Key]StoredTrace) error {
-	query := "SELECT sid, tid, lat, ptid, tp, st, tgs, dt_raw, dur, mem, cpu, cat FROM traces FINAL " +
+	query := "SELECT sid, tid, lat, ptid, tp, st, tgs, dt_raw, dur, mem, cpu, pid, cat FROM traces FINAL " +
 		"WHERE (sid, lat, tid) IN {keys:Array(Tuple(UInt32, DateTime64(6, 'UTC'), String))} " +
 		"FORMAT JSONEachRow"
 
@@ -192,6 +195,7 @@ func (r *Repository) findExisting(ctx context.Context, keys []Key, result map[Ke
 			Duration:      row.Duration,
 			Memory:        row.Memory,
 			Cpu:           row.Cpu,
+			Pid:           row.Pid,
 			CreatedAt:     createdAt.UTC(),
 		}
 	}

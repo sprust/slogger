@@ -72,6 +72,7 @@ func storedFrom(row clickhouse_trace_repository.Row) *clickhouse_trace_repositor
 		Duration:      row.Duration,
 		Memory:        row.Memory,
 		Cpu:           row.Cpu,
+		Pid:           row.Pid,
 		CreatedAt:     createdAt,
 	}
 }
@@ -259,7 +260,7 @@ func isDoneMark(saved []pending_trace_repository.PendingTrace) bool {
 	return len(saved) == 1 && saved[0].Done && saved[0].TraceId == "trace-1" && saved[0].RawData == ""
 }
 
-func TestAStartedCreateIsInsertedAndKeptPending(t *testing.T) {
+func TestACreateWithoutIsPIsInsertedAndKeptPending(t *testing.T) {
 	store, pending := &fakeStore{}, &fakePending{}
 
 	if _, err := New(store, pending).Save(context.Background(), batch(1, creating(t), nil)); err != nil {
@@ -461,6 +462,7 @@ func TestACreateWithoutATypeIsWritten(t *testing.T) {
 	trace := creating(t)
 	trace.Type = ""
 	trace.Status = "success"
+	trace.IsParent = boolean(false)
 
 	if _, err := New(store, pending).Save(context.Background(), batch(1, trace, nil)); err != nil {
 		t.Fatal(err)
@@ -468,5 +470,117 @@ func TestACreateWithoutATypeIsWritten(t *testing.T) {
 
 	if len(store.inserted) != 1 || store.inserted[0].Type != unknownTraceType || len(pending.saved) != 0 {
 		t.Fatalf("the create was not written: %+v, pending %+v", store.inserted, pending.saved)
+	}
+}
+
+func boolean(value bool) *bool {
+	return &value
+}
+
+func uint32Of(value uint32) *uint32 {
+	return &value
+}
+
+func TestAParentIsKeptPendingWhateverItsStatus(t *testing.T) {
+	store, pending := &fakeStore{}, &fakePending{}
+
+	create := creating(t)
+	create.Status = "running"
+	create.IsParent = boolean(true)
+
+	if _, err := New(store, pending).Save(context.Background(), batch(1, create, nil)); err != nil {
+		t.Fatal(err)
+	}
+
+	if len(store.inserted) != 1 || store.inserted[0].Status != "running" {
+		t.Fatalf("the parent was not inserted: %+v", store.inserted)
+	}
+
+	if len(pending.saved) != 1 || pending.saved[0].Done || pending.saved[0].HasUpdate {
+		t.Fatalf("the parent was not kept pending: %+v", pending.saved)
+	}
+}
+
+func TestACreateWithNoUpdateToComeIsNotKeptPending(t *testing.T) {
+	store, pending := &fakeStore{}, &fakePending{}
+
+	create := creating(t)
+	create.IsParent = boolean(false)
+
+	if _, err := New(store, pending).Save(context.Background(), batch(1, create, nil)); err != nil {
+		t.Fatal(err)
+	}
+
+	if len(store.inserted) != 1 || store.inserted[0].Status != "started" {
+		t.Fatalf("the create was not inserted: %+v", store.inserted)
+	}
+
+	if len(pending.saved) != 0 || len(pending.forgot) != 0 {
+		t.Fatalf("the create was kept pending: %+v / %v", pending.saved, pending.forgot)
+	}
+}
+
+// The status means nothing to the receiver: a create that does not say isP false waits
+// for its update whatever status it brought.
+func TestACreateWithoutIsPWaitsWhateverItsStatus(t *testing.T) {
+	store, pending := &fakeStore{}, &fakePending{}
+
+	create := creating(t)
+	create.Status = "success"
+
+	if _, err := New(store, pending).Save(context.Background(), batch(1, create, nil)); err != nil {
+		t.Fatal(err)
+	}
+
+	if len(store.inserted) != 1 || len(pending.saved) != 1 || pending.saved[0].Done {
+		t.Fatalf("expected an insert and the create pending, got %+v / %+v", store.inserted, pending.saved)
+	}
+}
+
+func TestThePidOfTheCreateOutlivesItsPendingWait(t *testing.T) {
+	store, pending := &fakeStore{}, &fakePending{}
+
+	create := creating(t)
+	create.Pid = uint32Of(321)
+
+	if _, err := New(store, pending).Save(context.Background(), batch(1, create, nil)); err != nil {
+		t.Fatal(err)
+	}
+
+	if store.inserted[0].Pid == nil || *store.inserted[0].Pid != 321 || pending.saved[0].Pid == nil {
+		t.Fatalf("the pid was not written and kept: %+v / %+v", store.inserted[0], pending.saved[0])
+	}
+
+	pending.traces = map[string]pending_trace_repository.PendingTrace{pending_trace_repository.Id(1, "trace-1"): pending.saved[0]}
+
+	if _, err := New(store, pending).Save(context.Background(), batch(1, nil, updating(t))); err != nil {
+		t.Fatal(err)
+	}
+
+	if row := store.inserted[0]; row.Status != "success" || row.Pid == nil || *row.Pid != 321 {
+		t.Fatalf("the update lost the pid: %+v", row)
+	}
+}
+
+func TestAnUpdateKeepsThePidStoredInClickHouse(t *testing.T) {
+	merged := mergeTrace(
+		1,
+		"trace-1",
+		&dto.Traces{Updating: updating(t)},
+		&clickhouse_trace_repository.StoredTrace{Type: "request", Status: "started", Pid: uint32Of(77), CreatedAt: firstAt},
+		loggedAt,
+		secondAt,
+	)
+
+	if merged.row.Pid == nil || *merged.row.Pid != 77 {
+		t.Fatalf("the stored pid was lost: %v", merged.row.Pid)
+	}
+}
+
+func TestATraceWithoutAPidHasNone(t *testing.T) {
+	merged := mergeTrace(1, "trace-1", &dto.Traces{Creating: creating(t), Updating: updating(t)}, nil, loggedAt, firstAt)
+
+	if merged.row.Pid != nil {
+		t.Fatalf("a pid appeared from nowhere: %v", *merged.row.Pid)
 	}
 }

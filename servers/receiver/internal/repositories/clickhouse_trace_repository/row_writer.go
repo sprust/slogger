@@ -54,6 +54,14 @@ func appendRow(buffer []byte, row *Row) ([]byte, error) {
 		}
 	}
 
+	buffer = append(buffer, `,"pid":`...)
+
+	if row.Pid == nil {
+		buffer = append(buffer, "null"...)
+	} else {
+		buffer = strconv.AppendUint(buffer, uint64(*row.Pid), 10)
+	}
+
 	buffer = append(buffer, `,"lat":`...)
 	buffer = appendString(buffer, row.LoggedAt)
 	buffer = append(buffer, `,"cat":`...)

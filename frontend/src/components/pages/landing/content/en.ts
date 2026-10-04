@@ -203,6 +203,8 @@ cd slogger`},
   "dur":  null,             // duration, usually unknown at the start
   "mem":  41.5,             // memory, % (optional)
   "cpu":  12.3,             // CPU, % (optional)
+  "isP":  true,             // an update will follow (optional)
+  "pid":  4321,             // process id (optional)
   "lat":  "2026-06-21 14:00:00.000000"  // logged-at time
 }`,
         updateCaption: 'Trace update, the end of an operation:',
@@ -218,6 +220,7 @@ cd slogger`},
 }`,
         notes: [
             'A trace can be sent in one create message if its result is known at once; the update is optional.',
+            'isP of the create says whether an update follows: false writes the trace as final, true or no isP keeps it waiting for the update, whatever its status.',
             'The create and the update with the same tid are merged into one row. The update replaces only the fields it carries.',
             'The connection is long-lived: the server does not close an idle connection, so a client can keep an authenticated socket between bursts of traces.',
         ],

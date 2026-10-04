@@ -26,6 +26,10 @@ type TraceCreating struct {
 	Memory        *float64      `json:"mem,omitempty"`
 	Cpu           *float64      `json:"cpu,omitempty"`
 	LoggedAt      interface{}   `json:"lat"`
+	// IsParent says whether an update is to come: false writes the trace as final, true or
+	// absent keeps it pending until the update does.
+	IsParent *bool   `json:"isP,omitempty"`
+	Pid      *uint32 `json:"pid,omitempty"`
 	// ReceivedAt is when the buffer took the trace in. Not part of the message: it is
 	// read back from the buffer document, which is the only place that knows it.
 	ReceivedAt time.Time `json:"-"`

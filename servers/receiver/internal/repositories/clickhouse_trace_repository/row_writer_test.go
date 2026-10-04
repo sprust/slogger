@@ -12,6 +12,10 @@ func float(value float64) *float64 {
 	return &value
 }
 
+func pid(value uint32) *uint32 {
+	return &value
+}
+
 // encoded is what the rows were written as before appendRow: json.Encoder, HTML escaping off.
 func encoded(t *testing.T, row Row) string {
 	t.Helper()
@@ -52,6 +56,7 @@ func sampleRow() Row {
 		Duration:      float(0.2),
 		Memory:        nil,
 		Cpu:           float(35.12),
+		Pid:           pid(4194304),
 		LoggedAt:      "2026-09-29 10:00:00.123456",
 		CreatedAt:     "2026-09-29 10:00:01.000000",
 		UpdatedAt:     "2026-09-29 10:00:05.000000",
@@ -140,5 +145,18 @@ func TestANumberJsonCannotHoldIsAnError(t *testing.T) {
 		if _, err := appendRow(nil, &row); err == nil {
 			t.Fatalf("%v was written", number)
 		}
+	}
+}
+
+func TestNoPidIsNull(t *testing.T) {
+	row := sampleRow()
+	row.Pid = nil
+
+	if got, want := written(t, row), encoded(t, row); got != want {
+		t.Fatalf("\n got %s\nwant %s", got, want)
+	}
+
+	if !bytes.Contains([]byte(written(t, row)), []byte(`,"pid":null,`)) {
+		t.Fatalf("no pid was not written as null: %s", written(t, row))
 	}
 }

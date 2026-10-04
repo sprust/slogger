@@ -202,38 +202,7 @@ func (r *Repository) FindMany(ctx context.Context, limit int) (map[int]*dto.Serv
 		}
 
 		if parsed.op == "c" {
-			trace := &dto.TraceCreating{
-				TraceId:  parsed.traceId,
-				Type:     asString(doc["tp"]),
-				Status:   asString(doc["st"]),
-				Tags:     asInterfaces(doc["tgs"]),
-				Data:     data,
-				LoggedAt: asLoggedAtString(doc["lat"]),
-			}
-
-			if receivedAt, ok := doc["cat"].(primitive.DateTime); ok {
-				trace.ReceivedAt = receivedAt.Time().UTC()
-			}
-
-			if ptid, ok := doc["ptid"]; ok {
-				ptidStr := asString(ptid)
-				trace.ParentTraceId = &ptidStr
-			}
-
-			if dur, ok := doc["dur"]; ok {
-				durFloat := asFloat64(dur)
-				trace.Duration = &durFloat
-			}
-
-			if mem, ok := doc["mem"]; ok {
-				memFloat := asFloat64(mem)
-				trace.Memory = &memFloat
-			}
-
-			if cpu, ok := doc["cpu"]; ok {
-				cpuFloat := asFloat64(cpu)
-				trace.Cpu = &cpuFloat
-			}
+			trace := creatingFromDoc(doc, parsed.traceId, data)
 
 			result[serviceId].AddCreating(trace)
 
@@ -506,6 +475,14 @@ func (r *Repository) makeCreatingTraceDoc(serviceId int, trace dto.TraceCreating
 		doc["cpu"] = *trace.Cpu
 	}
 
+	if trace.IsParent != nil {
+		doc["isP"] = *trace.IsParent
+	}
+
+	if trace.Pid != nil {
+		doc["pid"] = int64(*trace.Pid)
+	}
+
 	return doc
 }
 
@@ -732,6 +709,53 @@ func failedIndexes(err error) (map[int]bool, bool) {
 // asInt reads a whole number in whatever width bson handed it back. The driver picks the
 // width from the value, so a service id is int32 today and int64 the day one gets large
 // enough — a single assertion would work until exactly then.
+// creatingFromDoc reads a create back from its buffer document.
+func creatingFromDoc(doc bson.M, traceId string, data dto.Data) *dto.TraceCreating {
+	trace := &dto.TraceCreating{
+		TraceId:  traceId,
+		Type:     asString(doc["tp"]),
+		Status:   asString(doc["st"]),
+		Tags:     asInterfaces(doc["tgs"]),
+		Data:     data,
+		LoggedAt: asLoggedAtString(doc["lat"]),
+	}
+
+	if receivedAt, ok := doc["cat"].(primitive.DateTime); ok {
+		trace.ReceivedAt = receivedAt.Time().UTC()
+	}
+
+	if ptid, ok := doc["ptid"]; ok {
+		ptidStr := asString(ptid)
+		trace.ParentTraceId = &ptidStr
+	}
+
+	if dur, ok := doc["dur"]; ok {
+		durFloat := asFloat64(dur)
+		trace.Duration = &durFloat
+	}
+
+	if mem, ok := doc["mem"]; ok {
+		memFloat := asFloat64(mem)
+		trace.Memory = &memFloat
+	}
+
+	if cpu, ok := doc["cpu"]; ok {
+		cpuFloat := asFloat64(cpu)
+		trace.Cpu = &cpuFloat
+	}
+
+	if isParent, ok := doc["isP"].(bool); ok {
+		trace.IsParent = &isParent
+	}
+
+	if pid, ok := asInt(doc["pid"]); ok && pid >= 0 && pid <= math.MaxUint32 {
+		pidValue := uint32(pid)
+		trace.Pid = &pidValue
+	}
+
+	return trace
+}
+
 func asInt(value interface{}) (int, bool) {
 	switch v := value.(type) {
 	case int:
