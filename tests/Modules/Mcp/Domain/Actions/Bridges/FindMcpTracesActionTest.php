@@ -35,7 +35,7 @@ class FindMcpTracesActionTest extends TestCase
         );
 
         $this->assertSame(3, $this->captured?->page);
-        $this->assertSame(20, $this->captured->perPage);
+        $this->assertSame(50, $this->captured->perPage);
         $this->assertSame([2], $this->captured->serviceIds);
         $this->assertSame(['request'], $this->captured->types);
         $this->assertSame(['failed'], $this->captured->statuses);

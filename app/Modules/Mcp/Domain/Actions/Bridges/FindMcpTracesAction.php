@@ -16,7 +16,7 @@ use App\Services\Clickhouse\ClickhouseQueryException;
 
 readonly class FindMcpTracesAction
 {
-    public const int PER_PAGE = 20;
+    public const int PER_PAGE = 50;
 
     public function __construct(
         private FindTracesAction $findTracesAction,

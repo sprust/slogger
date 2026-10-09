@@ -55,7 +55,7 @@
 
 ### Requirement: search_traces
 
-Инструмент `search_traces` с аргументами правила периода и необязательными `types`, `statuses`, `tags` (до 20 значений; `tags` — все должны быть у трейса), `duration_from`, `duration_to`, `data_filter`, `data_fields` и `page` SHALL возвращать страницу трейсов за период, новые первыми, до 20 трейсов. На трейс: `trace_id`, `parent_trace_id`, `type`, `status`, `tags`, `duration`, `memory`, `cpu`, `logged_at` и `data` — значения запрошенных `data_fields` по их ключам (ключа нет в `data`, если в трейсе нет поля). Ответ SHALL содержать `page` и `has_more` (страница полная).
+Инструмент `search_traces` с аргументами правила периода и необязательными `types`, `statuses`, `tags` (до 20 значений; `tags` — все должны быть у трейса), `duration_from`, `duration_to`, `data_filter`, `data_fields` и `page` SHALL возвращать страницу трейсов за период, новые первыми, до 50 трейсов. На трейс: `trace_id`, `parent_trace_id`, `type`, `status`, `tags`, `duration`, `memory`, `cpu`, `logged_at` и `data` — значения запрошенных `data_fields` по их ключам (ключа нет в `data`, если в трейсе нет поля). Ответ SHALL содержать `page` и `has_more` (страница полная).
 
 `data_filter` — до 3 условий строкой `<ключ> <оператор> <значение>`, где ключ — путь в `data` через точку из латинских букв, цифр и `_`; по пути через массив объектов и по пути к массиву скаляров условие выполняется, если подходит любой элемент:
 - `= != > >= < <=` с числом — числовое сравнение;
@@ -67,7 +67,7 @@
 
 #### Scenario: Упавшие трейсы
 - **WHEN** модель вызывает `search_traces` с `statuses: ["failed"]`
-- **THEN** ответ содержит до 20 упавших трейсов сервиса за период, новые первыми
+- **THEN** ответ содержит до 50 упавших трейсов сервиса за период, новые первыми
 
 #### Scenario: Фильтр и поля data
 - **WHEN** модель вызывает `search_traces` с `data_filter: ["response.status >= 500"]` и `data_fields: ["request.uri"]`

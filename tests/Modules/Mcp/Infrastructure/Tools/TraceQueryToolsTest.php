@@ -132,7 +132,7 @@ class TraceQueryToolsTest extends TestCase
 
     public function testFullPageHasMore(): void
     {
-        $result = $this->findTool(traceIds: array_map(static fn(int $i) => "t$i", range(1, 20)))
+        $result = $this->findTool(traceIds: array_map(static fn(int $i) => "t$i", range(1, FindMcpTracesAction::PER_PAGE)))
             ->call(new McpToolArguments([...self::SCOPE, 'page' => 2]));
 
         $this->assertTrue($result->data['has_more']);
