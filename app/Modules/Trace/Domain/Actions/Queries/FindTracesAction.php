@@ -24,7 +24,10 @@ readonly class FindTracesAction
     // the ids travel in the URL of the query, which ClickHouse caps at 1 MiB
     private const int TRACE_IDS_PER_QUERY = 5000;
 
-    private int $maxPerPage;
+    private const int DEFAULT_PER_PAGE = 20;
+
+    // MCP search_traces asks for 50
+    private const int MAX_PER_PAGE = 50;
 
     public function __construct(
         private TraceRepository $traceRepository,
@@ -32,7 +35,6 @@ readonly class FindTracesAction
         private TraceTreeCacheRepository $traceTreeCacheRepository,
         private FindTraceServicesAction $findTraceServicesAction
     ) {
-        $this->maxPerPage = 20;
     }
 
     /**
@@ -40,7 +42,7 @@ readonly class FindTracesAction
      */
     public function handle(TraceFindParameters $parameters): TraceItemObjects
     {
-        $perPage = min($parameters->perPage ?: $this->maxPerPage, $this->maxPerPage);
+        $perPage = min($parameters->perPage ?: self::DEFAULT_PER_PAGE, self::MAX_PER_PAGE);
 
         $traceIds = null;
 

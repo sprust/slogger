@@ -200,6 +200,28 @@ class FindTracesActionTest extends TestCase
         );
     }
 
+    public function testThePageSizeHasADefaultAndALimit(): void
+    {
+        $asked = [];
+
+        $traces = $this->createMock(TraceRepository::class);
+        $traces->method('find')->willReturnCallback(
+            function (...$arguments) use (&$asked): array {
+                $asked[] = $arguments[1];
+
+                return [];
+            }
+        );
+
+        $action = $this->action($traces, treeCacheExists: false, treeIdsBatches: []);
+
+        foreach ([null, 50, 100] as $perPage) {
+            $action->handle(new TraceFindParameters(page: 1, perPage: $perPage));
+        }
+
+        self::assertSame([20, 50, 50], $asked);
+    }
+
     /**
      * @param list<list<string>> $treeIdsBatches
      */
