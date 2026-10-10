@@ -230,7 +230,11 @@ return [
                     'maxConnections'     => (int) env('SCONCUR_WS_MAX_CONNECTIONS', 0),
 
                     'shutdownTimeoutMs'   => (int) env('SCONCUR_WS_SHUTDOWN_TIMEOUT_MS', 10000),
-                    'preemptionQuantumMs' => (int) env('SCONCUR_WS_PREEMPTION_QUANTUM_MS', 5),
+
+                    // Off, as in the library: with preemption on, a neighbour runs between
+                    // any two statements of a handler and overwrites the state PHP keeps per
+                    // process (json_last_error(), error_get_last(), output buffers).
+                    'preemptionQuantumMs' => (int) env('SCONCUR_WS_PREEMPTION_QUANTUM_MS', 0),
                 ],
             ],
             /*
@@ -411,17 +415,16 @@ return [
         // same 250 ms.
         'sleep_chunk_ms' => (int) env('SCONCUR_TASKS_SLEEP_CHUNK_MS', 250),
 
-        // Automatic coroutine switching, so a tick busy with pure computation cannot
-        // starve the controller that carries the shutdown — it is the controller's tick
-        // that delivers a signal and reads the control channel. Coarser than the
-        // library's 5 ms default on purpose: this is not a server with dozens of
-        // handlers sharing the thread and nobody here waits on a response, so the worst
-        // reaction to SIGTERM is this quantum plus a sleep chunk against a 20 s deadline.
+        // Automatic coroutine switching. Off, as in the library: with it on, another
+        // task runs between any two statements of a tick and overwrites the state PHP
+        // keeps per process (json_last_error(), error_get_last(), output buffers). Off,
+        // a tick busy with pure computation holds the controller, and with it the
+        // signal and the control channel, until it returns. See the package's
+        // docs/task-pool.md.
         //
-        // 0 turns it off, which is what a task holding a MySQL transaction on the shared
-        // connection needs: without per-coroutine connections, preemption lets another
-        // task's query land inside that transaction.
-        'preemption_quantum_ms' => (int) env('SCONCUR_TASKS_PREEMPTION_QUANTUM_MS', 1000),
+        // A task holding a MySQL transaction on the shared PDO connection needs it off
+        // too: preemption lets another task's query land inside that transaction.
+        'preemption_quantum_ms' => (int) env('SCONCUR_TASKS_PREEMPTION_QUANTUM_MS', 0),
 
         // The tick counters that fill the panel's "In-flight / Handled / Refused"
         // columns for this pool, sent as the snapshot's `consumers` section — a tick is
