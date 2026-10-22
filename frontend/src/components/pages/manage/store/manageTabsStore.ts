@@ -1,18 +1,19 @@
 import {defineStore} from "pinia";
 
-export const accessTabs = {
+export const manageTabs = {
     users: 'users',
     services: 'services',
+    settings: 'settings',
 }
 
-interface AccessTabsStoreInterface {
+interface ManageTabsStoreInterface {
     currentTab: string,
 }
 
-export const useAccessTabsStore = defineStore('accessTabsStore', {
-    state: (): AccessTabsStoreInterface => {
+export const useManageTabsStore = defineStore('manageTabsStore', {
+    state: (): ManageTabsStoreInterface => {
         return {
-            currentTab: accessTabs.users,
+            currentTab: manageTabs.users,
         }
     },
     actions: {

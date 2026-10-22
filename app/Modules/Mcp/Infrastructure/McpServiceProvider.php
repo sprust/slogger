@@ -22,7 +22,6 @@ use App\Modules\Mcp\Domain\Actions\Queries\FindMcpAction;
 use App\Modules\Mcp\Domain\Actions\Queries\FindMcpByTokenAction;
 use App\Modules\Mcp\Domain\Actions\Queries\FindMcpsAction;
 use App\Modules\Mcp\Domain\Actions\Queries\FindMcpSettingsAction;
-use App\Modules\Mcp\Domain\Services\McpTracePeriodResolver;
 use App\Modules\Mcp\Infrastructure\Prompts\Contracts\McpPromptRegistry;
 use App\Modules\Mcp\Infrastructure\Prompts\ExplainIncidentPrompt;
 use App\Modules\Mcp\Infrastructure\Prompts\ExplainTracePrompt;
@@ -102,14 +101,6 @@ class McpServiceProvider extends BaseServiceProvider
                 new ExplainIncidentPrompt(),
                 new ExplainTracePrompt(),
             ])
-        );
-
-        // the period of a trace query may span the whole time traces are kept for
-        $this->app->singleton(
-            abstract: McpTracePeriodResolver::class,
-            concrete: static fn(): McpTracePeriodResolver => new McpTracePeriodResolver(
-                maxHours: (int) config('cleaner.lifetime_hours')
-            )
         );
 
         parent::boot();

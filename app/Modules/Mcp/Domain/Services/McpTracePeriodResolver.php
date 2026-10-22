@@ -17,16 +17,11 @@ use Illuminate\Support\Carbon;
  */
 readonly class McpTracePeriodResolver
 {
-    public function __construct(
-        public int $maxHours,
-    ) {
-    }
-
     /**
      * @throws McpTraceInvalidPeriodException
      * @throws McpTracePeriodTooWideException
      */
-    public function resolve(Carbon $from, Carbon $to): McpTracePeriodObject
+    public function resolve(Carbon $from, Carbon $to, int $maxHours): McpTracePeriodObject
     {
         $from = $from->clone()->utc();
         $to   = $to->clone()->utc();
@@ -35,8 +30,8 @@ readonly class McpTracePeriodResolver
             throw new McpTraceInvalidPeriodException();
         }
 
-        if ($from->clone()->addHours($this->maxHours)->lt($to)) {
-            throw new McpTracePeriodTooWideException($this->maxHours);
+        if ($from->clone()->addHours($maxHours)->lt($to)) {
+            throw new McpTracePeriodTooWideException($maxHours);
         }
 
         return new McpTracePeriodObject(

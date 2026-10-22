@@ -22,6 +22,8 @@ use App\Modules\Mcp\Infrastructure\Tools\McpToolTraceScopeReader;
 use App\Modules\Mcp\Infrastructure\Tools\GetTraceFacetsTool;
 use App\Modules\Service\Domain\Actions\FindServicesAction;
 use App\Modules\Service\Entities\ServiceObject;
+use App\Modules\Setting\Domain\Actions\FindSettingValueAction;
+use App\Modules\Setting\Enums\SettingKeyEnum;
 use App\Modules\Trace\Domain\Actions\Queries\FindStatusesAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTagsAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceDetailAction;
@@ -337,8 +339,17 @@ class TraceQueryToolsTest extends TestCase
         return new McpToolTraceScopeReader(
             timeParser: new McpToolTimeParser(),
             serviceFinder: new McpToolServiceFinder(new FindMcpServicesAction($services)),
-            periodResolver: new McpTracePeriodResolver(maxHours: 72),
-            formatter: new McpToolFormatter()
+            periodResolver: new McpTracePeriodResolver(),
+            formatter: new McpToolFormatter(),
+            findSettingValueAction: $this->findSettingValueAction()
         );
+    }
+
+    private function findSettingValueAction(): FindSettingValueAction
+    {
+        $action = $this->createMock(FindSettingValueAction::class);
+        $action->method('handle')->with(SettingKeyEnum::TracesLifetimeHours)->willReturn(72);
+
+        return $action;
     }
 }

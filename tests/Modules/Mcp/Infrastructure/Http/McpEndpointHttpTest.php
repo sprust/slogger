@@ -6,6 +6,7 @@ use App\Modules\Mcp\Infrastructure\McpServiceProvider;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolRegistry;
 use App\Modules\Mcp\Infrastructure\Tools\SearchTracesTool;
 use App\Modules\Mcp\Repositories\McpRepository;
+use App\Modules\Setting\Repositories\SettingRepository;
 use App\Services\Clickhouse\ClickhouseQueryException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Exceptions;
@@ -58,6 +59,7 @@ class McpEndpointHttpTest extends TestCase
         );
 
         $this->app->instance(McpRepository::class, $this->repository);
+        $this->app->instance(SettingRepository::class, $this->createMock(SettingRepository::class));
         $this->app->instance(
             McpToolRegistry::class,
             new McpToolRegistry([new FakeMcpTool('get_thing'), new FakeMcpTool('get_other')])

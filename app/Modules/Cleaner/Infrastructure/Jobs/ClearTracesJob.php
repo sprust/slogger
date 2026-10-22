@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Modules\Cleaner\Infrastructure\Jobs;
 
 use App\Modules\Cleaner\Domain\Actions\ClearTracesAction;
+use App\Modules\Setting\Domain\Actions\FindSettingValueAction;
+use App\Modules\Setting\Enums\SettingKeyEnum;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
@@ -29,10 +31,10 @@ class ClearTracesJob implements ShouldQueue
     /**
      * Execute the job.
      */
-    public function handle(ClearTracesAction $clearTracesAction): void
+    public function handle(ClearTracesAction $clearTracesAction, FindSettingValueAction $findSettingValueAction): void
     {
         $clearTracesAction->handle(
-            config('cleaner.lifetime_hours')
+            $findSettingValueAction->handle(SettingKeyEnum::TracesLifetimeHours)
         );
     }
 }

@@ -727,6 +727,83 @@ export namespace AdminApi {
 
   /**
  * No description
+ * @name SettingsList
+ * @request GET:/admin-api/settings
+ * @secure
+ * @response `200` `{
+    data: ({
+    key: string,
+    env_name: string,
+    description: string,
+    value: number,
+    default_value: number,
+    min: number,
+    max: number,
+    is_overridden: boolean,
+    updated_at?: string | null,
+
+})[],
+
+}` description
+*/
+  export namespace SettingsList {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        key: string;
+        env_name: string;
+        description: string;
+        value: number;
+        default_value: number;
+        min: number;
+        max: number;
+        is_overridden: boolean;
+        updated_at?: string | null;
+      }[];
+    };
+  }
+
+  /**
+   * No description
+   * @name SettingsPartialUpdate
+   * @request PATCH:/admin-api/settings/{key}
+   * @secure
+   * @response `200` `any` description
+   */
+  export namespace SettingsPartialUpdate {
+    export type RequestParams = {
+      key: any;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = {
+      value: number;
+    };
+    export type RequestHeaders = {};
+    export type ResponseBody = any;
+  }
+
+  /**
+   * No description
+   * @name SettingsDelete
+   * @request DELETE:/admin-api/settings/{key}
+   * @secure
+   * @response `200` `void` description
+   */
+  export namespace SettingsDelete {
+    export type RequestParams = {
+      key: any;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = void;
+  }
+
+  /**
+ * No description
  * @name UsersList
  * @request GET:/admin-api/users
  * @secure
@@ -5741,6 +5818,93 @@ export class Api<
         secure: true,
         type: ContentType.Json,
         format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name SettingsList
+ * @request GET:/admin-api/settings
+ * @secure
+ * @response `200` `{
+    data: ({
+    key: string,
+    env_name: string,
+    description: string,
+    value: number,
+    default_value: number,
+    min: number,
+    max: number,
+    is_overridden: boolean,
+    updated_at?: string | null,
+
+})[],
+
+}` description
+ */
+    settingsList: (params: RequestParams = {}) =>
+      this.request<
+        {
+          data: {
+            key: string;
+            env_name: string;
+            description: string;
+            value: number;
+            default_value: number;
+            min: number;
+            max: number;
+            is_overridden: boolean;
+            updated_at?: string | null;
+          }[];
+        },
+        any
+      >({
+        path: `/admin-api/settings`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @name SettingsPartialUpdate
+     * @request PATCH:/admin-api/settings/{key}
+     * @secure
+     * @response `200` `any` description
+     */
+    settingsPartialUpdate: (
+      key: any,
+      data: {
+        value: number;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<any, any>({
+        path: `/admin-api/settings/${key}`,
+        method: "PATCH",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @name SettingsDelete
+     * @request DELETE:/admin-api/settings/{key}
+     * @secure
+     * @response `200` `void` description
+     */
+    settingsDelete: (key: any, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/admin-api/settings/${key}`,
+        method: "DELETE",
+        secure: true,
         ...params,
       }),
 

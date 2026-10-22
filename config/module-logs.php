@@ -1,8 +1,11 @@
 <?php
 
 use App\Modules\Logs\Enums\LogTypeEnum;
+use App\Modules\Setting\Enums\SettingKeyEnum;
 
 return [
+    'nginx_keep_days' => (int) env('LOGS_NGINX_KEEP_DAYS', 14),
+
     // Where the Logs page looks for files. Each source is one folder read without
     // recursion (a subfolder is a source of its own), so sources must not overlap.
     //
@@ -49,7 +52,7 @@ return [
             'folder'  => env('LOGS_NGINX_PATH', storage_path('logs/nginx')),
             'pattern'   => 'access*.log',
             'type'      => LogTypeEnum::NginxAccess,
-            'keep_days' => (int) env('LOGS_NGINX_KEEP_DAYS', 14),
+            'keep_days_setting' => SettingKeyEnum::LogsNginxKeepDays,
         ],
         [
             'name'    => 'Nginx',

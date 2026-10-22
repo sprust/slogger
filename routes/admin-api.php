@@ -17,6 +17,8 @@ use App\Modules\Notification\Infrastructure\Http\Controllers\SlackChannelControl
 use App\Modules\Notification\Infrastructure\Http\Controllers\TelegramChannelController;
 use App\Modules\Notification\Infrastructure\Http\Controllers\WebhookChannelController;
 use App\Modules\Service\Infrastructure\Http\Controllers\ServiceController;
+use App\Modules\Setting\Enums\SettingKeyEnum;
+use App\Modules\Setting\Infrastructure\Http\Controllers\SettingController;
 use App\Modules\Tools\Infrastructure\Http\Controllers\ToolLinksController;
 use App\Modules\Trace\Infrastructure\Http\Controllers\TraceAdminStoreController;
 use App\Modules\Trace\Infrastructure\Http\Controllers\TraceContentController;
@@ -74,6 +76,16 @@ Route::prefix('/services')
         Route::patch('/positions', [ServiceController::class, 'sort'])->name('positions');
         Route::get('/{id}', [ServiceController::class, 'show'])->whereNumber('id')->name('show');
         Route::patch('/{id}', [ServiceController::class, 'update'])->whereNumber('id')->name('update');
+    });
+
+Route::prefix('/settings')
+    ->as('settings.')
+    ->group(function () {
+        $keys = array_column(SettingKeyEnum::cases(), 'value');
+
+        Route::get('', [SettingController::class, 'index'])->name('index');
+        Route::patch('/{key}', [SettingController::class, 'update'])->whereIn('key', $keys)->name('update');
+        Route::delete('/{key}', [SettingController::class, 'reset'])->whereIn('key', $keys)->name('reset');
     });
 
 Route::prefix('/users')

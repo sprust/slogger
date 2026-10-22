@@ -11,6 +11,8 @@ use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolArguments;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolProperty;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolPropertyTypeEnum;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolResult;
+use App\Modules\Setting\Domain\Actions\FindSettingValueAction;
+use App\Modules\Setting\Enums\SettingKeyEnum;
 
 readonly class McpToolTraceScopeReader
 {
@@ -23,7 +25,8 @@ readonly class McpToolTraceScopeReader
         private McpToolTimeParser $timeParser,
         private McpToolServiceFinder $serviceFinder,
         private McpTracePeriodResolver $periodResolver,
-        private McpToolFormatter $formatter
+        private McpToolFormatter $formatter,
+        private FindSettingValueAction $findSettingValueAction
     ) {
     }
 
@@ -51,7 +54,7 @@ readonly class McpToolTraceScopeReader
                 type: McpToolPropertyTypeEnum::String,
                 description: sprintf(
                     'End of the period, ISO 8601, exclusive; at most %d hours after "from" (the time traces are kept).',
-                    $this->periodResolver->maxHours
+                    $this->findMaxHours()
                 ),
                 required: true,
                 max: 64
@@ -82,7 +85,7 @@ readonly class McpToolTraceScopeReader
         }
 
         try {
-            $period = $this->periodResolver->resolve($from, $to);
+            $period = $this->periodResolver->resolve($from, $to, $this->findMaxHours());
         } catch (McpTraceInvalidPeriodException) {
             return $this->formatter->error(
                 error: 'invalid_period',
@@ -115,5 +118,10 @@ readonly class McpToolTraceScopeReader
             'from' => $this->formatter->time($scope->period->from),
             'to'   => $this->formatter->time($scope->period->to),
         ];
+    }
+
+    private function findMaxHours(): int
+    {
+        return $this->findSettingValueAction->handle(SettingKeyEnum::TracesLifetimeHours);
     }
 }

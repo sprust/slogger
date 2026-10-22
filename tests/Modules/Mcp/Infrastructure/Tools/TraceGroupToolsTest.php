@@ -17,6 +17,8 @@ use App\Modules\Mcp\Infrastructure\Tools\McpToolTraceScopeReader;
 use App\Modules\Mcp\Infrastructure\Tools\AggregateTracesTool;
 use App\Modules\Service\Domain\Actions\FindServicesAction;
 use App\Modules\Service\Entities\ServiceObject;
+use App\Modules\Setting\Domain\Actions\FindSettingValueAction;
+use App\Modules\Setting\Enums\SettingKeyEnum;
 use App\Modules\Trace\Domain\Actions\Queries\CompareTraceGroupsAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceGroupsAction;
 use App\Modules\Trace\Entities\Trace\Groups\TraceGroupComparisonObject;
@@ -310,8 +312,17 @@ class TraceGroupToolsTest extends TestCase
         return new McpToolTraceScopeReader(
             timeParser: new McpToolTimeParser(),
             serviceFinder: $this->serviceFinder(),
-            periodResolver: new McpTracePeriodResolver(maxHours: 72),
-            formatter: new McpToolFormatter()
+            periodResolver: new McpTracePeriodResolver(),
+            formatter: new McpToolFormatter(),
+            findSettingValueAction: $this->findSettingValueAction()
         );
+    }
+
+    private function findSettingValueAction(): FindSettingValueAction
+    {
+        $action = $this->createMock(FindSettingValueAction::class);
+        $action->method('handle')->with(SettingKeyEnum::TracesLifetimeHours)->willReturn(72);
+
+        return $action;
     }
 }

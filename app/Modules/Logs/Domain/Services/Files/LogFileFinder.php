@@ -8,11 +8,14 @@ use App\Modules\Logs\Entities\File\LogFileObject;
 use App\Modules\Logs\Entities\File\LogSourceObject;
 use App\Modules\Logs\Enums\LogTypeEnum;
 use App\Modules\Logs\Repositories\LogFileRepository;
+use App\Modules\Setting\Domain\Actions\FindSettingValueAction;
+use App\Modules\Setting\Enums\SettingKeyEnum;
 
 readonly class LogFileFinder
 {
     public function __construct(
-        private LogFileRepository $logFileRepository
+        private LogFileRepository $logFileRepository,
+        private FindSettingValueAction $findSettingValueAction
     ) {
     }
 
@@ -97,11 +100,25 @@ readonly class LogFileFinder
                 folder: rtrim((string) $source['folder'], '/'),
                 pattern: (string) $source['pattern'],
                 type: $type instanceof LogTypeEnum ? $type : LogTypeEnum::from((string) $type),
-                keepDays: isset($source['keep_days']) ? (int) $source['keep_days'] : null,
+                keepDays: $this->makeKeepDays($source),
                 deletable: (bool) ($source['deletable'] ?? false)
             );
         }
 
         return $sources;
+    }
+
+    /**
+     * @param array<string, mixed> $source
+     */
+    private function makeKeepDays(array $source): ?int
+    {
+        $setting = $source['keep_days_setting'] ?? null;
+
+        if ($setting instanceof SettingKeyEnum) {
+            return $this->findSettingValueAction->handle($setting);
+        }
+
+        return isset($source['keep_days']) ? (int) $source['keep_days'] : null;
     }
 }

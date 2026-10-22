@@ -62,9 +62,10 @@ class McpTracePeriodResolverTest extends TestCase
 
     public function testOtherZoneIsCountedInUtc(): void
     {
-        $period = new McpTracePeriodResolver(maxHours: 72)->resolve(
+        $period = new McpTracePeriodResolver()->resolve(
             Carbon::parse('2026-09-28 13:20:00', 'Europe/Moscow'),
-            Carbon::parse('2026-09-28 15:05:00', 'Europe/Moscow')
+            Carbon::parse('2026-09-28 15:05:00', 'Europe/Moscow'),
+            72
         );
 
         $this->assertSame('2026-09-28T10:20:00+00:00', $period->from->toIso8601String());
@@ -76,7 +77,7 @@ class McpTracePeriodResolverTest extends TestCase
         $from = Carbon::parse('2026-09-28 13:20:00', 'Europe/Moscow');
         $to   = Carbon::parse('2026-09-28 15:05:00', 'Europe/Moscow');
 
-        new McpTracePeriodResolver(maxHours: 72)->resolve($from, $to);
+        new McpTracePeriodResolver()->resolve($from, $to, 72);
 
         $this->assertSame('Europe/Moscow', $from->getTimezone()->getName());
         $this->assertSame('2026-09-28 15:05:00', $to->toDateTimeString());
@@ -92,6 +93,6 @@ class McpTracePeriodResolverTest extends TestCase
 
     private function resolve(string $from, string $to): McpTracePeriodObject
     {
-        return new McpTracePeriodResolver(maxHours: 72)->resolve(Carbon::parse($from, 'UTC'), Carbon::parse($to, 'UTC'));
+        return new McpTracePeriodResolver()->resolve(Carbon::parse($from, 'UTC'), Carbon::parse($to, 'UTC'), 72);
     }
 }

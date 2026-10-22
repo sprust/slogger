@@ -1035,6 +1035,150 @@
                 ]
             }
         },
+        "/admin-api/settings": {
+            "get": {
+                "responses": {
+                    "200": {
+                        "description": "description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "key": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "env_name": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "description": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "value": {
+                                                        "type": "integer",
+                                                        "nullable": false
+                                                    },
+                                                    "default_value": {
+                                                        "type": "integer",
+                                                        "nullable": false
+                                                    },
+                                                    "min": {
+                                                        "type": "integer",
+                                                        "nullable": false
+                                                    },
+                                                    "max": {
+                                                        "type": "integer",
+                                                        "nullable": false
+                                                    },
+                                                    "is_overridden": {
+                                                        "type": "boolean",
+                                                        "nullable": false
+                                                    },
+                                                    "updated_at": {
+                                                        "type": "string",
+                                                        "nullable": true
+                                                    }
+                                                },
+                                                "required": [
+                                                    "key",
+                                                    "env_name",
+                                                    "description",
+                                                    "value",
+                                                    "default_value",
+                                                    "min",
+                                                    "max",
+                                                    "is_overridden"
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/admin-api/settings/{key}": {
+            "patch": {
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "value": {
+                                        "type": "integer"
+                                    }
+                                },
+                                "required": [
+                                    "value"
+                                ],
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "key",
+                        "required": true,
+                        "in": "path",
+                        "schema": {}
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "description",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "parameters": [
+                    {
+                        "name": "key",
+                        "required": true,
+                        "in": "path",
+                        "schema": {}
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "description"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/admin-api/users": {
             "get": {
                 "responses": {

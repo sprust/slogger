@@ -13,6 +13,7 @@ use App\Modules\Logs\Infrastructure\LogsServiceProvider;
 use App\Modules\Mcp\Infrastructure\McpServiceProvider;
 use App\Modules\Notification\Infrastructure\NotificationServiceProvider;
 use App\Modules\Service\Infrastructure\ServiceServiceProvider;
+use App\Modules\Setting\Infrastructure\SettingServiceProvider;
 use App\Modules\Trace\Infrastructure\TraceServiceProvider;
 use App\Modules\User\Infrastructure\UserServiceProvider;
 use App\Modules\Watcher\Infrastructure\WatcherServiceProvider;
@@ -26,6 +27,7 @@ class ModulesConfig
     {
         return [
             CommonServiceProvider::class,
+            SettingServiceProvider::class,
             ServiceServiceProvider::class,
             TraceServiceProvider::class,
             AuthServiceProvider::class,
