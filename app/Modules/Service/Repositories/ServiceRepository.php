@@ -67,12 +67,13 @@ class ServiceRepository
         return $this->makeObjectByModel($newService);
     }
 
-    public function updateName(int $id, string $name): void
+    public function update(int $id, string $name, string $uniqueKey): void
     {
         Service::query()
             ->where('id', $id)
             ->update([
-                'name' => $name,
+                'name'       => $name,
+                'unique_key' => $uniqueKey,
             ]);
     }
 

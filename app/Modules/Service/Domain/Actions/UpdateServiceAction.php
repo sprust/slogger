@@ -27,13 +27,16 @@ readonly class UpdateServiceAction
             throw new ServiceNotFoundException($parameters->id);
         }
 
-        if ($this->serviceRepository->isExistByUniqueKey(Str::slug($parameters->name), exceptId: $parameters->id)) {
+        $uniqueKey = Str::slug($parameters->name);
+
+        if ($this->serviceRepository->isExistByUniqueKey($uniqueKey, exceptId: $parameters->id)) {
             throw new ServiceAlreadyExistsException($parameters->name);
         }
 
-        $this->serviceRepository->updateName(
+        $this->serviceRepository->update(
             id: $parameters->id,
-            name: $parameters->name
+            name: $parameters->name,
+            uniqueKey: $uniqueKey
         );
     }
 }

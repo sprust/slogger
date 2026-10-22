@@ -92,7 +92,7 @@ class ServiceAdminHttpTest extends TestCase
         $this->withoutAuth();
 
         $this->repository->expects($this->never())->method('create');
-        $this->repository->expects($this->never())->method('updateName');
+        $this->repository->expects($this->never())->method('update');
 
         $this->postJson('/admin-api/services', ['name' => ''])->assertUnprocessable();
         $this->patchJson('/admin-api/services/1', ['name' => ''])->assertUnprocessable();
@@ -107,7 +107,7 @@ class ServiceAdminHttpTest extends TestCase
             ->method('isExistByUniqueKey')
             ->with('payments', 3)
             ->willReturn(false);
-        $this->repository->expects($this->once())->method('updateName')->with(3, 'Payments');
+        $this->repository->expects($this->once())->method('update')->with(3, 'Payments', 'payments');
 
         $this->patchJson('/admin-api/services/3', ['name' => 'Payments'])->assertOk();
     }
@@ -118,7 +118,7 @@ class ServiceAdminHttpTest extends TestCase
 
         $this->repository->method('findOneById')->willReturn($this->serviceObject(id: 3, name: 'billing'));
         $this->repository->method('isExistByUniqueKey')->willReturn(true);
-        $this->repository->expects($this->never())->method('updateName');
+        $this->repository->expects($this->never())->method('update');
 
         $this->patchJson('/admin-api/services/3', ['name' => 'auth'])->assertUnprocessable();
     }
