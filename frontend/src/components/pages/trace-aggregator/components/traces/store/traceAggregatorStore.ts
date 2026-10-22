@@ -7,6 +7,7 @@ import {useTraceAggregatorServicesStore} from "../../services/store/traceAggrega
 import {useTraceAggregatorGraphStore} from "../../graph/store/traceAggregatorGraphStore.ts";
 import {
     addOrDeleteCustomField,
+    customFieldFilterPath,
     makeEmptyCustomField,
     setCustomFieldType
 } from "../customFields.ts";
@@ -36,6 +37,7 @@ export type TraceAggregatorExternalFilter = {
 
 export type TraceAggregatorCustomField = {
     field: string,
+    filterField?: string,
     canBeFiltered: boolean,
     search: boolean,
     searchData: TraceAggregatorCustomFieldSearchParameter,
@@ -140,6 +142,7 @@ export type TraceAggregatorCustomFieldSearchParameter = {
 
 export type TraceAggregatorCustomFieldParameter = {
     field: string,
+    filterField?: string,
     value: any,
     canBeFiltered: boolean
 }
@@ -367,7 +370,7 @@ export const useTraceAggregatorStore = defineStore('traceAggregatorStore', {
             data.fields = []
 
             this.customFields.map((customField: TraceAggregatorCustomField) => {
-                const field = `dt.${customField.field}`
+                const field = `dt.${customFieldFilterPath(customField)}`
 
                 if (customField.search && customField.field.trim() !== '') {
                     if (customField.searchData.exists?.enabled) {

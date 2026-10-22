@@ -1157,21 +1157,27 @@ export namespace AdminApi {
     value: string,
   /** @maxItems 0 *\/
     children?: (string)[] | null,
+    filter_key: string,
     can_be_filtered: boolean,
 
 })[] | null,
+    filter_key: string,
     can_be_filtered: boolean,
 
 })[] | null,
+    filter_key: string,
     can_be_filtered: boolean,
 
 })[] | null,
+    filter_key: string,
     can_be_filtered: boolean,
 
 })[] | null,
+    filter_key: string,
     can_be_filtered: boolean,
 
 })[] | null,
+    filter_key: string,
     can_be_filtered: boolean,
 
 },
@@ -1229,21 +1235,27 @@ export namespace AdminApi {
                                         value: string;
                                         /** @maxItems 0 */
                                         children?: string[] | null;
+                                        filter_key: string;
                                         can_be_filtered: boolean;
                                       }[]
                                     | null;
+                                  filter_key: string;
                                   can_be_filtered: boolean;
                                 }[]
                               | null;
+                            filter_key: string;
                             can_be_filtered: boolean;
                           }[]
                         | null;
+                      filter_key: string;
                       can_be_filtered: boolean;
                     }[]
                   | null;
+                filter_key: string;
                 can_be_filtered: boolean;
               }[]
             | null;
+          filter_key: string;
           can_be_filtered: boolean;
         };
         duration?: number | null;
@@ -5937,21 +5949,27 @@ export class Api<
     value: string,
   /** @maxItems 0 *\/
     children?: (string)[] | null,
+    filter_key: string,
     can_be_filtered: boolean,
 
 })[] | null,
+    filter_key: string,
     can_be_filtered: boolean,
 
 })[] | null,
+    filter_key: string,
     can_be_filtered: boolean,
 
 })[] | null,
+    filter_key: string,
     can_be_filtered: boolean,
 
 })[] | null,
+    filter_key: string,
     can_be_filtered: boolean,
 
 })[] | null,
+    filter_key: string,
     can_be_filtered: boolean,
 
 },
@@ -6004,21 +6022,27 @@ export class Api<
                                             value: string;
                                             /** @maxItems 0 */
                                             children?: string[] | null;
+                                            filter_key: string;
                                             can_be_filtered: boolean;
                                           }[]
                                         | null;
+                                      filter_key: string;
                                       can_be_filtered: boolean;
                                     }[]
                                   | null;
+                                filter_key: string;
                                 can_be_filtered: boolean;
                               }[]
                             | null;
+                          filter_key: string;
                           can_be_filtered: boolean;
                         }[]
                       | null;
+                    filter_key: string;
                     can_be_filtered: boolean;
                   }[]
                 | null;
+              filter_key: string;
               can_be_filtered: boolean;
             };
             duration?: number | null;

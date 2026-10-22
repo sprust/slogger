@@ -13,6 +13,7 @@ readonly class TraceDataObject
         public string $key,
         public string|bool|int|float|null $value,
         public ?array $children,
+        public string $filterKey,
         public bool $canBeFiltered
     ) {
     }

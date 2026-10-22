@@ -93,7 +93,7 @@ class FindTraceTreeStateActionTest extends TestCase
             type: 'http',
             status: 'success',
             tags: [],
-            data: new TraceDataObject(key: '', value: null, children: null, canBeFiltered: false),
+            data: new TraceDataObject(key: '', value: null, children: null, filterKey: '', canBeFiltered: false),
             duration: 1.0,
             memory: 1.0,
             cpu: 1.0,

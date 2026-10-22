@@ -4,6 +4,7 @@
       <template #default="scope">
         <el-input
             v-model="scope.row.field"
+            @input="scope.row.filterField = undefined"
             :placeholder="scope.row.manual ? 'request.user.id' : ''"
         >
           <template v-if="scope.row.manual" #append>
@@ -24,8 +25,8 @@
     <el-table-column width="170">
       <template #default="scope">
         <el-tooltip
-            :content="filterDisabledReason(scope.row)"
-            :disabled="filterDisabledReason(scope.row) === ''"
+            :content="filterHint(scope.row)"
+            :disabled="filterHint(scope.row) === ''"
             placement="top"
         >
           <el-select
@@ -130,7 +131,7 @@
         <el-button
             type="danger"
             :icon="Delete"
-            @click="onCustomFieldClick(scope.row.field, scope.row.value, scope.row.canBeFiltered)"
+            @click="onCustomFieldClick(scope.row.field, scope.row.filterField, scope.row.value, scope.row.canBeFiltered)"
             circle/>
       </template>
     </el-table-column>
@@ -149,6 +150,7 @@ import {Delete} from '@element-plus/icons-vue'
 
 type FilterMode = 'none' | 'value' | 'null' | 'not_null' | 'exists' | 'not_exists'
 import {TypesHelper} from '../../../../../utils/typesHelper.ts'
+import {customFieldFilterPath, isCustomFieldInsideList} from './customFields.ts'
 
 export default defineComponent({
   emits: ["onCustomFieldClick", "onCustomFieldTypeChange"],
@@ -193,7 +195,20 @@ export default defineComponent({
       }
 
       if (!customField.canBeFiltered) {
-        return "Values inside a list can't be filtered"
+        return "Values inside a list inside a list can't be filtered"
+      }
+
+      return ''
+    },
+    filterHint(customField: TraceAggregatorCustomField): string {
+      const reason = this.filterDisabledReason(customField)
+
+      if (reason !== '') {
+        return reason
+      }
+
+      if (isCustomFieldInsideList(customField)) {
+        return `Filters by ${customFieldFilterPath(customField)}: any element of the list matches`
       }
 
       return ''
@@ -240,9 +255,10 @@ export default defineComponent({
     isValueBool(searchData: TraceAggregatorCustomFieldSearchParameter): boolean {
       return !!searchData.boolean
     },
-    onCustomFieldClick(customField: string, value: any, canBeFiltered: boolean) {
+    onCustomFieldClick(customField: string, filterField: string | undefined, value: any, canBeFiltered: boolean) {
       const parameters: TraceAggregatorCustomFieldParameter = {
         field: customField,
+        filterField: filterField,
         value: value,
         canBeFiltered: canBeFiltered,
       }

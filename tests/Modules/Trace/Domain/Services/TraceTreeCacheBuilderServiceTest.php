@@ -306,7 +306,7 @@ class TraceTreeCacheBuilderServiceTest extends TestCase
             type: 'http',
             status: 'success',
             tags: [],
-            data: new TraceDataObject(key: 'root', value: null, children: null, canBeFiltered: false),
+            data: new TraceDataObject(key: 'root', value: null, children: null, filterKey: 'root', canBeFiltered: false),
             duration: 1.0,
             memory: 1.0,
             cpu: 1.0,

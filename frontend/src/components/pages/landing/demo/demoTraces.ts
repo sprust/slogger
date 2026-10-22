@@ -27,6 +27,7 @@ interface DemoDataNode {
     key: string,
     value: string | number | boolean | null,
     children: Array<DemoDataNode> | null,
+    filter_key: string,
     can_be_filtered: boolean,
 }
 
@@ -181,9 +182,13 @@ const specs: Array<DemoTraceSpec> = [
     },
 ]
 
-function toDataNode(value: DemoJson, key: string, canBeFiltered: boolean): DemoDataNode {
+const filterableListDepth = 1
+
+function toDataNode(value: DemoJson, key: string, filterKey: string, listDepth: number): DemoDataNode {
+    const canBeFiltered = listDepth <= filterableListDepth
+
     if (value === null || typeof value !== 'object') {
-        return {key, value, children: null, can_be_filtered: canBeFiltered}
+        return {key, value, children: null, filter_key: filterKey, can_be_filtered: canBeFiltered}
     }
 
     const isList = Array.isArray(value)
@@ -197,14 +202,16 @@ function toDataNode(value: DemoJson, key: string, canBeFiltered: boolean): DemoD
         children: entries.map(([childKey, childValue]) => toDataNode(
             childValue,
             key ? `${key}.${childKey}` : childKey,
-            canBeFiltered && !isList,
+            isList ? filterKey : (filterKey ? `${filterKey}.${childKey}` : childKey),
+            isList ? (filterKey ? listDepth + 1 : filterableListDepth + 1) : listDepth,
         )),
+        filter_key: filterKey,
         can_be_filtered: canBeFiltered,
     }
 }
 
 export function toTraceDetailData(data: { [key: string]: DemoJson }): TraceAggregatorDetailData {
-    return toDataNode(data, '', true) as unknown as TraceAggregatorDetailData
+    return toDataNode(data, '', '', 0) as unknown as TraceAggregatorDetailData
 }
 
 export const demoTraces: Array<DemoTrace> = specs.map((spec: DemoTraceSpec) => ({

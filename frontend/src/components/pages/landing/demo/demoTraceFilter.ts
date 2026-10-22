@@ -3,6 +3,7 @@ import type {
     TraceAggregatorItem,
 } from "../../trace-aggregator/components/traces/store/traceAggregatorStore.ts";
 import type {DemoJson, DemoTrace} from "./demoTraces.ts";
+import {customFieldFilterPath} from "../../trace-aggregator/components/traces/customFields.ts";
 
 export interface DemoTraceFilter {
     traceId: string,
@@ -99,7 +100,7 @@ function compareString(value: string, comp: string, expected: string): boolean {
 }
 
 export function matchesCustomField(data: DemoJson, customField: TraceAggregatorCustomField): boolean {
-    const field = customField.field.trim()
+    const field = customFieldFilterPath(customField).trim()
 
     if (!customField.search || field === '' || !customField.canBeFiltered) {
         return true

@@ -2093,6 +2093,10 @@
                                                                                                                             "type": "string"
                                                                                                                         }
                                                                                                                     },
+                                                                                                                    "filter_key": {
+                                                                                                                        "type": "string",
+                                                                                                                        "nullable": false
+                                                                                                                    },
                                                                                                                     "can_be_filtered": {
                                                                                                                         "type": "boolean",
                                                                                                                         "nullable": false
@@ -2101,9 +2105,14 @@
                                                                                                                 "required": [
                                                                                                                     "key",
                                                                                                                     "value",
+                                                                                                                    "filter_key",
                                                                                                                     "can_be_filtered"
                                                                                                                 ]
                                                                                                             }
+                                                                                                        },
+                                                                                                        "filter_key": {
+                                                                                                            "type": "string",
+                                                                                                            "nullable": false
                                                                                                         },
                                                                                                         "can_be_filtered": {
                                                                                                             "type": "boolean",
@@ -2113,9 +2122,14 @@
                                                                                                     "required": [
                                                                                                         "key",
                                                                                                         "value",
+                                                                                                        "filter_key",
                                                                                                         "can_be_filtered"
                                                                                                     ]
                                                                                                 }
+                                                                                            },
+                                                                                            "filter_key": {
+                                                                                                "type": "string",
+                                                                                                "nullable": false
                                                                                             },
                                                                                             "can_be_filtered": {
                                                                                                 "type": "boolean",
@@ -2125,9 +2139,14 @@
                                                                                         "required": [
                                                                                             "key",
                                                                                             "value",
+                                                                                            "filter_key",
                                                                                             "can_be_filtered"
                                                                                         ]
                                                                                     }
+                                                                                },
+                                                                                "filter_key": {
+                                                                                    "type": "string",
+                                                                                    "nullable": false
                                                                                 },
                                                                                 "can_be_filtered": {
                                                                                     "type": "boolean",
@@ -2137,9 +2156,14 @@
                                                                             "required": [
                                                                                 "key",
                                                                                 "value",
+                                                                                "filter_key",
                                                                                 "can_be_filtered"
                                                                             ]
                                                                         }
+                                                                    },
+                                                                    "filter_key": {
+                                                                        "type": "string",
+                                                                        "nullable": false
                                                                     },
                                                                     "can_be_filtered": {
                                                                         "type": "boolean",
@@ -2149,9 +2173,14 @@
                                                                 "required": [
                                                                     "key",
                                                                     "value",
+                                                                    "filter_key",
                                                                     "can_be_filtered"
                                                                 ]
                                                             }
+                                                        },
+                                                        "filter_key": {
+                                                            "type": "string",
+                                                            "nullable": false
                                                         },
                                                         "can_be_filtered": {
                                                             "type": "boolean",
@@ -2161,6 +2190,7 @@
                                                     "required": [
                                                         "key",
                                                         "value",
+                                                        "filter_key",
                                                         "can_be_filtered"
                                                     ]
                                                 },

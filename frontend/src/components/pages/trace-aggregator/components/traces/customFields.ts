@@ -31,6 +31,14 @@ export function makeCustomFieldSearchData(type: TraceAggregatorCustomFieldType):
     return data
 }
 
+export function customFieldFilterPath(customField: TraceAggregatorCustomField): string {
+    return customField.filterField ?? customField.field
+}
+
+export function isCustomFieldInsideList(customField: TraceAggregatorCustomField): boolean {
+    return customField.filterField !== undefined && customField.filterField !== customField.field
+}
+
 export function makeEmptyCustomField(): TraceAggregatorCustomField {
     return {
         field: '',
@@ -98,6 +106,7 @@ export function addOrDeleteCustomField(
 
     customFields.push({
         field: customField,
+        filterField: parameters.filterField,
         canBeFiltered: parameters.canBeFiltered,
         search: false,
         searchData: data,

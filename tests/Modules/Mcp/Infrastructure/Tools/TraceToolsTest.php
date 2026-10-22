@@ -87,8 +87,9 @@ class TraceToolsTest extends TestCase
                 'key'             => '',
                 'value'           => null,
                 'children'        => [
-                    ['key' => 'url', 'value' => '/pay', 'children' => null, 'can_be_filtered' => true],
+                    ['key' => 'url', 'value' => '/pay', 'children' => null, 'filter_key' => 'url', 'can_be_filtered' => true],
                 ],
+                'filter_key'      => '',
                 'can_be_filtered' => false,
             ],
             $result->data['data']
@@ -321,7 +322,8 @@ class TraceToolsTest extends TestCase
             data: new TraceDataObject(
                 key: '',
                 value: null,
-                children: [new TraceDataObject(key: 'url', value: '/pay', children: null, canBeFiltered: true)],
+                children: [new TraceDataObject(key: 'url', value: '/pay', children: null, filterKey: 'url', canBeFiltered: true)],
+                filterKey: '',
                 canBeFiltered: false
             ),
             duration: 0.5,

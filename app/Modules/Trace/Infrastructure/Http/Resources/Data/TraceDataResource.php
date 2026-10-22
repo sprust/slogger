@@ -14,6 +14,7 @@ class TraceDataResource extends AbstractApiResource
     private string|bool|int|float|null $value;
     #[OaListItemTypeAttribute(TraceDataResource::class, isRecursive: true)]
     private ?array $children;
+    private string $filter_key;
     private bool $can_be_filtered;
 
     public function __construct(TraceDataObject $data)
@@ -27,6 +28,7 @@ class TraceDataResource extends AbstractApiResource
             ? TraceDataResource::mapIntoMe($data->children)
             : null;
 
+        $this->filter_key      = $data->filterKey;
         $this->can_be_filtered = $data->canBeFiltered;
     }
 }

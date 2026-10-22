@@ -72,7 +72,7 @@ trait McpTraceQueryTestTrait
             type: 'request',
             status: 'success',
             tags: [],
-            data: new TraceDataObject(key: '', value: null, children: $children, canBeFiltered: false),
+            data: new TraceDataObject(key: '', value: null, children: $children, filterKey: '', canBeFiltered: false),
             duration: 0.5,
             memory: 1.0,
             cpu: 0.1,
@@ -88,6 +88,6 @@ trait McpTraceQueryTestTrait
      */
     private function dataNode(string $key, string|int|float|bool|null $value = null, ?array $children = null): TraceDataObject
     {
-        return new TraceDataObject(key: $key, value: $value, children: $children, canBeFiltered: true);
+        return new TraceDataObject(key: $key, value: $value, children: $children, filterKey: $key, canBeFiltered: true);
     }
 }

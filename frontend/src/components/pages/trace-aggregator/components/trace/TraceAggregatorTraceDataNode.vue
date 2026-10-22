@@ -121,6 +121,7 @@ type TreeNode = {
   value: unknown,
   hint: string,
   children: null | Array<TreeNode>,
+  filterKey: string,
   canBeFiltered: boolean,
   disabled: boolean,
 }
@@ -238,6 +239,7 @@ export default defineComponent({
           value: data.value,
           hint: '',
           children: null,
+          filterKey: data.filter_key,
           canBeFiltered: data.can_be_filtered,
           disabled: false,
         }
@@ -259,6 +261,7 @@ export default defineComponent({
         value: null,
         hint: this.makeHint(children),
         children: children,
+        filterKey: data.filter_key,
         canBeFiltered: data.can_be_filtered,
         disabled: true,
       }
@@ -403,6 +406,7 @@ export default defineComponent({
 
       const parameters: TraceAggregatorCustomFieldParameter = {
         field: this.dataKeys[data.key],
+        filterField: data.filterKey,
         value: dataValue,
         canBeFiltered: data.canBeFiltered
       }

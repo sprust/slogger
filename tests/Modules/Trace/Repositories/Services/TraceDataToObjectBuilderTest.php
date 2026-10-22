@@ -35,6 +35,7 @@ class TraceDataToObjectBuilderTest extends TestCase
                             key: 'arr.key1',
                             value: 'value1',
                             children: null,
+                            filterKey: 'arr.key1',
                             canBeFiltered: true
                         ),
                         new TraceDataObject(
@@ -53,21 +54,27 @@ class TraceDataToObjectBuilderTest extends TestCase
                                                     key: 'arr.key2.key3.0.key4',
                                                     value: 'value4',
                                                     children: null,
-                                                    canBeFiltered: false
+                                                    filterKey: 'arr.key2.key3.key4',
+                                                    canBeFiltered: true
                                                 ),
                                             ],
-                                            canBeFiltered: false
+                                            filterKey: 'arr.key2.key3',
+                                            canBeFiltered: true
                                         ),
                                     ],
+                                    filterKey: 'arr.key2.key3',
                                     canBeFiltered: true
                                 ),
                             ],
+                            filterKey: 'arr.key2',
                             canBeFiltered: true
                         ),
                     ],
+                    filterKey: 'arr',
                     canBeFiltered: true
                 ),
             ],
+            filterKey: '',
             canBeFiltered: true
         );
 
@@ -111,5 +118,68 @@ class TraceDataToObjectBuilderTest extends TestCase
                 $object->children[3]->children
             ),
         );
+    }
+
+    public function testAValueInsideOneListIsFilteredByTheKeyWithoutTheIndex(): void
+    {
+        $object = new TraceDataToObjectBuilder([
+            'listeners' => [
+                ['name' => 'first'],
+            ],
+            'tags'      => ['api'],
+        ])->build();
+
+        $name = $object->children[0]->children[0]->children[0];
+        $tag  = $object->children[1]->children[0];
+
+        self::assertSame('listeners.0.name', $name->key);
+        self::assertSame('listeners.name', $name->filterKey);
+        self::assertTrue($name->canBeFiltered);
+
+        self::assertSame('tags.0', $tag->key);
+        self::assertSame('tags', $tag->filterKey);
+        self::assertTrue($tag->canBeFiltered);
+    }
+
+    public function testAValueInsideAListInsideAListCannotBeFiltered(): void
+    {
+        $object = new TraceDataToObjectBuilder([
+            'groups' => [
+                ['tags' => ['api']],
+            ],
+            'matrix' => [[1]],
+        ])->build();
+
+        $tag  = $object->children[0]->children[0]->children[0]->children[0];
+        $cell = $object->children[1]->children[0]->children[0];
+
+        self::assertSame('groups.0.tags.0', $tag->key);
+        self::assertFalse($tag->canBeFiltered);
+
+        self::assertSame('matrix.0.0', $cell->key);
+        self::assertFalse($cell->canBeFiltered);
+    }
+
+    public function testAValueOfDataThatIsAListCannotBeFiltered(): void
+    {
+        $object = new TraceDataToObjectBuilder([
+            ['name' => 'first'],
+        ])->build();
+
+        $name = $object->children[0]->children[0];
+
+        self::assertSame('0.name', $name->key);
+        self::assertFalse($name->canBeFiltered);
+    }
+
+    public function testAKeyUnderTheFirstElementOfDataThatIsAListKeepsTheIndex(): void
+    {
+        $object = new TraceDataToObjectBuilder([
+            [['id' => 1]],
+        ])->build();
+
+        self::assertSame('0', $object->children[0]->key);
+        self::assertSame('0.0', $object->children[0]->children[0]->key);
+        self::assertSame('0.0.id', $object->children[0]->children[0]->children[0]->key);
     }
 }
