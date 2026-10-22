@@ -10,8 +10,11 @@ use App\Modules\User\Domain\Actions\CreateUserTokenAction;
 use App\Modules\User\Domain\Actions\DeleteExpiredUserTokensAction;
 use App\Modules\User\Domain\Actions\DeleteUserTokenAction;
 use App\Modules\User\Domain\Actions\FindUserByEmailAction;
+use App\Modules\User\Domain\Actions\FindUserAction;
 use App\Modules\User\Domain\Actions\FindUserByTokenAction;
+use App\Modules\User\Domain\Actions\FindUsersAction;
 use App\Modules\User\Domain\Actions\TouchUserTokenAction;
+use App\Modules\User\Domain\Actions\UpdateUserAction;
 use App\Modules\User\Domain\Services\UserTokenLifetimeService;
 use App\Modules\User\Infrastructure\Commands\CreateUserCommand;
 use App\Modules\User\Infrastructure\Commands\DeleteExpiredUserTokensCommand;
@@ -44,8 +47,11 @@ class UserServiceProvider extends BaseServiceProvider
             DeleteExpiredUserTokensAction::class,
             DeleteUserTokenAction::class,
             FindUserByEmailAction::class,
+            FindUserAction::class,
             FindUserByTokenAction::class,
+            FindUsersAction::class,
             TouchUserTokenAction::class,
+            UpdateUserAction::class,
         ];
     }
 }

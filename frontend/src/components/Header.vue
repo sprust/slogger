@@ -22,8 +22,8 @@
     <el-menu-item :index="routes.mcps.path">
       MCP
     </el-menu-item>
-    <el-menu-item :index="routes.services.path">
-      Services
+    <el-menu-item :index="routes.access.path">
+      Access
     </el-menu-item>
     <el-menu-item :index="routes.logs.path">
       Logs

@@ -727,6 +727,139 @@ export namespace AdminApi {
 
   /**
  * No description
+ * @name UsersList
+ * @request GET:/admin-api/users
+ * @secure
+ * @response `200` `{
+    data: ({
+    id: number,
+    first_name: string,
+    last_name?: string | null,
+    email: string,
+    created_at: string,
+    updated_at: string,
+
+})[],
+
+}` description
+*/
+  export namespace UsersList {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        id: number;
+        first_name: string;
+        last_name?: string | null;
+        email: string;
+        created_at: string;
+        updated_at: string;
+      }[];
+    };
+  }
+
+  /**
+ * No description
+ * @name UsersCreate
+ * @request POST:/admin-api/users
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    first_name: string,
+    last_name?: string | null,
+    email: string,
+    created_at: string,
+    updated_at: string,
+
+},
+
+}` description
+*/
+  export namespace UsersCreate {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = {
+      /**
+       * @minLength 1
+       * @maxLength 255
+       */
+      first_name: string;
+      /** @maxLength 255 */
+      last_name?: string | null;
+      /**
+       * @format email
+       * @maxLength 255
+       */
+      email: string;
+      /**
+       * @minLength 8
+       * @maxLength 10
+       */
+      password: string;
+    };
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        id: number;
+        first_name: string;
+        last_name?: string | null;
+        email: string;
+        created_at: string;
+        updated_at: string;
+      };
+    };
+  }
+
+  /**
+ * No description
+ * @name UsersPartialUpdate
+ * @request PATCH:/admin-api/users/{id}
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    first_name: string,
+    last_name?: string | null,
+    email: string,
+    created_at: string,
+    updated_at: string,
+
+},
+
+}` description
+*/
+  export namespace UsersPartialUpdate {
+    export type RequestParams = {
+      id: any;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = {
+      /**
+       * @minLength 1
+       * @maxLength 255
+       */
+      first_name: string;
+      /** @maxLength 255 */
+      last_name?: string | null;
+    };
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        id: number;
+        first_name: string;
+        last_name?: string | null;
+        email: string;
+        created_at: string;
+        updated_at: string;
+      };
+    };
+  }
+
+  /**
+ * No description
  * @name TraceAggregatorTracesCreate
  * @request POST:/admin-api/trace-aggregator/traces
  * @secure
@@ -5603,6 +5736,163 @@ export class Api<
         any
       >({
         path: `/admin-api/services/${id}`,
+        method: "PATCH",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name UsersList
+ * @request GET:/admin-api/users
+ * @secure
+ * @response `200` `{
+    data: ({
+    id: number,
+    first_name: string,
+    last_name?: string | null,
+    email: string,
+    created_at: string,
+    updated_at: string,
+
+})[],
+
+}` description
+ */
+    usersList: (params: RequestParams = {}) =>
+      this.request<
+        {
+          data: {
+            id: number;
+            first_name: string;
+            last_name?: string | null;
+            email: string;
+            created_at: string;
+            updated_at: string;
+          }[];
+        },
+        any
+      >({
+        path: `/admin-api/users`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name UsersCreate
+ * @request POST:/admin-api/users
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    first_name: string,
+    last_name?: string | null,
+    email: string,
+    created_at: string,
+    updated_at: string,
+
+},
+
+}` description
+ */
+    usersCreate: (
+      data: {
+        /**
+         * @minLength 1
+         * @maxLength 255
+         */
+        first_name: string;
+        /** @maxLength 255 */
+        last_name?: string | null;
+        /**
+         * @format email
+         * @maxLength 255
+         */
+        email: string;
+        /**
+         * @minLength 8
+         * @maxLength 10
+         */
+        password: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          data: {
+            id: number;
+            first_name: string;
+            last_name?: string | null;
+            email: string;
+            created_at: string;
+            updated_at: string;
+          };
+        },
+        any
+      >({
+        path: `/admin-api/users`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name UsersPartialUpdate
+ * @request PATCH:/admin-api/users/{id}
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    first_name: string,
+    last_name?: string | null,
+    email: string,
+    created_at: string,
+    updated_at: string,
+
+},
+
+}` description
+ */
+    usersPartialUpdate: (
+      id: any,
+      data: {
+        /**
+         * @minLength 1
+         * @maxLength 255
+         */
+        first_name: string;
+        /** @maxLength 255 */
+        last_name?: string | null;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          data: {
+            id: number;
+            first_name: string;
+            last_name?: string | null;
+            email: string;
+            created_at: string;
+            updated_at: string;
+          };
+        },
+        any
+      >({
+        path: `/admin-api/users/${id}`,
         method: "PATCH",
         body: data,
         secure: true,

@@ -1035,6 +1035,260 @@
                 ]
             }
         },
+        "/admin-api/users": {
+            "get": {
+                "responses": {
+                    "200": {
+                        "description": "description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "nullable": false
+                                                    },
+                                                    "first_name": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "last_name": {
+                                                        "type": "string",
+                                                        "nullable": true
+                                                    },
+                                                    "email": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "created_at": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    },
+                                                    "updated_at": {
+                                                        "type": "string",
+                                                        "nullable": false
+                                                    }
+                                                },
+                                                "required": [
+                                                    "id",
+                                                    "first_name",
+                                                    "email",
+                                                    "created_at",
+                                                    "updated_at"
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "first_name": {
+                                        "type": "string",
+                                        "maxLength": 255,
+                                        "minLength": 1
+                                    },
+                                    "last_name": {
+                                        "type": "string",
+                                        "nullable": true,
+                                        "maxLength": 255
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "maxLength": 255
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "maxLength": 10,
+                                        "minLength": 8
+                                    }
+                                },
+                                "required": [
+                                    "first_name",
+                                    "email",
+                                    "password"
+                                ],
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "nullable": false
+                                                },
+                                                "first_name": {
+                                                    "type": "string",
+                                                    "nullable": false
+                                                },
+                                                "last_name": {
+                                                    "type": "string",
+                                                    "nullable": true
+                                                },
+                                                "email": {
+                                                    "type": "string",
+                                                    "nullable": false
+                                                },
+                                                "created_at": {
+                                                    "type": "string",
+                                                    "nullable": false
+                                                },
+                                                "updated_at": {
+                                                    "type": "string",
+                                                    "nullable": false
+                                                }
+                                            },
+                                            "required": [
+                                                "id",
+                                                "first_name",
+                                                "email",
+                                                "created_at",
+                                                "updated_at"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/admin-api/users/{id}": {
+            "patch": {
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "first_name": {
+                                        "type": "string",
+                                        "maxLength": 255,
+                                        "minLength": 1
+                                    },
+                                    "last_name": {
+                                        "type": "string",
+                                        "nullable": true,
+                                        "maxLength": 255
+                                    }
+                                },
+                                "required": [
+                                    "first_name"
+                                ],
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "schema": {}
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "description",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "nullable": false
+                                                },
+                                                "first_name": {
+                                                    "type": "string",
+                                                    "nullable": false
+                                                },
+                                                "last_name": {
+                                                    "type": "string",
+                                                    "nullable": true
+                                                },
+                                                "email": {
+                                                    "type": "string",
+                                                    "nullable": false
+                                                },
+                                                "created_at": {
+                                                    "type": "string",
+                                                    "nullable": false
+                                                },
+                                                "updated_at": {
+                                                    "type": "string",
+                                                    "nullable": false
+                                                }
+                                            },
+                                            "required": [
+                                                "id",
+                                                "first_name",
+                                                "email",
+                                                "created_at",
+                                                "updated_at"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/admin-api/trace-aggregator/traces": {
             "post": {
                 "requestBody": {

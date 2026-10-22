@@ -6,6 +6,7 @@ namespace App\Modules\User\Infrastructure\Commands;
 
 use App\Modules\User\Domain\Actions\CreateUserAction;
 use App\Modules\User\Domain\Actions\FindUserByIdAction;
+use App\Modules\User\Domain\Exceptions\UserAlreadyExistsException;
 use App\Modules\User\Parameters\UserCreateParameters;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Validator;
@@ -67,14 +68,20 @@ class CreateUserCommand extends Command
             return self::FAILURE;
         }
 
-        $newUserId = $createUserAction->handle(
-            new UserCreateParameters(
-                firstName: $firstName,
-                lastName: $lastName,
-                email: $email,
-                password: $password
-            )
-        );
+        try {
+            $newUserId = $createUserAction->handle(
+                new UserCreateParameters(
+                    firstName: $firstName,
+                    lastName: $lastName,
+                    email: $email,
+                    password: $password
+                )
+            );
+        } catch (UserAlreadyExistsException $exception) {
+            $this->error($exception->getMessage());
+
+            return self::FAILURE;
+        }
 
         $newUser = $findUserByIdAction->handle($newUserId);
 

@@ -6,6 +6,7 @@ namespace App\Modules\User\Repositories;
 
 use App\Models\Users\User;
 use App\Modules\User\Entities\UserDetailObject;
+use App\Modules\User\Entities\UserObject;
 use App\Modules\User\Parameters\UserCreateParameters;
 use Illuminate\Support\Facades\Hash;
 
@@ -23,6 +24,40 @@ class UserRepository
         $newUser->saveOrFail();
 
         return $newUser->id;
+    }
+
+    /**
+     * @return UserObject[]
+     */
+    public function find(): array
+    {
+        return User::query()
+            ->orderBy('id')
+            ->get()
+            ->map(fn(User $user) => $this->makeObjectByModel($user))
+            ->all();
+    }
+
+    public function findOneById(int $id): ?UserObject
+    {
+        $user = User::query()->where('id', $id)->first();
+
+        return $user ? $this->makeObjectByModel($user) : null;
+    }
+
+    public function isExistByEmail(string $email): bool
+    {
+        return User::query()->where('email', $email)->exists();
+    }
+
+    public function updateName(int $id, string $firstName, ?string $lastName): void
+    {
+        User::query()
+            ->where('id', $id)
+            ->update([
+                'first_name' => $firstName,
+                'last_name'  => $lastName,
+            ]);
     }
 
     public function findById(int $id): ?UserDetailObject
@@ -51,6 +86,18 @@ class UserRepository
             lastName: $user->last_name,
             email: $user->email,
             password: $user->password,
+            createdAt: $user->created_at,
+            updatedAt: $user->updated_at,
+        );
+    }
+
+    private function makeObjectByModel(User $user): UserObject
+    {
+        return new UserObject(
+            id: $user->id,
+            firstName: $user->first_name,
+            lastName: $user->last_name,
+            email: $user->email,
             createdAt: $user->created_at,
             updatedAt: $user->updated_at,
         );

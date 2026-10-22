@@ -25,6 +25,7 @@ use App\Modules\Trace\Infrastructure\Http\Controllers\TraceTimestampPeriodsContr
 use App\Modules\Trace\Infrastructure\Http\Controllers\TraceTimestampsController;
 use App\Modules\Trace\Infrastructure\Http\Controllers\TraceTreeController;
 use App\Modules\Trace\Infrastructure\Http\Controllers\TraceTreeStateController;
+use App\Modules\User\Infrastructure\Http\Controllers\UserController;
 use App\Modules\Watcher\Infrastructure\Http\Controllers\Events\BufferOverflowIncidentEventController;
 use App\Modules\Watcher\Infrastructure\Http\Controllers\Events\InvalidBufferGrownIncidentEventController;
 use App\Modules\Watcher\Infrastructure\Http\Controllers\Events\LogErrorsIncidentEventController;
@@ -73,6 +74,14 @@ Route::prefix('/services')
         Route::patch('/positions', [ServiceController::class, 'sort'])->name('positions');
         Route::get('/{id}', [ServiceController::class, 'show'])->whereNumber('id')->name('show');
         Route::patch('/{id}', [ServiceController::class, 'update'])->whereNumber('id')->name('update');
+    });
+
+Route::prefix('/users')
+    ->as('users.')
+    ->group(function () {
+        Route::get('', [UserController::class, 'index'])->name('index');
+        Route::post('', [UserController::class, 'create'])->name('create');
+        Route::patch('/{id}', [UserController::class, 'update'])->whereNumber('id')->name('update');
     });
 
 Route::prefix('/trace-aggregator')
