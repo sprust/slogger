@@ -6,6 +6,7 @@ const TraceAggregator = () => import("../components/pages/trace-aggregator/Trace
 const Logs = () => import("../components/pages/logs-viewer/Logs.vue")
 const Watchers = () => import("../components/pages/watchers/Watchers.vue")
 const Mcps = () => import("../components/pages/mcps/Mcps.vue")
+const Services = () => import("../components/pages/services/Services.vue")
 const Landing = () => import("../components/pages/landing/Landing.vue")
 
 export const routes = {
@@ -28,6 +29,10 @@ export const routes = {
     mcps: {
         path: '/mcps',
         name: 'mcps',
+    },
+    services: {
+        path: '/services',
+        name: 'services',
     },
     landing: {
         path: '/',
@@ -64,6 +69,11 @@ export const router = createRouter({
             path: routes.mcps.path,
             component: Mcps,
             name: routes.mcps.name
+        },
+        {
+            path: routes.services.path,
+            component: Services,
+            name: routes.services.name
         },
         {
             path: routes.landing.path,

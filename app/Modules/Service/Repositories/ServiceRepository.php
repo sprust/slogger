@@ -7,6 +7,7 @@ namespace App\Modules\Service\Repositories;
 use App\Models\Services\Service;
 use App\Modules\Service\Entities\ServiceObject;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class ServiceRepository
@@ -23,16 +24,31 @@ class ServiceRepository
                 !is_null($ids),
                 fn(Builder $query) => $query->whereIn('id', $ids ?? [])
             )
-            ->select([
-                'id',
-                'name',
-                'api_token',
-            ])
+            ->orderBy('position')
+            ->orderBy('id')
             ->get()
             ->map(
                 fn(Service $service) => $this->makeObjectByModel($service)
             )
             ->toArray();
+    }
+
+    public function findOneById(int $id): ?ServiceObject
+    {
+        $service = Service::query()->find($id);
+
+        return $service instanceof Service ? $this->makeObjectByModel($service) : null;
+    }
+
+    /**
+     * @return int[]
+     */
+    public function findIds(): array
+    {
+        return Service::query()
+            ->pluck('id')
+            ->map(static fn(mixed $id): int => (int) $id)
+            ->all();
     }
 
     public function create(string $name, string $uniqueKey): ServiceObject
@@ -42,15 +58,64 @@ class ServiceRepository
         $newService->name       = $name;
         $newService->unique_key = $uniqueKey;
         $newService->api_token  = Str::random(50);
+        $newService->position   = ((int) Service::query()->max('position')) + 1;
 
         $newService->saveOrFail();
+
+        $newService->refresh();
 
         return $this->makeObjectByModel($newService);
     }
 
-    public function isExistByUniqueKey(string $uniqueKey): bool
+    public function updateName(int $id, string $name): void
     {
-        return Service::query()->where('unique_key', $uniqueKey)->exists();
+        Service::query()
+            ->where('id', $id)
+            ->update([
+                'name' => $name,
+            ]);
+    }
+
+    /**
+     * @param int[] $ids
+     */
+    public function updatePositions(array $ids): void
+    {
+        $ids = array_values($ids);
+
+        if (count($ids) === 0) {
+            return;
+        }
+
+        $cases    = [];
+        $bindings = [];
+
+        foreach ($ids as $index => $id) {
+            $cases[]    = 'WHEN ? THEN ?';
+            $bindings[] = $id;
+            $bindings[] = $index + 1;
+        }
+
+        DB::update(
+            sprintf(
+                'UPDATE %s SET position = CASE id %s END WHERE id IN (%s)',
+                new Service()->getTable(),
+                implode(' ', $cases),
+                implode(', ', array_fill(0, count($ids), '?'))
+            ),
+            [...$bindings, ...$ids]
+        );
+    }
+
+    public function isExistByUniqueKey(string $uniqueKey, ?int $exceptId = null): bool
+    {
+        return Service::query()
+            ->where('unique_key', $uniqueKey)
+            ->when(
+                !is_null($exceptId),
+                fn(Builder $query) => $query->where('id', '!=', $exceptId)
+            )
+            ->exists();
     }
 
     private function makeObjectByModel(Service $service): ServiceObject
@@ -58,7 +123,10 @@ class ServiceRepository
         return new ServiceObject(
             id: $service->id,
             name: $service->name,
-            apiToken: $service->api_token
+            uniqueKey: $service->unique_key,
+            apiToken: $service->api_token,
+            position: $service->position,
+            createdAt: $service->created_at
         );
     }
 }

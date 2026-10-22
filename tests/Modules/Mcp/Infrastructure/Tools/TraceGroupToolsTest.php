@@ -300,7 +300,7 @@ class TraceGroupToolsTest extends TestCase
     private function serviceFinder(): McpToolServiceFinder
     {
         $services = $this->createMock(FindServicesAction::class);
-        $services->method('handle')->willReturn([new ServiceObject(id: 2, name: 'pms', apiToken: 'a')]);
+        $services->method('handle')->willReturn([new ServiceObject(id: 2, name: 'pms', uniqueKey: 'pms', apiToken: 'a', position: 2, createdAt: Carbon::now())]);
 
         return new McpToolServiceFinder(new FindMcpServicesAction($services));
     }

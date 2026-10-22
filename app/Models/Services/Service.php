@@ -11,6 +11,7 @@ use Illuminate\Support\Carbon;
  * @property string $name
  * @property string $unique_key
  * @property string $api_token
+ * @property int    $position
  * @property Carbon $created_at
  * @property Carbon $updated_at
  */

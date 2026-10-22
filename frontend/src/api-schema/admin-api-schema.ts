@@ -589,6 +589,144 @@ export namespace AdminApi {
 
   /**
  * No description
+ * @name ServicesCreate
+ * @request POST:/admin-api/services
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    name: string,
+    unique_key: string,
+    api_token: string,
+    position: number,
+    created_at: string,
+
+},
+
+}` description
+*/
+  export namespace ServicesCreate {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = {
+      /**
+       * @minLength 1
+       * @maxLength 255
+       */
+      name: string;
+    };
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        id: number;
+        name: string;
+        unique_key: string;
+        api_token: string;
+        position: number;
+        created_at: string;
+      };
+    };
+  }
+
+  /**
+   * No description
+   * @name ServicesPositionsPartialUpdate
+   * @request PATCH:/admin-api/services/positions
+   * @secure
+   * @response `200` `any` description
+   */
+  export namespace ServicesPositionsPartialUpdate {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = {
+      ids?: number[];
+    };
+    export type RequestHeaders = {};
+    export type ResponseBody = any;
+  }
+
+  /**
+ * No description
+ * @name ServicesDetail
+ * @request GET:/admin-api/services/{id}
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    name: string,
+    unique_key: string,
+    api_token: string,
+    position: number,
+    created_at: string,
+
+},
+
+}` description
+*/
+  export namespace ServicesDetail {
+    export type RequestParams = {
+      id: any;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        id: number;
+        name: string;
+        unique_key: string;
+        api_token: string;
+        position: number;
+        created_at: string;
+      };
+    };
+  }
+
+  /**
+ * No description
+ * @name ServicesPartialUpdate
+ * @request PATCH:/admin-api/services/{id}
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    name: string,
+    unique_key: string,
+    api_token: string,
+    position: number,
+    created_at: string,
+
+},
+
+}` description
+*/
+  export namespace ServicesPartialUpdate {
+    export type RequestParams = {
+      id: any;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = {
+      /**
+       * @minLength 1
+       * @maxLength 255
+       */
+      name: string;
+    };
+    export type RequestHeaders = {};
+    export type ResponseBody = {
+      data: {
+        id: number;
+        name: string;
+        unique_key: string;
+        api_token: string;
+        position: number;
+        created_at: string;
+      };
+    };
+  }
+
+  /**
+ * No description
  * @name TraceAggregatorTracesCreate
  * @request POST:/admin-api/trace-aggregator/traces
  * @secure
@@ -5302,6 +5440,173 @@ export class Api<
         path: `/admin-api/services`,
         method: "GET",
         secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name ServicesCreate
+ * @request POST:/admin-api/services
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    name: string,
+    unique_key: string,
+    api_token: string,
+    position: number,
+    created_at: string,
+
+},
+
+}` description
+ */
+    servicesCreate: (
+      data: {
+        /**
+         * @minLength 1
+         * @maxLength 255
+         */
+        name: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          data: {
+            id: number;
+            name: string;
+            unique_key: string;
+            api_token: string;
+            position: number;
+            created_at: string;
+          };
+        },
+        any
+      >({
+        path: `/admin-api/services`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @name ServicesPositionsPartialUpdate
+     * @request PATCH:/admin-api/services/positions
+     * @secure
+     * @response `200` `any` description
+     */
+    servicesPositionsPartialUpdate: (
+      data: {
+        ids?: number[];
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<any, any>({
+        path: `/admin-api/services/positions`,
+        method: "PATCH",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name ServicesDetail
+ * @request GET:/admin-api/services/{id}
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    name: string,
+    unique_key: string,
+    api_token: string,
+    position: number,
+    created_at: string,
+
+},
+
+}` description
+ */
+    servicesDetail: (id: any, params: RequestParams = {}) =>
+      this.request<
+        {
+          data: {
+            id: number;
+            name: string;
+            unique_key: string;
+            api_token: string;
+            position: number;
+            created_at: string;
+          };
+        },
+        any
+      >({
+        path: `/admin-api/services/${id}`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+ * No description
+ *
+ * @name ServicesPartialUpdate
+ * @request PATCH:/admin-api/services/{id}
+ * @secure
+ * @response `200` `{
+    data: {
+    id: number,
+    name: string,
+    unique_key: string,
+    api_token: string,
+    position: number,
+    created_at: string,
+
+},
+
+}` description
+ */
+    servicesPartialUpdate: (
+      id: any,
+      data: {
+        /**
+         * @minLength 1
+         * @maxLength 255
+         */
+        name: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          data: {
+            id: number;
+            name: string;
+            unique_key: string;
+            api_token: string;
+            position: number;
+            created_at: string;
+          };
+        },
+        any
+      >({
+        path: `/admin-api/services/${id}`,
+        method: "PATCH",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
         format: "json",
         ...params,
       }),

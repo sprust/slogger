@@ -71,8 +71,8 @@ class ServiceAndRangeToolsTest extends TestCase
         $action = $this->createMock(FindServicesAction::class);
 
         $action->method('handle')->willReturn([
-            new ServiceObject(id: 1, name: 'billing', apiToken: 'a'),
-            new ServiceObject(id: 2, name: 'auth', apiToken: 'b'),
+            new ServiceObject(id: 1, name: 'billing', uniqueKey: 'billing', apiToken: 'a', position: 1, createdAt: Carbon::now()),
+            new ServiceObject(id: 2, name: 'auth', uniqueKey: 'auth', apiToken: 'b', position: 2, createdAt: Carbon::now()),
         ]);
 
         return new GetServicesTool(new FindMcpServicesAction($action));

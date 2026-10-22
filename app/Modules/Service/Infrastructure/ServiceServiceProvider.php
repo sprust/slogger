@@ -6,7 +6,10 @@ namespace App\Modules\Service\Infrastructure;
 
 use App\Modules\Common\Infrastructure\BaseServiceProvider;
 use App\Modules\Service\Domain\Actions\CreateServiceAction;
+use App\Modules\Service\Domain\Actions\FindServiceAction;
 use App\Modules\Service\Domain\Actions\FindServicesAction;
+use App\Modules\Service\Domain\Actions\SortServicesAction;
+use App\Modules\Service\Domain\Actions\UpdateServiceAction;
 use App\Modules\Service\Infrastructure\Commands\CreateServiceCommand;
 use App\Modules\Service\Repositories\ServiceRepository;
 
@@ -29,6 +32,9 @@ class ServiceServiceProvider extends BaseServiceProvider
             // actions
             CreateServiceAction::class,
             FindServicesAction::class,
+            FindServiceAction::class,
+            UpdateServiceAction::class,
+            SortServicesAction::class,
         ];
     }
 }

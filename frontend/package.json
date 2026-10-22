@@ -19,12 +19,14 @@
     "laravel-echo": "^2.4.0",
     "pinia": "^3.0.4",
     "pusher-js": "^8.6.0",
+    "sortablejs": "^1.15.7",
     "swagger-typescript-api": "^13.6.6",
     "vue": "^3.5.32",
     "vue-chartjs": "^5.3.3",
     "vue-router": "^5.0.4"
   },
   "devDependencies": {
+    "@types/sortablejs": "^1.15.9",
     "@vitejs/plugin-vue": "^6.0.5",
     "typescript": "^6.0.2",
     "unplugin-auto-import": "^21.0.0",

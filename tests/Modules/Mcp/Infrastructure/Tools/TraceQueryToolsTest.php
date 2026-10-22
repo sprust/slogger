@@ -32,6 +32,7 @@ use App\Modules\Trace\Entities\Trace\TraceStringFieldObject;
 use App\Modules\Trace\Parameters\TraceFindParameters;
 use PHPUnit\Framework\TestCase;
 use Tests\Modules\Mcp\McpTraceQueryTestTrait;
+use Illuminate\Support\Carbon;
 
 class TraceQueryToolsTest extends TestCase
 {
@@ -329,8 +330,8 @@ class TraceQueryToolsTest extends TestCase
     {
         $services = $this->createMock(FindServicesAction::class);
         $services->method('handle')->willReturn([
-            new ServiceObject(id: 2, name: 'pms', apiToken: 'a'),
-            new ServiceObject(id: 3, name: 'zb', apiToken: 'b'),
+            new ServiceObject(id: 2, name: 'pms', uniqueKey: 'pms', apiToken: 'a', position: 2, createdAt: Carbon::now()),
+            new ServiceObject(id: 3, name: 'zb', uniqueKey: 'zb', apiToken: 'b', position: 3, createdAt: Carbon::now()),
         ]);
 
         return new McpToolTraceScopeReader(

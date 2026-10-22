@@ -69,6 +69,10 @@ Route::prefix('/services')
     ->as('services.')
     ->group(function () {
         Route::get('', [ServiceController::class, 'index'])->name('index');
+        Route::post('', [ServiceController::class, 'create'])->name('create');
+        Route::patch('/positions', [ServiceController::class, 'sort'])->name('positions');
+        Route::get('/{id}', [ServiceController::class, 'show'])->whereNumber('id')->name('show');
+        Route::patch('/{id}', [ServiceController::class, 'update'])->whereNumber('id')->name('update');
     });
 
 Route::prefix('/trace-aggregator')
