@@ -22,12 +22,6 @@ RUN curl -fSL --connect-timeout 10 --retry 3 \
         -o /usr/local/bin/pie \
     && chmod +x /usr/local/bin/pie
 
-# Third-party extensions via PIE (installs and enables them)
-#
-# msgpack is what every payload crossing the PHP-extension boundary is encoded with, and
-# sconcur/sconcur requires it.
-RUN pie install msgpack/msgpack-php
-
 # Bundled (core) extensions
 #
 # pdo carries no traffic — DB_CONNECTION is sconcur_mysql, whose statements run in the

@@ -60,7 +60,7 @@ release, start it again.
 - If the new version is outside the constraint in `composer.json` (a caret on `0.x` does
   not cross a minor: `^0.4` never reaches `0.5.0`), raise the constraint by hand first.
   Otherwise `make sconcur-update` reports success and silently stays on the old version.
-- Run `make sconcur-update`, then `make sconcur-wait` and `make sconcur-reload`.
+- Run `make sconcur-update`, then `make sconcur-wait` and `make sconcur-restart`.
 - Confirm in `composer.lock` that `sconcur/laravel` is on the new version, and note the
   `sconcur/sconcur` version it pulled in (old → new).
 - If Packagist has the version but Composer does not see it yet (metadata cache), wait
@@ -97,10 +97,9 @@ For both `sconcur/laravel` and, if it moved, `sconcur/sconcur`:
 
 - Run `make check` and fix what fails. If the HTTP layer or contract enums changed, run
   `make oa-generate`; if `frontend/src` changed, run `make frontend-npm-build`.
-- The workers hold the code they loaded: run `make sconcur-reload` after the code
-  changes, then `make sconcur-status` and confirm the servers are up and serving.
-- A master restart is needed if the extension itself changed: `make sconcur-restart`,
-  then `make sconcur-wait`.
+- The workers are forks of the master and hold the code it loaded: run
+  `make sconcur-restart` after the code changes, then `make sconcur-status` and confirm
+  the servers are up and serving.
 - Stop any process you started only to check something.
 
 All `make` commands are pre-authorized; do not ask before running them.

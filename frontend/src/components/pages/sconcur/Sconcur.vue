@@ -52,7 +52,7 @@ const TIPS = {
   pid: 'Process id of the worker. A worker the master replaces comes back with a new one.',
   workerGroup: 'The pool this worker belongs to.',
   status: 'ok, or hung when the master last heard from this worker over 15 s ago.',
-  uptime: 'Since this worker started serving, not since the master started — a rolling reload puts it back to zero.',
+  uptime: 'Since this worker started serving, not since the master started. A worker the master replaces starts again from zero.',
 };
 
 interface MetricDef {

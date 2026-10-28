@@ -170,12 +170,11 @@ composer:
 composer-fresh:
 	docker-compose run --rm --no-deps -e XDEBUG_MODE=off $(PHP_FPM_SERVICE) composer ${c}
 
-# Rolling reload, not a stop: the workers still listening keep the port served while the
-# others are replaced. A new extension or library reaches the workers but not the master
-# above them — that one needs sconcur-restart.
+# A new master on the current code and config: the workers are forks of the master, so
+# there is nothing to reload them from but a master that loaded the application again.
 workers-restart:
 	make queues-declare
-	make sconcur-reload
+	make sconcur-restart
 
 oa-generate:
 	make art c='oa:generate'
@@ -189,9 +188,9 @@ oa-generate:
 # redis and rabbitmq running.
 #
 # The application code is a bind mount, so an ordinary commit changes no image and
-# `up` recreates nothing: the sconcur workers keep serving the classes they already
-# loaded. sconcur-reload is what carries the new code to them, and it comes after
-# the migration so the fresh workers start on the schema they expect.
+# `up` recreates nothing: the sconcur master and its forks keep serving the classes they
+# already loaded. sconcur-restart is what carries the new code to them, and it comes
+# after the migration so the fresh workers start on the schema they expect.
 deploy-prod:
 	git pull
 	make build
@@ -201,7 +200,7 @@ deploy-prod:
 	make queues-declare
 	make art c='migrate --force'
 	make sconcur-wait
-	make sconcur-reload
+	make sconcur-restart
 	make receiver-build
 	make frontend-npm-i
 	make frontend-npm-build
@@ -216,7 +215,7 @@ deploy-dev:
 	make queues-declare
 	make art c='migrate --force'
 	make sconcur-wait
-	make sconcur-reload
+	make sconcur-restart
 	make receiver-build
 	make frontend-npm-i
 	make frontend-npm-build
@@ -266,15 +265,11 @@ sconcur-update:
 #
 # `up` returns when the container is up, not when the master inside it has booted and
 # taken the lock — supervisor starts it, and a build that changed the image means `up`
-# recreated the container. A deploy then reached sconcur-reload before the master
-# existed, got `not running` with exit 3, and died there with four steps still to run.
-# Which is the one case where there was nothing to reload: workers that have only just
-# started are already on the new code.
+# recreated the container. A stop sent while the master is still booting finds nothing
+# to stop, so the deploys wait before sconcur-restart as well as inside it.
 #
 # master:status is what to ask — it answers 0 running, 3 stopped, and decides by the lock
-# rather than by a pid in the state file, so a stale file cannot fool it. The wait is not
-# folded into sconcur-reload because that one is also typed by hand, where "not running"
-# is the answer somebody wants immediately rather than in a minute.
+# rather than by a pid in the state file, so a stale file cannot fool it.
 SCONCUR_MASTER_WAIT_SECONDS ?= 60
 
 sconcur-wait:
@@ -290,13 +285,11 @@ sconcur-wait:
 		sleep 1; \
 	done
 
-# Fresh worker processes on the current code and config; the master keeps running.
-sconcur-reload:
-	make workers-art c=sconcur:servers:master:reload
-
-# Takes the master down too, leaving the port unserved until the supervisor starts it.
+# The only way to new code or config: the master holds the application it loaded and
+# forks every worker from it. The port is unserved until the supervisor's new master is up.
 sconcur-restart:
 	make workers-art c=sconcur:servers:master:stop
+	make sconcur-wait
 
 sconcur-status:
 	docker-compose exec -e XDEBUG_MODE=off $(PHP_FPM_SERVICE) ./vendor/bin/sconcur-status
