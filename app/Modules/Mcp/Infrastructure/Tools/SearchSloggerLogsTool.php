@@ -39,7 +39,7 @@ readonly class SearchSloggerLogsTool implements McpToolInterface
 
     public function description(): string
     {
-        return 'Log entries of SLogger itself (its Laravel app, nginx, receiver), NOT of the client services: '
+        return 'Log entries of SLogger itself (its Laravel app, nginx, receiver, sconcur), NOT of the client services: '
             . 'use it only for questions about how SLogger works. Newest first, by source, levels, period '
             . 'and text. While the files of a source are being indexed the answer is "indexing": repeat the '
             . 'call later.';
@@ -51,7 +51,7 @@ readonly class SearchSloggerLogsTool implements McpToolInterface
             new McpToolProperty(
                 name: 'source',
                 type: McpToolPropertyTypeEnum::String,
-                description: 'Log source of SLogger, for example Laravel, Slogger, Nginx, Receiver.',
+                description: 'Log source of SLogger, for example Laravel, Slogger, Nginx, Receiver, Sconcur.',
                 required: true,
                 max: 255
             ),

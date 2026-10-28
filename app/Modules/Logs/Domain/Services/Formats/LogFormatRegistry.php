@@ -12,17 +12,21 @@ readonly class LogFormatRegistry
         private LaravelLogFormat $laravelLogFormat,
         private NginxAccessLogFormat $nginxAccessLogFormat,
         private NginxErrorLogFormat $nginxErrorLogFormat,
-        private ReceiverLogFormat $receiverLogFormat
+        private ReceiverLogFormat $receiverLogFormat,
+        private SconcurAccessLogFormat $sconcurAccessLogFormat,
+        private SconcurJournalLogFormat $sconcurJournalLogFormat
     ) {
     }
 
     public function get(LogTypeEnum $type): LogFormatInterface
     {
         return match ($type) {
-            LogTypeEnum::Laravel     => $this->laravelLogFormat,
-            LogTypeEnum::NginxAccess => $this->nginxAccessLogFormat,
-            LogTypeEnum::NginxError  => $this->nginxErrorLogFormat,
-            LogTypeEnum::Receiver    => $this->receiverLogFormat,
+            LogTypeEnum::Laravel        => $this->laravelLogFormat,
+            LogTypeEnum::NginxAccess    => $this->nginxAccessLogFormat,
+            LogTypeEnum::NginxError     => $this->nginxErrorLogFormat,
+            LogTypeEnum::Receiver       => $this->receiverLogFormat,
+            LogTypeEnum::SconcurAccess  => $this->sconcurAccessLogFormat,
+            LogTypeEnum::SconcurJournal => $this->sconcurJournalLogFormat,
         };
     }
 }

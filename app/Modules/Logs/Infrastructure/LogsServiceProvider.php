@@ -23,6 +23,8 @@ use App\Modules\Logs\Domain\Services\Formats\LogTimeParser;
 use App\Modules\Logs\Domain\Services\Formats\NginxAccessLogFormat;
 use App\Modules\Logs\Domain\Services\Formats\NginxErrorLogFormat;
 use App\Modules\Logs\Domain\Services\Formats\ReceiverLogFormat;
+use App\Modules\Logs\Domain\Services\Formats\SconcurAccessLogFormat;
+use App\Modules\Logs\Domain\Services\Formats\SconcurJournalLogFormat;
 use App\Modules\Logs\Domain\Services\Index\LogIndexBatchRefresher;
 use App\Modules\Logs\Domain\Services\Index\LogIndexer;
 use App\Modules\Logs\Domain\Services\Reading\LogCursorCodec;
@@ -60,6 +62,8 @@ class LogsServiceProvider extends BaseServiceProvider
             NginxAccessLogFormat::class,
             NginxErrorLogFormat::class,
             ReceiverLogFormat::class,
+            SconcurAccessLogFormat::class,
+            SconcurJournalLogFormat::class,
             LogFormatRegistry::class,
             LogFileFinder::class,
             LogIndexer::class,

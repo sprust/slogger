@@ -202,7 +202,7 @@ The Presets dialog of the aggregator keeps filters for later. The Saved tab hold
 
 ### Logs
 
-The Logs page reads log files straight from disk: SLogger's own Laravel log, the log of its `slogger` channel, nginx's access and error logs, and the receiver's log. The sources are listed in `config/module-logs.php` — a folder, a file pattern and a format each. The page shows several files at once as one feed ordered by time, filters it by level, period and a case-insensitive text search, and downloads a file up to `LOGS_DOWNLOAD_MAX_BYTES` (100 MB by default).
+The Logs page reads log files straight from disk: SLogger's own Laravel log, the log of its `slogger` channel, nginx's access and error logs, the receiver's log, and the sconcur access log (a line per request, with its time and worker) and master journal (workers started, stopped and crashed). The sources are listed in `config/module-logs.php` — a folder, a file pattern and a format each. The page shows several files at once as one feed ordered by time, filters it by level, period and a case-insensitive text search, and downloads a file up to `LOGS_DOWNLOAD_MAX_BYTES` (100 MB by default).
 
 A file is read through an index of its own in `storage/framework/logs-index`: the offset, time and level of every entry, so a page or one level of a large file is read without going through the whole file. The index is appended to as the file grows and rebuilt when the file is rotated or replaced. `logs:index` keeps the indexes fresh every minute, so a request usually reads a few kilobytes of new lines. A search has a time and a bytes budget per request; when it runs out, the page shows how many entries were checked and offers to continue.
 

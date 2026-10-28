@@ -22,7 +22,11 @@ return [
     //                                      levels debug…emerg;
     //           LogTypeEnum::Receiver    — the receiver's slog: `Y-m-d H:i:s.v LEVEL message`,
     //                                      an entry runs until the next header (stack traces included),
-    //                                      levels DEBUG, INFO, WARN, ERROR.
+    //                                      levels DEBUG, INFO, WARN, ERROR;
+    //           LogTypeEnum::SconcurAccess  — sconcur access lines: `Y-m-dTH:i:s.u METHOD path status 1.23ms group#slot pid=N`,
+    //                                      one line per entry, the status class (1xx…5xx) stands for the level;
+    //           LogTypeEnum::SconcurJournal — the sconcur master journal: `[Y-m-d H:i:s.u] LEVEL [master: pid]: message {context}`,
+    //                                      one line per entry, levels INFO, WARN, ERROR.
     //           A line a format cannot read is still an entry, without a level.
     // keep_days — optional: logs:clean, once a day, deletes the source's files not written
     //           to for longer than this. Leave it out where something else rotates the
@@ -67,6 +71,21 @@ return [
             'folder'  => env('LOGS_RECEIVER_PATH', base_path('servers/receiver/storage/logs')),
             'pattern' => '*.log',
             'type'    => LogTypeEnum::Receiver,
+        ],
+        // The sconcur master writes here (sconcur.master.logDir) and deletes the old files
+        // itself (rotateDays). The journal is named after SCONCUR_HTTP_NAME, so its pattern
+        // does not take the access files.
+        [
+            'name'    => 'Sconcur',
+            'folder'  => storage_path('sconcur/logs'),
+            'pattern' => '*-access-*.log',
+            'type'    => LogTypeEnum::SconcurAccess,
+        ],
+        [
+            'name'    => 'Sconcur',
+            'folder'  => storage_path('sconcur/logs'),
+            'pattern' => env('SCONCUR_HTTP_NAME', 'sconcur-http-server') . '-[0-9]*.log',
+            'type'    => LogTypeEnum::SconcurJournal,
         ],
     ],
 
