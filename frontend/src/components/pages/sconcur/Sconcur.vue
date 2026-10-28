@@ -40,7 +40,8 @@ const TIPS = {
   workers: 'Worker processes the master supervises right now, over every group.',
   hung: 'Alive but silent: the master last heard from them over 15 s ago. It catches a jammed worker runtime, not a slow handler — the sender runs beside PHP rather than inside it. The tasks pool is the exception, reporting from PHP itself.',
   cpu: 'CPU as a percentage of one core, so several busy cores put it over 100. Summed over the worker processes it covers; the master\'s own process is not in it.',
-  rss: 'Resident memory of the worker processes it covers, the PHP side and the extension together.',
+  rss: 'Resident memory of the worker processes it covers, the PHP side and the extension together. Memory that several processes share is counted in full for each of them.',
+  pss: 'The same memory, but a page shared by several processes is split between them. The workers are copies of the master and share much of its memory, so this is what they really take, and RSS counts the shared part again for every worker.',
   runtimeTasks: 'Live tasks in the extension runtime of the workers. The tasks pool runs no such runtime and reports zero.',
   inProcess: 'Units of work handed to PHP and not finished yet: requests being served, queue deliveries being handled, task ticks running.',
   finished: 'Units of work that ended, however they ended: requests completed plus deliveries acked or refused. A tick that found nothing to do is not one.',
@@ -79,6 +80,7 @@ export default defineComponent({
         {key: 'avg_ms', label: 'Avg duration, ms'},
         {key: 'cpu_percent', label: 'CPU, %'},
         {key: 'memory_rss_mb', label: 'Memory RSS, MB'},
+        {key: 'memory_pss_mb', label: 'Memory PSS, MB'},
         {key: 'runtime_tasks', label: 'Ext tasks'},
       ] as MetricDef[],
     }
@@ -248,7 +250,7 @@ export default defineComponent({
       return (last.avg * last.count - first.avg * first.count) / done
     },
 
-    rssMb(bytes: number): number {
+    toMb(bytes: number): number {
       return Math.round(bytes / 1048576)
     },
 
@@ -387,9 +389,16 @@ export default defineComponent({
           </el-statistic>
         </el-col>
         <el-col :span="3">
-          <el-statistic :value="rssMb(store.stat.memory_rss_bytes)">
+          <el-statistic :value="toMb(store.stat.memory_rss_bytes)">
             <template #title>
               <StatTitle label="RSS, MB" :tip="tips.rss"/>
+            </template>
+          </el-statistic>
+        </el-col>
+        <el-col :span="3">
+          <el-statistic :value="toMb(store.stat.memory_pss_bytes)">
+            <template #title>
+              <StatTitle label="PSS, MB" :tip="tips.pss"/>
             </template>
           </el-statistic>
         </el-col>
@@ -468,7 +477,13 @@ export default defineComponent({
           <template #header>
             <StatTitle label="RSS, MB" :tip="tips.rss"/>
           </template>
-          <template #default="{ row }">{{ rssMb(row.memory_rss_bytes) }}</template>
+          <template #default="{ row }">{{ toMb(row.memory_rss_bytes) }}</template>
+        </el-table-column>
+        <el-table-column label="PSS, MB" width="100">
+          <template #header>
+            <StatTitle label="PSS, MB" :tip="tips.pss"/>
+          </template>
+          <template #default="{ row }">{{ toMb(row.memory_pss_bytes) }}</template>
         </el-table-column>
         <el-table-column prop="runtime_tasks" label="Ext tasks" width="110">
           <template #header>
@@ -547,7 +562,13 @@ export default defineComponent({
           <template #header>
             <StatTitle label="RSS, MB" :tip="tips.rss"/>
           </template>
-          <template #default="{ row }">{{ rssMb(row.memory_rss_bytes) }}</template>
+          <template #default="{ row }">{{ toMb(row.memory_rss_bytes) }}</template>
+        </el-table-column>
+        <el-table-column label="PSS, MB">
+          <template #header>
+            <StatTitle label="PSS, MB" :tip="tips.pss"/>
+          </template>
+          <template #default="{ row }">{{ toMb(row.memory_pss_bytes) }}</template>
         </el-table-column>
         <el-table-column prop="runtime_tasks" label="Ext tasks">
           <template #header>

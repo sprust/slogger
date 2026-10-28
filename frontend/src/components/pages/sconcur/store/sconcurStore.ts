@@ -211,6 +211,7 @@ export const useSconcurStore = defineStore('sconcur', {
                 avg_ms: work ? Math.round(work.avg_ms * 100) / 100 : null,
                 cpu_percent: Math.round(row.cpu_percent * 10) / 10,
                 memory_rss_mb: Math.round(row.memory_rss_bytes / 1048576),
+                memory_pss_mb: Math.round(row.memory_pss_bytes / 1048576),
                 runtime_tasks: row.runtime_tasks,
             }
         },

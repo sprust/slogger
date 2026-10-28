@@ -5,7 +5,9 @@ declare(strict_types=1);
 use App\Modules\Trace\Infrastructure\Tasks\RefreshTraceDataPathTypesTask;
 use App\Modules\Watcher\Infrastructure\Tasks\CheckWatchersTask;
 use App\Services\Sconcur\Listeners\ReportWorkerWatchdogListener;
+use App\Services\Sconcur\Listeners\TagLogWithWorkerListener;
 use App\Services\Tasks\CronTask;
+use SConcur\Laravel\Servers\Events\WorkerForked;
 use SConcur\Laravel\Servers\Events\WorkerWatchdogTriggered;
 
 return [
@@ -55,12 +57,19 @@ return [
     | event class => a list of its listeners, the way EventServiceProvider::$listen
     | takes them.
     |
+    | WorkerForked is raised in every worker the master forks, right after the fork
+    | and before the worker builds its server, consumer or task pool: the place for
+    | per-worker setup. An exception a listener lets out ends the worker.
+    |
     | WorkerWatchdogTriggered is raised in the master process when its watchdog
     | kills a worker whose PHP thread stopped answering. It runs inside the
     | master's supervision tick, so a listener has to be short, and it must make no
     | asynchronous call: the master's process refuses one.
     */
     'listeners' => [
+        WorkerForked::class => [
+            TagLogWithWorkerListener::class,
+        ],
         WorkerWatchdogTriggered::class => [
             ReportWorkerWatchdogListener::class,
         ],

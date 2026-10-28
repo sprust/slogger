@@ -19,6 +19,7 @@ readonly class SconcurGroupObject
         public int $workersHung,
         public float $cpuPercent,
         public int $memoryRssBytes,
+        public int $memoryPssBytes,
         public int $runtimeTasks,
         public ?SconcurWorkObject $work,
     ) {

@@ -82,10 +82,12 @@ readonly class SconcurStatClient
             workersHung: (int) ($data['workersHung'] ?? 0),
             cpuPercent: (float) ($totals['cpuPercent'] ?? 0),
             memoryRssBytes: (int) ($totals['memory']['rssBytes'] ?? 0),
+            memoryPssBytes: (int) ($totals['memory']['pssBytes'] ?? 0),
             runtimeTasks: (int) ($totals['runtimeTasks'] ?? 0),
             work: $this->mapWork($totals['requests'] ?? null, $totals['consumers'] ?? null),
             masterCpuPercent: (float) ($master['cpuPercent'] ?? 0),
             masterMemoryRssBytes: (int) ($master['memory']['rssBytes'] ?? 0),
+            masterMemoryPssBytes: (int) ($master['memory']['pssBytes'] ?? 0),
             groups: $groups,
             workers: $this->orderWorkers(
                 array_map($this->mapWorker(...), array_values((array) ($data['workers'] ?? []))),
@@ -122,6 +124,7 @@ readonly class SconcurStatClient
                 workersHung: 0,
                 cpuPercent: 0,
                 memoryRssBytes: 0,
+                memoryPssBytes: 0,
                 runtimeTasks: 0,
                 work: null,
             );
@@ -218,6 +221,7 @@ readonly class SconcurStatClient
             workersHung: (int) ($group['workersHung'] ?? 0),
             cpuPercent: (float) ($totals['cpuPercent'] ?? 0),
             memoryRssBytes: (int) ($totals['memory']['rssBytes'] ?? 0),
+            memoryPssBytes: (int) ($totals['memory']['pssBytes'] ?? 0),
             runtimeTasks: (int) ($totals['runtimeTasks'] ?? 0),
             work: $this->mapWork($totals['requests'] ?? null, $totals['consumers'] ?? null),
         );
@@ -235,6 +239,7 @@ readonly class SconcurStatClient
             uptimeSeconds: (float) ($worker['uptimeSeconds'] ?? 0),
             cpuPercent: (float) ($worker['cpuPercent'] ?? 0),
             memoryRssBytes: (int) ($worker['memory']['rssBytes'] ?? 0),
+            memoryPssBytes: (int) ($worker['memory']['pssBytes'] ?? 0),
             runtimeTasks: (int) ($worker['runtimeTasks'] ?? 0),
             work: $this->mapWork($worker['requests'] ?? null, $worker['consumers'] ?? null),
         );
@@ -293,10 +298,12 @@ readonly class SconcurStatClient
             workersHung: 0,
             cpuPercent: 0.0,
             memoryRssBytes: 0,
+            memoryPssBytes: 0,
             runtimeTasks: 0,
             work: null,
             masterCpuPercent: 0.0,
             masterMemoryRssBytes: 0,
+            masterMemoryPssBytes: 0,
             groups: [],
             workers: [],
         );
