@@ -24,7 +24,8 @@ return [
     //                                      an entry runs until the next header (stack traces included),
     //                                      levels DEBUG, INFO, WARN, ERROR;
     //           LogTypeEnum::SconcurAccess  — sconcur access lines: `Y-m-dTH:i:s.u METHOD path status 1.23ms group#slot pid=N`,
-    //                                      one line per entry, the status class (1xx…5xx) stands for the level;
+    //                                      one line per entry at the end of its request, the status class
+    //                                      (1xx…5xx) stands for the level; the workers container must run in UTC;
     //           LogTypeEnum::SconcurJournal — the sconcur master journal: `[Y-m-d H:i:s.u] LEVEL [master: pid]: message {context}`,
     //                                      one line per entry, levels INFO, WARN, ERROR.
     //           A line a format cannot read is still an entry, without a level.
@@ -72,20 +73,22 @@ return [
             'pattern' => '*.log',
             'type'    => LogTypeEnum::Receiver,
         ],
-        // The sconcur master writes here (sconcur.master.logDir) and deletes the old files
-        // itself (rotateDays). The journal is named after SCONCUR_HTTP_NAME, so its pattern
-        // does not take the access files.
+        // The sconcur master writes here (sconcur.master.logDir). It deletes the old files
+        // only while its journal goes to a file, so keep_days repeats its rotateDays. The
+        // journal is named after SCONCUR_HTTP_NAME, so its pattern does not take the access files.
         [
-            'name'    => 'Sconcur',
-            'folder'  => storage_path('sconcur/logs'),
-            'pattern' => '*-access-*.log',
-            'type'    => LogTypeEnum::SconcurAccess,
+            'name'      => 'Sconcur',
+            'folder'    => storage_path('sconcur/logs'),
+            'pattern'   => '*-access-*.log',
+            'type'      => LogTypeEnum::SconcurAccess,
+            'keep_days' => (int) env('SCONCUR_HTTP_ROTATE_DAYS', 3),
         ],
         [
-            'name'    => 'Sconcur',
-            'folder'  => storage_path('sconcur/logs'),
-            'pattern' => env('SCONCUR_HTTP_NAME', 'sconcur-http-server') . '-[0-9]*.log',
-            'type'    => LogTypeEnum::SconcurJournal,
+            'name'      => 'Sconcur',
+            'folder'    => storage_path('sconcur/logs'),
+            'pattern'   => env('SCONCUR_HTTP_NAME', 'sconcur-http-server') . '-[0-9]*.log',
+            'type'      => LogTypeEnum::SconcurJournal,
+            'keep_days' => (int) env('SCONCUR_HTTP_ROTATE_DAYS', 3),
         ],
     ],
 

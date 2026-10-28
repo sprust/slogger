@@ -190,7 +190,9 @@ oa-generate:
 # The application code is a bind mount, so an ordinary commit changes no image and
 # `up` recreates nothing: the sconcur master and its forks keep serving the classes they
 # already loaded. sconcur-restart is what carries the new code to them, and it comes
-# after the migration so the fresh workers start on the schema they expect.
+# after the migration so the fresh workers start on the schema they expect. When the
+# image did change, `up` has already started a master on it and sconcur-restart starts
+# it once more: a second short gap in serving, accepted to keep one deploy for both cases.
 deploy-prod:
 	git pull
 	make build

@@ -42,6 +42,27 @@ class SconcurAccessLogFormatTest extends TestCase
         $this->assertSame(strlen($lines[0]) + 1, $starts[1]->offset);
     }
 
+    public function testAnEntryIsIndexedAtTheEndOfTheRequest(): void
+    {
+        $starts = $this->find("2026-10-28T11:36:40.900000 GET / 200 150.00ms http#0 pid=22\n");
+
+        $this->assertSame(gmmktime(11, 36, 41, 10, 28, 2026), $starts[0]->loggedAt);
+    }
+
+    /** A slow request is written after the faster ones that started later. */
+    public function testASlowRequestWrittenLateKeepsTheTimeOrder(): void
+    {
+        $starts = $this->find(
+            "2026-10-28T12:00:05.000000 GET /fast 200 1.00ms http#1 pid=23\n"
+            . "2026-10-28T12:00:00.000000 GET /slow 200 20000.00ms http#0 pid=22\n"
+        );
+
+        $this->assertSame(
+            [gmmktime(12, 0, 5, 10, 28, 2026), gmmktime(12, 0, 20, 10, 28, 2026)],
+            array_map(static fn(LogEntryStartObject $start): ?int => $start->loggedAt, $starts)
+        );
+    }
+
     public function testTheFieldsAreRead(): void
     {
         $details = $this->format()->parseEntry("2026-10-28T11:36:40.037168 GET /admin-api/logs?page=1 200 15.45ms http#1 pid=23\n");
@@ -67,6 +88,14 @@ class SconcurAccessLogFormatTest extends TestCase
 
         $this->assertNull($this->fields($details->fields)['worker']);
         $this->assertNull($this->fields($details->fields)['pid']);
+    }
+
+    public function testALabelWithoutASlotIsNotAWorker(): void
+    {
+        $line = '2026-10-28T11:36:40.037168 GET / 200 2.59ms other pid=22';
+
+        $this->assertSame(HttpStatusClassEnum::Success->value, $this->find($line)[0]->level);
+        $this->assertNull($this->fields($this->format()->parseEntry($line)->fields)['worker']);
     }
 
     public function testALineThatDoesNotParseIsAnEntryWithoutLevelAndTime(): void

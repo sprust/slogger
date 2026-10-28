@@ -10,8 +10,8 @@ use App\Modules\Logs\Entities\Formats\LogLevelNameObject;
 use App\Modules\Logs\Enums\SconcurJournalLogLevelEnum;
 
 /**
- * The sconcur master journal, in UTC: `[Y-m-d H:i:s.u] LEVEL [master: pid]: message {context}`,
- * or `[worker: pid group #slot]` for a worker's event or output line.
+ * The sconcur master journal: `[Y-m-d H:i:s.u] LEVEL [master: pid]: message {context}`, or
+ * `[worker: pid group #slot]` for a worker's event or output line. In app.timezone, which is UTC.
  */
 readonly class SconcurJournalLogFormat extends AbstractLineLogFormat
 {

@@ -15,7 +15,7 @@ class TagLogWithWorkerListenerTest extends TestCase
     {
         event(
             new WorkerForked(
-                new WorkerContext(group: 'http', slot: 1, masterPid: 4242)
+                workerContext: new WorkerContext(group: 'http', slot: 1, masterPid: 4242)
             )
         );
 

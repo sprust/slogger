@@ -10,11 +10,15 @@ use App\Modules\Logs\Entities\Formats\LogLevelNameObject;
 use App\Modules\Logs\Enums\HttpStatusClassEnum;
 
 /**
- * Access lines of the sconcur http workers, in UTC: `Y-m-dTH:i:s.u METHOD path status 1.23ms group#slot pid=N`.
+ * Access lines of the sconcur http workers: `Y-m-dTH:i:s.u METHOD path status 1.23ms group#slot pid=N`,
+ * in the zone of the workers container, which runs in UTC.
+ *
+ * A line holds the start of the request but is written at its end, so an entry is indexed at
+ * the start plus the duration: the time order of the file the period filter relies on.
  */
 readonly class SconcurAccessLogFormat extends AbstractLineLogFormat
 {
-    private const string LINE_PATTERN = '/^(?:(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})\.\d+ \S+ \S+ (\d{3}) )?[^\n]*$/m';
+    private const string LINE_PATTERN = '/^(?:(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+ (?=\S+ \S+ (\d{3}) )\S+ \S+ \d{3} [\d.]+)ms(?= |$))?[^\n]*$/m';
 
     private const string ENTRY_PATTERN = '/^\S+ (\S+) (\S+) (\d{3}) ([\d.]+)ms(?: (\S*#\d+) pid=(\d+))?/';
 
@@ -56,9 +60,12 @@ readonly class SconcurAccessLogFormat extends AbstractLineLogFormat
         return self::LINE_PATTERN;
     }
 
+    /**
+     * The text runs from the time to the duration: `Y-m-dTH:i:s.u METHOD path status 1.23`.
+     */
     protected function parseTime(string $text): ?int
     {
-        return $this->timeParser->toUnixTime(
+        $start = $this->timeParser->toUnixTime(
             year: (int) substr($text, 0, 4),
             month: (int) substr($text, 5, 2),
             day: (int) substr($text, 8, 2),
@@ -67,6 +74,15 @@ readonly class SconcurAccessLogFormat extends AbstractLineLogFormat
             second: (int) substr($text, 17, 2),
             zone: null
         );
+
+        if ($start === null) {
+            return null;
+        }
+
+        $microseconds = (int) substr($text, 20, (int) strpos($text, ' ') - 20);
+        $durationMs   = (float) substr($text, (int) strrpos($text, ' ') + 1);
+
+        return $start + (int) floor($microseconds / 1_000_000 + $durationMs / 1000);
     }
 
     protected function parseLevel(string $text): int

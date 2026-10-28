@@ -47,6 +47,14 @@ class SconcurJournalLogFormatTest extends TestCase
         $this->assertSame(['process' => 'worker', 'pid' => '10', 'worker' => 'http#1'], $this->fields($details->fields));
     }
 
+    public function testAWorkerOutsideAGroupIsItsSlot(): void
+    {
+        $details = $this->format()->parseEntry('[2026-10-28 06:30:05.353636] ERROR [worker: 12 #0]: PHP Fatal error []');
+
+        $this->assertSame('PHP Fatal error', $details->message);
+        $this->assertSame(['process' => 'worker', 'pid' => '12', 'worker' => '#0'], $this->fields($details->fields));
+    }
+
     public function testAContextIsSplitFromTheMessage(): void
     {
         $details = $this->format()->parseEntry('[2026-10-28 06:30:05.353636] WARN [master: 7]: a {b} c {"group":"http"}');
