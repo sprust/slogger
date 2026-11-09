@@ -13,6 +13,8 @@ use Tests\TestCase;
 
 class ReportWorkerWatchdogListenerTest extends TestCase
 {
+    protected bool $fakeEvents = false;
+
     public function testAWatchdogKillIsReported(): void
     {
         Exceptions::fake();

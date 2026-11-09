@@ -543,3 +543,34 @@ storage/api/json-schemes/admin-api-openapi-scheme.json    # API веб-пане�
 `packages/ifksco/openapi-generator`; источники и диски заданы в
 `config/oa-generator.php`. Отдельные команды: `php artisan oa:generate private`
 и `php artisan oa:generate public`. Go receiver этим генератором не описывается.
+
+### Backend-тесты
+
+```bash
+make test-prepare                    # поднять отдельные сервисы и пересоздать тестовые схемы
+make test                           # весь набор тестов
+make test c="--filter=DatabaseTest"   # интеграционные сценарии с настоящими репозиториями
+make test-art c="migrate:status"     # Artisan в защищённом тестовом окружении
+make test-down                      # остановить тестовые хранилища; затем нужна новая подготовка
+```
+
+Отслеживаемый `.env.testing` содержит публичные тестовые значения. Не копируйте в него
+`.env`. `tests/bootstrap.php` загружает его до Laravel, использует отдельные пути кеша
+конфигурации/маршрутов и отклоняет нетестовые адреса хранилищ до загрузки провайдеров.
+PHPUnit и `tests/console.php` используют этот общий bootstrap.
+
+Compose-профиль `testing` запускает отдельные MySQL, MongoDB и ClickHouse на tmpfs,
+а также Redis без сохранения данных для тестов конкурентных блокировок. Порты наружу
+не публикуются, рабочие volumes не используются. `test-prepare` запускает PHP CLI
+контейнер с `--no-deps`; рабочие базы, workers и RabbitMQ не нужны. После остановки
+контейнеров хранилищ данные теряются, поэтому снова выполните `test-prepare`.
+`test-down` оставляет PHP-контейнер работающим.
+
+Интеграционные тесты наследуют `Tests\Modules\BaseModuleTestCase` и получают зависимости
+через `appMake`. Readonly-фабрики в `tests/Factories/Entities` заполняют реальные
+репозитории; TraceFactory пишет через ClickhouseClient, поскольку приём трейсов
+принадлежит Go. Каждый кейс создаёт свежие parent-сущности и уникальные ключи; отката
+транзакций и сброса схемы между кейсами нет. Повторный запуск использует те же
+подготовленные базы. Случайные Laravel HTTP-запросы запрещены, события по умолчанию
+подменяются; тесты listeners явно задают `$fakeEvents = false`.
+См. [.ai/skills/tests.md](.ai/skills/tests.md).

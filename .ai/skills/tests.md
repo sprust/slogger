@@ -3,8 +3,8 @@
 Перенесено из PMS с адаптацией к существующей тестовой инфраструктуре. Читать
 перед добавлением или изменением тестов вместе с [правилами](../rules.md).
 
-- Интеграционные тесты наследуют `Tests\TestCase`; зависимости разрешаются через
-  `$this->app->make(...)`.
+- Интеграционные тесты наследуют `Tests\Modules\BaseModuleTestCase`; зависимости разрешаются через
+  `$this->appMake(...)`.
 - Новые бизнес-тесты проверяют публичный API сценария и состояние хранилища.
   Сидинг — фабриками своей сущности и фабриками связанных сущностей. Фабрика
   readonly, принимает собственный repository и dependent factories; `create`
@@ -19,11 +19,28 @@
   чистые Transports — на типизированных входных данных; транспортные сбои и
   конкурентность dispatcher — контролируемыми реализациями его внешних контрактов.
   Эти проверки не требуют базы или Laravel-приложения.
-- Не считать Event::fake и запрет исходящего HTTP автоматическими: местный
-  `Tests/TestCase.php` этого не делает. В тесте внешнего API явно запрещать случайные
-  запросы и задавать ответ fake/stub. Для интеграции событий не выключать их автоматически.
-- Использовать существующий способ изоляции конкретного набора тестов;
-  не сбрасывать рабочую БД ради запуска теста.
+- `CreatesApplication` устанавливает `Event::fake()` до boot providers, чтобы
+  singleton DispatcherInterface получил fake. `TestCase` вызывает
+  `Http::preventStrayRequests()` после bootstrap.
+  Тест настоящих listeners явно задаёт `protected bool $fakeEvents = false`.
+  Для внешнего HTTP API задавать конкретный fake/stub.
+- `make test-prepare` поднимает MySQL, MongoDB, ClickHouse и Redis профиля `testing`
+  и пересоздаёт только тестовые схемы. Данные баз находятся на tmpfs; Redis не
+  сохраняется. После `make test-down` или перезапуска нужна повторная подготовка.
+  `make test-up` только запускает сервисы, `make test-art c="..."` выполняет Artisan
+  в той же среде. Рабочие сервисы для тестов не нужны.
+- `.env.testing` — статический отслеживаемый файл с публичными тестовыми значениями.
+  Не генерировать его из `.env`. `tests/bootstrap.php` загружает его до Laravel;
+  guard проверяет адреса/имена/URL до providers. PHPUnit и tests/console.php
+  используют общий bootstrap и отдельные cache paths.
+- Не использовать `RefreshDatabase` / `DatabaseTransactions`: каждый кейс создаёт
+  свежие parent-сущности. Не рассчитывать на пустую БД; suite должен проходить
+  повторно без reset. Отсутствие таблиц исправлять через `make test-prepare`.
+- Фабрики находятся в `tests/Factories/Entities`. Для SQL возвращать int id,
+  для Mongo/trace — string id; UserTokenFactory возвращает сам токен. TraceFactory
+  использует ClickhouseClient: production insert принадлежит Go, у PHP repository
+  нет метода записи. Остальные фабрики используют свой repository и dependent factories.
+  Чистые DTO fixtures не заменять DB-сидингом.
 - Assert-вызовы вертикально, без trailing comma. `assertSame` для скаляров и типов,
   `assertEquals` для сравнения вложенных DTO; порядок и null проверять явно.
   Полезное сообщение указывает набор/поле. Static callbacks не захватывают `$this`.

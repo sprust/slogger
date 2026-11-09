@@ -20,6 +20,8 @@ use Tests\TestCase;
 
 class DispatcherTest extends TestCase
 {
+    protected bool $fakeEvents = false;
+
     private RecordingBusDispatcher $recordingBusDispatcher;
 
     private RecordingLogger $recordingLogger;

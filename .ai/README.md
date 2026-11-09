@@ -44,6 +44,9 @@ Existing authorization in the conversation applies to the ongoing task.
 # Run all code analysis + tests (required after backend changes)
 make check
 
+# Prepare isolated tmpfs test databases (once and after storage restarts)
+make test-prepare
+
 # Run PHPUnit tests only
 make test
 
@@ -736,3 +739,16 @@ Keep `storage/api/json-schemes/admin-api-openapi-scheme.json` and generated Type
 in sync. Requests use `present` and nested `required` in their schemas. The SLogger
 streamed list annotation remains supported, and Laravel resource wrappers are preserved.
 Parser configuration and extension resolvers must not leak between application containers.
+
+## Test Storage and Factories
+
+Follow [skills/tests.md](skills/tests.md). The committed `.env.testing` and shared
+`tests/bootstrap.php` isolate PHPUnit and `tests/console.php` from working environment
+variables and config cache. A guard checks storage addresses before providers boot.
+`make test-prepare` starts test MySQL/MongoDB/ClickHouse/Redis and recreates test schemas;
+`make test-down` stops those services. Prepare again after stopping tmpfs storage.
+Integration cases use BaseModuleTestCase, container resolution and readonly entity
+factories with unique parents, without per-case database rollback/reset. The test bootstrap
+fakes events before providers boot so DispatcherInterface receives the fake; the base
+test prevents Laravel HTTP stray requests. Tests of actual event delivery
+opt out with `protected bool $fakeEvents = false`. SConcur context cleanup is preserved.

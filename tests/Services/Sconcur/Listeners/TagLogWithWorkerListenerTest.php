@@ -11,14 +11,25 @@ use Tests\TestCase;
 
 class TagLogWithWorkerListenerTest extends TestCase
 {
+    protected bool $fakeEvents = false;
+
     public function testAForkedWorkerTagsTheLogWithItsGroupAndSlot(): void
     {
         event(
             new WorkerForked(
-                workerContext: new WorkerContext(group: 'http', slot: 1, masterPid: 4242)
+                workerContext: new WorkerContext(
+                    group: 'http',
+                    slot: 1,
+                    masterPid: 4242,
+                ),
             )
         );
 
-        $this->assertSame(['worker' => 'http#1'], Log::sharedContext());
+        $this->assertSame(
+            expected: [
+                'worker' => 'http#1',
+            ],
+            actual: Log::sharedContext()
+        );
     }
 }

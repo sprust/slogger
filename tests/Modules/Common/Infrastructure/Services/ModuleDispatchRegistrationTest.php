@@ -32,6 +32,8 @@ use Tests\TestCase;
 
 class ModuleDispatchRegistrationTest extends TestCase
 {
+    protected bool $fakeEvents = false;
+
     /** @return iterable<string, array{string}> */
     public static function cases(): iterable
     {

@@ -90,7 +90,20 @@ code-analise:
 	make code-analise-modules-structure
 
 test:
-	"$(PHP_FPM_CLI)"php artisan test ${c}
+	"$(PHP_FPM_CLI)"php tests/console.php test ${c}
+
+test-up:
+	docker-compose --profile testing up -d --wait test-mysql test-mongo test-clickhouse test-redis
+	docker-compose up -d --no-deps $(PHP_FPM_SERVICE)
+
+test-prepare: test-up
+	docker-compose exec -e XDEBUG_MODE=off $(PHP_FPM_SERVICE) php tests/console.php migrate:fresh --force
+
+test-art:
+	docker-compose exec -e XDEBUG_MODE=off $(PHP_FPM_SERVICE) php tests/console.php ${c}
+
+test-down:
+	docker-compose --profile testing stop test-mysql test-mongo test-clickhouse test-redis
 
 check:
 	make code-analise
