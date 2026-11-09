@@ -13,13 +13,22 @@ class McpPromptsTest extends TestCase
 {
     public function testArguments(): void
     {
-        $this->assertSame([['service', true], ['period', true]], $this->arguments(new InvestigateErrorsPrompt()));
+        $this->assertSame(
+            [['service', true], ['period', true]],
+            $this->arguments(new InvestigateErrorsPrompt())
+        );
         $this->assertSame(
             [['service', true], ['period', true], ['type', false]],
             $this->arguments(new InvestigateLatencyPrompt())
         );
-        $this->assertSame([['incident_id', true]], $this->arguments(new ExplainIncidentPrompt()));
-        $this->assertSame([['trace_id', true]], $this->arguments(new ExplainTracePrompt()));
+        $this->assertSame(
+            [['incident_id', true]],
+            $this->arguments(new ExplainIncidentPrompt())
+        );
+        $this->assertSame(
+            [['trace_id', true]],
+            $this->arguments(new ExplainTracePrompt())
+        );
     }
 
     public function testErrorsPromptNamesTheTools(): void
@@ -54,10 +63,22 @@ class McpPromptsTest extends TestCase
 
     public function testIncidentAndTracePrompts(): void
     {
-        $this->assertStringContainsString('"inc-1"', new ExplainIncidentPrompt()->text(['incident_id' => 'inc-1']));
-        $this->assertStringContainsString('get_incident_events', new ExplainIncidentPrompt()->text(['incident_id' => 'inc-1']));
-        $this->assertStringContainsString('"t-1"', new ExplainTracePrompt()->text(['trace_id' => 't-1']));
-        $this->assertStringContainsString('get_trace_data', new ExplainTracePrompt()->text(['trace_id' => 't-1']));
+        $this->assertStringContainsString(
+            '"inc-1"',
+            new ExplainIncidentPrompt()->text(['incident_id' => 'inc-1'])
+        );
+        $this->assertStringContainsString(
+            'get_incident_events',
+            new ExplainIncidentPrompt()->text(['incident_id' => 'inc-1'])
+        );
+        $this->assertStringContainsString(
+            '"t-1"',
+            new ExplainTracePrompt()->text(['trace_id' => 't-1'])
+        );
+        $this->assertStringContainsString(
+            'get_trace_data',
+            new ExplainTracePrompt()->text(['trace_id' => 't-1'])
+        );
     }
 
     /**

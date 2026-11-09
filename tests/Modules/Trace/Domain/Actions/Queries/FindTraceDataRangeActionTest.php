@@ -23,8 +23,14 @@ class FindTraceDataRangeActionTest extends TestCase
 
         $range = new FindTraceDataRangeAction($repository)->handle();
 
-        $this->assertSame('2026-09-25T10:00:00+00:00', $range->firstHour?->toIso8601String());
-        $this->assertSame('2026-09-28T14:00:00+00:00', $range->lastHour?->toIso8601String());
+        $this->assertSame(
+            '2026-09-25T10:00:00+00:00',
+            $range->firstHour?->toIso8601String()
+        );
+        $this->assertSame(
+            '2026-09-28T14:00:00+00:00',
+            $range->lastHour?->toIso8601String()
+        );
     }
 
     public function testNoTraces(): void

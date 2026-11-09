@@ -79,8 +79,14 @@ class LogFileStreamTest extends TestCase
 
         $entries = $this->drain($stream, 7);
 
-        $this->assertSame(array_reverse(array_column($this->expected, 'entryNo')), $this->entryNos($entries));
-        $this->assertSame($this->expected[5]['text'], $this->findEntry($entries, 5)->text);
+        $this->assertSame(
+            array_reverse(array_column($this->expected, 'entryNo')),
+            $this->entryNos($entries)
+        );
+        $this->assertSame(
+            $this->expected[5]['text'],
+            $this->findEntry($entries, 5)->text
+        );
         $this->assertTrue($stream->isExhausted());
         $this->assertNull($stream->getPosition());
         $this->assertSame(self::ENTRIES, $stream->getScannedRecords());
@@ -88,16 +94,26 @@ class LogFileStreamTest extends TestCase
 
     public function testNewerEntriesComeOldestFirstFromThePosition(): void
     {
-        $stream = $this->makeStream(new LogEntriesFilterParameters(), LogCursorDirectionEnum::Newer, position: 1290);
+        $stream = $this->makeStream(
+            new LogEntriesFilterParameters(),
+            LogCursorDirectionEnum::Newer,
+            position: 1290
+        );
 
-        $this->assertSame(range(1290, 1299), $this->entryNos($this->drain($stream, 3)));
+        $this->assertSame(
+            range(1290, 1299),
+            $this->entryNos($this->drain($stream, 3))
+        );
     }
 
     public function testOlderEntriesStartAtThePositionInclusive(): void
     {
         $stream = $this->makeStream(new LogEntriesFilterParameters(), position: 4);
 
-        $this->assertSame([4, 3, 2, 1, 0], $this->entryNos($this->drain($stream, 2)));
+        $this->assertSame(
+            [4, 3, 2, 1, 0],
+            $this->entryNos($this->drain($stream, 2))
+        );
     }
 
     public function testOneLevelComesFromItsOwnIndex(): void
@@ -117,7 +133,10 @@ class LogFileStreamTest extends TestCase
     {
         $levels = [LaravelLogLevelEnum::Warning->value, LaravelLogLevelEnum::Debug->value];
 
-        $stream = $this->makeStream(new LogEntriesFilterParameters(levels: $levels), position: 1000);
+        $stream = $this->makeStream(
+            new LogEntriesFilterParameters(levels: $levels),
+            position: 1000
+        );
 
         $this->assertSame(self::ENTRIES / 2, $stream->getTotal());
         $this->assertSame(
@@ -130,7 +149,11 @@ class LogFileStreamTest extends TestCase
     {
         $levels = [LaravelLogLevelEnum::Warning->value, LaravelLogLevelEnum::Info->value];
 
-        $stream = $this->makeStream(new LogEntriesFilterParameters(levels: $levels), LogCursorDirectionEnum::Newer, position: 600);
+        $stream = $this->makeStream(
+            new LogEntriesFilterParameters(levels: $levels),
+            LogCursorDirectionEnum::Newer,
+            position: 600
+        );
 
         $this->assertSame(
             array_reverse(
@@ -155,7 +178,11 @@ class LogFileStreamTest extends TestCase
         $to   = $this->expected[700]['time'];
 
         $stream = $this->makeStream(
-            new LogEntriesFilterParameters(levels: [LaravelLogLevelEnum::Error->value, LaravelLogLevelEnum::Info->value], fromTime: $from, toTime: $to)
+            new LogEntriesFilterParameters(
+                levels: [LaravelLogLevelEnum::Error->value, LaravelLogLevelEnum::Info->value],
+                fromTime: $from,
+                toTime: $to
+            )
         );
 
         $expected = $this->expectedEntryNos(
@@ -164,7 +191,10 @@ class LogFileStreamTest extends TestCase
         );
 
         $this->assertSame(count($expected), $stream->getTotal());
-        $this->assertSame($expected, $this->entryNos($this->drain($stream, 500)));
+        $this->assertSame(
+            $expected,
+            $this->entryNos($this->drain($stream, 500))
+        );
     }
 
     public function testATimeRangeKeepsOutEntriesWrittenOutOfOrder(): void
@@ -205,14 +235,20 @@ class LogFileStreamTest extends TestCase
 
         $entries = $this->drain($stream, 500);
 
-        $this->assertSame([1200, 1100, 1000, 900, 800, 700, 600, 500, 400, 300, 200, 100, 0], $this->entryNos($entries));
+        $this->assertSame(
+            [1200, 1100, 1000, 900, 800, 700, 600, 500, 400, 300, 200, 100, 0],
+            $this->entryNos($entries)
+        );
         $this->assertSame(self::ENTRIES, $stream->getTotal());
         $this->assertSame(self::ENTRIES, $stream->getScannedRecords());
         $this->assertGreaterThan(0, $stream->getScannedBytes());
 
         $stream = $this->makeStream(new LogEntriesFilterParameters(searchQuery: 'STACKTRACE'));
 
-        $this->assertSame([1250, 1000, 750, 500, 250, 0], $this->entryNos($this->drain($stream, 500)));
+        $this->assertSame(
+            [1250, 1000, 750, 500, 250, 0],
+            $this->entryNos($this->drain($stream, 500))
+        );
     }
 
     public function testSearchStopsAfterTheExaminedRecords(): void
@@ -222,8 +258,14 @@ class LogFileStreamTest extends TestCase
         $this->assertSame([1298], $this->entryNos($stream->next(10)));
         $this->assertSame(10, $stream->getScannedRecords());
         $this->assertSame(1289, $stream->getPosition());
-        $this->assertSame($this->expected[1290]['time'], $stream->getLastTime());
-        $this->assertSame($this->expected[1289]['time'], $stream->getNextTime());
+        $this->assertSame(
+            $this->expected[1290]['time'],
+            $stream->getLastTime()
+        );
+        $this->assertSame(
+            $this->expected[1289]['time'],
+            $stream->getNextTime()
+        );
     }
 
     public function testALongEntryIsCut(): void
@@ -232,7 +274,10 @@ class LogFileStreamTest extends TestCase
 
         $entry = $this->makeStream(new LogEntriesFilterParameters())->next(1)[0];
 
-        $this->assertSame(substr($this->expected[1299]['text'], 0, 20), $entry->text);
+        $this->assertSame(
+            substr($this->expected[1299]['text'], 0, 20),
+            $entry->text
+        );
         $this->assertTrue($entry->truncated);
     }
 

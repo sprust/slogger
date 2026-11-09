@@ -17,7 +17,12 @@ readonly class McpHeaderValidator
      */
     public function validate(McpRequestMessage $message, McpRequestHeaders $headers): string
     {
-        $headerVersion = $this->read($message, 'MCP-Protocol-Version', $headers->protocolVersion, encodable: false);
+        $headerVersion = $this->read(
+            $message,
+            'MCP-Protocol-Version',
+            $headers->protocolVersion,
+            encodable: false
+        );
 
         if (is_null($headerVersion)) {
             throw $this->mismatch(
@@ -43,7 +48,12 @@ readonly class McpHeaderValidator
             );
         }
 
-        $headerMethod = $this->read($message, 'Mcp-Method', $headers->method, encodable: false);
+        $headerMethod = $this->read(
+            $message,
+            'Mcp-Method',
+            $headers->method,
+            encodable: false
+        );
 
         if ($headerMethod !== $message->method) {
             throw $this->mismatch(
@@ -57,7 +67,12 @@ readonly class McpHeaderValidator
         }
 
         if (in_array($message->method, self::NAMED_METHODS, true)) {
-            $headerName = $this->read($message, 'Mcp-Name', $headers->name, encodable: true);
+            $headerName = $this->read(
+                $message,
+                'Mcp-Name',
+                $headers->name,
+                encodable: true
+            );
             $bodyName   = $message->params['name'] ?? null;
 
             if (is_null($headerName) || $headerName !== $bodyName) {
@@ -84,7 +99,10 @@ readonly class McpHeaderValidator
         }
 
         if (preg_match('/^[\x20-\x7E\t]+$/', $value) !== 1) {
-            throw $this->mismatch($message, "Header mismatch: $header header contains invalid characters");
+            throw $this->mismatch(
+                $message,
+                "Header mismatch: $header header contains invalid characters"
+            );
         }
 
         if (!$encodable || !str_starts_with($value, '=?base64?') || !str_ends_with($value, '?=')) {
@@ -94,7 +112,10 @@ readonly class McpHeaderValidator
         $decoded = base64_decode(substr($value, 9, -2), true);
 
         if ($decoded === false) {
-            throw $this->mismatch($message, "Header mismatch: $header header is not valid Base64");
+            throw $this->mismatch(
+                $message,
+                "Header mismatch: $header header is not valid Base64"
+            );
         }
 
         return $decoded;

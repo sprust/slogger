@@ -41,7 +41,10 @@ readonly class NginxErrorLogFormat extends AbstractLineLogFormat
         $fields = [
             new LogEntryFieldObject(key: 'pid', value: $match[1]),
             new LogEntryFieldObject(key: 'tid', value: $match[2]),
-            new LogEntryFieldObject(key: 'connection', value: $match[3] === '' ? null : $match[3]),
+            new LogEntryFieldObject(
+                key: 'connection',
+                value: $match[3] === '' ? null : $match[3]
+            ),
         ];
 
         foreach (self::DETAIL_KEYS as $key) {

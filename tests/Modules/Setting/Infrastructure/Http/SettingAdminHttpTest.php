@@ -30,7 +30,10 @@ class SettingAdminHttpTest extends TestCase
     public function testWithoutSessionIsUnauthorized(): void
     {
         $this->getJson('/admin-api/settings')->assertUnauthorized();
-        $this->patchJson('/admin-api/settings/traces_lifetime_hours', ['value' => 24])->assertUnauthorized();
+        $this->patchJson(
+            '/admin-api/settings/traces_lifetime_hours',
+            ['value' => 24]
+        )->assertUnauthorized();
         $this->deleteJson('/admin-api/settings/traces_lifetime_hours')->assertUnauthorized();
     }
 
@@ -66,8 +69,16 @@ class SettingAdminHttpTest extends TestCase
         $this->withoutAuth();
 
         $this->repository->method('find')->willReturn([
-            new SettingValueObject(key: SettingKeyEnum::TracesLifetimeHours, value: 0, updatedAt: Carbon::now()),
-            new SettingValueObject(key: SettingKeyEnum::LogsNginxKeepDays, value: 3651, updatedAt: Carbon::now()),
+            new SettingValueObject(
+                key: SettingKeyEnum::TracesLifetimeHours,
+                value: 0,
+                updatedAt: Carbon::now()
+            ),
+            new SettingValueObject(
+                key: SettingKeyEnum::LogsNginxKeepDays,
+                value: 3651,
+                updatedAt: Carbon::now()
+            ),
         ]);
 
         $this->getJson('/admin-api/settings')
@@ -84,7 +95,10 @@ class SettingAdminHttpTest extends TestCase
 
         $this->repository->expects($this->once())->method('set')->with(SettingKeyEnum::LogsNginxKeepDays, 30);
 
-        $this->patchJson('/admin-api/settings/logs_nginx_keep_days', ['value' => 30])->assertOk();
+        $this->patchJson(
+            '/admin-api/settings/logs_nginx_keep_days',
+            ['value' => 30]
+        )->assertOk();
     }
 
     public function testValueOutOfRangeIsRejected(): void
@@ -93,9 +107,18 @@ class SettingAdminHttpTest extends TestCase
 
         $this->repository->expects($this->never())->method('set');
 
-        $this->patchJson('/admin-api/settings/traces_lifetime_hours', ['value' => 0])->assertUnprocessable();
-        $this->patchJson('/admin-api/settings/traces_lifetime_hours', ['value' => 8761])->assertUnprocessable();
-        $this->patchJson('/admin-api/settings/traces_lifetime_hours', ['value' => 'many'])->assertUnprocessable();
+        $this->patchJson(
+            '/admin-api/settings/traces_lifetime_hours',
+            ['value' => 0]
+        )->assertUnprocessable();
+        $this->patchJson(
+            '/admin-api/settings/traces_lifetime_hours',
+            ['value' => 8761]
+        )->assertUnprocessable();
+        $this->patchJson(
+            '/admin-api/settings/traces_lifetime_hours',
+            ['value' => 'many']
+        )->assertUnprocessable();
     }
 
     public function testUnknownKeyIsNotFound(): void

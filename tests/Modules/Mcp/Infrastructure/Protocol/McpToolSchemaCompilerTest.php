@@ -60,11 +60,38 @@ class McpToolSchemaCompilerTest extends TestCase
     private function schema(): McpToolSchema
     {
         return new McpToolSchema([
-            new McpToolProperty('trace_id', McpToolPropertyTypeEnum::String, 'Trace id', required: true, min: 1, max: 100),
-            new McpToolProperty('status', McpToolPropertyTypeEnum::String, 'Status', enum: ['opened', 'closed']),
-            new McpToolProperty('page', McpToolPropertyTypeEnum::Integer, 'Page', min: 1),
-            new McpToolProperty('duration', McpToolPropertyTypeEnum::Number, 'Duration', min: 0),
-            new McpToolProperty('types', McpToolPropertyTypeEnum::StringList, 'Types', max: 5),
+            new McpToolProperty(
+                'trace_id',
+                McpToolPropertyTypeEnum::String,
+                'Trace id',
+                required: true,
+                min: 1,
+                max: 100
+            ),
+            new McpToolProperty(
+                'status',
+                McpToolPropertyTypeEnum::String,
+                'Status',
+                enum: ['opened', 'closed']
+            ),
+            new McpToolProperty(
+                'page',
+                McpToolPropertyTypeEnum::Integer,
+                'Page',
+                min: 1
+            ),
+            new McpToolProperty(
+                'duration',
+                McpToolPropertyTypeEnum::Number,
+                'Duration',
+                min: 0
+            ),
+            new McpToolProperty(
+                'types',
+                McpToolPropertyTypeEnum::StringList,
+                'Types',
+                max: 5
+            ),
         ]);
     }
 }

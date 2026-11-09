@@ -1,6 +1,8 @@
 parameters:
     paths:
         - ../app
+        - ../code-analyse/Architecture
+        - ../code-analyse/PHPStan
 
     excludePaths:
         - ../app/Console/Commands/Local (?)
@@ -23,3 +25,16 @@ parameters:
         -
             messages:
                 - '#Parameter \#1 \$callback of method Illuminate\\Support\\Collection<int\,stdClass\>::map\(\) expects callable\(stdClass\, int\)#'
+
+services:
+    - CodeAnalyse\PHPStan\ModuleTypes
+    -
+        class: CodeAnalyse\PHPStan\InputParametersRule
+        tags: [phpstan.rules.rule]
+    -
+        class: CodeAnalyse\PHPStan\DomainDependencyRule
+        tags: [phpstan.rules.rule]
+
+    -
+        class: CodeAnalyse\PHPStan\NoMultilineArrayKeyRule
+        tags: [phpstan.rules.rule]

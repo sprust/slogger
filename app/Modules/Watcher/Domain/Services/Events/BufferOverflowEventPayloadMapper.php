@@ -28,7 +28,8 @@ readonly class BufferOverflowEventPayloadMapper implements WatcherEventPayloadMa
 
         $measuredBufferCount = ArrayValueGetter::intNull($measured, 'buffer_count');
 
-        if (is_null($settingsThreshold)
+        if (
+            is_null($settingsThreshold)
             || is_null($measuredBufferCount)
         ) {
             return null;

@@ -26,7 +26,11 @@ class McpHeaderValidatorTest extends TestCase
     {
         $version = new McpHeaderValidator()->validate(
             $this->message('tools/call', ['name' => 'get_trace']),
-            new McpRequestHeaders('2026-07-28', 'tools/call', '=?base64?' . base64_encode('get_trace') . '?=')
+            new McpRequestHeaders(
+                '2026-07-28',
+                'tools/call',
+                '=?base64?' . base64_encode('get_trace') . '?='
+            )
         );
 
         $this->assertSame('2026-07-28', $version);
@@ -39,7 +43,10 @@ class McpHeaderValidatorTest extends TestCase
             new McpRequestHeaders(null, null, null)
         );
 
-        $this->assertStringContainsString(McpVersionValidator::SUPPORTED_VERSION, $exception->getMessage());
+        $this->assertStringContainsString(
+            McpVersionValidator::SUPPORTED_VERSION,
+            $exception->getMessage()
+        );
     }
 
     public function testVersionMustMatchMeta(): void
@@ -86,16 +93,25 @@ class McpHeaderValidatorTest extends TestCase
     {
         $message = $this->message('tools/list', [], version: '2025-11-25');
 
-        $version = new McpHeaderValidator()->validate($message, new McpRequestHeaders('2025-11-25', 'tools/list', null));
+        $version = new McpHeaderValidator()->validate(
+            $message,
+            new McpRequestHeaders('2025-11-25', 'tools/list', null)
+        );
 
         try {
             new McpVersionValidator()->validate($message, $version);
 
             $this->fail('No exception');
         } catch (McpProtocolException $exception) {
-            $this->assertSame(McpErrorCodeEnum::UnsupportedProtocolVersion, $exception->errorCode);
+            $this->assertSame(
+                McpErrorCodeEnum::UnsupportedProtocolVersion,
+                $exception->errorCode
+            );
             $this->assertSame(400, $exception->httpStatus);
-            $this->assertSame(['supported' => ['2026-07-28'], 'requested' => '2025-11-25'], $exception->data);
+            $this->assertSame(
+                ['supported' => ['2026-07-28'], 'requested' => '2025-11-25'],
+                $exception->data
+            );
         }
     }
 
@@ -120,7 +136,10 @@ class McpHeaderValidatorTest extends TestCase
         try {
             new McpHeaderValidator()->validate($message, $headers);
         } catch (McpProtocolException $exception) {
-            $this->assertSame(McpErrorCodeEnum::HeaderMismatch, $exception->errorCode);
+            $this->assertSame(
+                McpErrorCodeEnum::HeaderMismatch,
+                $exception->errorCode
+            );
             $this->assertSame(400, $exception->httpStatus);
 
             return $exception;

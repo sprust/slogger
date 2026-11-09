@@ -38,8 +38,14 @@ class ClickhouseClientTest extends TestCase
 
         self::assertNotNull($request);
         self::assertSame('POST', $request->getMethod());
-        self::assertSame('slogger', $request->getHeaderLine('X-ClickHouse-User'));
-        self::assertSame('secret', $request->getHeaderLine('X-ClickHouse-Key'));
+        self::assertSame(
+            'slogger',
+            $request->getHeaderLine('X-ClickHouse-User')
+        );
+        self::assertSame(
+            'secret',
+            $request->getHeaderLine('X-ClickHouse-Key')
+        );
         self::assertSame(
             'SELECT tid FROM traces WHERE sid IN {sids:Array(UInt32)} AND tp = {type:String}',
             (string) $request->getBody()
@@ -94,7 +100,10 @@ class ClickhouseClientTest extends TestCase
             self::fail('No exception');
         } catch (ClickhouseQueryException $exception) {
             self::assertSame(60, $exception->getCode());
-            self::assertSame('Code: 60. DB::Exception: Unknown table', $exception->getMessage());
+            self::assertSame(
+                'Code: 60. DB::Exception: Unknown table',
+                $exception->getMessage()
+            );
             self::assertStringStartsWith('probe-', (string) $exception->queryId);
         }
     }
@@ -102,7 +111,10 @@ class ClickhouseClientTest extends TestCase
     public function testExceptionRowStopsReading(): void
     {
         $client = $this->makeClient(
-            new Response(200, body: "{\"a\":1}\n{\"exception\":\"Code: 395. boom\"}\n")
+            new Response(
+                200,
+                body: "{\"a\":1}\n{\"exception\":\"Code: 395. boom\"}\n"
+            )
         );
 
         $this->expectException(ClickhouseQueryException::class);
@@ -126,9 +138,15 @@ class ClickhouseClientTest extends TestCase
     {
         $client = $this->makeClient(new Response(200, body: ''));
 
-        $client->command('ALTER TABLE traces DROP PARTITION {p:String}', ['p' => '2026-09-29 10:00:00']);
+        $client->command(
+            'ALTER TABLE traces DROP PARTITION {p:String}',
+            ['p' => '2026-09-29 10:00:00']
+        );
 
-        self::assertSame('ALTER TABLE traces DROP PARTITION {p:String}', (string) $this->sentRequest?->getBody());
+        self::assertSame(
+            'ALTER TABLE traces DROP PARTITION {p:String}',
+            (string) $this->sentRequest?->getBody()
+        );
     }
 
     public function remember(RequestInterface $request): void

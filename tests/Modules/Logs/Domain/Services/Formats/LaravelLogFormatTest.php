@@ -15,7 +15,13 @@ class LaravelLogFormatTest extends TestCase
         $starts = $this->find("[2026-09-25 05:35:29] local.ERROR: connect refused {\"a\":1} []\n");
 
         $this->assertEquals(
-            [new LogEntryStartObject(offset: 0, loggedAt: gmmktime(5, 35, 29, 9, 25, 2026), level: LaravelLogLevelEnum::Error->value)],
+            [
+                new LogEntryStartObject(
+                    offset: 0,
+                    loggedAt: gmmktime(5, 35, 29, 9, 25, 2026),
+                    level: LaravelLogLevelEnum::Error->value
+                ),
+            ],
             $starts
         );
     }
@@ -27,16 +33,28 @@ class LaravelLogFormatTest extends TestCase
 
         $starts = $this->find($first . $second);
 
-        $this->assertSame([0, strlen($first)], array_map(static fn(LogEntryStartObject $start): int => $start->offset, $starts));
-        $this->assertSame(LaravelLogLevelEnum::Info->value, $starts[1]->level);
+        $this->assertSame(
+            [0, strlen($first)],
+            array_map(static fn(LogEntryStartObject $start): int => $start->offset, $starts)
+        );
+        $this->assertSame(
+            LaravelLogLevelEnum::Info->value,
+            $starts[1]->level
+        );
     }
 
     public function testMicrosecondsAndAZoneAreRead(): void
     {
         $starts = $this->find("[2026-09-25T05:35:29.123456+03:00] local.WARNING: w\n");
 
-        $this->assertSame(gmmktime(2, 35, 29, 9, 25, 2026), $starts[0]->loggedAt);
-        $this->assertSame(LaravelLogLevelEnum::Warning->value, $starts[0]->level);
+        $this->assertSame(
+            gmmktime(2, 35, 29, 9, 25, 2026),
+            $starts[0]->loggedAt
+        );
+        $this->assertSame(
+            LaravelLogLevelEnum::Warning->value,
+            $starts[0]->level
+        );
     }
 
     public function testEveryLevelIsKnown(): void
@@ -50,12 +68,18 @@ class LaravelLogFormatTest extends TestCase
 
     public function testAnUnknownLevelIsZero(): void
     {
-        $this->assertSame(0, $this->find("[2026-09-25 05:35:29] local.TRACE: m\n")[0]->level);
+        $this->assertSame(
+            0,
+            $this->find("[2026-09-25 05:35:29] local.TRACE: m\n")[0]->level
+        );
     }
 
     public function testAHeaderInsideALineIsNotAStart(): void
     {
-        $this->assertSame([], $this->find("text [2026-09-25 05:35:29] local.ERROR: m\n"));
+        $this->assertSame(
+            [],
+            $this->find("text [2026-09-25 05:35:29] local.ERROR: m\n")
+        );
     }
 
     /**

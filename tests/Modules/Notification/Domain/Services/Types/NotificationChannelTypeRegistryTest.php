@@ -38,7 +38,10 @@ class NotificationChannelTypeRegistryTest extends TestCase
         $registry = $this->registry();
 
         foreach (NotificationChannelTypeEnum::cases() as $type) {
-            $this->assertNotEmpty($registry->for($type)->describe()->fields, $type->value);
+            $this->assertNotEmpty(
+                $registry->for($type)->describe()->fields,
+                $type->value
+            );
         }
     }
 
@@ -69,18 +72,26 @@ class NotificationChannelTypeRegistryTest extends TestCase
     {
         $settings = $this->registry()->for(NotificationChannelTypeEnum::Slack)->makeUpdatedSettings(
             submitted: ['webhook_url' => ''],
-            stored: new SlackSettingsObject(webhookUrl: 'https://hooks.slack.com/services/T1/B2/abc')
+            stored: new SlackSettingsObject(
+                webhookUrl: 'https://hooks.slack.com/services/T1/B2/abc'
+            )
         );
 
         $this->assertInstanceOf(SlackSettingsObject::class, $settings);
-        $this->assertSame('https://hooks.slack.com/services/T1/B2/abc', $settings->webhookUrl);
+        $this->assertSame(
+            'https://hooks.slack.com/services/T1/B2/abc',
+            $settings->webhookUrl
+        );
     }
 
     public function testAWebhookKeepsItsTokenWhileItsUrlIsMoved(): void
     {
         $settings = $this->registry()->for(NotificationChannelTypeEnum::Webhook)->makeUpdatedSettings(
             submitted: ['url' => 'https://ops.example.com/new', 'token' => ''],
-            stored: new WebhookSettingsObject(url: 'https://ops.example.com/old', token: 'secret-token')
+            stored: new WebhookSettingsObject(
+                url: 'https://ops.example.com/old',
+                token: 'secret-token'
+            )
         );
 
         $this->assertInstanceOf(WebhookSettingsObject::class, $settings);

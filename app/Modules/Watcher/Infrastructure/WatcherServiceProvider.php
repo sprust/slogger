@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Watcher\Infrastructure;
 
+use App\Modules\Watcher\Infrastructure\Exceptions\WatcherExceptionManager;
 use App\Modules\Common\Infrastructure\BaseServiceProvider;
 use App\Modules\Watcher\Domain\Actions\Mutations\CheckWatcherAction;
 use App\Modules\Watcher\Domain\Actions\Mutations\CloseIncidentAction;
@@ -91,6 +92,13 @@ class WatcherServiceProvider extends BaseServiceProvider
             RegisterTriggerAction::class,
             CloseIncidentAction::class,
             TrimWatcherTimelineAction::class,
+        ];
+    }
+
+    protected function getExceptionManagers(): array
+    {
+        return [
+            WatcherExceptionManager::class,
         ];
     }
 }

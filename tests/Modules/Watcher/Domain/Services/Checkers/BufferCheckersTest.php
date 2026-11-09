@@ -58,9 +58,11 @@ class BufferCheckersTest extends TestCase
         $action = $this->createMock(CountInvalidTraceBufferSinceAction::class);
         $action->expects($this->once())
             ->method('handle')
-            ->with($this->callback(
-                static fn(Carbon $since): bool => $since->toDateTimeString() === '2026-09-07 11:50:00'
-            ))
+            ->with(
+                $this->callback(
+                    static fn(Carbon $since): bool => $since->toDateTimeString() === '2026-09-07 11:50:00'
+                )
+            )
             ->willReturn(0);
 
         new InvalidBufferGrownChecker($action, new WatcherCountWindow())->check(
@@ -115,9 +117,11 @@ class BufferCheckersTest extends TestCase
         $action = $this->createMock(CountInvalidTraceBufferSinceAction::class);
         $action->expects($this->once())
             ->method('handle')
-            ->with($this->callback(
-                static fn(Carbon $since): bool => $since->toDateTimeString() === $expected
-            ))
+            ->with(
+                $this->callback(
+                    static fn(Carbon $since): bool => $since->toDateTimeString() === $expected
+                )
+            )
             ->willReturn(0);
 
         new InvalidBufferGrownChecker($action, new WatcherCountWindow())->check(

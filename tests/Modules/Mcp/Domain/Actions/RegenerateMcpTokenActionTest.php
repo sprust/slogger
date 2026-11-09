@@ -20,7 +20,10 @@ class RegenerateMcpTokenActionTest extends TestCase
         $repository->method('findOneById')->willReturn($this->mcpObject(token: 'old-token'));
         $repository->expects($this->once())
             ->method('updateToken')
-            ->with(1, $this->callback(static fn(string $token): bool => strlen($token) === 50 && $token !== 'old-token'));
+            ->with(
+                1,
+                $this->callback(static fn(string $token): bool => strlen($token) === 50 && $token !== 'old-token')
+            );
 
         $this->action($repository)->handle(1);
     }

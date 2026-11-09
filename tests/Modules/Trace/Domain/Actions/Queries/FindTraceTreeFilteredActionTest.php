@@ -102,7 +102,12 @@ class FindTraceTreeFilteredActionTest extends TestCase
 
     private function parameters(): TraceTreeFilterParameters
     {
-        return new TraceTreeFilterParameters(serviceIds: [], types: [], tags: [], statuses: ['failed']);
+        return new TraceTreeFilterParameters(
+            serviceIds: [],
+            types: [],
+            tags: [],
+            statuses: ['failed']
+        );
     }
 
     private function node(string $traceId, string $parentTraceId): TraceTreeRawObject

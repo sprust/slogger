@@ -18,7 +18,11 @@ class SendNotificationActionTest extends TestCase
     {
         parent::setUp();
 
-        Carbon::setTestNow(Carbon::parse('2026-09-08 12:00:00'));
+        Carbon::setTestNow(
+            testNow: Carbon::parse(
+                time: '2026-09-08 12:00:00',
+            ),
+        );
     }
 
     protected function tearDown(): void
@@ -32,14 +36,23 @@ class SendNotificationActionTest extends TestCase
     {
         $repository = $this->createMock(NotificationRepository::class);
 
-        $repository->expects($this->once())
-            ->method('markSent')
-            ->with('68be1f000000000000000001', Carbon::now());
+        $repository->expects($this->once())->method('markSent')->with('68be1f000000000000000001', Carbon::now());
 
         $repository->expects($this->never())->method('markFailed');
 
-        $result = $this->action($repository, new SendResultObject(delivered: true))
-            ->handle($this->notification(), $this->channel());
+        $result = $this
+            ->action(
+                repository: $repository,
+                result: new SendResultObject(
+                    delivered: true,
+                ),
+            )
+            ->handle(
+                new \App\Modules\Notification\Parameters\SendNotificationParameters(
+                    notification: $this->notification(),
+                    channel: $this->channel(),
+                )
+            );
 
         $this->assertTrue($result->delivered);
     }
@@ -48,29 +61,52 @@ class SendNotificationActionTest extends TestCase
     {
         $sender = $this->createMock(TelegramSender::class);
 
-        $sender->expects($this->once())
+        $sender
+            ->expects($this->once())
             ->method('send')
             ->with($this->channel(), 'a watcher went off')
-            ->willReturn(new SendResultObject(delivered: true));
+            ->willReturn(
+                new SendResultObject(
+                    delivered: true,
+                )
+            );
 
-        new SendNotificationAction(
-            types: $this->channelTypes($sender),
-            notificationRepository: $this->createMock(NotificationRepository::class)
-        )->handle($this->notification(), $this->channel());
+        (new SendNotificationAction(
+            types: $this->channelTypes(
+                telegramSender: $sender,
+            ),
+            notificationRepository: $this->createMock(NotificationRepository::class),
+        ))->handle(
+            new \App\Modules\Notification\Parameters\SendNotificationParameters(
+                notification: $this->notification(),
+                channel: $this->channel(),
+            )
+        );
     }
 
     public function testAFailureIsWrittenDownAndHandedBack(): void
     {
         $repository = $this->createMock(NotificationRepository::class);
 
-        $repository->expects($this->once())
-            ->method('markFailed')
-            ->with('68be1f000000000000000001', 'boom');
+        $repository->expects($this->once())->method('markFailed')->with('68be1f000000000000000001', 'boom');
 
-        $result = $this->action($repository, new SendResultObject(delivered: false, error: 'boom'))
-            ->handle($this->notification(), $this->channel());
+        $result = $this
+            ->action(
+                repository: $repository,
+                result: new SendResultObject(
+                    delivered: false,
+                    error: 'boom',
+                ),
+            )
+            ->handle(
+                new \App\Modules\Notification\Parameters\SendNotificationParameters(
+                    notification: $this->notification(),
+                    channel: $this->channel(),
+                )
+            );
 
         $this->assertFalse($result->delivered);
+
         $this->assertFalse($result->permanent);
     }
 
@@ -78,14 +114,23 @@ class SendNotificationActionTest extends TestCase
     {
         $repository = $this->createMock(NotificationRepository::class);
 
-        $repository->expects($this->once())
-            ->method('markFailed')
-            ->with('68be1f000000000000000001', 'Unauthorized');
+        $repository->expects($this->once())->method('markFailed')->with('68be1f000000000000000001', 'Unauthorized');
 
-        $result = $this->action(
-            $repository,
-            new SendResultObject(delivered: false, permanent: true, error: 'Unauthorized')
-        )->handle($this->notification(), $this->channel());
+        $result = $this
+            ->action(
+                repository: $repository,
+                result: new SendResultObject(
+                    delivered: false,
+                    permanent: true,
+                    error: 'Unauthorized',
+                ),
+            )
+            ->handle(
+                new \App\Modules\Notification\Parameters\SendNotificationParameters(
+                    notification: $this->notification(),
+                    channel: $this->channel(),
+                )
+            );
 
         $this->assertTrue($result->permanent);
     }
@@ -94,17 +139,28 @@ class SendNotificationActionTest extends TestCase
     {
         $repository = $this->createMock(NotificationRepository::class);
 
-        $repository->expects($this->once())
+        $repository
+            ->expects($this->once())
             ->method('markFailed')
             ->with('68be1f000000000000000001', 'Channel [42] is gone');
 
         $sender = $this->createMock(TelegramSender::class);
+
         $sender->expects($this->never())->method('send');
 
-        $result = new SendNotificationAction(
-            types: $this->channelTypes($sender),
-            notificationRepository: $repository
-        )->handle($this->notification(channelId: 42), null);
+        $result = (new SendNotificationAction(
+            types: $this->channelTypes(
+                telegramSender: $sender,
+            ),
+            notificationRepository: $repository,
+        ))->handle(
+            new \App\Modules\Notification\Parameters\SendNotificationParameters(
+                notification: $this->notification(
+                    channelId: 42,
+                ),
+                channel: null,
+            )
+        );
 
         $this->assertTrue($result->permanent);
     }
@@ -113,31 +169,46 @@ class SendNotificationActionTest extends TestCase
     {
         $repository = $this->createMock(NotificationRepository::class);
 
-        $repository->expects($this->once())
+        $repository
+            ->expects($this->once())
             ->method('markFailed')
-            ->with('68be1f000000000000000001', 'Channel [1] is disabled');
+            ->with(
+                '68be1f000000000000000001',
+                'Channel [1] is disabled'
+            );
 
         $sender = $this->createMock(TelegramSender::class);
+
         $sender->expects($this->never())->method('send');
 
-        $result = new SendNotificationAction(
-            types: $this->channelTypes($sender),
-            notificationRepository: $repository
-        )->handle($this->notification(), $this->channel(enabled: false));
+        $result = (new SendNotificationAction(
+            types: $this->channelTypes(
+                telegramSender: $sender,
+            ),
+            notificationRepository: $repository,
+        ))->handle(
+            new \App\Modules\Notification\Parameters\SendNotificationParameters(
+                notification: $this->notification(),
+                channel: $this->channel(
+                    enabled: false,
+                ),
+            )
+        );
 
         $this->assertTrue($result->permanent);
     }
 
-    private function action(
-        NotificationRepository $repository,
-        SendResultObject $result
-    ): SendNotificationAction {
+    private function action(NotificationRepository $repository, SendResultObject $result): SendNotificationAction
+    {
         $sender = $this->createMock(TelegramSender::class);
+
         $sender->method('send')->willReturn($result);
 
         return new SendNotificationAction(
-            types: $this->channelTypes($sender),
-            notificationRepository: $repository
+            types: $this->channelTypes(
+                telegramSender: $sender,
+            ),
+            notificationRepository: $repository,
         );
     }
 }

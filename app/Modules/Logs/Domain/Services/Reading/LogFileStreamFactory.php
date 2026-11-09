@@ -90,11 +90,21 @@ readonly class LogFileStreamFactory
         $high = $meta->entriesCount - 1;
 
         if ($filter->fromTime !== null) {
-            $low = $this->logIndexSearch->lowerBoundByTime($file->id, null, $meta->entriesCount, $filter->fromTime);
+            $low = $this->logIndexSearch->lowerBoundByTime(
+                $file->id,
+                null,
+                $meta->entriesCount,
+                $filter->fromTime
+            );
         }
 
         if ($filter->toTime !== null) {
-            $high = $this->logIndexSearch->lowerBoundByTime($file->id, null, $meta->entriesCount, $filter->toTime + 1) - 1;
+            $high = $this->logIndexSearch->lowerBoundByTime(
+                $file->id,
+                null,
+                $meta->entriesCount,
+                $filter->toTime + 1
+            ) - 1;
         }
 
         return new LogEntryRangeObject(lowEntryNo: $low, highEntryNo: $high);

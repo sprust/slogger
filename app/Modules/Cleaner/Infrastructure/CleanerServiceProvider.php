@@ -8,6 +8,7 @@ use App\Modules\Cleaner\Domain\Actions\ClearTracesAction;
 use App\Modules\Cleaner\Domain\Actions\FindProcessesAction;
 use App\Modules\Cleaner\Infrastructure\Commands\ClearTracesCommand;
 use App\Modules\Cleaner\Repositories\ProcessRepository;
+use App\Modules\Cleaner\Infrastructure\Jobs\ClearTracesJob;
 use App\Modules\Common\Infrastructure\BaseServiceProvider;
 
 class CleanerServiceProvider extends BaseServiceProvider
@@ -19,6 +20,13 @@ class CleanerServiceProvider extends BaseServiceProvider
         $this->commands([
             ClearTracesCommand::class,
         ]);
+    }
+
+    protected function getJobs(): array
+    {
+        return [
+            ClearTracesJob::class,
+        ];
     }
 
     protected function getContracts(): array

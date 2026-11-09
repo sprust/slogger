@@ -34,7 +34,10 @@ class TraceGroupsActionsTest extends TestCase
     {
         $data = new TraceDataFilterParameters(filter: [$this->dataFilterItem()]);
 
-        $repository = $this->repository('findGroups', [$this->group(), $this->group(), $this->group()]);
+        $repository = $this->repository(
+            'findGroups',
+            [$this->group(), $this->group(), $this->group()]
+        );
 
         $result = new FindTraceGroupsAction($repository)->handle(
             new TraceFindGroupsParameters(
@@ -52,8 +55,14 @@ class TraceGroupsActionsTest extends TestCase
 
         $this->assertCount(2, $result->items);
         $this->assertTrue($result->truncated);
-        $this->assertSame('2026-09-28 10:00:00', $this->repositoryArguments['loggedAtFrom']?->toDateTimeString());
-        $this->assertSame('2026-09-28 10:59:59', $this->repositoryArguments['loggedAtTo']?->toDateTimeString());
+        $this->assertSame(
+            '2026-09-28 10:00:00',
+            $this->repositoryArguments['loggedAtFrom']?->toDateTimeString()
+        );
+        $this->assertSame(
+            '2026-09-28 10:59:59',
+            $this->repositoryArguments['loggedAtTo']?->toDateTimeString()
+        );
         $this->assertSame(
             [
                 'groupBy'      => [TraceGroupFieldEnum::Type],
@@ -129,7 +138,10 @@ class TraceGroupsActionsTest extends TestCase
     {
         $this->compare([], groupBStatuses: ['success']);
 
-        $this->assertSame(['failed', 'success'], $this->repositoryArguments['statuses'] ?? null);
+        $this->assertSame(
+            ['failed', 'success'],
+            $this->repositoryArguments['statuses'] ?? null
+        );
     }
 
     public function testComparisonRowsAreLimited(): void

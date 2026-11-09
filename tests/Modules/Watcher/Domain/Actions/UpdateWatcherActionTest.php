@@ -139,7 +139,10 @@ class UpdateWatcherActionTest extends TestCase
         $collectSince = $this->update($stored, $edited, $timelines, $wasEnabled);
 
         $this->assertNotNull($collectSince);
-        $this->assertNotSame(self::COLLECTING_SINCE, $collectSince->toDateTimeString());
+        $this->assertNotSame(
+            self::COLLECTING_SINCE,
+            $collectSince->toDateTimeString()
+        );
     }
 
     /**
@@ -154,7 +157,10 @@ class UpdateWatcherActionTest extends TestCase
         $collectSince = $this->update($stored, $edited, $timelines, $wasEnabled);
 
         $this->assertNotNull($collectSince);
-        $this->assertSame(self::COLLECTING_SINCE, $collectSince->toDateTimeString());
+        $this->assertSame(
+            self::COLLECTING_SINCE,
+            $collectSince->toDateTimeString()
+        );
     }
 
     /**
@@ -174,21 +180,23 @@ class UpdateWatcherActionTest extends TestCase
         $watchers->expects($this->once())
             ->method('update')
             // Named, not indexed: the repository's signature grows.
-            ->willReturnCallback(function (
-                int $id,
-                string $name,
-                bool $enabled,
-                int $cooldownSeconds,
-                ?int $notificationChannelId,
-                bool $notifyOnOpened,
-                bool $notifyOnEvent,
-                bool $notifyOnClosed,
-                array $settings,
-                ?array $traceMatch,
-                ?Carbon $collectSince
-            ) use (&$written): void {
-                $written = $collectSince;
-            });
+            ->willReturnCallback(
+                function (
+                    int $id,
+                    string $name,
+                    bool $enabled,
+                    int $cooldownSeconds,
+                    ?int $notificationChannelId,
+                    bool $notifyOnOpened,
+                    bool $notifyOnEvent,
+                    bool $notifyOnClosed,
+                    array $settings,
+                    ?array $traceMatch,
+                    ?Carbon $collectSince
+                ) use (&$written): void {
+                    $written = $collectSince;
+                }
+            );
 
         $find = $this->createMock(FindWatcherAction::class);
         $find->method('handle')->willReturn($watcher);

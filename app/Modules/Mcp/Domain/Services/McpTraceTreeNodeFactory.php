@@ -6,18 +6,18 @@ namespace App\Modules\Mcp\Domain\Services;
 
 use App\Modules\Mcp\Entities\Bridges\McpTraceTreeNodeObject;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceServicesAction;
-use App\Modules\Trace\Entities\Trace\Tree\TraceTreeRawObject;
+use App\Modules\Mcp\Parameters\TraceTreeNodeParameters;
+use App\Modules\Mcp\Transports\TraceObjectTransport;
 
 readonly class McpTraceTreeNodeFactory
 {
-    public function __construct(
-        private FindTraceServicesAction $findTraceServicesAction
-    ) {
+    public function __construct(private FindTraceServicesAction $findTraceServicesAction, private TraceObjectTransport $traceObjectTransport)
+    {
     }
 
     /**
-     * @param TraceTreeRawObject[]    $nodes
-     * @param array<string, int>|null $childrenCounts
+     * @param TraceTreeNodeParameters[] $nodes
+     * @param array<string, int>|null   $childrenCounts
      *
      * @return McpTraceTreeNodeObject[]
      */
@@ -26,20 +26,25 @@ readonly class McpTraceTreeNodeFactory
         $serviceIds = array_values(
             array_unique(
                 array_filter(
-                    array_map(static fn(TraceTreeRawObject $node) => $node->serviceId, $nodes),
-                    static fn(?int $serviceId) => !is_null($serviceId)
-                )
+                    array_map(static fn(TraceTreeNodeParameters $node) => $node->serviceId, $nodes),
+                    static fn(?int $serviceId) => !is_null($serviceId),
+                ),
             )
         );
-
-        $services = $this->findTraceServicesAction->handle($serviceIds);
+        $services = $this->findTraceServicesAction->handle(
+            serviceIds: $serviceIds,
+        );
 
         return array_map(
-            static fn(TraceTreeRawObject $node) => new McpTraceTreeNodeObject(
-                node: $node,
-                service: is_null($node->serviceId) ? null : $services->getById($node->serviceId),
-                childrenCount: is_null($childrenCounts) ? null : ($childrenCounts[$node->traceId] ?? 0)
-            ),
+            function (TraceTreeNodeParameters $node) use ($services, $childrenCounts): McpTraceTreeNodeObject {
+                $service = $node->serviceId === null ? null : $services->getById($node->serviceId);
+
+                return new McpTraceTreeNodeObject(
+                    node: $this->traceObjectTransport->fromTraceTreeNodeParameters($node),
+                    service: $service === null ? null : $this->traceObjectTransport->fromTraceServiceObject($service),
+                    childrenCount: $childrenCounts === null ? null : $childrenCounts[$node->traceId] ?? 0,
+                );
+            },
             $nodes
         );
     }

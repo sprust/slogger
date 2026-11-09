@@ -38,15 +38,27 @@ class ClickhouseParameterFormatterTest extends TestCase
     #[DataProvider('valuesProvider')]
     public function testFormatsValue(mixed $value, string $expected): void
     {
-        self::assertSame($expected, new ClickhouseParameterFormatter()->format($value));
+        self::assertSame(
+            $expected,
+            new ClickhouseParameterFormatter()->format($value)
+        );
     }
 
     public function testFormatsDateTimeInUtcWithMicroseconds(): void
     {
-        $value = new DateTimeImmutable('2026-09-29 13:00:00.123456', new DateTimeZone('Europe/Moscow'));
+        $value = new DateTimeImmutable(
+            '2026-09-29 13:00:00.123456',
+            new DateTimeZone('Europe/Moscow')
+        );
 
-        self::assertSame('2026-09-29 10:00:00.123456', new ClickhouseParameterFormatter()->format($value));
-        self::assertSame("['2026-09-29 10:00:00.123456']", new ClickhouseParameterFormatter()->format([$value]));
+        self::assertSame(
+            '2026-09-29 10:00:00.123456',
+            new ClickhouseParameterFormatter()->format($value)
+        );
+        self::assertSame(
+            "['2026-09-29 10:00:00.123456']",
+            new ClickhouseParameterFormatter()->format([$value])
+        );
     }
 
     /**

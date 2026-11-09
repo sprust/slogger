@@ -20,7 +20,11 @@ class WsKeysGenerateCommandTest extends TestCase
     {
         $this->assertSame(
             "A=1\nSCONCUR_WS_APP_KEY=new\nB=2\n",
-            $this->set("A=1\nSCONCUR_WS_APP_KEY=old\nB=2\n", 'SCONCUR_WS_APP_KEY', 'new')
+            $this->set(
+                "A=1\nSCONCUR_WS_APP_KEY=old\nB=2\n",
+                'SCONCUR_WS_APP_KEY',
+                'new'
+            )
         );
     }
 
@@ -38,7 +42,11 @@ class WsKeysGenerateCommandTest extends TestCase
         // its interpolation — it reads the value being written here.
         $this->assertSame(
             "SCONCUR_WS_KEY=new\nVITE_SCONCUR_WS_KEY=\${SCONCUR_WS_KEY}\n",
-            $this->set("SCONCUR_WS_KEY=\nVITE_SCONCUR_WS_KEY=\${SCONCUR_WS_KEY}\n", 'SCONCUR_WS_KEY', 'new')
+            $this->set(
+                "SCONCUR_WS_KEY=\nVITE_SCONCUR_WS_KEY=\${SCONCUR_WS_KEY}\n",
+                'SCONCUR_WS_KEY',
+                'new'
+            )
         );
     }
 
@@ -50,7 +58,12 @@ class WsKeysGenerateCommandTest extends TestCase
 
     public function testAnAssignmentOnlyMentionedInAValueDoesNotCountAsFilled(): void
     {
-        $this->assertFalse($this->isFilled("OTHER=\${SCONCUR_WS_APP_KEY}\n", 'SCONCUR_WS_APP_KEY'));
+        $this->assertFalse(
+            $this->isFilled(
+                "OTHER=\${SCONCUR_WS_APP_KEY}\n",
+                'SCONCUR_WS_APP_KEY'
+            )
+        );
     }
 
     public function testAFrontendEnvFromBeforeThePoolGetsBothLines(): void

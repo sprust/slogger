@@ -2,6 +2,7 @@
 
 namespace App\Console;
 
+use App\Modules\Common\Domain\Services\DispatcherInterface;
 use App\Modules\Cleaner\Infrastructure\Jobs\ClearTracesJob;
 use App\Modules\Dashboard\Infrastructure\Jobs\RefreshDatabaseStatCacheJob;
 use App\Modules\Logs\Infrastructure\Commands\CleanLogsCommand;
@@ -17,11 +18,43 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        $schedule->job(ClearTracesJob::class)->hourly();
-        $schedule->job(RefreshDatabaseStatCacheJob::class)->everyFiveMinutes();
-        $schedule->command(DeleteExpiredUserTokensCommand::class)->daily();
-        $schedule->command(IndexLogsCommand::class)->everyMinute()->withoutOverlapping();
-        $schedule->command(CleanLogsCommand::class)->daily()->withoutOverlapping();
+        $schedule
+            ->call(
+                callback: static function (DispatcherInterface $dispatcher): void {
+                    $dispatcher->dispatch(new ClearTracesJob());
+                },
+            )
+            ->name(ClearTracesJob::class)
+            ->hourly();
+
+        $schedule
+            ->call(
+                callback: static function (DispatcherInterface $dispatcher): void {
+                    $dispatcher->dispatch(new RefreshDatabaseStatCacheJob());
+                },
+            )
+            ->name(RefreshDatabaseStatCacheJob::class)
+            ->everyFiveMinutes();
+
+        $schedule
+            ->command(
+                command: DeleteExpiredUserTokensCommand::class,
+            )
+            ->daily();
+
+        $schedule
+            ->command(
+                command: IndexLogsCommand::class,
+            )
+            ->everyMinute()
+            ->withoutOverlapping();
+
+        $schedule
+            ->command(
+                command: CleanLogsCommand::class,
+            )
+            ->daily()
+            ->withoutOverlapping();
     }
 
     /**
@@ -31,6 +64,8 @@ class Kernel extends ConsoleKernel
     {
         $this->load(__DIR__ . '/Commands');
 
-        require base_path('routes/console.php');
+        require base_path(
+            path: 'routes/console.php',
+        );
     }
 }

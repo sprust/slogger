@@ -2,13 +2,16 @@
 
 namespace Tests\Modules\Mcp\Infrastructure\Tools;
 
+use App\Modules\Mcp\Transports\TraceObjectTransport;
+use App\Modules\Mcp\Transports\TraceParametersTransport;
+use App\Modules\Mcp\Transports\McpServiceObjectTransport;
 use App\Modules\Mcp\Domain\Actions\Bridges\FindMcpServicesAction;
 use App\Modules\Mcp\Domain\Actions\Bridges\FindMcpTraceDataFieldsAction;
 use App\Modules\Mcp\Domain\Actions\Bridges\FindMcpTraceFacetsAction;
 use App\Modules\Mcp\Domain\Actions\Bridges\FindMcpTracesAction;
 use App\Modules\Mcp\Domain\Actions\Queries\FindMcpSettingsAction;
 use App\Modules\Mcp\Domain\Services\McpTraceDataFilterParser;
-use App\Modules\Mcp\Domain\Services\McpTracePeriodMapper;
+use App\Modules\Mcp\Transports\McpTracePeriodTransport;
 use App\Modules\Mcp\Domain\Services\McpTracePeriodResolver;
 use App\Modules\Mcp\Entities\McpSettingsObject;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolArguments;
@@ -33,6 +36,7 @@ use App\Modules\Trace\Entities\Trace\Data\TraceDataAdditionalFieldObject;
 use App\Modules\Trace\Entities\Trace\TraceStringFieldObject;
 use App\Modules\Trace\Parameters\TraceFindParameters;
 use PHPUnit\Framework\TestCase;
+use App\Modules\Mcp\Domain\Actions\FindMcpTraceLifetimeAction;
 use Tests\Modules\Mcp\McpTraceQueryTestTrait;
 use Illuminate\Support\Carbon;
 
@@ -40,56 +44,112 @@ class TraceQueryToolsTest extends TestCase
 {
     use McpTraceQueryTestTrait;
 
-    private const array SCOPE = ['service_ids' => [2], 'from' => '2026-09-28T10:20:00Z', 'to' => '2026-09-28T12:05:00Z'];
+    private const array SCOPE = [
+        'service_ids' => [
+            2,
+        ],
+        'from' => '2026-09-28T10:20:00Z',
+        'to'   => '2026-09-28T12:05:00Z',
+    ];
 
     private ?TraceFindParameters $captured = null;
 
-    private bool $facetsQueried = false;
+    private bool $facetsQueried            = false;
 
     public function testFacets(): void
     {
-        $result = $this->facetsTool()->call(new McpToolArguments([...self::SCOPE, 'statuses' => ['failed']]));
+        $result = $this
+            ->facetsTool()
+            ->call(new McpToolArguments([
+                ...self::SCOPE,
+                'statuses' => [
+                    'failed',
+                ],
+            ]));
 
         $this->assertFalse($result->isError);
-        $this->assertSame(
-            [
-                'from'      => '2026-09-28T10:20:00Z',
-                'to'        => '2026-09-28T12:05:00Z',
-                'types'     => [['value' => 'request', 'count' => 30], ['value' => 'job', 'count' => 4]],
-                'statuses'  => [['value' => 'failed', 'count' => 3]],
-                'tags'      => [],
-                'truncated' => ['types' => false, 'statuses' => false, 'tags' => false],
+
+        $this->assertSame([
+            'from'  => '2026-09-28T10:20:00Z',
+            'to'    => '2026-09-28T12:05:00Z',
+            'types' => [
+                [
+                    'value' => 'request',
+                    'count' => 30,
+                ],
+                [
+                    'value' => 'job',
+                    'count' => 4,
+                ],
             ],
-            $result->data
-        );
+            'statuses' => [
+                [
+                    'value' => 'failed',
+                    'count' => 3,
+                ],
+            ],
+            'tags'      => [],
+            'truncated' => [
+                'types'    => false,
+                'statuses' => false,
+                'tags'     => false,
+            ],
+        ], $result->data);
     }
 
     public function testSearchTraces(): void
     {
-        $result = $this->findTool()->call(
-            new McpToolArguments([
+        $result = $this
+            ->findTool()
+            ->call(new McpToolArguments([
                 ...self::SCOPE,
-                'statuses'    => ['failed'],
-                'data_filter' => ['response.status >= 500'],
-                'data_fields' => ['request.uri'],
-            ])
-        );
+                'statuses' => [
+                    'failed',
+                ],
+                'data_filter' => [
+                    'response.status >= 500',
+                ],
+                'data_fields' => [
+                    'request.uri',
+                ],
+            ]));
 
         $this->assertFalse($result->isError);
+
         $this->assertSame(1, $result->data['page']);
+
         $this->assertFalse($result->data['has_more']);
 
         $trace = $result->data['traces'][0];
 
-        $this->assertSame(
-            ['trace_id', 'parent_trace_id', 'type', 'status', 'tags', 'duration', 'memory', 'cpu', 'pid', 'logged_at', 'data'],
-            array_keys($trace)
-        );
+        $this->assertSame([
+            'trace_id',
+            'parent_trace_id',
+            'type',
+            'status',
+            'tags',
+            'duration',
+            'memory',
+            'cpu',
+            'pid',
+            'logged_at',
+            'data',
+        ], array_keys($trace));
+
         $this->assertSame('t1', $trace['trace_id']);
+
         $this->assertSame(4321, $trace['pid']);
+
         $this->assertSame('2026-09-28T12:30:00Z', $trace['logged_at']);
-        $this->assertSame('{"request.uri":"\/api\/pay"}', json_encode($trace['data']));
-        $this->assertSame(['failed'], $this->captured?->statuses);
+
+        $this->assertSame(
+            '{"request.uri":"\/api\/pay"}',
+            json_encode($trace['data'])
+        );
+
+        $this->assertSame([
+            'failed',
+        ], $this->captured?->statuses);
     }
 
     public function testThePeriodIsTakenExactly(): void
@@ -97,21 +157,46 @@ class TraceQueryToolsTest extends TestCase
         $result = $this->findTool()->call(new McpToolArguments(self::SCOPE));
 
         $this->assertFalse($result->isError);
+
         $this->assertSame('2026-09-28T10:20:00Z', $result->data['from']);
+
         $this->assertSame('2026-09-28T12:05:00Z', $result->data['to']);
-        $this->assertSame('2026-09-28 10:20:00.000000', $this->captured?->loggingPeriod?->from?->format('Y-m-d H:i:s.u'));
-        $this->assertSame('2026-09-28 12:04:59.999999', $this->captured->loggingPeriod->to?->format('Y-m-d H:i:s.u'));
+
+        $this->assertSame(
+            '2026-09-28 10:20:00.000000',
+            $this->captured?->loggingPeriod?->from?->format('Y-m-d H:i:s.u')
+        );
+
+        $this->assertSame(
+            '2026-09-28 12:04:59.999999',
+            $this->captured->loggingPeriod->to?->format('Y-m-d H:i:s.u')
+        );
     }
 
     public function testTagsAndDataFilterGoTogether(): void
     {
-        $result = $this->findTool()->call(
-            new McpToolArguments([...self::SCOPE, 'tags' => ['api'], 'data_filter' => ['response.status >= 500']])
-        );
+        $result = $this
+            ->findTool()
+            ->call(new McpToolArguments([
+                ...self::SCOPE,
+                'tags' => [
+                    'api',
+                ],
+                'data_filter' => [
+                    'response.status >= 500',
+                ],
+            ]));
 
         $this->assertFalse($result->isError);
-        $this->assertSame(['api'], $this->captured?->tags);
-        $this->assertSame('dt.response.status', $this->captured->data?->filter[0]->field);
+
+        $this->assertSame([
+            'api',
+        ], $this->captured?->tags);
+
+        $this->assertSame(
+            'dt.response.status',
+            $this->captured->data?->filter[0]->field
+        );
     }
 
     public function testWithoutServicesAllServicesAreSearched(): void
@@ -123,69 +208,118 @@ class TraceQueryToolsTest extends TestCase
         $result = $this->findTool()->call(new McpToolArguments($arguments));
 
         $this->assertFalse($result->isError);
+
         $this->assertSame([], $this->captured?->serviceIds);
     }
 
     public function testSeveralServices(): void
     {
-        $this->findTool()->call(new McpToolArguments([...self::SCOPE, 'service_ids' => [2, 3]]));
+        $this
+            ->findTool()
+            ->call(new McpToolArguments([
+                ...self::SCOPE,
+                'service_ids' => [
+                    2,
+                    3,
+                ],
+            ]));
 
-        $this->assertSame([2, 3], $this->captured?->serviceIds);
+        $this->assertSame([
+            2,
+            3,
+        ], $this->captured?->serviceIds);
     }
 
     public function testFullPageHasMore(): void
     {
-        $result = $this->findTool(traceIds: array_map(static fn(int $i) => "t$i", range(1, FindMcpTracesAction::PER_PAGE)))
-            ->call(new McpToolArguments([...self::SCOPE, 'page' => 2]));
+        $result = $this
+            ->findTool(
+                traceIds: array_map(
+                    static fn(int $i) => "t{$i}",
+                    range(
+                        1,
+                        FindMcpTracesAction::PER_PAGE,
+                    )
+                ),
+            )
+            ->call(new McpToolArguments([
+                ...self::SCOPE,
+                'page' => 2,
+            ]));
 
         $this->assertTrue($result->data['has_more']);
+
         $this->assertSame(2, $result->data['page']);
+
         $this->assertSame(2, $this->captured?->page);
     }
 
     public function testSearchTracesErrors(): void
     {
-        $this->assertToolError(
-            'invalid_data_filter',
-            $this->findTool(),
-            [...self::SCOPE, 'data_filter' => ['status ~ 5']],
-            'status ~ 5'
-        );
+        $this->assertToolError('invalid_data_filter', $this->findTool(), [
+            ...self::SCOPE,
+            'data_filter' => [
+                'status ~ 5',
+            ],
+        ], 'status ~ 5');
+
         $this->assertNull($this->captured);
     }
 
     public function testPeriodRuleErrors(): void
     {
-        $this->assertToolError('invalid_time', $this->findTool(), [...self::SCOPE, 'from' => 'yesterday'], '"from"');
-        $this->assertToolError('invalid_time', $this->findTool(), [...self::SCOPE, 'to' => '2026-09-28'], '"to"');
-        $this->assertToolError('service_not_found', $this->findTool(), [...self::SCOPE, 'service_ids' => [2, 999]], '999');
+        $this->assertToolError('invalid_time', $this->findTool(), [
+            ...self::SCOPE,
+            'from' => 'yesterday',
+        ], '"from"');
+
+        $this->assertToolError('invalid_time', $this->findTool(), [
+            ...self::SCOPE,
+            'to' => '2026-09-28',
+        ], '"to"');
+
+        $this->assertToolError('service_not_found', $this->findTool(), [
+            ...self::SCOPE,
+            'service_ids' => [
+                2,
+                999,
+            ],
+        ], '999');
+
         $this->assertNull($this->captured);
     }
 
     public function testFromLaterThanToIsInvalid(): void
     {
-        $this->assertToolError('invalid_period', $this->findTool(), [...self::SCOPE, 'from' => '2026-09-28T13:00:00Z']);
+        $this->assertToolError('invalid_period', $this->findTool(), [
+            ...self::SCOPE,
+            'from' => '2026-09-28T13:00:00Z',
+        ]);
+
         $this->assertNull($this->captured);
     }
 
     public function testEmptyPeriodIsInvalid(): void
     {
-        $this->assertToolError(
-            'invalid_period',
-            $this->findTool(),
-            [...self::SCOPE, 'from' => '2026-09-28T12:05:00Z', 'to' => '2026-09-28T12:05:00Z']
-        );
+        $this->assertToolError('invalid_period', $this->findTool(), [
+            ...self::SCOPE,
+            'from' => '2026-09-28T12:05:00Z',
+            'to'   => '2026-09-28T12:05:00Z',
+        ]);
+
         $this->assertNull($this->captured);
     }
 
     public function testPeriodLongerThanRetentionIsTooWide(): void
     {
-        $this->assertToolError(
-            'period_too_wide',
-            $this->facetsTool(),
-            ['service_ids' => [2], 'from' => '2026-09-25T00:00:00Z', 'to' => '2026-09-28T08:00:00Z'],
-            '72 hours'
-        );
+        $this->assertToolError('period_too_wide', $this->facetsTool(), [
+            'service_ids' => [
+                2,
+            ],
+            'from' => '2026-09-25T00:00:00Z',
+            'to'   => '2026-09-28T08:00:00Z',
+        ], '72 hours');
+
         $this->assertFalse($this->facetsQueried);
     }
 
@@ -194,7 +328,7 @@ class TraceQueryToolsTest extends TestCase
         $to = array_values(
             array_filter(
                 $this->findTool()->schema()->properties,
-                static fn(McpToolProperty $property) => $property->name === 'to'
+                static fn(McpToolProperty $property) => $property->name === 'to',
             )
         );
 
@@ -203,18 +337,25 @@ class TraceQueryToolsTest extends TestCase
 
     public function testDataFields(): void
     {
-        $result = $this->dataFieldsTool()->call(new McpToolArguments([...self::SCOPE, 'type' => 'request']));
+        $result = $this
+            ->dataFieldsTool()
+            ->call(new McpToolArguments([
+                ...self::SCOPE,
+                'type' => 'request',
+            ]));
 
-        $this->assertSame(
-            [
-                'from'         => '2026-09-28T10:20:00Z',
-                'to'           => '2026-09-28T12:05:00Z',
-                'type'         => 'request',
-                'traces_count' => 1,
-                'fields'       => [['key' => 'request.uri', 'example' => '/api/pay']],
+        $this->assertSame([
+            'from'         => '2026-09-28T10:20:00Z',
+            'to'           => '2026-09-28T12:05:00Z',
+            'type'         => 'request',
+            'traces_count' => 1,
+            'fields'       => [
+                [
+                    'key'     => 'request.uri',
+                    'example' => '/api/pay',
+                ],
             ],
-            $result->data
-        );
+        ], $result->data);
     }
 
     /**
@@ -226,6 +367,7 @@ class TraceQueryToolsTest extends TestCase
         $result = $tool->call(new McpToolArguments($arguments));
 
         $this->assertTrue($result->isError, $error);
+
         $this->assertSame($error, $result->data['error']);
 
         if (!is_null($hintPart)) {
@@ -236,19 +378,37 @@ class TraceQueryToolsTest extends TestCase
     private function facetsTool(): GetTraceFacetsTool
     {
         $types = $this->createMock(FindTypesAction::class);
-        $types->method('handle')->willReturnCallback(function (): array {
-            $this->facetsQueried = true;
 
-            return [
-                new TraceStringFieldObject(name: 'job', count: 4),
-                new TraceStringFieldObject(name: 'request', count: 30),
-            ];
-        });
+        $types
+            ->method('handle')
+            ->willReturnCallback(function (): array {
+                $this->facetsQueried = true;
+
+                return [
+                    new TraceStringFieldObject(
+                        name: 'job',
+                        count: 4,
+                    ),
+                    new TraceStringFieldObject(
+                        name: 'request',
+                        count: 30,
+                    ),
+                ];
+            });
 
         $statuses = $this->createMock(FindStatusesAction::class);
-        $statuses->method('handle')->willReturn([new TraceStringFieldObject(name: 'failed', count: 3)]);
+
+        $statuses
+            ->method('handle')
+            ->willReturn([
+                new TraceStringFieldObject(
+                    name: 'failed',
+                    count: 3,
+                ),
+            ]);
 
         $tags = $this->createMock(FindTagsAction::class);
+
         $tags->method('handle')->willReturn([]);
 
         return new GetTraceFacetsTool(
@@ -256,28 +416,32 @@ class TraceQueryToolsTest extends TestCase
                 findTypesAction: $types,
                 findStatusesAction: $statuses,
                 findTagsAction: $tags,
-                periodMapper: new McpTracePeriodMapper()
+                mcpTracePeriodTransport: new McpTracePeriodTransport(),
+                traceObjectTransport: new TraceObjectTransport(),
             ),
             findMcpSettingsAction: $this->settings(),
-            scopeReader: $this->scopeReader()
+            scopeReader: $this->scopeReader(),
         );
     }
 
     private function settings(): FindMcpSettingsAction
     {
         $settings = $this->createMock(FindMcpSettingsAction::class);
-        $settings->method('handle')->willReturn(
-            new McpSettingsObject(
-                serverName: 'local',
-                serverVersion: '1.0.0',
-                appUrl: 'http://localhost',
-                endpointUrl: 'http://localhost/mcp',
-                maxStringLength: 500,
-                treeNodesLimit: 300,
-                facetsLimit: 50,
-                listTtlMs: 3_600_000
-            )
-        );
+
+        $settings
+            ->method('handle')
+            ->willReturn(
+                new McpSettingsObject(
+                    serverName: 'local',
+                    serverVersion: '1.0.0',
+                    appUrl: 'http://localhost',
+                    endpointUrl: 'http://localhost/mcp',
+                    maxStringLength: 500,
+                    treeNodesLimit: 300,
+                    facetsLimit: 50,
+                    listTtlMs: 3600000,
+                )
+            );
 
         return $settings;
     }
@@ -285,69 +449,132 @@ class TraceQueryToolsTest extends TestCase
     /**
      * @param string[] $traceIds
      */
-    private function findTool(array $traceIds = ['t1']): SearchTracesTool
+    private function findTool(array $traceIds = [
+        't1',
+    ]): SearchTracesTool
     {
         $search = $this->createMock(FindTracesAction::class);
-        $search->method('handle')->willReturnCallback(function (TraceFindParameters $parameters) use ($traceIds) {
-            $this->captured = $parameters;
 
-            return $this->traceItems(
-                $traceIds,
-                [new TraceDataAdditionalFieldObject(key: 'request.uri', values: ['/api/pay'])]
-            );
-        });
+        $search
+            ->method('handle')
+            ->willReturnCallback(function (TraceFindParameters $parameters) use ($traceIds) {
+                $this->captured = $parameters;
+
+                return $this->traceItems(
+                    traceIds: $traceIds,
+                    additionalFields: [
+                        new TraceDataAdditionalFieldObject(
+                            key: 'request.uri',
+                            values: [
+                                '/api/pay',
+                            ],
+                        ),
+                    ],
+                );
+            });
 
         return new SearchTracesTool(
             findMcpTracesAction: new FindMcpTracesAction(
                 findTracesAction: $search,
                 dataFilterParser: new McpTraceDataFilterParser(),
-                periodMapper: new McpTracePeriodMapper()
+                mcpTracePeriodTransport: new McpTracePeriodTransport(),
+                traceObjectTransport: new TraceObjectTransport(),
+                traceParametersTransport: new TraceParametersTransport(),
             ),
             scopeReader: $this->scopeReader(),
-            formatter: new McpToolFormatter()
+            formatter: new McpToolFormatter(),
         );
     }
 
     private function dataFieldsTool(): GetTraceDataFieldsTool
     {
         $search = $this->createMock(FindTracesAction::class);
-        $search->method('handle')->willReturn($this->traceItems(['t1']));
+
+        $search
+            ->method('handle')
+            ->willReturn(
+                $this->traceItems(
+                    traceIds: [
+                        't1',
+                    ],
+                )
+            );
 
         $detail = $this->createMock(FindTraceDetailAction::class);
-        $detail->method('handle')->willReturn(
-            $this->detailWithData('t1', [$this->dataNode('request', null, [$this->dataNode('request.uri', '/api/pay')])])
-        );
+
+        $detail
+            ->method('handle')
+            ->willReturn(
+                $this->detailWithData(
+                    traceId: 't1',
+                    children: [
+                        $this->dataNode(
+                            key: 'request',
+                            value: null,
+                            children: [
+                                $this->dataNode(
+                                    key: 'request.uri',
+                                    value: '/api/pay',
+                                ),
+                            ],
+                        ),
+                    ],
+                )
+            );
 
         return new GetTraceDataFieldsTool(
             findMcpTraceDataFieldsAction: new FindMcpTraceDataFieldsAction(
                 findTracesAction: $search,
                 findTraceDetailAction: $detail,
-                periodMapper: new McpTracePeriodMapper()
+                mcpTracePeriodTransport: new McpTracePeriodTransport(),
             ),
-            scopeReader: $this->scopeReader()
+            scopeReader: $this->scopeReader(),
         );
     }
 
     private function scopeReader(): McpToolTraceScopeReader
     {
         $services = $this->createMock(FindServicesAction::class);
-        $services->method('handle')->willReturn([
-            new ServiceObject(id: 2, name: 'pms', uniqueKey: 'pms', apiToken: 'a', position: 2, createdAt: Carbon::now()),
-            new ServiceObject(id: 3, name: 'zb', uniqueKey: 'zb', apiToken: 'b', position: 3, createdAt: Carbon::now()),
-        ]);
+
+        $services
+            ->method('handle')
+            ->willReturn([
+                new ServiceObject(
+                    id: 2,
+                    name: 'pms',
+                    uniqueKey: 'pms',
+                    apiToken: 'a',
+                    position: 2,
+                    createdAt: Carbon::now(),
+                ),
+                new ServiceObject(
+                    id: 3,
+                    name: 'zb',
+                    uniqueKey: 'zb',
+                    apiToken: 'b',
+                    position: 3,
+                    createdAt: Carbon::now(),
+                ),
+            ]);
 
         return new McpToolTraceScopeReader(
             timeParser: new McpToolTimeParser(),
-            serviceFinder: new McpToolServiceFinder(new FindMcpServicesAction($services)),
+            serviceFinder: new McpToolServiceFinder(
+                new FindMcpServicesAction(
+                    findServicesAction: $services,
+                    mcpServiceObjectTransport: new McpServiceObjectTransport(),
+                )
+            ),
             periodResolver: new McpTracePeriodResolver(),
             formatter: new McpToolFormatter(),
-            findSettingValueAction: $this->findSettingValueAction()
+            findMcpTraceLifetimeAction: new FindMcpTraceLifetimeAction($this->findSettingValueAction()),
         );
     }
 
     private function findSettingValueAction(): FindSettingValueAction
     {
         $action = $this->createMock(FindSettingValueAction::class);
+
         $action->method('handle')->with(SettingKeyEnum::TracesLifetimeHours)->willReturn(72);
 
         return $action;

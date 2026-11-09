@@ -18,10 +18,15 @@ class ChannelFactoryTest extends TestCase
     public function testTheStoredTypeDecidesHowTheSettingsAreRead(): void
     {
         $channel = $this->factory()->make(
-            $this->dto(settings: ['bot_token' => '123:abc', 'chat_id' => '@ops'])
+            $this->dto(
+                settings: ['bot_token' => '123:abc', 'chat_id' => '@ops']
+            )
         );
 
-        $this->assertSame(NotificationChannelTypeEnum::Telegram, $channel->type);
+        $this->assertSame(
+            NotificationChannelTypeEnum::Telegram,
+            $channel->type
+        );
         $this->assertInstanceOf(TelegramSettingsObject::class, $channel->settings);
         $this->assertSame('123:abc', $channel->settings->botToken);
         $this->assertSame('@ops', $channel->settings->chatId);

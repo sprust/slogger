@@ -84,7 +84,10 @@ readonly class SconcurStatClient
             memoryRssBytes: (int) ($totals['memory']['rssBytes'] ?? 0),
             memoryPssBytes: (int) ($totals['memory']['pssBytes'] ?? 0),
             runtimeTasks: (int) ($totals['runtimeTasks'] ?? 0),
-            work: $this->mapWork($totals['requests'] ?? null, $totals['consumers'] ?? null),
+            work: $this->mapWork(
+                $totals['requests'] ?? null,
+                $totals['consumers'] ?? null
+            ),
             masterCpuPercent: (float) ($master['cpuPercent'] ?? 0),
             masterMemoryRssBytes: (int) ($master['memory']['rssBytes'] ?? 0),
             masterMemoryPssBytes: (int) ($master['memory']['pssBytes'] ?? 0),
@@ -223,7 +226,10 @@ readonly class SconcurStatClient
             memoryRssBytes: (int) ($totals['memory']['rssBytes'] ?? 0),
             memoryPssBytes: (int) ($totals['memory']['pssBytes'] ?? 0),
             runtimeTasks: (int) ($totals['runtimeTasks'] ?? 0),
-            work: $this->mapWork($totals['requests'] ?? null, $totals['consumers'] ?? null),
+            work: $this->mapWork(
+                $totals['requests'] ?? null,
+                $totals['consumers'] ?? null
+            ),
         );
     }
 
@@ -241,7 +247,10 @@ readonly class SconcurStatClient
             memoryRssBytes: (int) ($worker['memory']['rssBytes'] ?? 0),
             memoryPssBytes: (int) ($worker['memory']['pssBytes'] ?? 0),
             runtimeTasks: (int) ($worker['runtimeTasks'] ?? 0),
-            work: $this->mapWork($worker['requests'] ?? null, $worker['consumers'] ?? null),
+            work: $this->mapWork(
+                $worker['requests'] ?? null,
+                $worker['consumers'] ?? null
+            ),
         );
     }
 

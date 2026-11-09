@@ -11,23 +11,17 @@ use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolArguments;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolProperty;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolPropertyTypeEnum;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolResult;
-use App\Modules\Setting\Domain\Actions\FindSettingValueAction;
-use App\Modules\Setting\Enums\SettingKeyEnum;
+use App\Modules\Mcp\Domain\Actions\FindMcpTraceLifetimeAction;
 
 readonly class McpToolTraceScopeReader
 {
     // a bound for the duration filters: a number past what a float holds would reach the query as infinity
-    public const int MAX_DURATION = 1_000_000_000_000_000;
+    public const int MAX_DURATION  = 1000000000000000;
 
     private const int MAX_SERVICES = 20;
 
-    public function __construct(
-        private McpToolTimeParser $timeParser,
-        private McpToolServiceFinder $serviceFinder,
-        private McpTracePeriodResolver $periodResolver,
-        private McpToolFormatter $formatter,
-        private FindSettingValueAction $findSettingValueAction
-    ) {
+    public function __construct(private McpToolTimeParser $timeParser, private McpToolServiceFinder $serviceFinder, private McpTracePeriodResolver $periodResolver, private McpToolFormatter $formatter, private FindMcpTraceLifetimeAction $findMcpTraceLifetimeAction)
+    {
     }
 
     /**
@@ -40,24 +34,21 @@ readonly class McpToolTraceScopeReader
                 name: 'service_ids',
                 type: McpToolPropertyTypeEnum::IntegerList,
                 description: 'Service ids from get_services. All services when omitted.',
-                max: self::MAX_SERVICES
+                max: self::MAX_SERVICES,
             ),
             new McpToolProperty(
                 name: 'from',
                 type: McpToolPropertyTypeEnum::String,
                 description: 'Start of the period, ISO 8601, inclusive.',
                 required: true,
-                max: 64
+                max: 64,
             ),
             new McpToolProperty(
                 name: 'to',
                 type: McpToolPropertyTypeEnum::String,
-                description: sprintf(
-                    'End of the period, ISO 8601, exclusive; at most %d hours after "from" (the time traces are kept).',
-                    $this->findMaxHours()
-                ),
+                description: sprintf('End of the period, ISO 8601, exclusive; at most %d hours after "from" (the time traces are kept).', $this->findMaxHours()),
                 required: true,
-                max: 64
+                max: 64,
             ),
         ];
     }
@@ -76,8 +67,7 @@ readonly class McpToolTraceScopeReader
             return $this->formatter->invalidTime('to');
         }
 
-        $serviceIds = $arguments->intList('service_ids');
-
+        $serviceIds        = $arguments->intList('service_ids');
         $unknownServiceIds = $this->serviceFinder->findUnknownIds($serviceIds);
 
         if (count($unknownServiceIds) > 0) {
@@ -85,27 +75,26 @@ readonly class McpToolTraceScopeReader
         }
 
         try {
-            $period = $this->periodResolver->resolve($from, $to, $this->findMaxHours());
+            $period = $this->periodResolver->resolve(
+                from: $from,
+                to: $to,
+                maxHours: $this->findMaxHours(),
+            );
         } catch (McpTraceInvalidPeriodException) {
             return $this->formatter->error(
                 error: 'invalid_period',
-                hint: '"from" must be earlier than "to".'
+                hint: '"from" must be earlier than "to".',
             );
         } catch (McpTracePeriodTooWideException $exception) {
             return $this->formatter->error(
                 error: 'period_too_wide',
-                hint: sprintf(
-                    'The period is longer than %d hours, the time traces are kept for: older traces are gone. '
-                    . 'Narrow it to at most %d hours.',
-                    $exception->maxHours,
-                    $exception->maxHours
-                )
+                hint: sprintf('The period is longer than %d hours, the time traces are kept for: older traces are gone. ' . 'Narrow it to at most %d hours.', $exception->maxHours, $exception->maxHours),
             );
         }
 
         return new McpToolTraceScopeObject(
             serviceIds: $serviceIds,
-            period: $period
+            period: $period,
         );
     }
 
@@ -122,6 +111,6 @@ readonly class McpToolTraceScopeReader
 
     private function findMaxHours(): int
     {
-        return $this->findSettingValueAction->handle(SettingKeyEnum::TracesLifetimeHours);
+        return $this->findMcpTraceLifetimeAction->handle();
     }
 }

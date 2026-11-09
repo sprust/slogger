@@ -16,7 +16,11 @@ readonly class NoNewTracesIncidentEventController extends AbstractIncidentEventC
     public function index(string $id, IndexIncidentEventsRequest $request): AnonymousResourceCollection
     {
         return NoNewTracesIncidentEventResource::collection(
-            $this->incidentEvents(WatcherTypeEnum::NoNewTraces, $id, $request->validated())
+            $this->incidentEvents(
+                WatcherTypeEnum::NoNewTraces,
+                $id,
+                $request->validated()
+            )
         );
     }
 }

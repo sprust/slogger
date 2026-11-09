@@ -29,7 +29,8 @@ readonly class NoNewTracesEventPayloadMapper implements WatcherEventPayloadMappe
         $measuredWindowFrom = ArrayValueGetter::stringNull($measured, 'window_from');
         $measuredWindowTo   = ArrayValueGetter::stringNull($measured, 'window_to');
 
-        if (is_null($settingsPeriodMinutes)
+        if (
+            is_null($settingsPeriodMinutes)
             || is_null($measuredWindowFrom)
             || is_null($measuredWindowTo)
         ) {

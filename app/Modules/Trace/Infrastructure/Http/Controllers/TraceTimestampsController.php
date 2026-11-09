@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Modules\Trace\Infrastructure\Http\Controllers;
 
 use App\Modules\Common\Helpers\ArrayValueGetter;
-use App\Modules\Trace\Domain\Actions\MakeMetricIndicatorsAction;
-use App\Modules\Trace\Domain\Actions\Queries\FindTraceTimestampsAction;
+use App\Modules\Trace\Domain\UseCases\MakeMetricIndicatorsByAdminUseCase;
+use App\Modules\Trace\Domain\UseCases\FindTraceTimestampsByAdminUseCase;
 use App\Modules\Trace\Enums\TraceMetricFieldEnum;
 use App\Modules\Trace\Enums\TraceTimestampEnum;
 use App\Modules\Trace\Enums\TraceTimestampPeriodEnum;
@@ -21,11 +21,8 @@ use App\Services\Clickhouse\ClickhouseQueryException;
 
 readonly class TraceTimestampsController
 {
-    public function __construct(
-        private FindTraceTimestampsAction $findTraceTimestampsAction,
-        private MakeMetricIndicatorsAction $makeMetricIndicatorsAction,
-        private DataFilterParameterTransport $dataFilterParameterTransport
-    ) {
+    public function __construct(private FindTraceTimestampsByAdminUseCase $findTraceTimestampsByAdminUseCase, private MakeMetricIndicatorsByAdminUseCase $makeMetricIndicatorsByAdminUseCase, private DataFilterParameterTransport $dataFilterParameterTransport)
+    {
     }
 
     /**
@@ -36,32 +33,74 @@ readonly class TraceTimestampsController
         $validated = $request->validated();
 
         return new TraceTimestampsResource(
-            $this->findTraceTimestampsAction->handle(
+            $this->findTraceTimestampsByAdminUseCase->handle(
                 new FindTraceTimestampsParameters(
                     timestampPeriod: TraceTimestampPeriodEnum::from(
-                        ArrayValueGetter::string($validated, 'timestamp_period')
+                        ArrayValueGetter::string(
+                            data: $validated,
+                            key: 'timestamp_period',
+                        )
                     ),
                     timestampStep: TraceTimestampEnum::from(
-                        ArrayValueGetter::string($validated, 'timestamp_step')
+                        ArrayValueGetter::string(
+                            data: $validated,
+                            key: 'timestamp_step',
+                        )
                     ),
                     fields: array_map(
-                        fn(string $indicator) => TraceMetricFieldEnum::from($indicator),
-                        ArrayValueGetter::arrayStringNull($validated, 'fields') ?? []
+                        static fn(string $indicator) => TraceMetricFieldEnum::from($indicator),
+                        ArrayValueGetter::arrayStringNull(
+                            data: $validated,
+                            key: 'fields',
+                        ) ?? []
                     ),
-                    dataFields: ArrayValueGetter::arrayStringNull($validated, 'data_fields'),
-                    serviceIds: ArrayValueGetter::arrayIntNull($validated, 'service_ids'),
-                    loggedAtTo: ($validated['logging_to'] ?? null)
-                        ? new Carbon($validated['logging_to'])->setTimezone('UTC')
-                        : null,
-                    types: ArrayValueGetter::arrayStringNull($validated, 'types') ?? [],
-                    tags: ArrayValueGetter::arrayStringNull($validated, 'tags') ?? [],
-                    statuses: ArrayValueGetter::arrayStringNull($validated, 'statuses') ?? [],
-                    durationFrom: ArrayValueGetter::floatNull($validated, 'duration_from'),
-                    durationTo: ArrayValueGetter::floatNull($validated, 'duration_to'),
-                    memoryFrom: ArrayValueGetter::floatNull($validated, 'memory_from'),
-                    memoryTo: ArrayValueGetter::floatNull($validated, 'memory_to'),
-                    cpuFrom: ArrayValueGetter::floatNull($validated, 'cpu_from'),
-                    cpuTo: ArrayValueGetter::floatNull($validated, 'cpu_to'),
+                    dataFields: ArrayValueGetter::arrayStringNull(
+                        data: $validated,
+                        key: 'data_fields',
+                    ),
+                    serviceIds: ArrayValueGetter::arrayIntNull(
+                        data: $validated,
+                        key: 'service_ids',
+                    ),
+                    loggedAtTo: $validated['logging_to'] ?? null ? (new Carbon(
+                        time: $validated['logging_to'],
+                    ))->setTimezone('UTC') : null,
+                    types: ArrayValueGetter::arrayStringNull(
+                        data: $validated,
+                        key: 'types',
+                    ) ?? [],
+                    tags: ArrayValueGetter::arrayStringNull(
+                        data: $validated,
+                        key: 'tags',
+                    ) ?? [],
+                    statuses: ArrayValueGetter::arrayStringNull(
+                        data: $validated,
+                        key: 'statuses',
+                    ) ?? [],
+                    durationFrom: ArrayValueGetter::floatNull(
+                        data: $validated,
+                        key: 'duration_from',
+                    ),
+                    durationTo: ArrayValueGetter::floatNull(
+                        data: $validated,
+                        key: 'duration_to',
+                    ),
+                    memoryFrom: ArrayValueGetter::floatNull(
+                        data: $validated,
+                        key: 'memory_from',
+                    ),
+                    memoryTo: ArrayValueGetter::floatNull(
+                        data: $validated,
+                        key: 'memory_to',
+                    ),
+                    cpuFrom: ArrayValueGetter::floatNull(
+                        data: $validated,
+                        key: 'cpu_from',
+                    ),
+                    cpuTo: ArrayValueGetter::floatNull(
+                        data: $validated,
+                        key: 'cpu_to',
+                    ),
                     data: $this->dataFilterParameterTransport->make($validated),
                 )
             )
@@ -71,8 +110,6 @@ readonly class TraceTimestampsController
     #[OaListItemTypeAttribute(TraceMetricIndicatorEnumResource::class)]
     public function fields(): AnonymousResourceCollection
     {
-        return TraceMetricIndicatorEnumResource::collection(
-            $this->makeMetricIndicatorsAction->handle()
-        );
+        return TraceMetricIndicatorEnumResource::collection($this->makeMetricIndicatorsByAdminUseCase->handle());
     }
 }

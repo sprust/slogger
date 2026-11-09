@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Modules\Trace\Infrastructure\Http\Controllers;
 
 use App\Modules\Common\Helpers\ArrayValueGetter;
-use App\Modules\Trace\Domain\Actions\Queries\FindStatusesAction;
-use App\Modules\Trace\Domain\Actions\Queries\FindTagsAction;
-use App\Modules\Trace\Domain\Actions\Queries\FindTypesAction;
+use App\Modules\Trace\Domain\UseCases\FindStatusesByAdminUseCase;
+use App\Modules\Trace\Domain\UseCases\FindTagsByAdminUseCase;
+use App\Modules\Trace\Domain\UseCases\FindTypesByAdminUseCase;
 use App\Modules\Trace\Infrastructure\Http\Requests\TraceFindStatusesRequest;
 use App\Modules\Trace\Infrastructure\Http\Requests\TraceFindTagsRequest;
 use App\Modules\Trace\Infrastructure\Http\Requests\TraceFindTypesRequest;
@@ -22,12 +22,8 @@ use App\Services\Clickhouse\ClickhouseQueryException;
 
 readonly class TraceContentController
 {
-    public function __construct(
-        private FindTypesAction $findTypesAction,
-        private FindTagsAction $findTagsAction,
-        private FindStatusesAction $findStatusesAction,
-        private DataFilterParameterTransport $dataFilterParameterTransport
-    ) {
+    public function __construct(private FindTypesByAdminUseCase $findTypesByAdminUseCase, private FindTagsByAdminUseCase $findTagsByAdminUseCase, private FindStatusesByAdminUseCase $findStatusesByAdminUseCase, private DataFilterParameterTransport $dataFilterParameterTransport)
+    {
     }
 
     /**
@@ -39,17 +35,38 @@ readonly class TraceContentController
         $validated = $request->validated();
 
         return TraceStringFieldResource::collection(
-            $this->findTypesAction->handle(
+            $this->findTypesByAdminUseCase->handle(
                 new TraceFindTypesParameters(
-                    serviceIds: ArrayValueGetter::arrayIntNull($validated, 'service_ids') ?? [],
-                    text: ArrayValueGetter::stringNull($validated, 'text'),
-                    loggingPeriod: PeriodParameters::fromStringValues(
-                        fromPreset: ArrayValueGetter::stringNull($validated, 'logging_from_preset'),
-                        from: ArrayValueGetter::stringNull($validated, 'logging_from'),
-                        to: ArrayValueGetter::stringNull($validated, 'logging_to'),
+                    serviceIds: ArrayValueGetter::arrayIntNull(
+                        data: $validated,
+                        key: 'service_ids',
+                    ) ?? [],
+                    text: ArrayValueGetter::stringNull(
+                        data: $validated,
+                        key: 'text',
                     ),
-                    tags: ArrayValueGetter::arrayStringNull($validated, 'tags') ?? [],
-                    statuses: ArrayValueGetter::arrayStringNull($validated, 'statuses') ?? [],
+                    loggingPeriod: PeriodParameters::fromStringValues(
+                        fromPreset: ArrayValueGetter::stringNull(
+                            data: $validated,
+                            key: 'logging_from_preset',
+                        ),
+                        from: ArrayValueGetter::stringNull(
+                            data: $validated,
+                            key: 'logging_from',
+                        ),
+                        to: ArrayValueGetter::stringNull(
+                            data: $validated,
+                            key: 'logging_to',
+                        ),
+                    ),
+                    tags: ArrayValueGetter::arrayStringNull(
+                        data: $validated,
+                        key: 'tags',
+                    ) ?? [],
+                    statuses: ArrayValueGetter::arrayStringNull(
+                        data: $validated,
+                        key: 'statuses',
+                    ) ?? [],
                     durationFrom: $validated['duration_from'] ?? null,
                     durationTo: $validated['duration_to'] ?? null,
                     memoryFrom: $validated['memory_from'] ?? null,
@@ -71,17 +88,38 @@ readonly class TraceContentController
         $validated = $request->validated();
 
         return TraceStringFieldResource::collection(
-            $this->findTagsAction->handle(
+            $this->findTagsByAdminUseCase->handle(
                 new TraceFindTagsParameters(
-                    serviceIds: ArrayValueGetter::arrayIntNull($validated, 'service_ids') ?? [],
-                    text: ArrayValueGetter::stringNull($validated, 'text'),
-                    loggingPeriod: PeriodParameters::fromStringValues(
-                        fromPreset: ArrayValueGetter::stringNull($validated, 'logging_from_preset'),
-                        from: ArrayValueGetter::stringNull($validated, 'logging_from'),
-                        to: ArrayValueGetter::stringNull($validated, 'logging_to'),
+                    serviceIds: ArrayValueGetter::arrayIntNull(
+                        data: $validated,
+                        key: 'service_ids',
+                    ) ?? [],
+                    text: ArrayValueGetter::stringNull(
+                        data: $validated,
+                        key: 'text',
                     ),
-                    types: ArrayValueGetter::arrayStringNull($validated, 'types') ?? [],
-                    statuses: ArrayValueGetter::arrayStringNull($validated, 'statuses') ?? [],
+                    loggingPeriod: PeriodParameters::fromStringValues(
+                        fromPreset: ArrayValueGetter::stringNull(
+                            data: $validated,
+                            key: 'logging_from_preset',
+                        ),
+                        from: ArrayValueGetter::stringNull(
+                            data: $validated,
+                            key: 'logging_from',
+                        ),
+                        to: ArrayValueGetter::stringNull(
+                            data: $validated,
+                            key: 'logging_to',
+                        ),
+                    ),
+                    types: ArrayValueGetter::arrayStringNull(
+                        data: $validated,
+                        key: 'types',
+                    ) ?? [],
+                    statuses: ArrayValueGetter::arrayStringNull(
+                        data: $validated,
+                        key: 'statuses',
+                    ) ?? [],
                     durationFrom: $validated['duration_from'] ?? null,
                     durationTo: $validated['duration_to'] ?? null,
                     memoryFrom: $validated['memory_from'] ?? null,
@@ -103,17 +141,38 @@ readonly class TraceContentController
         $validated = $request->validated();
 
         return TraceStringFieldResource::collection(
-            $this->findStatusesAction->handle(
+            $this->findStatusesByAdminUseCase->handle(
                 new TraceFindStatusesParameters(
-                    serviceIds: ArrayValueGetter::arrayIntNull($validated, 'service_ids') ?? [],
-                    text: ArrayValueGetter::stringNull($validated, 'text'),
-                    loggingPeriod: PeriodParameters::fromStringValues(
-                        fromPreset: ArrayValueGetter::stringNull($validated, 'logging_from_preset'),
-                        from: ArrayValueGetter::stringNull($validated, 'logging_from'),
-                        to: ArrayValueGetter::stringNull($validated, 'logging_to'),
+                    serviceIds: ArrayValueGetter::arrayIntNull(
+                        data: $validated,
+                        key: 'service_ids',
+                    ) ?? [],
+                    text: ArrayValueGetter::stringNull(
+                        data: $validated,
+                        key: 'text',
                     ),
-                    types: ArrayValueGetter::arrayStringNull($validated, 'types') ?? [],
-                    tags: ArrayValueGetter::arrayStringNull($validated, 'tags') ?? [],
+                    loggingPeriod: PeriodParameters::fromStringValues(
+                        fromPreset: ArrayValueGetter::stringNull(
+                            data: $validated,
+                            key: 'logging_from_preset',
+                        ),
+                        from: ArrayValueGetter::stringNull(
+                            data: $validated,
+                            key: 'logging_from',
+                        ),
+                        to: ArrayValueGetter::stringNull(
+                            data: $validated,
+                            key: 'logging_to',
+                        ),
+                    ),
+                    types: ArrayValueGetter::arrayStringNull(
+                        data: $validated,
+                        key: 'types',
+                    ) ?? [],
+                    tags: ArrayValueGetter::arrayStringNull(
+                        data: $validated,
+                        key: 'tags',
+                    ) ?? [],
                     durationFrom: $validated['duration_from'] ?? null,
                     durationTo: $validated['duration_to'] ?? null,
                     memoryFrom: $validated['memory_from'] ?? null,

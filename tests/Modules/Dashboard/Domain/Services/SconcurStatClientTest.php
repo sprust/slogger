@@ -53,7 +53,10 @@ class SconcurStatClientTest extends TestCase
             ],
         ])->find();
 
-        $this->assertSame(['http', 'rabbitmq', 'tasks'], $this->names($stat->groups));
+        $this->assertSame(
+            ['http', 'rabbitmq', 'tasks'],
+            $this->names($stat->groups)
+        );
 
         $tasks = $stat->groups[2];
 
@@ -96,7 +99,10 @@ class SconcurStatClientTest extends TestCase
             ],
         ])->find();
 
-        $this->assertSame(['http', 'rabbitmq', 'tasks'], $this->names($stat->groups));
+        $this->assertSame(
+            ['http', 'rabbitmq', 'tasks'],
+            $this->names($stat->groups)
+        );
     }
 
     /** A group renamed while the master kept running is still shown, after the known ones. */
@@ -110,7 +116,10 @@ class SconcurStatClientTest extends TestCase
             ],
         ])->find();
 
-        $this->assertSame(['http', 'rabbitmq', 'tasks', 'legacy'], $this->names($stat->groups));
+        $this->assertSame(
+            ['http', 'rabbitmq', 'tasks', 'legacy'],
+            $this->names($stat->groups)
+        );
     }
 
     /**

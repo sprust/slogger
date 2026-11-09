@@ -63,7 +63,10 @@ class NoNewTracesCheckerTest extends TestCase
     public function testAWindowOlderThanTheCollectionIsNotSilence(): void
     {
         $this->assertNull(
-            $this->check(bucketsAtMinutesAgo: [], collectSince: Carbon::parse(self::NOW)->subMinutes(3))
+            $this->check(
+                bucketsAtMinutesAgo: [],
+                collectSince: Carbon::parse(self::NOW)->subMinutes(3)
+            )
         );
     }
 

@@ -5,13 +5,12 @@ declare(strict_types=1);
 namespace App\Modules\Mcp\Infrastructure\Tools;
 
 use App\Modules\Mcp\Domain\Actions\Bridges\FindMcpServicesAction;
-use App\Modules\Service\Entities\ServiceObject;
+use App\Modules\Mcp\Entities\Bridges\McpServiceObject;
 
 readonly class McpToolServiceFinder
 {
-    public function __construct(
-        private FindMcpServicesAction $findMcpServicesAction
-    ) {
+    public function __construct(private FindMcpServicesAction $findMcpServicesAction)
+    {
     }
 
     public function names(): McpToolServiceNames
@@ -30,10 +29,7 @@ readonly class McpToolServiceFinder
             return [];
         }
 
-        $knownIds = array_map(
-            static fn(ServiceObject $service) => $service->id,
-            $this->findMcpServicesAction->handle(null)
-        );
+        $knownIds = array_map(static fn(McpServiceObject $service) => $service->id, $this->findMcpServicesAction->handle(null));
 
         return array_values(array_diff($serviceIds, $knownIds));
     }

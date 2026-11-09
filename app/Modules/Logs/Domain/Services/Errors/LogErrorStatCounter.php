@@ -99,7 +99,10 @@ readonly class LogErrorStatCounter
     private function findMeta(LogFileObject $file): ?LogIndexMetaObject
     {
         try {
-            return $this->logIndexer->ensureFresh(file: $file, waitForLockSec: (int) config('module-logs.errors.wait_for_lock_sec'));
+            return $this->logIndexer->ensureFresh(
+                file: $file,
+                waitForLockSec: (int) config('module-logs.errors.wait_for_lock_sec')
+            );
         } catch (LogFileNotFoundException) {
             return null;
         } catch (MutexLockTimeoutException) {

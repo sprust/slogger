@@ -20,132 +20,176 @@ use Illuminate\Support\Carbon;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Client\ClientInterface;
 use Tests\Modules\Watcher\WatcherIncidentEventFactoryTrait;
-use Tests\Modules\Watcher\WatcherTypeRegistryFactoryTrait;
 
 class IncidentMessageFactoryTest extends TestCase
 {
+    use \Tests\Modules\Notification\IncidentParametersFactoryTrait;
+
     use WatcherIncidentEventFactoryTrait;
-    use WatcherTypeRegistryFactoryTrait;
 
     public function testAnOpenedIncidentIsATitleAHeadAndTheDetails(): void
     {
-        $text = $this->factory()->make(
-            kind: NotificationKindEnum::Opened,
-            watcher: $this->watcher(),
-            incident: $this->incident(),
-            event: $this->incidentEvent(),
-            sender: $this->sender()
-        );
+        $text = $this
+            ->factory()
+            ->make(
+                kind: NotificationKindEnum::Opened,
+                watcher: $this->notificationWatcher($this->watcher()),
+                incident: $this->notificationIncident($this->incident()),
+                event: $this->notificationEvent(
+                    event: $this->incidentEvent(),
+                    type: $this->watcher()->type,
+                ),
+                sender: $this->sender(),
+            );
 
         $this->assertSame(
-            "🔴 <b>slogger (opened)</b>\n"
-            . "\n"
-            . "🏷 name: prod buffer\n"
-            . "📛 type: Buffer overflow\n"
-            . "🕒 lastEvent: 2026-09-08 19:20:03\n"
-            . "\n"
-            . "⚙️ settings:\n"
-            . "• threshold: 1000\n"
-            . "\n"
-            . "📊 measured:\n"
-            . '• buffer count: 12000',
+            "🔴 <b>slogger (opened)</b>\n" . "\n" . "🏷 name: prod buffer\n" . "📛 type: Buffer overflow\n" . "🕒 lastEvent: 2026-09-08 19:20:03\n" . "\n" . "⚙️ settings:\n" . "• threshold: 1000\n" . "\n" . "📊 measured:\n" . '• buffer count: 12000',
             $text
         );
     }
 
     public function testARepeatSaysWhichEventOfTheIncidentItIs(): void
     {
-        $text = $this->factory()->make(
-            kind: NotificationKindEnum::Event,
-            watcher: $this->watcher(),
-            incident: $this->incident(eventsCount: 4),
-            event: $this->incidentEvent(),
-            sender: $this->sender()
-        );
+        $text = $this
+            ->factory()
+            ->make(
+                kind: NotificationKindEnum::Event,
+                watcher: $this->notificationWatcher($this->watcher()),
+                incident: $this->notificationIncident(
+                    $this->incident(
+                        eventsCount: 4,
+                    )
+                ),
+                event: $this->notificationEvent(
+                    event: $this->incidentEvent(),
+                    type: $this->watcher()->type,
+                ),
+                sender: $this->sender(),
+            );
 
         $this->assertStringContainsString('🟠 <b>slogger (event)</b>', $text);
+
         $this->assertStringContainsString('🔁 event: 4 of this incident', $text);
     }
 
     public function testAClosedIncidentSaysHowMuchOfItThereWas(): void
     {
-        $text = $this->factory()->make(
-            kind: NotificationKindEnum::Closed,
-            watcher: $this->watcher(),
-            incident: $this->incident(
-                status: WatcherIncidentStatusEnum::Closed,
-                eventsCount: 4,
-                closedAt: Carbon::parse('2026-09-08 20:00:00')
-            ),
-            event: $this->incidentEvent(),
-            sender: $this->sender()
-        );
+        $text = $this
+            ->factory()
+            ->make(
+                kind: NotificationKindEnum::Closed,
+                watcher: $this->notificationWatcher($this->watcher()),
+                incident: $this->notificationIncident(
+                    $this->incident(
+                        status: WatcherIncidentStatusEnum::Closed,
+                        eventsCount: 4,
+                        closedAt: Carbon::parse(
+                            time: '2026-09-08 20:00:00',
+                        ),
+                    )
+                ),
+                event: $this->notificationEvent(
+                    event: $this->incidentEvent(),
+                    type: $this->watcher()->type,
+                ),
+                sender: $this->sender(),
+            );
 
         $this->assertSame(
-            "🟢 <b>slogger (closed)</b>\n"
-            . "\n"
-            . "🏷 name: prod buffer\n"
-            . "📛 type: Buffer overflow\n"
-            . "✅ closedAt: 2026-09-08 20:00:00\n"
-            . "🕒 firstEvent: 2026-09-08 19:00:00\n"
-            . '🔢 events: 4',
+            "🟢 <b>slogger (closed)</b>\n" . "\n" . "🏷 name: prod buffer\n" . "📛 type: Buffer overflow\n" . "✅ closedAt: 2026-09-08 20:00:00\n" . "🕒 firstEvent: 2026-09-08 19:00:00\n" . '🔢 events: 4',
             $text
         );
     }
 
     public function testAnEventWithoutAPayloadIsStillAMessage(): void
     {
-        $text = $this->factory()->make(
-            kind: NotificationKindEnum::Opened,
-            watcher: $this->watcher(),
-            incident: $this->incident(),
-            event: null,
-            sender: $this->sender()
-        );
+        $text = $this
+            ->factory()
+            ->make(
+                kind: NotificationKindEnum::Opened,
+                watcher: $this->notificationWatcher($this->watcher()),
+                incident: $this->notificationIncident($this->incident()),
+                event: $this->notificationEvent(
+                    event: null,
+                    type: $this->watcher()->type,
+                ),
+                sender: $this->sender(),
+            );
 
         $this->assertStringContainsString('🔴 <b>slogger (opened)</b>', $text);
+
         $this->assertStringContainsString('🏷 name: prod buffer', $text);
+
         $this->assertStringContainsString('📛 type: Buffer overflow', $text);
+
         $this->assertStringNotContainsString('measured:', $text);
     }
 
     public function testTheTracesBlockCarriesTheShapeItsCountAndTheTraceWorthOpening(): void
     {
-        $text = $this->factory()->make(
-            kind: NotificationKindEnum::Opened,
-            watcher: $this->watcher(type: WatcherTypeEnum::SlowTraces),
-            incident: $this->incident(),
-            event: $this->incidentEvent(new SlowTracesEventPayloadObject(
-                settings: new SlowTracesEventSettingsObject(duration: 10.0, windowMinutes: 5),
-                measured: new SlowTracesEventMeasuredObject(slowest: 41.2),
-                groups: [
-                    $this->eventGroup(
-                        type: 'http',
-                        tags: ['api'],
-                        count: 3,
-                        durationMax: 41.2,
-                        slowestTraceId: 'abc123'
+        $text = $this
+            ->factory()
+            ->make(
+                kind: NotificationKindEnum::Opened,
+                watcher: $this->notificationWatcher(
+                    $this->watcher(
+                        type: WatcherTypeEnum::SlowTraces,
+                    )
+                ),
+                incident: $this->notificationIncident($this->incident()),
+                event: $this->notificationEvent(
+                    event: $this->incidentEvent(
+                        payload: new SlowTracesEventPayloadObject(
+                            settings: new SlowTracesEventSettingsObject(
+                                duration: 10.0,
+                                windowMinutes: 5,
+                            ),
+                            measured: new SlowTracesEventMeasuredObject(
+                                slowest: 41.2,
+                            ),
+                            groups: [
+                                $this->eventGroup(
+                                    type: 'http',
+                                    tags: [
+                                        'api',
+                                    ],
+                                    count: 3,
+                                    durationMax: 41.2,
+                                    slowestTraceId: 'abc123',
+                                ),
+                                $this->eventGroup(
+                                    type: 'job',
+                                    count: 1,
+                                    durationMax: 12.7,
+                                    slowestTraceId: 'def456',
+                                ),
+                            ],
+                        ),
                     ),
-                    $this->eventGroup(
-                        type: 'job',
-                        count: 1,
-                        durationMax: 12.7,
-                        slowestTraceId: 'def456'
-                    ),
-                ]
-            )),
-            sender: $this->sender()
-        );
+                    type: $this->watcher(
+                        type: WatcherTypeEnum::SlowTraces,
+                    )->type,
+                ),
+                sender: $this->sender(),
+            );
 
         $this->assertStringContainsString('🔴 <b>slogger (opened)</b>', $text);
+
         $this->assertStringContainsString('📛 type: Slow traces', $text);
+
         $this->assertStringContainsString("⚙️ settings:\n• duration: 10s", $text);
+
         $this->assertStringContainsString("📊 measured:\n• slowest: 41.2s", $text);
+
         $this->assertStringContainsString(
             "🔎 traces:\n• http api\n  3 traces, up to 41.2s\n  <code>abc123</code>",
             $text
         );
-        $this->assertStringContainsString("• job\n  1 trace, up to 12.7s\n  <code>def456</code>", $text);
+
+        $this->assertStringContainsString(
+            "• job\n  1 trace, up to 12.7s\n  <code>def456</code>",
+            $text
+        );
     }
 
     /**
@@ -156,42 +200,100 @@ class IncidentMessageFactoryTest extends TestCase
      */
     public function testACountingGroupWithoutADurationStillSaysHowManyTracesThereWere(): void
     {
-        $text = $this->factory()->make(
-            kind: NotificationKindEnum::Opened,
-            watcher: $this->watcher(type: WatcherTypeEnum::ManyTraces),
-            incident: $this->incident(),
-            event: $this->incidentEvent(new ManyTracesEventPayloadObject(
-                settings: new ManyTracesEventSettingsObject(windowMinutes: 5, threshold: 500),
-                measured: new ManyTracesEventMeasuredObject(windowCount: 900),
-                groups: [
-                    $this->eventGroup(type: 'http', tags: ['api'], count: 700),
-                    $this->eventGroup(type: 'job', count: 1),
-                ]
-            )),
-            sender: $this->sender()
-        );
+        $text = $this
+            ->factory()
+            ->make(
+                kind: NotificationKindEnum::Opened,
+                watcher: $this->notificationWatcher(
+                    $this->watcher(
+                        type: WatcherTypeEnum::ManyTraces,
+                    )
+                ),
+                incident: $this->notificationIncident($this->incident()),
+                event: $this->notificationEvent(
+                    event: $this->incidentEvent(
+                        payload: new ManyTracesEventPayloadObject(
+                            settings: new ManyTracesEventSettingsObject(
+                                windowMinutes: 5,
+                                threshold: 500,
+                            ),
+                            measured: new ManyTracesEventMeasuredObject(
+                                windowCount: 900,
+                            ),
+                            groups: [
+                                $this->eventGroup(
+                                    type: 'http',
+                                    tags: [
+                                        'api',
+                                    ],
+                                    count: 700,
+                                ),
+                                $this->eventGroup(
+                                    type: 'job',
+                                    count: 1,
+                                ),
+                            ],
+                        ),
+                    ),
+                    type: $this->watcher(
+                        type: WatcherTypeEnum::ManyTraces,
+                    )->type,
+                ),
+                sender: $this->sender(),
+            );
 
         $this->assertStringContainsString("🔎 traces:\n• http api\n  700 traces", $text);
+
         $this->assertStringContainsString("• job\n  1 trace", $text);
+
         $this->assertStringNotContainsString('up to', $text);
     }
 
     public function testEverythingThatCameFromOutsideIsEscaped(): void
     {
-        $text = $this->factory()->make(
-            kind: NotificationKindEnum::Opened,
-            watcher: $this->watcher(type: WatcherTypeEnum::SlowTraces, name: 'prod <b>buffer</b> & co'),
-            incident: $this->incident(),
-            event: $this->incidentEvent(new SlowTracesEventPayloadObject(
-                settings: new SlowTracesEventSettingsObject(duration: 10.0, windowMinutes: 5),
-                measured: new SlowTracesEventMeasuredObject(slowest: 41.2),
-                groups: [$this->eventGroup(type: '<i>http</i>')]
-            )),
-            sender: $this->sender()
+        $text = $this
+            ->factory()
+            ->make(
+                kind: NotificationKindEnum::Opened,
+                watcher: $this->notificationWatcher(
+                    $this->watcher(
+                        type: WatcherTypeEnum::SlowTraces,
+                        name: 'prod <b>buffer</b> & co',
+                    )
+                ),
+                incident: $this->notificationIncident($this->incident()),
+                event: $this->notificationEvent(
+                    event: $this->incidentEvent(
+                        payload: new SlowTracesEventPayloadObject(
+                            settings: new SlowTracesEventSettingsObject(
+                                duration: 10.0,
+                                windowMinutes: 5,
+                            ),
+                            measured: new SlowTracesEventMeasuredObject(
+                                slowest: 41.2,
+                            ),
+                            groups: [
+                                $this->eventGroup(
+                                    type: '<i>http</i>',
+                                ),
+                            ],
+                        ),
+                    ),
+                    type: $this->watcher(
+                        type: WatcherTypeEnum::SlowTraces,
+                        name: 'prod <b>buffer</b> & co',
+                    )->type,
+                ),
+                sender: $this->sender(),
+            );
+
+        $this->assertStringContainsString(
+            '🏷 name: prod &lt;b&gt;buffer&lt;/b&gt; &amp; co',
+            $text
         );
 
-        $this->assertStringContainsString('🏷 name: prod &lt;b&gt;buffer&lt;/b&gt; &amp; co', $text);
         $this->assertStringContainsString('&lt;i&gt;http&lt;/i&gt;', $text);
+
         $this->assertStringNotContainsString('<i>', $text);
     }
 
@@ -199,7 +301,6 @@ class IncidentMessageFactoryTest extends TestCase
     {
         return new IncidentMessageFactory(
             appName: 'slogger',
-            watcherTypes: $this->watcherTypeRegistry()
         );
     }
 
@@ -208,11 +309,11 @@ class IncidentMessageFactoryTest extends TestCase
         return new TelegramSender($this->createMock(ClientInterface::class));
     }
 
-    private function watcher(
-        string $name = 'prod buffer',
-        WatcherTypeEnum $type = WatcherTypeEnum::BufferOverflow
-    ): WatcherObject {
-        $now = Carbon::parse('2026-09-08 19:00:00');
+    private function watcher(string $name = 'prod buffer', WatcherTypeEnum $type = WatcherTypeEnum::BufferOverflow): WatcherObject
+    {
+        $now = Carbon::parse(
+            time: '2026-09-08 19:00:00',
+        );
 
         return new WatcherObject(
             id: 7,
@@ -230,24 +331,25 @@ class IncidentMessageFactoryTest extends TestCase
             lastCheckedAt: $now,
             lastTriggeredAt: $now,
             createdAt: $now,
-            updatedAt: $now
+            updatedAt: $now,
         );
     }
 
-    private function incident(
-        WatcherIncidentStatusEnum $status = WatcherIncidentStatusEnum::Opened,
-        int $eventsCount = 1,
-        ?Carbon $closedAt = null
-    ): WatcherIncidentObject {
+    private function incident(WatcherIncidentStatusEnum $status = WatcherIncidentStatusEnum::Opened, int $eventsCount = 1, ?Carbon $closedAt = null): WatcherIncidentObject
+    {
         return new WatcherIncidentObject(
             id: '68be1f000000000000000009',
             watcherId: 7,
             status: $status,
-            firstEventAt: Carbon::parse('2026-09-08 19:00:00'),
-            lastEventAt: Carbon::parse('2026-09-08 19:20:03'),
+            firstEventAt: Carbon::parse(
+                time: '2026-09-08 19:00:00',
+            ),
+            lastEventAt: Carbon::parse(
+                time: '2026-09-08 19:20:03',
+            ),
             eventsCount: $eventsCount,
             closedAt: $closedAt,
-            closedByUserId: null
+            closedByUserId: null,
         );
     }
 }

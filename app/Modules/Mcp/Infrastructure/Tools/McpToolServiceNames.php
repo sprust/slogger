@@ -4,16 +4,15 @@ declare(strict_types=1);
 
 namespace App\Modules\Mcp\Infrastructure\Tools;
 
-use App\Modules\Service\Entities\ServiceObject;
+use App\Modules\Mcp\Entities\Bridges\McpServiceObject;
 
 readonly class McpToolServiceNames
 {
     /**
-     * @param ServiceObject[] $services
+     * @param McpServiceObject[] $services
      */
-    public function __construct(
-        private array $services
-    ) {
+    public function __construct(private array $services)
+    {
     }
 
     /**

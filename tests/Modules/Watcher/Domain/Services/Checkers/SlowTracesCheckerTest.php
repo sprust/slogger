@@ -65,7 +65,10 @@ class SlowTracesCheckerTest extends TestCase
 
         $this->assertNotNull($trigger);
         $this->assertSame('trace-3600', $trigger->groups[0]->slowestTraceId);
-        $this->assertSame('2026-09-07 10:59:00', $trigger->groups[0]->slowestTraceLoggedAt);
+        $this->assertSame(
+            '2026-09-07 10:59:00',
+            $trigger->groups[0]->slowestTraceLoggedAt
+        );
     }
 
     /** Shapes come back slowest first, so the worst is the first thing read. */

@@ -68,16 +68,28 @@ class LogTextReaderTest extends TestCase
             maxEntryBytes: 3
         );
 
-        $this->assertEquals([new LogEntryTextObject(entryNo: 0, text: 'abc')], $texts);
+        $this->assertEquals(
+            [new LogEntryTextObject(entryNo: 0, text: 'abc')],
+            $texts
+        );
     }
 
     public function testNoRecordsReadNothing(): void
     {
-        $this->assertSame([], $this->app->make(LogTextReader::class)->read('/missing', [], 10));
+        $this->assertSame(
+            [],
+            $this->app->make(LogTextReader::class)->read('/missing', [], 10)
+        );
     }
 
     private function record(int $entryNo, int $offset, int $length): LogIndexRecordObject
     {
-        return new LogIndexRecordObject(entryNo: $entryNo, offset: $offset, length: $length, loggedAt: 0, level: 0);
+        return new LogIndexRecordObject(
+            entryNo: $entryNo,
+            offset: $offset,
+            length: $length,
+            loggedAt: 0,
+            level: 0
+        );
     }
 }

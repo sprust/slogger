@@ -78,7 +78,10 @@ class SlackSenderTest extends TestCase
         $result = new SlackSender($client, new HttpSendResultReader())->send($this->channel(), 'hello');
 
         self::assertTrue($result->permanent);
-        self::assertSame('Slack answered 404: channel_not_found', $result->error);
+        self::assertSame(
+            'Slack answered 404: channel_not_found',
+            $result->error
+        );
     }
 
     public function testTheUrlIsNotWrittenIntoATransportError(): void
@@ -96,7 +99,10 @@ class SlackSenderTest extends TestCase
 
     public function testTheMarkupIsSlackOwn(): void
     {
-        $sender = new SlackSender($this->createMock(ClientInterface::class), new HttpSendResultReader());
+        $sender = new SlackSender(
+            $this->createMock(ClientInterface::class),
+            new HttpSendResultReader()
+        );
 
         self::assertSame('*bold*', $sender->bold('bold'));
         self::assertSame('`code`', $sender->code('code'));
@@ -120,7 +126,10 @@ class SlackSenderTest extends TestCase
             str_repeat('a', SlackSender::MAX_TEXT_LENGTH + 100)
         );
 
-        self::assertLessThanOrEqual(SlackSender::MAX_TEXT_LENGTH, mb_strlen((string) $sent));
+        self::assertLessThanOrEqual(
+            SlackSender::MAX_TEXT_LENGTH,
+            mb_strlen((string) $sent)
+        );
         self::assertStringEndsWith('…', (string) $sent);
     }
 

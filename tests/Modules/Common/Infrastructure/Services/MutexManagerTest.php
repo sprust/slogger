@@ -79,7 +79,10 @@ class MutexManagerTest extends TestCase
         $this->manager->lock($mutex);
 
         $results = $this->runCoroutines(
-            fn(): string => $this->tryLock($this->manager, $this->makeMutex('a', waitForBlockSec: 0))
+            fn(): string => $this->tryLock(
+                $this->manager,
+                $this->makeMutex('a', waitForBlockSec: 0)
+            )
         );
 
         $this->assertSame(['timeout'], $results);
@@ -123,7 +126,13 @@ class MutexManagerTest extends TestCase
 
         $this->assertTrue($this->isHeld('a'));
 
-        $this->assertSame('timeout', $this->tryLock($this->manager, $this->makeMutex('a', waitForBlockSec: 0)));
+        $this->assertSame(
+            'timeout',
+            $this->tryLock(
+                $this->manager,
+                $this->makeMutex('a', waitForBlockSec: 0)
+            )
+        );
     }
 
     public function testATimeoutNamesTheKeyAndLeavesNothingToUnlock(): void
@@ -138,7 +147,10 @@ class MutexManagerTest extends TestCase
 
             $this->fail('The mutex was taken over a foreign lock');
         } catch (MutexLockTimeoutException $exception) {
-            $this->assertSame('Mutex [a] was not acquired in time', $exception->getMessage());
+            $this->assertSame(
+                'Mutex [a] was not acquired in time',
+                $exception->getMessage()
+            );
             $this->assertInstanceOf(RuntimeException::class, $exception);
         }
 

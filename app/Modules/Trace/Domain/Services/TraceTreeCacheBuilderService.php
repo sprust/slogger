@@ -12,7 +12,7 @@ use App\Modules\Trace\Repositories\TraceRepository;
 use App\Modules\Trace\Repositories\TraceTreeCacheRepository;
 use App\Modules\Trace\Repositories\TraceTreeCacheStateRepository;
 use App\Modules\Trace\Repositories\TraceTreeRepository;
-use Illuminate\Contracts\Events\Dispatcher;
+use App\Modules\Common\Domain\Services\DispatcherInterface;
 use RuntimeException;
 use App\Services\Clickhouse\ClickhouseQueryException;
 
@@ -26,9 +26,9 @@ readonly class TraceTreeCacheBuilderService
      */
     private const float PROGRESS_INTERVAL_SECONDS = 0.5;
 
-    private const int TRAVERSAL_BATCH_COUNT = 1000;
+    private const int TRAVERSAL_BATCH_COUNT       = 1000;
 
-    private const int SLICE_PARENTS_COUNT = 1000;
+    private const int SLICE_PARENTS_COUNT         = 1000;
 
     /**
      * How many children a slice sets out to write before handing the level on, and how
@@ -47,7 +47,7 @@ readonly class TraceTreeCacheBuilderService
      */
     private const int SLICE_TARGET_CHILDREN = 5000;
 
-    private const int ROOT_DEPTH = 0;
+    private const int ROOT_DEPTH            = 0;
 
     /**
      * The depth the traversal never asks for, so what is written with it is cached and
@@ -55,38 +55,33 @@ readonly class TraceTreeCacheBuilderService
      */
     private const int ANCESTOR_DEPTH = -1;
 
-    public function __construct(
-        private TraceRepository $traceRepository,
-        private TraceTreeRepository $traceTreeRepository,
-        private TraceTreeCacheRepository $traceTreeCacheRepository,
-        private TraceTreeCacheStateRepository $traceTreeCacheStateRepository,
-        private IsShouldContinueBuildTraceTreeCacheAction $isShouldContinueBuildTraceTreeCacheAction,
-        private Dispatcher $events,
-        private float $sliceTimeBudgetSeconds = 5.0,
-    ) {
+    public function __construct(private TraceRepository $traceRepository, private TraceTreeRepository $traceTreeRepository, private TraceTreeCacheRepository $traceTreeCacheRepository, private TraceTreeCacheStateRepository $traceTreeCacheStateRepository, private IsShouldContinueBuildTraceTreeCacheAction $isShouldContinueBuildTraceTreeCacheAction, private DispatcherInterface $dispatcher, private float $sliceTimeBudgetSeconds = 5.0)
+    {
     }
 
     /**
      * @throws ClickhouseQueryException
      */
-    public function handleSlice(
-        string $rootTraceId,
-        string $version,
-        int $depth,
-        ?string $afterId
-    ): TraceTreeCacheSliceObject {
+    public function handleSlice(string $rootTraceId, string $version, int $depth, ?string $afterId): TraceTreeCacheSliceObject
+    {
         $lastProgressAt = 0.0;
+        $startedAt      = microtime(true);
+        $writtenCount   = 0;
 
-        $startedAt = microtime(true);
-
-        $writtenCount = 0;
-
-        if (!$this->isShouldContinueBuildTraceTreeCacheAction->handle($rootTraceId, $version)) {
+        if (
+            !$this->isShouldContinueBuildTraceTreeCacheAction->handle(
+                rootTraceId: $rootTraceId,
+                version: $version,
+            )
+        ) {
             return $this->stopped();
         }
 
         if ($depth === self::ROOT_DEPTH && is_null($afterId)) {
-            $this->createRoot($rootTraceId, $version);
+            $this->createRoot(
+                rootTraceId: $rootTraceId,
+                version: $version,
+            );
         }
 
         while (true) {
@@ -94,16 +89,20 @@ readonly class TraceTreeCacheBuilderService
                 rootTraceId: $rootTraceId,
                 depth: $depth,
                 afterId: $afterId,
-                limit: self::SLICE_PARENTS_COUNT
+                limit: self::SLICE_PARENTS_COUNT,
             );
-
             $childIdsChunks = $this->traceTreeRepository->findChildrenTraceIds(
                 parentTraceIds: $page->traceIds,
-                batchCount: self::TRAVERSAL_BATCH_COUNT
+                batchCount: self::TRAVERSAL_BATCH_COUNT,
             );
 
             foreach ($childIdsChunks as $childIdsChunk) {
-                if (!$this->isShouldContinueBuildTraceTreeCacheAction->handle($rootTraceId, $version)) {
+                if (
+                    !$this->isShouldContinueBuildTraceTreeCacheAction->handle(
+                        rootTraceId: $rootTraceId,
+                        version: $version,
+                    )
+                ) {
                     return $this->stopped();
                 }
 
@@ -114,7 +113,10 @@ readonly class TraceTreeCacheBuilderService
                     depth: $depth + 1,
                 );
 
-                $this->announceProgress($rootTraceId, $lastProgressAt);
+                $this->announceProgress(
+                    rootTraceId: $rootTraceId,
+                    lastAnnouncedAt: $lastProgressAt,
+                );
             }
 
             $lastId = $page->lastId;
@@ -129,34 +131,41 @@ readonly class TraceTreeCacheBuilderService
             $afterId = $lastId;
 
             if (
-                $writtenCount >= self::SLICE_TARGET_CHILDREN
-                || (microtime(true) - $startedAt) >= $this->sliceTimeBudgetSeconds
+                $writtenCount >= self::SLICE_TARGET_CHILDREN || microtime(true) - $startedAt >= $this->sliceTimeBudgetSeconds
             ) {
                 return new TraceTreeCacheSliceObject(
                     stopped: false,
                     finished: false,
                     nextDepth: $depth,
-                    nextAfterId: $afterId
+                    nextAfterId: $afterId,
                 );
             }
         }
 
-        if ($this->traceTreeCacheRepository->existsByDepth($rootTraceId, $depth + 1)) {
+        if (
+            $this->traceTreeCacheRepository->existsByDepth(
+                rootTraceId: $rootTraceId,
+                depth: $depth + 1,
+            )
+        ) {
             return new TraceTreeCacheSliceObject(
                 stopped: false,
                 finished: false,
                 nextDepth: $depth + 1,
-                nextAfterId: null
+                nextAfterId: null,
             );
         }
 
-        $this->createAncestors($rootTraceId, $version);
+        $this->createAncestors(
+            rootTraceId: $rootTraceId,
+            version: $version,
+        );
 
         return new TraceTreeCacheSliceObject(
             stopped: false,
             finished: true,
             nextDepth: null,
-            nextAfterId: null
+            nextAfterId: null,
         );
     }
 
@@ -166,7 +175,7 @@ readonly class TraceTreeCacheBuilderService
             stopped: true,
             finished: false,
             nextDepth: null,
-            nextAfterId: null
+            nextAfterId: null,
         );
     }
 
@@ -176,11 +185,13 @@ readonly class TraceTreeCacheBuilderService
     private function createRoot(string $rootTraceId, string $version): void
     {
         $rootTrace = $this->traceRepository->findOneDetailByTraceId(
-            traceId: $rootTraceId
+            traceId: $rootTraceId,
         );
 
         if ($rootTrace === null) {
-            throw new RuntimeException('Root trace not found.');
+            throw new RuntimeException(
+                message: 'Root trace not found.',
+            );
         }
 
         $created = $this->traceTreeCacheRepository->createMany(
@@ -200,7 +211,7 @@ readonly class TraceTreeCacheBuilderService
                     pid: $rootTrace->pid,
                     loggedAt: $rootTrace->loggedAt,
                 ),
-            ]
+            ],
         );
 
         $this->traceTreeCacheStateRepository->incrementCount(
@@ -216,7 +227,7 @@ readonly class TraceTreeCacheBuilderService
     private function createAncestors(string $rootTraceId, string $version): void
     {
         $ancestorTraceIds = $this->traceTreeRepository->findChainToParentTraceId(
-            traceId: $rootTraceId
+            traceId: $rootTraceId,
         );
 
         if ($ancestorTraceIds === []) {
@@ -242,19 +253,18 @@ readonly class TraceTreeCacheBuilderService
     {
         $now = microtime(true);
 
-        if (($now - $lastAnnouncedAt) < self::PROGRESS_INTERVAL_SECONDS) {
+        if ($now - $lastAnnouncedAt < self::PROGRESS_INTERVAL_SECONDS) {
             return;
         }
 
         $lastAnnouncedAt = $now;
-
-        $state = $this->traceTreeCacheStateRepository->findOneByRootTraceId($rootTraceId);
+        $state           = $this->traceTreeCacheStateRepository->findOneByRootTraceId($rootTraceId);
 
         if ($state === null) {
             return;
         }
 
-        $this->events->dispatch(new TraceTreeCacheStateChangedEvent($state));
+        $this->dispatcher->event(new TraceTreeCacheStateChangedEvent($state));
     }
 
     /**
@@ -264,16 +274,11 @@ readonly class TraceTreeCacheBuilderService
      *
      * @throws ClickhouseQueryException
      */
-    private function createTraceTree(
-        string $rootTraceId,
-        string $version,
-        array $childIdsChunk,
-        int $depth
-    ): int {
+    private function createTraceTree(string $rootTraceId, string $version, array $childIdsChunk, int $depth): int
+    {
         $foundNodes = $this->traceRepository->findTreeNodesByTraceIds(
-            traceIds: $childIdsChunk
+            traceIds: $childIdsChunk,
         );
-
         /** @var CreateTraceTreeCacheParameters[] $cacheParametersList */
         $cacheParametersList = [];
 
@@ -300,7 +305,7 @@ readonly class TraceTreeCacheBuilderService
         $created = $this->traceTreeCacheRepository->createMany(
             rootTraceId: $rootTraceId,
             depth: $depth,
-            parametersList: $cacheParametersList
+            parametersList: $cacheParametersList,
         );
 
         $this->traceTreeCacheStateRepository->incrementCount(

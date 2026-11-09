@@ -75,7 +75,10 @@ class McpAdminHttpTest extends TestCase
             ->method('update')
             ->with(3, 'Claude Code', false);
 
-        $this->patchJson('/admin-api/mcps/3', ['name' => 'Claude Code', 'enabled' => false])->assertOk();
+        $this->patchJson(
+            '/admin-api/mcps/3',
+            ['name' => 'Claude Code', 'enabled' => false]
+        )->assertOk();
     }
 
     public function testRegeneratesToken(): void
@@ -105,7 +108,10 @@ class McpAdminHttpTest extends TestCase
         $this->repository->method('delete')->willReturn(false);
 
         $this->getJson('/admin-api/mcps/999999')->assertNotFound();
-        $this->patchJson('/admin-api/mcps/999999', ['name' => 'x', 'enabled' => true])->assertNotFound();
+        $this->patchJson(
+            '/admin-api/mcps/999999',
+            ['name' => 'x', 'enabled' => true]
+        )->assertNotFound();
         $this->patchJson('/admin-api/mcps/999999/token')->assertNotFound();
         $this->deleteJson('/admin-api/mcps/999999')->assertNotFound();
     }
@@ -120,7 +126,10 @@ class McpAdminHttpTest extends TestCase
         $this->getJson('/admin-api/mcps/settings')
             ->assertOk()
             ->assertJsonPath('data.server_name', 'stand')
-            ->assertJsonPath('data.endpoint_url', 'https://slogger.stand.example.com/mcp');
+            ->assertJsonPath(
+                'data.endpoint_url',
+                'https://slogger.stand.example.com/mcp'
+            );
     }
 
     private function withoutAuth(): void

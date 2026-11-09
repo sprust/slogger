@@ -17,7 +17,13 @@ class NginxErrorLogFormatTest extends TestCase
         );
 
         $this->assertEquals(
-            [new LogEntryStartObject(offset: 0, loggedAt: gmmktime(10, 0, 0, 9, 25, 2026), level: NginxErrorLogLevelEnum::Error->value)],
+            [
+                new LogEntryStartObject(
+                    offset: 0,
+                    loggedAt: gmmktime(10, 0, 0, 9, 25, 2026),
+                    level: NginxErrorLogLevelEnum::Error->value
+                ),
+            ],
             $starts
         );
     }
@@ -38,7 +44,10 @@ class NginxErrorLogFormatTest extends TestCase
         $starts = $this->find($first . "nginx: [emerg] bad config\n");
 
         $this->assertCount(2, $starts);
-        $this->assertEquals(new LogEntryStartObject(offset: strlen($first), loggedAt: null, level: 0), $starts[1]);
+        $this->assertEquals(
+            new LogEntryStartObject(offset: strlen($first), loggedAt: null, level: 0),
+            $starts[1]
+        );
     }
 
     /**

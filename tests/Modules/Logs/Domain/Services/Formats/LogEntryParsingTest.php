@@ -18,7 +18,10 @@ class LogEntryParsingTest extends TestCase
 
         $this->assertSame('worker started', $details->message);
         $this->assertSame('{"worker":1,"tags":["a"]}', $details->context);
-        $this->assertEquals([new LogEntryFieldObject(key: 'env', value: 'production')], $details->fields);
+        $this->assertEquals(
+            [new LogEntryFieldObject(key: 'env', value: 'production')],
+            $details->fields
+        );
     }
 
     public function testAStackTraceInsideTheContextIsKept(): void
@@ -59,7 +62,10 @@ class LogEntryParsingTest extends TestCase
 
     public function testTextWithoutAHeaderIsTheMessage(): void
     {
-        $this->assertSame('left over', $this->laravel()->parseEntry("left over\n")->message);
+        $this->assertSame(
+            'left over',
+            $this->laravel()->parseEntry("left over\n")->message
+        );
     }
 
     public function testAnAccessLineGivesItsFields(): void
@@ -68,7 +74,10 @@ class LogEntryParsingTest extends TestCase
             '172.18.0.1 - bob [25/Sep/2026:10:00:00 +0000] "GET /admin-api/logs?page=1 HTTP/1.1" 502 157 "http://localhost/" "Mozilla/5.0 (X11)"' . "\n"
         );
 
-        $this->assertSame('GET /admin-api/logs?page=1 HTTP/1.1', $details->message);
+        $this->assertSame(
+            'GET /admin-api/logs?page=1 HTTP/1.1',
+            $details->message
+        );
         $this->assertSame(
             [
                 'ip'         => '172.18.0.1',
@@ -103,7 +112,10 @@ class LogEntryParsingTest extends TestCase
             '2026/09/25 10:00:00 [error] 29#30: *1 connect() failed (111: Connection refused) while connecting to upstream, client: 172.18.0.1, server: , request: "GET /a, b HTTP/1.1", upstream: "http://172.18.0.5:28080/a", host: "localhost"' . "\n"
         );
 
-        $this->assertSame('connect() failed (111: Connection refused) while connecting to upstream', $details->message);
+        $this->assertSame(
+            'connect() failed (111: Connection refused) while connecting to upstream',
+            $details->message
+        );
         $this->assertSame(
             [
                 'pid'        => '29',
@@ -130,9 +142,18 @@ class LogEntryParsingTest extends TestCase
 
     public function testLevelNamesAreTheOnesTheLogsUse(): void
     {
-        $this->assertContainsEquals(new LogLevelNameObject(level: 5, name: 'ERROR'), $this->laravel()->getLevelNames());
-        $this->assertContainsEquals(new LogLevelNameObject(level: 5, name: '5xx'), $this->access()->getLevelNames());
-        $this->assertContainsEquals(new LogLevelNameObject(level: 4, name: 'warn'), $this->error()->getLevelNames());
+        $this->assertContainsEquals(
+            new LogLevelNameObject(level: 5, name: 'ERROR'),
+            $this->laravel()->getLevelNames()
+        );
+        $this->assertContainsEquals(
+            new LogLevelNameObject(level: 5, name: '5xx'),
+            $this->access()->getLevelNames()
+        );
+        $this->assertContainsEquals(
+            new LogLevelNameObject(level: 4, name: 'warn'),
+            $this->error()->getLevelNames()
+        );
     }
 
     /**

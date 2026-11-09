@@ -21,14 +21,13 @@ use Illuminate\Support\Str;
  */
 class WsKeysGenerateCommand extends Command
 {
-    protected $signature = 'ws-keys-generate {--force : Replace credentials that are already set}';
-
-    protected $description = 'Generate SCONCUR_WS_APP_KEY/SCONCUR_WS_APP_SECRET and mirror the key into frontend/.env';
-
     /** The app key travels in a URL path, so the alphabet has to be one that survives it. */
     private const int KEY_LENGTH = 32;
 
     private const int SECRET_LENGTH = 48;
+    protected $signature            = 'ws-keys-generate {--force : Replace credentials that are already set}';
+
+    protected $description = 'Generate SCONCUR_WS_APP_KEY/SCONCUR_WS_APP_SECRET and mirror the key into frontend/.env';
 
     public function handle(): int
     {
@@ -53,7 +52,11 @@ class WsKeysGenerateCommand extends Command
 
         file_put_contents(
             $envPath,
-            $this->set($this->set($env, 'SCONCUR_WS_APP_KEY', $key), 'SCONCUR_WS_APP_SECRET', $secret)
+            $this->set(
+                $this->set($env, 'SCONCUR_WS_APP_KEY', $key),
+                'SCONCUR_WS_APP_SECRET',
+                $secret
+            )
         );
 
         $this->components->info('SCONCUR_WS_APP_KEY and SCONCUR_WS_APP_SECRET written to .env');
@@ -68,7 +71,11 @@ class WsKeysGenerateCommand extends Command
             return self::SUCCESS;
         }
 
-        $frontendEnv = $this->set((string) file_get_contents($frontendEnvPath), 'SCONCUR_WS_KEY', $key);
+        $frontendEnv = $this->set(
+            (string) file_get_contents($frontendEnvPath),
+            'SCONCUR_WS_KEY',
+            $key
+        );
 
         // Vite only exposes what is prefixed VITE_, and on a frontend/.env that predates
         // the pool that line is simply absent — the key would be written, the bundle built
@@ -76,7 +83,11 @@ class WsKeysGenerateCommand extends Command
         // Added, not overwritten: an example-copied file already interpolates it, and that
         // form survives the next key without a rebuild of this file.
         if (!$this->isFilled($frontendEnv, 'VITE_SCONCUR_WS_KEY')) {
-            $frontendEnv = $this->set($frontendEnv, 'VITE_SCONCUR_WS_KEY', '${SCONCUR_WS_KEY}');
+            $frontendEnv = $this->set(
+                $frontendEnv,
+                'VITE_SCONCUR_WS_KEY',
+                '${SCONCUR_WS_KEY}'
+            );
         }
 
         file_put_contents($frontendEnvPath, $frontendEnv);

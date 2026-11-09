@@ -50,7 +50,10 @@ class CleanLogsActionTest extends TestCase
     {
         $result = $this->app->make(CleanLogsAction::class)->handle($this->now);
 
-        $this->assertSame([$this->tempDir . '/logs/nginx/access-2026-09-10.log'], $result->deletedFiles);
+        $this->assertSame(
+            [$this->tempDir . '/logs/nginx/access-2026-09-10.log'],
+            $result->deletedFiles
+        );
         $this->assertFileDoesNotExist($this->tempDir . '/logs/nginx/access-2026-09-10.log');
         $this->assertFileExists($this->tempDir . '/logs/nginx/access-2026-09-11.log');
         $this->assertFileExists($this->tempDir . '/logs/laravel-2026-08-01.log');
@@ -81,7 +84,10 @@ class CleanLogsActionTest extends TestCase
 
         unlink($this->tempDir . '/logs/laravel-2026-08-01.log');
 
-        Cache::store('array')->lock('mutex:logs-index:' . sha1($this->tempDir . '/logs/laravel-2026-08-01.log'), 10)->get();
+        Cache::store('array')->lock(
+            'mutex:logs-index:' . sha1($this->tempDir . '/logs/laravel-2026-08-01.log'),
+            10
+        )->get();
 
         $result = $this->app->make(CleanLogsAction::class)->handle($this->now);
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Service\Infrastructure;
 
+use App\Modules\Service\Infrastructure\Exceptions\ServiceExceptionManager;
 use App\Modules\Common\Infrastructure\BaseServiceProvider;
 use App\Modules\Service\Domain\Actions\CreateServiceAction;
 use App\Modules\Service\Domain\Actions\FindServiceAction;
@@ -35,6 +36,13 @@ class ServiceServiceProvider extends BaseServiceProvider
             FindServiceAction::class,
             UpdateServiceAction::class,
             SortServicesAction::class,
+        ];
+    }
+
+    protected function getExceptionManagers(): array
+    {
+        return [
+            ServiceExceptionManager::class,
         ];
     }
 }

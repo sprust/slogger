@@ -67,6 +67,9 @@ class SconcurLogSourcesTest extends TestCase
 
         $keepDays = array_map(static fn(LogFileObject $file): ?int => $file->keepDays, app(LogFileFinder::class)->findAll());
 
-        $this->assertSame([(int) config('sconcur.master.rotateDays')], $keepDays);
+        $this->assertSame(
+            [(int) config('sconcur.master.rotateDays')],
+            $keepDays
+        );
     }
 }

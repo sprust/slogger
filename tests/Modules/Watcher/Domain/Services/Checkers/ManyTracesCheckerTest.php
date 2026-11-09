@@ -43,7 +43,11 @@ class ManyTracesCheckerTest extends TestCase
     public function testWhatCameBeforeTheWindowDoesNotCount(): void
     {
         $this->assertNull(
-            $this->check(windowCounts: [100], beforeWindowCount: 5000, threshold: 1000)
+            $this->check(
+                windowCounts: [100],
+                beforeWindowCount: 5000,
+                threshold: 1000
+            )
         );
     }
 
@@ -132,14 +136,21 @@ class ManyTracesCheckerTest extends TestCase
         $repository->method('find')->willReturn(new WatcherTimelineObject(1, $buckets));
 
         return new ManyTracesChecker($repository, $analyzer)->check(
-            $this->manyTracesWatcher($settings, $collectSince ?? $from->clone()->subMinute()),
+            $this->manyTracesWatcher(
+                $settings,
+                $collectSince ?? $from->clone()->subMinute()
+            ),
             new WatcherCheckContextObject($now, null)
         );
     }
 
     private function manyTracesWatcher(ManyTracesSettingsObject $settings, ?Carbon $collectSince): WatcherObject
     {
-        return $this->watcher(WatcherTypeEnum::ManyTraces, $settings, collectSince: $collectSince);
+        return $this->watcher(
+            WatcherTypeEnum::ManyTraces,
+            $settings,
+            collectSince: $collectSince
+        );
     }
 
     /**

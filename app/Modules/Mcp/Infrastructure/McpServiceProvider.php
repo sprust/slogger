@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Mcp\Infrastructure;
 
+use App\Modules\Mcp\Infrastructure\Exceptions\McpExceptionManager;
 use App\Modules\Common\Infrastructure\BaseServiceProvider;
 use App\Modules\Mcp\Domain\Actions\Bridges\FindMcpDataRangeAction;
 use App\Modules\Mcp\Domain\Actions\Bridges\FindMcpIncidentEventsAction;
@@ -78,31 +79,38 @@ class McpServiceProvider extends BaseServiceProvider
         SearchSloggerLogsTool::class,
     ];
 
-    public function boot(): void
+    public function register(): void
     {
         $this->app->singleton(
-            McpToolRegistry::class,
-            static function (Application $app): McpToolRegistry {
+            abstract: McpToolRegistry::class,
+            concrete: static function (Application $app): McpToolRegistry {
                 $tools = [];
 
                 foreach (self::TOOLS as $tool) {
-                    $tools[] = $app->make($tool);
+                    $tools[] = $app->make(
+                        abstract: $tool,
+                    );
                 }
 
                 return new McpToolRegistry($tools);
-            }
+            },
         );
 
         $this->app->singleton(
-            McpPromptRegistry::class,
-            static fn(): McpPromptRegistry => new McpPromptRegistry([
+            abstract: McpPromptRegistry::class,
+            concrete: static fn(): McpPromptRegistry => new McpPromptRegistry([
                 new InvestigateErrorsPrompt(),
                 new InvestigateLatencyPrompt(),
                 new ExplainIncidentPrompt(),
                 new ExplainTracePrompt(),
-            ])
+            ]),
         );
 
+        parent::register();
+    }
+
+    public function boot(): void
+    {
         parent::boot();
 
         $this->app->make(FindMcpSettingsAction::class)->handle();
@@ -147,6 +155,13 @@ class McpServiceProvider extends BaseServiceProvider
             GetTraceDataTool::class,
             GetTraceTreeTool::class,
             SearchTraceTreeTool::class,
+        ];
+    }
+
+    protected function getExceptionManagers(): array
+    {
+        return [
+            McpExceptionManager::class,
         ];
     }
 }

@@ -30,7 +30,10 @@ class WatcherFactoryTest extends TestCase
         );
 
         $this->assertSame(WatcherTypeEnum::SlowTraces, $watcher->type);
-        $this->assertInstanceOf(SlowTracesSettingsObject::class, $watcher->settings);
+        $this->assertInstanceOf(
+            SlowTracesSettingsObject::class,
+            $watcher->settings
+        );
         $this->assertSame(15.0, $watcher->settings->duration);
     }
 
@@ -47,7 +50,12 @@ class WatcherFactoryTest extends TestCase
         );
 
         $this->assertEquals(
-            new WatcherMatchObject(serviceIds: [3], types: ['http'], tags: [], statuses: ['failed']),
+            new WatcherMatchObject(
+                serviceIds: [3],
+                types: ['http'],
+                tags: [],
+                statuses: ['failed']
+            ),
             $watcher->match
         );
     }
@@ -84,7 +92,11 @@ class WatcherFactoryTest extends TestCase
     public function testTheNotifySwitchesComeBackAsTheyWereStored(): void
     {
         $watcher = $this->factory()->make(
-            $this->dto(notifyOnOpened: false, notifyOnEvent: true, notifyOnClosed: false)
+            $this->dto(
+                notifyOnOpened: false,
+                notifyOnEvent: true,
+                notifyOnClosed: false
+            )
         );
 
         $this->assertFalse($watcher->notifyOnOpened);

@@ -17,8 +17,18 @@ class LogCursorCodecTest extends TestCase
         $cursor = new LogCursorObject(
             direction: LogCursorDirectionEnum::Newer,
             positions: [
-                new LogCursorPositionObject(fileId: sha1('a'), position: -1, headLength: 0, headHash: md5('')),
-                new LogCursorPositionObject(fileId: sha1('b'), position: 5_000_000, headLength: 1024, headHash: md5('head')),
+                new LogCursorPositionObject(
+                    fileId: sha1('a'),
+                    position: -1,
+                    headLength: 0,
+                    headHash: md5('')
+                ),
+                new LogCursorPositionObject(
+                    fileId: sha1('b'),
+                    position: 5_000_000,
+                    headLength: 1024,
+                    headHash: md5('head')
+                ),
             ]
         );
 
@@ -27,7 +37,10 @@ class LogCursorCodecTest extends TestCase
         $encoded = $codec->encode($cursor);
 
         $this->assertMatchesRegularExpression('/^[A-Za-z0-9_-]+$/', $encoded);
-        $this->assertEquals($cursor, $codec->decode($encoded, [sha1('a'), sha1('b'), sha1('c')]));
+        $this->assertEquals(
+            $cursor,
+            $codec->decode($encoded, [sha1('a'), sha1('b'), sha1('c')])
+        );
     }
 
     /**

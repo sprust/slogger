@@ -50,7 +50,10 @@ class TrimWatcherTimelineActionTest extends TestCase
         $repository->expects($this->never())->method('trim');
 
         new TrimWatcherTimelineAction($repository)->handle(
-            $this->watcher(WatcherTypeEnum::BufferOverflow, new BufferOverflowSettingsObject()),
+            $this->watcher(
+                WatcherTypeEnum::BufferOverflow,
+                new BufferOverflowSettingsObject()
+            ),
             Carbon::parse(self::NOW)
         );
     }

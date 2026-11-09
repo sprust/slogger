@@ -25,7 +25,12 @@ class AuthMiddlewareTerminateTest extends TestCase
 
         $touch->expects($this->never())->method('handle');
 
-        $this->middleware($touch)->terminate($this->request('a-token'), new Response());
+        $this
+            ->middleware($touch)
+            ->terminate(
+                request: $this->request('a-token'),
+                response: new Response(),
+            );
     }
 
     public function testARequestWithNoTokenRenewsNothing(): void
@@ -34,7 +39,14 @@ class AuthMiddlewareTerminateTest extends TestCase
 
         $touch->expects($this->never())->method('handle');
 
-        $this->middleware($touch)->terminate(Request::create('/x'), new Response());
+        $this
+            ->middleware($touch)
+            ->terminate(
+                request: Request::create(
+                    uri: '/x',
+                ),
+                response: new Response(),
+            );
     }
 
     public function testAnAuthenticatedRequestPushesItsSessionOut(): void
@@ -46,9 +58,17 @@ class AuthMiddlewareTerminateTest extends TestCase
         $request = $this->request('a-token');
 
         // What handle() leaves behind on a request it let through.
-        $request->attributes->set('slogger.authenticated', true);
+        $request->attributes->set(
+            key: 'slogger.authenticated',
+            value: true,
+        );
 
-        $this->middleware($touch)->terminate($request, new Response());
+        $this
+            ->middleware($touch)
+            ->terminate(
+                request: $request,
+                response: new Response(),
+            );
     }
 
     public function testTheTwoHalvesAgreeOnWhatHandleLeftBehind(): void
@@ -59,36 +79,53 @@ class AuthMiddlewareTerminateTest extends TestCase
 
         $finder = $this->createMock(FindUserByTokenAction::class);
 
-        $finder->method('handle')->willReturn(new LoggedUserObject(
-            id: 1,
-            firstName: 'A',
-            lastName: null,
-            email: 'a@b.c',
-            apiToken: 'a-token',
-        ));
+        $finder
+            ->method('handle')
+            ->willReturn(
+                new LoggedUserObject(
+                    id: 1,
+                    firstName: 'A',
+                    lastName: null,
+                    email: 'a@b.c',
+                    apiToken: 'a-token',
+                )
+            );
 
         $request = $this->request('a-token');
-
         // Driven end to end rather than by planting the flag: what handle() writes and
         // what terminate() reads are two halves of one agreement, and asserting the name
         // twice would not prove they still meet.
-        $middleware = new AuthMiddleware($finder, $touch);
+        $middleware = new AuthMiddleware(
+            findUserByTokenAction: $finder,
+            touchUserTokenAction: new \App\Modules\Auth\Domain\Actions\TouchUserTokenAction($touch),
+        );
 
-        $middleware->handle($request, fn(): Response => new Response());
+        $middleware->handle(
+            request: $request,
+            next: static fn(): Response => new Response(),
+        );
 
-        $middleware->terminate($request, new Response());
+        $middleware->terminate(
+            request: $request,
+            response: new Response(),
+        );
     }
 
     private function middleware(TouchUserTokenAction $touch): AuthMiddleware
     {
-        return new AuthMiddleware($this->createMock(FindUserByTokenAction::class), $touch);
+        return new AuthMiddleware(
+            findUserByTokenAction: $this->createMock(FindUserByTokenAction::class),
+            touchUserTokenAction: new \App\Modules\Auth\Domain\Actions\TouchUserTokenAction($touch),
+        );
     }
 
     private function request(string $token): Request
     {
-        $request = Request::create('/x');
+        $request = Request::create(
+            uri: '/x',
+        );
 
-        $request->headers->set('Authorization', "Bearer $token");
+        $request->headers->set('Authorization', "Bearer {$token}");
 
         return $request;
     }

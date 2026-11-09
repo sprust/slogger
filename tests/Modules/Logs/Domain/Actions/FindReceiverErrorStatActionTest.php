@@ -37,7 +37,10 @@ class FindReceiverErrorStatActionTest extends TestCase
             . "2026-09-25 10:01:10.600 ERROR after the window\n"
         );
 
-        $this->write('logs/laravel-2026-09-25.log', "[2026-09-25 10:00:45] local.ERROR: an app error \n");
+        $this->write(
+            'logs/laravel-2026-09-25.log',
+            "[2026-09-25 10:00:45] local.ERROR: an app error \n"
+        );
     }
 
     protected function tearDown(): void

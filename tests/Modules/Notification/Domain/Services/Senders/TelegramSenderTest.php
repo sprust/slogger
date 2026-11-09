@@ -36,7 +36,10 @@ class TelegramSenderTest extends TestCase
     public function testTooManyRequestsWaitsExactlyAsLongAsAsked(): void
     {
         $result = $this->sender(
-            new Response(429, body: '{"ok":false,"description":"Too Many Requests","parameters":{"retry_after":37}}')
+            new Response(
+                429,
+                body: '{"ok":false,"description":"Too Many Requests","parameters":{"retry_after":37}}'
+            )
         )->send($this->channel(), 'hello');
 
         $this->assertFalse($result->delivered);
@@ -53,7 +56,13 @@ class TelegramSenderTest extends TestCase
 
     public function testAClientErrorIsRefusedForGood(): void
     {
-        $result = $this->sender(new Response(401, body: '{"ok":false,"description":"Unauthorized"}'))
+        $result =
+            $this->sender(
+                new Response(
+                    401,
+                    body: '{"ok":false,"description":"Unauthorized"}'
+                )
+            )
             ->send($this->channel(), 'hello');
 
         $this->assertFalse($result->delivered);
@@ -104,7 +113,10 @@ class TelegramSenderTest extends TestCase
             ->with($this->callback(function (RequestInterface $request): bool {
                 $body = json_decode((string) $request->getBody(), true);
 
-                $this->assertSame('https://api.telegram.org/bot123:abc/sendMessage', (string) $request->getUri());
+                $this->assertSame(
+                    'https://api.telegram.org/bot123:abc/sendMessage',
+                    (string) $request->getUri()
+                );
                 $this->assertSame('-100500', $body['chat_id']);
                 $this->assertSame('hello', $body['text']);
                 $this->assertSame('HTML', $body['parse_mode']);

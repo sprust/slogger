@@ -29,7 +29,8 @@ readonly class InvalidBufferGrownEventPayloadMapper implements WatcherEventPaylo
         $measuredInvalidCount = ArrayValueGetter::intNull($measured, 'invalid_count');
         $measuredSince        = ArrayValueGetter::stringNull($measured, 'since');
 
-        if (is_null($settingsThreshold)
+        if (
+            is_null($settingsThreshold)
             || is_null($measuredInvalidCount)
             || is_null($measuredSince)
         ) {

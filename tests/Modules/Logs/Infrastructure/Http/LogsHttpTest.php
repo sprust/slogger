@@ -23,6 +23,7 @@ class LogsHttpTest extends TestCase
         $this->withoutMiddleware([AuthMiddleware::class, SLoggerHttpMiddleware::class]);
 
         config()->set('cache.mutex_store', 'array');
+
         config()->set('module-logs.sources', [
             ['name' => 'Laravel', 'folder' => $this->tempDir . '/logs', 'pattern' => '*.log', 'type' => LogTypeEnum::Laravel],
         ]);
@@ -44,7 +45,8 @@ class LogsHttpTest extends TestCase
 
     public function testFilesAreListed(): void
     {
-        $this->getJson('/admin-api/logs/files')
+        $this
+            ->getJson('/admin-api/logs/files')
             ->assertOk()
             ->assertJsonPath('data.0.id', sha1($this->path))
             ->assertJsonPath('data.0.name', 'laravel.log')
@@ -54,7 +56,11 @@ class LogsHttpTest extends TestCase
 
     public function testEntriesAreFound(): void
     {
-        $this->postJson('/admin-api/logs/entries', ['files' => [sha1($this->path)]])
+        $this
+            ->postJson(
+                '/admin-api/logs/entries',
+                ['files' => [sha1($this->path)]]
+            )
             ->assertOk()
             ->assertJsonPath('data.total', 2)
             ->assertJsonPath('data.items.0.level', 'laravel.INFO')
@@ -68,14 +74,22 @@ class LogsHttpTest extends TestCase
 
     public function testTheRequestIsValidated(): void
     {
-        $this->postJson('/admin-api/logs/entries', ['files' => [], 'direction' => 'sideways', 'per_page' => 100_000])
+        $this
+            ->postJson(
+                '/admin-api/logs/entries',
+                ['files' => [], 'direction' => 'sideways', 'per_page' => 100_000]
+            )
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['files', 'direction', 'per_page']);
     }
 
     public function testAMalformedCursorIsUnprocessable(): void
     {
-        $this->postJson('/admin-api/logs/entries', ['files' => [sha1($this->path)], 'cursor' => 'garbage'])
+        $this
+            ->postJson(
+                '/admin-api/logs/entries',
+                ['files' => [sha1($this->path)], 'cursor' => 'garbage']
+            )
             ->assertUnprocessable();
     }
 
@@ -84,9 +98,16 @@ class LogsHttpTest extends TestCase
         $response = $this->get(sprintf('/admin-api/logs/files/%s/download', sha1($this->path)));
 
         $response->assertOk();
-        $response->assertHeader('Content-Disposition', 'attachment; filename=laravel.log');
 
-        $this->assertSame(file_get_contents($this->path), $response->streamedContent());
+        $response->assertHeader(
+            'Content-Disposition',
+            'attachment; filename=laravel.log'
+        );
+
+        $this->assertSame(
+            file_get_contents($this->path),
+            $response->streamedContent()
+        );
     }
 
     public function testAFileOverTheLimitIsNotDownloaded(): void
@@ -98,6 +119,11 @@ class LogsHttpTest extends TestCase
 
     public function testAFileOutsideTheSourcesIsNotDownloaded(): void
     {
-        $this->get(sprintf('/admin-api/logs/files/%s/download', sha1('/etc/passwd')))->assertNotFound();
+        $fileId = sha1('/etc/passwd');
+
+        $this
+            ->getJson("/admin-api/logs/files/$fileId/download")
+            ->assertNotFound()
+            ->assertJsonPath('message', "Log file [$fileId] not found");
     }
 }

@@ -49,7 +49,13 @@ class ClearTracesActionTest extends TestCase
 
         $this->processes->expects($this->once())
             ->method('update')
-            ->with('new', 2, 30, $this->isInstanceOf(Carbon::class), null);
+            ->with(
+                'new',
+                2,
+                30,
+                $this->isInstanceOf(Carbon::class),
+                null
+            );
 
         $this->action()->handle(72);
     }
@@ -69,12 +75,22 @@ class ClearTracesActionTest extends TestCase
         $exception = new ClickhouseQueryException('Code: 159. Timeout exceeded');
 
         $this->deletePartitions->method('handle')->willReturn(
-            new DeletedTracesObject(partitionsCount: 1, tracesCount: 10, exception: $exception)
+            new DeletedTracesObject(
+                partitionsCount: 1,
+                tracesCount: 10,
+                exception: $exception
+            )
         );
 
         $this->processes->expects($this->once())
             ->method('update')
-            ->with('new', 1, 10, $this->isInstanceOf(Carbon::class), $exception);
+            ->with(
+                'new',
+                1,
+                10,
+                $this->isInstanceOf(Carbon::class),
+                $exception
+            );
 
         $this->action()->handle(72);
     }
@@ -82,7 +98,10 @@ class ClearTracesActionTest extends TestCase
     public function testFreshActiveRunBlocks(): void
     {
         $this->processes->method('exists')->willReturn(
-            $this->process(id: 'running', createdAt: Carbon::now()->subMinutes(10))
+            $this->process(
+                id: 'running',
+                createdAt: Carbon::now()->subMinutes(10)
+            )
         );
 
         $this->deletePartitions->expects($this->never())->method('handle');
@@ -96,7 +115,12 @@ class ClearTracesActionTest extends TestCase
     public function testDeadRunIsClosedAndDoesNotBlock(): void
     {
         $this->processes->method('exists')->willReturn(
-            $this->process(id: 'dead', createdAt: Carbon::now()->subMinutes(61), collectionsCount: 1, tracesCount: 5)
+            $this->process(
+                id: 'dead',
+                createdAt: Carbon::now()->subMinutes(61),
+                collectionsCount: 1,
+                tracesCount: 5
+            )
         );
 
         $this->deletePartitions->method('handle')->willReturn(new DeletedTracesObject(partitionsCount: 1, tracesCount: 7));

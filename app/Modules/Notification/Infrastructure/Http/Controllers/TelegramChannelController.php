@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Modules\Notification\Infrastructure\Http\Controllers;
 
+use App\Modules\Notification\Domain\Exceptions\NotificationChannelNotFoundException;
 use App\Modules\Notification\Entities\Settings\TelegramSettingsObject;
 use App\Modules\Notification\Enums\NotificationChannelTypeEnum;
 use App\Modules\Notification\Infrastructure\Http\Requests\CreateTelegramChannelRequest;
 use App\Modules\Notification\Infrastructure\Http\Requests\UpdateTelegramChannelRequest;
 use App\Modules\Notification\Infrastructure\Http\Resources\ChannelResource;
 use App\Modules\Notification\Infrastructure\Http\Resources\TelegramChannelSettingsResource;
-use Symfony\Component\HttpFoundation\Response as ResponseFoundation;
 
 readonly class TelegramChannelController extends AbstractChannelTypeController
 {
@@ -18,19 +18,25 @@ readonly class TelegramChannelController extends AbstractChannelTypeController
     {
         $settings = $this->channelSettings(
             type: NotificationChannelTypeEnum::Telegram,
-            id: $id
+            id: $id,
         );
 
         if (!$settings instanceof TelegramSettingsObject) {
-            abort(ResponseFoundation::HTTP_NOT_FOUND, "Notification channel [$id] not found");
+            throw new NotificationChannelNotFoundException($id);
         }
 
-        return new TelegramChannelSettingsResource($id, $settings);
+        return new TelegramChannelSettingsResource(
+            id: $id,
+            resource: $settings,
+        );
     }
 
     public function create(CreateTelegramChannelRequest $request): ChannelResource
     {
-        return $this->createChannel(NotificationChannelTypeEnum::Telegram, $request->validated());
+        return $this->createChannel(
+            type: NotificationChannelTypeEnum::Telegram,
+            validated: $request->validated(),
+        );
     }
 
     public function update(int $id, UpdateTelegramChannelRequest $request): void
@@ -38,7 +44,7 @@ readonly class TelegramChannelController extends AbstractChannelTypeController
         $this->updateChannel(
             type: NotificationChannelTypeEnum::Telegram,
             id: $id,
-            validated: $request->validated()
+            validated: $request->validated(),
         );
     }
 }

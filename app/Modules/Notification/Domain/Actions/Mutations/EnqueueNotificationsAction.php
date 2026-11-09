@@ -11,11 +11,11 @@ use App\Modules\Notification\Domain\Services\Types\NotificationChannelTypeRegist
 use App\Modules\Notification\Entities\ChannelObject;
 use App\Modules\Notification\Enums\NotificationKindEnum;
 use App\Modules\Notification\Repositories\NotificationRepository;
-use App\Modules\Watcher\Entities\WatcherIncidentEventObject;
-use App\Modules\Watcher\Entities\WatcherIncidentObject;
-use App\Modules\Watcher\Entities\WatcherObject;
-use App\Modules\Watcher\Enums\WatcherIncidentStatusEnum;
-use Illuminate\Contracts\Events\Dispatcher;
+use App\Modules\Notification\Parameters\IncidentEventParameters;
+use App\Modules\Notification\Parameters\IncidentSnapshotParameters;
+use App\Modules\Notification\Parameters\IncidentWatcherParameters;
+use App\Modules\Notification\Enums\IncidentStatusEnum;
+use App\Modules\Common\Domain\Services\DispatcherInterface;
 use Illuminate\Support\Carbon;
 
 /**
@@ -24,20 +24,12 @@ use Illuminate\Support\Carbon;
  */
 readonly class EnqueueNotificationsAction
 {
-    public function __construct(
-        private FindChannelAction $findChannelAction,
-        private NotificationChannelTypeRegistry $types,
-        private IncidentMessageFactory $messageFactory,
-        private NotificationRepository $notificationRepository,
-        private Dispatcher $events
-    ) {
+    public function __construct(private FindChannelAction $findChannelAction, private NotificationChannelTypeRegistry $types, private IncidentMessageFactory $messageFactory, private NotificationRepository $notificationRepository, private DispatcherInterface $dispatcher)
+    {
     }
 
-    public function handle(
-        WatcherObject $watcher,
-        WatcherIncidentObject $incident,
-        ?WatcherIncidentEventObject $event
-    ): void {
+    public function handle(IncidentWatcherParameters $watcher, IncidentSnapshotParameters $incident, ?IncidentEventParameters $event): void
+    {
         $channel = $this->channelOf($watcher);
 
         if (is_null($channel)) {
@@ -46,7 +38,12 @@ readonly class EnqueueNotificationsAction
 
         $kind = $this->kindOf($incident);
 
-        if (!$this->speaksAbout($watcher, $kind)) {
+        if (
+            !$this->speaksAbout(
+                watcher: $watcher,
+                kind: $kind,
+            )
+        ) {
             return;
         }
 
@@ -60,18 +57,18 @@ readonly class EnqueueNotificationsAction
                 watcher: $watcher,
                 incident: $incident,
                 event: $event,
-                sender: $this->types->for($channel->type)->sender()
+                sender: $this->types->for($channel->type)->sender(),
             ),
-            createdAt: Carbon::now()
+            createdAt: Carbon::now(),
         );
 
         // Written first and queued after: a broker that will not take the job still
         // leaves a row saying the message was meant to go.
-        $this->events->dispatch(new NotificationEnqueuedEvent($notification->id));
+        $this->dispatcher->event(new NotificationEnqueuedEvent($notification->id));
     }
 
     /** One that was switched off or removed counts as none: the watcher goes quiet. */
-    private function channelOf(WatcherObject $watcher): ?ChannelObject
+    private function channelOf(IncidentWatcherParameters $watcher): ?ChannelObject
     {
         if (is_null($watcher->notificationChannelId)) {
             return null;
@@ -82,18 +79,16 @@ readonly class EnqueueNotificationsAction
         return $channel?->enabled === true ? $channel : null;
     }
 
-    private function kindOf(WatcherIncidentObject $incident): NotificationKindEnum
+    private function kindOf(IncidentSnapshotParameters $incident): NotificationKindEnum
     {
-        if ($incident->status === WatcherIncidentStatusEnum::Closed) {
+        if ($incident->status === IncidentStatusEnum::Closed) {
             return NotificationKindEnum::Closed;
         }
 
-        return $incident->eventsCount > 1
-            ? NotificationKindEnum::Event
-            : NotificationKindEnum::Opened;
+        return $incident->eventsCount > 1 ? NotificationKindEnum::Event : NotificationKindEnum::Opened;
     }
 
-    private function speaksAbout(WatcherObject $watcher, NotificationKindEnum $kind): bool
+    private function speaksAbout(IncidentWatcherParameters $watcher, NotificationKindEnum $kind): bool
     {
         return match ($kind) {
             NotificationKindEnum::Opened => $watcher->notifyOnOpened,

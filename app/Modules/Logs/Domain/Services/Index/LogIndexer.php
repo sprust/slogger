@@ -41,7 +41,10 @@ readonly class LogIndexer
             return $meta;
         }
 
-        $mutex = new LogIndexMutex(fileId: $file->id, waitForBlockSec: $waitForLockSec);
+        $mutex = new LogIndexMutex(
+            fileId: $file->id,
+            waitForBlockSec: $waitForLockSec
+        );
 
         $this->mutexManager->lock($mutex);
 

@@ -69,11 +69,15 @@ code-analise-declare-strict-fix:
 code-analise-stan:
 	docker-compose exec -e XDEBUG_MODE=off $(PHP_FPM_SERVICE) ./vendor/bin/phpstan analyse -c ./code-analyse/phpstan.neon  --memory-limit=1G
 
+code-analise-modules-structure:
+	docker-compose exec -e XDEBUG_MODE=off $(PHP_FPM_SERVICE) php code-analyse/modules-structure.php
+
 code-analise-deptrac:
 	docker-compose exec -e XDEBUG_MODE=off $(PHP_FPM_SERVICE) ./vendor/bin/deptrac analyse --config-file=./code-analyse/deptrac-layers.yaml
+	docker-compose exec -e XDEBUG_MODE=off $(PHP_FPM_SERVICE) ./vendor/bin/deptrac analyse --config-file=./code-analyse/deptrac-modules.php
 
 code-analise-cs-fixer-check:
-	docker-compose exec -e XDEBUG_MODE=off $(PHP_FPM_SERVICE) ./vendor/bin/php-cs-fixer fix --config ./code-analyse/php-cs-fixer.dist.php --dry-run --diff --verbose
+	./code-analyse/cs-fixer-colorize.sh docker-compose exec -e XDEBUG_MODE=off $(PHP_FPM_SERVICE) php -d memory_limit=1G ./vendor/bin/php-cs-fixer fix --config ./code-analyse/php-cs-fixer.dist.php --dry-run --diff --verbose --no-ansi
 
 code-analise-cs-fixer-fix:
 	docker-compose exec -e XDEBUG_MODE=off $(PHP_FPM_SERVICE) ./vendor/bin/php-cs-fixer fix --config ./code-analyse/php-cs-fixer.dist.php --verbose
@@ -83,6 +87,7 @@ code-analise:
 	make code-analise-cs-fixer-check
 	make code-analise-stan
 	make code-analise-deptrac
+	make code-analise-modules-structure
 
 test:
 	"$(PHP_FPM_CLI)"php artisan test ${c}

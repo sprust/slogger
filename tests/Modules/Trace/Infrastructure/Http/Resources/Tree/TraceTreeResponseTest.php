@@ -43,15 +43,26 @@ class TraceTreeResponseTest extends TestCase
             $nodes = [];
 
             for ($index = 0; $index < $count; $index++) {
-                $nodes[] = $this->node(serviceId: 1, withMetrics: true, traceId: "t-$index");
+                $nodes[] = $this->node(
+                    serviceId: 1,
+                    withMetrics: true,
+                    traceId: "t-$index"
+                );
             }
 
             $decoded = json_decode($this->body($nodes), true, flags: JSON_THROW_ON_ERROR);
 
-            self::assertCount($count, $decoded['data']['items'], "with $count nodes");
+            self::assertCount(
+                $count,
+                $decoded['data']['items'],
+                "with $count nodes"
+            );
 
             if ($count > 0) {
-                self::assertSame('t-' . ($count - 1), $decoded['data']['items'][$count - 1]['trace_id']);
+                self::assertSame(
+                    't-' . ($count - 1),
+                    $decoded['data']['items'][$count - 1]['trace_id']
+                );
             }
         }
     }
@@ -66,7 +77,11 @@ class TraceTreeResponseTest extends TestCase
         $nodes = [];
 
         for ($index = 0; $index < 2500; $index++) {
-            $nodes[] = $this->node(serviceId: 1, withMetrics: true, traceId: "t-$index");
+            $nodes[] = $this->node(
+                serviceId: 1,
+                withMetrics: true,
+                traceId: "t-$index"
+            );
         }
 
         $chunksFactory = StreamedChunks::of($this->response($nodes));

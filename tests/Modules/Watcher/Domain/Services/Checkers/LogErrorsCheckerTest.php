@@ -35,21 +35,35 @@ class LogErrorsCheckerTest extends TestCase
 
     public function testTheEventCarriesTheCountTheWindowAndTheLastMessage(): void
     {
-        $payload = $this->check(count: 4, threshold: 1, lastMessage: 'connect: IO error');
+        $payload = $this->check(
+            count: 4,
+            threshold: 1,
+            lastMessage: 'connect: IO error'
+        );
 
         $this->assertInstanceOf(LogErrorsEventPayloadObject::class, $payload);
         $this->assertSame(1, $payload->settings->threshold);
         $this->assertSame(4, $payload->measured->errorCount);
         $this->assertSame('2026-09-07 11:50:00', $payload->measured->since);
-        $this->assertSame('connect: IO error', $payload->measured->lastMessage);
+        $this->assertSame(
+            'connect: IO error',
+            $payload->measured->lastMessage
+        );
     }
 
     public function testALongMessageIsCut(): void
     {
-        $payload = $this->check(count: 1, threshold: 1, lastMessage: str_repeat('x', 2000));
+        $payload = $this->check(
+            count: 1,
+            threshold: 1,
+            lastMessage: str_repeat('x', 2000)
+        );
 
         $this->assertInstanceOf(LogErrorsEventPayloadObject::class, $payload);
-        $this->assertSame(LogErrorsChecker::MAX_MESSAGE_LENGTH, mb_strwidth($payload->measured->lastMessage));
+        $this->assertSame(
+            LogErrorsChecker::MAX_MESSAGE_LENGTH,
+            mb_strwidth($payload->measured->lastMessage)
+        );
         $this->assertStringEndsWith('…', $payload->measured->lastMessage);
     }
 

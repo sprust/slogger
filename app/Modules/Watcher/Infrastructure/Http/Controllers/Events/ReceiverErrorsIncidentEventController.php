@@ -16,7 +16,11 @@ readonly class ReceiverErrorsIncidentEventController extends AbstractIncidentEve
     public function index(string $id, IndexIncidentEventsRequest $request): AnonymousResourceCollection
     {
         return LogErrorsIncidentEventResource::collection(
-            $this->incidentEvents(WatcherTypeEnum::ReceiverErrors, $id, $request->validated())
+            $this->incidentEvents(
+                WatcherTypeEnum::ReceiverErrors,
+                $id,
+                $request->validated()
+            )
         );
     }
 }

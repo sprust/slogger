@@ -50,7 +50,10 @@ class TraceTreeStateBroadcastTest extends TestCase
         // finished. Without ShouldRescue a bus that is down throws out of dispatch(),
         // and markFailed() — which filters by version alone — records the finished
         // build as failed.
-        $this->assertInstanceOf(ShouldRescue::class, new TraceTreeStateBroadcast($this->state()));
+        $this->assertInstanceOf(
+            ShouldRescue::class,
+            new TraceTreeStateBroadcast($this->state())
+        );
     }
 
     private function state(): TraceTreeCacheStateObject

@@ -27,12 +27,18 @@ class WebhookSenderTest extends TestCase
             ->with($this->callback(function (RequestInterface $request): bool {
                 $body = json_decode((string) $request->getBody(), true);
 
-                self::assertSame('https://ops.example.com/hook', (string) $request->getUri());
+                self::assertSame(
+                    'https://ops.example.com/hook',
+                    (string) $request->getUri()
+                );
                 self::assertSame('POST', $request->getMethod());
                 self::assertSame('deploys', $body['channel']);
                 self::assertSame('hello', $body['text']);
                 self::assertNotSame('', $body['sent_at']);
-                self::assertSame('secret-token', $request->getHeaderLine('X-Slogger-Token'));
+                self::assertSame(
+                    'secret-token',
+                    $request->getHeaderLine('X-Slogger-Token')
+                );
 
                 return true;
             }))
@@ -89,7 +95,10 @@ class WebhookSenderTest extends TestCase
 
     public function testTheTextIsLeftAsItWasWritten(): void
     {
-        $sender = new WebhookSender($this->createMock(ClientInterface::class), new HttpSendResultReader());
+        $sender = new WebhookSender(
+            $this->createMock(ClientInterface::class),
+            new HttpSendResultReader()
+        );
 
         self::assertSame('<b> & co', $sender->escape('<b> & co'));
         self::assertSame('bold', $sender->bold('bold'));
@@ -113,7 +122,10 @@ class WebhookSenderTest extends TestCase
             str_repeat('a', WebhookSender::MAX_TEXT_LENGTH + 100)
         );
 
-        self::assertLessThanOrEqual(WebhookSender::MAX_TEXT_LENGTH, mb_strlen((string) $sent));
+        self::assertLessThanOrEqual(
+            WebhookSender::MAX_TEXT_LENGTH,
+            mb_strlen((string) $sent)
+        );
         self::assertStringEndsWith('…', (string) $sent);
     }
 

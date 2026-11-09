@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace App\Modules\Notification\Parameters;
 
 use App\Modules\Notification\Enums\NotificationChannelTypeEnum;
+use JsonSerializable;
 
-readonly class CreateChannelParameters
+readonly class CreateChannelParameters implements JsonSerializable
 {
     /**
      * @param array<string, mixed> $settings
@@ -17,5 +18,16 @@ readonly class CreateChannelParameters
         public bool $enabled,
         public array $settings
     ) {
+    }
+
+    /** @return array{name: string, type: string, enabled: bool, settings: string} */
+    public function jsonSerialize(): array
+    {
+        return [
+            'name'     => $this->name,
+            'type'     => $this->type->value,
+            'enabled'  => $this->enabled,
+            'settings' => '|hidden|',
+        ];
     }
 }

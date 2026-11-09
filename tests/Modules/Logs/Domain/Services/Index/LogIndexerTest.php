@@ -41,7 +41,10 @@ class LogIndexerTest extends TestCase
 
     public function testAFileIsIndexedEntryByEntry(): void
     {
-        $file = $this->writeLogFile('laravel.log', self::ERROR_ENTRY . self::INFO_ENTRY . self::DEBUG_ENTRY);
+        $file = $this->writeLogFile(
+            'laravel.log',
+            self::ERROR_ENTRY . self::INFO_ENTRY . self::DEBUG_ENTRY
+        );
 
         $meta = $this->indexer()->ensureFresh($file);
 
@@ -56,7 +59,10 @@ class LogIndexerTest extends TestCase
             ],
             $meta->levelCounts
         );
-        $this->assertSame([self::ERROR_ENTRY, self::INFO_ENTRY, self::DEBUG_ENTRY], $this->readEntries($file));
+        $this->assertSame(
+            [self::ERROR_ENTRY, self::INFO_ENTRY, self::DEBUG_ENTRY],
+            $this->readEntries($file)
+        );
         $this->assertSame(
             [gmmktime(5, 35, 29, 9, 25, 2026), gmmktime(5, 35, 30, 9, 25, 2026), gmmktime(5, 35, 31, 9, 25, 2026)],
             array_map(static fn(LogIndexRecordObject $record): int => $record->loggedAt, $this->readRecords($file))
@@ -74,24 +80,38 @@ class LogIndexerTest extends TestCase
 
         $this->assertSame([$half], $this->readEntries($file));
 
-        $file = $this->writeLogFile('laravel.log', substr(self::ERROR_ENTRY, 70) . self::INFO_ENTRY, append: true);
+        $file = $this->writeLogFile(
+            'laravel.log',
+            substr(self::ERROR_ENTRY, 70) . self::INFO_ENTRY,
+            append: true
+        );
 
         $meta = $this->indexer()->ensureFresh($file);
 
         $this->assertSame(2, $meta->entriesCount);
-        $this->assertSame([self::ERROR_ENTRY, self::INFO_ENTRY], $this->readEntries($file));
+        $this->assertSame(
+            [self::ERROR_ENTRY, self::INFO_ENTRY],
+            $this->readEntries($file)
+        );
         $this->assertSameAsFromScratch($file);
     }
 
     public function testAppendedEntriesKeepTheEarlierRecords(): void
     {
-        $file = $this->writeLogFile('laravel.log', self::ERROR_ENTRY . self::INFO_ENTRY);
+        $file = $this->writeLogFile(
+            'laravel.log',
+            self::ERROR_ENTRY . self::INFO_ENTRY
+        );
 
         $this->indexer()->ensureFresh($file);
 
         $before = $this->readRecords($file);
 
-        $file = $this->writeLogFile('laravel.log', self::DEBUG_ENTRY . self::ERROR_ENTRY, append: true);
+        $file = $this->writeLogFile(
+            'laravel.log',
+            self::DEBUG_ENTRY . self::ERROR_ENTRY,
+            append: true
+        );
 
         $meta = $this->indexer()->ensureFresh($file);
 
@@ -102,7 +122,10 @@ class LogIndexerTest extends TestCase
 
     public function testAShrunkFileIsIndexedAgain(): void
     {
-        $file = $this->writeLogFile('laravel.log', self::ERROR_ENTRY . self::INFO_ENTRY . self::DEBUG_ENTRY);
+        $file = $this->writeLogFile(
+            'laravel.log',
+            self::ERROR_ENTRY . self::INFO_ENTRY . self::DEBUG_ENTRY
+        );
 
         $this->indexer()->ensureFresh($file);
 
@@ -111,7 +134,10 @@ class LogIndexerTest extends TestCase
         $meta = $this->indexer()->ensureFresh($file);
 
         $this->assertSame(1, $meta->entriesCount);
-        $this->assertEquals([new LogLevelCountObject(level: LaravelLogLevelEnum::Debug->value, count: 1)], $meta->levelCounts);
+        $this->assertEquals(
+            [new LogLevelCountObject(level: LaravelLogLevelEnum::Debug->value, count: 1)],
+            $meta->levelCounts
+        );
         $this->assertSame([self::DEBUG_ENTRY], $this->readEntries($file));
         $this->assertLevelFilesMatch($file);
     }
@@ -128,7 +154,10 @@ class LogIndexerTest extends TestCase
 
         $this->indexer()->ensureFresh($file);
 
-        $this->assertSame([$replaced, self::ERROR_ENTRY], $this->readEntries($file));
+        $this->assertSame(
+            [$replaced, self::ERROR_ENTRY],
+            $this->readEntries($file)
+        );
         $this->assertSameAsFromScratch($file);
     }
 
@@ -153,25 +182,46 @@ class LogIndexerTest extends TestCase
 
     public function testTextBeforeTheFirstHeaderIsAnEntryWithoutLevel(): void
     {
-        $file = $this->writeLogFile('laravel.log', "left over from a rotated file\n" . self::INFO_ENTRY);
+        $file = $this->writeLogFile(
+            'laravel.log',
+            "left over from a rotated file\n" . self::INFO_ENTRY
+        );
 
         $this->indexer()->ensureFresh($file);
 
         $records = $this->readRecords($file);
 
-        $this->assertSame([0, LaravelLogLevelEnum::Info->value], [$records[0]->level, $records[1]->level]);
+        $this->assertSame(
+            [0, LaravelLogLevelEnum::Info->value],
+            [$records[0]->level, $records[1]->level]
+        );
         $this->assertSame($records[1]->loggedAt, $records[0]->loggedAt);
     }
 
     public function testRecordsLeftByAnInterruptedRunAreDropped(): void
     {
-        $file = $this->writeLogFile('laravel.log', self::ERROR_ENTRY . self::INFO_ENTRY);
+        $file = $this->writeLogFile(
+            'laravel.log',
+            self::ERROR_ENTRY . self::INFO_ENTRY
+        );
 
         $this->indexer()->ensureFresh($file);
 
         $this->repository()->appendRecords($file->id, [
-            new LogIndexRecordObject(entryNo: 99, offset: 1, length: 1, loggedAt: 1, level: LaravelLogLevelEnum::Emergency->value),
-            new LogIndexRecordObject(entryNo: 100, offset: 1, length: 1, loggedAt: 1, level: LaravelLogLevelEnum::Info->value),
+            new LogIndexRecordObject(
+                entryNo: 99,
+                offset: 1,
+                length: 1,
+                loggedAt: 1,
+                level: LaravelLogLevelEnum::Emergency->value
+            ),
+            new LogIndexRecordObject(
+                entryNo: 100,
+                offset: 1,
+                length: 1,
+                loggedAt: 1,
+                level: LaravelLogLevelEnum::Info->value
+            ),
         ]);
 
         $file = $this->writeLogFile('laravel.log', self::DEBUG_ENTRY, append: true);
@@ -179,7 +229,10 @@ class LogIndexerTest extends TestCase
         $meta = $this->indexer()->ensureFresh($file);
 
         $this->assertSame(3, $meta->entriesCount);
-        $this->assertSame(0, $this->repository()->countRecords($file->id, LaravelLogLevelEnum::Emergency->value));
+        $this->assertSame(
+            0,
+            $this->repository()->countRecords($file->id, LaravelLogLevelEnum::Emergency->value)
+        );
         $this->assertSameAsFromScratch($file);
     }
 
@@ -205,7 +258,10 @@ class LogIndexerTest extends TestCase
 
         $file = $this->writeLogFile('laravel.log', self::INFO_ENTRY, append: true);
 
-        $this->assertSame(1, $this->indexer()->ensureFresh($file)->entriesCount);
+        $this->assertSame(
+            1,
+            $this->indexer()->ensureFresh($file)->entriesCount
+        );
     }
 
     public function testAMissingFileRaises(): void
@@ -224,19 +280,35 @@ class LogIndexerTest extends TestCase
         $first = '1.1.1.1 - - [25/Sep/2026:10:00:00 +0000] "GET / HTTP/1.1" 200 1 "-" "-"' . "\n";
         $third = '1.1.1.1 - - [25/Sep/2026:10:00:05 +0000] "GET / HTTP/1.1" 503 1 "-" "-"' . "\n";
 
-        $file = $this->writeLogFile('access.log', $first . "broken\n" . $third, LogTypeEnum::NginxAccess);
+        $file = $this->writeLogFile(
+            'access.log',
+            $first . "broken\n" . $third,
+            LogTypeEnum::NginxAccess
+        );
 
         $meta = $this->indexer()->ensureFresh($file);
 
         $records = $this->readRecords($file);
 
-        $this->assertSame([$first, "broken\n", $third], $this->readEntries($file));
-        $this->assertSame([gmmktime(10, 0, 0, 9, 25, 2026), gmmktime(10, 0, 0, 9, 25, 2026)], [$records[0]->loggedAt, $records[1]->loggedAt]);
+        $this->assertSame(
+            [$first, "broken\n", $third],
+            $this->readEntries($file)
+        );
+        $this->assertSame(
+            [gmmktime(10, 0, 0, 9, 25, 2026), gmmktime(10, 0, 0, 9, 25, 2026)],
+            [$records[0]->loggedAt, $records[1]->loggedAt]
+        );
         $this->assertEquals(
             [
                 new LogLevelCountObject(level: 0, count: 1),
-                new LogLevelCountObject(level: HttpStatusClassEnum::Success->value, count: 1),
-                new LogLevelCountObject(level: HttpStatusClassEnum::ServerError->value, count: 1),
+                new LogLevelCountObject(
+                    level: HttpStatusClassEnum::Success->value,
+                    count: 1
+                ),
+                new LogLevelCountObject(
+                    level: HttpStatusClassEnum::ServerError->value,
+                    count: 1
+                ),
             ],
             $meta->levelCounts
         );
@@ -317,7 +389,11 @@ class LogIndexerTest extends TestCase
     {
         $this->assertLevelFilesMatch($file);
 
-        $copy = $this->writeLogFile('scratch-' . $file->name, (string) file_get_contents($file->path), $file->type);
+        $copy = $this->writeLogFile(
+            'scratch-' . $file->name,
+            (string) file_get_contents($file->path),
+            $file->type
+        );
 
         $expected = $this->indexer()->ensureFresh($copy);
         $actual   = $this->repository()->findMeta($file->id);
@@ -326,6 +402,9 @@ class LogIndexerTest extends TestCase
         $this->assertSame($expected->entriesCount, $actual->entriesCount);
         $this->assertEquals($expected->levelCounts, $actual->levelCounts);
         $this->assertSame($expected->indexedBytes, $actual->indexedBytes);
-        $this->assertEquals($this->readRecords($copy), $this->readRecords($file));
+        $this->assertEquals(
+            $this->readRecords($copy),
+            $this->readRecords($file)
+        );
     }
 }

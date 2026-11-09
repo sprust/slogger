@@ -6,73 +6,103 @@ namespace App\Modules\Notification\Domain\Services;
 
 use App\Modules\Notification\Domain\Services\Senders\NotificationSenderInterface;
 use App\Modules\Notification\Enums\NotificationKindEnum;
-use App\Modules\Watcher\Domain\Services\Types\WatcherTypeRegistry;
-use App\Modules\Watcher\Entities\Events\HasEventGroupsInterface;
-use App\Modules\Watcher\Entities\WatcherIncidentEventGroupObject;
-use App\Modules\Watcher\Entities\WatcherIncidentEventObject;
-use App\Modules\Watcher\Entities\WatcherIncidentObject;
-use App\Modules\Watcher\Entities\WatcherObject;
+use App\Modules\Notification\Entities\IncidentEventGroupObject;
+use App\Modules\Notification\Parameters\IncidentEventParameters;
+use App\Modules\Notification\Parameters\IncidentSnapshotParameters;
+use App\Modules\Notification\Parameters\IncidentWatcherParameters;
 
 readonly class IncidentMessageFactory
 {
     private const int MAX_GROUPS = 3;
 
     /** @var string[] */
-    private const array SECOND_KEYS = ['duration', 'slowest', 'duration_max'];
+    private const array SECOND_KEYS = [
+        'duration',
+        'slowest',
+        'duration_max',
+    ];
 
-    public function __construct(
-        private WatcherTypeRegistry $watcherTypes,
-        private string $appName
-    ) {
+    public function __construct(private string $appName)
+    {
     }
 
-    public function make(
-        NotificationKindEnum $kind,
-        WatcherObject $watcher,
-        WatcherIncidentObject $incident,
-        ?WatcherIncidentEventObject $event,
-        NotificationSenderInterface $sender
-    ): string {
+    public function make(NotificationKindEnum $kind, IncidentWatcherParameters $watcher, IncidentSnapshotParameters $incident, ?IncidentEventParameters $event, NotificationSenderInterface $sender): string
+    {
         $blocks = [
-            $this->title($kind, $sender),
-            implode("\n", $this->head($kind, $watcher, $incident, $sender)),
+            $this->title(
+                kind: $kind,
+                sender: $sender,
+            ),
+            implode(
+                "\n",
+                $this->head(
+                    kind: $kind,
+                    watcher: $watcher,
+                    incident: $incident,
+                    sender: $sender,
+                ),
+            ),
         ];
 
         // A payload that could not be read leaves the message at its head: the event
         // happened, and saying so with no numbers beats inventing some.
         if ($kind === NotificationKindEnum::Closed || is_null($event) || is_null($event->payload)) {
-            return implode("\n\n", $blocks);
+            return implode(
+                "\n\n",
+                $blocks,
+            );
         }
 
         // The stored document rather than the object: its keys are the names a reader of
         // the message sees, and the panel shows the same event under the same ones. The
         // mapper is the one place that holds them.
-        $document = $this->watcherTypes->for($watcher->type)
-            ->eventPayloadMapper()
-            ->toDocument($event->payload);
+        $document = $event->payload;
+        $settings = $this->values(
+            values: $document['settings'] ?? null,
+            sender: $sender,
+        );
 
-        $settings = $this->values($document['settings'] ?? null, $sender);
-
-        if (count($settings)) {
-            $blocks[] = "⚙️ settings:\n" . implode("\n", $settings);
+        if (
+            count($settings)
+        ) {
+            $blocks[] = "⚙️ settings:\n" . implode(
+                "\n",
+                $settings,
+            );
         }
 
-        $measured = $this->values($document['measured'] ?? null, $sender);
+        $measured = $this->values(
+            values: $document['measured'] ?? null,
+            sender: $sender,
+        );
 
-        if (count($measured)) {
-            $blocks[] = "📊 measured:\n" . implode("\n", $measured);
+        if (
+            count($measured)
+        ) {
+            $blocks[] = "📊 measured:\n" . implode(
+                "\n",
+                $measured,
+            );
         }
 
         $traces = $this->traces(
-            $event->payload instanceof HasEventGroupsInterface ? $event->payload->groups : [],
-            $sender
+            groups: $event->groups,
+            sender: $sender,
         );
 
-        if (count($traces)) {
-            $blocks[] = "🔎 traces:\n" . implode("\n", $traces);
+        if (
+            count($traces)
+        ) {
+            $blocks[] = "🔎 traces:\n" . implode(
+                "\n",
+                $traces,
+            );
         }
 
-        return implode("\n\n", $blocks);
+        return implode(
+            "\n\n",
+            $blocks,
+        );
     }
 
     private function title(NotificationKindEnum $kind, NotificationSenderInterface $sender): string
@@ -83,23 +113,17 @@ readonly class IncidentMessageFactory
             NotificationKindEnum::Closed => '🟢',
         };
 
-        return $mark . ' ' . $sender->bold(
-            $sender->escape($this->appName) . ' (' . $kind->value . ')'
-        );
+        return $mark . ' ' . $sender->bold($sender->escape($this->appName) . ' (' . $kind->value . ')');
     }
 
     /**
      * @return string[]
      */
-    private function head(
-        NotificationKindEnum $kind,
-        WatcherObject $watcher,
-        WatcherIncidentObject $incident,
-        NotificationSenderInterface $sender
-    ): array {
+    private function head(NotificationKindEnum $kind, IncidentWatcherParameters $watcher, IncidentSnapshotParameters $incident, NotificationSenderInterface $sender): array
+    {
         $lines = [
             '🏷 name: ' . $sender->escape($watcher->name),
-            '📛 type: ' . $sender->escape($this->watcherTypes->for($watcher->type)->describe()->title),
+            '📛 type: ' . $sender->escape($watcher->typeTitle),
         ];
 
         if ($kind === NotificationKindEnum::Closed) {
@@ -140,8 +164,19 @@ readonly class IncidentMessageFactory
 
             $lines[] = sprintf(
                 '• %s: %s',
-                $sender->escape(str_replace('_', ' ', $key)),
-                $sender->escape($this->readable($key, $value))
+                $sender->escape(
+                    str_replace(
+                        '_',
+                        ' ',
+                        $key,
+                    )
+                ),
+                $sender->escape(
+                    $this->readable(
+                        key: $key,
+                        value: $value,
+                    )
+                )
             );
         }
 
@@ -149,7 +184,7 @@ readonly class IncidentMessageFactory
     }
 
     /**
-     * @param WatcherIncidentEventGroupObject[] $groups
+     * @param IncidentEventGroupObject[] $groups
      *
      * @return string[]
      */
@@ -157,21 +192,33 @@ readonly class IncidentMessageFactory
     {
         $lines = [];
 
-        foreach (array_slice($groups, 0, self::MAX_GROUPS) as $group) {
+        foreach (
+            array_slice(
+                $groups,
+                0,
+                self::MAX_GROUPS,
+            ) as $group
+        ) {
             $lines[] = '• ' . $sender->escape(
-                implode(' ', [$group->type, ...$group->tags])
+                implode(
+                    ' ',
+                    [
+                        $group->type,
+                        ...$group->tags,
+                    ],
+                )
             );
-
-            $line = sprintf(
-                '  %d trace%s',
-                $group->count,
-                $group->count === 1 ? '' : 's'
-            );
+            $line = sprintf('  %d trace%s', $group->count, $group->count === 1 ? '' : 's');
 
             // Only the slow-traces watcher has a maximum to name; the groups of a
             // counting watcher carry a count and nothing else.
             if (!is_null($group->durationMax)) {
-                $line .= ', up to ' . $sender->escape($this->readable('duration_max', $group->durationMax));
+                $line .= ', up to ' . $sender->escape(
+                    $this->readable(
+                        key: 'duration_max',
+                        value: $group->durationMax,
+                    )
+                );
             }
 
             $lines[] = $line;
@@ -192,6 +239,10 @@ readonly class IncidentMessageFactory
 
         $value = (string) $value;
 
-        return in_array($key, self::SECOND_KEYS, true) ? $value . 's' : $value;
+        return in_array(
+            $key,
+            self::SECOND_KEYS,
+            true,
+        ) ? $value . 's' : $value;
     }
 }

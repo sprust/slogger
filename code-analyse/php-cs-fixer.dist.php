@@ -1,10 +1,20 @@
 <?php
 
+require_once __DIR__ . '/Fixers/ExcludedPathsTrait.php';
+require_once __DIR__ . '/Fixers/MultilineBlockTrait.php';
+require_once __DIR__ . '/Fixers/MultilineMethodArgumentsFixer.php';
+require_once __DIR__ . '/Fixers/MultilineControlStructureConditionFixer.php';
+require_once __DIR__ . '/Fixers/MultilineArrayBracketsFixer.php';
+require_once __DIR__ . '/Fixers/MultilineAssignmentFixer.php';
+
 $finder = PhpCsFixer\Finder::create()
     ->in([
         __DIR__ . '/../app/Modules',
+        __DIR__ . '/../app/Console',
+        __DIR__ . '/../app/Providers',
         __DIR__ . '/../app/Models',
         __DIR__ . '/../tests',
+        __DIR__ . '/../database/seeders',
     ])
     ->name('*.php')
     ->notName([
@@ -16,11 +26,69 @@ $finder = PhpCsFixer\Finder::create()
 
 $config = new PhpCsFixer\Config();
 
+// The cache signature is built from the rule names and their configuration, so a change inside
+// a custom fixer would go unnoticed and every file would be skipped as already fixed.
+$fixersVersion = md5(implode('', array_map(
+    static fn (string $fixer): string => (string) file_get_contents($fixer),
+    glob(__DIR__ . '/Fixers/*.php') ?: [],
+)));
+
+$config->setCacheFile(__DIR__ . '/../.php-cs-fixer.cache.' . substr($fixersVersion, 0, 8));
+
+foreach (glob(__DIR__ . '/../.php-cs-fixer.cache.*') ?: [] as $staleCache) {
+    if (!str_ends_with($staleCache, substr($fixersVersion, 0, 8))) {
+        @unlink($staleCache);
+    }
+}
+
 return $config
     // TODO: conflict with laravel/pint that needs for laravel-lang/models
     // ->setParallelConfig(PhpCsFixer\Runner\Parallel\ParallelConfigFactory::detect())
+    ->registerCustomFixers([
+        new CodeAnalyse\Fixers\MultilineMethodArgumentsFixer(),
+        new CodeAnalyse\Fixers\MultilineControlStructureConditionFixer(),
+        new CodeAnalyse\Fixers\MultilineArrayBracketsFixer(),
+        new CodeAnalyse\Fixers\MultilineAssignmentFixer(),
+    ])
     ->setRules([
-        '@PSR12' => true,
+        // Splits arguments of a single-line call one per line once their total length exceeds max_length;
+        // a lone argument is split out only when it is named, since there is nothing to gain otherwise.
+        'Ifksco/multiline_method_arguments' => [
+            'max_length'        => 50,
+            'single_argument'   => 'break_named',
+            'hug_prefix_length' => 70,
+            'excluded_paths'    => [
+                '#/app/Models/#',
+                '#/Repositories/#',
+            ],
+        ],
+
+        // Once a condition no longer fits on one line, it gets lines of its own,
+        // so that the closing parenthesis is not lost among the wrapped arguments.
+        'Ifksco/multiline_control_structure_condition' => [
+            'excluded_paths' => [
+                '#/app/Models/#',
+                '#/Repositories/#',
+            ],
+        ],
+
+        // An array whose content no longer fits on one line gets brackets of its own,
+        // so that the elements are not lost next to the wrapped ones.
+        'Ifksco/multiline_array_brackets' => [
+            'excluded_paths' => [
+                '#/app/Models/#',
+                '#/Repositories/#',
+            ],
+        ],
+
+        // An assigned expression whose operands stand on lines of their own starts on a line
+        // of its own too, so that the first operand is not indented apart from the rest.
+        'Ifksco/multiline_assignment' => [
+            'excluded_paths' => [
+                '#/app/Models/#',
+                '#/Repositories/#',
+            ],
+        ],
 
         // General rules from .editorconfig
         'encoding'    => true, // charset = utf-8
@@ -35,7 +103,8 @@ return $config
             'default'   => 'single_space',
             'operators' => [
                 '=>' => 'align_single_space',
-                '='  => 'align_single_space_minimal',
+                // not the _minimal variant: that one pulls a multiline expression back onto the line of the operator
+                '='  => 'align_single_space',
             ],
         ],
         'blank_line_after_namespace'   => true,
@@ -84,7 +153,7 @@ return $config
         'magic_constant_casing'       => true,
         'magic_method_casing'         => true,
         'method_argument_space'       => [
-            'on_multiline'                     => 'ignore', // ij_php_method_parameters_wrap = on_every_item
+            'on_multiline'                     => 'ensure_fully_multiline', // ij_php_method_parameters_wrap = on_every_item
             'keep_multiple_spaces_after_comma' => false, // ij_php_space_after_comma = true
         ],
         'native_function_casing'             => true,

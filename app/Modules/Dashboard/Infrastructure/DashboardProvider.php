@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Dashboard\Infrastructure;
 
+use App\Modules\Dashboard\Infrastructure\Exceptions\DashboardExceptionManager;
+use App\Modules\Dashboard\Infrastructure\Jobs\RefreshDatabaseStatCacheJob;
 use App\Modules\Common\Infrastructure\BaseServiceProvider;
 use App\Modules\Dashboard\Domain\Actions\FindDatabaseStatCacheAction;
 use App\Modules\Dashboard\Domain\Actions\FindSconcurStatAction;
@@ -17,6 +19,13 @@ use App\Modules\Dashboard\Repositories\TraceMetricRepository;
 
 class DashboardProvider extends BaseServiceProvider
 {
+    protected function getJobs(): array
+    {
+        return [
+            RefreshDatabaseStatCacheJob::class,
+        ];
+    }
+
     protected function getContracts(): array
     {
         return [
@@ -33,6 +42,13 @@ class DashboardProvider extends BaseServiceProvider
             RefreshDatabaseStatCacheAction::class,
             FindSconcurStatAction::class,
             FindTraceMetricsAction::class,
+        ];
+    }
+
+    protected function getExceptionManagers(): array
+    {
+        return [
+            DashboardExceptionManager::class,
         ];
     }
 }

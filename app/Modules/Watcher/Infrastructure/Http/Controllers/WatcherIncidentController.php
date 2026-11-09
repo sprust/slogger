@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace App\Modules\Watcher\Infrastructure\Http\Controllers;
 
-use App\Modules\Auth\Domain\Actions\FindUserByTokenAction;
+use App\Modules\Watcher\Parameters\CloseIncidentByAdminParameters;
 use App\Modules\Common\Helpers\ArrayValueGetter;
-use App\Modules\Watcher\Domain\Actions\Mutations\CloseIncidentAction;
-use App\Modules\Watcher\Domain\Actions\Queries\FindIncidentStatAction;
-use App\Modules\Watcher\Domain\Actions\Queries\FindIncidentsAction;
-use App\Modules\Watcher\Domain\Exceptions\WatcherIncidentNotFoundException;
+use App\Modules\Watcher\Domain\UseCases\CloseIncidentByAdminUseCase;
+use App\Modules\Watcher\Domain\UseCases\FindIncidentStatByAdminUseCase;
+use App\Modules\Watcher\Domain\UseCases\FindIncidentsByAdminUseCase;
 use App\Modules\Watcher\Enums\WatcherIncidentStatusEnum;
 use App\Modules\Watcher\Infrastructure\Http\Requests\IndexIncidentsRequest;
 use App\Modules\Watcher\Infrastructure\Http\Resources\WatcherIncidentResource;
@@ -18,7 +17,6 @@ use App\Modules\Watcher\Parameters\FindIncidentsParameters;
 use Ifksco\OpenApiGenerator\Attributes\OaListItemTypeAttribute;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response as ResponseFoundation;
 
 /**
  * A controller of its own, because an incident is not a watcher: it has its own list, its
@@ -26,28 +24,35 @@ use Symfony\Component\HttpFoundation\Response as ResponseFoundation;
  */
 readonly class WatcherIncidentController
 {
-    public function __construct(
-        private FindIncidentsAction $findIncidentsAction,
-        private FindIncidentStatAction $findIncidentStatAction,
-        private CloseIncidentAction $closeIncidentAction,
-        private FindUserByTokenAction $findUserByTokenAction
-    ) {
+    public function __construct(private FindIncidentsByAdminUseCase $findIncidentsByAdminUseCase, private FindIncidentStatByAdminUseCase $findIncidentStatByAdminUseCase, private CloseIncidentByAdminUseCase $closeIncidentByAdminUseCase)
+    {
     }
 
     #[OaListItemTypeAttribute(WatcherIncidentResource::class)]
     public function index(IndexIncidentsRequest $request): AnonymousResourceCollection
     {
         $validated = $request->validated();
-
-        $status = ArrayValueGetter::stringNull($validated, 'status');
+        $status    = ArrayValueGetter::stringNull(
+            data: $validated,
+            key: 'status',
+        );
 
         return WatcherIncidentResource::collection(
-            $this->findIncidentsAction->handle(
+            $this->findIncidentsByAdminUseCase->handle(
                 new FindIncidentsParameters(
                     status: $status ? WatcherIncidentStatusEnum::from($status) : null,
-                    watcherId: ArrayValueGetter::intNull($validated, 'watcher_id'),
-                    page: ArrayValueGetter::intNull($validated, 'page') ?? 1,
-                    perPage: ArrayValueGetter::intNull($validated, 'per_page') ?? 50
+                    watcherId: ArrayValueGetter::intNull(
+                        data: $validated,
+                        key: 'watcher_id',
+                    ),
+                    page: ArrayValueGetter::intNull(
+                        data: $validated,
+                        key: 'page',
+                    ) ?? 1,
+                    perPage: ArrayValueGetter::intNull(
+                        data: $validated,
+                        key: 'per_page',
+                    ) ?? 50,
                 )
             )
         );
@@ -58,27 +63,16 @@ readonly class WatcherIncidentController
      */
     public function stat(): WatcherIncidentStatResource
     {
-        return new WatcherIncidentStatResource($this->findIncidentStatAction->handle());
+        return new WatcherIncidentStatResource($this->findIncidentStatByAdminUseCase->handle());
     }
 
     public function close(string $id, Request $request): void
     {
-        try {
-            $this->closeIncidentAction->handle($id, $this->currentUserId($request));
-        } catch (WatcherIncidentNotFoundException $exception) {
-            abort(ResponseFoundation::HTTP_NOT_FOUND, $exception->getMessage());
-        }
-    }
-
-    /**
-     * Who is closing it, resolved from the token rather than from the request's user
-     * resolver: what the middleware puts there is this application's own object, not
-     * something the framework's Authenticatable contract describes.
-     */
-    private function currentUserId(Request $request): ?int
-    {
-        $token = $request->bearerToken();
-
-        return $token ? $this->findUserByTokenAction->handle($token)?->id : null;
+        $this->closeIncidentByAdminUseCase->handle(
+            new CloseIncidentByAdminParameters(
+                incidentId: $id,
+                token: $request->bearerToken(),
+            )
+        );
     }
 }

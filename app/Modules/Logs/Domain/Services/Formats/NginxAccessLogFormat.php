@@ -31,13 +31,28 @@ readonly class NginxAccessLogFormat extends AbstractLineLogFormat
             fields: [
                 new LogEntryFieldObject(key: 'ip', value: $match[1]),
                 new LogEntryFieldObject(key: 'user', value: $this->nullIfDash($match[2])),
-                new LogEntryFieldObject(key: 'method', value: count($request) === 3 ? $request[0] : null),
-                new LogEntryFieldObject(key: 'path', value: count($request) === 3 ? $request[1] : null),
-                new LogEntryFieldObject(key: 'protocol', value: count($request) === 3 ? $request[2] : null),
+                new LogEntryFieldObject(
+                    key: 'method',
+                    value: count($request) === 3 ? $request[0] : null
+                ),
+                new LogEntryFieldObject(
+                    key: 'path',
+                    value: count($request) === 3 ? $request[1] : null
+                ),
+                new LogEntryFieldObject(
+                    key: 'protocol',
+                    value: count($request) === 3 ? $request[2] : null
+                ),
                 new LogEntryFieldObject(key: 'status', value: $match[4]),
                 new LogEntryFieldObject(key: 'bytes', value: $this->nullIfDash($match[5])),
-                new LogEntryFieldObject(key: 'referer', value: $this->nullIfDash($match[6] ?? '-')),
-                new LogEntryFieldObject(key: 'user_agent', value: $this->nullIfDash($match[7] ?? '-')),
+                new LogEntryFieldObject(
+                    key: 'referer',
+                    value: $this->nullIfDash($match[6] ?? '-')
+                ),
+                new LogEntryFieldObject(
+                    key: 'user_agent',
+                    value: $this->nullIfDash($match[7] ?? '-')
+                ),
             ]
         );
     }
@@ -47,7 +62,10 @@ readonly class NginxAccessLogFormat extends AbstractLineLogFormat
         $names = [];
 
         foreach (HttpStatusClassEnum::cases() as $case) {
-            $names[] = new LogLevelNameObject(level: $case->value, name: sprintf('%dxx', $case->value));
+            $names[] = new LogLevelNameObject(
+                level: $case->value,
+                name: sprintf('%dxx', $case->value)
+            );
         }
 
         return $names;

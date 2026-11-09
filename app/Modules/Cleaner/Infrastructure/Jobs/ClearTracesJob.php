@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Cleaner\Infrastructure\Jobs;
 
-use App\Modules\Cleaner\Domain\Actions\ClearTracesAction;
-use App\Modules\Setting\Domain\Actions\FindSettingValueAction;
-use App\Modules\Setting\Enums\SettingKeyEnum;
+use App\Modules\Cleaner\Domain\UseCases\ClearTracesUseCase;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
@@ -14,9 +12,11 @@ use Illuminate\Queue\InteractsWithQueue;
 class ClearTracesJob implements ShouldQueue
 {
     use InteractsWithQueue;
+
     use Queueable;
 
     public int $tries   = 3;
+
     public int $backoff = 2;
 
     /**
@@ -24,17 +24,24 @@ class ClearTracesJob implements ShouldQueue
      */
     public function __construct()
     {
-        $this->onConnection(config('cleaner.queue.connection'))
-            ->onQueue(config('cleaner.queue.name'));
+        $this
+            ->onConnection(
+                config(
+                    key: 'cleaner.queue.connection',
+                )
+            )
+            ->onQueue(
+                config(
+                    key: 'cleaner.queue.name',
+                )
+            );
     }
 
     /**
      * Execute the job.
      */
-    public function handle(ClearTracesAction $clearTracesAction, FindSettingValueAction $findSettingValueAction): void
+    public function handle(ClearTracesUseCase $clearTracesUseCase): void
     {
-        $clearTracesAction->handle(
-            $findSettingValueAction->handle(SettingKeyEnum::TracesLifetimeHours)
-        );
+        $clearTracesUseCase->handle();
     }
 }

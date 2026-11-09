@@ -266,14 +266,26 @@ readonly class FindLogEntriesAction
         $position = $this->findCursorPosition($cursor, $fileIndex->file->id);
 
         if ($position === null) {
-            return new LogFileStartObject(fileIndex: $fileIndex, position: null, restarted: false);
+            return new LogFileStartObject(
+                fileIndex: $fileIndex,
+                position: null,
+                restarted: false
+            );
         }
 
         if ($position->position > $fileIndex->meta->entriesCount || !$this->hasSameHead($fileIndex, $position)) {
-            return new LogFileStartObject(fileIndex: $fileIndex, position: null, restarted: true);
+            return new LogFileStartObject(
+                fileIndex: $fileIndex,
+                position: null,
+                restarted: true
+            );
         }
 
-        return new LogFileStartObject(fileIndex: $fileIndex, position: $position->position, restarted: false);
+        return new LogFileStartObject(
+            fileIndex: $fileIndex,
+            position: $position->position,
+            restarted: false
+        );
     }
 
     private function findCursorPosition(?LogCursorObject $cursor, string $fileId): ?LogCursorPositionObject
@@ -320,7 +332,10 @@ readonly class FindLogEntriesAction
                 $position = $start->position === null ? -1 : $start->position - 1;
             }
 
-            $positions[] = new LogFilePositionObject(fileId: $start->fileIndex->file->id, position: $position);
+            $positions[] = new LogFilePositionObject(
+                fileId: $start->fileIndex->file->id,
+                position: $position
+            );
         }
 
         return $positions;

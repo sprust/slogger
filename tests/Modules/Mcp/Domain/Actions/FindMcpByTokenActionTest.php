@@ -17,7 +17,10 @@ class FindMcpByTokenActionTest extends TestCase
 
         $repository->method('findOneByToken')->willReturn($this->mcpObject(id: 7));
 
-        $this->assertSame(7, $this->action($repository)->handle('token')?->id);
+        $this->assertSame(
+            7,
+            $this->action($repository)->handle('token')?->id
+        );
     }
 
     public function testSkipsADisabledMcp(): void

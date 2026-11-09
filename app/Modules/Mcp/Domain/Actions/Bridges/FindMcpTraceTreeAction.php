@@ -11,15 +11,14 @@ use App\Modules\Trace\Domain\Actions\Queries\FindTraceTreeChildrenAction;
 use App\Modules\Trace\Domain\Actions\Queries\FindTraceTreeStateAction;
 use App\Modules\Trace\Enums\TraceTreeCacheStateStatusEnum;
 use App\Services\Clickhouse\ClickhouseQueryException;
+use App\Modules\Mcp\Transports\TraceObjectTransport;
+use App\Modules\Trace\Entities\Trace\Tree\TraceTreeRawObject;
+use App\Modules\Mcp\Enums\TraceTreeCacheStateStatusEnum as McpTraceTreeCacheStateStatusEnum;
 
 readonly class FindMcpTraceTreeAction
 {
-    public function __construct(
-        private FindTraceTreeStateAction $findTraceTreeStateAction,
-        private FindTraceTreeAction $findTraceTreeAction,
-        private FindTraceTreeChildrenAction $findTraceTreeChildrenAction,
-        private McpTraceTreeNodeFactory $nodeFactory
-    ) {
+    public function __construct(private FindTraceTreeStateAction $findTraceTreeStateAction, private FindTraceTreeAction $findTraceTreeAction, private FindTraceTreeChildrenAction $findTraceTreeChildrenAction, private McpTraceTreeNodeFactory $nodeFactory, private TraceObjectTransport $traceObjectTransport)
+    {
     }
 
     /**
@@ -36,7 +35,11 @@ readonly class FindMcpTraceTreeAction
         $state = $tree->state;
 
         if (is_null($state)) {
-            $started = $this->findTraceTreeAction->handle($traceId, fresh: false, isChild: false);
+            $started = $this->findTraceTreeAction->handle(
+                traceId: $traceId,
+                fresh: false,
+                isChild: false,
+            );
 
             if (is_null($started)) {
                 return null;
@@ -48,12 +51,12 @@ readonly class FindMcpTraceTreeAction
         if ($state->status !== TraceTreeCacheStateStatusEnum::Finished) {
             return new McpTraceTreeObject(
                 rootTraceId: $tree->rootTraceId,
-                status: $state->status,
+                status: McpTraceTreeCacheStateStatusEnum::from($state->status->value),
                 error: $state->error,
                 nodes: [],
                 nextCursor: null,
                 matchedCount: 0,
-                truncated: false
+                truncated: false,
             );
         }
 
@@ -61,17 +64,20 @@ readonly class FindMcpTraceTreeAction
             rootTraceId: $tree->rootTraceId,
             parentTraceId: $parentTraceId,
             cursor: $cursor,
-            limit: $limit
+            limit: $limit,
         );
 
         return new McpTraceTreeObject(
             rootTraceId: $tree->rootTraceId,
-            status: $state->status,
+            status: McpTraceTreeCacheStateStatusEnum::from($state->status->value),
             error: null,
-            nodes: $this->nodeFactory->make($children->items, $children->childrenCounts),
+            nodes: $this->nodeFactory->make(
+                nodes: array_map(fn(TraceTreeRawObject $node) => $this->traceObjectTransport->toTraceTreeNodeParameters($node), $children->items),
+                childrenCounts: $children->childrenCounts,
+            ),
             nextCursor: $children->nextCursor,
             matchedCount: count($children->items),
-            truncated: false
+            truncated: false,
         );
     }
 }

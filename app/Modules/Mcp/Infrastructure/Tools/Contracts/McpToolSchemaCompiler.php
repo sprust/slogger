@@ -100,7 +100,12 @@ readonly class McpToolSchemaCompiler
                 $schema['enum'] = $property->enum;
             }
 
-            return [...$schema, ...$this->bounds($property, $property->type === McpToolPropertyTypeEnum::String)];
+            return [
+                ...$schema, ...$this->bounds(
+                    $property,
+                    $property->type === McpToolPropertyTypeEnum::String
+                ),
+            ];
         }
 
         $items = [

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Setting\Infrastructure;
 
+use App\Modules\Setting\Infrastructure\Exceptions\SettingExceptionManager;
 use App\Modules\Common\Infrastructure\BaseServiceProvider;
 use App\Modules\Setting\Domain\Actions\FindSettingsAction;
 use App\Modules\Setting\Domain\Actions\FindSettingValueAction;
@@ -28,6 +29,13 @@ class SettingServiceProvider extends BaseServiceProvider
             FindSettingValueAction::class,
             ResetSettingAction::class,
             UpdateSettingAction::class,
+        ];
+    }
+
+    protected function getExceptionManagers(): array
+    {
+        return [
+            SettingExceptionManager::class,
         ];
     }
 }

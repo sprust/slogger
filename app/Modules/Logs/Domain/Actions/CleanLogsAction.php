@@ -49,7 +49,10 @@ readonly class CleanLogsAction
                 continue;
             }
 
-            $mutex = new LogIndexMutex(fileId: $fileId, waitForBlockSec: self::WAIT_FOR_LOCK_SEC);
+            $mutex = new LogIndexMutex(
+                fileId: $fileId,
+                waitForBlockSec: self::WAIT_FOR_LOCK_SEC
+            );
 
             try {
                 $this->mutexManager->lock($mutex);

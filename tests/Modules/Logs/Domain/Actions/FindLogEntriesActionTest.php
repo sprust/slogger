@@ -48,10 +48,34 @@ class FindLogEntriesActionTest extends TestCase
         $day1 = gmmktime(0, 0, 0, 9, 24, 2026);
         $day2 = gmmktime(0, 0, 0, 9, 25, 2026);
 
-        $this->writeLaravel('laravel-day1', 'logs/laravel-2026-09-24.log', $day1, 40, 60);
-        $this->writeLaravel('laravel-day2', 'logs/laravel-2026-09-25.log', $day2, 40, 60);
-        $this->writeLaravel('slogger-day2', 'logs/slogger/slogger-2026-09-25.log', $day2 + 30, 25, 45);
-        $this->writeAccess('access-day2', 'logs/nginx/access-2026-09-25.log', $day2 + 10, 30, 70);
+        $this->writeLaravel(
+            'laravel-day1',
+            'logs/laravel-2026-09-24.log',
+            $day1,
+            40,
+            60
+        );
+        $this->writeLaravel(
+            'laravel-day2',
+            'logs/laravel-2026-09-25.log',
+            $day2,
+            40,
+            60
+        );
+        $this->writeLaravel(
+            'slogger-day2',
+            'logs/slogger/slogger-2026-09-25.log',
+            $day2 + 30,
+            25,
+            45
+        );
+        $this->writeAccess(
+            'access-day2',
+            'logs/nginx/access-2026-09-25.log',
+            $day2 + 10,
+            30,
+            70
+        );
     }
 
     protected function tearDown(): void
@@ -74,7 +98,10 @@ class FindLogEntriesActionTest extends TestCase
 
     public function testPagesGoThroughEveryEntryOnce(): void
     {
-        $this->assertSame($this->expectedTexts(), $this->collectPages(perPage: 7));
+        $this->assertSame(
+            $this->expectedTexts(),
+            $this->collectPages(perPage: 7)
+        );
     }
 
     public function testASearchAcrossFilesFindsEveryMatchOnceEvenWhenTheBudgetCutsIt(): void
@@ -85,7 +112,10 @@ class FindLogEntriesActionTest extends TestCase
         $expected = $this->expectedTexts(static fn(array $entry): bool => str_contains($entry['text'], 'needle'));
 
         $this->assertNotEmpty($expected);
-        $this->assertSame($expected, $this->collectPages(perPage: 3, searchQuery: 'NEEDLE'));
+        $this->assertSame(
+            $expected,
+            $this->collectPages(perPage: 3, searchQuery: 'NEEDLE')
+        );
     }
 
     public function testAnEmptyPageFromTheBudgetStillMovesTheCursor(): void
@@ -103,7 +133,11 @@ class FindLogEntriesActionTest extends TestCase
         $scanned = $page->scanned;
 
         while ($page->olderCursor !== null) {
-            $page = $this->find(perPage: 50, searchQuery: 'no such text anywhere', cursor: $page->olderCursor);
+            $page = $this->find(
+                perPage: 50,
+                searchQuery: 'no such text anywhere',
+                cursor: $page->olderCursor
+            );
 
             $this->assertSame([], $page->items);
 
@@ -143,7 +177,10 @@ class FindLogEntriesActionTest extends TestCase
 
     public function testLevelKeysApplyToFilesOfTheirType(): void
     {
-        $page = $this->find(perPage: 1000, levels: ['laravel.ERROR', 'nginx_access.5xx', 'laravel.unknown', 'bogus.ERROR']);
+        $page = $this->find(
+            perPage: 1000,
+            levels: ['laravel.ERROR', 'nginx_access.5xx', 'laravel.unknown', 'bogus.ERROR']
+        );
 
         $expected = $this->expectedTexts(
             static fn(array $entry): bool => str_contains($entry['text'], 'local.ERROR') || str_contains($entry['text'], '" 503 ')
@@ -166,7 +203,10 @@ class FindLogEntriesActionTest extends TestCase
 
     public function testNoLevelKeysMeanNoLevelFilter(): void
     {
-        $this->assertSame(count($this->expected), $this->find(perPage: 1, levels: [])->total);
+        $this->assertSame(
+            count($this->expected),
+            $this->find(perPage: 1, levels: [])->total
+        );
     }
 
     public function testLevelCountsCoverTheWholeScope(): void
@@ -206,12 +246,18 @@ class FindLogEntriesActionTest extends TestCase
         $this->assertSame(sha1($this->paths['access-day2']), $entry->fileId);
         $this->assertSame(LogTypeEnum::NginxAccess, $entry->type);
         $this->assertSame('nginx_access.5xx', $entry->levelKey);
-        $this->assertContainsEquals(new LogEntryFieldObject(key: 'status', value: '503'), $entry->details->fields);
+        $this->assertContainsEquals(
+            new LogEntryFieldObject(key: 'status', value: '503'),
+            $entry->details->fields
+        );
     }
 
     public function testAnUnknownFileIsReportedAndTheRestAreRead(): void
     {
-        $page = $this->find(perPage: 1000, fileIds: [sha1($this->paths['slogger-day2']), sha1('/etc/passwd')]);
+        $page = $this->find(
+            perPage: 1000,
+            fileIds: [sha1($this->paths['slogger-day2']), sha1('/etc/passwd')]
+        );
 
         $this->assertSame([sha1('/etc/passwd')], $page->missingFileIds);
         $this->assertSame(25, $page->total);
@@ -228,7 +274,10 @@ class FindLogEntriesActionTest extends TestCase
 
         $next = $this->find(perPage: 5, cursor: $first->olderCursor);
 
-        $this->assertSame([sha1($this->paths['laravel-day2'])], $next->restartedFileIds);
+        $this->assertSame(
+            [sha1($this->paths['laravel-day2'])],
+            $next->restartedFileIds
+        );
     }
 
     public function testACursorForAnotherScopeIsRefused(): void
@@ -237,7 +286,11 @@ class FindLogEntriesActionTest extends TestCase
 
         $this->expectException(LogCursorInvalidException::class);
 
-        $this->find(perPage: 5, fileIds: [sha1($this->paths['slogger-day2'])], cursor: $first->olderCursor);
+        $this->find(
+            perPage: 5,
+            fileIds: [sha1($this->paths['slogger-day2'])],
+            cursor: $first->olderCursor
+        );
     }
 
     public function testAMalformedCursorIsRefused(): void
@@ -251,7 +304,10 @@ class FindLogEntriesActionTest extends TestCase
     {
         config()->set('module-logs.search.index_budget_ms', 1000);
 
-        Cache::store('array')->lock('mutex:logs-index:' . sha1($this->paths['laravel-day1']), 10)->get();
+        Cache::store('array')->lock(
+            'mutex:logs-index:' . sha1($this->paths['laravel-day1']),
+            10
+        )->get();
 
         $page = $this->find(perPage: 5);
 
@@ -297,7 +353,11 @@ class FindLogEntriesActionTest extends TestCase
         $pages  = 0;
 
         do {
-            $page = $this->find(perPage: $perPage, searchQuery: $searchQuery, cursor: $cursor);
+            $page = $this->find(
+                perPage: $perPage,
+                searchQuery: $searchQuery,
+                cursor: $cursor
+            );
 
             $this->assertLessThanOrEqual($perPage, count($page->items));
 

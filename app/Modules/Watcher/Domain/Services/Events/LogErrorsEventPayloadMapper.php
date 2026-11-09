@@ -30,7 +30,8 @@ readonly class LogErrorsEventPayloadMapper implements WatcherEventPayloadMapperI
         $measuredSince       = ArrayValueGetter::stringNull($measured, 'since');
         $measuredLastMessage = ArrayValueGetter::stringNull($measured, 'last_message');
 
-        if (is_null($settingsThreshold)
+        if (
+            is_null($settingsThreshold)
             || is_null($measuredErrorCount)
             || is_null($measuredSince)
             || is_null($measuredLastMessage)

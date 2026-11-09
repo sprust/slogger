@@ -53,10 +53,16 @@ class HttpSendResultReaderTest extends TestCase
 
     public function testAClientErrorIsRefusedForGood(): void
     {
-        $result = new HttpSendResultReader()->read(new Response(404, body: 'channel_not_found'), 'Slack');
+        $result = new HttpSendResultReader()->read(
+            new Response(404, body: 'channel_not_found'),
+            'Slack'
+        );
 
         self::assertTrue($result->permanent);
-        self::assertSame('Slack answered 404: channel_not_found', $result->error);
+        self::assertSame(
+            'Slack answered 404: channel_not_found',
+            $result->error
+        );
     }
 
     public function testAServerErrorIsWorthAnotherGo(): void

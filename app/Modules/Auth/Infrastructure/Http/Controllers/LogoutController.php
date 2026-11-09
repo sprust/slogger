@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Auth\Infrastructure\Http\Controllers;
 
-use App\Modules\User\Domain\Actions\DeleteUserTokenAction;
+use App\Modules\Auth\Domain\UseCases\LogoutByAdminUseCase;
+use App\Modules\Auth\Parameters\TokenParameters;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
@@ -17,9 +18,8 @@ use Illuminate\Http\Response;
  */
 readonly class LogoutController
 {
-    public function __construct(
-        private DeleteUserTokenAction $deleteUserTokenAction
-    ) {
+    public function __construct(private LogoutByAdminUseCase $logoutByAdminUseCase)
+    {
     }
 
     public function __invoke(Request $request): Response
@@ -27,7 +27,7 @@ readonly class LogoutController
         $bearerToken = $request->bearerToken();
 
         if ($bearerToken) {
-            $this->deleteUserTokenAction->handle($bearerToken);
+            $this->logoutByAdminUseCase->handle(new TokenParameters($bearerToken));
         }
 
         return response()->noContent();

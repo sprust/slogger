@@ -38,8 +38,14 @@ readonly class SconcurAccessLogFormat extends AbstractLineLogFormat
                 new LogEntryFieldObject(key: 'path', value: $match[2]),
                 new LogEntryFieldObject(key: 'status', value: $match[3]),
                 new LogEntryFieldObject(key: 'duration_ms', value: $match[4]),
-                new LogEntryFieldObject(key: 'worker', value: ($match[5] ?? '') === '' ? null : $match[5]),
-                new LogEntryFieldObject(key: 'pid', value: ($match[6] ?? '') === '' ? null : $match[6]),
+                new LogEntryFieldObject(
+                    key: 'worker',
+                    value: ($match[5] ?? '') === '' ? null : $match[5]
+                ),
+                new LogEntryFieldObject(
+                    key: 'pid',
+                    value: ($match[6] ?? '') === '' ? null : $match[6]
+                ),
             ]
         );
     }
@@ -49,7 +55,10 @@ readonly class SconcurAccessLogFormat extends AbstractLineLogFormat
         $names = [];
 
         foreach (HttpStatusClassEnum::cases() as $case) {
-            $names[] = new LogLevelNameObject(level: $case->value, name: sprintf('%dxx', $case->value));
+            $names[] = new LogLevelNameObject(
+                level: $case->value,
+                name: sprintf('%dxx', $case->value)
+            );
         }
 
         return $names;

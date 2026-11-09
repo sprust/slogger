@@ -25,14 +25,26 @@ class LogFileDeleteHttpTest extends TestCase
         $this->withoutMiddleware([AuthMiddleware::class, SLoggerHttpMiddleware::class]);
 
         config()->set('cache.mutex_store', 'array');
+
         config()->set('module-logs.sources', [
             ['name' => 'Laravel', 'folder' => $this->tempDir . '/logs', 'pattern' => '*.log', 'type' => LogTypeEnum::Laravel, 'deletable' => true],
             ['name' => 'Nginx', 'folder' => $this->tempDir . '/logs/nginx', 'pattern' => 'error*.log', 'type' => LogTypeEnum::NginxError],
         ]);
 
-        $this->write('logs/laravel-2026-09-24.log', gmmktime(23, 0, 0, 9, 24, 2026));
-        $this->write('logs/laravel-2026-09-25.log', gmmktime(10, 0, 0, 9, 25, 2026));
-        $this->write('logs/nginx/error.log', gmmktime(9, 0, 0, 9, 20, 2026));
+        $this->write(
+            'logs/laravel-2026-09-24.log',
+            gmmktime(23, 0, 0, 9, 24, 2026)
+        );
+
+        $this->write(
+            'logs/laravel-2026-09-25.log',
+            gmmktime(10, 0, 0, 9, 25, 2026)
+        );
+
+        $this->write(
+            'logs/nginx/error.log',
+            gmmktime(9, 0, 0, 9, 20, 2026)
+        );
     }
 
     protected function tearDown(): void
@@ -71,6 +83,7 @@ class LogFileDeleteHttpTest extends TestCase
         $this->deleteJson('/admin-api/logs/files/' . sha1($path))->assertOk();
 
         $this->assertFileDoesNotExist($path);
+
         // is_dir() above left the answer in PHP's stat cache.
         clearstatcache();
 
@@ -97,7 +110,12 @@ class LogFileDeleteHttpTest extends TestCase
 
     public function testAFileOutsideTheSourcesIsNotFound(): void
     {
-        $this->deleteJson('/admin-api/logs/files/' . sha1('/etc/passwd'))->assertNotFound();
+        $fileId = sha1('/etc/passwd');
+
+        $this
+            ->deleteJson('/admin-api/logs/files/' . $fileId)
+            ->assertNotFound()
+            ->assertJsonPath('message', "Log file [$fileId] not found");
     }
 
     private function write(string $relativePath, int $modifiedAt): void

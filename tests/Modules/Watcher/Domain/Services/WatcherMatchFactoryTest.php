@@ -76,7 +76,12 @@ class WatcherMatchFactoryTest extends TestCase
                 'statuses'    => ['failed'],
             ],
             new WatcherMatchFactory()->toArray(
-                new WatcherMatchObject(serviceIds: [3], types: ['db'], tags: ['slow'], statuses: ['failed'])
+                new WatcherMatchObject(
+                    serviceIds: [3],
+                    types: ['db'],
+                    tags: ['slow'],
+                    statuses: ['failed']
+                )
             )
         );
     }

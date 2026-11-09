@@ -16,7 +16,11 @@ readonly class SlowTracesIncidentEventController extends AbstractIncidentEventCo
     public function index(string $id, IndexIncidentEventsRequest $request): AnonymousResourceCollection
     {
         return SlowTracesIncidentEventResource::collection(
-            $this->incidentEvents(WatcherTypeEnum::SlowTraces, $id, $request->validated())
+            $this->incidentEvents(
+                WatcherTypeEnum::SlowTraces,
+                $id,
+                $request->validated()
+            )
         );
     }
 }

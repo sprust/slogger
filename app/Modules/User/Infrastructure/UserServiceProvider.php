@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\User\Infrastructure;
 
+use App\Modules\User\Infrastructure\Exceptions\UserExceptionManager;
 use App\Modules\Common\Infrastructure\BaseServiceProvider;
 use App\Modules\User\Domain\Actions\CreateUserAction;
 use App\Modules\User\Domain\Actions\CreateUserTokenAction;
@@ -52,6 +53,13 @@ class UserServiceProvider extends BaseServiceProvider
             FindUsersAction::class,
             TouchUserTokenAction::class,
             UpdateUserAction::class,
+        ];
+    }
+
+    protected function getExceptionManagers(): array
+    {
+        return [
+            UserExceptionManager::class,
         ];
     }
 }

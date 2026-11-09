@@ -34,7 +34,8 @@ readonly class SlowTracesEventPayloadMapper implements WatcherEventPayloadMapper
 
         $measuredSlowest = ArrayValueGetter::floatNull($measured, 'slowest');
 
-        if (is_null($settingsDuration)
+        if (
+            is_null($settingsDuration)
             || is_null($settingsWindowMinutes)
             || is_null($measuredSlowest)
         ) {

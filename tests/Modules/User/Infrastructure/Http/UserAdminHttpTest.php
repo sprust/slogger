@@ -80,7 +80,11 @@ class UserAdminHttpTest extends TestCase
         $this->withoutAuth();
 
         $this->repository->method('find')->willReturn([
-            $this->userObject(id: 1, firstName: 'Ann', email: 'sppetrovich@gmail.com'),
+            $this->userObject(
+                id: 1,
+                firstName: 'Ann',
+                email: 'sppetrovich@gmail.com'
+            ),
             $this->userObject(id: 2, firstName: 'Bob', email: 'ab@gmail.com'),
             $this->userObject(id: 3, firstName: 'Kim', email: 'a@gmail.com'),
         ]);
@@ -108,9 +112,18 @@ class UserAdminHttpTest extends TestCase
 
         $this->repository->expects($this->never())->method('create');
 
-        $this->postJson('/admin-api/users', [...$this->createPayload(), 'email' => 'wrong'])->assertUnprocessable();
-        $this->postJson('/admin-api/users', [...$this->createPayload(), 'password' => 'short'])->assertUnprocessable();
-        $this->postJson('/admin-api/users', [...$this->createPayload(), 'first_name' => ''])->assertUnprocessable();
+        $this->postJson(
+            '/admin-api/users',
+            [...$this->createPayload(), 'email' => 'wrong']
+        )->assertUnprocessable();
+        $this->postJson(
+            '/admin-api/users',
+            [...$this->createPayload(), 'password' => 'short']
+        )->assertUnprocessable();
+        $this->postJson(
+            '/admin-api/users',
+            [...$this->createPayload(), 'first_name' => '']
+        )->assertUnprocessable();
     }
 
     public function testRenames(): void
@@ -120,7 +133,10 @@ class UserAdminHttpTest extends TestCase
         $this->repository->method('findOneById')->with(3)->willReturn($this->userObject(id: 3, firstName: 'Ann'));
         $this->repository->expects($this->once())->method('updateName')->with(3, 'Anna', 'Smith');
 
-        $this->patchJson('/admin-api/users/3', ['first_name' => 'Anna', 'last_name' => 'Smith'])
+        $this->patchJson(
+            '/admin-api/users/3',
+            ['first_name' => 'Anna', 'last_name' => 'Smith']
+        )
             ->assertOk()
             ->assertJsonPath('data.id', 3);
     }

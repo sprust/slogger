@@ -57,7 +57,11 @@ class ListEndpointsWrapTheirDataTest extends TestCase
 
         // Otherwise a change to where controllers live would leave this test passing on
         // nothing at all.
-        $this->assertGreaterThan(5, $checked, 'No list endpoints were found to check');
+        $this->assertGreaterThan(
+            5,
+            $checked,
+            'No list endpoints were found to check'
+        );
     }
 
     /**

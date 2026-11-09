@@ -79,7 +79,10 @@ class WatcherTypeRegistryTest extends TestCase
         $registry = $this->registry();
 
         foreach (WatcherTypeEnum::cases() as $type) {
-            $this->assertNotEmpty($registry->for($type)->describe()->fields, $type->value);
+            $this->assertNotEmpty(
+                $registry->for($type)->describe()->fields,
+                $type->value
+            );
         }
     }
 

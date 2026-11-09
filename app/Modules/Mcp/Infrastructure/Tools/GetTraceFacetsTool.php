@@ -14,17 +14,14 @@ use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolPropertyTypeEnum;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolResult;
 use App\Modules\Mcp\Infrastructure\Tools\Contracts\McpToolSchema;
 use App\Modules\Mcp\Parameters\FindMcpTraceFacetsParameters;
-use App\Modules\Trace\Entities\Trace\TraceStringFieldObject;
+use App\Modules\Mcp\Entities\Trace\TraceStringFieldObject;
 
 readonly class GetTraceFacetsTool implements McpToolInterface
 {
     private const int MAX_FILTER_VALUES = 20;
 
-    public function __construct(
-        private FindMcpTraceFacetsAction $findMcpTraceFacetsAction,
-        private FindMcpSettingsAction $findMcpSettingsAction,
-        private McpToolTraceScopeReader $scopeReader,
-    ) {
+    public function __construct(private FindMcpTraceFacetsAction $findMcpTraceFacetsAction, private FindMcpSettingsAction $findMcpSettingsAction, private McpToolTraceScopeReader $scopeReader)
+    {
     }
 
     public function name(): string
@@ -39,28 +36,28 @@ readonly class GetTraceFacetsTool implements McpToolInterface
 
     public function description(): string
     {
-        return 'Trace types, statuses and tags of the chosen services (all when omitted) over a period '
-            . 'with their counts, most frequent first, as the filters of the SLogger traces page. Types are '
-            . 'counted without the types filter, statuses without the statuses filter.';
+        return 'Trace types, statuses and tags of the chosen services (all when omitted) over a period ' . 'with their counts, most frequent first, as the filters of the SLogger traces page. Types are ' . 'counted without the types filter, statuses without the statuses filter.';
     }
 
     public function schema(): McpToolSchema
     {
-        return new McpToolSchema([
-            ...$this->scopeReader->properties(),
-            new McpToolProperty(
-                name: 'types',
-                type: McpToolPropertyTypeEnum::StringList,
-                description: 'Trace types.',
-                max: self::MAX_FILTER_VALUES
-            ),
-            new McpToolProperty(
-                name: 'statuses',
-                type: McpToolPropertyTypeEnum::StringList,
-                description: 'Trace statuses, for example failed.',
-                max: self::MAX_FILTER_VALUES
-            ),
-        ]);
+        return new McpToolSchema(
+            properties: [
+                ...$this->scopeReader->properties(),
+                new McpToolProperty(
+                    name: 'types',
+                    type: McpToolPropertyTypeEnum::StringList,
+                    description: 'Trace types.',
+                    max: self::MAX_FILTER_VALUES,
+                ),
+                new McpToolProperty(
+                    name: 'statuses',
+                    type: McpToolPropertyTypeEnum::StringList,
+                    description: 'Trace statuses, for example failed.',
+                    max: self::MAX_FILTER_VALUES,
+                ),
+            ],
+        );
     }
 
     public function call(McpToolArguments $arguments): McpToolResult
@@ -77,7 +74,7 @@ readonly class GetTraceFacetsTool implements McpToolInterface
                 period: $scope->period,
                 types: $arguments->stringList('types'),
                 statuses: $arguments->stringList('statuses'),
-                limit: $this->findMcpSettingsAction->handle()->facetsLimit
+                limit: $this->findMcpSettingsAction->handle()->facetsLimit,
             )
         );
 
@@ -92,7 +89,7 @@ readonly class GetTraceFacetsTool implements McpToolInterface
                     'statuses' => $facets->statuses->truncated,
                     'tags'     => $facets->tags->truncated,
                 ],
-            ]
+            ],
         );
     }
 
@@ -101,12 +98,9 @@ readonly class GetTraceFacetsTool implements McpToolInterface
      */
     private function items(McpTraceFacetListObject $list): array
     {
-        return array_map(
-            static fn(TraceStringFieldObject $item) => [
-                'value' => $item->name,
-                'count' => $item->count,
-            ],
-            $list->items
-        );
+        return array_map(static fn(TraceStringFieldObject $item) => [
+            'value' => $item->name,
+            'count' => $item->count,
+        ], $list->items);
     }
 }

@@ -16,7 +16,7 @@
 | `pms-env-actualize` | `slogger-env-actualize` для Codex и Claude |
 | `opsx-*` wrappers / OpenSpec | Уже установленные официальные `openspec-*`; дубли не копируются |
 | `NoMultilineArrayKeyRule` | `code-analyse/PHPStan/NoMultilineArrayKeyRule.php`, подключён в PHPStan |
-| Четыре custom CS fixers и их traits | `code-analyse/Fixers`, конфиг `code-analyse/php-cs-fixer-pms.php` для затронутых PHP-файлов |
+| Четыре custom CS fixers и их traits | `code-analyse/Fixers`, единый конфиг `code-analyse/php-cs-fixer.dist.php` для штатных check/fix |
 | Deptrac и проверка структуры | Адаптированы в локальных configs; включают Enums, Common, providers, UseCases и Transports |
 
 Не перенесены навыки удаления отелей, клиентских разрешений и подготовки
@@ -41,7 +41,10 @@
 - исходные `.claude/settings.json` с permissions не переносятся: права исполнения
   задаёт окружение, обязательные проверки перечислены в `.ai/README.md`.
 
-Custom formatter применяется к создаваемым и изменяемым PHP-файлам командой:
-`php vendor/bin/php-cs-fixer fix --config=code-analyse/php-cs-fixer-pms.php --using-cache=no <paths>`.
-Для проверки добавить `--dry-run --diff`. Старые файлы не форматируются только
-ради установки новых правил. Основной `make check` по-прежнему проверяет всю архитектуру.
+PHP CS Fixer использует единый конфиг PMS с путями SLogger. Все четыре custom
+fixers, исключения Models/Repositories, правила переноса аргументов, выравнивания
+и кеш с версией исходников подключены в штатные `make code-analise-cs-fixer-check`
+и `make code-analise-cs-fixer-fix`. Обёртка diff сохраняет код ошибки команды.
+Для первоначального подключения выполняется форматирование проверяемых файлов;
+бизнес-поведение при этом не меняется. Каталоги интеграций PMS не переносятся.
+Текстовые правила для fluent-цепочек и логических блоков требуют отдельной проверки.

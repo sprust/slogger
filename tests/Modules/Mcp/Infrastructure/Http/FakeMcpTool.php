@@ -35,7 +35,12 @@ readonly class FakeMcpTool implements McpToolInterface
     public function schema(): McpToolSchema
     {
         return new McpToolSchema([
-            new McpToolProperty('thing_id', McpToolPropertyTypeEnum::String, 'Thing id', required: true),
+            new McpToolProperty(
+                'thing_id',
+                McpToolPropertyTypeEnum::String,
+                'Thing id',
+                required: true
+            ),
         ]);
     }
 

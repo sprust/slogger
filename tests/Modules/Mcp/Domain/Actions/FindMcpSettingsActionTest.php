@@ -21,7 +21,10 @@ class FindMcpSettingsActionTest extends TestCase
         $settings = new FindMcpSettingsAction()->handle();
 
         $this->assertSame('prod', $settings->serverName);
-        $this->assertSame('https://slogger.example.com/mcp', $settings->endpointUrl);
+        $this->assertSame(
+            'https://slogger.example.com/mcp',
+            $settings->endpointUrl
+        );
     }
 
     public function testInvalidServerNameThrows(): void

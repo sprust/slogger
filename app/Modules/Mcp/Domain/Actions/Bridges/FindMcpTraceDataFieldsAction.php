@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Mcp\Domain\Actions\Bridges;
 
-use App\Modules\Mcp\Domain\Services\McpTracePeriodMapper;
+use App\Modules\Mcp\Transports\McpTracePeriodTransport;
 use App\Modules\Mcp\Entities\Bridges\McpTraceDataFieldObject;
 use App\Modules\Mcp\Entities\Bridges\McpTraceDataFieldsObject;
 use App\Modules\Mcp\Parameters\FindMcpTraceDataFieldsParameters;
@@ -17,13 +17,11 @@ use App\Services\Clickhouse\ClickhouseQueryException;
 readonly class FindMcpTraceDataFieldsAction
 {
     public const int TRACES_COUNT = 5;
+
     public const int FIELDS_LIMIT = 200;
 
-    public function __construct(
-        private FindTracesAction $findTracesAction,
-        private FindTraceDetailAction $findTraceDetailAction,
-        private McpTracePeriodMapper $periodMapper
-    ) {
+    public function __construct(private FindTracesAction $findTracesAction, private FindTraceDetailAction $findTraceDetailAction, private McpTracePeriodTransport $mcpTracePeriodTransport)
+    {
     }
 
     /**
@@ -35,14 +33,14 @@ readonly class FindMcpTraceDataFieldsAction
             new TraceFindParameters(
                 perPage: self::TRACES_COUNT,
                 serviceIds: $parameters->serviceIds,
-                loggingPeriod: $this->periodMapper->toLoggingPeriod($parameters->period),
-                types: [$parameters->type]
+                loggingPeriod: $this->mcpTracePeriodTransport->toLoggingPeriod($parameters->period),
+                types: [
+                    $parameters->type,
+                ],
             )
         );
-
         /** @var array<string, McpTraceDataFieldObject> $fields */
-        $fields = [];
-
+        $fields      = [];
         $tracesCount = 0;
 
         foreach ($traces->items as $item) {
@@ -54,12 +52,19 @@ readonly class FindMcpTraceDataFieldsAction
 
             $tracesCount++;
 
-            $this->collect($detail->data, $fields);
+            $this->collect(
+                data: $detail->data,
+                fields: $fields,
+            );
         }
 
         return new McpTraceDataFieldsObject(
-            fields: array_slice(array_values($fields), 0, self::FIELDS_LIMIT),
-            tracesCount: $tracesCount
+            fields: array_slice(
+                array_values($fields),
+                0,
+                self::FIELDS_LIMIT,
+            ),
+            tracesCount: $tracesCount,
         );
     }
 
@@ -71,10 +76,15 @@ readonly class FindMcpTraceDataFieldsAction
         $children = $data->children ?? [];
 
         if (count($children) === 0) {
-            if ($data->key !== '' && !array_key_exists($data->key, $fields)) {
+            if (
+                $data->key !== '' && !array_key_exists(
+                    $data->key,
+                    $fields,
+                )
+            ) {
                 $fields[$data->key] = new McpTraceDataFieldObject(
                     key: $data->key,
-                    example: $data->value
+                    example: $data->value,
                 );
             }
 
@@ -82,7 +92,10 @@ readonly class FindMcpTraceDataFieldsAction
         }
 
         foreach ($children as $child) {
-            $this->collect($child, $fields);
+            $this->collect(
+                data: $child,
+                fields: $fields,
+            );
         }
     }
 }

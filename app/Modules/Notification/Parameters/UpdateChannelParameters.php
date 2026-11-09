@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Notification\Parameters;
 
-readonly class UpdateChannelParameters
+use JsonSerializable;
+
+readonly class UpdateChannelParameters implements JsonSerializable
 {
     /**
      * @param array<string, mixed> $settings
@@ -15,5 +17,16 @@ readonly class UpdateChannelParameters
         public bool $enabled,
         public array $settings
     ) {
+    }
+
+    /** @return array{id: int, name: string, enabled: bool, settings: string} */
+    public function jsonSerialize(): array
+    {
+        return [
+            'id'       => $this->id,
+            'name'     => $this->name,
+            'enabled'  => $this->enabled,
+            'settings' => '|hidden|',
+        ];
     }
 }

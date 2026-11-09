@@ -17,7 +17,13 @@ class NginxAccessLogFormatTest extends TestCase
         );
 
         $this->assertEquals(
-            [new LogEntryStartObject(offset: 0, loggedAt: gmmktime(7, 0, 0, 9, 25, 2026), level: HttpStatusClassEnum::ServerError->value)],
+            [
+                new LogEntryStartObject(
+                    offset: 0,
+                    loggedAt: gmmktime(7, 0, 0, 9, 25, 2026),
+                    level: HttpStatusClassEnum::ServerError->value
+                ),
+            ],
             $starts
         );
     }
@@ -49,21 +55,30 @@ class NginxAccessLogFormatTest extends TestCase
     {
         $starts = $this->find('1.1.1.1 - - [25/Sep/2026:10:00:00 +0000] "GET /\"x HTTP/1.1" 400 1 "-" "-"');
 
-        $this->assertSame(HttpStatusClassEnum::ClientError->value, $starts[0]->level);
+        $this->assertSame(
+            HttpStatusClassEnum::ClientError->value,
+            $starts[0]->level
+        );
     }
 
     public function testALineThatDoesNotParseIsAnEntryWithoutLevelAndTime(): void
     {
         $starts = $this->find("garbage line\n");
 
-        $this->assertEquals([new LogEntryStartObject(offset: 0, loggedAt: null, level: 0)], $starts);
+        $this->assertEquals(
+            [new LogEntryStartObject(offset: 0, loggedAt: null, level: 0)],
+            $starts
+        );
     }
 
     public function testEmptyLinesAndTheEndOfTheChunkAreNotEntries(): void
     {
         $starts = $this->find("a\n\nb\n");
 
-        $this->assertSame([0, 3], array_map(static fn(LogEntryStartObject $start): int => $start->offset, $starts));
+        $this->assertSame(
+            [0, 3],
+            array_map(static fn(LogEntryStartObject $start): int => $start->offset, $starts)
+        );
     }
 
     public function testALastLineWithoutANewlineIsAnEntry(): void

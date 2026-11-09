@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Logs\Infrastructure;
 
-use App\Modules\Cleaner\Infrastructure\Commands\ClearTracesCommand;
+use App\Modules\Logs\Infrastructure\Exceptions\LogsExceptionManager;
 use App\Modules\Common\Infrastructure\BaseServiceProvider;
 use App\Modules\Logs\Domain\Actions\CleanLogsAction;
 use App\Modules\Logs\Domain\Actions\DeleteLogFileAction;
@@ -44,7 +44,6 @@ class LogsServiceProvider extends BaseServiceProvider
         parent::boot();
 
         $this->commands([
-            ClearTracesCommand::class,
             IndexLogsCommand::class,
             CleanLogsCommand::class,
         ]);
@@ -84,6 +83,13 @@ class LogsServiceProvider extends BaseServiceProvider
             // actions
             FindLogErrorStatAction::class,
             FindReceiverErrorStatAction::class,
+        ];
+    }
+
+    protected function getExceptionManagers(): array
+    {
+        return [
+            LogsExceptionManager::class,
         ];
     }
 }

@@ -27,7 +27,10 @@ class CountMcpRequestActionTest extends TestCase
 
         $repository->expects($this->once())
             ->method('incrementRequestsCount')
-            ->with(1, $this->callback(static fn(Carbon $at): bool => $at->eq(Carbon::now())));
+            ->with(
+                1,
+                $this->callback(static fn(Carbon $at): bool => $at->eq(Carbon::now()))
+            );
 
         new CountMcpRequestAction($repository)->handle(
             $this->mcpObject(lastUsedAt: Carbon::parse('2026-09-28 12:00:00'))

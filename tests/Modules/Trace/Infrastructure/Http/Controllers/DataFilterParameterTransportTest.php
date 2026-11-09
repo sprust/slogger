@@ -73,10 +73,16 @@ class DataFilterParameterTransportTest extends TestCase
 
         $this->assertSame('code', $parameters->filter[0]->field);
         $this->assertSame(500, $parameters->filter[0]->numeric?->value);
-        $this->assertSame(TraceDataFilterCompNumericTypeEnum::Gte, $parameters->filter[0]->numeric?->comp);
+        $this->assertSame(
+            TraceDataFilterCompNumericTypeEnum::Gte,
+            $parameters->filter[0]->numeric?->comp
+        );
 
         $this->assertSame('boom', $parameters->filter[1]->string?->value);
-        $this->assertSame(TraceDataFilterCompStringTypeEnum::Con, $parameters->filter[1]->string?->comp);
+        $this->assertSame(
+            TraceDataFilterCompStringTypeEnum::Con,
+            $parameters->filter[1]->string?->comp
+        );
 
         $this->assertTrue($parameters->filter[2]->boolean?->value);
         $this->assertTrue($parameters->filter[3]->null);

@@ -16,7 +16,11 @@ readonly class LogErrorsIncidentEventController extends AbstractIncidentEventCon
     public function index(string $id, IndexIncidentEventsRequest $request): AnonymousResourceCollection
     {
         return LogErrorsIncidentEventResource::collection(
-            $this->incidentEvents(WatcherTypeEnum::LogErrors, $id, $request->validated())
+            $this->incidentEvents(
+                WatcherTypeEnum::LogErrors,
+                $id,
+                $request->validated()
+            )
         );
     }
 }

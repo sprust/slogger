@@ -26,7 +26,10 @@ class McpToolTimeParserTest extends TestCase
     #[DataProvider('validTimes')]
     public function testParsesIso8601(string $value, string $expectedUtc): void
     {
-        $this->assertSame($expectedUtc, new McpToolTimeParser()->parse($value)?->utc()->toDateTimeString());
+        $this->assertSame(
+            $expectedUtc,
+            new McpToolTimeParser()->parse($value)?->utc()->toDateTimeString()
+        );
     }
 
     /**

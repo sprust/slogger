@@ -16,7 +16,11 @@ readonly class ManyTracesIncidentEventController extends AbstractIncidentEventCo
     public function index(string $id, IndexIncidentEventsRequest $request): AnonymousResourceCollection
     {
         return ManyTracesIncidentEventResource::collection(
-            $this->incidentEvents(WatcherTypeEnum::ManyTraces, $id, $request->validated())
+            $this->incidentEvents(
+                WatcherTypeEnum::ManyTraces,
+                $id,
+                $request->validated()
+            )
         );
     }
 }

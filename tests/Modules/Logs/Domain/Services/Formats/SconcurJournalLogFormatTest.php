@@ -16,7 +16,13 @@ class SconcurJournalLogFormatTest extends TestCase
         $starts = $this->find("[2026-10-28 06:30:06.060236] ERROR [worker: 12 rabbitmq #0]: exited signal=11 uptime=0.7s; restarting in 200ms []\n");
 
         $this->assertEquals(
-            [new LogEntryStartObject(offset: 0, loggedAt: gmmktime(6, 30, 6, 10, 28, 2026), level: SconcurJournalLogLevelEnum::Error->value)],
+            [
+                new LogEntryStartObject(
+                    offset: 0,
+                    loggedAt: gmmktime(6, 30, 6, 10, 28, 2026),
+                    level: SconcurJournalLogLevelEnum::Error->value
+                ),
+            ],
             $starts
         );
     }
@@ -36,7 +42,10 @@ class SconcurJournalLogFormatTest extends TestCase
 
         $this->assertSame('start groups=4 workers=5', $details->message);
         $this->assertNull($details->context);
-        $this->assertSame(['process' => 'master', 'pid' => '7', 'worker' => null], $this->fields($details->fields));
+        $this->assertSame(
+            ['process' => 'master', 'pid' => '7', 'worker' => null],
+            $this->fields($details->fields)
+        );
     }
 
     public function testAWorkerLineNamesTheWorker(): void
@@ -44,7 +53,10 @@ class SconcurJournalLogFormatTest extends TestCase
         $details = $this->format()->parseEntry('[2026-10-28 06:30:05.353636] INFO [worker: 10 http #1]: spawned []');
 
         $this->assertSame('spawned', $details->message);
-        $this->assertSame(['process' => 'worker', 'pid' => '10', 'worker' => 'http#1'], $this->fields($details->fields));
+        $this->assertSame(
+            ['process' => 'worker', 'pid' => '10', 'worker' => 'http#1'],
+            $this->fields($details->fields)
+        );
     }
 
     public function testAWorkerOutsideAGroupIsItsSlot(): void
@@ -52,7 +64,10 @@ class SconcurJournalLogFormatTest extends TestCase
         $details = $this->format()->parseEntry('[2026-10-28 06:30:05.353636] ERROR [worker: 12 #0]: PHP Fatal error []');
 
         $this->assertSame('PHP Fatal error', $details->message);
-        $this->assertSame(['process' => 'worker', 'pid' => '12', 'worker' => '#0'], $this->fields($details->fields));
+        $this->assertSame(
+            ['process' => 'worker', 'pid' => '12', 'worker' => '#0'],
+            $this->fields($details->fields)
+        );
     }
 
     public function testAContextIsSplitFromTheMessage(): void
@@ -65,8 +80,14 @@ class SconcurJournalLogFormatTest extends TestCase
 
     public function testALineThatDoesNotParseIsAnEntryWithoutLevelAndTime(): void
     {
-        $this->assertEquals([new LogEntryStartObject(offset: 0, loggedAt: null, level: 0)], $this->find("PHP Fatal error\n"));
-        $this->assertSame('PHP Fatal error', $this->format()->parseEntry("PHP Fatal error\n")->message);
+        $this->assertEquals(
+            [new LogEntryStartObject(offset: 0, loggedAt: null, level: 0)],
+            $this->find("PHP Fatal error\n")
+        );
+        $this->assertSame(
+            'PHP Fatal error',
+            $this->format()->parseEntry("PHP Fatal error\n")->message
+        );
     }
 
     /**

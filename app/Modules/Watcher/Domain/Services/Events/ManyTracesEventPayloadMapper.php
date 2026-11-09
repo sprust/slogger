@@ -34,7 +34,8 @@ readonly class ManyTracesEventPayloadMapper implements WatcherEventPayloadMapper
 
         $measuredWindowCount = ArrayValueGetter::intNull($measured, 'window_count');
 
-        if (is_null($settingsWindowMinutes)
+        if (
+            is_null($settingsWindowMinutes)
             || is_null($settingsThreshold)
             || is_null($measuredWindowCount)
         ) {

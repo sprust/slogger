@@ -51,7 +51,11 @@ readonly class SlowTracesChecker implements WatcherCheckerInterface
         // collected for holds no slow traces, so a short line can only keep this quiet.
         $groups = array_values(
             array_filter(
-                $this->analyzer->groupsIn($this->timelineRepository->find($watcher->id), $from, $to),
+                $this->analyzer->groupsIn(
+                    $this->timelineRepository->find($watcher->id),
+                    $from,
+                    $to
+                ),
                 static fn(WatcherTimelineGroupObject $group): bool => $group->durationMax >= $settings->duration
             )
         );

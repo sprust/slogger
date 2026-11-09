@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Watcher\Infrastructure\Http\Controllers;
 
-use App\Modules\Watcher\Domain\Actions\Mutations\DeleteWatcherAction;
-use App\Modules\Watcher\Domain\Actions\Queries\FindWatcherTypesAction;
-use App\Modules\Watcher\Domain\Actions\Queries\FindWatchersAction;
+use App\Modules\Watcher\Domain\UseCases\DeleteWatcherByAdminUseCase;
+use App\Modules\Watcher\Domain\UseCases\FindWatcherTypesByAdminUseCase;
+use App\Modules\Watcher\Domain\UseCases\FindWatchersByAdminUseCase;
 use App\Modules\Watcher\Infrastructure\Http\Resources\WatcherResource;
 use App\Modules\Watcher\Infrastructure\Http\Resources\WatcherTypeResource;
 use Ifksco\OpenApiGenerator\Attributes\OaListItemTypeAttribute;
@@ -21,17 +21,14 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
  */
 readonly class WatcherController
 {
-    public function __construct(
-        private FindWatchersAction $findWatchersAction,
-        private FindWatcherTypesAction $findWatcherTypesAction,
-        private DeleteWatcherAction $deleteWatcherAction
-    ) {
+    public function __construct(private FindWatchersByAdminUseCase $findWatchersByAdminUseCase, private FindWatcherTypesByAdminUseCase $findWatcherTypesByAdminUseCase, private DeleteWatcherByAdminUseCase $deleteWatcherByAdminUseCase)
+    {
     }
 
     #[OaListItemTypeAttribute(WatcherResource::class)]
     public function index(): AnonymousResourceCollection
     {
-        return WatcherResource::collection($this->findWatchersAction->handle());
+        return WatcherResource::collection($this->findWatchersByAdminUseCase->handle());
     }
 
     /**
@@ -41,11 +38,11 @@ readonly class WatcherController
     #[OaListItemTypeAttribute(WatcherTypeResource::class)]
     public function types(): AnonymousResourceCollection
     {
-        return WatcherTypeResource::collection($this->findWatcherTypesAction->handle());
+        return WatcherTypeResource::collection($this->findWatcherTypesByAdminUseCase->handle());
     }
 
     public function delete(int $id): void
     {
-        $this->deleteWatcherAction->handle($id);
+        $this->deleteWatcherByAdminUseCase->handle($id);
     }
 }

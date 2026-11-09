@@ -16,7 +16,11 @@ readonly class InvalidBufferGrownIncidentEventController extends AbstractInciden
     public function index(string $id, IndexIncidentEventsRequest $request): AnonymousResourceCollection
     {
         return InvalidBufferGrownIncidentEventResource::collection(
-            $this->incidentEvents(WatcherTypeEnum::InvalidBufferGrown, $id, $request->validated())
+            $this->incidentEvents(
+                WatcherTypeEnum::InvalidBufferGrown,
+                $id,
+                $request->validated()
+            )
         );
     }
 }

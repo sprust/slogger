@@ -139,7 +139,13 @@ class WatcherEventPayloadMapperTest extends TestCase
             WatcherTypeEnum::SlowTraces => new SlowTracesEventPayloadObject(
                 settings: new SlowTracesEventSettingsObject(duration: 10.0, windowMinutes: 5),
                 measured: new SlowTracesEventMeasuredObject(slowest: 41.2),
-                groups: [$this->group(durationMax: 41.2, slowestTraceId: 'abc123', slowestTraceLoggedAt: '2026-09-08 18:10:00')]
+                groups: [
+                    $this->group(
+                        durationMax: 41.2,
+                        slowestTraceId: 'abc123',
+                        slowestTraceLoggedAt: '2026-09-08 18:10:00'
+                    ),
+                ]
             ),
             WatcherTypeEnum::LogErrors => new LogErrorsEventPayloadObject(
                 settings: new LogErrorsEventSettingsObject(threshold: 1),

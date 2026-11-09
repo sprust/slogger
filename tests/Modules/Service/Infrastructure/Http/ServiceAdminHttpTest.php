@@ -140,7 +140,10 @@ class ServiceAdminHttpTest extends TestCase
         $this->repository->method('findIds')->willReturn([1, 2, 3]);
         $this->repository->expects($this->once())->method('updatePositions')->with([3, 1, 2]);
 
-        $this->patchJson('/admin-api/services/positions', ['ids' => [3, 1, 2]])->assertOk();
+        $this->patchJson(
+            '/admin-api/services/positions',
+            ['ids' => [3, 1, 2]]
+        )->assertOk();
     }
 
     public function testSortingNotEveryServiceIsRejected(): void
@@ -151,8 +154,14 @@ class ServiceAdminHttpTest extends TestCase
         $this->repository->expects($this->never())->method('updatePositions');
 
         $this->patchJson('/admin-api/services/positions', ['ids' => [3, 1]])->assertUnprocessable();
-        $this->patchJson('/admin-api/services/positions', ['ids' => [3, 1, 2, 4]])->assertUnprocessable();
-        $this->patchJson('/admin-api/services/positions', ['ids' => [3, 1, 1]])->assertUnprocessable();
+        $this->patchJson(
+            '/admin-api/services/positions',
+            ['ids' => [3, 1, 2, 4]]
+        )->assertUnprocessable();
+        $this->patchJson(
+            '/admin-api/services/positions',
+            ['ids' => [3, 1, 1]]
+        )->assertUnprocessable();
     }
 
     private function serviceObject(int $id, string $name): ServiceObject

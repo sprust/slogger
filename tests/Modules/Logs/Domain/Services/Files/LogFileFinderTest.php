@@ -55,7 +55,10 @@ class LogFileFinderTest extends TestCase
                 $files
             )
         );
-        $this->assertSame(sha1($this->tempDir . '/logs/nginx/error.log'), $files[2]->id);
+        $this->assertSame(
+            sha1($this->tempDir . '/logs/nginx/error.log'),
+            $files[2]->id
+        );
         $this->assertSame($this->tempDir . '/logs/nginx', $files[2]->folder);
     }
 
@@ -65,7 +68,10 @@ class LogFileFinderTest extends TestCase
 
         $finder = $this->app->make(LogFileFinder::class);
 
-        $this->assertSame('laravel.log', $finder->findById(sha1($this->tempDir . '/logs/laravel.log'))?->name);
+        $this->assertSame(
+            'laravel.log',
+            $finder->findById(sha1($this->tempDir . '/logs/laravel.log'))?->name
+        );
         $this->assertNull($finder->findById(sha1('/etc/passwd')));
     }
 }

@@ -83,8 +83,14 @@ class TaskWatcherTest extends TestCase
 
         self::assertSame(TraceStatusEnum::Failed->value, $stopped['status']);
         self::assertSame('failed', $stopped['data']['result']);
-        self::assertSame(RuntimeException::class, $stopped['data']['exception']['class']);
-        self::assertSame('the schedule blew up', $stopped['data']['exception']['message']);
+        self::assertSame(
+            RuntimeException::class,
+            $stopped['data']['exception']['class']
+        );
+        self::assertSame(
+            'the schedule blew up',
+            $stopped['data']['exception']['message']
+        );
     }
 
     public function testAnExceptedTaskIsNotTraced(): void
@@ -94,7 +100,10 @@ class TaskWatcherTest extends TestCase
         $processor->expects($this->never())->method('startAndGetTraceId');
         $processor->expects($this->never())->method('stop');
 
-        $watcher = $this->watcher($processor, ['excepted' => ['build-trace-dynamic-indexes']]);
+        $watcher = $this->watcher(
+            $processor,
+            ['excepted' => ['build-trace-dynamic-indexes']]
+        );
 
         $watcher->handleTickStarted(new TaskTickStarted(name: 'build-trace-dynamic-indexes'));
         $watcher->handleTickFinished(
@@ -143,10 +152,18 @@ class TaskWatcherTest extends TestCase
         $watcher->handleTickStarted(new TaskTickStarted(name: 'check-watchers'));
 
         $watcher->handleTickFinished(
-            new TaskTickFinished(name: 'check-watchers', result: TickResultEnum::Worked, exception: null)
+            new TaskTickFinished(
+                name: 'check-watchers',
+                result: TickResultEnum::Worked,
+                exception: null
+            )
         );
         $watcher->handleTickFinished(
-            new TaskTickFinished(name: 'cron', result: TickResultEnum::Idle, exception: null)
+            new TaskTickFinished(
+                name: 'cron',
+                result: TickResultEnum::Idle,
+                exception: null
+            )
         );
 
         self::assertSame(['trace-watchers', 'trace-cron'], $stoppedTraceIds);

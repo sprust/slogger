@@ -32,10 +32,24 @@ class CheckWatcherActionTest extends TestCase
     {
         $this->expectNotToPerformAssertions();
 
-        $this->action(new RuntimeException('the line would not load'))->handle(
-            $this->watcher(WatcherTypeEnum::BufferOverflow, new BufferOverflowSettingsObject()),
-            new WatcherCheckContextObject(Carbon::now(), 0)
-        );
+        $this
+            ->action(
+                failure: new RuntimeException(
+                    message: 'the line would not load',
+                ),
+            )
+            ->handle(
+                new \App\Modules\Watcher\Parameters\CheckWatcherParameters(
+                    watcher: $this->watcher(
+                        type: WatcherTypeEnum::BufferOverflow,
+                        settings: new BufferOverflowSettingsObject(),
+                    ),
+                    context: new WatcherCheckContextObject(
+                        now: Carbon::now(),
+                        bufferCount: 0,
+                    ),
+                )
+            );
     }
 
     /**
@@ -46,23 +60,53 @@ class CheckWatcherActionTest extends TestCase
     public function testAFailedCheckDoesNotCountAsHavingLooked(): void
     {
         $watchers = $this->createMock(WatcherRepository::class);
+
         $watchers->expects($this->never())->method('updateCheckedAt');
 
-        $this->action(new RuntimeException('the line would not load'), $watchers)->handle(
-            $this->watcher(WatcherTypeEnum::BufferOverflow, new BufferOverflowSettingsObject()),
-            new WatcherCheckContextObject(Carbon::now(), 0)
-        );
+        $this
+            ->action(
+                failure: new RuntimeException(
+                    message: 'the line would not load',
+                ),
+                watchers: $watchers,
+            )
+            ->handle(
+                new \App\Modules\Watcher\Parameters\CheckWatcherParameters(
+                    watcher: $this->watcher(
+                        type: WatcherTypeEnum::BufferOverflow,
+                        settings: new BufferOverflowSettingsObject(),
+                    ),
+                    context: new WatcherCheckContextObject(
+                        now: Carbon::now(),
+                        bufferCount: 0,
+                    ),
+                )
+            );
     }
 
     public function testASuccessfulCheckIsRecordedAsHavingLooked(): void
     {
         $watchers = $this->createMock(WatcherRepository::class);
+
         $watchers->expects($this->once())->method('updateCheckedAt');
 
-        $this->action(null, $watchers)->handle(
-            $this->watcher(WatcherTypeEnum::BufferOverflow, new BufferOverflowSettingsObject()),
-            new WatcherCheckContextObject(Carbon::now(), 0)
-        );
+        $this
+            ->action(
+                failure: null,
+                watchers: $watchers,
+            )
+            ->handle(
+                new \App\Modules\Watcher\Parameters\CheckWatcherParameters(
+                    watcher: $this->watcher(
+                        type: WatcherTypeEnum::BufferOverflow,
+                        settings: new BufferOverflowSettingsObject(),
+                    ),
+                    context: new WatcherCheckContextObject(
+                        now: Carbon::now(),
+                        bufferCount: 0,
+                    ),
+                )
+            );
     }
 
     private function action(?RuntimeException $failure, ?WatcherRepository $watchers = null): CheckWatcherAction
@@ -75,14 +119,16 @@ class CheckWatcherActionTest extends TestCase
             $checker->method('check')->willReturn(null);
         }
 
-        $registry = $this->watcherTypeRegistry(bufferOverflow: $checker);
+        $registry = $this->watcherTypeRegistry(
+            bufferOverflow: $checker,
+        );
 
         return new CheckWatcherAction(
-            $registry,
-            $this->createMock(RegisterTriggerAction::class),
-            $this->createMock(TrimWatcherTimelineAction::class),
-            $watchers ?? $this->createMock(WatcherRepository::class),
-            $this->createMock(LoggerInterface::class)
+            types: $registry,
+            registerTriggerAction: $this->createMock(RegisterTriggerAction::class),
+            trimTimelineAction: $this->createMock(TrimWatcherTimelineAction::class),
+            watcherRepository: $watchers ?? $this->createMock(WatcherRepository::class),
+            logger: $this->createMock(LoggerInterface::class),
         );
     }
 }

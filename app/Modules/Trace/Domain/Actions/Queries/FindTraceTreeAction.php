@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Trace\Domain\Actions\Queries;
 
+use App\Modules\Common\Domain\Services\DispatcherInterface;
 use App\Modules\Trace\Domain\Events\TraceTreeCacheDeleteRequestedEvent;
 use App\Modules\Trace\Entities\Trace\Tree\TraceTreeResultObject;
 use App\Modules\Trace\Enums\TraceTreeCacheStateStatusEnum;
@@ -16,12 +17,8 @@ use App\Services\Clickhouse\ClickhouseQueryException;
 
 readonly class FindTraceTreeAction
 {
-    public function __construct(
-        private TraceRepository $traceRepository,
-        private TraceTreeRepository $traceTreeRepository,
-        private TraceTreeCacheRepository $traceTreeCacheRepository,
-        private TraceTreeCacheStateRepository $traceTreeCacheStateRepository,
-    ) {
+    public function __construct(private DispatcherInterface $dispatcher, private TraceRepository $traceRepository, private TraceTreeRepository $traceTreeRepository, private TraceTreeCacheRepository $traceTreeCacheRepository, private TraceTreeCacheStateRepository $traceTreeCacheStateRepository)
+    {
     }
 
     /**
@@ -29,11 +26,9 @@ readonly class FindTraceTreeAction
      */
     public function handle(string $traceId, bool $fresh, bool $isChild): ?TraceTreeResultObject
     {
-        $rootTraceId = $isChild
-            ? $traceId
-            : $this->traceTreeRepository->findParentTraceId(
-                traceId: $traceId
-            );
+        $rootTraceId = $isChild ? $traceId : $this->traceTreeRepository->findParentTraceId(
+            traceId: $traceId,
+        );
 
         if (!$rootTraceId) {
             return null;
@@ -44,7 +39,7 @@ readonly class FindTraceTreeAction
         }
 
         $state = $this->traceTreeCacheStateRepository->findOneByRootTraceId(
-            rootTraceId: $rootTraceId
+            rootTraceId: $rootTraceId,
         );
 
         if ($fresh || $state === null) {
@@ -54,7 +49,7 @@ readonly class FindTraceTreeAction
                 status: TraceTreeCacheStateStatusEnum::InProcess,
             );
 
-            event(
+            $this->dispatcher->event(
                 new TraceTreeCacheDeleteRequestedEvent(
                     rootTraceId: $state->rootTraceId,
                     buildVersion: $state->version,
@@ -73,7 +68,7 @@ readonly class FindTraceTreeAction
                     rootTraceId: $rootTraceId,
                     version: $state->version,
                     count: $this->traceTreeCacheRepository->findCount(
-                        rootTraceId: $rootTraceId
+                        rootTraceId: $rootTraceId,
                     ),
                 );
             }
@@ -81,7 +76,11 @@ readonly class FindTraceTreeAction
             // Past this the tree is not read at all: sending it whole outlives the handler's
             // deadline long before it reaches a browser that could not build it anyway.
             // The panel opens it branch by branch through FindTraceTreeChildrenAction.
-            if ($state->count > (int) config('module-trace.tree.full_load_limit')) {
+            if (
+                $state->count > (int) config(
+                    key: 'module-trace.tree.full_load_limit',
+                )
+            ) {
                 return new TraceTreeResultObject(
                     state: $state,
                     items: null,
@@ -92,7 +91,7 @@ readonly class FindTraceTreeAction
             return new TraceTreeResultObject(
                 state: $state,
                 items: $this->traceTreeCacheRepository->findMany(
-                    rootTraceId: $rootTraceId
+                    rootTraceId: $rootTraceId,
                 ),
             );
         }

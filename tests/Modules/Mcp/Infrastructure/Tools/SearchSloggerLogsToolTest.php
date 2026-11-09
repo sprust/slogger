@@ -51,10 +51,16 @@ class SearchSloggerLogsToolTest extends TestCase
             $result->data
         );
         $this->assertSame(['f-laravel'], $this->captured?->fileIds);
-        $this->assertSame(['laravel.ERROR', 'laravel.CRITICAL'], $this->captured->levelKeys);
+        $this->assertSame(
+            ['laravel.ERROR', 'laravel.CRITICAL'],
+            $this->captured->levelKeys
+        );
         $this->assertSame(1790622000, $this->captured->fromTime);
         $this->assertSame('refused', $this->captured->searchQuery);
-        $this->assertSame(LogCursorDirectionEnum::Older, $this->captured->direction);
+        $this->assertSame(
+            LogCursorDirectionEnum::Older,
+            $this->captured->direction
+        );
         $this->assertSame(5, $this->captured->perPage);
         $this->assertNull($this->captured->cursor);
     }
@@ -87,7 +93,10 @@ class SearchSloggerLogsToolTest extends TestCase
 
     public function testInvalidTime(): void
     {
-        $this->assertSame('invalid_time', $this->callTool(['source' => 'Laravel', 'from' => 'today'])->data['error']);
+        $this->assertSame(
+            'invalid_time',
+            $this->callTool(['source' => 'Laravel', 'from' => 'today'])->data['error']
+        );
     }
 
     public function testIndexing(): void
@@ -105,8 +114,18 @@ class SearchSloggerLogsToolTest extends TestCase
     {
         $files = $this->createMock(FindLogFilesAction::class);
         $files->method('handle')->willReturn([
-            $this->file('f-laravel', 'laravel.log', 'Laravel', LogTypeEnum::Laravel),
-            $this->file('f-access', 'access.log', 'Nginx', LogTypeEnum::NginxAccess),
+            $this->file(
+                'f-laravel',
+                'laravel.log',
+                'Laravel',
+                LogTypeEnum::Laravel
+            ),
+            $this->file(
+                'f-access',
+                'access.log',
+                'Nginx',
+                LogTypeEnum::NginxAccess
+            ),
         ]);
 
         $entries = $this->createMock(FindLogEntriesAction::class);
@@ -140,7 +159,11 @@ class SearchSloggerLogsToolTest extends TestCase
         });
 
         return new SearchSloggerLogsTool(
-            new FindMcpLogEntriesAction($files, $entries, $this->app->make(LogFormatRegistry::class)),
+            new FindMcpLogEntriesAction(
+                $files,
+                $entries,
+                $this->app->make(LogFormatRegistry::class)
+            ),
             new McpToolTimeParser(),
             new McpToolFormatter()
         )->call(new McpToolArguments($arguments));

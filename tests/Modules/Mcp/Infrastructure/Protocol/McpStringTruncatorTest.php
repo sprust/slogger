@@ -15,7 +15,10 @@ class McpStringTruncatorTest extends TestCase
         );
 
         $this->assertSame('короткий', $result['a']);
-        $this->assertSame(str_repeat('я', 10) . '…[truncated, 12 chars total]', $result['b']['c']);
+        $this->assertSame(
+            str_repeat('я', 10) . '…[truncated, 12 chars total]',
+            $result['b']['c']
+        );
         $this->assertSame(5, $result['d']);
     }
 }
