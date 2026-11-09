@@ -577,9 +577,25 @@ New features and behavior changes are specified with [OpenSpec](https://openspec
 - `openspec/changes/archive/` — finished changes, merged into `openspec/specs/`.
 - `openspec/config.yaml` — project context and per-artifact rules fed to every artifact. Artifacts are written in Russian.
 
-Cycle: `/opsx:explore` (optional) → `/opsx:propose <idea>` → review → `/opsx:apply` → `/opsx:archive`. `/opsx:update` revises the artifacts of an open change, and `/opsx:sync` merges its delta specs without archiving.
+Cycle: explore (optional) → propose → review → apply → archive. Update revises the artifacts of an open change, and sync merges its delta specs without archiving.
 
-OpenSpec does not relax the Approval Policy: a proposal is the plan to approve, and `/opsx:apply` starts only after explicit approval. Commits and pushes still need their own approval.
+| Workflow | Codex skill | Claude command |
+| --- | --- | --- |
+| Explore | `$openspec-explore` | `/opsx:explore` |
+| Propose | `$openspec-propose` | `/opsx:propose` |
+| Apply | `$openspec-apply-change` | `/opsx:apply` |
+| Update | `$openspec-update-change` | `/opsx:update` |
+| Sync | `$openspec-sync-specs` | `/opsx:sync` |
+| Archive | `$openspec-archive-change` | `/opsx:archive` |
+
+Codex uses the generated `.agents/skills/openspec-*/SKILL.md` files, installed by
+`openspec init --tools codex`. Do not add `opsx-*` wrappers for the same workflows.
+Keep project-specific rules here and in `openspec/config.yaml`, not in generated skills.
+Before using a workflow, read this guide and run commands from the project root.
+If `openspec` is missing from PATH, check `~/.local/bin/openspec` before reporting it
+uninstalled. Installing the CLI or initializing a project still requires a user request.
+
+OpenSpec does not relax the Approval Policy: a proposal is the plan to approve, and apply starts only after explicit approval. Selecting a workflow automatically does not grant approval. Commits and pushes still need their own approval.
 
 Existing `.ai/plans/` files stay where they are; new work goes through `openspec/changes/`.
 
